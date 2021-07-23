@@ -123,7 +123,7 @@ module ActiveSupport
     #   humanize('author_id')                        # => "Author"
     #   humanize('author_id', capitalize: false)     # => "author"
     #   humanize('_id')                              # => "Id"
-    #   humanize('author_id', keep_id_suffix: true)  # => "Author Id"
+    #   humanize('author_id', keep_id_suffix: true)  # => "Author id"
     #
     # If "SSL" was defined to be an acronym:
     #

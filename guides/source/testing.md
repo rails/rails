@@ -569,6 +569,26 @@ end
 NOTE: With disabled transactional tests, you have to clean up any data tests
 create as changes are not automatically rolled back after the test completes.
 
+### Threshold to parallelize tests
+
+Running tests in parallel adds an overhead in terms of database setup and
+fixture loading. Because of this, Rails won't parallelize executions that involve
+fewer than 50 tests.
+
+You can configure this threshold in your `test.rb`:
+
+```ruby
+config.active_support.test_parallelization_threshold = 100
+```
+
+And also when setting up parallelization at the test case level:
+
+```ruby
+class ActiveSupport::TestCase
+  parallelize threshold: 100
+end
+```
+
 The Test Database
 -----------------
 
@@ -805,15 +825,15 @@ system tests should live.
 
 If you want to change the default settings you can change what the system
 tests are "driven by". Say you want to change the driver from Selenium to
-Poltergeist. First add the `poltergeist` gem to your `Gemfile`. Then in your
+Cuprite. First add the `cuprite` gem to your `Gemfile`. Then in your
 `application_system_test_case.rb` file do the following:
 
 ```ruby
 require "test_helper"
-require "capybara/poltergeist"
+require "capybara/cuprite"
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  driven_by :poltergeist
+  driven_by :cuprite
 end
 ```
 
@@ -1588,7 +1608,7 @@ end
 
 This assertion is quite powerful. For more advanced usage, refer to its [documentation](https://github.com/rails/rails-dom-testing/blob/master/lib/rails/dom/testing/assertions/selector_assertions.rb).
 
-#### Additional View-Based Assertions
+### Additional View-Based Assertions
 
 There are more assertions that are primarily used in testing views:
 

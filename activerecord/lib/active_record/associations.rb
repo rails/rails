@@ -3,6 +3,7 @@
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError #:nodoc:
     attr_reader :record, :association_name
+
     def initialize(record = nil, association_name = nil)
       @record           = record
       @association_name = association_name
@@ -13,32 +14,25 @@ module ActiveRecord
       end
     end
 
-    class Correction
-      def initialize(error)
-        @error = error
-      end
+    if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
+      include DidYouMean::Correctable
 
       def corrections
-        if @error.association_name
-          maybe_these = @error.record.class.reflections.keys
-
-          maybe_these.sort_by { |n|
-            DidYouMean::Jaro.distance(@error.association_name.to_s, n)
-          }.reverse.first(4)
+        if record && association_name
+          @corrections ||= begin
+            maybe_these = record.class.reflections.keys
+            DidYouMean::SpellChecker.new(dictionary: maybe_these).correct(association_name)
+          end
         else
           []
         end
       end
     end
-
-    # We may not have DYM, and DYM might not let us register error handlers
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
-    end
   end
 
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
     attr_reader :reflection, :associated_class
+
     def initialize(reflection = nil, associated_class = nil)
       if reflection
         @reflection = reflection
@@ -49,27 +43,19 @@ module ActiveRecord
       end
     end
 
-    class Correction
-      def initialize(error)
-        @error = error
-      end
+    if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
+      include DidYouMean::Correctable
 
       def corrections
-        if @error.reflection && @error.associated_class
-          maybe_these = @error.associated_class.reflections.keys
-
-          maybe_these.sort_by { |n|
-            DidYouMean::Jaro.distance(@error.reflection.options[:inverse_of].to_s, n)
-          }.reverse.first(4)
+        if reflection && associated_class
+          @corrections ||= begin
+            maybe_these = associated_class.reflections.keys
+            DidYouMean::SpellChecker.new(dictionary: maybe_these).correct(reflection.options[:inverse_of].to_s)
+          end
         else
           []
         end
       end
-    end
-
-    # We may not have DYM, and DYM might not let us register error handlers
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
     end
   end
 
@@ -86,28 +72,20 @@ module ActiveRecord
       end
     end
 
-    class Correction
-      def initialize(error)
-        @error = error
-      end
+    if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
+      include DidYouMean::Correctable
 
       def corrections
-        if @error.reflection && @error.owner_class
-          maybe_these = @error.owner_class.reflections.keys
-          maybe_these -= [@error.reflection.name.to_s] # remove failing reflection
-
-          maybe_these.sort_by { |n|
-            DidYouMean::Jaro.distance(@error.reflection.options[:through].to_s, n)
-          }.reverse.first(4)
+        if owner_class && reflection
+          @corrections ||= begin
+            maybe_these = owner_class.reflections.keys
+            maybe_these -= [reflection.name.to_s] # remove failing reflection
+            DidYouMean::SpellChecker.new(dictionary: maybe_these).correct(reflection.options[:through].to_s)
+          end
         else
           []
         end
       end
-    end
-
-    # We may not have DYM, and DYM might not let us register error handlers
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
     end
   end
 
@@ -386,6 +364,8 @@ module ActiveRecord
       #   create_other(attributes={})       |     X      |              |    X
       #   create_other!(attributes={})      |     X      |              |    X
       #   reload_other                      |     X      |      X       |    X
+      #   other_changed?                    |     X      |      X       |
+      #   other_previously_changed?         |     X      |      X       |
       #
       # === Collection associations (one-to-many / many-to-many)
       #                                     |       |          | has_many
@@ -1646,6 +1626,10 @@ module ActiveRecord
         #   if the record is invalid.
         # [reload_association]
         #   Returns the associated object, forcing a database read.
+        # [association_changed?]
+        #   Returns true if a new associate object has been assigned and the next save will update the foreign key.
+        # [association_previously_changed?]
+        #   Returns true if the previous save updated the association to reference a new associate object.
         #
         # === Example
         #
@@ -1656,6 +1640,8 @@ module ActiveRecord
         # * <tt>Post#create_author</tt> (similar to <tt>post.author = Author.new; post.author.save; post.author</tt>)
         # * <tt>Post#create_author!</tt> (similar to <tt>post.author = Author.new; post.author.save!; post.author</tt>)
         # * <tt>Post#reload_author</tt>
+        # * <tt>Post#author_changed?</tt>
+        # * <tt>Post#author_previously_changed?</tt>
         # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
         # === Scopes

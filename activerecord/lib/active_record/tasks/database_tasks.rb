@@ -286,7 +286,7 @@ module ActiveRecord
       end
 
       def db_configs_with_versions(db_configs) # :nodoc:
-        db_configs_with_versions = {}
+        db_configs_with_versions = Hash.new { |h, k| h[k] = [] }
 
         db_configs.each do |db_config|
           ActiveRecord::Base.establish_connection(db_config)
@@ -295,7 +295,7 @@ module ActiveRecord
 
           versions_to_run.each do |version|
             next if target_version && target_version != version
-            db_configs_with_versions[version] = db_config
+            db_configs_with_versions[version] << db_config
           end
         end
 
@@ -592,7 +592,7 @@ module ActiveRecord
         end
 
         def schema_sha1(file)
-          Digest::SHA1.hexdigest(File.read(file))
+          OpenSSL::Digest::SHA1.hexdigest(File.read(file))
         end
 
         def structure_dump_flags_for(adapter)

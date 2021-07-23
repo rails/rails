@@ -1,3 +1,15 @@
+*   Improve error messages when template file does not exist at absolute filepath.
+
+    *Ted Whang*
+
+*   Add `:country_code` option to `sms_to` for consistency with `phone_to`.
+
+    *Jonathan Hefner*
+
+*   OpenSSL constants are now used for Digest computations.
+
+    *Dirkjan Bussink*
+
 *   The `translate` helper now passes `default` values that aren't
     translation keys through `I18n.translate` for interpolation.
 
@@ -7,12 +19,14 @@
     `.css` extension appended to the stylesheet path.
 
     Before:
+
     ```ruby
     stylesheet_link_tag "style.less"
     # <link href="/stylesheets/style.less.scss" rel="stylesheet">
     ```
 
     After:
+
     ```ruby
     stylesheet_link_tag "style.less", extname: false, skip_pipeline: true, rel: "stylesheet/less"
     # <link href="/stylesheets/style.less" rel="stylesheet/less">

@@ -435,7 +435,7 @@ module ActiveRecord
                 ), nil
               ).reflections
             )
-        )
+          )
           relation = skip_query_cache_if_necessary do
             klass.connection.distinct_relation_for_primary_key(relation)
           end

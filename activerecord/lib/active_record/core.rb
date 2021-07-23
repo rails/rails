@@ -118,7 +118,7 @@ module ActiveRecord
             Read more about how to migrate at: https://guides.rubyonrails.org/active_record_multiple_databases.html#migrate-to-the-new-connection-handling
           MSG
         else
-          raise NotImplementedError, "The new connection handling does not setting support multiple connection handlers."
+          raise NotImplementedError, "The new connection handling does not support multiple connection handlers."
         end
 
         @@connection_handlers = handlers
@@ -599,6 +599,8 @@ module ActiveRecord
     # Delegates to id in order to allow two records of the same type and id to work with something like:
     #   [ Person.find(1), Person.find(2), Person.find(3) ] & [ Person.find(1), Person.find(4) ] # => [ Person.find(1) ]
     def hash
+      id = self.id
+
       if id
         self.class.hash ^ id.hash
       else

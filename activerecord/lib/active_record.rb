@@ -313,6 +313,15 @@ module ActiveRecord
   singleton_class.attr_accessor :suppress_multiple_database_warning
   self.suppress_multiple_database_warning = false
 
+  ##
+  # :singleton-method:
+  # If true, Rails will verify all foreign keys in the database after loading fixtures.
+  # An error will be raised if there are any foreign key violations, indicating incorrectly
+  # written fixtures.
+  # Supported by PostgreSQL and SQLite.
+  singleton_class.attr_accessor :verify_foreign_keys_for_fixtures
+  self.verify_foreign_keys_for_fixtures = false
+
   def self.eager_load!
     super
     ActiveRecord::Locking.eager_load!

@@ -172,7 +172,7 @@ pipeline is enabled. It is set to `true` by default.
 
 * `config.assets.css_compressor` defines the CSS compressor to use. It is set by default by `sass-rails`. The unique alternative value at the moment is `:yui`, which uses the `yui-compressor` gem.
 
-* `config.assets.js_compressor` defines the JavaScript compressor to use. Possible values are `:closure`, `:uglifier` and `:yui` which require the use of the `closure-compiler`, `uglifier` or `yui-compressor` gems respectively.
+* `config.assets.js_compressor` defines the JavaScript compressor to use. Possible values are `:terser`, `:closure`, `:uglifier` and `:yui` which require the use of the `terser`, `closure-compiler`, `uglifier` or `yui-compressor` gems respectively.
 
 * `config.assets.gzip` a flag that enables the creation of gzipped version of compiled assets, along with non-gzipped assets. Set to `true` by default.
 
@@ -272,6 +272,28 @@ Every Rails application comes with a standard set of middleware which it uses in
     # Allow requests from subdomains like `www.product.com` and
     # `beta1.product.com`.
     Rails.application.config.hosts << ".product.com"
+    ```
+
+    You can exclude certain requests from Host Authorization checks by setting 
+    `config.host_configuration.exclude`:
+
+    ```ruby
+    # Exclude requests for the /healthcheck/ path from host checking
+    Rails.application.config.host_configuration = { 
+      exclude: ->(request) { request.path =~ /healthcheck/ } 
+    }
+    ``` 
+
+    When a request comes to an unauthorized host, a default Rack application 
+    will run and respond with `403 Forbidden`. This can be customized by setting 
+    `config.host_configuration.response_app`. For example:
+
+    ```ruby
+    Rails.application.config.host_configuration = {
+      response_app: -> env do
+        [400, { "Content-Type" => "text/plain" }, ["Bad Request"]]
+      end
+    }
     ```
 
 * `ActionDispatch::SSL` forces every request to be served using HTTPS. Enabled if `config.force_ssl` is set to `true`. Options passed to this can be configured by setting `config.ssl_options`.
@@ -481,6 +503,13 @@ in controllers and views. This defaults to `false`.
 
 * `config.active_record.enumerate_columns_in_select_statements` when true, will always include column names in `SELECT` statements, and avoid wildcard `SELECT * FROM ...` queries. This avoids prepared statement cache errors when adding columns to a PostgreSQL database for example. Defaults to `false`.
 
+* `config.active_record.destroy_all_in_batches` ensures
+  ActiveRecord::Relation#destroy_all to perform the record's deletion in batches.
+  ActiveRecord::Relation#destroy_all won't longer return the collection of the deleted
+  records after enabling this option.
+
+* `config.active_record.verify_foreign_keys_for_fixtures` ensures all foreign key constraints are valid after fixtures are loaded in tests. Supported by PostgreSQL and SQLite only. Defaults to `false`.
+
 The MySQL adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
@@ -563,6 +592,8 @@ The schema dumper adds two additional configuration options:
     Rendered messages/_message.html.erb in 1.2 ms [cache hit]
     Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
     ```
+
+* `config.action_controller.raise_on_open_redirects` raises an `ArgumentError` when an unpermitted open redirect occurs. The default value is `false`.
 
 ### Configuring Action Dispatch
 
@@ -779,6 +810,8 @@ Defaults to `'signed cookie'`.
 * `config.action_mailbox.queues.incineration` accepts a symbol indicating the Active Job queue to use for incineration jobs. When this option is `nil`, incineration jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
 
 * `config.action_mailbox.queues.routing` accepts a symbol indicating the Active Job queue to use for routing jobs. When this option is `nil`, routing jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+
+* `config.action_mailbox.storage_service` accepts a symbol indicating the Active Storage service to use for uploading emails. When this option is `nil`, emails are uploaded to the default Active Storage service (see `config.active_storage.service`).
 
 ### Configuring Action Mailer
 
@@ -1086,14 +1119,18 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 #### For '7.0', defaults from previous versions below and:
 
+- `config.action_controller.raise_on_open_redirects`: `true`
 - `config.action_view.button_to_generates_button_tag`: `true`
-- `config.action_view.apply_stylesheet_media_default` : `false`
+- `config.action_view.apply_stylesheet_media_default`: `false`
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA256`
 - `config.active_support.hash_digest_class`: `OpenSSL::Digest::SHA256`
 - `config.active_support.cache_format_version`: `7.0`
+- `config.active_support.remove_deprecated_time_with_zone_name`: `true`
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `false`
+- `config.action_controller.silence_disabled_session_errors`: `false`
 - `config.action_mailer.smtp_timeout`: `5`
 - `config.active_storage.video_preview_arguments`: `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
+- `config.active_record.verify_foreign_keys_for_fixtures`: `true`
 
 #### For '6.1', defaults from previous versions below and:
 
@@ -1150,13 +1187,14 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 #### Baseline defaults:
 
 - `config.action_controller.default_protect_from_forgery`: `false`
+- `config.action_controller.raise_on_open_redirects`: `false`
 - `config.action_controller.urlsafe_csrf_tokens`: `false`
 - `config.action_dispatch.cookies_same_site_protection`: `nil`
 - `config.action_mailer.delivery_job`: `ActionMailer::DeliveryJob`
 - `config.action_view.form_with_generates_ids`: `false`
 - `config.action_view.preload_links_header`: `nil`
 - `config.action_view.button_to_generates_button_tag`: `false`
-- `config.action_view.apply_stylesheet_media_default` : `true`
+- `config.action_view.apply_stylesheet_media_default`: `true`
 - `config.active_job.retry_jitter`: `0.0`
 - `config.active_job.skip_after_callbacks_if_terminated`: `false`
 - `config.action_mailbox.queues.incineration`: `:action_mailbox_incineration`

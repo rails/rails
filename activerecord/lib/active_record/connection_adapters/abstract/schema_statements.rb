@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/string/access"
-require "digest/sha2"
+require "openssl"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -1039,6 +1039,10 @@ module ActiveRecord
       #
       #   ALTER TABLE "articles" ADD CONSTRAINT fk_rails_e74ce85cbc FOREIGN KEY ("author_id") REFERENCES "authors" ("id")
       #
+      # ====== Creating a foreign key, ignoring method call if the foreign key exists
+      #
+      #  add_foreign_key(:articles, :authors, if_not_exists: true)
+      #
       # ====== Creating a foreign key on a specific column
       #
       #   add_foreign_key :articles, :users, column: :author_id, primary_key: "lng_id"
@@ -1066,10 +1070,14 @@ module ActiveRecord
       #   Action that happens <tt>ON DELETE</tt>. Valid values are +:nullify+, +:cascade+ and +:restrict+
       # [<tt>:on_update</tt>]
       #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade+ and +:restrict+
+      # [<tt>:if_not_exists</tt>]
+      #   Specifies if the foreign key already exists to not try to re-add it. This will avoid
+      #   duplicate column errors.
       # [<tt>:validate</tt>]
       #   (PostgreSQL only) Specify whether or not the constraint should be validated. Defaults to +true+.
       def add_foreign_key(from_table, to_table, **options)
         return unless supports_foreign_keys?
+        return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table)
 
         options = foreign_key_options(from_table, to_table, options)
         at = create_alter_table from_table
@@ -1099,12 +1107,18 @@ module ActiveRecord
       #
       #   remove_foreign_key :accounts, name: :special_fk_name
       #
+      # Checks if the foreign key exists before trying to remove it. Will silently ignore indexes that
+      # don't exist.
+      #
+      #   remove_foreign_key :accounts, :branches, if_exists: true
+      #
       # The +options+ hash accepts the same keys as SchemaStatements#add_foreign_key
       # with an addition of
       # [<tt>:to_table</tt>]
       #   The name of the table that contains the referenced primary key.
       def remove_foreign_key(from_table, to_table = nil, **options)
         return unless supports_foreign_keys?
+        return if options[:if_exists] == true && !foreign_key_exists?(from_table, to_table)
 
         fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
 
@@ -1518,7 +1532,7 @@ module ActiveRecord
         def foreign_key_name(table_name, options)
           options.fetch(:name) do
             identifier = "#{table_name}_#{options.fetch(:column)}_fk"
-            hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
+            hashed_identifier = OpenSSL::Digest::SHA256.hexdigest(identifier).first(10)
 
             "fk_rails_#{hashed_identifier}"
           end
@@ -1546,7 +1560,7 @@ module ActiveRecord
           options.fetch(:name) do
             expression = options.fetch(:expression)
             identifier = "#{table_name}_#{expression}_chk"
-            hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
+            hashed_identifier = OpenSSL::Digest::SHA256.hexdigest(identifier).first(10)
 
             "chk_rails_#{hashed_identifier}"
           end

@@ -53,7 +53,7 @@ class ActiveSupport::TestCase
   self.fixture_path = File.expand_path("fixtures", __dir__)
 
   setup do
-    ActiveStorage::Current.host = "https://example.com"
+    ActiveStorage::Current.url_options = { protocol: "https://", host: "example.com", port: nil }
   end
 
   teardown do
@@ -97,7 +97,7 @@ class ActiveSupport::TestCase
     def directly_upload_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", record: nil)
       file = file_fixture(filename)
       byte_size = file.size
-      checksum = Digest::MD5.file(file).base64digest
+      checksum = OpenSSL::Digest::MD5.file(file).base64digest
 
       create_blob_before_direct_upload(filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record).tap do |blob|
         service = ActiveStorage::Blob.service.try(:primary) || ActiveStorage::Blob.service
@@ -124,6 +124,20 @@ class ActiveSupport::TestCase
       yield
     ensure
       ActiveStorage::Blob.service = previous_service
+    end
+
+    def with_strict_loading_by_default(&block)
+      strict_loading_was = ActiveRecord::Base.strict_loading_by_default
+      ActiveRecord::Base.strict_loading_by_default = true
+      yield
+      ActiveRecord::Base.strict_loading_by_default = strict_loading_was
+    end
+
+    def without_variant_tracking(&block)
+      variant_tracking_was = ActiveStorage.track_variants
+      ActiveStorage.track_variants = false
+      yield
+      ActiveStorage.track_variants = variant_tracking_was
     end
 end
 

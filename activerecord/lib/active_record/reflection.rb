@@ -416,7 +416,7 @@ module ActiveRecord
         msg = <<-MSG.squish
           Rails couldn't find a valid model for #{name} association.
           Please provide the :class_name option on the association declaration.
-          If :class_name is already provided make sure is an ActiveRecord::Base subclass.
+          If :class_name is already provided, make sure it's an ActiveRecord::Base subclass.
         MSG
 
         begin

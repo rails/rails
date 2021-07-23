@@ -1,4 +1,115 @@
-*   Prevent polluting ENV during postgresql structure dump/load
+*   Two change tracking methods are added for `belongs_to` associations.
+
+    The `association_changed?` method (assuming an association named `:association`) returns true
+    if a different associated object has been assigned and the foreign key will be updated in the
+    next save.
+
+    The `association_previously_changed?` method returns true if the previous save updated the
+    association to reference a different associated object.
+
+    *George Claghorn*
+
+*   Add option to disable schema dump per-database.
+
+    Dumping the schema is on by default for all databases in an application. To turn it off for a
+    specific database use the `schema_dump` option:
+
+    ```yaml
+    # config/database.yml
+
+    production:
+      schema_dump: false
+    ```
+
+    *Luis Vasconcellos*, *Eileen M. Uchitelle*
+
+*   Fix `eager_loading?` when ordering with `Hash` syntax.
+
+    `eager_loading?` is triggered correctly when using `order` with hash syntax
+    on an outer table.
+
+    ```ruby
+    Post.includes(:comments).order({ "comments.label": :ASC }).eager_loading?
+    # => true
+    ```
+
+    *Jacopo Beschi*
+
+*   Move the forcing of clear text encoding to the `ActiveRecord::Encryption::Encryptor`.
+
+    Fixes #42699.
+
+    *J Smith*
+
+*   `partial_inserts` is now disabled by default in new apps.
+
+    This will be the default for new apps in Rails 7. To opt in:
+
+    ```ruby
+    config.active_record.partial_inserts = true
+    ```
+
+    If a migration remove the default value of a column, this option
+    would cause old processes to no longer be able to create new records.
+
+    If you need to remove a column, you should first use `ignored_columns`
+    to stop using it.
+
+    *Jean Boussier*
+
+*   Rails can now verify foreign keys after loading fixtures in tests.
+
+    This will be the default for new apps in Rails 7. To opt in:
+
+    ```ruby
+    config.active_record.verify_foreign_keys_for_fixtures = true
+    ```
+
+    Tests will not run if there is a foreign key constraint violation in your fixture data.
+
+    The feature is supported by SQLite and PostgreSQL, other adapters can also add support for it.
+
+    *Alex Ghiculescu*
+
+*   Clear cached `has_one` association after setting `belongs_to` association to `nil`.
+
+    After setting a `belongs_to` relation to `nil` and updating an unrelated attribute on the owner,
+    the owner should still return `nil` on the `has_one` relation.
+
+    Fixes #42597.
+
+    *Michiel de Mare*
+
+*   OpenSSL constants are now used for Digest computations.
+
+    *Dirkjan Bussink*
+
+*   Adds support for `if_not_exists` to `add_foreign_key` and `if_exists` to `remove_foreign_key`.
+
+    Applications can set their migrations to ignore exceptions raised when adding a foreign key
+    that already exists or when removing a foreign key that does not exist.
+
+    Example Usage:
+
+    ```ruby
+    class AddAuthorsForeignKeyToArticles < ActiveRecord::Migration[7.0]
+      def change
+        add_foreign_key :articles, :authors, if_not_exists: true
+      end
+    end
+    ```
+
+    ```ruby
+    class RemoveAuthorsForeignKeyFromArticles < ActiveRecord::Migration[7.0]
+      def change
+        remove_foreign_key :articles, :authors, if_exists: true
+      end
+    end
+    ```
+
+    *Roberto Miranda*
+
+*   Prevent polluting ENV during postgresql structure dump/load.
 
     Some configuration parameters were provided to pg_dump / psql via
     environment variables which persisted beyond the command being run, and may
@@ -8,13 +119,13 @@
 
     *Samuel Cochran*
 
-*   Set precision 6 by default for `datetime` columns
+*   Set precision 6 by default for `datetime` columns.
 
     By default, datetime columns will have microseconds precision instead of seconds precision.
 
     *Roberto Miranda*
 
-*   Allow preloading of associations with instance dependent scopes
+*   Allow preloading of associations with instance dependent scopes.
 
     *John Hawthorn*, *John Crepezzi*, *Adam Hess*, *Eileen M. Uchitelle*, *Dinah Shi*
 
@@ -32,9 +143,9 @@
 
     *Jorge Manrubia*
 
-*   The MySQL adapter now cast numbers and booleans bind parameters to to string for safety reasons.
+*   The MySQL adapter now cast numbers and booleans bind parameters to string for safety reasons.
 
-    When comparing a string and a number in a query, MySQL convert the string to a number. So for
+    When comparing a string and a number in a query, MySQL converts the string to a number. So for
     instance `"foo" = 0`, will implicitly cast `"foo"` to `0` and will evaluate to `TRUE` which can
     lead to security vulnerabilities.
 
@@ -76,19 +187,19 @@
 
     *Dorian Marié*
 
-*   Add `ActiveRecord::Base#attributes_for_database`
+*   Add `ActiveRecord::Base#attributes_for_database`.
 
     Returns attributes with values for assignment to the database.
 
     *Chris Salzberg*
 
-*   Use an empty query to check if the PostgreSQL connection is still active
+*   Use an empty query to check if the PostgreSQL connection is still active.
 
     An empty query is faster than `SELECT 1`.
 
     *Heinrich Lee Yu*
 
-*   Add `ActiveRecord::Base#previously_persisted?`
+*   Add `ActiveRecord::Base#previously_persisted?`.
 
     Returns `true` if the object has been previously persisted but now it has been deleted.
 
@@ -134,7 +245,7 @@
 
     *Eileen M. Uchitelle*
 
-*   Log a warning message when running SQLite in production
+*   Log a warning message when running SQLite in production.
 
     Using SQLite in production ENV is generally discouraged. SQLite is also the default adapter
     in a new Rails application.
@@ -282,7 +393,7 @@
 
     ```ruby
     Article.insert_all(
-    [
+      [
         { title: "Article 1", slug: "article-1", published: false },
         { title: "Article 2", slug: "article-2", published: false }
       ],
@@ -322,7 +433,7 @@
 
     *Bradley Priest*
 
-*   Add mode argument to record level `strict_loading!`
+*   Add mode argument to record level `strict_loading!`.
 
     This argument can be used when enabling strict loading for a single record
     to specify that we only want to raise on n plus one queries.
@@ -341,7 +452,7 @@
 
     *Dinah Shi*
 
-*   Fix Float::INFINITY assignment to datetime column with postgresql adapter
+*   Fix Float::INFINITY assignment to datetime column with postgresql adapter.
 
     Before:
 
@@ -393,7 +504,7 @@
 
     *Ryuta Kamizono*
 
-*   Fixtures for `has_many :through` associations now load timestamps on join tables
+*   Fixtures for `has_many :through` associations now load timestamps on join tables.
 
     Given this fixture:
 
@@ -414,7 +525,7 @@
 
     *Alex Ghiculescu*
 
-*   Allow applications to configure the thread pool for async queries
+*   Allow applications to configure the thread pool for async queries.
 
     Some applications may want one thread pool per database whereas others want to use
     a single global thread pool for all queries. By default, Rails will set `async_query_executor`
@@ -469,6 +580,19 @@
     end
     ```
 
+    Active Record logs will also include timing info for the duration of how long
+    the main thread had to wait to access the result. This timing is useful to know
+    whether or not it's worth to load the query asynchronously.
+
+    ```
+    DEBUG -- :   Category Load (62.1ms)  SELECT * FROM `categories` LIMIT 50
+    DEBUG -- :   ASYNC Post Load (64ms) (db time 126.1ms)  SELECT * FROM `posts` LIMIT 100
+    ```
+
+    The duration in the first set of parens is how long the main thread was blocked
+    waiting for the results, and the second set of parens with "db time" is how long
+    the entire query took to execute.
+
     *Jean Boussier*
 
 *   Implemented `ActiveRecord::Relation#excluding` method.
@@ -494,7 +618,7 @@
     *Glen Crawford*
 
 *   Skip optimised #exist? query when #include? is called on a relation
-    with a having clause
+    with a having clause.
 
     Relations that have aliased select values AND a having clause that
     references an aliased select value would generate an error when
@@ -520,13 +644,13 @@
     simplified #exists? query, which simply checks for the presence of
     a having clause.
 
-    Fixes #41417
+    Fixes #41417.
 
     *Michael Smart*
 
 *   Increment postgres prepared statement counter before making a prepared statement, so if the statement is aborted
     without Rails knowledge (e.g., if app gets killed during long-running query or due to Rack::Timeout), app won't end
-    up in perpetual crash state for being inconsistent with Postgres.
+    up in perpetual crash state for being inconsistent with PostgreSQL.
 
     *wbharding*, *Martin Tepper*
 
@@ -574,7 +698,7 @@
 
     *Josua Schmid*
 
-*   PostgreSQL: introduce `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type`
+*   PostgreSQL: introduce `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type`.
 
     This setting controls what native type Active Record should use when you call `datetime` in
     a migration or schema. It takes a symbol which must correspond to one of the configured
@@ -598,7 +722,7 @@
 
     *Gannon McGibbon*, *Adrian Hirt*
 
-*   Expose a way for applications to set a `primary_abstract_class`
+*   Expose a way for applications to set a `primary_abstract_class`.
 
     Multiple database applications that use a primary abstract class that is not
     named `ApplicationRecord` can now set a specific class to be the `primary_abstract_class`.
@@ -625,7 +749,7 @@
 
     ```ruby
     ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ['--no-defaults', '--skip-add-drop-table']
-    #or
+    # or
     ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = '--no-defaults --skip-add-drop-table'
     ```
 
@@ -756,14 +880,15 @@
 
 *   Allow adding nonnamed expression indexes to be revertible.
 
-    Fixes #40732.
-
     Previously, the following code would raise an error, when executed while rolling back,
     and the index name should be specified explicitly. Now, the index name is inferred
     automatically.
+
     ```ruby
     add_index(:items, "to_tsvector('english', description)")
     ```
+
+    Fixes #40732.
 
     *fatkodima*
 

@@ -226,6 +226,15 @@ module Rails
               "-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1'" \
               " -frames:v 1 -f image2"
           end
+
+          if respond_to?(:active_record)
+            active_record.verify_foreign_keys_for_fixtures = true
+            active_record.partial_inserts = false
+          end
+
+          if respond_to?(:action_controller)
+            action_controller.raise_on_open_redirects = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

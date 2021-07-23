@@ -1728,7 +1728,7 @@ module ActionView
       # element, sharing a common <tt>id</tt> root (<tt>post_title</tt>, in this
       # case).
       def field_id(method, *suffixes, index: @index)
-        @template.field_id(@object || @object_name, method, *suffixes, index: @index)
+        @template.field_id(@object_name, method, *suffixes, index: index)
       end
 
       ##

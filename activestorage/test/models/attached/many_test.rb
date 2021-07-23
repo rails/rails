@@ -777,6 +777,21 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "deprecation warning when replace_on_assign_to_many is false" do
+    append_on_assign do
+      message = <<-MSG.squish
+        DEPRECATION WARNING: config.active_storage.replace_on_assign_to_many is deprecated and will be removed in Rails 7.1.
+        Make sure that your code works well with config.active_storage.replace_on_assign_to_many set to true before upgrading.
+        To append new attachables to the Active Storage association, prefer using `attach`.
+        Using association setter would result in purging the existing attached attachments and replacing them with new ones.
+      MSG
+
+      assert_deprecated(message) do
+        @user.update! highlights: [create_blob(filename: "whenever.jpg")]
+      end
+    end
+  end
+
   private
     def append_on_assign
       ActiveStorage.replace_on_assign_to_many, previous = false, ActiveStorage.replace_on_assign_to_many

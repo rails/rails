@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "pathname"
+require "shellwords"
 require "active_support"
 require "rails/command/helpers/editor"
 require "rails/command/environment_argument"
@@ -91,7 +92,7 @@ module Rails
 
         def change_credentials_in_system_editor
           credentials.change do |tmp_path|
-            system("#{ENV["EDITOR"]} #{tmp_path}")
+            system("#{ENV["EDITOR"]} #{Shellwords.escape(tmp_path)}")
           end
         end
 

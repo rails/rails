@@ -94,9 +94,11 @@ db_namespace = namespace :db do
       original_db_config = ActiveRecord::Base.connection_db_config
       mapped_versions = ActiveRecord::Tasks::DatabaseTasks.db_configs_with_versions(db_configs)
 
-      mapped_versions.sort.each do |version, db_config|
-        ActiveRecord::Base.establish_connection(db_config)
-        ActiveRecord::Tasks::DatabaseTasks.migrate(version)
+      mapped_versions.sort.each do |version, db_configs|
+        db_configs.each do |db_config|
+          ActiveRecord::Base.establish_connection(db_config)
+          ActiveRecord::Tasks::DatabaseTasks.migrate(version)
+        end
       end
     end
 
@@ -119,9 +121,13 @@ db_namespace = namespace :db do
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
       # IMPORTANT: This task won't dump the schema if ActiveRecord.dump_schema_after_migration is set to false
       task name do
-        if ActiveRecord.dump_schema_after_migration
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
+
+        if ActiveRecord.dump_schema_after_migration && db_config.schema_dump
+          ActiveRecord::Base.establish_connection(db_config)
           db_namespace["schema:dump:#{name}"].invoke
         end
+
         # Allow this task to be called as many times as required. An example is the
         # migrate:redo task, which calls other two internally that depend on this one.
         db_namespace["_dump:#{name}"].reenable
@@ -431,8 +437,10 @@ db_namespace = namespace :db do
     desc "Creates a database schema file (either db/schema.rb or db/structure.sql, depending on `config.active_record.schema_format`)"
     task dump: :load_config do
       ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-        ActiveRecord::Base.establish_connection(db_config)
-        ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+        if db_config.schema_dump
+          ActiveRecord::Base.establish_connection(db_config)
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+        end
       end
 
       db_namespace["schema:dump"].reenable

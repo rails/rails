@@ -595,7 +595,7 @@ consumer.subscriptions.create("AppearanceChannel", {
 })
 ```
 
-##### Client-Server Interaction
+#### Client-Server Interaction
 
 1. **Client** connects to the **Server** via `App.cable =
 ActionCable.createConsumer("ws://cable.example.com")`. (`cable.js`). The

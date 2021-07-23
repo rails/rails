@@ -15,7 +15,8 @@ module ActionView
   class LookupContext #:nodoc:
     attr_accessor :prefixes, :rendered_format
 
-    mattr_accessor :registered_details, default: []
+    singleton_class.attr_accessor :registered_details
+    self.registered_details = []
 
     def self.register_detail(name, &block)
       registered_details << name
@@ -121,21 +122,29 @@ module ActionView
       attr_reader :view_paths, :html_fallback_for_js
 
       def find(name, prefixes = [], partial = false, keys = [], options = {})
-        @view_paths.find(*args_for_lookup(name, prefixes, partial, keys, options))
+        name, prefixes = normalize_name(name, prefixes)
+        details, details_key = detail_args_for(options)
+        @view_paths.find(name, prefixes, partial, details, details_key, keys)
       end
       alias :find_template :find
 
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
-        @view_paths.find_all(*args_for_lookup(name, prefixes, partial, keys, options))
+        name, prefixes = normalize_name(name, prefixes)
+        details, details_key = detail_args_for(options)
+        @view_paths.find_all(name, prefixes, partial, details, details_key, keys)
       end
 
       def exists?(name, prefixes = [], partial = false, keys = [], **options)
-        @view_paths.exists?(*args_for_lookup(name, prefixes, partial, keys, options))
+        name, prefixes = normalize_name(name, prefixes)
+        details, details_key = detail_args_for(options)
+        @view_paths.exists?(name, prefixes, partial, details, details_key, keys)
       end
       alias :template_exists? :exists?
 
       def any?(name, prefixes = [], partial = false)
-        @view_paths.exists?(*args_for_any(name, prefixes, partial))
+        name, prefixes = normalize_name(name, prefixes)
+        details, details_key = detail_args_for_any
+        @view_paths.exists?(name, prefixes, partial, details, details_key, [])
       end
       alias :any_templates? :any?
 
@@ -144,12 +153,6 @@ module ActionView
       # instance objects as we wish.
       def build_view_paths(paths)
         ActionView::PathSet.new(Array(paths))
-      end
-
-      def args_for_lookup(name, prefixes, partial, keys, details_options)
-        name, prefixes = normalize_name(name, prefixes)
-        details, details_key = detail_args_for(details_options)
-        [name, prefixes, partial || false, details, details_key, keys]
       end
 
       # Compute details hash and key according to user options (e.g. passed from #render).
@@ -166,17 +169,11 @@ module ActionView
         [user_details, details_key]
       end
 
-      def args_for_any(name, prefixes, partial)
-        name, prefixes = normalize_name(name, prefixes)
-        details, details_key = detail_args_for_any
-        [name, prefixes, partial || false, details, details_key]
-      end
-
       def detail_args_for_any
         @detail_args_for_any ||= begin
           details = {}
 
-          registered_details.each do |k|
+          LookupContext.registered_details.each do |k|
             if k == :variants
               details[k] = :any
             else
@@ -238,7 +235,7 @@ module ActionView
     end
 
     def initialize_details(target, details)
-      registered_details.each do |k|
+      LookupContext.registered_details.each do |k|
         target[k] = details[k] || Accessors::DEFAULT_PROCS[k].call
       end
       target

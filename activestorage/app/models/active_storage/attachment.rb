@@ -47,6 +47,12 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     blob&.purge_later
   end
 
+  # Returns an ActiveStorage::Variant or ActiveStorage::VariantWithRecord
+  # instance for the attachment with the set of +transformations+ provided.
+  # See ActiveStorage::Blob::Representable#variant for more information.
+  #
+  # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
+  # unknown pre-defined variant of the attachment.
   def variant(transformations)
     case transformations
     when Symbol

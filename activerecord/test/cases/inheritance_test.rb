@@ -62,7 +62,7 @@ class InheritanceTest < ActiveRecord::TestCase
     e = assert_raises NameError do
       Company.send :compute_type, "NonexistentModel"
     end
-    assert_equal "uninitialized constant Company::NonexistentModel", e.message
+    assert_match "uninitialized constant Company::NonexistentModel", e.message
     assert_equal "Company::NonexistentModel", e.name
   end
 

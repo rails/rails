@@ -1044,7 +1044,9 @@ module ActiveRecord
       end
 
       def load_migration
-        require(File.expand_path(filename))
+        Object.send(:remove_const, name) rescue nil
+
+        load(File.expand_path(filename))
         name.constantize.new(name, version)
       end
   end
@@ -1175,7 +1177,7 @@ module ActiveRecord
         ["up", version, "********** NO FILE **********"]
       end
 
-      (db_list + file_list).sort_by { |_, version, _| version }
+      (db_list + file_list).sort_by { |_, version, _| version.to_i }
     end
 
     def current_environment # :nodoc:

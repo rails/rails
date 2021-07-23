@@ -35,7 +35,7 @@ module ActiveRecord
   #     name: Google
   #     url: http://www.google.com
   #
-  # This fixture file includes two fixtures. Each YAML fixture (ie. record) is given a name and
+  # This fixture file includes two fixtures. Each YAML fixture (i.e. record) is given a name and
   # is followed by an indented list of key/value pairs in the "key: value" format. Records are
   # separated by a blank line for your viewing pleasure.
   #
@@ -636,6 +636,10 @@ module ActiveRecord
             end
 
             conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
+
+            if ActiveRecord.verify_foreign_keys_for_fixtures && !conn.all_foreign_keys_valid?
+              raise "Foreign key violations found in your fixture data. Ensure you aren't referring to labels that don't exist on associations."
+            end
 
             # Cap primary key sequences to max(pk).
             if conn.respond_to?(:reset_pk_sequence!)

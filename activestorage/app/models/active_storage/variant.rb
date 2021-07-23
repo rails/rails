@@ -67,7 +67,7 @@ class ActiveStorage::Variant
 
   # Returns a combination key of the blob and the variation that together identifies a specific variant.
   def key
-    "variants/#{blob.key}/#{Digest::SHA256.hexdigest(variation.key)}"
+    "variants/#{blob.key}/#{OpenSSL::Digest::SHA256.hexdigest(variation.key)}"
   end
 
   # Returns the URL of the blob variant on the service. See {ActiveStorage::Blob#url} for details.
@@ -78,9 +78,6 @@ class ActiveStorage::Variant
   def url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline)
     service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end
-
-  alias_method :service_url, :url
-  deprecate service_url: :url
 
   # Downloads the file associated with this variant. If no block is given, the entire file is read into memory and returned.
   # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.

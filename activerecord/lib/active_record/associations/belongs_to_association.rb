@@ -68,6 +68,14 @@ module ActiveRecord
       end
 
       def target_changed?
+        owner.attribute_changed?(reflection.foreign_key) || (!foreign_key_present? && target&.new_record?)
+      end
+
+      def target_previously_changed?
+        owner.attribute_previously_changed?(reflection.foreign_key)
+      end
+
+      def saved_change_to_target?
         owner.saved_change_to_attribute?(reflection.foreign_key)
       end
 
@@ -77,6 +85,8 @@ module ActiveRecord
             raise_on_type_mismatch!(record)
             set_inverse_instance(record)
             @updated = true
+          elsif target
+            remove_inverse_instance(target)
           end
 
           replace_keys(record, force: true)

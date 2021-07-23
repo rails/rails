@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "securerandom"
+require "openssl"
 
 module Digest
   module UUID
@@ -11,17 +12,17 @@ module Digest
 
     # Generates a v5 non-random UUID (Universally Unique IDentifier).
     #
-    # Using Digest::MD5 generates version 3 UUIDs; Digest::SHA1 generates version 5 UUIDs.
+    # Using OpenSSL::Digest::MD5 generates version 3 UUIDs; OpenSSL::Digest::SHA1 generates version 5 UUIDs.
     # uuid_from_hash always generates the same UUID for a given name and namespace combination.
     #
     # See RFC 4122 for details of UUID at: https://www.ietf.org/rfc/rfc4122.txt
     def self.uuid_from_hash(hash_class, uuid_namespace, name)
-      if hash_class == Digest::MD5
+      if hash_class == Digest::MD5 || hash_class == OpenSSL::Digest::MD5
         version = 3
-      elsif hash_class == Digest::SHA1
+      elsif hash_class == Digest::SHA1 || hash_class == OpenSSL::Digest::SHA1
         version = 5
       else
-        raise ArgumentError, "Expected Digest::SHA1 or Digest::MD5, got #{hash_class.name}."
+        raise ArgumentError, "Expected OpenSSL::Digest::SHA1 or OpenSSL::Digest::MD5, got #{hash_class.name}."
       end
 
       hash = hash_class.new
@@ -35,14 +36,14 @@ module Digest
       "%08x-%04x-%04x-%04x-%04x%08x" % ary
     end
 
-    # Convenience method for uuid_from_hash using Digest::MD5.
+    # Convenience method for uuid_from_hash using OpenSSL::Digest::MD5.
     def self.uuid_v3(uuid_namespace, name)
-      uuid_from_hash(Digest::MD5, uuid_namespace, name)
+      uuid_from_hash(OpenSSL::Digest::MD5, uuid_namespace, name)
     end
 
-    # Convenience method for uuid_from_hash using Digest::SHA1.
+    # Convenience method for uuid_from_hash using OpenSSL::Digest::SHA1.
     def self.uuid_v5(uuid_namespace, name)
-      uuid_from_hash(Digest::SHA1, uuid_namespace, name)
+      uuid_from_hash(OpenSSL::Digest::SHA1, uuid_namespace, name)
     end
 
     # Convenience method for SecureRandom.uuid.

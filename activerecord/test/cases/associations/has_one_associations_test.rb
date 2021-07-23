@@ -307,6 +307,19 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal account, firm.reload.account
   end
 
+  def test_clearing_an_association_clears_the_associations_inverse
+    author = Author.create(name: "Jimmy Tolkien")
+    post = author.create_post(title: "The silly medallion", body: "")
+    assert_equal post, author.post
+    assert_equal author, post.author
+
+    post.update!(author: nil)
+    assert_nil post.author
+
+    author.update!(name: "J.R.R. Tolkien")
+    assert_nil post.author
+  end
+
   def test_create_association_with_bang
     firm = Firm.create(name: "GlobalMegaCorp")
     account = firm.create_account!(credit_limit: 1000)

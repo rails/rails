@@ -41,6 +41,7 @@ module ActiveJob
             job_data[:job] = job.class
             job_data[:args] = job_data.fetch("arguments")
             job_data[:queue] = job_data.fetch("queue_name")
+            job_data[:priority] = job_data.fetch("priority")
           end.merge(extras)
         end
 

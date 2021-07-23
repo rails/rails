@@ -31,6 +31,7 @@ require "models/invoice"
 require "models/discount"
 require "models/line_item"
 require "models/shipping_line"
+require "models/essay"
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
@@ -384,7 +385,7 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
 end
 
 class PreloaderTest < ActiveRecord::TestCase
-  fixtures :posts, :comments, :books, :authors, :tags, :taggings
+  fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories
 
   def test_preload_with_scope
     post = posts(:welcome)
@@ -758,6 +759,85 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_no_queries do
       post.author
       postesque.author
+    end
+  end
+
+  def test_preload_with_available_records
+    post = posts(:welcome)
+    david = authors(:david)
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author, available_records: [[david]]).call
+
+      assert_predicate post.association(:author), :loaded?
+      assert_same david, post.author
+    end
+  end
+
+  def test_preload_with_available_records_with_through_association
+    author = authors(:david)
+    categories = Category.all.to_a
+
+    assert_queries(1) do
+      # One query to get the middle records (i.e. essays)
+      ActiveRecord::Associations::Preloader.new(records: [author], associations: :essay_category, available_records: categories).call
+    end
+
+    assert_predicate author.association(:essay_category), :loaded?
+    assert categories.map(&:object_id).include?(author.essay_category.object_id)
+  end
+
+  def test_preload_with_available_records_with_multiple_classes
+    essay = essays(:david_modest_proposal)
+    general = categories(:general)
+    david = authors(:david)
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [essay], associations: [:category, :author], available_records: [general, david]).call
+
+      assert_predicate essay.association(:category), :loaded?
+      assert_predicate essay.association(:author), :loaded?
+      assert_same general, essay.category
+      assert_same david, essay.author
+    end
+  end
+
+  def test_preload_with_available_records_queries_when_scoped
+    post = posts(:welcome)
+    david = authors(:david)
+
+    assert_queries(1) do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author, scope: Author.where(name: "David"), available_records: [david]).call
+    end
+
+    assert_predicate post.association(:author), :loaded?
+    assert_not_equal david.object_id, post.author.object_id
+  end
+
+  def test_preload_with_available_records_queries_when_collection
+    post = posts(:welcome)
+    comments = Comment.all.to_a
+
+    assert_queries(1) do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments, available_records: comments).call
+    end
+
+    assert_predicate post.association(:comments), :loaded?
+    assert_empty post.comments.map(&:object_id) & comments.map(&:object_id)
+  end
+
+  def test_preload_with_available_records_queries_when_incomplete
+    post = posts(:welcome)
+    bob = authors(:bob)
+    david = authors(:david)
+
+    assert_queries(1) do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author, available_records: [bob]).call
+    end
+
+    assert_no_queries do
+      assert_predicate post.association(:author), :loaded?
+      assert_equal david, post.author
     end
   end
 end

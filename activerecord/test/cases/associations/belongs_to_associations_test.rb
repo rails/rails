@@ -27,11 +27,13 @@ require "models/treasure"
 require "models/parrot"
 require "models/book"
 require "models/citation"
+require "models/tree"
+require "models/node"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
            :developers_projects, :computers, :authors, :author_addresses,
-           :essays, :posts, :tags, :taggings, :comments, :sponsors, :members
+           :essays, :posts, :tags, :taggings, :comments, :sponsors, :members, :nodes
 
   def test_belongs_to
     client = Client.find(3)
@@ -1205,6 +1207,33 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal companies(:another_firm), client.firm_with_condition
   end
 
+  def test_assigning_nil_on_an_association_clears_the_associations_inverse
+    with_has_many_inversing do
+      book = Book.create!
+      citation = book.citations.create!
+
+      assert_same book, citation.book
+
+      assert_nothing_raised do
+        citation.book = nil
+        citation.save!
+      end
+    end
+  end
+
+  def test_clearing_an_association_clears_the_associations_inverse
+    author = Author.create(name: "Jimmy Tolkien")
+    post = author.create_post(title: "The silly medallion", body: "")
+    assert_equal post, author.post
+    assert_equal author, post.author
+
+    author.update!(post: nil)
+    assert_nil author.post
+
+    post.update!(title: "The Silmarillion")
+    assert_nil author.post
+  end
+
   def test_destroying_child_with_unloaded_parent_and_foreign_key_and_touch_is_possible_with_has_many_inversing
     with_has_many_inversing do
       book     = Book.create!
@@ -1480,6 +1509,104 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, post.comments.size
     assert_equal 1, Comment.where(post_id: post.id).count
     assert_equal post.id, Comment.last.post.id
+  end
+
+  test "tracking change from one persisted record to another" do
+    node = nodes(:child_one_of_a)
+    assert_not_nil node.parent
+    assert_not node.parent_changed?
+    assert_not node.parent_previously_changed?
+
+    node.parent = nodes(:grandparent)
+    assert node.parent_changed?
+    assert_not node.parent_previously_changed?
+
+    node.save!
+    assert_not node.parent_changed?
+    assert node.parent_previously_changed?
+  end
+
+  test "tracking change from persisted record to new record" do
+    node = nodes(:child_one_of_a)
+    assert_not_nil node.parent
+    assert_not node.parent_changed?
+    assert_not node.parent_previously_changed?
+
+    node.parent = Node.new(tree: node.tree, parent: nodes(:parent_a), name: "Child three")
+    assert node.parent_changed?
+    assert_not node.parent_previously_changed?
+
+    node.save!
+    assert_not node.parent_changed?
+    assert node.parent_previously_changed?
+  end
+
+  test "tracking change from persisted record to nil" do
+    node = nodes(:child_one_of_a)
+    assert_not_nil node.parent
+    assert_not node.parent_changed?
+    assert_not node.parent_previously_changed?
+
+    node.parent = nil
+    assert node.parent_changed?
+    assert_not node.parent_previously_changed?
+
+    node.save!
+    assert_not node.parent_changed?
+    assert node.parent_previously_changed?
+  end
+
+  test "tracking change from nil to persisted record" do
+    node = nodes(:grandparent)
+    assert_nil node.parent
+    assert_not node.parent_changed?
+    assert_not node.parent_previously_changed?
+
+    node.parent = Node.create!(tree: node.tree, name: "Great-grandparent")
+    assert node.parent_changed?
+    assert_not node.parent_previously_changed?
+
+    node.save!
+    assert_not node.parent_changed?
+    assert node.parent_previously_changed?
+  end
+
+  test "tracking change from nil to new record" do
+    node = nodes(:grandparent)
+    assert_nil node.parent
+    assert_not node.parent_changed?
+    assert_not node.parent_previously_changed?
+
+    node.parent = Node.new(tree: node.tree, name: "Great-grandparent")
+    assert node.parent_changed?
+    assert_not node.parent_previously_changed?
+
+    node.save!
+    assert_not node.parent_changed?
+    assert node.parent_previously_changed?
+  end
+
+  test "tracking polymorphic changes" do
+    comment = comments(:greetings)
+    assert_nil comment.author
+    assert_not comment.author_changed?
+    assert_not comment.author_previously_changed?
+
+    comment.author = authors(:david)
+    assert comment.author_changed?
+
+    comment.save!
+    assert_not comment.author_changed?
+    assert comment.author_previously_changed?
+
+    assert_equal authors(:david).id, companies(:first_firm).id
+
+    comment.author = companies(:first_firm)
+    assert comment.author_changed?
+
+    comment.save!
+    assert_not comment.author_changed?
+    assert comment.author_previously_changed?
   end
 end
 

@@ -14,7 +14,7 @@ module ActiveRecord
       end
 
       # This file exists to ensure that old migrations run the same way they did before a Rails upgrade.
-      # eg. if you write a migration on Rails 6.1, then upgrade to Rails 7, the migration should do the same thing to your
+      # e.g. if you write a migration on Rails 6.1, then upgrade to Rails 7, the migration should do the same thing to your
       # database as it did when you were running Rails 6.1
       #
       # "Current" is an alias for `ActiveRecord::Migration`, it represents the current Rails version.
@@ -99,6 +99,11 @@ module ActiveRecord
             end
           end
           alias :belongs_to :references
+
+          def column(name, type, index: nil, **options)
+            options[:precision] ||= nil
+            super
+          end
         end
 
         def create_table(table_name, **options)
@@ -143,6 +148,11 @@ module ActiveRecord
       class V5_2 < V6_0
         module TableDefinition
           def timestamps(**options)
+            options[:precision] ||= nil
+            super
+          end
+
+          def column(name, type, index: nil, **options)
             options[:precision] ||= nil
             super
           end

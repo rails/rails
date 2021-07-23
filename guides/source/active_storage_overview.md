@@ -28,10 +28,28 @@ files to Active Record objects. It comes with a local disk-based service for
 development and testing and supports mirroring files to subordinate services for
 backups and migrations.
 
-Using Active Storage, an application can transform image uploads with
-[ImageMagick](https://www.imagemagick.org), generate image representations of
-non-image uploads like PDFs and videos, and extract metadata from arbitrary
-files.
+Using Active Storage, an application can transform image uploads or generate image 
+representations of non-image uploads like PDFs and videos, and extract metadata from 
+arbitrary files.
+
+### Requirements
+
+Various features of Active Storage depend on third-party software which Rails 
+will not install, and must be installed separately:
+
+* [ImageMagick](https://imagemagick.org/index.php) or [libvips](https://github.com/libvips/libvips) v8.6+ for image analysis and transformations
+* [ffmpeg](http://ffmpeg.org/) v3.4+ for video/audio analysis and video previews
+* [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) for PDF previews
+
+Image analysis and transformations also require the `image_processing` gem. Uncomment it in your `Gemfile`, or add it if necessary:
+
+```ruby
+gem "image_processing", ">= 1.2"
+```
+
+TIP: Compared to libvips, ImageMagick is better known and more widely available. However, libvips can be [up to 10x faster and consume 1/10 the memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use). For JPEG files, this can be further improved by replacing `libjpeg-dev` with `libjpeg-turbo-dev`, which is [2-7x faster](https://libjpeg-turbo.org/About/Performance). 
+
+WARNING: Before you install and use third-party software, make sure you understand the licensing implications of doing so. MuPDF, in particular, is licensed under AGPL and requires a commercial license for some use.
 
 ## Setup
 
@@ -244,6 +262,25 @@ google:
   service: GCS
   ...
   cache_control: "public, max-age=3600"
+```
+
+Optionally use [IAM](https://cloud.google.com/storage/docs/access-control/signed-urls#signing-iam) instead of the `credentials` when signing URLs. This is useful if you are authenticating your GKE applications with Workload Identity, see [this Google Cloud blog post](https://cloud.google.com/blog/products/containers-kubernetes/introducing-workload-identity-better-authentication-for-your-gke-applications) for more information.
+
+```yaml
+google:
+  service: GCS
+  ...
+  iam: true
+```
+
+Optionally use a specific GSA when signing URLs. When using IAM, the [metadata server](https://cloud.google.com/compute/docs/storing-retrieving-metadata) will be contacted to get the GSA email, but this metadata server is not always present (e.g. local tests) and you may wish to use a non-default GSA.
+
+```yaml
+google:
+  service: GCS
+  ...
+  iam: true
+  gsa_email: "foobar@baz.iam.gserviceaccount.com"
 ```
 
 Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
@@ -549,9 +586,9 @@ require a higher level of protection consider implementing
 To generate a permanent URL for a blob, you can pass the blob to the
 [`url_for`][ActionView::RoutingUrlFor#url_for] view helper. This generates a
 URL with the blob's [`signed_id`][ActiveStorage::Blob#signed_id]
-that is routed to the blob's
-[`RedirectController`](ActiveStorage::Blobs::RedirectController).
+that is routed to the blob's [`RedirectController`][ActiveStorage::Blobs::RedirectController]
 
+[ActiveStorage::Blobs::RedirectController]: https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/blobs/redirect_controller.rb
 ```ruby
 url_for(user.avatar)
 # => /rails/active_storage/blobs/:signed_id/my-avatar.png
@@ -646,10 +683,10 @@ guess but permanent. Anyone that knows the blob URL will be able to access it,
 even if a `before_action` in your `ApplicationController` would otherwise
 require a login. If your files require a higher level of protection, you can
 implement your own authenticated controllers, based on the
-[`ActiveStorage::Blobs::RedirectController`](ActiveStorage::Blobs::RedirectController),
-[`ActiveStorage::Blobs::ProxyController`](ActiveStorage::Blobs::ProxyController),
-[`ActiveStorage::Representations::RedirectController`](ActiveStorage::Representations::RedirectController) and
-[`ActiveStorage::Representations::ProxyController`](ActiveStorage::Representations::ProxyController)
+[`ActiveStorage::Blobs::RedirectController`][],
+[`ActiveStorage::Blobs::ProxyController`][],
+[`ActiveStorage::Representations::RedirectController`][] and
+[`ActiveStorage::Representations::ProxyController`][]
 
 To only allow an account to access their own logo you could do the following:
 
@@ -684,10 +721,10 @@ config.active_storage.draw_routes = false
 
 to prevent files being accessed with the publicly accessible URLs.
 
-[ActiveStorage::Blobs::RedirectController]: (https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/blobs/redirect_controller.rb)
-[ActiveStorage::Blobs::ProxyController]: (https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/blobs/proxy_controller.rb)
-[ActiveStorage::Representations::RedirectController]: (https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/representations/redirect_controller.rb)
-[ActiveStorage::Representations::ProxyController]: (https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/representations/proxy_controller.rb)
+[`ActiveStorage::Blobs::RedirectController`]: https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/blobs/redirect_controller.rb
+[`ActiveStorage::Blobs::ProxyController`]: https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/blobs/proxy_controller.rb
+[`ActiveStorage::Representations::RedirectController`]: https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/representations/redirect_controller.rb
+[`ActiveStorage::Representations::ProxyController`]: https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/representations/proxy_controller.rb
 
 Downloading Files
 -----------------
@@ -721,10 +758,7 @@ Analyzing Files
 
 Active Storage analyzes files once they've been uploaded by queuing a job in Active Job. Analyzed files will store additional information in the metadata hash, including `analyzed: true`. You can check whether a blob has been analyzed by calling [`analyzed?`][] on it.
 
-Image analysis provides `width` and `height` attributes. Video analysis provides these, as well as `duration`, `angle`, and `display_aspect_ratio`.
-Audio analysis provides `duration` and `bit_rate` attributes.
-
-Analysis requires the `mini_magick` gem. Audio/Video analysis also requires the [FFmpeg](https://www.ffmpeg.org/) library, which you must include separately.
+Image analysis provides `width` and `height` attributes. Video analysis provides these, as well as `duration`, `angle`, `display_aspect_ratio`, and `video` and `audio` booleans to indicate the presence of those channels. Audio analysis provides `duration` and `bit_rate` attributes.
 
 [`analyzed?`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Analyzable.html#method-i-analyzed-3F
 
@@ -735,7 +769,7 @@ Active Storage supports representing a variety of files. You can call
 [`representation`][] on an attachment to display an image variant, or a
 preview of a video or PDF. Before calling `representation`, check if the
 attachment can be represented by calling [`representable?`]. Some file formats
-can't be previewed by Active Storage out of the box (eg. Word documents); if
+can't be previewed by Active Storage out of the box (e.g. Word documents); if
 `representable?` returns false you may want to [link to](#serving-files)
 the file instead.
 
@@ -786,7 +820,7 @@ image_tag file.representation(resize_to_limit: [100, 100]).processed.url
 
 The Active Storage variant tracker improves performance of this, by storing a
 record in the database if the requested representation has been processed before.
-Thus, the above code will only make an API call to the remote service (eg. S3)
+Thus, the above code will only make an API call to the remote service (e.g. S3)
 once, and once a variant is stored, will use that. The variant tracker runs
 automatically, but can be disabled through `config.active_storage.track_variants`.
 
@@ -805,13 +839,7 @@ end
 
 ### Transforming Images
 
-Transforming images allows you to display the image at your choice of dimensions.
-To enable variants, add the `image_processing` gem to your `Gemfile`:
-
-```ruby
-gem 'image_processing'
-```
-
+Transforming images allows you to display the image at your choice of dimensions. 
 To create a variation of an image, call [`variant`][] on the attachment. You
 can pass any transformation supported by the variant processor to the method.
 When the browser hits the variant URL, Active Storage will lazily transform
@@ -857,12 +885,6 @@ a link to a lazily-generated preview, use the attachment's [`preview`][] method:
 
 To add support for another format, add your own previewer. See the
 [`ActiveStorage::Preview`][] documentation for more information.
-
-WARNING: Extracting previews requires third-party applications: FFmpeg v3.4+ for
-video and muPDF for PDFs, and on macOS also XQuartz and Poppler.
-These libraries are not provided by Rails. You must install them yourself to
-use the built-in previewers. Before you install and use third-party software,
-make sure you understand the licensing implications of doing so.
 
 [`preview`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-preview
 [`ActiveStorage::Preview`]: https://api.rubyonrails.org/classes/ActiveStorage/Preview.html
@@ -1339,7 +1361,7 @@ end
 ```
 
 If you're not running parallel tests, use `Minitest.after_run` or the equivalent for your test
-framework (eg. `after(:suite)` for RSpec):
+framework (e.g. `after(:suite)` for RSpec):
 
 ```ruby
 # test_helper.rb

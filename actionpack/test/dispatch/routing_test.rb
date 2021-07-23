@@ -4913,11 +4913,9 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
     assert_match message, error.message
   end
 
-  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-    test "exceptions have suggestions for fix" do
-      error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
-      assert_match "Did you mean?", error.message
-    end
+  test "exceptions have suggestions for fix" do
+    error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
+    assert_match "Did you mean?", error.message
   end
 
   # FIXME: we should fix all locations that raise this exception to provide
@@ -4926,8 +4924,8 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
   # we don't want to break other code.
   test "correct for empty UrlGenerationError" do
     err = ActionController::UrlGenerationError.new("oh no!")
-    correction = ActionController::UrlGenerationError::Correction.new(err)
-    assert_equal [], correction.corrections
+
+    assert_equal [], err.corrections
   end
 end
 

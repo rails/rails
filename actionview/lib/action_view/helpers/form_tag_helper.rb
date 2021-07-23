@@ -104,7 +104,7 @@ module ActionView
 
         # a little duplication to construct fewer strings
         if sanitized_object_name.empty?
-          sanitized_method_name.dup
+          sanitized_method_name
         elsif suffixes.any?
           [sanitized_object_name, index, sanitized_method_name, *suffixes].compact.join("_")
         elsif index

@@ -16,6 +16,7 @@ module Rails
 
       class CorrectableError < Error # :nodoc:
         attr_reader :key, :options
+
         def initialize(message, key, options)
           @key     = key
           @options = options
@@ -26,7 +27,7 @@ module Rails
           include DidYouMean::Correctable
 
           def corrections
-            DidYouMean::SpellChecker.new(dictionary: options).correct(key)
+            @corrections ||= DidYouMean::SpellChecker.new(dictionary: options).correct(key)
           end
         end
       end

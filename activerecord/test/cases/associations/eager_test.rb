@@ -848,13 +848,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_match(/Association named 'monkeys' was not found on Post; perhaps you misspelled it\?/, e.message)
   end
 
-  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-    test "exceptions have suggestions for fix" do
-      error = assert_raise(ActiveRecord::AssociationNotFoundError) {
-        Post.all.merge!(includes: :monkeys).find(6)
-      }
-      assert_match "Did you mean?", error.message
-    end
+  test "exceptions have suggestions for fix" do
+    error = assert_raise(ActiveRecord::AssociationNotFoundError) {
+      Post.all.merge!(includes: :taggingz).find(6)
+    }
+    assert_match "Did you mean?  tagging\n", error.message
   end
 
   def test_eager_has_many_through_with_order

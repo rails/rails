@@ -149,7 +149,7 @@ class Author < ActiveRecord::Base
   has_many :categorized_posts, through: :categorizations, source: :post
   has_many :unique_categorized_posts, -> { distinct }, through: :categorizations, source: :post
 
-  has_many :nothings, through: :kateggorisatons, class_name: "Category"
+  has_many :nothings, through: :kateggorizatons, class_name: "Category"
 
   has_many :author_favorites
   has_many :favorite_authors, -> { order("name") }, through: :author_favorites

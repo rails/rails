@@ -451,6 +451,42 @@ module ApplicationTests
         end
       end
 
+      test "migrations in different directories can have the same timestamp" do
+        require "#{app_path}/config/environment"
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+            def change
+	      create_table :posts do |t|
+		t.string :title
+
+		t.timestamps
+	      end
+            end
+          end
+        MIGRATION
+
+        app_file "db/animals_migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+            def change
+	      create_table :dogs do |t|
+		t.string :name
+
+		t.timestamps
+	      end
+            end
+          end
+        MIGRATION
+
+        Dir.chdir(app_path) do
+          output = rails "db:migrate"
+          entries = output.scan(/^== (\d+).+migrated/).map(&:first).map(&:to_i)
+
+          assert_match(/dogs/, output)
+          assert_match(/posts/, output)
+          assert_equal [1, 1], entries
+        end
+      end
+
       test "db:migrate and db:schema:dump and db:schema:load works on all databases" do
         db_migrate_and_schema_dump_and_load
       end
@@ -774,6 +810,112 @@ module ApplicationTests
         RUBY
 
         db_create_and_drop_namespace("primary", "db/development.sqlite3")
+      end
+
+      test "schema generation when dump_schema_after_migration is true schema_dump is false" do
+        app_file "config/database.yml", <<~EOS
+          development:
+            primary:
+              adapter: sqlite3
+              database: dev_db
+              schema_dump: false
+            secondary:
+              adapter: sqlite3
+              database: secondary_dev_db
+              schema_dump: false
+        EOS
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+
+          assert_not File.exist?("db/schema.rb"), "should not dump schema when configured not to"
+          assert_not File.exist?("db/secondary_schema.rb"), "should not dump schema when configured not to"
+        end
+      end
+
+      test "schema generation when dump_schema_after_migration is false and schema_dump is true" do
+        add_to_config("config.active_record.dump_schema_after_migration = false")
+
+        app_file "config/database.yml", <<~EOS
+          development:
+            primary:
+              adapter: sqlite3
+              database: dev_db
+            secondary:
+              adapter: sqlite3
+              database: secondary_dev_db
+        EOS
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+
+          assert_not File.exist?("db/schema.rb"), "should not dump schema when configured not to"
+          assert_not File.exist?("db/secondary_schema.rb"), "should not dump schema when configured not to"
+        end
+      end
+
+      test "schema generation with schema dump only for primary" do
+        app_file "config/database.yml", <<~EOS
+          development:
+            primary:
+              adapter: sqlite3
+              database: primary_dev_db
+            secondary:
+              adapter: sqlite3
+              database: secondary_dev_db
+              schema_dump: false
+        EOS
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate:primary", "db:migrate:secondary"
+
+          assert File.exist?("db/schema.rb"), "should not dump schema when configured not to"
+          assert_not File.exist?("db/secondary_schema.rb"), "should not dump schema when configured not to"
+        end
+      end
+
+      test "schema generation with schema dump only for secondary" do
+        app_file "config/database.yml", <<~EOS
+          development:
+            primary:
+              adapter: sqlite3
+              database: primary_dev_db
+              schema_dump: false
+            secondary:
+              adapter: sqlite3
+              database: secondary_dev_db
+        EOS
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate:primary", "db:migrate:secondary"
+
+          assert_not File.exist?("db/schema.rb"), "should not dump schema when configured not to"
+          assert File.exist?("db/secondary_schema.rb"), "should dump schema when configured to"
+        end
+      end
+
+      test "schema generation when dump_schema_after_migration and schema_dump are true" do
+        app_file "config/database.yml", <<~EOS
+          development:
+            primary:
+              adapter: sqlite3
+              database: dev_db
+            secondary:
+              adapter: sqlite3
+              database: secondary_dev_db
+        EOS
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+
+          assert File.exist?("db/schema.rb"), "should dump schema when configured to"
+          assert File.exist?("db/secondary_schema.rb"), "should dump schema when configured to"
+        end
       end
 
       test "db:create and db:drop don't raise errors when loading YAML containing multiple ERB statements on the same line" do
