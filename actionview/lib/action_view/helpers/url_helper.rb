@@ -559,16 +559,14 @@ module ActionView
         request_uri = url_string.index("?") || check_parameters ? request.fullpath : request.path
         request_uri = URI::DEFAULT_PARSER.unescape(request_uri).force_encoding(Encoding::BINARY)
 
-        if url_string.start_with?("/") && url_string != "/"
-          url_string.chomp!("/")
-          request_uri.chomp!("/")
+        if %r{^\w+://}.match?(url_string)
+          request_uri = +"#{request.protocol}#{request.host_with_port}#{request_uri}"
         end
 
-        if %r{^\w+://}.match?(url_string)
-          url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
-        else
-          url_string == request_uri
-        end
+        remove_trailing_slash!(url_string)
+        remove_trailing_slash!(request_uri)
+
+        url_string == request_uri
       end
 
       if RUBY_VERSION.start_with?("2.7")
@@ -778,6 +776,11 @@ module ActionView
           end
 
           params.sort_by { |pair| pair[:name] }
+        end
+
+        def remove_trailing_slash!(url_string)
+          trailing_index = (url_string.index("?") || 0) - 1
+          url_string[trailing_index] = "" if url_string[trailing_index] == "/"
         end
     end
   end

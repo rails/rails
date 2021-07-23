@@ -607,6 +607,14 @@ class UrlHelperTest < ActiveSupport::TestCase
     @request = request_for_url("/posts")
 
     assert current_page?("/posts/")
+    assert current_page?("http://www.example.com/posts/")
+  end
+
+  def test_current_page_with_trailing_slash_and_params
+    @request = request_for_url("/posts?order=desc")
+
+    assert current_page?("/posts/?order=desc")
+    assert current_page?("http://www.example.com/posts/?order=desc")
   end
 
   def test_current_page_with_not_get_verb
