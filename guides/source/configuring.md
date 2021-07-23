@@ -274,6 +274,28 @@ Every Rails application comes with a standard set of middleware which it uses in
     Rails.application.config.hosts << ".product.com"
     ```
 
+    You can exclude certain requests from Host Authorization checks by setting 
+    `config.host_configuration.exclude`:
+
+    ```ruby
+    # Exclude requests for the /healthcheck/ path from host checking
+    Rails.application.config.host_configuration = { 
+      exclude: ->(request) { request.path =~ /healthcheck/ } 
+    }
+    ``` 
+
+    When a request comes to an unauthorized host, a default Rack application 
+    will run and respond with `403 Forbidden`. This can be customized by setting 
+    `config.host_configuration.response_app`. For example:
+
+    ```ruby
+    Rails.application.config.host_configuration = {
+      response_app: -> env do
+        [400, { "Content-Type" => "text/plain" }, ["Bad Request"]]
+      end
+    }
+    ```
+
 * `ActionDispatch::SSL` forces every request to be served using HTTPS. Enabled if `config.force_ssl` is set to `true`. Options passed to this can be configured by setting `config.ssl_options`.
 * `ActionDispatch::Static` is used to serve static assets. Disabled if `config.public_file_server.enabled` is `false`. Set `config.public_file_server.index_name` if you need to serve a static directory index file that is not named `index`. For example, to serve `main.html` instead of `index.html` for directory requests, set `config.public_file_server.index_name` to `"main"`.
 * `ActionDispatch::Executor` allows thread safe code reloading. Disabled if `config.allow_concurrency` is `false`, which causes `Rack::Lock` to be loaded. `Rack::Lock` wraps the app in mutex so it can only be called by a single thread at a time.
