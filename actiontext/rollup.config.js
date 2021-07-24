@@ -4,9 +4,9 @@ import { terser } from "rollup-plugin-terser"
 import pkg from "./package.json"
 
 export default {
-  input: pkg.module,
+  input: pkg.main,
   output: {
-    file: pkg.main,
+    file: "app/assets/javascripts/action_text.js",
     format: "es"
   },
   plugins: [
