@@ -687,7 +687,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
       mod = Module.new
       e = assert_raise(NameError) { mod::EM }
-      assert_equal "EM cannot be autoloaded from an anonymous class or module", e.message
+      assert_match "EM cannot be autoloaded from an anonymous class or module", e.message
       assert_equal :EM, e.name
     end
   ensure
