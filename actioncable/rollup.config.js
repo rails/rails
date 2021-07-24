@@ -1,24 +1,22 @@
-import babel from "rollup-plugin-babel"
-import uglify from "rollup-plugin-uglify"
-
-const uglifyOptions = {
-  mangle: false,
-  compress: false,
-  output: {
-    beautify: true,
-    indent_level: 2
-  }
-}
+import resolve from "@rollup/plugin-node-resolve"
+import { terser } from "rollup-plugin-terser"
+import pkg from "./package.json"
 
 export default {
-  input: "app/javascript/action_cable/index.js",
+  input: pkg.module,
   output: {
-    file: "app/assets/javascripts/action_cable.js",
-    format: "umd",
-    name: "ActionCable"
+    file: pkg.main,
+    format: "es"
   },
   plugins: [
-    babel(),
-    uglify(uglifyOptions)
+    resolve(),
+    terser({
+      mangle: false,
+      compress: false,
+      format: {
+        beautify: true,
+        indent_level: 2
+      }
+    })
   ]
 }
