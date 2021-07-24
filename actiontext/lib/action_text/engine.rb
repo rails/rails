@@ -26,6 +26,12 @@ module ActionText
       end
     end
 
+    initializer "action_text.asset" do
+      if Rails.application.config.respond_to?(:assets)
+        Rails.application.config.assets.precompile += %w( action_text )
+      end
+    end
+
     initializer "action_text.attachable" do
       ActiveSupport.on_load(:active_storage_blob) do
         include ActionText::Attachable
