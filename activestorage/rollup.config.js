@@ -1,28 +1,24 @@
-import resolve from "rollup-plugin-node-resolve"
-import commonjs from "rollup-plugin-commonjs"
-import babel from "rollup-plugin-babel"
-import uglify from "rollup-plugin-uglify"
-
-const uglifyOptions = {
-  mangle: false,
-  compress: false,
-  output: {
-    beautify: true,
-    indent_level: 2
-  }
-}
+import resolve from "@rollup/plugin-node-resolve"
+import commonjs from "@rollup/plugin-commonjs"
+import { terser } from "rollup-plugin-terser"
+import pkg from "./package.json"
 
 export default {
-  input: "app/javascript/activestorage/index.js",
+  input: pkg.module,
   output: {
-    file: "app/assets/javascripts/activestorage.js",
-    format: "umd",
-    name: "ActiveStorage"
+    file: pkg.main,
+    format: "es"
   },
   plugins: [
     resolve(),
     commonjs(),
-    babel(),
-    uglify(uglifyOptions)
+    terser({
+      mangle: false,
+      compress: false,
+      format: {
+        beautify: true,
+        indent_level: 2
+      }
+    })
   ]
 }
