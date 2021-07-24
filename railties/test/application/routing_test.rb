@@ -734,5 +734,18 @@ module ApplicationTests
       get "/url"
       assert_equal "/foo", last_response.body
     end
+
+    test "request to rails/welcome for api_only app is successful" do
+      add_to_config <<-RUBY
+        config.api_only = true
+        config.action_dispatch.show_exceptions = false
+        config.action_controller.allow_forgery_protection = true
+      RUBY
+
+      app "development"
+
+      get "/"
+      assert_equal 200, last_response.status
+    end
   end
 end
