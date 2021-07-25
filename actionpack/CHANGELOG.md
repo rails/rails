@@ -1,3 +1,12 @@
+*   Update `HostAuthorization` middleware to render debug info only
+    when `config.consider_all_requests_local` is set to true.
+
+    Also, blocked host info is always logged with level `error`.
+
+    Fixes #42813
+
+    *Nikita Vyrko*
+
 *   Use a static error message when raising `ActionDispatch::Http::Parameters::ParseError`
     to avoid inadvertently logging the HTTP request body at the `fatal` level when it contains
     malformed JSON.
