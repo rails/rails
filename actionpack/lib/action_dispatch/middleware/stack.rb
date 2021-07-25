@@ -133,7 +133,7 @@ module ActionDispatch
       middlewares.reject! { |m| m.name == target.name }
     end
 
-    def remove(target)
+    def delete!(target)
       delete(target) || (raise "No such middleware to remove: #{target.inspect}")
     end
 

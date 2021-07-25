@@ -43,15 +43,15 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     end
   end
 
-  test "remove deletes the middleware" do
+  test "delete! deletes the middleware" do
     assert_difference "@stack.size", -1 do
-      @stack.remove FooMiddleware
+      @stack.delete! FooMiddleware
     end
   end
 
-  test "remove requires the middleware to be in the stack" do
+  test "delete! requires the middleware to be in the stack" do
     assert_raises RuntimeError do
-      @stack.remove BazMiddleware
+      @stack.delete! BazMiddleware
     end
   end
 
