@@ -43,6 +43,9 @@ export default class Subscriptions {
     if (!this.findAll(subscription.identifier).length) {
       this.sendCommand(subscription, "unsubscribe")
     }
+    if (subscription.autoCloseWebsocket && this.subscriptions.length === 0) {
+      this.consumer.disconnect()
+    }
     return subscription
   }
 

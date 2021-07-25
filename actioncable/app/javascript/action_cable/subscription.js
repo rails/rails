@@ -73,6 +73,9 @@ export default class Subscription {
     this.expireIn = params.expiresIn
     delete params.expiresIn
 
+    this.autoCloseWebsocket = params.autoCloseWebsocket
+    delete params.autoCloseWebsocket
+
     this.identifier = JSON.stringify(params)
     extend(this, mixin)
   }
