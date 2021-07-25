@@ -1,3 +1,7 @@
+*   Rename `config.middleware.remove` to `config.middleware.delete!`
+
+    *Dino Maric*
+
 *   Raise error on unpermitted open redirects.
 
     Add `allow_other_host` options to `redirect_to`.

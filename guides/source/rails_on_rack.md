@@ -205,6 +205,10 @@ And to remove browser related middleware,
 config.middleware.delete Rack::MethodOverride
 ```
 
+NOTE: Calling `config.middleware.delete` would fail silently if the item is not
+present in the middleware stack. Use `config.middleware.delete!` if you wish
+exception to be raised.
+
 ### Internal Middleware Stack
 
 Much of Action Controller's functionality is implemented as Middlewares. The following list explains the purpose of each of them:
