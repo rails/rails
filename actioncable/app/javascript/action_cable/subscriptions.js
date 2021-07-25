@@ -30,6 +30,11 @@ export default class Subscriptions {
     this.consumer.ensureActiveConnection()
     this.notify(subscription, "initialized")
     this.sendCommand(subscription, "subscribe")
+    if (subscription.expiresIn > 0) {
+      setTimeout(function() {
+        subscription.unsubscribe()
+      }, subscription.expiresIn)
+    }
     return subscription
   }
 

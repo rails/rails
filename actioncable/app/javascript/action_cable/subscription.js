@@ -69,6 +69,10 @@ const extend = function(object, properties) {
 export default class Subscription {
   constructor(consumer, params = {}, mixin) {
     this.consumer = consumer
+
+    this.expireIn = params.expiresIn
+    delete params.expiresIn
+
     this.identifier = JSON.stringify(params)
     extend(this, mixin)
   }
