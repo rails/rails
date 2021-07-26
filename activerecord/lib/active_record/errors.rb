@@ -273,12 +273,13 @@ module ActiveRecord
   #     def create
   #       Book.transaction do
   #         book = Book.new(params[:book])
+  #         # If this fails, user gets generic 500 behavior
   #         book.save!
   #         if today_is_friday?
   #           # The system must fail on Friday so that our support department
   #           # won't be out of job. We silently rollback this transaction
   #           # without telling the user.
-  #           raise ActiveRecord::Rollback, "Call tech support!"
+  #           raise ActiveRecord::Rollback
   #         end
   #       end
   #       # ActiveRecord::Rollback is the only exception that won't be passed on
