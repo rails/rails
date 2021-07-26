@@ -6,7 +6,7 @@ You can read more about Action Text in the [Action Text Overview](https://edgegu
 
 ## Development
 
-The JavaScript for Action Text is distributed both as a npm module under @rails/actiontext and via the asset pipeline as action_text.js (and we mirror Trix as trix.js). To ensure that the latter remains in sync, you must run `yarn build` and checkin the artifacts whenever the JavaScript source or the Trix dependency is bumped.
+The JavaScript for Action Text is distributed both as a npm module under @rails/actiontext and via the asset pipeline as action_text.js (and we mirror Trix as trix.js). To ensure that the latter remains in sync, you must run `yarn build` and checkin the artifacts whenever the JavaScript source or the Trix dependency is bumped. CSS changes must be brought over manually to app/assets/stylesheets/trix.css
 
 ## License
 
