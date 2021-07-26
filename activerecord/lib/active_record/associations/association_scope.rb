@@ -123,8 +123,6 @@ module ActiveRecord
 
           chain_head = chain.first
           chain.reverse_each do |reflection|
-            # Exclude the scope of the association itself, because that
-            # was already merged in the #scope method.
             reflection.constraints.each do |scope_chain_item|
               item = eval_scope(reflection, scope_chain_item, owner)
 

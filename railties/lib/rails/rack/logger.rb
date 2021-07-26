@@ -3,7 +3,6 @@
 require "active_support/core_ext/time/conversions"
 require "active_support/core_ext/object/blank"
 require "active_support/log_subscriber"
-require "action_dispatch/http/request"
 require "rack/body_proxy"
 
 module Rails
