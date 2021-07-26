@@ -273,7 +273,7 @@ module ActiveRecord
   #     def create
   #       Book.transaction do
   #         book = Book.new(params[:book])
-  #         # If this fails, user gets generic 500 behavior
+  #         # If this fails, the user gets generic 500 behavior.
   #         book.save!
   #         if today_is_friday?
   #           # The system must fail on Friday so that our support department
