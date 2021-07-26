@@ -90,9 +90,9 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     listener_threads = Thread.list - previous_threads
 
     wait # Wait for listener thread to start processing events.
-    GC.start
+    4.times { GC.start } # Trigger full sweep.
 
-    assert_not_predicate checker_ref, :weakref_alive?
+    assert_not checker_ref.weakref_alive?
     assert_empty Thread.list & listener_threads
   end
 
