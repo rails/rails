@@ -11,14 +11,12 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
   setup do
     Rails.application = Rails.application.class
     Rails.application.config.root = Pathname(destination_root)
-    
-    # Stub Webpacker engine presence to exercise path
-    Kernel.silence_warnings { ::Webpacker::Engine = true }
+    run_under_webpacker
   end
 
   teardown do
     Rails.application = Rails.application.instance
-    Kernel.silence_warnings { ::Webpacker::Engine = nil }
+    run_under_asset_pipeline
   end
 
   test "creates bin/yarn" do
@@ -98,5 +96,14 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
       generator.stub :yarn_command, yarn_command_stub do
         with_database_configuration { super }
       end
+    end
+
+    def run_under_webpacker
+      # Stub Webpacker engine presence to exercise path
+      Kernel.silence_warnings { Webpacker.const_set(:Engine, true) }
+    end
+
+    def run_under_asset_pipeline
+      Kernel.silence_warnings { Webpacker.send(:remove_const, :Engine) } rescue nil
     end
 end
