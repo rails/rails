@@ -2,7 +2,6 @@
 
 require "erb"
 require "uri"
-require "action_dispatch/http/request"
 require "active_support/actionable_error"
 
 module ActionDispatch

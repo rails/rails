@@ -2,8 +2,6 @@
 
 require "active_support/core_ext/array/extract_options"
 require "action_dispatch/middleware/stack"
-require "action_dispatch/http/request"
-require "action_dispatch/http/response"
 
 module ActionController
   # Extend ActionDispatch middleware stack to make it aware of options
