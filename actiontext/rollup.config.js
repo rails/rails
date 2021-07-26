@@ -20,6 +20,7 @@ export default [
       file: "app/assets/javascripts/trix.js",
       format: "es"
     },
+    context: "this",
     plugins: [
       resolve()
     ]
