@@ -94,6 +94,8 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
 
     assert_not_predicate checker_ref, :weakref_alive?
     assert_empty Thread.list & listener_threads
+  ensure
+    puts "thread_variable = #{Thread.current.thread_variable_get(:current_attributes_instances).inspect}"
   end
 
   test "should detect changes through symlink" do
