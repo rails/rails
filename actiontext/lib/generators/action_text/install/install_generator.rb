@@ -14,12 +14,10 @@ module ActionText
 
           say "Installing JavaScript dependencies", :green
           yarn_command "add #{js_dependencies.map { |name, version| "#{name}@#{version}" }.join(" ")}", capture: true
-        else
-          say "Assuming asset pipeline, so skipping JavaScript dependencies", :green
         end
       end
 
-      def append_dependencies_to_package_file
+      def append_javascript_dependencies
         if defined?(Webpacker::Engine)
           in_root do
             if (app_javascript_pack_path = Pathname.new("app/javascript/packs/application.js")).exist?
@@ -44,6 +42,16 @@ module ActionText
                 to have these dependencies added automatically.
               WARNING
             end
+          end
+        else
+          if (application_layout_path = Rails.root.join("app/views/layouts/application.html.erb")).exist?
+            insert_into_file application_layout_path.to_s, %(\n    <%= javascript_include_tag "trix", "action_text", "data-turbo-track": "reload", defer: true %>), before: /\s*<\/head>/
+          else
+            say <<~INSTRUCTIONS, :green
+              You must add the action_text.js and trix.js JavaScript files to the head of your application layout:
+            
+              <%= javascript_include_tag "trix", "action_text", "data-turbo-track": "reload", defer: true %>
+            INSTRUCTIONS
           end
         end
       end

@@ -90,10 +90,13 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
 
   test "run just for asset pipeline" do
     run_under_asset_pipeline
-    output = run_generator_instance
-    expected = "Assuming asset pipeline, so skipping JavaScript dependencies"
 
-    assert_match expected, output
+    application_layout = Pathname("app/views/layouts/application.html.erb").expand_path(destination_root)
+    run_generator_instance
+
+    assert_file application_layout do |content|
+      assert_match %r"^#{Regexp.escape 'javascript_include_tag "trix", "action_text"'}", content
+    end
   end
 
   private
