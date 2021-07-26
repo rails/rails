@@ -49,7 +49,7 @@ module ActionText
           else
             say <<~INSTRUCTIONS, :green
               You must add the action_text.js and trix.js JavaScript files to the head of your application layout:
-            
+
               <%= javascript_include_tag "trix", "action_text", "data-turbo-track": "reload", defer: true %>
             INSTRUCTIONS
           end
