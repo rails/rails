@@ -1,10 +1,9 @@
 import resolve from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
-import pkg from "./package.json"
 
 export default [  
   {
-    input: pkg.main,
+    input: "app/javascript/actiontext/index.js",
     output: {
       file: "app/assets/javascripts/action_text.js",
       format: "es"
