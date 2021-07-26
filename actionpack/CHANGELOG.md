@@ -3,7 +3,7 @@
     `Middleware#delete!` works just like `Middleware#delete` but will
     raise an error if the middleware isn't found.
 
-    *Alex Ghiculescu*, *Petrik de Heus*,  *Junichi Sato*
+    *Alex Ghiculescu*, *Petrik de Heus*, *Junichi Sato*
 
 *   Raise error on unpermitted open redirects.
 
