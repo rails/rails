@@ -88,6 +88,14 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     assert_match %r"\S bin/yarn foo$", ran
   end
 
+  test "run just for asset pipeline" do
+    run_under_asset_pipeline
+    output = run_generator_instance
+    expected = "Assuming asset pipeline, so skipping JavaScript dependencies"
+
+    assert_match expected, output
+  end
+
   private
     def run_generator_instance
       @yarn_commands = []
