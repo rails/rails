@@ -3,16 +3,20 @@
 require "generators/generators_test_helper"
 require "generators/action_text/install/install_generator"
 
+module Webpacker; end
+
 class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
 
   setup do
     Rails.application = Rails.application.class
     Rails.application.config.root = Pathname(destination_root)
+    run_under_webpacker
   end
 
   teardown do
     Rails.application = Rails.application.instance
+    run_under_asset_pipeline
   end
 
   test "creates bin/yarn" do
@@ -84,6 +88,20 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     assert_match %r"\S bin/yarn foo$", ran
   end
 
+  test "run just for asset pipeline" do
+    run_under_asset_pipeline
+
+    application_layout = Pathname("app/views/layouts/application.html.erb").expand_path(destination_root)
+    application_layout.dirname.mkpath
+    application_layout.write("</head>\n")
+
+    run_generator_instance
+
+    assert_file application_layout do |content|
+      assert_match %r"trix", content
+    end
+  end
+
   private
     def run_generator_instance
       @yarn_commands = []
@@ -92,5 +110,14 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
       generator.stub :yarn_command, yarn_command_stub do
         with_database_configuration { super }
       end
+    end
+
+    def run_under_webpacker
+      # Stub Webpacker engine presence to exercise path
+      Kernel.silence_warnings { Webpacker.const_set(:Engine, true) } rescue nil
+    end
+
+    def run_under_asset_pipeline
+      Kernel.silence_warnings { Webpacker.send(:remove_const, :Engine) } rescue nil
     end
 end
