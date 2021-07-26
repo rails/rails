@@ -3,16 +3,22 @@
 require "generators/generators_test_helper"
 require "generators/action_text/install/install_generator"
 
+module Webpacker; end
+
 class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
 
   setup do
     Rails.application = Rails.application.class
     Rails.application.config.root = Pathname(destination_root)
+    
+    # Stub Webpacker engine presence to exercise path
+    Kernel.silence_warnings { ::Webpacker::Engine = true }
   end
 
   teardown do
     Rails.application = Rails.application.instance
+    Kernel.silence_warnings { ::Webpacker::Engine = nil }
   end
 
   test "creates bin/yarn" do
