@@ -28,7 +28,7 @@ module ActionText
 
     initializer "action_text.asset" do
       if Rails.application.config.respond_to?(:assets)
-        Rails.application.config.assets.precompile += %w( action_text )
+        Rails.application.config.assets.precompile += %w( action_text trix )
       end
     end
 
