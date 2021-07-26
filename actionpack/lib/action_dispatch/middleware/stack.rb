@@ -139,7 +139,7 @@ module ActionDispatch
 
     # Deletes a middleware from the middleware stack.
     #
-    # Returns an array of middlewares not including the deleted item, or
+    # Returns the array of middlewares not including the deleted item, or
     # raises +RuntimeError+ if the target is not found.
     def delete!(target)
       delete(target) || (raise "No such middleware to remove: #{target.inspect}")
