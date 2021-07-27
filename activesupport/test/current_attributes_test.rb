@@ -191,6 +191,7 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     end
     assert_equal 42, enumerator.next
   ensure
+    Session.current = nil
     ActiveSupport::CurrentAttributes._use_thread_variables = false
   end
 end
