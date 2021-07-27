@@ -572,9 +572,7 @@ module ActiveModel
     end
 
     def inspect # :nodoc:
-      inspection = @errors.inspect
-
-      "#<#{self.class.name} #{inspection}>"
+      "#<#{self.class.name} #{@errors.inspect}>"
     end
 
     private
