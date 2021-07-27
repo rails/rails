@@ -72,7 +72,13 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     Time.zone = @original_time_zone
   end
 
-  setup { assert_nil Session.previous, "Expected Session to not have leaked state" }
+  setup do
+    assert_nil Session.previous, "Expected Session to not have leaked state"
+    ActiveSupport::CurrentAttributes._use_thread_variables = true
+    assert_nil Session.current, "Expected Session to not have leaked state"
+  ensure
+    ActiveSupport::CurrentAttributes._use_thread_variables = false
+  end
 
   test "read and write attribute" do
     Current.world = "world/1"
@@ -185,11 +191,11 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
   test "CurrentAttributes can use thread-local variables" do
     ActiveSupport::CurrentAttributes._use_thread_variables = true
-    Session.current = 42
+    Session.current = 43
     enumerator = Enumerator.new do |yielder|
       yielder.yield Session.current
     end
-    assert_equal 42, enumerator.next
+    assert_equal 43, enumerator.next
   ensure
     ActiveSupport::CurrentAttributes._use_thread_variables = false
   end
