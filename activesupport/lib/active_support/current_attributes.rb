@@ -144,6 +144,7 @@ module ActiveSupport
       end
 
       def _use_thread_variables=(value) # :nodoc:
+        clear_all
         @@use_thread_variables = value
       end
       @@use_thread_variables = false
