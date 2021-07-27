@@ -2038,7 +2038,7 @@ SELECT DISTINCT status FROM orders
 => ["shipped", "being_packed", "cancelled"]
 
 irb> Customer.pluck(:id, :first_name)
-SELECT customers.id, customers.name FROM customers
+SELECT customers.id, customers.first_name FROM customers
 => [[1, "David"], [2, "Fran"], [3, "Jose"]]
 ```
 
@@ -2049,7 +2049,7 @@ Customer.select(:id).map { |c| c.id }
 # or
 Customer.select(:id).map(&:id)
 # or
-Customer.select(:id, :name).map { |c| [c.id, c.first_name] }
+Customer.select(:id, :first_name).map { |c| [c.id, c.first_name] }
 ```
 
 with:
@@ -2154,7 +2154,7 @@ one of those records exists.
 ```ruby
 Customer.exists?(id: [1,2,3])
 # or
-Customer.exists?(name: ['Jane', 'Sergei'])
+Customer.exists?(first_name: ['Jane', 'Sergei'])
 ```
 
 It's even possible to use `exists?` without any arguments on a model or a relation.
