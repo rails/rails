@@ -1,0 +1,27 @@
+album_review:
+  content: This album is crushin!
+  reviewable: the_off_season (Album)
+
+show_review:
+  content: So disappointed by the end...
+  reviewable: game_of_thrones (Show)
+
+manga_review:
+  content: Masterpiece
+  reviewable: snk (Manga)
+
+restaurant_review:
+  content: We can chill to code without buying. That's neat!
+  reviewable: felicita (Restaurant)
+
+menu_review:
+  content: Not for me
+  reviewable: happy_meal (Restaurant::Menu)
+
+library_review:
+  content: Awesome library! They're even lending robots to teach kids how to code!
+  reviewable: eclipse (Library)
+
+staff_review:
+  content: The Best One!
+  reviewable: dorothy (Library::StaffMember)

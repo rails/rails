@@ -20,6 +20,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
           association(:#{name}).force_reload_reader
         end
       CODE
+
+      if reflection.polymorphic? && reflection.options[:types].present?
+        define_aliases(mixin, reflection)
+      end
     end
 
     # Defines the (build|create)_association methods for belongs_to or has_one association
@@ -39,6 +43,37 @@ module ActiveRecord::Associations::Builder # :nodoc:
       CODE
     end
 
-    private_class_method :valid_options, :define_accessors, :define_constructors
+    # Defines aliases for belongs_to polymorphic associations
+    def self.define_aliases(mixin, reflection)
+      types            = reflection.options[:types]
+      association_name = reflection.name
+
+      types.each do |type|
+        name = type.tableize.tr("/", "_").singularize
+        type = type.inspect
+
+        mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+          def #{name}
+            if #{type} == self["#{association_name}_type"]
+              association(:#{association_name}).reader
+            end
+          end
+
+          def #{name}=(value)
+            if #{type} == self["#{association_name}_type"]
+              association(:#{association_name}).writer(value)
+            end
+          end
+
+          def reload_#{name}
+            if #{type} == self["#{association_name}_type"]
+              association(:#{association_name}).force_reload_reader
+            end
+          end
+        CODE
+      end
+    end
+
+    private_class_method :valid_options, :define_accessors, :define_constructors, :define_aliases
   end
 end

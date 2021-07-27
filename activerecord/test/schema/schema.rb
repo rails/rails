@@ -1273,6 +1273,39 @@ ActiveRecord::Schema.define do
     t.integer :id
     t.datetime :created_at
   end
+
+  create_table :reviews, force: true do |t|
+    t.text :content
+    t.references :reviewable, polymorphic: true
+  end
+
+  create_table :albums, force: true do |t|
+    t.string :name
+  end
+
+  create_table :shows, force: true do |t|
+    t.string :name
+  end
+
+  create_table :mangas, force: true do |t|
+    t.string :name
+  end
+
+  create_table :restaurants, force: true do |t|
+    t.string :name
+  end
+
+  create_table :restaurant_menus, force: true do |t|
+    t.string :name
+  end
+
+  create_table :libraries, force: true do |t|
+    t.string :name
+  end
+
+  create_table :library_staff_members, force: true do |t|
+    t.string :name
+  end
 end
 
 Course.connection.create_table :courses, force: true do |t|
