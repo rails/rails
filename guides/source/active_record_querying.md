@@ -2154,7 +2154,7 @@ one of those records exists.
 ```ruby
 Customer.exists?(id: [1,2,3])
 # or
-Customer.exists?(name: ['Jane', 'Sergei'])
+Customer.exists?(first_name: ['Jane', 'Sergei'])
 ```
 
 It's even possible to use `exists?` without any arguments on a model or a relation.
