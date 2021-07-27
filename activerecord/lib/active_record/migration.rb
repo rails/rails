@@ -7,6 +7,7 @@ require "active_support/core_ext/array/access"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/actionable_error"
+require "rails/command"
 
 module ActiveRecord
   class MigrationError < ActiveRecordError #:nodoc:
@@ -134,13 +135,7 @@ module ActiveRecord
     include ActiveSupport::ActionableError
 
     action "Run pending migrations" do
-      ActiveRecord::Tasks::DatabaseTasks.migrate
-
-      if ActiveRecord.dump_schema_after_migration
-        ActiveRecord::Tasks::DatabaseTasks.dump_schema(
-          ActiveRecord::Base.connection_db_config
-        )
-      end
+      Rails::Command.invoke "db:migrate"
     end
 
     def initialize(message = nil)
