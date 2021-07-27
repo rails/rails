@@ -3428,6 +3428,23 @@ module ApplicationTests
       assert_nil Rails.application.config.middleware.map(&:name).index("3rd custom middleware")
     end
 
+    test "ActiveSupport::TimeWithZone.name uses default Ruby implementation by default" do
+      app "development"
+      assert_equal false, ActiveSupport::TimeWithZone.methods(false).include?(:name)
+    end
+
+    test "ActiveSupport::TimeWithZone.name can be configured in the new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+        Rails.application.config.active_support.remove_deprecated_time_with_zone_name = false
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveSupport::TimeWithZone.methods(false).include?(:name)
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
