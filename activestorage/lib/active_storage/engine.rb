@@ -149,6 +149,12 @@ module ActiveStorage
       end
     end
 
+    initializer "active_storage.asset" do
+      if Rails.application.config.respond_to?(:assets)
+        Rails.application.config.assets.precompile += %w( activestorage activestorage.esm )
+      end
+    end
+
     initializer "active_storage.fixture_set" do
       ActiveSupport.on_load(:active_record_fixture_set) do
         ActiveStorage::FixtureSet.file_fixture_path ||= Rails.root.join(*[

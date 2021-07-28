@@ -47,8 +47,6 @@ module Rails
 
           tests = Rake::FileList[patterns.any? ? patterns : default_test_glob]
           tests.exclude(default_test_exclude_glob) if patterns.empty?
-          # Disable parallel testing if there's only one test file to run.
-          ActiveSupport.disable_test_parallelization! if tests.size <= 1
           tests.to_a.each { |path| require File.expand_path(path) }
         end
 

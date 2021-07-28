@@ -210,7 +210,7 @@ module ActiveRecord
         @connection_class = b
       end
 
-      def self.connection_class # :nodoc
+      def self.connection_class # :nodoc:
         @connection_class ||= false
       end
 
