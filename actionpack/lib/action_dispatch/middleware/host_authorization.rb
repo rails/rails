@@ -100,7 +100,7 @@ module ActionDispatch
     end
 
     private
-      HOSTNAME = /[a-z0-9.-]+|\[[a-f0-9]*:[a-f0-9.:]+\]/i
+      HOSTNAME = /[a-z0-9._-]+|\[[a-f0-9]*:[a-f0-9.:]+\]/i
       VALID_ORIGIN_HOST = /\A(#{HOSTNAME})(?::\d+)?\z/
       VALID_FORWARDED_HOST = /(?:\A|,[ ]?)(#{HOSTNAME})(?::\d+)?\z/
 
