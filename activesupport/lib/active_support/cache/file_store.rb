@@ -11,7 +11,6 @@ module ActiveSupport
     # FileStore implements the Strategy::LocalCache strategy which implements
     # an in-memory cache inside of a block.
     class FileStore < Store
-      prepend Strategy::LocalCache
       attr_reader :cache_path
 
       DIR_FORMATTER = "%03X"
