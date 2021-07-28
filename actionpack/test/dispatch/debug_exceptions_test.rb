@@ -26,12 +26,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   class Boomer
     attr_accessor :closed
 
-    class NilAnnotedSourceCodeError < StandardError
-      def annoted_source_code
-        nil
-      end
-    end
-
     def initialize(detailed = false)
       @detailed = detailed
       @closed = false
@@ -60,10 +54,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       end
     end
 
-    def method_that_raises_nil_annoted_source_code
-      raise NilAnnotedSourceCodeError, "nil annoted_source_code"
-    end
-
     def call(env)
       env["action_dispatch.show_detailed_exceptions"] = @detailed
       req = ActionDispatch::Request.new(env)
@@ -74,7 +64,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         [404, { "X-Cascade" => "pass" }, self]
       when "/not_found"
         controller = SimpleController.new
-        raise AbstractController::ActionNotFound.new(nil, controller, :not_found)
+        raise AbstractController::ActionNotFound.new(nil, controller, :ello)
       when "/runtime_error"
         raise RuntimeError
       when "/method_not_allowed"
@@ -108,7 +98,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       when "/missing_keys"
         raise ActionController::UrlGenerationError, "No route matches"
       when "/parameter_missing"
-        raise ActionController::ParameterMissing.new(:missing_param_key, %w(valid_param_key))
+        raise ActionController::ParameterMissing.new(:invalid_param_key, %w(valid_param_key))
       when "/original_syntax_error"
         eval "broke_syntax =" # `eval` need for raise native SyntaxError at runtime
       when "/syntax_error_into_view"
@@ -123,8 +113,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         raise_nested_exceptions
       when %r{/actionable_error}
         raise CustomActionableError
-      when %r{/nil_annoted_source_code_error}
-        method_that_raises_nil_annoted_source_code
       when "/utf8_template_error"
         begin
           eval "“fancy string”"
@@ -330,20 +318,18 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match(/ActionDispatch::Http::MimeNegotiation::InvalidType/, body)
   end
 
-  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-    test "rescue with suggestions" do
-      @app = DevelopmentApp
+  test "rescue with suggestions" do
+    @app = DevelopmentApp
 
-      get "/not_found", headers: { "action_dispatch.show_exceptions" => true }
-      assert_response 404
-      assert_select("b", /Did you mean\?/)
-      assert_select("li", "hello")
+    get "/not_found", headers: { "action_dispatch.show_exceptions" => true }
+    assert_response 404
+    assert_select("b", /Did you mean\?/)
+    assert_select("li", "hello")
 
-      get "/parameter_missing", headers: { "action_dispatch.show_exceptions" => true }
-      assert_response 400
-      assert_select("b", /Did you mean\?/)
-      assert_select("li", "valid_param_key")
-    end
+    get "/parameter_missing", headers: { "action_dispatch.show_exceptions" => true }
+    assert_response 400
+    assert_select("b", /Did you mean\?/)
+    assert_select("li", "valid_param_key")
   end
 
   test "rescue with HTML format for HTML API request" do
@@ -527,9 +513,9 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
     backtrace_cleaner.add_silencer { true }
 
-    env = { "action_dispatch.show_exceptions" => true,
-           "action_dispatch.logger" => Logger.new(output),
-           "action_dispatch.backtrace_cleaner" => backtrace_cleaner }
+    env = { "action_dispatch.show_exceptions"   => true,
+            "action_dispatch.logger"            => Logger.new(output),
+            "action_dispatch.backtrace_cleaner" => backtrace_cleaner }
 
     get "/", headers: env
     assert_operator((output.rewind && output.read).lines.count, :>, 10)
@@ -542,9 +528,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
     backtrace_cleaner.add_silencer { true }
 
-    env = { "action_dispatch.show_exceptions"   => true,
-            "action_dispatch.logger"            => Logger.new(output),
-            "action_dispatch.backtrace_cleaner" => backtrace_cleaner }
+    env = { "action_dispatch.show_exceptions"       => true,
+            "action_dispatch.logger"                => Logger.new(output),
+            "action_dispatch.log_rescued_responses" => true,
+            "action_dispatch.backtrace_cleaner"     => backtrace_cleaner }
 
     assert_raises ActionController::RoutingError do
       get "/pass", headers: env
@@ -556,7 +543,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal 3, log.lines.count
   end
 
-  test "doesn't log the framework backtrace when error type is a invalid mine type" do
+  test "doesn't log the framework backtrace when error type is a invalid mime type" do
     @app = ProductionApp
 
     output = StringIO.new
@@ -564,9 +551,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     backtrace_cleaner.add_silencer { true }
 
     env = { "Accept" => "text/html,*",
-            "action_dispatch.show_exceptions"   => true,
-            "action_dispatch.logger"            => Logger.new(output),
-            "action_dispatch.backtrace_cleaner" => backtrace_cleaner }
+            "action_dispatch.show_exceptions"       => true,
+            "action_dispatch.logger"                => Logger.new(output),
+            "action_dispatch.log_rescued_responses" => true,
+            "action_dispatch.backtrace_cleaner"     => backtrace_cleaner }
 
     assert_raises ActionDispatch::Http::MimeNegotiation::InvalidType do
       get "/invalid_mimetype", headers: env
@@ -576,6 +564,34 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_includes log, "ActionDispatch::Http::MimeNegotiation::InvalidType (ActionDispatch::Http::MimeNegotiation::InvalidType)"
     assert_equal 3, log.lines.count
+  end
+
+  test "skips logging when rescued and log_rescued_responses is false" do
+    @app = DevelopmentApp
+
+    output = StringIO.new
+
+    env = { "action_dispatch.show_exceptions"       => true,
+            "action_dispatch.logger"                => Logger.new(output),
+            "action_dispatch.log_rescued_responses" => false }
+
+    get "/parameter_missing", headers: env
+    assert_response 400
+    assert_empty (output.rewind && output.read).lines
+  end
+
+  test "does not skip logging when rescued and log_rescued_responses is true" do
+    @app = DevelopmentApp
+
+    output = StringIO.new
+
+    env = { "action_dispatch.show_exceptions"       => true,
+            "action_dispatch.logger"                => Logger.new(output),
+            "action_dispatch.log_rescued_responses" => true }
+
+    get "/parameter_missing", headers: env
+    assert_response 400
+    assert_not_empty (output.rewind && output.read).lines
   end
 
   test "display backtrace when error type is SyntaxError" do
@@ -742,20 +758,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 400
     assert_match "ActionController::BadRequest", body
-  end
-
-  test "debug exceptions with misbehaving Exception#annoted_source_code" do
-    @app = DevelopmentApp
-
-    io = StringIO.new
-    logger = ActiveSupport::Logger.new(io)
-
-    get "/nil_annoted_source_code_error", headers: { "action_dispatch.show_exceptions" => true, "action_dispatch.logger" => logger }
-
-    assert_select "header h1", /DebugExceptionsTest::Boomer::NilAnnotedSourceCodeError/
-    assert_select "#container div.exception-message" do
-      assert_select "div", /nil annoted_source_code/
-    end
   end
 
   test "debug exceptions app shows diagnostics for template errors that contain UTF-8 characters" do

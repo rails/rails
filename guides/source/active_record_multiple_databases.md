@@ -10,6 +10,7 @@ After reading this guide you will know:
 * How to set up your application for multiple databases.
 * How automatic connection switching works.
 * How to use horizontal sharding for multiple databases.
+* How to migrate from `legacy_connection_handling` to the new connection handling.
 * What features are supported and what's still a work in progress.
 
 --------------------------------------------------------------------------------
@@ -31,7 +32,6 @@ databases
 The following features are not (yet) supported:
 
 * Automatic swapping for horizontal sharding
-* Joining across clusters
 * Load balancing replicas
 * Dumping schema caches for multiple databases
 
@@ -97,11 +97,11 @@ First, the database name for the `primary` and `primary_replica` should be the s
 the same data. This is also the case for `animals` and `animals_replica`.
 
 Second, the username for the writers and replicas should be different, and the
-replica user's permissions should be set to only read and not write.
+replica user's database permissions should be set to only read and not write.
 
 When using a replica database, you need to add a `replica: true` entry to the replica in the
 `database.yml`. This is because Rails otherwise has no way of knowing which one is a replica
-and which one is the writer.
+and which one is the writer. Rails will not run certain tasks, such as migrations, against replicas.
 
 Lastly, for new writer databases, you need to set the `migrations_paths` to the directory
 where you will store migrations for that database. We'll look more at `migrations_paths`
@@ -328,6 +328,16 @@ using the connection specification name. This means that if you pass an unknown 
 like `connected_to(role: :nonexistent)` you will get an error that says
 `ActiveRecord::ConnectionNotEstablished (No connection pool for 'ActiveRecord::Base' found for the 'nonexistent' role.)`
 
+If you want Rails to ensure any queries performed are read only, pass `prevent_writes: true`.
+This just prevents queries that look like writes from being sent to the database.
+You should also configure your replica database to run in readonly mode.
+
+```ruby
+ActiveRecord::Base.connected_to(role: :reading, prevent_writes: true) do
+  # Rails will check each query to ensure it's a read query
+end
+```
+
 ## Horizontal sharding
 
 Horizontal sharding is when you split up your database to reduce the number of rows on each
@@ -393,13 +403,37 @@ ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
 end
 ```
 
+## Migrate to the new connection handling
+
+In Rails 6.1+, Active Record provides a new internal API for connection management.
+In most cases applications will not need to make any changes except to opt-in to the
+new behavior (if upgrading from 6.0 and below) by setting
+`config.active_record.legacy_connection_handling = false`. If you have a single database
+application, no other changes will be required. If you have a multiple database application
+the following changes are required if you application is using these methods:
+
+* `connection_handlers` and `connection_handlers=` no longer works in the new connection
+handling. If you were calling a method on one of the connection handlers, for example,
+`connection_handlers[:reading].retrieve_connection_pool("ActiveRecord::Base")`
+you will now need to update that call to be
+`connection_handlers.retrieve_connection_pool("ActiveRecord::Base", role: :reading)`.
+* Calls to `ActiveRecord::Base.connection_handler.prevent_writes` will need to be updated
+to `ActiveRecord::Base.connection.preventing_writes?`.
+* If you need all the pools, including writing and reading, a new method has been provided on
+the handler. Call `connection_handler.all_connection_pools` to use this. In most cases though
+you'll want writing or reading pools with `connection_handler.connection_pool_list(:writing)` or
+`connection_handler.connection_pool_list(:reading)`.
+* If you turn off `legacy_connection_handling` in your application, any method that's unsupported
+will raise an error (i.e. `connection_handlers=`).
+
 ## Granular Database Connection Switching
 
 In Rails 6.1 it's possible to switch connections for one database instead of
 all databases globally. To use this feature you must first set
 `config.active_record.legacy_connection_handling` to `false` in your application
 configuration. The majority of applications should not need to make any other
-changes since the public APIs have the same behavior.
+changes since the public APIs have the same behavior. See the above section for
+how to enable and migrate away from `legacy_connection_handling`.
 
 With `legacy_connection_handling` set to `false`, any abstract connection class
 will be able to switch connections without affecting other connections. This
@@ -435,6 +469,53 @@ end
 `ActiveRecord::Base.connected_to` maintains the ability to switch
 connections globally.
 
+### Handling associations with joins across databases
+
+As of Rails 7.0+, Active Record has an option for handling associations that would perform
+a join across multiple databases. If you have a has many through or a has one through association 
+that you want to disable joining and perform 2 or more queries, pass the `disable_joins: true` option.
+
+For example:
+
+```ruby
+class Dog < AnimalsRecord
+  has_many :treats, through: :humans, disable_joins: true
+  has_many :humans
+
+  belongs_to :home
+  has_one :yard, through: :home, disable_joins: true
+end
+```
+
+Previously calling `@dog.treats` without `disable_joins` or `@dog.yard` without `disable_joins` 
+would raise an error because databases are unable to handle joins across clusters. With the 
+`disable_joins` option, Rails will generate multiple select queries
+to avoid attempting joining across clusters. For the above association, `@dog.treats` would generate the
+following SQL:
+
+```sql
+SELECT "humans"."id" FROM "humans" WHERE "humans"."dog_id" = ?  [["dog_id", 1]]
+SELECT "treats".* FROM "treats" WHERE "treats"."human_id" IN (?, ?, ?)  [["human_id", 1], ["human_id", 2], ["human_id", 3]]
+```
+
+While `@dog.yard` would generate the following SQL:
+
+```sql
+SELECT "home"."id" FROM "homes" WHERE "homes"."dog_id" = ? [["dog_id", 1]]
+SELECT "yards".* FROM "yards" WHERE "yards"."home_id" = ? [["home_id", 1]]
+```
+
+There are some important things to be aware of with this option:
+
+1) There may be performance implications since now two or more queries will be performed (depending
+on the association) rather than a join. If the select for `humans` returned a high number of IDs
+the select for `treats` may send too many IDs.
+2) Since we are no longer performing joins, a query with an order or limit is now sorted in-memory since
+order from one table cannot be applied to another table.
+3) This setting must be added to all associations where you want joining to be disabled.
+Rails can't guess this for you because association loading is lazy, to load `treats` in `@dog.treats`
+Rails already needs to know what SQL should be generated.
+
 ## Caveats
 
 ### Automatic swapping for horizontal sharding
@@ -449,12 +530,6 @@ Rails also doesn't support automatic load balancing of replicas. This is very
 dependent on your infrastructure. We may implement basic, primitive load balancing
 in the future, but for an application at scale this should be something your application
 handles outside of Rails.
-
-### Joining Across Databases
-
-Applications cannot join across databases. At the moment applications will need to
-manually write two selects and split the joins themselves. In a future version Rails
-will split the joins for you.
 
 ### Schema Cache
 

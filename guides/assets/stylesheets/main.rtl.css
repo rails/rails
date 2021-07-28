@@ -253,12 +253,6 @@ body {
   background: #ccc;
 }
 
-.clipboard-content {
-  opacity:0;
-  position:absolute;
-  z-index:-1;
-}
-
 #header {
   background: #c52f24 url(../images/header_tile.gif) repeat-x;
   color: #FFF;

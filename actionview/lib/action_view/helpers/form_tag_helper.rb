@@ -104,7 +104,7 @@ module ActionView
 
         # a little duplication to construct fewer strings
         if sanitized_object_name.empty?
-          sanitized_method_name.dup
+          sanitized_method_name
         elsif suffixes.any?
           [sanitized_object_name, index, sanitized_method_name, *suffixes].compact.join("_")
         elsif index
@@ -923,7 +923,7 @@ module ActionView
 
         def form_tag_with_body(html_options, content)
           output = form_tag_html(html_options)
-          output << content
+          output << content.to_s if content
           output.safe_concat("</form>")
         end
 

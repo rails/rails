@@ -143,8 +143,8 @@ end
 
 class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
   def test_null_configuration_uses_a_single_null_executor_by_default
-    old_value = ActiveRecord::Base.async_query_executor
-    ActiveRecord::Base.async_query_executor = nil
+    old_value = ActiveRecord.async_query_executor
+    ActiveRecord.async_query_executor = nil
 
     handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
     db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
@@ -161,12 +161,12 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert_equal 2, handler.all_connection_pools.count
   ensure
     clean_up_connection_handler
-    ActiveRecord::Base.async_query_executor = old_value
+    ActiveRecord.async_query_executor = old_value
   end
 
   def test_one_global_thread_pool_is_used_when_set_with_default_concurrency
-    old_value = ActiveRecord::Base.async_query_executor
-    ActiveRecord::Base.async_query_executor = :global_thread_pool
+    old_value = ActiveRecord.async_query_executor
+    ActiveRecord.async_query_executor = :global_thread_pool
 
     handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
     db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
@@ -194,16 +194,16 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert_equal async_pool1, async_pool2
   ensure
     clean_up_connection_handler
-    ActiveRecord::Base.async_query_executor = old_value
+    ActiveRecord.async_query_executor = old_value
   end
 
   def test_concurrency_can_be_set_on_global_thread_pool
-    old_value = ActiveRecord::Base.async_query_executor
-    ActiveRecord::Base.async_query_executor = :global_thread_pool
-    old_concurrency = ActiveRecord::Base.global_executor_concurrency
-    old_global_thread_pool_async_query_executor = ActiveRecord::Core.class_variable_get(:@@global_thread_pool_async_query_executor)
-    ActiveRecord::Core.class_variable_set(:@@global_thread_pool_async_query_executor, nil)
-    ActiveRecord::Base.global_executor_concurrency = 8
+    old_value = ActiveRecord.async_query_executor
+    ActiveRecord.async_query_executor = :global_thread_pool
+    old_concurrency = ActiveRecord.global_executor_concurrency
+    old_global_thread_pool_async_query_executor = ActiveRecord.instance_variable_get(:@global_thread_pool_async_query_executor)
+    ActiveRecord.instance_variable_set(:@global_thread_pool_async_query_executor, nil)
+    ActiveRecord.global_executor_concurrency = 8
 
     handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
     db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
@@ -231,31 +231,31 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert_equal async_pool1, async_pool2
   ensure
     clean_up_connection_handler
-    ActiveRecord::Base.global_executor_concurrency = old_concurrency
-    ActiveRecord::Base.async_query_executor = old_value
-    ActiveRecord::Core.class_variable_set(:@@global_thread_pool_async_query_executor, old_global_thread_pool_async_query_executor)
+    ActiveRecord.global_executor_concurrency = old_concurrency
+    ActiveRecord.async_query_executor = old_value
+    ActiveRecord.instance_variable_set(:@global_thread_pool_async_query_executor, old_global_thread_pool_async_query_executor)
   end
 
   def test_concurrency_cannot_be_set_with_null_executor_or_multi_thread_pool
-    old_value = ActiveRecord::Base.async_query_executor
-    ActiveRecord::Base.async_query_executor = nil
+    old_value = ActiveRecord.async_query_executor
+    ActiveRecord.async_query_executor = nil
 
     assert_raises ArgumentError do
-      ActiveRecord::Base.global_executor_concurrency = 8
+      ActiveRecord.global_executor_concurrency = 8
     end
 
-    ActiveRecord::Base.async_query_executor = :multi_thread_pool
+    ActiveRecord.async_query_executor = :multi_thread_pool
 
     assert_raises ArgumentError do
-      ActiveRecord::Base.global_executor_concurrency = 8
+      ActiveRecord.global_executor_concurrency = 8
     end
   ensure
-    ActiveRecord::Base.async_query_executor = old_value
+    ActiveRecord.async_query_executor = old_value
   end
 
   def test_multi_thread_pool_executor_configuration
-    old_value = ActiveRecord::Base.async_query_executor
-    ActiveRecord::Base.async_query_executor = :multi_thread_pool
+    old_value = ActiveRecord.async_query_executor
+    ActiveRecord.async_query_executor = :multi_thread_pool
 
     handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
     config_hash = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash
@@ -285,12 +285,12 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert_not_equal async_pool1, async_pool2
   ensure
     clean_up_connection_handler
-    ActiveRecord::Base.async_query_executor = old_value
+    ActiveRecord.async_query_executor = old_value
   end
 
   def test_multi_thread_pool_is_used_only_by_configurations_that_enable_it
-    old_value = ActiveRecord::Base.async_query_executor
-    ActiveRecord::Base.async_query_executor = :multi_thread_pool
+    old_value = ActiveRecord.async_query_executor
+    ActiveRecord.async_query_executor = :multi_thread_pool
 
     handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
 
@@ -320,6 +320,6 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert_not_equal async_pool1, async_pool2
   ensure
     clean_up_connection_handler
-    ActiveRecord::Base.async_query_executor = old_value
+    ActiveRecord.async_query_executor = old_value
   end
 end

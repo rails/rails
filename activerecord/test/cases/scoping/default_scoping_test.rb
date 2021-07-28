@@ -362,7 +362,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_unscope_errors_with_invalid_value
     assert_raises(ArgumentError) do
-      Developer.includes(:projects).where(name: "Jamis").unscope(:stupidly_incorrect_value)
+      Developer.includes(:projects).where(name: "Jamis").unscope(:incorrect_value)
     end
 
     assert_raises(ArgumentError) do

@@ -17,8 +17,8 @@ module ActiveJob
   # currently support String, Integer, Float, NilClass, TrueClass, FalseClass,
   # BigDecimal, Symbol, Date, Time, DateTime, ActiveSupport::TimeWithZone,
   # ActiveSupport::Duration, Hash, ActiveSupport::HashWithIndifferentAccess,
-  # Array or GlobalID::Identification instances, although this can be extended
-  # by adding custom serializers.
+  # Array, Range or GlobalID::Identification instances, although this can be
+  # extended by adding custom serializers.
   # Raised if you set the key for a Hash something else than a string or
   # a symbol. Also raised when trying to serialize an object which can't be
   # identified with a GlobalID - such as an unpersisted Active Record model.
@@ -81,10 +81,11 @@ module ActiveJob
                 _ruby2_keywords_hash(**hash)
               end
 
-              private def _ruby2_keywords_hash(*args)
-                args.last
-              end
-              ruby2_keywords(:_ruby2_keywords_hash) if respond_to?(:ruby2_keywords, true)
+              private
+                def _ruby2_keywords_hash(*args)
+                  args.last
+                end
+                ruby2_keywords(:_ruby2_keywords_hash)
             end
           end
         }

@@ -520,6 +520,37 @@ module ApplicationTests
         capture(:stderr) { run_test_command("test/models/post_test.rb --fail-fast", stderr: true) })
     end
 
+    def test_fail_fast_in_parallel_with_processes
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes)
+
+      app_file "test/unit/parallel_test.rb", <<-RUBY
+        require "test_helper"
+
+        class ParallelTest < ActiveSupport::TestCase
+          def test_verify_fail_fast
+            assert false
+          end
+
+          10.times do |n|
+            define_method("test_verify_fail_fast_\#{n}") do
+              assert true
+            end
+          end
+        end
+      RUBY
+
+      @error_output = capture(:stderr) do
+        # Pass seed that guarantees the failing test runs early
+        @test_output = run_test_command("test/unit/parallel_test.rb --fail-fast --seed 31992", stderr: true)
+      end
+
+      matches = @test_output.match(/(\d+) runs, (\d+) assertions, (\d+) failures/)
+
+      assert_match %r{Interrupt}, @error_output
+      assert_equal matches[3].to_i, 1
+      assert matches[1].to_i < 11
+    end
+
     def test_run_in_parallel_with_processes
       exercise_parallelization_regardless_of_machine_core_count(with: :processes)
 
@@ -536,75 +567,47 @@ module ApplicationTests
       output = run_test_command(file_name)
 
       assert_match %r{Finished in.*\n2 runs, 2 assertions}, output
+      assert_match %r{Running \d+ tests in parallel using \d+ processes}, output
       assert_no_match "create_table(:users)", output
     end
 
-    def test_parallel_is_disabled_when_single_file_is_run
-      exercise_parallelization_regardless_of_machine_core_count(with: :processes, force: false)
+    def test_parallelization_is_disabled_when_number_of_tests_is_below_threshold
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes, threshold: 100)
 
-      file_name = app_file "test/unit/parallel_test.rb", <<-RUBY
-        require "test_helper"
+      file_name = create_parallel_processes_test_file
 
-        class ParallelTest < ActiveSupport::TestCase
-          def test_verify_test_order
-            puts "Test order: \#{self.class.test_order}"
+      app_file "db/schema.rb", <<-RUBY
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :users do |t|
+            t.string :name
           end
         end
       RUBY
 
       output = run_test_command(file_name)
 
-      assert_match "Test order: random", output
-    end
-
-    def test_parallel_is_enabled_when_multiple_files_are_run
-      exercise_parallelization_regardless_of_machine_core_count(with: :processes, force: false)
-
-      file_1 = app_file "test/unit/parallel_test_first.rb", <<-RUBY
-        require "test_helper"
-
-        class ParallelTestFirst < ActiveSupport::TestCase
-          def test_verify_test_order
-            puts "Test order (file 1): \#{self.class.test_order}"
-          end
-        end
-      RUBY
-
-      file_2 = app_file "test/unit/parallel_test_second.rb", <<-RUBY
-        require "test_helper"
-
-        class ParallelTestSecond < ActiveSupport::TestCase
-          def test_verify_test_order
-            puts "Test order (file 2): \#{self.class.test_order}"
-          end
-        end
-      RUBY
-
-      output = run_test_command([file_1, file_2].join(" "))
-
-      assert_match "Test order (file 1): parallel", output
-      assert_match "Test order (file 2): parallel", output
+      assert_match %r{Running \d+ tests in a single process}, output
+      assert_no_match %r{Running \d+ tests in parallel using \d+ processes}, output
     end
 
     def test_parallel_is_enabled_when_PARALLEL_WORKERS_is_set
       @old = ENV["PARALLEL_WORKERS"]
       ENV["PARALLEL_WORKERS"] = "5"
 
-      exercise_parallelization_regardless_of_machine_core_count(with: :processes, force: false)
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes, threshold: 100)
 
       file_name = app_file "test/unit/parallel_test.rb", <<-RUBY
         require "test_helper"
 
         class ParallelTest < ActiveSupport::TestCase
           def test_verify_test_order
-            puts "Test order: \#{self.class.test_order}"
           end
         end
       RUBY
 
       output = run_test_command(file_name)
 
-      assert_match "Test order: parallel", output
+      assert_match %r{Running \d+ tests in parallel using \d+ processes}, output
     ensure
       ENV["PARALLEL_WORKERS"] = @old
     end
@@ -1109,20 +1112,15 @@ module ApplicationTests
         RUBY
       end
 
-      def exercise_parallelization_regardless_of_machine_core_count(with:, force: true)
-        file_content = ERB.new(<<-ERB, trim_mode: "-").result_with_hash(with: with.to_s, force: force)
+      def exercise_parallelization_regardless_of_machine_core_count(with:, threshold: 0)
+        file_content = ERB.new(<<-ERB, trim_mode: "-").result_with_hash(with: with.to_s)
           ENV["RAILS_ENV"] ||= "test"
           require_relative "../config/environment"
           require "rails/test_help"
 
           class ActiveSupport::TestCase
-            <%- if force -%>
-            # Force parallelization, even with single files
-            ActiveSupport.test_parallelization_disabled = false
-            <%- end -%>
-
             # Run tests in parallel with specified workers
-            parallelize(workers: 2, with: :<%= with %>)
+            parallelize(workers: 2, with: :<%= with %>, threshold: #{threshold})
 
             # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
             fixtures :all

@@ -30,6 +30,7 @@ class Post < ActiveRecord::Base
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
   scope :titled_with_an_apostrophe, -> { where("title LIKE '%''%'") }
   scope :ranked_by_comments, -> { order(table[:comments_count].desc) }
+  scope :ordered_by_post_id, -> { order("posts.post_id ASC") }
 
   scope :limit_by, lambda { |l| limit(l) }
   scope :locked, -> { lock }
@@ -324,6 +325,10 @@ class FakeKlass
   extend ActiveRecord::Delegation::DelegateCache
 
   class << self
+    def scope_registry
+      ActiveRecord::Scoping::ScopeRegistry.instance
+    end
+
     def connection
       Post.connection
     end
@@ -376,4 +381,14 @@ class Postesque < ActiveRecord::Base
   belongs_to :author, class_name: "Author", foreign_key: :author_name, primary_key: :name
   belongs_to :author_with_address, class_name: "Author", foreign_key: :author_id
   belongs_to :author_with_the_letter_a, class_name: "Author", foreign_key: :author_id
+end
+
+class PostRecord < ActiveRecord::Base
+  has_many :comments
+
+  class << self
+    def model_name
+      ActiveModel::Name.new(self, nil, "Post")
+    end
+  end
 end

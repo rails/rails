@@ -17,7 +17,7 @@ module ActiveModel
   #
   # This also provides the required class methods for hooking into the
   # Rails internationalization API, including being able to define a
-  # class based +i18n_scope+ and +lookup_ancestors+ to find translations in
+  # class-based +i18n_scope+ and +lookup_ancestors+ to find translations in
   # parent classes.
   module Translation
     include ActiveModel::Naming

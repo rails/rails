@@ -20,7 +20,7 @@ module ActionText
       end
 
       def from_attachables(attachables)
-        Array(attachables).map { |attachable| from_attachable(attachable) }.compact
+        Array(attachables).filter_map { |attachable| from_attachable(attachable) }
       end
 
       def from_attachable(attachable, attributes = {})

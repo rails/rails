@@ -204,6 +204,7 @@ module TestHelpers
         config.hosts << proc { true }
         config.eager_load = false
         config.session_store :cookie_store, key: "_myapp_session"
+        config.cache_store = :mem_cache_store
         config.active_support.deprecation = :log
         config.action_controller.allow_forgery_protection = false
       RUBY

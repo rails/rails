@@ -86,19 +86,30 @@ db_namespace = namespace :db do
 
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
   task migrate: :load_config do
-    original_db_config = ActiveRecord::Base.connection_db_config
-    ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-      ActiveRecord::Base.establish_connection(db_config)
+    db_configs = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env)
+
+    if db_configs.size == 1
       ActiveRecord::Tasks::DatabaseTasks.migrate
+    else
+      original_db_config = ActiveRecord::Base.connection_db_config
+      mapped_versions = ActiveRecord::Tasks::DatabaseTasks.db_configs_with_versions(db_configs)
+
+      mapped_versions.sort.each do |version, db_configs|
+        db_configs.each do |db_config|
+          ActiveRecord::Base.establish_connection(db_config)
+          ActiveRecord::Tasks::DatabaseTasks.migrate(version)
+        end
+      end
     end
+
     db_namespace["_dump"].invoke
   ensure
-    ActiveRecord::Base.establish_connection(original_db_config)
+    ActiveRecord::Base.establish_connection(original_db_config) if original_db_config
   end
 
-  # IMPORTANT: This task won't dump the schema if ActiveRecord::Base.dump_schema_after_migration is set to false
+  # IMPORTANT: This task won't dump the schema if ActiveRecord.dump_schema_after_migration is set to false
   task :_dump do
-    if ActiveRecord::Base.dump_schema_after_migration
+    if ActiveRecord.dump_schema_after_migration
       db_namespace["schema:dump"].invoke
     end
     # Allow this task to be called as many times as required. An example is the
@@ -108,11 +119,15 @@ db_namespace = namespace :db do
 
   namespace :_dump do
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
-      # IMPORTANT: This task won't dump the schema if ActiveRecord::Base.dump_schema_after_migration is set to false
+      # IMPORTANT: This task won't dump the schema if ActiveRecord.dump_schema_after_migration is set to false
       task name do
-        if ActiveRecord::Base.dump_schema_after_migration
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
+
+        if ActiveRecord.dump_schema_after_migration && db_config.schema_dump
+          ActiveRecord::Base.establish_connection(db_config)
           db_namespace["schema:dump:#{name}"].invoke
         end
+
         # Allow this task to be called as many times as required. An example is the
         # migrate:redo task, which calls other two internally that depend on this one.
         db_namespace["_dump:#{name}"].reenable
@@ -385,8 +400,9 @@ db_namespace = namespace :db do
       fixture_files = if ENV["FIXTURES"]
         ENV["FIXTURES"].split(",")
       else
-        # The use of String#[] here is to support namespaced fixtures.
-        Dir["#{fixtures_dir}/**/*.yml"].map { |f| f[(fixtures_dir.size + 1)..-5] }
+        files = Dir[File.join(fixtures_dir, "**/*.{yml}")]
+        files.reject! { |f| f.start_with?(File.join(fixtures_dir, "files")) }
+        files.map! { |f| f[fixtures_dir.to_s.size..-5].delete_prefix("/") }
       end
 
       ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_files)
@@ -421,8 +437,10 @@ db_namespace = namespace :db do
     desc "Creates a database schema file (either db/schema.rb or db/structure.sql, depending on `config.active_record.schema_format`)"
     task dump: :load_config do
       ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-        ActiveRecord::Base.establish_connection(db_config)
-        ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+        if db_config.schema_dump
+          ActiveRecord::Base.establish_connection(db_config)
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+        end
       end
 
       db_namespace["schema:dump"].reenable
@@ -430,7 +448,7 @@ db_namespace = namespace :db do
 
     desc "Loads a database schema file (either db/schema.rb or db/structure.sql, depending on `config.active_record.schema_format`) into the database"
     task load: [:load_config, :check_protected_environments] do
-      ActiveRecord::Tasks::DatabaseTasks.load_schema_current(ActiveRecord::Base.schema_format, ENV["SCHEMA"])
+      ActiveRecord::Tasks::DatabaseTasks.load_schema_current(ActiveRecord.schema_format, ENV["SCHEMA"])
     end
 
     task load_if_ruby: ["db:create", :environment] do
@@ -438,7 +456,7 @@ db_namespace = namespace :db do
         Using `bin/rails db:schema:load_if_ruby` is deprecated and will be removed in Rails 7.0.
         Configure the format using `config.active_record.schema_format = :ruby` to use `schema.rb` and run `bin/rails db:schema:load` instead.
       MSG
-      db_namespace["schema:load"].invoke if ActiveRecord::Base.schema_format == :ruby
+      db_namespace["schema:load"].invoke if ActiveRecord.schema_format == :ruby
     end
 
     namespace :dump do
@@ -458,7 +476,7 @@ db_namespace = namespace :db do
         desc "Loads a database schema file (either db/schema.rb or db/structure.sql, depending on `config.active_record.schema_format`) into the #{name} database"
         task name => :load_config do
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
-          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ActiveRecord::Base.schema_format, ENV["SCHEMA"])
+          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ActiveRecord.schema_format, ENV["SCHEMA"])
         end
       end
     end
@@ -520,7 +538,7 @@ db_namespace = namespace :db do
         Using `bin/rails db:structure:load_if_sql` is deprecated and will be removed in Rails 7.0.
         Configure the format using `config.active_record.schema_format = :sql` to use `structure.sql` and run `bin/rails db:schema:load` instead.
       MSG
-      db_namespace["schema:load"].invoke if ActiveRecord::Base.schema_format == :sql
+      db_namespace["schema:load"].invoke if ActiveRecord.schema_format == :sql
     end
 
     namespace :dump do
@@ -551,6 +569,20 @@ db_namespace = namespace :db do
     end
   end
 
+  namespace :encryption do
+    desc "Generate a set of keys for configuring Active Record encryption in a given environment"
+    task :init do
+      puts <<~MSG
+        Add this entry to the credentials of the target environment:#{' '}
+
+        active_record_encryption:
+          primary_key: #{SecureRandom.alphanumeric(32)}
+          deterministic_key: #{SecureRandom.alphanumeric(32)}
+          key_derivation_salt: #{SecureRandom.alphanumeric(32)}
+      MSG
+    end
+  end
+
   namespace :test do
     # desc "Recreate the test database from the current schema"
     task load: %w(db:test:purge) do
@@ -563,7 +595,7 @@ db_namespace = namespace :db do
       ActiveRecord::Schema.verbose = false
       ActiveRecord::Base.configurations.configs_for(env_name: "test").each do |db_config|
         filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.name)
-        ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ActiveRecord::Base.schema_format, filename)
+        ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ActiveRecord.schema_format, filename)
       end
     ensure
       if should_reconnect
@@ -609,7 +641,7 @@ db_namespace = namespace :db do
           ActiveRecord::Schema.verbose = false
           filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(name)
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", name: name)
-          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ActiveRecord::Base.schema_format, filename)
+          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ActiveRecord.schema_format, filename)
         ensure
           if should_reconnect
             ActiveRecord::Base.establish_connection(ActiveRecord::Tasks::DatabaseTasks.env.to_sym)

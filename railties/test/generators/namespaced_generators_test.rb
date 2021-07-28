@@ -98,7 +98,7 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
     run_generator ["admin/account"]
     assert_file "app/models/test_app/admin.rb", /module TestApp/, /module Admin/
     assert_file "app/models/test_app/admin.rb", /def self\.table_name_prefix/
-    assert_file "app/models/test_app/admin.rb", /'test_app_admin_'/
+    assert_file "app/models/test_app/admin.rb", /"test_app_admin_"/
     assert_file "app/models/test_app/admin/account.rb", /module TestApp/, /class Admin::Account < ApplicationRecord/
   end
 

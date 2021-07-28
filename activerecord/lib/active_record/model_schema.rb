@@ -127,8 +127,7 @@ module ActiveRecord
     # <tt>attribute :foo, :string</tt>. Defaults to false.
 
     included do
-      mattr_accessor :primary_key_prefix_type, instance_writer: false
-
+      class_attribute :primary_key_prefix_type, instance_writer: false
       class_attribute :table_name_prefix, instance_writer: false, default: ""
       class_attribute :table_name_suffix, instance_writer: false, default: ""
       class_attribute :schema_migrations_table_name, instance_accessor: false, default: "schema_migrations"
@@ -137,8 +136,24 @@ module ActiveRecord
       class_attribute :implicit_order_column, instance_accessor: false
       class_attribute :immutable_strings_by_default, instance_accessor: false
 
+      # Defines the name of the table column which will store the class name on single-table
+      # inheritance situations.
+      #
+      # The default inheritance column name is +type+, which means it's a
+      # reserved word inside Active Record. To be able to use single-table
+      # inheritance with another column name, or to use the column +type+ in
+      # your own model for something else, you can set +inheritance_column+:
+      #
+      #     self.inheritance_column = 'zoink'
+      class_attribute :inheritance_column, instance_accessor: false, default: "type"
+      singleton_class.class_eval do
+        alias_method :_inheritance_column=, :inheritance_column=
+        private :_inheritance_column=
+        alias_method :inheritance_column=, :real_inheritance_column=
+      end
+
       self.protected_environments = ["production"]
-      self.inheritance_column = "type"
+
       self.ignored_columns = [].freeze
 
       delegate :type_for_attribute, :column_for_attribute, to: :class
@@ -196,6 +211,21 @@ module ActiveRecord
       # +table_name_suffix+ is appended. So if you have "myapp_" as a prefix,
       # the table name guess for an Invoice class becomes "myapp_invoices".
       # Invoice::Lineitem becomes "myapp_invoice_lineitems".
+      #
+      # Active Model Naming's +model_name+ is the base name used to guess the
+      # table name. In case a custom Active Model Name is defined, it will be
+      # used for the table name as well:
+      #
+      #   class PostRecord < ActiveRecord::Base
+      #     class << self
+      #       def model_name
+      #         ActiveModel::Name.new(self, nil, "Post")
+      #       end
+      #     end
+      #   end
+      #
+      #   PostRecord.table_name
+      #   # => "posts"
       #
       # You can also set your own table name explicitly:
       #
@@ -266,23 +296,8 @@ module ActiveRecord
         @protected_environments = environments.map(&:to_s)
       end
 
-      # Defines the name of the table column which will store the class name on single-table
-      # inheritance situations.
-      #
-      # The default inheritance column name is +type+, which means it's a
-      # reserved word inside Active Record. To be able to use single-table
-      # inheritance with another column name, or to use the column +type+ in
-      # your own model for something else, you can set +inheritance_column+:
-      #
-      #     self.inheritance_column = 'zoink'
-      def inheritance_column
-        (@inheritance_column ||= nil) || superclass.inheritance_column
-      end
-
-      # Sets the value of inheritance_column
-      def inheritance_column=(value)
-        @inheritance_column = value.to_s
-        @explicit_inheritance_column = true
+      def real_inheritance_column=(value) # :nodoc:
+        self._inheritance_column = value.to_s
       end
 
       # The list of columns names the model should ignore. Ignored columns won't have attribute
@@ -486,9 +501,9 @@ module ActiveRecord
       #
       # The most common usage pattern for this method is probably in a migration,
       # when just after creating a table you want to populate it with some default
-      # values, eg:
+      # values, e.g.:
       #
-      #  class CreateJobLevels < ActiveRecord::Migration[6.0]
+      #  class CreateJobLevels < ActiveRecord::Migration[7.0]
       #    def up
       #      create_table :job_levels do |t|
       #        t.integer :id
@@ -574,7 +589,6 @@ module ActiveRecord
           @content_columns = nil
           @default_attributes = nil
           @column_defaults = nil
-          @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
           @attributes_builder = nil
           @columns = nil
           @columns_hash = nil
@@ -587,8 +601,8 @@ module ActiveRecord
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
-        def undecorated_table_name(class_name = base_class.name)
-          table_name = class_name.to_s.demodulize.underscore
+        def undecorated_table_name(model_name)
+          table_name = model_name.to_s.demodulize.underscore
           pluralize_table_names ? table_name.pluralize : table_name
         end
 
@@ -602,7 +616,7 @@ module ActiveRecord
               contained += "_"
             end
 
-            "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{full_table_name_suffix}"
+            "#{full_table_name_prefix}#{contained}#{undecorated_table_name(model_name)}#{full_table_name_suffix}"
           else
             # STI subclasses always use their superclass' table.
             base_class.table_name

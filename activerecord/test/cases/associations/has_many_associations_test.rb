@@ -616,7 +616,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     person.first_name = "Naruto"
     person.references << Reference.new
     person.save!
-    assert_equal 1, person.references.update_all(favourite: true)
+    assert_equal 1, person.references.update_all(favorite: true)
   end
 
   def test_exists_respects_association_scope
@@ -1034,21 +1034,23 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_with_bang_on_has_many_when_parent_is_new_raises
+    firm = Firm.new
     error = assert_raise(ActiveRecord::RecordNotSaved) do
-      firm = Firm.new
       firm.plain_clients.create! name: "Whoever"
     end
 
     assert_equal "You cannot call create unless the parent is saved", error.message
+    assert_equal firm, error.record
   end
 
   def test_regular_create_on_has_many_when_parent_is_new_raises
+    firm = Firm.new
     error = assert_raise(ActiveRecord::RecordNotSaved) do
-      firm = Firm.new
       firm.plain_clients.create name: "Whoever"
     end
 
     assert_equal "You cannot call create unless the parent is saved", error.message
+    assert_equal firm, error.record
   end
 
   def test_create_with_bang_on_has_many_raises_when_record_not_saved
@@ -1059,11 +1061,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_with_bang_on_habtm_when_parent_is_new_raises
+    developer = Developer.new("name" => "Aredridel")
     error = assert_raise(ActiveRecord::RecordNotSaved) do
-      Developer.new("name" => "Aredridel").projects.create!
+      developer.projects.create!
     end
 
     assert_equal "You cannot call create unless the parent is saved", error.message
+    assert_equal developer, error.record
   end
 
   def test_adding_a_mismatch_class
@@ -2278,6 +2282,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_no_queries { assert firm.clients.many? }
   end
 
+  def test_subsequent_calls_to_many_should_not_use_query
+    firm = companies(:first_firm)
+    assert_queries(1) do
+      firm.clients.many?
+      firm.clients.many?
+    end
+  end
+
   def test_calling_many_should_defer_to_collection_if_using_a_block
     firm = companies(:first_firm)
     assert_queries(1) do
@@ -2352,6 +2364,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = companies(:first_firm)
     firm.clients.load  # force load
     assert_no_queries { assert_not firm.clients.one? }
+  end
+
+  def test_subsequent_calls_to_one_should_not_use_query
+    firm = companies(:first_firm)
+    assert_queries(1) do
+      firm.clients.one?
+      firm.clients.one?
+    end
   end
 
   def test_calling_one_should_defer_to_collection_if_using_a_block

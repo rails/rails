@@ -2,9 +2,33 @@
 
 module ActiveRecord
   class FutureResult # :nodoc:
+    class EventBuffer
+      def initialize(future_result, instrumenter)
+        @future_result = future_result
+        @instrumenter = instrumenter
+        @events = []
+      end
+
+      def instrument(name, payload = {}, &block)
+        event = @instrumenter.new_event(name, payload)
+        @events << event
+        event.record(&block)
+      end
+
+      def flush
+        events, @events = @events, []
+        events.each do |event|
+          event.payload[:lock_wait] = @future_result.lock_wait
+          ActiveSupport::Notifications.publish_event(event)
+        end
+      end
+    end
+
     Canceled = Class.new(ActiveRecordError)
 
     delegate :empty?, :to_a, to: :result
+
+    attr_reader :lock_wait
 
     def initialize(pool, *args, **kwargs)
       @mutex = Mutex.new
@@ -43,7 +67,7 @@ module ActiveRecord
         return unless @mutex.try_lock
         begin
           if pending?
-            @event_buffer = @instrumenter.buffer
+            @event_buffer = EventBuffer.new(self, @instrumenter)
             connection.with_instrumenter(@event_buffer) do
               execute_query(connection, async: true)
             end
@@ -77,12 +101,17 @@ module ActiveRecord
       end
 
       def execute_or_wait
-        return unless pending?
-
-        @mutex.synchronize do
-          if pending?
-            execute_query(@pool.connection)
+        if pending?
+          start = Concurrent.monotonic_time
+          @mutex.synchronize do
+            if pending?
+              execute_query(@pool.connection)
+            else
+              @lock_wait = (Concurrent.monotonic_time - start) * 1_000
+            end
           end
+        else
+          @lock_wait = 0.0
         end
       end
 

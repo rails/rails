@@ -16,6 +16,7 @@ class Project < ActiveRecord::Base
   has_and_belongs_to_many :well_paid_salary_groups, -> { group("developers.salary").having("SUM(salary) > 10000").select("SUM(salary) as salary") }, class_name: "Developer"
   belongs_to :firm
   has_one :lead_developer, through: :firm, inverse_of: :contracted_projects
+  has_one :lead_developer_disable_joins, through: :firm, inverse_of: :contracted_projects, source: :lead_developer, disable_joins: true
 
   begin
     previous_value, ActiveRecord::Base.belongs_to_required_by_default =

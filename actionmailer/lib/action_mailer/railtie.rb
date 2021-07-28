@@ -45,6 +45,15 @@ module ActionMailer
           self.delivery_job = delivery_job.constantize
         end
 
+        if smtp_settings = options.delete(:smtp_settings)
+          self.smtp_settings = smtp_settings
+        end
+
+        if smtp_timeout = options.delete(:smtp_timeout)
+          self.smtp_settings[:open_timeout] ||= smtp_timeout
+          self.smtp_settings[:read_timeout] ||= smtp_timeout
+        end
+
         options.each { |k, v| send("#{k}=", v) }
       end
 

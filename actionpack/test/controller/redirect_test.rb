@@ -80,6 +80,14 @@ class RedirectController < ActionController::Base
     redirect_back_or_to "http://www.rubyonrails.org/", status: 307, allow_other_host: false
   end
 
+  def unsafe_redirect
+    redirect_to "http://www.rubyonrails.org/"
+  end
+
+  def unsafe_redirect_back
+    redirect_back_or_to "http://www.rubyonrails.org/"
+  end
+
   def redirect_back_with_explicit_fallback_kwarg
     redirect_back(fallback_location: "/things/stuff", status: 307)
   end
@@ -130,6 +138,14 @@ class RedirectController < ActionController::Base
     redirect_to nil
   end
 
+  def redirect_to_polymorphic
+    redirect_to [:internal, Workshop.new(5)]
+  end
+
+  def redirect_to_polymorphic_string_args
+    redirect_to ["internal", Workshop.new(5)]
+  end
+
   def redirect_to_params
     redirect_to ActionController::Parameters.new(status: 200, protocol: "javascript", f: "%0Aeval(name)")
   end
@@ -162,7 +178,7 @@ class RedirectController < ActionController::Base
   def rescue_errors(e) raise e end
 
   private
-    def dashbord_url(id, message)
+    def dashboard_url(id, message)
       url_for action: "dashboard", params: { "id" => id, "message" => message }
     end
 end
@@ -376,6 +392,43 @@ class RedirectTest < ActionController::TestCase
     end
   end
 
+  def test_polymorphic_redirect
+    with_routing do |set|
+      set.draw do
+        namespace :internal do
+          resources :workshops
+        end
+
+        ActiveSupport::Deprecation.silence do
+          get ":controller/:action"
+        end
+      end
+
+      get :redirect_to_polymorphic
+      assert_equal "http://test.host/internal/workshops/5", redirect_to_url
+      assert_redirected_to [:internal, Workshop.new(5)]
+    end
+  end
+
+  def test_polymorphic_redirect_with_string_args
+    with_routing do |set|
+      set.draw do
+        namespace :internal do
+          resources :workshops
+        end
+
+        ActiveSupport::Deprecation.silence do
+          get ":controller/:action"
+        end
+      end
+
+      error = assert_raises(ArgumentError) do
+        get :redirect_to_polymorphic_string_args
+      end
+      assert_equal("Please use symbols for polymorphic route arguments.", error.message)
+    end
+  end
+
   def test_redirect_to_nil
     error = assert_raise(ActionController::ActionControllerError) do
       get :redirect_to_nil
@@ -422,6 +475,41 @@ class RedirectTest < ActionController::TestCase
       assert_redirected_to "http://test.host/redirect/hello_world"
     end
   end
+
+  def test_unsafe_redirect
+    with_raise_on_open_redirects do
+      error = assert_raise(ArgumentError) do
+        get :unsafe_redirect
+      end
+
+      assert_equal(<<~MSG.squish, error.message)
+        Unsafe redirect \"http://www.rubyonrails.org/\",
+        use :allow_other_host to redirect anyway.
+      MSG
+    end
+  end
+
+  def test_unsafe_redirect_back
+    with_raise_on_open_redirects do
+      error = assert_raise(ArgumentError) do
+        get :unsafe_redirect_back
+      end
+
+      assert_equal(<<~MSG.squish, error.message)
+        Unsafe redirect \"http://www.rubyonrails.org/\",
+        use :allow_other_host to redirect anyway.
+      MSG
+    end
+  end
+
+  private
+    def with_raise_on_open_redirects
+      old_raise_on_open_redirects = ActionController::Base.raise_on_open_redirects
+      ActionController::Base.raise_on_open_redirects = true
+      yield
+    ensure
+      ActionController::Base.raise_on_open_redirects = old_raise_on_open_redirects
+    end
 end
 
 module ModuleTest

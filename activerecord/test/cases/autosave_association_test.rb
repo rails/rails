@@ -87,6 +87,56 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
     assert_predicate r, :valid?
   end
 
+  def test_autosave_collection_association_callbacks_get_called_once
+    ship_with_saving_stack = Class.new(Ship) do
+      def save_collection_association(reflection)
+        @count ||= 0
+        @count += 1 if reflection.name == :parts
+        super
+      end
+    end
+
+    ship = ship_with_saving_stack.new(name: "Nights Dirty Lightning")
+    ship.parts.build(name: "part")
+    ship.save!
+    assert_equal 1, ship.instance_variable_get(:@count)
+  end
+
+  def test_autosave_has_one_association_callbacks_get_called_once
+    # a bidirectional autosave is required to trigger multiple calls to
+    # save_has_one_association
+    assert Ship.reflect_on_association(:pirate).options[:autosave]
+    assert Pirate.reflect_on_association(:ship).options[:autosave]
+
+    pirate_with_saving_stack = Class.new(Pirate) do
+      def save_has_one_association(reflection)
+        @count ||= 0
+        @count += 1 if reflection.name == :ship
+        super
+      end
+    end
+
+    pirate = pirate_with_saving_stack.new(catchphrase: "Aye")
+    pirate.build_ship(name: "Nights Dirty Lightning")
+    pirate.save!
+    assert_equal 1, pirate.instance_variable_get(:@count)
+  end
+
+  def test_autosave_belongs_to_association_callbacks_get_called_once
+    ship_with_saving_stack = Class.new(Ship) do
+      def save_belongs_to_association(reflection)
+        @count ||= 0
+        @count += 1 if reflection.name == :pirate
+        super
+      end
+    end
+
+    ship = ship_with_saving_stack.new(name: "Nights Dirty Lightning")
+    ship.build_pirate(catchphrase: "Aye")
+    ship.save!
+    assert_equal 1, ship.instance_variable_get(:@count)
+  end
+
   def test_should_not_add_the_same_callbacks_multiple_times_for_has_one
     assert_no_difference_when_adding_callbacks_twice_for Pirate, :ship
   end
@@ -217,7 +267,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 
     firm = Firm.first
     firm.account = Account.first
-    assert_queries(Firm.partial_writes? ? 0 : 1) { firm.save! }
+    assert_queries(Firm.partial_updates? ? 0 : 1) { firm.save! }
 
     firm = Firm.first.dup
     firm.account = Account.first
@@ -462,8 +512,8 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
   end
 
   def test_errors_should_be_indexed_when_global_flag_is_set
-    old_attribute_config = ActiveRecord::Base.index_nested_attribute_errors
-    ActiveRecord::Base.index_nested_attribute_errors = true
+    old_attribute_config = ActiveRecord.index_nested_attribute_errors
+    ActiveRecord.index_nested_attribute_errors = true
 
     molecule = Molecule.new
     valid_electron = Electron.new(name: "electron")
@@ -477,7 +527,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_equal ["can't be blank"], molecule.errors["electrons[1].name"]
     assert_not_equal ["can't be blank"], molecule.errors["electrons.name"]
   ensure
-    ActiveRecord::Base.index_nested_attribute_errors = old_attribute_config
+    ActiveRecord.index_nested_attribute_errors = old_attribute_config
   end
 
   def test_errors_details_should_be_set
@@ -509,8 +559,8 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
   end
 
   def test_errors_details_should_be_indexed_when_global_flag_is_set
-    old_attribute_config = ActiveRecord::Base.index_nested_attribute_errors
-    ActiveRecord::Base.index_nested_attribute_errors = true
+    old_attribute_config = ActiveRecord.index_nested_attribute_errors
+    ActiveRecord.index_nested_attribute_errors = true
 
     molecule = Molecule.new
     valid_electron = Electron.new(name: "electron")
@@ -524,7 +574,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_equal [{ error: :blank }], molecule.errors.details[:"electrons[1].name"]
     assert_equal [], molecule.errors.details[:"electrons.name"]
   ensure
-    ActiveRecord::Base.index_nested_attribute_errors = old_attribute_config
+    ActiveRecord.index_nested_attribute_errors = old_attribute_config
   end
 
   def test_valid_adding_with_nested_attributes
@@ -1504,6 +1554,13 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
 
   def test_should_not_load_the_associated_model
     assert_queries(1) { @ship.name = "The Vile Insanity"; @ship.save! }
+  end
+
+  def test_should_save_with_non_nullable_foreign_keys
+    parent = Post.new title: "foo", body: "..."
+    child = parent.comments.build body: "..."
+    child.save!
+    assert_equal child.reload.post, parent.reload
   end
 end
 

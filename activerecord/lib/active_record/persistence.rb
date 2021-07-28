@@ -91,6 +91,9 @@ module ActiveRecord
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
       #   clause entirely.
       #
+      #   You can also pass an SQL string if you need more control on the return values
+      #   (for example, <tt>returning: "id, name as new_name"</tt>).
+      #
       # [:unique_by]
       #   (PostgreSQL and SQLite only) By default rows are considered to be unique
       #   by every unique index on the table. Any duplicate rows are skipped.
@@ -168,6 +171,9 @@ module ActiveRecord
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
       #   clause entirely.
       #
+      #   You can also pass an SQL string if you need more control on the return values
+      #   (for example, <tt>returning: "id, name as new_name"</tt>).
+      #
       # ==== Examples
       #
       #   # Insert multiple records
@@ -192,8 +198,8 @@ module ActiveRecord
       # go through Active Record's type casting and serialization.
       #
       # See <tt>ActiveRecord::Persistence#upsert_all</tt> for documentation.
-      def upsert(attributes, returning: nil, unique_by: nil)
-        upsert_all([ attributes ], returning: returning, unique_by: unique_by)
+      def upsert(attributes, on_duplicate: :update, returning: nil, unique_by: nil)
+        upsert_all([ attributes ], on_duplicate: on_duplicate, returning: returning, unique_by: unique_by)
       end
 
       # Updates or inserts (upserts) multiple records into the database in a
@@ -216,6 +222,9 @@ module ActiveRecord
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
       #   clause entirely.
       #
+      #   You can also pass an SQL string if you need more control on the return values
+      #   (for example, <tt>returning: "id, name as new_name"</tt>).
+      #
       # [:unique_by]
       #   (PostgreSQL and SQLite only) By default rows are considered to be unique
       #   by every unique index on the table. Any duplicate rows are skipped.
@@ -236,6 +245,11 @@ module ActiveRecord
       # <tt>:unique_by</tt> is recommended to be paired with
       # Active Record's schema_cache.
       #
+      # [:on_duplicate]
+      #   Specify a custom SQL for updating rows on conflict.
+      #
+      #   NOTE: in this case you must provide all the columns you want to update by yourself.
+      #
       # ==== Examples
       #
       #   # Inserts multiple records, performing an upsert when records have duplicate ISBNs.
@@ -247,8 +261,8 @@ module ActiveRecord
       #   ], unique_by: :isbn)
       #
       #   Book.find_by(isbn: "1").title # => "Eloquent Ruby"
-      def upsert_all(attributes, returning: nil, unique_by: nil)
-        InsertAll.new(self, attributes, on_duplicate: :update, returning: returning, unique_by: unique_by).execute
+      def upsert_all(attributes, on_duplicate: :update, returning: nil, unique_by: nil)
+        InsertAll.new(self, attributes, on_duplicate: on_duplicate, returning: returning, unique_by: unique_by).execute
       end
 
       # Given an attributes hash, +instantiate+ returns a new instance of
@@ -272,6 +286,7 @@ module ActiveRecord
       # ==== Parameters
       #
       # * +id+ - This should be the id or an array of ids to be updated.
+      #   Optional argument, defaults to all records in the relation.
       # * +attributes+ - This should be a hash of attributes or an array of hashes.
       #
       # ==== Examples
@@ -294,6 +309,11 @@ module ActiveRecord
       # for updating all records in a single query.
       def update(id = :all, attributes)
         if id.is_a?(Array)
+          if id.any?(ActiveRecord::Base)
+            raise ArgumentError,
+              "You are passing an array of ActiveRecord::Base instances to `update`. " \
+              "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
+          end
           id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
             object.update(attributes[idx])
           }
@@ -307,6 +327,32 @@ module ActiveRecord
           end
           object = find(id)
           object.update(attributes)
+          object
+        end
+      end
+
+      # Updates the object (or multiple objects) just like #update but calls #update! instead
+      # of +update+, so an exception is raised if the record is invalid and saving will fail.
+      def update!(id = :all, attributes)
+        if id.is_a?(Array)
+          if id.any?(ActiveRecord::Base)
+            raise ArgumentError,
+              "You are passing an array of ActiveRecord::Base instances to `update!`. " \
+              "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
+          end
+          id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
+            object.update!(attributes[idx])
+          }
+        elsif id == :all
+          all.each { |record| record.update!(attributes) }
+        else
+          if ActiveRecord::Base === id
+            raise ArgumentError,
+              "You are passing an instance of ActiveRecord::Base to `update!`. " \
+              "Please pass the id of the object by calling `.id`."
+          end
+          object = find(id)
+          object.update!(attributes)
           object
         end
       end
@@ -448,6 +494,11 @@ module ActiveRecord
       @previously_new_record
     end
 
+    # Returns true if this object was previously persisted but now it has been deleted.
+    def previously_persisted?
+      !new_record? && destroyed?
+    end
+
     # Returns true if this object has been destroyed, otherwise returns false.
     def destroyed?
       @destroyed
@@ -570,17 +621,17 @@ module ActiveRecord
     end
 
     # Returns an instance of the specified +klass+ with the attributes of the
-    # current record. This is mostly useful in relation to single-table
-    # inheritance structures where you want a subclass to appear as the
+    # current record. This is mostly useful in relation to single table
+    # inheritance (STI) structures where you want a subclass to appear as the
     # superclass. This can be used along with record identification in
     # Action Pack to allow, say, <tt>Client < Company</tt> to do something
     # like render <tt>partial: @client.becomes(Company)</tt> to render that
     # instance using the companies/company partial instead of clients/client.
     #
     # Note: The new instance will share a link to the same attributes as the original class.
-    # Therefore the sti column value will still be the same.
+    # Therefore the STI column value will still be the same.
     # Any change to the attributes on either instance will affect both instances.
-    # If you want to change the sti column as well, use #becomes! instead.
+    # If you want to change the STI column as well, use #becomes! instead.
     def becomes(klass)
       became = klass.allocate
 
@@ -595,11 +646,11 @@ module ActiveRecord
       became
     end
 
-    # Wrapper around #becomes that also changes the instance's sti column value.
+    # Wrapper around #becomes that also changes the instance's STI column value.
     # This is especially useful if you want to persist the changed class in your
     # database.
     #
-    # Note: The old instance's sti column value will be changed too, as both objects
+    # Note: The old instance's STI column value will be changed too, as both objects
     # share the same set of attributes.
     def becomes!(klass)
       became = becomes(klass)
@@ -821,6 +872,7 @@ module ActiveRecord
         self.class.unscoped { _find_record(options) }
       end
 
+      @association_cache = fresh_object.instance_variable_get(:@association_cache)
       @attributes = fresh_object.instance_variable_get(:@attributes)
       @new_record = false
       @previously_new_record = false
@@ -879,11 +931,17 @@ module ActiveRecord
     end
 
   private
+    def strict_loaded_associations
+      @association_cache.find_all do |_, assoc|
+        assoc.owner.strict_loading? && !assoc.owner.strict_loading_n_plus_one_only?
+      end.map(&:first)
+    end
+
     def _find_record(options)
       if options && options[:lock]
-        self.class.lock(options[:lock]).find(id)
+        self.class.preload(strict_loaded_associations).lock(options[:lock]).find(id)
       else
-        self.class.find(id)
+        self.class.preload(strict_loaded_associations).find(id)
       end
     end
 

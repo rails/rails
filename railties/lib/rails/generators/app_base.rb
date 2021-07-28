@@ -110,8 +110,7 @@ module Rails
                                            desc: "Show this help message and quit"
       end
 
-      def initialize(positional_argv, option_argv, *)
-        @argv = [*positional_argv, *option_argv]
+      def initialize(*)
         @gem_filter = lambda { |gem| true }
         super
       end
@@ -149,14 +148,9 @@ module Rails
       end
 
       def apply_rails_template # :doc:
-        original_argv = ARGV.dup
-        ARGV.replace(@argv)
-
         apply rails_template if rails_template
       rescue Thor::Error, LoadError, Errno::ENOENT => e
         raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
-      ensure
-        ARGV.replace(original_argv)
       end
 
       def set_default_accessors! # :doc:
@@ -263,7 +257,7 @@ module Rails
           version = super
 
           if version.is_a?(Array)
-            version.join("', '")
+            version.join('", "')
           else
             version
           end
@@ -301,6 +295,40 @@ module Rails
           # ~> 1.2.3, >= 1.2.3.4.pre5
           patch = gem_version.segments[0, 3].join(".")
           ["~> #{patch}", ">= #{gem_version}"]
+        end
+      end
+
+      # This "npm-ifies" the current version number
+      # With npm, versions such as "5.0.0.rc1" or "5.0.0.beta1.1" are not compliant with its
+      # versioning system, so they must be transformed to "5.0.0-rc1" and "5.0.0-beta1-1" respectively.
+      #
+      # "5.0.1"     --> "5.0.1"
+      # "5.0.1.1"   --> "5.0.1-1" *
+      # "5.0.0.rc1" --> "5.0.0-rc1"
+      #
+      # * This makes it a prerelease. That's bad, but we haven't come up with
+      # a better solution at the moment.
+      def npm_version
+        # TODO: support `options.dev?`
+
+        if options.edge? || options.main?
+          # TODO: ideally this would read from Github
+          # https://github.com/rails/rails/blob/main/actioncable/app/assets/javascripts/action_cable.js
+          # https://github.com/rails/rails/blob/main/activestorage/app/assets/javascripts/activestorage.js
+          # https://github.com/rails/rails/tree/main/actionview/app/assets/javascripts -> not clear where the output file is
+          "latest"
+        else
+          Rails.version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
+        end
+      end
+
+      def turbolinks_npm_version
+        # since Turbolinks is deprecated, let's just always point to main.
+        # expect this to be replaced with Hotwire at some point soon.
+        if options.main? || options.edge?
+          "turbolinks/turbolinks#master"
+        else
+          "^5.2.0"
         end
       end
 

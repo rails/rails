@@ -229,12 +229,16 @@ module ActiveSupport
       # Returns +nil+ if no such time zone is known to the system.
       def [](arg)
         case arg
+        when self
+          arg
         when String
           begin
             @lazy_zones_map[arg] ||= create(arg)
           rescue TZInfo::InvalidTimezoneIdentifier
             nil
           end
+        when TZInfo::Timezone
+          @lazy_zones_map[arg.name] ||= create(arg.name, nil, arg)
         when Numeric, ActiveSupport::Duration
           arg *= 3600 if arg.abs <= 13
           all.find { |z| z.utc_offset == arg.to_i }
@@ -383,10 +387,21 @@ module ActiveSupport
     def iso8601(str)
       parts = Date._iso8601(str)
 
+      year = parts.fetch(:year)
+
+      if parts.key?(:yday)
+        ordinal_date = Date.ordinal(year, parts.fetch(:yday))
+        month = ordinal_date.month
+        day = ordinal_date.day
+      else
+        month = parts.fetch(:mon)
+        day = parts.fetch(:mday)
+      end
+
       time = Time.new(
-        parts.fetch(:year),
-        parts.fetch(:mon),
-        parts.fetch(:mday),
+        year,
+        month,
+        day,
         parts.fetch(:hour, 0),
         parts.fetch(:min, 0),
         parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
@@ -399,7 +414,7 @@ module ActiveSupport
         TimeWithZone.new(nil, self, time)
       end
 
-    rescue KeyError
+    rescue Date::Error, KeyError
       raise ArgumentError, "invalid date"
     end
 
@@ -513,7 +528,7 @@ module ActiveSupport
     def utc_to_local(time)
       tzinfo.utc_to_local(time).yield_self do |t|
         ActiveSupport.utc_to_local_returns_utc_offset_times ?
-          t : Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec, t.sec_fraction)
+          t : Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec, t.sec_fraction * 1_000_000)
       end
     end
 

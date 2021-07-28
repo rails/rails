@@ -145,9 +145,12 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_passing_active_record_object_is_not_permitted
-    assert_raises(ArgumentError) do
+    error = assert_raises(ArgumentError) do
       Topic.find(Topic.last)
     end
+
+    assert_equal "You are passing an instance of ActiveRecord::Base to `find`. " \
+    "Please pass the id of the object by calling `.id`.", error.message
   end
 
   def test_symbols_table_ref
@@ -245,9 +248,12 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_passing_active_record_object_is_not_permitted
-    assert_raises(ArgumentError) do
+    error = assert_raises(ArgumentError) do
       Topic.exists?(Topic.new)
     end
+
+    assert_equal "You are passing an instance of ActiveRecord::Base to `exists?`. " \
+    "Please pass the id of the object by calling `.id`.", error.message
   end
 
   def test_exists_does_not_select_columns_without_alias
@@ -1642,9 +1648,11 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   test "find_by! raises RecordNotFound if the record is missing" do
-    assert_raises(ActiveRecord::RecordNotFound) do
+    error = assert_raises(ActiveRecord::RecordNotFound) do
       Post.find_by!("1 = 0")
     end
+
+    assert_equal "Couldn't find Post with [WHERE (1 = 0)]", error.message
   end
 
   test "find on a scope does not perform statement caching" do

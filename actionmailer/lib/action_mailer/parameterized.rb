@@ -115,7 +115,7 @@ module ActionMailer
             super
           end
         end
-        ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
+        ruby2_keywords(:method_missing)
 
         def respond_to_missing?(method, include_all = false)
           @mailer.respond_to?(method, include_all)
@@ -126,7 +126,7 @@ module ActionMailer
       def perform(mailer, mail_method, delivery_method, params, *args)
         mailer.constantize.with(params).public_send(mail_method, *args).send(delivery_method)
       end
-      ruby2_keywords(:perform) if respond_to?(:ruby2_keywords, true)
+      ruby2_keywords(:perform)
     end
 
     class MessageDelivery < ActionMailer::MessageDelivery # :nodoc:
@@ -134,7 +134,7 @@ module ActionMailer
         super(mailer_class, action, *args)
         @params = params
       end
-      ruby2_keywords(:initialize) if respond_to?(:ruby2_keywords, true)
+      ruby2_keywords(:initialize)
 
       private
         def processed_mailer

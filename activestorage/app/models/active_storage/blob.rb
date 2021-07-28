@@ -86,14 +86,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
       super(id, purpose: purpose)
     end
 
-    def build_after_upload(io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil) #:nodoc:
-      new(filename: filename, content_type: content_type, metadata: metadata, service_name: service_name).tap do |blob|
-        blob.upload(io, identify: identify)
-      end
-    end
-
-    deprecate :build_after_upload
-
     def build_after_unfurling(key: nil, io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil) #:nodoc:
       new(key: key, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name).tap do |blob|
         blob.unfurl(io, identify: identify)
@@ -114,9 +106,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
         blob.upload_without_unfurling(io)
       end
     end
-
-    alias_method :create_after_upload!, :create_and_upload!
-    deprecate create_after_upload!: :create_and_upload!
 
     # Returns a saved blob _without_ uploading a file to the service. This blob will point to a key where there is
     # no file yet. It's intended to be used together with a client-side upload, which will first create the blob
@@ -148,10 +137,18 @@ class ActiveStorage::Blob < ActiveStorage::Record
     def signed_id_verifier #:nodoc:
       @signed_id_verifier ||= ActiveStorage.verifier
     end
+
+    def scope_for_strict_loading #:nodoc:
+      if strict_loading_by_default? && ActiveStorage.track_variants
+        includes(variant_records: { image_attachment: :blob }, preview_image_attachment: :blob)
+      else
+        all
+      end
+    end
   end
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
-  def signed_id(purpose: :blob_id)
+  def signed_id(purpose: :blob_id, expires_in: nil)
     super
   end
 
@@ -199,9 +196,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.url key, expires_in: expires_in, filename: ActiveStorage::Filename.wrap(filename || self.filename),
       content_type: content_type_for_serving, disposition: forced_disposition_for_serving || disposition, **options
   end
-
-  alias_method :service_url, :url
-  deprecate service_url: :url
 
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
   # short-lived for security and only generated on-demand by the client-side JavaScript responsible for doing the uploading.
@@ -294,7 +288,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   # be slow or prevented, so you should not use this method inside a transaction or in callbacks. Use #purge_later instead.
   def purge
     destroy
-    delete
+    delete if previously_persisted?
   rescue ActiveRecord::InvalidForeignKey
   end
 
@@ -311,7 +305,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   private
     def compute_checksum_in_chunks(io)
-      Digest::MD5.new.tap do |checksum|
+      OpenSSL::Digest::MD5.new.tap do |checksum|
         while chunk = io.read(5.megabytes)
           checksum << chunk
         end

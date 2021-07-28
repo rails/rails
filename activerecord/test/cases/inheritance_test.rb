@@ -62,7 +62,7 @@ class InheritanceTest < ActiveRecord::TestCase
     e = assert_raises NameError do
       Company.send :compute_type, "NonexistentModel"
     end
-    assert_equal "uninitialized constant Company::NonexistentModel", e.message
+    assert_match "uninitialized constant Company::NonexistentModel", e.message
     assert_equal "Company::NonexistentModel", e.name
   end
 
@@ -190,8 +190,9 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_base_class_activerecord_error
-    klass = Class.new { include ActiveRecord::Inheritance }
-    assert_raise(ActiveRecord::ActiveRecordError) { klass.base_class }
+    assert_raise(ActiveRecord::ActiveRecordError) do
+      Class.new { include ActiveRecord::Inheritance }
+    end
   end
 
   def test_a_bad_type_column

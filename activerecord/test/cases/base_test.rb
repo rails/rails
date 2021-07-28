@@ -27,6 +27,7 @@ require "models/bird"
 require "models/car"
 require "models/bulb"
 require "models/pet"
+require "models/owner"
 require "concurrent/atomic/count_down_latch"
 require "active_support/core_ext/enumerable"
 
@@ -504,6 +505,10 @@ class BasicsTest < ActiveRecord::TestCase
     Post.reset_table_name
   end
 
+  def test_table_name_based_on_model_name
+    assert_equal "posts", PostRecord.table_name
+  end
+
   def test_null_fields
     assert_nil Topic.find(1).parent_id
     assert_nil Topic.create("title" => "Hey you").parent_id
@@ -793,6 +798,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal false, Topic.new.previously_new_record?
     assert_equal true, Topic.create.previously_new_record?
     assert_equal false, Topic.find(1).previously_new_record?
+  end
+
+  def test_previously_persisted_returns_boolean
+    assert_equal false, Topic.new.previously_persisted?
+    assert_equal false, Topic.new.destroy.previously_persisted?
+    assert_equal false, Topic.first.previously_persisted?
+    assert_equal true, Topic.first.destroy.previously_persisted?
+    assert_equal true, Topic.first.delete.previously_persisted?
   end
 
   def test_dup
@@ -1259,9 +1272,9 @@ class BasicsTest < ActiveRecord::TestCase
 
     UnloadablePost.unloadable
     klass = UnloadablePost
-    assert_not_nil ActiveRecord::Scoping::ScopeRegistry.value_for(:current_scope, klass)
+    assert_not_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(klass)
     ActiveSupport::Dependencies.remove_unloadable_constants!
-    assert_nil ActiveRecord::Scoping::ScopeRegistry.value_for(:current_scope, klass)
+    assert_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(klass)
   ensure
     Object.class_eval { remove_const :UnloadablePost } if defined?(UnloadablePost)
   end
@@ -1477,6 +1490,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   test "scoped can take a values hash" do
     klass = Class.new(ActiveRecord::Base)
+    klass.table_name = "bar"
     assert_equal ["foo"], klass.all.merge!(select: "foo").select_values
   end
 
@@ -1668,8 +1682,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "cannot call connected_to on subclasses of ActiveRecord::Base with legacy connection handling" do
-    old_value = ActiveRecord::Base.legacy_connection_handling
-    ActiveRecord::Base.legacy_connection_handling = true
+    old_value = ActiveRecord.legacy_connection_handling
+    ActiveRecord.legacy_connection_handling = true
 
     error = assert_raises(NotImplementedError) do
       Bird.connected_to(role: :reading) { }
@@ -1678,7 +1692,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "`connected_to` can only be called on ActiveRecord::Base with legacy connection handling.", error.message
   ensure
     clean_up_legacy_connection_handlers
-    ActiveRecord::Base.legacy_connection_handling = old_value
+    ActiveRecord.legacy_connection_handling = old_value
   end
 
   test "cannot call connected_to with role and shard on non-abstract classes" do
@@ -1730,25 +1744,25 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "#connecting_to doesn't work with legacy connection handling" do
-    old_value = ActiveRecord::Base.legacy_connection_handling
-    ActiveRecord::Base.legacy_connection_handling = true
+    old_value = ActiveRecord.legacy_connection_handling
+    ActiveRecord.legacy_connection_handling = true
 
     assert_raises NotImplementedError do
       SecondAbstractClass.connecting_to(role: :writing, prevent_writes: true)
     end
   ensure
-    ActiveRecord::Base.legacy_connection_handling = old_value
+    ActiveRecord.legacy_connection_handling = old_value
   end
 
   test "#connected_to_many doesn't work with legacy connection handling" do
-    old_value = ActiveRecord::Base.legacy_connection_handling
-    ActiveRecord::Base.legacy_connection_handling = true
+    old_value = ActiveRecord.legacy_connection_handling
+    ActiveRecord.legacy_connection_handling = true
 
     assert_raises NotImplementedError do
       ActiveRecord::Base.connected_to_many([SecondAbstractClass], role: :writing)
     end
   ensure
-    ActiveRecord::Base.legacy_connection_handling = old_value
+    ActiveRecord.legacy_connection_handling = old_value
   end
 
   test "#connected_to_many cannot be called on anything but ActiveRecord::Base" do

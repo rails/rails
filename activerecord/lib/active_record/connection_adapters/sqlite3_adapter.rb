@@ -182,7 +182,7 @@ module ActiveRecord
         NATIVE_DATABASE_TYPES
       end
 
-      # Returns the current database encoding format as a string, eg: 'UTF-8'
+      # Returns the current database encoding format as a string, e.g. 'UTF-8'
       def encoding
         @connection.encoding.to_s
       end
@@ -209,6 +209,10 @@ module ActiveRecord
           execute("PRAGMA defer_foreign_keys = #{old_defer_foreign_keys}")
           execute("PRAGMA foreign_keys = #{old_foreign_keys}")
         end
+      end
+
+      def all_foreign_keys_valid? # :nodoc:
+        execute("PRAGMA foreign_key_check").blank?
       end
 
       # SCHEMA STATEMENTS ========================================
@@ -250,9 +254,17 @@ module ActiveRecord
       def remove_column(table_name, column_name, type = nil, **options) #:nodoc:
         alter_table(table_name) do |definition|
           definition.remove_column column_name
-          definition.foreign_keys.delete_if do |_, fk_options|
-            fk_options[:column] == column_name.to_s
+          definition.foreign_keys.delete_if { |fk| fk.column == column_name.to_s }
+        end
+      end
+
+      def remove_columns(table_name, *column_names, type: nil, **options) # :nodoc:
+        alter_table(table_name) do |definition|
+          column_names.each do |column_name|
+            definition.remove_column column_name
           end
+          column_names = column_names.map(&:to_s)
+          definition.foreign_keys.delete_if { |fk| column_names.include?(fk.column) }
         end
       end
 
@@ -313,8 +325,12 @@ module ActiveRecord
           sql << " ON CONFLICT #{insert.conflict_target} DO NOTHING"
         elsif insert.update_duplicates?
           sql << " ON CONFLICT #{insert.conflict_target} DO UPDATE SET "
-          sql << insert.touch_model_timestamps_unless { |column| "#{column} IS excluded.#{column}" }
-          sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
+          if insert.raw_update_sql?
+            sql << insert.raw_update_sql
+          else
+            sql << insert.touch_model_timestamps_unless { |column| "#{column} IS excluded.#{column}" }
+            sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
+          end
         end
 
         sql
@@ -334,16 +350,36 @@ module ActiveRecord
         end
       end
 
+      class SQLite3Integer < Type::Integer # :nodoc:
+        private
+          def _limit
+            # INTEGER storage class can be stored 8 bytes value.
+            # See https://www.sqlite.org/datatype3.html#storage_classes_and_datatypes
+            limit || 8
+          end
+      end
+
+      ActiveRecord::Type.register(:integer, SQLite3Integer, adapter: :sqlite3)
+
+      class << self
+        private
+          def initialize_type_map(m)
+            super
+            register_class_with_limit m, %r(int)i, SQLite3Integer
+          end
+      end
+
+      TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
+
       private
+        def type_map
+          TYPE_MAP
+        end
+
         # See https://www.sqlite.org/limits.html,
         # the default value is 999 when not configured.
         def bind_params_length
           999
-        end
-
-        def initialize_type_map(m = type_map)
-          super
-          register_class_with_limit m, %r(int)i, SQLite3Integer
         end
 
         def table_structure(table_name)
@@ -550,17 +586,6 @@ module ActiveRecord
 
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
-
-        class SQLite3Integer < Type::Integer # :nodoc:
-          private
-            def _limit
-              # INTEGER storage class can be stored 8 bytes value.
-              # See https://www.sqlite.org/datatype3.html#storage_classes_and_datatypes
-              limit || 8
-            end
-        end
-
-        ActiveRecord::Type.register(:integer, SQLite3Integer, adapter: :sqlite3)
     end
     ActiveSupport.run_load_hooks(:active_record_sqlite3adapter, SQLite3Adapter)
   end

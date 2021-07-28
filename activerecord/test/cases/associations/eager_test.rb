@@ -50,8 +50,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
             :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors
 
   def test_eager_with_has_one_through_join_model_with_conditions_on_the_through
-    member = Member.all.merge!(includes: :favourite_club).find(members(:some_other_guy).id)
-    assert_nil member.favourite_club
+    member = Member.all.merge!(includes: :favorite_club).find(members(:some_other_guy).id)
+    assert_nil member.favorite_club
   end
 
   def test_should_work_inverse_of_with_eager_load
@@ -129,15 +129,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_loading_association_with_same_table_joins
     super_memberships = [memberships(:super_membership_of_boring_club)]
 
-    member = Member.joins(:favourite_memberships).first
+    member = Member.joins(:favorite_memberships).first
     assert_equal members(:groucho), member
     assert_equal super_memberships, member.super_memberships
 
-    member = Member.joins(:favourite_memberships).preload(:super_memberships).first
+    member = Member.joins(:favorite_memberships).preload(:super_memberships).first
     assert_equal members(:groucho), member
     assert_equal super_memberships, member.super_memberships
 
-    member = Member.joins(:favourite_memberships).eager_load(:super_memberships).first
+    member = Member.joins(:favorite_memberships).eager_load(:super_memberships).first
     assert_equal members(:groucho), member
     assert_equal super_memberships, member.super_memberships
   end
@@ -512,9 +512,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_has_one_quotes_table_and_column_names
-    michael = Person.all.merge!(includes: :favourite_reference).find(people(:michael).id)
+    michael = Person.all.merge!(includes: :favorite_reference).find(people(:michael).id)
     references(:michael_unicyclist)
-    assert_no_queries { assert_equal references(:michael_unicyclist), michael.favourite_reference }
+    assert_no_queries { assert_equal references(:michael_unicyclist), michael.favorite_reference }
   end
 
   def test_eager_load_has_many_quotes_table_and_column_names
@@ -848,13 +848,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_match(/Association named 'monkeys' was not found on Post; perhaps you misspelled it\?/, e.message)
   end
 
-  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-    test "exceptions have suggestions for fix" do
-      error = assert_raise(ActiveRecord::AssociationNotFoundError) {
-        Post.all.merge!(includes: :monkeys).find(6)
-      }
-      assert_match "Did you mean?", error.message
-    end
+  test "exceptions have suggestions for fix" do
+    error = assert_raise(ActiveRecord::AssociationNotFoundError) {
+      Post.all.merge!(includes: :taggingz).find(6)
+    }
+    assert_match "Did you mean?  tagging\n", error.message
   end
 
   def test_eager_has_many_through_with_order
@@ -1062,7 +1060,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_with_floating_point_numbers
     assert_queries(2) do
-      # Before changes, the floating point numbers will be interpreted as table names and will cause this to run in one query
+      # Before changes, the floating-point numbers will be interpreted as table names and will cause this to run in one query
       Comment.all.merge!(where: "123.456 = 123.456", includes: :post).to_a
     end
   end
@@ -1322,17 +1320,17 @@ class EagerAssociationTest < ActiveRecord::TestCase
       def self.name; "TempAuthor"; end
       self.table_name = "authors"
       has_one :post, class_name: "PostWithDefaultScope", foreign_key: :author_id
-      has_one :reorderd_post, -> { reorder(title: :desc) }, class_name: "PostWithDefaultScope", foreign_key: :author_id
+      has_one :reordered_post, -> { reorder(title: :desc) }, class_name: "PostWithDefaultScope", foreign_key: :author_id
     end
 
     author = klass.first
     # PRECONDITION: make sure ordering results in different results
-    assert_not_equal author.post, author.reorderd_post
+    assert_not_equal author.post, author.reordered_post
 
-    preloaded_reorderd_post = klass.preload(:reorderd_post).first.reorderd_post
+    preloaded_reordered_post = klass.preload(:reordered_post).first.reordered_post
 
-    assert_equal author.reorderd_post, preloaded_reorderd_post
-    assert_equal Post.order(title: :desc).first.title, preloaded_reorderd_post.title
+    assert_equal author.reordered_post, preloaded_reordered_post
+    assert_equal Post.order(title: :desc).first.title, preloaded_reordered_post.title
   end
 
   def test_preloading_polymorphic_with_custom_foreign_type
@@ -1493,36 +1491,32 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal pets(:parrot), Owner.including_last_pet.first.last_pet
   end
 
-  test "preloading and eager loading of instance dependent associations is not supported" do
+  test "preloading of instance dependent associations is supported" do
+    authors = Author.preload(:posts_with_signature).to_a
+    assert_not authors.empty?
+    authors.each do |author|
+      assert_predicate author.posts_with_signature, :loaded?
+    end
+  end
+
+  test "eager loading of instance dependent associations is not supported" do
     message = "association scope 'posts_with_signature' is"
-    error = assert_raises(ArgumentError) do
-      Author.includes(:posts_with_signature).to_a
-    end
-    assert_match message, error.message
-
-    error = assert_raises(ArgumentError) do
-      Author.preload(:posts_with_signature).to_a
-    end
-    assert_match message, error.message
-
     error = assert_raises(ArgumentError) do
       Author.eager_load(:posts_with_signature).to_a
     end
     assert_match message, error.message
   end
 
-  test "preloading and eager loading of optional instance dependent associations is not supported" do
+  test "preloading of optional instance dependent associations is supported" do
+    authors = Author.includes(:posts_mentioning_author).to_a
+    assert_not authors.empty?
+    authors.each do |author|
+      assert_predicate author.posts_mentioning_author, :loaded?
+    end
+  end
+
+  test "eager loading of optional instance dependent associations is not supported" do
     message = "association scope 'posts_mentioning_author' is"
-    error = assert_raises(ArgumentError) do
-      Author.includes(:posts_mentioning_author).to_a
-    end
-    assert_match message, error.message
-
-    error = assert_raises(ArgumentError) do
-      Author.preload(:posts_mentioning_author).to_a
-    end
-    assert_match message, error.message
-
     error = assert_raises(ArgumentError) do
       Author.eager_load(:posts_mentioning_author).to_a
     end
@@ -1542,11 +1536,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
-  test "including associations with extensions and an instance dependent scope is not supported" do
-    e = assert_raises(ArgumentError) do
-      Author.includes(:posts_with_extension_and_instance).to_a
+  test "including associations with extensions and an instance dependent scope is supported" do
+    authors = Author.includes(:posts_with_extension_and_instance).to_a
+    assert_not authors.empty?
+    authors.each do |author|
+      assert_predicate author.posts_with_extension_and_instance, :loaded?
     end
-    assert_match(/Preloading instance dependent scopes is not supported/, e.message)
   end
 
   test "preloading readonly association" do

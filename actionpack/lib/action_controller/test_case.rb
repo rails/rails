@@ -24,6 +24,9 @@ module ActionController
     def new_controller_thread # :nodoc:
       yield
     end
+
+    # Avoid a deadlock from the queue filling up
+    Buffer.queue_size = nil
   end
 
   # ActionController::TestCase will be deprecated and moved to a gem in the future.
@@ -209,6 +212,10 @@ module ActionController
 
     def fetch(key, *args, &block)
       @data.fetch(key.to_s, *args, &block)
+    end
+
+    def enabled?
+      true
     end
 
     private

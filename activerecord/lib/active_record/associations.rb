@@ -3,6 +3,7 @@
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError #:nodoc:
     attr_reader :record, :association_name
+
     def initialize(record = nil, association_name = nil)
       @record           = record
       @association_name = association_name
@@ -13,32 +14,25 @@ module ActiveRecord
       end
     end
 
-    class Correction
-      def initialize(error)
-        @error = error
-      end
+    if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
+      include DidYouMean::Correctable
 
       def corrections
-        if @error.association_name
-          maybe_these = @error.record.class.reflections.keys
-
-          maybe_these.sort_by { |n|
-            DidYouMean::Jaro.distance(@error.association_name.to_s, n)
-          }.reverse.first(4)
+        if record && association_name
+          @corrections ||= begin
+            maybe_these = record.class.reflections.keys
+            DidYouMean::SpellChecker.new(dictionary: maybe_these).correct(association_name)
+          end
         else
           []
         end
       end
     end
-
-    # We may not have DYM, and DYM might not let us register error handlers
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
-    end
   end
 
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
     attr_reader :reflection, :associated_class
+
     def initialize(reflection = nil, associated_class = nil)
       if reflection
         @reflection = reflection
@@ -49,27 +43,19 @@ module ActiveRecord
       end
     end
 
-    class Correction
-      def initialize(error)
-        @error = error
-      end
+    if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
+      include DidYouMean::Correctable
 
       def corrections
-        if @error.reflection && @error.associated_class
-          maybe_these = @error.associated_class.reflections.keys
-
-          maybe_these.sort_by { |n|
-            DidYouMean::Jaro.distance(@error.reflection.options[:inverse_of].to_s, n)
-          }.reverse.first(4)
+        if reflection && associated_class
+          @corrections ||= begin
+            maybe_these = associated_class.reflections.keys
+            DidYouMean::SpellChecker.new(dictionary: maybe_these).correct(reflection.options[:inverse_of].to_s)
+          end
         else
           []
         end
       end
-    end
-
-    # We may not have DYM, and DYM might not let us register error handlers
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
     end
   end
 
@@ -86,28 +72,20 @@ module ActiveRecord
       end
     end
 
-    class Correction
-      def initialize(error)
-        @error = error
-      end
+    if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
+      include DidYouMean::Correctable
 
       def corrections
-        if @error.reflection && @error.owner_class
-          maybe_these = @error.owner_class.reflections.keys
-          maybe_these -= [@error.reflection.name.to_s] # remove failing reflection
-
-          maybe_these.sort_by { |n|
-            DidYouMean::Jaro.distance(@error.reflection.options[:through].to_s, n)
-          }.reverse.first(4)
+        if owner_class && reflection
+          @corrections ||= begin
+            maybe_these = owner_class.reflections.keys
+            maybe_these -= [reflection.name.to_s] # remove failing reflection
+            DidYouMean::SpellChecker.new(dictionary: maybe_these).correct(reflection.options[:through].to_s)
+          end
         else
           []
         end
       end
-    end
-
-    # We may not have DYM, and DYM might not let us register error handlers
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
     end
   end
 
@@ -293,6 +271,7 @@ module ActiveRecord
       autoload :Preloader
       autoload :JoinDependency
       autoload :AssociationScope
+      autoload :DisableJoinsAssociationScope
       autoload :AliasTracker
     end
 
@@ -325,17 +304,7 @@ module ActiveRecord
       super
     end
 
-    def reload(*) # :nodoc:
-      clear_association_cache
-      super
-    end
-
     private
-      # Clears out the association cache.
-      def clear_association_cache
-        @association_cache.clear if persisted?
-      end
-
       def init_internals
         @association_cache = {}
         super
@@ -395,6 +364,8 @@ module ActiveRecord
       #   create_other(attributes={})       |     X      |              |    X
       #   create_other!(attributes={})      |     X      |              |    X
       #   reload_other                      |     X      |      X       |    X
+      #   other_changed?                    |     X      |      X       |
+      #   other_previously_changed?         |     X      |      X       |
       #
       # === Collection associations (one-to-many / many-to-many)
       #                                     |       |          | has_many
@@ -1407,6 +1378,11 @@ module ActiveRecord
         #   join model. This allows associated records to be built which will automatically create
         #   the appropriate join model records when they are saved. (See the 'Association Join Models'
         #   section above.)
+        # [:disable_joins]
+        #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
+        #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
+        #   due to database limitations. This option is only applicable on `has_many :through` associations as
+        #   `has_many` alone do not perform a join.
         # [:source]
         #   Specifies the source association name used by #has_many <tt>:through</tt> queries.
         #   Only use it if the name cannot be inferred from the association.
@@ -1451,6 +1427,7 @@ module ActiveRecord
         #   has_many :tags, as: :taggable
         #   has_many :reports, -> { readonly }
         #   has_many :subscribers, through: :subscriptions, source: :user
+        #   has_many :subscribers, through: :subscriptions, disable_joins: true
         #   has_many :comments, strict_loading: true
         def has_many(name, scope = nil, **options, &extension)
           reflection = Builder::HasMany.build(self, name, scope, options, &extension)
@@ -1556,8 +1533,21 @@ module ActiveRecord
         #   source reflection. You can only use a <tt>:through</tt> query through a #has_one
         #   or #belongs_to association on the join model.
         #
+        #   If the association on the join model is a #belongs_to, the collection can be modified
+        #   and the records on the <tt>:through</tt> model will be automatically created and removed
+        #   as appropriate. Otherwise, the collection is read-only, so you should manipulate the
+        #   <tt>:through</tt> association directly.
+        #
         #   If you are going to modify the association (rather than just read from it), then it is
-        #   a good idea to set the <tt>:inverse_of</tt> option.
+        #   a good idea to set the <tt>:inverse_of</tt> option on the source association on the
+        #   join model. This allows associated records to be built which will automatically create
+        #   the appropriate join model records when they are saved. (See the 'Association Join Models'
+        #   section above.)
+        # [:disable_joins]
+        #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
+        #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
+        #   due to database limitations. This option is only applicable on `has_one :through` associations as
+        #   `has_one` alone does not perform a join.
         # [:source]
         #   Specifies the source association name used by #has_one <tt>:through</tt> queries.
         #   Only use it if the name cannot be inferred from the association.
@@ -1599,6 +1589,7 @@ module ActiveRecord
         #   has_one :attachment, as: :attachable
         #   has_one :boss, -> { readonly }
         #   has_one :club, through: :membership
+        #   has_one :club, through: :membership, disable_joins: true
         #   has_one :primary_address, -> { where(primary: true) }, through: :addressables, source: :addressable
         #   has_one :credit_card, required: true
         #   has_one :credit_card, strict_loading: true
@@ -1635,6 +1626,10 @@ module ActiveRecord
         #   if the record is invalid.
         # [reload_association]
         #   Returns the associated object, forcing a database read.
+        # [association_changed?]
+        #   Returns true if a new associate object has been assigned and the next save will update the foreign key.
+        # [association_previously_changed?]
+        #   Returns true if the previous save updated the association to reference a new associate object.
         #
         # === Example
         #
@@ -1645,6 +1640,8 @@ module ActiveRecord
         # * <tt>Post#create_author</tt> (similar to <tt>post.author = Author.new; post.author.save; post.author</tt>)
         # * <tt>Post#create_author!</tt> (similar to <tt>post.author = Author.new; post.author.save!; post.author</tt>)
         # * <tt>Post#reload_author</tt>
+        # * <tt>Post#author_changed?</tt>
+        # * <tt>Post#author_previously_changed?</tt>
         # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
         # === Scopes
@@ -1778,7 +1775,7 @@ module ActiveRecord
         # The join table should not have a primary key or a model associated with it. You must manually generate the
         # join table with a migration such as this:
         #
-        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[6.0]
+        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[7.0]
         #     def change
         #       create_join_table :developers, :projects
         #     end

@@ -1,3 +1,11 @@
+*   Truncate broadcast logging messages.
+
+    *J Smith*
+
+*   OpenSSL constants are now used for Digest computations.
+
+    *Dirkjan Bussink*
+
 *   The Action Cable client now includes safeguards to prevent a "thundering
     herd" of client reconnects after server connectivity loss:
 
@@ -10,5 +18,6 @@
     * Random jitter is applied to each delay between reconnection attempts.
 
     *Jonathan Hefner*
+
 
 Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/actioncable/CHANGELOG.md) for previous changes.

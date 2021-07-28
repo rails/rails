@@ -214,6 +214,7 @@ module ActiveRecord
 
         def find_target
           return [] unless target_reflection_has_associated_record?
+          return scope.to_a if disable_joins
           super
         end
 

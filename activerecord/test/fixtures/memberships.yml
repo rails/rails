@@ -2,40 +2,40 @@ membership_of_boring_club:
   joined_on: <%= 3.weeks.ago.to_s(:db) %>
   club: boring_club
   member_id: 1
-  favourite: false
+  favorite: false
   type: CurrentMembership
 
-membership_of_favourite_club:
+membership_of_favorite_club:
   joined_on: <%= 3.weeks.ago.to_s(:db) %>
   club: moustache_club
   member_id: 1
-  favourite: true
+  favorite: true
   type: Membership
 
 other_guys_membership:
   joined_on: <%= 4.weeks.ago.to_s(:db) %>
   club: boring_club
   member_id: 2
-  favourite: false
+  favorite: false
   type: CurrentMembership
 
 blarpy_winkup_crazy_club:
   joined_on: <%= 4.weeks.ago.to_s(:db) %>
   club: crazy_club
   member_id: 3
-  favourite: false
+  favorite: false
   type: CurrentMembership
 
 super_membership_of_boring_club:
   joined_on: <%= 3.weeks.ago.to_s(:db) %>
   club: boring_club
   member_id: 1
-  favourite: false
+  favorite: false
   type: SuperMembership
 
 selected_membership_of_boring_club:
   joined_on: <%= 3.weeks.ago.to_s(:db) %>
   club: boring_club
   member_id: 1
-  favourite: false
+  favorite: false
   type: SelectedMembership

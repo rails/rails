@@ -14,6 +14,24 @@ module Rails
       class Error < Thor::Error # :nodoc:
       end
 
+      class CorrectableError < Error # :nodoc:
+        attr_reader :key, :options
+
+        def initialize(message, key, options)
+          @key     = key
+          @options = options
+          super(message)
+        end
+
+        if defined?(DidYouMean::SpellChecker) && defined?(DidYouMean::Correctable)
+          include DidYouMean::Correctable
+
+          def corrections
+            @corrections ||= DidYouMean::SpellChecker.new(dictionary: options).correct(key)
+          end
+        end
+      end
+
       include Actions
 
       class << self
@@ -86,10 +104,8 @@ module Rails
         #
         #   Rails::Command::TestCommand.base_name # => 'rails'
         def base_name
-          @base_name ||= begin
-            if base = name.to_s.split("::").first
-              base.underscore
-            end
+          @base_name ||= if base = name.to_s.split("::").first
+            base.underscore
           end
         end
 
@@ -97,11 +113,9 @@ module Rails
         #
         #   Rails::Command::TestCommand.command_name # => 'test'
         def command_name
-          @command_name ||= begin
-            if command = name.to_s.split("::").last
-              command.chomp!("Command")
-              command.underscore
-            end
+          @command_name ||= if command = name.to_s.split("::").last
+            command.chomp!("Command")
+            command.underscore
           end
         end
 

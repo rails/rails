@@ -62,6 +62,32 @@ module ActiveRecord
       end
 
       unless in_memory_db?
+        def test_not_setting_writing_role_while_using_another_named_role_raises
+          connection_handler = ActiveRecord::Base.connection_handler
+          ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+
+          ActiveRecord::Base.connects_to(shards: { default: { all: :arunit }, one: { all: :arunit } })
+
+          assert_raises(ArgumentError) { setup_shared_connection_pool }
+        ensure
+          ActiveRecord::Base.connection_handler = connection_handler
+          ActiveRecord::Base.establish_connection :arunit
+        end
+
+        def test_setting_writing_role_while_using_another_named_role_does_not_raise
+          connection_handler = ActiveRecord::Base.connection_handler
+          ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+          old_role, ActiveRecord.writing_role = ActiveRecord.writing_role, :all
+
+          ActiveRecord::Base.connects_to(shards: { default: { all: :arunit }, one: { all: :arunit } })
+
+          assert_nothing_raised { setup_shared_connection_pool }
+        ensure
+          ActiveRecord.writing_role = old_role
+          ActiveRecord::Base.connection_handler = connection_handler
+          ActiveRecord::Base.establish_connection :arunit
+        end
+
         def test_establish_connection_with_primary_works_without_deprecation
           old_config = ActiveRecord::Base.configurations
           config = { "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" } }
@@ -157,6 +183,7 @@ module ActiveRecord
         @handler.establish_connection(:development)
 
         assert_not_nil pool = @handler.retrieve_connection_pool("development")
+        assert_not_predicate pool.connection, :preventing_writes?
         assert_equal "test/db/primary.sqlite3", pool.db_config.database
       ensure
         ActiveRecord::Base.configurations = @prev_configs
@@ -172,6 +199,7 @@ module ActiveRecord
         @handler.establish_connection(:development_readonly)
 
         assert_not_nil pool = @handler.retrieve_connection_pool("development_readonly")
+        assert_not_predicate pool.connection, :preventing_writes?
         assert_equal "test/db/readonly.sqlite3", pool.db_config.database
       ensure
         ActiveRecord::Base.configurations = @prev_configs
@@ -283,8 +311,8 @@ module ActiveRecord
       end
 
       def test_default_handlers_are_writing_and_reading
-        assert_equal :writing, ActiveRecord::Base.writing_role
-        assert_equal :reading, ActiveRecord::Base.reading_role
+        assert_equal :writing, ActiveRecord.writing_role
+        assert_equal :reading, ActiveRecord.reading_role
       end
 
       if Process.respond_to?(:fork)

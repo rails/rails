@@ -40,18 +40,33 @@ module ActiveRecord
           end
         end
 
-        def initialize(klass, owners, reflection, preload_scope, associate_by_default = true)
+        attr_reader :klass
+
+        def initialize(klass, owners, reflection, preload_scope, reflection_scope, associate_by_default)
           @klass         = klass
           @owners        = owners.uniq(&:__id__)
           @reflection    = reflection
           @preload_scope = preload_scope
+          @reflection_scope = reflection_scope
           @associate     = associate_by_default || !preload_scope || preload_scope.empty_scope?
           @model         = owners.first && owners.first.class
           @run = false
         end
 
-        def already_loaded?
-          @already_loaded ||= owners.all? { |o| o.association(reflection.name).loaded? }
+        def table_name
+          @klass.table_name
+        end
+
+        def data_available?
+          already_loaded?
+        end
+
+        def future_classes
+          if run? || already_loaded?
+            []
+          else
+            [@klass]
+          end
         end
 
         def runnable_loaders
@@ -148,8 +163,31 @@ module ActiveRecord
           end
         end
 
+        def associate_records_from_unscoped(unscoped_records)
+          return if unscoped_records.nil? || unscoped_records.empty?
+          return if !reflection_scope.empty_scope?
+          return if preload_scope && !preload_scope.empty_scope?
+          return if reflection.collection?
+
+          unscoped_records.each do |record|
+            owners = owners_by_key[convert_key(record[association_key_name])]
+            owners&.each_with_index do |owner, i|
+              association = owner.association(reflection.name)
+              association.target = record
+
+              if i == 0 # Set inverse on first owner
+                association.set_inverse_instance(record)
+              end
+            end
+          end
+        end
+
         private
-          attr_reader :owners, :reflection, :preload_scope, :model, :klass
+          attr_reader :owners, :reflection, :preload_scope, :model
+
+          def already_loaded?
+            @already_loaded ||= owners.all? { |o| o.association(reflection.name).loaded? }
+          end
 
           def fetch_from_preloaded_records
             @records_by_owner = owners.index_with do |owner|
@@ -205,9 +243,7 @@ module ActiveRecord
           end
 
           def reflection_scope
-            @reflection_scope ||= begin
-              reflection.join_scopes(klass.arel_table, klass.predicate_builder, klass).inject(&:merge!) || klass.unscoped
-            end
+            @reflection_scope ||= reflection.join_scopes(klass.arel_table, klass.predicate_builder, klass).inject(&:merge!) || klass.unscoped
           end
 
           def build_scope
@@ -223,11 +259,11 @@ module ActiveRecord
               scope.merge!(preload_scope)
             end
 
-            if preload_scope && preload_scope.strict_loading_value
-              scope.strict_loading
-            else
-              scope
-            end
+            cascade_strict_loading(scope)
+          end
+
+          def cascade_strict_loading(scope)
+            preload_scope&.strict_loading_value ? scope.strict_loading : scope
           end
       end
     end

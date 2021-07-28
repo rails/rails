@@ -1189,7 +1189,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     member = members(:groucho)
     club   = member.clubs.create!
 
-    assert_equal true, club.reload.membership.favourite
+    assert_equal true, club.reload.membership.favorite
   end
 
   def test_deleting_from_has_many_through_a_belongs_to_should_not_try_to_update_counter
@@ -1340,11 +1340,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     member = Member.create!
     Membership.create!(club: club, member: member)
 
-    club.favourites << member
-    assert_equal [member], club.favourites
+    club.favorites << member
+    assert_equal [member], club.favorites
 
     club.reload
-    assert_equal [member], club.favourites
+    assert_equal [member], club.favorites
   end
 
   def test_has_many_through_unscope_default_scope
@@ -1377,9 +1377,9 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_with_scope_that_should_not_be_fully_merged
     Club.has_many :distinct_memberships, -> { distinct }, class_name: "Membership"
-    Club.has_many :special_favourites, through: :distinct_memberships, source: :member
+    Club.has_many :special_favorites, through: :distinct_memberships, source: :member
 
-    assert_nil Club.new.special_favourites.distinct_value
+    assert_nil Club.new.special_favorites.distinct_value
   end
 
   def test_has_many_through_do_not_cache_association_reader_if_the_though_method_has_default_scopes

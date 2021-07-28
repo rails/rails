@@ -26,9 +26,7 @@ module ActiveRecord
       end
 
       def connection_specification_name
-        if connection_klass.is_a?(String)
-          connection_klass
-        elsif connection_klass.primary_class?
+        if connection_klass.primary_class?
           "ActiveRecord::Base"
         else
           connection_klass.name

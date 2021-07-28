@@ -207,26 +207,26 @@ class EachTest < ActiveRecord::TestCase
 
   def test_find_in_batches_should_not_error_if_config_overridden
     # Set the config option which will be overridden
-    prev = ActiveRecord::Base.error_on_ignored_order
-    ActiveRecord::Base.error_on_ignored_order = true
+    prev = ActiveRecord.error_on_ignored_order
+    ActiveRecord.error_on_ignored_order = true
     assert_nothing_raised do
       PostWithDefaultScope.find_in_batches(error_on_ignore: false) { }
     end
   ensure
     # Set back to default
-    ActiveRecord::Base.error_on_ignored_order = prev
+    ActiveRecord.error_on_ignored_order = prev
   end
 
   def test_find_in_batches_should_error_on_config_specified_to_error
     # Set the config option
-    prev = ActiveRecord::Base.error_on_ignored_order
-    ActiveRecord::Base.error_on_ignored_order = true
+    prev = ActiveRecord.error_on_ignored_order
+    ActiveRecord.error_on_ignored_order = true
     assert_raise(ArgumentError) do
       PostWithDefaultScope.find_in_batches() { }
     end
   ensure
     # Set back to default
-    ActiveRecord::Base.error_on_ignored_order = prev
+    ActiveRecord.error_on_ignored_order = prev
   end
 
   def test_find_in_batches_should_not_error_by_default
@@ -304,6 +304,14 @@ class EachTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_kind_of ActiveRecord::Batches::BatchEnumerator, Post.in_batches(of: 2)
     end
+  end
+
+  def test_in_batches_has_attribute_readers
+    enumerator = Post.no_comments.in_batches(of: 2, start: 42, finish: 84)
+    assert_equal Post.no_comments, enumerator.relation
+    assert_equal 2, enumerator.batch_size
+    assert_equal 42, enumerator.start
+    assert_equal 84, enumerator.finish
   end
 
   def test_in_batches_should_yield_relation_if_block_given

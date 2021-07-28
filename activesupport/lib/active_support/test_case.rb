@@ -12,6 +12,7 @@ require "active_support/testing/constant_lookup"
 require "active_support/testing/time_helpers"
 require "active_support/testing/file_fixtures"
 require "active_support/testing/parallelization"
+require "active_support/testing/parallelize_executor"
 require "concurrent/utility/processor_counter"
 
 module ActiveSupport
@@ -71,32 +72,17 @@ module ActiveSupport
       #
       # The threaded parallelization uses minitest's parallel executor directly.
       # The processes parallelization uses a Ruby DRb server.
-      def parallelize(workers: :number_of_processors, with: :processes)
+      #
+      # Because parallelization presents an overhead, it is only enabled when the
+      # number of tests to run is above the +threshold+ param. The default value is
+      # 50, and it's configurable via +config.active_support.test_parallelization_threshold+.
+      def parallelize(workers: :number_of_processors, with: :processes, threshold: ActiveSupport.test_parallelization_threshold)
         workers = Concurrent.physical_processor_count if workers == :number_of_processors
         workers = ENV["PARALLEL_WORKERS"].to_i if ENV["PARALLEL_WORKERS"]
 
-        return if workers <= 1 || ActiveSupport.test_parallelization_disabled
+        return if workers <= 1
 
-        executor = case with
-                   when :processes
-                     Testing::Parallelization.new(workers)
-                   when :threads
-                     Minitest::Parallel::Executor.new(workers)
-                   else
-                     raise ArgumentError, "#{with} is not a supported parallelization executor."
-        end
-
-        self.lock_threads = false if defined?(self.lock_threads) && with == :threads
-
-        Minitest.parallel_executor = executor
-
-        parallelize_me!
-
-        # `Minitest::Test.parallelize_me!` will try to change `test_order` to return
-        # `:parallel`. However, since `ActiveSupport::TestCase` is already overriding it,
-        # in some inheritance situations, it will have precedence over the `Minitest` one.
-        # For this reason, it needs to be updated by hand.
-        self.test_order = :parallel
+        Minitest.parallel_executor = ActiveSupport::Testing::ParallelizeExecutor.new(size: workers, with: with, threshold: threshold)
       end
 
       # Set up hook for parallel testing. This can be used if you have multiple

@@ -327,7 +327,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
     assert_equal face, human.face
     assert_equal face.description, human.face.description, "Description of the face should be the same before changes to child instance"
     face.description = "Bongo"
-    assert_equal face.description, human.face.description, "Description of the face should be the same after changes to chield instance"
+    assert_equal face.description, human.face.description, "Description of the face should be the same after changes to child instance"
     human.face.description = "Mungo"
     assert_equal face.description, human.face.description, "Description of the face should be the same after changes to replaced-parent-owned instance"
   end
@@ -336,15 +336,13 @@ class InverseHasOneTests < ActiveRecord::TestCase
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Human.first.confused_face }
   end
 
-  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-    def test_trying_to_use_inverses_that_dont_exist_should_have_suggestions_for_fix
-      error = assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) {
-        Human.first.confused_face
-      }
+  def test_trying_to_use_inverses_that_dont_exist_should_have_suggestions_for_fix
+    error = assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) {
+      Human.first.confused_face
+    }
 
-      assert_match "Did you mean?", error.message
-      assert_equal "super_human", error.corrections.first
-    end
+    assert_match "Did you mean?", error.message
+    assert_equal "confused_human", error.corrections.first
   end
 end
 
@@ -687,7 +685,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_with_has_many_inversing_should_try_to_set_inverse_instances_when_the_inverse_is_a_has_many
-    with_has_many_inversing do
+    with_has_many_inversing(Interest) do
       interest = interests(:trainspotting)
       human = interest.human
       assert_not_nil human.interests
@@ -702,7 +700,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_with_has_many_inversing_should_have_single_record_when_setting_record_through_attribute_in_build_method
-    with_has_many_inversing do
+    with_has_many_inversing(Interest) do
       human = Human.create!
       human.interests.build(
         human: human
@@ -714,7 +712,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_with_has_many_inversing_does_not_trigger_association_callbacks_on_set_when_the_inverse_is_a_has_many
-    with_has_many_inversing do
+    with_has_many_inversing(Interest) do
       human = interests(:trainspotting).human_with_callbacks
       assert_not_predicate human, :add_callback_called?
     end
@@ -751,22 +749,20 @@ class InverseBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
-    assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.puzzled_human }
+    assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.confused_human }
   end
 
-  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-    def test_trying_to_use_inverses_that_dont_exist_should_have_suggestions_for_fix
-      error = assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) {
-        Face.first.puzzled_human
-      }
+  def test_trying_to_use_inverses_that_dont_exist_should_have_suggestions_for_fix
+    error = assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) {
+      Face.first.confused_human
+    }
 
-      assert_match "Did you mean?", error.message
-      assert_equal "confused_face", error.corrections.first
-    end
+    assert_match "Did you mean?", error.message
+    assert_equal "confused_face", error.corrections.first
   end
 
   def test_building_has_many_parent_association_inverses_one_record
-    with_has_many_inversing do
+    with_has_many_inversing(Interest) do
       interest = Interest.new
       interest.build_human
       assert_equal 1, interest.human.interests.size
@@ -868,7 +864,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_with_has_many_inversing_should_try_to_set_inverse_instances_when_the_inverse_is_a_has_many
-    with_has_many_inversing do
+    with_has_many_inversing(Interest) do
       interest = interests(:llama_wrangling)
       human = interest.polymorphic_human
       assert_not_nil human.polymorphic_interests
@@ -883,7 +879,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_with_has_many_inversing_does_not_trigger_association_callbacks_on_set_when_the_inverse_is_a_has_many
-    with_has_many_inversing do
+    with_has_many_inversing(Interest) do
       human = interests(:llama_wrangling).polymorphic_human_with_callbacks
       assert_not_predicate human, :add_callback_called?
     end

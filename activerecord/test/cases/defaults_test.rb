@@ -83,6 +83,33 @@ class DefaultStringsTest < ActiveRecord::TestCase
   end
 end
 
+if supports_text_column_with_default?
+  class DefaultTextTest < ActiveRecord::TestCase
+    class DefaultText < ActiveRecord::Base; end
+
+    setup do
+      @connection = ActiveRecord::Base.connection
+      @connection.create_table :default_texts do |t|
+        t.text :text_col, default: "Smith"
+        t.text :text_col_with_quotes, default: "O'Connor"
+      end
+      DefaultText.reset_column_information
+    end
+
+    def test_default_texts
+      assert_equal "Smith", DefaultText.new.text_col
+    end
+
+    def test_default_texts_containing_single_quotes
+      assert_equal "O'Connor", DefaultText.new.text_col_with_quotes
+    end
+
+    teardown do
+      @connection.drop_table :default_texts
+    end
+  end
+end
+
 if current_adapter?(:PostgreSQLAdapter)
   class PostgresqlDefaultExpressionTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
@@ -91,13 +118,13 @@ if current_adapter?(:PostgreSQLAdapter)
       output = dump_table_schema("defaults")
       if ActiveRecord::Base.connection.database_version >= 100000
         assert_match %r/t\.date\s+"modified_date",\s+default: -> { "CURRENT_DATE" }/, output
-        assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+        assert_match %r/t\.datetime\s+"modified_time",\s+precision: 6,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       else
         assert_match %r/t\.date\s+"modified_date",\s+default: -> { "\('now'::text\)::date" }/, output
-        assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "now\(\)" }/, output
+        assert_match %r/t\.datetime\s+"modified_time",\s+precision: 6,\s+default: -> { "now\(\)" }/, output
       end
       assert_match %r/t\.date\s+"modified_date_function",\s+default: -> { "now\(\)" }/, output
-      assert_match %r/t\.datetime\s+"modified_time_function",\s+default: -> { "now\(\)" }/, output
+      assert_match %r/t\.datetime\s+"modified_time_function",\s+precision: 6,\s+default: -> { "now\(\)" }/, output
     end
   end
 end

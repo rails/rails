@@ -85,28 +85,28 @@ class ModuleAttributeAccessorTest < ActiveSupport::TestCase
         cattr_reader "1nvalid"
       end
     end
-    assert_equal "invalid attribute name: 1nvalid", exception.message
+    assert_match "invalid attribute name: 1nvalid", exception.message
 
     exception = assert_raises NameError do
       Class.new do
         cattr_writer "1nvalid"
       end
     end
-    assert_equal "invalid attribute name: 1nvalid", exception.message
+    assert_match "invalid attribute name: 1nvalid", exception.message
 
     exception = assert_raises NameError do
       Class.new do
         mattr_reader "valid_part\ninvalid_part"
       end
     end
-    assert_equal "invalid attribute name: valid_part\ninvalid_part", exception.message
+    assert_match "invalid attribute name: valid_part\ninvalid_part", exception.message
 
     exception = assert_raises NameError do
       Class.new do
         mattr_writer "valid_part\ninvalid_part"
       end
     end
-    assert_equal "invalid attribute name: valid_part\ninvalid_part", exception.message
+    assert_match "invalid attribute name: valid_part\ninvalid_part", exception.message
   end
 
   def test_should_use_default_value_if_block_passed

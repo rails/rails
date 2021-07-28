@@ -5,6 +5,8 @@ module ActiveRecord
     class SingularAssociation < Association #:nodoc:
       # Implements the reader method, e.g. foo.bar for Foo.has_one :bar
       def reader
+        ensure_klass_exists!
+
         if !loaded? || stale_target?
           reload
         end
@@ -36,7 +38,11 @@ module ActiveRecord
         end
 
         def find_target
-          super.first
+          if disable_joins
+            scope.first
+          else
+            super.first
+          end
         end
 
         def replace(record)

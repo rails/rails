@@ -1,3 +1,17 @@
+*   Make the Action Text + Trix JavaScript and CSS available through the asset pipeline.
+
+    *DHH*
+
+*   OpenSSL constants are now used for Digest computations.
+
+    *Dirkjan Bussink*
+
+*   Add support for passing `form:` option to `rich_text_area_tag` and
+    `rich_text_area` helpers to specify the `<input type="hidden" form="...">`
+    value.
+
+    *Sean Doyle*
+
 *   Add `config.action_text.attachment_tag_name`, to specify the HTML tag that contains attachments.
 
     *Mark VanLandingham*

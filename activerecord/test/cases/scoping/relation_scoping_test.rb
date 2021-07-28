@@ -425,9 +425,12 @@ class RelationScopingTest < ActiveRecord::TestCase
       select_sql = capture_sql { Author.first }.first
       assert_match(/organization_id/, select_sql)
 
-      assert_raises ArgumentError do
+      error = assert_raises ArgumentError do
         Author.where(organization_id: 1).scoping(all_queries: false) { }
       end
+
+      assert_equal "Scoping is set to apply to all queries and cannot be " \
+       "unset in a nested block.", error.message
     end
   end
 end

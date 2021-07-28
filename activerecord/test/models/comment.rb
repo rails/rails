@@ -10,10 +10,12 @@ class Comment < ActiveRecord::Base
   scope :for_first_post, -> { where(post_id: 1) }
   scope :for_first_author, -> { joins(:post).where("posts.author_id" => 1) }
   scope :created, -> { all }
+  scope :ordered_by_post_id, -> { order("comments.post_id DESC") }
 
   belongs_to :post, counter_cache: true
   belongs_to :author,   polymorphic: true
   belongs_to :resource, polymorphic: true
+  belongs_to :origin, polymorphic: true
   belongs_to :company, foreign_key: "company"
 
   has_many :ratings

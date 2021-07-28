@@ -29,8 +29,8 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        attribute_method_suffix "_before_type_cast", "_for_database"
-        attribute_method_suffix "_came_from_user?"
+        attribute_method_suffix "_before_type_cast", "_for_database", parameters: false
+        attribute_method_suffix "_came_from_user?", parameters: false
       end
 
       # Returns the value of the attribute identified by +attr_name+ before
@@ -64,6 +64,11 @@ module ActiveRecord
       #   # => {"id"=>nil, "title"=>nil, "is_done"=>true, "completed_on"=>"2012-10-21", "created_at"=>nil, "updated_at"=>nil}
       def attributes_before_type_cast
         @attributes.values_before_type_cast
+      end
+
+      # Returns a hash of attributes for assignment to the database.
+      def attributes_for_database
+        @attributes.values_for_database
       end
 
       private

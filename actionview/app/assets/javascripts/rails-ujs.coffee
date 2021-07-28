@@ -18,10 +18,10 @@
   inputChangeSelector: 'select[data-remote], input[data-remote], textarea[data-remote]'
 
   # Form elements bound by rails-ujs
-  formSubmitSelector: 'form'
+  formSubmitSelector: 'form:not([data-turbo=true])',
 
   # Form input elements bound by rails-ujs
-  formInputClickSelector: 'form input[type=submit], form input[type=image], form button[type=submit], form button:not([type]), input[type=submit][form], input[type=image][form], button[type=submit][form], button[form]:not([type])'
+  formInputClickSelector: 'form:not([data-turbo=true]) input[type=submit], form:not([data-turbo=true]) input[type=image], form:not([data-turbo=true]) button[type=submit], form:not([data-turbo=true]) button:not([type]), input[type=submit][form], input[type=image][form], button[type=submit][form], button[form]:not([type])',
 
   # Form input elements disabled during form submission
   formDisableSelector: 'input[data-disable-with]:enabled, button[data-disable-with]:enabled, textarea[data-disable-with]:enabled, input[data-disable]:enabled, button[data-disable]:enabled, textarea[data-disable]:enabled'
@@ -32,8 +32,8 @@
   # Form file input elements
   fileInputSelector: 'input[name][type=file]:not([disabled])'
 
-  # Link onClick disable selector with possible reenable after remote submission
+  # Link onClick disable selector with possible re-enable after remote submission
   linkDisableSelector: 'a[data-disable-with], a[data-disable]'
 
-  # Button onClick disable selector with possible reenable after remote submission
+  # Button onClick disable selector with possible re-enable after remote submission
   buttonDisableSelector: 'button[data-remote][data-disable-with], button[data-remote][data-disable]'

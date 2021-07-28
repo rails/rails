@@ -4,7 +4,7 @@ require_relative "abstract_unit"
 require "active_support/current_attributes/test_helper"
 
 class CurrentAttributesTest < ActiveSupport::TestCase
-  # Automatically included in Rails apps via railtie but that dodn't run here.
+  # Automatically included in Rails apps via railtie but that don't run here.
   include ActiveSupport::CurrentAttributes::TestHelper
 
   Person = Struct.new(:id, :name, :time_zone)
@@ -173,5 +173,24 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
   test "respond_to? for methods that have not been called" do
     assert_equal true, Current.respond_to?("respond_to_test")
+  end
+
+  test "CurrentAttributes use fiber-local variables" do
+    Session.current = 42
+    enumerator = Enumerator.new do |yielder|
+      yielder.yield Session.current
+    end
+    assert_nil enumerator.next
+  end
+
+  test "CurrentAttributes can use thread-local variables" do
+    ActiveSupport::CurrentAttributes._use_thread_variables = true
+    Session.current = 42
+    enumerator = Enumerator.new do |yielder|
+      yielder.yield Session.current
+    end
+    assert_equal 42, enumerator.next
+  ensure
+    ActiveSupport::CurrentAttributes._use_thread_variables = false
   end
 end

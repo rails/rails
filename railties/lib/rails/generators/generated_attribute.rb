@@ -7,6 +7,25 @@ module Rails
     class GeneratedAttribute # :nodoc:
       INDEX_OPTIONS = %w(index uniq)
       UNIQ_INDEX_OPTIONS = %w(uniq)
+      DEFAULT_TYPES = %w(
+        attachment
+        attachments
+        belongs_to
+        boolean
+        date
+        datetime
+        decimal
+        digest
+        float
+        integer
+        references
+        rich_text
+        string
+        text
+        time
+        timestamp
+        token
+      )
 
       attr_accessor :name, :type
       attr_reader   :attr_options
@@ -14,23 +33,40 @@ module Rails
 
       class << self
         def parse(column_definition)
-          name, type, has_index = column_definition.split(":")
+          name, type, index_type = column_definition.split(":")
 
           # if user provided "name:index" instead of "name:string:index"
           # type should be set blank so GeneratedAttribute's constructor
           # could set it to :string
-          has_index, type = type, nil if INDEX_OPTIONS.include?(type)
+          index_type, type = type, nil if valid_index_type?(type)
 
           type, attr_options = *parse_type_and_options(type)
           type = type.to_sym if type
 
+          if type && !valid_type?(type)
+            raise Error, "Could not generate field '#{name}' with unknown type '#{type}'."
+          end
+
+          if index_type && !valid_index_type?(index_type)
+            raise Error, "Could not generate field '#{name}' with unknown index '#{index_type}'."
+          end
+
           if type && reference?(type)
-            if UNIQ_INDEX_OPTIONS.include?(has_index)
+            if UNIQ_INDEX_OPTIONS.include?(index_type)
               attr_options[:index] = { unique: true }
             end
           end
 
-          new(name, type, has_index, attr_options)
+          new(name, type, index_type, attr_options)
+        end
+
+        def valid_type?(type)
+          DEFAULT_TYPES.include?(type.to_s) ||
+            ActiveRecord::Base.connection.valid_type?(type)
+        end
+
+        def valid_index_type?(index_type)
+          INDEX_OPTIONS.include?(index_type.to_s)
         end
 
         def reference?(type)

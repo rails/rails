@@ -111,6 +111,7 @@ ActiveRecord::Schema.define do
     t.column :cover, :string, default: "hard"
     t.string :isbn
     t.string :external_id
+    t.column :original_name, :string
     t.datetime :published_on
     t.boolean :boolean_status
     t.index [:author_id, :name], unique: true
@@ -121,6 +122,16 @@ ActiveRecord::Schema.define do
     t.datetime :created_at
     t.datetime :updated_at
     t.date :updated_on
+  end
+
+  create_table :encrypted_books, id: :integer, force: true do |t|
+    t.references :author
+    t.string :format
+    t.column :name, :string
+    t.column :original_name, :string
+
+    t.datetime :created_at
+    t.datetime :updated_at
   end
 
   create_table :booleans, force: true do |t|
@@ -224,6 +235,8 @@ ActiveRecord::Schema.define do
     # See #14855.
     t.string :resource_id
     t.string :resource_type
+    t.integer :origin_id
+    t.string :origin_type
     t.integer :developer_id
     t.datetime :updated_at
     t.datetime :deleted_at
@@ -603,7 +616,7 @@ ActiveRecord::Schema.define do
   create_table :memberships, force: true do |t|
     t.datetime :joined_on
     t.integer :club_id, :member_id
-    t.boolean :favourite, default: false
+    t.boolean :favorite, default: false
     t.integer :type
     t.datetime :created_at
     t.datetime :updated_at
@@ -898,7 +911,7 @@ ActiveRecord::Schema.define do
   create_table :references, force: true do |t|
     t.integer :person_id
     t.integer :job_id
-    t.boolean :favourite
+    t.boolean :favorite
     t.integer :lock_version, default: 0
   end
 
@@ -1225,6 +1238,16 @@ ActiveRecord::Schema.define do
     create_table :fk_test_has_fk, force: true do |t|
       t.references :fk, null: false
       t.foreign_key :fk_test_has_pk, column: "fk_id", name: "fk_name", primary_key: "pk_id"
+    end
+  end
+
+  disable_referential_integrity do
+    create_table :fk_object_to_point_tos, force: :cascade do |t|
+    end
+
+    create_table :fk_pointing_to_non_existent_objects, force: true do |t|
+      t.references :fk_object_to_point_to, null: false, index: false
+      t.foreign_key :fk_object_to_point_tos, column: "fk_object_to_point_to_id", name: "fk_that_will_be_broken"
     end
   end
 

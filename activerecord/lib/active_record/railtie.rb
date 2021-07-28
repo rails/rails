@@ -15,6 +15,7 @@ module ActiveRecord
   # = Active Record Railtie
   class Railtie < Rails::Railtie # :nodoc:
     config.active_record = ActiveSupport::OrderedOptions.new
+    config.active_record.encryption = ActiveSupport::OrderedOptions.new
 
     config.app_generators.orm :active_record, migration: true,
                                               timestamps: true
@@ -30,6 +31,7 @@ module ActiveRecord
     config.active_record.check_schema_cache_dump_version = true
     config.active_record.maintain_test_schema = true
     config.active_record.has_many_inversing = false
+    config.active_record.sqlite3_production_warning = true
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 
@@ -60,7 +62,7 @@ module ActiveRecord
         console.level = Rails.logger.level
         Rails.logger.extend ActiveSupport::Logger.broadcast console
       end
-      ActiveRecord::Base.verbose_query_logs = false
+      ActiveRecord.verbose_query_logs = false
     end
 
     runner do
@@ -70,7 +72,6 @@ module ActiveRecord
     initializer "active_record.initialize_timezone" do
       ActiveSupport.on_load(:active_record) do
         self.time_zone_aware_attributes = true
-        self.default_timezone = :utc
       end
     end
 
@@ -149,11 +150,12 @@ To keep using the current cache store, you can turn off cache versioning entirel
               next if current_version.nil?
 
               if cache.version != current_version
-                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
+                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{cache.version}."
                 next
               end
             end
 
+            Rails.logger.info("Using schema cache file #{filename}")
             connection_pool.set_schema_cache(cache)
           end
         end
@@ -197,12 +199,42 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
-    initializer "active_record.set_configs" do |app|
-      ActiveSupport.on_load(:active_record) do
-        configs = app.config.active_record
+    SQLITE3_PRODUCTION_WARN = "You are running SQLite in production, this is generally not recommended."\
+      " You can disable this warning by setting \"config.active_record.sqlite3_production_warning=false\"."
+    initializer "active_record.sqlite3_production_warning" do
+      if config.active_record.delete(:sqlite3_production_warning) && Rails.env.production?
+        ActiveSupport.on_load(:active_record_sqlite3adapter) do
+          Rails.logger.warn(SQLITE3_PRODUCTION_WARN)
+        end
+      end
+    end
 
+    initializer "active_record.set_configs" do |app|
+      configs = app.config.active_record
+
+      config.after_initialize do
         configs.each do |k, v|
-          send "#{k}=", v
+          next if k == :encryption
+          setter = "#{k}="
+          if ActiveRecord.respond_to?(setter)
+            ActiveRecord.send(setter, v)
+          end
+        end
+      end
+
+      ActiveSupport.on_load(:active_record) do
+        configs.each do |k, v|
+          next if k == :encryption
+          setter = "#{k}="
+          # Some existing initializers might rely on Active Record configuration
+          # being copied from the config object to their actual destination when
+          # `ActiveRecord::Base` is loaded.
+          # So to preserve backward compatibility we copy the config a second time.
+          if ActiveRecord.respond_to?(setter)
+            ActiveRecord.send(setter, v)
+          else
+            send(setter, v)
+          end
         end
       end
     end
@@ -211,10 +243,11 @@ To keep using the current cache store, you can turn off cache versioning entirel
     # and then establishes the connection.
     initializer "active_record.initialize_database" do
       ActiveSupport.on_load(:active_record) do
-        if ActiveRecord::Base.legacy_connection_handling
-          self.connection_handlers = { writing_role => ActiveRecord::Base.default_connection_handler }
+        if ActiveRecord.legacy_connection_handling
+          self.connection_handlers = { ActiveRecord.writing_role => ActiveRecord::Base.default_connection_handler }
         end
         self.configurations = Rails.application.config.database_configuration
+
         establish_connection
       end
     end
@@ -274,6 +307,36 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record.set_signed_id_verifier_secret" do
       ActiveSupport.on_load(:active_record) do
         self.signed_id_verifier_secret ||= -> { Rails.application.key_generator.generate_key("active_record/signed_id") }
+      end
+    end
+
+    initializer "active_record_encryption.configuration" do |app|
+      ActiveRecord::Encryption.configure \
+         primary_key: app.credentials.dig(:active_record_encryption, :primary_key),
+         deterministic_key: app.credentials.dig(:active_record_encryption, :deterministic_key),
+         key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt),
+         **config.active_record.encryption
+
+      ActiveSupport.on_load(:active_record) do
+        # Support extended queries for deterministic attributes and validations
+        if ActiveRecord::Encryption.config.extend_queries
+          ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
+          ActiveRecord::Encryption::ExtendedDeterministicUniquenessValidator.install_support
+        end
+      end
+
+      ActiveSupport.on_load(:active_record_fixture_set) do
+        # Encrypt active record fixtures
+        if ActiveRecord::Encryption.config.encrypt_fixtures
+          ActiveRecord::Fixture.prepend ActiveRecord::Encryption::EncryptedFixtures
+        end
+      end
+
+      # Filtered params
+      ActiveSupport.on_load(:action_controller) do
+        if ActiveRecord::Encryption.config.add_to_filter_parameters
+          ActiveRecord::Encryption.install_auto_filtered_parameters(app)
+        end
       end
     end
   end

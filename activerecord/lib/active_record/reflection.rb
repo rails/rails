@@ -194,9 +194,9 @@ module ActiveRecord
         klass_scope
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass) # :nodoc:
+      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
         if scope
-          [scope_for(build_scope(table, predicate_builder, klass))]
+          [scope_for(build_scope(table, predicate_builder, klass), record)]
         else
           []
         end
@@ -237,7 +237,7 @@ module ActiveRecord
         end
       end
 
-      # This shit is nasty. We need to avoid the following situation:
+      # We need to avoid the following situation:
       #
       #   * An associated record is deleted via record.destroy
       #   * Hence the callbacks run, and they find a belongs_to on the record with a
@@ -413,14 +413,22 @@ module ActiveRecord
           raise ArgumentError, "Polymorphic associations do not support computing the class."
         end
 
-        active_record.send(:compute_type, name).tap do |klass|
+        msg = <<-MSG.squish
+          Rails couldn't find a valid model for #{name} association.
+          Please provide the :class_name option on the association declaration.
+          If :class_name is already provided, make sure it's an ActiveRecord::Base subclass.
+        MSG
+
+        begin
+          klass = active_record.send(:compute_type, name)
+
           unless klass < ActiveRecord::Base
-            raise ArgumentError, <<-MSG.squish
-              Rails couldn't find a valid model for #{name} association.
-              Please provide the :class_name option on the association declaration.
-              If :class_name is already provided make sure is an ActiveRecord::Base subclass.
-            MSG
+            raise ArgumentError, msg
           end
+
+          klass
+        rescue NameError
+          raise NameError, msg
         end
       end
 
@@ -475,18 +483,17 @@ module ActiveRecord
         check_validity_of_inverse!
       end
 
-      def check_preloadable!
+      def check_eager_loadable!
         return unless scope
 
         unless scope.arity == 0
           raise ArgumentError, <<-MSG.squish
             The association scope '#{name}' is instance dependent (the scope
-            block takes an argument). Preloading instance dependent scopes is
-            not supported.
+            block takes an argument). Eager loading instance dependent scopes
+            is not supported.
           MSG
         end
       end
-      alias :check_eager_loadable! :check_preloadable!
 
       def join_id_for(owner) # :nodoc:
         owner[join_foreign_key]
@@ -657,7 +664,7 @@ module ActiveRecord
           elsif options[:as]
             "#{options[:as]}_id"
           else
-            active_record.name.foreign_key
+            active_record.model_name.to_s.foreign_key
           end
         end
 
@@ -834,8 +841,8 @@ module ActiveRecord
         source_reflection.scopes + super
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass) # :nodoc:
-        source_reflection.join_scopes(table, predicate_builder, klass) + super
+      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
+        source_reflection.join_scopes(table, predicate_builder, klass, record) + super
       end
 
       def has_scope?
@@ -1007,9 +1014,9 @@ module ActiveRecord
         @previous_reflection = previous_reflection
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass) # :nodoc:
-        scopes = @previous_reflection.join_scopes(table, predicate_builder) + super
-        scopes << build_scope(table, predicate_builder, klass).instance_exec(nil, &source_type_scope)
+      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
+        scopes = @previous_reflection.join_scopes(table, predicate_builder, record) + super
+        scopes << build_scope(table, predicate_builder, klass).instance_exec(record, &source_type_scope)
       end
 
       def constraints

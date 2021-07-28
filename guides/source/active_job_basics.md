@@ -114,7 +114,7 @@ Job Execution
 -------------
 
 For enqueuing and executing jobs in production you need to set up a queuing backend,
-that is to say you need to decide on a 3rd-party queuing library that Rails should use.
+that is to say, you need to decide on a 3rd-party queuing library that Rails should use.
 Rails itself only provides an in-process queuing system, which only keeps the jobs in RAM.
 If the process crashes or the machine is reset, then all outstanding jobs are lost with the
 default async backend. This may be fine for smaller apps or non-critical jobs, but most
@@ -387,6 +387,7 @@ ActiveJob supports the following types of arguments by default:
   - `Hash` (Keys should be of `String` or `Symbol` type)
   - `ActiveSupport::HashWithIndifferentAccess`
   - `Array`
+  - `Range`
   - `Module`
   - `Class`
 
@@ -423,6 +424,7 @@ by default has been mixed into Active Record classes.
 You can extend the list of supported argument types. You just need to define your own serializer:
 
 ```ruby
+# app/serializers/money_serializer.rb
 class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
   # Checks if an argument should be serialized by this serializer.
   def serialize?(argument)
@@ -449,7 +451,20 @@ end
 and add this serializer to the list:
 
 ```ruby
+# config/initializer/custom_serializers.rb
 Rails.application.config.active_job.custom_serializers << MoneySerializer
+```
+
+Note that auto-loading reloadable code during initialization is not supported. Thus it is recommended
+to set-up serializers to be loaded only once, e.g. by amending `config/application.rb` like this:
+
+```ruby
+# config/application.rb
+module YourApp
+  class Application < Rails::Application
+    config.autoload_once_paths << Rails.root.join('app', 'serializers')
+  end
+end
 ```
 
 Exceptions

@@ -147,7 +147,7 @@ module RailtiesTest
       end
     end
 
-    test "dont reverse default railties order" do
+    test "don't reverse default railties order" do
       @api = engine "api" do |plugin|
         plugin.write "lib/api.rb", <<-RUBY
           module Api
@@ -203,7 +203,7 @@ module RailtiesTest
         load "rails/tasks/engine.rake"
       RUBY
 
-      add_to_config "ActiveRecord::Base.timestamped_migrations = false"
+      add_to_config "ActiveRecord.timestamped_migrations = false"
 
       boot_rails
 
@@ -388,6 +388,37 @@ module RailtiesTest
       Rails.application.load_tasks
       Rake::Task[:foo].invoke
       assert $executed
+    end
+
+    test "locales can be nested" do
+      app_file "config/locales/en/models.yml", <<~YAML
+        en:
+          foo: "1"
+      YAML
+
+      app_file "config/locales/en/dates.yml", <<~YAML
+        en:
+          bar: "1"
+      YAML
+
+      app_file "config/locales/extra/nested/folder/en.yml", <<~YAML
+        en:
+          baz: "1"
+      YAML
+
+      boot_rails
+
+      expected_locales = %W(
+        #{app_path}/config/locales/en/models.yml
+        #{app_path}/config/locales/en/dates.yml
+        #{app_path}/config/locales/extra/nested/folder/en.yml
+      ).map { |path| File.expand_path(path) }
+
+      actual_locales = I18n.load_path.map { |path| File.expand_path(path) }
+
+      expected_locales.each do |expected_locale|
+        assert_includes(actual_locales, expected_locale)
+      end
     end
 
     test "i18n files have lower priority than application ones" do
@@ -1579,6 +1610,21 @@ en:
 
         active_storage_migration = migrations.detect { |migration| migration.name == "CreateActiveStorageTables" }
         assert active_storage_migration
+      end
+    end
+
+    test "active_storage:update task works within engine" do
+      @plugin.write "Rakefile", <<-RUBY
+        APP_RAKEFILE = '#{app_path}/Rakefile'
+        load "rails/tasks/engine.rake"
+      RUBY
+
+      Dir.chdir(@plugin.path) do
+        output = `bundle exec rake app:active_storage:update`
+        assert $?.success?, output
+
+        assert migrations.detect { |migration| migration.name == "AddServiceNameToActiveStorageBlobs" }
+        assert migrations.detect { |migration| migration.name == "CreateActiveStorageVariantRecords" }
       end
     end
 

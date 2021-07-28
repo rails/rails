@@ -57,6 +57,8 @@ module ActionController
     #   304 Not Modified response if last_modified <= If-Modified-Since.
     # * <tt>:public</tt> By default the Cache-Control header is private, set this to
     #   +true+ if you want your application to be cacheable by other devices (proxy caches).
+    # * <tt>:cache_control</tt> When given will overwrite an existing Cache-Control header.
+    #   See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
     # * <tt>:template</tt> By default, the template digest for the current
     #   controller/action is included in ETags. If the action renders a
     #   different template, you can include its digest instead. If the action
@@ -98,12 +100,22 @@ module ActionController
     #     fresh_when(@article, public: true)
     #   end
     #
+    # When overwriting Cache-Control header:
+    #
+    #   def show
+    #     @article = Article.find(params[:id])
+    #     fresh_when(@article, public: true, cache_control: { no_cache: true })
+    #   end
+    #
+    # This will set in the response Cache-Control = public, no-cache.
+    #
     # When rendering a different template than the default controller/action
     # style, you can indicate which digest to include in the ETag:
     #
     #   before_action { fresh_when @article, template: 'widgets/show' }
     #
-    def fresh_when(object = nil, etag: nil, weak_etag: nil, strong_etag: nil, last_modified: nil, public: false, template: nil)
+    def fresh_when(object = nil, etag: nil, weak_etag: nil, strong_etag: nil, last_modified: nil, public: false, cache_control: {}, template: nil)
+      response.cache_control.delete(:no_store)
       weak_etag ||= etag || object unless strong_etag
       last_modified ||= object.try(:updated_at) || object.try(:maximum, :updated_at)
 
@@ -117,6 +129,7 @@ module ActionController
 
       response.last_modified = last_modified if last_modified
       response.cache_control[:public] = true if public
+      response.cache_control.merge!(cache_control)
 
       head :not_modified if request.fresh?(response)
     end
@@ -147,6 +160,8 @@ module ActionController
     #   304 Not Modified response if last_modified <= If-Modified-Since.
     # * <tt>:public</tt> By default the Cache-Control header is private, set this to
     #   +true+ if you want your application to be cacheable by other devices (proxy caches).
+    # * <tt>:cache_control</tt> When given will overwrite an existing Cache-Control header.
+    #   See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
     # * <tt>:template</tt> By default, the template digest for the current
     #   controller/action is included in ETags. If the action renders a
     #   different template, you can include its digest instead. If the action
@@ -209,6 +224,21 @@ module ActionController
     #     end
     #   end
     #
+    # When overwriting Cache-Control header:
+    #
+    #   def show
+    #     @article = Article.find(params[:id])
+    #
+    #     if stale?(@article, public: true, cache_control: { no_cache: true })
+    #       @statistics = @articles.really_expensive_call
+    #       respond_to do |format|
+    #         # all the supported formats
+    #       end
+    #     end
+    #   end
+    #
+    # This will set in the response Cache-Control = public, no-cache.
+    #
     # When rendering a different template than the default controller/action
     # style, you can indicate which digest to include in the ETag:
     #
@@ -244,6 +274,7 @@ module ActionController
     #
     # The method will also ensure an HTTP Date header for client compatibility.
     def expires_in(seconds, options = {})
+      response.cache_control.delete(:no_store)
       response.cache_control.merge!(
         max_age: seconds,
         public: options.delete(:public),
@@ -278,6 +309,12 @@ module ActionController
       yield if stale?(etag: request.fullpath,
                       last_modified: Time.new(2011, 1, 1).utc,
                       public: public)
+    end
+
+    # Sets an HTTP 1.1 Cache-Control header of <tt>no-store</tt>. This means the
+    # resource may not be stored in any cache.
+    def no_store
+      response.cache_control.replace(no_store: true)
     end
 
     private

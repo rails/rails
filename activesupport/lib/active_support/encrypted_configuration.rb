@@ -34,8 +34,12 @@ module ActiveSupport
     end
 
     private
+      def deep_transform(hash)
+        hash.transform_values { |value| value.is_a?(Hash) ? ActiveSupport::InheritableOptions.new(deep_transform(value)) : value }
+      end
+
       def options
-        @options ||= ActiveSupport::InheritableOptions.new(config)
+        @options ||= ActiveSupport::InheritableOptions.new(deep_transform(config))
       end
 
       def deserialize(config)

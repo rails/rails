@@ -421,6 +421,10 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "category_id", Post.reflect_on_association(:categorizations).foreign_key.to_s
   end
 
+  def test_foreign_key_is_inferred_from_model_name
+    assert_equal "post_id", PostRecord.reflect_on_association(:comments).foreign_key.to_s
+  end
+
   def test_symbol_for_class_name
     assert_equal Client, Firm.reflect_on_association(:unsorted_clients_with_symbol).klass
   end

@@ -50,7 +50,7 @@ module ActionText
     #   second_content:
     #     record: second (Article)
     #     name: content
-    #     body: <div>Hello, <%= ActionText::FixtureSet.attachment("artcles", :first) %></div>
+    #     body: <div>Hello, <%= ActionText::FixtureSet.attachment("articles", :first) %></div>
     def self.attachment(fixture_set_name, label, column_type: :integer)
       signed_global_id = ActiveRecord::FixtureSet.signed_global_id fixture_set_name, label,
         column_type: column_type, for: ActionText::Attachable::LOCATOR_NAME

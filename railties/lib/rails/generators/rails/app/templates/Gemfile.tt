@@ -1,7 +1,7 @@
-source 'https://rubygems.org'
+source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby <%= "'#{RUBY_VERSION}'" -%>
+ruby <%= "\"#{RUBY_VERSION}\"" -%>
 
 <% unless gemfile_entries.first&.comment -%>
 
@@ -11,68 +11,68 @@ ruby <%= "'#{RUBY_VERSION}'" -%>
 
 # <%= gem.comment %>
 <% end -%>
-<%= gem.commented_out ? '# ' : '' %>gem '<%= gem.name %>'<%= %(, '#{gem.version}') if gem.version -%>
+<%= gem.commented_out ? "# " : "" %>gem "<%= gem.name %>"<%= %(, "#{gem.version}") if gem.version -%>
 <% if gem.options.any? -%>
 , <%= gem.options.map { |k,v|
-  "#{k}: #{v.inspect.gsub('"', '\'')}" }.join(', ') %>
+  "#{k}: #{v.inspect.gsub('"', '\'')}" }.join(", ") %>
 <% end -%>
 <% end -%>
 
 # Use Active Model has_secure_password
-# gem 'bcrypt', '~> 3.1.7'
+# gem "bcrypt", "~> 3.1.7"
 <% unless skip_active_storage? -%>
 
 # Use Active Storage variant
-# gem 'image_processing', '~> 1.2'
+# gem "image_processing", "~> 1.2"
 <% end -%>
 
 <% if depend_on_bootsnap? -%>
 # Reduces boot times through caching; required in config/boot.rb
-gem 'bootsnap', '>= 1.4.4', require: false
+gem "bootsnap", ">= 1.4.4", require: false
 
 <%- end -%>
 <%- if options.api? -%>
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible
-# gem 'rack-cors'
+# gem "rack-cors"
 
 <%- end -%>
-<% if RUBY_ENGINE == 'ruby' -%>
+<% if RUBY_ENGINE == "ruby" -%>
 group :development, :test do
-  # Call 'byebug' anywhere in the code to stop execution and get a debugger console
-  gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]
+  # Call "byebug" anywhere in the code to stop execution and get a debugger console
+  gem "byebug", platforms: [:mri, :mingw, :x64_mingw]
 end
 
 <% end -%>
 group :development do
 <%- unless options.api? || options.skip_dev_gems? -%>
-  # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
+  # Access an interactive console on exception pages or by calling "console" anywhere in the code.
   <%- if options.dev? || options.edge? || options.main? -%>
-  gem 'web-console', github: 'rails/web-console'
+  gem "web-console", github: "rails/web-console"
   <%- else -%>
-  gem 'web-console', '>= 4.1.0'
+  gem "web-console", ">= 4.1.0"
   <%- end -%>
   # Display performance information such as SQL time and flame graphs for each request in your browser.
   # Can be configured to work on production as well see: https://github.com/MiniProfiler/rack-mini-profiler/blob/master/README.md
-  gem 'rack-mini-profiler', '~> 2.0'
+  gem "rack-mini-profiler", "~> 2.0"
 <%- end -%>
 <% if depend_on_listen? -%>
-  gem 'listen', '~> 3.3'
+  gem "listen", "~> 3.3"
 <% end -%>
 <% if spring_install? -%>
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
-  gem 'spring'
+  gem "spring"
 <% end -%>
 end
 
 <%- if depends_on_system_test? -%>
 group :test do
   # Adds support for Capybara system testing and selenium driver
-  gem 'capybara', '>= 3.26'
-  gem 'selenium-webdriver'
+  gem "capybara", ">= 3.26"
+  gem "selenium-webdriver"
   # Easy installation and use of web drivers to run system tests with browsers
-  gem 'webdrivers'
+  gem "webdrivers"
 end
 
 <%- end -%>
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]

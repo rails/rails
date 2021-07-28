@@ -296,6 +296,12 @@ hand, you'd like to update several records in bulk, you may find the
 User.update_all "max_login_attempts = 3, must_change_password = 'true'"
 ```
 
+This is the same as if you wrote:
+
+```ruby
+User.update(:all, max_login_attempts: 3, must_change_password: true)
+```
+
 ### Delete
 
 Likewise, once retrieved an Active Record object can be destroyed which removes
@@ -368,7 +374,7 @@ database that Active Record supports using `rake`. Here's a migration that
 creates a table:
 
 ```ruby
-class CreatePublications < ActiveRecord::Migration[6.0]
+class CreatePublications < ActiveRecord::Migration[7.0]
   def change
     create_table :publications do |t|
       t.string :title

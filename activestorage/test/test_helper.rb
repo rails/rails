@@ -53,11 +53,28 @@ class ActiveSupport::TestCase
   self.fixture_path = File.expand_path("fixtures", __dir__)
 
   setup do
-    ActiveStorage::Current.host = "https://example.com"
+    ActiveStorage::Current.url_options = { protocol: "https://", host: "example.com", port: nil }
   end
 
   teardown do
     ActiveStorage::Current.reset
+  end
+
+  def assert_queries(expected_count)
+    ActiveRecord::Base.connection.materialize_transactions
+
+    queries = []
+    ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+      queries << payload[:sql] unless %w[ SCHEMA TRANSACTION ].include?(payload[:name])
+    end
+
+    yield.tap do
+      assert_equal expected_count, queries.size, "#{queries.size} instead of #{expected_count} queries were executed. #{queries.inspect}"
+    end
+  end
+
+  def assert_no_queries(&block)
+    assert_queries(0, &block)
   end
 
   private
@@ -80,7 +97,7 @@ class ActiveSupport::TestCase
     def directly_upload_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", record: nil)
       file = file_fixture(filename)
       byte_size = file.size
-      checksum = Digest::MD5.file(file).base64digest
+      checksum = OpenSSL::Digest::MD5.file(file).base64digest
 
       create_blob_before_direct_upload(filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record).tap do |blob|
         service = ActiveStorage::Blob.service.try(:primary) || ActiveStorage::Blob.service
@@ -108,6 +125,20 @@ class ActiveSupport::TestCase
     ensure
       ActiveStorage::Blob.service = previous_service
     end
+
+    def with_strict_loading_by_default(&block)
+      strict_loading_was = ActiveRecord::Base.strict_loading_by_default
+      ActiveRecord::Base.strict_loading_by_default = true
+      yield
+      ActiveRecord::Base.strict_loading_by_default = strict_loading_was
+    end
+
+    def without_variant_tracking(&block)
+      variant_tracking_was = ActiveStorage.track_variants
+      ActiveStorage.track_variants = false
+      yield
+      ActiveStorage.track_variants = variant_tracking_was
+    end
 end
 
 require "global_id"
@@ -128,6 +159,8 @@ class User < ActiveRecord::Base
   has_many_attached :highlights_with_variants do |attachable|
     attachable.variant :thumb, resize: "100x100"
   end
+
+  accepts_nested_attributes_for :highlights_attachments, allow_destroy: true
 end
 
 class Group < ActiveRecord::Base

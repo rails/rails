@@ -97,7 +97,7 @@ module ActiveJob
       @exception_executions = {}
       @timezone   = Time.zone&.name
     end
-    ruby2_keywords(:initialize) if respond_to?(:ruby2_keywords, true)
+    ruby2_keywords(:initialize)
 
     # Returns a hash with the job data that can safely be passed to the
     # queuing adapter.

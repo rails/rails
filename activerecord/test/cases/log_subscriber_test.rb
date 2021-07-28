@@ -133,6 +133,12 @@ class LogSubscriberTest < ActiveRecord::TestCase
     end
   end
 
+  def test_async_query
+    logger = TestDebugLogSubscriber.new
+    logger.sql(Event.new(0.9, sql: "SELECT * from models", name: "Model Load", async: true, lock_wait: 0.01))
+    assert_match(/ASYNC Model Load \(0\.0ms\) \(db time 0\.9ms\)  SELECT/i, logger.debugs.last)
+  end
+
   def test_query_logging_coloration_with_nested_select
     logger = TestDebugLogSubscriber.new
     logger.colorize_logging = true
@@ -183,19 +189,19 @@ class LogSubscriberTest < ActiveRecord::TestCase
     assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug).last)
   end
 
-  def test_vebose_query_logs
-    ActiveRecord::Base.verbose_query_logs = true
+  def test_verbose_query_logs
+    ActiveRecord.verbose_query_logs = true
 
     logger = TestDebugLogSubscriber.new
     logger.sql(Event.new(0, sql: "hi mom!"))
     assert_equal 2, @logger.logged(:debug).size
     assert_match(/↳/, @logger.logged(:debug).last)
   ensure
-    ActiveRecord::Base.verbose_query_logs = false
+    ActiveRecord.verbose_query_logs = false
   end
 
   def test_verbose_query_with_ignored_callstack
-    ActiveRecord::Base.verbose_query_logs = true
+    ActiveRecord.verbose_query_logs = true
 
     logger = TestDebugLogSubscriber.new
     def logger.extract_query_source_location(*); nil; end
@@ -204,7 +210,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
     assert_equal 1, @logger.logged(:debug).size
     assert_no_match(/↳/, @logger.logged(:debug).last)
   ensure
-    ActiveRecord::Base.verbose_query_logs = false
+    ActiveRecord.verbose_query_logs = false
   end
 
   def test_verbose_query_logs_disabled_by_default

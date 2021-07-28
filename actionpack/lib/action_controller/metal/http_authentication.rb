@@ -4,9 +4,9 @@ require "base64"
 require "active_support/security_utils"
 
 module ActionController
-  # Makes it dead easy to do HTTP Basic, Digest and Token authentication.
+  # HTTP Basic, Digest and Token authentication.
   module HttpAuthentication
-    # Makes it dead easy to do HTTP \Basic authentication.
+    # HTTP \Basic authentication.
     #
     # === Simple \Basic example
     #
@@ -24,8 +24,8 @@ module ActionController
     #
     # === Advanced \Basic example
     #
-    # Here is a more advanced \Basic example where only Atom feeds and the XML API is protected by HTTP authentication,
-    # the regular HTML interface is protected by a session approach:
+    # Here is a more advanced \Basic example where only Atom feeds and the XML API are protected by HTTP authentication.
+    # The regular HTML interface is protected by a session approach:
     #
     #   class ApplicationController < ActionController::Base
     #     before_action :set_account, :authenticate
@@ -134,15 +134,15 @@ module ActionController
       end
     end
 
-    # Makes it dead easy to do HTTP \Digest authentication.
+    # HTTP \Digest authentication.
     #
     # === Simple \Digest example
     #
-    #   require "digest/md5"
+    #   require "openssl"
     #   class PostsController < ApplicationController
     #     REALM = "SuperSecret"
     #     USERS = {"dhh" => "secret", #plain text password
-    #              "dap" => Digest::MD5.hexdigest(["dap",REALM,"secret"].join(":"))}  #ha1 digest password
+    #              "dap" => OpenSSL::Digest::MD5.hexdigest(["dap",REALM,"secret"].join(":"))}  #ha1 digest password
     #
     #     before_action :authenticate, except: [:index]
     #
@@ -230,12 +230,12 @@ module ActionController
       # of a plain-text password.
       def expected_response(http_method, uri, credentials, password, password_is_ha1 = true)
         ha1 = password_is_ha1 ? password : ha1(credentials, password)
-        ha2 = ::Digest::MD5.hexdigest([http_method.to_s.upcase, uri].join(":"))
-        ::Digest::MD5.hexdigest([ha1, credentials[:nonce], credentials[:nc], credentials[:cnonce], credentials[:qop], ha2].join(":"))
+        ha2 = OpenSSL::Digest::MD5.hexdigest([http_method.to_s.upcase, uri].join(":"))
+        OpenSSL::Digest::MD5.hexdigest([ha1, credentials[:nonce], credentials[:nc], credentials[:cnonce], credentials[:qop], ha2].join(":"))
       end
 
       def ha1(credentials, password)
-        ::Digest::MD5.hexdigest([credentials[:username], credentials[:realm], password].join(":"))
+        OpenSSL::Digest::MD5.hexdigest([credentials[:username], credentials[:realm], password].join(":"))
       end
 
       def encode_credentials(http_method, credentials, password, password_is_ha1)
@@ -309,7 +309,7 @@ module ActionController
       def nonce(secret_key, time = Time.now)
         t = time.to_i
         hashed = [t, secret_key]
-        digest = ::Digest::MD5.hexdigest(hashed.join(":"))
+        digest = OpenSSL::Digest::MD5.hexdigest(hashed.join(":"))
         ::Base64.strict_encode64("#{t}:#{digest}")
       end
 
@@ -326,11 +326,11 @@ module ActionController
 
       # Opaque based on digest of secret key
       def opaque(secret_key)
-        ::Digest::MD5.hexdigest(secret_key)
+        OpenSSL::Digest::MD5.hexdigest(secret_key)
       end
     end
 
-    # Makes it dead easy to do HTTP Token authentication.
+    # HTTP Token authentication.
     #
     # Simple Token example:
     #
@@ -358,8 +358,8 @@ module ActionController
     #   end
     #
     #
-    # Here is a more advanced Token example where only Atom feeds and the XML API is protected by HTTP token authentication,
-    # the regular HTML interface is protected by a session approach:
+    # Here is a more advanced Token example where only Atom feeds and the XML API are protected by HTTP token authentication.
+    # The regular HTML interface is protected by a session approach:
     #
     #   class ApplicationController < ActionController::Base
     #     before_action :set_account, :authenticate
@@ -407,7 +407,7 @@ module ActionController
     module Token
       TOKEN_KEY = "token="
       TOKEN_REGEX = /^(Token|Bearer)\s+/
-      AUTHN_PAIR_DELIMITERS = /(?:,|;|\t+)/
+      AUTHN_PAIR_DELIMITERS = /(?:,|;|\t)/
       extend self
 
       module ControllerMethods

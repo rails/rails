@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "action_dispatch/http/request"
 require "action_dispatch/middleware/exception_wrapper"
 require "action_dispatch/routing/inspector"
 
@@ -135,6 +134,7 @@ module ActionDispatch
         logger = logger(request)
 
         return unless logger
+        return if !log_rescued_responses?(request) && wrapper.rescue_response?
 
         exception = wrapper.exception
         trace = wrapper.exception_trace
@@ -149,9 +149,7 @@ module ActionDispatch
         log_array(logger, message)
       end
 
-      def log_array(logger, array)
-        lines = Array(array)
-
+      def log_array(logger, lines)
         return if lines.empty?
 
         if logger.formatter && logger.formatter.respond_to?(:tags_text)
@@ -177,6 +175,10 @@ module ActionDispatch
 
       def api_request?(content_type)
         @response_format == :api && !content_type.html?
+      end
+
+      def log_rescued_responses?(request)
+        request.get_header("action_dispatch.log_rescued_responses")
       end
   end
 end

@@ -382,6 +382,34 @@ module Arel
             "users"."id" DESC
           }
         end
+
+        it "should handle nulls first" do
+          node = @attr.desc.nulls_first
+          _(compile(node)).must_be_like %{
+            "users"."id" DESC NULLS FIRST
+          }
+        end
+
+        it "should handle nulls last" do
+          node = @attr.desc.nulls_last
+          _(compile(node)).must_be_like %{
+            "users"."id" DESC NULLS LAST
+          }
+        end
+
+        it "should handle nulls first reversed" do
+          node = @attr.desc.nulls_first.reverse
+          _(compile(node)).must_be_like %{
+            "users"."id" ASC NULLS LAST
+          }
+        end
+
+        it "should handle nulls last reversed" do
+          node = @attr.desc.nulls_last.reverse
+          _(compile(node)).must_be_like %{
+            "users"."id" ASC NULLS FIRST
+          }
+        end
       end
 
       describe "Nodes::In" do

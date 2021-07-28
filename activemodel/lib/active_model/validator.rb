@@ -129,7 +129,7 @@ module ActiveModel
   # record, attribute and value.
   #
   # All \Active \Model validations are built on top of this validator.
-  class EachValidator < Validator #:nodoc:
+  class EachValidator < Validator
     attr_reader :attributes
 
     # Returns a new validator instance. All options will be available via the

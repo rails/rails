@@ -96,7 +96,7 @@ module Arel # :nodoc: all
     end
 
     def froms
-      @ast.cores.map { |x| x.from }.compact
+      @ast.cores.filter_map { |x| x.from }
     end
 
     def join(relation, klass = Nodes::InnerJoin)

@@ -177,7 +177,7 @@ module ActiveRecord
       def can_use_fast_cache_version?(timestamp)
         timestamp.is_a?(String) &&
           cache_timestamp_format == :usec &&
-          default_timezone == :utc &&
+          ActiveRecord.default_timezone == :utc &&
           !updated_at_came_from_user?
       end
 

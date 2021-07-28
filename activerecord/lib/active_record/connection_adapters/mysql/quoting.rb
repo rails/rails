@@ -6,6 +6,21 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module Quoting # :nodoc:
+        def quote_bound_value(value)
+          case value
+          when Numeric
+            _quote(value.to_s)
+          when BigDecimal
+            _quote(value.to_s("F"))
+          when true
+            "'1'"
+          when false
+            "'0'"
+          else
+            _quote(value)
+          end
+        end
+
         def quote_column_name(name)
           self.class.quoted_column_names[name] ||= "`#{super.gsub('`', '``')}`"
         end
@@ -79,7 +94,7 @@ module ActiveRecord
               # We need to check explicitly for ActiveSupport::TimeWithZone because
               # we need to transform it to Time objects but we don't want to
               # transform Time objects to themselves.
-              if ActiveRecord::Base.default_timezone == :utc
+              if ActiveRecord.default_timezone == :utc
                 value.getutc
               else
                 value.getlocal

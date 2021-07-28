@@ -9,7 +9,7 @@ module ActiveModel
     include ActiveModel::AttributeMethods
 
     included do
-      attribute_method_suffix "="
+      attribute_method_suffix "=", parameters: "value"
       class_attribute :attribute_types, :_default_attributes, instance_accessor: false
       self.attribute_types = Hash.new(Type.default_value)
       self._default_attributes = AttributeSet.new({})
@@ -47,10 +47,12 @@ module ActiveModel
           ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
             owner, name, writer: true,
           ) do |temp_method_name, attr_name_expr|
-            owner <<
-              "def #{temp_method_name}(value)" <<
-              "  _write_attribute(#{attr_name_expr}, value)" <<
-              "end"
+            owner.define_cached_method("#{name}=", as: temp_method_name, namespace: :active_model) do |batch|
+              batch <<
+                "def #{temp_method_name}(value)" <<
+                "  _write_attribute(#{attr_name_expr}, value)" <<
+                "end"
+            end
           end
         end
 

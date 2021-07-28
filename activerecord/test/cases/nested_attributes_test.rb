@@ -67,7 +67,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     exception = assert_raise ActiveModel::UnknownAttributeError do
       Pirate.new(ship_attributes: { sail: true })
     end
-    assert_equal "unknown attribute 'sail' for Ship.", exception.message
+    assert_match "unknown attribute 'sail' for Ship.", exception.message
   end
 
   def test_should_disable_allow_destroy_by_default
@@ -606,7 +606,7 @@ module NestedAttributesOnACollectionAssociationTests
     exception = assert_raise ActiveModel::UnknownAttributeError do
       @pirate.parrots_attributes = [{ peg_leg: true }]
     end
-    assert_equal "unknown attribute 'peg_leg' for Parrot.", exception.message
+    assert_match "unknown attribute 'peg_leg' for Parrot.", exception.message
   end
 
   def test_should_save_only_one_association_on_create

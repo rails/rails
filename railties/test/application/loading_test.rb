@@ -44,10 +44,10 @@ class LoadingTest < ActiveSupport::TestCase
     boot_app
 
     e = assert_raise(NameError) { User }
-    assert_equal "uninitialized constant #{self.class}::User", e.message
+    assert_match "uninitialized constant #{self.class}::User", e.message
 
     e = assert_raise(NameError) { Post }
-    assert_equal "uninitialized constant Post::NON_EXISTING_CONSTANT", e.message
+    assert_match "uninitialized constant Post::NON_EXISTING_CONSTANT", e.message
   end
 
   test "concerns in app are autoloaded" do
@@ -145,7 +145,7 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal ["ActiveRecord::InternalMetadata", "ActiveRecord::SchemaMigration"], ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq
   end
 
-  test "initialize cant be called twice" do
+  test "initialize can't be called twice" do
     require "#{app_path}/config/environment"
     assert_raise(RuntimeError) { Rails.application.initialize! }
   end

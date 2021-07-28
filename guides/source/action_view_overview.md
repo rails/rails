@@ -16,14 +16,14 @@ What is Action View?
 
 In Rails, web requests are handled by [Action Controller](action_controller_overview.html) and Action View. Typically, Action Controller is concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response.
 
-Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, a number of helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves.
+Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, several helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves.
 
 NOTE: Some features of Action View are tied to Active Record, but that doesn't mean Action View depends on Active Record. Action View is an independent package that can be used with any sort of Ruby libraries.
 
 Using Action View with Rails
 ----------------------------
 
-For each controller there is an associated directory in the `app/views` directory which holds the template files that make up the views associated with that controller. These files are used to display the view that results from each controller action.
+For each controller, there is an associated directory in the `app/views` directory which holds the template files that make up the views associated with that controller. These files are used to display the view that results from each controller action.
 
 Let's take a look at what Rails does by default when creating a new resource using the scaffold generator:
 
@@ -44,7 +44,7 @@ $ bin/rails generate scaffold article
 
 There is a naming convention for views in Rails. Typically, the views share their name with the associated controller action, as you can see above.
 For example, the index controller action of the `articles_controller.rb` will use the `index.html.erb` view file in the `app/views/articles` directory.
-The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Within this guide you will find more detailed documentation about each of these three components.
+The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Within this guide, you will find more detailed documentation about each of these three components.
 
 
 Templates, Partials, and Layouts
@@ -147,9 +147,10 @@ end
 ```
 
 #### Jbuilder
+
 [Jbuilder](https://github.com/rails/jbuilder) is a gem that's
 maintained by the Rails team and included in the default Rails `Gemfile`.
-It's similar to Builder, but is used to generate JSON, instead of XML.
+It's similar to Builder but is used to generate JSON, instead of XML.
 
 If you don't have it, you can add the following to your `Gemfile`:
 
@@ -181,7 +182,7 @@ more examples and information.
 
 #### Template Caching
 
-By default, Rails will compile each template to a method in order to render it. In the development environment, when you alter a template, Rails will check the file's modification time and recompile it.
+By default, Rails will compile each template to a method to render it. In the development environment, when you alter a template, Rails will check the file's modification time and recompile it.
 
 ### Partials
 
@@ -267,7 +268,7 @@ we would do:
 <%= render partial: "product", object: @item %>
 ```
 
-With the `as` option we can specify a different name for the said local variable. For example, if we wanted it to be `item` instead of `product` we would do:
+With the `as` option, we can specify a different name for the said local variable. For example, if we wanted it to be `item` instead of `product` we would do:
 
 ```erb
 <%= render partial: "product", object: @item, as: "item" %>
@@ -281,7 +282,7 @@ This is equivalent to
 
 #### Rendering Collections
 
-It is very common that a template will need to iterate over a collection and render a sub-template for each of the elements. This pattern has been implemented as a single method that accepts an array and renders a partial for each one of the elements in the array.
+Commonly, a template will need to iterate over a collection and render a sub-template for each of the elements. This pattern has been implemented as a single method that accepts an array and renders a partial for each one of the elements in the array.
 
 So this example for rendering all the products:
 
@@ -297,7 +298,7 @@ can be rewritten in a single line:
 <%= render partial: "product", collection: @products %>
 ```
 
-When a partial is called with a collection, the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is `_product`, and within it you can refer to `product` to get the collection member that is being rendered.
+When a partial is called with a collection, the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is `_product`, and within it, you can refer to `product` to get the collection member that is being rendered.
 
 You can use a shorthand syntax for rendering collections. Assuming `@products` is a collection of `Product` instances, you can simply write the following to produce the same result:
 
@@ -370,14 +371,14 @@ View Paths
 ----------
 
 When rendering a response, the controller needs to resolve where the different
-views are located. By default it only looks inside the `app/views` directory.
+views are located. By default, it only looks inside the `app/views` directory.
 
-We can add other locations and give them a certain precedence when resolving
+We can add other locations and give them certain precedence when resolving
 paths using the `prepend_view_path` and `append_view_path` methods.
 
 ### Prepend view path
 
-This can be helpful for example, when we want to put views inside a different
+This can be helpful for example when we want to put views inside a different
 directory for subdomains.
 
 We can do this by using:

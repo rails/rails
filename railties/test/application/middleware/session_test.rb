@@ -337,10 +337,84 @@ module ApplicationTests
       assert_not_includes Rails.application.middleware, ActionDispatch::Flash
     end
 
+    test "disabled session allows reads and delete but fail on writes" do
+      add_to_config "config.session_store :disabled"
+
+      controller :test, <<-RUBY
+        class TestController < ApplicationController
+          def write_session
+            request.session[:foo] = "bar"
+            render plain: "This shouldn't work"
+          end
+
+          def read_session
+            render plain: request.session[:foo].inspect
+          end
+
+          def reset_session
+            request.reset_session
+            render plain: "It worked!"
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get "/write_session" => "test#write_session"
+          get "/read_session" => "test#read_session"
+          get "/reset_session" => "test#reset_session"
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      get "/write_session"
+      assert_equal 500, last_response.status
+
+      get "/read_session"
+      assert_equal 200, last_response.status
+      assert_equal nil.inspect, last_response.body
+
+      get "/reset_session"
+      assert_equal 200, last_response.status
+      assert_equal "It worked!", last_response.body
+    end
+
     test "cookie_only is set to true even if user tries to overwrite it" do
       add_to_config "config.session_store :cookie_store, key: '_myapp_session', cookie_only: false"
       require "#{app_path}/config/environment"
       assert app.config.session_options[:cookie_only], "Expected cookie_only to be set to true"
+    end
+
+    test "session uses default options if previous sessions exist" do
+      add_to_config <<-RUBY
+        config.api_only = true
+        config.session_store :cookie_store, key: "_random_key"
+        config.middleware.use ActionDispatch::Cookies
+        config.middleware.use config.session_store, config.session_options
+        config.active_record.database_selector = { delay: 2.seconds }
+        config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+        config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+      RUBY
+
+      controller :test, <<-RUBY
+        class TestController < ApplicationController
+          def test_action
+            head :ok
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get "/test_action" => "test#test_action"
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      get "/test_action"
+      assert_equal 200, last_response.status
     end
   end
 end

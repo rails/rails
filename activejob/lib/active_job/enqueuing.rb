@@ -17,7 +17,7 @@ module ActiveJob
       # Push a job onto the queue. By default the arguments must be either String,
       # Integer, Float, NilClass, TrueClass, FalseClass, BigDecimal, Symbol, Date,
       # Time, DateTime, ActiveSupport::TimeWithZone, ActiveSupport::Duration,
-      # Hash, ActiveSupport::HashWithIndifferentAccess, Array or
+      # Hash, ActiveSupport::HashWithIndifferentAccess, Array, Range or
       # GlobalID::Identification instances, although this can be extended by adding
       # custom serializers.
       #
@@ -38,7 +38,7 @@ module ActiveJob
         def job_or_instantiate(*args) # :doc:
           args.first.is_a?(self) ? args.first : new(*args)
         end
-        ruby2_keywords(:job_or_instantiate) if respond_to?(:ruby2_keywords, true)
+        ruby2_keywords(:job_or_instantiate)
     end
 
     # Enqueues the job to be performed by the queue adapter.

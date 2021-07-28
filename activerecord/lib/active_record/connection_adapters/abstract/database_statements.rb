@@ -498,10 +498,10 @@ module ActiveRecord
         end
 
         def build_fixture_statements(fixture_set)
-          fixture_set.map do |table_name, fixtures|
+          fixture_set.filter_map do |table_name, fixtures|
             next if fixtures.empty?
             build_fixture_sql(fixtures, table_name)
-          end.compact
+          end
         end
 
         def build_truncate_statement(table_name)

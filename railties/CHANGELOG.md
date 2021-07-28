@@ -1,4 +1,63 @@
-*   Allow adding additional authorized hosts in development via `ENV['RAILS_DEVELOPMENT_HOSTS']`
+*   Show Rake task description if command is run with -h.
+
+    Adding `-h` (or `--help`) to a Rails command that's a Rake task, now returns
+    the task description instead of the general Rake help.
+
+    *Petrik de Heus*
+    
+*   Add missing `plugin new` command to help.
+
+    *Petrik de Heus
+
+*   Fix `config_for` error when there's only a shared root array.
+
+    *Loïc Delmaire*
+
+*   Raise an error in generators if an index type is invalid.
+
+    *Petrik de Heus*
+
+*   `package.json` now uses a strict version constraint for Rails JavaScript packages on new Rails apps.
+
+    *Zachary Scott*, *Alex Ghiculescu*
+
+*   Modified scaffold generator template so that running
+    `rails g scaffold Author` no longer generates tests called "creating
+    a Author", "updating a Author", and "destroying a Author".
+
+    Fixes #40744.
+
+    *Michael Duchemin*
+
+*   Raise an error in generators if a field type is invalid.
+
+    *Petrik de Heus*
+
+*   `bin/rails tmp:clear` deletes also files and directories in `tmp/storage`.
+
+    *George Claghorn*
+
+*   Fix compatibility with `psych >= 4`.
+
+    Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility
+    `Rails.application.config_for` now uses `YAML.unsafe_load` if available.
+
+    *Jean Boussier*
+
+*   Allow loading nested locales in engines.
+
+    *Gannon McGibbon*
+
+*   Ensure `Rails.application.config_for` always cast hashes to `ActiveSupport::OrderedOptions`.
+
+    *Jean Boussier*
+
+*   Remove Rack::Runtime from the default middleware stack and deprecate
+    referencing it in middleware operations without adding it back.
+
+    *Hartley McGuire*
+
+*   Allow adding additional authorized hosts in development via `ENV['RAILS_DEVELOPMENT_HOSTS']`.
 
     *Josh Abernathy*, *Debbie Milburn*
 

@@ -167,6 +167,9 @@ module ActiveRecord
             elsif type_metadata.extra == "DEFAULT_GENERATED"
               default = +"(#{default})" unless default.start_with?("(")
               default, default_function = nil, default
+            elsif type_metadata.type == :text && default
+              # strip and unescape quotes
+              default = default[1...-1].gsub("\\'", "'")
             end
 
             MySQL::Column.new(

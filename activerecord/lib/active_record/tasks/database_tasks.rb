@@ -161,7 +161,7 @@ module ActiveRecord
         begin
           Rails.application.config.load_database_yaml
         rescue
-          unless ActiveRecord::Base.suppress_multiple_database_warning
+          unless ActiveRecord.suppress_multiple_database_warning
             $stderr.puts "Rails couldn't infer whether you are using multiple databases from your database.yml and can't generate the tasks for the non-primary databases. If you'd like to use this feature, please simplify your ERB."
           end
 
@@ -210,8 +210,8 @@ module ActiveRecord
           # Skipped when no database
           migrate
 
-          if ActiveRecord::Base.dump_schema_after_migration
-            dump_schema(db_config, ActiveRecord::Base.schema_format)
+          if ActiveRecord.dump_schema_after_migration
+            dump_schema(db_config, ActiveRecord.schema_format)
           end
         rescue ActiveRecord::NoDatabaseError
           config_name = db_config.name
@@ -220,7 +220,7 @@ module ActiveRecord
           if File.exist?(dump_filename(config_name))
             load_schema(
               db_config,
-              ActiveRecord::Base.schema_format,
+              ActiveRecord.schema_format,
               nil
             )
           else
@@ -268,13 +268,13 @@ module ActiveRecord
         end
       end
 
-      def migrate
+      def migrate(version = nil)
         check_target_version
 
         scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose?
 
-        Base.connection.migration_context.migrate(target_version) do |migration|
+        Base.connection.migration_context.migrate(target_version || version) do |migration|
           scope.blank? || scope == migration.scope
         end.tap do |migrations_ran|
           Migration.write("No migrations ran. (using #{scope} scope)") if scope.present? && migrations_ran.empty?
@@ -283,6 +283,23 @@ module ActiveRecord
         ActiveRecord::Base.clear_cache!
       ensure
         Migration.verbose = verbose_was
+      end
+
+      def db_configs_with_versions(db_configs) # :nodoc:
+        db_configs_with_versions = Hash.new { |h, k| h[k] = [] }
+
+        db_configs.each do |db_config|
+          ActiveRecord::Base.establish_connection(db_config)
+          versions_to_run = ActiveRecord::Base.connection.migration_context.pending_migration_versions
+          target_version = ActiveRecord::Tasks::DatabaseTasks.target_version
+
+          versions_to_run.each do |version|
+            next if target_version && target_version != version
+            db_configs_with_versions[version] << db_config
+          end
+        end
+
+        db_configs_with_versions
       end
 
       def migrate_status
@@ -358,7 +375,7 @@ module ActiveRecord
         database_adapter_for(db_config, *arguments).structure_load(filename, flags)
       end
 
-      def load_schema(db_config, format = ActiveRecord::Base.schema_format, file = nil) # :nodoc:
+      def load_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
         file ||= dump_filename(db_config.name, format)
 
         verbose_was, Migration.verbose = Migration.verbose, verbose? && ENV["VERBOSE"]
@@ -380,7 +397,7 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def schema_up_to_date?(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = nil, name = nil)
+      def schema_up_to_date?(configuration, format = ActiveRecord.schema_format, file = nil, environment = nil, name = nil)
         db_config = resolve_configuration(configuration)
 
         if environment || name
@@ -401,7 +418,7 @@ module ActiveRecord
         ActiveRecord::InternalMetadata[:schema_sha1] == schema_sha1(file)
       end
 
-      def reconstruct_from_schema(db_config, format = ActiveRecord::Base.schema_format, file = nil) # :nodoc:
+      def reconstruct_from_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
         file ||= dump_filename(db_config.name, format)
 
         check_schema_file(file)
@@ -419,7 +436,7 @@ module ActiveRecord
         load_schema(db_config, format, file)
       end
 
-      def dump_schema(db_config, format = ActiveRecord::Base.schema_format) # :nodoc:
+      def dump_schema(db_config, format = ActiveRecord.schema_format) # :nodoc:
         require "active_record/schema_dumper"
         filename = dump_filename(db_config.name, format)
         connection = ActiveRecord::Base.connection
@@ -441,12 +458,12 @@ module ActiveRecord
         end
       end
 
-      def schema_file(format = ActiveRecord::Base.schema_format)
+      def schema_file(format = ActiveRecord.schema_format)
         File.join(db_dir, schema_file_type(format))
       end
       deprecate :schema_file
 
-      def schema_file_type(format = ActiveRecord::Base.schema_format)
+      def schema_file_type(format = ActiveRecord.schema_format)
         case format
         when :ruby
           "schema.rb"
@@ -455,7 +472,7 @@ module ActiveRecord
         end
       end
 
-      def dump_filename(db_config_name, format = ActiveRecord::Base.schema_format)
+      def dump_filename(db_config_name, format = ActiveRecord.schema_format)
         filename = if ActiveRecord::Base.configurations.primary?(db_config_name)
           schema_file_type(format)
         else
@@ -475,7 +492,7 @@ module ActiveRecord
         schema_cache_path || ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
       end
 
-      def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
+      def load_schema_current(format = ActiveRecord.schema_format, file = nil, environment = env)
         each_current_configuration(environment) do |db_config|
           load_schema(db_config, format, file)
         end
@@ -575,7 +592,7 @@ module ActiveRecord
         end
 
         def schema_sha1(file)
-          Digest::SHA1.hexdigest(File.read(file))
+          OpenSSL::Digest::SHA1.hexdigest(File.read(file))
         end
 
         def structure_dump_flags_for(adapter)

@@ -393,12 +393,12 @@ class UrlHelperTest < ActiveSupport::TestCase
       link_to("Hello", "http://www.example.com", data: { confirm: "Are you sure?" })
     )
     assert_dom_equal(
-      %{<a href="http://www.example.com" data-confirm="You cant possibly be sure, can you?">Hello</a>},
-      link_to("Hello", "http://www.example.com", data: { confirm: "You cant possibly be sure, can you?" })
+      %{<a href="http://www.example.com" data-confirm="You can't possibly be sure, can you?">Hello</a>},
+      link_to("Hello", "http://www.example.com", data: { confirm: "You can't possibly be sure, can you?" })
     )
     assert_dom_equal(
-      %{<a href="http://www.example.com" data-confirm="You cant possibly be sure,\n can you?">Hello</a>},
-      link_to("Hello", "http://www.example.com", data: { confirm: "You cant possibly be sure,\n can you?" })
+      %{<a href="http://www.example.com" data-confirm="You can't possibly be sure,\n can you?">Hello</a>},
+      link_to("Hello", "http://www.example.com", data: { confirm: "You can't possibly be sure,\n can you?" })
     )
   end
 
@@ -625,6 +625,14 @@ class UrlHelperTest < ActiveSupport::TestCase
     @request = request_for_url("/posts")
 
     assert current_page?("/posts/")
+    assert current_page?("http://www.example.com/posts/")
+  end
+
+  def test_current_page_with_trailing_slash_and_params
+    @request = request_for_url("/posts?order=desc")
+
+    assert current_page?("/posts/?order=desc")
+    assert current_page?("http://www.example.com/posts/?order=desc")
   end
 
   def test_current_page_with_not_get_verb
@@ -768,18 +776,18 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_sms_to_with_options
     assert_dom_equal(
-      %{<a class="simple-class" href="sms:15155555785;?&body=Hello%20from%20Jim">Text me</a>},
-      sms_to("15155555785", "Text me", class: "simple-class", body: "Hello from Jim")
+      %{<a class="simple-class" href="sms:+015155555785;?&body=Hello%20from%20Jim">Text me</a>},
+      sms_to("5155555785", "Text me", class: "simple-class", country_code: "01", body: "Hello from Jim")
     )
 
     assert_dom_equal(
-      %{<a class="simple-class" href="sms:15155555785;?&body=Hello%20from%20Jim">15155555785</a>},
-      sms_to("15155555785", class: "simple-class", body: "Hello from Jim")
+      %{<a class="simple-class" href="sms:+015155555785;?&body=Hello%20from%20Jim">5155555785</a>},
+      sms_to("5155555785", class: "simple-class", country_code: "01", body: "Hello from Jim")
     )
 
     assert_dom_equal(
-      %{<a href="sms:15155555785;?&body=This%20is%20the%20body%20of%20the%20message.">Text me</a>},
-      sms_to("15155555785", "Text me", body: "This is the body of the message.")
+      %{<a href="sms:5155555785;?&body=This%20is%20the%20body%20of%20the%20message.">Text me</a>},
+      sms_to("5155555785", "Text me", body: "This is the body of the message.")
     )
   end
 

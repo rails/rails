@@ -83,9 +83,15 @@ class Message < ApplicationRecord
 end
 ```
 
+or add rich text field while creating a new model using:
+
+```
+bin/rails generate model Message content:rich_text
+```
+
 **Note:** you don't need to add a `content` field to your `messages` table.
 
-Then refer to this field in the form for the model:
+Then use [`rich_text_area`] to refer to this field in the form for the model:
 
 ```erb
 <%# app/views/messages/_form.html.erb %>
@@ -114,11 +120,13 @@ class MessagesController < ApplicationController
 end
 ```
 
+[`rich_text_area`]: https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-rich_text_area
+
 ## Rendering Rich Text content
 
 Action Text will sanitize and render rich content on your behalf.
 
-By default, the Action Text editor and content is styled by the Trix defaults.
+By default, the Action Text editor and content are styled by the Trix defaults.
 
 If you want to change these defaults, remove the `// require "actiontext.scss"`
 line from your `application.scss` to omit the [contents of that
@@ -172,7 +180,7 @@ Next, consider some rich text content that embeds an `<action-text-attachment>`
 element that references the `User` instance's signed GlobalID:
 
 ```html
-<p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"></action-text-content>.</p>
+<p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"></action-text-attachment>.</p>
 ```
 
 Action Text resolves uses the "BAh7CEkiCG…" String to resolve the `User`
@@ -186,7 +194,7 @@ instance. Next, consider the application's `users/user` partial:
 The resulting HTML rendered by Action Text would look something like:
 
 ```html
-<p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"><span><img src="..."> Jane Doe</span></action-text-content>.</p>
+<p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"><span><img src="..."> Jane Doe</span></action-text-attachment>.</p>
 ```
 
 To render a different partial, define `User#to_attachable_partial_path`:

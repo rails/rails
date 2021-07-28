@@ -5,14 +5,14 @@
 #   gem install activerecord-sqlserver-adapter
 #
 # Ensure the activerecord adapter and db driver gems are defined in your Gemfile
-#   gem 'tiny_tds'
-#   gem 'activerecord-sqlserver-adapter'
+#   gem "tiny_tds"
+#   gem "activerecord-sqlserver-adapter"
 #
 default: &default
   adapter: sqlserver
   encoding: utf8
   username: sa
-  password: <%%= ENV['SA_PASSWORD'] %>
+  password: <%%= ENV["SA_PASSWORD"] %>
   host: localhost
 
 development:
@@ -41,7 +41,7 @@ test:
 # URL environment variable explicitly:
 #
 #   production:
-#     url: <%%= ENV['MY_APP_DATABASE_URL'] %>
+#     url: <%%= ENV["MY_APP_DATABASE_URL"] %>
 #
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
@@ -50,4 +50,4 @@ production:
   <<: *default
   database: <%= app_name %>_production
   username: <%= app_name %>
-  password: <%%= ENV['<%= app_name.upcase %>_DATABASE_PASSWORD'] %>
+  password: <%%= ENV["<%= app_name.upcase %>_DATABASE_PASSWORD"] %>

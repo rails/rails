@@ -11,7 +11,8 @@ module ActionText
     # that Trix will write to on changes, so the content will be sent on form submissions.
     #
     # ==== Options
-    # * <tt>:class</tt> - Defaults to "trix-content" which ensures default styling is applied.
+    # * <tt>:class</tt> - Defaults to "trix-content" so that default styles will be applied.
+    #   Setting this to a different value will prevent default styles from being applied.
     #
     # ==== Example
     #
@@ -20,6 +21,7 @@ module ActionText
     #   # <trix-editor id="content" input="trix_input_post_1" class="trix-content" ...></trix-editor>
     def rich_text_area_tag(name, value = nil, options = {})
       options = options.symbolize_keys
+      form = options.delete(:form)
 
       options[:input] ||= "trix_input_#{ActionText::TagHelper.id += 1}"
       options[:class] ||= "trix-content"
@@ -29,7 +31,7 @@ module ActionText
       options[:data][:blob_url_template] = main_app.rails_service_blob_url(":signed_id", ":filename")
 
       editor_tag = content_tag("trix-editor", "", options)
-      input_tag = hidden_field_tag(name, value.try(:to_trix_html) || value, id: options[:input])
+      input_tag = hidden_field_tag(name, value.try(:to_trix_html) || value, id: options[:input], form: form)
 
       input_tag + editor_tag
     end

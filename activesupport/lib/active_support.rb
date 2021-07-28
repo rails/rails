@@ -87,10 +87,14 @@ module ActiveSupport
   end
 
   cattr_accessor :test_order # :nodoc:
-  cattr_accessor :test_parallelization_disabled, default: false # :nodoc:
+  cattr_accessor :test_parallelization_threshold, default: 50 # :nodoc:
 
-  def self.disable_test_parallelization!
-    self.test_parallelization_disabled = true unless ENV["PARALLEL_WORKERS"]
+  def self.cache_format_version
+    Cache.format_version
+  end
+
+  def self.cache_format_version=(value)
+    Cache.format_version = value
   end
 
   def self.to_time_preserves_timezone
@@ -107,6 +111,10 @@ module ActiveSupport
 
   def self.utc_to_local_returns_utc_offset_times=(value)
     DateAndTime::Compatibility.utc_to_local_returns_utc_offset_times = value
+  end
+
+  def self.current_attributes_use_thread_variables=(value)
+    CurrentAttributes._use_thread_variables = value
   end
 end
 

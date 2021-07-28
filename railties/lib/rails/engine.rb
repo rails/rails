@@ -33,7 +33,7 @@ module Rails
   # Then ensure that this file is loaded at the top of your <tt>config/application.rb</tt>
   # (or in your +Gemfile+) and it will automatically load models, controllers and helpers
   # inside +app+, load routes at <tt>config/routes.rb</tt>, load locales at
-  # <tt>config/locales/*</tt>, and load tasks at <tt>lib/tasks/*</tt>.
+  # <tt>config/locales/**/*</tt>, and load tasks at <tt>lib/tasks/**/*</tt>.
   #
   # == Configuration
   #
@@ -482,17 +482,8 @@ module Rails
     end
 
     def eager_load!
-      # Already done by Zeitwerk::Loader.eager_load_all. We need this guard to
-      # easily provide a compatible API for both zeitwerk and classic modes.
-      return if Rails.autoloaders.zeitwerk_enabled?
-
-      config.eager_load_paths.each do |load_path|
-        # Starts after load_path plus a slash, ends before ".rb".
-        relname_range = (load_path.to_s.length + 1)...-3
-        Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
-          require_dependency file[relname_range]
-        end
-      end
+      # Already done by Zeitwerk::Loader.eager_load_all. By now, we leave the
+      # method as a no-op for backwards compatibility.
     end
 
     def railties

@@ -140,7 +140,7 @@ module ActionView
             minute_offset_for_leap_year = leap_years * 1440
             # Discount the leap year days when calculating year distance.
             # e.g. if there are 20 leap year days between 2 dates having the same day
-            # and month then the based on 365 days calculation
+            # and month then based on 365 days calculation
             # the distance in years will come out to over 80 years when in written
             # English it would read better as about 80 years.
             minutes_with_offset = distance_in_minutes - minute_offset_for_leap_year
@@ -1060,7 +1060,7 @@ module ActionView
           (content_tag("select", select_html.html_safe, select_options) + "\n").html_safe
         end
 
-        # Builds the css class value for the select element
+        # Builds the CSS class value for the select element
         #  css_class_attribute(:year, 'date optional', { year: 'my-year' })
         #  => "date optional my-year"
         def css_class_attribute(type, html_options_class, options) # :nodoc:

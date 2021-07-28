@@ -503,7 +503,15 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_not_overshadow_enumerable_sum
+    some_companies = companies(:rails_core).companies.order(:id)
+
     assert_equal 6, [1, 2, 3].sum(&:abs)
+    assert_equal 15, some_companies.sum(&:id)
+    assert_equal 25, some_companies.sum(10, &:id)
+    assert_deprecated do
+      assert_equal "LeetsoftJadedpixel", some_companies.sum(&:name)
+    end
+    assert_equal "companies: LeetsoftJadedpixel", some_companies.sum("companies: ", &:name)
   end
 
   def test_should_sum_scoped_field
@@ -961,9 +969,9 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_replaces_select_clause
-    taks_relation = Topic.select(:approved, :id).order(:id)
-    assert_equal [1, 2, 3, 4, 5], taks_relation.pluck(:id)
-    assert_equal [false, true, true, true, true], taks_relation.pluck(:approved)
+    takes_relation = Topic.select(:approved, :id).order(:id)
+    assert_equal [1, 2, 3, 4, 5], takes_relation.pluck(:id)
+    assert_equal [false, true, true, true, true], takes_relation.pluck(:approved)
   end
 
   def test_pluck_columns_with_same_name
@@ -1338,12 +1346,6 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_count_with_block_and_column_name_raises_an_error
     assert_raises(ArgumentError) do
       Account.count(:firm_id) { true }
-    end
-  end
-
-  def test_sum_with_block_and_column_name_raises_an_error
-    assert_raises(ArgumentError) do
-      Account.sum(:firm_id) { 1 }
     end
   end
 

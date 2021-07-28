@@ -141,6 +141,13 @@ module Rails
       if mountable?
         template "rails/routes.rb", "#{dummy_path}/config/routes.rb", force: true
       end
+      if engine? && !api?
+        insert_into_file "#{dummy_path}/config/application.rb", indent(<<~RUBY, 4), after: /^\s*config\.load_defaults.*\n/
+
+          # For compatibility with applications that use this config
+          config.action_controller.include_all_helpers = false
+        RUBY
+      end
     end
 
     def test_dummy_webpacker_assets
@@ -424,8 +431,8 @@ module Rails
 require "rake/testtask"
 
 Rake::TestTask.new(:test) do |t|
-  t.libs << 'test'
-  t.pattern = 'test/**/*_test.rb'
+  t.libs << "test"
+  t.pattern = "test/**/*_test.rb"
   t.verbose = false
 end
         RUBY

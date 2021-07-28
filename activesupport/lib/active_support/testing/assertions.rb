@@ -99,7 +99,7 @@ module ActiveSupport
         }
         before = exps.map(&:call)
 
-        retval = assert_nothing_raised(&block)
+        retval = _assert_nothing_raised_or_warn("assert_difference", &block)
 
         expressions.zip(exps, before) do |(code, diff), exp, before_value|
           error  = "#{code.inspect} didn't change by #{diff}"
@@ -176,7 +176,7 @@ module ActiveSupport
         exp = expression.respond_to?(:call) ? expression : -> { eval(expression.to_s, block.binding) }
 
         before = exp.call
-        retval = assert_nothing_raised(&block)
+        retval = _assert_nothing_raised_or_warn("assert_changes", &block)
 
         unless from == UNTRACKED
           error = "Expected change from #{from.inspect}"
@@ -189,7 +189,7 @@ module ActiveSupport
         error = "#{expression.inspect} didn't change"
         error = "#{error}. It was already #{to}" if before == to
         error = "#{message}.\n#{error}" if message
-        assert_not_equal before, after, error
+        refute_equal before, after, error
 
         unless to == UNTRACKED
           error = "Expected change to #{to}\n"
@@ -207,16 +207,30 @@ module ActiveSupport
       #     post :create, params: { status: { ok: true } }
       #   end
       #
+      # Provide the optional keyword argument :from to specify the expected
+      # initial value.
+      #
+      #   assert_no_changes -> { Status.all_good? }, from: true do
+      #     post :create, params: { status: { ok: true } }
+      #   end
+      #
       # An error message can be specified.
       #
       #   assert_no_changes -> { Status.all_good? }, 'Expected the status to be good' do
       #     post :create, params: { status: { ok: false } }
       #   end
-      def assert_no_changes(expression, message = nil, &block)
+      def assert_no_changes(expression, message = nil, from: UNTRACKED, &block)
         exp = expression.respond_to?(:call) ? expression : -> { eval(expression.to_s, block.binding) }
 
         before = exp.call
-        retval = assert_nothing_raised(&block)
+        retval = _assert_nothing_raised_or_warn("assert_no_changes", &block)
+
+        unless from == UNTRACKED
+          error = "Expected initial value of #{from.inspect}"
+          error = "#{message}.\n#{error}" if message
+          assert from === before, error
+        end
+
         after = exp.call
 
         error = "#{expression.inspect} changed"
@@ -230,6 +244,22 @@ module ActiveSupport
 
         retval
       end
+
+      private
+        def _assert_nothing_raised_or_warn(assertion, &block)
+          assert_nothing_raised(&block)
+        rescue Minitest::UnexpectedError => e
+          if tagged_logger && tagged_logger.warn?
+            warning = <<~MSG
+              #{self.class} - #{name}: #{e.error.class} raised.
+              If you expected this exception, use `assert_raises` as near to the code that raises as possible.
+              Other block based assertions (e.g. `#{assertion}`) can be used, as long as `assert_raises` is inside their block.
+            MSG
+            tagged_logger.warn warning
+          end
+
+          raise
+        end
     end
   end
 end

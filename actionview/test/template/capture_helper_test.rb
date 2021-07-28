@@ -51,14 +51,14 @@ class CaptureHelperTest < ActionView::TestCase
   def test_content_for_with_multiple_calls
     assert_not content_for?(:title)
     content_for :title, "foo"
-    content_for :title, "bar"
+    content_for :title, :bar
     assert_equal "foobar", content_for(:title)
   end
 
   def test_content_for_with_multiple_calls_and_flush
     assert_not content_for?(:title)
     content_for :title, "foo"
-    content_for :title, "bar", flush: true
+    content_for :title, :bar, flush: true
     assert_equal "bar", content_for(:title)
   end
 
@@ -172,7 +172,7 @@ class CaptureHelperTest < ActionView::TestCase
     assert_equal "hi&lt;p&gt;title&lt;/p&gt;", content_for(:title)
 
     @view_flow = ActionView::OutputFlow.new
-    provide :title, "hi"
+    provide :title, :hi
     provide :title, raw("<p>title</p>")
     assert_equal "hi<p>title</p>", content_for(:title)
   end

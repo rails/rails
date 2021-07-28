@@ -31,6 +31,7 @@ require "models/invoice"
 require "models/discount"
 require "models/line_item"
 require "models/shipping_line"
+require "models/essay"
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
@@ -359,10 +360,32 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  class ModelAssociatedToClassesThatDoNotExist < ActiveRecord::Base
+    self.table_name = "accounts" # this is just to avoid adding a new model just for this test
+
+    has_one :non_existent_has_one_class
+    belongs_to :non_existent_belongs_to_class
+    has_many :non_existent_has_many_classes
+  end
+
+  def test_associations_raise_with_name_error_if_associated_to_classes_that_do_not_exist
+    assert_raises NameError do
+      ModelAssociatedToClassesThatDoNotExist.new.non_existent_has_one_class
+    end
+
+    assert_raises NameError do
+      ModelAssociatedToClassesThatDoNotExist.new.non_existent_belongs_to_class
+    end
+
+    assert_raises NameError do
+      ModelAssociatedToClassesThatDoNotExist.new.non_existent_has_many_classes
+    end
+  end
 end
 
 class PreloaderTest < ActiveRecord::TestCase
-  fixtures :posts, :comments, :books, :authors
+  fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories
 
   def test_preload_with_scope
     post = posts(:welcome)
@@ -437,6 +460,93 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_queries(3) do
       ActiveRecord::Associations::Preloader.new(records: [author], associations: [:hello_post_comments, :comments]).call
     end
+  end
+
+  def test_preload_with_instance_dependent_scope
+    david = authors(:david)
+    david2 = Author.create!(name: "David")
+    bob = authors(:bob)
+    post = Post.create!(
+      author: david,
+      title: "test post",
+      body: "this post is about David"
+    )
+    post2 = Post.create!(
+      author: david,
+      title: "test post 2",
+      body: "this post is also about David"
+    )
+
+    assert_queries(2) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [david, david2, bob], associations: :posts_mentioning_author)
+      preloader.call
+    end
+
+    assert_predicate david.posts_mentioning_author, :loaded?
+    assert_predicate david2.posts_mentioning_author, :loaded?
+    assert_predicate bob.posts_mentioning_author, :loaded?
+
+    assert_equal [post, post2].sort, david.posts_mentioning_author.sort
+    assert_equal [], david2.posts_mentioning_author
+    assert_equal [], bob.posts_mentioning_author
+  end
+
+  def test_preload_with_instance_dependent_through_scope
+    david = authors(:david)
+    david2 = Author.create!(name: "David")
+    bob = authors(:bob)
+    comment1 = david.posts.first.comments.create!(body: "Hi David!")
+    comment2 = david.posts.first.comments.create!(body: "This comment mentions david")
+
+    assert_queries(2) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [david, david2, bob], associations: :comments_mentioning_author)
+      preloader.call
+    end
+
+    assert_predicate david.comments_mentioning_author, :loaded?
+    assert_predicate david2.comments_mentioning_author, :loaded?
+    assert_predicate bob.comments_mentioning_author, :loaded?
+
+    assert_equal [comment1, comment2].sort, david.comments_mentioning_author.sort
+    assert_equal [], david2.comments_mentioning_author
+    assert_equal [], bob.comments_mentioning_author
+  end
+
+  def test_preload_with_through_instance_dependent_scope
+    david = authors(:david)
+    david2 = Author.create!(name: "David")
+    bob = authors(:bob)
+    post = Post.create!(
+      author: david,
+      title: "test post",
+      body: "this post is about David"
+    )
+    Post.create!(
+      author: david,
+      title: "test post 2",
+      body: "this post is also about David"
+    )
+    post3 = Post.create!(
+      author: bob,
+      title: "test post 3",
+      body: "this post is about Bob"
+    )
+    comment1 = post.comments.create!(body: "hi!")
+    comment2 = post.comments.create!(body: "hello!")
+    comment3 = post3.comments.create!(body: "HI BOB!")
+
+    assert_queries(3) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [david, david2, bob], associations: :comments_on_posts_mentioning_author)
+      preloader.call
+    end
+
+    assert_predicate david.comments_on_posts_mentioning_author, :loaded?
+    assert_predicate david2.comments_on_posts_mentioning_author, :loaded?
+    assert_predicate bob.comments_on_posts_mentioning_author, :loaded?
+
+    assert_equal [comment1, comment2].sort, david.comments_on_posts_mentioning_author.sort
+    assert_equal [], david2.comments_on_posts_mentioning_author
+    assert_equal [comment3], bob.comments_on_posts_mentioning_author
   end
 
   def test_some_already_loaded_associations
@@ -569,6 +679,40 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_can_group_separate_levels
+    mary = authors(:mary)
+    bob = authors(:bob)
+
+    AuthorFavorite.create!(author: mary, favorite_author: bob)
+
+    assert_queries(3) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [mary], associations: [:posts, favorite_authors: :posts])
+      preloader.call
+    end
+
+    assert_no_queries do
+      mary.posts
+      mary.favorite_authors.map(&:posts)
+    end
+  end
+
+  def test_preload_can_group_multi_level_ping_pong_through
+    mary = authors(:mary)
+    bob = authors(:bob)
+
+    AuthorFavorite.create!(author: mary, favorite_author: bob)
+
+    assert_queries(9) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [mary], associations: { similar_posts: :comments, favorite_authors: { similar_posts: :comments } })
+      preloader.call
+    end
+
+    assert_no_queries do
+      mary.similar_posts.map(&:comments).each(&:to_a)
+      mary.favorite_authors.flat_map(&:similar_posts).map(&:comments).each(&:to_a)
+    end
+  end
+
   def test_preload_does_not_group_same_class_different_scope
     post = posts(:welcome)
     postesque = Postesque.create(author: Author.last)
@@ -615,6 +759,85 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_no_queries do
       post.author
       postesque.author
+    end
+  end
+
+  def test_preload_with_available_records
+    post = posts(:welcome)
+    david = authors(:david)
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author, available_records: [[david]]).call
+
+      assert_predicate post.association(:author), :loaded?
+      assert_same david, post.author
+    end
+  end
+
+  def test_preload_with_available_records_with_through_association
+    author = authors(:david)
+    categories = Category.all.to_a
+
+    assert_queries(1) do
+      # One query to get the middle records (i.e. essays)
+      ActiveRecord::Associations::Preloader.new(records: [author], associations: :essay_category, available_records: categories).call
+    end
+
+    assert_predicate author.association(:essay_category), :loaded?
+    assert categories.map(&:object_id).include?(author.essay_category.object_id)
+  end
+
+  def test_preload_with_available_records_with_multiple_classes
+    essay = essays(:david_modest_proposal)
+    general = categories(:general)
+    david = authors(:david)
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [essay], associations: [:category, :author], available_records: [general, david]).call
+
+      assert_predicate essay.association(:category), :loaded?
+      assert_predicate essay.association(:author), :loaded?
+      assert_same general, essay.category
+      assert_same david, essay.author
+    end
+  end
+
+  def test_preload_with_available_records_queries_when_scoped
+    post = posts(:welcome)
+    david = authors(:david)
+
+    assert_queries(1) do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author, scope: Author.where(name: "David"), available_records: [david]).call
+    end
+
+    assert_predicate post.association(:author), :loaded?
+    assert_not_equal david.object_id, post.author.object_id
+  end
+
+  def test_preload_with_available_records_queries_when_collection
+    post = posts(:welcome)
+    comments = Comment.all.to_a
+
+    assert_queries(1) do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments, available_records: comments).call
+    end
+
+    assert_predicate post.association(:comments), :loaded?
+    assert_empty post.comments.map(&:object_id) & comments.map(&:object_id)
+  end
+
+  def test_preload_with_available_records_queries_when_incomplete
+    post = posts(:welcome)
+    bob = authors(:bob)
+    david = authors(:david)
+
+    assert_queries(1) do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author, available_records: [bob]).call
+    end
+
+    assert_no_queries do
+      assert_predicate post.association(:author), :loaded?
+      assert_equal david, post.author
     end
   end
 end

@@ -7,15 +7,15 @@ module LocalCacheBehavior
     end
     assert_equal @cache.class.name, events[0].payload[:store]
 
-    events = with_instrumentation "read" do
-      @cache.with_local_cache do
+    @cache.with_local_cache do
+      events = with_instrumentation "read" do
         @cache.read("foo")
         @cache.read("foo")
       end
-    end
 
-    expected = [@cache.class.name, "ActiveSupport::Cache::Strategy::LocalCache::LocalStore"]
-    assert_equal expected, events.map { |p| p.payload[:store] }
+      expected = [@cache.class.name, @cache.send(:local_cache).class.name]
+      assert_equal expected, events.map { |p| p.payload[:store] }
+    end
   end
 
   def test_local_writes_are_persistent_on_the_remote_cache
@@ -89,8 +89,8 @@ module LocalCacheBehavior
 
   def test_local_cache_fetch
     @cache.with_local_cache do
-      @cache.send(:local_cache).write "foo", "bar"
-      assert_equal "bar", @cache.send(:local_cache).fetch("foo")
+      @cache.send(:local_cache).write_entry "foo", "bar"
+      assert_equal "bar", @cache.send(:local_cache).fetch_entry("foo")
     end
   end
 
@@ -150,7 +150,10 @@ module LocalCacheBehavior
       @cache.write("foo", 1, raw: true)
       @peek.write("foo", 2, raw: true)
       @cache.increment("foo")
-      assert_equal 3, @cache.read("foo", raw: true)
+
+      expected = @peek.read("foo", raw: true)
+      assert_equal 3, Integer(expected)
+      assert_equal expected, @cache.read("foo", raw: true)
     end
   end
 
@@ -158,8 +161,11 @@ module LocalCacheBehavior
     @cache.with_local_cache do
       @cache.write("foo", 1, raw: true)
       @peek.write("foo", 3, raw: true)
+
       @cache.decrement("foo")
-      assert_equal 2, @cache.read("foo", raw: true)
+      expected = @peek.read("foo", raw: true)
+      assert_equal 2, Integer(expected)
+      assert_equal expected, @cache.read("foo", raw: true)
     end
   end
 
@@ -213,5 +219,26 @@ module LocalCacheBehavior
     }
     app = @cache.middleware.new(app)
     app.call({})
+  end
+
+  def test_local_race_condition_protection
+    @cache.with_local_cache do
+      time = Time.now
+      @cache.write("foo", "bar", expires_in: 60)
+      Time.stub(:now, time + 61) do
+        result = @cache.fetch("foo", race_condition_ttl: 10) do
+          assert_equal "bar", @cache.read("foo")
+          "baz"
+        end
+        assert_equal "baz", result
+      end
+    end
+  end
+
+  def test_local_cache_should_read_and_write_false
+    @cache.with_local_cache do
+      assert @cache.write("foo", false)
+      assert_equal false, @cache.read("foo")
+    end
   end
 end

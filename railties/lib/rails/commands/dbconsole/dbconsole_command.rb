@@ -31,7 +31,7 @@ module Rails
           sslcapath: "--ssl-capath",
           sslcipher: "--ssl-cipher",
           sslkey: "--ssl-key"
-        }.map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }.compact
+        }.filter_map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }
 
         if config[:password] && @options[:include_password]
           args << "--password=#{config[:password]}"
@@ -102,7 +102,7 @@ module Rails
       # first time around to show a consistent error message to people
       # relying on 2-level database configuration.
 
-      @db_config = configurations.configs_for(env_name: environment, name: database)
+      @db_config = configurations.configs_for(env_name: environment, name: database, include_replicas: true)
 
       unless @db_config
         raise ActiveRecord::AdapterNotSpecified,

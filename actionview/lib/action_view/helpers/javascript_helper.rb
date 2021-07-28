@@ -4,7 +4,7 @@ module ActionView
   module Helpers #:nodoc:
     module JavaScriptHelper
       JS_ESCAPE_MAP = {
-        '\\'    => '\\\\',
+        "\\"    => "\\\\",
         "</"    => '<\/',
         "\r\n"  => '\n',
         "\n"    => '\n',

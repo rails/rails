@@ -187,39 +187,45 @@ module ActionDispatch
 
           return if control.empty? && cache_control.empty?  # Let middleware handle default behavior
 
-          if extras = control.delete(:extras)
-            cache_control[:extras] ||= []
-            cache_control[:extras] += extras
-            cache_control[:extras].uniq!
+          if cache_control.any?
+            # Any caching directive coming from a controller overrides
+            # no-cache/no-store in the default Cache-Control header.
+            control.delete(:no_cache)
+            control.delete(:no_store)
+
+            if extras = control.delete(:extras)
+              cache_control[:extras] ||= []
+              cache_control[:extras] += extras
+              cache_control[:extras].uniq!
+            end
+
+            control.merge! cache_control
           end
 
-          control.merge! cache_control
+          options = []
 
           if control[:no_store]
-            self._cache_control = NO_STORE
+            options << PRIVATE if control[:private]
+            options << NO_STORE
           elsif control[:no_cache]
-            options = []
             options << PUBLIC if control[:public]
             options << NO_CACHE
             options.concat(control[:extras]) if control[:extras]
-
-            self._cache_control = options.join(", ")
           else
             extras = control[:extras]
             max_age = control[:max_age]
             stale_while_revalidate = control[:stale_while_revalidate]
             stale_if_error = control[:stale_if_error]
 
-            options = []
             options << "max-age=#{max_age.to_i}" if max_age
             options << (control[:public] ? PUBLIC : PRIVATE)
             options << MUST_REVALIDATE if control[:must_revalidate]
             options << "stale-while-revalidate=#{stale_while_revalidate.to_i}" if stale_while_revalidate
             options << "stale-if-error=#{stale_if_error.to_i}" if stale_if_error
             options.concat(extras) if extras
-
-            self._cache_control = options.join(", ")
           end
+
+          self._cache_control = options.join(", ")
         end
       end
     end

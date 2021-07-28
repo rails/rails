@@ -3,6 +3,7 @@
   "version": "7.0.0-alpha",
   "description": "Edit and display rich text in Rails applications",
   "main": "app/javascript/actiontext/index.js",
+  "type": "module",
   "files": [
     "app/javascript/actiontext/*.js"
   ],
@@ -21,9 +22,18 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@rails/activestorage": "^6.0.0"
+    "@rails/activestorage": "7.0.0-alpha"
   },
   "peerDependencies": {
-    "trix": "^1.2.0"
+    "trix": "^1.3.1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^11.0.1",
+    "@rollup/plugin-commonjs": "^19.0.1",
+    "rollup": "^2.35.1",
+    "trix": "^1.3.1"
+  },
+  "scripts": {
+    "build": "rollup --config rollup.config.js"
   }
 }

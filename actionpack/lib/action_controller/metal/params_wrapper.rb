@@ -242,14 +242,14 @@ module ActionController
       end
     end
 
-    # Performs parameters wrapping upon the request. Called automatically
-    # by the metal call stack.
-    def process_action(*)
-      _perform_parameter_wrapping if _wrapper_enabled?
-      super
-    end
-
     private
+      # Performs parameters wrapping upon the request. Called automatically
+      # by the metal call stack.
+      def process_action(*)
+        _perform_parameter_wrapping if _wrapper_enabled?
+        super
+      end
+
       # Returns the wrapper key which will be used to store wrapped parameters.
       def _wrapper_key
         _wrapper_options.name

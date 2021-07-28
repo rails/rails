@@ -16,6 +16,16 @@ Before attempting to upgrade an existing application, you should be sure you hav
 
 The best way to be sure that your application still works after upgrading is to have good test coverage before you start the process. If you don't have automated tests that exercise the bulk of your application, you'll need to spend time manually exercising all the parts that have changed. In the case of a Rails upgrade, that will mean every single piece of functionality in the application. Do yourself a favor and make sure your test coverage is good _before_ you start an upgrade.
 
+### Ruby Versions
+
+Rails generally stays close to the latest released Ruby version when it's released:
+
+* Rails 7 requires Ruby 2.7.0 or newer.
+* Rails 6 requires Ruby 2.5.0 or newer.
+* Rails 5 requires Ruby 2.2.2 or newer.
+
+It's a good idea to upgrade Ruby and Rails separately. Upgrade to the latest Ruby you can first, and then upgrade Rails.
+
 ### The Upgrade Process
 
 When changing Rails versions, it's best to move slowly, one minor version at a time, in order to make good use of the deprecation warnings. Rails version numbers are in the form Major.Minor.Patch. Major and Minor versions are allowed to make changes to the public API, so this may cause errors in your application. Patch versions only include bug fixes, and don't change any public API.
@@ -27,17 +37,18 @@ The process should go as follows:
 3. Fix tests and deprecated features.
 4. Move to the latest patch version of the next minor version.
 
-Repeat this process until you reach your target Rails version. Each time you move versions, you will need to change the Rails version number in the `Gemfile` (and possibly other gem versions) and run `bundle update`. Then run the [Update task](#the-update-task) and finally, your tests.
+Repeat this process until you reach your target Rails version.
 
-You can find a list of all released Rails versions [here](https://rubygems.org/gems/rails/versions).
+#### Moving between versions
 
-### Ruby Versions
+To move between versions:
 
-Rails generally stays close to the latest released Ruby version when it's released:
+1. Change the Rails version number in the `Gemfile` and run `bundle update`.
+2. Change the versions for Rails JavaScript packages in `package.json` and run `yarn install`.
+3. Run the [Update task](#the-update-task).
+4. Run your tests.
 
-* Rails 7 requires Ruby 2.7.0 or newer.
-* Rails 6 requires Ruby 2.5.0 or newer.
-* Rails 5 requires Ruby 2.2.2 or newer.
+You can find a list of all released Rails gems [here](https://rubygems.org/gems/rails/versions).
 
 ### The Update Task
 
@@ -121,6 +132,42 @@ The default digest class for ActiveSupport::Digest is changing from SHA1 to SHA2
 This has consequences for things like Etags that will change and cache keys as well.
 Changing these keys can have impact on cache hit rates, so be careful and watch out
 for this when upgrading to the new hash.
+
+### New ActiveSupport::Cache serialization format
+
+A faster and more compact serialization format was introduced.
+
+To enable it you must set `config.active_support.cache_format_version = 7.0`:
+
+```ruby
+# config/application.rb
+
+config.load_defaults 6.1
+config.active_support.cache_format_version = 7.0
+```
+
+Or simply:
+
+```ruby
+# config/application.rb
+
+config.load_defaults 7.0
+```
+
+However Rails 6.1 applications are not able to read this new serialization format,
+so to ensure a seamless upgrade you must first deploy your Rails 7.0 upgrade with
+`config.active_support.cache_format_version = 6.1`, and then only once all Rails
+processes have been updated you can set `config.active_support.cache_format_version = 7.0`.
+
+Rails 7.0 is able to read both formats so the cache won't be invalidated during the
+upgrade.
+
+### ActiveStorage video preview image generation
+
+Video preview image generation now uses FFmpeg's scene change detection to generate
+more meaningful preview images. Previously the first frame of the video would be used
+and that caused problems if the video faded in from black. This change requires
+FFmpeg v3.4+.
 
 Upgrading from Rails 6.0 to Rails 6.1
 -------------------------------------
@@ -650,7 +697,7 @@ user.highlights.first.filename # => "funky.jpg"
 user.highlights.second.filename # => "town.jpg"
 ```
 
-Existing applications can opt in to this new behavior by setting `config.active_storage.replace_on_assign_to_many` to `true`. The old behavior will be deprecated in Rails 6.1 and removed in a subsequent release.
+Existing applications can opt in to this new behavior by setting `config.active_storage.replace_on_assign_to_many` to `true`. The old behavior will be deprecated in Rails 7.0 and removed in Rails 7.1.
 
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
@@ -1858,7 +1905,7 @@ this gem such as `whitelist_attributes` or `mass_assignment_sanitizer` options.
 
 * Rails 4.0 has deprecated `ActiveRecord::TestCase` in favor of `ActiveSupport::TestCase`.
 
-* Rails 4.0 has deprecated the old-style hash based finder API. This means that
+* Rails 4.0 has deprecated the old-style hash-based finder API. This means that
   methods which previously accepted "finder options" no longer do.  For example, `Book.find(:all, conditions: { name: '1984' })` has been deprecated in favor of `Book.where(name: '1984')`
 
 * All dynamic methods except for `find_by_...` and `find_by_...!` are deprecated.

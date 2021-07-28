@@ -103,7 +103,7 @@ module ActionDispatch
           parameterized_parts = recall.merge(options)
 
           keys_to_keep = route.parts.reverse_each.drop_while { |part|
-            !(options.key?(part) || route.scope_options.key?(part)) || (options[part] || recall[part]).nil?
+            !(options.key?(part) || route.scope_options.key?(part)) || (options[part].nil? && recall[part].nil?)
           } | route.required_parts
 
           parameterized_parts.delete_if do |bad_key, _|
@@ -118,7 +118,7 @@ module ActionDispatch
             end
           end
 
-          parameterized_parts.keep_if { |_, v| v }
+          parameterized_parts.compact!
           parameterized_parts
         end
 

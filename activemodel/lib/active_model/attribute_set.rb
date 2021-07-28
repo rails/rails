@@ -25,6 +25,10 @@ module ActiveModel
       attributes.transform_values(&:value_before_type_cast)
     end
 
+    def values_for_database
+      attributes.transform_values(&:value_for_database)
+    end
+
     def to_hash
       keys.index_with { |name| self[name].value }
     end

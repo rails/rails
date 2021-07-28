@@ -70,35 +70,7 @@ module ActiveSupport
         true
       end
 
-      # Support raw values in the local cache strategy.
-      module LocalCacheWithRaw # :nodoc:
-        private
-          def write_entry(key, entry, **options)
-            if options[:raw] && local_cache
-              raw_entry = Entry.new(serialize_entry(entry, raw: true))
-              raw_entry.expires_at = entry.expires_at
-              super(key, raw_entry, **options)
-            else
-              super
-            end
-          end
-
-          def write_multi_entries(entries, **options)
-            if options[:raw] && local_cache
-              raw_entries = entries.map do |key, entry|
-                raw_entry = Entry.new(serialize_entry(entry, raw: true))
-                raw_entry.expires_at = entry.expires_at
-              end.to_h
-
-              super(raw_entries, **options)
-            else
-              super
-            end
-          end
-      end
-
       prepend Strategy::LocalCache
-      prepend LocalCacheWithRaw
 
       class << self
         # Factory method to create a new Redis instance.
@@ -168,7 +140,7 @@ module ActiveSupport
       # Race condition TTL is not set by default. This can be used to avoid
       # "thundering herd" cache writes when hot cache entries are expired.
       # See <tt>ActiveSupport::Cache::Store#fetch</tt> for more.
-      def initialize(namespace: nil, compress: true, compress_threshold: 1.kilobyte, coder: DEFAULT_CODER, expires_in: nil, race_condition_ttl: nil, error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
+      def initialize(namespace: nil, compress: true, compress_threshold: 1.kilobyte, coder: default_coder, expires_in: nil, race_condition_ttl: nil, error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
         @redis_options = redis_options
 
         @max_key_bytesize = MAX_KEY_BYTESIZE
@@ -348,9 +320,12 @@ module ActiveSupport
         # Store provider interface:
         # Read an entry from the cache.
         def read_entry(key, **options)
+          deserialize_entry(read_serialized_entry(key, **options), **options)
+        end
+
+        def read_serialized_entry(key, raw: false, **options)
           failsafe :read_entry do
-            raw = options&.fetch(:raw, false)
-            deserialize_entry(redis.with { |c| c.get(key) }, raw: raw)
+            redis.with { |c| c.get(key) }
           end
         end
 
@@ -387,9 +362,11 @@ module ActiveSupport
         # Write an entry to the cache.
         #
         # Requires Redis 2.6.12+ for extended SET options.
-        def write_entry(key, entry, unless_exist: false, raw: false, expires_in: nil, race_condition_ttl: nil, **options)
-          serialized_entry = serialize_entry(entry, raw: raw)
+        def write_entry(key, entry, raw: false, **options)
+          write_serialized_entry(key, serialize_entry(entry, raw: raw, **options), raw: raw, **options)
+        end
 
+        def write_serialized_entry(key, payload, raw: false, unless_exist: false, expires_in: nil, race_condition_ttl: nil, **options)
           # If race condition TTL is in use, ensure that cache entries
           # stick around a bit longer after they would have expired
           # so we can purposefully serve stale entries.
@@ -397,16 +374,14 @@ module ActiveSupport
             expires_in += 5.minutes
           end
 
-          failsafe :write_entry, returning: false do
-            if unless_exist || expires_in
-              modifiers = {}
-              modifiers[:nx] = unless_exist
-              modifiers[:px] = (1000 * expires_in.to_f).ceil if expires_in
+          modifiers = {}
+          if unless_exist || expires_in
+            modifiers[:nx] = unless_exist
+            modifiers[:px] = (1000 * expires_in.to_f).ceil if expires_in
+          end
 
-              redis.with { |c| c.set key, serialized_entry, **modifiers }
-            else
-              redis.with { |c| c.set key, serialized_entry }
-            end
+          failsafe :write_entry, returning: false do
+            redis.with { |c| c.set key, payload, **modifiers }
           end
         end
 
@@ -433,7 +408,10 @@ module ActiveSupport
           if entries.any?
             if mset_capable? && expires_in.nil?
               failsafe :write_multi_entries do
-                redis.with { |c| c.mapped_mset(serialize_entries(entries, raw: options[:raw])) }
+                payload = serialize_entries(entries, **options)
+                redis.with do |c|
+                  c.mapped_mset(payload)
+                end
               end
             else
               super
@@ -456,25 +434,25 @@ module ActiveSupport
           end
         end
 
-        def deserialize_entry(payload, raw:)
-          if payload && raw
-            Entry.new(payload, compress: false)
+        def deserialize_entry(payload, raw: false, **)
+          if raw && !payload.nil?
+            Entry.new(payload)
           else
             super(payload)
           end
         end
 
-        def serialize_entry(entry, raw: false)
+        def serialize_entry(entry, raw: false, **options)
           if raw
             entry.value.to_s
           else
-            super(entry)
+            super(entry, raw: raw, **options)
           end
         end
 
-        def serialize_entries(entries, raw: false)
+        def serialize_entries(entries, **options)
           entries.transform_values do |entry|
-            serialize_entry entry, raw: raw
+            serialize_entry(entry, **options)
           end
         end
 

@@ -124,7 +124,7 @@ module ActiveJob
       if block_given?
         original_jobs = enqueued_jobs_with(only: only, except: except, queue: queue)
 
-        assert_nothing_raised(&block)
+        _assert_nothing_raised_or_warn("assert_enqueued_jobs", &block)
 
         new_jobs = enqueued_jobs_with(only: only, except: except, queue: queue)
 
@@ -389,15 +389,15 @@ module ActiveJob
     #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
     #     end
     #   end
-    def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil, &block)
-      expected = { job: job, args: args, at: at, queue: queue }.compact
+    def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil, priority: nil, &block)
+      expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       expected_args = prepare_args_for_assertion(expected)
       potential_matches = []
 
       if block_given?
         original_enqueued_jobs = enqueued_jobs.dup
 
-        assert_nothing_raised(&block)
+        _assert_nothing_raised_or_warn("assert_enqueued_with", &block)
 
         jobs = enqueued_jobs - original_enqueued_jobs
       else
@@ -479,8 +479,8 @@ module ActiveJob
     #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
     #     end
     #   end
-    def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, &block)
-      expected = { job: job, args: args, at: at, queue: queue }.compact
+    def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, priority: nil, &block)
+      expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       expected_args = prepare_args_for_assertion(expected)
       potential_matches = []
 
@@ -591,7 +591,7 @@ module ActiveJob
         queue_adapter.queue = queue
         queue_adapter.at = at
 
-        assert_nothing_raised(&block)
+        _assert_nothing_raised_or_warn("perform_enqueued_jobs", &block)
       ensure
         queue_adapter.perform_enqueued_jobs = old_perform_enqueued_jobs
         queue_adapter.perform_enqueued_at_jobs = old_perform_enqueued_at_jobs

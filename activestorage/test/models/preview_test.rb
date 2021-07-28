@@ -54,8 +54,8 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
   test "previewing on the writer DB" do
     blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
 
-    # Simulate a selector middleware switching to a read-only replica.
-    ActiveRecord::Base.connection_handler.while_preventing_writes do
+    # prevent_writes option is required because there is no automatic write protection anymore
+    ActiveRecord::Base.connected_to(role: ActiveRecord.reading_role, prevent_writes: true) do
       blob.preview(resize: "640x280").processed
     end
 

@@ -35,13 +35,34 @@ module ActiveRecord
           end
         end
 
+        def data_available?
+          return true if super()
+          through_preloaders.all?(&:run?) &&
+            source_preloaders.all?(&:run?)
+        end
+
         def runnable_loaders
-          if already_loaded?
+          if data_available?
             [self]
           elsif through_preloaders.all?(&:run?)
-            [self] + source_preloaders.flat_map(&:runnable_loaders)
+            source_preloaders.flat_map(&:runnable_loaders)
           else
             through_preloaders.flat_map(&:runnable_loaders)
+          end
+        end
+
+        def future_classes
+          if run? || data_available?
+            []
+          elsif through_preloaders.all?(&:run?)
+            source_preloaders.flat_map(&:future_classes).uniq
+          else
+            through_classes = through_preloaders.flat_map(&:future_classes)
+            source_classes = source_reflection.
+              chain.
+              reject { |reflection| reflection.respond_to?(:polymorphic?) && reflection.polymorphic? }.
+              map(&:klass)
+            (through_classes + source_classes).uniq
           end
         end
 
@@ -75,6 +96,8 @@ module ActiveRecord
           def through_scope
             scope = through_reflection.klass.unscoped
             options = reflection.options
+
+            return scope if options[:disable_joins]
 
             values = reflection_scope.values
             if annotations = values[:annotate]
@@ -111,7 +134,7 @@ module ActiveRecord
               end
             end
 
-            scope
+            cascade_strict_loading(scope)
           end
       end
     end

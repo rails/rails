@@ -51,10 +51,9 @@ module ActiveRecord
   #     end
   #   end
   #
-  #   # Schema: messages[ id, subject ]
+  #   # Schema: messages[ id, subject, body ]
   #   class Message < ApplicationRecord
   #     include Entryable
-  #     has_rich_text :content
   #   end
   #
   #   # Schema: comments[ id, content ]
@@ -76,7 +75,9 @@ module ActiveRecord
   #
   #   # entries/entryables/_message.html.erb
   #   <div class="message">
-  #     Posted on <%= entry.created_at %> by <%= entry.creator.name %>: <%= entry.message.content %>
+  #     <div class="subject"><%= entry.message.subject %></div>
+  #     <p><%= entry.message.body %></p>
+  #     <i>Posted on <%= entry.created_at %> by <%= entry.creator.name %></i>
   #   </div>
   #
   #   # entries/entryables/_comment.html.erb
@@ -207,7 +208,7 @@ module ActiveRecord
         end
 
         types.each do |type|
-          scope_name = type.tableize.gsub("/", "_")
+          scope_name = type.tableize.tr("/", "_")
           singular   = scope_name.singularize
           query      = "#{singular}?"
 

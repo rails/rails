@@ -18,7 +18,7 @@ After reading this guide, you will know:
 Guide Assumptions
 -----------------
 
-This guide is designed for beginners who want to get started with a Rails
+This guide is designed for beginners who want to get started with creating a Rails
 application from scratch. It does not assume that you have any prior experience
 with Rails.
 
@@ -98,8 +98,9 @@ $ ruby --version
 ruby 2.7.0
 ```
 
-Rails requires Ruby version 2.7.0 or later. If the version number returned is
-less than that number (such as 2.3.7, or 1.8.7), you'll need to install a fresh copy of Ruby.
+Rails requires Ruby version 2.7.0 or later. It is preferred to use latest Ruby version.
+If the version number returned is less than that number (such as 2.3.7, or 1.8.7),
+you'll need to install a fresh copy of Ruby.
 
 To install Rails on Windows, you'll first need to install [Ruby Installer](https://rubyinstaller.org/).
 
@@ -154,13 +155,13 @@ $ gem install rails
 ```
 
 To verify that you have everything installed correctly, you should be able to
-run the following:
+run the following in a new terminal:
 
 ```bash
 $ rails --version
 ```
 
-If it says something like "Rails 6.0.0", you are ready to continue.
+If it says something like "Rails 7.0.0", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -419,7 +420,7 @@ database-agnostic.
 Let's take a look at the contents of our new migration file:
 
 ```ruby
-class CreateArticles < ActiveRecord::Migration[6.0]
+class CreateArticles < ActiveRecord::Migration[7.0]
   def change
     create_table :articles do |t|
       t.string :title
@@ -480,7 +481,7 @@ $ bin/rails console
 You should see an `irb` prompt like:
 
 ```irb
-Loading development environment (Rails 6.0.2.1)
+Loading development environment (Rails 7.0.0)
 irb(main):001:0>
 ```
 
@@ -1358,7 +1359,7 @@ In addition to the model, Rails has also made a migration to create the
 corresponding database table:
 
 ```ruby
-class CreateComments < ActiveRecord::Migration[6.0]
+class CreateComments < ActiveRecord::Migration[7.0]
   def change
     create_table :comments do |t|
       t.string :commenter
@@ -1772,6 +1773,22 @@ Then, in our `index` action template (`app/views/articles/index.html.erb`) we wo
 <%= link_to "New Article", new_article_path %>
 ```
 
+Similarly, in our comment partial view (`app/views/comments/_comment.html.erb`) we would use the `archived?` method to avoid displaying any comment that is archived:
+
+```html+erb
+<% unless comment.archived? %>
+  <p>
+    <strong>Commenter:</strong>
+    <%= comment.commenter %>
+  </p>
+
+  <p>
+    <strong>Comment:</strong>
+    <%= comment.body %>
+  </p>
+<% end %>
+```
+
 However, if you look again at our models now, you can see that the logic is duplicated. If in the future we increase the functionality of our blog - to include private messages, for instance -  we might find ourselves duplicating the logic yet again. This is where concerns come in handy.
 
 A concern is only responsible for a focused subset of the model's responsibility; the methods in our concern will all be related to the visibility of a model. Let's call our new concern (module) `Visible`. We can create a new file inside `app/models/concerns` called `visible.rb` , and store all of the status methods that were duplicated in the models.
@@ -1830,7 +1847,7 @@ class Comment < ApplicationRecord
 end
 ```
 
-Class methods can also be added to concerns. If we want a count of public articles or comments to display on our main page, we might add a class method to Visible as follows:
+Class methods can also be added to concerns. If we want to display a count of public articles or comments on our main page, we might add a class method to Visible as follows:
 
 ```ruby
 module Visible

@@ -415,6 +415,7 @@ end
 Sanitizes a block of CSS code.
 
 #### strip_links(html)
+
 Strips all link tags from text leaving just the link text.
 
 ```ruby

@@ -100,7 +100,7 @@ module ActiveRecord
   end
 
   # Raised by {ActiveRecord::Base#destroy!}[rdoc-ref:Persistence#destroy!]
-  # when a call to {#destroy}[rdoc-ref:Persistence#destroy!]
+  # when a call to {#destroy}[rdoc-ref:Persistence#destroy]
   # would return false.
   #
   #   begin
@@ -374,7 +374,7 @@ module ActiveRecord
   end
 
   # AsynchronousQueryInsideTransactionError will be raised when attempting
-  # to perform an aynchronous query from inside a transaction
+  # to perform an asynchronous query from inside a transaction
   class AsynchronousQueryInsideTransactionError < ActiveRecordError
   end
 

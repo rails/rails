@@ -465,7 +465,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
   def test_quote_table_name
     ref = references(:michael_magician)
-    ref.favourite = !ref.favourite
+    ref.favorite = !ref.favorite
     assert ref.save
   end
 
@@ -550,7 +550,8 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
   def test_yaml_dumping_with_lock_column
     t1 = LockWithoutDefault.new
-    t2 = YAML.load(YAML.dump(t1))
+    payload = YAML.dump(t1)
+    t2 = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
 
     assert_equal t1.attributes, t2.attributes
   end

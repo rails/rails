@@ -138,14 +138,6 @@ module ActionController #:nodoc:
         end
 
         headers["Content-Transfer-Encoding"] = "binary"
-
-        # Fix a problem with IE 6.0 on opening downloaded files:
-        # If Cache-Control: no-cache is set (which Rails does by default),
-        # IE removes the file it just downloaded from its cache immediately
-        # after it displays the "open/save" dialog, which means that if you
-        # hit "open" the file isn't there anymore when the application that
-        # is called for handling the download is run, so let's workaround that
-        response.cache_control[:public] ||= false
       end
   end
 end
