@@ -88,8 +88,7 @@ class MessagesController < ApplicationController
   end
 
   def create
-    message = Message.create! params.require(:message).permit(:title, :content)
-    message.images.attach(params[:message][:images])
+    message = Message.create! params.require(:message).permit(:title, :content, images: [])
     redirect_to message
   end
 
