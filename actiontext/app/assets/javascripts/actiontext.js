@@ -1,8 +1,11 @@
+var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+var activestorage = {exports: {}};
+
+(function (module, exports) {
 (function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define([ "exports" ], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, 
-  factory(global.ActiveStorage = {}));
-})(this, (function(exports) {
-  "use strict";
+  factory(exports) ;
+})(commonjsGlobal, (function(exports) {
   var sparkMd5 = {
     exports: {}
   };
@@ -821,3 +824,57 @@
     value: true
   });
 }));
+}(activestorage, activestorage.exports));
+
+class AttachmentUpload {
+  constructor(attachment, element) {
+    this.attachment = attachment;
+    this.element = element;
+    this.directUpload = new activestorage.exports.DirectUpload(attachment.file, this.directUploadUrl, this);
+  }
+
+  start() {
+    this.directUpload.create(this.directUploadDidComplete.bind(this));
+  }
+
+  directUploadWillStoreFileWithXHR(xhr) {
+    xhr.upload.addEventListener("progress", event => {
+      const progress = event.loaded / event.total * 100;
+      this.attachment.setUploadProgress(progress);
+    });
+  }
+
+  directUploadDidComplete(error, attributes) {
+    if (error) {
+      throw new Error(`Direct upload failed: ${error}`)
+    }
+
+    this.attachment.setAttributes({
+      sgid: attributes.attachable_sgid,
+      url: this.createBlobUrl(attributes.signed_id, attributes.filename)
+    });
+  }
+
+  createBlobUrl(signedId, filename) {
+    return this.blobUrlTemplate
+      .replace(":signed_id", signedId)
+      .replace(":filename", encodeURIComponent(filename))
+  }
+
+  get directUploadUrl() {
+    return this.element.dataset.directUploadUrl
+  }
+
+  get blobUrlTemplate() {
+    return this.element.dataset.blobUrlTemplate
+  }
+}
+
+addEventListener("trix-attachment-add", event => {
+  const { attachment, target } = event;
+
+  if (attachment.file) {
+    const upload = new AttachmentUpload(attachment, target);
+    upload.start();
+  }
+});

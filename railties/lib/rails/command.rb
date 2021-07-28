@@ -47,6 +47,7 @@ module Rails
         if command && command.all_commands[command_name]
           command.perform(command_name, args, config)
         else
+          args = ["--describe", full_namespace] if HELP_MAPPINGS.include?(args[0])
           find_by_namespace("rake").perform(full_namespace, args, config)
         end
       ensure

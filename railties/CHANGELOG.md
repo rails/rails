@@ -1,3 +1,10 @@
+*   Show Rake task description if command is run with -h.
+
+    Adding `-h` (or `--help`) to a Rails command that's a Rake task, now returns
+    the task description instead of the general Rake help.
+
+    *Petrik de Heus*
+    
 *   Add missing `plugin new` command to help.
 
     *Petrik de Heus

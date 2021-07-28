@@ -571,6 +571,12 @@ module ActiveModel
       add_from_legacy_details_hash(data["details"]) if data.key?("details")
     end
 
+    def inspect # :nodoc:
+      inspection = @errors.inspect
+
+      "#<#{self.class.name} #{inspection}>"
+    end
+
     private
       def normalize_arguments(attribute, type, **options)
         # Evaluate proc first

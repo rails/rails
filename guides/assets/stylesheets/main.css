@@ -194,7 +194,7 @@ body {
 
   #topNav a, #footer a {
     color: #F1938C;
-  }  
+  }
 }
 
 @media screen and (max-width: 1024px) {
@@ -255,12 +255,6 @@ body {
 
 .clipboard-button:active {
   background: #ccc;
-}
-
-.clipboard-content {
-  opacity:0;
-  position:absolute;
-  z-index:-1;
 }
 
 #header {

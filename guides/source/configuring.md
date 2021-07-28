@@ -274,6 +274,28 @@ Every Rails application comes with a standard set of middleware which it uses in
     Rails.application.config.hosts << ".product.com"
     ```
 
+    You can exclude certain requests from Host Authorization checks by setting 
+    `config.host_configuration.exclude`:
+
+    ```ruby
+    # Exclude requests for the /healthcheck/ path from host checking
+    Rails.application.config.host_configuration = { 
+      exclude: ->(request) { request.path =~ /healthcheck/ } 
+    }
+    ``` 
+
+    When a request comes to an unauthorized host, a default Rack application 
+    will run and respond with `403 Forbidden`. This can be customized by setting 
+    `config.host_configuration.response_app`. For example:
+
+    ```ruby
+    Rails.application.config.host_configuration = {
+      response_app: -> env do
+        [400, { "Content-Type" => "text/plain" }, ["Bad Request"]]
+      end
+    }
+    ```
+
 * `ActionDispatch::SSL` forces every request to be served using HTTPS. Enabled if `config.force_ssl` is set to `true`. Options passed to this can be configured by setting `config.ssl_options`.
 * `ActionDispatch::Static` is used to serve static assets. Disabled if `config.public_file_server.enabled` is `false`. Set `config.public_file_server.index_name` if you need to serve a static directory index file that is not named `index`. For example, to serve `main.html` instead of `index.html` for directory requests, set `config.public_file_server.index_name` to `"main"`.
 * `ActionDispatch::Executor` allows thread safe code reloading. Disabled if `config.allow_concurrency` is `false`, which causes `Rack::Lock` to be loaded. `Rack::Lock` wraps the app in mutex so it can only be called by a single thread at a time.
@@ -570,6 +592,8 @@ The schema dumper adds two additional configuration options:
     Rendered messages/_message.html.erb in 1.2 ms [cache hit]
     Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
     ```
+
+* `config.action_controller.raise_on_open_redirects` raises an `ArgumentError` when an unpermitted open redirect occurs. The default value is `false`.
 
 ### Configuring Action Dispatch
 
@@ -1095,6 +1119,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 #### For '7.0', defaults from previous versions below and:
 
+- `config.action_controller.raise_on_open_redirects`: `true`
 - `config.action_view.button_to_generates_button_tag`: `true`
 - `config.action_view.apply_stylesheet_media_default`: `false`
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA256`
@@ -1162,6 +1187,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 #### Baseline defaults:
 
 - `config.action_controller.default_protect_from_forgery`: `false`
+- `config.action_controller.raise_on_open_redirects`: `false`
 - `config.action_controller.urlsafe_csrf_tokens`: `false`
 - `config.action_dispatch.cookies_same_site_protection`: `nil`
 - `config.action_mailer.delivery_job`: `ActionMailer::DeliveryJob`

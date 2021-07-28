@@ -1,3 +1,10 @@
+*   Fix dirty check for Float::NaN and BigDecimal::NaN.
+
+    Float::NaN and BigDecimal::NaN in Ruby are [special values](https://bugs.ruby-lang.org/issues/1720) 
+    and can't be compared with `==`.
+
+    *Marcelo Lauxen*
+
 *   Fix `to_json` for `ActiveModel::Dirty` object.
 
     Exclude `mutations_from_database` attribute from json as it lead to recursion.
@@ -32,5 +39,8 @@
 
     *Lukas Pokorny*
 
+*   Make ActiveModel::Errors#inspect slimmer for readability
+
+    *lulalala*
 
 Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/activemodel/CHANGELOG.md) for previous changes.
