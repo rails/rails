@@ -48,7 +48,7 @@ module ActiveRecord
           super
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
+        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
           if without_prepared_statement?(binds)
             execute_and_free(sql, name, async: async) do |result|
               if result
@@ -68,7 +68,7 @@ module ActiveRecord
           end
         end
 
-        def exec_delete(sql, name = nil, binds = [])
+        def exec_delete(sql, name = nil, binds = []) # :nodoc:
           if without_prepared_statement?(binds)
             @lock.synchronize do
               execute_and_free(sql, name) { @connection.affected_rows }

@@ -31,7 +31,7 @@ module ActiveRecord
           end
         end
 
-        def exec_query(sql, name = nil, binds = [], prepare: false, async: false)
+        def exec_query(sql, name = nil, binds = [], prepare: false, async: false) #:nodoc:
           check_if_write_query(sql)
 
           materialize_transactions
@@ -66,7 +66,7 @@ module ActiveRecord
           end
         end
 
-        def exec_delete(sql, name = "SQL", binds = [])
+        def exec_delete(sql, name = "SQL", binds = []) #:nodoc:
           exec_query(sql, name, binds)
           @connection.changes
         end
