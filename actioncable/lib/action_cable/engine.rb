@@ -22,6 +22,12 @@ module ActionCable
       ActiveSupport.on_load(:action_cable) { self.logger ||= ::Rails.logger }
     end
 
+    initializer "action_cable.asset" do
+      if Rails.application.config.respond_to?(:assets)
+        Rails.application.config.assets.precompile += %w( actioncable.js actioncable.esm.js )
+      end
+    end
+
     initializer "action_cable.set_configs" do |app|
       options = app.config.action_cable
       options.allowed_request_origins ||= /https?:\/\/localhost:\d+/ if ::Rails.env.development?
