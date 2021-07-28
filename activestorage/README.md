@@ -146,7 +146,7 @@ Active Storage, with its included JavaScript library, supports uploading directl
 
     Requiring directly without bundling through the asset pipeline in the application html:
     ```html
-    <%= javascript_include_tag "activestorage", type: "module" %>
+    <%= javascript_include_tag "activestorage.esm", type: "module" %>
     ```
     Using the asset pipeline:
     ```js

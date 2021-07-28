@@ -151,7 +151,7 @@ module ActiveStorage
 
     initializer "active_storage.asset" do
       if Rails.application.config.respond_to?(:assets)
-        Rails.application.config.assets.precompile += %w( activestorage )
+        Rails.application.config.assets.precompile += %w( activestorage activestorage.esm )
       end
     end
 
