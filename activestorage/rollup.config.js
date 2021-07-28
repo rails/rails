@@ -2,6 +2,15 @@ import resolve from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
 import { terser } from "rollup-plugin-terser"
 
+const terserOptions = {
+ mangle: false,
+ compress: false,
+ format: {
+   beautify: true,
+   indent_level: 2
+ }
+}
+
 export default [
   {
     input: "app/javascript/activestorage/index.js",
@@ -13,14 +22,7 @@ export default [
     plugins: [
       resolve(),
       commonjs(),
-      terser({
-         mangle: false,
-         compress: false,
-         format: {
-           beautify: true,
-           indent_level: 2
-         }
-       })
+      terser(terserOptions)
     ]
   },
 
@@ -33,14 +35,7 @@ export default [
     plugins: [
       resolve(),
       commonjs(),
-      terser({
-         mangle: false,
-         compress: false,
-         format: {
-           beautify: true,
-           indent_level: 2
-         }
-       })
+      terser(terserOptions)
     ]
   }
 ]
