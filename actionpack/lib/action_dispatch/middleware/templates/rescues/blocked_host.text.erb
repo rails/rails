@@ -1,5 +1,5 @@
 Blocked host: <%= @host %>
 
-To allow requests to <%= @host %>, add the following to your environment configuration:
+To allow requests to <%= @host %> make sure it is a valid hostname (containing only numbers, letters, dashes and dots), then add the following to your environment configuration:
 
   config.hosts << "<%= @host %>"
