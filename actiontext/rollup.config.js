@@ -5,7 +5,7 @@ export default [
   {
     input: "app/javascript/actiontext/index.js",
     output: {
-      file: "app/assets/javascripts/action_text.js",
+      file: "app/assets/javascripts/actiontext.js",
       format: "es"
     },
     plugins: [
