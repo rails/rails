@@ -208,24 +208,24 @@ module ActiveRecord
         yield execute(sql, name, async: async)
       end
 
-      def begin_db_transaction
+      def begin_db_transaction # :nodoc:
         execute("BEGIN", "TRANSACTION")
       end
 
-      def begin_isolated_db_transaction(isolation)
+      def begin_isolated_db_transaction(isolation) # :nodoc:
         execute "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}"
         begin_db_transaction
       end
 
-      def commit_db_transaction #:nodoc:
+      def commit_db_transaction # :nodoc:
         execute("COMMIT", "TRANSACTION")
       end
 
-      def exec_rollback_db_transaction #:nodoc:
+      def exec_rollback_db_transaction # :nodoc:
         execute("ROLLBACK", "TRANSACTION")
       end
 
-      def empty_insert_statement_value(primary_key = nil)
+      def empty_insert_statement_value(primary_key = nil) # :nodoc:
         "VALUES ()"
       end
 

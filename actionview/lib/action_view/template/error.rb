@@ -229,7 +229,7 @@ module ActionView
 
   TemplateError = Template::Error
 
-  class SyntaxErrorInTemplate < TemplateError #:nodoc
+  class SyntaxErrorInTemplate < TemplateError #:nodoc:
     def initialize(template, offending_code_string)
       @offending_code_string = offending_code_string
       super(template)
