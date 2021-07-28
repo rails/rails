@@ -144,6 +144,10 @@ Active Storage, with its included JavaScript library, supports uploading directl
 
 1. Include `activestorage.js` in your application's JavaScript bundle.
 
+    Requiring directly without bundling through the asset pipeline in the application html:
+    ```html
+    <%= javascript_include_tag "activestorage", defer: true %>
+    ```
     Using the asset pipeline:
     ```js
     //= require activestorage
