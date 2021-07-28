@@ -9,6 +9,7 @@ The most common rails commands are:
 <% unless engine? -%>
  new          Create a new Rails application. "rails new my_app" creates a
               new application called MyApp in "./my_app"
+ plugin new   Create a new Rails railtie or engine
 <% end -%>
 
 All commands can be run with -h (or --help) for more information.
