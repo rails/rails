@@ -86,10 +86,6 @@ module ActionDispatch
           @name = -left.tr("*:", "")
         end
 
-        def default_regexp?
-          regexp == DEFAULT_EXP
-        end
-
         def type; :SYMBOL; end
         def symbol?; true; end
       end
