@@ -7,6 +7,7 @@ rescue LoadError => e
   raise e
 end
 
+require "delegate"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/extract_options"
 
@@ -33,7 +34,7 @@ module ActiveSupport
       prepend Strategy::LocalCache
 
       module DupLocalCache
-        class LocalStore < Strategy::LocalCache::LocalStore
+        class DupLocalStore < DelegateClass(Strategy::LocalCache::LocalStore)
           def write_entry(_key, entry)
             if entry.is_a?(Entry)
               entry.dup_value!
@@ -42,12 +43,12 @@ module ActiveSupport
           end
 
           def fetch_entry(key)
-            entry = @data.fetch(key) do
+            entry = super do
               new_entry = yield
               if entry.is_a?(Entry)
                 new_entry.dup_value!
               end
-              @data[key] = new_entry
+              new_entry
             end
             entry = entry.dup
 
@@ -59,13 +60,16 @@ module ActiveSupport
           end
         end
 
-        def with_local_cache
-          if ActiveSupport::Cache.format_version == 6.1
-            use_temporary_local_cache(LocalStore.new) { yield }
-          else
-            super
+        private
+          def local_cache
+            if ActiveSupport::Cache.format_version == 6.1
+              if local_cache = super
+                DupLocalStore.new(local_cache)
+              end
+            else
+              super
+            end
           end
-        end
       end
       prepend DupLocalCache
 
