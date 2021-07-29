@@ -272,12 +272,10 @@ module ActiveRecord
   #   class BooksController < ActionController::Base
   #     def create
   #       Book.transaction do
-  #         book = Book.new(params[:book])
   #         Book.create(params[:book])
   #         # If this fails, we rollback this transaction and pass on the exception.
   #         # The user gets generic 500 behavior.
   #         Stats.create!(type: 'book_purchase')
-  #         book.save!
   #         if today_is_friday?
   #           # The system must fail on Friday so that our support department
   #           # won't be out of job. We silently rollback this transaction
