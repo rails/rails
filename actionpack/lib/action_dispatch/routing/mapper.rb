@@ -12,7 +12,7 @@ module ActionDispatch
     class Mapper
       URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
 
-      class Constraints < Routing::Endpoint #:nodoc:
+      class Constraints < Routing::Endpoint # :nodoc:
         attr_reader :app, :constraints
 
         SERVE = ->(app, req) { app.serve req }
@@ -66,7 +66,7 @@ module ActionDispatch
           end
       end
 
-      class Mapping #:nodoc:
+      class Mapping # :nodoc:
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
         OPTIONAL_FORMAT_REGEX = %r{(?:\(\.:format\)+|\.:format|/)\Z}
 
@@ -1135,7 +1135,7 @@ module ActionDispatch
         RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns]
         CANONICAL_ACTIONS = %w(index create new show update destroy)
 
-        class Resource #:nodoc:
+        class Resource # :nodoc:
           attr_reader :controller, :path, :param
 
           def initialize(entities, api_only, shallow, options = {})
@@ -1230,7 +1230,7 @@ module ActionDispatch
           def singleton?; false; end
         end
 
-        class SingletonResource < Resource #:nodoc:
+        class SingletonResource < Resource # :nodoc:
           def initialize(entities, api_only, shallow, options)
             super
             @as         = nil
@@ -2289,7 +2289,7 @@ module ActionDispatch
         NULL = Scope.new(nil, nil)
       end
 
-      def initialize(set) #:nodoc:
+      def initialize(set) # :nodoc:
         @set = set
         @draw_paths = set.draw_paths
         @scope = Scope.new(path_names: @set.resources_path_names)

@@ -84,7 +84,7 @@ module ActiveSupport
         #   :url    String  ->  Redis.new(url: …)
         #   :url    Array   ->  Redis::Distributed.new([{ url: … }, { url: … }, …])
         #
-        def build_redis(redis: nil, url: nil, **redis_options) #:nodoc:
+        def build_redis(redis: nil, url: nil, **redis_options) # :nodoc:
           urls = Array(url)
 
           if redis.is_a?(Proc)
@@ -295,12 +295,12 @@ module ActiveSupport
         redis.with { |c| c.info }
       end
 
-      def mget_capable? #:nodoc:
+      def mget_capable? # :nodoc:
         set_redis_capabilities unless defined? @mget_capable
         @mget_capable
       end
 
-      def mset_capable? #:nodoc:
+      def mset_capable? # :nodoc:
         set_redis_capabilities unless defined? @mset_capable
         @mset_capable
       end

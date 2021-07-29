@@ -8,7 +8,7 @@ require "active_support/core_ext/module/attribute_accessors"
 
 module ActionView
   # = Action View Form Tag Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # Provides a number of methods for creating form tags that don't rely on an Active Record object assigned to the template like
     # FormHelper does. Instead, you provide the names and values manually.
     #

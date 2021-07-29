@@ -319,7 +319,7 @@ module ActiveRecord
         # rollbacks are silently swallowed
       end
 
-      attr_reader :transaction_manager #:nodoc:
+      attr_reader :transaction_manager # :nodoc:
 
       delegate :within_new_transaction, :open_transactions, :current_transaction, :begin_transaction,
                :commit_transaction, :rollback_transaction, :materialize_transactions,
@@ -336,7 +336,7 @@ module ActiveRecord
         current_transaction.open?
       end
 
-      def reset_transaction #:nodoc:
+      def reset_transaction # :nodoc:
         @transaction_manager = ConnectionAdapters::TransactionManager.new(self)
       end
 
@@ -374,7 +374,7 @@ module ActiveRecord
         exec_rollback_db_transaction
       end
 
-      def exec_rollback_db_transaction() end #:nodoc:
+      def exec_rollback_db_transaction() end # :nodoc:
 
       def rollback_to_savepoint(name = nil)
         exec_rollback_to_savepoint(name)

@@ -73,7 +73,7 @@ module ActiveRecord
       end
     end
 
-    class NullTransaction #:nodoc:
+    class NullTransaction # :nodoc:
       def initialize; end
       def state; end
       def closed?; true; end
@@ -82,7 +82,7 @@ module ActiveRecord
       def add_record(record, _ = true); end
     end
 
-    class Transaction #:nodoc:
+    class Transaction # :nodoc:
       attr_reader :connection, :state, :savepoint_name, :isolation_level
       attr_accessor :written
 
@@ -221,7 +221,7 @@ module ActiveRecord
       end
     end
 
-    class TransactionManager #:nodoc:
+    class TransactionManager # :nodoc:
       def initialize(connection)
         @stack = []
         @connection = connection

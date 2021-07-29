@@ -3,7 +3,7 @@
 require "action_controller/metal/exceptions"
 require "action_dispatch/http/content_disposition"
 
-module ActionController #:nodoc:
+module ActionController # :nodoc:
   # Methods for sending arbitrary data and for streaming files to the browser,
   # instead of rendering.
   module DataStreaming
@@ -11,8 +11,8 @@ module ActionController #:nodoc:
 
     include ActionController::Rendering
 
-    DEFAULT_SEND_FILE_TYPE        = "application/octet-stream" #:nodoc:
-    DEFAULT_SEND_FILE_DISPOSITION = "attachment" #:nodoc:
+    DEFAULT_SEND_FILE_TYPE        = "application/octet-stream" # :nodoc:
+    DEFAULT_SEND_FILE_DISPOSITION = "attachment" # :nodoc:
 
     private
       # Sends the file. This uses a server-appropriate method (such as X-Sendfile)

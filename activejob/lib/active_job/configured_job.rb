@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveJob
-  class ConfiguredJob #:nodoc:
+  class ConfiguredJob # :nodoc:
     def initialize(job_class, options = {})
       @options = options
       @job_class = job_class

@@ -62,7 +62,7 @@ module ActionDispatch
       end
       alias :params :parameters
 
-      def path_parameters=(parameters) #:nodoc:
+      def path_parameters=(parameters) # :nodoc:
         delete_header("action_dispatch.request.parameters")
 
         parameters = Request::Utils.set_binary_encoding(self, parameters, parameters[:controller], parameters[:action])

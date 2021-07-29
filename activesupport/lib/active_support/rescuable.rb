@@ -100,7 +100,7 @@ module ActiveSupport
         end
       end
 
-      def handler_for_rescue(exception, object: self) #:nodoc:
+      def handler_for_rescue(exception, object: self) # :nodoc:
         case rescuer = find_rescue_handler(exception)
         when Symbol
           method = object.method(rescuer)
@@ -167,7 +167,7 @@ module ActiveSupport
 
     # Internal handler lookup. Delegates to class method. Some libraries call
     # this directly, so keeping it around for compatibility.
-    def handler_for_rescue(exception) #:nodoc:
+    def handler_for_rescue(exception) # :nodoc:
       self.class.handler_for_rescue exception, object: self
     end
   end

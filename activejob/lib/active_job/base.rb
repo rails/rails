@@ -14,7 +14,7 @@ require "active_job/instrumentation"
 require "active_job/timezones"
 require "active_job/translation"
 
-module ActiveJob #:nodoc:
+module ActiveJob # :nodoc:
   # = Active Job
   #
   # Active Job objects can be configured to work with different backend

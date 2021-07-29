@@ -432,7 +432,7 @@ module ActiveRecord
       define_model_callbacks :save, :create, :update, :destroy
     end
 
-    def destroy #:nodoc:
+    def destroy # :nodoc:
       @_destroy_callback_already_called ||= false
       return if @_destroy_callback_already_called
       @_destroy_callback_already_called = true
@@ -444,7 +444,7 @@ module ActiveRecord
       @_destroy_callback_already_called = false
     end
 
-    def touch(*, **) #:nodoc:
+    def touch(*, **) # :nodoc:
       _run_touch_callbacks { super }
     end
 

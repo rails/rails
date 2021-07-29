@@ -356,26 +356,26 @@ module Rails
     # are changing config.root inside your application definition or having a custom
     # Rails application, you will need to add lib to $LOAD_PATH on your own in case
     # you need to load files in lib/ during the application configuration as well.
-    def self.add_lib_to_load_path!(root) #:nodoc:
+    def self.add_lib_to_load_path!(root) # :nodoc:
       path = File.join root, "lib"
       if File.exist?(path) && !$LOAD_PATH.include?(path)
         $LOAD_PATH.unshift(path)
       end
     end
 
-    def require_environment! #:nodoc:
+    def require_environment! # :nodoc:
       environment = paths["config/environment"].existent.first
       require environment if environment
     end
 
-    def routes_reloader #:nodoc:
+    def routes_reloader # :nodoc:
       @routes_reloader ||= RoutesReloader.new
     end
 
     # Returns an array of file paths appended with a hash of
     # directories-extensions suitable for ActiveSupport::FileUpdateChecker
     # API.
-    def watchable_args #:nodoc:
+    def watchable_args # :nodoc:
       files, dirs = config.watchable_files.dup, config.watchable_dirs.dup
 
       ActiveSupport::Dependencies.autoload_paths.each do |path|
@@ -387,20 +387,20 @@ module Rails
 
     # Initialize the application passing the given group. By default, the
     # group is :default
-    def initialize!(group = :default) #:nodoc:
+    def initialize!(group = :default) # :nodoc:
       raise "Application has been already initialized." if @initialized
       run_initializers(group, self)
       @initialized = true
       self
     end
 
-    def initializers #:nodoc:
+    def initializers # :nodoc:
       Bootstrap.initializers_for(self) +
       railties_initializers(super) +
       Finisher.initializers_for(self)
     end
 
-    def config #:nodoc:
+    def config # :nodoc:
       @config ||= Application::Configuration.new(self.class.find_root(self.class.called_from))
     end
 
@@ -488,11 +488,11 @@ module Rails
       )
     end
 
-    def to_app #:nodoc:
+    def to_app # :nodoc:
       self
     end
 
-    def helpers_paths #:nodoc:
+    def helpers_paths # :nodoc:
       config.helpers_paths
     end
 
@@ -520,7 +520,7 @@ module Rails
   protected
     alias :build_middleware_stack :app
 
-    def run_tasks_blocks(app) #:nodoc:
+    def run_tasks_blocks(app) # :nodoc:
       railties.each { |r| r.run_tasks_blocks(app) }
       super
       load "rails/tasks.rb"
@@ -531,28 +531,28 @@ module Rails
       end
     end
 
-    def run_generators_blocks(app) #:nodoc:
+    def run_generators_blocks(app) # :nodoc:
       railties.each { |r| r.run_generators_blocks(app) }
       super
     end
 
-    def run_runner_blocks(app) #:nodoc:
+    def run_runner_blocks(app) # :nodoc:
       railties.each { |r| r.run_runner_blocks(app) }
       super
     end
 
-    def run_console_blocks(app) #:nodoc:
+    def run_console_blocks(app) # :nodoc:
       railties.each { |r| r.run_console_blocks(app) }
       super
     end
 
-    def run_server_blocks(app) #:nodoc:
+    def run_server_blocks(app) # :nodoc:
       railties.each { |r| r.run_server_blocks(app) }
       super
     end
 
     # Returns the ordered railties for this application considering railties_order.
-    def ordered_railties #:nodoc:
+    def ordered_railties # :nodoc:
       @ordered_railties ||= begin
         order = config.railties_order.map do |railtie|
           if railtie == :main_app
@@ -574,7 +574,7 @@ module Rails
       end
     end
 
-    def railties_initializers(current) #:nodoc:
+    def railties_initializers(current) # :nodoc:
       initializers = []
       ordered_railties.reverse.flatten.each do |r|
         if r == self
@@ -586,7 +586,7 @@ module Rails
       initializers
     end
 
-    def default_middleware_stack #:nodoc:
+    def default_middleware_stack # :nodoc:
       default_stack = DefaultMiddlewareStack.new(self, config, paths)
       default_stack.build_stack
     end

@@ -3,7 +3,7 @@
 require "delegate"
 
 module ActiveSupport
-  module Tryable #:nodoc:
+  module Tryable # :nodoc:
     def try(*args, &block)
       if args.empty? && block_given?
         if block.arity == 0

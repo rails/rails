@@ -2,7 +2,7 @@
 
 module ActionView
   # = Action View Cache Helper
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     module CacheHelper
       # This helper exposes a method for caching fragments of a view
       # rather than an entire action or page. This technique is useful

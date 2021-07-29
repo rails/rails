@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord::Associations::Builder # :nodoc:
-  class BelongsTo < SingularAssociation #:nodoc:
+  class BelongsTo < SingularAssociation # :nodoc:
     def self.macro
       :belongs_to
     end

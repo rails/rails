@@ -284,7 +284,7 @@ module ActionDispatch
         end
     end
 
-    class CookieJar #:nodoc:
+    class CookieJar # :nodoc:
       include Enumerable, ChainedCookieJars
 
       # This regular expression is used to split the levels of a domain.

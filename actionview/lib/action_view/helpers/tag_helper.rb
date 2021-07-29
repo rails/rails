@@ -8,7 +8,7 @@ require "action_view/helpers/output_safety_helper"
 
 module ActionView
   # = Action View Tag Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # Provides methods to generate HTML tags programmatically both as a modern
     # HTML5 compliant builder style and legacy XHTML compliant tags.
     module TagHelper
@@ -41,7 +41,7 @@ module ActionView
       PRE_CONTENT_STRINGS[:textarea]  = "\n"
       PRE_CONTENT_STRINGS["textarea"] = "\n"
 
-      class TagBuilder #:nodoc:
+      class TagBuilder # :nodoc:
         include CaptureHelper
         include OutputSafetyHelper
 

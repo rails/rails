@@ -15,8 +15,8 @@ require "active_support/core_ext/name_error"
 require "active_support/dependencies/interlock"
 require "active_support/inflector"
 
-module ActiveSupport #:nodoc:
-  module Dependencies #:nodoc:
+module ActiveSupport # :nodoc:
+  module Dependencies # :nodoc:
     extend self
 
     UNBOUND_METHOD_MODULE_NAME = Module.instance_method(:name)
@@ -176,7 +176,7 @@ module ActiveSupport #:nodoc:
     mattr_accessor :constant_watch_stack, default: WatchStack.new
 
     # Module includes this module.
-    module ModuleConstMissing #:nodoc:
+    module ModuleConstMissing # :nodoc:
       def self.append_features(base)
         base.class_eval do
           # Emulate #exclude via an ivar
@@ -223,7 +223,7 @@ module ActiveSupport #:nodoc:
     end
 
     # Object includes this module.
-    module Loadable #:nodoc:
+    module Loadable # :nodoc:
       def self.exclude_from(base)
         base.class_eval do
           define_method(:load, Kernel.instance_method(:load))
@@ -638,7 +638,7 @@ module ActiveSupport #:nodoc:
 
     # Convert the provided const desc to a qualified constant name (as a string).
     # A module, class, symbol, or string may be provided.
-    def to_constant_name(desc) #:nodoc:
+    def to_constant_name(desc) # :nodoc:
       case desc
       when String then desc.delete_prefix("::")
       when Symbol then desc.to_s
@@ -649,7 +649,7 @@ module ActiveSupport #:nodoc:
       end
     end
 
-    def remove_constant(const) #:nodoc:
+    def remove_constant(const) # :nodoc:
       # Normalize ::Foo, ::Object::Foo, Object::Foo, Object::Object::Foo, etc. as Foo.
       normalized = const.to_s.delete_prefix("::")
       normalized.sub!(/\A(Object::)+/, "")

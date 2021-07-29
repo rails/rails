@@ -50,7 +50,7 @@ module ActionView
     end
 
     # Threadsafe template cache
-    class Cache #:nodoc:
+    class Cache # :nodoc:
       class SmallCache < Concurrent::Map
         def initialize(options = {})
           super(options.merge(initial_capacity: 2))

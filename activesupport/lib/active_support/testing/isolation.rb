@@ -5,7 +5,7 @@ module ActiveSupport
     module Isolation
       require "thread"
 
-      def self.included(klass) #:nodoc:
+      def self.included(klass) # :nodoc:
         klass.class_eval do
           parallelize_me!
         end

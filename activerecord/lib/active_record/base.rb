@@ -12,7 +12,7 @@ require "active_record/attributes"
 require "active_record/type_caster"
 require "active_record/database_configurations"
 
-module ActiveRecord #:nodoc:
+module ActiveRecord # :nodoc:
   # = Active Record
   #
   # Active Record objects don't specify their attributes directly, but rather infer them from

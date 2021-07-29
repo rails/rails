@@ -67,7 +67,7 @@ module Rails
     }
 
     class << self
-      def configure!(config) #:nodoc:
+      def configure!(config) # :nodoc:
         api_only! if config.api_only
         no_color! unless config.colorize_logging
         aliases.deep_merge! config.aliases
@@ -79,15 +79,15 @@ module Rails
         after_generate_callbacks.replace config.after_generate_callbacks
       end
 
-      def templates_path #:nodoc:
+      def templates_path # :nodoc:
         @templates_path ||= []
       end
 
-      def aliases #:nodoc:
+      def aliases # :nodoc:
         @aliases ||= DEFAULT_ALIASES.dup
       end
 
-      def options #:nodoc:
+      def options # :nodoc:
         @options ||= DEFAULT_OPTIONS.dup
       end
 
@@ -238,7 +238,7 @@ module Rails
       #
       # Notice that "rails:generators:webrat" could be loaded as well, what
       # Rails looks for is the first and last parts of the namespace.
-      def find_by_namespace(name, base = nil, context = nil) #:nodoc:
+      def find_by_namespace(name, base = nil, context = nil) # :nodoc:
         lookups = []
         lookups << "#{base}:#{name}"    if base
         lookups << "#{name}:#{context}" if context

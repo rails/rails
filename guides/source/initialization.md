@@ -573,7 +573,7 @@ defined in `rails/application.rb`.
 The `initialize!` method looks like this:
 
 ```ruby
-def initialize!(group = :default) #:nodoc:
+def initialize!(group = :default) # :nodoc:
   raise "Application has been already initialized." if @initialized
   run_initializers(group, self)
   @initialized = true

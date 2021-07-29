@@ -162,7 +162,7 @@ module ActionDispatch
       set_header(routes.env_key, name.dup)
     end
 
-    def request_method=(request_method) #:nodoc:
+    def request_method=(request_method) # :nodoc:
       if check_method(request_method)
         @request_method = set_header("REQUEST_METHOD", request_method)
       end
@@ -352,7 +352,7 @@ module ActionDispatch
       FORM_DATA_MEDIA_TYPES.include?(media_type)
     end
 
-    def body_stream #:nodoc:
+    def body_stream # :nodoc:
       get_header("rack.input")
     end
 
@@ -360,7 +360,7 @@ module ActionDispatch
       session.destroy
     end
 
-    def session=(session) #:nodoc:
+    def session=(session) # :nodoc:
       Session.set self, session
     end
 

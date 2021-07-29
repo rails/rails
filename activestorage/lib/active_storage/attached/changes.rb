@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveStorage
-  module Attached::Changes #:nodoc:
+  module Attached::Changes # :nodoc:
     extend ActiveSupport::Autoload
 
     eager_autoload do

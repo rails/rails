@@ -10,7 +10,7 @@ module ActiveRecord
         end
 
         # Queries the database and returns the results in an Array-like object
-        def query(sql, name = nil) #:nodoc:
+        def query(sql, name = nil) # :nodoc:
           materialize_transactions
           mark_transaction_written_if_write(sql)
 

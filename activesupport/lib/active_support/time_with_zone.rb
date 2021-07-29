@@ -181,11 +181,11 @@ module ActiveSupport
       end
     end
 
-    def init_with(coder) #:nodoc:
+    def init_with(coder) # :nodoc:
       initialize(coder["utc"], coder["zone"], coder["time"])
     end
 
-    def encode_with(coder) #:nodoc:
+    def encode_with(coder) # :nodoc:
       coder.map = { "utc" => utc, "zone" => time_zone, "time" => time }
     end
 

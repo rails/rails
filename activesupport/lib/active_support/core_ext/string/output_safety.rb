@@ -130,7 +130,7 @@ class Numeric
   end
 end
 
-module ActiveSupport #:nodoc:
+module ActiveSupport # :nodoc:
   class SafeBuffer < String
     UNSAFE_STRING_METHODS = %w(
       capitalize chomp chop delete delete_prefix delete_suffix

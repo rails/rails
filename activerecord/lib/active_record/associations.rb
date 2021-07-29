@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  class AssociationNotFoundError < ConfigurationError #:nodoc:
+  class AssociationNotFoundError < ConfigurationError # :nodoc:
     attr_reader :record, :association_name
 
     def initialize(record = nil, association_name = nil)
@@ -30,7 +30,7 @@ module ActiveRecord
     end
   end
 
-  class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
+  class InverseOfAssociationNotFoundError < ActiveRecordError # :nodoc:
     attr_reader :reflection, :associated_class
 
     def initialize(reflection = nil, associated_class = nil)
@@ -59,7 +59,7 @@ module ActiveRecord
     end
   end
 
-  class HasManyThroughAssociationNotFoundError < ActiveRecordError #:nodoc:
+  class HasManyThroughAssociationNotFoundError < ActiveRecordError # :nodoc:
     attr_reader :owner_class, :reflection
 
     def initialize(owner_class = nil, reflection = nil)
@@ -89,7 +89,7 @@ module ActiveRecord
     end
   end
 
-  class HasManyThroughAssociationPolymorphicSourceError < ActiveRecordError #:nodoc:
+  class HasManyThroughAssociationPolymorphicSourceError < ActiveRecordError # :nodoc:
     def initialize(owner_class_name = nil, reflection = nil, source_reflection = nil)
       if owner_class_name && reflection && source_reflection
         super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' on the polymorphic object '#{source_reflection.class_name}##{source_reflection.name}' without 'source_type'. Try adding 'source_type: \"#{reflection.name.to_s.classify}\"' to 'has_many :through' definition.")
@@ -99,7 +99,7 @@ module ActiveRecord
     end
   end
 
-  class HasManyThroughAssociationPolymorphicThroughError < ActiveRecordError #:nodoc:
+  class HasManyThroughAssociationPolymorphicThroughError < ActiveRecordError # :nodoc:
     def initialize(owner_class_name = nil, reflection = nil)
       if owner_class_name && reflection
         super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' which goes through the polymorphic association '#{owner_class_name}##{reflection.through_reflection.name}'.")
@@ -109,7 +109,7 @@ module ActiveRecord
     end
   end
 
-  class HasManyThroughAssociationPointlessSourceTypeError < ActiveRecordError #:nodoc:
+  class HasManyThroughAssociationPointlessSourceTypeError < ActiveRecordError # :nodoc:
     def initialize(owner_class_name = nil, reflection = nil, source_reflection = nil)
       if owner_class_name && reflection && source_reflection
         super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' with a :source_type option if the '#{reflection.through_reflection.class_name}##{source_reflection.name}' is not polymorphic. Try removing :source_type on your association.")
@@ -119,7 +119,7 @@ module ActiveRecord
     end
   end
 
-  class HasOneThroughCantAssociateThroughCollection < ActiveRecordError #:nodoc:
+  class HasOneThroughCantAssociateThroughCollection < ActiveRecordError # :nodoc:
     def initialize(owner_class_name = nil, reflection = nil, through_reflection = nil)
       if owner_class_name && reflection && through_reflection
         super("Cannot have a has_one :through association '#{owner_class_name}##{reflection.name}' where the :through association '#{owner_class_name}##{through_reflection.name}' is a collection. Specify a has_one or belongs_to association in the :through option instead.")
@@ -129,7 +129,7 @@ module ActiveRecord
     end
   end
 
-  class HasOneAssociationPolymorphicThroughError < ActiveRecordError #:nodoc:
+  class HasOneAssociationPolymorphicThroughError < ActiveRecordError # :nodoc:
     def initialize(owner_class_name = nil, reflection = nil)
       if owner_class_name && reflection
         super("Cannot have a has_one :through association '#{owner_class_name}##{reflection.name}' which goes through the polymorphic association '#{owner_class_name}##{reflection.through_reflection.name}'.")
@@ -139,7 +139,7 @@ module ActiveRecord
     end
   end
 
-  class HasManyThroughSourceAssociationNotFoundError < ActiveRecordError #:nodoc:
+  class HasManyThroughSourceAssociationNotFoundError < ActiveRecordError # :nodoc:
     def initialize(reflection = nil)
       if reflection
         through_reflection      = reflection.through_reflection
@@ -152,7 +152,7 @@ module ActiveRecord
     end
   end
 
-  class HasManyThroughOrderError < ActiveRecordError #:nodoc:
+  class HasManyThroughOrderError < ActiveRecordError # :nodoc:
     def initialize(owner_class_name = nil, reflection = nil, through_reflection = nil)
       if owner_class_name && reflection && through_reflection
         super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' which goes through '#{owner_class_name}##{through_reflection.name}' before the through association is defined.")
@@ -162,7 +162,7 @@ module ActiveRecord
     end
   end
 
-  class ThroughCantAssociateThroughHasOneOrManyReflection < ActiveRecordError #:nodoc:
+  class ThroughCantAssociateThroughHasOneOrManyReflection < ActiveRecordError # :nodoc:
     def initialize(owner = nil, reflection = nil)
       if owner && reflection
         super("Cannot modify association '#{owner.class.name}##{reflection.name}' because the source reflection class '#{reflection.source_reflection.class_name}' is associated to '#{reflection.through_reflection.class_name}' via :#{reflection.source_reflection.macro}.")
@@ -187,13 +187,13 @@ module ActiveRecord
     end
   end
 
-  class HasManyThroughCantAssociateThroughHasOneOrManyReflection < ThroughCantAssociateThroughHasOneOrManyReflection #:nodoc:
+  class HasManyThroughCantAssociateThroughHasOneOrManyReflection < ThroughCantAssociateThroughHasOneOrManyReflection # :nodoc:
   end
 
-  class HasOneThroughCantAssociateThroughHasOneOrManyReflection < ThroughCantAssociateThroughHasOneOrManyReflection #:nodoc:
+  class HasOneThroughCantAssociateThroughHasOneOrManyReflection < ThroughCantAssociateThroughHasOneOrManyReflection # :nodoc:
   end
 
-  class ThroughNestedAssociationsAreReadonly < ActiveRecordError #:nodoc:
+  class ThroughNestedAssociationsAreReadonly < ActiveRecordError # :nodoc:
     def initialize(owner = nil, reflection = nil)
       if owner && reflection
         super("Cannot modify association '#{owner.class.name}##{reflection.name}' because it goes through more than one other association.")
@@ -203,10 +203,10 @@ module ActiveRecord
     end
   end
 
-  class HasManyThroughNestedAssociationsAreReadonly < ThroughNestedAssociationsAreReadonly #:nodoc:
+  class HasManyThroughNestedAssociationsAreReadonly < ThroughNestedAssociationsAreReadonly # :nodoc:
   end
 
-  class HasOneThroughNestedAssociationsAreReadonly < ThroughNestedAssociationsAreReadonly #:nodoc:
+  class HasOneThroughNestedAssociationsAreReadonly < ThroughNestedAssociationsAreReadonly # :nodoc:
   end
 
   # This error is raised when trying to eager load a polymorphic association using a JOIN.
@@ -225,7 +225,7 @@ module ActiveRecord
   # This error is raised when trying to destroy a parent instance in N:1 or 1:1 associations
   # (has_many, has_one) when there is at least 1 child associated instance.
   # ex: if @project.tasks.size > 0, DeleteRestrictionError will be raised when trying to destroy @project
-  class DeleteRestrictionError < ActiveRecordError #:nodoc:
+  class DeleteRestrictionError < ActiveRecordError # :nodoc:
     def initialize(name = nil)
       if name
         super("Cannot delete record because of dependent #{name}")
@@ -249,7 +249,7 @@ module ActiveRecord
     autoload :CollectionProxy
     autoload :ThroughAssociation
 
-    module Builder #:nodoc:
+    module Builder # :nodoc:
       autoload :Association,           "active_record/associations/builder/association"
       autoload :SingularAssociation,   "active_record/associations/builder/singular_association"
       autoload :CollectionAssociation, "active_record/associations/builder/collection_association"
@@ -281,7 +281,7 @@ module ActiveRecord
     end
 
     # Returns the association instance for the given name, instantiating it if it doesn't already exist
-    def association(name) #:nodoc:
+    def association(name) # :nodoc:
       association = association_instance_get(name)
 
       if association.nil?

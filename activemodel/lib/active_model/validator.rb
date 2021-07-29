@@ -174,7 +174,7 @@ module ActiveModel
 
   # +BlockValidator+ is a special +EachValidator+ which receives a block on initialization
   # and call this block for each attribute being validated. +validates_each+ uses this validator.
-  class BlockValidator < EachValidator #:nodoc:
+  class BlockValidator < EachValidator # :nodoc:
     def initialize(options, &block)
       @block = block
       super

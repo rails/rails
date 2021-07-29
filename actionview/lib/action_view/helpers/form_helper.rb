@@ -14,7 +14,7 @@ require "active_support/core_ext/string/inflections"
 
 module ActionView
   # = Action View Form Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # Form helpers are designed to make working with resources much easier
     # compared to using vanilla HTML.
     #
@@ -453,7 +453,7 @@ module ActionView
         form_tag_with_body(html_options, output)
       end
 
-      def apply_form_for_options!(record, object, options) #:nodoc:
+      def apply_form_for_options!(record, object, options) # :nodoc:
         object = convert_to_model(object)
 
         as = options[:as]
