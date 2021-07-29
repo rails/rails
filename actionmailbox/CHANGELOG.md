@@ -1,3 +1,16 @@
+*   Add `attachments` to the list of permitted parameters for inbound emails conductor.
+
+    When using the conductor to test inbound emails with attachments, this prevents an
+    unpermitted parameter warning in default configurations, and prevents errors for
+    applications that set:
+
+    ```ruby
+    config.action_controller.action_on_unpermitted_parameters = :raise
+    ```
+
+    *David Jones*, *Dana Henke*
+
+
 ## Rails 6.1.4 (June 24, 2021) ##
 
 *   No changes.
