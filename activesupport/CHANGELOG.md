@@ -1,3 +1,26 @@
+*   Allow entirely opting out of deprecation warnings
+
+    Previously if you did `app.config.active_support.deprecation = :silence`, some work would
+    still be done on each call to `ActiveSupport::Deprecation.warn`. In very hot paths, this could
+    cause performance issues.
+
+    Now, you can make `ActiveSupport::Deprecation.warn` a no-op:
+
+    ```ruby
+    config.active_support.report_deprecations = false
+    ```
+
+    This is the default in production for new apps. It is the equivalent to:
+
+    ```ruby
+    config.active_support.deprecation = :silence
+    config.active_support.disallowed_deprecation = :silence
+    ```
+
+    but will take a more optimised code path.
+
+    *Alex Ghiculescu*
+
 *   Faster tests by parallelizing only when overhead is justified by the number
     of them.
 
