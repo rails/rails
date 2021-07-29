@@ -170,7 +170,7 @@ module ActiveRecord
         # Populate it.
         cache.add("posts")
 
-        # Create a new cache by marchal dumping / loading.
+        # Create a new cache by marshal dumping / loading.
         cache = Marshal.load(Marshal.dump(cache))
 
         assert_no_queries do
