@@ -223,12 +223,14 @@ module ActionController #:nodoc:
       end
 
       class Exception
+        attr_accessor :warning_message
+
         def initialize(controller)
           @controller = controller
         end
 
         def handle_unverified_request
-          raise ActionController::InvalidAuthenticityToken
+          raise ActionController::InvalidAuthenticityToken, warning_message
         end
       end
     end
@@ -248,19 +250,28 @@ module ActionController #:nodoc:
         mark_for_same_origin_verification!
 
         if !verified_request?
-          if logger && log_warning_on_csrf_failure
-            if valid_request_origin?
-              logger.warn "Can't verify CSRF token authenticity."
-            else
-              logger.warn "HTTP Origin header (#{request.origin}) didn't match request.base_url (#{request.base_url})"
-            end
-          end
+          logger.warn unverified_request_warning_message if logger && log_warning_on_csrf_failure
+
           handle_unverified_request
         end
       end
 
       def handle_unverified_request # :doc:
-        forgery_protection_strategy.new(self).handle_unverified_request
+        protection_strategy = forgery_protection_strategy.new(self)
+
+        if protection_strategy.respond_to?(:warning_message)
+          protection_strategy.warning_message = unverified_request_warning_message
+        end
+
+        protection_strategy.handle_unverified_request
+      end
+
+      def unverified_request_warning_message #:nodoc:
+        if valid_request_origin?
+          "Can't verify CSRF token authenticity."
+        else
+          "HTTP Origin header (#{request.origin}) didn't match request.base_url (#{request.base_url})"
+        end
       end
 
       #:nodoc:

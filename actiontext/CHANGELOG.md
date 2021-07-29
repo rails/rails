@@ -1,3 +1,7 @@
+*   Make the Action Text + Trix JavaScript and CSS available through the asset pipeline.
+
+    *DHH*
+
 *   OpenSSL constants are now used for Digest computations.
 
     *Dirkjan Bussink*

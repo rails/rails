@@ -6,7 +6,7 @@ require "database/setup"
 class ActiveStorage::PreviewTest < ActiveSupport::TestCase
   test "previewing a PDF" do
     blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
-    preview = blob.preview(resize: "640x280").processed
+    preview = blob.preview(resize_to_limit: [640, 280]).processed
 
     assert_predicate preview.image, :attached?
     assert_equal "report.png", preview.image.filename.to_s
@@ -19,7 +19,7 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
 
   test "previewing a cropped PDF" do
     blob = create_file_blob(filename: "cropped.pdf", content_type: "application/pdf")
-    preview = blob.preview(resize: "640x280").processed
+    preview = blob.preview(resize_to_limit: [640, 280]).processed
 
     assert_predicate preview.image, :attached?
     assert_equal "cropped.png", preview.image.filename.to_s
@@ -32,7 +32,7 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
 
   test "previewing an MP4 video" do
     blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
-    preview = blob.preview(resize: "640x280").processed
+    preview = blob.preview(resize_to_limit: [640, 280]).processed
 
     assert_predicate preview.image, :attached?
     assert_equal "video.jpg", preview.image.filename.to_s
@@ -47,7 +47,7 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
     blob = create_file_blob
 
     assert_raises ActiveStorage::UnpreviewableError do
-      blob.preview resize: "640x280"
+      blob.preview resize_to_limit: [640, 280]
     end
   end
 
@@ -56,7 +56,7 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
 
     # prevent_writes option is required because there is no automatic write protection anymore
     ActiveRecord::Base.connected_to(role: ActiveRecord.reading_role, prevent_writes: true) do
-      blob.preview(resize: "640x280").processed
+      blob.preview(resize_to_limit: [640, 280]).processed
     end
 
     assert blob.reload.preview_image.attached?
@@ -64,14 +64,14 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
 
   test "preview of PDF is created on the same service" do
     blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf", service_name: "local_public")
-    preview = blob.preview(resize: "640x280").processed
+    preview = blob.preview(resize_to_limit: [640, 280]).processed
 
     assert_equal "local_public", preview.image.blob.service_name
   end
 
   test "preview of MP4 video is created on the same service" do
     blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4", service_name: "local_public")
-    preview = blob.preview(resize: "640x280").processed
+    preview = blob.preview(resize_to_limit: [640, 280]).processed
 
     assert_equal "local_public", preview.image.blob.service_name
   end

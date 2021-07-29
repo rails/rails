@@ -80,7 +80,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     end
 
     def dependent
-      record.attachment_reflections[name]&.options[:dependent]
+      record.attachment_reflections[name]&.options&.fetch(:dependent, nil)
     end
 
     def variants

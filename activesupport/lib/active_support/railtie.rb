@@ -10,9 +10,11 @@ module ActiveSupport
     config.eager_load_namespaces << ActiveSupport
 
     initializer "active_support.remove_deprecated_time_with_zone_name" do |app|
-      if app.config.active_support.remove_deprecated_time_with_zone_name
-        require "active_support/time_with_zone"
-        TimeWithZone.singleton_class.remove_method(:name)
+      config.after_initialize do
+        if app.config.active_support.remove_deprecated_time_with_zone_name
+          require "active_support/time_with_zone"
+          TimeWithZone.singleton_class.remove_method(:name)
+        end
       end
     end
 

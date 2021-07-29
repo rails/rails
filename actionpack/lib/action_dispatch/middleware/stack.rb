@@ -129,11 +129,19 @@ module ActionDispatch
     end
     ruby2_keywords(:swap)
 
+    # Deletes a middleware from the middleware stack.
+    #
+    # Returns the array of middlewares not including the deleted item, or
+    # returns nil if the target is not found.
     def delete(target)
       middlewares.reject! { |m| m.name == target.name }
     end
 
-    def remove(target)
+    # Deletes a middleware from the middleware stack.
+    #
+    # Returns the array of middlewares not including the deleted item, or
+    # raises +RuntimeError+ if the target is not found.
+    def delete!(target)
       delete(target) || (raise "No such middleware to remove: #{target.inspect}")
     end
 

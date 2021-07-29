@@ -2,6 +2,13 @@
 
     *Georg Ledermann*
 
+*   Add `Middleware#delete!` to delete middleware or raise if not found.
+
+    `Middleware#delete!` works just like `Middleware#delete` but will
+    raise an error if the middleware isn't found.
+
+    *Alex Ghiculescu*, *Petrik de Heus*, *Junichi Sato*
+
 *   Raise error on unpermitted open redirects.
 
     Add `allow_other_host` options to `redirect_to`.
@@ -16,13 +23,6 @@
     [Cuprite](https://github.com/rubycdp/cuprite) is a good alternative to Poltergeist. Some guide descriptions are replaced from Poltergeist to Cuprite.
 
     *Yusuke Iwaki*
-
-*   Add `Middleware#remove` to delete middleware or raise if not found.
-
-    `Middleware#remove` works just like `Middleware#delete` but will
-    raise an error if the middleware isn't found.
-
-    *Alex Ghiculescu*, *Petrik de Heus*
 
 *   Exclude additional flash types from `ActionController::Base.action_methods`.
 
