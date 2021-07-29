@@ -376,6 +376,7 @@ module InflectorTestCases
     "move"   => "moves",
     "cow"    => "kine", # Test inflections with different starting letters
     "zombie" => "zombies",
-    "genus"  => "genera"
+    "genus"  => "genera",
+    "valve"  => "valves"
   }
 end
