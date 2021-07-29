@@ -1,3 +1,10 @@
+*   Make `vips` the default variant processor for new apps.
+
+    See the upgrade guide for instructions on converting from `mini_magick` to `vips`. `mini_magick` is
+    not deprecated, existing apps can keep using it.
+
+    *Breno Gazzola*
+
 *   Deprecate `ActiveStorage::Current.host` in favor of `ActiveStorage::Current.url_options` which accepts
     a host, protocol and port.
 
