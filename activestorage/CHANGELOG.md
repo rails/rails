@@ -1,3 +1,9 @@
+*   Attachments can be deleted after their association is no longer defined.
+
+    Fixes #42514
+
+    *Don Sisco*
+
 *   Make `vips` the default variant processor for new apps.
 
     See the upgrade guide for instructions on converting from `mini_magick` to `vips`. `mini_magick` is
