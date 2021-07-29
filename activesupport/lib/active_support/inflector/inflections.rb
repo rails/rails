@@ -16,7 +16,7 @@ module ActiveSupport
     #     inflect.plural /^(ox)$/i, '\1\2en'
     #     inflect.singular /^(ox)en/i, '\1'
     #
-    #     inflect.irregular 'octopus', 'octopi'
+    #     inflect.irregular 'octopus', 'octopodes'
     #
     #     inflect.uncountable 'equipment'
     #   end
@@ -167,7 +167,7 @@ module ActiveSupport
       # regular expressions. You simply pass the irregular in singular and
       # plural form.
       #
-      #   irregular 'octopus', 'octopi'
+      #   irregular 'octopus', 'octopodes'
       #   irregular 'person', 'people'
       def irregular(singular, plural)
         @uncountables.delete(singular)
