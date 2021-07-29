@@ -229,18 +229,22 @@ module ActiveRecord
       loop do
         if load
           records = batch_relation.records
-          ids = records.map(&:id)
-          yielded_relation = where(primary_key => ids)
+          ids = records.map(&(order_column_name.to_sym))
+          yielded_relation = where(order_column_name => ids)
           yielded_relation.load_records(records)
         else
-          ids = batch_relation.pluck(primary_key)
-          yielded_relation = where(primary_key => ids)
+          ids = batch_relation.pluck(order_column_name)
+          yielded_relation = where(order_column_name => ids)
         end
 
         break if ids.empty?
 
-        primary_key_offset = ids.last
-        raise ArgumentError.new("Primary key not included in the custom select clause") unless primary_key_offset
+        order_column_offset = ids.last
+        if implicit_order_column
+          raise ArgumentError.new("Implicit order column not included in the custom select clause") unless order_column_offset
+        else
+          raise ArgumentError.new("Primary key not included in the custom select clause") unless order_column_offset
+        end
 
         yield yielded_relation
 
@@ -259,7 +263,7 @@ module ActiveRecord
         end
 
         batch_relation = relation.where(
-          predicate_builder[primary_key, primary_key_offset, order == :desc ? :lt : :gt]
+          predicate_builder[order_column_name, order_column_offset, order == :desc ? :lt : :gt]
         )
       end
     end
@@ -272,15 +276,19 @@ module ActiveRecord
       end
 
       def apply_start_limit(relation, start, order)
-        relation.where(predicate_builder[primary_key, start, order == :desc ? :lteq : :gteq])
+        relation.where(predicate_builder[order_column_name, start, order == :desc ? :lteq : :gteq])
       end
 
       def apply_finish_limit(relation, finish, order)
-        relation.where(predicate_builder[primary_key, finish, order == :desc ? :gteq : :lteq])
+        relation.where(predicate_builder[order_column_name, finish, order == :desc ? :gteq : :lteq])
       end
 
       def batch_order(order)
-        table[primary_key].public_send(order)
+        table[order_column_name].public_send(order)
+      end
+
+      def order_column_name
+        implicit_order_column || primary_key
       end
 
       def act_on_ignored_order(error_on_ignore)

@@ -357,6 +357,20 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_each_record_should_be_ordered_by_implicit_order_column_when_configured
+    old_implicit_order_column = Post.implicit_order_column
+    Post.implicit_order_column = "title"
+
+    ids = Post.order("title ASC").pluck(:id)
+    assert_queries(6) do
+      Post.in_batches(of: 2).each_record.with_index do |post, i|
+        assert_equal ids[i], post.id
+      end
+    end
+  ensure
+    Post.implicit_order_column = old_implicit_order_column
+  end
+
   def test_in_batches_update_all_affect_all_records
     assert_queries(6 + 6) do # 6 selects, 6 updates
       Post.in_batches(of: 2).update_all(title: "updated-title")
@@ -427,12 +441,44 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_should_start_from_the_start_option_when_implicit_order_column_is_configured
+    old_implicit_order_column = Post.implicit_order_column
+    Post.implicit_order_column = "title"
+
+    post = Post.order("id ASC").where("id >= ?", 2).first
+    assert_queries(2) do
+      relation = Post.in_batches(of: 1, start: post.title).first
+      assert_equal post, relation.first
+    end
+  ensure
+    Post.implicit_order_column = old_implicit_order_column
+  end
+
   def test_in_batches_should_end_at_the_finish_option
     post = Post.order("id DESC").where("id <= ?", 5).first
     assert_queries(7) do
       relation = Post.in_batches(of: 1, finish: 5, load: true).reverse_each.first
       assert_equal post, relation.last
     end
+  end
+
+  def test_in_batches_should_end_at_the_finish_option_when_implicit_order_column_is_configured
+    old_implicit_order_column = Post.implicit_order_column
+    Post.implicit_order_column = "title"
+
+    sorted_posts = Post.order("title ASC")
+    post = Post.find(6)
+    expected_query_count = sorted_posts.index(post) + 3 # The number of batches, plus first, last, and accounting for the 0 based index.
+
+    # The number of queries is calculated because of the differences in alphanumeric sorting between DB types.
+    # MySQL sorts A,a,B,b,C,c,...
+    # SQLite sorts A,B,C,...,a,b,c,...
+    assert_queries(expected_query_count) do
+      relation = Post.in_batches(of: 1, finish: post.title, load: true).reverse_each.first
+      assert_equal post, relation.last
+    end
+  ensure
+    Post.implicit_order_column = old_implicit_order_column
   end
 
   def test_in_batches_shouldnt_execute_query_unless_needed

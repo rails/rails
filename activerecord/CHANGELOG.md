@@ -1,3 +1,11 @@
+*   Specifying `implicit_order_column` now allows for use of
+    `ActiveRecord::Batches#in_batches` on tables without an auto-incrementing
+    primary key. When using `implicit_order_column` on a non-unique
+    column the batch size represents the number of unique values, of that
+    column, that will be processed in the batch not the number of records.
+
+    *Jack Hall*
+
 *   Two change tracking methods are added for `belongs_to` associations.
 
     The `association_changed?` method (assuming an association named `:association`) returns true
