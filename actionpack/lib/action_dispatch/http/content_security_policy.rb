@@ -44,20 +44,38 @@ module ActionDispatch # :nodoc:
         return response if policy_present?(headers)
 
         request = ActionDispatch::Request.new env
+        policy = request.content_security_policy
+        report_only_policy = determine_report_only_policy(request)
 
-        if policy = request.content_security_policy
+        if policy || report_only_policy
           nonce = request.content_security_policy_nonce
           nonce_directives = request.content_security_policy_nonce_directives
           context = request.controller_instance || request
-          headers[header_name(request)] = policy.build(context, nonce, nonce_directives)
+
+          headers[header_name(request)] = policy.build(context, nonce, nonce_directives) if policy
+
+          headers[ActionDispatch::Constants::CONTENT_SECURITY_POLICY_REPORT_ONLY] =
+            report_only_policy.build(context, nonce, nonce_directives) if report_only_policy
         end
 
         response
       end
 
       private
+        def determine_report_only_policy(request)
+          return if request.content_security_policy_report_only == true
+
+          request.content_security_policy_report_only
+        end
+
+        def html_response?(headers)
+          if content_type = headers[CONTENT_TYPE]
+            content_type.include?("html")
+          end
+        end
+
         def header_name(request)
-          if request.content_security_policy_report_only
+          if request.content_security_policy_report_only == true
             ActionDispatch::Constants::CONTENT_SECURITY_POLICY_REPORT_ONLY
           else
             ActionDispatch::Constants::CONTENT_SECURITY_POLICY
@@ -89,8 +107,8 @@ module ActionDispatch # :nodoc:
         get_header(POLICY_REPORT_ONLY)
       end
 
-      def content_security_policy_report_only=(value)
-        set_header(POLICY_REPORT_ONLY, value)
+      def content_security_policy_report_only=(policy)
+        set_header(POLICY_REPORT_ONLY, policy)
       end
 
       def content_security_policy_nonce_generator
