@@ -32,7 +32,6 @@ class FileStoreTest < ActiveSupport::TestCase
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
   include CacheStoreCoderBehavior
-  include LocalCacheBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior

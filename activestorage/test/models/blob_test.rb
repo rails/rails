@@ -212,7 +212,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
   test "purge deletes variants from external service with the purge_later" do
     blob = create_file_blob
-    variant = blob.variant(resize: "100>").processed
+    variant = blob.variant(resize_to_limit: [100, nil]).processed
 
     blob.purge
     assert_enqueued_with(job: ActiveStorage::PurgeJob, args: [variant.image.blob])

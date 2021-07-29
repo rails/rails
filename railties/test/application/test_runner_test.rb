@@ -571,7 +571,7 @@ module ApplicationTests
       assert_no_match "create_table(:users)", output
     end
 
-    def test_avoid_parallelizing_when_number_of_tests_is_below_threshold
+    def test_parallelization_is_disabled_when_number_of_tests_is_below_threshold
       exercise_parallelization_regardless_of_machine_core_count(with: :processes, threshold: 100)
 
       file_name = create_parallel_processes_test_file
@@ -590,72 +590,24 @@ module ApplicationTests
       assert_no_match %r{Running \d+ tests in parallel using \d+ processes}, output
     end
 
-    def test_parallel_is_disabled_when_single_file_is_run
-      exercise_parallelization_regardless_of_machine_core_count(with: :processes, force: false)
-
-      file_name = app_file "test/unit/parallel_test.rb", <<-RUBY
-        require "test_helper"
-
-        class ParallelTest < ActiveSupport::TestCase
-          def test_verify_test_order
-            puts "Test parallelization disabled: \#{ActiveSupport.test_parallelization_disabled}"
-          end
-        end
-      RUBY
-
-      output = run_test_command(file_name)
-
-      assert_match "Test parallelization disabled: true", output
-    end
-
-    def test_parallel_is_enabled_when_multiple_files_are_run
-      exercise_parallelization_regardless_of_machine_core_count(with: :processes, force: false)
-
-      file_1 = app_file "test/unit/parallel_test_first.rb", <<-RUBY
-        require "test_helper"
-
-        class ParallelTestFirst < ActiveSupport::TestCase
-          def test_verify_test_order
-            puts "Test parallelization disabled (file 1): \#{ActiveSupport.test_parallelization_disabled}"
-          end
-        end
-      RUBY
-
-      file_2 = app_file "test/unit/parallel_test_second.rb", <<-RUBY
-        require "test_helper"
-
-        class ParallelTestSecond < ActiveSupport::TestCase
-          def test_verify_test_order
-            puts "Test parallelization disabled (file 2): \#{ActiveSupport.test_parallelization_disabled}"
-          end
-        end
-      RUBY
-
-      output = run_test_command([file_1, file_2].join(" "))
-
-      assert_match "Test parallelization disabled (file 1): false", output
-      assert_match "Test parallelization disabled (file 2): false", output
-    end
-
     def test_parallel_is_enabled_when_PARALLEL_WORKERS_is_set
       @old = ENV["PARALLEL_WORKERS"]
       ENV["PARALLEL_WORKERS"] = "5"
 
-      exercise_parallelization_regardless_of_machine_core_count(with: :processes, force: false)
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes, threshold: 100)
 
       file_name = app_file "test/unit/parallel_test.rb", <<-RUBY
         require "test_helper"
 
         class ParallelTest < ActiveSupport::TestCase
           def test_verify_test_order
-            puts "Test parallelization disabled: \#{ActiveSupport.test_parallelization_disabled}"
           end
         end
       RUBY
 
       output = run_test_command(file_name)
 
-      assert_match "Test parallelization disabled: false", output
+      assert_match %r{Running \d+ tests in parallel using \d+ processes}, output
     ensure
       ENV["PARALLEL_WORKERS"] = @old
     end
@@ -1160,18 +1112,13 @@ module ApplicationTests
         RUBY
       end
 
-      def exercise_parallelization_regardless_of_machine_core_count(with:, force: true, threshold: 0)
-        file_content = ERB.new(<<-ERB, trim_mode: "-").result_with_hash(with: with.to_s, force: force)
+      def exercise_parallelization_regardless_of_machine_core_count(with:, threshold: 0)
+        file_content = ERB.new(<<-ERB, trim_mode: "-").result_with_hash(with: with.to_s)
           ENV["RAILS_ENV"] ||= "test"
           require_relative "../config/environment"
           require "rails/test_help"
 
           class ActiveSupport::TestCase
-            <%- if force -%>
-            # Force parallelization, even with single files
-            ActiveSupport.test_parallelization_disabled = false
-            <%- end -%>
-
             # Run tests in parallel with specified workers
             parallelize(workers: 2, with: :<%= with %>, threshold: #{threshold})
 

@@ -274,6 +274,7 @@ module Rails
           "action_dispatch.secret_key_base" => secret_key_base,
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
+          "action_dispatch.log_rescued_responses" => config.action_dispatch.log_rescued_responses,
           "action_dispatch.logger" => Rails.logger,
           "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner,
           "action_dispatch.key_generator" => key_generator,

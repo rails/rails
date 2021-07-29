@@ -198,7 +198,7 @@ module ActiveSupport
         notifier.publish(name, *args)
       end
 
-      def publish_event(event) # :nodoc;
+      def publish_event(event) # :nodoc:
         notifier.publish_event(event)
       end
 

@@ -205,6 +205,13 @@ And to remove browser related middleware,
 config.middleware.delete Rack::MethodOverride
 ```
 
+If you want an error to be raised when you try to delete a non-existent item, use `delete!` instead.
+
+```ruby
+# config/application.rb
+config.middleware.delete! ActionDispatch::Executor
+```
+
 ### Internal Middleware Stack
 
 Much of Action Controller's functionality is implemented as Middlewares. The following list explains the purpose of each of them:

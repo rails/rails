@@ -29,7 +29,17 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     sleep 1
   end
 
+  def mkdir(dirs)
+    super
+    wait # wait for the events to fire
+  end
+
   def touch(files)
+    super
+    wait # wait for the events to fire
+  end
+
+  def rm_f(files)
     super
     wait # wait for the events to fire
   end
@@ -97,8 +107,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
 
     assert_not_predicate checker, :updated?
 
-    FileUtils.touch(File.join(actual_dir, "a.rb"))
-    wait
+    touch(File.join(actual_dir, "a.rb"))
 
     assert_predicate checker, :updated?
     assert checker.execute_if_updated
@@ -114,8 +123,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
 
     checker = new_checker([], watched_dir => ".rb", not_exist_watched_dir => ".rb") { }
 
-    FileUtils.touch(File.join(watched_dir, "a.rb"))
-    wait
+    touch(File.join(watched_dir, "a.rb"))
     assert_predicate checker, :updated?
     assert checker.execute_if_updated
 
@@ -124,8 +132,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     assert_predicate checker, :updated?
     assert checker.execute_if_updated
 
-    FileUtils.touch(File.join(unwatched_dir, "a.rb"))
-    wait
+    touch(File.join(unwatched_dir, "a.rb"))
     assert_not_predicate checker, :updated?
     assert_not checker.execute_if_updated
   end

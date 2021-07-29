@@ -237,7 +237,7 @@ module ActiveRecord
         end
       end
 
-      # This shit is nasty. We need to avoid the following situation:
+      # We need to avoid the following situation:
       #
       #   * An associated record is deleted via record.destroy
       #   * Hence the callbacks run, and they find a belongs_to on the record with a

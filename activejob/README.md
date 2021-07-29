@@ -2,8 +2,8 @@
 
 Active Job is a framework for declaring jobs and making them run on a variety
 of queuing backends. These jobs can be everything from regularly scheduled
-clean-ups, to billing charges, to mailings. Anything that can be chopped up into
-small units of work and run in parallel, really.
+clean-ups, to billing charges, to mailings — anything that can be chopped up into
+small units of work and run in parallel.
 
 It also serves as the backend for Action Mailer's #deliver_later functionality
 that makes it easy to turn any mailing into a job for running later. That's

@@ -75,7 +75,7 @@ module Arel # :nodoc: all
         end
         alias :prepare_delete_statement :prepare_update_statement
 
-        # MySQL is too stupid to create a temporary table for use subquery, so we have
+        # MySQL doesn't automatically create a temporary table for use subquery, so we have
         # to give it some prompting in the form of a subsubquery.
         def build_subselect(key, o)
           subselect = super

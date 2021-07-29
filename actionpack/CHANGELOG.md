@@ -1,3 +1,17 @@
+*   Add `Middleware#delete!` to delete middleware or raise if not found.
+
+    `Middleware#delete!` works just like `Middleware#delete` but will
+    raise an error if the middleware isn't found.
+
+    *Alex Ghiculescu*, *Petrik de Heus*, *Junichi Sato*
+
+*   Raise error on unpermitted open redirects.
+
+    Add `allow_other_host` options to `redirect_to`.
+    Opt in to this behaviour with `ActionController::Base.raise_on_open_redirects = true`.
+
+    *Gannon McGibbon*
+
 *   Deprecate `poltergeist` and `webkit` (capybara-webkit) driver registration for system testing (they will be removed in Rails 7.1). Add `cuprite` instead.
 
     [Poltergeist](https://github.com/teampoltergeist/poltergeist) and [capybara-webkit](https://github.com/thoughtbot/capybara-webkit) are already not maintained. These usage in Rails are removed for avoiding confusing users.
@@ -5,13 +19,6 @@
     [Cuprite](https://github.com/rubycdp/cuprite) is a good alternative to Poltergeist. Some guide descriptions are replaced from Poltergeist to Cuprite.
 
     *Yusuke Iwaki*
-
-*   Add `Middleware#remove` to delete middleware or raise if not found.
-
-    `Middleware#remove` works just like `Middleware#delete` but will
-    raise an error if the middleware isn't found.
-
-    *Alex Ghiculescu*, *Petrik de Heus*
 
 *   Exclude additional flash types from `ActionController::Base.action_methods`.
 
