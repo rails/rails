@@ -1550,7 +1550,7 @@ module ActiveRecord
       def column_references(order_args)
         references = order_args.flat_map do |arg|
           case arg
-          when String
+          when String, Symbol
             arg
           when Hash
             arg.keys
