@@ -1714,16 +1714,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_predicate scope, :eager_loading?
   end
 
-  def test_order_triggers_eager_loading_when_ordering_using_symbols
-    scope = Post.includes(:comments).order(:"comments.label")
-    assert_predicate scope, :eager_loading?
-  end
-
-  def test_order_doesnt_trigger_eager_loading_when_ordering_using_owner_table_and_symbols
-    scope = Post.includes(:comments).order(:"posts.title")
-    assert_not_predicate scope, :eager_loading?
-  end
-
   def test_order_triggers_eager_loading_when_ordering_using_hash_syntax
     scope = Post.includes(:comments).order({ "comments.label": :ASC })
     assert_predicate scope, :eager_loading?
