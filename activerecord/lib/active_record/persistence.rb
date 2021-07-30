@@ -227,13 +227,14 @@ module ActiveRecord
       #
       # [:unique_by]
       #   (PostgreSQL and SQLite only) By default rows are considered to be unique
-      #   by every unique index on the table. Any duplicate rows are skipped.
+      #   by every unique index on the table (PostgreSQL) or by the primary key (SQLite).
+      #   Any duplicate rows are updated.
       #
       #   To skip rows according to just one unique index pass <tt>:unique_by</tt>.
       #
       #   Consider a Book model where no duplicate ISBNs make sense, but if any
       #   row has an existing id, or is not unique by another unique index,
-      #   <tt>ActiveRecord::RecordNotUnique</tt> is raised.
+      #   the existing entry is updated with the data passed to #upsert_all.
       #
       #   Unique indexes can be identified by columns or name:
       #
