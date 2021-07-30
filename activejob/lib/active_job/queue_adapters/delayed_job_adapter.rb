@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "delayed_job"
+require "active_support/core_ext/string/inflections"
 
 module ActiveJob
   module QueueAdapters
@@ -35,12 +36,21 @@ module ActiveJob
         end
 
         def display_name
-          "#{job_data['job_class']} [#{job_data['job_id']}] from DelayedJob(#{job_data['queue_name']}) with arguments: #{job_data['arguments']}"
+          base_name = "#{job_data["job_class"]} [#{job_data["job_id"]}] from DelayedJob(#{job_data["queue_name"]})"
+
+          return base_name unless log_arguments?
+
+          "#{base_name} with arguments: #{job_data["arguments"]}"
         end
 
         def perform
           Base.execute(job_data)
         end
+
+        private
+          def log_arguments?
+            job_data["job_class"].constantize.log_arguments?
+          end
       end
     end
   end
