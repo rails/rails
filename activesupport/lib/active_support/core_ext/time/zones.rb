@@ -32,7 +32,7 @@ class Time
     #
     #     def set_time_zone
     #       if logged_in?
-    #         Time.use_zone(current_user.time_zone) { yield }
+    #         Time.with_zone(current_user.time_zone) { yield }
     #       else
     #         yield
     #       end
@@ -51,7 +51,7 @@ class Time
     #     private
     #
     #     def set_time_zone
-    #       Time.use_zone(current_user.timezone) { yield }
+    #       Time.with_zone(current_user.timezone) { yield }
     #     end
     #   end
     #
@@ -59,7 +59,8 @@ class Time
     # objects that have already been created, e.g. any model timestamp
     # attributes that have been read before the block will remain in
     # the application's default timezone.
-    def use_zone(time_zone)
+    # This method is also aliased as +use_zone+
+    def with_zone(time_zone)
       new_zone = find_zone!(time_zone)
       begin
         old_zone, ::Time.zone = ::Time.zone, new_zone
@@ -68,6 +69,7 @@ class Time
         ::Time.zone = old_zone
       end
     end
+    alias :use_zone :with_zone
 
     # Returns a TimeZone instance matching the time zone provided.
     # Accepts the time zone in any format supported by <tt>Time.zone=</tt>.

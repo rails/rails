@@ -274,7 +274,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_preserving_time_objects_with_time_with_zone_conversion_to_default_timezone_utc
     with_env_tz eastern_time_zone do
       with_timezone_config default: :utc do
-        Time.use_zone "Central Time (US & Canada)" do
+        Time.with_zone "Central Time (US & Canada)" do
           time = Time.zone.local(2000)
           topic = Topic.create("written_on" => time)
           saved_time = Topic.find(topic.id).reload.written_on
@@ -302,7 +302,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_preserving_time_objects_with_time_with_zone_conversion_to_default_timezone_local
     with_env_tz eastern_time_zone do
       with_timezone_config default: :local do
-        Time.use_zone "Central Time (US & Canada)" do
+        Time.with_zone "Central Time (US & Canada)" do
           time = Time.zone.local(2000)
           topic = Topic.create("written_on" => time)
           saved_time = Topic.find(topic.id).reload.written_on
@@ -982,7 +982,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     def test_default_in_utc_with_time_zone
       with_timezone_config default: :utc do
-        Time.use_zone "Central Time (US & Canada)" do
+        Time.with_zone "Central Time (US & Canada)" do
           default = Default.new
 
           assert_equal Date.new(2004, 1, 1), default.fixed_date

@@ -25,7 +25,7 @@ class TimezonesTest < ActiveSupport::TestCase
   test "perform_now passes down current timezone to the job" do
     Time.zone = "America/New_York"
 
-    Time.use_zone("London") do
+    Time.with_zone("London") do
       job = TimezoneDependentJob.new("2018-01-01T00:00:00Z")
       assert_equal "London", job.timezone
       job.perform_now

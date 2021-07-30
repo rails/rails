@@ -59,7 +59,7 @@ class JobSerializationTest < ActiveSupport::TestCase
   end
 
   test "serialize stores the current timezone" do
-    Time.use_zone "Hawaii" do
+    Time.with_zone "Hawaii" do
       job = HelloJob.new
       assert_equal "Hawaii", job.serialize["timezone"]
     end

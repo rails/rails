@@ -1,3 +1,7 @@
+*   make `Time.with_zone` the prefered alias instead of `Time.use_zone`
+
+    *Dorian Marié*
+
 *   Faster tests by parallelizing only when overhead is justified by the number
     of them.
 

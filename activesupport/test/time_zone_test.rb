@@ -171,7 +171,7 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_travel_to_a_date
     with_env_tz do
-      Time.use_zone("Hawaii") do
+      Time.with_zone("Hawaii") do
         date = Date.new(2014, 2, 18)
         time = date.midnight
 

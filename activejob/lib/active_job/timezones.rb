@@ -6,7 +6,7 @@ module ActiveJob
 
     included do
       around_perform do |job, block|
-        Time.use_zone(job.timezone, &block)
+        Time.with_zone(job.timezone, &block)
       end
     end
   end

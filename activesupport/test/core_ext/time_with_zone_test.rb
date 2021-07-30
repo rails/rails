@@ -30,7 +30,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_in_time_zone
-    Time.use_zone "Alaska" do
+    Time.with_zone "Alaska" do
       assert_equal ActiveSupport::TimeWithZone.new(@utc, ActiveSupport::TimeZone["Alaska"]), @twz.in_time_zone
     end
   end
@@ -1095,29 +1095,29 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
   end
 
   def test_in_time_zone
-    Time.use_zone "Alaska" do
+    Time.with_zone "Alaska" do
       assert_equal "Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00", @t.in_time_zone.inspect
       assert_equal "Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00", @dt.in_time_zone.inspect
     end
-    Time.use_zone "Hawaii" do
+    Time.with_zone "Hawaii" do
       assert_equal "Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00", @t.in_time_zone.inspect
       assert_equal "Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00", @dt.in_time_zone.inspect
     end
-    Time.use_zone nil do
+    Time.with_zone nil do
       assert_equal @t, @t.in_time_zone
       assert_equal @dt, @dt.in_time_zone
     end
   end
 
   def test_nil_time_zone
-    Time.use_zone nil do
+    Time.with_zone nil do
       assert_not_respond_to @t.in_time_zone, :period, "no period method"
       assert_not_respond_to @dt.in_time_zone, :period, "no period method"
     end
   end
 
   def test_in_time_zone_with_argument
-    Time.use_zone "Eastern Time (US & Canada)" do # Time.zone will not affect #in_time_zone(zone)
+    Time.with_zone "Eastern Time (US & Canada)" do # Time.zone will not affect #in_time_zone(zone)
       assert_equal "Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00", @t.in_time_zone("Alaska").inspect
       assert_equal "Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00", @dt.in_time_zone("Alaska").inspect
       assert_equal "Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00", @t.in_time_zone("Hawaii").inspect
@@ -1149,32 +1149,32 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
     assert_equal @dt.in_time_zone.localtime, @dt.in_time_zone.utc.to_time.getlocal
   end
 
-  def test_use_zone
+  def test_with_zone
     Time.zone = "Alaska"
-    Time.use_zone "Hawaii" do
+    Time.with_zone "Hawaii" do
       assert_equal ActiveSupport::TimeZone["Hawaii"], Time.zone
     end
     assert_equal ActiveSupport::TimeZone["Alaska"], Time.zone
   end
 
-  def test_use_zone_with_exception_raised
+  def test_with_zone_with_exception_raised
     Time.zone = "Alaska"
     assert_raise RuntimeError do
-      Time.use_zone("Hawaii") { raise RuntimeError }
+      Time.with_zone("Hawaii") { raise RuntimeError }
     end
     assert_equal ActiveSupport::TimeZone["Alaska"], Time.zone
   end
 
-  def test_use_zone_raises_on_invalid_timezone
+  def test_with_zone_raises_on_invalid_timezone
     Time.zone = "Alaska"
     assert_raise ArgumentError do
-      Time.use_zone("No such timezone exists") { }
+      Time.with_zone("No such timezone exists") { }
     end
     assert_equal ActiveSupport::TimeZone["Alaska"], Time.zone
   end
 
   def test_time_at_precision
-    Time.use_zone "UTC" do
+    Time.with_zone "UTC" do
       time = "2019-01-01 00:00:00Z".to_time.end_of_month
       assert_equal Time.at(time), Time.at(time.in_time_zone)
     end
@@ -1204,7 +1204,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
   end
 
   def test_time_zone_setter_is_thread_safe
-    Time.use_zone "Paris" do
+    Time.with_zone "Paris" do
       t1 = Thread.new { Time.zone = "Alaska" }.join
       t2 = Thread.new { Time.zone = "Hawaii" }.join
       assert t1.stop?, "Thread 1 did not finish running"
