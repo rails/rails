@@ -17,6 +17,10 @@ require "active_storage/analyzer/image_analyzer/vips"
 require "active_storage/analyzer/video_analyzer"
 require "active_storage/analyzer/audio_analyzer"
 
+require "active_storage/optimizer/jpeg_optimizer"
+require "active_storage/optimizer/png_optimizer"
+require "active_storage/optimizer/web_image_optimizer"
+
 require "active_storage/service/registry"
 
 require "active_storage/reflection"
@@ -28,6 +32,7 @@ module ActiveStorage
     config.active_storage = ActiveSupport::OrderedOptions.new
     config.active_storage.previewers = [ ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
     config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer ]
+    config.active_storage.optimizers = [ ActiveStorage::Optimizer::JpegOptimizer, ActiveStorage::Optimizer::PngOptimizer, ActiveStorage::Optimizer::WebImageOptimizer ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new
 
@@ -84,6 +89,7 @@ module ActiveStorage
         ActiveStorage.variant_processor = app.config.active_storage.variant_processor || :mini_magick
         ActiveStorage.previewers        = app.config.active_storage.previewers || []
         ActiveStorage.analyzers         = app.config.active_storage.analyzers || []
+        ActiveStorage.optimizers        = app.config.active_storage.optimizers || []
         ActiveStorage.paths             = app.config.active_storage.paths || {}
         ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || "/rails/active_storage"
         ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false

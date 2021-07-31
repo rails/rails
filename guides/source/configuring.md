@@ -1027,6 +1027,8 @@ You can find more detailed configuration options in the
 
 * `config.active_storage.previewers` accepts an array of classes indicating the image previewers available in Active Storage blobs. The default is `[ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer]`. `PopplerPDFPreviewer` and `MuPDFPreviewer` can generate a thumbnail from the first page of a PDF blob; `VideoPreviewer` from the relevant frame of a video blob.
 
+* `config.active_storage.optimizers` accepts an array of classes indicating the image optimizers available for Active Storage blobs. The default is `[ActiveStorage::Optimizer::WebImageOptimizer]`. The web image optimizer will not apply any optimizations to web images, but will convert variable image blobs that are not web images into PNGs.  
+
 * `config.active_storage.paths` accepts a hash of options indicating the locations of previewer/analyzer commands. The default is `{}`, meaning the commands will be looked for in the default path. Can include any of these options:
     * `:ffprobe` - The location of the ffprobe executable.
     * `:mutool` - The location of the mutool executable.

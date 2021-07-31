@@ -208,7 +208,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
 
     assert_nil blob.send(:format)
-    assert_equal :png, blob.send(:default_variant_format)
+    assert_equal :png, blob.send(:default_variant_transformations)[:format]
   end
 
   private

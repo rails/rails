@@ -1,3 +1,8 @@
+*   Adds `optimizers` to active storage, which allow transformations to be applied to all
+    representations of active storage blobs automatically, according to their format
+    
+    *Breno Gazzola*
+
 *   Attachments can be deleted after their association is no longer defined.
 
     Fixes #42514

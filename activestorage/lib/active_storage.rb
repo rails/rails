@@ -41,6 +41,7 @@ module ActiveStorage
   autoload :Service
   autoload :Previewer
   autoload :Analyzer
+  autoload :Optimizer
 
   mattr_accessor :logger
   mattr_accessor :verifier
@@ -50,6 +51,7 @@ module ActiveStorage
 
   mattr_accessor :previewers, default: []
   mattr_accessor :analyzers,  default: []
+  mattr_accessor :optimizers, default: []
 
   mattr_accessor :paths, default: {}
 
