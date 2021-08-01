@@ -34,6 +34,11 @@
 # various cache keys leading to cache invalidation.
 # Rails.application.config.active_support.hash_digest_class = OpenSSL::Digest::SHA256
 
+# Change the digest class for Active Record Encryption
+# Changing this default means that decrypting data that was encrypted when the default was
+# +OpenSSL::Digest::SHA1+ won't work because derived keys will be different.
+# Rails.application.config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
+
 # Don't override ActiveSupport::TimeWithZone.name and use the default Ruby
 # implementation.
 # Rails.application.config.active_support.remove_deprecated_time_with_zone_name = true

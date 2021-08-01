@@ -30,7 +30,8 @@ module ActiveRecord
       #
       # The generated key will be salted with the value of +ActiveRecord::Encryption.key_derivation_salt+
       def derive_key_from(password, length: key_length)
-        ActiveSupport::KeyGenerator.new(password).generate_key(ActiveRecord::Encryption.config.key_derivation_salt, length)
+        ActiveSupport::KeyGenerator.new(password, hash_digest_class: ActiveRecord::Encryption.config.hash_digest_class, iterations: 2**16)
+          .generate_key(ActiveRecord::Encryption.config.key_derivation_salt, length)
       end
 
       private

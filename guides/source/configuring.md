@@ -764,6 +764,10 @@ regular expressions.
 
 Specifies if source locations of methods that call database queries should be logged below relevant queries. By default, the flag is `true` in development and `false` in all other environments.
 
+#### `active_record.encryption.hash_digest_class`
+
+Allows configuring the digest class that Active Record Encryption uses to derive keys.
+
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans`
 
 Controls whether the Active Record MySQL adapter will consider all `tinyint(1)` columns as booleans. Defaults to `true`.

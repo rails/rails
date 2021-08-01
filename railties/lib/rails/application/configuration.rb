@@ -150,6 +150,7 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.collection_cache_versioning = true
+            active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA1
           end
         when "6.1"
           load_defaults "6.0"
@@ -233,6 +234,7 @@ module Rails
             active_record.verify_foreign_keys_for_fixtures = true
             active_record.partial_inserts = false
             active_record.automatic_scope_inversing = true
+            active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
           end
 
           if respond_to?(:action_controller)

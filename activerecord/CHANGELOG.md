@@ -1,3 +1,15 @@
+*   Add option to configure digest algorithm in ActiveRecord Encryption.
+
+    Rails 7 uses `SHA256` as the new default digest. With this change, Active Record Encryption will use `SHA256` too. This can be configured with:
+
+    ```ruby
+    config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA1
+    ```
+
+    The default has been retroactively set as `SHA1`for 6.0 defaults, so that early apps that adopted encryption before the new default changed continued working without setting any config.
+
+    *Jorge Manrubia*
+
 *   Add nested_attributes_for support for `delegated_type`
 
     ```ruby
