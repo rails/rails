@@ -1,3 +1,18 @@
+*   Fix saving `DateTime::Infinity` and `Date::Infinity` with PostgreSQL.
+
+    Saving `DateTime::Infinity` and `Date::Infinity` now works correctly in PostgreSQL:
+
+    ```ruby
+    Post.create!(date: Date::Infinity.new).date
+    =>
+    Infinity
+    ```
+
+    Please note that providing the class (`DateTime::Infinity`) instead of the instance
+    (`DateTime::Infinity.new`) is not supported.
+
+    *Jacopo Beschi*
+
 *   Fix `eager_loading?` when ordering with `Symbol`
 
     `eager_loading?` is triggered correctly when using `order` with symbols.

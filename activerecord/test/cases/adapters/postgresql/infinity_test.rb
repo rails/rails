@@ -51,6 +51,10 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
     record = PostgresqlInfinity.create!(datetime: Float::INFINITY)
     record.reload
     assert_equal Float::INFINITY, record.datetime
+
+    record = PostgresqlInfinity.create!(datetime: DateTime::Infinity.new)
+    record.reload
+    assert_equal Float::INFINITY, record.datetime
   end
 
   test "type casting infinity on a date column" do
@@ -59,6 +63,10 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
     assert_equal Float::INFINITY, record.date
 
     record = PostgresqlInfinity.create!(date: Float::INFINITY)
+    record.reload
+    assert_equal Float::INFINITY, record.date
+
+    record = PostgresqlInfinity.create!(date: Date::Infinity.new)
     record.reload
     assert_equal Float::INFINITY, record.date
   end
@@ -84,6 +92,10 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
       assert_equal record.datetime, record.reload.datetime
 
       record = PostgresqlInfinity.create!(datetime: BigDecimal::INFINITY)
+      assert_equal Float::INFINITY, record.datetime
+      assert_equal record.datetime, record.reload.datetime
+
+      record = PostgresqlInfinity.create!(datetime: DateTime::Infinity.new)
       assert_equal Float::INFINITY, record.datetime
       assert_equal record.datetime, record.reload.datetime
     end
