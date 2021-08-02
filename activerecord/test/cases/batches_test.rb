@@ -419,6 +419,16 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_should_retain_original_order
+    Post.in_batches(of: 1) do |relation|
+      assert_equal relation.except(:order).to_sql, relation.to_sql
+    end
+
+    Post.order("id DESC").in_batches(of: 1) do |relation|
+      assert_equal relation.reorder("id DESC").to_sql, relation.to_sql
+    end
+  end
+
   def test_in_batches_should_start_from_the_start_option
     post = Post.order("id ASC").where("id >= ?", 2).first
     assert_queries(2) do

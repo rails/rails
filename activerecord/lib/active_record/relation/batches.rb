@@ -221,9 +221,7 @@ module ActiveRecord
         batch_limit = remaining if remaining < batch_limit
       end
 
-      relation = relation.reorder(batch_order(order))
-
-      limit_relation = relation.limit(batch_limit)
+      limit_relation = relation.reorder(batch_order(order)).limit(batch_limit)
       limit_relation = apply_finish_limit(limit_relation, finish, order) if finish
       limit_relation.skip_query_cache! # Retaining the results in the query cache would undermine the point of batching
 
