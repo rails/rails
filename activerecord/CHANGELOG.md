@@ -1,3 +1,7 @@
+*   Added support for multiple databases to `rails db:setup` and `rails db:reset`.
+
+    *Ryan Hall*
+
 *   Add `ActiveRecord::Relation#structurally_compatible?`.
 
     Adds a query method by which a user can tell if the relation that they're

@@ -180,6 +180,9 @@ rails db:migrate:primary                 # Migrate primary database for current 
 rails db:migrate:status                  # Display status of migrations
 rails db:migrate:status:animals          # Display status of migrations for animals database
 rails db:migrate:status:primary          # Display status of migrations for primary database
+rails db:reset                           # Drops and recreates all databases from their schema for the current environment and loads the seeds
+rails db:reset:animals                   # Drops and recreates the animals database from its schema for the current environment and loads the seeds
+rails db:reset:primary                   # Drops and recreates the primary database from its schema for the current environment and loads the seeds
 rails db:rollback                        # Rolls the schema back to the previous version (specify steps w/ STEP=n)
 rails db:rollback:animals                # Rollback animals database for current environment (specify steps w/ STEP=n)
 rails db:rollback:primary                # Rollback primary database for current environment (specify steps w/ STEP=n)
@@ -189,6 +192,9 @@ rails db:schema:dump:primary             # Creates a db/schema.rb file that is p
 rails db:schema:load                     # Loads a database schema file (either db/schema.rb or db/structure.sql  ...
 rails db:schema:load:animals             # Loads a database schema file (either db/schema.rb or db/structure.sql  ...
 rails db:schema:load:primary             # Loads a database schema file (either db/schema.rb or db/structure.sql  ...
+rails db:setup                           # Creates all databases, loads all schemas, and initializes with the seed data (use db:reset to also drop all databases first)
+rails db:setup:animals                   # Creates the animals database, loads the schema, and initializes with the seed data (use db:reset:animals to also drop the database first)
+rails db:setup:primary                   # Creates the primary database, loads the schema, and initializes with the seed data (use db:reset:primary to also drop the database first)
 ```
 
 Running a command like `bin/rails db:create` will create both the primary and animals databases.
