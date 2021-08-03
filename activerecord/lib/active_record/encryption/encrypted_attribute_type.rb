@@ -54,7 +54,7 @@ module ActiveRecord
         end
 
         def previous_types_without_clean_text
-          @previous_types_without_clean_text  ||= build_previous_types_for(previous_schemes)
+          @previous_types_without_clean_text ||= build_previous_types_for(previous_schemes)
         end
 
         def build_previous_types_for(schemes)

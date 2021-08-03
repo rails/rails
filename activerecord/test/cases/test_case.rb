@@ -12,7 +12,7 @@ module ActiveRecord
   # = Active Record Test Case
   #
   # Defines some test assertions to test against SQL queries.
-  class TestCase < ActiveSupport::TestCase #:nodoc:
+  class TestCase < ActiveSupport::TestCase # :nodoc:
     include ActiveSupport::Testing::MethodCallAssertions
     include ActiveSupport::Testing::Stream
     include ActiveRecord::TestFixtures
@@ -80,12 +80,15 @@ module ActiveRecord
       model.column_names.include?(column_name.to_s)
     end
 
-    def with_has_many_inversing
-      old = ActiveRecord::Base.has_many_inversing
-      ActiveRecord::Base.has_many_inversing = true
+    def with_has_many_inversing(model = ActiveRecord::Base)
+      old = model.has_many_inversing
+      model.has_many_inversing = true
       yield
     ensure
-      ActiveRecord::Base.has_many_inversing = old
+      model.has_many_inversing = old
+      if model != ActiveRecord::Base && !old
+        model.singleton_class.remove_method(:has_many_inversing) # reset the class_attribute
+      end
     end
 
     def reset_callbacks(klass, kind)

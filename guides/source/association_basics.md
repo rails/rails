@@ -839,7 +839,7 @@ If the table of the other class contains the reference in a one-to-one relation,
 
 #### Methods Added by `belongs_to`
 
-When you declare a `belongs_to` association, the declaring class automatically gains 6 methods related to the association:
+When you declare a `belongs_to` association, the declaring class automatically gains 8 methods related to the association:
 
 * `association`
 * `association=(associate)`
@@ -847,6 +847,8 @@ When you declare a `belongs_to` association, the declaring class automatically g
 * `create_association(attributes = {})`
 * `create_association!(attributes = {})`
 * `reload_association`
+* `association_changed?`
+* `association_previously_changed?`
 
 In all of these methods, `association` is replaced with the symbol passed as the first argument to `belongs_to`. For example, given the declaration:
 
@@ -865,6 +867,8 @@ build_author
 create_author
 create_author!
 reload_author
+author_changed?
+author_previously_changed?
 ```
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
@@ -912,6 +916,34 @@ The `create_association` method returns a new object of the associated type. Thi
 ##### `create_association!(attributes = {})`
 
 Does the same as `create_association` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
+
+##### `association_changed?`
+
+The `association_changed?` method returns true if a new associated object has been assigned and the foreign key will be updated in the next save.
+
+```ruby
+@book.author # => #<Book author_number: 123, author_name: "John Doe">
+@book.author_changed? # => false
+
+@book.author = Author.second # => #<Book author_number: 456, author_name: "Jane Smith">
+@book.author_changed? # => true
+
+@book.save!
+@book.author_changed? # => false
+```
+
+##### `association_previously_changed?`
+
+The `association_previously_changed?` method returns true if the previous save updated the association to reference a new associate object.
+
+```ruby
+@book.author # => #<Book author_number: 123, author_name: "John Doe">
+@book.author_previously_changed? # => false
+
+@book.author = Author.second # => #<Book author_number: 456, author_name: "Jane Smith">
+@book.save!
+@book.author_previously_changed? # => true
+```
 
 #### Options for `belongs_to`
 

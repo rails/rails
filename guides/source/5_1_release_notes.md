@@ -15,7 +15,7 @@ Highlights in Rails 5.1:
 * Unification of form_for and form_tag into form_with
 
 These release notes cover only the major changes. To learn about various bug
-fixes and changes, please refer to the change logs or check out the [list of
+fixes and changes, please refer to the changelogs or check out the [list of
 commits](https://github.com/rails/rails/commits/5-1-stable) in the main Rails
 repository on GitHub.
 
@@ -258,7 +258,7 @@ switch to more explicit connection management.
 If your tests spawn threads and those threads interact while also using
 explicit database transactions, this change may introduce a deadlock.
 
-The easy way to opt out of this new behavior is to disable transactional
+The easy way to opt-out of this new behavior is to disable transactional
 tests on any test cases it affects.
 
 Railties
@@ -448,7 +448,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     `activerecord.errors.messages.restrict_dependent_destroy.many` i18n scopes.
     ([Commit](https://github.com/rails/rails/commit/00e3973a311))
 
-*   Removed deprecated force reload argument in singular and collection association readers.
+*   Removed deprecated force-reload argument in singular and collection association readers.
     ([Commit](https://github.com/rails/rails/commit/09cac8c67af))
 
 *   Removed deprecated support for passing a column to `#quote`.

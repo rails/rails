@@ -12,7 +12,7 @@ require "active_record/fixture_set/table_rows"
 require "active_record/test_fixtures"
 
 module ActiveRecord
-  class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
+  class FixtureClassNotFound < ActiveRecord::ActiveRecordError # :nodoc:
   end
 
   # \Fixtures are a way of organizing data that you want to test against; in short, sample data.
@@ -35,7 +35,7 @@ module ActiveRecord
   #     name: Google
   #     url: http://www.google.com
   #
-  # This fixture file includes two fixtures. Each YAML fixture (ie. record) is given a name and
+  # This fixture file includes two fixtures. Each YAML fixture (i.e. record) is given a name and
   # is followed by an indented list of key/value pairs in the "key: value" format. Records are
   # separated by a blank line for your viewing pleasure.
   #
@@ -637,6 +637,10 @@ module ActiveRecord
 
             conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
 
+            if ActiveRecord.verify_foreign_keys_for_fixtures && !conn.all_foreign_keys_valid?
+              raise "Foreign key violations found in your fixture data. Ensure you aren't referring to labels that don't exist on associations."
+            end
+
             # Cap primary key sequences to max(pk).
             if conn.respond_to?(:reset_pk_sequence!)
               set.each { |fs| conn.reset_pk_sequence!(fs.table_name) }
@@ -689,7 +693,6 @@ module ActiveRecord
         table_name,
         model_class: model_class,
         fixtures: fixtures,
-        config: config,
       ).to_hash
     end
 
@@ -741,13 +744,13 @@ module ActiveRecord
       end
   end
 
-  class Fixture #:nodoc:
+  class Fixture # :nodoc:
     include Enumerable
 
-    class FixtureError < StandardError #:nodoc:
+    class FixtureError < StandardError # :nodoc:
     end
 
-    class FormatError < FixtureError #:nodoc:
+    class FormatError < FixtureError # :nodoc:
     end
 
     attr_reader :model_class, :fixture

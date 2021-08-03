@@ -79,6 +79,9 @@ module ActiveSupport
           assert_equal("1,234,567,890.50 - K&#269;", number_helper.number_to_currency("-1234567890.50", unit: "K&#269;", format: "%n %u", negative_format: "%n - %u"))
           assert_equal("0.00", number_helper.number_to_currency(+0.0, unit: "", negative_format: "(%n)"))
           assert_equal("$0", number_helper.number_to_currency(-0.456789, precision: 0))
+          assert_equal("$0.0", number_helper.number_to_currency(-0.0456789, precision: 1))
+          assert_equal("$0.00", number_helper.number_to_currency(-0.00456789, precision: 2))
+          assert_equal("-$1", number_helper.number_to_currency(-0.5, precision: 0))
           assert_equal("$1,11", number_helper.number_to_currency("1,11"))
           assert_equal("$0,11", number_helper.number_to_currency("0,11"))
           assert_equal("$,11", number_helper.number_to_currency(",11"))
@@ -207,6 +210,8 @@ module ActiveSupport
           assert_equal "9775.0000000000000000", number_helper.number_to_rounded("9775", precision: 20, significant: true)
           assert_equal "9775." + "0" * 96, number_helper.number_to_rounded("9775", precision: 100, significant: true)
           assert_equal("97.7", number_helper.number_to_rounded(Rational(9772, 100), precision: 3, significant: true))
+          assert_equal "28729870200000000000000", number_helper.number_to_rounded(0.287298702e23.to_d, precision: 0, significant: true)
+          assert_equal "-Inf", number_helper.number_to_rounded(-Float::INFINITY, precision: 0, significant: true)
         end
       end
 

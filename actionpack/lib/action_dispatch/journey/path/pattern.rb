@@ -4,15 +4,16 @@ module ActionDispatch
   module Journey # :nodoc:
     module Path # :nodoc:
       class Pattern # :nodoc:
-        attr_reader :spec, :requirements, :anchored
+        attr_reader :ast, :names, :requirements, :anchored
+        alias :spec :ast
 
         def initialize(ast, requirements, separators, anchored)
-          @spec         = ast
+          @ast          = ast
           @requirements = requirements
           @separators   = separators
           @anchored     = anchored
 
-          @names          = nil
+          @names          = ast.names
           @optional_names = nil
           @required_names = nil
           @re             = nil
@@ -27,21 +28,12 @@ module ActionDispatch
           required_names
           offsets
           to_regexp
-          nil
-        end
-
-        def ast
-          @spec.find_all(&:symbol?).each do |node|
-            re = @requirements[node.to_sym]
-            node.regexp = re if re
-          end
-
-          @spec
+          @ast = nil
         end
 
         def requirements_anchored?
           # each required param must not be surrounded by a literal, otherwise it isn't simple to chunk-match the url piecemeal
-          terminals = ast.find_all { |t| t.is_a?(Nodes::Terminal) }
+          terminals = ast.terminals
 
           terminals.each_with_index { |s, index|
             next if index < 1
@@ -58,10 +50,6 @@ module ActionDispatch
           }
 
           true
-        end
-
-        def names
-          @names ||= spec.find_all(&:symbol?).map(&:name)
         end
 
         def required_names

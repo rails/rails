@@ -88,7 +88,7 @@ module ActiveRecord
               if value.start_with?('"') && value.end_with?('"')
                 unquoted_value = value[1..-2]
                 unquoted_value.gsub!('""', '"')
-                unquoted_value.gsub!('\\\\', '\\')
+                unquoted_value.gsub!("\\\\", "\\")
                 unquoted_value
               else
                 value

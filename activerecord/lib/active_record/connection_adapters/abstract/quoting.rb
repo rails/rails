@@ -43,6 +43,13 @@ module ActiveRecord
         _type_cast(value)
       end
 
+      # Quote a value to be used as a bound parameter of unknown type. For example,
+      # MySQL might perform dangerous castings when comparing a string to a number,
+      # so this method will cast numbers to string.
+      def quote_bound_value(value)
+        _quote(value)
+      end
+
       # If you are having to call this function, you are likely doing something
       # wrong. The column does not have sufficient type information if the user
       # provided a custom type on the class level either explicitly (via
@@ -59,7 +66,7 @@ module ActiveRecord
       # Quotes a string, escaping any ' (single quote) and \ (backslash)
       # characters.
       def quote_string(s)
-        s.gsub('\\', '\&\&').gsub("'", "''") # ' (for ruby-mode)
+        s.gsub("\\", '\&\&').gsub("'", "''") # ' (for ruby-mode)
       end
 
       # Quotes the column name. Defaults to no quoting.
@@ -113,7 +120,7 @@ module ActiveRecord
       # if the value is a Time responding to usec.
       def quoted_date(value)
         if value.acts_like?(:time)
-          if ActiveRecord::Base.default_timezone == :utc
+          if ActiveRecord.default_timezone == :utc
             value = value.getutc if !value.utc?
           else
             value = value.getlocal

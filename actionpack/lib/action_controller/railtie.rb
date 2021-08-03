@@ -8,8 +8,9 @@ require "action_controller/railties/helpers"
 require "action_view/railtie"
 
 module ActionController
-  class Railtie < Rails::Railtie #:nodoc:
+  class Railtie < Rails::Railtie # :nodoc:
     config.action_controller = ActiveSupport::OrderedOptions.new
+    config.action_controller.raise_on_open_redirects = false
 
     config.eager_load_namespaces << ActionController
 

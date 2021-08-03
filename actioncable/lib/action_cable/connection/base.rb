@@ -68,7 +68,7 @@ module ActionCable
 
       # Called by the server when a new WebSocket connection is established. This configures the callbacks intended for overwriting by the user.
       # This method should not be called directly -- instead rely upon on the #connect (and #disconnect) callbacks.
-      def process #:nodoc:
+      def process # :nodoc:
         logger.info started_request_message
 
         if websocket.possible? && allow_request_origin?
@@ -80,11 +80,11 @@ module ActionCable
 
       # Decodes WebSocket messages and dispatches them to subscribed channels.
       # WebSocket message transfer encoding is always JSON.
-      def receive(websocket_message) #:nodoc:
+      def receive(websocket_message) # :nodoc:
         send_async :dispatch_websocket_message, websocket_message
       end
 
-      def dispatch_websocket_message(websocket_message) #:nodoc:
+      def dispatch_websocket_message(websocket_message) # :nodoc:
         if websocket.alive?
           subscriptions.execute_command decode(websocket_message)
         else

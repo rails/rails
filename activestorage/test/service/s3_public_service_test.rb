@@ -23,10 +23,19 @@ if SERVICE_CONFIGURATIONS[:s3_public]
       assert_equal "200", response.code
     end
 
+    test "public URL generation (virtual host enabled)" do
+      url = @service.url(@key, filename: ActiveStorage::Filename.new("avatar.png"), virtual_host: true)
+
+      assert_match(/#{@service.bucket.name}\/#{@key}/, url)
+
+      response = Net::HTTP.get_response(URI(url))
+      assert_equal "200", response.code
+    end
+
     test "direct upload" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      checksum = Digest::MD5.base64digest(data)
+      checksum = OpenSSL::Digest::MD5.base64digest(data)
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url

@@ -4,13 +4,13 @@ require "active_support/core_ext/enumerable"
 
 module ActionView
   # = Action View Errors
-  class ActionViewError < StandardError #:nodoc:
+  class ActionViewError < StandardError # :nodoc:
   end
 
-  class EncodingError < StandardError #:nodoc:
+  class EncodingError < StandardError # :nodoc:
   end
 
-  class WrongEncodingError < EncodingError #:nodoc:
+  class WrongEncodingError < EncodingError # :nodoc:
     def initialize(string, encoding)
       @string, @encoding = string, encoding
     end
@@ -26,7 +26,7 @@ module ActionView
     end
   end
 
-  class MissingTemplate < ActionViewError #:nodoc:
+  class MissingTemplate < ActionViewError # :nodoc:
     attr_reader :path, :paths, :prefixes, :partial
 
     def initialize(paths, path, prefixes, partial, details, *)
@@ -53,10 +53,12 @@ module ActionView
       super out
     end
 
-    class Correction
-      Result = Struct.new(:path, :score)
+    if defined?(DidYouMean::Correctable) && defined?(DidYouMean::Jaro)
+      include DidYouMean::Correctable
 
-      class Results
+      class Results # :nodoc:
+        Result = Struct.new(:path, :score)
+
         def initialize(size)
           @size = size
           @results = []
@@ -83,32 +85,25 @@ module ActionView
         end
       end
 
-      def initialize(error)
-        @error = error
-      end
-
       # Apps may have thousands of candidate templates so we attempt to
       # generate the suggestions as efficiently as possible.
       # First we split templates into prefixes and basenames, so that those can
       # be matched separately.
       def corrections
-        path = @error.path
-        prefixes = @error.prefixes
+        candidates = paths.flat_map(&:all_template_paths).uniq
 
-        candidates = @error.paths.flat_map(&:all_template_paths).uniq
-        if @error.partial
-          candidates = candidates.grep(%r{_[^/]+\z})
+        if partial
+          candidates.select!(&:partial?)
         else
-          candidates = candidates.grep_v(%r{_[^/]+\z})
+          candidates.reject!(&:partial?)
         end
 
         # Group by possible prefixes
-        files_by_dir = candidates.group_by do |x|
-          File.dirname(x)
-        end.transform_values do |files|
+        files_by_dir = candidates.group_by(&:prefix)
+        files_by_dir.transform_values! do |files|
           files.map do |file|
-            # Remove directory
-            File.basename(file)
+            # Remove prefix
+            File.basename(file.to_s)
           end
         end
 
@@ -142,16 +137,12 @@ module ActionView
           end
         end
 
-        if @error.partial
+        if partial
           results.to_a.map { |res| res.sub(%r{_([^/]+)\z}, "\\1") }
         else
           results.to_a
         end
       end
-    end
-
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
     end
   end
 
@@ -159,7 +150,7 @@ module ActionView
     # The Template::Error exception is raised when the compilation or rendering of the template
     # fails. This exception then gathers a bunch of intimate details and uses it to report a
     # precise exception message.
-    class Error < ActionViewError #:nodoc:
+    class Error < ActionViewError # :nodoc:
       SOURCE_CODE_RADIUS = 3
 
       # Override to prevent #cause resetting during re-raise.
@@ -238,7 +229,7 @@ module ActionView
 
   TemplateError = Template::Error
 
-  class SyntaxErrorInTemplate < TemplateError #:nodoc
+  class SyntaxErrorInTemplate < TemplateError # :nodoc:
     def initialize(template, offending_code_string)
       @offending_code_string = offending_code_string
       super(template)

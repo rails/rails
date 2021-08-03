@@ -25,7 +25,10 @@ module Rails
         paths.each_with_object(Hash.new) do |path, all_secrets|
           require "erb"
 
-          secrets = YAML.load(ERB.new(preprocess(path)).result) || {}
+          source = ERB.new(preprocess(path)).result
+          secrets = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(source) : YAML.load(source)
+          secrets ||= {}
+
           all_secrets.merge!(secrets["shared"].deep_symbolize_keys) if secrets["shared"]
           all_secrets.merge!(secrets[env].deep_symbolize_keys) if secrets[env]
         end

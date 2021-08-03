@@ -7,7 +7,7 @@ require "action_view/helpers/tag_helper"
 
 module ActionView
   # = Action View URL Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # Provides a set of methods for making links and getting URLs that
     # depend on the routing subsystem (see ActionDispatch::Routing).
     # This allows you to use the same format for links in views
@@ -573,16 +573,14 @@ module ActionView
         request_uri = url_string.index("?") || check_parameters ? request.fullpath : request.path
         request_uri = URI::DEFAULT_PARSER.unescape(request_uri).force_encoding(Encoding::BINARY)
 
-        if url_string.start_with?("/") && url_string != "/"
-          url_string.chomp!("/")
-          request_uri.chomp!("/")
+        if %r{^\w+://}.match?(url_string)
+          request_uri = +"#{request.protocol}#{request.host_with_port}#{request_uri}"
         end
 
-        if %r{^\w+://}.match?(url_string)
-          url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
-        else
-          url_string == request_uri
-        end
+        remove_trailing_slash!(url_string)
+        remove_trailing_slash!(request_uri)
+
+        url_string == request_uri
       end
 
       if RUBY_VERSION.start_with?("2.7")
@@ -606,14 +604,23 @@ module ActionView
       # If +name+ is not specified, +phone_number+ will be used as the name of
       # the link.
       #
+      # A +country_code+ option is supported, which prepends a plus sign and the
+      # given country code to the linked phone number. For example,
+      # <tt>country_code: "01"</tt> will prepend <tt>+01</tt> to the linked
+      # phone number.
+      #
       # Additional HTML attributes for the link can be passed via +html_options+.
       #
       # ==== Options
+      # * <tt>:country_code</tt> - Prepend the country code to the phone number.
       # * <tt>:body</tt> - Preset the body of the message.
       #
       # ==== Examples
       #   sms_to "5155555785"
       #   # => <a href="sms:5155555785;">5155555785</a>
+      #
+      #   sms_to "5155555785", country_code: "01"
+      #   # => <a href="sms:+015155555785;">5155555785</a>
       #
       #   sms_to "5155555785", "Text me"
       #   # => <a href="sms:5155555785;">Text me</a>
@@ -633,14 +640,14 @@ module ActionView
         html_options, name = name, nil if name.is_a?(Hash)
         html_options = (html_options || {}).stringify_keys
 
-        extras = %w{ body }.map! { |item|
-          option = html_options.delete(item).presence || next
-          "#{item.dasherize}=#{ERB::Util.url_encode(option)}"
-        }.compact
-        extras = extras.empty? ? "" : "?&" + extras.join("&")
+        country_code = html_options.delete("country_code").presence
+        country_code = country_code ? "+#{ERB::Util.url_encode(country_code)}" : ""
+
+        body = html_options.delete("body").presence
+        body = body ? "?&body=#{ERB::Util.url_encode(body)}" : ""
 
         encoded_phone_number = ERB::Util.url_encode(phone_number)
-        html_options["href"] = "sms:#{encoded_phone_number};#{extras}"
+        html_options["href"] = "sms:#{country_code}#{encoded_phone_number};#{body}"
 
         content_tag("a", name || phone_number, html_options, &block)
       end
@@ -792,6 +799,11 @@ module ActionView
           end
 
           params.sort_by { |pair| pair[:name] }
+        end
+
+        def remove_trailing_slash!(url_string)
+          trailing_index = (url_string.index("?") || 0) - 1
+          url_string[trailing_index] = "" if url_string[trailing_index] == "/"
         end
     end
   end

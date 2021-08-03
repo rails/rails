@@ -173,7 +173,7 @@ module ActiveRecord
     #
     #   User.includes(:posts).where(posts: { name: 'example' })
     def includes(*args)
-      check_if_method_has_arguments!(:includes, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.includes!(*args)
     end
 
@@ -189,7 +189,7 @@ module ActiveRecord
     #   # FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" =
     #   # "users"."id"
     def eager_load(*args)
-      check_if_method_has_arguments!(:eager_load, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.eager_load!(*args)
     end
 
@@ -203,7 +203,7 @@ module ActiveRecord
     #   User.preload(:posts)
     #   # SELECT "posts".* FROM "posts" WHERE "posts"."user_id" IN (1, 2, 3)
     def preload(*args)
-      check_if_method_has_arguments!(:preload, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.preload!(*args)
     end
 
@@ -236,7 +236,7 @@ module ActiveRecord
     #   User.includes(:posts).where("posts.name = 'foo'").references(:posts)
     #   # Query now knows the string references posts, so adds a JOIN
     def references(*table_names)
-      check_if_method_has_arguments!(:references, table_names)
+      check_if_method_has_arguments!(__callee__, table_names)
       spawn.references!(*table_names)
     end
 
@@ -294,7 +294,7 @@ module ActiveRecord
         return super()
       end
 
-      check_if_method_has_arguments!(:select, fields, "Call `select' with at least one field.")
+      check_if_method_has_arguments!(__callee__, fields, "Call `select' with at least one field.")
       spawn._select!(*fields)
     end
 
@@ -314,7 +314,7 @@ module ActiveRecord
     # This is short-hand for <tt>unscope(:select).select(fields)</tt>.
     # Note that we're unscoping the entire select statement.
     def reselect(*args)
-      check_if_method_has_arguments!(:reselect, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.reselect!(*args)
     end
 
@@ -345,7 +345,7 @@ module ActiveRecord
     #   User.select([:id, :first_name]).group(:id, :first_name).first(3)
     #   # => [#<User id: 1, first_name: "Bill">, #<User id: 2, first_name: "Earl">, #<User id: 3, first_name: "Beto">]
     def group(*args)
-      check_if_method_has_arguments!(:group, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.group!(*args)
     end
 
@@ -374,7 +374,7 @@ module ActiveRecord
     #   User.order('name DESC, email')
     #   # SELECT "users".* FROM "users" ORDER BY name DESC, email
     def order(*args)
-      check_if_method_has_arguments!(:order, args) do
+      check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
       end
       spawn.order!(*args)
@@ -397,7 +397,7 @@ module ActiveRecord
     #
     # generates a query with 'ORDER BY id ASC, name ASC'.
     def reorder(*args)
-      check_if_method_has_arguments!(:reorder, args) do
+      check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args) unless args.all?(&:blank?)
       end
       spawn.reorder!(*args)
@@ -450,7 +450,7 @@ module ActiveRecord
     #   has_many :comments, -> { unscope(where: :trashed) }
     #
     def unscope(*args)
-      check_if_method_has_arguments!(:unscope, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.unscope!(*args)
     end
 
@@ -512,7 +512,7 @@ module ActiveRecord
     #   User.joins("LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id")
     #   # SELECT "users".* FROM "users" LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id
     def joins(*args)
-      check_if_method_has_arguments!(:joins, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.joins!(*args)
     end
 
@@ -1074,7 +1074,7 @@ module ActiveRecord
     #   Topic.optimizer_hints("SeqScan(topics)", "Parallel(topics 8)")
     #   # SELECT /*+ SeqScan(topics) Parallel(topics 8) */ "topics".* FROM "topics"
     def optimizer_hints(*args)
-      check_if_method_has_arguments!(:optimizer_hints, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.optimizer_hints!(*args)
     end
 
@@ -1116,7 +1116,7 @@ module ActiveRecord
     #
     # The SQL block comment delimiters, "/*" and "*/", will be added automatically.
     def annotate(*args)
-      check_if_method_has_arguments!(:annotate, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.annotate!(*args)
     end
 
@@ -1162,7 +1162,7 @@ module ActiveRecord
       records.compact!
 
       unless records.all?(klass)
-        raise ArgumentError, "You must only pass a single or collection of #{klass.name} objects to #excluding."
+        raise ArgumentError, "You must only pass a single or collection of #{klass.name} objects to ##{__callee__}."
       end
 
       spawn.excluding!(records)
@@ -1548,7 +1548,14 @@ module ActiveRecord
       end
 
       def column_references(order_args)
-        references = order_args.grep(String)
+        references = order_args.flat_map do |arg|
+          case arg
+          when String, Symbol
+            arg
+          when Hash
+            arg.keys
+          end
+        end
         references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!
         references
       end
@@ -1596,11 +1603,11 @@ module ActiveRecord
       #    Post.references()   # raises an error
       #    Post.references([]) # does not raise an error
       #
-      # This particular method should be called with a method_name and the args
+      # This particular method should be called with a method_name (__callee__) and the args
       # passed into that method as an input. For example:
       #
       # def references(*args)
-      #   check_if_method_has_arguments!("references", args)
+      #   check_if_method_has_arguments!(__callee__, args)
       #   ...
       # end
       def check_if_method_has_arguments!(method_name, args, message = nil)

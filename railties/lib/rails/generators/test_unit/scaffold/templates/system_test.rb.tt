@@ -11,7 +11,7 @@ class <%= class_name.pluralize %>Test < ApplicationSystemTestCase
     assert_selector "h1", text: "<%= class_name.pluralize.titleize %>"
   end
 
-  test "creating a <%= human_name %>" do
+  test "should create <%= human_name %>" do
     visit <%= plural_table_name %>_url
     click_on "New <%= class_name.titleize %>"
 
@@ -28,7 +28,7 @@ class <%= class_name.pluralize %>Test < ApplicationSystemTestCase
     click_on "Back"
   end
 
-  test "updating a <%= human_name %>" do
+  test "should update <%= human_name %>" do
     visit <%= plural_table_name %>_url
     click_on "Edit", match: :first
 
@@ -45,7 +45,7 @@ class <%= class_name.pluralize %>Test < ApplicationSystemTestCase
     click_on "Back"
   end
 
-  test "destroying a <%= human_name %>" do
+  test "should destroy <%= human_name %>" do
     visit <%= plural_table_name %>_url
     page.accept_confirm do
       click_on "Destroy", match: :first

@@ -96,14 +96,14 @@ module ActiveStorage
     end
 
     private
-      def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
+      def private_url(key, expires_in:, filename:, disposition:, content_type:, **client_opts)
         object_for(key).presigned_url :get, expires_in: expires_in.to_i,
           response_content_disposition: content_disposition_with(type: disposition, filename: filename),
-          response_content_type: content_type
+          response_content_type: content_type, **client_opts
       end
 
-      def public_url(key, **)
-        object_for(key).public_url
+      def public_url(key, **client_opts)
+        object_for(key).public_url(**client_opts)
       end
 
 

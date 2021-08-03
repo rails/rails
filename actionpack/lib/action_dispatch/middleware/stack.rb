@@ -5,7 +5,7 @@ require "active_support/dependencies"
 
 module ActionDispatch
   class MiddlewareStack
-    class FakeRuntime
+    class FakeRuntime # :nodoc:
       def initialize(app)
         @app = app
       end
@@ -129,8 +129,20 @@ module ActionDispatch
     end
     ruby2_keywords(:swap)
 
+    # Deletes a middleware from the middleware stack.
+    #
+    # Returns the array of middlewares not including the deleted item, or
+    # returns nil if the target is not found.
     def delete(target)
-      middlewares.delete_if { |m| m.klass == target }
+      middlewares.reject! { |m| m.name == target.name }
+    end
+
+    # Deletes a middleware from the middleware stack.
+    #
+    # Returns the array of middlewares not including the deleted item, or
+    # raises +RuntimeError+ if the target is not found.
+    def delete!(target)
+      delete(target) || (raise "No such middleware to remove: #{target.inspect}")
     end
 
     def move(target, source)
@@ -180,10 +192,10 @@ module ActionDispatch
         Middleware.new(klass, args, block)
       end
 
-      def index_of(index)
-        raise "ActionDispatch::MiddlewareStack::FakeRuntime can not be referenced in middleware operations" if index == FakeRuntime
+      def index_of(klass)
+        raise "ActionDispatch::MiddlewareStack::FakeRuntime can not be referenced in middleware operations" if klass == FakeRuntime
 
-        if index == Rack::Runtime && @rack_runtime_deprecated
+        if klass == Rack::Runtime && @rack_runtime_deprecated
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             Rack::Runtime is removed from the default middleware stack in Rails
             and referencing it in middleware operations without adding it back
@@ -192,7 +204,7 @@ module ActionDispatch
         end
 
         middlewares.index do |m|
-          m.klass == index || (@rack_runtime_deprecated && m.klass == FakeRuntime && index == Rack::Runtime)
+          m.name == klass.name || (@rack_runtime_deprecated && m.klass == FakeRuntime && klass == Rack::Runtime)
         end
       end
   end

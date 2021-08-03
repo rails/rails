@@ -282,6 +282,8 @@ module ActiveRecord
         assert ActiveRecord::Base.connected_to?(role: :writing)
         [200, {}, ["body"]]
       })
+      cache = ActiveSupport::Cache::MemoryStore.new
+      middleware = ActionDispatch::Session::CacheStore.new(middleware, cache: cache, key: "_session_id")
       assert_equal [200, {}, ["body"]], middleware.call("REQUEST_METHOD" => "POST")
     end
 
@@ -290,6 +292,9 @@ module ActiveRecord
         assert ActiveRecord::Base.connected_to?(role: :reading)
         [200, {}, ["body"]]
       })
+      cache = ActiveSupport::Cache::MemoryStore.new
+      middleware = ActionDispatch::Session::CacheStore.new(middleware, cache: cache, key: "_session_id")
+
       assert_equal [200, {}, ["body"]], middleware.call("REQUEST_METHOD" => "GET")
     end
   end

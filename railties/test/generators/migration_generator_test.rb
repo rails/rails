@@ -159,21 +159,6 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_add_migration_with_attributes_and_wrong_index_declaration
-    migration = "add_title_and_content_to_books"
-    run_generator [migration, "title:string:inex", "content:text", "user_id:integer:unik"]
-
-    assert_migration "db/migrate/#{migration}.rb" do |content|
-      assert_method :change, content do |change|
-        assert_match(/add_column :books, :title, :string/, change)
-        assert_match(/add_column :books, :content, :text/, change)
-        assert_match(/add_column :books, :user_id, :integer/, change)
-      end
-      assert_no_match(/add_index :books, :title/, content)
-      assert_no_match(/add_index :books, :user_id/, content)
-    end
-  end
-
   def test_add_migration_with_attributes_without_type_and_index
     migration = "add_title_with_index_and_body_to_posts"
     run_generator [migration, "title:index", "body:text", "user_uuid:uniq"]

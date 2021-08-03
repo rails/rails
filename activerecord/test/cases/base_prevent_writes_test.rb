@@ -97,15 +97,15 @@ class BasePreventWritesTest < ActiveRecord::TestCase
 
   class BasePreventWritesLegacyTest < ActiveRecord::TestCase
     def setup
-      @old_value = ActiveRecord::Base.legacy_connection_handling
-      ActiveRecord::Base.legacy_connection_handling = true
+      @old_value = ActiveRecord.legacy_connection_handling
+      ActiveRecord.legacy_connection_handling = true
       ActiveRecord::Base.establish_connection :arunit
       ARUnit2Model.establish_connection :arunit2
     end
 
     def teardown
       clean_up_legacy_connection_handlers
-      ActiveRecord::Base.legacy_connection_handling = @old_value
+      ActiveRecord.legacy_connection_handling = @old_value
     end
 
     if !in_memory_db?

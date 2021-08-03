@@ -33,6 +33,7 @@ module ActiveRecord
       @delegate_to_klass = false
       @future_result = nil
       @records = nil
+      @limited_count = nil
     end
 
     def initialize_copy(other)
@@ -154,7 +155,7 @@ module ActiveRecord
     # above can be alternatively written this way:
     #
     #   # Find the first user named "Scarlett" or create a new one with a
-    #   # different last name.
+    #   # particular last name.
     #   User.find_or_create_by(first_name: 'Scarlett') do |user|
     #     user.last_name = 'Johansson'
     #   end
@@ -181,7 +182,7 @@ module ActiveRecord
       find_by(attributes) || create!(attributes, &block)
     end
 
-    # Attempts to create a record with the given attributes in a table that has a unique constraint
+    # Attempts to create a record with the given attributes in a table that has a unique database constraint
     # on one or several of its columns. If a row already exists with one or several of these
     # unique constraints, the exception such an insertion would normally raise is caught,
     # and the existing record with those attributes is found using #find_by!.
@@ -192,7 +193,7 @@ module ActiveRecord
     #
     # There are several drawbacks to #create_or_find_by, though:
     #
-    # * The underlying table must have the relevant columns defined with unique constraints.
+    # * The underlying table must have the relevant columns defined with unique database constraints.
     # * A unique constraint violation may be triggered by only one, or at least less than all,
     #   of the given attributes. This means that the subsequent #find_by! may fail to find a
     #   matching record, which will then raise an <tt>ActiveRecord::RecordNotFound</tt> exception,
@@ -294,13 +295,15 @@ module ActiveRecord
     # Returns true if there is exactly one record.
     def one?
       return super if block_given?
-      limit_value ? records.one? : size == 1
+      return records.one? if limit_value || loaded?
+      limited_count == 1
     end
 
     # Returns true if there is more than one record.
     def many?
       return super if block_given?
-      limit_value ? records.many? : size > 1
+      return records.many? if limit_value || loaded?
+      limited_count > 1
     end
 
     # Returns a stable cache key that can be used to identify this query.
@@ -690,6 +693,7 @@ module ActiveRecord
       @offsets = @take = nil
       @cache_keys = nil
       @records = nil
+      @limited_count = nil
       self
     end
 
@@ -963,6 +967,10 @@ module ActiveRecord
         # always convert table names to downcase as in Oracle quoted table names are in uppercase
         # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
         string.scan(/[a-zA-Z_][.\w]+(?=.?\.)/).map!(&:downcase) - ["raw_sql_"]
+      end
+
+      def limited_count
+        @limited_count ||= limit(2).count
       end
   end
 end

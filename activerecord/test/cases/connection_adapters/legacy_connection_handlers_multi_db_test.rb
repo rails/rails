@@ -11,8 +11,8 @@ module ActiveRecord
       fixtures :people
 
       def setup
-        @old_value = ActiveRecord::Base.legacy_connection_handling
-        ActiveRecord::Base.legacy_connection_handling = true
+        @old_value = ActiveRecord.legacy_connection_handling
+        ActiveRecord.legacy_connection_handling = true
         assert_deprecated do
           ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
         end
@@ -29,7 +29,7 @@ module ActiveRecord
 
       def teardown
         clean_up_legacy_connection_handlers
-        ActiveRecord::Base.legacy_connection_handling = @old_value
+        ActiveRecord.legacy_connection_handling = @old_value
       end
 
       class SecondaryBase < ActiveRecord::Base
@@ -99,6 +99,40 @@ module ActiveRecord
       end
 
       unless in_memory_db?
+        def test_not_setting_writing_role_while_using_another_named_role_raises
+          old_handler = ActiveRecord::Base.connection_handler
+          assert_deprecated do
+            ActiveRecord::Base.connection_handlers = { writing: ConnectionHandler.new }
+          end
+          ActiveRecord::Base.connection_handler = ActiveRecord::Base.connection_handlers[:writing]
+          ActiveRecord::Base.establish_connection :arunit
+
+          ActiveRecord::Base.connects_to(shards: { default: { all: :arunit }, one: { all: :arunit } })
+
+          assert_raises(ArgumentError) { setup_shared_connection_pool }
+        ensure
+          ActiveRecord::Base.connection_handler = old_handler
+          ActiveRecord::Base.establish_connection :arunit
+        end
+
+        def test_setting_writing_role_while_using_another_named_role_does_not_raise
+          old_role, ActiveRecord.writing_role = ActiveRecord.writing_role, :all
+          old_handler = ActiveRecord::Base.connection_handler
+          assert_deprecated do
+            ActiveRecord::Base.connection_handlers = { all: ConnectionHandler.new }
+          end
+          ActiveRecord::Base.connection_handler = ActiveRecord::Base.connection_handlers[:all]
+          ActiveRecord::Base.establish_connection :arunit
+
+          ActiveRecord::Base.connects_to(shards: { default: { all: :arunit }, one: { all: :arunit } })
+
+          assert_nothing_raised { setup_shared_connection_pool }
+        ensure
+          ActiveRecord.writing_role = old_role
+          ActiveRecord::Base.connection_handler = old_handler
+          ActiveRecord::Base.establish_connection :arunit
+        end
+
         def test_establish_connection_using_3_levels_config
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
 
@@ -424,21 +458,21 @@ module ActiveRecord
       end
 
       def test_default_handlers_are_writing_and_reading
-        assert_equal :writing, ActiveRecord::Base.writing_role
-        assert_equal :reading, ActiveRecord::Base.reading_role
+        assert_equal :writing, ActiveRecord.writing_role
+        assert_equal :reading, ActiveRecord.reading_role
       end
 
       def test_an_application_can_change_the_default_handlers
-        old_writing = ActiveRecord::Base.writing_role
-        old_reading = ActiveRecord::Base.reading_role
-        ActiveRecord::Base.writing_role = :default
-        ActiveRecord::Base.reading_role = :readonly
+        old_writing = ActiveRecord.writing_role
+        old_reading = ActiveRecord.reading_role
+        ActiveRecord.writing_role = :default
+        ActiveRecord.reading_role = :readonly
 
-        assert_equal :default, ActiveRecord::Base.writing_role
-        assert_equal :readonly, ActiveRecord::Base.reading_role
+        assert_equal :default, ActiveRecord.writing_role
+        assert_equal :readonly, ActiveRecord.reading_role
       ensure
-        ActiveRecord::Base.writing_role = old_writing
-        ActiveRecord::Base.reading_role = old_reading
+        ActiveRecord.writing_role = old_writing
+        ActiveRecord.reading_role = old_reading
       end
     end
   end

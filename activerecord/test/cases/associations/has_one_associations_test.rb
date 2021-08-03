@@ -307,6 +307,19 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal account, firm.reload.account
   end
 
+  def test_clearing_an_association_clears_the_associations_inverse
+    author = Author.create(name: "Jimmy Tolkien")
+    post = author.create_post(title: "The silly medallion", body: "")
+    assert_equal post, author.post
+    assert_equal author, post.author
+
+    post.update!(author: nil)
+    assert_nil post.author
+
+    author.update!(name: "J.R.R. Tolkien")
+    assert_nil post.author
+  end
+
   def test_create_association_with_bang
     firm = Firm.create(name: "GlobalMegaCorp")
     account = firm.create_account!(credit_limit: 1000)
@@ -340,6 +353,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_equal "You cannot call create unless the parent is saved", error.message
+    assert_equal firm, error.record
   end
 
   def test_reload_association
@@ -519,6 +533,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_equal "Failed to save the new associated ship.", error.message
+    assert_equal new_ship, error.record
     assert_nil pirate.ship
     assert_nil new_ship.pirate_id
   end
@@ -536,6 +551,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal pirate.id, pirate.ship.pirate_id
     assert_equal "Failed to remove the existing associated ship. " \
                  "The record failed to save after its foreign key was set to nil.", error.message
+    assert_equal pirate.ship, error.record
   end
 
   def test_replacement_failure_due_to_new_record_should_raise_error
@@ -547,6 +563,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_equal "Failed to save the new associated ship.", error.message
+    assert_equal new_ship, error.record
     assert_equal ships(:black_pearl), pirate.ship
     assert_equal pirate.id, pirate.ship.pirate_id
     assert_equal pirate.id, ships(:black_pearl).reload.pirate_id

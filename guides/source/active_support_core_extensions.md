@@ -3,7 +3,8 @@
 Active Support Core Extensions
 ==============================
 
-Active Support is the Ruby on Rails component responsible for providing Ruby language extensions, utilities, and other transversal stuff.
+Active Support is the Ruby on Rails component responsible for providing Ruby
+language extensions and utilities.
 
 It offers a richer bottom-line at the language level, targeted both at the development of Rails applications, and at the development of Ruby on Rails itself.
 
@@ -1461,8 +1462,8 @@ Active Record uses this method to compute the default table name that correspond
 
 ```ruby
 # active_record/model_schema.rb
-def undecorated_table_name(class_name = base_class.name)
-  table_name = class_name.to_s.demodulize.underscore
+def undecorated_table_name(model_name)
+  table_name = model_name.to_s.demodulize.underscore
   pluralize_table_names ? table_name.pluralize : table_name
 end
 ```

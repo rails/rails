@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  module ConnectionAdapters #:nodoc:
+  module ConnectionAdapters # :nodoc:
     # Abstract representation of an index definition on a table. Instances of
     # this type are typically created and returned by methods in database
     # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
@@ -79,13 +79,13 @@ module ActiveRecord
 
     AddColumnDefinition = Struct.new(:column) # :nodoc:
 
-    ChangeColumnDefinition = Struct.new(:column, :name) #:nodoc:
+    ChangeColumnDefinition = Struct.new(:column, :name) # :nodoc:
 
     CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists) # :nodoc:
 
     PrimaryKeyDefinition = Struct.new(:name) # :nodoc:
 
-    ForeignKeyDefinition = Struct.new(:from_table, :to_table, :options) do #:nodoc:
+    ForeignKeyDefinition = Struct.new(:from_table, :to_table, :options) do # :nodoc:
       def name
         options[:name]
       end
@@ -408,6 +408,12 @@ module ActiveRecord
             raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
           else
             raise ArgumentError, "you can't define an already defined column '#{name}'."
+          end
+        end
+
+        if @conn.supports_datetime_with_precision?
+          if type == :datetime && !options.key?(:precision)
+            options[:precision] = 6
           end
         end
 

@@ -91,6 +91,22 @@ class ActiveRecord::Encryption::EncryptableRecordApiTest < ActiveRecord::Encrypt
     assert_equal encoding, post.reload.title.encoding
   end
 
+  test "encrypt will honor forced encoding for deterministic attributes" do
+    ActiveRecord::Encryption.config.forced_encoding_for_deterministic_encryption = Encoding::UTF_8
+
+    book = ActiveRecord::Encryption.without_encryption { EncryptedBook.create!(name: "Dune".encode("US-ASCII")) }
+    book.encrypt
+    assert Encoding::UTF_8, book.reload.name.encoding
+  end
+
+  test "encrypt won't force encoding for deterministic attributes when option is nil" do
+    ActiveRecord::Encryption.config.forced_encoding_for_deterministic_encryption = nil
+
+    book = ActiveRecord::Encryption.without_encryption { EncryptedBook.create!(name: "Dune".encode("US-ASCII")) }
+    book.encrypt
+    assert Encoding::US_ASCII, book.reload.name.encoding
+  end
+
   test "encrypt will preserve case when :ignore_case option is used" do
     ActiveRecord::Encryption.config.support_unencrypted_data = true
 
@@ -101,7 +117,20 @@ class ActiveRecord::Encryption::EncryptableRecordApiTest < ActiveRecord::Encrypt
 
     book.encrypt
 
+    assert_equal "Dune", book.reload.name
+  end
+
+  test "re-encrypting will preserve case when :ignore_case option is used" do
+    ActiveRecord::Encryption.config.support_unencrypted_data = true
+
+    book = create_unencrypted_book_ignoring_case name: "Dune"
+
+    ActiveRecord::Encryption.without_encryption { assert_equal "Dune", book.reload.name }
     assert_equal "Dune", book.name
+
+    2.times { book.encrypt }
+
+    assert_equal "Dune", book.reload.name
   end
 
   test "encrypt attributes encrypted with a previous encryption scheme" do

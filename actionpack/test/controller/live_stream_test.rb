@@ -264,6 +264,13 @@ module ActionController
         end
       end
 
+      def overfill_default_buffer
+        ("a".."z").each do |char|
+          response.stream.write(char)
+        end
+        response.stream.close
+      end
+
       def ignore_client_disconnect
         response.stream.ignore_disconnect = true
 
@@ -368,7 +375,15 @@ module ActionController
       assert t.join(3), "timeout expired before the thread terminated"
     end
 
+    def test_infinite_test_buffer
+      get :overfill_default_buffer
+      assert_equal ("a".."z").to_a.join, response.stream.body
+    end
+
     def test_abort_with_full_buffer
+      old_queue_size = ActionController::Live::Buffer.queue_size
+      ActionController::Live::Buffer.queue_size = 10
+
       @controller.latch = Concurrent::CountDownLatch.new
       @controller.error_latch = Concurrent::CountDownLatch.new
 
@@ -389,6 +404,8 @@ module ActionController
         @controller.error_latch.wait
         assert_match "Error while streaming", output.rewind && output.read
       end
+    ensure
+      ActionController::Live::Buffer.queue_size = old_queue_size
     end
 
     def test_ignore_client_disconnect

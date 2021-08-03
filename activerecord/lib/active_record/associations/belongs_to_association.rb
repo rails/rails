@@ -3,7 +3,7 @@
 module ActiveRecord
   module Associations
     # = Active Record Belongs To Association
-    class BelongsToAssociation < SingularAssociation #:nodoc:
+    class BelongsToAssociation < SingularAssociation # :nodoc:
       def handle_dependency
         return unless load_target
 
@@ -68,6 +68,14 @@ module ActiveRecord
       end
 
       def target_changed?
+        owner.attribute_changed?(reflection.foreign_key) || (!foreign_key_present? && target&.new_record?)
+      end
+
+      def target_previously_changed?
+        owner.attribute_previously_changed?(reflection.foreign_key)
+      end
+
+      def saved_change_to_target?
         owner.saved_change_to_attribute?(reflection.foreign_key)
       end
 
@@ -77,6 +85,8 @@ module ActiveRecord
             raise_on_type_mismatch!(record)
             set_inverse_instance(record)
             @updated = true
+          elsif target
+            remove_inverse_instance(target)
           end
 
           replace_keys(record, force: true)
@@ -125,7 +135,7 @@ module ActiveRecord
 
         def invertible_for?(record)
           inverse = inverse_reflection_for(record)
-          inverse && (inverse.has_one? || ActiveRecord::Base.has_many_inversing)
+          inverse && (inverse.has_one? || inverse.klass.has_many_inversing)
         end
 
         def stale_state

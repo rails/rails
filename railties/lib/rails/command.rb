@@ -10,7 +10,6 @@ module Rails
   module Command
     extend ActiveSupport::Autoload
 
-    autoload :Spellchecker
     autoload :Behavior
     autoload :Base
 
@@ -38,6 +37,7 @@ module Rails
         end
 
         command_name, namespace = "help", "help" if command_name.blank? || HELP_MAPPINGS.include?(command_name)
+        command_name, namespace, args = "application", "application", ["--help"] if rails_new_with_no_path?(args)
         command_name, namespace = "version", "version" if %w( -v --version ).include?(command_name)
 
         original_argv = ARGV.dup
@@ -47,6 +47,7 @@ module Rails
         if command && command.all_commands[command_name]
           command.perform(command_name, args, config)
         else
+          args = ["--describe", full_namespace] if HELP_MAPPINGS.include?(args[0])
           find_by_namespace("rake").perform(full_namespace, args, config)
         end
       ensure
@@ -91,6 +92,10 @@ module Rails
       private
         COMMANDS_IN_USAGE = %w(generate console server test test:system dbconsole new)
         private_constant :COMMANDS_IN_USAGE
+
+        def rails_new_with_no_path?(args)
+          args == ["new"]
+        end
 
         def commands
           lookup!

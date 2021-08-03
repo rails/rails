@@ -27,7 +27,7 @@ module ActiveSupport
         time << "#{parts[:hours]}H"     if parts.key?(:hours)
         time << "#{parts[:minutes]}M"   if parts.key?(:minutes)
         if parts.key?(:seconds)
-          time << "#{sprintf(@precision ? "%0.0#{@precision}f" : '%g', parts[:seconds])}S"
+          time << "#{format_seconds(parts[:seconds])}S"
         end
         output << "T#{time}" unless time.empty?
         output
@@ -53,6 +53,14 @@ module ActiveSupport
 
         def week_mixed_with_date?(parts)
           parts.key?(:weeks) && (parts.keys & DATE_COMPONENTS).any?
+        end
+
+        def format_seconds(seconds)
+          if @precision
+            sprintf("%0.0#{@precision}f", seconds)
+          else
+            seconds.to_s
+          end
         end
     end
   end

@@ -9,7 +9,7 @@ require "action_view/context"
 require "action_view/template"
 require "action_view/lookup_context"
 
-module ActionView #:nodoc:
+module ActionView # :nodoc:
   # = Action View Base
   #
   # Action View templates can be written in several ways.
@@ -179,7 +179,7 @@ module ActionView #:nodoc:
         ActionView::Resolver.caching = value
       end
 
-      def xss_safe? #:nodoc:
+      def xss_safe? # :nodoc:
         true
       end
 
@@ -227,7 +227,7 @@ module ActionView #:nodoc:
 
     # :startdoc:
 
-    def initialize(lookup_context, assigns, controller) #:nodoc:
+    def initialize(lookup_context, assigns, controller) # :nodoc:
       @_config = ActiveSupport::InheritableOptions.new
 
       @lookup_context = lookup_context

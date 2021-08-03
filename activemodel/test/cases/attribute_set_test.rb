@@ -209,6 +209,21 @@ module ActiveModel
       assert_equal "value from user", attributes.fetch_value(:foo)
     end
 
+    class MySerializedType < ::ActiveModel::Type::Value
+      def serialize(value)
+        value + " serialized"
+      end
+    end
+
+    test "values_for_database" do
+      builder = AttributeSet::Builder.new(foo: MySerializedType.new)
+      attributes = builder.build_from_database
+
+      attributes.write_from_user(:foo, "value")
+
+      assert_equal({ foo: "value serialized" }, attributes.values_for_database)
+    end
+
     test "freezing doesn't prevent the set from materializing" do
       builder = AttributeSet::Builder.new(foo: Type::String.new)
       attributes = builder.build_from_database(foo: "1")

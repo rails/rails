@@ -267,7 +267,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 
     firm = Firm.first
     firm.account = Account.first
-    assert_queries(Firm.partial_writes? ? 0 : 1) { firm.save! }
+    assert_queries(Firm.partial_updates? ? 0 : 1) { firm.save! }
 
     firm = Firm.first.dup
     firm.account = Account.first
@@ -512,8 +512,8 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
   end
 
   def test_errors_should_be_indexed_when_global_flag_is_set
-    old_attribute_config = ActiveRecord::Base.index_nested_attribute_errors
-    ActiveRecord::Base.index_nested_attribute_errors = true
+    old_attribute_config = ActiveRecord.index_nested_attribute_errors
+    ActiveRecord.index_nested_attribute_errors = true
 
     molecule = Molecule.new
     valid_electron = Electron.new(name: "electron")
@@ -527,7 +527,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_equal ["can't be blank"], molecule.errors["electrons[1].name"]
     assert_not_equal ["can't be blank"], molecule.errors["electrons.name"]
   ensure
-    ActiveRecord::Base.index_nested_attribute_errors = old_attribute_config
+    ActiveRecord.index_nested_attribute_errors = old_attribute_config
   end
 
   def test_errors_details_should_be_set
@@ -559,8 +559,8 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
   end
 
   def test_errors_details_should_be_indexed_when_global_flag_is_set
-    old_attribute_config = ActiveRecord::Base.index_nested_attribute_errors
-    ActiveRecord::Base.index_nested_attribute_errors = true
+    old_attribute_config = ActiveRecord.index_nested_attribute_errors
+    ActiveRecord.index_nested_attribute_errors = true
 
     molecule = Molecule.new
     valid_electron = Electron.new(name: "electron")
@@ -574,7 +574,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_equal [{ error: :blank }], molecule.errors.details[:"electrons[1].name"]
     assert_equal [], molecule.errors.details[:"electrons.name"]
   ensure
-    ActiveRecord::Base.index_nested_attribute_errors = old_attribute_config
+    ActiveRecord.index_nested_attribute_errors = old_attribute_config
   end
 
   def test_valid_adding_with_nested_attributes

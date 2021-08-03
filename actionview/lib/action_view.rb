@@ -44,6 +44,8 @@ module ActionView
     autoload :Rendering
     autoload :RoutingUrlFor
     autoload :Template
+    autoload :TemplateDetails
+    autoload :TemplatePath
     autoload :UnboundTemplate
     autoload :ViewPaths
 

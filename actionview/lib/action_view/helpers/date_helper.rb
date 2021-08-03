@@ -9,7 +9,7 @@ require "active_support/core_ext/object/acts_like"
 require "active_support/core_ext/object/with_options"
 
 module ActionView
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # = Action View Date Helpers
     #
     # The Date Helper primarily creates select/option tags for different kinds of dates and times or date and time
@@ -140,7 +140,7 @@ module ActionView
             minute_offset_for_leap_year = leap_years * 1440
             # Discount the leap year days when calculating year distance.
             # e.g. if there are 20 leap year days between 2 dates having the same day
-            # and month then the based on 365 days calculation
+            # and month then based on 365 days calculation
             # the distance in years will come out to over 80 years when in written
             # English it would read better as about 80 years.
             minutes_with_offset = distance_in_minutes - minute_offset_for_leap_year
@@ -699,7 +699,7 @@ module ActionView
         end
     end
 
-    class DateTimeSelector #:nodoc:
+    class DateTimeSelector # :nodoc:
       include ActionView::Helpers::TagHelper
 
       DEFAULT_PREFIX = "date"

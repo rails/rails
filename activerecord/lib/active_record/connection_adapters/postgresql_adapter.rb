@@ -161,7 +161,7 @@ module ActiveRecord
         oid:         { name: "oid" },
       }
 
-      OID = PostgreSQL::OID #:nodoc:
+      OID = PostgreSQL::OID # :nodoc:
 
       include PostgreSQL::Quoting
       include PostgreSQL::ReferentialIntegrity
@@ -292,11 +292,16 @@ module ActiveRecord
       # Is this connection alive and ready for queries?
       def active?
         @lock.synchronize do
-          @connection.query "SELECT 1"
+          @connection.query ";"
         end
         true
       rescue PG::Error
         false
+      end
+
+      def reload_type_map # :nodoc:
+        type_map.clear
+        initialize_type_map
       end
 
       # Close then reopen the connection.
@@ -305,6 +310,7 @@ module ActiveRecord
           super
           @connection.reset
           configure_connection
+          reload_type_map
         rescue PG::ConnectionBad
           connect
         end
@@ -337,11 +343,11 @@ module ActiveRecord
         @connection = nil
       end
 
-      def native_database_types #:nodoc:
+      def native_database_types # :nodoc:
         self.class.native_database_types
       end
 
-      def self.native_database_types #:nodoc:
+      def self.native_database_types # :nodoc:
         @native_database_types ||= begin
           types = NATIVE_DATABASE_TYPES.dup
           types[:datetime] = types[datetime_type]
@@ -484,68 +490,8 @@ module ActiveRecord
         end
       end
 
-      private
-        # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
-        VALUE_LIMIT_VIOLATION = "22001"
-        NUMERIC_VALUE_OUT_OF_RANGE = "22003"
-        NOT_NULL_VIOLATION    = "23502"
-        FOREIGN_KEY_VIOLATION = "23503"
-        UNIQUE_VIOLATION      = "23505"
-        SERIALIZATION_FAILURE = "40001"
-        DEADLOCK_DETECTED     = "40P01"
-        DUPLICATE_DATABASE    = "42P04"
-        LOCK_NOT_AVAILABLE    = "55P03"
-        QUERY_CANCELED        = "57014"
-
-        def translate_exception(exception, message:, sql:, binds:)
-          return exception unless exception.respond_to?(:result)
-
-          case exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE)
-          when nil
-            if exception.message.match?(/connection is closed/i)
-              ConnectionNotEstablished.new(exception)
-            else
-              super
-            end
-          when UNIQUE_VIOLATION
-            RecordNotUnique.new(message, sql: sql, binds: binds)
-          when FOREIGN_KEY_VIOLATION
-            InvalidForeignKey.new(message, sql: sql, binds: binds)
-          when VALUE_LIMIT_VIOLATION
-            ValueTooLong.new(message, sql: sql, binds: binds)
-          when NUMERIC_VALUE_OUT_OF_RANGE
-            RangeError.new(message, sql: sql, binds: binds)
-          when NOT_NULL_VIOLATION
-            NotNullViolation.new(message, sql: sql, binds: binds)
-          when SERIALIZATION_FAILURE
-            SerializationFailure.new(message, sql: sql, binds: binds)
-          when DEADLOCK_DETECTED
-            Deadlocked.new(message, sql: sql, binds: binds)
-          when DUPLICATE_DATABASE
-            DatabaseAlreadyExists.new(message, sql: sql, binds: binds)
-          when LOCK_NOT_AVAILABLE
-            LockWaitTimeout.new(message, sql: sql, binds: binds)
-          when QUERY_CANCELED
-            QueryCanceled.new(message, sql: sql, binds: binds)
-          else
-            super
-          end
-        end
-
-        def get_oid_type(oid, fmod, column_name, sql_type = "")
-          if !type_map.key?(oid)
-            load_additional_types([oid])
-          end
-
-          type_map.fetch(oid, fmod, sql_type) {
-            warn "unknown OID #{oid}: failed to recognize type of '#{column_name}'. It will be treated as String."
-            Type.default_value.tap do |cast_type|
-              type_map.register_type(oid, cast_type)
-            end
-          }
-        end
-
-        def initialize_type_map(m = type_map)
+      class << self
+        def initialize_type_map(m) # :nodoc:
           m.register_type "int2", Type::Integer.new(limit: 2)
           m.register_type "int4", Type::Integer.new(limit: 4)
           m.register_type "int8", Type::Integer.new(limit: 8)
@@ -611,7 +557,16 @@ module ActiveRecord
             precision = extract_precision(sql_type)
             OID::Interval.new(precision: precision)
           end
+        end
+      end
 
+      private
+        def type_map
+          @type_map ||= Type::HashLookupTypeMap.new
+        end
+
+        def initialize_type_map(m = type_map)
+          self.class.initialize_type_map(m)
           load_additional_types
         end
 
@@ -650,6 +605,66 @@ module ActiveRecord
           !default_value && %r{\w+\(.*\)|\(.*\)::\w+|CURRENT_DATE|CURRENT_TIMESTAMP}.match?(default)
         end
 
+        # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
+        VALUE_LIMIT_VIOLATION = "22001"
+        NUMERIC_VALUE_OUT_OF_RANGE = "22003"
+        NOT_NULL_VIOLATION    = "23502"
+        FOREIGN_KEY_VIOLATION = "23503"
+        UNIQUE_VIOLATION      = "23505"
+        SERIALIZATION_FAILURE = "40001"
+        DEADLOCK_DETECTED     = "40P01"
+        DUPLICATE_DATABASE    = "42P04"
+        LOCK_NOT_AVAILABLE    = "55P03"
+        QUERY_CANCELED        = "57014"
+
+        def translate_exception(exception, message:, sql:, binds:)
+          return exception unless exception.respond_to?(:result)
+
+          case exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE)
+          when nil
+            if exception.message.match?(/connection is closed/i)
+              ConnectionNotEstablished.new(exception)
+            else
+              super
+            end
+          when UNIQUE_VIOLATION
+            RecordNotUnique.new(message, sql: sql, binds: binds)
+          when FOREIGN_KEY_VIOLATION
+            InvalidForeignKey.new(message, sql: sql, binds: binds)
+          when VALUE_LIMIT_VIOLATION
+            ValueTooLong.new(message, sql: sql, binds: binds)
+          when NUMERIC_VALUE_OUT_OF_RANGE
+            RangeError.new(message, sql: sql, binds: binds)
+          when NOT_NULL_VIOLATION
+            NotNullViolation.new(message, sql: sql, binds: binds)
+          when SERIALIZATION_FAILURE
+            SerializationFailure.new(message, sql: sql, binds: binds)
+          when DEADLOCK_DETECTED
+            Deadlocked.new(message, sql: sql, binds: binds)
+          when DUPLICATE_DATABASE
+            DatabaseAlreadyExists.new(message, sql: sql, binds: binds)
+          when LOCK_NOT_AVAILABLE
+            LockWaitTimeout.new(message, sql: sql, binds: binds)
+          when QUERY_CANCELED
+            QueryCanceled.new(message, sql: sql, binds: binds)
+          else
+            super
+          end
+        end
+
+        def get_oid_type(oid, fmod, column_name, sql_type = "")
+          if !type_map.key?(oid)
+            load_additional_types([oid])
+          end
+
+          type_map.fetch(oid, fmod, sql_type) {
+            warn "unknown OID #{oid}: failed to recognize type of '#{column_name}'. It will be treated as String."
+            Type.default_value.tap do |cast_type|
+              type_map.register_type(oid, cast_type)
+            end
+          }
+        end
+
         def load_additional_types(oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
           load_types_queries(initializer, oids) do |query|
@@ -674,7 +689,7 @@ module ActiveRecord
           end
         end
 
-        FEATURE_NOT_SUPPORTED = "0A000" #:nodoc:
+        FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
 
         def execute_and_clear(sql, name, binds, prepare: false, async: false)
           check_if_write_query(sql)
@@ -696,7 +711,7 @@ module ActiveRecord
           materialize_transactions
           mark_transaction_written_if_write(sql)
 
-          # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
+          # make sure we carry over any changes to ActiveRecord.default_timezone that have been
           # made since we established the connection
           update_typemap_for_default_timezone
 
@@ -810,7 +825,7 @@ module ActiveRecord
           # If using Active Record's time zone support configure the connection to return
           # TIMESTAMP WITH ZONE types in UTC.
           unless variables["timezone"]
-            if ActiveRecord::Base.default_timezone == :utc
+            if ActiveRecord.default_timezone == :utc
               variables["timezone"] = "UTC"
             elsif @local_tz
               variables["timezone"] = @local_tz
@@ -909,15 +924,15 @@ module ActiveRecord
         end
 
         def update_typemap_for_default_timezone
-          if @default_timezone != ActiveRecord::Base.default_timezone && @timestamp_decoder
-            decoder_class = ActiveRecord::Base.default_timezone == :utc ?
+          if @default_timezone != ActiveRecord.default_timezone && @timestamp_decoder
+            decoder_class = ActiveRecord.default_timezone == :utc ?
               PG::TextDecoder::TimestampUtc :
               PG::TextDecoder::TimestampWithoutTimeZone
 
             @timestamp_decoder = decoder_class.new(@timestamp_decoder.to_h)
             @connection.type_map_for_results.add_coder(@timestamp_decoder)
 
-            @default_timezone = ActiveRecord::Base.default_timezone
+            @default_timezone = ActiveRecord.default_timezone
 
             # if default timezone has changed, we need to reconfigure the connection
             # (specifically, the session time zone)

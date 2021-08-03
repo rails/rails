@@ -75,8 +75,8 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_is_applied_to_legacy_connections_in_all_handlers
-    old_value = ActiveRecord::Base.legacy_connection_handling
-    ActiveRecord::Base.legacy_connection_handling = true
+    old_value = ActiveRecord.legacy_connection_handling
+    ActiveRecord.legacy_connection_handling = true
 
     assert_deprecated do
       ActiveRecord::Base.connection_handlers = {
@@ -101,7 +101,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     mw.call({})
   ensure
     clean_up_legacy_connection_handlers
-    ActiveRecord::Base.legacy_connection_handling = old_value
+    ActiveRecord.legacy_connection_handling = old_value
   end
 
   def test_query_cache_is_applied_to_all_connections
@@ -126,8 +126,8 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   if Process.respond_to?(:fork) && !in_memory_db?
     def test_query_cache_with_multiple_handlers_and_forked_processes_legacy_handling
-      old_value = ActiveRecord::Base.legacy_connection_handling
-      ActiveRecord::Base.legacy_connection_handling = true
+      old_value = ActiveRecord.legacy_connection_handling
+      ActiveRecord.legacy_connection_handling = true
 
       assert_deprecated do
         ActiveRecord::Base.connection_handlers = {
@@ -190,7 +190,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       rd.close
     ensure
       clean_up_legacy_connection_handlers
-      ActiveRecord::Base.legacy_connection_handling = old_value
+      ActiveRecord.legacy_connection_handling = old_value
     end
 
     def test_query_cache_with_forked_processes
@@ -606,7 +606,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       Task.find(1)
 
       # Preload the type cache again (so we don't have those queries issued during our assertions)
-      Task.connection.send(:reload_type_map)
+      Task.connection.send(:reload_type_map) if Task.connection.respond_to?(:reload_type_map, true)
 
       # Clear places where type information is cached
       Task.reset_column_information
@@ -665,8 +665,8 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_clear_query_cache_is_called_on_all_legacy_connections
     skip "with in memory db, reading role won't be able to see database on writing role" if in_memory_db?
-    old_value = ActiveRecord::Base.legacy_connection_handling
-    ActiveRecord::Base.legacy_connection_handling = true
+    old_value = ActiveRecord.legacy_connection_handling
+    ActiveRecord.legacy_connection_handling = true
 
     assert_deprecated do
       ActiveRecord::Base.connection_handlers = {
@@ -704,7 +704,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   ensure
     unless in_memory_db?
       clean_up_legacy_connection_handlers
-      ActiveRecord::Base.legacy_connection_handling = old_value
+      ActiveRecord.legacy_connection_handling = old_value
     end
   end
 
@@ -760,7 +760,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   private
     def with_temporary_connection_pool
-      pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("ActiveRecord::Base").get_pool_config(ActiveRecord::Base.writing_role, :default)
+      pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("ActiveRecord::Base").get_pool_config(ActiveRecord.writing_role, :default)
       new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
 
       pool_config.stub(:pool, new_pool) do

@@ -41,14 +41,14 @@ module ActiveRecord
         def execute(sql, name = nil, async: false)
           check_if_write_query(sql)
 
-          # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
+          # make sure we carry over any changes to ActiveRecord.default_timezone that have been
           # made since we established the connection
-          @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
+          @connection.query_options[:database_timezone] = ActiveRecord.default_timezone
 
           super
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
+        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
           if without_prepared_statement?(binds)
             execute_and_free(sql, name, async: async) do |result|
               if result
@@ -68,7 +68,7 @@ module ActiveRecord
           end
         end
 
-        def exec_delete(sql, name = nil, binds = [])
+        def exec_delete(sql, name = nil, binds = []) # :nodoc:
           if without_prepared_statement?(binds)
             @lock.synchronize do
               execute_and_free(sql, name) { @connection.affected_rows }
@@ -152,9 +152,9 @@ module ActiveRecord
             materialize_transactions
             mark_transaction_written_if_write(sql)
 
-            # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
+            # make sure we carry over any changes to ActiveRecord.default_timezone that have been
             # made since we established the connection
-            @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
+            @connection.query_options[:database_timezone] = ActiveRecord.default_timezone
 
             type_casted_binds = type_casted_binds(binds)
 

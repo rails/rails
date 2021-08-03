@@ -60,6 +60,7 @@ module ActiveStorage
   mattr_accessor :content_types_allowed_inline,     default: []
 
   mattr_accessor :service_urls_expire_in, default: 5.minutes
+  mattr_accessor :urls_expire_in
 
   mattr_accessor :routes_prefix, default: "/rails/active_storage"
   mattr_accessor :draw_routes, default: true
@@ -67,6 +68,8 @@ module ActiveStorage
 
   mattr_accessor :replace_on_assign_to_many, default: false
   mattr_accessor :track_variants, default: false
+
+  mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 
   module Transformers
     extend ActiveSupport::Autoload

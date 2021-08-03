@@ -9,7 +9,7 @@ require "active_support/core_ext/module/attribute_accessors"
 require "active_support/actionable_error"
 
 module ActiveRecord
-  class MigrationError < ActiveRecordError #:nodoc:
+  class MigrationError < ActiveRecordError # :nodoc:
     def initialize(message = nil)
       message = "\n\n#{message}\n\n" if message
       super
@@ -90,7 +90,7 @@ module ActiveRecord
   class IrreversibleMigration < MigrationError
   end
 
-  class DuplicateMigrationVersionError < MigrationError #:nodoc:
+  class DuplicateMigrationVersionError < MigrationError # :nodoc:
     def initialize(version = nil)
       if version
         super("Multiple migrations have the version number #{version}.")
@@ -100,7 +100,7 @@ module ActiveRecord
     end
   end
 
-  class DuplicateMigrationNameError < MigrationError #:nodoc:
+  class DuplicateMigrationNameError < MigrationError # :nodoc:
     def initialize(name = nil)
       if name
         super("Multiple migrations have the name #{name}.")
@@ -110,7 +110,7 @@ module ActiveRecord
     end
   end
 
-  class UnknownMigrationVersionError < MigrationError #:nodoc:
+  class UnknownMigrationVersionError < MigrationError # :nodoc:
     def initialize(version = nil)
       if version
         super("No migration with version number #{version}.")
@@ -120,7 +120,7 @@ module ActiveRecord
     end
   end
 
-  class IllegalMigrationNameError < MigrationError #:nodoc:
+  class IllegalMigrationNameError < MigrationError # :nodoc:
     def initialize(name = nil)
       if name
         super("Illegal name for migration file: #{name}\n\t(only lower case letters, numbers, and '_' allowed).")
@@ -130,13 +130,13 @@ module ActiveRecord
     end
   end
 
-  class PendingMigrationError < MigrationError #:nodoc:
+  class PendingMigrationError < MigrationError # :nodoc:
     include ActiveSupport::ActionableError
 
     action "Run pending migrations" do
       ActiveRecord::Tasks::DatabaseTasks.migrate
 
-      if ActiveRecord::Base.dump_schema_after_migration
+      if ActiveRecord.dump_schema_after_migration
         ActiveRecord::Tasks::DatabaseTasks.dump_schema(
           ActiveRecord::Base.connection_db_config
         )
@@ -165,7 +165,7 @@ module ActiveRecord
       end
   end
 
-  class ConcurrentMigrationError < MigrationError #:nodoc:
+  class ConcurrentMigrationError < MigrationError # :nodoc:
     DEFAULT_MESSAGE = "Cannot run migrations because another migration process is currently running."
     RELEASE_LOCK_FAILED_MESSAGE = "Failed to release advisory lock"
 
@@ -174,7 +174,7 @@ module ActiveRecord
     end
   end
 
-  class NoEnvironmentInSchemaError < MigrationError #:nodoc:
+  class NoEnvironmentInSchemaError < MigrationError # :nodoc:
     def initialize
       msg = "Environment data not found in the schema. To resolve this issue, run: \n\n        bin/rails db:environment:set"
       if defined?(Rails.env)
@@ -185,7 +185,7 @@ module ActiveRecord
     end
   end
 
-  class ProtectedEnvironmentError < ActiveRecordError #:nodoc:
+  class ProtectedEnvironmentError < ActiveRecordError # :nodoc:
     def initialize(env = "production")
       msg = +"You are attempting to run a destructive action against your '#{env}' database.\n"
       msg << "If you are sure you want to continue, run the same command with the environment variable:\n"
@@ -550,10 +550,10 @@ module ActiveRecord
     autoload :JoinTable, "active_record/migration/join_table"
 
     # This must be defined before the inherited hook, below
-    class Current < Migration #:nodoc:
+    class Current < Migration # :nodoc:
     end
 
-    def self.inherited(subclass) #:nodoc:
+    def self.inherited(subclass) # :nodoc:
       super
       if subclass.superclass == Migration
         major = ActiveRecord::VERSION::MAJOR
@@ -573,7 +573,7 @@ module ActiveRecord
       ActiveRecord::VERSION::STRING.to_f
     end
 
-    MigrationFilenameRegexp = /\A([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/ #:nodoc:
+    MigrationFilenameRegexp = /\A([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/ # :nodoc:
 
     # This class is used to verify that all migrations have been run before
     # loading a web page if <tt>config.active_record.migration_error</tt> is set to :page_load
@@ -615,10 +615,10 @@ module ActiveRecord
     end
 
     class << self
-      attr_accessor :delegate #:nodoc:
-      attr_accessor :disable_ddl_transaction #:nodoc:
+      attr_accessor :delegate # :nodoc:
+      attr_accessor :disable_ddl_transaction # :nodoc:
 
-      def nearest_delegate #:nodoc:
+      def nearest_delegate # :nodoc:
         delegate || superclass.nearest_delegate
       end
 
@@ -632,7 +632,7 @@ module ActiveRecord
         all_configs = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env)
 
         needs_update = !all_configs.all? do |db_config|
-          Tasks::DatabaseTasks.schema_up_to_date?(db_config, ActiveRecord::Base.schema_format)
+          Tasks::DatabaseTasks.schema_up_to_date?(db_config, ActiveRecord.schema_format)
         end
 
         if needs_update
@@ -650,13 +650,13 @@ module ActiveRecord
         check_pending!
       end
 
-      def maintain_test_schema! #:nodoc:
-        if ActiveRecord::Base.maintain_test_schema
+      def maintain_test_schema! # :nodoc:
+        if ActiveRecord.maintain_test_schema
           suppress_messages { load_schema_if_pending! }
         end
       end
 
-      def method_missing(name, *args, &block) #:nodoc:
+      def method_missing(name, *args, &block) # :nodoc:
         nearest_delegate.send(name, *args, &block)
       end
       ruby2_keywords(:method_missing)
@@ -674,7 +674,7 @@ module ActiveRecord
       end
     end
 
-    def disable_ddl_transaction #:nodoc:
+    def disable_ddl_transaction # :nodoc:
       self.class.disable_ddl_transaction
     end
 
@@ -749,7 +749,7 @@ module ActiveRecord
       connection.respond_to?(:reverting) && connection.reverting
     end
 
-    ReversibleBlockHelper = Struct.new(:reverting) do #:nodoc:
+    ReversibleBlockHelper = Struct.new(:reverting) do # :nodoc:
       def up
         yield unless reverting
       end
@@ -994,7 +994,7 @@ module ActiveRecord
 
     # Determines the version number of the next migration.
     def next_migration_number(number)
-      if ActiveRecord::Base.timestamped_migrations
+      if ActiveRecord.timestamped_migrations
         [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
       else
         SchemaMigration.normalize_migration_number(number)
@@ -1003,7 +1003,7 @@ module ActiveRecord
 
     # Builds a hash for use in ActiveRecord::Migration#proper_table_name using
     # the Active Record object's table_name prefix and suffix
-    def table_name_options(config = ActiveRecord::Base) #:nodoc:
+    def table_name_options(config = ActiveRecord::Base) # :nodoc:
       {
         table_name_prefix: config.table_name_prefix,
         table_name_suffix: config.table_name_suffix
@@ -1044,7 +1044,9 @@ module ActiveRecord
       end
 
       def load_migration
-        require(File.expand_path(filename))
+        Object.send(:remove_const, name) rescue nil
+
+        load(File.expand_path(filename))
         name.constantize.new(name, version)
       end
   end
@@ -1140,7 +1142,11 @@ module ActiveRecord
     end
 
     def needs_migration? # :nodoc:
-      (migrations.collect(&:version) - get_all_versions).size > 0
+      pending_migration_versions.size > 0
+    end
+
+    def pending_migration_versions # :nodoc:
+      migrations.collect(&:version) - get_all_versions
     end
 
     def migrations # :nodoc:
@@ -1171,7 +1177,7 @@ module ActiveRecord
         ["up", version, "********** NO FILE **********"]
       end
 
-      (db_list + file_list).sort_by { |_, version, _| version }
+      (db_list + file_list).sort_by { |_, version, _| version.to_i }
     end
 
     def current_environment # :nodoc:

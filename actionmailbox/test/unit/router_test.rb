@@ -140,9 +140,10 @@ module ActionMailbox
     end
 
     test "invalid address" do
-      assert_raises(ArgumentError) do
+      error = assert_raises(ArgumentError) do
         @router.add_route Array.new, to: :first
       end
+      assert_equal "Expected a Symbol, String, Regexp, Proc, or matchable, got []", error.message
     end
 
     test "single string mailbox_for" do

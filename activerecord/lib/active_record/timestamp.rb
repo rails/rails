@@ -75,7 +75,7 @@ module ActiveRecord
       end
 
       def current_time_from_proper_timezone
-        default_timezone == :utc ? Time.now.utc : Time.now
+        ActiveRecord.default_timezone == :utc ? Time.now.utc : Time.now
       end
 
       private
@@ -127,7 +127,7 @@ module ActiveRecord
     end
 
     def should_record_timestamps?
-      record_timestamps && (!partial_writes? || has_changes_to_save?)
+      record_timestamps && (!partial_updates? || has_changes_to_save?)
     end
 
     def timestamp_attributes_for_create_in_model

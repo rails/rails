@@ -836,7 +836,7 @@ class FormHelperTest < ActionView::TestCase
   def test_radio_button_is_checked_with_integers
     assert_dom_equal('<input checked="checked" id="post_secret_1" name="post[secret]" type="radio" value="1" />',
       radio_button("post", "secret", "1")
-   )
+    )
   end
 
   def test_radio_button_with_negative_integer_value
@@ -847,7 +847,7 @@ class FormHelperTest < ActionView::TestCase
   def test_radio_button_respects_passed_in_id
     assert_dom_equal('<input checked="checked" id="foo" name="post[secret]" type="radio" value="1" />',
       radio_button("post", "secret", "1", id: "foo")
-   )
+    )
   end
 
   def test_radio_button_with_booleans
@@ -1154,6 +1154,14 @@ class FormHelperTest < ActionView::TestCase
     min_value = "foo"
     max_value = "bar"
     assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value))
+  end
+
+  def test_time_field_without_seconds
+    expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02" max="10:25" min="20:45" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    min_value = DateTime.new(2000, 6, 15, 20, 45, 30)
+    max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
+    assert_dom_equal(expected, time_field("post", "written_on", include_seconds: false, min: min_value, max: max_value))
   end
 
   def test_datetime_field
@@ -1486,7 +1494,7 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(
       %{<input checked="checked" id="post_#{pid}_title_hello_world" name="post[#{pid}][title]" type="radio" value="Hello World" />},
       radio_button("post[]", "title", "Hello World")
-     )
+    )
     assert_dom_equal(
       %{<input id="post_#{pid}_title_goodbye_world" name="post[#{pid}][title]" type="radio" value="Goodbye World" />},
       radio_button("post[]", "title", "Goodbye World")
@@ -1510,7 +1518,7 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(
       %{<input checked="checked" name="post[#{pid}][title]" type="radio" value="Hello World" />},
        radio_button("post[]", "title", "Hello World", id: nil)
-     )
+    )
     assert_dom_equal(
       %{<input name="post[#{pid}][title]" type="radio" value="Goodbye World" />},
       radio_button("post[]", "title", "Goodbye World", id: nil)
@@ -2461,6 +2469,34 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_nested_fields_for_field_id
+    form_for(@post) do |form|
+      concat form.fields_for(:comment_attributes, @comment) { |c|
+        concat c.field_id(:body)
+      }
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      "post_comment_attributes_body"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_field_id_with_index_override
+    form_for(@post) do |form|
+      concat form.fields_for(:comment_attributes, @comment, index: 1) { |c|
+        concat c.field_id(:body)
+      }
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      "post_comment_attributes_1_body"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_deep_nested_fields_for
     @comment.save
     form_for(:posts) do |f|
@@ -3240,6 +3276,12 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_fields_for_field_id
+    fields_for(:post, @post) do |fields|
+      assert_equal "post_title", fields.field_id(:title)
+    end
+  end
+
   def test_fields_for_with_index
     output_buffer = fields_for("post[]", @post) do |f|
       concat f.text_field(:title)
@@ -3256,6 +3298,12 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_fields_for_field_id_with_index_option
+    fields_for(:post, @post) do |fields|
+      assert_equal "post_5_title", fields.field_id(:title, index: 5)
+    end
+  end
+
   def test_fields_for_with_nil_index_option_override
     output_buffer = fields_for("post[]", @post, index: nil) do |f|
       concat f.text_field(:title)
@@ -3270,6 +3318,12 @@ class FormHelperTest < ActionView::TestCase
       "<input name='post[][secret]' checked='checked' type='checkbox' id='post__secret' value='1' />"
 
     assert_dom_equal expected, output_buffer
+  end
+
+  def test_fields_for_with_index_option_override_field_id
+    fields_for(:post, @post, index: 1) do |fields|
+      assert_equal "post_1_title", fields.field_id(:title)
+    end
   end
 
   def test_fields_for_with_index_option_override

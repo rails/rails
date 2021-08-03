@@ -82,7 +82,12 @@ module ActiveRecord
         include EncryptedQueryArgumentProcessor
 
         def where(*args)
-          process_encrypted_query_arguments(args, true) unless self.deterministic_encrypted_attributes&.empty?
+          process_encrypted_query_arguments_if_needed(args)
+          super
+        end
+
+        def exists?(*args)
+          process_encrypted_query_arguments_if_needed(args)
           super
         end
 
@@ -93,6 +98,11 @@ module ActiveRecord
         def find_or_create_by!(attributes, &block)
           find_by(attributes.dup) || create!(attributes, &block)
         end
+
+        private
+          def process_encrypted_query_arguments_if_needed(args)
+            process_encrypted_query_arguments(args, true) unless self.deterministic_encrypted_attributes&.empty?
+          end
       end
 
       module CoreQueries

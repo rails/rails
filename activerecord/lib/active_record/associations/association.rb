@@ -32,7 +32,7 @@ module ActiveRecord
     # The association of <tt>blog.posts</tt> has the object +blog+ as its
     # <tt>owner</tt>, the collection of its posts as <tt>target</tt>, and
     # the <tt>reflection</tt> object represents a <tt>:has_many</tt> macro.
-    class Association #:nodoc:
+    class Association # :nodoc:
       attr_reader :owner, :target, :reflection, :disable_joins
 
       delegate :options, to: :reflection
@@ -196,7 +196,7 @@ module ActiveRecord
         @reflection = @owner.class._reflect_on_association(reflection_name)
       end
 
-      def initialize_attributes(record, except_from_scope_attributes = nil) #:nodoc:
+      def initialize_attributes(record, except_from_scope_attributes = nil) # :nodoc:
         except_from_scope_attributes ||= {}
         skip_assign = [reflection.foreign_key, reflection.type].compact
         assigned_keys = record.changed_attribute_names_to_save
@@ -240,7 +240,7 @@ module ActiveRecord
             if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
               record.strict_loading!
             else
-              record.strict_loading_mode = owner.strict_loading_mode
+              record.strict_loading!(false, mode: owner.strict_loading_mode)
             end
           end
         end

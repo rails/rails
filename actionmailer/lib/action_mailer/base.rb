@@ -499,7 +499,7 @@ module ActionMailer
       # through a callback when you call <tt>:deliver</tt> on the <tt>Mail::Message</tt>,
       # calling +deliver_mail+ directly and passing a <tt>Mail::Message</tt> will do
       # nothing except tell the logger you sent the email.
-      def deliver_mail(mail) #:nodoc:
+      def deliver_mail(mail) # :nodoc:
         ActiveSupport::Notifications.instrument("deliver.action_mailer") do |payload|
           set_payload_for_mail(payload, mail)
           yield # Let Mail do the delivery actions
@@ -550,7 +550,7 @@ module ActionMailer
       @_message = Mail.new
     end
 
-    def process(method_name, *args) #:nodoc:
+    def process(method_name, *args) # :nodoc:
       payload = {
         mailer: self.class.name,
         action: method_name,
@@ -563,7 +563,7 @@ module ActionMailer
       end
     end
 
-    class NullMail #:nodoc:
+    class NullMail # :nodoc:
       def body; "" end
       def header; {} end
 
@@ -845,7 +845,7 @@ module ActionMailer
       end
 
       def apply_defaults(headers)
-        default_values = self.class.default.transform_values do |value|
+        default_values = self.class.default.except(*headers.keys).transform_values do |value|
           compute_default(value)
         end
 

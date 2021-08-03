@@ -7,9 +7,10 @@ module ActionDispatch
         build_path(string, {}, "/.?", true)
       end
 
-      def build_path(path, requirements, separators, anchored)
+      def build_path(path, requirements, separators, anchored, formatted = true)
         parser = ActionDispatch::Journey::Parser.new
         ast = parser.parse path
+        ast = Journey::Ast.new(ast, formatted)
         ActionDispatch::Journey::Path::Pattern.new(
           ast,
           requirements,

@@ -7,14 +7,14 @@ module ActiveRecord
   #
   # This class is used to dump the database schema for some connection to some
   # output format (i.e., ActiveRecord::Schema).
-  class SchemaDumper #:nodoc:
+  class SchemaDumper # :nodoc:
     private_class_method :new
 
     ##
     # :singleton-method:
     # A list of tables which should not be dumped to the schema.
-    # Acceptable values are strings as well as regexp if ActiveRecord::Base.schema_format == :ruby.
-    # Only strings are accepted if ActiveRecord::Base.schema_format == :sql.
+    # Acceptable values are strings as well as regexp if ActiveRecord.schema_format == :ruby.
+    # Only strings are accepted if ActiveRecord.schema_format == :sql.
     cattr_accessor :ignore_tables, default: []
 
     ##

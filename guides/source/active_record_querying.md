@@ -680,6 +680,32 @@ SELECT * FROM customers WHERE (customers.last_name = 'Smith' OR customers.orders
 
 [`or`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-or
 
+### AND Conditions
+
+`AND` conditions can be built by chaining `where` conditions.
+
+```ruby
+Customer.where(last_name: 'Smith').where(orders_count: [1,3,5]))
+```
+
+```sql
+SELECT * FROM customers WHERE customers.last_name = 'Smith' AND customers.orders_count IN (1,3,5)
+```
+
+`AND` conditions for the logical intersection between relations can be built by
+calling [`and`][] on the first relation, and passing the second one as an
+argument.
+
+```ruby
+Customer.where(id: [1, 2]).and(Customer.where(id: [2, 3]))
+```
+
+```sql
+SELECT * FROM customers WHERE (customers.id IN (1, 2) AND customers.id IN (2, 3))
+```
+
+[`and`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-and
+
 Ordering
 --------
 
@@ -2012,7 +2038,7 @@ SELECT DISTINCT status FROM orders
 => ["shipped", "being_packed", "cancelled"]
 
 irb> Customer.pluck(:id, :first_name)
-SELECT customers.id, customers.name FROM customers
+SELECT customers.id, customers.first_name FROM customers
 => [[1, "David"], [2, "Fran"], [3, "Jose"]]
 ```
 
@@ -2023,7 +2049,7 @@ Customer.select(:id).map { |c| c.id }
 # or
 Customer.select(:id).map(&:id)
 # or
-Customer.select(:id, :name).map { |c| [c.id, c.first_name] }
+Customer.select(:id, :first_name).map { |c| [c.id, c.first_name] }
 ```
 
 with:
@@ -2128,7 +2154,7 @@ one of those records exists.
 ```ruby
 Customer.exists?(id: [1,2,3])
 # or
-Customer.exists?(name: ['Jane', 'Sergei'])
+Customer.exists?(first_name: ['Jane', 'Sergei'])
 ```
 
 It's even possible to use `exists?` without any arguments on a model or a relation.

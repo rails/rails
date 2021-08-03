@@ -18,7 +18,7 @@ module ActiveRecord
           SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
         end
 
-        def execute(sql, name = nil) #:nodoc:
+        def execute(sql, name = nil) # :nodoc:
           check_if_write_query(sql)
 
           materialize_transactions
@@ -31,7 +31,7 @@ module ActiveRecord
           end
         end
 
-        def exec_query(sql, name = nil, binds = [], prepare: false, async: false)
+        def exec_query(sql, name = nil, binds = [], prepare: false, async: false) # :nodoc:
           check_if_write_query(sql)
 
           materialize_transactions
@@ -66,13 +66,13 @@ module ActiveRecord
           end
         end
 
-        def exec_delete(sql, name = "SQL", binds = [])
+        def exec_delete(sql, name = "SQL", binds = []) # :nodoc:
           exec_query(sql, name, binds)
           @connection.changes
         end
         alias :exec_update :exec_delete
 
-        def begin_isolated_db_transaction(isolation) #:nodoc
+        def begin_isolated_db_transaction(isolation) # :nodoc:
           raise TransactionIsolationError, "SQLite3 only supports the `read_uncommitted` transaction isolation level" if isolation != :read_uncommitted
           raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
 
@@ -81,16 +81,16 @@ module ActiveRecord
           begin_db_transaction
         end
 
-        def begin_db_transaction #:nodoc:
+        def begin_db_transaction # :nodoc:
           log("begin transaction", "TRANSACTION") { @connection.transaction }
         end
 
-        def commit_db_transaction #:nodoc:
+        def commit_db_transaction # :nodoc:
           log("commit transaction", "TRANSACTION") { @connection.commit }
           reset_read_uncommitted
         end
 
-        def exec_rollback_db_transaction #:nodoc:
+        def exec_rollback_db_transaction # :nodoc:
           log("rollback transaction", "TRANSACTION") { @connection.rollback }
           reset_read_uncommitted
         end

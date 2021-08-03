@@ -5,11 +5,25 @@ module ActiveRecord
     class BatchEnumerator
       include Enumerable
 
-      def initialize(of: 1000, start: nil, finish: nil, relation:) #:nodoc:
+      def initialize(of: 1000, start: nil, finish: nil, relation:) # :nodoc:
         @of       = of
         @relation = relation
         @start = start
         @finish = finish
+      end
+
+      # The primary key value from which the BatchEnumerator starts, inclusive of the value.
+      attr_reader :start
+
+      # The primary key value at which the BatchEnumerator ends, inclusive of the value.
+      attr_reader :finish
+
+      # The relation from which the BatchEnumerator yields batches.
+      attr_reader :relation
+
+      # The size of the batches yielded by the BatchEnumerator.
+      def batch_size
+        @of
       end
 
       # Looping through a collection of records from the database (using the

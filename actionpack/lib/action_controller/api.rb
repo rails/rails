@@ -37,7 +37,7 @@ module ActionController
   # == Renders
   #
   # The default API Controller stack includes all renderers, which means you
-  # can use <tt>render :json</tt> and brothers freely in your controllers. Keep
+  # can use <tt>render :json</tt> and siblings freely in your controllers. Keep
   # in mind that templates are not going to be rendered, so you need to ensure
   # your controller is calling either <tt>render</tt> or <tt>redirect_to</tt> in
   # all actions, otherwise it will return 204 No Content.

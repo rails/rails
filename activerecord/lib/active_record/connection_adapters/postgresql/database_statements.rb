@@ -10,7 +10,7 @@ module ActiveRecord
         end
 
         # Queries the database and returns the results in an Array-like object
-        def query(sql, name = nil) #:nodoc:
+        def query(sql, name = nil) # :nodoc:
           materialize_transactions
           mark_transaction_written_if_write(sql)
 
@@ -47,7 +47,7 @@ module ActiveRecord
           end
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
+        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
           execute_and_clear(sql, name, binds, prepare: prepare, async: async) do |result|
             types = {}
             fields = result.fields
@@ -64,7 +64,7 @@ module ActiveRecord
           end
         end
 
-        def exec_delete(sql, name = nil, binds = [])
+        def exec_delete(sql, name = nil, binds = []) # :nodoc:
           execute_and_clear(sql, name, binds) { |result| result.cmd_tuples }
         end
         alias :exec_update :exec_delete
@@ -84,7 +84,7 @@ module ActiveRecord
         end
         private :sql_for_insert
 
-        def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil)
+        def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil) # :nodoc:
           if use_insert_returning? || pk == false
             super
           else
@@ -103,22 +103,22 @@ module ActiveRecord
         end
 
         # Begins a transaction.
-        def begin_db_transaction
+        def begin_db_transaction # :nodoc:
           execute("BEGIN", "TRANSACTION")
         end
 
-        def begin_isolated_db_transaction(isolation)
+        def begin_isolated_db_transaction(isolation) # :nodoc:
           begin_db_transaction
           execute "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}"
         end
 
         # Commits a transaction.
-        def commit_db_transaction
+        def commit_db_transaction # :nodoc:
           execute("COMMIT", "TRANSACTION")
         end
 
         # Aborts a transaction.
-        def exec_rollback_db_transaction
+        def exec_rollback_db_transaction # :nodoc:
           execute("ROLLBACK", "TRANSACTION")
         end
 

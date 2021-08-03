@@ -3,13 +3,21 @@
 module ActiveRecord
   module Associations
     # = Active Record Belongs To Polymorphic Association
-    class BelongsToPolymorphicAssociation < BelongsToAssociation #:nodoc:
+    class BelongsToPolymorphicAssociation < BelongsToAssociation # :nodoc:
       def klass
         type = owner[reflection.foreign_type]
         type.presence && owner.class.polymorphic_class_for(type)
       end
 
       def target_changed?
+        super || owner.attribute_changed?(reflection.foreign_type)
+      end
+
+      def target_previously_changed?
+        super || owner.attribute_previously_changed?(reflection.foreign_type)
+      end
+
+      def saved_change_to_target?
         super || owner.saved_change_to_attribute?(reflection.foreign_type)
       end
 

@@ -261,7 +261,7 @@ module ActiveRecord
       #   ], unique_by: :isbn)
       #
       #   Book.find_by(isbn: "1").title # => "Eloquent Ruby"
-      def upsert_all(attributes, on_duplicate: :update, returning: nil, unique_by: nil, update_sql: nil)
+      def upsert_all(attributes, on_duplicate: :update, returning: nil, unique_by: nil)
         InsertAll.new(self, attributes, on_duplicate: on_duplicate, returning: returning, unique_by: unique_by).execute
       end
 
@@ -286,6 +286,7 @@ module ActiveRecord
       # ==== Parameters
       #
       # * +id+ - This should be the id or an array of ids to be updated.
+      #   Optional argument, defaults to all records in the relation.
       # * +attributes+ - This should be a hash of attributes or an array of hashes.
       #
       # ==== Examples
@@ -308,6 +309,11 @@ module ActiveRecord
       # for updating all records in a single query.
       def update(id = :all, attributes)
         if id.is_a?(Array)
+          if id.any?(ActiveRecord::Base)
+            raise ArgumentError,
+              "You are passing an array of ActiveRecord::Base instances to `update`. " \
+              "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
+          end
           id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
             object.update(attributes[idx])
           }
@@ -321,6 +327,32 @@ module ActiveRecord
           end
           object = find(id)
           object.update(attributes)
+          object
+        end
+      end
+
+      # Updates the object (or multiple objects) just like #update but calls #update! instead
+      # of +update+, so an exception is raised if the record is invalid and saving will fail.
+      def update!(id = :all, attributes)
+        if id.is_a?(Array)
+          if id.any?(ActiveRecord::Base)
+            raise ArgumentError,
+              "You are passing an array of ActiveRecord::Base instances to `update!`. " \
+              "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
+          end
+          id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
+            object.update!(attributes[idx])
+          }
+        elsif id == :all
+          all.each { |record| record.update!(attributes) }
+        else
+          if ActiveRecord::Base === id
+            raise ArgumentError,
+              "You are passing an instance of ActiveRecord::Base to `update!`. " \
+              "Please pass the id of the object by calling `.id`."
+          end
+          object = find(id)
+          object.update!(attributes)
           object
         end
       end
@@ -460,6 +492,11 @@ module ActiveRecord
     # returned true.
     def previously_new_record?
       @previously_new_record
+    end
+
+    # Returns true if this object was previously persisted but now it has been deleted.
+    def previously_persisted?
+      !new_record? && destroyed?
     end
 
     # Returns true if this object has been destroyed, otherwise returns false.

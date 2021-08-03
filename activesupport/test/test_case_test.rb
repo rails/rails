@@ -286,6 +286,37 @@ class AssertionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_no_changes_with_from_option
+    assert_no_changes "@object.num", from: 0 do
+      # ...
+    end
+  end
+
+  def test_assert_no_changes_with_from_option_with_wrong_value
+    assert_raises Minitest::Assertion do
+      assert_no_changes "@object.num", from: -1 do
+        # ...
+      end
+    end
+  end
+
+  def test_assert_no_changes_with_from_option_with_nil
+    error = assert_raises Minitest::Assertion do
+      assert_no_changes "@object.num", from: nil do
+        @object.increment
+      end
+    end
+    assert_equal "Expected initial value of nil", error.message
+  end
+
+  def test_assert_no_changes_with_from_and_case_operator
+    token = SecureRandom.hex
+
+    assert_no_changes -> { token }, from: /\w{32}/ do
+      # ...
+    end
+  end
+
   def test_assert_no_changes_with_message
     error = assert_raises Minitest::Assertion do
       assert_no_changes "@object.num", "@object.num should not change" do
@@ -317,6 +348,85 @@ class AssertionsTest < ActiveSupport::TestCase
        "
     output
   end
+end
+
+class ExceptionsInsideAssertionsTest < ActiveSupport::TestCase
+  def before_setup
+    require "stringio"
+    @out = StringIO.new
+    self.tagged_logger = ActiveSupport::TaggedLogging.new(Logger.new(@out))
+    super
+  end
+
+  def test_warning_is_logged_if_caught_internally
+    run_test_that_should_pass_and_log_a_warning
+    expected = <<~MSG
+      ExceptionsInsideAssertionsTest - test_warning_is_logged_if_caught_internally: ArgumentError raised.
+      If you expected this exception, use `assert_raises` as near to the code that raises as possible.
+      Other block based assertions (e.g. `assert_no_changes`) can be used, as long as `assert_raises` is inside their block.
+    MSG
+    assert @out.string.include?(expected), @out.string
+  end
+
+  def test_warning_is_not_logged_if_caught_correctly_by_user
+    run_test_that_should_pass_and_not_log_a_warning
+    assert_not @out.string.include?("assert_nothing_raised")
+  end
+
+  def test_warning_is_not_logged_if_assertions_are_nested_correctly
+    error = assert_raises(Minitest::Assertion) do
+      run_test_that_should_fail_but_not_log_a_warning
+    end
+    assert_not @out.string.include?("assert_nothing_raised")
+    assert error.message.include?("(lambda)> changed")
+  end
+
+  def test_fails_and_warning_is_logged_if_wrong_error_caught
+    error = assert_raises(Minitest::Assertion) do
+      run_test_that_should_fail_confusingly
+    end
+    expected = <<~MSG
+      ExceptionsInsideAssertionsTest - test_fails_and_warning_is_logged_if_wrong_error_caught: ArgumentError raised.
+      If you expected this exception, use `assert_raises` as near to the code that raises as possible.
+      Other block based assertions (e.g. `assert_no_changes`) can be used, as long as `assert_raises` is inside their block.
+    MSG
+    assert @out.string.include?(expected), @out.string
+    assert error.message.include?("ArgumentError: ArgumentError")
+    assert error.message.include?("in `block (2 levels) in run_test_that_should_fail_confusingly'")
+  end
+
+  private
+    def run_test_that_should_pass_and_log_a_warning
+      assert_raises(Minitest::UnexpectedError) do # this assertion passes, but it's unlikely to be how anyone writes a test
+        assert_no_changes -> { 1 } do # this assertion doesn't run. the error below is caught and the warning logged.
+          raise ArgumentError.new
+        end
+      end
+    end
+
+    def run_test_that_should_fail_confusingly
+      assert_raises(ArgumentError) do # this assertion fails (confusingly) because it catches a Minitest::UnexpectedError.
+        assert_no_changes -> { 1 } do # this assertion doesn't run. the error below is caught and the warning logged.
+          raise ArgumentError.new
+        end
+      end
+    end
+
+    def run_test_that_should_pass_and_not_log_a_warning
+      assert_no_changes -> { 1 } do # this assertion passes
+        assert_raises(ArgumentError) do # this assertion passes
+          raise ArgumentError.new
+        end
+      end
+    end
+
+    def run_test_that_should_fail_but_not_log_a_warning
+      assert_no_changes -> { rand } do # this assertion fails
+        assert_raises(ArgumentError) do # this assertion passes
+          raise ArgumentError.new
+        end
+      end
+    end
 end
 
 # Setup and teardown callbacks.

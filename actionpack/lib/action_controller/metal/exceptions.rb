@@ -1,20 +1,20 @@
 # frozen_string_literal: true
 
 module ActionController
-  class ActionControllerError < StandardError #:nodoc:
+  class ActionControllerError < StandardError # :nodoc:
   end
 
-  class BadRequest < ActionControllerError #:nodoc:
+  class BadRequest < ActionControllerError # :nodoc:
     def initialize(msg = nil)
       super(msg)
       set_backtrace $!.backtrace if $!
     end
   end
 
-  class RenderError < ActionControllerError #:nodoc:
+  class RenderError < ActionControllerError # :nodoc:
   end
 
-  class RoutingError < ActionControllerError #:nodoc:
+  class RoutingError < ActionControllerError # :nodoc:
     attr_reader :failures
     def initialize(message, failures = [])
       super(message)
@@ -22,7 +22,7 @@ module ActionController
     end
   end
 
-  class UrlGenerationError < ActionControllerError #:nodoc:
+  class UrlGenerationError < ActionControllerError # :nodoc:
     attr_reader :routes, :route_name, :method_name
 
     def initialize(message, routes = nil, route_name = nil, method_name = nil)
@@ -33,44 +33,33 @@ module ActionController
       super(message)
     end
 
-    class Correction
-      def initialize(error)
-        @error = error
-      end
+    if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
+      include DidYouMean::Correctable
 
       def corrections
-        if @error.method_name
-          maybe_these = @error.routes.named_routes.helper_names.grep(/#{@error.route_name}/)
-          maybe_these -= [@error.method_name.to_s] # remove exact match
+        @corrections ||= begin
+          maybe_these = routes&.named_routes&.helper_names&.grep(/#{route_name}/) || []
+          maybe_these -= [method_name.to_s] # remove exact match
 
-          maybe_these.sort_by { |n|
-            DidYouMean::Jaro.distance(@error.route_name, n)
-          }.reverse.first(4)
-        else
-          []
+          DidYouMean::SpellChecker.new(dictionary: maybe_these).correct(route_name)
         end
       end
     end
-
-    # We may not have DYM, and DYM might not let us register error handlers
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
-    end
   end
 
-  class MethodNotAllowed < ActionControllerError #:nodoc:
+  class MethodNotAllowed < ActionControllerError # :nodoc:
     def initialize(*allowed_methods)
       super("Only #{allowed_methods.to_sentence} requests are allowed.")
     end
   end
 
-  class NotImplemented < MethodNotAllowed #:nodoc:
+  class NotImplemented < MethodNotAllowed # :nodoc:
   end
 
-  class MissingFile < ActionControllerError #:nodoc:
+  class MissingFile < ActionControllerError # :nodoc:
   end
 
-  class SessionOverflowError < ActionControllerError #:nodoc:
+  class SessionOverflowError < ActionControllerError # :nodoc:
     DEFAULT_MESSAGE = "Your session data is larger than the data column in which it is to be stored. You must increase the size of your data column if you intend to store large data."
 
     def initialize(message = nil)
@@ -78,10 +67,10 @@ module ActionController
     end
   end
 
-  class UnknownHttpMethod < ActionControllerError #:nodoc:
+  class UnknownHttpMethod < ActionControllerError # :nodoc:
   end
 
-  class UnknownFormat < ActionControllerError #:nodoc:
+  class UnknownFormat < ActionControllerError # :nodoc:
   end
 
   # Raised when a nested respond_to is triggered and the content types of each
@@ -102,6 +91,6 @@ module ActionController
     end
   end
 
-  class MissingExactTemplate < UnknownFormat #:nodoc:
+  class MissingExactTemplate < UnknownFormat # :nodoc:
   end
 end

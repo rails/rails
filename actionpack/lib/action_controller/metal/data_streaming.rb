@@ -3,7 +3,7 @@
 require "action_controller/metal/exceptions"
 require "action_dispatch/http/content_disposition"
 
-module ActionController #:nodoc:
+module ActionController # :nodoc:
   # Methods for sending arbitrary data and for streaming files to the browser,
   # instead of rendering.
   module DataStreaming
@@ -11,8 +11,8 @@ module ActionController #:nodoc:
 
     include ActionController::Rendering
 
-    DEFAULT_SEND_FILE_TYPE        = "application/octet-stream" #:nodoc:
-    DEFAULT_SEND_FILE_DISPOSITION = "attachment" #:nodoc:
+    DEFAULT_SEND_FILE_TYPE        = "application/octet-stream" # :nodoc:
+    DEFAULT_SEND_FILE_DISPOSITION = "attachment" # :nodoc:
 
     private
       # Sends the file. This uses a server-appropriate method (such as X-Sendfile)
@@ -138,14 +138,6 @@ module ActionController #:nodoc:
         end
 
         headers["Content-Transfer-Encoding"] = "binary"
-
-        # Fix a problem with IE 6.0 on opening downloaded files:
-        # If Cache-Control: no-cache is set (which Rails does by default),
-        # IE removes the file it just downloaded from its cache immediately
-        # after it displays the "open/save" dialog, which means that if you
-        # hit "open" the file isn't there anymore when the application that
-        # is called for handling the download is run, so let's workaround that
-        response.cache_control[:public] ||= false
       end
   end
 end

@@ -11,7 +11,7 @@ Highlights in Rails 3.2:
 * Tagged Logging
 
 These release notes cover only the major changes. To learn about various bug
-fixes and changes, please refer to the change logs or check out the [list of
+fixes and changes, please refer to the changelogs or check out the [list of
 commits](https://github.com/rails/rails/commits/3-2-stable) in the main Rails
 repository on GitHub.
 
@@ -162,7 +162,7 @@ Railties
 
 * Remove old `config.paths.app.controller` API in favor of `config.paths["app/controller"]`.
 
-#### Deprecations
+### Deprecations
 
 * `Rails::Plugin` is deprecated and will be removed in Rails 4.0. Instead of adding plugins to `vendor/plugins` use gems or bundler with path or git dependencies.
 

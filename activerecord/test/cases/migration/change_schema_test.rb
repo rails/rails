@@ -300,11 +300,11 @@ module ActiveRecord
         assert_equal :datetime, column.type
 
         if current_adapter?(:PostgreSQLAdapter)
-          assert_equal "timestamp without time zone", column.sql_type
+          assert_equal "timestamp(6) without time zone", column.sql_type
         elsif current_adapter?(:Mysql2Adapter)
-          assert_equal "datetime", column.sql_type
+          assert_equal "datetime(6)", column.sql_type
         else
-          assert_equal connection.type_to_sql("datetime"), column.sql_type
+          assert_equal connection.type_to_sql("datetime(6)"), column.sql_type
         end
       end
 
@@ -318,7 +318,7 @@ module ActiveRecord
             column = connection.columns(:testings).find { |c| c.name == "foo" }
 
             assert_equal :datetime, column.type
-            assert_equal "timestamp with time zone", column.sql_type
+            assert_equal "timestamp(6) with time zone", column.sql_type
           end
         end
       end
@@ -341,7 +341,7 @@ module ActiveRecord
         elsif current_adapter?(:OracleAdapter)
           assert_equal "TIMESTAMP(6)", column.sql_type
         else
-          assert_equal connection.type_to_sql("datetime"), column.sql_type
+          assert_equal connection.type_to_sql("datetime(6)"), column.sql_type
         end
       end
 

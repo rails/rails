@@ -86,21 +86,13 @@ class ActiveStorage::Blob < ActiveStorage::Record
       super(id, purpose: purpose)
     end
 
-    def build_after_upload(io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil) #:nodoc:
-      new(filename: filename, content_type: content_type, metadata: metadata, service_name: service_name).tap do |blob|
-        blob.upload(io, identify: identify)
-      end
-    end
-
-    deprecate :build_after_upload
-
-    def build_after_unfurling(key: nil, io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil) #:nodoc:
+    def build_after_unfurling(key: nil, io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil) # :nodoc:
       new(key: key, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name).tap do |blob|
         blob.unfurl(io, identify: identify)
       end
     end
 
-    def create_after_unfurling!(key: nil, io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil) #:nodoc:
+    def create_after_unfurling!(key: nil, io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil) # :nodoc:
       build_after_unfurling(key: key, io: io, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name, identify: identify).tap(&:save!)
     end
 
@@ -114,9 +106,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
         blob.upload_without_unfurling(io)
       end
     end
-
-    alias_method :create_after_upload!, :create_and_upload!
-    deprecate create_after_upload!: :create_and_upload!
 
     # Returns a saved blob _without_ uploading a file to the service. This blob will point to a key where there is
     # no file yet. It's intended to be used together with a client-side upload, which will first create the blob
@@ -137,7 +126,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
     end
 
     # Customize signed ID purposes for backwards compatibility.
-    def combine_signed_id_purposes(purpose) #:nodoc:
+    def combine_signed_id_purposes(purpose) # :nodoc:
       purpose.to_s
     end
 
@@ -145,13 +134,21 @@ class ActiveStorage::Blob < ActiveStorage::Record
     #
     # We override the reader (.signed_id_verifier) instead of just calling the writer (.signed_id_verifier=)
     # to guard against the case where ActiveStorage.verifier isn't yet initialized at load time.
-    def signed_id_verifier #:nodoc:
+    def signed_id_verifier # :nodoc:
       @signed_id_verifier ||= ActiveStorage.verifier
+    end
+
+    def scope_for_strict_loading # :nodoc:
+      if strict_loading_by_default? && ActiveStorage.track_variants
+        includes(variant_records: { image_attachment: :blob }, preview_image_attachment: :blob)
+      else
+        all
+      end
     end
   end
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
-  def signed_id(purpose: :blob_id)
+  def signed_id(purpose: :blob_id, expires_in: nil)
     super
   end
 
@@ -200,9 +197,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
       content_type: content_type_for_serving, disposition: forced_disposition_for_serving || disposition, **options
   end
 
-  alias_method :service_url, :url
-  deprecate service_url: :url
-
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
   # short-lived for security and only generated on-demand by the client-side JavaScript responsible for doing the uploading.
   def service_url_for_direct_upload(expires_in: ActiveStorage.service_urls_expire_in)
@@ -214,11 +208,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum
   end
 
-  def content_type_for_serving #:nodoc:
+  def content_type_for_serving # :nodoc:
     forcibly_serve_as_binary? ? ActiveStorage.binary_content_type : content_type
   end
 
-  def forced_disposition_for_serving #:nodoc:
+  def forced_disposition_for_serving # :nodoc:
     if forcibly_serve_as_binary? || !allowed_inline?
       :attachment
     end
@@ -242,14 +236,14 @@ class ActiveStorage::Blob < ActiveStorage::Record
     upload_without_unfurling io
   end
 
-  def unfurl(io, identify: true) #:nodoc:
+  def unfurl(io, identify: true) # :nodoc:
     self.checksum     = compute_checksum_in_chunks(io)
     self.content_type = extract_content_type(io) if content_type.nil? || identify
     self.byte_size    = io.size
     self.identified   = true
   end
 
-  def upload_without_unfurling(io) #:nodoc:
+  def upload_without_unfurling(io) # :nodoc:
     service.upload key, io, checksum: checksum, **service_metadata
   end
 
@@ -277,7 +271,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
       name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ], tmpdir: tmpdir, &block
   end
 
-  def mirror_later #:nodoc:
+  def mirror_later # :nodoc:
     ActiveStorage::MirrorJob.perform_later(key, checksum: checksum) if service.respond_to?(:mirror)
   end
 
@@ -294,7 +288,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   # be slow or prevented, so you should not use this method inside a transaction or in callbacks. Use #purge_later instead.
   def purge
     destroy
-    delete
+    delete if previously_persisted?
   rescue ActiveRecord::InvalidForeignKey
   end
 
@@ -311,7 +305,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   private
     def compute_checksum_in_chunks(io)
-      Digest::MD5.new.tap do |checksum|
+      OpenSSL::Digest::MD5.new.tap do |checksum|
         while chunk = io.read(5.megabytes)
           checksum << chunk
         end

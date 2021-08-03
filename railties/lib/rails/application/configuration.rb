@@ -201,6 +201,10 @@ module Rails
             action_dispatch.return_only_request_media_type_on_content_type = false
           end
 
+          if respond_to?(:action_controller)
+            action_controller.silence_disabled_session_errors = false
+          end
+
           if respond_to?(:action_view)
             action_view.button_to_generates_button_tag = true
             action_view.apply_stylesheet_media_default = false
@@ -215,6 +219,23 @@ module Rails
 
           if respond_to?(:action_mailer)
             action_mailer.smtp_timeout = 5
+          end
+
+          if respond_to?(:active_storage)
+            active_storage.video_preview_arguments =
+              "-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1'" \
+              " -frames:v 1 -f image2"
+
+            active_storage.variant_processor = :vips
+          end
+
+          if respond_to?(:active_record)
+            active_record.verify_foreign_keys_for_fixtures = true
+            active_record.partial_inserts = false
+          end
+
+          if respond_to?(:action_controller)
+            action_controller.raise_on_open_redirects = true
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
@@ -271,10 +292,13 @@ module Rails
         if path = paths["config/database"].existent.first
           require "rails/application/dummy_erb_compiler"
 
-          yaml = Pathname.new(path)
-          erb = DummyERB.new(yaml.read)
+          yaml = DummyERB.new(Pathname.new(path).read).result
 
-          YAML.load(erb.result) || {}
+          if YAML.respond_to?(:unsafe_load)
+            YAML.unsafe_load(yaml) || {}
+          else
+            YAML.load(yaml) || {}
+          end
         else
           {}
         end
@@ -343,7 +367,7 @@ module Rails
         end
       end
 
-      def session_store? #:nodoc:
+      def session_store? # :nodoc:
         @session_store
       end
 
@@ -379,7 +403,7 @@ module Rails
         f
       end
 
-      class Custom #:nodoc:
+      class Custom # :nodoc:
         def initialize
           @configurations = Hash.new
         end

@@ -22,7 +22,7 @@ What is Action Mailer?
 Action Mailer allows you to send emails from your application using mailer classes
 and views.
 
-#### Mailers are similar to controllers
+### Mailers are similar to controllers
 
 They inherit from [`ActionMailer::Base`][] and live in `app/mailers`. Mailers also work
 very similarly to controllers. Some examples of similarities are enumerated below.
@@ -241,7 +241,7 @@ class SendWeeklySummary
 end
 ```
 
-Any key value pair passed to [`with`][] just becomes the `params` for the mailer
+Any key-value pair passed to [`with`][] just becomes the `params` for the mailer
 action. So `with(user: @user, account: @user.account)` makes `params[:user]` and
 `params[:account]` available in the mailer action. Just like controllers have
 params.
@@ -417,7 +417,7 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-In this case it will look for templates at `app/views/notifications` with name
+In this case, it will look for templates at `app/views/notifications` with name
 `another`.  You can also specify an array of paths for `template_path`, and they
 will be searched in order.
 
@@ -473,7 +473,7 @@ You can perform fragment caching in mailer views like in application views using
 <% end %>
 ```
 
-And in order to use this feature, you need to configure your application with this:
+And to use this feature, you need to configure your application with this:
 
 ```ruby
 config.action_mailer.perform_caching = true
@@ -491,7 +491,7 @@ needs to be the same as your mailer, such as `user_mailer.html.erb` and
 `user_mailer.text.erb` to be automatically recognized by your mailer as a
 layout.
 
-In order to use a different file, call [`layout`][] in your mailer:
+To use a different file, call [`layout`][] in your mailer:
 
 ```ruby
 class UserMailer < ApplicationMailer
@@ -566,8 +566,8 @@ globally in `config/application.rb`:
 config.action_mailer.default_url_options = { host: 'example.com' }
 ```
 
-Because of this behavior you cannot use any of the `*_path` helpers inside of
-an email. Instead you will need to use the associated `*_url` helper. For example
+Because of this behavior, you cannot use any of the `*_path` helpers inside of
+an email. Instead, you will need to use the associated `*_url` helper. For example
 instead of using
 
 ```html+erb
@@ -850,7 +850,7 @@ config.action_mailer.smtp_settings = {
   read_timeout:         5 }
 ```
 
-NOTE: On July 15, 2014 Google increased [its security measures](https://support.google.com/accounts/answer/6010255) to block attempts from apps it deems less secure.
+NOTE: On July 15, 2014, Google increased [its security measures](https://support.google.com/accounts/answer/6010255) to block attempts from apps it deems less secure.
 You can change your Gmail settings [here](https://www.google.com/settings/security/lesssecureapps) to allow the attempts. If your Gmail account has 2-factor authentication enabled,
 then you will need to set an [app password](https://myaccount.google.com/apppasswords) and use that instead of your regular password.
 
@@ -924,7 +924,7 @@ end
 ```
 
 NOTE: The example above uses a custom environment called "staging" for a
-production like server but for testing purposes. You can read
+production-like server but for testing purposes. You can read
 [Creating Rails Environments](configuring.html#creating-rails-environments)
 for more information about custom Rails environments.
 

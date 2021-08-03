@@ -41,7 +41,7 @@ module ActiveRecord
     #
     # This could result in many rows that contain redundant data and it performs poorly at scale
     # and is therefore only used when necessary.
-    class Preloader #:nodoc:
+    class Preloader # :nodoc:
       extend ActiveSupport::Autoload
 
       eager_autoload do
@@ -80,13 +80,19 @@ module ActiveRecord
       #   example, specifying <tt>{ author: :avatar }</tt> will preload a
       #   book's author, as well as that author's avatar.
       #
-      # +:associations+ has the same format as the +:include+ option for
-      # <tt>ActiveRecord::Base.find</tt>. So +associations+ could look like this:
+      # +:associations+ has the same format as the +:include+ method in
+      # <tt>ActiveRecord::QueryMethods</tt>. So +associations+ could look like this:
       #
       #   :books
       #   [ :books, :author ]
       #   { author: :avatar }
       #   [ :books, { author: :avatar } ]
+      #
+      # +available_records+ is an array of ActiveRecord::Base. The Preloader
+      # will try to use the objects in this array to preload the requested
+      # associations before querying the database. This can save database
+      # queries by reusing in-memory objects. The optimization is only applied
+      # to single associations (i.e. :belongs_to, :has_one) with no scopes.
       def initialize(associate_by_default: true, **kwargs)
         if kwargs.empty?
           ActiveSupport::Deprecation.warn("Calling `Preloader#initialize` without arguments is deprecated and will be removed in Rails 7.0.")
@@ -94,6 +100,7 @@ module ActiveRecord
           @records = kwargs[:records]
           @associations = kwargs[:associations]
           @scope = kwargs[:scope]
+          @available_records = kwargs[:available_records] || []
           @associate_by_default = associate_by_default
 
           @tree = Branch.new(
@@ -112,7 +119,7 @@ module ActiveRecord
       end
 
       def call
-        Batch.new([self]).call
+        Batch.new([self], available_records: @available_records).call
 
         loaders
       end

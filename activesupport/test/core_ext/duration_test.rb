@@ -625,6 +625,7 @@ class DurationTest < ActiveSupport::TestCase
       ["P1Y1M1DT1H",    1.year + 1.month + 1.day + 1.hour],
       ["PT0S",          0.minutes                        ],
       ["PT-0.2S",       (-0.2).seconds                   ],
+      ["PT1000000S",    1_000_000.seconds                ],
     ]
     expectations.each do |expected_output, duration|
       assert_equal expected_output, duration.iso8601, expected_output.inspect
@@ -713,7 +714,8 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_durations_survive_yaml_serialization
-    d1 = YAML.load(YAML.dump(10.minutes))
+    payload = YAML.dump(10.minutes)
+    d1 = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
     assert_equal 600, d1.to_i
     assert_equal 660, (d1 + 60).to_i
   end

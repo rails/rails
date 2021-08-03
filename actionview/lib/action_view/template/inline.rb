@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-module ActionView #:nodoc:
-  class Template #:nodoc:
-    class Inline < Template #:nodoc:
+module ActionView # :nodoc:
+  class Template # :nodoc:
+    class Inline < Template # :nodoc:
       # This finalizer is needed (and exactly with a proc inside another proc)
       # otherwise templates leak in development.
       Finalizer = proc do |method_name, mod| # :nodoc:

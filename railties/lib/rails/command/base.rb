@@ -14,6 +14,24 @@ module Rails
       class Error < Thor::Error # :nodoc:
       end
 
+      class CorrectableError < Error # :nodoc:
+        attr_reader :key, :options
+
+        def initialize(message, key, options)
+          @key     = key
+          @options = options
+          super(message)
+        end
+
+        if defined?(DidYouMean::SpellChecker) && defined?(DidYouMean::Correctable)
+          include DidYouMean::Correctable
+
+          def corrections
+            @corrections ||= DidYouMean::SpellChecker.new(dictionary: options).correct(key)
+          end
+        end
+      end
+
       include Actions
 
       class << self
@@ -53,7 +71,7 @@ module Rails
           Rails::Command.hidden_commands << self
         end
 
-        def inherited(base) #:nodoc:
+        def inherited(base) # :nodoc:
           super
 
           if base.name && !base.name.end_with?("Base")

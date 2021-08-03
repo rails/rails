@@ -4,7 +4,7 @@ require "zlib"
 
 module ActionView
   # = Action View Asset URL Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # This module provides methods for generating asset paths and
     # URLs.
     #
@@ -65,7 +65,7 @@ module ActionView
     # +asset_host+ to a proc like this:
     #
     #   ActionController::Base.asset_host = Proc.new { |source|
-    #     "http://assets#{Digest::MD5.hexdigest(source).to_i(16) % 2 + 1}.example.com"
+    #     "http://assets#{OpenSSL::Digest::SHA256.hexdigest(source).to_i(16) % 2 + 1}.example.com"
     #   }
     #   image_tag("rails.png")
     #   # => <img src="http://assets1.example.com/assets/rails.png" />

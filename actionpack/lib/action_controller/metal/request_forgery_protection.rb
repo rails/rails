@@ -4,11 +4,11 @@ require "rack/session/abstract/id"
 require "action_controller/metal/exceptions"
 require "active_support/security_utils"
 
-module ActionController #:nodoc:
-  class InvalidAuthenticityToken < ActionControllerError #:nodoc:
+module ActionController # :nodoc:
+  class InvalidAuthenticityToken < ActionControllerError # :nodoc:
   end
 
-  class InvalidCrossOriginRequest < ActionControllerError #:nodoc:
+  class InvalidCrossOriginRequest < ActionControllerError # :nodoc:
   end
 
   # Controller actions are protected from Cross-Site Request Forgery (CSRF) attacks
@@ -57,6 +57,17 @@ module ActionController #:nodoc:
   module RequestForgeryProtection
     extend ActiveSupport::Concern
 
+    class DisabledSessionError < StandardError
+      MESSAGE = <<~EOS.squish
+        Request forgery protection requires a working session store but your application has sessions disabled.
+        You need to either disable request forgery protection, or configure a working session store.
+      EOS
+
+      def initialize(message = MESSAGE)
+        super
+      end
+    end
+
     include AbstractController::Helpers
     include AbstractController::Callbacks
 
@@ -89,6 +100,11 @@ module ActionController #:nodoc:
       # Controls whether forgery protection is enabled by default.
       config_accessor :default_protect_from_forgery
       self.default_protect_from_forgery = false
+
+      # Controls whether trying to use forgery protection without a working session store
+      # issues a warning or raises an error.
+      config_accessor :silence_disabled_session_errors
+      self.silence_disabled_session_errors = true
 
       # Controls whether URL-safe CSRF tokens are generated.
       config_accessor :urlsafe_csrf_tokens, instance_writer: false
@@ -170,7 +186,7 @@ module ActionController #:nodoc:
         end
 
         private
-          class NullSessionHash < Rack::Session::Abstract::SessionHash #:nodoc:
+          class NullSessionHash < Rack::Session::Abstract::SessionHash # :nodoc:
             def initialize(req)
               super(nil, req)
               @data = {}
@@ -183,9 +199,13 @@ module ActionController #:nodoc:
             def exists?
               true
             end
+
+            def enabled?
+              false
+            end
           end
 
-          class NullCookieJar < ActionDispatch::Cookies::CookieJar #:nodoc:
+          class NullCookieJar < ActionDispatch::Cookies::CookieJar # :nodoc:
             def write(*)
               # nothing
             end
@@ -203,12 +223,14 @@ module ActionController #:nodoc:
       end
 
       class Exception
+        attr_accessor :warning_message
+
         def initialize(controller)
           @controller = controller
         end
 
         def handle_unverified_request
-          raise ActionController::InvalidAuthenticityToken
+          raise ActionController::InvalidAuthenticityToken, warning_message
         end
       end
     end
@@ -228,22 +250,31 @@ module ActionController #:nodoc:
         mark_for_same_origin_verification!
 
         if !verified_request?
-          if logger && log_warning_on_csrf_failure
-            if valid_request_origin?
-              logger.warn "Can't verify CSRF token authenticity."
-            else
-              logger.warn "HTTP Origin header (#{request.origin}) didn't match request.base_url (#{request.base_url})"
-            end
-          end
+          logger.warn unverified_request_warning_message if logger && log_warning_on_csrf_failure
+
           handle_unverified_request
         end
       end
 
       def handle_unverified_request # :doc:
-        forgery_protection_strategy.new(self).handle_unverified_request
+        protection_strategy = forgery_protection_strategy.new(self)
+
+        if protection_strategy.respond_to?(:warning_message)
+          protection_strategy.warning_message = unverified_request_warning_message
+        end
+
+        protection_strategy.handle_unverified_request
       end
 
-      #:nodoc:
+      def unverified_request_warning_message # :nodoc:
+        if valid_request_origin?
+          "Can't verify CSRF token authenticity."
+        else
+          "HTTP Origin header (#{request.origin}) didn't match request.base_url (#{request.base_url})"
+        end
+      end
+
+      # :nodoc:
       CROSS_ORIGIN_JAVASCRIPT_WARNING = "Security warning: an embedded " \
         "<script> tag on another site requested protected JavaScript. " \
         "If you know what you're doing, go ahead and disable forgery " \
@@ -438,7 +469,20 @@ module ActionController #:nodoc:
 
       # Checks if the controller allows forgery protection.
       def protect_against_forgery? # :doc:
-        allow_forgery_protection
+        allow_forgery_protection && ensure_session_is_enabled!
+      end
+
+      def ensure_session_is_enabled!
+        if !session.respond_to?(:enabled?) || session.enabled?
+          true
+        else
+          if silence_disabled_session_errors
+            ActiveSupport::Deprecation.warn(DisabledSessionError::MESSAGE)
+            false
+          else
+            raise DisabledSessionError
+          end
+        end
       end
 
       NULL_ORIGIN_MESSAGE = <<~MSG

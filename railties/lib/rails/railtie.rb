@@ -224,13 +224,13 @@ module Rails
 
     delegate :railtie_name, to: :class
 
-    def initialize #:nodoc:
+    def initialize # :nodoc:
       if self.class.abstract_railtie?
         raise "#{self.class.name} is abstract, you cannot instantiate it directly."
       end
     end
 
-    def configure(&block) #:nodoc:
+    def configure(&block) # :nodoc:
       instance_eval(&block)
     end
 
@@ -241,29 +241,29 @@ module Rails
       @config ||= Railtie::Configuration.new
     end
 
-    def railtie_namespace #:nodoc:
+    def railtie_namespace # :nodoc:
       @railtie_namespace ||= self.class.module_parents.detect { |n| n.respond_to?(:railtie_namespace) }
     end
 
     protected
-      def run_console_blocks(app) #:nodoc:
+      def run_console_blocks(app) # :nodoc:
         each_registered_block(:console) { |block| block.call(app) }
       end
 
-      def run_generators_blocks(app) #:nodoc:
+      def run_generators_blocks(app) # :nodoc:
         each_registered_block(:generators) { |block| block.call(app) }
       end
 
-      def run_runner_blocks(app) #:nodoc:
+      def run_runner_blocks(app) # :nodoc:
         each_registered_block(:runner) { |block| block.call(app) }
       end
 
-      def run_tasks_blocks(app) #:nodoc:
+      def run_tasks_blocks(app) # :nodoc:
         extend Rake::DSL
         each_registered_block(:rake_tasks) { |block| instance_exec(app, &block) }
       end
 
-      def run_server_blocks(app) #:nodoc:
+      def run_server_blocks(app) # :nodoc:
         each_registered_block(:server) { |block| block.call(app) }
       end
 

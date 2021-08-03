@@ -17,7 +17,7 @@ module ActiveRecord
         end
 
         # Quotes strings for use in SQL input.
-        def quote_string(s) #:nodoc:
+        def quote_string(s) # :nodoc:
           PG::Connection.escape(s)
         end
 
@@ -48,7 +48,7 @@ module ActiveRecord
         end
 
         # Quote date/time values for use in SQL input.
-        def quoted_date(value) #:nodoc:
+        def quoted_date(value) # :nodoc:
           if value.year <= 0
             bce_year = format("%04d", -value.year + 1)
             super.sub(/^-?\d+/, bce_year) + " BC"
@@ -90,8 +90,8 @@ module ActiveRecord
           \A
           (
             (?:
-              # "table_name"."column_name"::type_name | function(one or no argument)::type_name
-              ((?:\w+\.|"\w+"\.)?(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
+              # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
+              ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
             )
             (?:(?:\s+AS)?\s+(?:\w+|"\w+"))?
           )
@@ -103,8 +103,8 @@ module ActiveRecord
           \A
           (
             (?:
-              # "table_name"."column_name"::type_name | function(one or no argument)::type_name
-              ((?:\w+\.|"\w+"\.)?(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
+              # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
+              ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
             )
             (?:\s+ASC|\s+DESC)?
             (?:\s+NULLS\s+(?:FIRST|LAST))?

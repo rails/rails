@@ -368,26 +368,26 @@ class Order < ApplicationRecord
 end
 ```
 
-### Multiple Conditions for Callbacks
+### Using both :if and :unless
 
-When writing conditional callbacks, it is possible to mix both `:if` and `:unless` in the same callback declaration:
+Callbacks can mix both `:if` and `:unless` in the same declaration:
 
 ```ruby
 class Comment < ApplicationRecord
-  after_create :send_email_to_author, if: :author_wants_emails?,
-    unless: Proc.new { |comment| comment.article.ignore_comments? }
+  before_save :filter_content,
+    if: Proc.new { forum.parental_control? },
+    unless: Proc.new { author.trusted? }
 end
 ```
 
-### Combining Callback Conditions
+### Multiple Callback Conditions
 
-When multiple conditions define whether or not a callback should happen, an `Array` can be used. Moreover, you can apply both `:if` and `:unless` to the same callback.
+The `:if` and `:unless` options also accept an array of procs or method names as symbols:
 
 ```ruby
 class Comment < ApplicationRecord
-  after_create :send_email_to_author,
-    if: [Proc.new { |c| c.user.allow_send_email? }, :author_wants_emails?],
-    unless: Proc.new { |c| c.article.ignore_comments? }
+  before_save :filter_content,
+    if: [:subject_to_parental_control?, :untrusted_author?]
 end
 ```
 
@@ -494,7 +494,7 @@ WARNING. When a transaction completes, the `after_commit` or `after_rollback` ca
 
 WARNING. The code executed within `after_commit` or `after_rollback` callbacks is itself not enclosed within a transaction.
 
-WARNING. Using both `after_create_commit` and `after_update_commit` in the same model will only allow the last callback defined to take effect, and will override all others.
+WARNING. Using both `after_create_commit` and `after_update_commit` with the same method name will only allow the last callback defined to take effect, as they both internally alias to `after_commit` which overrides previously defined callbacks with the same method name.
 
 ```ruby
 class User < ApplicationRecord

@@ -129,7 +129,7 @@ module ActiveModel
   # record, attribute and value.
   #
   # All \Active \Model validations are built on top of this validator.
-  class EachValidator < Validator #:nodoc:
+  class EachValidator < Validator
     attr_reader :attributes
 
     # Returns a new validator instance. All options will be available via the
@@ -174,7 +174,7 @@ module ActiveModel
 
   # +BlockValidator+ is a special +EachValidator+ which receives a block on initialization
   # and call this block for each attribute being validated. +validates_each+ uses this validator.
-  class BlockValidator < EachValidator #:nodoc:
+  class BlockValidator < EachValidator # :nodoc:
     def initialize(options, &block)
       @block = block
       super

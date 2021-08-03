@@ -8,7 +8,7 @@ require "mini_mime"
 # In case you do need to use this directly, it's instantiated using a hash of transformations where
 # the key is the command and the value is the arguments. Example:
 #
-#   ActiveStorage::Variation.new(resize_to_limit: [100, 100], monochrome: true, trim: true, rotate: "-90")
+#   ActiveStorage::Variation.new(resize_to_limit: [100, 100], colourspace: "b-w", rotate: "-90", saver: { trim: true })
 #
 # The options map directly to {ImageProcessing}[https://github.com/janko-m/image_processing] commands.
 class ActiveStorage::Variation
@@ -75,7 +75,7 @@ class ActiveStorage::Variation
   end
 
   def digest
-    Digest::SHA1.base64digest Marshal.dump(transformations)
+    OpenSSL::Digest::SHA1.base64digest Marshal.dump(transformations)
   end
 
   private

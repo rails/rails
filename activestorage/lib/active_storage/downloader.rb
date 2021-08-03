@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveStorage
-  class Downloader #:nodoc:
+  class Downloader # :nodoc:
     attr_reader :service
 
     def initialize(service)
@@ -35,7 +35,7 @@ module ActiveStorage
       end
 
       def verify_integrity_of(file, checksum:)
-        unless Digest::MD5.file(file).base64digest == checksum
+        unless OpenSSL::Digest::MD5.file(file).base64digest == checksum
           raise ActiveStorage::IntegrityError
         end
       end

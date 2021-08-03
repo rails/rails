@@ -67,10 +67,10 @@ module Rails
               config.session_options[:secure] = true
             end
             middleware.use config.session_store, config.session_options
-            middleware.use ::ActionDispatch::Flash
           end
 
           unless config.api_only
+            middleware.use ::ActionDispatch::Flash
             middleware.use ::ActionDispatch::ContentSecurityPolicy::Middleware
             middleware.use ::ActionDispatch::PermissionsPolicy::Middleware
           end

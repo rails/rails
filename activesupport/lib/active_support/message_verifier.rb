@@ -78,8 +78,8 @@ module ActiveSupport
   # === Rotating keys
   #
   # MessageVerifier also supports rotating out old configurations by falling
-  # back to a stack of verifiers. Call +rotate+ to build and add a verifier to
-  # so either +verified+ or +verify+ will also try verifying with the fallback.
+  # back to a stack of verifiers. Call +rotate+ to build and add a verifier so
+  # either +verified+ or +verify+ will also try verifying with the fallback.
   #
   # By default any rotated verifiers use the values of the primary
   # verifier unless specified otherwise.

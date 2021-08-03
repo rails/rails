@@ -181,11 +181,11 @@ module ActiveSupport
       end
     end
 
-    def init_with(coder) #:nodoc:
+    def init_with(coder) # :nodoc:
       initialize(coder["utc"], coder["zone"], coder["time"])
     end
 
-    def encode_with(coder) #:nodoc:
+    def encode_with(coder) # :nodoc:
       coder.map = { "utc" => utc, "zone" => time_zone, "time" => time }
     end
 
@@ -542,7 +542,7 @@ module ActiveSupport
     def method_missing(sym, *args, &block)
       wrap_with_time_zone time.__send__(sym, *args, &block)
     rescue NoMethodError => e
-      raise e, e.message.sub(time.inspect, inspect), e.backtrace
+      raise e, e.message.sub(time.inspect, inspect).sub("Time", "ActiveSupport::TimeWithZone"), e.backtrace
     end
 
     private

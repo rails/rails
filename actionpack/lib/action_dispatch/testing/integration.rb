@@ -8,7 +8,7 @@ require "minitest"
 require "action_dispatch/testing/request_encoder"
 
 module ActionDispatch
-  module Integration #:nodoc:
+  module Integration # :nodoc:
     module RequestHelpers
       # Performs a GET request with the given parameters. See ActionDispatch::Integration::Session#process
       # for more details.
@@ -199,7 +199,7 @@ module ActionDispatch
       #   merged into the Rack env hash.
       # - +env+: Additional env to pass, as a Hash. The headers will be
       #   merged into the Rack env hash.
-      # - +xhr+: Set to +true+ if you want to make and Ajax request.
+      # - +xhr+: Set to +true+ if you want to make an Ajax request.
       #   Adds request headers characteristic of XMLHttpRequest e.g. HTTP_X_REQUESTED_WITH.
       #   The headers will be merged into the Rack env hash.
       # - +as+: Used for encoding the request with different content type.
@@ -402,7 +402,7 @@ module ActionDispatch
 
       # Copy the instance variables from the current session instance into the
       # test instance.
-      def copy_session_variables! #:nodoc:
+      def copy_session_variables! # :nodoc:
         @controller = @integration_session.controller
         @response   = @integration_session.response
         @request    = @integration_session.request

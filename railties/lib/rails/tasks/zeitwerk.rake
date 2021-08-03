@@ -1,11 +1,5 @@
 # frozen_string_literal: true
 
-ensure_zeitwerk_mode = ->() do
-  unless Rails.autoloaders.zeitwerk_enabled?
-    abort "Please, enable :zeitwerk mode in config/application.rb and try again."
-  end
-end
-
 eager_load = ->() do
   puts "Hold on, I am eager loading the application."
   Zeitwerk::Loader.eager_load_all
@@ -41,8 +35,6 @@ end
 namespace :zeitwerk do
   desc "Checks project structure for Zeitwerk compatibility"
   task check: :environment do
-    ensure_zeitwerk_mode[]
-
     begin
       eager_load[]
     rescue NameError => e

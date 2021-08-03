@@ -31,7 +31,7 @@ module ActiveStorage
             if name.to_s == "combine_options"
               raise ArgumentError, <<~ERROR.squish
                 Active Storage's ImageProcessing transformer doesn't support :combine_options,
-                as it always generates a single ImageMagick command.
+                as it always generates a single command.
               ERROR
             end
 

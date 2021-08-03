@@ -6,26 +6,6 @@ module ActiveSupport
   module Notifications
     # Instrumenters are stored in a thread local.
     class Instrumenter
-      class Buffer # :nodoc:
-        def initialize(instrumenter)
-          @instrumenter = instrumenter
-          @events = []
-        end
-
-        def instrument(name, payload = {}, &block)
-          event = @instrumenter.new_event(name, payload)
-          @events << event
-          event.record(&block)
-        end
-
-        def flush
-          events, @events = @events, []
-          events.each do |event|
-            ActiveSupport::Notifications.publish_event(event)
-          end
-        end
-      end
-
       attr_reader :id
 
       def initialize(notifier)
@@ -53,10 +33,6 @@ module ActiveSupport
 
       def new_event(name, payload = {}) # :nodoc:
         Event.new(name, nil, nil, @id, payload)
-      end
-
-      def buffer # :nodoc:
-        Buffer.new(self)
       end
 
       # Send a start notification with +name+ and +payload+.

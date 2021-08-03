@@ -63,6 +63,15 @@ def supports_non_unique_constraint_name?
   end
 end
 
+def supports_text_column_with_default?
+  if current_adapter?(:Mysql2Adapter)
+    conn = ActiveRecord::Base.connection
+    conn.mariadb? && conn.database_version >= "10.2.1"
+  else
+    true
+  end
+end
+
 %w[
   supports_savepoints?
   supports_partial_index?
@@ -90,12 +99,12 @@ end
 def with_timezone_config(cfg)
   verify_default_timezone_config
 
-  old_default_zone = ActiveRecord::Base.default_timezone
+  old_default_zone = ActiveRecord.default_timezone
   old_awareness = ActiveRecord::Base.time_zone_aware_attributes
   old_zone = Time.zone
 
   if cfg.has_key?(:default)
-    ActiveRecord::Base.default_timezone = cfg[:default]
+    ActiveRecord.default_timezone = cfg[:default]
   end
   if cfg.has_key?(:aware_attributes)
     ActiveRecord::Base.time_zone_aware_attributes = cfg[:aware_attributes]
@@ -105,7 +114,7 @@ def with_timezone_config(cfg)
   end
   yield
 ensure
-  ActiveRecord::Base.default_timezone = old_default_zone
+  ActiveRecord.default_timezone = old_default_zone
   ActiveRecord::Base.time_zone_aware_attributes = old_awareness
   Time.zone = old_zone
 end
@@ -123,12 +132,12 @@ def verify_default_timezone_config
       Got: #{Time.zone}
     MSG
   end
-  if ActiveRecord::Base.default_timezone != EXPECTED_DEFAULT_TIMEZONE
+  if ActiveRecord.default_timezone != EXPECTED_DEFAULT_TIMEZONE
     $stderr.puts <<-MSG
 \n#{self}
-    Global state `ActiveRecord::Base.default_timezone` was leaked.
+    Global state `ActiveRecord.default_timezone` was leaked.
       Expected: #{EXPECTED_DEFAULT_TIMEZONE}
-      Got: #{ActiveRecord::Base.default_timezone}
+      Got: #{ActiveRecord.default_timezone}
     MSG
   end
   if ActiveRecord::Base.time_zone_aware_attributes != EXPECTED_TIME_ZONE_AWARE_ATTRIBUTES

@@ -2,7 +2,7 @@
 
 require "fileutils"
 require "pathname"
-require "digest/md5"
+require "openssl"
 require "active_support/core_ext/numeric/bytes"
 
 module ActiveStorage
@@ -86,11 +86,9 @@ module ActiveStorage
           purpose: :blob_token
         )
 
-        generated_url = url_helpers.update_rails_disk_service_url(verified_token_with_expiration, host: current_host)
-
-        payload[:url] = generated_url
-
-        generated_url
+        url_helpers.update_rails_disk_service_url(verified_token_with_expiration, url_options).tap do |generated_url|
+          payload[:url] = generated_url
+        end
       end
     end
 
@@ -98,7 +96,7 @@ module ActiveStorage
       { "Content-Type" => content_type }
     end
 
-    def path_for(key) #:nodoc:
+    def path_for(key) # :nodoc:
       File.join root, folder_for(key), key
     end
 
@@ -124,14 +122,11 @@ module ActiveStorage
           purpose: :blob_key
         )
 
-        current_uri = URI.parse(current_host)
+        if url_options.blank?
+          raise ArgumentError, "Cannot generate URL for #{filename} using Disk service, please set ActiveStorage::Current.url_options."
+        end
 
-        url_helpers.rails_disk_service_url(verified_key_with_expiration,
-          protocol: current_uri.scheme,
-          host: current_uri.host,
-          port: current_uri.port,
-          filename: filename
-        )
+        url_helpers.rails_disk_service_url(verified_key_with_expiration, filename: filename, **url_options)
       end
 
 
@@ -154,7 +149,7 @@ module ActiveStorage
       end
 
       def ensure_integrity_of(key, checksum)
-        unless Digest::MD5.file(path_for(key)).base64digest == checksum
+        unless OpenSSL::Digest::MD5.file(path_for(key)).base64digest == checksum
           delete key
           raise ActiveStorage::IntegrityError
         end
@@ -164,8 +159,8 @@ module ActiveStorage
         @url_helpers ||= Rails.application.routes.url_helpers
       end
 
-      def current_host
-        ActiveStorage::Current.host
+      def url_options
+        ActiveStorage::Current.url_options
       end
   end
 end

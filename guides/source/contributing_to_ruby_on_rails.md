@@ -140,8 +140,6 @@ To do so, make changes to Rails guides source files (located [here](https://gith
 
 When working with documentation, please take into account the [API Documentation Guidelines](api_documentation_guidelines.html) and the [Ruby on Rails Guides Guidelines](ruby_on_rails_guides_guidelines.html).
 
-NOTE: For documentation changes, your pull request title should include [ci skip]. This will skip running the test suite, helping us to cut down on our server costs. Keep in mind that you should only skip CI when your change touches documentation exclusively.
-
 Translating Rails Guides
 ------------------------
 
@@ -469,6 +467,14 @@ You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` als
 
 The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue no warnings, but there may be a few, as well as some from third-party libraries. Please ignore (or fix!) them, if any, and submit patches that do not issue new warnings.
 
+### Updating the Documentation
+
+The Ruby on Rails [guides](https://guides.rubyonrails.org/) provide a high-level overview of Rails' features, while the [API documentation](https://api.rubyonrails.org/) delves into specifics.
+
+If your PR adds a new feature, or changes how an existing feature behaves, check the relevant documentation, and update it or add to it as necessary.
+
+For example, if you modify Active Storage's image analyzer to add a new metadata field, you should update the [Analyzing Files](https://edgeguides.rubyonrails.org/active_storage_overview.html#analyzing-files) section of the Active Storage guide to reflect that.
+
 ### Updating the CHANGELOG
 
 The CHANGELOG is an important part of every release. It keeps the list of changes for every Rails version.
@@ -496,6 +502,10 @@ A CHANGELOG entry should summarize what was changed and should end with the auth
 
 Your name can be added directly after the last word if there are no code
 examples or multiple paragraphs. Otherwise, it's best to make a new paragraph.
+
+### Ignoring Files Created by Your Editor / IDE
+
+Some editors and IDEs will create hidden files or folders inside the `rails` folder. Instead of manually excluding those from each commit or adding them to Rails' `.gitignore`, you should add them to your own [global gitignore file](https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files#configuring-ignored-files-for-all-repositories-on-your-computer).
 
 ### Updating the Gemfile.lock
 
@@ -608,15 +618,15 @@ $ git push fork my_new_branch
 ### Issue a Pull Request
 
 Navigate to the Rails repository you just pushed to (e.g.
-https://github.com/your-user-name/rails) and click on "Pull Requests" seen in
-the right panel. On the next page, press "New pull request" in the upper right-hand corner.
+https://github.com/your-user-name/rails) and click on "Pull Requests" in the top bar (just above the code).
+On the next page, click "New pull request" in the upper right-hand corner.
 
-Click on "Edit", if you need to change the branches being compared (it compares
-"main" by default) and press "Click to create a pull request for this
-comparison".
+The pull request should target the base repository `rails/rails` and the branch `main`.
+The head repository will be your work (`your-user-name/rails`), and the branch will be
+whatever name you gave your branch. Click "create pull request" when you're ready.
 
 Ensure the changesets you introduced are included. Fill in some details about
-your potential patch, including a meaningful title. When finished, press "Send
+your potential patch, using the pull request template provided. When finished, click "Create
 pull request". The Rails core team will be notified about your submission.
 
 ### Get some Feedback
@@ -637,7 +647,7 @@ list](https://discuss.rubyonrails.org/c/rubyonrails-core) for this. You can also
 leave another comment on the pull request.
 
 While you're waiting for feedback on your pull request, open up a few other
-pull requests and give someone else some! I'm sure they'll appreciate it in
+pull requests and give someone else some! They'll appreciate it in
 the same way that you appreciate feedback on your patches.
 
 Note that your pull request may be marked as "Approved" by somebody who does not

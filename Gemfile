@@ -23,7 +23,7 @@ gem "bcrypt", "~> 3.1.11", require: false
 
 # This needs to be with require false to avoid it being automatically loaded by
 # sprockets.
-gem "uglifier", ">= 1.3.0", require: false
+gem "terser", ">= 1.1.4", require: false
 
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0"
@@ -36,7 +36,7 @@ group :rubocop do
 end
 
 group :doc do
-  gem "sdoc", ">= 2.1.0"
+  gem "sdoc", ">= 2.2.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "kindlerb", "~> 1.2.0"
@@ -95,7 +95,6 @@ gem "aws-sdk-sns", require: false
 gem "webmock"
 
 group :ujs do
-  gem "qunit-selenium"
   gem "webdrivers"
 end
 
@@ -169,3 +168,18 @@ end
 
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "wdm", ">= 0.1.0", platforms: [:mingw, :mswin, :x64_mingw, :mswin64]
+
+if RUBY_VERSION >= "3.1"
+  # net-smtp, net-imap and net-pop were removed from default gems in Ruby 3.1, but is used by the `mail` gem.
+  # So we need to add them as dependencies until `mail` is fixed: https://github.com/mikel/mail/pull/1439
+  gem "net-smtp", require: false
+  gem "net-imap", require: false
+  gem "net-pop", require: false
+
+  # digest gem, which is one of the default gems has bumped to 3.0.1.pre for ruby 3.1.0dev.
+  gem "digest", "~> 3.0.1.pre", require: false
+
+  # matrix was removed from default gems in Ruby 3.1, but is used by the `capybara` gem.
+  # So we need to add it as a dependency until `capybara` is fixed: https://github.com/teamcapybara/capybara/pull/2468
+  gem "matrix", require: false
+end

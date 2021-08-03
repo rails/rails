@@ -48,6 +48,9 @@ class ExcludingTest < ActiveRecord::TestCase
   def test_raises_on_record_from_different_class
     error = assert_raises(ArgumentError) { Post.excluding(@post, comments(:greetings)) }
     assert_equal "You must only pass a single or collection of Post objects to #excluding.", error.message
+
+    error = assert_raises(ArgumentError) { Post.without(@post, comments(:greetings)) }
+    assert_equal "You must only pass a single or collection of Post objects to #without.", error.message
   end
 
   private
