@@ -3090,7 +3090,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_key_ensuring_owner_was_is_not_valid_without_dependent_option
     error = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
-        has_many :books, ensuring_owner_was: true
+        has_many :books, ensuring_owner_was: :destroyed?
       end
     end
 
@@ -3101,7 +3101,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Class.new(ActiveRecord::Base) do
       self.destroy_association_async_job = Class.new
 
-      has_many :books, ensuring_owner_was: true, dependent: :destroy_async
+      has_many :books, dependent: :destroy_async, ensuring_owner_was: :destroyed?
     end
   end
 
