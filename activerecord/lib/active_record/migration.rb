@@ -957,6 +957,12 @@ module ActiveRecord
               magic_comments << magic_comment; ""
             end || break
           end
+
+          if !magic_comments.empty? && source.start_with?("\n")
+            magic_comments << "\n"
+            source = source[1..-1]
+          end
+
           source = "#{magic_comments}#{inserted_comment}#{source}"
 
           if duplicate = destination_migrations.detect { |m| m.name == migration.name }
