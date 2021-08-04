@@ -1,3 +1,11 @@
+*   Add `ActiveRecord::Relation#structurally_compatible?`.
+
+    Adds a query method by which a user can tell if the relation that they're
+    about to use for `#or` or `#and` is structurally compatible with the
+    receiver.
+
+    *Kevin Newton*
+
 *   Add `ActiveRecord::QueryMethods#in_order_of`.
 
     This allows you to specify an explicit order that you'd like records
