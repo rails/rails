@@ -1,3 +1,9 @@
+*   Emit active support events from analyzers.
+
+    Fixes #42930
+
+    *Shouichi Kamiya*
+
 *   Add support for byte range requests
 
     *Tom Prats*
