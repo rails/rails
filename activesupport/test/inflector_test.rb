@@ -347,6 +347,11 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("fuenf-autos", ActiveSupport::Inflector.parameterize(word, locale: :de))
   end
 
+  def test_parameterize_with_multiple_preserve_chars
+    word = "test@preserve+chars--"
+    assert_equal("test@preserve+chars", ActiveSupport::Inflector.parameterize(word, preserve_chars: ["+", "@"]))
+  end
+
   def test_classify
     ClassNameToTableName.each do |class_name, table_name|
       assert_equal(class_name, ActiveSupport::Inflector.classify(table_name))

@@ -108,6 +108,11 @@ module ActiveSupport
     #   parameterize("Donald E. Knuth", preserve_case: true) # => "Donald-E-Knuth"
     #   parameterize("^très|Jolie-- ", preserve_case: true) # => "tres-Jolie"
     #
+    # To preserve specific characters in a string, use the +preserve_chars+ argument.
+    #
+    #   parameterize("apple+orange lemon--", preserve_chars: ["+"]) # => "apple+orange-lemon"
+    #   parameterize("blue+green@yellow--", preserve_chars: ["+", "@"]) # => "blue+green@yellow"
+    #
     # It preserves dashes and underscores unless they are used as separators:
     #
     #   parameterize("^très|Jolie__ ")                 # => "tres-jolie__"
@@ -118,12 +123,16 @@ module ActiveSupport
     # the word will be parameterized as a word of that language.
     # By default, this parameter is set to <tt>nil</tt> and it will use
     # the configured <tt>I18n.locale</tt>.
-    def parameterize(string, separator: "-", preserve_case: false, locale: nil)
+    def parameterize(string, separator: "-", preserve_case: false, preserve_chars: [], locale: nil)
       # Replace accented chars with their ASCII equivalents.
       parameterized_string = transliterate(string, locale: locale)
 
+      # Generate unwanted chars regex
+      preserve_chars_regex = preserve_chars.any? ? preserve_chars.join("\\").prepend("\\") : ""
+      unwanted_chars_regex = /[^a-z0-9\-_#{preserve_chars_regex}]+/i
+
       # Turn unwanted chars into the separator.
-      parameterized_string.gsub!(/[^a-z0-9\-_]+/i, separator)
+      parameterized_string.gsub!(unwanted_chars_regex, separator)
 
       unless separator.nil? || separator.empty?
         if separator == "-"

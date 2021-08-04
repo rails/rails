@@ -1,3 +1,14 @@
+*   The `preserve_chars:` option is added to `ActiveSupport::Inflector#parameterize`.
+
+    It allows specifying special characters to preserve when parameterizing a string.
+
+    ```ruby
+    parameterize("apple+orange lemon--", preserve_chars: ["+"]) # => "apple+orange-lemon"
+    parameterize("blue+green@yellow--", preserve_chars: ["+", "@"]) # => "blue+green@yellow"
+    ```
+
+    *David Ratajczak*
+
 *   Faster tests by parallelizing only when overhead is justified by the number
     of them.
 
