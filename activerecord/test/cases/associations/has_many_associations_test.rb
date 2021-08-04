@@ -3087,6 +3087,24 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_key_ensuring_owner_was_is_not_valid_without_dependent_option
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        has_many :books, ensuring_owner_was: :destroyed?
+      end
+    end
+
+    assert_match(/Unknown key: :ensuring_owner_was/, error.message)
+  end
+
+  def test_key_ensuring_owner_was_is_valid_when_dependent_option_is_destroy_async
+    Class.new(ActiveRecord::Base) do
+      self.destroy_association_async_job = Class.new
+
+      has_many :books, dependent: :destroy_async, ensuring_owner_was: :destroyed?
+    end
+  end
+
   private
     def force_signal37_to_load_all_clients_of_firm
       companies(:first_firm).clients_of_firm.load_target

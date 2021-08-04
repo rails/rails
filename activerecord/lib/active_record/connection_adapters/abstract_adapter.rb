@@ -632,6 +632,15 @@ module ActiveRecord
       def check_version # :nodoc:
       end
 
+      def field_ordered_value(column, values)
+        node = Arel::Nodes::Case.new(column)
+        values.each.with_index(1) do |value, order|
+          node.when(value).then(order)
+        end
+
+        Arel::Nodes::Ascending.new(node.else(values.length + 1))
+      end
+
       class << self
         private
           def initialize_type_map(m)
