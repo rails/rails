@@ -6,6 +6,7 @@ require "models/admin"
 require "models/admin/account"
 require "models/admin/randomly_named_c1"
 require "models/admin/user"
+require "models/author"
 require "models/binary"
 require "models/book"
 require "models/bulb"
@@ -18,6 +19,7 @@ require "models/course"
 require "models/developer"
 require "models/dog"
 require "models/doubloon"
+require "models/essay"
 require "models/joke"
 require "models/matey"
 require "models/other_dog"
@@ -1489,6 +1491,16 @@ class FileFixtureConflictTest < ActiveRecord::TestCase
     self.class.fixtures :all
 
     assert_equal %w(developers namespaced/accounts people tasks), fixture_table_names.sort
+  end
+end
+
+class PrimaryKeyErrorTest < ActiveRecord::TestCase
+  test "generates the correct value" do
+    e = assert_raise(ActiveRecord::FixtureSet::TableRow::PrimaryKeyError) do
+      ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT + "/primary_key_error", "primary_key_error")
+    end
+
+    assert_includes e.message, "Unable to set"
   end
 end
 

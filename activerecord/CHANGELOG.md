@@ -1,3 +1,37 @@
+*   Add `ActiveRecord::Relation#structurally_compatible?`.
+
+    Adds a query method by which a user can tell if the relation that they're
+    about to use for `#or` or `#and` is structurally compatible with the
+    receiver.
+
+    *Kevin Newton*
+
+*   Add `ActiveRecord::QueryMethods#in_order_of`.
+
+    This allows you to specify an explicit order that you'd like records
+    returned in based on a SQL expression. By default, this will be accomplished
+    using a case statement, as in:
+
+    ```ruby
+    Post.in_order_of(:id, [3, 5, 1])
+    ```
+
+    will generate the SQL:
+
+    ```sql
+    SELECT "posts".* FROM "posts" ORDER BY CASE "posts"."id" WHEN 3 THEN 1 WHEN 5 THEN 2 WHEN 1 THEN 3 ELSE 4 END ASC
+    ```
+
+    However, because this functionality is built into MySQL in the form of the
+    `FIELD` function, that connection adapter will generate the following SQL
+    instead:
+
+    ```sql
+    SELECT "posts".* FROM "posts" ORDER BY FIELD("posts"."id", 1, 5, 3) DESC
+    ```
+
+    *Kevin Newton*
+
 *   Fix `eager_loading?` when ordering with `Symbol`
 
     `eager_loading?` is triggered correctly when using `order` with symbols.
@@ -34,7 +68,7 @@
 
     *Luis Vasconcellos*, *Eileen M. Uchitelle*
 
-*   Fix `eager_loading?` when ordering with `Hash` syntax.
+*   Fix `eager_loading?` when ordering with `Hash` syntax
 
     `eager_loading?` is triggered correctly when using `order` with hash syntax
     on an outer table.
