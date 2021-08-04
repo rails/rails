@@ -238,14 +238,15 @@ NOTE: The `ApplicationController` class inside an engine is named just like a
 Rails application in order to make it easier for you to convert your
 applications into engines.
 
-NOTE: Because of the way that Ruby does constant lookup you may run into a situation
-where your engine controller is inheriting from the main application controller and
-not your engine's application controller. Ruby is able to resolve the `ApplicationController` constant, and therefore the autoloading mechanism is not triggered. See the section [When Constants Aren't Missed](autoloading_and_reloading_constants_classic_mode.html#when-constants-aren-t-missed).
-The best way to prevent this from happening is to use `require_dependency` to ensure that the engine's application
-controller is loaded. For example:
+NOTE: If the parent application runs in `classic` mode, you may run into a
+situation where your engine controller is inheriting from the main application
+controller and not your engine's application controller. The best way to prevent
+this is to switch to `zeitwerk` mode in the parent application. Otherwise, use
+`require_dependency` to ensure that the engine's application controller is
+loaded. For example:
 
 ```ruby
-# app/controllers/blorgh/articles_controller.rb:
+# ONLY NEEDED IN `classic` MODE.
 require_dependency "blorgh/application_controller"
 
 module Blorgh
@@ -255,9 +256,9 @@ module Blorgh
 end
 ```
 
-WARNING: Don't use `require` because it will break the automatic reloading of classes
-in the development environment - using `require_dependency` ensures that classes are
-loaded and unloaded in the correct manner.
+WARNING: Don't use `require` because it will break the automatic reloading of
+classes in the development environment - using `require_dependency` ensures that
+classes are loaded and unloaded in the correct manner.
 
 Just like for `app/controllers`, you will find a `blorgh` subdirectory under
 the `app/helpers`, `app/jobs`, `app/mailers` and `app/models` directories
@@ -1226,6 +1227,12 @@ module Blorgh::Concerns::Models::Article
   end
 end
 ```
+
+### Autoloading and Engines
+
+Please check the [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html#autoloading-and-engines)
+guide for more information about autoloading and engines.
+
 
 ### Overriding Views
 
