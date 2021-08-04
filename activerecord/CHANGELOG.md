@@ -80,6 +80,23 @@
 
     *Kevin Newton*
 
+*   Allow configuring Postgres password through the socket URL.
+
+    For example:
+    ```ruby
+    ActiveRecord::DatabaseConfigurations::UrlConfig.new(
+      :production, :production, 'postgres:///?user=user&password=secret&dbname=app', {}
+    ).configuration_hash
+    ```
+
+    will now return,
+
+    ```ruby
+    { :user=>"user", :password=>"secret", :dbname=>"app", :adapter=>"postgresql" }
+    ```
+
+    *Abeid Ahmed*
+
 *   Fix `eager_loading?` when ordering with `Symbol`
 
     `eager_loading?` is triggered correctly when using `order` with symbols.
