@@ -253,6 +253,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.download key, &block
   end
 
+  # Downloads a part of the file associated with this blob.
+  def download_chunk(range)
+    service.download_chunk key, range
+  end
+
   # Downloads the blob to a tempfile on disk. Yields the tempfile.
   #
   # The tempfile's name is prefixed with +ActiveStorage-+ and the blob's ID. Its extension matches that of the blob.
