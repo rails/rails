@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module ActionView #:nodoc:
+module ActionView # :nodoc:
   # = Action View PathSet
   #
   # This class is used to store and access paths in Action View. A number of
@@ -8,7 +8,7 @@ module ActionView #:nodoc:
   # set and also perform operations on other +PathSet+ objects.
   #
   # A +LookupContext+ will use a +PathSet+ to store the paths in its context.
-  class PathSet #:nodoc:
+  class PathSet # :nodoc:
     include Enumerable
 
     attr_reader :paths

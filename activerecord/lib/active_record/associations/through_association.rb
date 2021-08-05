@@ -3,7 +3,7 @@
 module ActiveRecord
   module Associations
     # = Active Record Through Association
-    module ThroughAssociation #:nodoc:
+    module ThroughAssociation # :nodoc:
       delegate :source_reflection, to: :reflection
 
       private

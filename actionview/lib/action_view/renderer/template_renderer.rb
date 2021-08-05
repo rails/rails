@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActionView
-  class TemplateRenderer < AbstractRenderer #:nodoc:
+  class TemplateRenderer < AbstractRenderer # :nodoc:
     def render(context, options)
       @details = extract_details(options)
       template = determine_template(options)

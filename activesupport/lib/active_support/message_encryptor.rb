@@ -84,7 +84,7 @@ module ActiveSupport
     cattr_accessor :use_authenticated_message_encryption, instance_accessor: false, default: false
 
     class << self
-      def default_cipher #:nodoc:
+      def default_cipher # :nodoc:
         if use_authenticated_message_encryption
           "aes-256-gcm"
         else
@@ -93,7 +93,7 @@ module ActiveSupport
       end
     end
 
-    module NullSerializer #:nodoc:
+    module NullSerializer # :nodoc:
       def self.load(value)
         value
       end
@@ -103,7 +103,7 @@ module ActiveSupport
       end
     end
 
-    module NullVerifier #:nodoc:
+    module NullVerifier # :nodoc:
       def self.verify(value)
         value
       end

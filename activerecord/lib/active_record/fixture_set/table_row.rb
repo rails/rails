@@ -39,6 +39,29 @@ module ActiveRecord
         end
       end
 
+      class PrimaryKeyError < StandardError # :nodoc:
+        def initialize(label, association, value)
+          super(<<~MSG)
+            Unable to set #{association.name} to #{value} because the association has a
+            custom primary key (#{association.join_primary_key}) that does not match the
+            associated table's primary key (#{association.klass.primary_key}).
+
+            To fix this, change your fixture from
+
+            #{label}:
+              #{association.name}: #{value}
+
+            to
+
+            #{label}:
+              #{association.foreign_key}: **value**
+
+            where **value** is the #{association.join_primary_key} value for the
+            associated #{association.klass.name} record.
+          MSG
+        end
+      end
+
       def initialize(fixture, table_rows:, label:, now:)
         @table_rows = table_rows
         @label = label
@@ -119,9 +142,13 @@ module ActiveRecord
               fk_name = association.join_foreign_key
 
               if association.name.to_s != fk_name && value = @row.delete(association.name.to_s)
-                if association.polymorphic? && value.sub!(/\s*\(([^)]*)\)\s*$/, "")
-                  # support polymorphic belongs_to as "label (Type)"
-                  @row[association.join_foreign_type] = $1
+                if association.polymorphic?
+                  if value.sub!(/\s*\(([^)]*)\)\s*$/, "")
+                    # support polymorphic belongs_to as "label (Type)"
+                    @row[association.join_foreign_type] = $1
+                  end
+                elsif association.join_primary_key != association.klass.primary_key
+                  raise PrimaryKeyError.new(@label, association, value)
                 end
 
                 fk_type = reflection_class.type_for_attribute(fk_name).type

@@ -118,7 +118,7 @@ module ActionView
       end
     end
 
-    def url_options #:nodoc:
+    def url_options # :nodoc:
       return super unless controller.respond_to?(:url_options)
       controller.url_options
     end

@@ -17,7 +17,7 @@ module ActiveRecord
         end
 
         # Quotes strings for use in SQL input.
-        def quote_string(s) #:nodoc:
+        def quote_string(s) # :nodoc:
           PG::Connection.escape(s)
         end
 
@@ -48,7 +48,7 @@ module ActiveRecord
         end
 
         # Quote date/time values for use in SQL input.
-        def quoted_date(value) #:nodoc:
+        def quoted_date(value) # :nodoc:
           if value.year <= 0
             bce_year = format("%04d", -value.year + 1)
             super.sub(/^-?\d+/, bce_year) + " BC"

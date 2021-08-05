@@ -50,13 +50,13 @@ end
 end
 
 class Module
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     name
   end
 end
 
 class Object
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     if respond_to?(:to_hash)
       to_hash.as_json(options)
     else
@@ -65,44 +65,44 @@ class Object
   end
 end
 
-class Struct #:nodoc:
+class Struct # :nodoc:
   def as_json(options = nil)
     Hash[members.zip(values)].as_json(options)
   end
 end
 
 class TrueClass
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     self
   end
 end
 
 class FalseClass
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     self
   end
 end
 
 class NilClass
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     self
   end
 end
 
 class String
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     self
   end
 end
 
 class Symbol
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     to_s
   end
 end
 
 class Numeric
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     self
   end
 end
@@ -110,7 +110,7 @@ end
 class Float
   # Encoding Infinity or NaN to JSON should return "null". The default returns
   # "Infinity" or "NaN" which are not valid JSON.
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     finite? ? self : nil
   end
 end
@@ -125,43 +125,43 @@ class BigDecimal
   # if the other end knows by contract that the data is supposed to be a
   # BigDecimal, it still has the chance to post-process the string and get the
   # real value.
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     finite? ? to_s : nil
   end
 end
 
 class Regexp
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     to_s
   end
 end
 
 module Enumerable
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     to_a.as_json(options)
   end
 end
 
 class IO
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     to_s
   end
 end
 
 class Range
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     to_s
   end
 end
 
 class Array
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     map { |v| options ? v.as_json(options.dup) : v.as_json }
   end
 end
 
 class Hash
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     # create a subset of the hash by applying :only or :except
     subset = if options
       if attrs = options[:only]
@@ -184,7 +184,7 @@ class Hash
 end
 
 class Time
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     if ActiveSupport::JSON::Encoding.use_standard_json_time_format
       xmlschema(ActiveSupport::JSON::Encoding.time_precision)
     else
@@ -194,7 +194,7 @@ class Time
 end
 
 class Date
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     if ActiveSupport::JSON::Encoding.use_standard_json_time_format
       strftime("%Y-%m-%d")
     else
@@ -204,7 +204,7 @@ class Date
 end
 
 class DateTime
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     if ActiveSupport::JSON::Encoding.use_standard_json_time_format
       xmlschema(ActiveSupport::JSON::Encoding.time_precision)
     else
@@ -213,13 +213,13 @@ class DateTime
   end
 end
 
-class URI::Generic #:nodoc:
+class URI::Generic # :nodoc:
   def as_json(options = nil)
     to_s
   end
 end
 
-class Pathname #:nodoc:
+class Pathname # :nodoc:
   def as_json(options = nil)
     to_s
   end
@@ -231,7 +231,7 @@ class IPAddr # :nodoc:
   end
 end
 
-class Process::Status #:nodoc:
+class Process::Status # :nodoc:
   def as_json(options = nil)
     { exitstatus: exitstatus, pid: pid }
   end

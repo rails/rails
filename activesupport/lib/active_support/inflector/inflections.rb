@@ -16,13 +16,13 @@ module ActiveSupport
     #     inflect.plural /^(ox)$/i, '\1\2en'
     #     inflect.singular /^(ox)en/i, '\1'
     #
-    #     inflect.irregular 'octopus', 'octopi'
+    #     inflect.irregular 'cactus', 'cacti'
     #
     #     inflect.uncountable 'equipment'
     #   end
     #
     # New rules are added at the top. So in the example above, the irregular
-    # rule for octopus will now be the first of the pluralization and
+    # rule for cactus will now be the first of the pluralization and
     # singularization rules that is runs. This guarantees that your rules run
     # before any of the rules that may already have been loaded.
     class Inflections
@@ -167,7 +167,7 @@ module ActiveSupport
       # regular expressions. You simply pass the irregular in singular and
       # plural form.
       #
-      #   irregular 'octopus', 'octopi'
+      #   irregular 'cactus', 'cacti'
       #   irregular 'person', 'people'
       def irregular(singular, plural)
         @uncountables.delete(singular)

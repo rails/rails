@@ -272,7 +272,7 @@ module ActiveModel
       end
 
       # Copy validators on inheritance.
-      def inherited(base) #:nodoc:
+      def inherited(base) # :nodoc:
         dup = _validators.dup
         base._validators = dup.each { |k, v| dup[k] = v.dup }
         super
@@ -280,7 +280,7 @@ module ActiveModel
     end
 
     # Clean the +Errors+ object if instance is duped.
-    def initialize_dup(other) #:nodoc:
+    def initialize_dup(other) # :nodoc:
       @errors = nil
       super
     end

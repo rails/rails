@@ -161,7 +161,7 @@ module ActiveRecord
         oid:         { name: "oid" },
       }
 
-      OID = PostgreSQL::OID #:nodoc:
+      OID = PostgreSQL::OID # :nodoc:
 
       include PostgreSQL::Quoting
       include PostgreSQL::ReferentialIntegrity
@@ -343,11 +343,11 @@ module ActiveRecord
         @connection = nil
       end
 
-      def native_database_types #:nodoc:
+      def native_database_types # :nodoc:
         self.class.native_database_types
       end
 
-      def self.native_database_types #:nodoc:
+      def self.native_database_types # :nodoc:
         @native_database_types ||= begin
           types = NATIVE_DATABASE_TYPES.dup
           types[:datetime] = types[datetime_type]
@@ -689,7 +689,7 @@ module ActiveRecord
           end
         end
 
-        FEATURE_NOT_SUPPORTED = "0A000" #:nodoc:
+        FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
 
         def execute_and_clear(sql, name, binds, prepare: false, async: false)
           check_if_write_query(sql)

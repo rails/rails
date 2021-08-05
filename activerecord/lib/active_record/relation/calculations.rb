@@ -295,7 +295,7 @@ module ActiveRecord
         operation == "count" ? column.count(distinct) : column.public_send(operation)
       end
 
-      def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
+      def execute_simple_calculation(operation, column_name, distinct) # :nodoc:
         if operation == "count" && (column_name == :all && distinct || has_limit_or_offset?)
           # Shortcut when limit is zero.
           return 0 if limit_value == 0
@@ -325,7 +325,7 @@ module ActiveRecord
         type_cast_calculated_value(result.cast_values.first, operation, type)
       end
 
-      def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
+      def execute_grouped_calculation(operation, column_name, distinct) # :nodoc:
         group_fields = group_values
         group_fields = group_fields.uniq if group_fields.size > 1
 

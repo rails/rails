@@ -225,6 +225,8 @@ module Rails
             active_storage.video_preview_arguments =
               "-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1'" \
               " -frames:v 1 -f image2"
+
+            active_storage.variant_processor = :vips
           end
 
           if respond_to?(:active_record)
@@ -365,7 +367,7 @@ module Rails
         end
       end
 
-      def session_store? #:nodoc:
+      def session_store? # :nodoc:
         @session_store
       end
 
@@ -401,7 +403,7 @@ module Rails
         f
       end
 
-      class Custom #:nodoc:
+      class Custom # :nodoc:
         def initialize
           @configurations = Hash.new
         end

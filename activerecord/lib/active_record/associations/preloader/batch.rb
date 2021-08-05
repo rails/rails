@@ -3,7 +3,7 @@
 module ActiveRecord
   module Associations
     class Preloader
-      class Batch #:nodoc:
+      class Batch # :nodoc:
         def initialize(preloaders, available_records:)
           @preloaders = preloaders.reject(&:empty?)
           @available_records = available_records.flatten.group_by(&:class)

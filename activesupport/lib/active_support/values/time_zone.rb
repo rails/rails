@@ -260,7 +260,7 @@ module ActiveSupport
         @country_zones[code] ||= load_country_zones(code)
       end
 
-      def clear #:nodoc:
+      def clear # :nodoc:
         @lazy_zones_map = Concurrent::Map.new
         @country_zones  = Concurrent::Map.new
         @zones = nil
@@ -550,15 +550,15 @@ module ActiveSupport
       tzinfo.period_for_local(time, dst) { |periods| periods.last }
     end
 
-    def periods_for_local(time) #:nodoc:
+    def periods_for_local(time) # :nodoc:
       tzinfo.periods_for_local(time)
     end
 
-    def init_with(coder) #:nodoc:
+    def init_with(coder) # :nodoc:
       initialize(coder["name"])
     end
 
-    def encode_with(coder) #:nodoc:
+    def encode_with(coder) # :nodoc:
       coder.tag = "!ruby/object:#{self.class}"
       coder.map = { "name" => tzinfo.name }
     end

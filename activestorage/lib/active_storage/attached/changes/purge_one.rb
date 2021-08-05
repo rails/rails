@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveStorage
-  class Attached::Changes::PurgeOne #:nodoc:
+  class Attached::Changes::PurgeOne # :nodoc:
     attr_reader :name, :record, :attachment
 
     def initialize(name, record, attachment)

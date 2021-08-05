@@ -42,7 +42,7 @@
 # You can combine any number of ImageMagick/libvips operations into a variant, as well as any macros provided by the
 # ImageProcessing gem (such as +resize_to_limit+):
 #
-#   avatar.variant(resize_to_limit: [800, 800], monochrome: true, rotate: "-90")
+#   avatar.variant(resize_to_limit: [800, 800], colourspace: "b-w", rotate: "-90")
 #
 # Visit the following links for a list of available ImageProcessing commands and ImageMagick/libvips operations:
 #
@@ -91,7 +91,7 @@ class ActiveStorage::Variant
 
   alias_method :content_type_for_serving, :content_type
 
-  def forced_disposition_for_serving #:nodoc:
+  def forced_disposition_for_serving # :nodoc:
     nil
   end
 

@@ -387,6 +387,23 @@ module ActiveRecord
       self
     end
 
+    # Allows to specify an order by a specific set of values. Depending on your
+    # adapter this will either use a CASE statement or a built-in function.
+    #
+    #   User.in_order_of(:id, [1, 5, 3])
+    #   # SELECT "users".* FROM "users" ORDER BY FIELD("users"."id", 1, 5, 3)
+    #
+    def in_order_of(column, values)
+      klass.disallow_raw_sql!([column], permit: connection.column_name_with_order_matcher)
+
+      references = column_references([column])
+      self.references_values |= references unless references.empty?
+
+      column = order_column(column.to_s) if column.is_a?(Symbol)
+
+      spawn.order!(connection.field_ordered_value(column, values))
+    end
+
     # Replaces any existing order defined on the relation with the specified order.
     #
     #   User.order('email DESC').reorder('id ASC') # generated SQL has 'ORDER BY id ASC'
@@ -729,6 +746,21 @@ module ActiveRecord
     def invert_where! # :nodoc:
       self.where_clause = where_clause.invert
       self
+    end
+
+    # Checks whether the given relation is structurally compatible with this relation, to determine
+    # if it's possible to use the #and and #or methods without raising an error. Structurally
+    # compatible is defined as: they must be scoping the same model, and they must differ only by
+    # #where (if no #group has been defined) or #having (if a #group is present).
+    #
+    #    Post.where("id = 1").structurally_compatible?(Post.where("author_id = 3"))
+    #    # => true
+    #
+    #    Post.joins(:comments).structurally_compatible?(Post.where("id = 1"))
+    #    # => false
+    #
+    def structurally_compatible?(other)
+      structurally_incompatible_values_for(other).empty?
     end
 
     # Returns a new relation, which is the logical intersection of this relation and the one passed
@@ -1550,7 +1582,7 @@ module ActiveRecord
       def column_references(order_args)
         references = order_args.flat_map do |arg|
           case arg
-          when String
+          when String, Symbol
             arg
           when Hash
             arg.keys

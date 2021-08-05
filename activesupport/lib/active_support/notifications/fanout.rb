@@ -119,7 +119,7 @@ module ActiveSupport
           end
         end
 
-        class Matcher #:nodoc:
+        class Matcher # :nodoc:
           attr_reader :pattern, :exclusions
 
           def self.wrap(pattern)
@@ -141,7 +141,7 @@ module ActiveSupport
           end
         end
 
-        class Evented #:nodoc:
+        class Evented # :nodoc:
           attr_reader :pattern
 
           def initialize(pattern, delegate)

@@ -48,7 +48,7 @@ module ActiveSupport
 
     # Redefined to check severity against #level, and thus the thread-local level, rather than +@level+.
     # FIXME: Remove when the minimum Ruby version supports overriding Logger#level.
-    def add(severity, message = nil, progname = nil, &block) #:nodoc:
+    def add(severity, message = nil, progname = nil, &block) # :nodoc:
       severity ||= UNKNOWN
       progname ||= @progname
 

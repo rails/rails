@@ -248,7 +248,7 @@ end
 
 class Hash
   # Hash#reject has its own definition, so this needs one too.
-  def compact_blank #:nodoc:
+  def compact_blank # :nodoc:
     reject { |_k, v| v.blank? }
   end
 
@@ -264,7 +264,7 @@ class Hash
   end
 end
 
-class Range #:nodoc:
+class Range # :nodoc:
   # Optimize range sum to use arithmetic progression if a block is not given and
   # we have a range of numeric values.
   def sum(identity = nil)
@@ -289,7 +289,7 @@ using Module.new {
   end
 }
 
-class Array #:nodoc:
+class Array # :nodoc:
   def sum(init = nil, &block)
     if init.is_a?(Numeric) || first.is_a?(Numeric)
       init ||= 0

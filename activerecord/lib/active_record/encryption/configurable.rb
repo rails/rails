@@ -17,7 +17,7 @@ module ActiveRecord
           delegate name, to: :context
         end
 
-        def configure(primary_key:, deterministic_key:, key_derivation_salt:, **properties) #:nodoc:
+        def configure(primary_key:, deterministic_key:, key_derivation_salt:, **properties) # :nodoc:
           config.primary_key = primary_key
           config.deterministic_key = deterministic_key
           config.key_derivation_salt = key_derivation_salt
@@ -44,13 +44,13 @@ module ActiveRecord
           self.encrypted_attribute_declaration_listeners << block
         end
 
-        def encrypted_attribute_was_declared(klass, name) #:nodoc:
+        def encrypted_attribute_was_declared(klass, name) # :nodoc:
           self.encrypted_attribute_declaration_listeners&.each do |block|
             block.call(klass, name)
           end
         end
 
-        def install_auto_filtered_parameters(application) #:nodoc:
+        def install_auto_filtered_parameters(application) # :nodoc:
           ActiveRecord::Encryption.on_encrypted_attribute_declared do |klass, encrypted_attribute_name|
             application.config.filter_parameters << encrypted_attribute_name unless ActiveRecord::Encryption.config.excluded_from_filter_parameters.include?(name)
           end

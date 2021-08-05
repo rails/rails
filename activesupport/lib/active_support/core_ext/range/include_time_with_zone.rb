@@ -4,7 +4,7 @@ require "active_support/time_with_zone"
 require "active_support/deprecation"
 
 module ActiveSupport
-  module IncludeTimeWithZone #:nodoc:
+  module IncludeTimeWithZone # :nodoc:
     # Extends the default Range#include? to support ActiveSupport::TimeWithZone.
     #
     #   (1.hour.ago..1.hour.from_now).include?(Time.current) # => true

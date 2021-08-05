@@ -206,7 +206,7 @@ module Rails
       end
 
       # Make class option aware of Rails::Generators.options and Rails::Generators.aliases.
-      def self.class_option(name, options = {}) #:nodoc:
+      def self.class_option(name, options = {}) # :nodoc:
         options[:desc]    = "Indicates when to generate #{name.to_s.humanize.downcase}" unless options.key?(:desc)
         options[:aliases] = default_aliases_for_option(name, options)
         options[:default] = default_value_for_option(name, options)
@@ -231,7 +231,7 @@ module Rails
 
       # Cache source root and add lib/generators/base/generator/templates to
       # source paths.
-      def self.inherited(base) #:nodoc:
+      def self.inherited(base) # :nodoc:
         super
 
         # Invoke source_root so the default_source_root is set.
@@ -364,13 +364,13 @@ module Rails
         end
 
         # Keep hooks configuration that are used on prepare_for_invocation.
-        def self.hooks #:nodoc:
+        def self.hooks # :nodoc:
           @hooks ||= from_superclass(:hooks, {})
         end
 
         # Prepare class invocation to search on Rails namespace if a previous
         # added hook is being used.
-        def self.prepare_for_invocation(name, value) #:nodoc:
+        def self.prepare_for_invocation(name, value) # :nodoc:
           return super unless value.is_a?(String) || value.is_a?(Symbol)
 
           if value && constants = hooks[name]

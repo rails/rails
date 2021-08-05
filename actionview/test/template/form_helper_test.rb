@@ -1156,6 +1156,14 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value))
   end
 
+  def test_time_field_without_seconds
+    expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02" max="10:25" min="20:45" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    min_value = DateTime.new(2000, 6, 15, 20, 45, 30)
+    max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
+    assert_dom_equal(expected, time_field("post", "written_on", include_seconds: false, min: min_value, max: max_value))
+  end
+
   def test_datetime_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00:00" />}
     assert_dom_equal(expected, datetime_field("post", "written_on"))

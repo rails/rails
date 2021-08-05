@@ -348,6 +348,37 @@ There is no global configuration that can affect said instances; they are determ
 
 You can even define a custom inflector for full flexibility. Please check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#custom-inflector) for further details.
 
+Autoloading and Engines
+-----------------------
+
+Engines run in the context of a parent application, and their code is autoloaded, reloaded, and eager loaded by the parent application. If the application runs in `zeitwerk` mode, the engine code is loaded by `zeitwerk` mode. If the application runs in `classic` mode, the engine code is loaded by `classic` mode.
+
+When Rails boots, engine directories are added to the autoload paths, and from the point of view of the autoloader, there's no difference. Autoloaders' main input are the autoload paths, and whether they belong to the application source tree or to some engine source tree is irrelevant.
+
+For example, this application uses [Devise](https://github.com/heartcombo/devise):
+
+```
+% bin/rails runner 'pp ActiveSupport::Dependencies.autoload_paths'
+[".../app/controllers",
+ ".../app/controllers/concerns",
+ ".../app/helpers",
+ ".../app/models",
+ ".../app/models/concerns",
+ ".../gems/devise-4.8.0/app/controllers",
+ ".../gems/devise-4.8.0/app/helpers",
+ ".../gems/devise-4.8.0/app/mailers"]
+ ```
+
+If the engine controls the autoloading mode of its parent application, the engine can be written as usual.
+
+However, if an engine supports Rails 6 or Rails 6.1 and does not control its parent applications, it has to be ready to run under either `classic` or `zeitwerk` mode. Things to take into account:
+
+1. If `classic` mode would need a `require_dependency` call to ensure some constant is loaded at some point, write it. While `zeitwerk` would not need it, it won't hurt, will just work in `zeitwerk` mode too.
+
+2. `classic` mode underscores constant names ("User" -> "user.rb"), and `zeitwerk` mode camelizes file names ("user.rb" -> "User"). They coincide in most cases, but they don't if there are series of consecutive uppercase letters as in "HTMLParser". The easiest way to be compatible is to avoid such names: "HtmlParser".
+
+3. In `classic` mode, a file `app/model/concerns/foo.rb` is allowed to define both `Foo` and `Concerns::Foo`. In `zeitwerk` mode, there's only one option: it has to define `Foo`. In order to be compatible, define `Foo`.
+
 Troubleshooting
 ---------------
 

@@ -4,13 +4,13 @@ require "active_support/core_ext/enumerable"
 
 module ActionView
   # = Action View Errors
-  class ActionViewError < StandardError #:nodoc:
+  class ActionViewError < StandardError # :nodoc:
   end
 
-  class EncodingError < StandardError #:nodoc:
+  class EncodingError < StandardError # :nodoc:
   end
 
-  class WrongEncodingError < EncodingError #:nodoc:
+  class WrongEncodingError < EncodingError # :nodoc:
     def initialize(string, encoding)
       @string, @encoding = string, encoding
     end
@@ -26,7 +26,7 @@ module ActionView
     end
   end
 
-  class MissingTemplate < ActionViewError #:nodoc:
+  class MissingTemplate < ActionViewError # :nodoc:
     attr_reader :path, :paths, :prefixes, :partial
 
     def initialize(paths, path, prefixes, partial, details, *)
@@ -150,7 +150,7 @@ module ActionView
     # The Template::Error exception is raised when the compilation or rendering of the template
     # fails. This exception then gathers a bunch of intimate details and uses it to report a
     # precise exception message.
-    class Error < ActionViewError #:nodoc:
+    class Error < ActionViewError # :nodoc:
       SOURCE_CODE_RADIUS = 3
 
       # Override to prevent #cause resetting during re-raise.
@@ -229,7 +229,7 @@ module ActionView
 
   TemplateError = Template::Error
 
-  class SyntaxErrorInTemplate < TemplateError #:nodoc:
+  class SyntaxErrorInTemplate < TemplateError # :nodoc:
     def initialize(template, offending_code_string)
       @offending_code_string = offending_code_string
       super(template)

@@ -7,7 +7,7 @@ module ActiveRecord
     #
     # If the association has a <tt>:through</tt> option further specialization
     # is provided by its child HasManyThroughAssociation.
-    class HasManyAssociation < CollectionAssociation #:nodoc:
+    class HasManyAssociation < CollectionAssociation # :nodoc:
       include ForeignAssociation
 
       def handle_dependency

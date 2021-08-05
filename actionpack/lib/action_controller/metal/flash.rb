@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module ActionController #:nodoc:
+module ActionController # :nodoc:
   module Flash
     extend ActiveSupport::Concern
 
@@ -42,7 +42,7 @@ module ActionController #:nodoc:
         end
       end
 
-      def action_methods #:nodoc:
+      def action_methods # :nodoc:
         @action_methods ||= super - _flash_types.map(&:to_s).to_set
       end
     end

@@ -29,6 +29,7 @@ require "models/book"
 require "models/citation"
 require "models/tree"
 require "models/node"
+require "models/club"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,

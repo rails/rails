@@ -31,7 +31,7 @@ module ActionController
 
   # ActionController::TestCase will be deprecated and moved to a gem in the future.
   # Please use ActionDispatch::IntegrationTest going forward.
-  class TestRequest < ActionDispatch::TestRequest #:nodoc:
+  class TestRequest < ActionDispatch::TestRequest # :nodoc:
     DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
     DEFAULT_ENV.delete "PATH_INFO"
 
@@ -179,7 +179,7 @@ module ActionController
 
   # Methods #destroy and #load! are overridden to avoid calling methods on the
   # @store object, which does not exist for the TestSession class.
-  class TestSession < Rack::Session::Abstract::PersistedSecure::SecureSessionHash #:nodoc:
+  class TestSession < Rack::Session::Abstract::PersistedSecure::SecureSessionHash # :nodoc:
     DEFAULT_OPTIONS = Rack::Session::Abstract::Persisted::DEFAULT_OPTIONS
 
     def initialize(session = {})

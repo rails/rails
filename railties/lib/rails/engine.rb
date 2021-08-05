@@ -656,12 +656,12 @@ module Rails
       end
     end
 
-    def routes? #:nodoc:
+    def routes? # :nodoc:
       @routes
     end
 
     protected
-      def run_tasks_blocks(*) #:nodoc:
+      def run_tasks_blocks(*) # :nodoc:
         super
         paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
       end
@@ -677,7 +677,7 @@ module Rails
         paths["db/migrate"].existent.any?
       end
 
-      def self.find_root_with_flag(flag, root_path, default = nil) #:nodoc:
+      def self.find_root_with_flag(flag, root_path, default = nil) # :nodoc:
         while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
           parent = File.dirname(root_path)
           root_path = parent != root_path && parent

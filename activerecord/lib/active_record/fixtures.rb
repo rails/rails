@@ -12,7 +12,7 @@ require "active_record/fixture_set/table_rows"
 require "active_record/test_fixtures"
 
 module ActiveRecord
-  class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
+  class FixtureClassNotFound < ActiveRecord::ActiveRecordError # :nodoc:
   end
 
   # \Fixtures are a way of organizing data that you want to test against; in short, sample data.
@@ -744,13 +744,13 @@ module ActiveRecord
       end
   end
 
-  class Fixture #:nodoc:
+  class Fixture # :nodoc:
     include Enumerable
 
-    class FixtureError < StandardError #:nodoc:
+    class FixtureError < StandardError # :nodoc:
     end
 
-    class FormatError < FixtureError #:nodoc:
+    class FormatError < FixtureError # :nodoc:
     end
 
     attr_reader :model_class, :fixture

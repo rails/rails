@@ -34,7 +34,7 @@ module ActiveSupport
   #     checker.execute_if_updated
   #     # => "changed"
   #
-  class EventedFileUpdateChecker #:nodoc: all
+  class EventedFileUpdateChecker # :nodoc: all
     def initialize(files, dirs = {}, &block)
       unless block
         raise ArgumentError, "A block is required to initialize an EventedFileUpdateChecker"

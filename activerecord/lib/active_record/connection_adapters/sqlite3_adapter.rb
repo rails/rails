@@ -47,7 +47,7 @@ module ActiveRecord
     end
   end
 
-  module ConnectionAdapters #:nodoc:
+  module ConnectionAdapters # :nodoc:
     # The SQLite3 adapter works with the sqlite3-ruby drivers
     # (available as gem from https://rubygems.org/gems/sqlite3).
     #
@@ -178,7 +178,7 @@ module ActiveRecord
         true
       end
 
-      def native_database_types #:nodoc:
+      def native_database_types # :nodoc:
         NATIVE_DATABASE_TYPES
       end
 
@@ -241,7 +241,7 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name)
       end
 
-      def add_column(table_name, column_name, type, **options) #:nodoc:
+      def add_column(table_name, column_name, type, **options) # :nodoc:
         if invalid_alter_table_type?(type, options)
           alter_table(table_name) do |definition|
             definition.column(column_name, type, **options)
@@ -251,7 +251,7 @@ module ActiveRecord
         end
       end
 
-      def remove_column(table_name, column_name, type = nil, **options) #:nodoc:
+      def remove_column(table_name, column_name, type = nil, **options) # :nodoc:
         alter_table(table_name) do |definition|
           definition.remove_column column_name
           definition.foreign_keys.delete_if { |fk| fk.column == column_name.to_s }
@@ -268,7 +268,7 @@ module ActiveRecord
         end
       end
 
-      def change_column_default(table_name, column_name, default_or_changes) #:nodoc:
+      def change_column_default(table_name, column_name, default_or_changes) # :nodoc:
         default = extract_new_default_value(default_or_changes)
 
         alter_table(table_name) do |definition|
@@ -276,7 +276,7 @@ module ActiveRecord
         end
       end
 
-      def change_column_null(table_name, column_name, null, default = nil) #:nodoc:
+      def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
         unless null || default.nil?
           exec_query("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
@@ -285,7 +285,7 @@ module ActiveRecord
         end
       end
 
-      def change_column(table_name, column_name, type, **options) #:nodoc:
+      def change_column(table_name, column_name, type, **options) # :nodoc:
         alter_table(table_name) do |definition|
           definition[column_name].instance_eval do
             self.type = aliased_types(type.to_s, type)
@@ -294,7 +294,7 @@ module ActiveRecord
         end
       end
 
-      def rename_column(table_name, column_name, new_column_name) #:nodoc:
+      def rename_column(table_name, column_name, new_column_name) # :nodoc:
         column = column_for(table_name, column_name)
         alter_table(table_name, rename: { column.name => new_column_name.to_s })
         rename_column_indexes(table_name, column.name, new_column_name)

@@ -3,7 +3,7 @@
 module ActiveRecord
   module Associations
     class Preloader
-      class Association #:nodoc:
+      class Association # :nodoc:
         class LoaderQuery
           attr_reader :scope, :association_key_name
 

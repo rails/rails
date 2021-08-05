@@ -67,7 +67,7 @@ module Mime
     @register_callbacks = []
 
     # A simple helper class used in parsing the accept header.
-    class AcceptItem #:nodoc:
+    class AcceptItem # :nodoc:
       attr_accessor :index, :name, :q
       alias :to_s :name
 
@@ -85,7 +85,7 @@ module Mime
       end
     end
 
-    class AcceptList #:nodoc:
+    class AcceptList # :nodoc:
       def self.sort!(list)
         list.sort!
 

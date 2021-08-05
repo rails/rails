@@ -11,6 +11,7 @@ require "models/subscriber"
 require "models/vegetables"
 require "models/shop"
 require "models/sponsor"
+require "models/club"
 
 module InheritanceTestHelper
   def with_store_full_sti_class(&block)
