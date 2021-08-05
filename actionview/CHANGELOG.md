@@ -1,4 +1,4 @@
-*   Add `caching?` helper that returns whether the current code path is being cached and `unacheable!` to denote helper methods that can't participate in fragment caching.
+*   Add `caching?` helper that returns whether the current code path is being cached and `uncacheable!` to denote helper methods that can't participate in fragment caching.
 
     *Ben Toews*, *John Hawthorn*, *Kasper Timm Hansen*, *Joel Hawksley*
 
