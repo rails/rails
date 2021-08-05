@@ -11,6 +11,7 @@ require "models/member_type"
 
 require "models/pirate"
 require "models/treasure"
+require "models/parrot"
 
 require "models/hotel"
 require "models/department"
