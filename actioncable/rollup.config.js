@@ -10,29 +10,38 @@ const terserOptions = {
   }
 }
 
-export default {
-  input: "app/javascript/action_cable/index.js",
-  output: [
-    {
-      // Deprecated naming
+export default [
+  {
+    input: "app/javascript/action_cable/index.js",
+    output: [
+      {
+        file: "app/assets/javascripts/actioncable.js",
+        format: "umd",
+        name: "ActionCable"
+      },
+
+      {
+        file: "app/assets/javascripts/actioncable.esm.js",
+        format: "es"
+      }
+    ],
+    plugins: [
+      resolve(),
+      terser(terserOptions)
+    ]
+  },
+
+  {
+    input: "app/javascript/action_cable/index_with_name_deprecation.js",
+    output: {
       file: "app/assets/javascripts/action_cable.js",
       format: "umd",
       name: "ActionCable"
     },
-
-    {
-      file: "app/assets/javascripts/actioncable.js",
-      format: "umd",
-      name: "ActionCable"
-    },
-
-    {
-      file: "app/assets/javascripts/actioncable.esm.js",
-      format: "es"
-    }
-  ],
-  plugins: [
-    resolve(),
-    terser(terserOptions)
-  ]
-}
+    breakOnWarning: false,
+    plugins: [
+      resolve(),
+      terser(terserOptions)
+    ]
+  },
+]
