@@ -40,6 +40,7 @@ require "models/subscriber"
 require "models/subscription"
 require "models/zine"
 require "models/interest"
+require "models/human"
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :posts, :comments

@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/admin"
 require "models/admin/user"
+require "models/account"
 
 class StoreTest < ActiveRecord::TestCase
   fixtures :'admin/users'
