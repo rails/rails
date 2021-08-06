@@ -853,7 +853,7 @@ location.
 If a variant is requested, Active Storage will automatically apply 
 transformations depending on the image's format:
 
-1. Content types that are `variable` and not considered [`web images`], will be converted to PNG.
+1. Content types that are [`variable`] and not considered [`web images`], will be converted to PNG.
 2. If `quality` is not specified, the variant processor's default quality for the format will be used.  
 
 The default processor for Active Storage is MiniMagick, but you can also use
