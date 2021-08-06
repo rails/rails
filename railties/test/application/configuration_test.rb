@@ -3459,6 +3459,16 @@ module ApplicationTests
       assert_equal true, ActiveSupport::TimeWithZone.methods(false).include?(:name)
     end
 
+    test "can entirely opt out of ActiveSupport::Deprecations" do
+      add_to_config "config.active_support.report_deprecations = false"
+
+      app "production"
+
+      assert_equal true, ActiveSupport::Deprecation.silenced
+      assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], ActiveSupport::Deprecation.behavior
+      assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], ActiveSupport::Deprecation.disallowed_behavior
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents

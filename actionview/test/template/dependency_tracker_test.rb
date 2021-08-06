@@ -210,15 +210,6 @@ class RipperTrackerTest < Minitest::Test
     assert_equal ["single/\#{quote}"], tracker.dependencies
   end
 
-  def test_dependencies_skip_commented_out_renders
-    template = FakeTemplate.new(%{
-      <%# render "double/#{quote}" %>
-    }, :erb)
-    tracker = make_tracker("interpolation/_string", template)
-
-    assert_equal [], tracker.dependencies
-  end
-
   def test_dependencies_skip_unknown_options
     template = FakeTemplate.new(%{
       <%= render partial: "unknown_render_call", unknown_render_option: "yes" %>
