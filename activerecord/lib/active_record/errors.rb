@@ -225,14 +225,14 @@ module ActiveRecord
     class << self
       def db_error(db_name)
         NoDatabaseError.new(<<~MSG)
-        We could not find your database: #{db_name}. Which can be found in the database configuration file located at config/database.yml.
+          We could not find your database: #{db_name}. Which can be found in the database configuration file located at config/database.yml.
 
-        To resolve this issue:
+          To resolve this issue:
 
-        - Did you create the database for this app, or delete it? You may need to create your database.
-        - Has the database name changed? Check your database.yml config has the correct database name.
+          - Did you create the database for this app, or delete it? You may need to create your database.
+          - Has the database name changed? Check your database.yml config has the correct database name.
 
-        To create your database, run:\n\n        bin/rails db:create
+          To create your database, run:\n\n        bin/rails db:create
         MSG
       end
     end
@@ -246,15 +246,15 @@ module ActiveRecord
     class << self
       def hostname_error(hostname)
         DatabaseConnectionError.new(<<~MSG)
-        There is an issue connecting with your hostname: #{hostname}.\n
-        Please check your database configuration and ensure there is a valid connection to your database.
+          There is an issue connecting with your hostname: #{hostname}.\n
+          Please check your database configuration and ensure there is a valid connection to your database.
         MSG
       end
 
       def username_error(username)
         DatabaseConnectionError.new(<<~MSG)
-        There is an issue connecting to your database with your username/password, username: #{username}.\n
-        Please check your database configuration to ensure the username/password are valid.
+          There is an issue connecting to your database with your username/password, username: #{username}.\n
+          Please check your database configuration to ensure the username/password are valid.
         MSG
       end
     end
