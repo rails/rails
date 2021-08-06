@@ -297,6 +297,12 @@ module ActionView
         Tags::TimeZoneSelect.new(object, method, self, priority_zones, options, html_options).render
       end
 
+      # Returns select and option tags for the given object and method, using
+      # #weekday_options_for_select to generate the list of option tags.
+      def weekday_select(object, method, options = {}, html_options = {}, &block)
+        Tags::WeekdaySelect.new(object, method, self, options, html_options, &block).render
+      end
+
       # Accepts a container (hash, array, enumerable, your type) and returns a string of option tags. Given a container
       # where the elements respond to first and last (such as a two-element array), the "lasts" serve as option values and
       # the "firsts" as option text. Hashes are turned into this form automatically, so the keys become "firsts" and values
@@ -593,6 +599,22 @@ module ActionView
         zone_options.safe_concat options_for_select(convert_zones[zones], selected)
       end
 
+      # Returns a string of option tags for the days of the week.
+      #
+      # Options:
+      # * <tt>:index_as_value</tt> - Defaults to false, set to true to use the index of the weekday as the value.
+      # * <tt>:day_format</tt> - The I18n key of the array to use for the weekday options.
+      # Defaults to :day_names, set to :abbr_day_names for abbreviations.
+      #
+      # NOTE: Only the option tags are returned, you have to wrap this call in
+      # a regular HTML select tag.
+      def weekday_options_for_select(selected = nil, index_as_value: false, day_format: :day_names)
+        day_names = I18n.translate("date.#{day_format}")
+        day_names = day_names.map.with_index.to_h if index_as_value
+
+        options_for_select(day_names, selected)
+      end
+
       # Returns radio button tags for the collection of existing return values
       # of +method+ for +object+'s class. The value returned from calling
       # +method+ on the instance +object+ will be selected. If calling +method+
@@ -857,6 +879,18 @@ module ActionView
       # Please refer to the documentation of the base helper for details.
       def time_zone_select(method, priority_zones = nil, options = {}, html_options = {})
         @template.time_zone_select(@object_name, method, priority_zones, objectify_options(options), @default_html_options.merge(html_options))
+      end
+
+      # Wraps ActionView::Helpers::FormOptionsHelper#weekday_select for form builders:
+      #
+      #   <%= form_for @user do |f| %>
+      #     <%= f.weekday_select :weekday, include_blank: true %>
+      #     <%= f.submit %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+      def weekday_select(method, options = {}, html_options = {})
+        @template.weekday_select(@object_name, method, objectify_options(options), @default_html_options.merge(html_options))
       end
 
       # Wraps ActionView::Helpers::FormOptionsHelper#collection_check_boxes for form builders:
