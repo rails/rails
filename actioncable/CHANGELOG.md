@@ -1,3 +1,15 @@
+*   Compile ESM package that can be used directly in the browser as actioncable.esm.js.
+
+    *DHH*
+
+*   Move action_cable.js to actioncable.js to match naming convention used for other Rails frameworks, and use JS console to communicate the deprecation.
+
+    *DHH*
+
+*   Stop transpiling the UMD package generated as actioncable.js and drop the IE11 testing that relied on that.
+
+    *DHH*
+
 *   Truncate broadcast logging messages.
 
     *J Smith*
