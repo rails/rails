@@ -56,5 +56,6 @@ module ActiveSupport
 
         send(name, *args, &block)
       end
+      ruby2_keywords(:method_missing)
   end
 end
