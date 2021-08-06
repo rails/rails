@@ -451,6 +451,9 @@ module ActionDispatch
 
           cookies_same_site_protection = request.cookies_same_site_protection
           options[:same_site] ||= cookies_same_site_protection.call(request)
+          # This allows devs to have a non-nil default set in `cookies_same_site_protection` but
+          # still out-out from setting any SameSite value in some specific cookie setting `same_site: :nil`.
+          options[:same_site] = nil if options[:same_site] == :nil
 
           if options[:domain] == :all || options[:domain] == "all"
             # If there is a provided tld length then we use it otherwise default domain regexp.
