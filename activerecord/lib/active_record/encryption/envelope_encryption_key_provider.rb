@@ -44,7 +44,7 @@ module ActiveRecord
         end
 
         def primary_key_provider
-          @primary_key_provider ||= DerivedSecretKeyProvider.new(ActiveRecord::Encryption.config.primary_key)
+          @primary_key_provider ||= DerivedSecretKeyProvider.new(ActiveRecord::Encryption.config.credential(:primary_key))
         end
 
         def generate_random_secret

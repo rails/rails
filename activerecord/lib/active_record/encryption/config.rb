@@ -21,6 +21,12 @@ module ActiveRecord
         end
       end
 
+      def credential(key)
+        public_send(key).tap do |value|
+          raise Errors::Configuration, "Missing Active Record encryption credential: active_record_encryption.#{key}" if value.blank?
+        end
+      end
+
       private
         def set_defaults
           self.store_key_references = false
