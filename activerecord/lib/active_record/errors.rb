@@ -470,12 +470,12 @@ module ActiveRecord
   #
   # For example, the following code would raise this exception:
   #
-  #   Post.order("length(title)").first
+  #   Post.order("REPLACE(title, 'misc', 'zzzz') asc").pluck(:id)
   #
   # The desired result can be accomplished by wrapping the known-safe string
   # in Arel.sql:
   #
-  #   Post.order(Arel.sql("length(title)")).first
+  #   Post.order(Arel.sql("REPLACE(title, 'misc', 'zzzz') asc")).pluck(:id)
   #
   # Again, such a workaround should *not* be used when passing user-provided
   # values, such as request parameters or model attributes to query methods.
