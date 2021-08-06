@@ -918,14 +918,16 @@ module ActionView
         end
 
         def form_tag_html(html_options)
+          tag = html_options["tag"] || "form"
           extra_tags = extra_tags_for_form(html_options)
-          tag(:form, html_options, true) + extra_tags
+          tag(tag, html_options, true) + extra_tags
         end
 
         def form_tag_with_body(html_options, content)
+          tag = html_options["tag"] || "form"
           output = form_tag_html(html_options)
           output << content.to_s if content
-          output.safe_concat("</form>")
+          output.safe_concat("</#{tag}>")
         end
 
         # see http://www.w3.org/TR/html4/types.html#type-name
