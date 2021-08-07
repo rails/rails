@@ -203,6 +203,30 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert new_buffer.html_safe?, "should be safe"
   end
 
+  test "#split returns an Array of safe SafeBuffer instances when the original was safe" do
+    @buffer << "a"
+    @buffer << " "
+    @buffer << "b"
+
+    @buffer.split.each do |token|
+      assert_instance_of ActiveSupport::SafeBuffer, token
+      assert_predicate token, :html_safe?
+    end
+  end
+
+  test "#split returns an Array of unsafe SafeBuffer instances when the original was unsafe" do
+    @buffer << "a"
+    @buffer << " "
+    @buffer << "b"
+
+    @buffer.gsub! "b", "c"
+
+    @buffer.split.each do |token|
+      assert_instance_of ActiveSupport::SafeBuffer, token
+      assert_not_predicate token, :html_safe?
+    end
+  end
+
   test "Should continue unsafe on slice" do
     x = "foo".html_safe.gsub!("f", '<script>alert("lolpwnd");</script>')
 

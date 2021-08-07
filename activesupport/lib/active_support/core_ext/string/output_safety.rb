@@ -203,6 +203,14 @@ module ActiveSupport # :nodoc:
       super(implicit_html_escape_interpolated_argument(value))
     end
 
+    def split(*)
+      if html_safe?
+        super.map! { |value| SafeBuffer.new(value) }
+      else
+        super
+      end
+    end
+
     def []=(*args)
       if args.length == 3
         super(args[0], args[1], implicit_html_escape_interpolated_argument(args[2]))

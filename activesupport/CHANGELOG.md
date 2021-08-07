@@ -1,3 +1,8 @@
+*   Preserve `#html_safe?` on the resulting Array of Strings when calling
+    `ActiveSupport::SafeBuffer#split`.
+
+    *Sean Doyle*
+
 *   Allow entirely opting out of deprecation warnings
 
     Previously if you did `app.config.active_support.deprecation = :silence`, some work would
