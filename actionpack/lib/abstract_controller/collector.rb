@@ -10,6 +10,7 @@ module AbstractController
         def #{sym}(*args, &block)
           custom(Mime[:#{sym}], *args, &block)
         end
+        ruby2_keywords(:#{sym}) if respond_to?(:ruby2_keywords, true)
       RUBY
     end
 
@@ -22,7 +23,7 @@ module AbstractController
     end
 
   private
-    def method_missing(symbol, &block)
+    def method_missing(symbol, *args, &block)
       unless mime_constant = Mime[symbol]
         raise NoMethodError, "To respond to a custom format, register it as a MIME type first: " \
           "https://guides.rubyonrails.org/action_controller_overview.html#restful-downloads. " \
@@ -33,10 +34,11 @@ module AbstractController
 
       if Mime::SET.include?(mime_constant)
         AbstractController::Collector.generate_method_for_mime(mime_constant)
-        send(symbol, &block)
+        public_send(symbol, *args, &block)
       else
         super
       end
     end
+    ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
   end
 end
