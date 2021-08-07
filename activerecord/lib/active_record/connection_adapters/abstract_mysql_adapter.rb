@@ -137,7 +137,7 @@ module ActiveRecord
         true
       end
 
-      def field_ordered_value(column, values)
+      def field_ordered_value(column, values) # :nodoc:
         field = Arel::Nodes::NamedFunction.new("FIELD", [column, values.reverse])
         Arel::Nodes::Descending.new(field)
       end

@@ -632,7 +632,7 @@ module ActiveRecord
       def check_version # :nodoc:
       end
 
-      def field_ordered_value(column, values)
+      def field_ordered_value(column, values) # :nodoc:
         node = Arel::Nodes::Case.new(column)
         values.each.with_index(1) do |value, order|
           node.when(value).then(order)
