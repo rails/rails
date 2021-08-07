@@ -32,6 +32,12 @@ module ActionView
         \s*                          # followed by optional spaces
       /x
 
+      # A renderable class e.g. TopicRenderable.new("foo") => "TopicRenderable"
+      RENDERABLE = /
+        (?<renderable>[A-Z][A-Za-z:]*)  # a class name captured as RENDERABLE
+        \.                              # followed by .
+      /x
+
       # Part of any hash containing the :layout key
       LAYOUT_HASH_KEY = /
         (?:\blayout:|:layout\s*=>)   # layout key in either old or new style hash syntax
@@ -49,10 +55,13 @@ module ActionView
       #   (@topic)         => "topics/topic"
       #    topics          => "topics/topic"
       #   (message.topics) => "topics/topic"
+      #
+      #   CommentRenderable.new("example")      => "CommentRenderable"
+      #   Topic::Renderable.collection(@topics) => "Topic::Renderable"
       RENDER_ARGUMENTS = /\A
-        (?:\s*\(?\s*)                                  # optional opening paren surrounded by spaces
-        (?:.*?#{PARTIAL_HASH_KEY}|#{LAYOUT_HASH_KEY})? # optional hash, up to the partial or layout key declaration
-        (?:#{STRING}|#{VARIABLE_OR_METHOD_CHAIN})      # finally, the dependency name of interest
+        (?:\s*\(?\s*)                                           # optional opening paren surrounded by spaces
+        (?:.*?#{PARTIAL_HASH_KEY}|#{LAYOUT_HASH_KEY})?          # optional hash, up to the partial or layout key declaration
+        (?:#{RENDERABLE}|#{STRING}|#{VARIABLE_OR_METHOD_CHAIN}) # finally, the dependency name of interest
       /xm
 
       LAYOUT_DEPENDENCY = /\A
@@ -106,6 +115,7 @@ module ActionView
             match = Regexp.last_match
             add_dynamic_dependency(render_dependencies, match[:dynamic])
             add_static_dependency(render_dependencies, match[:static], match[:quote])
+            add_renderable_dependency(render_dependencies, match[:renderable])
           end
         end
 
@@ -128,6 +138,10 @@ module ActionView
               dependencies << "#{directory}/#{dependency}"
             end
           end
+        end
+
+        def add_renderable_dependency(dependencies, dependency)
+          dependencies << dependency if dependency
         end
 
         def resolve_directories(wildcard_dependencies)
