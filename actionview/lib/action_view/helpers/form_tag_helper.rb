@@ -918,16 +918,16 @@ module ActionView
         end
 
         def form_tag_html(html_options)
-          tag = html_options["tag"] || "form"
+          wrapper_tag = html_options.delete("wrapper_tag") || "form"
           extra_tags = extra_tags_for_form(html_options)
-          tag(tag, html_options, true) + extra_tags
+          tag(wrapper_tag, html_options, true) + extra_tags
         end
 
         def form_tag_with_body(html_options, content)
-          tag = html_options["tag"] || "form"
+          wrapper_tag = html_options["wrapper_tag"] || "form"
           output = form_tag_html(html_options)
           output << content.to_s if content
-          output.safe_concat("</#{tag}>")
+          output.safe_concat("</#{wrapper_tag}>")
         end
 
         # see http://www.w3.org/TR/html4/types.html#type-name
