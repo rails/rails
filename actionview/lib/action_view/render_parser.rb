@@ -37,11 +37,13 @@ module ActionView
       #   render(template: "foo", ...)
       # or
       #   render(partial: "foo", ...)
-      def normalize_args(string, options_hash)
-        if options_hash
-          { partial: string, locals: options_hash }
+      def normalize_args(primary_arg, options_hash)
+        if primary_arg.renderable?
+          { renderable: primary_arg }
+        elsif options_hash
+          { partial: primary_arg, locals: options_hash }
         else
-          { partial: string }
+          { partial: primary_arg }
         end
       end
 
@@ -87,10 +89,9 @@ module ActionView
         end
       end
 
-      ALL_KNOWN_KEYS = [:partial, :template, :layout, :formats, :locals, :object, :collection, :as, :status, :content_type, :location, :spacer_template]
+      ALL_KNOWN_KEYS = [:renderable, :partial, :template, :layout, :formats, :locals, :object, :collection, :as, :status, :content_type, :location, :spacer_template]
 
-      RENDER_TYPE_KEYS =
-        [:partial, :template, :layout]
+      RENDER_TYPE_KEYS = [:renderable, :partial, :template, :layout]
 
       def parse_render_from_options(options_hash)
         renders = []
@@ -112,6 +113,8 @@ module ActionView
 
         if node.string?
           template = resolve_path_directory(node.to_string)
+        elsif node.renderable?
+          template = node.renderable_class_name
         else
           if node.variable_reference?
             dependency = node.variable_name.sub(/\A(?:\$|@{1,2})/, "")

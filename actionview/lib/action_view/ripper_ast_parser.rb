@@ -58,6 +58,18 @@ module ActionView
           type == :call
         end
 
+        def renderable?
+          type == :call &&
+            (self[0].type == :const_path_ref ||                       # E.g. "With::Namespace"
+              self[0].type == :var_ref && self[0][0].type == :@const) # E.g. "WithoutNamespace"
+        end
+
+        def renderable_class_name
+          return self[0][0] unless self[0].type == :const_path_ref
+
+          self[0].join("::")
+        end
+
         def variable_name
           self[0][0]
         end

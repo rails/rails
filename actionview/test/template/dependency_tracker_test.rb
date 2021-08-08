@@ -206,14 +206,6 @@ module SharedTrackerTests
 
     assert_equal ["single/\#{quote}"], tracker.dependencies
   end
-end
-
-class ERBTrackerTest < Minitest::Test
-  include SharedTrackerTests
-
-  def make_tracker(name, template)
-    ActionView::DependencyTracker::ERBTracker.new(name, template)
-  end
 
   def test_renderable_class_dependency
     template = FakeTemplate.new("<%= render ExampleRenderable.new %>", :erb)
@@ -230,6 +222,14 @@ class ERBTrackerTest < Minitest::Test
     tracker = make_tracker("example/page", template)
 
     assert_equal ["Namespaced::Renderable", "example/regular_partial"], tracker.dependencies
+  end
+end
+
+class ERBTrackerTest < Minitest::Test
+  include SharedTrackerTests
+
+  def make_tracker(name, template)
+    ActionView::DependencyTracker::ERBTracker.new(name, template)
   end
 end
 
