@@ -55,11 +55,8 @@ class DependencyTrackerTest < ActionView::TestCase
   end
 end
 
-class RipperTrackerTest < Minitest::Test
-  def make_tracker(name, template)
-    ActionView::DependencyTracker::RipperTracker.new(name, template)
-  end
-
+# Tests run with both ERBTracker and RipperTracker
+module SharedTrackerTests
   def test_dependency_of_erb_template_with_number_in_filename
     template = FakeTemplate.new("<%= render 'messages/message123' %>", :erb)
     tracker = make_tracker("messages/_message123", template)
@@ -71,7 +68,7 @@ class RipperTrackerTest < Minitest::Test
     template = FakeTemplate.new("<%= render partial: 'messages/show', layout: 'messages/layout' %>", :erb)
     tracker = make_tracker("multiple/_dependencies", template)
 
-    assert_equal ["messages/show", "messages/layout"], tracker.dependencies
+    assert_equal ["messages/layout", "messages/show"], tracker.dependencies.sort
   end
 
   def test_dependency_of_template_layout_standalone
@@ -208,6 +205,22 @@ class RipperTrackerTest < Minitest::Test
     tracker = make_tracker("interpolation/_string", template)
 
     assert_equal ["single/\#{quote}"], tracker.dependencies
+  end
+end
+
+class ERBTrackerTest < Minitest::Test
+  include SharedTrackerTests
+
+  def make_tracker(name, template)
+    ActionView::DependencyTracker::ERBTracker.new(name, template)
+  end
+end
+
+class RipperTrackerTest < Minitest::Test
+  include SharedTrackerTests
+
+  def make_tracker(name, template)
+    ActionView::DependencyTracker::RipperTracker.new(name, template)
   end
 
   def test_dependencies_skip_unknown_options
