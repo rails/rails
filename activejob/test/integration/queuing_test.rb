@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require "helper"
+require 'helper'
+require_relative '../support/integration/helper'
 require "jobs/logging_job"
 require "jobs/hello_job"
 require "jobs/provider_jid_job"
