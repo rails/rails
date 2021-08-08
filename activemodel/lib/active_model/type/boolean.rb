@@ -23,6 +23,8 @@ module ActiveModel
         "FALSE", :FALSE,
         "off", :off,
         "OFF", :OFF,
+        "no", :no,
+        "NO", :NO,
       ].to_set.freeze
 
       def type # :nodoc:

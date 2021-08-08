@@ -19,6 +19,8 @@ module ActiveModel
         assert type.cast("TRUE")
         assert type.cast("on")
         assert type.cast("ON")
+        assert type.cast("yes")
+        assert type.cast("YES")
         assert type.cast(" ")
         assert type.cast("\u3000\r\n")
         assert type.cast("\u0000")
@@ -30,6 +32,8 @@ module ActiveModel
         assert type.cast(:TRUE)
         assert type.cast(:on)
         assert type.cast(:ON)
+        assert type.cast(:yes)
+        assert type.cast(:YES)
 
         # explicitly check for false vs nil
         assert_equal false, type.cast(false)
@@ -41,6 +45,8 @@ module ActiveModel
         assert_equal false, type.cast("FALSE")
         assert_equal false, type.cast("off")
         assert_equal false, type.cast("OFF")
+        assert_equal false, type.cast("no")
+        assert_equal false, type.cast("no")
         assert_equal false, type.cast(:"0")
         assert_equal false, type.cast(:f)
         assert_equal false, type.cast(:F)
@@ -48,6 +54,8 @@ module ActiveModel
         assert_equal false, type.cast(:FALSE)
         assert_equal false, type.cast(:off)
         assert_equal false, type.cast(:OFF)
+        assert_equal false, type.cast(:no)
+        assert_equal false, type.cast(:NO)
       end
     end
   end
