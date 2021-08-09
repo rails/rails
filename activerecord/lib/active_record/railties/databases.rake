@@ -306,7 +306,16 @@ db_namespace = namespace :db do
     db_namespace["_dump"].invoke
   end
 
-  desc "Drops and recreates the database from db/schema.rb for the current environment and loads the seeds."
+  namespace :reset do
+    task all: ["db:drop", "db:setup"]
+
+    ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
+      desc "Drops and recreates the #{name} database from its schema for the current environment and loads the seeds."
+      task name => ["db:drop:#{name}", "db:setup:#{name}"]
+    end
+  end
+
+  desc "Drops and recreates all databases from their schema for the current environment and loads the seeds."
   task reset: [ "db:drop", "db:setup" ]
 
   # desc "Retrieves the charset for the current environment's database"
@@ -365,7 +374,16 @@ db_namespace = namespace :db do
     end
   end
 
-  desc "Creates the database, loads the schema, and initializes with the seed data (use db:reset to also drop the database first)"
+  namespace :setup do
+    task all: ["db:create", :environment, "db:schema:load", :seed]
+
+    ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
+      desc "Creates the #{name} database, loads the schema, and initializes with the seed data (use db:reset:#{name} to also drop the database first)"
+      task name => ["db:create:#{name}", :environment, "db:schema:load:#{name}", "db:seed"]
+    end
+  end
+
+  desc "Creates all databases, loads all schemas, and initializes with the seed data (use db:reset to also drop all databases first)"
   task setup: ["db:create", :environment, "db:schema:load", :seed]
 
   desc "Runs setup if database does not exist, or runs migrations if it does"

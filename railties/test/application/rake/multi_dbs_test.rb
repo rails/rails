@@ -244,6 +244,54 @@ module ApplicationTests
         end
       end
 
+      def db_setup
+        Dir.chdir(app_path) do
+          rails "db:migrate"
+          rails "db:drop"
+          output = rails("db:setup")
+          assert_match(/Created database/, output)
+          ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+            assert_match_namespace(db_config.name, output)
+            assert File.exist?(db_config.database)
+          end
+        end
+      end
+
+      def db_setup_namespaced(namespace, expected_database)
+        Dir.chdir(app_path) do
+         rails "db:migrate"
+         rails "db:drop:#{namespace}"
+         output = rails("db:setup:#{namespace}")
+         assert_match(/Created database/, output)
+         assert_match_namespace(namespace, output)
+         assert File.exist?(expected_database)
+       end
+      end
+
+      def db_reset
+        Dir.chdir(app_path) do
+          rails "db:migrate"
+          output = rails("db:reset")
+          assert_match(/Dropped database/, output)
+          assert_match(/Created database/, output)
+          ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+            assert_match_namespace(db_config.name, output)
+            assert File.exist?(db_config.database)
+          end
+        end
+      end
+
+      def db_reset_namespaced(namespace, expected_database)
+        Dir.chdir(app_path) do
+          rails "db:migrate"
+          output = rails("db:reset:#{namespace}")
+          assert_match(/Dropped database/, output)
+          assert_match(/Created database/, output)
+          assert_match_namespace(namespace, output)
+          assert File.exist?(expected_database)
+        end
+      end
+
       def db_up_and_down(version, namespace = nil)
         Dir.chdir(app_path) do
           generate_models_for_animals
@@ -719,6 +767,30 @@ module ApplicationTests
         assert_no_match(/You have \d+ pending migration/, output)
         output = rails("db:abort_if_pending_migrations:animals", allow_failure: true)
         assert_match(/You have 1 pending migration/, output)
+      end
+
+      test "db:setup works on all databases" do
+        require "#{app_path}/config/environment"
+        db_setup
+      end
+
+      test "db:setup:namespace works" do
+        require "#{app_path}/config/environment"
+        ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+          db_setup_namespaced db_config.name, db_config.database
+        end
+      end
+
+      test "db:reset works on all databases" do
+        require "#{app_path}/config/environment"
+        db_reset
+      end
+
+      test "db:reset:namespace works" do
+        require "#{app_path}/config/environment"
+        ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+          db_reset_namespaced db_config.name, db_config.database
+        end
       end
 
       test "db:prepare works on all databases" do
