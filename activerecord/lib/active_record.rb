@@ -58,6 +58,7 @@ module ActiveRecord
   autoload :Persistence
   autoload :QueryCache
   autoload :Querying
+  autoload :QueryLogs
   autoload :ReadonlyAttributes
   autoload :RecordInvalid, "active_record/validations"
   autoload :Reflection
@@ -321,6 +322,51 @@ module ActiveRecord
   # Supported by PostgreSQL and SQLite.
   singleton_class.attr_accessor :verify_foreign_keys_for_fixtures
   self.verify_foreign_keys_for_fixtures = false
+
+  ##
+  # :singleton-method:
+  # Specify whether or not to enable adapter-level query comments.
+  # To enable:
+  #
+  #    config.active_record.query_log_tags_enabled = true
+  #
+  # When included in +ActionController+, controller context is automatically updated via an
+  # +around_action+ filter. This behaviour can be disabled as follows:
+  #
+  #    config.action_controller.log_query_tags_around_actions = false
+  #
+  # This behaviour can be disabled for +ActiveJob+ in a similar way:
+  #
+  #    config.active_job.log_query_tags_around_perform = false
+  singleton_class.attr_accessor :query_log_tags_enabled
+  self.query_log_tags_enabled = false
+
+  ##
+  # :singleton-method:
+  # An +Array+ specifying the key/value tags to be inserted in an SQL comment. Defaults to `[ :application ]`, a
+  # predefined tag returning the application name.
+  #
+  # Custom values can be passed in as a +Hash+:
+  #
+  #    config.active_record.query_log_tags = [ :application, { custom: 'value' } ]
+  #
+  # See +ActiveRecord::QueryLogs+ for more details
+  # on predefined tags and defining new tag content.
+  singleton_class.attr_accessor :query_log_tags
+  self.query_log_tags = [ :application ]
+
+  ##
+  # :singleton-method:
+  # Specify whether or not to enable caching of query log tags.
+  # For applications that have a large number of queries, caching query log tags can
+  # provide a performance benefit when the context does not change during the lifetime
+  # of the request or job execution.
+  #
+  # To enable:
+  #
+  #   config.active_record.cache_query_log_tags = true
+  singleton_class.attr_accessor :cache_query_log_tags
+  self.cache_query_log_tags = false
 
   def self.eager_load!
     super
