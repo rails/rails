@@ -756,7 +756,7 @@ module ActiveRecord
     #    Post.where("id = 1").structurally_compatible?(Post.where("author_id = 3"))
     #    # => true
     #
-    #    Post.joins(:comments).structurally_compatible?(Post.where("id = 1"))
+    #    Post.where("id = 1").structurally_compatible?(Post.joins(:comments))
     #    # => false
     #
     def structurally_compatible?(other)
