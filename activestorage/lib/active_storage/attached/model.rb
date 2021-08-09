@@ -186,7 +186,7 @@ module ActiveStorage
 
         scope :"with_attached_#{name}", -> {
           if ActiveStorage.track_variants
-            includes("#{name}_attachments": { blob: :variant_records })
+            includes("#{name}_attachments": { blob: { variant_records: { image_attachment: :blob } } })
           else
             includes("#{name}_attachments": :blob)
           end
