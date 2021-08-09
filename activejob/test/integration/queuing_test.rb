@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 require "helper"
-require_relative "../support/integration/helper"
 require "jobs/logging_job"
 require "jobs/hello_job"
 require "jobs/provider_jid_job"
 require "active_support/core_ext/numeric/time"
+
+require_relative "../support/integration/helper"
 
 class QueuingTest < ActiveSupport::TestCase
   test "should run jobs enqueued on a listening queue" do
