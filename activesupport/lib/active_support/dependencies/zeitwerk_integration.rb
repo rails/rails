@@ -89,7 +89,13 @@ module ActiveSupport
               autoloader.do_not_eager_load(autoload_path) unless eager_load?(autoload_path)
             end
 
-            Rails.autoloaders.main.enable_reloading if enable_reloading
+            if enable_reloading
+              Rails.autoloaders.main.enable_reloading
+              Rails.autoloaders.main.on_unload do |_cpath, value, _abspath|
+                value.before_remove_const if value.respond_to?(:before_remove_const)
+              end
+            end
+
             Rails.autoloaders.each(&:setup)
           end
 
