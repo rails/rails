@@ -305,13 +305,6 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_equal %i(main_autoloader), $zeitwerk_integration_reload_test
   end
 
-  test "unhooks" do
-    boot
-
-    assert_equal Module, Module.method(:const_missing).owner
-    assert_equal :no_op, deps.unhook!
-  end
-
   test "reloading invokes before_remove_const" do
     $before_remove_const_invoked = false
 
