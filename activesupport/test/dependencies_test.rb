@@ -46,10 +46,6 @@ class DependenciesTest < ActiveSupport::TestCase
     assert_equal "No such file to load -- omgwtfbbq.rb", e.message
   end
 
-  def test_missing_dependency_raises_missing_source_file
-    assert_raise(LoadError) { require_dependency("missing_service") }
-  end
-
   def test_smart_name_error_strings
     e = assert_raise NameError do
       Object.module_eval "ImaginaryObject"
@@ -118,4 +114,6 @@ class DependenciesTest < ActiveSupport::TestCase
   ensure
     ActiveSupport::Dependencies.hook!
   end
+
+  # Coverage for require_dependency can be found in the railties test suite.
 end
