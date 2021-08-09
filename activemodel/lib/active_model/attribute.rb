@@ -10,6 +10,11 @@ module ActiveModel
       end
 
       def from_user(name, value_before_type_cast, type, original_attribute = nil)
+        unless value_before_type_cast.is_a?(Proc)
+          ActiveSupport::Deprecation.warn "Static ActiveModel default values will be removed in "\
+            "Rails 7.0. Please use a Proc instead. Static "\
+            "variable used for attribute=#{name} value=#{value_before_type_cast}"
+        end
         FromUser.new(name, value_before_type_cast, type, original_attribute)
       end
 

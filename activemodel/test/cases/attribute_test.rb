@@ -12,6 +12,12 @@ module ActiveModel
       assert @type.verify
     end
 
+    test "from_user + static default value" do
+      assert_deprecated do
+        Attribute.from_user(:an_attribute, [], Type::Integer.new)
+      end
+    end
+
     test "from_database + read type casts from database" do
       @type.expect(:deserialize, "type cast from database", ["a value"])
       attribute = Attribute.from_database(nil, "a value", @type)
