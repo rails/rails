@@ -43,17 +43,6 @@ module ActiveSupport
         end
       end
 
-      module RequireDependency
-        def require_dependency(filename)
-          filename = filename.to_path if filename.respond_to?(:to_path)
-          if abspath = ActiveSupport::Dependencies.search_for_file(filename)
-            require abspath
-          else
-            require filename
-          end
-        end
-      end
-
       module Inflector
         # Concurrent::Map is not needed. This is a private class, and overrides
         # must be defined while the application boots.
@@ -116,7 +105,6 @@ module ActiveSupport
           def decorate_dependencies
             Dependencies.unhook!
             Dependencies.singleton_class.prepend(Decorations)
-            Object.prepend(RequireDependency)
           end
       end
     end

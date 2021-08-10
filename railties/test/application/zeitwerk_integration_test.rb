@@ -139,43 +139,6 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_empty deps.autoloaded_constants
   end
 
-  [true, false].each do |add_aps_to_lp|
-    test "require_dependency looks autoload paths up (#{add_aps_to_lp})" do
-      add_to_config "config.add_autoload_paths_to_load_path = #{add_aps_to_lp}"
-      app_file "app/models/user.rb", "class User; end"
-      boot
-
-      assert require_dependency("user")
-    end
-
-    test "require_dependency handles absolute paths correctly (#{add_aps_to_lp})" do
-      add_to_config "config.add_autoload_paths_to_load_path = #{add_aps_to_lp}"
-      app_file "app/models/user.rb", "class User; end"
-      boot
-
-      assert require_dependency("#{app_path}/app/models/user.rb")
-    end
-
-    test "require_dependency supports arguments that respond to to_path (#{add_aps_to_lp})" do
-      add_to_config "config.add_autoload_paths_to_load_path = #{add_aps_to_lp}"
-      app_file "app/models/user.rb", "class User; end"
-      boot
-
-      user = Object.new
-      def user.to_path; "user"; end
-
-      assert require_dependency(user)
-    end
-  end
-
-  test "require_dependency raises ArgumentError if the argument is not a String and does not respond to #to_path" do
-    assert_raises(ArgumentError) { require_dependency(Object.new) }
-  end
-
-  test "require_dependency raises LoadError if the given argument is not found" do
-    assert_raise(LoadError) { require_dependency("nonexistent_filename") }
-  end
-
   test "eager loading loads the application code" do
     $zeitwerk_integration_test_user = false
     $zeitwerk_integration_test_post = false
