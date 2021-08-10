@@ -13,18 +13,6 @@ module Rails
         config.generators.templates.unshift(*paths["lib/templates"].existent)
       end
 
-      initializer :ensure_autoload_once_paths_as_subset do
-        extra = ActiveSupport::Dependencies.autoload_once_paths -
-                ActiveSupport::Dependencies.autoload_paths
-
-        unless extra.empty?
-          abort <<-end_error
-            autoload_once_paths must be a subset of the autoload_paths.
-            Extra items in autoload_once_paths: #{extra * ','}
-          end_error
-        end
-      end
-
       initializer :let_zeitwerk_take_over do
         require "active_support/dependencies/zeitwerk_integration"
         ActiveSupport::Dependencies::ZeitwerkIntegration.take_over(enable_reloading: !config.cache_classes)
