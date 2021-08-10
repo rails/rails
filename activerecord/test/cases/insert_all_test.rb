@@ -364,6 +364,15 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal Time.now.year, Book.find(101).updated_on.year
   end
 
+  def test_upsert_all_respects_updated_at_precision_when_touched_implicitly
+    skip unless supports_insert_on_duplicate_update? && supports_datetime_with_precision?
+
+    Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1), updated_at: 5.years.ago, updated_on: 5.years.ago }]
+    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8) }]
+
+    assert_not_predicate Book.find(101).updated_at.usec, :zero?, "updated_at should have sub-second precision"
+  end
+
   def test_upsert_all_uses_given_updated_at_over_implicit_updated_at
     skip unless supports_insert_on_duplicate_update?
 
