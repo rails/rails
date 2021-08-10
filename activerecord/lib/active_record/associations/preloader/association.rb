@@ -5,6 +5,28 @@ module ActiveRecord
     class Preloader
       class Association # :nodoc:
         class LoaderQuery
+          class Result
+            attr_reader :relation, :loaders
+
+            def initialize(relation, loaders)
+              @relation = relation
+              @loaders = loaders
+            end
+
+            def to_a
+              @records ||=
+                @relation.load do |record|
+                  @loaders.each do |l|
+                    l.set_inverse(record)
+                  end
+                end
+            end
+
+            def load_async
+              @relation.load_async
+            end
+          end
+
           attr_reader :scope, :association_key_name
 
           def initialize(scope, association_key_name)
@@ -22,21 +44,19 @@ module ActiveRecord
             [association_key_name, scope.table_name, scope.values_for_queries].hash
           end
 
-          def records_for(loaders)
+          def result_for(loaders)
             ids = loaders.flat_map(&:owner_keys).uniq
+            relation = scope.where(association_key_name => ids)
 
-            scope.where(association_key_name => ids).load do |record|
-              loaders.each { |l| l.set_inverse(record) }
-            end
+            Result.new(relation, loaders)
           end
 
           def load_records_in_batch(loaders)
-            raw_records = records_for(loaders)
-
+            result = result_for(loaders)
             loaders.each do |loader|
-              loader.load_records(raw_records)
-              loader.run
+              loader.query_result = result
             end
+            result
           end
         end
 
@@ -141,11 +161,16 @@ module ActiveRecord
           end
         end
 
-        def load_records(raw_records = nil)
+        attr_writer :query_result
+        def query_result
+          @query_result ||= loader_query.result_for([self])
+        end
+
+        def load_records
           # owners can be duplicated when a relation has a collection association join
           # #compare_by_identity makes such owners different hash keys
           @records_by_owner = {}.compare_by_identity
-          raw_records ||= loader_query.records_for([self])
+          raw_records = query_result.to_a
 
           @preloaded_records = raw_records.select do |record|
             assignments = false
