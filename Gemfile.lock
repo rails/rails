@@ -294,9 +294,6 @@ GEM
       mustache
       nokogiri
     libxml-ruby (3.2.1)
-    listen (3.5.1)
-      rb-fsevent (~> 0.10, >= 0.10.3)
-      rb-inotify (~> 0.9, >= 0.9.10)
     loofah (2.10.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
@@ -554,7 +551,6 @@ DEPENDENCIES
   json (>= 2.0.0)
   kindlerb (~> 1.2.0)
   libxml-ruby
-  listen (~> 3.3)
   minitest-bisect
   minitest-reporters
   minitest-retry

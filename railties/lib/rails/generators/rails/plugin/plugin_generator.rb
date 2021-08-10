@@ -121,7 +121,6 @@ module Rails
       opts[:force] = force
       opts[:skip_bundle] = true
       opts[:skip_spring] = true
-      opts[:skip_listen] = true
       opts[:skip_git] = true
       opts[:skip_turbolinks] = true
       opts[:skip_webpack_install] = true

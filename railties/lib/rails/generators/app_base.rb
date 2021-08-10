@@ -70,9 +70,6 @@ module Rails
         class_option :skip_spring,         type: :boolean, default: false,
                                            desc: "Don't install Spring application preloader"
 
-        class_option :skip_listen,         type: :boolean, default: false,
-                                           desc: "Don't generate configuration that depends on the listen gem"
-
         class_option :skip_javascript,     type: :boolean, aliases: "-J", default: name == "plugin",
                                            desc: "Skip JavaScript files"
 
@@ -417,16 +414,8 @@ module Rails
         !(options[:skip_system_test] || options[:skip_test] || options[:api])
       end
 
-      def depend_on_listen?
-        !options[:skip_listen] && os_supports_listen_out_of_the_box?
-      end
-
       def depend_on_bootsnap?
         !options[:skip_bootsnap] && !options[:dev] && !defined?(JRUBY_VERSION)
-      end
-
-      def os_supports_listen_out_of_the_box?
-        /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
       end
 
       def run_bundle

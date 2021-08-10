@@ -627,14 +627,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_dummy_application_skip_listen_by_default
-    run_generator
-
-    assert_file "test/dummy/config/environments/development.rb" do |contents|
-      assert_match(/^\s*# config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, contents)
-    end
-  end
-
   def test_ensure_that_gitignore_can_be_generated_from_a_template_for_dummy_path
     FileUtils.cd(Rails.root)
     run_generator([destination_root, "--dummy_path", "spec/dummy", "--skip-test"])
