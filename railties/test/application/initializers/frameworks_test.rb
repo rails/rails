@@ -263,7 +263,7 @@ module ApplicationTests
         require "#{app_path}/config/environment"
 
         assert_nil ActiveRecord::Base.connection_pool.schema_cache
-        assert_raises ActiveRecord::ConnectionNotEstablished do
+        assert_raises ActiveRecord::DatabaseConnectionError do
           ActiveRecord::Base.connection.execute("SELECT 1")
         end
       end
@@ -295,7 +295,7 @@ module ApplicationTests
         require "#{app_path}/config/environment"
 
         assert ActiveRecord::Base.connection_pool.schema_cache.data_sources("posts")
-        assert_raises ActiveRecord::ConnectionNotEstablished do
+        assert_raises ActiveRecord::DatabaseConnectionError do
           ActiveRecord::Base.connection.execute("SELECT 1")
         end
       end
