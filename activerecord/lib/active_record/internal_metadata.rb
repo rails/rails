@@ -32,7 +32,7 @@ module ActiveRecord
       def [](key)
         return unless enabled?
 
-        where(key: key).pluck(:value).first
+        where(key: key).pick(:value)
       end
 
       # Creates an internal metadata table with columns +key+ and +value+
