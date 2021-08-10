@@ -51,9 +51,9 @@ group :development do
   <%- else -%>
   gem "web-console", ">= 4.1.0"
   <%- end -%>
-  # Display performance information such as SQL time and flame graphs for each request in your browser.
-  # Can be configured to work on production as well see: https://github.com/MiniProfiler/rack-mini-profiler/blob/master/README.md
-  gem "rack-mini-profiler", "~> 2.0"
+  # Display speed badge on every html page with SQL times and flame graphs.
+  # Note: Interferes with etag cache testing. Can be configured to work on production: https://github.com/MiniProfiler/rack-mini-profiler/blob/master/README.md
+  # gem "rack-mini-profiler", "~> 2.0"
 <%- end -%>
 <% if depend_on_listen? -%>
   gem "listen", "~> 3.3"
