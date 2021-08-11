@@ -58,7 +58,6 @@ group :development do
   # Speed up rails commands in dev on slow machines / big apps with Spring.
   # Run bundle exec spring binstub --all after uncommenting. See: https://github.com/rails/spring
   # gem "spring"
-<% end -%>
 end
 
 <%- if depends_on_system_test? -%>
