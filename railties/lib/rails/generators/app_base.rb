@@ -67,8 +67,8 @@ module Rails
         class_option :skip_javascript,     type: :boolean, aliases: "-J", default: name == "plugin",
                                            desc: "Skip JavaScript files"
 
-        class_option :skip_turbolinks,     type: :boolean, default: false,
-                                           desc: "Skip turbolinks gem"
+        class_option :skip_hotwire,        type: :boolean, default: false,
+                                           desc: "Skip Hotwire integration"
 
         class_option :skip_jbuilder,       type: :boolean, default: false,
                                            desc: "Skip jbuilder gem"
@@ -309,16 +309,6 @@ module Rails
           "latest"
         else
           Rails.version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
-        end
-      end
-
-      def turbolinks_npm_version
-        # since Turbolinks is deprecated, let's just always point to main.
-        # expect this to be replaced with Hotwire at some point soon.
-        if options.main? || options.edge?
-          "turbolinks/turbolinks#master"
-        else
-          "^5.2.0"
         end
       end
 

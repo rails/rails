@@ -331,7 +331,7 @@ module Rails
             skip_spring: true,
             skip_system_test: true,
             skip_webpack_install: true,
-            skip_turbolinks: true).tap do |option|
+            skip_hotwire: true).tap do |option|
               if option[:webpack]
                 option[:skip_webpack_install] = false
                 option[:skip_javascript] = false
