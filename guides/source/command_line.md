@@ -94,7 +94,6 @@ If you wish to skip some files or components from being generated, you can appen
 
 | Argument                | Description                                                 |
 | ----------------------- | ----------------------------------------------------------- |
-| `--skip-gemfile`        | Don't create a Gemfile                                      |
 | `--skip-git`            | Skip .gitignore file                                        |
 | `--skip-keeps`          | Skip source control .keep files                             |
 | `--skip-action-mailer`  | Skip Action Mailer files                                    |
