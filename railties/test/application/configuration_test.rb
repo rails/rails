@@ -460,17 +460,6 @@ module ApplicationTests
       end
     end
 
-    test "initialize an eager loaded, cache classes app" do
-      add_to_config <<-RUBY
-        config.eager_load = true
-        config.cache_classes = true
-      RUBY
-
-      app "development"
-
-      assert_equal :require, ActiveSupport::Dependencies.mechanism
-    end
-
     test "application is always added to eager_load namespaces" do
       app "development"
       assert_includes Rails.application.config.eager_load_namespaces, AppTemplate::Application

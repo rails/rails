@@ -64,11 +64,6 @@ module Rails
         end
       end
 
-      # Sets the dependency loading mechanism.
-      initializer :initialize_dependency_mechanism, group: :all do
-        ActiveSupport::Dependencies.mechanism = config.cache_classes ? :require : :load
-      end
-
       initializer :bootstrap_hook, group: :all do |app|
         ActiveSupport.run_load_hooks(:before_initialize, app)
       end

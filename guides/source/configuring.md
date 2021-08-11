@@ -274,18 +274,18 @@ Every Rails application comes with a standard set of middleware which it uses in
     Rails.application.config.hosts << ".product.com"
     ```
 
-    You can exclude certain requests from Host Authorization checks by setting 
+    You can exclude certain requests from Host Authorization checks by setting
     `config.host_configuration.exclude`:
 
     ```ruby
     # Exclude requests for the /healthcheck/ path from host checking
-    Rails.application.config.host_configuration = { 
-      exclude: ->(request) { request.path =~ /healthcheck/ } 
+    Rails.application.config.host_configuration = {
+      exclude: ->(request) { request.path =~ /healthcheck/ }
     }
-    ``` 
+    ```
 
-    When a request comes to an unauthorized host, a default Rack application 
-    will run and respond with `403 Forbidden`. This can be customized by setting 
+    When a request comes to an unauthorized host, a default Rack application
+    will run and respond with `403 Forbidden`. This can be customized by setting
     `config.host_configuration.response_app`. For example:
 
     ```ruby
@@ -1664,8 +1664,6 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 * `initialize_cache`: If `Rails.cache` isn't set yet, initializes the cache by referencing the value in `config.cache_store` and stores the outcome as `Rails.cache`. If this object responds to the `middleware` method, its middleware is inserted after `ActionDispatch::Executor` in the middleware stack.
 
 * `set_clear_dependencies_hook`: This initializer - which runs only if `cache_classes` is set to `false` - uses `ActionDispatch::Callbacks.after` to remove the constants which have been referenced during the request from the object space so that they will be reloaded during the following request.
-
-* `initialize_dependency_mechanism`: If `config.cache_classes` is true, configures `ActiveSupport::Dependencies.mechanism` to `require` dependencies rather than `load` them.
 
 * `bootstrap_hook`: Runs all configured `before_initialize` blocks.
 

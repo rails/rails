@@ -1241,7 +1241,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_gem "webpacker", app_root
     assert_no_gem "jbuilder", app_root
-    assert_no_gem "rack-mini-profiler", app_root
     assert_no_gem "spring", app_root
     assert_no_gem "web-console", app_root
   end
