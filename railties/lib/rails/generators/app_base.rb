@@ -67,9 +67,6 @@ module Rails
         class_option :skip_sprockets,      type: :boolean, aliases: "-S", default: false,
                                            desc: "Skip Sprockets files"
 
-        class_option :skip_spring,         type: :boolean, default: false,
-                                           desc: "Don't install Spring application preloader"
-
         class_option :skip_javascript,     type: :boolean, aliases: "-J", default: name == "plugin",
                                            desc: "Skip JavaScript files"
 
@@ -400,10 +397,6 @@ module Rails
 
       def bundle_install?
         !(options[:skip_gemfile] || options[:skip_bundle] || options[:pretend])
-      end
-
-      def spring_install?
-        !options[:skip_spring] && !options.dev? && Process.respond_to?(:fork) && !RUBY_PLATFORM.include?("cygwin")
       end
 
       def webpack_install?
