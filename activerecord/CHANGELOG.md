@@ -1,3 +1,12 @@
+*   Fix `ActiveRecord::InternalMetadata` to not be broken by `config.active_record.record_timestamps = false`
+
+    Since the model always create the timestamp columns, it has to set them, otherwise it breaks
+    various DB management tasks.
+
+    Fixes #42983
+
+    *Jean Boussier*
+
 *   Fix compatibility with `psych >= 4`.
 
     Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility
