@@ -140,8 +140,8 @@ class RequireDependencyTest < ActiveSupport::TestCase
   end
 
   test "require_dependency looks autoload paths up (idempotent)" do
-    assert  require_dependency("x")
-    assert !require_dependency("x")
+    assert require_dependency("x")
+    assert_not require_dependency("x")
   end
 
   test "require_dependency handles absolute paths correctly" do
@@ -150,8 +150,8 @@ class RequireDependencyTest < ActiveSupport::TestCase
   end
 
   test "require_dependency handles absolute paths correctly (idempotent)" do
-    assert  require_dependency("#{@root_dir}/x.rb")
-    assert !require_dependency("#{@root_dir}/x.rb")
+    assert require_dependency("#{@root_dir}/x.rb")
+    assert_not require_dependency("#{@root_dir}/x.rb")
   end
 
   test "require_dependency supports arguments that respond to to_path" do
@@ -166,8 +166,8 @@ class RequireDependencyTest < ActiveSupport::TestCase
     x = Object.new
     def x.to_path; "x"; end
 
-    assert  require_dependency(x)
-    assert !require_dependency(x)
+    assert require_dependency(x)
+    assert_not require_dependency(x)
   end
 
   test "require_dependency fallback to Kernel#require" do
@@ -187,8 +187,8 @@ class RequireDependencyTest < ActiveSupport::TestCase
     $LOAD_PATH << dir
     File.write("#{dir}/y.rb", "Y = :Y")
 
-    assert  require_dependency("y")
-    assert !require_dependency("y")
+    assert require_dependency("y")
+    assert_not require_dependency("y")
   ensure
     $LOAD_PATH.pop
     Object.send(:remove_const, :Y) if Object.const_defined?(:Y)
