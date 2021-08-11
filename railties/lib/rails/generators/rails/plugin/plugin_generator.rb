@@ -246,7 +246,7 @@ module Rails
         build(:gemspec)   unless options[:skip_gemspec]
         build(:license)
         build(:gitignore) unless options[:skip_git]
-        build(:gemfile)   unless options[:skip_gemfile]
+        build(:gemfile)
         build(:version_control)
       end
 

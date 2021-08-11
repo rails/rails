@@ -101,7 +101,6 @@ If you wish to skip some files or components from being generated, you can appen
 | `--skip-action-text`    | Skip Action Text gem                                        |
 | `--skip-active-record`  | Skip Active Record files                                    |
 | `--skip-active-storage` | Skip Active Storage files                                   |
-| `--skip-puma`           | Skip Puma related files                                     |
 | `--skip-action-cable`   | Skip Action Cable files                                     |
 | `--skip-sprockets`      | Skip Sprockets files                                        |
 | `--skip-javascript`     | Skip JavaScript files                                       |

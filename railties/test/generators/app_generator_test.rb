@@ -115,15 +115,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_webpack_installation_skipped(output)
   end
 
-  def test_skip_gemfile
-    generator([destination_root], skip_gemfile: true)
-    output = run_generator_instance
-
-    assert_empty @bundle_commands
-    assert_no_file "Gemfile"
-    assert_webpack_installation_skipped(output)
-  end
-
   def test_assets
     run_generator
 
@@ -636,12 +627,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_generator_defaults_to_puma_version
     run_generator [destination_root]
     assert_gem "puma", '"~> 5.0"'
-  end
-
-  def test_generator_if_skip_puma_is_given
-    run_generator [destination_root, "--skip-puma"]
-    assert_no_file "config/puma.rb"
-    assert_no_gem "puma"
   end
 
   def test_generator_has_assets_gems

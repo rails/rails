@@ -121,7 +121,7 @@ module Rails
         template "application.rb"
         template "environment.rb"
         template "cable.yml" unless options[:updating] || options[:skip_action_cable]
-        template "puma.rb"   unless options[:updating] || options[:skip_puma]
+        template "puma.rb"   unless options[:updating]
         template "storage.yml" unless options[:updating] || skip_active_storage?
 
         directory "environments"
@@ -353,7 +353,7 @@ module Rails
           build(:gitattributes)
         end
 
-        build(:gemfile) unless options[:skip_gemfile]
+        build(:gemfile)
         build(:version_control)
         build(:package_json) unless options[:skip_javascript]
       end
