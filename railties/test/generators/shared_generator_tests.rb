@@ -95,14 +95,6 @@ module SharedGeneratorTests
     assert_equal url, applied
   end
 
-  def test_skip_gemfile
-    generator([destination_root], skip_gemfile: true, skip_webpack_install: true)
-    run_generator_instance
-
-    assert_empty @bundle_commands
-    assert_no_file "Gemfile"
-  end
-
   def test_skip_git
     run_generator [destination_root, "--skip-git", "--full"]
     assert_no_file(".gitignore")

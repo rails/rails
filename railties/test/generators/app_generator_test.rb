@@ -116,15 +116,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_webpack_installation_skipped(output)
   end
 
-  def test_skip_gemfile
-    generator([destination_root], skip_gemfile: true)
-    output = run_generator_instance
-
-    assert_empty @bundle_commands
-    assert_no_file "Gemfile"
-    assert_webpack_installation_skipped(output)
-  end
-
   def test_assets
     run_generator
 

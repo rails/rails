@@ -30,9 +30,6 @@ module Rails
         class_option :database,            type: :string, aliases: "-d", default: "sqlite3",
                                            desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-        class_option :skip_gemfile,        type: :boolean, default: false,
-                                           desc: "Don't create a Gemfile"
-
         class_option :skip_git,            type: :boolean, aliases: "-G", default: false,
                                            desc: "Skip .gitignore file"
 
@@ -399,7 +396,7 @@ module Rails
       end
 
       def bundle_install?
-        !(options[:skip_gemfile] || options[:skip_bundle] || options[:pretend])
+        !(options[:skip_bundle] || options[:pretend])
       end
 
       def spring_install?

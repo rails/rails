@@ -356,7 +356,7 @@ module Rails
           build(:gitattributes)
         end
 
-        build(:gemfile) unless options[:skip_gemfile]
+        build(:gemfile)
         build(:version_control)
         build(:package_json) unless options[:skip_javascript]
       end
