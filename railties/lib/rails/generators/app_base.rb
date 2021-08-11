@@ -319,9 +319,11 @@ module Rails
       end
 
       def webpacker_gemfile_entry
-        return [] if options[:skip_javascript]
-
-        GemfileEntry.version "webpacker", "~> 5.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
+        if options[:webpack]
+          GemfileEntry.version "webpacker", "~> 5.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
+        else
+          return [] 
+        end
       end
 
       def jbuilder_gemfile_entry
@@ -331,11 +333,19 @@ module Rails
       end
 
       def javascript_gemfile_entry
-        if options[:skip_javascript] || options[:skip_turbolinks]
+        importmap_rails_entry =
+          GemfileEntry.version("importmap-rails", "> 0.1.0", "Manage modern JavaScript using ESM without transpiling or bundling")
+
+        hotwire_rails_entry =
+          GemfileEntry.version("hotwire-rails", "> 0.1.0",
+                       "Hotwire makes navigating your web application faster. Read more: https://hotwired.dev")
+
+        if options[:skip_javascript]
           []
+        elsif options[:skip_hotwire]
+          [ importmap_rails_entry ]
         else
-          [ GemfileEntry.version("turbolinks", "~> 5",
-             "Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks") ]
+          [ importmap_rails_entry, hotwire_rails_entry ]
         end
       end
 
@@ -390,7 +400,15 @@ module Rails
       end
 
       def webpack_install?
-        !(options[:skip_javascript] || options[:skip_webpack_install])
+        !(options[:skip_javascript] || options[:skip_webpack_install]) && options[:webpack]
+      end
+
+      def importmap_install?
+        !(options[:skip_javascript] || options[:webpack])
+      end
+
+      def hotwire_install?
+        !(options[:skip_javascript] || options[:skip_hotwire])
       end
 
       def depends_on_system_test?
@@ -420,6 +438,34 @@ module Rails
         if options[:webpack] && options[:webpack] != "webpack"
           rails_command "webpacker:install:#{options[:webpack]}"
         end
+      end
+
+      def run_importmap
+        return unless importmap_install?
+
+        unless bundle_install?
+          say <<~EXPLAIN
+            Skipping `rails importmap:install` because `bundle install` was skipped.
+            To complete setup, you must run `bundle install` followed by `rails importmap:install`.
+          EXPLAIN
+          return
+        end
+
+        rails_command "importmap:install"
+      end
+
+      def run_hotwire
+        return unless hotwire_install?
+
+        unless bundle_install?
+          say <<~EXPLAIN
+            Skipping `rails hotwire:install` because `bundle install` was skipped.
+            To complete setup, you must run `bundle install` followed by `rails hotwire:install`.
+          EXPLAIN
+          return
+        end
+
+        rails_command "hotwire:install"
       end
 
       def generate_bundler_binstub

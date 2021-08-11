@@ -15,7 +15,7 @@ FileUtils.chdir APP_ROOT do
   puts "== Installing dependencies =="
   system! "gem install bundler --conservative"
   system("bundle check") || system!("bundle install")
-<% unless options.skip_javascript? -%>
+<% if options.webpack? -%>
 
   # Install JavaScript dependencies
   system! "bin/yarn"

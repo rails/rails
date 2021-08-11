@@ -99,7 +99,7 @@ module Rails
       chmod "bin", 0755 & ~File.umask, verbose: false
 
       remove_file "bin/spring" unless spring_install?
-      remove_file "bin/yarn" if options[:skip_javascript]
+      remove_file "bin/yarn" unless options[:webpack]
     end
 
     def bin_when_updating
@@ -280,8 +280,6 @@ module Rails
     class AppGenerator < AppBase
       # :stopdoc:
 
-      WEBPACKS = %w( react vue angular elm stimulus )
-
       add_shared_options_for "application"
 
       # Add rails command options
@@ -297,8 +295,8 @@ module Rails
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false,
                                  desc: "Don't run bundle install"
 
-      class_option :webpack, type: :string, aliases: "--webpacker", default: nil,
-                             desc: "Preconfigure Webpack with a particular framework (options: #{WEBPACKS.join(", ")})"
+      class_option :webpack, type: :boolean, aliases: "--webpacker", default: false,
+                             desc: "Preconfigure Webpack"
 
       class_option :skip_webpack_install, type: :boolean, default: false,
                                           desc: "Don't run Webpack install"
@@ -567,6 +565,8 @@ module Rails
       public_task :apply_rails_template, :run_bundle
       public_task :generate_bundler_binstub
       public_task :run_webpack
+      public_task :run_importmap
+      public_task :run_hotwire
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each(&:call)
