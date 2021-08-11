@@ -55,8 +55,7 @@ group :development do
   # Note: Interferes with etag cache testing. Can be configured to work on production: https://github.com/MiniProfiler/rack-mini-profiler/blob/master/README.md
   # gem "rack-mini-profiler", "~> 2.0"
 <%- end -%>
-  # Speed up rails commands in dev on slow machines / big apps with Spring.
-  # Run bundle exec spring binstub --all after uncommenting. See: https://github.com/rails/spring
+  # Speed up rails commands in dev on slow machines / big apps. See: https://github.com/rails/spring
   # gem "spring"
 end
 
