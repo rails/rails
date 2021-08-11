@@ -294,7 +294,7 @@ GEM
       mustache
       nokogiri
     libxml-ruby (3.2.1)
-    listen (3.5.1)
+    listen (3.6.0)
       rb-fsevent (~> 0.10, >= 0.10.3)
       rb-inotify (~> 0.9, >= 0.9.10)
     loofah (2.10.0)

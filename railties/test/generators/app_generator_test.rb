@@ -744,46 +744,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_inclusion_of_listen_related_configuration_by_default
-    run_generator
-    if /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
-      assert_listen_related_configuration
-    else
-      assert_no_listen_related_configuration
-    end
-  end
-
-  def test_inclusion_of_listen_related_configuration_on_other_rubies
-    ruby_engine = Object.send(:remove_const, :RUBY_ENGINE)
-    Object.const_set(:RUBY_ENGINE, "MyRuby")
-
-    run_generator
-    if /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
-      assert_listen_related_configuration
-    else
-      assert_no_listen_related_configuration
-    end
-  ensure
-    Object.send(:remove_const, :RUBY_ENGINE)
-    Object.const_set(:RUBY_ENGINE, ruby_engine)
-  end
-
-  def test_non_inclusion_of_listen_related_configuration_if_skip_listen
-    run_generator [destination_root, "--skip-listen"]
-    assert_no_listen_related_configuration
-  end
-
-  def test_evented_file_update_checker_config
-    run_generator
-    assert_file "config/environments/development.rb" do |content|
-      if /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
-        assert_match(/^\s*config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
-      else
-        assert_match(/^\s*# config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
-      end
-    end
-  end
-
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
     assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
@@ -1308,22 +1268,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     def assert_no_gem(gem, app_path = ".")
       assert_file File.join(app_path, "Gemfile") do |content|
         assert_no_match(gem, content)
-      end
-    end
-
-    def assert_listen_related_configuration
-      assert_gem "listen"
-
-      assert_file "config/environments/development.rb" do |content|
-        assert_match(/^\s*config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
-      end
-    end
-
-    def assert_no_listen_related_configuration
-      assert_no_gem "listen"
-
-      assert_file "config/environments/development.rb" do |content|
-        assert_match(/^\s*# config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
       end
     end
 
