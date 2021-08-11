@@ -435,9 +435,6 @@ module Rails
         end
 
         rails_command "webpacker:install"
-        if options[:webpack] && options[:webpack] != "webpack"
-          rails_command "webpacker:install:#{options[:webpack]}"
-        end
       end
 
       def run_importmap
