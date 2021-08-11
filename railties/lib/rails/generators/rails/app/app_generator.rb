@@ -122,7 +122,7 @@ module Rails
         template "application.rb"
         template "environment.rb"
         template "cable.yml" unless options[:updating] || options[:skip_action_cable]
-        template "puma.rb"   unless options[:updating] || options[:skip_puma]
+        template "puma.rb"   unless options[:updating]
         template "spring.rb" if spring_install?
         template "storage.yml" unless options[:updating] || skip_active_storage?
 

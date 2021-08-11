@@ -643,12 +643,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "puma", '"~> 5.0"'
   end
 
-  def test_generator_if_skip_puma_is_given
-    run_generator [destination_root, "--skip-puma"]
-    assert_no_file "config/puma.rb"
-    assert_no_gem "puma"
-  end
-
   def test_generator_has_assets_gems
     run_generator
 

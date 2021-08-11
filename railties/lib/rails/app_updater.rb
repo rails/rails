@@ -27,7 +27,6 @@ module Rails
           options[:skip_action_mailer]  = !defined?(ActionMailer::Railtie)
           options[:skip_action_cable]   = !defined?(ActionCable::Engine)
           options[:skip_sprockets]      = !defined?(Sprockets::Railtie)
-          options[:skip_puma]           = !defined?(Puma)
           options[:skip_bootsnap]       = !defined?(Bootsnap)
           options[:skip_spring]         = !defined?(Spring)
           options[:updating]            = true
