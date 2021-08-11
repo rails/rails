@@ -265,8 +265,7 @@ after_bundle do
 end
 ```
 
-The callbacks gets executed even if `--skip-bundle` and/or `--skip-spring` has
-been passed.
+The callbacks gets executed even if `--skip-bundle` has been passed.
 
 Advanced Usage
 --------------

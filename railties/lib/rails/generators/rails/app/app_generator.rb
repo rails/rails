@@ -581,7 +581,7 @@ module Rails
         create_file(*args, &block)
       end
 
-      # Registers a callback to be executed after bundle and spring binstubs
+      # Registers a callback to be executed after bundle binstubs
       # have run.
       #
       #   after_bundle do

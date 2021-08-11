@@ -148,7 +148,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         config/puma.rb
         config/routes.rb
         config/credentials.yml.enc
-        config/spring.rb
         config/storage.yml
         db
         db/seeds.rb

@@ -104,7 +104,6 @@ If you wish to skip some files or components from being generated, you can appen
 | `--skip-puma`           | Skip Puma related files                                     |
 | `--skip-action-cable`   | Skip Action Cable files                                     |
 | `--skip-sprockets`      | Skip Sprockets files                                        |
-| `--skip-spring`         | Don't install Spring application preloader                  |
 | `--skip-javascript`     | Skip JavaScript files                                       |
 | `--skip-turbolinks`     | Skip turbolinks gem                                         |
 | `--skip-test`           | Skip test files                                             |
