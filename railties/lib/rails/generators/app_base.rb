@@ -55,9 +55,6 @@ module Rails
         class_option :skip_active_storage, type: :boolean, default: false,
                                            desc: "Skip Active Storage files"
 
-        class_option :skip_puma,           type: :boolean, aliases: "-P", default: false,
-                                           desc: "Skip Puma related files"
-
         class_option :skip_action_cable,   type: :boolean, aliases: "-C", default: false,
                                            desc: "Skip Action Cable files"
 
@@ -168,7 +165,6 @@ module Rails
       end
 
       def web_server_gemfile_entry # :doc:
-        return [] if options[:skip_puma]
         comment = "Use Puma as the app server"
         GemfileEntry.new("puma", "~> 5.0", comment)
       end
