@@ -28,7 +28,7 @@ module Rails
           options[:skip_sprockets]      = !defined?(Sprockets::Railtie)
           options[:skip_bootsnap]       = !defined?(Bootsnap)
           options[:skip_spring]         = !defined?(Spring)
-          options[:webpack]             = File.exist?(Rails.root.join("bin", "yarn"))
+          options[:webpack]             = File.exist?(Rails.root.join("config", "webpacker.yml"))
           options[:updating]            = true
           options
         end
