@@ -94,7 +94,6 @@ If you wish to skip some files or components from being generated, you can appen
 
 | Argument                | Description                                                 |
 | ----------------------- | ----------------------------------------------------------- |
-| `--skip-gemfile`        | Don't create a Gemfile                                      |
 | `--skip-git`            | Skip .gitignore file                                        |
 | `--skip-keeps`          | Skip source control .keep files                             |
 | `--skip-action-mailer`  | Skip Action Mailer files                                    |
@@ -103,7 +102,6 @@ If you wish to skip some files or components from being generated, you can appen
 | `--skip-active-storage` | Skip Active Storage files                                   |
 | `--skip-action-cable`   | Skip Action Cable files                                     |
 | `--skip-sprockets`      | Skip Sprockets files                                        |
-| `--skip-spring`         | Don't install Spring application preloader                  |
 | `--skip-javascript`     | Skip JavaScript files                                       |
 | `--skip-turbolinks`     | Skip turbolinks gem                                         |
 | `--skip-test`           | Skip test files                                             |
