@@ -1,3 +1,17 @@
+*   `ActiveRecord::Relation#scoping` yields the relation as a block argument:
+
+    ```ruby
+    Comment.where(post_id: 1).scoping do |scope|
+      if params[:sort] == "asc"
+        scope.first
+      else
+        scope.last
+      end
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Fix `ActiveRecord::InternalMetadata` to not be broken by `config.active_record.record_timestamps = false`
 
     Since the model always create the timestamp columns, it has to set them, otherwise it breaks

@@ -417,6 +417,17 @@ module ActiveRecord
     #   end
     #   # => SELECT "comments".* FROM "comments" WHERE "comments"."post_id" = 1 ORDER BY "comments"."id" ASC LIMIT 1
     #
+    #   The block also yields the chained query as a block parameter:
+    #
+    #   Comment.where(post_id: 1).scoping do |scope|
+    #     if params[:sort] == "asc"
+    #       scope.first
+    #     else
+    #       scope.last
+    #     end
+    #   end
+    #   # => SELECT "comments".* FROM "comments" WHERE "comments"."post_id" = 1 ORDER BY "comments"."id" ASC LIMIT 1
+    #
     # If <tt>all_queries: true</tt> is passed, scoping will apply to all queries
     # for the relation including +update+ and +delete+ on instances.
     # Once +all_queries+ is set to true it cannot be set to false in a
@@ -429,9 +440,9 @@ module ActiveRecord
       if global_scope?(registry) && all_queries == false
         raise ArgumentError, "Scoping is set to apply to all queries and cannot be unset in a nested block."
       elsif already_in_scope?(registry)
-        yield
+        yield self
       else
-        _scoping(self, registry, all_queries) { yield }
+        _scoping(self, registry, all_queries) { yield self }
       end
     end
 

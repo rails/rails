@@ -69,6 +69,9 @@ class RelationScopingTest < ActiveRecord::TestCase
     Developer.where("salary = 100000").scoping do
       assert_equal developer, Developer.order("name").first
     end
+    Developer.where("salary = 100000").scoping do |query|
+      assert_equal developer, query.order("name").first
+    end
   end
 
   def test_scoped_find_last
@@ -76,6 +79,10 @@ class RelationScopingTest < ActiveRecord::TestCase
 
     Developer.order("salary").scoping do
       assert_equal highest_salary, Developer.last
+    end
+
+    Developer.order("salary").scoping do |query|
+      assert_equal highest_salary, query.last
     end
   end
 
