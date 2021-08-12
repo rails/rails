@@ -120,7 +120,6 @@ module Rails
       opts = options.transform_keys(&:to_sym).except(*DUMMY_IGNORE_OPTIONS)
       opts[:force] = force
       opts[:skip_bundle] = true
-      opts[:skip_spring] = true
       opts[:skip_git] = true
       opts[:skip_turbolinks] = true
       opts[:skip_webpack_install] = true

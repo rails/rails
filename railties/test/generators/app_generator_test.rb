@@ -66,7 +66,6 @@ DEFAULT_APP_FILES = %w(
   config/puma.rb
   config/routes.rb
   config/credentials.yml.enc
-  config/spring.rb
   config/storage.yml
   db
   db/seeds.rb
@@ -331,19 +330,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_app_update_does_not_generate_spring_contents_when_skip_spring_is_given
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root, "--skip-spring"]
-
-    stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true, skip_spring: true }, { destination_root: app_root, shell: @shell }
-      generator.send(:app_const)
-      quietly { generator.update_config_files }
-
-      assert_no_file "#{app_root}/config/spring.rb"
-    end
-  end
-
   def test_app_update_does_not_generate_action_cable_contents_when_skip_action_cable_is_given
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "--skip-action-cable"]
@@ -469,7 +455,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_app_update_does_not_change_config_target_version
     app_root = File.join(destination_root, "myapp")
-    run_generator [app_root, "--skip-spring"]
+    run_generator [ app_root ]
 
     FileUtils.cd(app_root) do
       config = "config/application.rb"
@@ -881,58 +867,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
   end
 
-  def test_spring
-    jruby_skip "spring doesn't run on JRuby"
-
-    run_generator
-
-    assert_gem "spring"
-    assert_file "bin/spring", %r{^\s*require "spring/binstub"}
-    assert_file "bin/rails", %r{^\s*load .+"spring"}
-    assert_file "bin/rake", %r{^\s*load .+"spring"}
-    assert_file("config/environments/test.rb") do |contents|
-      assert_match("config.cache_classes = false", contents)
-      assert_match("config.action_view.cache_template_loading = true", contents)
-    end
-  end
-
   def test_bundler_binstub
     generator([destination_root], skip_webpack_install: true)
     run_generator_instance
 
     assert_equal 1, @bundle_commands.count("binstubs bundler")
-  end
-
-  def test_spring_no_fork
-    respond_to = Process.method(:respond_to?)
-    respond_to_stub = -> (name) { name != :fork && respond_to[name] }
-    Process.stub(:respond_to?, respond_to_stub) do
-      run_generator
-    end
-
-    assert_no_gem "spring"
-  end
-
-  def test_skip_spring
-    run_generator [destination_root, "--skip-spring"]
-
-    assert_no_file "config/spring.rb"
-    assert_no_gem "spring"
-    assert_file("config/environments/test.rb") do |contents|
-      assert_match("config.cache_classes = true", contents)
-    end
-    assert_file "bin/rails" do |contents|
-      assert_no_match %r{spring}, contents
-    end
-    assert_file "bin/rake" do |contents|
-      assert_no_match %r{spring}, contents
-    end
-  end
-
-  def test_spring_with_dev_option
-    run_generator [destination_root, "--dev", "--skip-bundle"]
-
-    assert_no_gem "spring"
   end
 
   def test_skip_active_record_option
@@ -1200,7 +1139,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "#{app_root}/config/cable.yml"
     assert_no_file "#{app_root}/bin/yarn"
     assert_no_file "#{app_root}/views/layouts/mailer.html.erb"
-    assert_no_file "#{app_root}/config/spring.rb"
     assert_no_file "#{app_root}/app/jobs/application.rb"
     assert_file "#{app_root}/app/views/layouts/application.html.erb" do |content|
       assert_no_match(/data-turbolinks-track/, content)
@@ -1226,7 +1164,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_gem "webpacker", app_root
     assert_no_gem "jbuilder", app_root
-    assert_no_gem "spring", app_root
     assert_no_gem "web-console", app_root
   end
 
