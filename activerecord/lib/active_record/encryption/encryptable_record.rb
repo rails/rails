@@ -89,7 +89,6 @@ module ActiveRecord
             end
 
             preserve_original_encrypted(name) if attribute_scheme.ignore_case?
-            validate_column_size(name) if ActiveRecord::Encryption.config.validate_column_size
             ActiveRecord::Encryption.encrypted_attribute_was_declared(self, name)
           end
 
@@ -121,12 +120,22 @@ module ActiveRecord
             end)
           end
 
+          def load_schema!
+            super
+
+            add_length_validation_for_encrypted_columns if ActiveRecord::Encryption.config.validate_column_size
+          end
+
+          def add_length_validation_for_encrypted_columns
+            encrypted_attributes&.each do |attribute_name|
+              validate_column_size attribute_name
+            end
+          end
+
           def validate_column_size(attribute_name)
             if table_exists? && limit = columns_hash[attribute_name.to_s]&.limit
               validates_length_of attribute_name, maximum: limit
             end
-          rescue ActiveRecord::ConnectionNotEstablished => e
-            Rails.logger.warn "Skipping adding length validation for #{self.name}\##{attribute_name}. Can't check column limit due to: #{e.inspect}"
           end
       end
 
