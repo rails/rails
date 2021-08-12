@@ -4,11 +4,11 @@ module ActionDispatch
   module Journey # :nodoc:
     module Path # :nodoc:
       class Pattern # :nodoc:
-        attr_reader :ast, :names, :requirements, :anchored
-        alias :spec :ast
+        attr_reader :ast, :names, :requirements, :anchored, :spec
 
         def initialize(ast, requirements, separators, anchored)
           @ast          = ast
+          @spec         = ast.root
           @requirements = requirements
           @separators   = separators
           @anchored     = anchored
