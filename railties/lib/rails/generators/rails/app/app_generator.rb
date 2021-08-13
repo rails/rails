@@ -80,7 +80,7 @@ module Rails
     end
 
     def package_json
-      template "package.json" if options[:webpack]
+      template "package.json"
     end
 
     def app
@@ -353,7 +353,7 @@ module Rails
 
         build(:gemfile)
         build(:version_control)
-        build(:package_json) unless options[:skip_javascript]
+        build(:package_json) if options[:webpack]
       end
 
       def create_app_files
