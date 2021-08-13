@@ -83,7 +83,7 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     gemfile.write(%(# gem "image_processing"))
 
     run_generator_instance
-    
+
     assert_file gemfile do |content|
       assert_equal %(gem "image_processing"), content
     end
