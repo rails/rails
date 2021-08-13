@@ -44,13 +44,11 @@ module ActionText
             end
           end
         else
-          if (application_layout_path = Rails.root.join("app/views/layouts/application.html.erb")).exist?
-            insert_into_file application_layout_path.to_s, %(\n    <%= javascript_include_tag "trix", "actiontext", "data-turbo-track": "reload", defer: true %>), before: /\s*<\/head>/
+          if (application_javascript_path = Rails.root.join("app/assets/javascripts/application.js")).exist?
+            insert_into_file application_javascript_path.to_s, %(\nimport "trix"\nimport "@rails/actiontext")
           else
             say <<~INSTRUCTIONS, :green
-              You must add the actiontext.js and trix.js JavaScript files to the head of your application layout:
-
-              <%= javascript_include_tag "trix", "actiontext", "data-turbo-track": "reload", defer: true %>
+              You must import the @rails/actiontext.js and trix.js JavaScript files in your application entrypoint.
             INSTRUCTIONS
           end
         end
