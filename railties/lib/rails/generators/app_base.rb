@@ -319,7 +319,7 @@ module Rails
         if options[:webpack]
           GemfileEntry.version "webpacker", "~> 5.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
         else
-          return [] 
+          return []
         end
       end
 
