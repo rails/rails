@@ -80,7 +80,7 @@ module Rails
     end
 
     def package_json
-      template "package.json"
+      template "package.json" if options[:webpack]
     end
 
     def app
