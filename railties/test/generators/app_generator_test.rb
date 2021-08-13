@@ -508,7 +508,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_package_json_uses_current_versions_and_set_version_of_turbolinks
+  def test_package_json_uses_current_versions
     run_generator
     generator = Rails::Generators::AppBase.new ["rails"]
     version = generator.send(:npm_version)
@@ -517,7 +517,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/"@rails\/ujs": "#{version}"/, content)
       assert_match(/"@rails\/activestorage": "#{version}"/, content)
       assert_match(/"@rails\/actioncable": "#{version}"/, content)
-      assert_match(/"turbolinks": "\^5.2.0"/, content)
     end
   end
 
@@ -528,7 +527,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/"@rails\/ujs": "latest"/, content)
       assert_match(/"@rails\/activestorage": "latest"/, content)
       assert_match(/"@rails\/actioncable": "latest"/, content)
-      assert_match(/"turbolinks": "turbolinks\/turbolinks#master"/, content)
     end
   end
 

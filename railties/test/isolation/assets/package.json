@@ -5,7 +5,6 @@
     "@rails/actioncable": "file:../../../../actioncable",
     "@rails/activestorage": "file:../../../../activestorage",
     "@rails/ujs": "file:../../../../actionview",
-    "@rails/webpacker": "^5.2.1",
-    "turbolinks": "^5.2.0"
+    "@rails/webpacker": "^5.2.1"
   }
 }
