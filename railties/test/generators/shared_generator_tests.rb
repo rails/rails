@@ -189,7 +189,7 @@ module SharedGeneratorTests
   end
 
   def test_generator_for_active_storage
-    run_generator
+    run_generator([destination_root, "--webpack"])
 
     unless generator_class.name == "Rails::Generators::PluginGenerator"
       assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
@@ -220,7 +220,7 @@ module SharedGeneratorTests
   end
 
   def test_generator_if_skip_active_storage_is_given
-    run_generator [destination_root, "--skip-active-storage"]
+    run_generator [destination_root, "--skip-active-storage", "--webpack"]
 
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
 
@@ -250,7 +250,7 @@ module SharedGeneratorTests
   end
 
   def test_generator_does_not_generate_active_storage_contents_if_skip_active_record_is_given
-    run_generator [destination_root, "--skip-active-record"]
+    run_generator [destination_root, "--skip-active-record", "--webpack"]
 
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
 
@@ -296,7 +296,7 @@ module SharedGeneratorTests
   end
 
   def test_generator_if_skip_action_cable_is_given
-    run_generator [destination_root, "--skip-action-cable"]
+    run_generator [destination_root, "--skip-action-cable", "--webpack"]
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
     assert_no_file "#{application_path}/config/cable.yml"
     assert_no_file "#{application_path}/app/javascript/consumer.js"
@@ -333,7 +333,7 @@ module SharedGeneratorTests
 
   def test_generator_for_yarn
     skip "#34009 disabled JS by default for plugins" if generator_class.name == "Rails::Generators::PluginGenerator"
-    run_generator
+    run_generator [destination_root, "--webpack"]
     assert_file "#{application_path}/package.json", /dependencies/
     assert_file "#{application_path}/bin/yarn"
     assert_file "#{application_path}/config/initializers/assets.rb", /node_modules/

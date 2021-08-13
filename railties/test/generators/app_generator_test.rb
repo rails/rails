@@ -952,15 +952,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_equal true, $?.success?
   end
 
-  def test_generator_if_skip_turbolinks_is_given
-    run_generator [destination_root, "--skip-turbolinks"]
+  def test_generator_if_skip_hotwire_is_given
+    run_generator [destination_root, "--skip-hotwire", "--webpack"]
 
-    assert_no_gem "turbolinks"
+    assert_no_gem "hotwire-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_no_match(/data-turbo-track/, content)
     end
     assert_file "app/javascript/packs/application.js" do |content|
-      assert_no_match(/turbolinks/, content)
+      assert_no_match(/turbo/, content)
     end
   end
 
@@ -1130,7 +1130,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_minimal_rails_app
     app_root = File.join(destination_root, "myapp")
-    run_generator [app_root, "--minimal"]
+    run_generator [app_root, "--minimal", "--webpack"]
 
     assert_no_file "#{app_root}/config/storage.yml"
     assert_no_file "#{app_root}/config/webpacker.yml"
