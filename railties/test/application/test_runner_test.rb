@@ -510,7 +510,7 @@ module ApplicationTests
       create_test_file :models, "post", pass: false
 
       output = run_test_command("test/models/post_test.rb")
-      assert_match /Finished in.*1 runs, 1 assertions/m, output
+      assert_match(/Finished in.*1 runs, 1 assertions/m, output)
     end
 
     def test_fail_fast
@@ -566,7 +566,7 @@ module ApplicationTests
 
       output = run_test_command(file_name)
 
-      assert_match /Finished in.*2 runs, 2 assertions/m, output
+      assert_match(/Finished in.*2 runs, 2 assertions/m, output)
       assert_match %r{Running \d+ tests in parallel using \d+ processes}, output
       assert_no_match "create_table(:users)", output
     end
@@ -645,7 +645,7 @@ module ApplicationTests
 
       output = run_test_command(file_name)
 
-      assert_match /Finished in.*2 runs, 2 assertions/m, output
+      assert_match(/Finished in.*2 runs, 2 assertions/m, output)
       assert_no_match "create_table(:users)", output
     end
 
