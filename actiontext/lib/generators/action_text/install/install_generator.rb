@@ -66,6 +66,12 @@ module ActionText
           "app/views/layouts/action_text/contents/_content.html.erb"
       end
 
+      def enable_image_processing_gem
+        say "Ensure image_processing gem has been enabled so image uploads will work"
+        uncomment_lines Rails.root.join("Gemfile"), /gem "image_processing"/
+        run "bundle install"
+      end
+
       def create_migrations
         rails_command "railties:install:migrations FROM=active_storage,action_text", inline: true
       end
