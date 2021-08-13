@@ -118,8 +118,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_assets
     run_generator
 
-    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+"application", "data-turbolinks-track": "reload"/)
-    assert_file("app/views/layouts/application.html.erb", /javascript_pack_tag\s+"application", "data-turbolinks-track": "reload"/)
+    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+"application", "data-turbo-track": "reload"/)
+    assert_file("app/views/layouts/application.html.erb", /javascript_pack_tag\s+"application", "data-turbo-track": "reload"/)
     assert_file("app/assets/stylesheets/application.css")
     assert_file("app/javascript/packs/application.js")
   end
@@ -959,7 +959,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_gem "turbolinks"
     assert_file "app/views/layouts/application.html.erb" do |content|
-      assert_no_match(/data-turbolinks-track/, content)
+      assert_no_match(/data-turbo-track/, content)
     end
     assert_file "app/javascript/packs/application.js" do |content|
       assert_no_match(/turbolinks/, content)
@@ -1141,7 +1141,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "#{app_root}/views/layouts/mailer.html.erb"
     assert_no_file "#{app_root}/app/jobs/application.rb"
     assert_file "#{app_root}/app/views/layouts/application.html.erb" do |content|
-      assert_no_match(/data-turbolinks-track/, content)
+      assert_no_match(/data-turbo-track/, content)
     end
     assert_file "#{app_root}/config/environments/development.rb" do |content|
       assert_no_match(/config\.active_storage/, content)

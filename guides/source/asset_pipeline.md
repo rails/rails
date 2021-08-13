@@ -317,12 +317,12 @@ familiar `javascript_include_tag` and `stylesheet_link_tag`:
 ```
 
 If using the turbolinks gem, which is included by default in Rails, then
-include the 'data-turbolinks-track' option which causes turbolinks to check if
+include the 'data-turbo-track' option which causes Turbo to check if
 an asset has been updated and if so loads it into the page:
 
 ```erb
-<%= stylesheet_link_tag "application", media: "all", "data-turbolinks-track" => "reload" %>
-<%= javascript_include_tag "application", "data-turbolinks-track" => "reload" %>
+<%= stylesheet_link_tag "application", media: "all", "data-turbo-track" => "reload" %>
+<%= javascript_include_tag "application", "data-turbo-track" => "reload" %>
 ```
 
 In regular views you can access images in the `app/assets/images` directory
