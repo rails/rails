@@ -87,7 +87,7 @@
 
     *Kevin Newton*
 
-*   Fix `eager_loading?` when ordering with `Symbol`
+*   Fix `eager_loading?` when ordering with `Symbol`.
 
     `eager_loading?` is triggered correctly when using `order` with symbols.
 
@@ -123,7 +123,7 @@
 
     *Luis Vasconcellos*, *Eileen M. Uchitelle*
 
-*   Fix `eager_loading?` when ordering with `Hash` syntax
+*   Fix `eager_loading?` when ordering with `Hash` syntax.
 
     `eager_loading?` is triggered correctly when using `order` with hash syntax
     on an outer table.

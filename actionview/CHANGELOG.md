@@ -2,7 +2,7 @@
 
     *Ben Toews*, *John Hawthorn*, *Kasper Timm Hansen*, *Joel Hawksley*
 
-*   Add `include_seconds` option for `time_field`
+*   Add `include_seconds` option for `time_field`.
 
         <%= form.time_field :foo, include_seconds: false %>
         # => <input value="16:22" type="time" />
