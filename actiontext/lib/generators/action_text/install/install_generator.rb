@@ -67,9 +67,11 @@ module ActionText
       end
 
       def enable_image_processing_gem
-        say "Ensure image_processing gem has been enabled so image uploads will work"
-        uncomment_lines Rails.root.join("Gemfile"), /gem "image_processing"/
-        run "bundle install"
+        if (gemfile_path = Rails.root.join("Gemfile")).exist?
+          say "Ensure image_processing gem has been enabled so image uploads will work"
+          uncomment_lines gemfile_path, /gem "image_processing"/
+          run "bundle install"
+        end
       end
 
       def create_migrations

@@ -77,6 +77,18 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/create_action_text_tables.action_text.rb"
   end
 
+  test "uncomments image_processing gem" do
+    gemfile = Pathname("Gemfile").expand_path(destination_root)
+    gemfile.dirname.mkpath
+    gemfile.write(%(# gem "image_processing"))
+
+    run_generator_instance
+    
+    assert_file gemfile do |content|
+      assert_equal %(gem "image_processing"), content
+    end
+  end
+
   test "#yarn_command runs bin/yarn via Ruby" do
     ran = nil
     run_stub = -> (command, *) { ran = command }
