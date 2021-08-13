@@ -486,13 +486,13 @@ module Rails
       end
 
       def delete_js_folder_skipping_javascript
-        if options[:skip_javascript] && !options[:minimal]
+        if !options[:webpack] && !options[:minimal]
           remove_dir "app/javascript"
         end
       end
 
       def delete_js_packs_when_minimal_skipping_webpack
-        if options[:minimal] && options[:skip_webpack_install]
+        if options[:webpack] && options[:minimal] && options[:skip_webpack_install]
           remove_dir "app/javascript/packs"
           keep_file  "app/javascript"
         end
