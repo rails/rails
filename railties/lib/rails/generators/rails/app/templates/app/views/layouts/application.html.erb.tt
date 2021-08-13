@@ -5,16 +5,14 @@
     <%%= csrf_meta_tags %>
     <%%= csp_meta_tag %>
 
-    <%- if options[:skip_javascript] -%>
-    <%%= stylesheet_link_tag "application" %>
-    <%- elsif options[:webpack] -%>
-      <%- unless options[:skip_hotwire] -%>
-    <%%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%%= javascript_pack_tag "application", "data-turbo-track": "reload" %>
-      <%- else -%>
+    <%- if options[:webpack] && options[:skip_hotwire] -%>
     <%%= stylesheet_link_tag "application" %>
     <%%= javascript_pack_tag "application" %>
-      <%- end -%>
+    <%- elsif options[:webpack] -%>
+    <%%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%%= javascript_pack_tag "application", "data-turbo-track": "reload" %>
+    <%- else -%>
+    <%%= stylesheet_link_tag "application" %>
     <%- end -%>
   </head>
 
