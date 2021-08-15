@@ -51,6 +51,17 @@ module ActionText
               You must import the @rails/actiontext.js and trix.js JavaScript files in your application entrypoint.
             INSTRUCTIONS
           end
+
+          if (importmap_path = Rails.root.join("config/initializers/importmap.rb")).exist?
+            insert_into_file \
+              importmap_path.to_s, 
+              %(  # Rich text libraries\n  pin "trix"\n  pin "@rails/actiontext", to: "actiontext.js"\n\n),
+              after: "Rails.application.config.importmap.draw do\n"
+          else
+            say <<~INSTRUCTIONS, :green
+              You must add @rails/actiontext and trix to your importmap to reference them via ESM.
+            INSTRUCTIONS
+          end
         end
       end
 
