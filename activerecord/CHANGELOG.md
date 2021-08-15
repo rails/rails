@@ -1,3 +1,22 @@
+*   `order` now supports Postgres JSON operators.
+
+    `order` raises `ActiveRecord::UnknownAttributeReference` when it can't identify the syntax of
+     the given string. Now it identifies the `->>` operator in Postgres instead of raising an error.
+
+    Old syntax:
+    ```ruby
+        Event.order(Arel.sql("payload->>'kind'"))
+    ```
+
+    New syntax:
+    ```ruby
+        Event.order("payload->>'kind'")
+    ```
+
+    Fixes #43014
+
+    *Rachael Wright-Munn*
+
 *   Add config option for ignoring tables when dumping the schema cache.
 
     Applications can now be configured to ignore certain tables when dumping the schema cache.

@@ -159,6 +159,13 @@ irb> event.payload
 ## Query based on JSON document
 # The -> operator returns the original JSON type (which might be an object), whereas ->> returns text
 irb> Event.where("payload->>'kind' = ?", "user_renamed")
+
+## Order based on JSON document
+# Postgres orders only on text values. ->> and #>> return text which can be ordered.
+# By default, order only supports -> for unnested json.
+irb> Event.order("payload->'kind'")
+# If you have nested json, a function, or an array, use Arel.
+irb> Event.order(Arel.sql("payload #>> '{change,0}'"))
 ```
 
 ### Range Types

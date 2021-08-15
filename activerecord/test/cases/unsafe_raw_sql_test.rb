@@ -96,23 +96,58 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal ids_expected, ids
   end
 
-  test "order: allows NULLS FIRST and NULLS LAST too" do
-    raise "precondition failed" if Post.count < 2
+  if current_adapter?(:PostgreSQLAdapter)
+    test "order: allows NULLS FIRST and NULLS LAST too" do
+      raise "precondition failed" if Post.count < 2
 
-    # Ensure there are NULL and non-NULL post types.
-    Post.first.update_column(:type, nil)
-    Post.last.update_column(:type, "Programming")
+      # Ensure there are NULL and non-NULL post types.
+      Post.first.update_column(:type, nil)
+      Post.last.update_column(:type, "Programming")
 
-    ["asc", "desc", ""].each do |direction|
-      %w(first last).each do |position|
-        ids_expected = Post.order(Arel.sql("type::text #{direction} nulls #{position}")).pluck(:id)
+      ["asc", "desc", ""].each do |direction|
+        %w(first last).each do |position|
+          ids_expected = Post.order(Arel.sql("type::text #{direction} nulls #{position}")).pluck(:id)
 
-        ids = Post.order("type::text #{direction} nulls #{position}").pluck(:id)
+          ids = Post.order("type::text #{direction} nulls #{position}").pluck(:id)
 
-        assert_equal ids_expected, ids
+          assert_equal ids_expected, ids
+        end
       end
     end
-  end if current_adapter?(:PostgreSQLAdapter)
+
+    def setup
+      @connection = ActiveRecord::Base.connection
+      @connection.create_table("json_data_type") do |t|
+        t.public_send :json, "payload", default: {} # t.json 'payload', default: {}
+        t.public_send :json, "settings"             # t.json 'settings'
+        t.public_send :json, "objects", array: true # t.json 'objects', array: true
+      end
+    end
+
+    class JsonDataType < ActiveRecord::Base
+      self.table_name = "json_data_type"
+
+      store_accessor :settings, :resolution
+    end
+
+    test "order: allow JSON operators" do
+      created = JsonDataType.create!(payload: { "a" => 1, "b" => 2 })
+      jdt = JsonDataType.order("payload ->> 'a'").first
+      assert_equal created.id, jdt.id
+    end
+
+    test "order: allow JSON operators with weird spacing" do
+      created = JsonDataType.create!(payload: { "a" => 1, "b" => 2 })
+      jdt = JsonDataType.order("payload::json->> 'a'").first
+      assert_equal created.id, jdt.id
+    end
+
+    test "order: allow JSON operators with array" do
+      created = JsonDataType.create!(payload: ["hello", "world"])
+      jdt = JsonDataType.order("payload ->>1").first
+      assert_equal created.id, jdt.id
+    end
+  end
 
   test "order: disallows invalid column name" do
     assert_raises(ActiveRecord::UnknownAttributeReference) do
