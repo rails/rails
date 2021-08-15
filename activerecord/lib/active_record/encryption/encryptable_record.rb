@@ -46,10 +46,10 @@ module ActiveRecord
         #   encryption is used, they will be used to generate additional ciphertexts to check in the queries.
         def encrypts(*names, key_provider: nil, key: nil, deterministic: false, downcase: false, ignore_case: false, previous: [], **context_properties)
           self.encrypted_attributes ||= Set.new # not using :default because the instance would be shared across classes
+          scheme = scheme_for key_provider: key_provider, key: key, deterministic: deterministic, downcase: downcase, \
+              ignore_case: ignore_case, previous: previous, **context_properties
 
           names.each do |name|
-            scheme = scheme_for key_provider: key_provider, key: key, deterministic: deterministic, downcase: downcase, \
-              ignore_case: ignore_case, previous: previous, **context_properties
             encrypt_attribute name, scheme
           end
         end
