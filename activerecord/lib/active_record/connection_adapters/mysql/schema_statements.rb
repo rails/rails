@@ -158,7 +158,30 @@ module ActiveRecord
             MySQL::TableDefinition.new(self, name, **options)
           end
 
+          def default_type(table_name, field_name)
+            match = create_table_sql(table_name).match(/`#{field_name}` (.+) DEFAULT ('|\d+|[A-z]+)/)
+            default_pre = match[1] if match
+
+            if default_pre == "'"
+              :string
+            elsif default_pre&.match?(/^\d+$/)
+              :integer
+            elsif default_pre&.match?(/^[A-z]+$/)
+              :function
+            end
+          end
+
+          def create_table_sql(table_name)
+            @create_table_sql ||= {}
+            @create_table_sql[table_name] ||= begin
+              execute_and_free("SHOW CREATE TABLE #{quote_table_name(table_name)}") do |result|
+                result.first[1]
+              end
+            end
+          end
+
           def new_column_from_field(table_name, field)
+            field_name = field.fetch(:Field)
             type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
             default, default_function = field[:Default], nil
 
@@ -170,6 +193,8 @@ module ActiveRecord
             elsif type_metadata.type == :text && default
               # strip and unescape quotes
               default = default[1...-1].gsub("\\'", "'")
+            elsif default && default_type(table_name, field_name) == :function
+              default, default_function = nil, default
             end
 
             MySQL::Column.new(
