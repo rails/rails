@@ -100,7 +100,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_skip_bundle
     generator([destination_root], skip_bundle: true)
-    output = run_generator_instance
+    run_generator_instance
 
     assert_empty @bundle_commands
     # skip_bundle is only about running bundle install so ensure the Gemfile is still generated
