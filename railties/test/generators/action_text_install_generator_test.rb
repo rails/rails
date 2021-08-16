@@ -103,7 +103,7 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
   test "run just for asset pipeline" do
     run_under_asset_pipeline
 
-    application_js = Pathname("app/assets/javascripts/application.js").expand_path(destination_root)
+    application_js = Pathname("app/javascript/application.js").expand_path(destination_root)
     application_js.dirname.mkpath
     application_js.write ""
 
