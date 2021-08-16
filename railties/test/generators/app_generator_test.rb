@@ -925,7 +925,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_skip_webpack_install
-    generator([destination_root], skip_webpack_install: true)
+    generator([destination_root])
 
     command_check = -> command do
       if command == "webpacker:install"
@@ -937,7 +937,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       run_generator_instance
     end
 
-    assert_gem "webpacker"
+    assert_no_gem "webpacker"
     assert_no_file "config/webpacker.yml"
 
     output = Dir.chdir(destination_root) do

@@ -222,27 +222,27 @@ module SharedGeneratorTests
   def test_generator_if_skip_active_storage_is_given
     run_generator [destination_root, "--skip-active-storage", "--webpack"]
 
-    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
+    assert_file "#{destination_root}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
 
-    assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
+    assert_file "#{destination_root}/app/javascript/packs/application.js" do |content|
       assert_no_match(/activestorage/, content)
     end
 
-    assert_file "#{application_path}/config/environments/development.rb" do |content|
+    assert_file "#{destination_root}/config/environments/development.rb" do |content|
       assert_no_match(/config\.active_storage/, content)
     end
 
-    assert_file "#{application_path}/config/environments/production.rb" do |content|
+    assert_file "#{destination_root}/config/environments/production.rb" do |content|
       assert_no_match(/config\.active_storage/, content)
     end
 
-    assert_file "#{application_path}/config/environments/test.rb" do |content|
+    assert_file "#{destination_root}/config/environments/test.rb" do |content|
       assert_no_match(/config\.active_storage/, content)
     end
 
-    assert_no_file "#{application_path}/config/storage.yml"
-    assert_no_directory "#{application_path}/storage"
-    assert_no_directory "#{application_path}/tmp/storage"
+    assert_no_file "#{destination_root}/config/storage.yml"
+    assert_no_directory "#{destination_root}/storage"
+    assert_no_directory "#{destination_root}/tmp/storage"
 
     assert_file ".gitignore" do |content|
       assert_no_match(/\/storage\//, content)
@@ -252,27 +252,27 @@ module SharedGeneratorTests
   def test_generator_does_not_generate_active_storage_contents_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record", "--webpack"]
 
-    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
+    assert_file "#{destination_root}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
 
-    assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
+    assert_file "#{destination_root}/app/javascript/packs/application.js" do |content|
       assert_no_match(/activestorage/i, content)
     end
 
-    assert_file "#{application_path}/config/environments/development.rb" do |content|
+    assert_file "#{destination_root}/config/environments/development.rb" do |content|
       assert_no_match(/config\.active_storage/, content)
     end
 
-    assert_file "#{application_path}/config/environments/production.rb" do |content|
+    assert_file "#{destination_root}/config/environments/production.rb" do |content|
       assert_no_match(/config\.active_storage/, content)
     end
 
-    assert_file "#{application_path}/config/environments/test.rb" do |content|
+    assert_file "#{destination_root}/config/environments/test.rb" do |content|
       assert_no_match(/config\.active_storage/, content)
     end
 
-    assert_no_file "#{application_path}/config/storage.yml"
-    assert_no_directory "#{application_path}/storage"
-    assert_no_directory "#{application_path}/tmp/storage"
+    assert_no_file "#{destination_root}/config/storage.yml"
+    assert_no_directory "#{destination_root}/storage"
+    assert_no_directory "#{destination_root}/tmp/storage"
 
     assert_file ".gitignore" do |content|
       assert_no_match(/\/storage\//, content)
