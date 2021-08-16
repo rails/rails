@@ -55,7 +55,7 @@ module ActionText
           if (importmap_path = Rails.root.join("config/initializers/importmap.rb")).exist?
             insert_into_file \
               importmap_path.to_s, 
-              %(  # Rich text libraries\n  pin "trix"\n  pin "@rails/actiontext", to: "actiontext.js"\n\n),
+              %(  pin "trix"\n  pin "@rails/actiontext", to: "actiontext.js"\n\n),
               after: "Rails.application.config.importmap.draw do\n"
           else
             say <<~INSTRUCTIONS, :green
