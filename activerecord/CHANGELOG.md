@@ -1,3 +1,21 @@
+*   Add config option for ignoring tables when dumping the schema cache.
+
+    Applications can now be configured to ignore certain tables when dumping the schema cache.
+
+    The configuration option can table an array of tables:
+
+    ```ruby
+    config.active_record.schema_cache_ignored_tables = ["ignored_table", "another_ignored_table"]
+    ```
+
+    Or a regex:
+
+    ```ruby
+    config.active_record.schema_cache_ignored_tables = [/^_/]
+    ```
+
+    *Eileen M. Uchitelle*
+
 *   Make schema cache methods return consistent results.
 
     Previously the schema cache methods `primary_keys`, `columns, `columns_hash`, and `indexes`
