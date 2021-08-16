@@ -44,7 +44,7 @@ module ActionText
             end
           end
         else
-          if (application_javascript_path = Rails.root.join("app/assets/javascripts/application.js")).exist?
+          if (application_javascript_path = Rails.root.join("app/javascript/application.js")).exist?
             insert_into_file application_javascript_path.to_s, %(\nimport "trix"\nimport "@rails/actiontext")
           else
             say <<~INSTRUCTIONS, :green
