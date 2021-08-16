@@ -1,3 +1,7 @@
+*   Add support for byte range requests
+
+    *Tom Prats*
+
 *   Attachments can be deleted after their association is no longer defined.
 
     Fixes #42514
