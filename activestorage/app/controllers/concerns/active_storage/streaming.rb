@@ -10,7 +10,7 @@ module ActiveStorage::Streaming
 
   private
     # Stream the blob in byte ranges specified through the header
-    def send_blob_byte_range_data(blob, range_header, disposition: nil) #:doc:
+    def send_blob_byte_range_data(blob, range_header, disposition: nil)
       ranges = Rack::Utils.get_byte_ranges(range_header, blob.byte_size)
 
       return head(:range_not_satisfiable) if ranges.blank? || ranges.all?(&:blank?)
