@@ -1080,7 +1080,7 @@ module ApplicationTests
         YAML
 
         Dir.chdir(app_path) do
-          animals_db_exists = lambda{ rails("runner", "puts !!(AnimalsBase.connection rescue false)").strip }
+          animals_db_exists = lambda { rails("runner", "puts !!(AnimalsBase.connection rescue false)").strip }
 
           generate_models_for_animals
 
@@ -1088,13 +1088,10 @@ module ApplicationTests
 
           assert_not File.exist?("db/animals_schema.yml")
 
-          begin
-            assert_raise RuntimeError do
-              rails "db:migrate:animals" ### Task not defined
-            end
-          rescue RuntimeError => e
-            assert_includes e.message, "See the list of available tasks"
+          error = assert_raises do
+            rails "db:migrate:animals" ### Task not defined
           end
+          assert_includes error.message, "See the list of available tasks"
 
           rails "db:schema:dump"
           assert_not File.exist?("db/animals_schema.yml")
@@ -1103,7 +1100,6 @@ module ApplicationTests
           assert_equal "true", animals_db_exists.call
         end
       end
-
     end
   end
 end
