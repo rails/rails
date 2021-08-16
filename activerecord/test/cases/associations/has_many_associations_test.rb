@@ -1923,14 +1923,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_not_empty firm.errors
 
-    assert_equal "Cannot delete record because dependent companies exist", firm.errors[:base].first
+    assert_equal "Cannot delete record because dependent Companies exist", firm.errors[:base].first
     assert RestrictedWithErrorFirm.exists?(name: "restrict")
     assert firm.companies.exists?(name: "child")
   end
 
   def test_restrict_with_error_with_locale
     I18n.backend = I18n::Backend::Simple.new
-    I18n.backend.store_translations "en", activerecord: { attributes: { restricted_with_error_firm: { companies: "client companies" } } }
+    I18n.backend.store_translations "en", activerecord: { attributes: { restricted_with_error_firm: { companies: "Client Companies" } } }
     firm = RestrictedWithErrorFirm.create!(name: "restrict")
     firm.companies.create(name: "child")
 
@@ -1940,11 +1940,26 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_not_empty firm.errors
 
-    assert_equal "Cannot delete record because dependent client companies exist", firm.errors[:base].first
+    assert_equal "Cannot delete record because dependent Client Companies exist", firm.errors[:base].first
     assert RestrictedWithErrorFirm.exists?(name: "restrict")
     assert firm.companies.exists?(name: "child")
   ensure
     I18n.backend.reload!
+  end
+
+  def test_restrict_with_error_without_locale
+    firm = RestrictedWithErrorFirm.create!(name: "restrict")
+    firm.companies.create(name: "child")
+
+    assert_not_empty firm.companies
+
+    firm.destroy
+
+    assert_not_empty firm.errors
+
+    assert_equal "Cannot delete record because dependent Companies exist", firm.errors[:base].first
+    assert RestrictedWithErrorFirm.exists?(name: "restrict")
+    assert firm.companies.exists?(name: "child")
   end
 
   def test_included_in_collection

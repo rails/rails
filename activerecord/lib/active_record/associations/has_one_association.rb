@@ -13,7 +13,7 @@ module ActiveRecord
 
         when :restrict_with_error
           if load_target
-            record = owner.class.human_attribute_name(reflection.name).downcase
+            record = owner.class.human_attribute_name(reflection.name)
             owner.errors.add(:base, :'restrict_dependent_destroy.has_one', record: record)
             throw(:abort)
           end
