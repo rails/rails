@@ -14,11 +14,6 @@ DEFAULT_APP_FILES = %w(
   config.ru
   app/assets/config/manifest.js
   app/assets/images
-  app/javascript
-  app/javascript/channels
-  app/javascript/channels/consumer.js
-  app/javascript/channels/index.js
-  app/javascript/packs/application.js
   app/assets/stylesheets
   app/assets/stylesheets/application.css
   app/channels/application_cable/channel.rb
@@ -42,7 +37,6 @@ DEFAULT_APP_FILES = %w(
   bin/rails
   bin/rake
   bin/setup
-  bin/yarn
   config/application.rb
   config/boot.rb
   config/cable.yml
@@ -73,7 +67,6 @@ DEFAULT_APP_FILES = %w(
   lib/tasks
   lib/assets
   log
-  package.json
   public
   storage
   test/application_system_test_case.rb
@@ -112,16 +105,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_empty @bundle_commands
     # skip_bundle is only about running bundle install so ensure the Gemfile is still generated
     assert_file "Gemfile"
-    assert_webpack_installation_skipped(output)
   end
 
   def test_assets
     run_generator
 
-    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+"application", "data-turbo-track": "reload"/)
-    assert_file("app/views/layouts/application.html.erb", /javascript_pack_tag\s+"application", "data-turbo-track": "reload"/)
     assert_file("app/assets/stylesheets/application.css")
-    assert_file("app/javascript/packs/application.js")
+  end
+
+  def test_webpack_assets
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--webpack"]
+
+    assert_file("#{app_root}/app/views/layouts/application.html.erb", /stylesheet_link_tag\s+"application", "data-turbo-track": "reload"/)
+    assert_file("#{app_root}/app/views/layouts/application.html.erb", /javascript_pack_tag\s+"application", "data-turbo-track": "reload"/)
+    assert_file("#{app_root}/app/assets/stylesheets/application.css")
+    assert_file("#{app_root}/app/javascript/packs/application.js")
   end
 
   def test_application_job_file_present
@@ -212,9 +211,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_csp_initializer_include_connect_src_example
-    run_generator
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--webpack"]
 
-    assert_file "config/initializers/content_security_policy.rb" do |content|
+    assert_file "#{app_root}/config/initializers/content_security_policy.rb" do |content|
       assert_match(/#   policy\.connect_src/, content)
     end
   end
@@ -288,11 +288,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_adds_bin_yarn_into_setup_script
-    run_generator
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--webpack"]
 
-    assert_file "bin/yarn"
+    assert_file "#{app_root}/bin/yarn"
 
-    assert_file "bin/setup" do |content|
+    assert_file "#{app_root}/bin/setup" do |content|
       # Does not comment yarn install
       assert_match(/(?=[^#]*?) system! "bin\/yarn"/, content)
     end
@@ -509,7 +510,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_package_json_uses_current_versions
-    run_generator
+    run_generator [destination_root, "--webpack"]
     generator = Rails::Generators::AppBase.new ["rails"]
     version = generator.send(:npm_version)
 
@@ -521,7 +522,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_package_json_uses_edge_versions
-    run_generator [destination_root, "--main"]
+    run_generator [destination_root, "--main", "--webpack"]
 
     assert_file "package.json" do |content|
       assert_match(/"@rails\/ujs": "latest"/, content)
@@ -531,7 +532,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_package_json_excludes_activestorage_if_skipped
-    run_generator [destination_root, "--skip-active-storage"]
+    run_generator [destination_root, "--skip-active-storage", "--webpack"]
 
     assert_file "package.json" do |content|
       assert_not content.include?("activestorage")
@@ -539,7 +540,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_package_json_excludes_actioncable_if_skipped
-    run_generator [destination_root, "--skip-action-cable"]
+    run_generator [destination_root, "--skip-action-cable", "--webpack"]
 
     assert_file "package.json" do |content|
       assert_not content.include?("actioncable")
@@ -547,7 +548,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_package_json_excludes_turbolinks_if_skipped
-    run_generator [destination_root, "--skip-turbolinks"]
+    run_generator [destination_root, "--skip-turbolinks", "--webpack"]
 
     assert_file "package.json" do |content|
       assert_not content.include?("turbolinks")
@@ -904,17 +905,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_webpack_option_with_js_framework
-    generator([destination_root], webpack: "react")
+  def test_webpack_option
+    generator([destination_root], webpack: true)
 
     webpacker_called = 0
-    react_called = 0
     command_check = -> command, *_ do
       case command
       when "webpacker:install"
         webpacker_called += 1
-      when "webpacker:install:react"
-        react_called += 1
       end
     end
 
@@ -923,7 +921,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_equal 1, webpacker_called, "`webpacker:install` expected to be called once, but was called #{webpacker_called} times."
-    assert_equal 1, react_called, "`webpacker:install:react` expected to be called once, but was called #{react_called} times."
     assert_gem "webpacker"
   end
 
@@ -1130,7 +1127,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_minimal_rails_app
     app_root = File.join(destination_root, "myapp")
-    run_generator [app_root, "--minimal", "--webpack"]
+    run_generator [app_root, "--minimal"]
 
     assert_no_file "#{app_root}/config/storage.yml"
     assert_no_file "#{app_root}/config/webpacker.yml"
@@ -1189,23 +1186,5 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_file File.join(app_path, "Gemfile") do |content|
         assert_no_match(gem, content)
       end
-    end
-
-    def assert_webpack_installation_skipped(output)
-      assert_match(/^Skipping `rails webpacker:install`/, output)
-
-      %w(
-        .browserslistrc
-        babel.config.js
-        bin/webpack
-        bin/webpack-dev-server
-        config/webpack
-        config/webpack/development.js
-        config/webpack/environment.js
-        config/webpack/production.js
-        config/webpack/test.js
-        config/webpacker.yml
-        postcss.config.js
-      ).each { |f| assert_no_file(f) }
     end
 end
