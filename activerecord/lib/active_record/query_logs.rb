@@ -180,8 +180,9 @@ module ActiveRecord
 end
 
 ActiveSupport.on_load(:active_record) do
-  ActiveRecord::QueryLogs.taggings.merge! \
+  ActiveRecord::QueryLogs.taggings.merge!(
     socket:   -> { ActiveRecord::Base.connection_db_config.socket },
     db_host:  -> { ActiveRecord::Base.connection_db_config.host },
     database: -> { ActiveRecord::Base.connection_db_config.database }
+  )
 end
