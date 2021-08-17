@@ -406,6 +406,8 @@ GEM
       unicode-display_width (>= 1.4.0, < 3.0)
     rubocop-ast (1.9.1)
       parser (>= 3.0.1.1)
+    rubocop-minitest (0.15.0)
+      rubocop (>= 0.90, < 2.0)
     rubocop-packaging (0.5.1)
       rubocop (>= 0.89, < 2.0)
     rubocop-performance (1.11.4)
@@ -577,6 +579,7 @@ DEPENDENCIES
   rexml
   rouge
   rubocop (>= 0.90)
+  rubocop-minitest
   rubocop-packaging
   rubocop-performance
   rubocop-rails

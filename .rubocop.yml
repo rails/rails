@@ -1,4 +1,5 @@
 require:
+  - rubocop-minitest
   - rubocop-packaging
   - rubocop-performance
   - rubocop-rails
@@ -290,4 +291,7 @@ Performance/DeletePrefix:
   Enabled: true
 
 Performance/DeleteSuffix:
+  Enabled: true
+
+Minitest/UnreachableAssertion:
   Enabled: true
