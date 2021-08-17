@@ -1,7 +1,7 @@
 *   Add database config option `database_tasks`
 
     If you would like to connect to an external database without any database
-    mangement tasks such as schema management, migrations, seeds, etc. you can set
+    management tasks such as schema management, migrations, seeds, etc. you can set
     the per database config option `database_tasks: false`
 
     ```yaml
