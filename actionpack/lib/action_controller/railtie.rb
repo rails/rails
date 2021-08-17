@@ -32,8 +32,14 @@ module ActionController
           ActionController::Parameters.always_permitted_parameters =
             app.config.action_controller.always_permitted_parameters
         end
-        ActionController::Parameters.action_on_unpermitted_parameters = options.action_on_unpermitted_parameters ||
-          (Rails.env.test? || Rails.env.development?) ? :log : false
+
+        action_on_unpermitted_parameters = options.action_on_unpermitted_parameters
+
+        if action_on_unpermitted_parameters.nil?
+          action_on_unpermitted_parameters = (Rails.env.test? || Rails.env.development?) ? :log : false
+        end
+
+        ActionController::Parameters.action_on_unpermitted_parameters = action_on_unpermitted_parameters
       end
     end
 
