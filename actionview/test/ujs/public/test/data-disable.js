@@ -28,6 +28,14 @@ module('data-disable', {
       'data-url': '/echo',
       'data-disable': 'true'
     }))
+
+    $('#qunit-fixture').append($('<input/>', {
+      'type': 'checkbox',
+      'value': '1',
+      'data-remote': true,
+      'data-url': '/echo',
+      'data-disable': 'true'
+    }))
   },
   teardown: function() {
     $(document).unbind('iframe:loaded')
@@ -267,6 +275,77 @@ asyncTest('right/mouse-wheel-clicking on a link does not disable the link', 10, 
   link.triggerNative('click', { button: 2 })
   App.checkEnabledState(link, 'Click me')
   start()
+})
+
+asyncTest('input[data-remote][date-disable] disables and re-enables', 6, function() {
+  var checkbox = $('input[data-remote][data-disable]')
+
+  App.checkEnabledState(checkbox, '1')
+
+  checkbox
+    .bindNative('ajax:send', function() {
+      App.checkDisabledState(checkbox, '1')
+    })
+    .bindNative('ajax:complete', function() {
+      setTimeout( function() {
+        App.checkEnabledState(checkbox, '1')
+        start()
+      }, 15)
+    })
+    .triggerNative('change')
+})
+
+asyncTest('input[data-remote][data-disable] re-enables when `ajax:before` event is cancelled', 6, function() {
+  var checkbox = $('input[data-remote][data-disable]')
+
+  App.checkEnabledState(checkbox, '1')
+
+  checkbox
+    .bindNative('ajax:before', function(e) {
+      App.checkDisabledState(checkbox, '1')
+      e.preventDefault()
+    })
+    .triggerNative('change')
+
+  setTimeout(function() {
+    App.checkEnabledState(checkbox, '1')
+    start()
+  }, 30)
+})
+
+asyncTest('input[data-remote][data-disable] re-enables when `ajax:beforeSend` event is cancelled', 6, function() {
+  var checkbox = $('input[data-remote][data-disable]')
+
+  App.checkEnabledState(checkbox, '1')
+
+  checkbox
+    .bindNative('ajax:beforeSend', function(e) {
+      App.checkDisabledState(checkbox, '1')
+      e.preventDefault()
+    })
+    .triggerNative('click')
+
+  setTimeout(function() {
+    App.checkEnabledState(checkbox, '1')
+    start()
+  }, 30)
+})
+
+asyncTest('input[data-remote][data-disable] re-enables when `ajax:error` event is triggered', 6, function() {
+  var checkbox = $('input[data-remote][data-disable]').attr('data-url', '/error')
+
+  App.checkEnabledState(checkbox, '1')
+
+  checkbox
+    .bindNative('ajax:send', function() {
+      App.checkDisabledState(checkbox, '1')
+    })
+    .triggerNative('change')
+
+  setTimeout(function() {
+    App.checkEnabledState(checkbox, '1')
+    start()
+  }, 30)
 })
 
 asyncTest('button[data-remote][data-disable] disables and re-enables', 6, function() {

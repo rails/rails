@@ -35,6 +35,8 @@ Rails.start = ->
   delegate document, Rails.linkDisableSelector, 'ajax:stopped', enableElement
   delegate document, Rails.buttonDisableSelector, 'ajax:complete', enableElement
   delegate document, Rails.buttonDisableSelector, 'ajax:stopped', enableElement
+  delegate document, Rails.inputChangeSelector, 'ajax:complete', enableElement
+  delegate document, Rails.inputChangeSelector, 'ajax:stopped', enableElement
 
   delegate document, Rails.linkClickSelector, 'click', preventInsignificantClick
   delegate document, Rails.linkClickSelector, 'click', handleDisabledElement
@@ -51,6 +53,7 @@ Rails.start = ->
 
   delegate document, Rails.inputChangeSelector, 'change', handleDisabledElement
   delegate document, Rails.inputChangeSelector, 'change', handleConfirm
+  delegate document, Rails.inputChangeSelector, 'change', disableElement
   delegate document, Rails.inputChangeSelector, 'change', handleRemote
 
   delegate document, Rails.formSubmitSelector, 'submit', handleDisabledElement

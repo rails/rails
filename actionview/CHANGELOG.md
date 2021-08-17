@@ -1,3 +1,7 @@
+*   Allow remote input elements to be disabled by adding a `data-disable` attribute
+
+    *Vincent Rolea*
+
 *   Add `weekday_options_for_select` and `weekday_select` helper methods. Also adds `weekday_select` to `FormBuilder`.
 
     *Drew Bragg*, *Dana Kashubeck*, *Kasper Timm Hansen*
