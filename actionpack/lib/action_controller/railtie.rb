@@ -52,6 +52,9 @@ module ActionController
       options.asset_host        ||= app.config.asset_host
       options.relative_url_root ||= app.config.relative_url_root
 
+      # Configs used in other initializers
+      options = options.except(:log_query_tags_around_actions)
+
       ActiveSupport.on_load(:action_controller) do
         include app.routes.mounted_helpers
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)

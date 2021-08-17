@@ -25,6 +25,9 @@ module ActiveJob
       options = app.config.active_job
       options.queue_adapter ||= :async
 
+      # Configs used in other initializers
+      options = options.except(:log_query_tags_around_perform)
+
       ActiveSupport.on_load(:active_job) do
         options.each do  |k, v|
           k = "#{k}="

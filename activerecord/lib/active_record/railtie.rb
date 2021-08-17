@@ -32,6 +32,9 @@ module ActiveRecord
     config.active_record.maintain_test_schema = true
     config.active_record.has_many_inversing = false
     config.active_record.sqlite3_production_warning = true
+    config.active_record.query_log_tags_enabled = false
+    config.active_record.query_log_tags = [ :application ]
+    config.active_record.cache_query_log_tags = false
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 
@@ -210,7 +213,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
     end
 
     initializer "active_record.set_configs" do |app|
-      configs = app.config.active_record
+      configs = app.config.active_record.except(:query_log_tags_enabled, :query_log_tags, :cache_query_log_tags)
 
       config.after_initialize do
         configs.each do |k, v|

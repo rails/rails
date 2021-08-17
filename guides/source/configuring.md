@@ -517,6 +517,8 @@ in controllers and views. This defaults to `false`.
   Defaults to `[ :application ]`, a predefined tag returning the application name.
 
 * `config.active_record.cache_query_log_tags` specifies whether or not to enable caching of query log tags.
+  For applications that have a large number of queries, caching query log tags can provide a performance benefit when
+  the context does not change during the lifetime of the request or job execution.
   Defaults to `false`.
 
 The MySQL adapter adds one additional configuration option:
