@@ -48,7 +48,7 @@ module ActionText
             insert_into_file application_javascript_path.to_s, %(\nimport "trix"\nimport "@rails/actiontext")
           else
             say <<~INSTRUCTIONS, :green
-              You must import the @rails/actiontext.js and trix.js JavaScript files in your application entrypoint.
+              You must import the @rails/actiontext and trix JavaScript modules in your application entrypoint.
             INSTRUCTIONS
           end
 
