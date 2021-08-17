@@ -92,19 +92,19 @@ module ActionController
     end
 
     initializer "action_controller.query_log_tags" do |app|
-      ActiveSupport.on_load(:active_record) do
-        if app.config.active_record.query_log_tags_enabled && app.config.action_controller.log_query_tags_around_actions != false
+      if app.config.active_record.query_log_tags_enabled && app.config.action_controller.log_query_tags_around_actions != false
+        app.config.active_record.query_log_tags += [:controller, :action]
+
+        ActiveSupport.on_load(:action_controller) do
+          include ActionController::QueryTags
+        end
+
+        ActiveSupport.on_load(:active_record) do
           ActiveRecord::QueryLogs.taggings.merge!(
             controller:            -> { context[:controller]&.controller_name },
             action:                -> { context[:controller]&.action_name },
             namespaced_controller: -> { context[:controller]&.class&.name }
           )
-
-          ActiveRecord::QueryLogs.tags + [:controller, :action]
-
-          ActiveSupport.on_load(:action_controller) do
-            include ActionController::QueryTags
-          end
         end
       end
     end

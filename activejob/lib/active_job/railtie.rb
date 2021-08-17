@@ -55,14 +55,15 @@ module ActiveJob
     end
 
     initializer "active_job.query_log_tags" do |app|
-      ActiveSupport.on_load(:active_record) do
-        if app.config.active_record.query_log_tags_enabled && app.config.active_job.log_query_tags_around_perform != false
-          ActiveRecord::QueryLogs.taggings[:job] = -> { context[:job]&.class&.name }
-          ActiveRecord::QueryLogs.tags << :job
+      if app.config.active_record.query_log_tags_enabled && app.config.active_job.log_query_tags_around_perform != false
+        app.config.active_record.query_log_tags << :job
 
-          ActiveSupport.on_load(:active_job) do
-            include ActiveJob::QueryTags
-          end
+      ActiveSupport.on_load(:active_job) do
+        include ActiveJob::QueryTags
+      end
+
+      ActiveSupport.on_load(:active_record) do
+          ActiveRecord::QueryLogs.taggings[:job] = -> { context[:job]&.class&.name }
         end
       end
     end
