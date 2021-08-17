@@ -4,6 +4,7 @@ require "abstract_unit"
 require "stringio"
 require "active_support/key_generator"
 require "active_support/messages/rotation_configuration"
+require "fixtures/session_autoload_test/session_autoload_test/foo"
 
 class CookieStoreTest < ActionDispatch::IntegrationTest
   SessionKey = "_myapp_session"
