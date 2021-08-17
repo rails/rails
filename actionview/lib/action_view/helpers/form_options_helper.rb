@@ -597,15 +597,18 @@ module ActionView
       # Returns a string of option tags for the days of the week.
       #
       # Options:
-      # * <tt>:index_as_value</tt> - Defaults to false, set to true to use the index of the weekday as the value.
+      # * <tt>:index_as_value</tt> - Defaults to false, set to true to use the indexes from
+      # `I18n.translate("date.day_names")` as the values. By default, Sunday is always 0.
       # * <tt>:day_format</tt> - The I18n key of the array to use for the weekday options.
       # Defaults to :day_names, set to :abbr_day_names for abbreviations.
+      # * <tt>:beginning_of_week</tt> - Defaults to Date.beginning_of_week.
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in
       # a regular HTML select tag.
-      def weekday_options_for_select(selected = nil, index_as_value: false, day_format: :day_names)
+      def weekday_options_for_select(selected = nil, index_as_value: false, day_format: :day_names, beginning_of_week: Date.beginning_of_week)
         day_names = I18n.translate("date.#{day_format}")
-        day_names = day_names.map.with_index.to_h if index_as_value
+        day_names = day_names.map.with_index.to_a if index_as_value
+        day_names = day_names.rotate(Date::DAYS_INTO_WEEK.fetch(beginning_of_week))
 
         options_for_select(day_names, selected)
       end
