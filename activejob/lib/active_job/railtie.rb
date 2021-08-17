@@ -58,12 +58,12 @@ module ActiveJob
       if app.config.active_record.query_log_tags_enabled && app.config.active_job.log_query_tags_around_perform != false
         app.config.active_record.query_log_tags << :job
 
-      ActiveSupport.on_load(:active_job) do
-        include ActiveJob::QueryTags
-      end
+        ActiveSupport.on_load(:active_job) do
+          include ActiveJob::QueryTags
+        end
 
-      ActiveSupport.on_load(:active_record) do
-          ActiveRecord::QueryLogs.taggings[:job] = -> { context[:job]&.class&.name }
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::QueryLogs.taggings[:job] = -> { context[:job].class.name }
         end
       end
     end

@@ -72,6 +72,21 @@ module ActiveRecord
     mattr_accessor :cache_query_log_tags, instance_accessor: false, default: false
     thread_mattr_accessor :cached_comment, instance_accessor: false
 
+    class NullObject # :nodoc:
+      def method_missing(method, *args, &block)
+        NullObject.new
+      end
+
+      def nil?
+        true
+      end
+
+      private
+        def respond_to_missing?(method, include_private = false)
+          true
+        end
+    end
+
     class << self
       # Updates the context used to construct tags in the SQL comment.
       # Resets the cached comment if <tt>cache_query_log_tags</tt> is +true+.
@@ -87,7 +102,7 @@ module ActiveRecord
         update_context(**options)
         yield if block_given?
       ensure
-        update_context(**options.transform_values! { nil })
+        update_context(**options.transform_values! { NullObject.new })
       end
 
       # Temporarily tag any query executed within `&block`. Can be nested.
@@ -139,11 +154,15 @@ module ActiveRecord
 
         # Return the set of active inline tags from +with_tag+.
         def inline_tags
-          context[:inline_tags] ||= []
+          if context[:inline_tags].nil?
+            context[:inline_tags] = []
+          else
+            context[:inline_tags]
+          end
         end
 
         def context
-          Thread.current[:active_record_query_log_tags_context] ||= {}
+          Thread.current[:active_record_query_log_tags_context] ||= Hash.new { NullObject.new }
         end
 
         def escape_sql_comment(content)
@@ -153,11 +172,13 @@ module ActiveRecord
         def tag_content
           tags.flat_map { |i| [*i] }.filter_map do |tag|
             key, value_input = tag
+
             val = case value_input
                   when nil then tag_value(key) if taggings.has_key? key
                   when Proc then instance_exec(&value_input)
                   else value_input
             end
+
             "#{key}:#{val}" unless val.nil?
           end.join(",")
         end
