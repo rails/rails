@@ -57,13 +57,8 @@ module ActiveJob
           ActiveRecord::QueryLogs.taggings[:job] = -> { context[:job]&.class&.name }
           ActiveRecord::QueryLogs.tags << :job
 
-          ActiveJob::Base.class_eval do
-            around_perform :expose_job_to_query_logs
-
-            private
-              def expose_job_to_query_logs(&block)
-                ActiveRecord::QueryLogs.set_context(job: self, &block)
-              end
+          ActiveSupport.on_load(:active_job) do
+            include ActiveJob::QueryTags
           end
         end
       end

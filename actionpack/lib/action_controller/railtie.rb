@@ -98,17 +98,9 @@ module ActionController
 
           ActiveRecord::QueryLogs.tags << :controller << :action
 
-          context_extension = ->(controller) do
-            around_action :expose_controller_to_query_logs
-
-            private
-            def expose_controller_to_query_logs(&block)
-              ActiveRecord::QueryLogs.set_context(controller: self, &block)
-            end
+          ActiveSupport.on_load(:action_controller) do
+            include ActionController::QueryTags
           end
-
-          ActionController::Base.class_eval(&context_extension)
-          ActionController::API.class_eval(&context_extension)
         end
       end
     end
