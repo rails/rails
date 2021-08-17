@@ -510,6 +510,15 @@ in controllers and views. This defaults to `false`.
 
 * `config.active_record.verify_foreign_keys_for_fixtures` ensures all foreign key constraints are valid after fixtures are loaded in tests. Supported by PostgreSQL and SQLite only. Defaults to `false`.
 
+* `config.active_record.query_log_tags_enabled` specifies whether or not to enable adapter-level query comments.
+  Defaults to `false`.
+
+* `config.active_record.query_log_tags` define an `Array` specifying the key/value tags to be inserted in an SQL comment.
+  Defaults to `[ :application ]`, a predefined tag returning the application name.
+
+* `config.active_record.cache_query_log_tags` specifies whether or not to enable caching of query log tags.
+  Defaults to `false`.
+
 The MySQL adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
@@ -594,6 +603,9 @@ The schema dumper adds two additional configuration options:
     ```
 
 * `config.action_controller.raise_on_open_redirects` raises an `ArgumentError` when an unpermitted open redirect occurs. The default value is `false`.
+
+* `config.action_controller.log_query_tags_around_actions` determines whether controller context for query tags will be
+  automatically updated via an `around_filter`. The default value is `true`.
 
 ### Configuring Action Dispatch
 
@@ -1000,6 +1012,9 @@ There are a few configuration options available in Active Support:
 * `config.active_job.skip_after_callbacks_if_terminated` controls whether
   `after_enqueue` / `after_perform` callbacks run when a `before_enqueue` /
   `before_perform` callback halts with `throw :abort`.
+
+* `config.active_job.log_query_tags_around_perform` determines whether job context for query tags will be
+  automatically updated via an `around_perform`. The default value is `true`.
 
 ### Configuring Action Cable
 
