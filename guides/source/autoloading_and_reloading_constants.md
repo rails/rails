@@ -66,8 +66,8 @@ The section _Customizing Inflections_ below documents ways to override this defa
 
 Please, check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#file-structure) for further details.
 
-Autoload Paths
---------------
+config.autoload_paths
+---------------------
 
 We refer to the list of application directories whose contents are to be autoloaded as _autoload paths_. For example, `app/models`. Such directories represent the root namespace: `Object`.
 
@@ -86,10 +86,60 @@ UsersHelper
 
 Autoload paths automatically pick up any custom directories under `app`. For example, if your application has `app/presenters`, or `app/services`, etc., they are added to autoload paths.
 
-The array of autoload paths can be extended by mutating `config.autoload_paths`, in `config/application.rb`, but nowadays this is discouraged.
+The array of autoload paths can be extended by pushing to `config.autoload_paths`, in `config/application.rb` or `config/environments/*.rb`.
 
 WARNING. Please do not mutate `ActiveSupport::Dependencies.autoload_paths`; the public interface to change autoload paths is `config.autoload_paths`.
 
+These paths are managed by the `Rails.autoloaders.main` autoloader.
+
+WARNING: The classes and modules defined in the autoload paths are reloadable. Therefore, you cannot autoload them in initializers. Please check [_Autoloading when the application boots_](#autoloading-when-the-application-boots) down below for valid ways to do that.
+
+config.autoload_once_paths
+--------------------------
+
+Occasionally, you may want to be able to autoload classes and modules without reloading them. This is key for classes and modules that are cached somewhere.
+
+For example, Active Job serializers are stored inside Active Job:
+
+```ruby
+# config/initializer/custom_serializers.rb
+Rails.application.config.active_job.custom_serializers << MoneySerializer
+```
+
+Making `MoneySerializer` reloadable would be confusing, because reloading an edited version would have no effect on that class object stored in Active Job. Indeed, if `MoneySerializer` was reloadable, starting with Rails 7 such initializer would raise a `NameError`.
+
+Another use case are engines decorating framework classes:
+
+```ruby
+initializer "decorate ActionController::Base" do
+  ActiveSupport.on_load(:action_controller_base) do
+    include MyDecoration
+  end
+end
+```
+
+There, the module object stored in `MyDecoration` by the time the initializer runs becomes an ancestor of `ActionController::Base`, and reloading `MyDecoration` is pointless, it won't affect that ancestor chain.
+
+The directories in `config.autoload_once_paths` are managed by `Rails.autoloaders.once` and cover those use cases by allowing you to autoload classes and modules that won't be reloaded.
+
+The array of autoload once paths can be extended by pushing to `config.autoload_once_paths`, in `config/application.rb` or `config/environments/*.rb`. For example:
+
+```ruby
+module MyApplication
+  class Application < Rails::Application
+    config.autoload_once_paths << "#{root}/app/serializers"
+  end
+end
+```
+
+Classes and modules from the autoload once paths can be autoloaded in `config/initializers`. So, with that configuration this works:
+
+```ruby
+# config/initializer/custom_serializers.rb
+Rails.application.config.active_job.custom_serializers << MoneySerializer
+```
+
+ INFO: Technically, you can autoload classes and modules managed by the `once` autoloader in any initializer that runs after `:bootstrap_hook`.
 
 $LOAD_PATH
 ----------

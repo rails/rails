@@ -96,6 +96,54 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_not deps.autoloaded?(invalid_constant_name)
   end
 
+  test "the once autoloader can autoload from initializers" do
+    app_file "extras0/x.rb", "X = 0"
+    app_file "extras1/y.rb", "Y = 0"
+
+    # We should be able to configure autoload_once_paths in
+    # config/application.rb and in config/environments/*.rb.
+    add_to_config 'config.autoload_once_paths << "#{Rails.root}/extras0"'
+    add_to_env_config "development", 'config.autoload_once_paths << "#{Rails.root}/extras1"'
+
+    # Collections should br frozen after bootstrap, and you are ready to
+    # autoload with the once autoloader. In particular, from initializers.
+    $config_autoload_once_paths_is_frozen = false
+    $global_autoload_once_paths_is_frozen = false
+    add_to_config <<~RUBY
+    initializer :test_autoload_once_paths_is_frozen, after: :bootstrap_hook do
+      $config_autoload_once_paths_is_frozen = config.autoload_once_paths.frozen?
+      $global_autoload_once_paths_is_frozen = ActiveSupport::Dependencies.autoload_once_paths.frozen?
+      X
+    end
+    RUBY
+
+    app_file "config/initializers/autoload_Y.rb", "Y"
+
+    # Preconditions.
+    assert_not Object.const_defined?(:X)
+    assert_not Object.const_defined?(:Y)
+
+    boot
+
+    assert Object.const_defined?(:X)
+    assert Object.const_defined?(:Y)
+    assert $config_autoload_once_paths_is_frozen
+    assert $global_autoload_once_paths_is_frozen
+  end
+
+  test "the once autoloader can eager load" do
+    app_file "app/serializers/money_serializer.rb", "MoneySerializer = :dummy_value"
+
+    add_to_config 'config.autoload_once_paths << "#{Rails.root}/app/serializers"'
+    add_to_config 'config.eager_load_paths << "#{Rails.root}/app/serializers"'
+
+    assert_not Object.const_defined?(:MoneySerializer)
+
+    boot("production")
+
+    assert Object.const_defined?(:MoneySerializer)
+  end
+
   test "unloadable constants (main)" do
     app_file "app/models/user.rb", "class User; end"
     app_file "app/models/post.rb", "class Post; end"
@@ -303,13 +351,6 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     ActiveSupport::Dependencies.clear
 
     assert_equal %i(main_autoloader), $zeitwerk_integration_reload_test
-  end
-
-  test "unhooks" do
-    boot
-
-    assert_equal Module, Module.method(:const_missing).owner
-    assert_equal :no_op, deps.unhook!
   end
 
   test "reloading invokes before_remove_const" do

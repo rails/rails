@@ -50,6 +50,10 @@ module ActiveSupport # :nodoc:
 
     # :nodoc:
 
+    def eager_load?(path)
+      Dependencies._eager_load_paths.member?(path)
+    end
+
     # All files ever loaded.
     mattr_accessor :history, default: Set.new
 
@@ -291,16 +295,6 @@ module ActiveSupport # :nodoc:
           load_dependency(file) { result = super }
           result
         end
-    end
-
-    def hook!
-      Loadable.include_into(Object)
-      ModuleConstMissing.include_into(Module)
-    end
-
-    def unhook!
-      ModuleConstMissing.exclude_from(Module)
-      Loadable.exclude_from(Object)
     end
 
     def load?
@@ -697,5 +691,3 @@ module ActiveSupport # :nodoc:
       end
   end
 end
-
-ActiveSupport::Dependencies.hook!

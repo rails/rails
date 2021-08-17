@@ -13,68 +13,31 @@ module Rails
         config.generators.templates.unshift(*paths["lib/templates"].existent)
       end
 
-      initializer :ensure_autoload_once_paths_as_subset do
-        extra = ActiveSupport::Dependencies.autoload_once_paths -
-                ActiveSupport::Dependencies.autoload_paths
+      initializer :setup_main_autoloader do
+        autoloader = Rails.autoloaders.main
 
-        unless extra.empty?
-          abort <<-end_error
-            autoload_once_paths must be a subset of the autoload_paths.
-            Extra items in autoload_once_paths: #{extra * ','}
-          end_error
+        ActiveSupport::Dependencies.autoload_paths.freeze
+        ActiveSupport::Dependencies.autoload_paths.uniq.each do |path|
+          # Zeitwerk only accepts existing directories in `push_dir`.
+          next unless File.directory?(path)
+
+          autoloader.push_dir(path)
+          autoloader.do_not_eager_load(path) unless ActiveSupport::Dependencies.eager_load?(path)
         end
-      end
 
-      # This will become an error if/when we remove classic mode. The plan is
-      # autoloaders won't be configured up to this point in the finisher, so
-      # constants just won't be found, raising regular NameError exceptions.
-      initializer :warn_if_autoloaded, before: :let_zeitwerk_take_over do
-        next if config.cache_classes
-        next if ActiveSupport::Dependencies.autoloaded_constants.empty?
+        unless config.cache_classes
+          autoloader.enable_reloading
+          autoloader.on_unload do |_cpath, value, _abspath|
+            value.before_remove_const if value.respond_to?(:before_remove_const)
+          end
+        end
 
-        autoloaded    = ActiveSupport::Dependencies.autoloaded_constants
-        constants     = "constant".pluralize(autoloaded.size)
-        enum          = autoloaded.to_sentence
-        have          = autoloaded.size == 1 ? "has" : "have"
-        these         = autoloaded.size == 1 ? "This" : "These"
-        example       = autoloaded.first
-        example_klass = example.constantize.class
-
-        ActiveSupport::DescendantsTracker.clear
-        ActiveSupport::Dependencies.clear
-
-        unload_message = "#{these} autoloaded #{constants} #{have} been unloaded."
-
-        ActiveSupport::Deprecation.warn(<<~WARNING)
-          Initialization autoloaded the #{constants} #{enum}.
-
-          Being able to do this is deprecated. Autoloading during initialization is going
-          to be an error condition in future versions of Rails.
-
-          Reloading does not reboot the application, and therefore code executed during
-          initialization does not run again. So, if you reload #{example}, for example,
-          the expected changes won't be reflected in that stale #{example_klass} object.
-
-          #{unload_message}
-
-          In order to autoload safely at boot time, please wrap your code in a reloader
-          callback this way:
-
-              Rails.application.reloader.to_prepare do
-                # Autoload classes and modules needed at boot time here.
-              end
-
-          That block runs when the application boots, and every time there is a reload.
-          For historical reasons, it may run twice, so it has to be idempotent.
-
-          Check the "Autoloading and Reloading Constants" guide to learn more about how
-          Rails autoloads and reloads.
-        WARNING
+        autoloader.setup
       end
 
       initializer :let_zeitwerk_take_over do
         require "active_support/dependencies/zeitwerk_integration"
-        ActiveSupport::Dependencies::ZeitwerkIntegration.take_over(enable_reloading: !config.cache_classes)
+        ActiveSupport::Dependencies::ZeitwerkIntegration.take_over
       end
 
       # Setup default session store if not already set in config/application.rb
@@ -243,13 +206,6 @@ module Rails
           app.reloader.to_complete do
             class_unload!(&callback)
           end
-        end
-      end
-
-      # Disable dependency loading during request cycle
-      initializer :disable_dependency_loading do
-        if config.eager_load && config.cache_classes && !config.enable_dependency_loading
-          ActiveSupport::Dependencies.unhook!
         end
       end
     end

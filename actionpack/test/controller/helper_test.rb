@@ -87,8 +87,8 @@ end
 class HelpersTypoControllerTest < ActiveSupport::TestCase
   def test_helper_typo_error_message
     e = assert_raise(NameError) { HelpersTypoController.helper "admin/users" }
-    # This message is better if autoloading.
-    assert_equal "uninitialized constant Admin::UsersHelper\nDid you mean?  Admin::UsersHelpeR", e.message
+    assert_includes e.message, "uninitialized constant Admin::UsersHelper"
+    assert_includes e.message, "Did you mean?  Admin::UsersHelpeR"
   end
 end
 
