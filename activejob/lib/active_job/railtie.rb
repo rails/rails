@@ -8,6 +8,7 @@ module ActiveJob
   class Railtie < Rails::Railtie # :nodoc:
     config.active_job = ActiveSupport::OrderedOptions.new
     config.active_job.custom_serializers = []
+    config.active_job.log_query_tags_around_perform = true
 
     initializer "active_job.logger" do
       ActiveSupport.on_load(:active_job) { self.logger = ::Rails.logger }
@@ -51,11 +52,6 @@ module ActiveJob
     end
 
     initializer "active_job.query_log_tags" do |app|
-      ActiveSupport.on_load(:active_job) do
-        singleton_class.attr_accessor :log_query_tags_around_perform
-        self.log_query_tags_around_perform = true
-      end
-
       ActiveSupport.on_load(:active_record) do
         if app.config.active_record.query_log_tags_enabled && app.config.active_job.log_query_tags_around_perform != false
           ActiveRecord::QueryLogs.taggings[:job] = -> { context[:job]&.class&.name }

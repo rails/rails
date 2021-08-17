@@ -11,6 +11,7 @@ module ActionController
   class Railtie < Rails::Railtie # :nodoc:
     config.action_controller = ActiveSupport::OrderedOptions.new
     config.action_controller.raise_on_open_redirects = false
+    config.action_controller.log_query_tags_around_actions = true
 
     config.eager_load_namespaces << ActionController
 
@@ -88,11 +89,6 @@ module ActionController
     end
 
     initializer "action_controller.query_log_tags" do |app|
-      ActiveSupport.on_load(:action_controller_base) do
-        singleton_class.attr_accessor :log_query_tags_around_actions
-        self.log_query_tags_around_actions = true
-      end
-
       ActiveSupport.on_load(:active_record) do
         if app.config.active_record.query_log_tags_enabled && app.config.action_controller.log_query_tags_around_actions != false
           ActiveRecord::QueryLogs.taggings.merge! \

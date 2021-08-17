@@ -330,12 +330,12 @@ module ActiveRecord
   #
   #    config.active_record.query_log_tags_enabled = true
   #
-  # When included in +ActionController+, controller context is automatically updated via an
-  # +around_action+ filter. This behaviour can be disabled as follows:
+  # When included in +ActionController::Base+ or +ActionController::API, controller context is automatically
+  # updated via an +around_action+ filter. This behaviour can be disabled as follows:
   #
   #    config.action_controller.log_query_tags_around_actions = false
   #
-  # This behaviour can be disabled for +ActiveJob+ in a similar way:
+  # This behaviour can be disabled for Active Job in a similar way:
   #
   #    config.active_job.log_query_tags_around_perform = false
   singleton_class.attr_accessor :query_log_tags_enabled
