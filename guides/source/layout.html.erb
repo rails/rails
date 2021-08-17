@@ -53,8 +53,8 @@
               <% documents_by_section.each do |section| %>
                 <div class="guides-section">
                   <dt><%= section['name'] %></dt>
-                  <% finished_documents(section['documents']).each do |document| %>
-                  <dd><a href="<%= document['url'] %>"><%= document['name'] %></a></dd>
+                  <% section['documents'].each do |document| %>
+                    <dd><a href="<%= document['url'] %>"><%= '(WIP) ' if document['work_in_progress'] %><%= document['name'] %></a></dd>
                   <% end %>
                 </div>
               <% end %>
@@ -67,8 +67,8 @@
             <option value="index.html">Guides Index</option>
             <% docs_for_menu.each do |section| %>
               <optgroup label="<%= section['name'] %>">
-                <% finished_documents(section['documents']).each do |document| %>
-                  <option value="<%= document['url'] %>"><%= document['name'] %></option>
+                <% section['documents'].each do |document| %>
+                  <option value="<%= document['url'] %>"><%= '(WIP) ' if document['work_in_progress'] %><%= document['name'] %></option>
                 <% end %>
               </optgroup>
             <% end %>
