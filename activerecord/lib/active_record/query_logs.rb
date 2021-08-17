@@ -154,12 +154,22 @@ module ActiveRecord
           tags.flat_map { |i| [*i] }.filter_map do |tag|
             key, value_input = tag
             val = case value_input
-                  when nil then instance_exec(&taggings[key]) if taggings.has_key? key
+                  when nil then tag_value(key) if taggings.has_key? key
                   when Proc then instance_exec(&value_input)
                   else value_input
             end
             "#{key}:#{val}" unless val.nil?
           end.join(",")
+        end
+
+        def tag_value(key)
+          value = taggings[key]
+
+          if value.respond_to?(:call)
+            instance_exec(&taggings[key])
+          else
+            value
+          end
         end
 
         def inline_tag_content
