@@ -11,13 +11,9 @@ class QueryLogsTest < ActiveRecord::TestCase
   }
 
   def setup
-    @original_enabled = ActiveRecord.query_log_tags_enabled
-    ActiveRecord.query_log_tags_enabled = true
-    if @original_enabled == false
-      # if we haven't enabled the feature, the execution methods need to be prepended at run time
-      ActiveRecord::Base.connection.class_eval do
-        prepend(ActiveRecord::QueryLogs::ExecutionMethods)
-      end
+    # Enable the query tags logging
+    ActiveRecord::Base.connection.class_eval do
+      prepend(ActiveRecord::QueryLogs::ExecutionMethods)
     end
     @original_prepend = ActiveRecord::QueryLogs.prepend_comment
     ActiveRecord::QueryLogs.prepend_comment = false
@@ -26,7 +22,6 @@ class QueryLogsTest < ActiveRecord::TestCase
   end
 
   def teardown
-    ActiveRecord.query_log_tags_enabled = @original_enabled
     ActiveRecord::QueryLogs.prepend_comment = @original_prepend
     ActiveRecord::QueryLogs.tags = []
   end
