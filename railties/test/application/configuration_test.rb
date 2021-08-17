@@ -1874,60 +1874,6 @@ module ApplicationTests
       assert_includes $LOAD_PATH, "#{app_path}/custom_eager_load_path"
     end
 
-    test "autoloading during initialization gets deprecation message and clearing if config.cache_classes is false" do
-      app_file "lib/c.rb", <<~EOS
-        class C
-          extend ActiveSupport::DescendantsTracker
-        end
-
-        class X < C
-        end
-      EOS
-
-      app_file "app/models/d.rb", <<~EOS
-        require "c"
-
-        class D < C
-        end
-      EOS
-
-      app_file "config/initializers/autoload.rb", "D.class"
-
-      app "development"
-
-      # TODO: Test deprecation message, assert_deprecated { app "development" }
-      # does not collect it.
-
-      assert_equal [X], C.descendants
-      assert_empty ActiveSupport::Dependencies.autoloaded_constants
-    end
-
-    test "autoloading during initialization triggers nothing if config.cache_classes is true" do
-      app_file "lib/c.rb", <<~EOS
-        class C
-          extend ActiveSupport::DescendantsTracker
-        end
-
-        class X < C
-        end
-      EOS
-
-      app_file "app/models/d.rb", <<~EOS
-        require "c"
-
-        class D < C
-        end
-      EOS
-
-      app_file "config/initializers/autoload.rb", "D.class"
-
-      app "production"
-
-      # TODO: Test no deprecation message is issued.
-
-      assert_equal [X, D], C.descendants
-    end
-
     test "load_database_yaml returns blank hash if configuration file is blank" do
       app_file "config/database.yml", ""
       app "development"

@@ -13,9 +13,31 @@ module Rails
         config.generators.templates.unshift(*paths["lib/templates"].existent)
       end
 
+      initializer :setup_main_autoloader do
+        autoloader = Rails.autoloaders.main
+
+        ActiveSupport::Dependencies.autoload_paths.freeze
+        ActiveSupport::Dependencies.autoload_paths.uniq.each do |path|
+          # Zeitwerk only accepts existing directories in `push_dir`.
+          next unless File.directory?(path)
+
+          autoloader.push_dir(path)
+          autoloader.do_not_eager_load(path) unless ActiveSupport::Dependencies.eager_load?(path)
+        end
+
+        unless config.cache_classes
+          autoloader.enable_reloading
+          autoloader.on_unload do |_cpath, value, _abspath|
+            value.before_remove_const if value.respond_to?(:before_remove_const)
+          end
+        end
+
+        autoloader.setup
+      end
+
       initializer :let_zeitwerk_take_over do
         require "active_support/dependencies/zeitwerk_integration"
-        ActiveSupport::Dependencies::ZeitwerkIntegration.take_over(enable_reloading: !config.cache_classes)
+        ActiveSupport::Dependencies::ZeitwerkIntegration.take_over
       end
 
       # Setup default session store if not already set in config/application.rb

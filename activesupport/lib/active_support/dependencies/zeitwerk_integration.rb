@@ -53,54 +53,8 @@ module ActiveSupport
         end
       end
 
-      class << self
-        def take_over(enable_reloading:)
-          setup_autoloaders(enable_reloading)
-          freeze_paths
-          decorate_dependencies
-        end
-
-        private
-          def setup_autoloaders(enable_reloading)
-            Dependencies.autoload_paths.each do |autoload_path|
-              # Zeitwerk only accepts existing directories in `push_dir` to
-              # prevent misconfigurations.
-              next unless File.directory?(autoload_path)
-
-              autoloader = \
-                autoload_once?(autoload_path) ? Rails.autoloaders.once : Rails.autoloaders.main
-
-              autoloader.push_dir(autoload_path)
-              autoloader.do_not_eager_load(autoload_path) unless eager_load?(autoload_path)
-            end
-
-            if enable_reloading
-              Rails.autoloaders.main.enable_reloading
-              Rails.autoloaders.main.on_unload do |_cpath, value, _abspath|
-                value.before_remove_const if value.respond_to?(:before_remove_const)
-              end
-            end
-
-            Rails.autoloaders.each(&:setup)
-          end
-
-          def autoload_once?(autoload_path)
-            Dependencies.autoload_once_paths.include?(autoload_path)
-          end
-
-          def eager_load?(autoload_path)
-            Dependencies._eager_load_paths.member?(autoload_path)
-          end
-
-          def freeze_paths
-            Dependencies.autoload_paths.freeze
-            Dependencies.autoload_once_paths.freeze
-            Dependencies._eager_load_paths.freeze
-          end
-
-          def decorate_dependencies
-            Dependencies.singleton_class.prepend(Decorations)
-          end
+      def self.take_over
+        Dependencies.singleton_class.prepend(Decorations)
       end
     end
   end

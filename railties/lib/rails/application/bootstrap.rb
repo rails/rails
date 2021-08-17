@@ -64,6 +64,23 @@ module Rails
         end
       end
 
+      # We setup the once autoloader this early so that engines and applications
+      # are able to autoload from these paths during initialization.
+      initializer :setup_once_autoloader do
+        autoloader = Rails.autoloaders.once
+
+        ActiveSupport::Dependencies.autoload_once_paths.freeze
+        ActiveSupport::Dependencies.autoload_once_paths.uniq.each do |path|
+          # Zeitwerk only accepts existing directories in `push_dir`.
+          next unless File.directory?(path)
+
+          autoloader.push_dir(path)
+          autoloader.do_not_eager_load(path) unless ActiveSupport::Dependencies.eager_load?(path)
+        end
+
+        autoloader.setup
+      end
+
       initializer :bootstrap_hook, group: :all do |app|
         ActiveSupport.run_load_hooks(:before_initialize, app)
       end

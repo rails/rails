@@ -50,6 +50,10 @@ module ActiveSupport # :nodoc:
 
     # :nodoc:
 
+    def eager_load?(path)
+      Dependencies._eager_load_paths.member?(path)
+    end
+
     # All files ever loaded.
     mattr_accessor :history, default: Set.new
 
