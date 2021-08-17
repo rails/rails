@@ -16,7 +16,7 @@ module ActiveJob
 
     initializer "active_job.custom_serializers" do |app|
       config.after_initialize do
-        custom_serializers = app.config.active_job.delete(:custom_serializers)
+        custom_serializers = app.config.active_job.custom_serializers
         ActiveJob::Serializers.add_serializers custom_serializers
       end
     end
@@ -26,7 +26,10 @@ module ActiveJob
       options.queue_adapter ||= :async
 
       # Configs used in other initializers
-      options = options.except(:log_query_tags_around_perform)
+      options = options.except(
+        :log_query_tags_around_perform,
+        :custom_serializers
+      )
 
       ActiveSupport.on_load(:active_job) do
         options.each do  |k, v|
