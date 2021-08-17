@@ -1,4 +1,4 @@
-*   Emit active support events from analyzers.
+*   Emit active support instrumentation events from analyzers.
 
     Fixes #42930
 
