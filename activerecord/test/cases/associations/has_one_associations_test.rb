@@ -221,7 +221,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     firm.destroy
 
     assert_not_empty firm.errors
-    assert_equal "Cannot delete record because a dependent Account exists", firm.errors[:base].first
+    assert_equal "Cannot delete record because a dependent account exists", firm.errors[:base].first
     assert RestrictedWithErrorFirm.exists?(name: "restrict")
     assert_predicate firm.account, :present?
   end
@@ -242,20 +242,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_predicate firm.account, :present?
   ensure
     I18n.backend.reload!
-  end
-
-  def test_restrict_with_error_without_locale
-    firm = RestrictedWithErrorFirm.create!(name: "restrict")
-    firm.create_account(credit_limit: 10)
-
-    assert_not_nil firm.account
-
-    firm.destroy
-
-    assert_not_empty firm.errors
-    assert_equal "Cannot delete record because a dependent Account exists", firm.errors[:base].first
-    assert RestrictedWithErrorFirm.exists?(name: "restrict")
-    assert_predicate firm.account, :present?
   end
 
   def test_successful_build_association

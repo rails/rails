@@ -110,4 +110,17 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     Person.human_attribute_name("gender", options)
     assert_equal({ default: "Cool gender" }, options)
   end
+
+  def test_translated_model_attribute_name
+    assert_equal "translation missing: en.activemodel.attributes.person.gender", Person.translate_attribute_name("gender")
+  end
+
+  def test_translated_model_attribute_name_with_default
+    assert_equal "Person Name", Person.translate_attribute_name("name", default: "Person Name")
+  end
+
+  def test_translated_model_attribute_name_with_translation
+    I18n.backend.store_translations "en", activemodel: { attributes: { person: { name: "Person Name Attribute" } } }
+    assert_equal "Person Name Attribute", Person.translate_attribute_name("name")
+  end
 end

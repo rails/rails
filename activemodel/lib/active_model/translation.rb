@@ -42,6 +42,17 @@ module ActiveModel
     #
     # Specify +options+ with additional translating options.
     def human_attribute_name(attribute, options = {})
+      options  = options.dup
+      defaults = []
+
+      defaults << options.delete(:default) if options[:default]
+      defaults << attribute.to_s.split(".").pop.humanize
+
+      options[:default] = defaults
+      translate_attribute_name(attribute, **options)
+    end
+
+    def translate_attribute_name(attribute, options = {})
       options   = { count: 1 }.merge!(options)
       parts     = attribute.to_s.split(".")
       attribute = parts.pop
@@ -60,8 +71,7 @@ module ActiveModel
       end
 
       defaults << :"attributes.#{attribute}"
-      defaults << options.delete(:default) if options[:default]
-      defaults << attribute.humanize
+      defaults.push(*options.delete(:default)) if options[:default]
 
       options[:default] = defaults
       I18n.translate(defaults.shift, **options)
