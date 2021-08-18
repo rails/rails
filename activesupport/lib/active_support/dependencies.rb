@@ -113,12 +113,6 @@ module ActiveSupport # :nodoc:
       nil
     end
 
-    def load_once_path?(path)
-      # to_s works around a ruby issue where String#start_with?(Pathname)
-      # will raise a TypeError: no implicit conversion of Pathname into String
-      autoload_once_paths.any? { |base| path.start_with?(base.to_s) }
-    end
-
     # Get the reference for class named +name+.
     # Raises an exception if referenced class does not exist.
     def constantize(name)
