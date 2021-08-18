@@ -224,12 +224,6 @@ module ActiveSupport # :nodoc:
       autoload_once_paths.any? { |base| path.start_with?(base.to_s) }
     end
 
-    # Returns the constant path for the provided parent and constant name.
-    def qualified_name_for(mod, name)
-      mod_name = to_constant_name mod
-      mod_name == "Object" ? name.to_s : "#{mod_name}::#{name}"
-    end
-
     # Get the reference for class named +name+.
     # Raises an exception if referenced class does not exist.
     def constantize(name)

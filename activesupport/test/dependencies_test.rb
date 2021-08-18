@@ -54,16 +54,6 @@ class DependenciesTest < ActiveSupport::TestCase
     assert_raises(NameError) { ActiveSupport::Dependencies.qualified_const_defined?("invalid") }
   end
 
-  def test_qualified_name_for
-    assert_equal "A", ActiveSupport::Dependencies.qualified_name_for(Object, :A)
-    assert_equal "A", ActiveSupport::Dependencies.qualified_name_for(:Object, :A)
-    assert_equal "A", ActiveSupport::Dependencies.qualified_name_for("Object", :A)
-    assert_equal "A", ActiveSupport::Dependencies.qualified_name_for("::Object", :A)
-
-    assert_equal "ActiveSupport::Dependencies::A", ActiveSupport::Dependencies.qualified_name_for(:'ActiveSupport::Dependencies', :A)
-    assert_equal "ActiveSupport::Dependencies::A", ActiveSupport::Dependencies.qualified_name_for(ActiveSupport::Dependencies, :A)
-  end
-
   def test_new_constants_in_with_inherited_constants
     m = ActiveSupport::Dependencies.new_constants_in(:Object) do
       Object.class_eval { include ModuleWithConstant }
