@@ -224,20 +224,6 @@ module ActiveSupport # :nodoc:
       autoload_once_paths.any? { |base| path.start_with?(base.to_s) }
     end
 
-    # Attempt to autoload the provided module name by searching for a directory
-    # matching the expected path suffix. If found, the module is created and
-    # assigned to +into+'s constants with the name +const_name+. Provided that
-    # the directory was loaded from a reloadable base path, it is added to the
-    # set of constants that are to be unloaded.
-    def autoload_module!(into, const_name, qualified_name, path_suffix)
-      return nil unless base_path = autoloadable_module?(path_suffix)
-      mod = Module.new
-      into.const_set const_name, mod
-      autoloaded_constants << qualified_name unless autoload_once_paths.include?(base_path)
-      autoloaded_constants.uniq!
-      mod
-    end
-
     # Returns the constant path for the provided parent and constant name.
     def qualified_name_for(mod, name)
       mod_name = to_constant_name mod
