@@ -189,7 +189,6 @@ module ActiveSupport # :nodoc:
       Dependencies.unload_interlock do
         loaded.clear
         loading.clear
-        remove_unloadable_constants!
       end
     end
 
@@ -243,19 +242,6 @@ module ActiveSupport # :nodoc:
     def qualified_name_for(mod, name)
       mod_name = to_constant_name mod
       mod_name == "Object" ? name.to_s : "#{mod_name}::#{name}"
-    end
-
-    # Remove the constants that have been autoloaded, and those that have been
-    # marked for unloading. Before each constant is removed a callback is sent
-    # to its class/module if it implements +before_remove_const+.
-    #
-    # The callback implementation should be restricted to cleaning up caches, etc.
-    # as the environment will be in an inconsistent state, e.g. other constants
-    # may have already been unloaded and not accessible.
-    def remove_unloadable_constants!
-      autoloaded_constants.each { |const| remove_constant const }
-      autoloaded_constants.clear
-      explicitly_unloadable_constants.each { |const| remove_constant const }
     end
 
     # Get the reference for class named +name+.
