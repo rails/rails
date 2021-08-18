@@ -54,9 +54,6 @@ module ActiveSupport # :nodoc:
       Dependencies._eager_load_paths.member?(path)
     end
 
-    # Stack of files being loaded.
-    mattr_accessor :loading, default: []
-
     # Should we load files or require them?
     mattr_accessor :mechanism, default: ENV["NO_RELOAD"] ? :require : :load
 
@@ -180,9 +177,6 @@ module ActiveSupport # :nodoc:
     end
 
     def clear
-      Dependencies.unload_interlock do
-        loading.clear
-      end
     end
 
     # Is the provided constant path defined?
