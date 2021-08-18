@@ -193,42 +193,6 @@ module ActiveSupport # :nodoc:
       end
     end
 
-    def require_or_load(file_name, const_path = nil)
-      file_name = file_name.chomp(".rb")
-      expanded = File.expand_path(file_name)
-      return if loaded.include?(expanded)
-
-      Dependencies.load_interlock do
-        # Maybe it got loaded while we were waiting for our lock:
-        return if loaded.include?(expanded)
-
-        # Record that we've seen this file *before* loading it to avoid an
-        # infinite loop with mutual dependencies.
-        loaded << expanded
-        loading << expanded
-
-        begin
-          if load?
-            load_args = ["#{file_name}.rb"]
-            load_args << const_path unless const_path.nil?
-
-            result = load_file(*load_args)
-          else
-            result = require file_name
-          end
-        rescue Exception
-          loaded.delete expanded
-          raise
-        ensure
-          loading.pop
-        end
-
-        # Record history *after* loading so first load gets warnings.
-        history << expanded
-        result
-      end
-    end
-
     # Is the provided constant path defined?
     def qualified_const_defined?(path)
       Object.const_defined?(path, false)
