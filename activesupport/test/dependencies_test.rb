@@ -35,10 +35,6 @@ class DependenciesTest < ActiveSupport::TestCase
     assert_includes "uninitialized constant ImaginaryObject", e.message
   end
 
-  def test_loadable_constants_for_path_should_handle_empty_autoloads
-    assert_equal [], ActiveSupport::Dependencies.loadable_constants_for_path("hello")
-  end
-
   def test_qualified_const_defined
     assert ActiveSupport::Dependencies.qualified_const_defined?("Object")
     assert ActiveSupport::Dependencies.qualified_const_defined?("::Object")

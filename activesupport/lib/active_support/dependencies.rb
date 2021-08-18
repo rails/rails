@@ -198,29 +198,6 @@ module ActiveSupport # :nodoc:
       Object.const_defined?(path, false)
     end
 
-    # Given +path+, a filesystem path to a ruby file, return an array of
-    # constant paths which would cause Dependencies to attempt to load this
-    # file.
-    def loadable_constants_for_path(path, bases = autoload_paths)
-      path = path.chomp(".rb")
-      expanded_path = File.expand_path(path)
-      paths = []
-
-      bases.each do |root|
-        expanded_root = File.expand_path(root)
-        next unless expanded_path.start_with?(expanded_root)
-
-        root_size = expanded_root.size
-        next if expanded_path[root_size] != ?/
-
-        nesting = expanded_path[(root_size + 1)..-1]
-        paths << nesting.camelize unless nesting.blank?
-      end
-
-      paths.uniq!
-      paths
-    end
-
     # Search for a file in autoload_paths matching the provided suffix.
     def search_for_file(path_suffix)
       path_suffix += ".rb" unless path_suffix.end_with?(".rb")
