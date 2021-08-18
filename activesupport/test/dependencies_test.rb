@@ -28,33 +28,11 @@ class DependenciesTest < ActiveSupport::TestCase
     $LOAD_PATH.pop
   end
 
-  def test_depend_on_path
-    expected = assert_raises(LoadError) do
-      Kernel.require "omgwtfbbq"
-    end
-
-    e = assert_raises(LoadError) do
-      ActiveSupport::Dependencies.depend_on "omgwtfbbq"
-    end
-    assert_equal expected.path, e.path
-  end
-
-  def test_depend_on_message
-    e = assert_raises(LoadError) do
-      ActiveSupport::Dependencies.depend_on "omgwtfbbq"
-    end
-    assert_equal "No such file to load -- omgwtfbbq.rb", e.message
-  end
-
   def test_smart_name_error_strings
     e = assert_raise NameError do
       Object.module_eval "ImaginaryObject"
     end
     assert_includes "uninitialized constant ImaginaryObject", e.message
-  end
-
-  def test_loadable_constants_for_path_should_handle_empty_autoloads
-    assert_equal [], ActiveSupport::Dependencies.loadable_constants_for_path("hello")
   end
 
   def test_qualified_const_defined
@@ -74,29 +52,6 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_qualified_const_defined_explodes_with_invalid_const_name
     assert_raises(NameError) { ActiveSupport::Dependencies.qualified_const_defined?("invalid") }
-  end
-
-  def test_qualified_name_for
-    assert_equal "A", ActiveSupport::Dependencies.qualified_name_for(Object, :A)
-    assert_equal "A", ActiveSupport::Dependencies.qualified_name_for(:Object, :A)
-    assert_equal "A", ActiveSupport::Dependencies.qualified_name_for("Object", :A)
-    assert_equal "A", ActiveSupport::Dependencies.qualified_name_for("::Object", :A)
-
-    assert_equal "ActiveSupport::Dependencies::A", ActiveSupport::Dependencies.qualified_name_for(:'ActiveSupport::Dependencies', :A)
-    assert_equal "ActiveSupport::Dependencies::A", ActiveSupport::Dependencies.qualified_name_for(ActiveSupport::Dependencies, :A)
-  end
-
-  def test_new_constants_in_with_inherited_constants
-    m = ActiveSupport::Dependencies.new_constants_in(:Object) do
-      Object.class_eval { include ModuleWithConstant }
-    end
-    assert_equal [], m
-  end
-
-  def test_new_constants_in_with_illegal_module_name_raises_correct_error
-    assert_raise(NameError) do
-      ActiveSupport::Dependencies.new_constants_in("Illegal-Name") { }
-    end
   end
 end
 
