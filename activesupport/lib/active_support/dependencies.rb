@@ -237,18 +237,6 @@ module ActiveSupport # :nodoc:
         explicitly_unloadable_constants.include?(to_constant_name(const_desc))
     end
 
-    # Mark the provided constant name for unloading. This constant will be
-    # unloaded on each request, not just the next one.
-    def mark_for_unload(const_desc)
-      name = to_constant_name const_desc
-      if explicitly_unloadable_constants.include? name
-        false
-      else
-        explicitly_unloadable_constants << name
-        true
-      end
-    end
-
     # Convert the provided const desc to a qualified constant name (as a string).
     # A module, class, symbol, or string may be provided.
     def to_constant_name(desc) # :nodoc:
