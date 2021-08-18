@@ -113,16 +113,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file("app/assets/stylesheets/application.css")
   end
 
-  def test_webpack_assets
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root, "--webpack"]
-
-    assert_file("#{app_root}/app/views/layouts/application.html.erb", /stylesheet_link_tag\s+"application", "data-turbo-track": "reload"/)
-    assert_file("#{app_root}/app/views/layouts/application.html.erb", /javascript_pack_tag\s+"application", "data-turbo-track": "reload"/)
-    assert_file("#{app_root}/app/assets/stylesheets/application.css")
-    assert_file("#{app_root}/app/javascript/packs/application.js")
-  end
-
   def test_application_job_file_present
     run_generator
     assert_file("app/jobs/application_job.rb")

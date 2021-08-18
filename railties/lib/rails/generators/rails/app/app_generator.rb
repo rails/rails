@@ -485,19 +485,6 @@ module Rails
         end
       end
 
-      def delete_js_folder_skipping_javascript
-        if !options[:webpack] && !options[:minimal]
-          remove_dir "app/javascript"
-        end
-      end
-
-      def delete_js_packs_when_minimal_skipping_webpack
-        if options[:webpack] && options[:minimal] && options[:skip_webpack_install]
-          remove_dir "app/javascript/packs"
-          keep_file  "app/javascript"
-        end
-      end
-
       def delete_assets_initializer_skipping_sprockets
         if options[:skip_sprockets]
           remove_file "config/initializers/assets.rb"
