@@ -54,9 +54,6 @@ module ActiveSupport # :nodoc:
       Dependencies._eager_load_paths.member?(path)
     end
 
-    # Should we load files or require them?
-    mattr_accessor :mechanism, default: ENV["NO_RELOAD"] ? :require : :load
-
     # The set of directories from which we may automatically load files. Files
     # under these directories will be reloaded on each request in development mode,
     # unless the directory also appears in autoload_once_paths.
