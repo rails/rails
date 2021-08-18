@@ -73,10 +73,6 @@ module ActiveSupport # :nodoc:
     # cleared.
     mattr_accessor :autoloaded_constants, default: []
 
-    # An array of constant names that need to be unloaded on every request. Used
-    # to allow arbitrary constants to be marked for unloading.
-    mattr_accessor :explicitly_unloadable_constants, default: []
-
     def clear
     end
 
