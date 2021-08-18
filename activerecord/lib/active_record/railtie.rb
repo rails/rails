@@ -87,7 +87,7 @@ module ActiveRecord
     end
 
     initializer "active_record.migration_error" do |app|
-      if config.active_record.delete(:migration_error) == :page_load
+      if config.active_record.migration_error == :page_load
         config.app_middleware.insert_after ::ActionDispatch::Callbacks,
           ActiveRecord::Migration::CheckPending,
           file_watcher: app.config.file_watcher
@@ -95,9 +95,9 @@ module ActiveRecord
     end
 
     initializer "active_record.database_selector" do
-      if options = config.active_record.delete(:database_selector)
-        resolver = config.active_record.delete(:database_resolver)
-        operations = config.active_record.delete(:database_resolver_context)
+      if options = config.active_record.database_selector
+        resolver = config.active_record.database_resolver
+        operations = config.active_record.database_resolver_context
         config.app_middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, operations, options
       end
     end
@@ -128,9 +128,9 @@ To keep using the current cache store, you can turn off cache versioning entirel
     end
 
     initializer "active_record.check_schema_cache_dump" do
-      check_schema_cache_dump_version = config.active_record.delete(:check_schema_cache_dump_version)
+      check_schema_cache_dump_version = config.active_record.check_schema_cache_dump_version
 
-      if config.active_record.delete(:use_schema_cache_dump)
+      if config.active_record.use_schema_cache_dump
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
             db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).first
@@ -205,7 +205,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
     SQLITE3_PRODUCTION_WARN = "You are running SQLite in production, this is generally not recommended."\
       " You can disable this warning by setting \"config.active_record.sqlite3_production_warning=false\"."
     initializer "active_record.sqlite3_production_warning" do
-      if config.active_record.delete(:sqlite3_production_warning) && Rails.env.production?
+      if config.active_record.sqlite3_production_warning && Rails.env.production?
         ActiveSupport.on_load(:active_record_sqlite3adapter) do
           Rails.logger.warn(SQLITE3_PRODUCTION_WARN)
         end
@@ -213,7 +213,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
     end
 
     initializer "active_record.set_configs" do |app|
-      configs = app.config.active_record.except(:query_log_tags_enabled, :query_log_tags, :cache_query_log_tags)
+      configs = app.config.active_record
 
       config.after_initialize do
         configs.each do |k, v|
@@ -226,6 +226,20 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
 
       ActiveSupport.on_load(:active_record) do
+        # Configs used in other initializers
+        configs = configs.except(
+          :migration_error,
+          :database_selector,
+          :database_resolver,
+          :database_resolver_context,
+          :query_log_tags_enabled,
+          :query_log_tags,
+          :cache_query_log_tags,
+          :sqlite3_production_warning,
+          :check_schema_cache_dump_version,
+          :use_schema_cache_dump
+        )
+
         configs.each do |k, v|
           next if k == :encryption
           setter = "#{k}="

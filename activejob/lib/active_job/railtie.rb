@@ -25,13 +25,13 @@ module ActiveJob
       options = app.config.active_job
       options.queue_adapter ||= :async
 
-      # Configs used in other initializers
-      options = options.except(
-        :log_query_tags_around_perform,
-        :custom_serializers
-      )
-
       ActiveSupport.on_load(:active_job) do
+        # Configs used in other initializers
+        options = options.except(
+          :log_query_tags_around_perform,
+          :custom_serializers
+        )
+
         options.each do  |k, v|
           k = "#{k}="
           send(k, v) if respond_to? k

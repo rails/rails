@@ -57,18 +57,18 @@ module ActionController
       options.asset_host        ||= app.config.asset_host
       options.relative_url_root ||= app.config.relative_url_root
 
-      # Configs used in other initializers
-      options = options.except(
-        :log_query_tags_around_actions,
-        :permit_all_parameters,
-        :action_on_unpermitted_parameters,
-        :always_permitted_parameters
-      )
-
       ActiveSupport.on_load(:action_controller) do
         include app.routes.mounted_helpers
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
         extend ::ActionController::Railties::Helpers
+
+        # Configs used in other initializers
+        options = options.except(
+          :log_query_tags_around_actions,
+          :permit_all_parameters,
+          :action_on_unpermitted_parameters,
+          :always_permitted_parameters
+        )
 
         options.each do |k, v|
           k = "#{k}="
