@@ -239,28 +239,6 @@ module ActiveSupport # :nodoc:
       mod
     end
 
-    # Load the file at the provided path. +const_paths+ is a set of qualified
-    # constant names. When loading the file, Dependencies will watch for the
-    # addition of these constants. Each that is defined will be marked as
-    # autoloaded, and will be removed when Dependencies.clear is next called.
-    #
-    # If the second parameter is left off, then Dependencies will construct a
-    # set of names that the file at +path+ may define. See
-    # +loadable_constants_for_path+ for more details.
-    def load_file(path, const_paths = loadable_constants_for_path(path))
-      const_paths = [const_paths].compact unless const_paths.is_a? Array
-      parent_paths = const_paths.collect { |const_path| const_path[/.*(?=::)/] || ::Object }
-
-      result = nil
-      newly_defined_paths = new_constants_in(*parent_paths) do
-        result = Kernel.load path
-      end
-
-      autoloaded_constants.concat newly_defined_paths unless load_once_path?(path)
-      autoloaded_constants.uniq!
-      result
-    end
-
     # Returns the constant path for the provided parent and constant name.
     def qualified_name_for(mod, name)
       mod_name = to_constant_name mod
