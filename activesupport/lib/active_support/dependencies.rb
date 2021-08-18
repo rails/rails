@@ -80,10 +80,6 @@ module ActiveSupport # :nodoc:
     # to allow arbitrary constants to be marked for unloading.
     mattr_accessor :explicitly_unloadable_constants, default: []
 
-    def load?
-      mechanism == :load
-    end
-
     def clear
     end
 
