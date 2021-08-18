@@ -1,17 +1,7 @@
 # frozen_string_literal: true
 
 require "set"
-require "thread"
-require "concurrent/map"
-require "pathname"
-require "active_support/core_ext/module/aliasing"
 require "active_support/core_ext/module/attribute_accessors"
-require "active_support/core_ext/module/introspection"
-require "active_support/core_ext/module/anonymous"
-require "active_support/core_ext/object/blank"
-require "active_support/core_ext/kernel/reporting"
-require "active_support/core_ext/load_error"
-require "active_support/core_ext/name_error"
 require "active_support/dependencies/interlock"
 require "active_support/inflector"
 
