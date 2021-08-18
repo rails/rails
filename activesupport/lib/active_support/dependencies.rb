@@ -181,53 +181,6 @@ module ActiveSupport # :nodoc:
     # An internal stack used to record which constants are loaded by any block.
     mattr_accessor :constant_watch_stack, default: WatchStack.new
 
-    # Module includes this module.
-    module ModuleConstMissing # :nodoc:
-      def self.append_features(base)
-        base.class_eval do
-          # Emulate #exclude via an ivar
-          return if defined?(@_const_missing) && @_const_missing
-          @_const_missing = instance_method(:const_missing)
-          remove_method(:const_missing)
-        end
-        super
-      end
-
-      def self.exclude_from(base)
-        base.class_eval do
-          define_method :const_missing, @_const_missing
-          @_const_missing = nil
-        end
-      end
-
-      def self.include_into(base)
-        base.include(self)
-        append_features(base)
-      end
-
-      def const_missing(const_name)
-        from_mod = anonymous? ? guess_for_anonymous(const_name) : self
-        Dependencies.load_missing_constant(from_mod, const_name)
-      end
-
-      # We assume that the name of the module reflects the nesting
-      # (unless it can be proven that is not the case) and the path to the file
-      # that defines the constant. Anonymous modules cannot follow these
-      # conventions and therefore we assume that the user wants to refer to a
-      # top-level constant.
-      def guess_for_anonymous(const_name)
-        if Object.const_defined?(const_name)
-          raise NameError.new "#{const_name} cannot be autoloaded from an anonymous class or module", const_name
-        else
-          Object
-        end
-      end
-
-      def unloadable(const_desc = self)
-        super(const_desc)
-      end
-    end
-
     # Object includes this module.
     module Loadable # :nodoc:
       def self.exclude_from(base)
