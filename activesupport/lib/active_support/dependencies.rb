@@ -231,12 +231,6 @@ module ActiveSupport # :nodoc:
       autoloaded_constants.include?(name)
     end
 
-    # Will the provided constant descriptor be unloaded?
-    def will_unload?(const_desc)
-      autoloaded?(const_desc) ||
-        explicitly_unloadable_constants.include?(to_constant_name(const_desc))
-    end
-
     # Convert the provided const desc to a qualified constant name (as a string).
     # A module, class, symbol, or string may be provided.
     def to_constant_name(desc) # :nodoc:
