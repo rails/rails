@@ -63,6 +63,14 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_write_multi
+    @cache.with_local_cache do
+      @cache.write("foo", "bar")
+      @cache.write_multi({ "foo" => "baz" }, expires_in: nil)
+      assert_equal "baz", @cache.read("foo")
+    end
+  end
+
   def test_local_cache_of_read_returns_a_copy_of_the_entry
     @cache.with_local_cache do
       @cache.write(:foo, type: "bar")

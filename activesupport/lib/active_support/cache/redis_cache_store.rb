@@ -408,10 +408,18 @@ module ActiveSupport
           if entries.any?
             if mset_capable? && expires_in.nil?
               failsafe :write_multi_entries do
-                payload = serialize_entries(entries, **options)
-                redis.with do |c|
-                  c.mapped_mset(payload)
+                payloads = serialize_entries(entries, **options)
+                return_value = redis.with do |c|
+                  c.mapped_mset(payloads)
                 end
+
+                if local_cache
+                  payloads.each do |key, payload|
+                    local_cache.write_entry(key, payload)
+                  end
+                end
+
+                return_value
               end
             else
               super

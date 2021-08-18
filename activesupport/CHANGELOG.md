@@ -1,3 +1,10 @@
+*   Fix `RedisCacheStore#write_multi` to properly update the local store.
+
+    `RedisCacheStore` specialises `write_multi` to use `mset` when possible,
+    but it didn't update the local cache accordingly.
+
+    *Jean Boussier*
+
 *   Allow entirely opting out of deprecation warnings.
 
     Previously if you did `app.config.active_support.deprecation = :silence`, some work would
