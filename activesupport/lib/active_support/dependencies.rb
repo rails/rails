@@ -169,9 +169,6 @@ module ActiveSupport # :nodoc:
         end
     end
 
-    # An internal stack used to record which constants are loaded by any block.
-    mattr_accessor :constant_watch_stack, default: WatchStack.new
-
     def load?
       mechanism == :load
     end
