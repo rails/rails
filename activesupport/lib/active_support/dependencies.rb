@@ -301,21 +301,6 @@ module ActiveSupport # :nodoc:
       mechanism == :load
     end
 
-    def depend_on(file_name, message = "No such file to load -- %s.rb")
-      path = search_for_file(file_name)
-      require_or_load(path || file_name)
-    rescue LoadError => load_error
-      if file_name = load_error.message[/ -- (.*?)(\.rb)?$/, 1]
-        load_error_message = if load_error.respond_to?(:original_message)
-          load_error.original_message
-        else
-          load_error.message
-        end
-        load_error_message.replace(message % file_name)
-      end
-      raise
-    end
-
     def clear
       Dependencies.unload_interlock do
         loaded.clear

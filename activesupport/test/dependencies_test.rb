@@ -28,24 +28,6 @@ class DependenciesTest < ActiveSupport::TestCase
     $LOAD_PATH.pop
   end
 
-  def test_depend_on_path
-    expected = assert_raises(LoadError) do
-      Kernel.require "omgwtfbbq"
-    end
-
-    e = assert_raises(LoadError) do
-      ActiveSupport::Dependencies.depend_on "omgwtfbbq"
-    end
-    assert_equal expected.path, e.path
-  end
-
-  def test_depend_on_message
-    e = assert_raises(LoadError) do
-      ActiveSupport::Dependencies.depend_on "omgwtfbbq"
-    end
-    assert_equal "No such file to load -- omgwtfbbq.rb", e.message
-  end
-
   def test_smart_name_error_strings
     e = assert_raise NameError do
       Object.module_eval "ImaginaryObject"
