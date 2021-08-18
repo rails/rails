@@ -296,9 +296,7 @@ module Rails
       # * This makes it a prerelease. That's bad, but we haven't come up with
       # a better solution at the moment.
       def npm_version
-        # TODO: support `options.dev?`
-
-        if options.edge? || options.main?
+        if options.edge? || options.main? || options.dev?
           # TODO: ideally this would read from Github
           # https://github.com/rails/rails/blob/main/actioncable/app/assets/javascripts/action_cable.js
           # https://github.com/rails/rails/blob/main/activestorage/app/assets/javascripts/activestorage.js
