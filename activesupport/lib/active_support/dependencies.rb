@@ -262,31 +262,6 @@ module ActiveSupport # :nodoc:
       end
     end
 
-    # Run the provided block and detect the new constants that were loaded during
-    # its execution. Constants may only be regarded as 'new' once -- so if the
-    # block calls +new_constants_in+ again, then the constants defined within the
-    # inner call will not be reported in this one.
-    #
-    # If the provided block does not run to completion, and instead raises an
-    # exception, any new constants are regarded as being only partially defined
-    # and will be removed immediately.
-    def new_constants_in(*descs)
-      constant_watch_stack.watch_namespaces(descs)
-      success = false
-
-      begin
-        yield # Now yield to the code that is to define new constants.
-        success = true
-      ensure
-        new_constants = constant_watch_stack.new_constants
-
-        return new_constants if success
-
-        # Remove partially loaded constants.
-        new_constants.each { |c| remove_constant(c) }
-      end
-    end
-
     # Convert the provided const desc to a qualified constant name (as a string).
     # A module, class, symbol, or string may be provided.
     def to_constant_name(desc) # :nodoc:

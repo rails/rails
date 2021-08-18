@@ -53,19 +53,6 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_qualified_const_defined_explodes_with_invalid_const_name
     assert_raises(NameError) { ActiveSupport::Dependencies.qualified_const_defined?("invalid") }
   end
-
-  def test_new_constants_in_with_inherited_constants
-    m = ActiveSupport::Dependencies.new_constants_in(:Object) do
-      Object.class_eval { include ModuleWithConstant }
-    end
-    assert_equal [], m
-  end
-
-  def test_new_constants_in_with_illegal_module_name_raises_correct_error
-    assert_raise(NameError) do
-      ActiveSupport::Dependencies.new_constants_in("Illegal-Name") { }
-    end
-  end
 end
 
 class RequireDependencyTest < ActiveSupport::TestCase
