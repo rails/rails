@@ -207,11 +207,11 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     @app = ActionDispatch::HostAuthorization.new(App, ".example.com")
 
     get "/", env: {
-      "HOST" => "example.com#sub.example.com",
+      "HOST" => "attacker.com#x.example.com",
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: example.com#sub.example.com", response.body
+    assert_match "Blocked host: attacker.com#x.example.com", response.body
   end
 
   test "blocks requests to similar host" do
