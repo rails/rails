@@ -6,7 +6,7 @@ class CreateActiveStorageTables < ActiveRecord::Migration[5.2]
     create_table :active_storage_blobs, id: primary_key_type do |t|
       t.string   :key,          null: false
       t.string   :filename,     null: false
-      t.string   :content_type
+      t.string   :content_type, null: false
       t.text     :metadata
       t.string   :service_name, null: false
       t.bigint   :byte_size,    null: false
