@@ -1,3 +1,11 @@
+## Rails 6.1.4.1 (August 19, 2021) ##
+
+*   [CVE-2021-22942] Fix possible open redirect in Host Authorization middleware.
+
+    Specially crafted "X-Forwarded-Host" headers in combination with certain
+    "allowed host" formats can cause the Host Authorization middleware in Action
+    Pack to redirect users to a malicious website.
+
 ## Rails 6.1.4 (June 24, 2021) ##
 
 *   Ignore file fixtures on `db:fixtures:load`
