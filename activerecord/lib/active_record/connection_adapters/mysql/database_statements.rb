@@ -79,6 +79,15 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
+        # https://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html#function_current-timestamp
+        # https://dev.mysql.com/doc/refman/5.7/en/date-and-time-type-syntax.html
+        HIGH_PRECISION_CURRENT_TIMESTAMP = Arel.sql("CURRENT_TIMESTAMP(6)").freeze # :nodoc:
+        private_constant :HIGH_PRECISION_CURRENT_TIMESTAMP
+
+        def high_precision_current_timestamp
+          HIGH_PRECISION_CURRENT_TIMESTAMP
+        end
+
         private
           def execute_batch(statements, name = nil)
             combine_multi_statements(statements).each do |statement|

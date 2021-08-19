@@ -95,6 +95,15 @@ module ActiveRecord
           reset_read_uncommitted
         end
 
+        # https://stackoverflow.com/questions/17574784
+        # https://www.sqlite.org/lang_datefunc.html
+        HIGH_PRECISION_CURRENT_TIMESTAMP = Arel.sql("STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')").freeze # :nodoc:
+        private_constant :HIGH_PRECISION_CURRENT_TIMESTAMP
+
+        def high_precision_current_timestamp
+          HIGH_PRECISION_CURRENT_TIMESTAMP
+        end
+
         private
           def reset_read_uncommitted
             read_uncommitted = Thread.current.thread_variable_get("read_uncommitted")
