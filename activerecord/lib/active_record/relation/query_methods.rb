@@ -354,16 +354,36 @@ module ActiveRecord
       self
     end
 
-    # Allows to specify an order attribute:
+    # Applies an <code>ORDER BY</code> clause to a query.
+    #
+    # #order accepts arguments in one of several formats.
+    #
+    # === symbols
+    #
+    # The symbol represents the name of the column you want to order the results by.
     #
     #   User.order(:name)
     #   # SELECT "users".* FROM "users" ORDER BY "users"."name" ASC
     #
+    # By default, the order is ascending. If you want descending order, you can
+    # map the column name symbol to +:desc+.
+    #
     #   User.order(email: :desc)
     #   # SELECT "users".* FROM "users" ORDER BY "users"."email" DESC
     #
+    # Multiple columns can be passed this way, and they will be applied in the order specified.
+    #
     #   User.order(:name, email: :desc)
     #   # SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
+    #
+    # === strings
+    #
+    # Strings are passed directly to the database, allowing you to specify
+    # simple SQL expressions.
+    #
+    # This could be a source of SQL injection, so only strings composed of plain
+    # column names and simple <code>function(column_name)</code> expressions
+    # with optional +ASC+/+DESC+ modifiers are allowed.
     #
     #   User.order('name')
     #   # SELECT "users".* FROM "users" ORDER BY name
@@ -373,6 +393,19 @@ module ActiveRecord
     #
     #   User.order('name DESC, email')
     #   # SELECT "users".* FROM "users" ORDER BY name DESC, email
+    #
+    # === Arel
+    #
+    # If you need to pass in complicated expressions that you have verified
+    # are safe for the DB, you can use Arel.
+    #
+    #   User.order(Arel.sql('end_date - start_date'))
+    #   # SELECT "users".* FROM "users" ORDER BY end_date - start_date
+    #
+    # Custom query syntax, like JSON columns for Postgres, is supported in this way.
+    #
+    #   User.order(Arel.sql("payload->>'kind'"))
+    #   # SELECT "users".* FROM "users" ORDER BY payload->>'kind'
     def order(*args)
       check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
