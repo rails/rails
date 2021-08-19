@@ -1,3 +1,8 @@
+## Rails 6.0.4.1 (August 19, 2021) ##
+
+*   No changes.
+
+
 ## Rails 6.0.4 (June 15, 2021) ##
 
 *   Only warn about negative enums if a positive form that would cause conflicts exists.
