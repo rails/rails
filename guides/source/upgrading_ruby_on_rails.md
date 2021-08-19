@@ -173,7 +173,7 @@ FFmpeg v3.4+.
 
 Image transformation will now use libvips instead of ImageMagick. This will reduce
 the time taken to generate variants as well as CPU and memory usage, improving response
-times in apps that rely on active storage to serve their images. 
+times in apps that rely on active storage to serve their images.
 
 The `:mini_magick` option is not being deprecated, so it is fine to keep using it.
 
@@ -270,6 +270,78 @@ You can invalidate the cache either by touching the product, or changing the cac
     <%= image_tag product.cover_photo.variant(resize_to_limit: [200, nill]) %>
   <% end %>
 <% end %>
+```
+
+#### Migrating from Marginalia
+
+Active Record ships with the same default configuration as Marginalia. For basic use, enable the feature in your application configuration:
+
+```ruby
+# config/application.rb
+module MyApp
+  class Application < Rails::Application
+    config.active_record.query_log_tags_enabled = true
+  end
+end
+```
+
+For a more involved configuration query log tags operate in a similar way to Marginalia, but instead of defining new methods to be called at runtime you pass Procs or static values to the configuration:
+
+```ruby
+# config/application.rb
+module MyApp
+  class Application < Rails::Application
+    config.active_record.query_log_tags = [
+      :application,
+      {
+        dynamic_tag: -> { "Dynamic tag #{Time.now}" },
+        static_tag: "value"
+      }
+    ]
+  end
+end
+```
+
+Instead of referring to `marginalia_controller`, any object can be stored in the `context` and then referenced in a tag definition. The default configuration will set the context with `controller` & `job` as appropriate.
+
+```ruby
+class MyController < ApplicationController
+  def controller_info
+    "custom_information"
+  end
+end
+
+ActiveRecord::QueryLogs.update_context(server: "server_name")
+ActiveRecord::QueryLogs.tags = [
+  controller_info: -> { context[:controller].controller_info },
+  server: -> { context[:server] }
+]
+# /*controller_info:custom_information,server:server_name*/
+```
+
+To reset or update the value of the comment context, use `#update_context`:
+
+```ruby
+ActiveRecord::QueryLogs.update_context(controller: nil)
+ActiveRecord::QueryLogs.update_context(server: "new server name”)
+```
+
+Inline annotations can be added to queries during block execution:
+
+before:
+
+```ruby
+Marginalia.with_annotation("foo") do
+  Account.where(id: 12345).first
+end
+```
+
+after:
+
+```ruby
+ActiveRecord::QueryLogs.with_tag("foo") do
+  Account.where(id: 12345).first
+end
 ```
 
 Upgrading from Rails 6.0 to Rails 6.1
