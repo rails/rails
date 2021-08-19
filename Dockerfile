@@ -26,7 +26,7 @@ RUN echo "--- :ruby: Updating RubyGems and Bundler" \
     && echo "deb http://apt.postgresql.org/pub/repos/apt/ ${codename}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
     # Node apt sources
     && curl -sS https://deb.nodesource.com/gpgkey/nodesource.gpg.key | APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add - \
-    && echo "deb http://deb.nodesource.com/node_10.x ${codename} main" > /etc/apt/sources.list.d/nodesource.list \
+    && echo "deb http://deb.nodesource.com/node_16.x ${codename} main" > /etc/apt/sources.list.d/nodesource.list \
     # Yarn apt sources
     && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add - \
     && echo "deb http://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
