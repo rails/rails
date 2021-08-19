@@ -1,3 +1,9 @@
+*   Reestablish connection to previous database after after running `db:schema:load:name`
+
+    After running `db:schema:load:name` the previous connection is restored.
+
+    *Jacopo Beschi*
+
 *   Add database config option `database_tasks`
 
     If you would like to connect to an external database without any database
