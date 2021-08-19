@@ -500,7 +500,7 @@ module ActiveRecord
       self
     end
 
-    # Performs a joins on +args+. The given symbol(s) should match the name of
+    # Performs JOINs on +args+. The given symbol(s) should match the name of
     # the association(s).
     #
     #   User.joins(:posts)
@@ -538,7 +538,7 @@ module ActiveRecord
       self
     end
 
-    # Performs a left outer joins on +args+:
+    # Performs LEFT OUTER JOINs on +args+:
     #
     #   User.left_outer_joins(:posts)
     #   => SELECT "users".* FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"
