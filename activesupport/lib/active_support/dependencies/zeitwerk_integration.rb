@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "set"
-require "active_support/core_ext/string/inflections"
 require "zeitwerk"
 
 module ActiveSupport
@@ -14,10 +13,6 @@ module ActiveSupport
           rescue Zeitwerk::ReloadingDisabledError
             raise "reloading is disabled because config.cache_classes is true"
           end
-        end
-
-        def safe_constantize(cpath)
-          ActiveSupport::Inflector.safe_constantize(cpath)
         end
 
         def autoloaded_constants

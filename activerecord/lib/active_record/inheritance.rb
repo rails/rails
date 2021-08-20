@@ -239,7 +239,7 @@ module ActiveRecord
             type_name.constantize
           else
             type_candidate = @_type_candidates_cache[type_name]
-            if type_candidate && type_constant = ActiveSupport::Dependencies.safe_constantize(type_candidate)
+            if type_candidate && type_constant = type_candidate.safe_constantize
               return type_constant
             end
 
@@ -249,7 +249,7 @@ module ActiveRecord
             candidates << type_name
 
             candidates.each do |candidate|
-              constant = ActiveSupport::Dependencies.safe_constantize(candidate)
+              constant = candidate.safe_constantize
               if candidate == constant.to_s
                 @_type_candidates_cache[type_name] = candidate
                 return constant

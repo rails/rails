@@ -61,19 +61,6 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert RESTfulController
   end
 
-  test "safe_constantize returns the value stored in the constant" do
-    app_file "app/models/admin/user.rb", "class Admin::User; end"
-    boot
-
-    assert_same Admin::User, deps.safe_constantize("Admin::User")
-  end
-
-  test "safe_constantize returns nil for unknown constants" do
-    boot
-
-    assert_nil deps.safe_constantize("Admin")
-  end
-
   test "autoloaded? and overridden class names" do
     invalid_constant_name = Module.new do
       def self.name

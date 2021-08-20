@@ -3,7 +3,6 @@
 require "set"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/dependencies/interlock"
-require "active_support/inflector"
 
 module ActiveSupport # :nodoc:
   module Dependencies # :nodoc:
@@ -80,12 +79,6 @@ module ActiveSupport # :nodoc:
         return path if File.file? path
       end
       nil # Gee, I sure wish we had first_match ;-)
-    end
-
-    # Get the reference for class named +name+ if one exists.
-    # Otherwise returns +nil+.
-    def safe_constantize(name)
-      Inflector.safe_constantize(name)
     end
 
     # Determine if the given constant has been automatically loaded.
