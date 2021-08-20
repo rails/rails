@@ -52,7 +52,7 @@ module ActionText
             INSTRUCTIONS
           end
 
-          if (importmap_path = Rails.root.join("config/initializers/importmap.rb")).exist?
+          if (importmap_path = Rails.root.join("config/importmap.rb")).exist?
             insert_into_file \
               importmap_path.to_s,
               %(  pin "trix"\n  pin "@rails/actiontext", to: "actiontext.js"\n\n),
