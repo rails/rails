@@ -61,19 +61,6 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert RESTfulController
   end
 
-  test "constantize returns the value stored in the constant" do
-    app_file "app/models/admin/user.rb", "class Admin::User; end"
-    boot
-
-    assert_same Admin::User, deps.constantize("Admin::User")
-  end
-
-  test "constantize raises if the constant is unknown" do
-    boot
-
-    assert_raises(NameError) { deps.constantize("Admin") }
-  end
-
   test "safe_constantize returns the value stored in the constant" do
     app_file "app/models/admin/user.rb", "class Admin::User; end"
     boot

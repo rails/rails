@@ -16,10 +16,6 @@ module ActiveSupport
           end
         end
 
-        def constantize(cpath)
-          ActiveSupport::Inflector.constantize(cpath)
-        end
-
         def safe_constantize(cpath)
           ActiveSupport::Inflector.safe_constantize(cpath)
         end

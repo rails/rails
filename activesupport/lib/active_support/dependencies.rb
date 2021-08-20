@@ -82,12 +82,6 @@ module ActiveSupport # :nodoc:
       nil # Gee, I sure wish we had first_match ;-)
     end
 
-    # Get the reference for class named +name+.
-    # Raises an exception if referenced class does not exist.
-    def constantize(name)
-      Inflector.constantize(name)
-    end
-
     # Get the reference for class named +name+ if one exists.
     # Otherwise returns +nil+.
     def safe_constantize(name)
