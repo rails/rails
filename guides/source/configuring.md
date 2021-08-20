@@ -1073,6 +1073,10 @@ Takes a block of code to run before the request.
 
 Takes a block of code to run after the request.
 
+* `config.action_dispatch.flash_hash_delete_returns_value` when deleting a value
+  from the `FlashHash`, return the deleted value instead of the `FlashHash`
+  instance. Defaults to `false`.
+
 ### Configuring Action View
 
 `config.action_view` includes a small number of configuration settings:

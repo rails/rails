@@ -201,6 +201,7 @@ module Rails
           if respond_to?(:action_dispatch)
             action_dispatch.return_only_request_media_type_on_content_type = false
             action_dispatch.cookies_serializer = :json
+            action_dispatch.flash_hash_delete_returns_value = true
           end
 
           if respond_to?(:action_view)

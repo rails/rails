@@ -44,9 +44,22 @@ module ActionDispatch
       @hash["foo"] = "bar"
       value = @hash.delete "foo"
 
+      assert_deprecated { assert_equal @hash.to_h, value.to_h }
+      assert_not @hash.key?("foo")
+      assert_nil @hash["foo"]
+    end
+
+    def test_delete_configured_to_return_value
+      ActionDispatch::Flash::FlashHash.flash_hash_delete_returns_value = true
+
+      @hash["foo"] = "bar"
+      value = @hash.delete "foo"
+
       assert_equal "bar", value
       assert_not @hash.key?("foo")
       assert_nil @hash["foo"]
+    ensure
+      ActionDispatch::Flash::FlashHash.flash_hash_delete_returns_value = false
     end
 
     def test_to_hash

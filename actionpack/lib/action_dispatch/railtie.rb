@@ -61,6 +61,8 @@ module ActionDispatch
       config.action_dispatch.always_write_cookie = Rails.env.development? if config.action_dispatch.always_write_cookie.nil?
       ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie
 
+      ActionDispatch::Flash::FlashHash.flash_hash_delete_returns_value = config.action_dispatch.flash_hash_delete_returns_value
+
       ActionDispatch.test_app = app
     end
   end

@@ -1,6 +1,9 @@
 *   Deleting a key from `ActionDispatch::Flash::FlashHash` returns the deleted
     value, the same way that `Hash#delete` would.
 
+    This will be the behavior in Rails 7.0 but it can be controlled now with
+    `config.action_dispatch.flash_hash_delete_returns_value`.
+
     *Sean Doyle*
 
 *   Allow Capybara driver name overrides in `SystemTestCase::driven_by`

@@ -73,7 +73,10 @@
 #
 # Protect from open redirect attacks in `redirect_back_or_to` and `redirect_to`.
 # Rails.application.config.action_controller.raise_on_open_redirects = true
-
+#
+# Return the deleted value when calling `FlashHash#delete`
+# Rails.application.config.action_pack.flash_hash_delete_returns_value = true
+#
 # Change the variant processor for Active Storage.
 # Changing this default means updating all places in your code that
 # generate variants to use image processing macros and ruby-vips

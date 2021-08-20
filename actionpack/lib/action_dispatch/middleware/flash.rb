@@ -109,6 +109,8 @@ module ActionDispatch
     class FlashHash
       include Enumerable
 
+      class_attribute :flash_hash_delete_returns_value, default: false
+
       def self.from_session_value(value) # :nodoc:
         case value
         when FlashHash # Rails 3.1, 3.2
@@ -183,7 +185,16 @@ module ActionDispatch
       def delete(key)
         key = key.to_s
         @discard.delete key
-        @flashes.delete key
+        @flashes.delete(key).then do |value|
+          if flash_hash_delete_returns_value
+            value
+          else
+            ActiveSupport::Deprecation::DeprecatedObjectProxy.new(self, <<~WARNING.squish)
+              Rails 7.0 will return the deleted value instead of the FlashHash instance.
+              Set `config.action_dispatch.flash_hash_delete_returns_value = false` to remove the deprecation.
+            WARNING
+          end
+        end
       end
 
       def to_hash
