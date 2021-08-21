@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/inflector"
+require "zeitwerk"
 require "cases/helper"
 require "models/author"
 require "models/company"
@@ -370,6 +371,19 @@ class InheritanceTest < ActiveRecord::TestCase
     without_store_full_sti_class do
       item = Company.new(type: "SpecialCo")
       assert_instance_of Company::SpecialCo, item
+    end
+  end
+
+  def test_new_with_autoload_paths
+    path = File.expand_path("../models/autoloadable", __dir__)
+    Zeitwerk.with_loader do |loader|
+      loader.push_dir(path)
+      loader.setup
+
+      firm = Company.new(type: "ExtraFirm")
+      assert_equal ExtraFirm, firm.class
+    ensure
+      loader.unload
     end
   end
 
