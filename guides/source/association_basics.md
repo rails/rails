@@ -1130,7 +1130,13 @@ If you set the `:validate` option to `true`, then new associated objects will be
 ##### `:optional`
 
 If you set the `:optional` option to `true`, then the presence of the associated
-object won't be validated. By default, this option is set to `false`.
+object won't be validated. By default, this option is set to `false`. For a fine–grained control, you can pass a method name or lambda to check the condition dynamically:
+
+```ruby
+class Book < ApplicationRecord
+  belongs_to :author, optional: :unknown_author?
+end
+```
 
 #### Scopes for `belongs_to`
 

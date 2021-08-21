@@ -110,20 +110,27 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.define_validations(model, reflection)
+      validation_options = { message: :required }
+
       if reflection.options.key?(:required)
         reflection.options[:optional] = !reflection.options.delete(:required)
       end
 
-      if reflection.options[:optional].nil?
-        required = model.belongs_to_required_by_default
-      else
-        required = !reflection.options[:optional]
-      end
+      required =
+        case reflection.options[:optional]
+        when nil
+          model.belongs_to_required_by_default
+        when true, false
+          !reflection.options[:optional]
+        else
+          validation_options[:unless] = reflection.options[:optional]
+          true
+        end
 
       super
 
       if required
-        model.validates_presence_of reflection.name, message: :required
+        model.validates_presence_of reflection.name, validation_options
       end
     end
 

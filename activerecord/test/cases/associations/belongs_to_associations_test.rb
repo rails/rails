@@ -149,6 +149,51 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::Base.belongs_to_required_by_default = original_value
   end
 
+  def test_optional_relation_with_method_call
+    original_value = ActiveRecord::Base.belongs_to_required_by_default
+    ActiveRecord::Base.belongs_to_required_by_default = true
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      def self.name; "Temp"; end
+      attribute :with_optional_company, :boolean, default: true
+      belongs_to :company, optional: :with_optional_company?
+    end
+
+    account = model.new
+    assert_predicate account, :valid?
+
+    account.with_optional_company = false
+    assert_predicate account, :invalid?
+  ensure
+    ActiveRecord::Base.belongs_to_required_by_default = original_value
+  end
+
+  def test_optional_relation_with_proc
+    original_value = ActiveRecord::Base.belongs_to_required_by_default
+    ActiveRecord::Base.belongs_to_required_by_default = true
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      def self.name; "Temp"; end
+      belongs_to :company, optional: -> { true }
+    end
+
+    account = model.new
+    assert_predicate account, :valid?
+
+    model2 = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      def self.name; "Temp"; end
+      belongs_to :company, optional: -> { false }
+    end
+
+    account2 = model2.new
+    assert_predicate account2, :invalid?
+  ensure
+    ActiveRecord::Base.belongs_to_required_by_default = original_value
+  end
+
   def test_not_optional_relation
     original_value = ActiveRecord::Base.belongs_to_required_by_default
     ActiveRecord::Base.belongs_to_required_by_default = true

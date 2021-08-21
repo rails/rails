@@ -1,3 +1,18 @@
+*   Allow passing callbacks inside `:optional` to `belongs_to`
+
+    If you need to specify dynamic condition for `:optinal` you can use method name
+    or lambda (similar to how validations work):
+
+    ```ruby
+    class Book < ApplicationRecord
+      belongs_to :author, optional: :unknown_author?
+      # or
+      belongs_to :author, optional: -> { unknown_author? || draft? }
+    end
+    ```
+
+    *Dmitry Tsepelev*
+
 *   Add database config option `database_tasks`
 
     If you would like to connect to an external database without any database
