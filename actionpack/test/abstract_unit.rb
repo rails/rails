@@ -22,6 +22,7 @@ require "action_view/testing/resolvers"
 require "action_dispatch"
 require "active_support/dependencies"
 require "active_model"
+require "zeitwerk"
 
 module Rails
   class << self
@@ -159,16 +160,12 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
 
   def with_autoload_path(path)
     path = File.join(__dir__, "fixtures", path)
-    if ActiveSupport::Dependencies.autoload_paths.include?(path)
+    Zeitwerk.with_loader do |loader|
+      loader.push_dir(path)
+      loader.setup
       yield
-    else
-      begin
-        ActiveSupport::Dependencies.autoload_paths << path
-        yield
-      ensure
-        ActiveSupport::Dependencies.autoload_paths.reject! { |p| p == path }
-        ActiveSupport::Dependencies.clear
-      end
+    ensure
+      loader.unload
     end
   end
 end
