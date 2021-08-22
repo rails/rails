@@ -389,6 +389,18 @@ if current_adapter?(:PostgreSQLAdapter)
         end
       end
 
+      def test_structure_dump_with_ssl_env
+        expected_env = { "PGSSLMODE" => "verify-full", "PGSSLCERT" => "client.crt", "PGSSLKEY" => "client.key", "PGSSLROOTCERT" => "root.crt" }
+        expected_command = [expected_env, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "my-app-db"]
+
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+            @configuration.merge(sslmode: "verify-full", sslcert: "client.crt", sslkey: "client.key", sslrootcert: "root.crt"),
+            @filename
+          )
+        end
+      end
+
       def test_structure_dump_with_extra_flags
         expected_command = [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "--noop", "my-app-db"]
 
@@ -550,6 +562,21 @@ if current_adapter?(:PostgreSQLAdapter)
           with_structure_load_flags(["--noop"]) do
             ActiveRecord::Tasks::DatabaseTasks.structure_load(
               @configuration.merge(host: "my.server.tld", port: 2345, username: "jane", password: "s3cr3t"),
+              filename
+            )
+          end
+        end
+      end
+
+      def test_structure_load_with_ssl_env
+        filename = "awesome-file.sql"
+        expected_env = { "PGSSLMODE" => "verify-full", "PGSSLCERT" => "client.crt", "PGSSLKEY" => "client.key", "PGSSLROOTCERT" => "root.crt" }
+        expected_command = [expected_env, "psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--file", filename, "--noop", @configuration["database"]]
+
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_load_flags(["--noop"]) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_load(
+              @configuration.merge(sslmode: "verify-full", sslcert: "client.crt", sslkey: "client.key", sslrootcert: "root.crt"),
               filename
             )
           end
