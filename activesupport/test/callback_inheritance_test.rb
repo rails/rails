@@ -2,111 +2,115 @@
 
 require_relative "abstract_unit"
 
-class GrandParent
-  include ActiveSupport::Callbacks
+module CallbackInheritanceTestFixtures
+  class GrandParent
+    include ActiveSupport::Callbacks
 
-  attr_reader :log, :action_name
-  def initialize(action_name)
-    @action_name, @log = action_name, []
-  end
-
-  define_callbacks :dispatch
-  set_callback :dispatch, :before, :before1, :before2, if: proc { |c| c.action_name == "index" || c.action_name == "update" }
-  set_callback :dispatch, :after, :after1, :after2, if: proc { |c| c.action_name == "update" || c.action_name == "delete" }
-
-  def before1
-    @log << "before1"
-  end
-
-  def before2
-    @log << "before2"
-  end
-
-  def after1
-    @log << "after1"
-  end
-
-  def after2
-    @log << "after2"
-  end
-
-  def dispatch
-    run_callbacks :dispatch do
-      @log << action_name
+    attr_reader :log, :action_name
+    def initialize(action_name)
+      @action_name, @log = action_name, []
     end
-    self
-  end
-end
 
-class Parent < GrandParent
-  skip_callback :dispatch, :before, :before2, unless: proc { |c| c.action_name == "update" }
-  skip_callback :dispatch, :after, :after2, unless: proc { |c| c.action_name == "delete" }
-end
+    define_callbacks :dispatch
+    set_callback :dispatch, :before, :before1, :before2, if: proc { |c| c.action_name == "index" || c.action_name == "update" }
+    set_callback :dispatch, :after, :after1, :after2, if: proc { |c| c.action_name == "update" || c.action_name == "delete" }
 
-class Child < GrandParent
-  skip_callback :dispatch, :before, :before2, unless: proc { |c| c.action_name == "update" }, if: :state_open?
+    def before1
+      @log << "before1"
+    end
 
-  def state_open?
-    @state == :open
-  end
+    def before2
+      @log << "before2"
+    end
 
-  def initialize(action_name, state)
-    super(action_name)
-    @state = state
-  end
-end
+    def after1
+      @log << "after1"
+    end
 
-class EmptyParent
-  include ActiveSupport::Callbacks
+    def after2
+      @log << "after2"
+    end
 
-  def performed?
-    @performed ||= false
-  end
-
-  define_callbacks :dispatch
-
-  def perform!
-    @performed = true
+    def dispatch
+      run_callbacks :dispatch do
+        @log << action_name
+      end
+      self
+    end
   end
 
-  def dispatch
-    run_callbacks :dispatch
-    self
-  end
-end
-
-class EmptyChild < EmptyParent
-  set_callback :dispatch, :before, :do_nothing
-
-  def do_nothing
-  end
-end
-
-class CountingParent
-  include ActiveSupport::Callbacks
-
-  attr_reader :count
-
-  define_callbacks :dispatch
-
-  def initialize
-    @count = 0
+  class Parent < GrandParent
+    skip_callback :dispatch, :before, :before2, unless: proc { |c| c.action_name == "update" }
+    skip_callback :dispatch, :after, :after2, unless: proc { |c| c.action_name == "delete" }
   end
 
-  def count!
-    @count += 1
+  class Child < GrandParent
+    skip_callback :dispatch, :before, :before2, unless: proc { |c| c.action_name == "update" }, if: :state_open?
+
+    def state_open?
+      @state == :open
+    end
+
+    def initialize(action_name, state)
+      super(action_name)
+      @state = state
+    end
   end
 
-  def dispatch
-    run_callbacks(:dispatch)
-    self
-  end
-end
+  class EmptyParent
+    include ActiveSupport::Callbacks
 
-class CountingChild < CountingParent
+    def performed?
+      @performed ||= false
+    end
+
+    define_callbacks :dispatch
+
+    def perform!
+      @performed = true
+    end
+
+    def dispatch
+      run_callbacks :dispatch
+      self
+    end
+  end
+
+  class EmptyChild < EmptyParent
+    set_callback :dispatch, :before, :do_nothing
+
+    def do_nothing
+    end
+  end
+
+  class CountingParent
+    include ActiveSupport::Callbacks
+
+    attr_reader :count
+
+    define_callbacks :dispatch
+
+    def initialize
+      @count = 0
+    end
+
+    def count!
+      @count += 1
+    end
+
+    def dispatch
+      run_callbacks(:dispatch)
+      self
+    end
+  end
+
+  class CountingChild < CountingParent
+  end
 end
 
 class BasicCallbacksTest < ActiveSupport::TestCase
+  include CallbackInheritanceTestFixtures
+
   def setup
     @index    = GrandParent.new("index").dispatch
     @update   = GrandParent.new("update").dispatch
@@ -127,6 +131,8 @@ class BasicCallbacksTest < ActiveSupport::TestCase
 end
 
 class InheritedCallbacksTest < ActiveSupport::TestCase
+  include CallbackInheritanceTestFixtures
+
   def setup
     @index    = Parent.new("index").dispatch
     @update   = Parent.new("update").dispatch
@@ -147,6 +153,8 @@ class InheritedCallbacksTest < ActiveSupport::TestCase
 end
 
 class InheritedCallbacksTest2 < ActiveSupport::TestCase
+  include CallbackInheritanceTestFixtures
+
   def setup
     @update1 = Child.new("update", :open).dispatch
     @update2 = Child.new("update", :closed).dispatch
@@ -162,6 +170,8 @@ class InheritedCallbacksTest2 < ActiveSupport::TestCase
 end
 
 class DynamicInheritedCallbacks < ActiveSupport::TestCase
+  include CallbackInheritanceTestFixtures
+
   def test_callbacks_looks_to_the_superclass_before_running
     child = EmptyChild.new.dispatch
     assert_not_predicate child, :performed?
@@ -178,6 +188,8 @@ class DynamicInheritedCallbacks < ActiveSupport::TestCase
 end
 
 class DynamicDefinedCallbacks < ActiveSupport::TestCase
+  include CallbackInheritanceTestFixtures
+
   def test_callbacks_should_be_performed_once_in_child_class_after_dynamic_define
     GrandParent.define_callbacks(:foo)
     GrandParent.set_callback(:foo, :before, :before1)
