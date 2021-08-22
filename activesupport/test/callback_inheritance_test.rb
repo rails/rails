@@ -112,9 +112,9 @@ class BasicCallbacksTest < ActiveSupport::TestCase
   include CallbackInheritanceTestFixtures
 
   def setup
-    @index    = GrandParent.new("index").dispatch
-    @update   = GrandParent.new("update").dispatch
-    @delete   = GrandParent.new("delete").dispatch
+    @index = GrandParent.new("index").dispatch
+    @update = GrandParent.new("update").dispatch
+    @delete = GrandParent.new("delete").dispatch
   end
 
   def test_basic_conditional_callback1
