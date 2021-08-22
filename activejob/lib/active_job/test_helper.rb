@@ -664,7 +664,7 @@ module ActiveJob
         enqueued_jobs_with(only: only, except: except, queue: queue, at: at) do |payload|
           queue_adapter.enqueued_jobs.delete(payload)
           queue_adapter.performed_jobs << payload
-          instantiate_job(payload).perform_now
+          instantiate_job(payload, skip_deserialize_arguments: true).perform_now
         end.count
       end
 
@@ -684,10 +684,10 @@ module ActiveJob
         end
       end
 
-      def instantiate_job(payload)
+      def instantiate_job(payload, skip_deserialize_arguments: false)
         job = payload[:job].deserialize(payload)
         job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
-        job.send(:deserialize_arguments_if_needed)
+        job.send(:deserialize_arguments_if_needed) unless skip_deserialize_arguments
         job
       end
 

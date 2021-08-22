@@ -9,6 +9,7 @@ require "jobs/logging_job"
 require "jobs/nested_job"
 require "jobs/rescue_job"
 require "jobs/raising_job"
+require "jobs/retry_job"
 require "jobs/inherited_job"
 require "jobs/multiple_kwargs_job"
 require "models/person"
@@ -1978,6 +1979,14 @@ class PerformedJobsTest < ActiveJob::TestCase
 
     assert_equal 0, queue_adapter.enqueued_jobs.count
     assert_equal 2, queue_adapter.performed_jobs.count
+  end
+
+  test "perform_enqueued_jobs doesn't raise if discard_on ActiveJob::DeserializationError" do
+    RetryJob.perform_later Person.new(404), 1
+
+    assert_nothing_raised do
+      perform_enqueued_jobs(only: RetryJob)
+    end
   end
 
   test "TestAdapter respect max attempts" do
