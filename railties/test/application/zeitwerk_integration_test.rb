@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "set"
 require "isolation/abstract_unit"
 require "active_support/dependencies/zeitwerk_integration"
 
@@ -353,6 +354,36 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     ActiveSupport::Dependencies.clear
 
     assert $before_remove_const_invoked
+  end
+
+  test "reloading clears autoloaded tracked classes" do
+    eval <<~RUBY
+      class Parent
+        extend ActiveSupport::DescendantsTracker
+      end
+    RUBY
+
+    app_file "app/models/child.rb", <<~RUBY
+      class Child < #{self.class.name}::Parent
+      end
+    RUBY
+
+    app_file "app/models/grandchild.rb", <<~RUBY
+      class Grandchild < Child
+      end
+    RUBY
+
+    boot
+    assert Grandchild
+
+    # Preconditions, we add some redundancy about descendants tracking.
+    assert_equal Set[Child, Grandchild], ActiveSupport::Dependencies._autoloaded_tracked_classes
+    assert_equal [Child, Grandchild], Parent.descendants
+
+    Rails.application.reloader.reload!
+
+    assert_empty ActiveSupport::Dependencies._autoloaded_tracked_classes
+    assert_equal [], Parent.descendants
   end
 
   test "autoloaders.logger=" do

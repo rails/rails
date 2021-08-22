@@ -57,6 +57,11 @@ module ActiveSupport # :nodoc:
     # accessors of each engine.
     mattr_accessor :_eager_load_paths, default: Set.new
 
+    # If reloading is enabled, this private set holds autoloaded classes tracked
+    # by the descendants tracker. It is populated by an on_load callback in the
+    # main autoloader. Used to clear state.
+    mattr_accessor :_autoloaded_tracked_classes, default: Set.new
+
     # An array of qualified constant names that have been loaded. Adding a name
     # to this array will cause it to be unloaded the next time Dependencies are
     # cleared.
