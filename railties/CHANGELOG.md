@@ -1,3 +1,7 @@
+*   Add `<main>` element around page content to be used as container
+
+    *Vernes Pendić*
+
 *   Show Rake task description if command is run with -h.
 
     Adding `-h` (or `--help`) to a Rails command that's a Rake task, now returns
@@ -7,7 +11,7 @@
     
 *   Add missing `plugin new` command to help.
 
-    *Petrik de Heus
+    *Petrik de Heus*
 
 *   Fix `config_for` error when there's only a shared root array.
 
