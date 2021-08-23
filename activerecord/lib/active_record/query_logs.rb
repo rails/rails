@@ -174,7 +174,7 @@ module ActiveRecord
             key, value_input = tag
 
             val = case value_input
-                  when nil then tag_value(key) if taggings.has_key? key
+                  when nil then tag_value(key)
                   when Proc then instance_exec(&value_input)
                   else value_input
             end
@@ -184,12 +184,14 @@ module ActiveRecord
         end
 
         def tag_value(key)
-          value = taggings[key]
-
-          if value.respond_to?(:call)
-            instance_exec(&taggings[key])
+          if value = taggings[key]
+            if value.respond_to?(:call)
+              instance_exec(&taggings[key])
+            else
+              value
+            end
           else
-            value
+            context[key]
           end
         end
 
