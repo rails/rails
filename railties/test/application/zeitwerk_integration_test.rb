@@ -23,14 +23,9 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     ActiveSupport::Dependencies
   end
 
-  def decorated?
-    deps.singleton_class < deps::ZeitwerkIntegration::Decorations
-  end
-
-  test "ActiveSupport::Dependencies is decorated" do
+  test "The integration is minimally looking good" do
     boot
 
-    assert decorated?
     assert Rails.autoloaders.zeitwerk_enabled?
     assert_instance_of Zeitwerk::Loader, Rails.autoloaders.main
     assert_instance_of Zeitwerk::Loader, Rails.autoloaders.once

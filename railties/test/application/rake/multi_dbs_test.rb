@@ -440,6 +440,7 @@ module ApplicationTests
       end
 
       test "db:migrate set back connection to its original state" do
+        require "#{app_path}/config/environment"
         Dir.chdir(app_path) do
           dummy_task = <<~RUBY
             task foo: :environment do
@@ -457,6 +458,7 @@ module ApplicationTests
       end
 
       test "db:migrate:name sets the connection back to its original state" do
+        require "#{app_path}/config/environment"
         Dir.chdir(app_path) do
           dummy_task = <<~RUBY
             task foo: :environment do
@@ -1067,6 +1069,7 @@ module ApplicationTests
       end
 
       test "when database_tasks is false, then do not run the database tasks on that db" do
+        require "#{app_path}/config/environment"
         app_file "config/database.yml", <<-YAML
           development:
             primary:
