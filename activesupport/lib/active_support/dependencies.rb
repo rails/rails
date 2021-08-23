@@ -62,11 +62,6 @@ module ActiveSupport # :nodoc:
     # main autoloader. Used to clear state.
     mattr_accessor :_autoloaded_tracked_classes, default: Set.new
 
-    # An array of qualified constant names that have been loaded. Adding a name
-    # to this array will cause it to be unloaded the next time Dependencies are
-    # cleared.
-    mattr_accessor :autoloaded_constants, default: []
-
     def clear
     end
 
