@@ -14,7 +14,19 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
         mariadb-server libmariadbclient-dev \
         postgresql postgresql-client postgresql-contrib libpq-dev \
         redis-server memcached \
-        imagemagick ffmpeg mupdf mupdf-tools libvips
+        ffmpeg mupdf mupdf-tools libvips poppler-utils
+
+
+ARG IMAGEMAGICK_VERSION="7.1.0-5"
+RUN wget -qO /tmp/im.tar.xz https://imagemagick.org/download/releases/ImageMagick-$IMAGEMAGICK_VERSION.tar.xz \
+    && wget -qO /tmp/im.sig https://imagemagick.org/download/releases/ImageMagick-$IMAGEMAGICK_VERSION.tar.xz.asc \
+    && gpg --batch --keyserver keyserver.ubuntu.com --recv 89AB63D48277377A \
+    && gpg --batch --verify /tmp/im.sig /tmp/im.tar.xz \
+    && tar xJf /tmp/im.tar.xz -C /tmp \
+    && cd /tmp/ImageMagick-$IMAGEMAGICK_VERSION \
+    && ./configure --with-rsvg && make -j 9 && make install \
+    && ldconfig /usr/local/lib \
+    && rm -rf /tmp/*
 
 
 # [Optional] Uncomment this line to install additional gems.
