@@ -46,7 +46,7 @@ class ActiveStorage::Variation
   end
 
   def default_to(defaults)
-    self.class.new transformations.reverse_merge(defaults)
+    self.class.new defaults.deep_merge(transformations)
   end
 
   # Accepts a File object, performs the +transformations+ against it, and

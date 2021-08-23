@@ -100,7 +100,8 @@ module ActiveStorage::Blob::Representable
 
   private
     def default_variant_transformations
-      { format: default_variant_format }
+      defaults = ActiveStorage.transformations_by_format[default_variant_format] || {}
+      defaults.reverse_merge(format: default_variant_format)
     end
 
     def default_variant_format

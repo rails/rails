@@ -1660,6 +1660,13 @@ config.active_storage.video_preview_arguments = "-vf 'select=eq(n\\,0)+eq(key\\,
 1. `select=eq(n\,0)+eq(key\,1)+gt(scene\,0.015)`: Select the first video frame, plus keyframes, plus frames that meet the scene change threshold.
 2. `loop=loop=-1:size=2,trim=start_frame=1`: To use the first video frame as a fallback when no other frames meet the criteria, loop the first (one or) two selected frames, then drop the first looped frame.
 
+* `config.active_storage.transformations_by_format` can be used to specify transformations that should be applied to all images of a given content_type. For a list of accepted formats, check the `variable_content_types` option. 
+
+    ```ruby
+    config.active_storage.transformations_by_format[:jpg] = { saver: { quality: 80, strip: true } }
+    config.active_storage.transformations_by_format[:png] = { saver: { compression: 9, strip: true } }
+    ```
+
 ### Configuring Action Text
 
 #### `config.action_text.attachment_tag_name`

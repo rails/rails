@@ -1,3 +1,8 @@
+*   Add the `transformations_by_format` option to Active Storage, which accepts a hash
+    with transformations that should be applied to all images of the specified content_type.
+
+    *Breno Gazzola*
+
 ## Rails 7.0.0.alpha2 (September 15, 2021) ##
 
 *   No changes.

@@ -211,6 +211,32 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_equal :png, blob.send(:default_variant_format)
   end
 
+  test "default transformations for content type are merged into requested transformations" do
+    using_default_transformations(:jpg, saver: { quality: 80, strip: true }) do
+      blob = create_file_blob(filename: "racecar.jpg")
+      variant = blob.variant(resize_to_limit: [100, 100], saver: { quality: 70, interlace: true })
+
+      transformations = variant.variation.transformations
+      assert_equal "jpg", transformations[:format]
+      assert_equal [100, 100], transformations[:resize_to_limit]
+      assert_equal 70, transformations[:saver][:quality]
+      assert transformations[:saver][:strip]
+      assert transformations[:saver][:interlace]
+    end
+  end
+
+  test "default transformations are based on default variant format instead of the original format" do
+    using_default_transformations(:png, saver: { compress: 9 }) do
+      blob = create_file_blob(filename: "racecar.tif")
+      variant = blob.variant(resize_to_limit: [100, 100])
+
+      transformations = variant.variation.transformations
+      assert_equal :png, transformations[:format]
+      assert_equal [100, 100], transformations[:resize_to_limit]
+      assert_equal 9, transformations[:saver][:compress]
+    end
+  end
+
   private
     def process_variants_with(processor)
       previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, processor
@@ -219,5 +245,16 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
       ENV["CI"] ? raise : skip("Variant processor #{processor.inspect} is not installed")
     ensure
       ActiveStorage.variant_processor = previous_processor
+    end
+
+    def using_default_transformations(format, **transformations)
+      previous_transformations = ActiveStorage.transformations_by_format
+      ActiveStorage.transformations_by_format[format] = transformations
+
+      yield
+    rescue LoadError
+      ENV["CI"] ? raise : skip("Variant processor #{processor.inspect} is not installed")
+    ensure
+      ActiveStorage.transformations_by_format = previous_transformations
     end
 end

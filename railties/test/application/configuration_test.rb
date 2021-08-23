@@ -3101,6 +3101,35 @@ module ApplicationTests
       assert_includes Rails.application.config.hosts, ".localhost"
     end
 
+    test "ActiveStorage.transformations_by_format is an empty hash by default" do
+      app "development"
+      assert_equal Hash.new, ActiveStorage.transformations_by_format
+    end
+
+    test "ActiveStorage.transformations_by_format can be configured via config.active_storage.transformations_by_format" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_storage.transformations_by_format[:jpg] = { format: "jpg" }
+        end
+      RUBY
+
+      app "development"
+
+      assert_equal({ format: "jpg" }, ActiveStorage.transformations_by_format[:jpg])
+    end
+
+    test "ActiveStorage.transformations_by_format raises an error if a format is not considered a web image" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_storage.transformations_by_format[:webp] = { format: "webp" }
+        end
+      RUBY
+
+      assert_raise ArgumentError do
+        app "development"
+      end
+    end
+
     test "hosts reads multiple values from RAILS_DEVELOPMENT_HOSTS" do
       host = "agoodhost.com"
       another_host = "bananapants.com"

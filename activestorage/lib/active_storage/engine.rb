@@ -30,6 +30,7 @@ module ActiveStorage
     config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new
+    config.active_storage.transformations_by_format = ActiveSupport::OrderedOptions.new
 
     config.active_storage.variable_content_types = %w(
       image/png
@@ -100,9 +101,21 @@ module ActiveStorage
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
         ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
+        ActiveStorage.transformations_by_format = app.config.active_storage.transformations_by_format || {}
 
         ActiveStorage.replace_on_assign_to_many = app.config.active_storage.replace_on_assign_to_many || false
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
+      end
+
+      config.after_initialize do |_|
+        invalid_formats = ActiveStorage.transformations_by_format.keys - ActiveStorage.web_image_content_types.map { |content_type| content_type.split("/")[1].to_sym }
+
+        if invalid_formats.present?
+          raise ArgumentError,
+                "You have defined transformations for formats that Active Storage does not consider web images (#{invalid_formats}) and will automatically convert to PNG. " \
+                "If you really wish to display images in these formats, add them to the 'web_image_content_types' config. " \
+                "Otherwise, remove them from 'transformations_by_format' and define transformations for the PNG format instead."
+        end
       end
     end
 
