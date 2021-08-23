@@ -8,9 +8,6 @@ module ActiveSupport # :nodoc:
   module Dependencies # :nodoc:
     require_relative "dependencies/require_dependency"
 
-    UNBOUND_METHOD_MODULE_NAME = Module.instance_method(:name)
-    private_constant :UNBOUND_METHOD_MODULE_NAME
-
     mattr_accessor :interlock, default: Interlock.new
 
     # :doc:
