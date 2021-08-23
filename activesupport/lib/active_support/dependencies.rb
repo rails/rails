@@ -8,8 +8,6 @@ module ActiveSupport # :nodoc:
   module Dependencies # :nodoc:
     require_relative "dependencies/require_dependency"
 
-    extend self
-
     UNBOUND_METHOD_MODULE_NAME = Module.instance_method(:name)
     private_constant :UNBOUND_METHOD_MODULE_NAME
 
@@ -20,28 +18,24 @@ module ActiveSupport # :nodoc:
     # Execute the supplied block without interference from any
     # concurrent loads.
     def self.run_interlock
-      Dependencies.interlock.running { yield }
+      interlock.running { yield }
     end
 
     # Execute the supplied block while holding an exclusive lock,
     # preventing any other thread from being inside a #run_interlock
     # block at the same time.
     def self.load_interlock
-      Dependencies.interlock.loading { yield }
+      interlock.loading { yield }
     end
 
     # Execute the supplied block while holding an exclusive lock,
     # preventing any other thread from being inside a #run_interlock
     # block at the same time.
     def self.unload_interlock
-      Dependencies.interlock.unloading { yield }
+      interlock.unloading { yield }
     end
 
     # :nodoc:
-
-    def eager_load?(path)
-      Dependencies._eager_load_paths.member?(path)
-    end
 
     # The set of directories from which we may automatically load files. Files
     # under these directories will be reloaded on each request in development mode,
@@ -62,8 +56,12 @@ module ActiveSupport # :nodoc:
     # main autoloader. Used to clear state.
     mattr_accessor :_autoloaded_tracked_classes, default: Set.new
 
+    def self.eager_load?(path)
+      _eager_load_paths.member?(path)
+    end
+
     # Search for a file in autoload_paths matching the provided suffix.
-    def search_for_file(path_suffix)
+    def self.search_for_file(path_suffix)
       path_suffix += ".rb" unless path_suffix.end_with?(".rb")
 
       autoload_paths.each do |root|
