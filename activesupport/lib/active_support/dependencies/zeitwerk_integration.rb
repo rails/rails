@@ -15,11 +15,6 @@ module ActiveSupport
             raise "reloading is disabled because config.cache_classes is true"
           end
         end
-
-        def verbose=(verbose)
-          l = verbose ? logger || Rails.logger : nil
-          Rails.autoloaders.each { |autoloader| autoloader.logger = l }
-        end
       end
 
       module Inflector
