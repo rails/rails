@@ -115,9 +115,9 @@ module ActionController
 
         ActiveSupport.on_load(:active_record) do
           ActiveRecord::QueryLogs.taggings.merge!(
-            controller:            -> { context[:controller].controller_name },
-            action:                -> { context[:controller].action_name },
-            namespaced_controller: -> { context[:controller].class.name }
+            controller:            ->(context) { context[:controller].controller_name },
+            action:                ->(context) { context[:controller].action_name },
+            namespaced_controller: ->(context) { context[:controller].class.name }
           )
         end
       end

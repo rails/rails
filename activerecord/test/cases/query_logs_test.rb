@@ -113,7 +113,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   def test_resets_cache_on_context_update
     ActiveRecord::QueryLogs.cache_query_log_tags = true
     ActiveRecord::QueryLogs.update_context(temporary: "value")
-    ActiveRecord::QueryLogs.tags = [ temporary_tag: -> { context[:temporary] } ]
+    ActiveRecord::QueryLogs.tags = [ temporary_tag: ->(context) { context[:temporary] } ]
 
     assert_equal " /*temporary_tag:value*/", ActiveRecord::QueryLogs.add_query_log_tags_to_sql("")
 
@@ -127,7 +127,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   end
 
   def test_ensure_context_has_symbol_keys
-    ActiveRecord::QueryLogs.tags = [ new_key: -> { context[:symbol_key] } ]
+    ActiveRecord::QueryLogs.tags = [ new_key: ->(context) { context[:symbol_key] } ]
     ActiveRecord::QueryLogs.update_context("symbol_key" => "symbolized")
 
     assert_sql(%r{/\*new_key:symbolized}) do
@@ -244,7 +244,10 @@ class QueryLogsTest < ActiveRecord::TestCase
 
   def test_multiple_custom_tags
     original_tags = ActiveRecord::QueryLogs.tags
-    ActiveRecord::QueryLogs.tags = [ :application, { custom_proc: -> { "test content" }, another_proc: -> { "more test content" } } ]
+    ActiveRecord::QueryLogs.tags = [
+      :application,
+      { custom_proc: -> { "test content" }, another_proc: -> { "more test content" } },
+    ]
 
     assert_sql(%r{/\*application:active_record,custom_proc:test content,another_proc:more test content\*/$}) do
       Dashboard.first
@@ -256,7 +259,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   def test_custom_proc_context_tags
     original_tags = ActiveRecord::QueryLogs.tags
     ActiveRecord::QueryLogs.update_context(foo: "bar")
-    ActiveRecord::QueryLogs.tags = [ :application, { custom_context_proc: -> { context[:foo] } } ]
+    ActiveRecord::QueryLogs.tags = [ :application, { custom_context_proc: ->(context) { context[:foo] } } ]
 
     assert_sql(%r{/\*application:active_record,custom_context_proc:bar\*/$}) do
       Dashboard.first
@@ -268,7 +271,7 @@ class QueryLogsTest < ActiveRecord::TestCase
 
   def test_set_context_restore_state
     original_tags = ActiveRecord::QueryLogs.tags
-    ActiveRecord::QueryLogs.tags = [foo: -> { context[:foo] }]
+    ActiveRecord::QueryLogs.tags = [foo: ->(context) { context[:foo] }]
     ActiveRecord::QueryLogs.set_context(foo: "bar") do
       assert_sql(%r{/\*foo:bar\*/$}) { Dashboard.first }
       ActiveRecord::QueryLogs.set_context(foo: "plop") do
