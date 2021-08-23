@@ -4,6 +4,7 @@
 	"name": "Ruby",
 	"build": {
 		"dockerfile": "Dockerfile",
+		"context": "..",
 		"args": {
 			// Update 'VARIANT' to pick a Ruby version: 3, 3.0, 2, 2.7, 2.6
 			"VARIANT": "3",
