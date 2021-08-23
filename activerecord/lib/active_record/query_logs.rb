@@ -96,13 +96,15 @@ module ActiveRecord
       end
 
       # Updates the context used to construct tags in the SQL comment during
-      # execution of the provided block. Resets provided values to nil after
-      # the block is executed.
+      # execution of the provided block. Resets the provided keys to their
+      # previous value once the block exits.
       def set_context(**options)
+        keys = options.keys
+        previous_context = keys.zip(context.values_at(*keys)).to_h
         update_context(**options)
         yield if block_given?
       ensure
-        update_context(**options.transform_values! { NullObject.new })
+        update_context(**previous_context)
       end
 
       # Temporarily tag any query executed within `&block`. Can be nested.

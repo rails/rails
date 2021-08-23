@@ -253,4 +253,18 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.update_context(foo: nil)
     ActiveRecord::QueryLogs.tags = original_tags
   end
+
+  def test_set_context_restore_state
+    original_tags = ActiveRecord::QueryLogs.tags
+    ActiveRecord::QueryLogs.tags = [foo: -> { context[:foo] }]
+    ActiveRecord::QueryLogs.set_context(foo: "bar") do
+      assert_sql(%r{/\*foo:bar\*/$}) { Dashboard.first }
+      ActiveRecord::QueryLogs.set_context(foo: "plop") do
+        assert_sql(%r{/\*foo:plop\*/$}) { Dashboard.first }
+      end
+      assert_sql(%r{/\*foo:bar\*/$}) { Dashboard.first }
+    end
+  ensure
+    ActiveRecord::QueryLogs.tags = original_tags
+  end
 end
