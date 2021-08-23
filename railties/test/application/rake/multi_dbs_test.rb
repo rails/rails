@@ -475,6 +475,27 @@ module ApplicationTests
         end
       end
 
+      test "db:schema:load:name sets the connection back to its original state" do
+        Dir.chdir(app_path) do
+          dummy_task = <<~RUBY
+            task foo: :environment do
+              Book.first
+            end
+          RUBY
+          app_file("Rakefile", dummy_task, "a+")
+
+          generate_models_for_animals
+
+          rails("db:migrate:primary")
+
+          rails "db:migrate:animals", "db:schema:dump:animals"
+
+          assert_nothing_raised do
+            rails("db:schema:load:animals", "foo")
+          end
+        end
+      end
+
       test "db:migrate respects timestamp ordering across databases" do
         require "#{app_path}/config/environment"
         app_file "db/migrate/01_one_migration.rb", <<-MIGRATION

@@ -493,8 +493,11 @@ db_namespace = namespace :db do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
         desc "Loads a database schema file (either db/schema.rb or db/structure.sql, depending on `config.active_record.schema_format`) into the #{name} database"
         task name => :load_config do
+          original_db_config = ActiveRecord::Base.connection_db_config
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
           ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ActiveRecord.schema_format, ENV["SCHEMA"])
+        ensure
+          ActiveRecord::Base.establish_connection(original_db_config) if original_db_config
         end
       end
     end
