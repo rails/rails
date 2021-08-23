@@ -34,25 +34,6 @@ class DependenciesTest < ActiveSupport::TestCase
     end
     assert_includes "uninitialized constant ImaginaryObject", e.message
   end
-
-  def test_qualified_const_defined
-    assert ActiveSupport::Dependencies.qualified_const_defined?("Object")
-    assert ActiveSupport::Dependencies.qualified_const_defined?("::Object")
-    assert ActiveSupport::Dependencies.qualified_const_defined?("::Object::Kernel")
-    assert ActiveSupport::Dependencies.qualified_const_defined?("::ActiveSupport::TestCase")
-  end
-
-  def test_qualified_const_defined_should_not_call_const_missing
-    ModuleWithMissing.missing_count = 0
-    assert_not ActiveSupport::Dependencies.qualified_const_defined?("ModuleWithMissing::A")
-    assert_equal 0, ModuleWithMissing.missing_count
-    assert_not ActiveSupport::Dependencies.qualified_const_defined?("ModuleWithMissing::A::B")
-    assert_equal 0, ModuleWithMissing.missing_count
-  end
-
-  def test_qualified_const_defined_explodes_with_invalid_const_name
-    assert_raises(NameError) { ActiveSupport::Dependencies.qualified_const_defined?("invalid") }
-  end
 end
 
 class RequireDependencyTest < ActiveSupport::TestCase

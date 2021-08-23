@@ -20,11 +20,6 @@ module ActiveSupport
           Rails.autoloaders.main.unloadable_cpaths
         end
 
-        def autoloaded?(object)
-          cpath = object.is_a?(Module) ? real_mod_name(object) : object.to_s
-          Rails.autoloaders.main.unloadable_cpath?(cpath)
-        end
-
         def verbose=(verbose)
           l = verbose ? logger || Rails.logger : nil
           Rails.autoloaders.each { |autoloader| autoloader.logger = l }
