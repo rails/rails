@@ -478,6 +478,7 @@ module ApplicationTests
       end
 
       test "db:schema:load:name sets the connection back to its original state" do
+        require "#{app_path}/config/environment"
         Dir.chdir(app_path) do
           dummy_task = <<~RUBY
             task foo: :environment do
