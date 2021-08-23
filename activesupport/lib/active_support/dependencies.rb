@@ -8,11 +8,6 @@ module ActiveSupport # :nodoc:
   module Dependencies # :nodoc:
     require_relative "dependencies/require_dependency"
 
-    extend self
-
-    UNBOUND_METHOD_MODULE_NAME = Module.instance_method(:name)
-    private_constant :UNBOUND_METHOD_MODULE_NAME
-
     mattr_accessor :interlock, default: Interlock.new
 
     # :doc:
@@ -20,28 +15,24 @@ module ActiveSupport # :nodoc:
     # Execute the supplied block without interference from any
     # concurrent loads.
     def self.run_interlock
-      Dependencies.interlock.running { yield }
+      interlock.running { yield }
     end
 
     # Execute the supplied block while holding an exclusive lock,
     # preventing any other thread from being inside a #run_interlock
     # block at the same time.
     def self.load_interlock
-      Dependencies.interlock.loading { yield }
+      interlock.loading { yield }
     end
 
     # Execute the supplied block while holding an exclusive lock,
     # preventing any other thread from being inside a #run_interlock
     # block at the same time.
     def self.unload_interlock
-      Dependencies.interlock.unloading { yield }
+      interlock.unloading { yield }
     end
 
     # :nodoc:
-
-    def eager_load?(path)
-      Dependencies._eager_load_paths.member?(path)
-    end
 
     # The set of directories from which we may automatically load files. Files
     # under these directories will be reloaded on each request in development mode,
@@ -62,23 +53,33 @@ module ActiveSupport # :nodoc:
     # main autoloader. Used to clear state.
     mattr_accessor :_autoloaded_tracked_classes, default: Set.new
 
-    # An array of qualified constant names that have been loaded. Adding a name
-    # to this array will cause it to be unloaded the next time Dependencies are
-    # cleared.
-    mattr_accessor :autoloaded_constants, default: []
-
-    def clear
+    # Private method that reloads constants autoloaded by the main autoloader.
+    #
+    # Rails.application.reloader.reload! is the public interface for application
+    # reload. That involves more things, like deleting unloaded classes from the
+    # internal state of the descendants tracker, or reloading routes.
+    def self.clear
+      unload_interlock do
+        _autoloaded_tracked_classes.clear
+        Rails.autoloaders.main.reload
+      rescue Zeitwerk::ReloadingDisabledError
+        raise "reloading is disabled because config.cache_classes is true"
+      end
     end
 
-    # Search for a file in autoload_paths matching the provided suffix.
-    def search_for_file(path_suffix)
-      path_suffix += ".rb" unless path_suffix.end_with?(".rb")
-
-      autoload_paths.each do |root|
-        path = File.join(root, path_suffix)
-        return path if File.file? path
+    # Private method used by require_dependency.
+    def self.search_for_file(relpath)
+      relpath += ".rb" unless relpath.end_with?(".rb")
+      autoload_paths.each do |autoload_path|
+        abspath = File.join(autoload_path, relpath)
+        return abspath if File.file?(abspath)
       end
-      nil # Gee, I sure wish we had first_match ;-)
+      nil
+    end
+
+    # Private method that helps configuring the autoloaders.
+    def self.eager_load?(path)
+      _eager_load_paths.member?(path)
     end
   end
 end

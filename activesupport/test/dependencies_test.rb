@@ -16,26 +16,6 @@ module ModuleWithConstant
   InheritedConstant = "Hello"
 end
 
-class DependenciesTest < ActiveSupport::TestCase
-  setup do
-    @loaded_features_copy = $LOADED_FEATURES.dup
-    $LOAD_PATH << "test"
-  end
-
-  teardown do
-    ActiveSupport::Dependencies.clear
-    $LOADED_FEATURES.replace(@loaded_features_copy)
-    $LOAD_PATH.pop
-  end
-
-  def test_smart_name_error_strings
-    e = assert_raise NameError do
-      Object.module_eval "ImaginaryObject"
-    end
-    assert_includes "uninitialized constant ImaginaryObject", e.message
-  end
-end
-
 class RequireDependencyTest < ActiveSupport::TestCase
   setup do
     @loaded_features_copy = $LOADED_FEATURES.dup
