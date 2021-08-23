@@ -70,11 +70,6 @@ module ActiveSupport # :nodoc:
     def clear
     end
 
-    # Is the provided constant path defined?
-    def qualified_const_defined?(path)
-      Object.const_defined?(path, false)
-    end
-
     # Search for a file in autoload_paths matching the provided suffix.
     def search_for_file(path_suffix)
       path_suffix += ".rb" unless path_suffix.end_with?(".rb")
@@ -85,33 +80,5 @@ module ActiveSupport # :nodoc:
       end
       nil # Gee, I sure wish we had first_match ;-)
     end
-
-    # Determine if the given constant has been automatically loaded.
-    def autoloaded?(desc)
-      return false if desc.is_a?(Module) && real_mod_name(desc).nil?
-      name = to_constant_name desc
-      return false unless qualified_const_defined?(name)
-      autoloaded_constants.include?(name)
-    end
-
-    # Convert the provided const desc to a qualified constant name (as a string).
-    # A module, class, symbol, or string may be provided.
-    def to_constant_name(desc) # :nodoc:
-      case desc
-      when String then desc.delete_prefix("::")
-      when Symbol then desc.to_s
-      when Module
-        real_mod_name(desc) ||
-          raise(ArgumentError, "Anonymous modules have no name to be referenced by")
-      else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
-      end
-    end
-
-    private
-      # Returns the original name of a class or module even if `name` has been
-      # overridden.
-      def real_mod_name(mod)
-        UNBOUND_METHOD_MODULE_NAME.bind_call(mod)
-      end
   end
 end

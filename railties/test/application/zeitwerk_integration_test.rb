@@ -62,14 +62,6 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert RESTfulController
   end
 
-  test "autoloaded? and overridden class names" do
-    invalid_constant_name = Module.new do
-      def self.name
-        "MyModule::SchemaMigration"
-      end
-    end
-    assert_not deps.autoloaded?(invalid_constant_name)
-  end
 
   test "the once autoloader can autoload from initializers" do
     app_file "extras0/x.rb", "X = 0"
@@ -126,10 +118,6 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
 
     assert Post
 
-    assert deps.autoloaded?("Post")
-    assert deps.autoloaded?(Post)
-    assert_not deps.autoloaded?("User")
-
     assert_equal ["Post"], deps.autoloaded_constants
   end
 
@@ -141,10 +129,6 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
 
     assert Foo
 
-    assert_not deps.autoloaded?("Foo")
-    assert_not deps.autoloaded?(Foo)
-    assert_not deps.autoloaded?("Bar")
-
     assert_empty deps.autoloaded_constants
   end
 
@@ -154,10 +138,6 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     boot("production")
 
     assert Post
-
-    assert_not deps.autoloaded?("Post")
-    assert_not deps.autoloaded?(Post)
-    assert_not deps.autoloaded?("User")
 
     assert_empty deps.autoloaded_constants
   end
