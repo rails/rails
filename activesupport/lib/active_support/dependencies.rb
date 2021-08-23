@@ -62,9 +62,6 @@ module ActiveSupport # :nodoc:
     # main autoloader. Used to clear state.
     mattr_accessor :_autoloaded_tracked_classes, default: Set.new
 
-    def clear
-    end
-
     # Search for a file in autoload_paths matching the provided suffix.
     def search_for_file(path_suffix)
       path_suffix += ".rb" unless path_suffix.end_with?(".rb")
