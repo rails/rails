@@ -137,6 +137,18 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.update_context(application_name: nil)
   end
 
+  def test_default_tag_behavior
+    ActiveRecord::QueryLogs.tags = [:application, :foo]
+    ActiveRecord::QueryLogs.set_context(foo: "bar") do
+      assert_sql(%r{/\*application:active_record,foo:bar\*/}) do
+        Dashboard.first
+      end
+    end
+    assert_sql(%r{/\*application:active_record\*/}) do
+      Dashboard.first
+    end
+  end
+
   def test_inline_tags_only_affect_block
     # disable regular comment tags
     ActiveRecord::QueryLogs.tags = []
