@@ -16,10 +16,6 @@ module ActiveSupport
           end
         end
 
-        def autoloaded_constants
-          Rails.autoloaders.main.unloadable_cpaths
-        end
-
         def verbose=(verbose)
           l = verbose ? logger || Rails.logger : nil
           Rails.autoloaders.each { |autoloader| autoloader.logger = l }
