@@ -1,3 +1,8 @@
+*   `preload_link_tag` properly inserts `as` attributes for files with `image` MIME types, such as JPG or SVG.
+
+    *Nate Berkopec*
+
+
 ## Rails 6.1.4.1 (August 19, 2021) ##
 
 *   No changes.
