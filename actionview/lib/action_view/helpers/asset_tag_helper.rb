@@ -536,9 +536,7 @@ module ActionView
             "style"
           elsif extname == "vtt"
             "track"
-          elsif extname == "svg"
-            "image"
-          elsif (type = mime_type.to_s.split("/")[0]) && type.in?(%w(audio video font))
+          elsif (type = mime_type.to_s.split("/")[0]) && type.in?(%w(audio video font image))
             type
           end
         end
