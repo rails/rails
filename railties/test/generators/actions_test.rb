@@ -116,6 +116,22 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file "Gemfile", /gem "rspec", github: "dchelimsky\/rspec", tag: "1\.2\.9\.rc1"/
   end
 
+  def test_gem_should_put_the_comment_before_gem_declaration
+    run_generator
+
+    action :gem, "rspec", comment: "Use RSpec"
+
+    assert_file "Gemfile", /# Use RSpec\ngem "rspec"/
+  end
+
+  def test_gem_should_support_multiline_comments
+    run_generator
+
+    action :gem, "rspec", comment: "Use RSpec\nReplaces minitest"
+
+    assert_file "Gemfile", /# Use RSpec\n# Replaces minitest\ngem "rspec"/
+  end
+
   def test_gem_with_non_string_options
     run_generator
 
@@ -154,6 +170,26 @@ class ActionsTest < Rails::Generators::TestCase
     end
 
     assert_file "Gemfile", /\n\ngroup :development, :test do\n  gem "rspec-rails"\nend\n\ngroup :test do\n  gem "fakeweb"\nend\n\z/
+  end
+
+  def test_gem_group_should_indent_comments
+    run_generator
+
+    action :gem_group, :test do
+      gem "fakeweb", comment: "Fake requests"
+    end
+
+    assert_file "Gemfile", /\n\ngroup :test do\n  # Fake requests\n  gem "fakeweb"\nend\n\z/
+  end
+
+  def test_gem_group_should_indent_multiline_comments
+    run_generator
+
+    action :gem_group, :test do
+      gem "fakeweb", comment: "Fake requests\nNeeded in tests"
+    end
+
+    assert_file "Gemfile", /\n\ngroup :test do\n  # Fake requests\n  # Needed in tests\n  gem "fakeweb"\nend\n\z/
   end
 
   def test_github_should_create_an_indented_block
