@@ -530,14 +530,12 @@ module ActionView
         end
 
         def resolve_link_as(extname, mime_type)
-          if extname == "js"
-            "script"
-          elsif extname == "css"
-            "style"
-          elsif extname == "vtt"
-            "track"
-          elsif (type = mime_type.to_s.split("/")[0]) && type.in?(%w(audio video font image))
-            type
+          case extname
+          when "js"  then "script"
+          when "css" then "style"
+          when "vtt" then "track"
+          else
+            mime_type.to_s.split("/").first.presence_in(%w(audio video font image))
           end
         end
 
