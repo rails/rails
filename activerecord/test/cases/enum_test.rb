@@ -788,7 +788,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_predicate book, :suffix?
   end
 
-  test "allow array syntax for enum backed by string column" do
+  test "array syntax for enum backed by string column" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
       enum cover: [:hard, :soft]
