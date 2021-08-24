@@ -140,11 +140,12 @@ module ActiveSupport
       # Race condition TTL is not set by default. This can be used to avoid
       # "thundering herd" cache writes when hot cache entries are expired.
       # See <tt>ActiveSupport::Cache::Store#fetch</tt> for more.
-      def initialize(namespace: nil, compress: true, compress_threshold: 1.kilobyte, coder: default_coder, expires_in: nil, race_condition_ttl: nil, error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
+      def initialize(namespace: nil, compress: true, compress_threshold: 1.kilobyte, coder: default_coder, expires_in: nil, race_condition_ttl: nil, error_handler: DEFAULT_ERROR_HANDLER, raise_errors: false, **redis_options)
         @redis_options = redis_options
 
         @max_key_bytesize = MAX_KEY_BYTESIZE
         @error_handler = error_handler
+        @raise_errors = raise_errors
 
         super namespace: namespace,
           compress: compress, compress_threshold: compress_threshold,
@@ -460,7 +461,12 @@ module ActiveSupport
           yield
         rescue ::Redis::BaseError => e
           handle_exception exception: e, method: method, returning: returning
-          returning
+
+          if @raise_errors
+            raise e
+          else
+            returning
+          end
         end
 
         def handle_exception(exception:, method:, returning:)
