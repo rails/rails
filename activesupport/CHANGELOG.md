@@ -1,15 +1,8 @@
-*   Add `raise_errors` to `redis_cache_store`, defaults to false
+*   Removed rescue block from `ActiveSupport::Cache::RedisCacheStore#handle_exception`
 
-    Previously if an `::Redis::BaseError` was throw while performing a `Rails.cache` operation,
-    it would result in cache-miss like behavior. This allows cache implementors who want to handle
-    these connection issues on their own have an option to do so. 
-
-    ```ruby
-    cache_servers = %w(redis://cache-01:6379/0 redis://cache-02:6379/0)
-    config.cache_store = :redis_cache_store, { url: cache_servers,
-      raise_errors: true # Defaults to false. Raise Redis::BaseError instead of dropping them.
-    }
-    ```
+    Previously, if you provided a `error_handler` to `redis_cache_store`, any errors thrown by
+    the error handler would be rescued and logged only. Removed the `rescue` clause from `handle_exception`
+    to allow these to be thrown. 
 
 *   Allow entirely opting out of deprecation warnings.
 

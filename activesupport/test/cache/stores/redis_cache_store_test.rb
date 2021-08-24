@@ -287,34 +287,34 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include FailureRaisingBehavior
 
     private
-    def emulating_unavailability
-      old_client = Redis.send(:remove_const, :Client)
-      Redis.const_set(:Client, UnavailableRedisClient)
+      def emulating_unavailability
+        old_client = Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, UnavailableRedisClient)
 
-      assert_raise Redis::BaseConnectionError do
-        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace, raise_errors: true)
+        assert_raise Redis::BaseConnectionError do
+          yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace, error_handler: -> (method:, returning:, exception:) { raise exception })
+        end
+      ensure
+        Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, old_client)
       end
-    ensure
-      Redis.send(:remove_const, :Client)
-      Redis.const_set(:Client, old_client)
-    end
   end
 
   class FailureRaisingFromMaxClientsReachedErrorTest < StoreTest
     include FailureRaisingBehavior
 
     private
-    def emulating_unavailability
-      old_client = Redis.send(:remove_const, :Client)
-      Redis.const_set(:Client, MaxClientsReachedRedisClient)
+      def emulating_unavailability
+        old_client = Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, MaxClientsReachedRedisClient)
 
-      assert_raise Redis::CommandError do
-        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace, raise_errors: true)
+        assert_raise Redis::CommandError do
+          yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace, error_handler: -> (method:, returning:, exception:) { raise exception })
+        end
+      ensure
+        Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, old_client)
       end
-    ensure
-      Redis.send(:remove_const, :Client)
-      Redis.const_set(:Client, old_client)
-    end
   end
 
   class FailureSafetyFromUnavailableClientTest < StoreTest
