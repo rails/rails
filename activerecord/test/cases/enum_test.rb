@@ -788,6 +788,18 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_predicate book, :suffix?
   end
 
+  test "allow array syntax for enum backed by string column" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum cover: [:hard, :soft]
+    end
+
+    book = klass.create(cover: :soft)
+    assert_equal "soft", book.cover
+    assert_predicate book, :soft?
+    assert_not_predicate book, :hard?
+  end
+
   test "scopes are named like methods" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "cats"

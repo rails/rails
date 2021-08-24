@@ -4,7 +4,7 @@ require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/object/deep_dup"
 
 module ActiveRecord
-  # Declare an enum attribute where the values map to integers in the database,
+  # Declare an enum attribute where the values map to integers/strings in the database,
   # but can be queried by name. Example:
   #
   #   class Conversation < ActiveRecord::Base
@@ -199,7 +199,14 @@ module ActiveRecord
             suffix == true ? "_#{name}" : "_#{suffix}"
           end
 
-          pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
+          pairs = if values.respond_to?(:each_pair)
+            values.each_pair
+          elsif column_backed_by_string?(name)
+            values.map! { |value| [value.to_s, value.to_s] }
+          else
+            values.each_with_index
+          end
+
           pairs.each do |label, value|
             enum_values[label] = value
             label = label.to_s
@@ -247,6 +254,10 @@ module ActiveRecord
               klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
               klass.scope "not_#{value_method_name}", -> { where.not(name => value) }
             end
+          end
+
+          def column_backed_by_string?(name)
+            klass.type_for_attribute(name).type == :string
           end
       end
       private_constant :EnumMethods

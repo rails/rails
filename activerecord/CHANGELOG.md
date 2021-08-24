@@ -1,3 +1,16 @@
+*   Add support for array syntax on enums backed by string columns.
+
+    ```ruby
+    class Book < ActiveRecord::Base
+      # This is equivalent to enum cover: { hard: "hard", soft: "soft" }
+      enum cover: [:hard, :soft]
+    end
+    ```
+
+    This feature doesn't affect enums backed by integer columns.
+
+    *Matheus Richard*
+
 *   Reestablish connection to previous database after after running `db:schema:load:name`
 
     After running `db:schema:load:name` the previous connection is restored.
