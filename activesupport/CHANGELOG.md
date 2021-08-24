@@ -1,3 +1,16 @@
+*   Add `raise_errors` to `redis_cache_store`, defaults to false
+
+    Previously if an `::Redis::BaseError` was throw while performing a `Rails.cache` operation,
+    it would result in cache-miss like behavior. This allows cache implementors who want to handle
+    these connection issues on their own have an option to do so. 
+
+    ```ruby
+    cache_servers = %w(redis://cache-01:6379/0 redis://cache-02:6379/0)
+    config.cache_store = :redis_cache_store, { url: cache_servers,
+      raise_errors: true # Defaults to false. Raise Redis::BaseError instead of dropping them.
+    }
+    ```
+
 *   Allow entirely opting out of deprecation warnings.
 
     Previously if you did `app.config.active_support.deprecation = :silence`, some work would
