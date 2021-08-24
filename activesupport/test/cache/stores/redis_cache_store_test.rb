@@ -291,9 +291,8 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         old_client = Redis.send(:remove_const, :Client)
         Redis.const_set(:Client, UnavailableRedisClient)
 
-        assert_raise Redis::BaseConnectionError do
-          yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace, error_handler: -> (method:, returning:, exception:) { raise exception })
-        end
+        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace,
+                                                        error_handler: -> (method:, returning:, exception:) { raise exception })
       ensure
         Redis.send(:remove_const, :Client)
         Redis.const_set(:Client, old_client)
@@ -308,9 +307,8 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         old_client = Redis.send(:remove_const, :Client)
         Redis.const_set(:Client, MaxClientsReachedRedisClient)
 
-        assert_raise Redis::CommandError do
-          yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace, error_handler: -> (method:, returning:, exception:) { raise exception })
-        end
+        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace,
+                                                        error_handler: -> (method:, returning:, exception:) { raise exception })
       ensure
         Redis.send(:remove_const, :Client)
         Redis.const_set(:Client, old_client)
