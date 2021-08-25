@@ -100,24 +100,21 @@ module ActionView
       #
       # There are two possible formats for the +choices+ parameter, corresponding to other helpers' output:
       #
-      # * A flat collection (see +options_for_select+).
+      # * A flat collection (see <tt>options_for_select</tt>).
+      # * A nested collection (see <tt>grouped_options_for_select</tt>).
       #
-      # * A nested collection (see +grouped_options_for_select+).
+      # Example with <tt>@post.person_id => 2</tt>:
       #
-      # For example:
-      #
-      #   select("post", "person_id", Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: true })
+      #   select :post, :person_id, Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: true })
       #
       # would become:
       #
       #   <select name="post[person_id]" id="post_person_id">
       #     <option value="" label=" "></option>
-      #     <option value="1" selected="selected">David</option>
-      #     <option value="2">Eileen</option>
+      #     <option value="1">David</option>
+      #     <option value="2" selected="selected">Eileen</option>
       #     <option value="3">Rafael</option>
       #   </select>
-      #
-      # assuming the associated person has ID 1.
       #
       # This can be used to provide a default set of options in the standard way: before rendering the create form, a
       # new model instance is assigned the default options and bound to @model_name. Usually this model is not saved
