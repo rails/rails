@@ -129,9 +129,9 @@ module ActionView
       # A block can be passed to +select+ to customize how the options tags will be rendered. This
       # is useful when the options tag has complex attributes.
       #
-      #   select(report, "campaign_ids") do
+      #   select(report, :campaign_ids) do
       #     available_campaigns.each do |c|
-      #       content_tag(:option, c.name, value: c.id, data: { tags: c.tags.to_json })
+      #       tag.option(c.name, value: c.id, data: { tags: c.tags.to_json })
       #     end
       #   end
       #
