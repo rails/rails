@@ -10,7 +10,7 @@ module ApplicationTests
     include Rack::Test::Methods
 
     def setup
-      build_app(initializers: true, webpack: true)
+      build_app(initializers: true)
     end
 
     def teardown

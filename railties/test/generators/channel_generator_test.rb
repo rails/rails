@@ -7,6 +7,11 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   tests Rails::Generators::ChannelGenerator
 
+  setup do
+    FileUtils.mkdir_p("#{destination_root}/app/javascript")
+    FileUtils.touch("#{destination_root}/app/javascript/application.js")
+  end
+
   def test_application_cable_skeleton_is_created
     run_generator ["books"]
 
@@ -27,7 +32,7 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/javascript/channels/chat_channel.js" do |channel|
-      assert_match(/import consumer from "\.\/consumer"\s+consumer\.subscriptions\.create\("ChatChannel/, channel)
+      assert_match(/import consumer from "channels\/consumer"\s+consumer\.subscriptions\.create\("ChatChannel/, channel)
     end
   end
 
@@ -41,7 +46,7 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/javascript/channels/chat_channel.js" do |channel|
-      assert_match(/import consumer from "\.\/consumer"\s+consumer\.subscriptions\.create\("ChatChannel/, channel)
+      assert_match(/import consumer from "channels\/consumer"\s+consumer\.subscriptions\.create\("ChatChannel/, channel)
       assert_match(/,\n\n  speak/, channel)
       assert_match(/,\n\n  mute: function\(\) \{\n    return this\.perform\('mute'\);\n  \}\n\}\);/, channel)
     end
@@ -59,11 +64,9 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
 
   def test_consumer_js_is_created_if_not_present_already
     run_generator ["chat"]
-    FileUtils.rm("#{destination_root}/app/javascript/channels/index.js")
     FileUtils.rm("#{destination_root}/app/javascript/channels/consumer.js")
     run_generator ["camp"]
 
-    assert_file "app/javascript/channels/index.js"
     assert_file "app/javascript/channels/consumer.js"
   end
 
@@ -87,7 +90,6 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/channels/application_cable/channel.rb"
     assert_file "app/channels/application_cable/connection.rb"
-    assert_file "app/javascript/channels/index.js"
     assert_file "app/javascript/channels/consumer.js"
   end
 
