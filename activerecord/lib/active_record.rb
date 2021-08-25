@@ -323,6 +323,9 @@ module ActiveRecord
   singleton_class.attr_accessor :verify_foreign_keys_for_fixtures
   self.verify_foreign_keys_for_fixtures = false
 
+  singleton_class.attr_accessor :query_transformers
+  self.query_transformers = []
+
   def self.eager_load!
     super
     ActiveRecord::Locking.eager_load!
