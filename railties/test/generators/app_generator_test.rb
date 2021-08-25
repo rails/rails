@@ -1047,7 +1047,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/\s+require\s+["']sprockets\/railtie["']/, content)
     end
 
-    assert_no_gem "webpacker", app_root
     assert_no_gem "jbuilder", app_root
     assert_no_gem "web-console", app_root
   end
