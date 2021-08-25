@@ -185,6 +185,22 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(NoMethodError) { Topic.exists?([1, 2]) }
   end
 
+  def test_not_exists
+    assert_equal false, Topic.not_exists?(1)
+    assert_equal false, Topic.not_exists?("1")
+    assert_equal false, Topic.not_exists?(title: "The First Topic")
+    assert_equal false, Topic.not_exists?(heading: "The First Topic")
+    assert_equal false, Topic.not_exists?(author_name: "Mary", approved: true)
+    assert_equal false, Topic.not_exists?(["parent_id = ?", 1])
+    assert_equal false, Topic.not_exists?(id: [1, 9999])
+
+    assert_equal true, Topic.not_exists?(45)
+    assert_equal true, Topic.not_exists?(9999999999999999999999999999999)
+    assert_equal true, Topic.not_exists?(Topic.new.id)
+
+    assert_raise(NoMethodError) { Topic.not_exists?([1, 2]) }
+  end
+
   def test_exists_with_scope
     davids = Author.where(name: "David")
     assert_equal true, davids.exists?

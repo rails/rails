@@ -346,6 +346,11 @@ module ActiveRecord
       skip_query_cache_if_necessary { connection.select_rows(relation.arel, "#{name} Exists?").size == 1 }
     end
 
+    # Same as #exists? but returns the opposite result.
+    def not_exists?(conditions = :none)
+      !exists?(conditions)
+    end
+
     # Returns true if the relation contains the given record or false otherwise.
     #
     # No query is performed if the relation is loaded; the given record is

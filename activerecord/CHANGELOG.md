@@ -1,3 +1,15 @@
+*   Add `ActiveRecord::FinderMethods#not_exists?`.
+
+    Convenient method that returns the opposite of `ActiveRecord::FinderMethods#exists?`.
+
+    ```ruby
+    !User.where(name: 'David').exists?
+    # same as
+    User.where(name: 'David').not_exists?
+    ```
+
+    *Guillaume Briday*
+
 *   Reestablish connection to previous database after after running `db:schema:load:name`
 
     After running `db:schema:load:name` the previous connection is restored.
