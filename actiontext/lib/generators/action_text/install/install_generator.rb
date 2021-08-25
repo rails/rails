@@ -19,29 +19,27 @@ module ActionText
 
       def append_javascript_dependencies
         if defined?(Webpacker::Engine)
-          in_root do
-            if (app_javascript_pack_path = Pathname.new("app/javascript/packs/application.js")).exist?
-              js_dependencies.each_key do |dependency|
-                line = %[require("#{dependency}")]
+          if (app_javascript_pack_path = Pathname.new("#{Webpacker.config.source_entry_path}/application.js")).exist?
+            js_dependencies.each_key do |dependency|
+              line = %[import "#{dependency}"]
 
-                unless app_javascript_pack_path.read.include? line
-                  say "Adding #{dependency} to #{app_javascript_pack_path}", :green
-                  append_to_file app_javascript_pack_path, "\n#{line}"
-                end
+              unless app_javascript_pack_path.read.include? line
+                say "Adding #{dependency} to #{app_javascript_pack_path}", :green
+                append_to_file app_javascript_pack_path, "\n#{line}"
               end
-            else
-              say <<~WARNING, :red
-                WARNING: Action Text can't locate your JavaScript bundle to add its package dependencies.
-
-                Add these lines to any bundles:
-
-                require("trix")
-                require("@rails/actiontext")
-
-                Alternatively, install and setup the webpacker gem then rerun `bin/rails action_text:install`
-                to have these dependencies added automatically.
-              WARNING
             end
+          else
+            say <<~WARNING, :red
+              WARNING: Action Text can't locate your JavaScript bundle to add its package dependencies.
+
+              Add these lines to any bundles:
+
+              import "trix"
+              import "@rails/actiontext"
+
+              Alternatively, install and setup the webpacker gem then rerun `bin/rails action_text:install`
+              to have these dependencies added automatically.
+            WARNING
           end
         else
           if (application_javascript_path = Rails.root.join("app/javascript/application.js")).exist?

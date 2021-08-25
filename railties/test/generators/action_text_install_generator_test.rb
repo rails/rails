@@ -47,8 +47,8 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
 
     assert_file application_js do |content|
-      assert_match %r"^#{Regexp.escape 'require("@rails/actiontext")'}", content
-      assert_match %r"^#{Regexp.escape 'require("trix")'}", content
+      assert_match %r"^#{Regexp.escape 'import "@rails/actiontext"'}", content
+      assert_match %r"^#{Regexp.escape 'import "trix"'}", content
     end
   end
 

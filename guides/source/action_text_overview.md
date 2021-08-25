@@ -55,8 +55,8 @@ After the installation is complete, a Rails app using Webpacker should have the 
 
     ```js
     // application.js
-    require("trix")
-    require("@rails/actiontext")
+    import "trix"
+    import "@rails/actiontext"
     ```
 
 2. The `trix` stylesheet should be imported into `actiontext.scss`.

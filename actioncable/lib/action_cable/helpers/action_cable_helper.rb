@@ -15,7 +15,8 @@ module ActionCable
       # Your JavaScript can then connect to the server without needing to specify the
       # URL directly:
       #
-      #   window.Cable = require("@rails/actioncable")
+      #   import Cable from "@rails/actioncable"
+      #   window.Cable = Cable
       #   window.App = {}
       #   App.cable = Cable.createConsumer()
       #
