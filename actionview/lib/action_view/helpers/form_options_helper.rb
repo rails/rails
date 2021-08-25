@@ -223,19 +223,19 @@ module ActionView
       #
       # Example object structure for use with this method:
       #
+      #   # attributes: id, name
       #   class Continent < ActiveRecord::Base
       #     has_many :countries
-      #     # attribs: id, name
       #   end
       #
+      #   # attributes: id, name, continent_id
       #   class Country < ActiveRecord::Base
       #     belongs_to :continent
-      #     # attribs: id, name, continent_id
       #   end
       #
+      #   # attributes: id, name, country_id
       #   class City < ActiveRecord::Base
       #     belongs_to :country
-      #     # attribs: id, name, country_id
       #   end
       #
       # Sample usage:
