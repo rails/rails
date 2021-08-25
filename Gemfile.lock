@@ -511,7 +511,7 @@ GEM
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
-    webpacker (6.0.0.rc.2)
+    webpacker (6.0.0.rc.5)
       activesupport (>= 5.2)
       rack-proxy (>= 0.6.1)
       railties (>= 5.2)
@@ -601,9 +601,9 @@ DEPENDENCIES
   wdm (>= 0.1.0)
   webdrivers
   webmock
-  webpacker (~> 6.0.0.rc.2)
+  webpacker (~> 6.0.0.rc.5)
   webrick
   websocket-client-simple!
 
 BUNDLED WITH
-   2.2.19
+   2.2.25
