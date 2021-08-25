@@ -237,6 +237,33 @@ module ActiveRecord
         connection.create_table table_name
       end
 
+      def test_forceful_temporary_table_creation
+        if current_adapter?(:PostgreSQLAdapter)
+          expected_sql = [
+            /\ADROP TABLE IF EXISTS "#{table_name}"/,
+            /\ACREATE TEMPORARY TABLE "#{table_name}" \("id" bigserial primary key\)/
+          ]
+        elsif current_adapter?(:Mysql2Adapter)
+          expected_sql = [
+            /\ADROP TEMPORARY TABLE IF EXISTS `#{table_name}`/,
+            /\ACREATE TEMPORARY TABLE `#{table_name}` \(`id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY\)/
+          ]
+        elsif current_adapter?(:SQLite3Adapter)
+          expected_sql = [
+            /\ADROP TABLE IF EXISTS "#{table_name}"/,
+            /\ACREATE TEMPORARY TABLE "#{table_name}" \("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL\)/
+          ]
+        else
+          skip
+        end
+
+        assert_sql(*expected_sql) do
+          ActiveRecord::Base.connection.create_table(table_name, temporary: true, force: true)
+        end
+      ensure
+        ActiveRecord::Base.connection.drop_table table_name, temporary: true, if_exists: true
+      end
+
       # SQLite3 will not allow you to add a NOT NULL
       # column to a table without a default value.
       unless current_adapter?(:SQLite3Adapter)

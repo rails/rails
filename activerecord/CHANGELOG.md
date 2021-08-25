@@ -1,3 +1,12 @@
+*   Fix forceful creation of temporary tables
+
+    Before this fix, every attempt to forcefully create a temporary table was
+    issuing a non-temporary table drop with the same table name when using the mysql2 adapter.
+
+    Fixes #42525
+
+    *Lazarus Lazaridis*
+
 *   Accept optional transaction args to `ActiveRecord::Locking::Pessimistic#with_lock`
 
     `#with_lock` now accepts transaction options like `requires_new:`,

@@ -294,7 +294,8 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options)
-        td = create_table_definition(table_name, **extract_table_options!(options))
+        table_options = extract_table_options!(options)
+        td = create_table_definition(table_name, **table_options)
 
         if id && !td.as
           pk = primary_key || Base.get_primary_key(table_name.to_s.singularize)
@@ -314,7 +315,7 @@ module ActiveRecord
         yield td if block_given?
 
         if force
-          drop_table(table_name, force: force, if_exists: true)
+          drop_table(table_name, force: force, if_exists: true, temporary: table_options[:temporary])
         else
           schema_cache.clear_data_source_cache!(table_name.to_s)
         end
