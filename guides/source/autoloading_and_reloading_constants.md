@@ -128,7 +128,7 @@ This is key for classes and modules that are cached in places that survive reloa
 For example, Active Job serializers are stored inside Active Job:
 
 ```ruby
-# config/initializer/custom_serializers.rb
+# config/initializers/custom_serializers.rb
 Rails.application.config.active_job.custom_serializers << MoneySerializer
 ```
 
@@ -151,7 +151,7 @@ There, the module object stored in `MyDecoration` by the time the initializer ru
 Classes and modules from the autoload once paths can be autoloaded in `config/initializers`. So, with that configuration this works:
 
 ```ruby
-# config/initializer/custom_serializers.rb
+# config/initializers/custom_serializers.rb
 Rails.application.config.active_job.custom_serializers << MoneySerializer
 ```
 
