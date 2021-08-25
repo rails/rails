@@ -335,24 +335,6 @@ module SharedGeneratorTests
     end
   end
 
-  def test_generator_for_yarn
-    skip "#34009 disabled JS by default for plugins" if generator_class.name == "Rails::Generators::PluginGenerator"
-    run_generator [destination_root, "--webpack"]
-    assert_file "#{application_path}/package.json", /dependencies/
-    assert_file "#{application_path}/bin/yarn"
-    assert_file "#{application_path}/config/initializers/assets.rb", /node_modules/
-  end
-
-  def test_generator_for_yarn_skipped
-    run_generator([destination_root, "--skip-javascript"])
-    assert_no_file "#{application_path}/package.json"
-    assert_no_file "#{application_path}/bin/yarn"
-
-    assert_file "#{application_path}/config/initializers/assets.rb" do |content|
-      assert_no_match(/node_modules/, content)
-    end
-  end
-
   private
     def run_generator_instance
       @bundle_commands = []

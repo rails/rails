@@ -181,7 +181,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          public/apple-touch-icon-precomposed.png
          public/apple-touch-icon.png
          public/favicon.ico
-         package.json
       )
     end
 end

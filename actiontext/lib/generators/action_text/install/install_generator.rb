@@ -10,8 +10,6 @@ module ActionText
 
       def install_javascript_dependencies
         if defined?(Webpacker::Engine)
-          rails_command "app:binstub:yarn", inline: true
-
           say "Installing JavaScript dependencies", :green
           yarn_command "add #{js_dependencies.map { |name, version| "#{name}@#{version}" }.join(" ")}"
         end

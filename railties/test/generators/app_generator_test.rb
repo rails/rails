@@ -499,52 +499,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_package_json_uses_current_versions
-    run_generator [destination_root, "--webpack"]
-    generator = Rails::Generators::AppBase.new ["rails"]
-    version = generator.send(:npm_version)
-
-    assert_file "package.json" do |content|
-      assert_match(/"@rails\/ujs": "#{version}"/, content)
-      assert_match(/"@rails\/activestorage": "#{version}"/, content)
-      assert_match(/"@rails\/actioncable": "#{version}"/, content)
-    end
-  end
-
-  def test_package_json_uses_edge_versions
-    run_generator [destination_root, "--main", "--webpack"]
-
-    assert_file "package.json" do |content|
-      assert_match(/"@rails\/ujs": "latest"/, content)
-      assert_match(/"@rails\/activestorage": "latest"/, content)
-      assert_match(/"@rails\/actioncable": "latest"/, content)
-    end
-  end
-
-  def test_package_json_excludes_activestorage_if_skipped
-    run_generator [destination_root, "--skip-active-storage", "--webpack"]
-
-    assert_file "package.json" do |content|
-      assert_not content.include?("activestorage")
-    end
-  end
-
-  def test_package_json_excludes_actioncable_if_skipped
-    run_generator [destination_root, "--skip-action-cable", "--webpack"]
-
-    assert_file "package.json" do |content|
-      assert_not content.include?("actioncable")
-    end
-  end
-
-  def test_package_json_excludes_turbolinks_if_skipped
-    run_generator [destination_root, "--skip-turbolinks", "--webpack"]
-
-    assert_file "package.json" do |content|
-      assert_not content.include?("turbolinks")
-    end
-  end
-
   def test_config_database_is_added_by_default
     run_generator
     assert_file "config/database.yml", /sqlite3/

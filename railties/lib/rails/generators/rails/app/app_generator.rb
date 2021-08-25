@@ -79,10 +79,6 @@ module Rails
       end
     end
 
-    def package_json
-      template "package.json"
-    end
-
     def app
       directory "app"
 
@@ -97,20 +93,10 @@ module Rails
         "#{shebang}\n" + content
       end
       chmod "bin", 0755 & ~File.umask, verbose: false
-
-      remove_file "bin/yarn" unless options[:webpack]
     end
 
     def bin_when_updating
       bin
-    end
-
-    def yarn_when_updating
-      template "bin/yarn", force: true do |content|
-        "#{shebang}\n" + content
-      end
-
-      chmod "bin", 0755 & ~File.umask, verbose: false
     end
 
     def config
@@ -306,7 +292,7 @@ module Rails
           raise Error, "Invalid value for --database option. Supported preconfigurations are: #{DATABASES.join(", ")}."
         end
 
-        # Force sprockets and yarn to be skipped when generating API only apps.
+        # Force sprockets and JavaScript to be skipped when generating API only apps.
         # Can't modify options hash as it's frozen by default.
         if options[:api]
           self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze
@@ -353,7 +339,6 @@ module Rails
 
         build(:gemfile)
         build(:version_control)
-        build(:package_json) if options[:webpack]
       end
 
       def create_app_files
@@ -368,11 +353,6 @@ module Rails
         build(:bin_when_updating)
       end
       remove_task :update_bin_files
-
-      def update_bin_yarn
-        build(:yarn_when_updating)
-      end
-      remove_task :update_bin_yarn
 
       def update_active_storage
         unless skip_active_storage?
