@@ -529,6 +529,9 @@ Module.new do
     end
   end
 
+  FileUtils.mkdir_p "#{app_template_path}/app/javascript"
+  File.write("#{app_template_path}/app/javascript/application.js", "\n")
+
   # Fix relative file paths
   package_json = File.read("#{assets_path}/package.json")
   package_json.gsub!(%r{"file:(\.\./[^"]+)"}) do
