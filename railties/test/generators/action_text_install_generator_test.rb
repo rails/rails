@@ -5,13 +5,13 @@ require "generators/action_text/install/install_generator"
 
 module Webpacker
   extend self
-  
+
   def config
     Class.new do
       def source_path
         "app/packs"
       end
-      
+
       def source_entry_path
         "app/packs/entrypoints"
       end
