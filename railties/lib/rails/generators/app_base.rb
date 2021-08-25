@@ -315,7 +315,7 @@ module Rails
 
       def webpacker_gemfile_entry
         if options[:webpack]
-          GemfileEntry.version "webpacker", "~> 6.0.0.rc.2", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
+          GemfileEntry.version "webpacker", "~> 6.0.0.rc.4", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
         else
           []
         end
