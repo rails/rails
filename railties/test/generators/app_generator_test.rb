@@ -1020,9 +1020,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [app_root, "--minimal"]
 
     assert_no_file "#{app_root}/config/storage.yml"
-    assert_no_file "#{app_root}/config/webpacker.yml"
     assert_no_file "#{app_root}/config/cable.yml"
-    assert_no_file "#{app_root}/bin/yarn"
     assert_no_file "#{app_root}/views/layouts/mailer.html.erb"
     assert_no_file "#{app_root}/app/jobs/application.rb"
     assert_file "#{app_root}/app/views/layouts/application.html.erb" do |content|
