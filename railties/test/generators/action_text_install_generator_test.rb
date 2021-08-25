@@ -19,12 +19,6 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     run_under_asset_pipeline
   end
 
-  test "creates bin/yarn" do
-    run_generator_instance
-
-    assert_file "bin/yarn"
-  end
-
   test "installs JavaScript dependencies" do
     run_generator_instance
     yarn_commands = @yarn_commands.join("\n")
@@ -87,17 +81,6 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     assert_file gemfile do |content|
       assert_equal %(gem "image_processing"), content
     end
-  end
-
-  test "#yarn_command runs bin/yarn via Ruby" do
-    ran = nil
-    run_stub = -> (command, *) { ran = command }
-
-    generator.stub(:run, run_stub) do
-      generator.send(:yarn_command, "foo")
-    end
-
-    assert_match %r"\S bin/yarn foo$", ran
   end
 
   test "run just for asset pipeline" do
