@@ -54,7 +54,7 @@ module ActionView
     #       <option value="3">Rafael</option>
     #     </select>
     #
-    # * <tt>:index</tt> - like the other form helpers, +select+ can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, +select+ expects this
+    # * <tt>:index</tt> - like the other form helpers, <tt>select</tt> can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, <tt>select</tt> expects this
     #   option to be in the +html_options+ parameter.
     #
     #     select("album[]", :genre, %w[ rap rock country ], {}, { index: nil })
@@ -298,7 +298,7 @@ module ActionView
       end
 
       # Returns select and option tags for the given object and method, using
-      # #weekday_options_for_select to generate the list of option tags.
+      # <tt>weekday_options_for_select</tt> to generate the list of option tags.
       def weekday_select(object, method, options = {}, html_options = {}, &block)
         Tags::WeekdaySelect.new(object, method, self, options, html_options, &block).render
       end
