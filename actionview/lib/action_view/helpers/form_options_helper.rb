@@ -90,7 +90,6 @@ module ActionView
     #       <option value="3">Jokes</option>
     #       <option value="4">Poems</option>
     #     </select>
-    #
     module FormOptionsHelper
       # ERB::Util can mask some helpers like textilize. Make sure to include them.
       include TextHelper
@@ -156,7 +155,6 @@ module ActionView
       #
       # In case if you don't want the helper to generate this hidden field you can specify
       # <tt>include_hidden: false</tt> option.
-      #
       def select(object, method, choices = nil, options = {}, html_options = {}, &block)
         Tags::Select.new(object, method, self, choices, options, html_options, &block).render
       end
@@ -180,6 +178,7 @@ module ActionView
       #
       #   class Author < ActiveRecord::Base
       #     has_many :posts
+      #
       #     def name_with_initial
       #       "#{first_name.first}. #{last_name}"
       #     end
@@ -255,7 +254,6 @@ module ActionView
       #       <option value="2">Ireland</option>
       #     </optgroup>
       #   </select>
-      #
       def grouped_collection_select(object, method, collection, group_method, group_label_method, option_key_method, option_value_method, options = {}, html_options = {})
         Tags::GroupedCollectionSelect.new(object, method, self, collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options).render
       end
@@ -625,11 +623,14 @@ module ActionView
       # retrieve the value/text.
       #
       # Example object structure for use with this method:
+      #
       #   class Post < ActiveRecord::Base
       #     belongs_to :author
       #   end
+      #
       #   class Author < ActiveRecord::Base
       #     has_many :posts
+      #
       #     def name_with_initial
       #       "#{first_name.first}. #{last_name}"
       #     end
