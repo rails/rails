@@ -16,7 +16,7 @@ module ActionView
     #
     # * <tt>:include_blank</tt> - set to true or a prompt string if the first option element of the select element is a blank. Useful if there is not a default value required for the select element.
     #
-    #     select("post", "category", Post::CATEGORIES, { include_blank: true })
+    #     select(:post, :category, Post::CATEGORIES, { include_blank: true })
     #
     #   could become:
     #
@@ -30,7 +30,7 @@ module ActionView
     #
     #   Example with <tt>@post.person_id => 2</tt>:
     #
-    #     select("post", "person_id", Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: 'None' })
+    #     select(:post, :person_id, Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: "None" })
     #
     #   could become:
     #
@@ -43,7 +43,7 @@ module ActionView
     #
     # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this prepends an option with a generic prompt -- "Please select" -- or the given prompt string.
     #
-    #     select("post", "person_id", Person.all.collect { |p| [ p.name, p.id ] }, { prompt: 'Select Person' })
+    #     select(:post, :person_id, Person.all.collect { |p| [ p.name, p.id ] }, { prompt: "Select Person" })
     #
     #   could become:
     #
@@ -57,7 +57,7 @@ module ActionView
     # * <tt>:index</tt> - like the other form helpers, +select+ can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, +select+ expects this
     #   option to be in the +html_options+ parameter.
     #
-    #     select("album[]", "genre", %w[rap rock country], {}, { index: nil })
+    #     select("album[]", :genre, %w[ rap rock country ], {}, { index: nil })
     #
     #   becomes:
     #
@@ -69,7 +69,7 @@ module ActionView
     #
     # * <tt>:disabled</tt> - can be a single value or an array of values that will be disabled options in the final output.
     #
-    #     select("post", "category", Post::CATEGORIES, { disabled: 'restricted' })
+    #     select(:post, :category, Post::CATEGORIES, { disabled: "restricted" })
     #
     #   could become:
     #
@@ -282,17 +282,17 @@ module ActionView
       # Finally, this method supports a <tt>:default</tt> option, which selects
       # a default ActiveSupport::TimeZone if the object's time zone is +nil+.
       #
-      #   time_zone_select("user", "time_zone", nil, include_blank: true)
+      #   time_zone_select(:user, :time_zone, nil, include_blank: true)
       #
-      #   time_zone_select("user", "time_zone", nil, default: "Pacific Time (US & Canada)")
+      #   time_zone_select(:user, :time_zone, nil, default: "Pacific Time (US & Canada)")
       #
-      #   time_zone_select("user", 'time_zone', ActiveSupport::TimeZone.us_zones, default: "Pacific Time (US & Canada)")
+      #   time_zone_select(:user, :time_zone, ActiveSupport::TimeZone.us_zones, default: "Pacific Time (US & Canada)")
       #
-      #   time_zone_select("user", 'time_zone', [ ActiveSupport::TimeZone['Alaska'], ActiveSupport::TimeZone['Hawaii'] ])
+      #   time_zone_select(:user, :time_zone, [ ActiveSupport::TimeZone["Alaska"], ActiveSupport::TimeZone["Hawaii"] ])
       #
-      #   time_zone_select("user", 'time_zone', /Australia/)
+      #   time_zone_select(:user, :time_zone, /Australia/)
       #
-      #   time_zone_select("user", "time_zone", ActiveSupport::TimeZone.all.sort, model: ActiveSupport::TimeZone)
+      #   time_zone_select(:user, :time_zone, ActiveSupport::TimeZone.all.sort, model: ActiveSupport::TimeZone)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
         Tags::TimeZoneSelect.new(object, method, self, priority_zones, options, html_options).render
       end
