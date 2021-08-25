@@ -3,7 +3,21 @@
 require "generators/generators_test_helper"
 require "generators/action_text/install/install_generator"
 
-module Webpacker; end
+module Webpacker
+  extend self
+  
+  def config
+    Class.new do
+      def source_path
+        "app/packs"
+      end
+      
+      def source_entry_path
+        "app/packs/entrypoints"
+      end
+    end.new
+  end
+end
 
 class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -35,9 +49,11 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
   end
 
   test "loads JavaScript dependencies in application.js" do
-    application_js = Pathname("app/javascript/packs/application.js").expand_path(destination_root)
+    application_js = Pathname("app/javascript/application.js").expand_path(destination_root)
     application_js.dirname.mkpath
     application_js.write("\n")
+
+    run_under_asset_pipeline
     run_generator_instance
 
     assert_file application_js do |content|

@@ -188,11 +188,11 @@ module SharedGeneratorTests
     end
   end
 
-  def test_generator_for_active_storage
+  def test_generator_for_active_storage_for_webpack
     run_generator([destination_root, "--webpack"])
 
     unless generator_class.name == "Rails::Generators::PluginGenerator"
-      assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
+      assert_file "#{application_path}/app/javascript/application.js" do |content|
         assert_match(/^import \* as ActiveStorage from "@rails\/activestorage"/, content)
         assert_match(/^ActiveStorage.start\(\)/, content)
       end
@@ -219,13 +219,24 @@ module SharedGeneratorTests
     end
   end
 
+  def test_generator_for_active_storage_for_webpack
+    run_generator([destination_root, "--webpack"])
+
+    unless generator_class.name == "Rails::Generators::PluginGenerator"
+      assert_file "#{application_path}/app/packs/entrypoints/application.js" do |content|
+        assert_match(/^import \* as ActiveStorage from "@rails\/activestorage"/, content)
+        assert_match(/^ActiveStorage.start\(\)/, content)
+      end
+    end
+  end
+
   def test_generator_if_skip_active_storage_is_given
-    run_generator [destination_root, "--skip-active-storage", "--webpack"]
+    run_generator [destination_root, "--skip-active-storage"]
 
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
 
     unless generator_class.name == "Rails::Generators::PluginGenerator"
-      assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
+      assert_file "#{application_path}/app/javascript/application.js" do |content|
         assert_no_match(/activestorage/, content)
       end
     end
@@ -252,12 +263,12 @@ module SharedGeneratorTests
   end
 
   def test_generator_does_not_generate_active_storage_contents_if_skip_active_record_is_given
-    run_generator [destination_root, "--skip-active-record", "--webpack"]
+    run_generator [destination_root, "--skip-active-record"]
 
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
 
     unless generator_class.name == "Rails::Generators::PluginGenerator"
-      assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
+      assert_file "#{application_path}/app/javascript/application.js" do |content|
         assert_no_match(/activestorage/i, content)
       end
     end

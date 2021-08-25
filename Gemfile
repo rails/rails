@@ -17,6 +17,7 @@ gem "sass-rails"
 gem "stimulus-rails"
 gem "turbo-rails"
 gem "webpacker", "~> 6.0.0.rc.2", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"
+gem "importmap-rails"
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.

@@ -286,6 +286,8 @@ GEM
     image_processing (1.12.1)
       mini_magick (>= 4.9.5, < 5)
       ruby-vips (>= 2.0.17, < 3)
+    importmap-rails (0.3.4)
+      rails (>= 6.0.0)
     jmespath (1.4.0)
     json (2.5.1)
     jwt (2.2.3)
@@ -550,6 +552,7 @@ DEPENDENCIES
   google-cloud-storage (~> 1.11)
   hiredis
   image_processing (~> 1.2)
+  importmap-rails
   json (>= 2.0.0)
   kindlerb (~> 1.2.0)
   libxml-ruby

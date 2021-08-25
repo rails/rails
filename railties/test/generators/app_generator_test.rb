@@ -611,7 +611,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
       assert_match(/stylesheet_link_tag\s+"application" %>/, contents)
-      assert_no_match(/javascript_pack_tag\s+'application'/, contents)
     end
   end
 
@@ -839,14 +838,28 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "webpacker"
   end
 
-  def test_generator_if_skip_hotwire_is_given
-    run_generator [destination_root, "--skip-hotwire", "--webpack"]
+  def test_hotwire
+    run_generator [destination_root]
 
-    assert_no_gem "hotwire-rails"
+    assert_gem "turbo-rails"
+    assert_gem "stimulus-rails"
+    assert_file "app/views/layouts/application.html.erb" do |content|
+      assert_match(/data-turbo-track/, content)
+    end
+    assert_file "app/javascript/application.js" do |content|
+      assert_match(/turbo/, content)
+      assert_match(/stimulus/, content)
+    end
+  end
+
+  def test_skip_hotwire
+    run_generator [destination_root, "--skip-hotwire"]
+
+    assert_no_gem "turbo-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_no_match(/data-turbo-track/, content)
     end
-    assert_file "app/javascript/packs/application.js" do |content|
+    assert_file "app/javascript/application.js" do |content|
       assert_no_match(/turbo/, content)
     end
   end
