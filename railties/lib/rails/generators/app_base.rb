@@ -329,18 +329,20 @@ module Rails
 
       def javascript_gemfile_entry
         importmap_rails_entry =
-          GemfileEntry.version("importmap-rails", "> 0.1.0", "Manage modern JavaScript using ESM without transpiling or bundling")
+          GemfileEntry.version("importmap-rails", ">= 0.3.4", "Manage modern JavaScript using ESM without transpiling or bundling")
 
-        hotwire_rails_entry =
-          GemfileEntry.version("hotwire-rails", "> 0.1.0",
-                       "Hotwire makes navigating your web application faster. Read more: https://hotwired.dev")
+        turbo_rails_entry =
+          GemfileEntry.version("turbo-rails", ">= 0.7.4", "Hotwire's SPA-like page accelerator. Read more: https://turbo.hotwired.dev")
+
+        stimulus_rails_entry =
+          GemfileEntry.version("stimulus-rails", ">= 0.3.9", "Hotwire's modest JavaScript framework for the HTML you already have. Read more: https://stimulus.hotwired.dev")
 
         if options[:skip_javascript]
           []
         elsif options[:skip_hotwire]
           [ importmap_rails_entry ]
         else
-          [ importmap_rails_entry, hotwire_rails_entry ]
+          [ importmap_rails_entry, turbo_rails_entry, stimulus_rails_entry ]
         end
       end
 
@@ -447,13 +449,13 @@ module Rails
 
         unless bundle_install?
           say <<~EXPLAIN
-            Skipping `rails hotwire:install` because `bundle install` was skipped.
-            To complete setup, you must run `bundle install` followed by `rails hotwire:install`.
+            Skipping `rails turbo:install stimulus:install` because `bundle install` was skipped.
+            To complete setup, you must run `bundle install` followed by `rails turbo:install stimulus:install`.
           EXPLAIN
           return
         end
 
-        rails_command "hotwire:install"
+        rails_command "turbo:install stimulus:install"
       end
 
       def generate_bundler_binstub

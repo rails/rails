@@ -14,7 +14,8 @@ gem "selenium-webdriver", ">= 4.0.0.alpha7"
 
 gem "rack-cache", "~> 1.2"
 gem "sass-rails"
-gem "hotwire-rails"
+gem "stimulus-rails"
+gem "turbo-rails"
 gem "webpacker", "~> 5.0", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
