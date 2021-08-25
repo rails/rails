@@ -715,14 +715,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generation_runs_bundle_install
-    generator([destination_root], skip_webpack_install: true)
+    generator([destination_root])
     run_generator_instance
 
     assert_equal 1, @bundle_commands.count("install")
   end
 
   def test_generation_use_original_bundle_environment
-    generator([destination_root], skip_webpack_install: true)
+    generator([destination_root])
 
     mock_original_env = -> do
       { "BUNDLE_RUBYONRAILS__ORG" => "user:pass" }
@@ -740,7 +740,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_dev_option
-    generator([destination_root], dev: true, skip_webpack_install: true)
+    generator([destination_root], dev: true)
     run_generator_instance
 
     assert_equal 1, @bundle_commands.count("install")
@@ -750,7 +750,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_edge_option
     Rails.stub(:gem_version, Gem::Version.new("2.1.0")) do
-      generator([destination_root], edge: true, skip_webpack_install: true)
+      generator([destination_root], edge: true)
       run_generator_instance
     end
 
@@ -760,7 +760,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_edge_option_during_alpha
     Rails.stub(:gem_version, Gem::Version.new("2.1.0.alpha")) do
-      generator([destination_root], edge: true, skip_webpack_install: true)
+      generator([destination_root], edge: true)
       run_generator_instance
     end
 
@@ -774,7 +774,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_main_option
-    generator([destination_root], main: true, skip_webpack_install: true)
+    generator([destination_root], main: true)
     run_generator_instance
 
     assert_equal 1, @bundle_commands.count("install")
@@ -782,7 +782,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_bundler_binstub
-    generator([destination_root], skip_webpack_install: true)
+    generator([destination_root])
     run_generator_instance
 
     assert_equal 1, @bundle_commands.count("binstubs bundler")
@@ -837,31 +837,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_equal 1, webpacker_called, "`webpacker:install` expected to be called once, but was called #{webpacker_called} times."
     assert_gem "webpacker"
-  end
-
-  def test_skip_webpack_install
-    generator([destination_root])
-
-    command_check = -> command do
-      if command == "webpacker:install"
-        flunk "`webpacker:install` expected to not be called."
-      end
-    end
-
-    generator.stub(:rails_command, command_check) do
-      run_generator_instance
-    end
-
-    assert_no_gem "webpacker"
-    assert_no_file "config/webpacker.yml"
-
-    output = Dir.chdir(destination_root) do
-      `bin/rails help`
-    end
-
-    assert_match(/The most common rails commands are:/, output)
-    assert_match(/webpacker:install/, output)
-    assert_equal true, $?.success?
   end
 
   def test_generator_if_skip_hotwire_is_given
@@ -1006,7 +981,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_after_bundle_callback
-    generator([destination_root], skip_webpack_install: true).send(:after_bundle) do
+    generator([destination_root]).send(:after_bundle) do
       @bundle_commands_before_callback = @bundle_commands.dup
     end
 

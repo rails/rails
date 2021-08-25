@@ -83,7 +83,7 @@ module SharedGeneratorTests
 
   def test_template_is_executed_when_supplied_an_https_path
     url = "https://gist.github.com/josevalim/103208/raw/"
-    generator([destination_root], template: url, skip_webpack_install: true)
+    generator([destination_root], template: url)
 
     applied = nil
     apply_stub = -> (path, *) { applied = path }

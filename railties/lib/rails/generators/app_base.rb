@@ -393,7 +393,7 @@ module Rails
       end
 
       def webpack_install?
-        !(options[:skip_javascript] || options[:skip_webpack_install]) && options[:webpack]
+        options[:webpack]
       end
 
       def importmap_install?

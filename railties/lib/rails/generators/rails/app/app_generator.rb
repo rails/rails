@@ -282,9 +282,6 @@ module Rails
       class_option :webpack, type: :boolean, aliases: "--webpacker", default: false,
                              desc: "Preconfigure Webpack"
 
-      class_option :skip_webpack_install, type: :boolean, default: false,
-                                          desc: "Don't run Webpack install"
-
       def initialize(*args)
         super
 
@@ -311,10 +308,8 @@ module Rails
             skip_javascript: true,
             skip_jbuilder: true,
             skip_system_test: true,
-            skip_webpack_install: true,
             skip_hotwire: true).tap do |option|
               if option[:webpack]
-                option[:skip_webpack_install] = false
                 option[:skip_javascript] = false
               end
             end.freeze
