@@ -67,7 +67,7 @@ module ActionView
           details = details.dup
           details[:formats] &= Template::Types.symbols
         end
-        @details_keys[details] ||= Object.new
+        @details_keys[details] ||= TemplateDetails::Requested.new(**details)
       end
 
       def self.clear

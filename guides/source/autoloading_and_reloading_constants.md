@@ -66,10 +66,10 @@ The section _Customizing Inflections_ below documents ways to override this defa
 
 Please, check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#file-structure) for further details.
 
-Autoload Paths
---------------
+config.autoload_paths
+---------------------
 
-We refer to the list of application directories whose contents are to be autoloaded as _autoload paths_. For example, `app/models`. Such directories represent the root namespace: `Object`.
+We refer to the list of application directories whose contents are to be autoloaded and (optionally) reloaded as _autoload paths_. For example, `app/models`. Such directories represent the root namespace: `Object`.
 
 INFO. Autoload paths are called _root directories_ in Zeitwerk documentation, but we'll stay with "autoload path" in this guide.
 
@@ -84,12 +84,80 @@ $ bin/rails runner 'p UsersHelper'
 UsersHelper
 ```
 
-Autoload paths automatically pick up any custom directories under `app`. For example, if your application has `app/presenters`, or `app/services`, etc., they are added to autoload paths.
+Rails adds custom directories under `app` to the autoload paths automatically. For example, if your application has `app/presenters`, you don't need to configure anything in order to autoload presenters, it works out of the box.
 
-The array of autoload paths can be extended by mutating `config.autoload_paths`, in `config/application.rb`, but nowadays this is discouraged.
+The array of default autoload paths can be extended by pushing to `config.autoload_paths`, in `config/application.rb` or `config/environments/*.rb`. For example:
+
+```ruby
+module MyApplication
+  class Application < Rails::Application
+    config.autoload_paths << "#{root}/extras"
+  end
+end
+```
+
+Also, engines can push in body of the engine class and in their own `config/environments/*.rb`.
 
 WARNING. Please do not mutate `ActiveSupport::Dependencies.autoload_paths`; the public interface to change autoload paths is `config.autoload_paths`.
 
+WARNING: You cannot autoload code in the autoload paths while the application boots. It particular, directly in `config/initializers/*.rb`. Please check [_Autoloading when the application boots_](#autoloading-when-the-application-boots) down below for valid ways to do that.
+
+The autoload paths are managed by the `Rails.autoloaders.main` autoloader.
+
+config.autoload_once_paths
+--------------------------
+
+You may want to be able to autoload classes and modules without reloading them. The autoload once paths store code that can be autoloaded, but won't be reloaded.
+
+By default, this collection is empty, but you can extend it pushing to `config.autoload_once_paths`. You can do so in `config/application.rb` or `config/environments/*.rb`. For example:
+
+```ruby
+module MyApplication
+  class Application < Rails::Application
+    config.autoload_once_paths << "#{root}/app/serializers"
+  end
+end
+```
+
+Also, engines can push in body of the engine class and in their own `config/environments/*.rb`.
+
+INFO. If `app/serializers` is pushed to `config.autoload_once_paths`, Rails no longer considers this an autoload path, despite being a custom directory under `app`. This setting overrides that rule.
+
+This is key for classes and modules that are cached in places that survive reloads, like the Rails framework itself.
+
+For example, Active Job serializers are stored inside Active Job:
+
+```ruby
+# config/initializer/custom_serializers.rb
+Rails.application.config.active_job.custom_serializers << MoneySerializer
+```
+
+and Active Job itself is not reloaded when there's a reload, only application and engines code in the autoload paths is.
+
+Making `MoneySerializer` reloadable would be confusing, because reloading an edited version would have no effect on that class object stored in Active Job. Indeed, if `MoneySerializer` was reloadable, starting with Rails 7 such initializer would raise a `NameError`.
+
+Another use case are engines decorating framework classes:
+
+```ruby
+initializer "decorate ActionController::Base" do
+  ActiveSupport.on_load(:action_controller_base) do
+    include MyDecoration
+  end
+end
+```
+
+There, the module object stored in `MyDecoration` by the time the initializer runs becomes an ancestor of `ActionController::Base`, and reloading `MyDecoration` is pointless, it won't affect that ancestor chain.
+
+Classes and modules from the autoload once paths can be autoloaded in `config/initializers`. So, with that configuration this works:
+
+```ruby
+# config/initializer/custom_serializers.rb
+Rails.application.config.active_job.custom_serializers << MoneySerializer
+```
+
+INFO: Technically, you can autoload classes and modules managed by the `once` autoloader in any initializer that runs after `:bootstrap_hook`.
+
+The autoload once paths are managed by `Rails.autoloaders.once`.
 
 $LOAD_PATH
 ----------
@@ -106,7 +174,7 @@ That may speed up legitimate `require` calls a bit since there are fewer lookups
 Reloading
 ---------
 
-Rails automatically reloads classes and modules if application files change.
+Rails automatically reloads classes and modules if application files in the autoload paths change.
 
 More precisely, if the web server is running and application files have been modified, Rails unloads all autoloaded constants just before the next request is processed. That way, application classes or modules used during that request will be autoloaded again, thus picking up their current implementation in the file system.
 
@@ -134,26 +202,7 @@ As you can see, the class object stored in the `User` constant is different afte
 
 It is very important to understand that Ruby does not have a way to truly reload classes and modules in memory, and have that reflected everywhere they are already used. Technically, "unloading" the `User` class means removing the `User` constant via `Object.send(:remove_const, "User")`.
 
-Therefore, code that references a reloadable class or module, but that is not executed again on reload, becomes stale. Let's see an example next.
-
-Let's consider this initializer:
-
-```ruby
-# config/initializers/configure_payment_gateway.rb
-# DO NOT DO THIS.
-$PAYMENT_GATEWAY = Rails.env.production? ? RealGateway : MockedGateway
-# DO NOT DO THIS.
-```
-
-The idea would be to use `$PAYMENT_GATEWAY` in the code, and let the initializer set that to the actual implementation depending on the environment.
-
-On reload, `MockedGateway` is reloaded, but `$PAYMENT_GATEWAY` is not updated because initializers only run on boot. Therefore, it won't reflect the changes.
-
-There are several ways to do this safely. For instance, the application could define a class method `PaymentGateway.impl` whose definition depends on the environment; or could define `PaymentGateway` to have a parent class or mixin that depends on the environment; or use the same global variable trick, but in a reloader callback, as explained below.
-
-Let's see other situations that involve stale class or module objects.
-
-Check out this Rails console session:
+For example, check out this Rails console session:
 
 ```irb
 irb> joe = User.new
@@ -182,8 +231,8 @@ Bottom line: **do not cache reloadable classes or modules**.
 Applications can safely autoload constants during boot using a reloader callback:
 
 ```ruby
-Rails.application.reloader.to_prepare do
-  $PAYMENT_GATEWAY = Rails.env.production? ? RealGateway : MockedGateway
+Rails.application.config.to_prepare do
+  ApiGateway.endpoint = "https://example.com"
 end
 ```
 
@@ -202,6 +251,8 @@ config.middleware.use MyApp::Middleware::Foo
 ```
 
 To have changes in that middleware reflected, you need to restart the server.
+
+Another possibility is to autoload from the autoload once paths. Please check the section [`config.autoload_once_paths`](#config-autoload-once-paths) above.
 
 
 Eager Loading
@@ -361,7 +412,7 @@ However, if an engine supports Rails 6 or Rails 6.1 and does not control its par
 
 1. If `classic` mode would need a `require_dependency` call to ensure some constant is loaded at some point, write it. While `zeitwerk` would not need it, it won't hurt, will just work in `zeitwerk` mode too.
 
-2. `classic` mode underscores constant names ("User" -> "user.rb"), and `zeitwerk` mode camelizes file names ("user.rb" -> "User"). They coincide in most cases, but they don't if there are series of consecutive uppercase letters as in "HTMLParser". The easiest way to be compatible is to avoid such names: "HtmlParser".
+2. `classic` mode underscores constant names ("User" -> "user.rb"), and `zeitwerk` mode camelizes file names ("user.rb" -> "User"). They coincide in most cases, but they don't if there are series of consecutive uppercase letters as in "HTMLParser". The easiest way to be compatible is to avoid such names. In this case, better pick "HtmlParser".
 
 3. In `classic` mode, a file `app/model/concerns/foo.rb` is allowed to define both `Foo` and `Concerns::Foo`. In `zeitwerk` mode, there's only one option: it has to define `Foo`. In order to be compatible, define `Foo`.
 
@@ -401,12 +452,10 @@ Rails.autoloaders.main
 Rails.autoloaders.once
 ```
 
-The former is the main one. The latter is there mostly for backwards compatibility reasons, in case the application has something in `config.autoload_once_paths` (this is discouraged nowadays).
-
 The predicate
 
 ```ruby
 Rails.autoloaders.zeitwerk_enabled?
 ```
 
-is still available in Rails 7 applications, for compatibility with engines may want to support Rails 6.x. It just returns `true`.
+is still available in Rails 7 applications, and returns `true`.

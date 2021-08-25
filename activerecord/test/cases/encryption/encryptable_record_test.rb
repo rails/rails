@@ -47,6 +47,12 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_encrypted_attribute(traffic_light, :state, states)
   end
 
+  test "encrypts store attributes with accessors" do
+    traffic_light = EncryptedTrafficLightWithStoreState.create!(color: "red", long_state: %i[ green red ])
+    assert_equal "red", traffic_light.color
+    assert_encrypted_attribute(traffic_light, :state, { "color" => "red" })
+  end
+
   test "can configure a custom key provider on a per-record-class basis through the :key_provider option" do
     post = EncryptedPost.create!(title: "The Starfleet is here!", body: "take cover!")
     assert_encrypted_attribute(post, :body, "take cover!")

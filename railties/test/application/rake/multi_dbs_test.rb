@@ -440,6 +440,7 @@ module ApplicationTests
       end
 
       test "db:migrate set back connection to its original state" do
+        require "#{app_path}/config/environment"
         Dir.chdir(app_path) do
           dummy_task = <<~RUBY
             task foo: :environment do
@@ -457,6 +458,7 @@ module ApplicationTests
       end
 
       test "db:migrate:name sets the connection back to its original state" do
+        require "#{app_path}/config/environment"
         Dir.chdir(app_path) do
           dummy_task = <<~RUBY
             task foo: :environment do
@@ -471,6 +473,28 @@ module ApplicationTests
 
           assert_nothing_raised do
             rails("db:migrate:animals", "foo")
+          end
+        end
+      end
+
+      test "db:schema:load:name sets the connection back to its original state" do
+        require "#{app_path}/config/environment"
+        Dir.chdir(app_path) do
+          dummy_task = <<~RUBY
+            task foo: :environment do
+              Book.first
+            end
+          RUBY
+          app_file("Rakefile", dummy_task, "a+")
+
+          generate_models_for_animals
+
+          rails("db:migrate:primary")
+
+          rails "db:migrate:animals", "db:schema:dump:animals"
+
+          assert_nothing_raised do
+            rails("db:schema:load:animals", "foo")
           end
         end
       end
@@ -1064,6 +1088,42 @@ module ApplicationTests
         YAML
 
         db_migrate_and_schema_dump_and_load
+      end
+
+      test "when database_tasks is false, then do not run the database tasks on that db" do
+        require "#{app_path}/config/environment"
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              database: db/default.sqlite3
+              adapter: sqlite3
+            animals:
+              database: db/development_animals.sqlite3
+              adapter: sqlite3
+              database_tasks: false
+              schema_dump: true ### database_tasks should override all sub-settings
+        YAML
+
+        Dir.chdir(app_path) do
+          animals_db_exists = lambda { rails("runner", "puts !!(AnimalsBase.connection rescue false)").strip }
+
+          generate_models_for_animals
+
+          assert_equal "true", animals_db_exists.call
+
+          assert_not File.exist?("db/animals_schema.yml")
+
+          error = assert_raises do
+            rails "db:migrate:animals" ### Task not defined
+          end
+          assert_includes error.message, "See the list of available tasks"
+
+          rails "db:schema:dump"
+          assert_not File.exist?("db/animals_schema.yml")
+
+          rails "db:drop"
+          assert_equal "true", animals_db_exists.call
+        end
       end
     end
   end

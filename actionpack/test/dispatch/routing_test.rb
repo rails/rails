@@ -4806,7 +4806,7 @@ class TestRouteDefaults < ActionDispatch::IntegrationTest
 
   def test_route_options_are_required_for_url_for
     assert_raises(ActionController::UrlGenerationError) do
-      assert_equal "/posts/1", url_for(controller: "posts", action: "show", id: 1, only_path: true)
+      url_for(controller: "posts", action: "show", id: 1, only_path: true)
     end
 
     assert_equal "/posts/1", url_for(controller: "posts", action: "show", id: 1, bucket_type: "post", only_path: true)

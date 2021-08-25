@@ -49,84 +49,18 @@ module ActionView
       end
     end
 
-    # Threadsafe template cache
-    class Cache # :nodoc:
-      class SmallCache < Concurrent::Map
-        def initialize(options = {})
-          super(options.merge(initial_capacity: 2))
-        end
-      end
-
-      # Preallocate all the default blocks for performance/memory consumption reasons
-      PARTIAL_BLOCK = lambda { |cache, partial| cache[partial] = SmallCache.new }
-      PREFIX_BLOCK  = lambda { |cache, prefix|  cache[prefix]  = SmallCache.new(&PARTIAL_BLOCK) }
-      NAME_BLOCK    = lambda { |cache, name|    cache[name]    = SmallCache.new(&PREFIX_BLOCK) }
-      KEY_BLOCK     = lambda { |cache, key|     cache[key]     = SmallCache.new(&NAME_BLOCK) }
-
-      # Usually a majority of template look ups return nothing, use this canonical preallocated array to save memory
-      NO_TEMPLATES = [].freeze
-
-      def initialize
-        @data = SmallCache.new(&KEY_BLOCK)
-      end
-
-      def inspect
-        "#{to_s[0..-2]} keys=#{@data.size}>"
-      end
-
-      # Cache the templates returned by the block
-      def cache(key, name, prefix, partial, locals)
-        @data[key][name][prefix][partial][locals] ||= canonical_no_templates(yield)
-      end
-
-      def clear
-        @data.clear
-      end
-
-      # Get the cache size. Do not call this
-      # method. This method is not guaranteed to be here ever.
-      def size # :nodoc:
-        size = 0
-        @data.each_value do |v1|
-          v1.each_value do |v2|
-            v2.each_value do |v3|
-              v3.each_value do |v4|
-                size += v4.size
-              end
-            end
-          end
-        end
-
-        size
-      end
-
-      private
-        def canonical_no_templates(templates)
-          templates.empty? ? NO_TEMPLATES : templates
-        end
-    end
-
     cattr_accessor :caching, default: true
 
     class << self
       alias :caching? :caching
     end
 
-    def initialize
-      @cache = Cache.new
-    end
-
     def clear_cache
-      @cache.clear
     end
 
     # Normalizes the arguments and passes it on to find_templates.
     def find_all(name, prefix = nil, partial = false, details = {}, key = nil, locals = [])
-      locals = locals.map(&:to_s).sort!.freeze
-
-      cached(key, [name, prefix, partial], details, locals) do
-        _find_all(name, prefix, partial, details, key, locals)
-      end
+      _find_all(name, prefix, partial, details, key, locals)
     end
 
     def all_template_paths # :nodoc:
@@ -146,22 +80,6 @@ module ActionView
     # normalized.
     def find_templates(name, prefix, partial, details, locals = [])
       raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details, locals = []) method"
-    end
-
-    # Handles templates caching. If a key is given and caching is on
-    # always check the cache before hitting the resolver. Otherwise,
-    # it always hits the resolver but if the key is present, check if the
-    # resolver is fresher before returning it.
-    def cached(key, path_info, details, locals)
-      name, prefix, partial = path_info
-
-      if key
-        @cache.cache(key, name, prefix, partial, locals) do
-          yield
-        end
-      else
-        yield
-      end
     end
   end
 
@@ -204,16 +122,12 @@ module ActionView
 
     private
       def _find_all(name, prefix, partial, details, key, locals)
-        path = TemplatePath.build(name, prefix, partial)
-        requested_details = TemplateDetails::Requested.new(**details)
-        query(path, requested_details, locals, cache: !!key)
-      end
-
-      def query(path, requested_details, locals, cache:)
-        cache = cache ? @unbound_templates : Concurrent::Map.new
+        requested_details = key || TemplateDetails::Requested.new(**details)
+        cache = key ? @unbound_templates : Concurrent::Map.new
 
         unbound_templates =
-          cache.compute_if_absent(path.virtual) do
+          cache.compute_if_absent(TemplatePath.virtual(name, prefix, partial)) do
+            path = TemplatePath.build(name, prefix, partial)
             unbound_templates_from_path(path)
           end
 

@@ -1,3 +1,30 @@
+*   Reestablish connection to previous database after after running `db:schema:load:name`
+
+    After running `db:schema:load:name` the previous connection is restored.
+
+    *Jacopo Beschi*
+
+*   Add database config option `database_tasks`
+
+    If you would like to connect to an external database without any database
+    management tasks such as schema management, migrations, seeds, etc. you can set
+    the per database config option `database_tasks: false`
+
+    ```yaml
+    # config/database.yml
+
+    production:
+      primary:
+        database: my_database
+        adapter: mysql2
+      animals:
+        database: my_animals_database
+        adapter: mysql2
+        database_tasks: false
+    ```
+
+    *Weston Ganger*
+
 *   Fix `ActiveRecord::InternalMetadata` to not be broken by `config.active_record.record_timestamps = false`
 
     Since the model always create the timestamp columns, it has to set them, otherwise it breaks

@@ -651,20 +651,20 @@ define a reference node between two different fixtures. Here's an example with
 a `belongs_to`/`has_many` association:
 
 ```yaml
-# fixtures/categories.yml
+# test/fixtures/categories.yml
 about:
   name: About
 ```
 
 ```yaml
-# fixtures/articles.yml
+# test/fixtures/articles.yml
 first:
   title: Welcome to Rails!
   category: about
 ```
 
 ```yaml
-# fixtures/action_text/rich_texts.yml
+# test/fixtures/action_text/rich_texts.yml
 first_content:
   record: first (Article)
   name: content
@@ -691,7 +691,7 @@ end
 ```
 
 ```yaml
-# fixtures/articles.yml
+# test/fixtures/articles.yml
 first:
   title: An Article
 ```
@@ -702,14 +702,12 @@ generate the related `ActiveStorage::Blob` and `ActiveStorage::Attachment`
 records:
 
 ```yaml
-# fixtures/active_storage/blobs.yml
-first_thumbnail_blob: <%= ActiveStorage::FixtureSet.blob(
-  filename: "first.png",
-) %>
+# test/fixtures/active_storage/blobs.yml
+first_thumbnail_blob: <%= ActiveStorage::FixtureSet.blob filename: "first.png" %>
 ```
 
 ```yaml
-# fixtures/active_storage/attachments.yml
+# test/fixtures/active_storage/attachments.yml
 first_thumbnail_attachment:
   name: thumbnail
   record: first (Article)

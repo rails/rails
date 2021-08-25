@@ -33,15 +33,14 @@ class ExceptionsTest < ActiveSupport::TestCase
 
     assert_raises SecondRetryableErrorOfTwo do
       RetryJob.perform_later(exceptions_to_raise, 5)
-
-      assert_equal [
-        "Raised FirstRetryableErrorOfTwo for the 1st time",
-        "Raised FirstRetryableErrorOfTwo for the 2nd time",
-        "Raised FirstRetryableErrorOfTwo for the 3rd time",
-        "Raised SecondRetryableErrorOfTwo for the 4th time",
-        "Raised SecondRetryableErrorOfTwo for the 5th time",
-      ], JobBuffer.values
     end
+
+    assert_equal [
+      "Raised FirstRetryableErrorOfTwo for the 1st time",
+      "Raised FirstRetryableErrorOfTwo for the 2nd time",
+      "Raised FirstRetryableErrorOfTwo for the 3rd time",
+      "Raised SecondRetryableErrorOfTwo for the 4th time"
+    ], JobBuffer.values
   end
 
   test "keeps a separate attempts counter for each individual retry_on declaration" do
