@@ -17,10 +17,13 @@ ruby <%= "\"#{RUBY_VERSION}\"" -%>
   "#{k}: #{v.inspect.gsub('"', '\'')}" }.join(", ") %>
 <% end -%>
 <% end -%>
-<% unless options.skip_sprockets? -%>
+<% unless options.skip_sprockets? %>
 
 # Use Sass to process CSS
 # gem "sassc-rails", "~> 2.1"
+
+# Use Tailwind CSS. See: https://github.com/rails/tailwindcss-rails
+# gem "tailwindrails-css", "~> 0.4.3"
 <% end -%>
 
 # Use Active Model has_secure_password
