@@ -371,30 +371,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "config/routes.rb", /\.routes\.draw do\n  resources :products\n/
   end
 
-  def test_scaffold_generator_no_assets_with_switch_no_assets
-    run_generator [ "posts", "--no-assets" ]
-    assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/stylesheets/posts.css"
-  end
-
-  def test_scaffold_generator_no_assets_with_switch_assets_false
-    run_generator [ "posts", "--assets=false" ]
-    assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/stylesheets/posts.css"
-  end
-
-  def test_scaffold_generator_no_scaffold_stylesheet_with_switch_no_scaffold_stylesheet
-    run_generator [ "posts", "--no-scaffold-stylesheet" ]
-    assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/stylesheets/posts.css"
-  end
-
-  def test_scaffold_generator_no_scaffold_stylesheet_with_switch_scaffold_stylesheet_false
-    run_generator [ "posts", "--scaffold-stylesheet=false" ]
-    assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/stylesheets/posts.css"
-  end
-
   def test_scaffold_generator_with_switch_resource_route_false
     run_generator [ "posts", "--resource-route=false" ]
     assert_file "config/routes.rb" do |route|
@@ -414,12 +390,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_no_match(/error/, output)
     assert_no_file "app/helpers/posts_helper.rb"
-  end
-
-  def test_scaffold_generator_no_stylesheets
-    run_generator [ "posts", "--no-stylesheets" ]
-    assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/stylesheets/posts.css"
   end
 
   def test_scaffold_generator_outputs_error_message_on_missing_attribute_type

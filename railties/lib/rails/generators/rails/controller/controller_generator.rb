@@ -6,7 +6,6 @@ module Rails
       argument :actions, type: :array, default: [], banner: "action action"
       class_option :skip_routes, type: :boolean, desc: "Don't add routes to config/routes.rb."
       class_option :helper, type: :boolean
-      class_option :assets, type: :boolean
 
       check_class_collision suffix: "Controller"
 
@@ -21,7 +20,7 @@ module Rails
         route routing_code, namespace: regular_class_path
       end
 
-      hook_for :template_engine, :test_framework, :helper, :assets do |generator|
+      hook_for :template_engine, :test_framework, :helper do |generator|
         invoke generator, [ remove_possible_suffix(name), actions ]
       end
 

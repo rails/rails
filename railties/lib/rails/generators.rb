@@ -57,9 +57,6 @@ module Rails
         resource_controller: :controller,
         resource_route: true,
         scaffold_controller: :scaffold_controller,
-        stylesheets: true,
-        stylesheet_engine: :css,
-        scaffold_stylesheet: true,
         system_tests: nil,
         test_framework: nil,
         template_engine: :erb
@@ -132,14 +129,12 @@ module Rails
       # Returns an array of generator namespaces that are hidden.
       # Generator namespaces may be hidden for a variety of reasons.
       # Some are aliased such as "rails:migration" and can be
-      # invoked with the shorter "migration", others are private to other generators
-      # such as "css:scaffold".
+      # invoked with the shorter "migration".
       def hidden_namespaces
         @hidden_namespaces ||= begin
           orm      = options[:rails][:orm]
           test     = options[:rails][:test_framework]
           template = options[:rails][:template_engine]
-          css      = options[:rails][:stylesheet_engine]
 
           [
             "rails",
@@ -158,10 +153,6 @@ module Rails
             "#{template}:controller",
             "#{template}:scaffold",
             "#{template}:mailer",
-            "#{css}:scaffold",
-            "#{css}:assets",
-            "css:assets",
-            "css:scaffold",
             "action_text:install",
             "action_mailbox:install"
           ]
