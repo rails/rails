@@ -357,11 +357,6 @@ create      test/system/blorgh/articles_test.rb
 invoke    helper
 create      app/helpers/blorgh/articles_helper.rb
 invoke      test_unit
-invoke  assets
-invoke    css
-create      app/assets/stylesheets/blorgh/articles.css
-invoke  css
-create    app/assets/stylesheets/scaffold.css
 ```
 
 The first thing that the scaffold generator does is invoke the `active_record`
