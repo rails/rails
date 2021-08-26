@@ -220,6 +220,43 @@ module ActiveRecord
         tempfile.unlink
       end
 
+      def test_marshal_dump_and_load_with_ignored_tables
+        old_ignore = ActiveRecord.schema_cache_ignored_tables
+        ActiveRecord.schema_cache_ignored_tables = ["p_schema_migrations"]
+        # Create an empty cache.
+        cache = SchemaCache.new @connection
+
+        tempfile = Tempfile.new(["schema_cache-", ".dump"])
+        # Dump it. It should get populated before dumping.
+        cache.dump_to(tempfile.path)
+
+        # Load a new cache.
+        cache = SchemaCache.load_from(tempfile.path)
+        cache.connection = @connection
+
+        # Assert a table in the cache
+        assert cache.data_sources("posts"), "expected posts to be in the cached data_sources"
+        assert_equal 12, cache.columns("posts").size
+        assert_equal 12, cache.columns_hash("posts").size
+        assert cache.data_sources("posts")
+        assert_equal "id", cache.primary_keys("posts")
+        assert_equal 1, cache.indexes("posts").size
+
+        # Assert ignored table. Behavior should match non-existent table.
+        assert_nil cache.data_sources("p_schema_migrations"), "expected comments to not be in the cached data_sources"
+        assert_raises ActiveRecord::StatementInvalid do
+          cache.columns("p_schema_migrations")
+        end
+        assert_raises ActiveRecord::StatementInvalid do
+          cache.columns_hash("p_schema_migrations").size
+        end
+        assert_nil cache.primary_keys("p_schema_migrations")
+        assert_equal [], cache.indexes("p_schema_migrations")
+      ensure
+        tempfile.unlink
+        ActiveRecord.schema_cache_ignored_tables = old_ignore
+      end
+
       def test_marshal_dump_and_load_with_gzip
         # Create an empty cache.
         cache = SchemaCache.new @connection
