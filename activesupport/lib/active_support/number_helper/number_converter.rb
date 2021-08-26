@@ -174,9 +174,7 @@ module ActiveSupport
         end
 
         def valid_float?
-          Float(number)
-        rescue ArgumentError, TypeError
-          false
+          Float(number, exception: false)
         end
     end
   end

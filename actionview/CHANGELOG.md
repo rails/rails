@@ -1,3 +1,8 @@
+*   Improves the performance of ActionView::Helpers::NumberHelper formatters by avoiding the use of
+    exceptions as flow control.
+
+    *Mike Dalessio*
+
 *   `preload_link_tag` properly inserts `as` attributes for files with `image` MIME types, such as JPG or SVG.
 
     *Nate Berkopec*
