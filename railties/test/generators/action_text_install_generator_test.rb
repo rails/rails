@@ -65,7 +65,7 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
   test "creates Action Text stylesheet" do
     run_generator_instance
 
-    assert_file "app/assets/stylesheets/actiontext.scss"
+    assert_file "app/assets/stylesheets/actiontext.css"
   end
 
   test "creates Active Storage view partial" do
