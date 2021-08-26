@@ -192,15 +192,6 @@ NOTE: You must have an ExecJS supported runtime in order to use CoffeeScript.
 If you are using macOS or Windows, you have a JavaScript runtime installed in
 your operating system. Check [ExecJS](https://github.com/rails/execjs#readme) documentation to know all supported JavaScript runtimes.
 
-You can also disable generation of controller specific asset files by adding the
-following to your `config/application.rb` configuration:
-
-```ruby
-  config.generators do |g|
-    g.assets false
-  end
-```
-
 ### Asset Organization
 
 Pipeline assets can be placed inside an application in one of three locations:
