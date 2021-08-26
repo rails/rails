@@ -23,7 +23,7 @@ ruby <%= "\"#{RUBY_VERSION}\"" -%>
 # gem "sassc-rails", "~> 2.1"
 
 # Use Tailwind CSS. See: https://github.com/rails/tailwindcss-rails
-# gem "tailwindrails-css", "~> 0.4.3"
+# gem "tailwindcss-rails", "~> 0.4.3"
 <% end -%>
 
 # Use Active Model has_secure_password
