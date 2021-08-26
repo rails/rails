@@ -44,7 +44,7 @@ Repeat this process until you reach your target Rails version.
 To move between versions:
 
 1. Change the Rails version number in the `Gemfile` and run `bundle update`.
-2. Change the versions for Rails JavaScript packages in `package.json` and run `yarn install`.
+2. Change the versions for Rails JavaScript packages in `package.json` and run `yarn install`, if running on Webpacker.
 3. Run the [Update task](#the-update-task).
 4. Run your tests.
 

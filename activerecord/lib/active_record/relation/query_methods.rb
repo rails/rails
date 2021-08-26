@@ -397,7 +397,7 @@ module ActiveRecord
     # === Arel
     #
     # If you need to pass in complicated expressions that you have verified
-    # are safe for the DB, you can use Arel.
+    # are safe for the database, you can use Arel.
     #
     #   User.order(Arel.sql('end_date - start_date'))
     #   # SELECT "users".* FROM "users" ORDER BY end_date - start_date

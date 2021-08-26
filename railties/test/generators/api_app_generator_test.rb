@@ -105,8 +105,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     generator = Rails::Generators::AppGenerator.new ["rails"],
       { api: true, update: true }, { destination_root: destination_root, shell: @shell }
     quietly { generator.update_bin_files }
-
-    assert_no_file "bin/yarn"
   end
 
   private
@@ -181,7 +179,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          public/apple-touch-icon-precomposed.png
          public/apple-touch-icon.png
          public/favicon.ico
-         package.json
       )
     end
 end

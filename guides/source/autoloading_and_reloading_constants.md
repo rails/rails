@@ -128,7 +128,7 @@ This is key for classes and modules that are cached in places that survive reloa
 For example, Active Job serializers are stored inside Active Job:
 
 ```ruby
-# config/initializer/custom_serializers.rb
+# config/initializers/custom_serializers.rb
 Rails.application.config.active_job.custom_serializers << MoneySerializer
 ```
 
@@ -151,7 +151,7 @@ There, the module object stored in `MyDecoration` by the time the initializer ru
 Classes and modules from the autoload once paths can be autoloaded in `config/initializers`. So, with that configuration this works:
 
 ```ruby
-# config/initializer/custom_serializers.rb
+# config/initializers/custom_serializers.rb
 Rails.application.config.active_job.custom_serializers << MoneySerializer
 ```
 
@@ -176,7 +176,7 @@ Reloading
 
 Rails automatically reloads classes and modules if application files in the autoload paths change.
 
-More precisely, if the web server is running and application files have been modified, Rails unloads all autoloaded constants just before the next request is processed. That way, application classes or modules used during that request will be autoloaded again, thus picking up their current implementation in the file system.
+More precisely, if the web server is running and application files have been modified, Rails unloads all autoloaded constants managed by the `main` autoloader just before the next request is processed. That way, application classes or modules used during that request will be autoloaded again, thus picking up their current implementation in the file system.
 
 Reloading can be enabled or disabled. The setting that controls this behavior is `config.cache_classes`, which is false by default in `development` mode (reloading enabled), and true by default in `production` mode (reloading disabled).
 
@@ -226,34 +226,73 @@ if `User` is reloaded, since `VipUser` is not, the superclass of `VipUser` is th
 
 Bottom line: **do not cache reloadable classes or modules**.
 
-### Autoloading when the application boots
+## Autoloading when the application boots
 
-Applications can safely autoload constants during boot using a reloader callback:
+While booting, applications can autoload from the autoload once paths, which are managed by the `once` autoloader. Please check the section [`config.autoload_once_paths`](#config-autoload-once-paths) above.
+
+However, you cannot autoload from the autoload paths, which are managed by the `main` autoloader. This applies to code in `config/initializers` as well as application or engines initializers.
+
+Why? Initializers only run once, when the application boots. If you reboot the server, they run again in a new process, but reloading does not reboot the server, and initializers don't run again. Let's see the two main use cases.
+
+### Use case 1: During boot, load reloadable code
+
+Let's imagine `ApiGateway` is a reloadable class from `app/services` managed by the `main` autoloader and you need to configure its endpoint while the application boots:
 
 ```ruby
+# config/initializers/api_gateway_setup.rb
+ApiGateway.endpoint = "https://example.com" # DO NOT DO THIS
+```
+
+a reloaded `ApiGateway` would have a `nil` endpoint, because the code above does not run again.
+
+You can still set things up during boot, but you need to wrap them in a `to_prepare` block, which is runs on boot, and after each reload:
+
+```ruby
+# config/initializers/api_gateway_setup.rb
 Rails.application.config.to_prepare do
-  ApiGateway.endpoint = "https://example.com"
+  ApiGateway.endpoint = "https://example.com" # CORRECT
 end
 ```
 
-That block runs when the application boots, and every time code is reloaded.
-
 NOTE: For historical reasons, this callback may run twice. The code it executes must be idempotent.
 
-However, if you do not need to reload the class, it is easier to define it in a directory which does not belong to the autoload paths. For instance, `lib` is an idiomatic choice. It does not belong to the autoload paths by default, but it does belong to `$LOAD_PATH`. Then, in the place the class is needed at boot time, just perform a regular `require` to load it.
+### Use case 2: During boot, load code that remains cached
 
-For example, there is no point in defining reloadable Rack middleware, because changes would not be reflected in the instance stored in the middleware stack anyway. If `lib/my_app/middleware/foo.rb` defines a middleware class, then in `config/application.rb` you write:
+Some configurations take a class or module object, and they store it in a place that is not reloaded, for example, within the state of the framework.
+
+One example is middleware:
 
 ```ruby
-require "my_app/middleware/foo"
-...
 config.middleware.use MyApp::Middleware::Foo
 ```
 
-To have changes in that middleware reflected, you need to restart the server.
+When you reload, the middleware stack is not affected, so, whatever object was stored in `MyApp::Middleware::Foo` at boot time remains there stale.
 
-Another possibility is to autoload from the autoload once paths. Please check the section [`config.autoload_once_paths`](#config-autoload-once-paths) above.
+Another example is Active Job serializers:
 
+```ruby
+# config/initializers/custom_serializers.rb
+Rails.application.config.active_job.custom_serializers << MoneySerializer
+```
+
+Whatever `MoneySerializer` evaluates to during initialization gets pushed to the custom serializers. If that was reloadable, the initial object would be still within Active Job, not reflecting your changes.
+
+Corollary: those classes or modules **cannot be reloadable**.
+
+The easiest way to refer to those classes or modules during boot is to have them defined in a directory which does not belong to the autoload paths. For instance, `lib` is an idiomatic choice. It does not belong to the autoload paths by default, but it does belong to `$LOAD_PATH`. Just perform a regular `require` to load it and done.
+
+As noted above, another option is to have the directory that defines them in the autoload once paths:
+
+```
+# config/application.rb
+module YourApp
+  class Application < Rails::Application
+    config.autoload_once_paths << Rails.root.join('app', 'serializers')
+  end
+end
+```
+
+in this option, you can autoload serializers during initialization, because they are managed by the `once` autoloader.
 
 Eager Loading
 -------------

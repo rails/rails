@@ -255,7 +255,8 @@ class AssetTagHelperTest < ActionView::TestCase
     %(preload_link_tag '//example.com/font.woff2', crossorigin: 'use-credentials') => %(<link rel="preload" href="//example.com/font.woff2" as="font" type="font/woff2" crossorigin="use-credentials" />),
     %(preload_link_tag '/media/audio.ogg', nopush: true) => %(<link rel="preload" href="/media/audio.ogg" as="audio" type="audio/ogg" />),
     %(preload_link_tag '/style.css', integrity: 'sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs') => %(<link rel="preload" href="/style.css" as="style" type="text/css" integrity="sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs">),
-    %(preload_link_tag '/sprite.svg') => %(<link rel="preload" href="/sprite.svg" as="image" type="image/svg+xml">)
+    %(preload_link_tag '/sprite.svg') => %(<link rel="preload" href="/sprite.svg" as="image" type="image/svg+xml">),
+    %(preload_link_tag '/mb-icon.png') => %(<link rel="preload" href="/mb-icon.png" as="image" type="image/png">)
   }
 
   VideoPathToTag = {

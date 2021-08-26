@@ -1,3 +1,16 @@
+*   Improves the performance of ActiveSupport::NumberHelper formatters by avoiding the use of
+    exceptions as flow control.
+
+    *Mike Dalessio*
+
+*   Removed rescue block from `ActiveSupport::Cache::RedisCacheStore#handle_exception`
+
+    Previously, if you provided a `error_handler` to `redis_cache_store`, any errors thrown by
+    the error handler would be rescued and logged only. Removed the `rescue` clause from `handle_exception`
+    to allow these to be thrown. 
+    
+    *Nicholas A. Stuart*
+
 *   Allow entirely opting out of deprecation warnings.
 
     Previously if you did `app.config.active_support.deprecation = :silence`, some work would

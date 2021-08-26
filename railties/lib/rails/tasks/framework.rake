@@ -22,7 +22,7 @@ namespace :app do
       project_templates = "#{Rails.root}/lib/templates"
 
       default_templates = { "erb"   => %w{controller mailer scaffold},
-                            "rails" => %w{controller helper scaffold_controller assets} }
+                            "rails" => %w{controller helper scaffold_controller} }
 
       default_templates.each do |type, names|
         local_template_type_dir = File.join(project_templates, type)
@@ -57,12 +57,6 @@ namespace :app do
 
     task :upgrade_guide_info do
       Rails::AppUpdater.invoke_from_app_generator :display_upgrade_guide_info
-    end
-  end
-
-  namespace :binstub do
-    task :yarn do
-      Rails::AppUpdater.invoke_from_app_generator :update_bin_yarn
     end
   end
 end

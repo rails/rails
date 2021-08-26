@@ -15,11 +15,6 @@ FileUtils.chdir APP_ROOT do
   puts "== Installing dependencies =="
   system! "gem install bundler --conservative"
   system("bundle check") || system!("bundle install")
-<% unless options.skip_javascript? -%>
-
-  # Install JavaScript dependencies
-  system! "bin/yarn"
-<% end -%>
 <% unless options.skip_active_record? -%>
 
   # puts "\n== Copying sample files =="

@@ -3,7 +3,21 @@
 require "generators/generators_test_helper"
 require "generators/action_text/install/install_generator"
 
-module Webpacker; end
+module Webpacker
+  extend self
+
+  def config
+    Class.new do
+      def source_path
+        "app/packs"
+      end
+
+      def source_entry_path
+        "app/packs/entrypoints"
+      end
+    end.new
+  end
+end
 
 class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -17,12 +31,6 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
   teardown do
     Rails.application = Rails.application.instance
     run_under_asset_pipeline
-  end
-
-  test "creates bin/yarn" do
-    run_generator_instance
-
-    assert_file "bin/yarn"
   end
 
   test "installs JavaScript dependencies" do
@@ -41,21 +49,23 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
   end
 
   test "loads JavaScript dependencies in application.js" do
-    application_js = Pathname("app/javascript/packs/application.js").expand_path(destination_root)
+    application_js = Pathname("app/javascript/application.js").expand_path(destination_root)
     application_js.dirname.mkpath
     application_js.write("\n")
+
+    run_under_asset_pipeline
     run_generator_instance
 
     assert_file application_js do |content|
-      assert_match %r"^#{Regexp.escape 'require("@rails/actiontext")'}", content
-      assert_match %r"^#{Regexp.escape 'require("trix")'}", content
+      assert_match %r"^#{Regexp.escape 'import "@rails/actiontext"'}", content
+      assert_match %r"^#{Regexp.escape 'import "trix"'}", content
     end
   end
 
   test "creates Action Text stylesheet" do
     run_generator_instance
 
-    assert_file "app/assets/stylesheets/actiontext.scss"
+    assert_file "app/assets/stylesheets/actiontext.css"
   end
 
   test "creates Active Storage view partial" do
@@ -89,21 +99,10 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  test "#yarn_command runs bin/yarn via Ruby" do
-    ran = nil
-    run_stub = -> (command, *) { ran = command }
-
-    generator.stub(:run, run_stub) do
-      generator.send(:yarn_command, "foo")
-    end
-
-    assert_match %r"\S bin/yarn foo$", ran
-  end
-
   test "run just for asset pipeline" do
     run_under_asset_pipeline
 
-    application_js = Pathname("app/assets/javascripts/application.js").expand_path(destination_root)
+    application_js = Pathname("app/javascript/application.js").expand_path(destination_root)
     application_js.dirname.mkpath
     application_js.write ""
 

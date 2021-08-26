@@ -451,7 +451,7 @@ end
 and add this serializer to the list:
 
 ```ruby
-# config/initializer/custom_serializers.rb
+# config/initializers/custom_serializers.rb
 Rails.application.config.active_job.custom_serializers << MoneySerializer
 ```
 

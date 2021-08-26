@@ -37,7 +37,10 @@ module ActiveRecord
   #
   #    tags = [
   #      :application,
-  #      { custom_tag: -> { context[:controller].controller_name } }
+  #      {
+  #        custom_tag: ->(context) { context[:controller].controller_name },
+  #        custom_value: -> { Custom.value },
+  #      }
   #    ]
   #    ActiveRecord::QueryLogs.tags = tags
   #
@@ -173,28 +176,22 @@ module ActiveRecord
 
         def tag_content
           tags.flat_map { |i| [*i] }.filter_map do |tag|
-            key, value_input = tag
+            key, handler = tag
+            handler ||= taggings[key]
 
-            val = case value_input
-                  when nil then tag_value(key)
-                  when Proc then instance_exec(&value_input)
-                  else value_input
+            val = if handler.nil?
+              context[key]
+            elsif handler.respond_to?(:call)
+              if handler.arity == 0
+                handler.call
+              else
+                handler.call(context)
+              end
+            else
+              handler
             end
-
             "#{key}:#{val}" unless val.nil?
           end.join(",")
-        end
-
-        def tag_value(key)
-          if value = taggings[key]
-            if value.respond_to?(:call)
-              instance_exec(&taggings[key])
-            else
-              value
-            end
-          else
-            context[key]
-          end
         end
 
         def inline_tag_content

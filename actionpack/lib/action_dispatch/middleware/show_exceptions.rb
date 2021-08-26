@@ -14,14 +14,8 @@ module ActionDispatch
   # If the application returns a "X-Cascade" pass response, this middleware
   # will send an empty response as result with the correct status code.
   # If any exception happens inside the exceptions app, this middleware
-  # catches the exceptions and returns a FAILSAFE_RESPONSE.
+  # catches the exceptions and returns a failsafe response.
   class ShowExceptions
-    FAILSAFE_RESPONSE = [500, { "Content-Type" => "text/plain" },
-      ["500 Internal Server Error\n" \
-       "If you are the administrator of this website, then please read this web " \
-       "application's log file and/or the web server's log file to find out what " \
-       "went wrong."]]
-
     def initialize(app, exceptions_app)
       @app = app
       @exceptions_app = exceptions_app
@@ -52,7 +46,12 @@ module ActionDispatch
         response[1]["X-Cascade"] == "pass" ? pass_response(status) : response
       rescue Exception => failsafe_error
         $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
-        FAILSAFE_RESPONSE
+
+        [500, { "Content-Type" => "text/plain" },
+          ["500 Internal Server Error\n" \
+          "If you are the administrator of this website, then please read this web " \
+          "application's log file and/or the web server's log file to find out what " \
+          "went wrong."]]
       end
 
       def pass_response(status)
