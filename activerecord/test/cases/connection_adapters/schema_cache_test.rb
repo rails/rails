@@ -11,10 +11,6 @@ module ActiveRecord
         @database_version = @connection.get_database_version
       end
 
-      def test_primary_key
-        assert_equal "id", @cache.primary_keys("posts")
-      end
-
       def test_yaml_dump_and_load
         # Create an empty cache.
         cache = SchemaCache.new @connection
@@ -119,23 +115,40 @@ module ActiveRecord
         assert_equal @database_version.to_s, cache.database_version.to_s
       end
 
+      def test_primary_key_for_existent_table
+        assert_equal "id", @cache.primary_keys("posts")
+      end
+
       def test_primary_key_for_non_existent_table
         assert_nil @cache.primary_keys("omgponies")
       end
 
-      def test_caches_columns
-        columns = @cache.columns("posts")
-        assert_equal columns, @cache.columns("posts")
+      def test_columns_for_existent_table
+        assert_equal 12, @cache.columns("posts").size
       end
 
-      def test_caches_columns_hash
-        columns_hash = @cache.columns_hash("posts")
-        assert_equal columns_hash, @cache.columns_hash("posts")
+      def test_columns_for_non_existent_table
+        assert_raises ActiveRecord::StatementInvalid do
+          @cache.columns("omgponies")
+        end
       end
 
-      def test_caches_indexes
-        indexes = @cache.indexes("posts")
-        assert_equal indexes, @cache.indexes("posts")
+      def test_columns_hash_for_existent_table
+        assert_equal 12, @cache.columns_hash("posts").size
+      end
+
+      def test_columns_hash_for_non_existent_table
+        assert_raises ActiveRecord::StatementInvalid do
+          @cache.columns_hash("omgponies")
+        end
+      end
+
+      def test_indexes_for_existent_table
+        assert_equal 1, @cache.indexes("posts").size
+      end
+
+      def test_indexes_for_non_existent_table
+        assert_equal [], @cache.indexes("omgponies")
       end
 
       def test_caches_database_version

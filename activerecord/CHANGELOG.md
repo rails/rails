@@ -1,3 +1,13 @@
+*   Make schema cache methods return consistent results.
+
+    Previously the schema cache methods `primary_keys`, `columns, `columns_hash`, and `indexes`
+    would behave differently than one another when a table didn't exist and differently across
+    databases. This change unifies the behavior so that all the methods return `nil` if the table
+    doesn't exist. While this class is technically public, applications don't interact with the
+    return values of these methods so it should be safe to make this change.
+
+    *Eileen M. Uchitelle*
+
 *   Reestablish connection to previous database after after running `db:schema:load:name`
 
     After running `db:schema:load:name` the previous connection is restored.
