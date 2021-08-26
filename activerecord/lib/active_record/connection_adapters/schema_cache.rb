@@ -128,7 +128,11 @@ module ActiveRecord
 
       def indexes(table_name)
         @indexes.fetch(table_name) do
-          @indexes[deep_deduplicate(table_name)] = deep_deduplicate(connection.indexes(table_name))
+          if data_source_exists?(table_name)
+            @indexes[deep_deduplicate(table_name)] = deep_deduplicate(connection.indexes(table_name))
+          else
+            []
+          end
         end
       end
 

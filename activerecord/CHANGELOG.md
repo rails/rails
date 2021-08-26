@@ -1,15 +1,41 @@
 *   Add support for array syntax on enums backed by string columns.
 
+    If you create an enum backed by a string column, you can use the following
+    syntax:
+
     ```ruby
     class Book < ActiveRecord::Base
-      # This is equivalent to enum cover: { hard: "hard", soft: "soft" }
       enum cover: [:hard, :soft]
+    end
+    ```
+
+    It will behave like this:
+
+    ```ruby
+    class Book < ActiveRecord::Base
+      enum cover: { hard: "hard", soft: "soft" }
     end
     ```
 
     This feature doesn't affect enums backed by integer columns.
 
     *Matheus Richard*
+
+*   Make schema cache methods return consistent results.
+
+    Previously the schema cache methods `primary_keys`, `columns, `columns_hash`, and `indexes`
+    would behave differently than one another when a table didn't exist and differently across
+    database adapters. This change unifies the behavior so each method behaves the same regardless
+    of adapter.
+
+    The behavior now is:
+
+    `columns`: (unchanged) raises a db error if the table does not exist
+    `columns_hash`: (unchanged) raises a db error if the table does not exist
+    `primary_keys`: (unchanged) returns `nil` if the table does not exist
+    `indexes`: (changed for mysql2) returns `[]` if the table does not exist
+
+    *Eileen M. Uchitelle*
 
 *   Reestablish connection to previous database after after running `db:schema:load:name`
 
