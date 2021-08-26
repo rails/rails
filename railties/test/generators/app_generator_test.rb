@@ -551,12 +551,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "puma", '"~> 5.0"'
   end
 
-  def test_generator_has_assets_gems
-    run_generator
-
-    assert_gem "sass-rails"
-  end
-
   def test_action_cable_redis_gems
     run_generator
     assert_file "Gemfile", /^# gem "redis"/
