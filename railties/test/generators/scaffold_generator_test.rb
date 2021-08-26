@@ -92,10 +92,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Helpers
     assert_file "app/helpers/product_lines_helper.rb"
-
-    # Assets
-    assert_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/stylesheets/product_lines.css"
   end
 
   def test_api_scaffold_on_invoke
@@ -164,10 +160,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Helpers
     assert_no_file "app/helpers/product_lines_helper.rb"
-
-    # Assets
-    assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/stylesheets/product_lines.css"
   end
 
   def test_functional_tests_without_attributes
@@ -219,10 +211,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Helpers
     assert_no_file "app/helpers/product_lines_helper.rb"
-
-    # Assets
-    assert_file "app/assets/stylesheets/scaffold.css", /.scaffold_record/
-    assert_no_file "app/assets/stylesheets/product_lines.css"
   end
 
   def test_scaffold_with_namespace_on_invoke
@@ -292,10 +280,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Helpers
     assert_file "app/helpers/admin/roles_helper.rb"
-
-    # Assets
-    assert_file "app/assets/stylesheets/scaffold.css", /.scaffold_record/
-    assert_file "app/assets/stylesheets/admin/roles.css"
   end
 
   def test_scaffold_with_namespace_on_revoke
@@ -327,10 +311,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Helpers
     assert_no_file "app/helpers/admin/roles_helper.rb"
-
-    # Assets
-    assert_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/stylesheets/admin/roles.css"
   end
 
   def test_scaffold_generator_on_revoke_does_not_mutilate_legacy_map_parameter
@@ -653,8 +633,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert File.exist?("app/views/bukkits/users/_form.html.erb")
 
       assert File.exist?("app/helpers/bukkits/users_helper.rb")
-
-      assert File.exist?("app/assets/stylesheets/bukkits/users.css")
     end
   end
 
@@ -682,8 +660,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_not File.exist?("app/views/bukkits/users/_form.html.erb")
 
       assert_not File.exist?("app/helpers/bukkits/users_helper.rb")
-
-      assert_not File.exist?("app/assets/stylesheets/bukkits/users.css")
     end
   end
 end
