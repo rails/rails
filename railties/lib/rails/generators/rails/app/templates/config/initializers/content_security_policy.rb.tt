@@ -11,7 +11,7 @@
 #   policy.object_src  :none
 #   policy.script_src  :self, :https
 #   policy.style_src   :self, :https
-<%- unless options[:skip_javascript] -%>
+<%- if options[:webpack] -%>
 #   # If you are using webpack-dev-server then specify webpack-dev-server host
 #   policy.connect_src :self, :https, "http://localhost:3035", "ws://localhost:3035" if Rails.env.development?
 <%- end -%>

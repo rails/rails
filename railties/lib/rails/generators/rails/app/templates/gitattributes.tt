@@ -5,7 +5,7 @@
 db/schema.rb linguist-generated
 <% end -%>
 
-<% unless options[:skip_javascript] -%>
+<% if options[:webpack] -%>
 # Mark the yarn lockfile as having been generated.
 yarn.lock linguist-generated
 <% end -%>

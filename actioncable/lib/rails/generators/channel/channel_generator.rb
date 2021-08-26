@@ -18,11 +18,23 @@ module Rails
 
         if options[:assets]
           if behavior == :invoke
-            template "javascript/index.js", "app/javascript/channels/index.js"
-            template "javascript/consumer.js", "app/javascript/channels/consumer.js"
+            if defined?(Webpacker::Engine)
+              template "javascript/index.js", "#{Webpacker.config.source_path}/channels/index.js"
+              template "javascript/consumer.js", "#{Webpacker.config.source_path}/channels/consumer.js"
+            else
+              template "javascript/consumer.js", "app/javascript/channels/consumer.js"
+            end
           end
 
-          js_template "javascript/channel", File.join("app/javascript/channels", class_path, "#{file_name}_channel")
+          if defined?(Webpacker::Engine)
+            js_template "javascript/channel", File.join(Webpacker.config.source_path, "channels", class_path, "#{file_name}_channel")
+          else
+            channel_js_path = File.join("app/javascript/channels", class_path, "#{file_name}_channel")
+            js_template "javascript/channel", channel_js_path
+            gsub_file "#{channel_js_path}.js", /\.\/consumer/, "channels/consumer"
+
+            append_to_file "app/javascript/application.js", %(\nimport "channels/#{file_name}_channel"\n)
+          end
         end
 
         generate_application_cable_files

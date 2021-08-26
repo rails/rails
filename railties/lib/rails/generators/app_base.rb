@@ -64,8 +64,8 @@ module Rails
         class_option :skip_javascript,     type: :boolean, aliases: "-J", default: name == "plugin",
                                            desc: "Skip JavaScript files"
 
-        class_option :skip_turbolinks,     type: :boolean, default: false,
-                                           desc: "Skip turbolinks gem"
+        class_option :skip_hotwire,        type: :boolean, default: false,
+                                           desc: "Skip Hotwire integration"
 
         class_option :skip_jbuilder,       type: :boolean, default: false,
                                            desc: "Skip jbuilder gem"
@@ -296,9 +296,7 @@ module Rails
       # * This makes it a prerelease. That's bad, but we haven't come up with
       # a better solution at the moment.
       def npm_version
-        # TODO: support `options.dev?`
-
-        if options.edge? || options.main?
+        if options.edge? || options.main? || options.dev?
           # TODO: ideally this would read from Github
           # https://github.com/rails/rails/blob/main/actioncable/app/assets/javascripts/action_cable.js
           # https://github.com/rails/rails/blob/main/activestorage/app/assets/javascripts/activestorage.js
@@ -309,16 +307,6 @@ module Rails
         end
       end
 
-      def turbolinks_npm_version
-        # since Turbolinks is deprecated, let's just always point to main.
-        # expect this to be replaced with Hotwire at some point soon.
-        if options.main? || options.edge?
-          "turbolinks/turbolinks#master"
-        else
-          "^5.2.0"
-        end
-      end
-
       def assets_gemfile_entry
         return [] if options[:skip_sprockets]
 
@@ -326,9 +314,11 @@ module Rails
       end
 
       def webpacker_gemfile_entry
-        return [] if options[:skip_javascript]
-
-        GemfileEntry.version "webpacker", "~> 5.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
+        if options[:webpack]
+          GemfileEntry.version "webpacker", "~> 6.0.0.rc.5", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
+        else
+          []
+        end
       end
 
       def jbuilder_gemfile_entry
@@ -338,11 +328,21 @@ module Rails
       end
 
       def javascript_gemfile_entry
-        if options[:skip_javascript] || options[:skip_turbolinks]
+        importmap_rails_entry =
+          GemfileEntry.version("importmap-rails", ">= 0.3.4", "Manage modern JavaScript using ESM without transpiling or bundling")
+
+        turbo_rails_entry =
+          GemfileEntry.version("turbo-rails", ">= 0.7.4", "Hotwire's SPA-like page accelerator. Read more: https://turbo.hotwired.dev")
+
+        stimulus_rails_entry =
+          GemfileEntry.version("stimulus-rails", ">= 0.3.9", "Hotwire's modest JavaScript framework for the HTML you already have. Read more: https://stimulus.hotwired.dev")
+
+        if options[:skip_javascript]
           []
+        elsif options[:skip_hotwire]
+          [ importmap_rails_entry ]
         else
-          [ GemfileEntry.version("turbolinks", "~> 5",
-             "Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks") ]
+          [ importmap_rails_entry, turbo_rails_entry, stimulus_rails_entry ]
         end
       end
 
@@ -393,7 +393,15 @@ module Rails
       end
 
       def webpack_install?
-        !(options[:skip_javascript] || options[:skip_webpack_install])
+        options[:webpack]
+      end
+
+      def importmap_install?
+        !(options[:skip_javascript] || options[:webpack])
+      end
+
+      def hotwire_install?
+        !(options[:skip_javascript] || options[:skip_hotwire])
       end
 
       def depends_on_system_test?
@@ -420,9 +428,34 @@ module Rails
         end
 
         rails_command "webpacker:install"
-        if options[:webpack] && options[:webpack] != "webpack"
-          rails_command "webpacker:install:#{options[:webpack]}"
+      end
+
+      def run_importmap
+        return unless importmap_install?
+
+        unless bundle_install?
+          say <<~EXPLAIN
+            Skipping `rails importmap:install` because `bundle install` was skipped.
+            To complete setup, you must run `bundle install` followed by `rails importmap:install`.
+          EXPLAIN
+          return
         end
+
+        rails_command "importmap:install"
+      end
+
+      def run_hotwire
+        return unless hotwire_install?
+
+        unless bundle_install?
+          say <<~EXPLAIN
+            Skipping `rails turbo:install stimulus:install` because `bundle install` was skipped.
+            To complete setup, you must run `bundle install` followed by `rails turbo:install stimulus:install`.
+          EXPLAIN
+          return
+        end
+
+        rails_command "turbo:install stimulus:install"
       end
 
       def generate_bundler_binstub

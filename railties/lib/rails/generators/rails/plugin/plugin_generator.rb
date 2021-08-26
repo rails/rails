@@ -121,8 +121,7 @@ module Rails
       opts[:force] = force
       opts[:skip_bundle] = true
       opts[:skip_git] = true
-      opts[:skip_turbolinks] = true
-      opts[:skip_webpack_install] = true
+      opts[:skip_hotwire] = true
       opts[:dummy_app] = true
 
       invoke Rails::Generators::AppGenerator,
@@ -146,10 +145,6 @@ module Rails
           config.action_controller.include_all_helpers = false
         RUBY
       end
-    end
-
-    def test_dummy_webpacker_assets
-      template "rails/javascripts.js",    "#{dummy_path}/app/javascript/packs/application.js", force: true
     end
 
     def test_dummy_sprocket_assets

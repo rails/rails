@@ -110,7 +110,6 @@ GEM
     addressable (2.7.0)
       public_suffix (>= 2.0.2, < 5.0)
     amq-protocol (2.3.2)
-    ansi (1.5.0)
     ast (2.4.2)
     aws-eventstream (1.1.1)
     aws-partitions (1.469.0)
@@ -287,6 +286,8 @@ GEM
     image_processing (1.12.1)
       mini_magick (>= 4.9.5, < 5)
       ruby-vips (>= 2.0.17, < 3)
+    importmap-rails (0.3.4)
+      rails (>= 6.0.0)
     jmespath (1.4.0)
     json (2.5.1)
     jwt (2.2.3)
@@ -312,11 +313,8 @@ GEM
     minitest-bisect (1.5.1)
       minitest-server (~> 1.0)
       path_expander (~> 1.1)
-    minitest-reporters (1.4.3)
-      ansi
-      builder
-      minitest (>= 5.0)
-      ruby-progressbar
+    minitest-ci (3.4.0)
+      minitest (>= 5.0.6)
     minitest-retry (0.2.2)
       minitest (>= 5.0)
     minitest-server (1.0.6)
@@ -479,6 +477,8 @@ GEM
       sprockets (>= 3.0.0)
     sqlite3 (1.4.2)
     stackprof (0.2.17)
+    stimulus-rails (0.3.9)
+      rails (>= 6.0.0)
     sucker_punch (3.0.1)
       concurrent-ruby (~> 1.0)
     terser (1.1.4)
@@ -490,9 +490,8 @@ GEM
     thor (1.1.0)
     tilt (2.0.10)
     trailblazer-option (0.1.1)
-    turbolinks (5.2.1)
-      turbolinks-source (~> 5.2)
-    turbolinks-source (5.2.0)
+    turbo-rails (0.7.4)
+      rails (>= 6.0.0)
     tzinfo (2.0.4)
       concurrent-ruby (~> 1.0)
     uber (0.1.0)
@@ -512,7 +511,7 @@ GEM
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
-    webpacker (5.4.0)
+    webpacker (6.0.0.rc.5)
       activesupport (>= 5.2)
       rack-proxy (>= 0.6.1)
       railties (>= 5.2)
@@ -553,12 +552,13 @@ DEPENDENCIES
   google-cloud-storage (~> 1.11)
   hiredis
   image_processing (~> 1.2)
+  importmap-rails
   json (>= 2.0.0)
   kindlerb (~> 1.2.0)
   libxml-ruby
   listen (~> 3.3)
   minitest-bisect
-  minitest-reporters
+  minitest-ci
   minitest-retry
   mysql2 (~> 0.5)!
   nokogiri (>= 1.8.1, != 1.11.0)
@@ -592,17 +592,18 @@ DEPENDENCIES
   sprockets-export
   sqlite3 (~> 1.4)
   stackprof
+  stimulus-rails
   sucker_punch
   terser (>= 1.1.4)
-  turbolinks (~> 5)
+  turbo-rails
   tzinfo-data
   w3c_validators (~> 1.3.6)
   wdm (>= 0.1.0)
   webdrivers
   webmock
-  webpacker (~> 5.0)
+  webpacker (~> 6.0.0.rc.5)
   webrick
   websocket-client-simple!
 
 BUNDLED WITH
-   2.2.19
+   2.2.25
