@@ -13,7 +13,6 @@ gem "capybara", ">= 3.26"
 gem "selenium-webdriver", ">= 4.0.0.alpha7"
 
 gem "rack-cache", "~> 1.2"
-gem "sass-rails"
 gem "stimulus-rails"
 gem "turbo-rails"
 gem "webpacker", "~> 6.0.0.rc.5", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"

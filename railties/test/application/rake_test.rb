@@ -305,7 +305,7 @@ module ApplicationTests
       %w(controller mailer scaffold).each do |dir|
         assert File.exist?(File.join(app_path, "lib", "templates", "erb", dir))
       end
-      %w(controller helper scaffold_controller assets).each do |dir|
+      %w(controller helper scaffold_controller).each do |dir|
         assert File.exist?(File.join(app_path, "lib", "templates", "rails", dir))
       end
     end

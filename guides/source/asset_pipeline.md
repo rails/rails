@@ -33,24 +33,11 @@ passing the `--skip-sprockets` option.
 $ rails new appname --skip-sprockets
 ```
 
-Rails automatically adds the [`sass-rails`](https://github.com/rails/sass-rails)
-gem to your `Gemfile`, which is used by Sprockets for
-[Sass](https://sass-lang.com) compilation:
+Rails can easily work with Sass by adding the [`sassc-rails`](https://github.com/sass/sassc-rails)
+gem to your `Gemfile`, which is used by Sprockets for [Sass](https://sass-lang.com) compilation:
 
 ```ruby
-gem 'sass-rails'
-```
-
-Using the `--skip-sprockets` option will prevent Rails from adding
-this gem, so if you later want to enable the asset pipeline
-you will have to add it to your `Gemfile` manually. Also,
-creating an application with the `--skip-sprockets` option will generate
-a slightly different `config/application.rb` file, with a require statement
-for the sprockets railtie that is commented-out. You will have to remove
-the comment operator on that line to later enable the asset pipeline:
-
-```ruby
-# require "sprockets/railtie"
+gem 'sassc-rails'
 ```
 
 To set asset compression methods, set the appropriate configuration options
@@ -62,7 +49,7 @@ config.assets.css_compressor = :yui
 config.assets.js_compressor = :uglifier
 ```
 
-NOTE: The `sass-rails` gem is automatically used for CSS compression if included
+NOTE: The `sassc-rails` gem is automatically used for CSS compression if included
 in the `Gemfile` and no `config.assets.css_compressor` option is set.
 
 ### Main Features

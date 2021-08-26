@@ -211,7 +211,6 @@ end
 
 The full set of methods that can be used in this block are as follows:
 
-* `assets` allows to create assets on generating a scaffold. Defaults to `true`.
 * `force_plural` allows pluralized model names. Defaults to `false`.
 * `helper` defines whether or not to generate helpers. Defaults to `true`.
 * `integration_tool` defines which integration tool to use to generate integration tests. Defaults to `:test_unit`.
@@ -221,9 +220,6 @@ The full set of methods that can be used in this block are as follows:
 * `resource_route` defines whether a resource route definition should be generated
   or not. Defaults to `true`.
 * `scaffold_controller` different from `resource_controller`, defines which generator to use for generating a _scaffolded_ controller when using `bin/rails generate scaffold`. Defaults to `:scaffold_controller`.
-* `stylesheets` turns on the hook for stylesheets in generators. Used in Rails for when the `scaffold` generator is run, but this hook can be used in other generates as well. Defaults to `true`.
-* `stylesheet_engine` configures the stylesheet engine (for e.g. sass) to be used when generating assets. Defaults to `:css`.
-* `scaffold_stylesheet` creates `scaffold.css` when generating a scaffolded resource. Defaults to `true`.
 * `test_framework` defines which test framework to use. Defaults to `false` and will use minitest by default.
 * `template_engine` defines which template engine to use, such as ERB or Haml. Defaults to `:erb`.
 

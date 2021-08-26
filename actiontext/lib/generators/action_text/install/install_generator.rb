@@ -62,7 +62,7 @@ module ActionText
       end
 
       def create_actiontext_files
-        template "actiontext.scss", "app/assets/stylesheets/actiontext.scss"
+        template "actiontext.css", "app/assets/stylesheets/actiontext.css"
 
         copy_file "#{GEM_ROOT}/app/views/active_storage/blobs/_blob.html.erb",
           "app/views/active_storage/blobs/_blob.html.erb"
