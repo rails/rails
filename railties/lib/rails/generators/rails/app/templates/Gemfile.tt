@@ -17,6 +17,11 @@ ruby <%= "\"#{RUBY_VERSION}\"" -%>
   "#{k}: #{v.inspect.gsub('"', '\'')}" }.join(", ") %>
 <% end -%>
 <% end -%>
+<% unless options.skip_sprockets? -%>
+
+# Use Sass to process CSS
+# gem "sassc-rails", "~> 2.1"
+<% end -%>
 
 # Use Active Model has_secure_password
 # gem "bcrypt", "~> 3.1.7"

@@ -108,7 +108,6 @@ module Rails
         [rails_gemfile_entry,
          database_gemfile_entry,
          web_server_gemfile_entry,
-         assets_gemfile_entry,
          webpacker_gemfile_entry,
          javascript_gemfile_entry,
          jbuilder_gemfile_entry,
@@ -305,12 +304,6 @@ module Rails
         else
           Rails.version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
         end
-      end
-
-      def assets_gemfile_entry
-        return [] if options[:skip_sprockets]
-
-        GemfileEntry.version("sass-rails", ">= 6", "Use SCSS for stylesheets")
       end
 
       def webpacker_gemfile_entry
