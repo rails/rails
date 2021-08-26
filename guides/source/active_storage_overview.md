@@ -720,10 +720,10 @@ config.active_storage.draw_routes = false
 
 to prevent files being accessed with the publicly accessible URLs.
 
-[`ActiveStorage::Blobs::RedirectController`]: https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/blobs/redirect_controller.rb
-[`ActiveStorage::Blobs::ProxyController`]: https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/blobs/proxy_controller.rb
-[`ActiveStorage::Representations::RedirectController`]: https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/representations/redirect_controller.rb
-[`ActiveStorage::Representations::ProxyController`]: https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/representations/proxy_controller.rb
+[`ActiveStorage::Blobs::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Blobs/RedirectController.html
+[`ActiveStorage::Blobs::ProxyController`]: https://api.rubyonrails.org/classes/ActiveStorage/Blobs/ProxyController.html
+[`ActiveStorage::Representations::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/RedirectController.html
+[`ActiveStorage::Representations::ProxyController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/ProxyController.html
 
 Downloading Files
 -----------------
@@ -1386,7 +1386,7 @@ Implementing Support for Other Cloud Services
 
 If you need to support a cloud service other than these, you will need to
 implement the Service. Each service extends
-[`ActiveStorage::Service`](https://github.com/rails/rails/blob/main/activestorage/lib/active_storage/service.rb)
+[`ActiveStorage::Service`](https://api.rubyonrails.org/classes/ActiveStorage/Service.html)
 by implementing the methods necessary to upload and download files to the cloud.
 
 Purging Unattached Uploads
