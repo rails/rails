@@ -94,6 +94,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
   # brings setup, teardown, and some tests
   include SharedGeneratorTests
 
+  setup do
+    ENV["SKIP_REQUIRE_WEBPACKER"] = "true"
+  end
+
+  teardown do
+    ENV["SKIP_REQUIRE_WEBPACKER"] = nil
+  end
+
   def default_files
     ::DEFAULT_APP_FILES
   end
@@ -839,8 +847,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_hotwire
-    run_generator [destination_root]
-
+    run_generator [destination_root, "--dev"]
     assert_gem "turbo-rails"
     assert_gem "stimulus-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
@@ -859,9 +866,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_no_match(/data-turbo-track/, content)
     end
-    assert_file "app/javascript/application.js" do |content|
-      assert_no_match(/turbo/, content)
-    end
+    assert_no_file "app/javascript/application.js"
   end
 
   def test_bootsnap

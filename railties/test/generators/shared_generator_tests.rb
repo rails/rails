@@ -189,6 +189,7 @@ module SharedGeneratorTests
   end
 
   def test_generator_for_active_storage_for_webpack
+    ENV["SKIP_REQUIRE_WEBPACKER"] = nil
     run_generator([destination_root, "--webpack"])
 
     unless generator_class.name == "Rails::Generators::PluginGenerator"
@@ -220,7 +221,8 @@ module SharedGeneratorTests
   end
 
   def test_generator_for_active_storage_for_webpack
-    run_generator([destination_root, "--webpack"])
+    ENV["SKIP_REQUIRE_WEBPACKER"] = nil
+    run_generator([destination_root, "--dev", "--webpack"])
 
     unless generator_class.name == "Rails::Generators::PluginGenerator"
       assert_file "#{application_path}/app/packs/entrypoints/application.js" do |content|
@@ -231,13 +233,13 @@ module SharedGeneratorTests
   end
 
   def test_generator_if_skip_active_storage_is_given
-    run_generator [destination_root, "--skip-active-storage"]
+    run_generator [destination_root, "--dev", "--skip-active-storage"]
 
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
 
     unless generator_class.name == "Rails::Generators::PluginGenerator"
       assert_file "#{application_path}/app/javascript/application.js" do |content|
-        assert_no_match(/activestorage/, content)
+        assert_no_match(/^import "@rails\/activestorage"/, content)
       end
     end
 
@@ -263,7 +265,7 @@ module SharedGeneratorTests
   end
 
   def test_generator_does_not_generate_active_storage_contents_if_skip_active_record_is_given
-    run_generator [destination_root, "--skip-active-record"]
+    run_generator [destination_root, "--dev", "--skip-active-record"]
 
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
 
