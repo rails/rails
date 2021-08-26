@@ -586,9 +586,8 @@ require a higher level of protection consider implementing
 To generate a permanent URL for a blob, you can pass the blob to the
 [`url_for`][ActionView::RoutingUrlFor#url_for] view helper. This generates a
 URL with the blob's [`signed_id`][ActiveStorage::Blob#signed_id]
-that is routed to the blob's [`RedirectController`][ActiveStorage::Blobs::RedirectController]
+that is routed to the blob's [`RedirectController`][`ActiveStorage::Blobs::RedirectController`]
 
-[ActiveStorage::Blobs::RedirectController]: https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/blobs/redirect_controller.rb
 ```ruby
 url_for(user.avatar)
 # => /rails/active_storage/blobs/:signed_id/my-avatar.png
