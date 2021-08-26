@@ -448,9 +448,8 @@ module ActionView
         end
 
         def parse_float(number, raise_error)
-          Float(number)
-        rescue ArgumentError, TypeError
-          raise InvalidNumberError, number if raise_error
+          result = Float(number, exception: false)
+          raise InvalidNumberError, number if result.nil? && raise_error
         end
     end
   end

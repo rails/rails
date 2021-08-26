@@ -1,3 +1,8 @@
+*   Improves the performance of ActiveSupport::NumberHelper formatters by avoiding the use of
+    exceptions as flow control.
+
+    *Mike Dalessio*
+
 *   Removed rescue block from `ActiveSupport::Cache::RedisCacheStore#handle_exception`
 
     Previously, if you provided a `error_handler` to `redis_cache_store`, any errors thrown by
