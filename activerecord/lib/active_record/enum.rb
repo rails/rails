@@ -202,7 +202,7 @@ module ActiveRecord
           pairs = if values.respond_to?(:each_pair)
             values.each_pair
           elsif column_backed_by_string?(name)
-            values.map! { |value| [value.to_s, value.to_s] }
+            values.map { |value| [value.to_s, value.to_s] }
           else
             values.each_with_index
           end
