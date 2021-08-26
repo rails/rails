@@ -2,9 +2,15 @@
 
     Previously the schema cache methods `primary_keys`, `columns, `columns_hash`, and `indexes`
     would behave differently than one another when a table didn't exist and differently across
-    databases. This change unifies the behavior so that all the methods return `nil` if the table
-    doesn't exist. While this class is technically public, applications don't interact with the
-    return values of these methods so it should be safe to make this change.
+    database adapters. This change unifies the behavior so each method behaves the same regardless
+    of adapter.
+
+    The behavior now is:
+
+    `columns`: (unchanged) raises a db error if the table does not exist
+    `columns_hash`: (unchanged) raises a db error if the table does not exist
+    `primary_keys`: (unchanged) returns `nil` if the table does not exist
+    `indexes`: (changed for mysql2) returns `[]` if the table does not exist
 
     *Eileen M. Uchitelle*
 
