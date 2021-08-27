@@ -1,3 +1,7 @@
+*   Add case_sensitive to Arel::Predications `does_not_match_any` and `does_not_match_all` methods
+
+    *Patrick van de Glind*
+
 *   Add config option for ignoring tables when dumping the schema cache.
 
     Applications can now be configured to ignore certain tables when dumping the schema cache.

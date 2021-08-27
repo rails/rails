@@ -142,12 +142,12 @@ module Arel # :nodoc: all
       Nodes::NotRegexp.new self, quoted_node(other), case_sensitive
     end
 
-    def does_not_match_any(others, escape = nil)
-      grouping_any :does_not_match, others, escape
+    def does_not_match_any(others, escape = nil, case_sensitive = true)
+      grouping_any :does_not_match, others, escape, case_sensitive
     end
 
-    def does_not_match_all(others, escape = nil)
-      grouping_all :does_not_match, others, escape
+    def does_not_match_all(others, escape = nil, case_sensitive = true)
+      grouping_all :does_not_match, others, escape, case_sensitive
     end
 
     def gteq(right)
