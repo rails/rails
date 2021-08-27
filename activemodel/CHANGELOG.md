@@ -1,3 +1,8 @@
+*   Add better `#inspect` output for `ActiveModel::Model` classes and instances with
+    attributes.
+
+    *Ted Johansson*
+
 *   Fix dirty check for Float::NaN and BigDecimal::NaN.
 
     Float::NaN and BigDecimal::NaN in Ruby are [special values](https://bugs.ruby-lang.org/issues/1720) 
