@@ -1,4 +1,36 @@
-*   The setter `config.autoloader=` has been deleted. `zeitwerk` is the only available autoloading mode.
+*   The setter `config.autoloader=` has been deleted. `zeitwerk` is the only
+    available autoloading mode.
+
+    *Xavier Noria*
+
+*   `config.autoload_once_paths` can be configured in the body of the
+    application class defined in `config/application.rb` or in the configuration
+    for environments in `config/environments/*`.
+
+    Similarly, engines can configure that collection in the class body of the
+    engine class or in the configuration for environments.
+
+    After that, the collection is frozen, and you can autoload from those paths.
+    They are managed by the `Rails.autoloaders.once` autoloader, which does not
+    reload, only autoloads/eager loads.
+
+    *Xavier Noria*
+
+*   During initialization, you cannot autoload reloadable classes or modules
+    like application models, unless they are wrapped in a `to_prepare` block.
+    For example, from `config/initializers/*`, or in application, engines, or
+    railties initializers.
+
+    Please check the [autoloading
+    guide](https://edgeguides.rubyonrails.org/autoloading_and_reloading_constants.html#autoloading-when-the-application-boots)
+    for details.
+
+    *Xavier Noria*
+
+*   While they are allowed to have elements in common, it is no longer required
+    that `config.autoload_once_paths` is a subset of `config.autoload_paths`.
+    The former are managed by the `once` autoloader. The `main` autoloader
+    manages the latter minus the former.
 
     *Xavier Noria*
 
