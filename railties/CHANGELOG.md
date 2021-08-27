@@ -1,3 +1,9 @@
+*   Add SSL support for postgresql in `bin/rails dbconsole`.
+
+    Fixes #43114.
+
+    *Michael Bayucot*
+
 *   The setter `config.autoloader=` has been deleted. `zeitwerk` is the only
     available autoloading mode.
 
