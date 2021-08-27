@@ -741,6 +741,13 @@ module ActiveRecord
           end
         end
 
+        def transform_query(sql)
+          ActiveRecord.query_transformers.each do |transformer|
+            sql = transformer.call(sql)
+          end
+          sql
+        end
+
         def translate_exception(exception, message:, sql:, binds:)
           # override in derived class
           case exception

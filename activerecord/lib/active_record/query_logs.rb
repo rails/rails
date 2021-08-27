@@ -118,13 +118,14 @@ module ActiveRecord
         inline_tags.pop
       end
 
-      def add_query_log_tags_to_sql(sql) # :nodoc:
-        comments.each do |comment|
-          unless sql.include?(comment)
-            sql = prepend_comment ? "#{comment} #{sql}" : "#{sql} #{comment}"
-          end
+      def call(sql) # :nodoc:
+        parts = self.comments
+        if prepend_comment
+          parts << sql
+        else
+          parts.unshift(sql)
         end
-        sql
+        parts.join(" ")
       end
 
       private
@@ -197,16 +198,6 @@ module ActiveRecord
         def inline_tag_content
           inline_tags.join
         end
-    end
-
-    module ExecutionMethods
-      def execute(sql, *args, **kwargs)
-        super(ActiveRecord::QueryLogs.add_query_log_tags_to_sql(sql), *args, **kwargs)
-      end
-
-      def exec_query(sql, *args, **kwargs)
-        super(ActiveRecord::QueryLogs.add_query_log_tags_to_sql(sql), *args, **kwargs)
-      end
     end
   end
 end
