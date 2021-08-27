@@ -370,6 +370,10 @@ config.active_record.encryption.store_key_references = true
 
 This makes for a more performant decryption since, instead of trying lists of keys, the system can now locate keys directly. The price to pay is storage: encrypted data will be a bit bigger in size.
 
+## Protected Console Accesses
+
+The gem [`console1984`](https://github.com/basecamp/console1984) lets you protect access to encrypted data during Rails console sessions. 
+
 ## API
 
 ### Basic API
