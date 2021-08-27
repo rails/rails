@@ -1047,9 +1047,9 @@ You can find more detailed configuration options in the
     config.active_storage.paths[:ffprobe] = '/usr/local/bin/ffprobe'
     ```
 
-* `config.active_storage.variable_content_types` accepts an array of strings indicating the content types that Active Storage can transform through ImageMagick. The default is `%w(image/png image/gif image/jpg image/jpeg image/pjpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon image/webp)`.
+* `config.active_storage.variable_content_types` accepts an array of strings indicating the content types that Active Storage can transform through ImageMagick. The default is `%w(image/png image/gif image/jpg image/jpeg image/pjpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon image/webp image/avif image/heic image/heif)`.
 
-* `config.active_storage.web_image_content_types` accepts an array of strings regarded as web image content types in which variants can be processed without being converted to the fallback PNG format. If you want to use `WebP` variants in your application you can add `image/webp` to this array. The default is `%w(image/png image/jpeg image/jpg image/gif)`.
+* `config.active_storage.web_image_content_types` accepts an array of strings regarded as web image content types in which variants can be processed without being converted to the fallback PNG format. If you want to use `WebP` or `AVIF` variants in your application you can add `image/webp` or `image/avif` to this array. The default is `%w(image/png image/jpeg image/jpg image/gif)`.
 
 * `config.active_storage.content_types_to_serve_as_binary` accepts an array of strings indicating the content types that Active Storage will always serve as an attachment, rather than inline. The default is `%w(text/html
 text/javascript image/svg+xml application/postscript application/x-shockwave-flash text/xml application/xml application/xhtml+xml application/mathml+xml text/cache-manifest)`.
