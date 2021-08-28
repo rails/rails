@@ -104,5 +104,9 @@
 
     *Gannon McGibbon*
 
+*   Add support for comments above gem declaration in Rails application templates, e.g. `gem("nokogiri", comment: "For XML")`.
+
+    *Linas Juškevičius*
+
 
 Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/railties/CHANGELOG.md) for previous changes.

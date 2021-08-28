@@ -45,7 +45,7 @@ module Rails
 
         in_root do
           str = []
-          unless comment.nil?
+          if comment
             comment.each_line do |comment_line|
               str << indentation
               str << "# #{comment_line}"
