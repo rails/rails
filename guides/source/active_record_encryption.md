@@ -372,8 +372,7 @@ This makes for a more performant decryption since, instead of trying lists of ke
 
 ## Protected Console Accesses
 
-The gem [`console1984`](https://github.com/basecamp/console1984) lets you protect access to encrypted data during Rails console sessions. 
-
+Anyone with access to the Rails console can decrypt encrypted data. To protect access to encrypted data during Rails console sessions you can use the [`console1984`](https://github.com/basecamp/console1984) gem.
 ## API
 
 ### Basic API
