@@ -517,6 +517,9 @@ in controllers and views. This defaults to `false`.
   the context does not change during the lifetime of the request or job execution.
   Defaults to `false`.
 
+* `config.active_record.schema_cache_ignored_tables` define the list of table that should be ignored when generating
+  the schema cache. It accepts an `Array` of strings, representing the table names, or regular expressions.
+
 The MySQL adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
