@@ -123,7 +123,7 @@ module ActiveModel
     #   user.serializable_hash(include: { notes: { only: 'title' }})
     #   # => {"name" => "Napoleon", "notes" => [{"title"=>"Battle of Austerlitz"}]}
     def serializable_hash(options = nil)
-      attribute_names = attributes.keys
+      attribute_names = self.attribute_names
 
       return serializable_attributes(attribute_names) if options.blank?
 
@@ -146,6 +146,11 @@ module ActiveModel
       end
 
       hash
+    end
+
+    # Returns an array of attribute names as strings
+    def attribute_names # :nodoc:
+      attributes.keys
     end
 
     private
