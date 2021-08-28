@@ -1235,6 +1235,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_nil author.post
   end
 
+  def test_changing_an_association_resets_the_stale_inverse_has_one
+    jimmy = Author.create(name: "Jimmy Tolkien")
+    david = Author.create(name: "DHH")
+    post = jimmy.create_post(title: "The silly medallion", body: "")
+    assert_equal post, jimmy.post
+    assert_nil david.post
+
+    jimmy.post.update!(author: david)
+    assert_nil jimmy.post
+    assert_equal post, david.post
+  end
+
   def test_destroying_child_with_unloaded_parent_and_foreign_key_and_touch_is_possible_with_has_many_inversing
     with_has_many_inversing do
       book     = Book.create!

@@ -84,6 +84,7 @@ module ActiveRecord
         def replace(record)
           if record
             raise_on_type_mismatch!(record)
+            reset_inverse_instance(target)
             set_inverse_instance(record)
             @updated = true
           elsif target
@@ -93,6 +94,12 @@ module ActiveRecord
           replace_keys(record, force: true)
 
           self.target = record
+        end
+
+        def reset_inverse_instance(target)
+          if target
+            inverse_association_for(target)&.reset
+          end
         end
 
         def update_counters(by)

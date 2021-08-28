@@ -1,3 +1,19 @@
+*   Reset `has_one` association when the related `belongs_to` association is set.
+
+    When setting a `belongs_to` association the inverse `has_one` association is reset.
+
+    Example:
+
+    ```ruby
+    jimmy = Author.create(name: "Jimmy Tolkien")
+    david = Author.create(name: "DHH")
+    post = jimmy.create_post(title: "The silly medallion", body: "")
+    jimmy.post.update!(author: david)
+    assert_nil jimmy.post
+    ```
+
+    *Jacopo Beschi*
+
 * Add ssl support for postgresql database tasks
 
     Add `PGSSLMODE`, `PGSSLCERT`, `PGSSLKEY` and `PGSSLROOTCERT` to pg_env from database config
