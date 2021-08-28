@@ -42,10 +42,6 @@ module ActiveRecord
           sql = transform_query(sql)
           check_if_write_query(sql)
 
-          # make sure we carry over any changes to ActiveRecord.default_timezone that have been
-          # made since we established the connection
-          @connection.query_options[:database_timezone] = ActiveRecord.default_timezone
-
           raw_execute(sql, name, async: async)
         end
 
