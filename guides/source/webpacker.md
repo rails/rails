@@ -47,11 +47,48 @@ If you are familiar with Sprockets, the following guide might give you some idea
 Installing Webpacker
 --------------------
 
-To use Webpacker, you must install the Yarn package manager, version 1.x or up, and you must have Node.js installed, version 10.13.0 and up.
+To use Webpacker, you must have Node.js and the Yarn package manager installed.
 
 NOTE: Webpacker depends on NPM and Yarn. NPM, the Node package manager registry, is the primary repository for publishing and downloading open-source JavaScript projects, both for Node.js and browser runtimes. It is analogous to rubygems.org for Ruby gems. Yarn is a command-line utility that enables the installation and management of JavaScript dependencies, much like Bundler does for Ruby.
 
-To include Webpacker in a new project, add `--webpack` to the `rails new` command. To add Webpacker to an existing project, add the `webpacker` gem to the project's `Gemfile`, run `bundle install`, and then run `bin/rails webpacker:install`.
+### Installing Node.js
+
+Find the Node.js installation instructions at the [Node.js website](https://nodejs.org/en/download/) and
+verify it's installed correctly with the following command:
+
+```bash
+$ node --version
+```
+
+The version of your Node.js runtime should be printed out. Make sure it's greater
+than 8.16.0.
+
+### Installing Yarn
+
+To install Yarn, follow the installation
+instructions at the [Yarn website](https://classic.yarnpkg.com/en/docs/install).
+
+Running the following command should print out the Yarn version:
+
+```bash
+$ yarn --version
+```
+
+If it says something like "1.22.0", Yarn has been installed correctly.
+
+### Installing Webpacker
+
+To include Webpacker in a new project, add `--webpack` to the `rails new` command:
+
+```bash
+$ rails new --webpack
+```
+
+To add Webpacker to an existing project, add the `webpacker` gem to the project's `Gemfile`, run `bundle install`, and then run:
+
+```bash
+$ bin/rails webpacker:install
+```
 
 Installing Webpacker creates the following local files:
 
