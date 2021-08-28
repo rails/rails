@@ -149,19 +149,7 @@ module ActiveModel
     end
 
     # Returns an array of attribute names as strings
-    #
-    #   class Person
-    #     include ActiveModel::Serialization
-    #     attr_accessor :name, :age
-    #     def attributes
-    #       { 'name' => name, 'age' => age }
-    #     end
-    #   end
-    #
-    #   person = Person.new
-    #   person.attribute_names
-    #   # => ["name", "age"]
-    def attribute_names
+    def attribute_names # :nodoc:
       attributes.keys
     end
 
