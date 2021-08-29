@@ -271,9 +271,10 @@ Advanced Usage
 --------------
 
 The application template is evaluated in the context of a
-`Rails::Generators::AppGenerator` instance. It uses the `apply` action
-provided by
-[Thor](https://github.com/erikhuda/thor/blob/master/lib/thor/actions.rb#L207).
+`Rails::Generators::AppGenerator` instance. It uses the
+[`apply`](https://rdoc.info/github/wycats/thor/Thor/Actions#apply-instance_method)
+action provided by Thor.
+
 This means you can extend and change the instance to match your needs.
 
 For example by overwriting the `source_paths` method to contain the
