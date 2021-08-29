@@ -22,7 +22,7 @@
     railties initializers.
 
     Please check the [autoloading
-    guide](https://edgeguides.rubyonrails.org/autoloading_and_reloading_constants.html#autoloading-when-the-application-boots)
+    guide](https://guides.rubyonrails.org/v7.0/autoloading_and_reloading_constants.html#autoloading-when-the-application-boots)
     for details.
 
     *Xavier Noria*
