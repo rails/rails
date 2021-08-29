@@ -179,6 +179,10 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "test/system/product_lines_test.rb" do |content|
       assert_match(/class ProductLinesTest < ApplicationSystemTestCase/, content)
       assert_match(/test "visiting the index"/, content)
+      assert_match(/assert_selector "h1", text: "Product line"/, content)
+      assert_match(/click_on "Show this product line"/, content)
+      assert_match(/click_on "Edit this product line"/, content)
+      assert_match(/click_on "Destroy this product line"/, content)
       assert_no_match(/fill_in/, content)
     end
   end
