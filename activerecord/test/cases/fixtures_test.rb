@@ -1331,6 +1331,12 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     assert_equal pirates(:blackbeard), dead_parrots(:deadbird).killer
   end
 
+  def test_resolves_enums_in_sti_subclasses
+    assert_predicate parrots(:george), :australian?
+    assert_predicate parrots(:louis), :african?
+    assert_predicate parrots(:frederick), :african?
+  end
+
   def test_namespaced_models
     assert_includes admin_accounts(:signals37).users, admin_users(:david)
     assert_equal 2, admin_accounts(:signals37).users.size

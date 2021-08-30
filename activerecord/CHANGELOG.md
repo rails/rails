@@ -1,3 +1,11 @@
+*   Load STI Models in fixtures
+
+    Data from Fixtures now loads based on the specific class for models with
+    Single Table Inheritance. This affects enums defined in subclasses, previously
+    the value of these fields was not parsed and remained `nil`
+
+    *Andres Howard*
+    
 *   `#authenticate` returns false when the password is blank instead of raising an error.
 
     *Muhammad Muhammad Ibrahim*
