@@ -1,3 +1,9 @@
+*   Add SSL support for postgresql in `bin/rails dbconsole`.
+
+    Fixes #43114.
+
+    *Michael Bayucot*
+
 *   Add support for comments above gem declaration in Rails application templates, e.g. `gem("nokogiri", comment: "For XML")`.
 
     *Linas Juškevičius*
