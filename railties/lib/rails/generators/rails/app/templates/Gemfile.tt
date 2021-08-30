@@ -57,8 +57,9 @@ group :development do
   gem "web-console", ">= 4.1.0"
 
   # Display speed badge on every html page with SQL times and flame graphs.
-  # Note: Interferes with etag cache testing. Can be configured to work on production: https://github.com/MiniProfiler/rack-mini-profiler/blob/master/README.md
-  # gem "rack-mini-profiler", "~> 2.0"
+  # Note: Interferes with etag cache testing. Can be configured to work on production
+  # and with support for Hotwire Turbo: https://github.com/MiniProfiler/rack-mini-profiler/blob/master/README.md
+  # gem "rack-mini-profiler", ">= 2.3.3"
 <%- end -%>
   # Speed up rails commands in dev on slow machines / big apps. See: https://github.com/rails/spring
   # gem "spring"
