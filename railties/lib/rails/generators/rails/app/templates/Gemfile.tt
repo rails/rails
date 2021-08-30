@@ -58,7 +58,7 @@ group :development do
 
   # Display speed badge on every html page with SQL times and flame graphs.
   # Note: Interferes with etag cache testing. Can be configured to work on production
-  # and with support for Hotwire Turbo: https://github.com/MiniProfiler/rack-mini-profiler/blob/master/README.md
+  # and with support for Hotwire Turbo: https://github.com/MiniProfiler/rack-mini-profiler
   # gem "rack-mini-profiler", ">= 2.3.3"
 <%- end -%>
   # Speed up rails commands in dev on slow machines / big apps. See: https://github.com/rails/spring
