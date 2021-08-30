@@ -690,6 +690,12 @@ INFO. The only ActiveStorage service that provides this hook so far is GCS.
 
 #### transform.active_storage
 
+#### analyze.active_storage
+
+| Key          | Value                          |
+| ------------ | ------------------------------ |
+| `:analyzer`  | Name of analyzer e.g., ffprobe |
+
 ### Railties
 
 #### load_config_initializer.railties

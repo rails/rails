@@ -42,6 +42,9 @@ module ActiveStorage
       image/vnd.adobe.photoshop
       image/vnd.microsoft.icon
       image/webp
+      image/avif
+      image/heic
+      image/heif
     )
 
     config.active_storage.web_image_content_types = %w(

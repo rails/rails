@@ -12,16 +12,16 @@ class QueryLogsTest < ActiveRecord::TestCase
 
   def setup
     # Enable the query tags logging
-    ActiveRecord::Base.connection.class_eval do
-      prepend(ActiveRecord::QueryLogs::ExecutionMethods)
-    end
+    @original_transformers = ActiveRecord.query_transformers
     @original_prepend = ActiveRecord::QueryLogs.prepend_comment
+    ActiveRecord.query_transformers += [ActiveRecord::QueryLogs]
     ActiveRecord::QueryLogs.prepend_comment = false
     ActiveRecord::QueryLogs.cache_query_log_tags = false
     ActiveRecord::QueryLogs.cached_comment = nil
   end
 
   def teardown
+    ActiveRecord.query_transformers = @original_transformers
     ActiveRecord::QueryLogs.prepend_comment = @original_prepend
     ActiveRecord::QueryLogs.tags = []
   end
@@ -100,10 +100,10 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.cache_query_log_tags = true
     ActiveRecord::QueryLogs.tags = [ :application ]
 
-    assert_equal " /*application:active_record*/", ActiveRecord::QueryLogs.add_query_log_tags_to_sql("")
+    assert_equal " /*application:active_record*/", ActiveRecord::QueryLogs.call("")
 
     ActiveRecord::QueryLogs.stub(:cached_comment, "/*cached_comment*/") do
-      assert_equal " /*cached_comment*/", ActiveRecord::QueryLogs.add_query_log_tags_to_sql("")
+      assert_equal " /*cached_comment*/", ActiveRecord::QueryLogs.call("")
     end
   ensure
     ActiveRecord::QueryLogs.cached_comment = nil
@@ -115,12 +115,12 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.update_context(temporary: "value")
     ActiveRecord::QueryLogs.tags = [ temporary_tag: ->(context) { context[:temporary] } ]
 
-    assert_equal " /*temporary_tag:value*/", ActiveRecord::QueryLogs.add_query_log_tags_to_sql("")
+    assert_equal " /*temporary_tag:value*/", ActiveRecord::QueryLogs.call("")
 
     ActiveRecord::QueryLogs.update_context(temporary: "new_value")
 
     assert_nil ActiveRecord::QueryLogs.cached_comment
-    assert_equal " /*temporary_tag:new_value*/", ActiveRecord::QueryLogs.add_query_log_tags_to_sql("")
+    assert_equal " /*temporary_tag:new_value*/", ActiveRecord::QueryLogs.call("")
   ensure
     ActiveRecord::QueryLogs.cached_comment = nil
     ActiveRecord::QueryLogs.cache_query_log_tags = false
@@ -197,15 +197,6 @@ class QueryLogsTest < ActiveRecord::TestCase
     assert_sql(%r{/\*; DROP TABLE USERS;\*/$}) do
       ActiveRecord::QueryLogs.with_tag("**//; DROP TABLE USERS;//**") do
         Dashboard.first
-      end
-    end
-  end
-
-  def test_inline_tags_are_deduped
-    ActiveRecord::QueryLogs.tags = [ :application ]
-    assert_sql(%r{select id from posts /\*foo\*/ /\*application:active_record\*/$}) do
-      ActiveRecord::QueryLogs.with_tag("foo") do
-        ActiveRecord::Base.connection.execute "select id from posts /*foo*/"
       end
     end
   end

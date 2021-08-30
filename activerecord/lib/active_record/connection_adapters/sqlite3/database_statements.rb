@@ -19,6 +19,7 @@ module ActiveRecord
         end
 
         def execute(sql, name = nil) # :nodoc:
+          sql = transform_query(sql)
           check_if_write_query(sql)
 
           materialize_transactions
@@ -32,6 +33,7 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = nil, binds = [], prepare: false, async: false) # :nodoc:
+          sql = transform_query(sql)
           check_if_write_query(sql)
 
           materialize_transactions
@@ -104,6 +106,7 @@ module ActiveRecord
           end
 
           def execute_batch(statements, name = nil)
+            statements = statements.map { |sql| transform_query(sql) }
             sql = combine_multi_statements(statements)
 
             check_if_write_query(sql)

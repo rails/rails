@@ -170,6 +170,12 @@ module ActiveRecord
   autoload :TestDatabases, "active_record/test_databases"
   autoload :TestFixtures, "active_record/fixtures"
 
+  # A list of tables or regex's to match tables to ignore when
+  # dumping the schema cache. For example if this is set to +[/^_/]+
+  # the schema cache will not dump tables named with an underscore.
+  singleton_class.attr_accessor :schema_cache_ignored_tables
+  self.schema_cache_ignored_tables = []
+
   singleton_class.attr_accessor :legacy_connection_handling
   self.legacy_connection_handling = true
 
@@ -322,6 +328,9 @@ module ActiveRecord
   # Supported by PostgreSQL and SQLite.
   singleton_class.attr_accessor :verify_foreign_keys_for_fixtures
   self.verify_foreign_keys_for_fixtures = false
+
+  singleton_class.attr_accessor :query_transformers
+  self.query_transformers = []
 
   def self.eager_load!
     super
