@@ -534,7 +534,7 @@ While applications should stick to that interface, the actual Zeitwerk loader ob
 Rails.autoloaders.main
 ```
 
-That may be handy if you need to preload STIs or configure a custom inflector, for example.
+That may be handy if you need to preload Single Table Inheritance (STI) classes or configure a custom inflector, for example.
 
 #### Project Structure
 
@@ -554,7 +554,7 @@ All is good!
 
 All known use cases of `require_dependency` have been eliminated, you should grep the project and delete them.
 
-If your application has STIs, please check their section in the guide [Autoloading and Reloading Constants (Zeitwerk Mode)](autoloading_and_reloading_constants.html#single-table-inheritance).
+If your application uses Single Table Inheritance, please see the [Single Table Inheritance section](autoloading_and_reloading_constants.html#single-table-inheritance) of the Autoloading and Reloading Constants (Zeitwerk Mode) guide.
 
 #### Qualified names in class and module definitions
 
