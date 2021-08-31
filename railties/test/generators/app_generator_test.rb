@@ -688,33 +688,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "web-console"
   end
 
-  def test_web_console_with_dev_option
-    run_generator [destination_root, "--dev", "--skip-bundle"]
-
-    assert_file "Gemfile" do |content|
-      assert_match(/gem "web-console",\s+github: "rails\/web-console"/, content)
-      assert_no_match(/\Agem "web-console", ">= 4\.1\.0"\z/, content)
-    end
-  end
-
-  def test_web_console_with_edge_option
-    run_generator [destination_root, "--edge"]
-
-    assert_file "Gemfile" do |content|
-      assert_match(/gem "web-console",\s+github: "rails\/web-console"/, content)
-      assert_no_match(/\Agem "web-console", ">= 4\.1\.0"\z/, content)
-    end
-  end
-
-  def test_web_console_with_main_option
-    run_generator [destination_root, "--main"]
-
-    assert_file "Gemfile" do |content|
-      assert_match(/gem "web-console",\s+github: "rails\/web-console"/, content)
-      assert_no_match(/\Agem "web-console", ">= 4\.1\.0"\z/, content)
-    end
-  end
-
   def test_generation_runs_bundle_install
     generator([destination_root])
     run_generator_instance

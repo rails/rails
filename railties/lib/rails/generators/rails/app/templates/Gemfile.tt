@@ -54,11 +54,8 @@ end
 group :development do
 <%- unless options.api? || options.skip_dev_gems? -%>
   # Access an interactive console on exception pages or by calling "console" anywhere in the code.
-  <%- if options.dev? || options.edge? || options.main? -%>
-  gem "web-console", github: "rails/web-console"
-  <%- else -%>
   gem "web-console", ">= 4.1.0"
-  <%- end -%>
+
   # Display speed badge on every html page with SQL times and flame graphs.
   # Note: Interferes with etag cache testing. Can be configured to work on production: https://github.com/MiniProfiler/rack-mini-profiler/blob/master/README.md
   # gem "rack-mini-profiler", "~> 2.0"
