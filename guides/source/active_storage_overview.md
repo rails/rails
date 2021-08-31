@@ -850,11 +850,14 @@ location.
 <%= image_tag user.avatar.variant(resize_to_limit: [100, 100]) %>
 ```
 
-If a variant is requested, Active Storage will automatically apply 
+If a variant is requested, Active Storage will automatically apply
 transformations depending on the image's format:
 
-1. Content types that are [`variable`] and not considered [`web images`], will be converted to PNG.
-2. If `quality` is not specified, the variant processor's default quality for the format will be used.  
+1. Content types that are variable (as dictated by `config.active_storage.variable_content_types`)
+  and not considered web images (as dictated by `config.active_storage.web_image_content_types`),
+  will be converted to PNG.
+
+2. If `quality` is not specified, the variant processor's default quality for the format will be used.
 
 The default processor for Active Storage is MiniMagick, but you can also use
 [Vips][]. To switch to Vips, add the following to `config/application.rb`:
@@ -876,8 +879,6 @@ specific:
 ```
 
 [`variant`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-variant
-[`web images`]: https://github.com/rails/rails/blob/main/activestorage/lib/active_storage/engine.rb#L47
-[`variable`]: https://github.com/rails/rails/blob/main/activestorage/lib/active_storage/engine.rb#L34
 [Vips]: https://www.rubydoc.info/gems/ruby-vips/Vips/Image
 
 ### Previewing Files
