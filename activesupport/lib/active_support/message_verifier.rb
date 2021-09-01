@@ -211,9 +211,13 @@ module ActiveSupport
         @digest_length_in_hex ||= OpenSSL::Digest.new(@digest).digest_length * 2
       end
 
+      def separator_at?(signed_message, index)
+        signed_message[index, SEPARATOR_LENGTH] == SEPARATOR
+      end
+
       def separator_index_for(signed_message)
         index = signed_message.length - digest_length_in_hex - SEPARATOR_LENGTH
-        return if index.negative? || signed_message[index, SEPARATOR_LENGTH] != SEPARATOR
+        return if index.negative? || !separator_at?(signed_message, index)
 
         index
       end
@@ -224,8 +228,8 @@ module ActiveSupport
         separator_index = separator_index_for(signed_message)
         return if separator_index.nil?
 
-        data = signed_message[0...separator_index]
-        digest = signed_message[separator_index + SEPARATOR_LENGTH..-1]
+        data = signed_message[0, separator_index]
+        digest = signed_message[separator_index + SEPARATOR_LENGTH, digest_length_in_hex]
 
         [data, digest]
       end
