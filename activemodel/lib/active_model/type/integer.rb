@@ -44,7 +44,7 @@ module ActiveModel
         end
 
         def cast_value(value)
-          value.to_i rescue nil
+          value.to_i
         end
 
         def ensure_in_range(value)

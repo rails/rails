@@ -20,22 +20,18 @@ module ActiveModel
         assert_nil type.cast(nil)
       end
 
-      test "random objects cast to nil" do
+      test "casting objects without to_i raises NoMethodError" do
         type = Type::Integer.new
-        assert_nil type.cast([1, 2])
-        assert_nil type.cast(1 => 2)
-        assert_nil type.cast(1..2)
+        assert_raises(NoMethodError) { type.cast(::Object.new) }
+        assert_raises(NoMethodError) { type.cast([1, 2]) }
+        assert_raises(NoMethodError) { type.cast(1 => 2) }
+        assert_raises(NoMethodError) { type.cast(1..2) }
       end
 
-      test "casting objects without to_i" do
+      test "casting nan and infinity raises FloatDomainError" do
         type = Type::Integer.new
-        assert_nil type.cast(::Object.new)
-      end
-
-      test "casting nan and infinity" do
-        type = Type::Integer.new
-        assert_nil type.cast(::Float::NAN)
-        assert_nil type.cast(1.0 / 0.0)
+        assert_raises(FloatDomainError) { type.cast(::Float::NAN) }
+        assert_raises(FloatDomainError) { type.cast(::Float::INFINITY) }
       end
 
       test "casting booleans for database" do

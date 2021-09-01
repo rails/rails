@@ -43,4 +43,10 @@
 
     *lulalala*
 
+*   Fix ActiveModel::Type::Integer#cast_value to not blindly cast values to NULL
+
+    Fixes #43039.
+
+    *Sam Brownlow*
+
 Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/activemodel/CHANGELOG.md) for previous changes.
