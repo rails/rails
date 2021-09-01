@@ -134,7 +134,10 @@ module ActiveStorage
         ActiveStorage::Blob.services = ActiveStorage::Service::Registry.new(configs)
 
         if config_choice = Rails.configuration.active_storage.service
-          ActiveStorage::Blob.service = ActiveStorage::Blob.services.fetch(config_choice)
+          ActiveStorage::Blob.service = ActiveStorage::Blob.services.fetch(config_choice) do
+            raise "Couldn't find Active Storage service. Make sure it is properly configured in config/storage.yml " \
+              "and that config.active_storage.service is set in config/environments/#{Rails.env}.rb or config/application.rb."
+          end
         end
       end
     end
