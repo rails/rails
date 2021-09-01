@@ -41,6 +41,17 @@ class SerializationTest < ActiveModel::TestCase
     end
   end
 
+  class UserWithAttributes
+    include ActiveModel::Attributes
+    include ActiveModel::Serialization
+
+    attribute :name, :string
+
+    def attributes
+      nil
+    end
+  end
+
   setup do
     @user = User.new("David", "david@example.com", "male")
     @user.address = Address.new
@@ -180,5 +191,12 @@ class SerializationTest < ActiveModel::TestCase
                 "address" => { "street" => "123 Lane" },
                 "friends" => [{ "name" => "Joe" }, { "name" => "Sue" }] }
     assert_equal expected, @user.serializable_hash(include: [address: { only: "street" }, friends: { only: "name" }])
+  end
+
+  def test_with_attributes_variable
+    user_with_attributes = UserWithAttributes.new
+    user_with_attributes.name = "Avery"
+    expected = { "name" => "Avery" }
+    assert_equal expected, user_with_attributes.serializable_hash
   end
 end

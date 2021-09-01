@@ -150,7 +150,7 @@ module ActiveModel
 
     # Returns an array of attribute names as strings
     def attribute_names # :nodoc:
-      attributes.keys
+      instance_variable_defined?(:@attributes) ? @attributes.keys : attributes.keys
     end
 
     private
