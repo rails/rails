@@ -34,18 +34,23 @@ module ActiveSupport # :nodoc:
 
     # :nodoc:
 
-    # The set of directories from which we may automatically load files. Files
-    # under these directories will be reloaded on each request in development mode,
-    # unless the directory also appears in autoload_once_paths.
+    # The array of directories from which we autoload and reload, if reloading
+    # is enabled. The public interface to push directories to this collection
+    # from applications or engines is config.autoload_paths.
+    #
+    # This collection is allowed to have intersection with autoload_once_paths.
+    # Common directories are not reloaded.
     mattr_accessor :autoload_paths, default: []
 
-    # The set of directories from which automatically loaded constants are loaded
-    # only once. All directories in this set must also be present in +autoload_paths+.
+    # The array of directories from which we autoload and never reload, even if
+    # reloading is enabled. The public interface to push directories to this
+    # collection from applications or engines is config.autoload_once_paths.
     mattr_accessor :autoload_once_paths, default: []
 
     # This is a private set that collects all eager load paths during bootstrap.
-    # Useful for Zeitwerk integration. Its public interface is the config.* path
-    # accessors of each engine.
+    # Useful for Zeitwerk integration. The public interface to push custom
+    # directories to this collection is from applications or engines is
+    # config.eager_load_paths.
     mattr_accessor :_eager_load_paths, default: Set.new
 
     # If reloading is enabled, this private set holds autoloaded classes tracked
