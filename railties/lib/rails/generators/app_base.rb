@@ -299,7 +299,7 @@ module Rails
         when "webpack"
           GemfileEntry.version "webpacker", "~> 6.0.0.rc.5", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
         when "esbuild"
-          GemfileEntry.version "esbuild-rails", "~> 0.1.1", "Transpile app-like JavaScript. Read more: https://github.com/rails/esbuild-rails"
+          GemfileEntry.version "esbuild-rails", "~> 0.1.2", "Transpile app-like JavaScript. Read more: https://github.com/rails/esbuild-rails"
         else
           raise "Unknown JavaScript approach: #{options[:javascript]}"
         end
@@ -309,10 +309,10 @@ module Rails
         return [] if options[:skip_javascript] || options[:skip_hotwire]
 
         turbo_rails_entry =
-          GemfileEntry.version("turbo-rails", ">= 0.7.10", "Hotwire's SPA-like page accelerator. Read more: https://turbo.hotwired.dev")
+          GemfileEntry.version("turbo-rails", ">= 0.7.11", "Hotwire's SPA-like page accelerator. Read more: https://turbo.hotwired.dev")
 
         stimulus_rails_entry =
-          GemfileEntry.version("stimulus-rails", ">= 0.3.11", "Hotwire's modest JavaScript framework for the HTML you already have. Read more: https://stimulus.hotwired.dev")
+          GemfileEntry.version("stimulus-rails", ">= 0.4.0", "Hotwire's modest JavaScript framework for the HTML you already have. Read more: https://stimulus.hotwired.dev")
 
         [ turbo_rails_entry, stimulus_rails_entry ]
       end
