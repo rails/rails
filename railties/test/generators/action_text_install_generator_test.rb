@@ -18,9 +18,7 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     FileUtils.touch("#{destination_root}/package.json")
 
     run_generator_instance
-    yarn_commands = @yarn_commands.join("\n")
-
-    assert_match %r"^add @rails/actiontext trix", yarn_commands
+    assert_match %r"yarn add @rails/actiontext trix", @run_commands.join("\n")
   end
 
   test "throws warning for missing entry point" do
@@ -76,10 +74,10 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
 
   private
     def run_generator_instance
-      @yarn_commands = []
-      yarn_command_stub = -> (command, *) { @yarn_commands << command }
+      @run_commands = []
+      run_command_stub = -> (command, *) { @run_commands << command }
 
-      generator.stub :yarn_command, yarn_command_stub do
+      generator.stub :run, run_command_stub do
         with_database_configuration { super }
       end
     end
