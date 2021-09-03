@@ -9,14 +9,16 @@ module ActionText
       source_root File.expand_path("templates", __dir__)
 
       def install_javascript_dependencies
-        if using_node = Rails.root.join("package.json").exist?
+        if using_node = Pathname(destination_root).join("package.json").exist?
           say "Installing JavaScript dependencies", :green
           yarn_command "add @rails/activestorage"
         end
       end
 
       def append_javascript_dependencies
-        if (application_javascript_path = Rails.root.join("app/javascript/application.js")).exist?
+        destination = Pathname(destination_root)
+
+        if (application_javascript_path = destination.join("app/javascript/application.js")).exist?
           insert_into_file application_javascript_path.to_s, %(import "trix"\nimport "@rails/actiontext"\n)
         else
           say <<~INSTRUCTIONS, :green
@@ -24,7 +26,7 @@ module ActionText
           INSTRUCTIONS
         end
 
-        if (importmap_path = Rails.root.join("config/importmap.rb")).exist?
+        if (importmap_path = destination.join("config/importmap.rb")).exist?
           append_to_file importmap_path.to_s, %(pin "trix"\npin "@rails/actiontext", to: "actiontext.js"\n)
         end
       end
@@ -40,7 +42,7 @@ module ActionText
       end
 
       def enable_image_processing_gem
-        if (gemfile_path = Rails.root.join("Gemfile")).exist?
+        if (gemfile_path = Pathname(destination_root).join("Gemfile")).exist?
           say "Ensure image_processing gem has been enabled so image uploads will work (remember to bundle!)"
           uncomment_lines gemfile_path, /gem "image_processing"/
         end
