@@ -42,6 +42,15 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  test "pins JavaScript dependencies in importmap.rb" do
+    run_generator_instance
+
+    assert_file "config/importmap.rb" do |content|
+      assert_match %r|pin "@rails/actiontext"|, content
+      assert_match %r|pin "trix"|, content
+    end
+  end
+
   test "creates Action Text stylesheet" do
     run_generator_instance
     assert_file "app/assets/stylesheets/actiontext.css"
