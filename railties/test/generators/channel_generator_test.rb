@@ -65,14 +65,6 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/javascript/channels/chat_channel.js"
   end
 
-  def test_consumer_js_is_created_if_not_present_already
-    run_generator ["chat"]
-    FileUtils.rm("#{destination_root}/app/javascript/channels/consumer.js")
-    run_generator ["camp"]
-
-    assert_file "app/javascript/channels/consumer.js"
-  end
-
   def test_invokes_default_test_framework
     run_generator %w(chat -t=test_unit)
 
