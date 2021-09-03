@@ -14,8 +14,11 @@ module Rails
       hook_for :test_framework
 
       def create_channel_file
-        copy_file "#{__dir__}/templates/application_cable/channel.rb", "app/channels/application_cable/channel.rb"
-        copy_file "#{__dir__}/templates/application_cable/channel.rb", "app/channels/application_cable/channel.rb"
+        unless behavior != :invoke
+          copy_file "#{__dir__}/templates/application_cable/channel.rb", "app/channels/application_cable/channel.rb"
+          copy_file "#{__dir__}/templates/application_cable/connection.rb", "app/channels/application_cable/connection.rb"
+        end
+
         template "channel.rb", File.join("app/channels", class_path, "#{file_name}_channel.rb")
 
         destination = Pathname(destination_root)
