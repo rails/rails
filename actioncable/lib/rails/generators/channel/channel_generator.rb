@@ -13,6 +13,13 @@ module Rails
 
       hook_for :test_framework
 
+      def install_javascript_dependencies
+        if using_node = Pathname(destination_root).join("package.json").exist?
+          say "Installing JavaScript dependencies", :green
+          run "yarn add @rails/actioncable"
+        end
+      end
+
       def create_channel_file
         template "channel.rb", File.join("app/channels", class_path, "#{file_name}_channel.rb")
         destination = Pathname(destination_root)
