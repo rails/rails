@@ -37,25 +37,21 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
 
   test "creates Action Text stylesheet" do
     run_generator_instance
-
     assert_file "app/assets/stylesheets/actiontext.css"
   end
 
   test "creates Active Storage view partial" do
     run_generator_instance
-
     assert_file "app/views/active_storage/blobs/_blob.html.erb"
   end
 
   test "creates Action Text content view layout" do
     run_generator_instance
-
     assert_file "app/views/layouts/action_text/contents/_content.html.erb"
   end
 
   test "creates migrations" do
     run_generator_instance
-
     assert_migration "db/migrate/create_active_storage_tables.active_storage.rb"
     assert_migration "db/migrate/create_action_text_tables.action_text.rb"
   end
