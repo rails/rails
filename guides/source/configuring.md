@@ -48,11 +48,11 @@ Rails will use that particular setting to configure Active Record.
 
 WARNING: Use the public configuration methods over calling directly to the associated class. e.g. `Rails.application.config.action_mailer.options` instead of `ActionMailer::Base.options`.
 
-NOTE: If you need to apply configuration directly to a class, use a [lazy load hook](https://api.rubyonrails.org/classes/ActiveSupport/LazyLoadHooks.html) in an initializer to avoid auto-loading the class before initialization has completed. This will break because autoloading during initialization cannot be safely repeated when the app reloads.
+NOTE: If you need to apply configuration directly to a class, use a [lazy load hook](https://api.rubyonrails.org/classes/ActiveSupport/LazyLoadHooks.html) in an initializer to avoid autoloading the class before initialization has completed. This will break because autoloading during initialization cannot be safely repeated when the app reloads.
 
 ### Rails General Configuration
 
-These configuration methods are to be called on a `Rails::Railtie` object, such as a subclass of `Rails::Engine` or `Rails::Application`.
+The following configuration methods are to be called on a `Rails::Railtie` object, such as a subclass of `Rails::Engine` or `Rails::Application`.
 
 #### `config.after_initialize`
 
@@ -103,7 +103,7 @@ Is a flag. If `true` then any error will cause detailed debugging information to
 
 #### `config.console`
 
-Allows you to set class that will be used as console you run `bin/rails console`. It's best to run it in `console` block:
+Allows you to set the class that will be used as console when you run `bin/rails console`. It's best to run it in the `console` block:
 
 ```ruby
 console do
@@ -124,15 +124,15 @@ When `true`, eager loads all registered `config.eager_load_namespaces`. This inc
 
 #### `config.eager_load_namespaces`
 
-Registers namespaces that are eager loaded when `config.eager_load` is `true`. All namespaces in the list must respond to the `eager_load!` method.
+Registers namespaces that are eager loaded when `config.eager_load` is set to `true`. All namespaces in the list must respond to the `eager_load!` method.
 
 #### `config.eager_load_paths`
 
-Accepts an array of paths from which Rails will eager load on boot if cache classes is enabled. Defaults to every folder in the `app` directory of the application.
+Accepts an array of paths from which Rails will eager load on boot if `config.cache_classes` is set to `true`. Defaults to every folder in the `app` directory of the application.
 
 #### `config.enable_dependency_loading`
 
-When true, enables autoloading, even if the application is eager loaded and `config.cache_classes` is set as true. Defaults to false.
+When true, enables autoloading, even if the application is eager loaded and `config.cache_classes` is set to `true`. Defaults to false.
 
 #### `config.encoding`
 
@@ -140,7 +140,7 @@ Sets up the application-wide encoding. Defaults to UTF-8.
 
 #### `config.exceptions_app`
 
-Sets the exceptions application invoked by the ShowException middleware when an exception happens. Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`.
+Sets the exceptions application invoked by the `ShowException` middleware when an exception happens. Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`.
 
 #### `config.debug_exception_response_format`
 
@@ -153,7 +153,7 @@ Is the class used to detect file updates in the file system when `config.reload_
 #### `config.filter_parameters`
 
 Used for filtering out the parameters that you don't want shown in the logs, such as passwords or credit card
-numbers. It also filters out sensitive values of database columns when call `#inspect` on an Active Record object. By default, Rails filters out passwords by adding `Rails.application.config.filter_parameters += [:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
+numbers. It also filters out sensitive values of database columns when calling `#inspect` on an Active Record object. By default, Rails filters out passwords by adding `Rails.application.config.filter_parameters += [:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
 
 #### `config.force_ssl`
 
@@ -173,7 +173,7 @@ Defines the verbosity of the Rails logger. This option defaults to `:debug` for 
 
 #### `config.log_tags`
 
-Accepts a list of: methods that the `request` object responds to, a `Proc` that accepts the `request` object, or something that responds to `to_s`. This makes it easy to tag log lines with debug information like subdomain and request id - both very helpful in debugging multi-user production applications.
+Accepts a list of methods that the `request` object responds to, a `Proc` that accepts the `request` object, or something that responds to `to_s`. This makes it easy to tag log lines with debug information like subdomain and request id - both very helpful in debugging multi-user production applications.
 
 #### `config.logger`
 
@@ -726,8 +726,8 @@ When true, will always include column names in `SELECT` statements, and avoid wi
 
 #### `config.active_record.destroy_all_in_batches`
 
-Ensures ActiveRecord::Relation#destroy_all to perform the record's deletion in
-batches. ActiveRecord::Relation#destroy_all won't longer return the collection
+Ensures `ActiveRecord::Relation#destroy_all` performs the record's deletion in
+batches. `ActiveRecord::Relation#destroy_all` will no longer return the collection
 of the deleted records after enabling this option.
 
 #### `config.active_record.verify_foreign_keys_for_fixtures`
@@ -764,7 +764,7 @@ Controls whether the Active Record MySQL adapter will consider all `tinyint(1)` 
 
 #### `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_table`
 
-Controls whether database tables created by PostgreSQL should be "unlogged," which can speed
+Controls whether database tables created by PostgreSQL should be "unlogged", which can speed
 up performance but adds a risk of data loss if the database crashes. It is
 highly recommended that you do not enable this in a production environment.
 Defaults to `false` in all environments.
