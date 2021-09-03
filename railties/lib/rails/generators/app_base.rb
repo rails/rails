@@ -306,17 +306,15 @@ module Rails
       end
 
       def hotwire_gemfile_entry
+        return [] if options[:skip_javascript] || options[:skip_hotwire]
+
         turbo_rails_entry =
           GemfileEntry.version("turbo-rails", ">= 0.7.10", "Hotwire's SPA-like page accelerator. Read more: https://turbo.hotwired.dev")
 
         stimulus_rails_entry =
           GemfileEntry.version("stimulus-rails", ">= 0.3.11", "Hotwire's modest JavaScript framework for the HTML you already have. Read more: https://stimulus.hotwired.dev")
 
-        if options[:skip_javascript] || options[:skip_hotwire]
-          []
-        else
-          [ turbo_rails_entry, stimulus_rails_entry ]
-        end
+        [ turbo_rails_entry, stimulus_rails_entry ]
       end
 
       def psych_gemfile_entry
