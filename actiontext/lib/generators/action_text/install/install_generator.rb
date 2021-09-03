@@ -34,10 +34,12 @@ module ActionText
       def create_actiontext_files
         template "actiontext.css", "app/assets/stylesheets/actiontext.css"
 
-        copy_file "#{GEM_ROOT}/app/views/active_storage/blobs/_blob.html.erb",
+        gem_root = "#{__dir__}/../../../.."
+
+        copy_file "#{gem_root}/app/views/active_storage/blobs/_blob.html.erb",
           "app/views/active_storage/blobs/_blob.html.erb"
 
-        copy_file "#{GEM_ROOT}/app/views/layouts/action_text/contents/_content.html.erb",
+        copy_file "#{gem_root}/app/views/layouts/action_text/contents/_content.html.erb",
           "app/views/layouts/action_text/contents/_content.html.erb"
       end
 
@@ -53,9 +55,6 @@ module ActionText
       end
 
       hook_for :test_framework
-
-      private
-        GEM_ROOT = "#{__dir__}/../../../.."
     end
   end
 end
