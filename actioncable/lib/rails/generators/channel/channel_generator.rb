@@ -15,13 +15,14 @@ module Rails
 
       def create_channel_file
         template "channel.rb", File.join("app/channels", class_path, "#{file_name}_channel.rb")
+        destination = Pathname(destination_root)
 
-        if options[:assets] && Rails.root.join("app/javascript").exist?
-          using_node      = Rails.root.join("package.json").exist?
-          using_importmap = Rails.root.join("config/importmap.rb").exist?
-
+        if options[:assets] && destination.join("app/javascript").exist?
+          using_node      = destination.join("package.json").exist?
+          using_importmap = destination.join("config/importmap.rb").exist?
+ 
           # Setup for all channels
-          first_setup_required = !Rails.root.join("app/javascript/channels/index.js").exist?
+          first_setup_required = !destination.join("app/javascript/channels/index.js").exist?
           if first_setup_required
             template "javascript/index.js", "app/javascript/channels/index.js"
             template "javascript/consumer.js", "app/javascript/channels/consumer.js"
