@@ -13,15 +13,11 @@ module Rails
 
       hook_for :test_framework
 
-      def install_javascript_dependencies
-        if using_node = Pathname(destination_root).join("package.json").exist?
-          say "Installing JavaScript dependencies", :green
-          run "yarn add @rails/actioncable"
-        end
-      end
-
       def create_channel_file
+        copy_file "#{__dir__}/templates/application_cable/channel.rb", "app/channels/application_cable/channel.rb"
+        copy_file "#{__dir__}/templates/application_cable/channel.rb", "app/channels/application_cable/channel.rb"
         template "channel.rb", File.join("app/channels", class_path, "#{file_name}_channel.rb")
+
         destination = Pathname(destination_root)
 
         if options[:assets] && destination.join("app/javascript").exist?
@@ -30,6 +26,11 @@ module Rails
 
           # Setup for all channels
           if first_setup_required = !destination.join("app/javascript/channels/index.js").exist?
+            if using_node
+              say "Installing JavaScript dependencies", :green
+              run "yarn add @rails/actioncable"
+            end
+
             template "javascript/index.js", "app/javascript/channels/index.js"
             template "javascript/consumer.js", "app/javascript/channels/consumer.js"
             append_to_file "app/javascript/application.js",
@@ -49,30 +50,13 @@ module Rails
           gsub_file "#{channel_js_path}.js", /\.\/consumer/, "channels/consumer" unless using_node
 
           append_to_file "app/javascript/channels/index.js",
-            using_node ? %(import ",/#{file_name}_channel"\n) : %(import "channels/#{file_name}_channel"\n)
+            using_node ? %(import "./#{file_name}_channel"\n) : %(import "channels/#{file_name}_channel"\n)
         end
-
-        generate_application_cable_files
       end
 
       private
         def file_name
           @_file_name ||= super.sub(/_channel\z/i, "")
-        end
-
-        # FIXME: Change these files to symlinks once RubyGems 2.5.0 is required.
-        def generate_application_cable_files
-          return if behavior != :invoke
-
-          files = [
-            "application_cable/channel.rb",
-            "application_cable/connection.rb"
-          ]
-
-          files.each do |name|
-            path = File.join("app/channels/", name)
-            template(name, path) if !File.exist?(path)
-          end
         end
     end
   end
