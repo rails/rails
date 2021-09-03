@@ -208,15 +208,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "#{app_root}/config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/
   end
 
-  def test_csp_initializer_include_connect_src_example
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root, "--webpack"]
-
-    assert_file "#{app_root}/config/initializers/content_security_policy.rb" do |content|
-      assert_match(/#   policy\.connect_src/, content)
-    end
-  end
-
   def test_app_update_keep_the_cookie_serializer_if_it_is_already_configured
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
