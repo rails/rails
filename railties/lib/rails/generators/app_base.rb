@@ -388,7 +388,7 @@ module Rails
       end
 
       def run_hotwire
-        return if options[:skip_javascript] || options[:skip_hotwire] ||!bundle_install?
+        return if options[:skip_javascript] || options[:skip_hotwire] || !bundle_install?
 
         rails_command "turbo:install stimulus:install"
       end
