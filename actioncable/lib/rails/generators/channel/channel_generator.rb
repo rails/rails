@@ -32,7 +32,7 @@ module Rails
               append_to_file "config/importmap.rb", <<-RUBY
 pin "@rails/actioncable", to: "actioncable.esm.js"
 pin_all_from "app/javascript/channels", under: "channels"
-  RUBY
+RUBY
             end
           end
 
@@ -41,7 +41,7 @@ pin_all_from "app/javascript/channels", under: "channels"
           js_template "javascript/channel", channel_js_path
           gsub_file "#{channel_js_path}.js", /\.\/consumer/, "channels/consumer" unless using_node
 
-          append_to_file "app/javascript/channels/index.js", 
+          append_to_file "app/javascript/channels/index.js",
             using_node ? %(import ",/#{file_name}_channel"\n) : %(import "channels/#{file_name}_channel"\n)
         end
 
