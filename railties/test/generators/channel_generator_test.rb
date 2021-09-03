@@ -10,6 +10,9 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
   setup do
     FileUtils.mkdir_p("#{destination_root}/app/javascript")
     FileUtils.touch("#{destination_root}/app/javascript/application.js")
+
+    FileUtils.mkdir_p("#{destination_root}/config")
+    FileUtils.touch("#{destination_root}/config/importmap.rb")
   end
 
   def test_application_cable_skeleton_is_created
