@@ -813,7 +813,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "app/javascript/application.js" do |content|
       assert_match(/turbo/, content)
-      assert_match(/stimulus/, content)
+      assert_match(/controllers/, content)
     end
   end
 
