@@ -11,7 +11,7 @@ module ActionText
       def install_javascript_dependencies
         if using_node = Pathname(destination_root).join("package.json").exist?
           say "Installing JavaScript dependencies", :green
-          yarn_command "add @rails/activestorage"
+          run "yarn add @rails/actiontext trix"
         end
       end
 
@@ -56,10 +56,6 @@ module ActionText
 
       private
         GEM_ROOT = "#{__dir__}/../../../.."
-
-        def yarn_command(command, config = {})
-          in_root { run "#{Thor::Util.ruby_command} bin/yarn #{command}", abort_on_failure: true, **config }
-        end
     end
   end
 end
