@@ -7,12 +7,19 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
 
   setup do
+    Rails.application = Rails.application.class
+    Rails.application.config.root = Pathname(destination_root)
+
     FileUtils.mkdir_p("#{destination_root}/app/javascript")
     FileUtils.touch("#{destination_root}/app/javascript/application.js")
 
     FileUtils.mkdir_p("#{destination_root}/config")
     FileUtils.touch("#{destination_root}/config/importmap.rb")
   end
+
+  teardown do
+     Rails.application = Rails.application.instance
+   end
 
   test "installs JavaScript dependencies" do
     FileUtils.touch("#{destination_root}/package.json")
