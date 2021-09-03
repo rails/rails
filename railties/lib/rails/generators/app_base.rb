@@ -301,7 +301,7 @@ module Rails
         when "esbuild"
           GemfileEntry.version "esbuild-rails", "~> 0.1.1", "Transpile app-like JavaScript. Read more: https://github.com/rails/esbuild-rails"
         else
-          []
+          raise "Unknown JavaScript approach: #{options[:javascript]}"
         end
       end
 
