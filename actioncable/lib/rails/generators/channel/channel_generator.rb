@@ -20,7 +20,7 @@ module Rails
         if options[:assets] && destination.join("app/javascript").exist?
           using_node      = destination.join("package.json").exist?
           using_importmap = destination.join("config/importmap.rb").exist?
- 
+
           # Setup for all channels
           first_setup_required = !destination.join("app/javascript/channels/index.js").exist?
           if first_setup_required
