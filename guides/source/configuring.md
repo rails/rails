@@ -1492,11 +1492,25 @@ Accepts a symbol `:mini_magick` or `:vips`, specifying whether variant transform
 
 #### `config.active_storage.analyzers`
 
-Accepts an array of classes indicating the analyzers available for Active Storage blobs. The default is `[ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer]`. The image analyzers can extract width and height of an image blob; the video analyzer can extract width, height, duration, angle, aspect ratio and presence/absence of video/audio channels of a video blob; the audio analyzer can extract duration and bit rate of an audio blob.
+Accepts an array of classes indicating the analyzers available for Active Storage blobs.
+By default, this is defined as:
+
+```ruby
+config.active_storage.analyzers = [ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer]
+```
+
+The image analyzers can extract width and height of an image blob; the video analyzer can extract width, height, duration, angle, aspect ratio and presence/absence of video/audio channels of a video blob; the audio analyzer can extract duration and bit rate of an audio blob.
 
 #### `config.active_storage.previewers`
 
-Accepts an array of classes indicating the image previewers available in Active Storage blobs. The default is `[ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer]`. `PopplerPDFPreviewer` and `MuPDFPreviewer` can generate a thumbnail from the first page of a PDF blob; `VideoPreviewer` from the relevant frame of a video blob.
+Accepts an array of classes indicating the image previewers available in Active Storage blobs. 
+By default, this is defined as:
+
+```ruby
+config.active_storage.previewers = [ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer]
+```
+
+`PopplerPDFPreviewer` and `MuPDFPreviewer` can generate a thumbnail from the first page of a PDF blob; `VideoPreviewer` from the relevant frame of a video blob.
 
 #### `config.active_storage.paths`
 
@@ -1512,20 +1526,43 @@ config.active_storage.paths[:ffprobe] = '/usr/local/bin/ffprobe'
 
 #### `config.active_storage.variable_content_types`
 
-Accepts an array of strings indicating the content types that Active Storage can transform through ImageMagick. The default is `%w(image/png image/gif image/jpg image/jpeg image/pjpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon image/webp image/avif image/heic image/heif)`.
+Accepts an array of strings indicating the content types that Active Storage
+can transform through ImageMagick.
+By default, this is defined as:
+
+```ruby
+config.active_storage.variable_content_types = %w(image/png image/gif image/jpg image/jpeg image/pjpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon image/webp image/avif image/heic image/heif)
+```
 
 #### `config.active_storage.web_image_content_types`
 
-Accepts an array of strings regarded as web image content types in which variants can be processed without being converted to the fallback PNG format. If you want to use `WebP` or `AVIF` variants in your application you can add `image/webp` or `image/avif` to this array. The default is `%w(image/png image/jpeg image/jpg image/gif)`.
+Accepts an array of strings regarded as web image content types in which
+variants can be processed without being converted to the fallback PNG format.
+If you want to use `WebP` or `AVIF` variants in your application you can add
+`image/webp` or `image/avif` to this array.
+By default, this is defined as:
+
+```ruby
+config.active_storage.web_image_content_types = %w(image/png image/jpeg image/jpg image/gif)
+```
 
 #### `config.active_storage.content_types_to_serve_as_binary`
 
-Accepts an array of strings indicating the content types that Active Storage will always serve as an attachment, rather than inline. The default is `%w(text/html
-text/javascript image/svg+xml application/postscript application/x-shockwave-flash text/xml application/xml application/xhtml+xml application/mathml+xml text/cache-manifest)`.
+Accepts an array of strings indicating the content types that Active Storage will always serve as an attachment, rather than inline.
+By default, this is defined as:
+
+```ruby
+config.active_storage.content_types_to_serve_as_binary = %w(text/html text/javascript image/svg+xml application/postscript application/x-shockwave-flash text/xml application/xml application/xhtml+xml application/mathml+xml text/cache-manifest)
+```
 
 #### `config.active_storage.content_types_allowed_inline`
 
-Accepts an array of strings indicating the content types that Active Storage allows to serve as inline. The default is `%w(image/png image/gif image/jpg image/jpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)`.
+Accepts an array of strings indicating the content types that Active Storage allows to serve as inline.
+By default, this is defined as:
+
+```ruby
+config.active_storage.content_types_allowed_inline` = %w(image/png image/gif image/jpg image/jpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)
+```
 
 #### `config.active_storage.queues.analysis`
 
@@ -1610,7 +1647,11 @@ The default is `:rails_storage_redirect`.
 
 Can be used to alter the way ffmpeg generates video preview images.
 
-The default is `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
+By default, this is defined as:
+
+```ruby
+config.active_storage.video_preview_arguments = "-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"
+```
 
 1. `select=eq(n\,0)+eq(key\,1)+gt(scene\,0.015)`: Select the first video frame, plus keyframes, plus frames that meet the scene change threshold.
 2. `loop=loop=-1:size=2,trim=start_frame=1`: To use the first video frame as a fallback when no other frames meet the criteria, loop the first (one or) two selected frames, then drop the first looped frame.
