@@ -31,9 +31,9 @@ module Rails
 
             if using_importmap
               append_to_file "config/importmap.rb", <<-RUBY
-pin "@rails/actioncable", to: "actioncable.esm.js"
-pin_all_from "app/javascript/channels", under: "channels"
-RUBY
+ pin "@rails/actioncable", to: "actioncable.esm.js"
+ pin_all_from "app/javascript/channels", under: "channels"
+              RUBY
             end
           end
 
