@@ -22,8 +22,7 @@ module Rails
           using_importmap = destination.join("config/importmap.rb").exist?
 
           # Setup for all channels
-          first_setup_required = !destination.join("app/javascript/channels/index.js").exist?
-          if first_setup_required
+          if first_setup_required = !destination.join("app/javascript/channels/index.js").exist?
             template "javascript/index.js", "app/javascript/channels/index.js"
             template "javascript/consumer.js", "app/javascript/channels/consumer.js"
             append_to_file "app/javascript/application.js",
