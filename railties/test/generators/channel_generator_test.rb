@@ -55,6 +55,44 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_javascript_dependencies_are_pinned
+    run_generator ["chat"]
+
+    assert_file "config/importmap.rb" do |content|
+      assert_match %r|pin "@rails/actioncable"|, content
+      assert_match %r|pin_all_from "app/javascript/channels"|, content
+    end
+  end
+
+  def test_channels_index_is_included_in_application_entrypoint
+    run_generator ["chat"]
+
+    assert_file "app/javascript/application.js" do |content|
+      assert_match %r|import "channels"|, content
+    end
+  end
+
+  def test_channel_first_setup_only_happens_once
+    run_generator ["chat"]
+    assert_file "app/javascript/channels/consumer.js"
+
+    FileUtils.rm("#{destination_root}/app/javascript/channels/consumer.js")
+    run_generator ["another"]
+    assert_no_file "app/javascript/channels/consumer.js"
+  end
+
+  def test_channel_is_created_with_node_path_loading
+    run_generator ["chat"]
+
+    # Prevent yarn add from running by doing this as a second run
+    FileUtils.touch("#{destination_root}/package.json")
+    run_generator ["another"]
+
+    assert_file "app/javascript/channels/another_channel.js" do |channel|
+      assert_match(/import consumer from ".\/consumer"\s+consumer\.subscriptions\.create\("AnotherChannel/, channel)
+    end
+  end
+
   def test_channel_asset_is_not_created_when_skip_assets_is_passed
     run_generator ["chat", "--skip-assets"]
 
