@@ -67,7 +67,7 @@ module Rails
 
         def import_channel_in_javascript_entrypoint
           append_to_file "app/javascript/channels/index.js",
-            using_node? ? %(import "./#{file_name}_channel"\n) : %(import "channels/#{file_name}_channel"\n)       
+            using_node? ? %(import "./#{file_name}_channel"\n) : %(import "channels/#{file_name}_channel"\n)
         end
 
         def install_javascript_dependencies
