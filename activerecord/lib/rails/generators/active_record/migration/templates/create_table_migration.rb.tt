@@ -1,6 +1,10 @@
 class <%= migration_class_name %> < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
   def change
     create_table :<%= table_name %><%= primary_key_type %> do |t|
+<% if options[:timestamps] -%>
+      t.timestamps
+
+<% end -%>
 <% attributes.each do |attribute| -%>
 <% if attribute.password_digest? -%>
       t.string :password_digest<%= attribute.inject_options %>
@@ -11,9 +15,6 @@ class <%= migration_class_name %> < ActiveRecord::Migration[<%= ActiveRecord::Mi
 <% elsif !attribute.virtual? -%>
       t.<%= attribute.type %> :<%= attribute.name %><%= attribute.inject_options %>
 <% end -%>
-<% end -%>
-<% if options[:timestamps] %>
-      t.timestamps
 <% end -%>
     end
 <% attributes.select(&:token?).each do |attribute| -%>
