@@ -46,7 +46,7 @@ module ActiveModel
         assert_equal false, type.cast("off")
         assert_equal false, type.cast("OFF")
         assert_equal false, type.cast("no")
-        assert_equal false, type.cast("no")
+        assert_equal false, type.cast("NO")
         assert_equal false, type.cast(:"0")
         assert_equal false, type.cast(:f)
         assert_equal false, type.cast(:F)
