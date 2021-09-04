@@ -2,20 +2,18 @@
 
 require "generators/generators_test_helper"
 require "rails/generators/channel/channel_generator"
+require "byebug"
 
 class ChannelGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   tests Rails::Generators::ChannelGenerator
 
   setup do
-    FileUtils.mkdir_p("#{destination_root}/app/javascript")
-    FileUtils.touch("#{destination_root}/app/javascript/application.js")
-
-    FileUtils.mkdir_p("#{destination_root}/config")
-    FileUtils.touch("#{destination_root}/config/importmap.rb")
+    use_with_javascript
+    use_under_importmap
   end
 
-  def test_application_cable_skeleton_is_created
+  test "shared channel files are created" do
     run_generator ["books"]
 
     assert_file "app/channels/application_cable/channel.rb" do |cable|
@@ -27,7 +25,7 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_channel_is_created
+  test "specific channel files are created under importmap" do
     run_generator ["chat"]
 
     assert_file "app/channels/chat_channel.rb" do |channel|
@@ -39,7 +37,18 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_channel_with_multiple_actions_is_created
+  test "specific channel files are created under node" do
+    use_under_node
+    generator(["chat"]).stub(:install_javascript_dependencies, true) do
+      run_generator_instance
+
+      assert_file "app/javascript/channels/chat_channel.js" do |channel|
+        assert_match(/import consumer from ".\/consumer"\s+consumer\.subscriptions\.create\("ChatChannel/, channel)
+      end
+    end
+  end
+
+  test "channel with multiple actions is created" do
     run_generator ["chat", "speak", "mute"]
 
     assert_file "app/channels/chat_channel.rb" do |channel|
@@ -55,7 +64,33 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_javascript_dependencies_are_pinned
+  test "shared channel javascript files are created" do
+    run_generator ["books"]
+
+    assert_file "app/javascript/channels/index.js"
+    assert_file "app/javascript/channels/consumer.js"
+  end
+
+  test "import channels in javascript entrypoint" do
+    run_generator ["books"]
+
+    assert_file "app/javascript/application.js" do |entrypoint|
+      assert_match %r|import "channels"|, entrypoint
+    end
+  end
+
+  test "import channels in javascript entrypoint under node" do
+    use_under_node
+    generator(["chat"]).stub(:install_javascript_dependencies, true) do
+      run_generator_instance
+
+      assert_file "app/javascript/application.js" do |entrypoint|
+        assert_match %r|import "./channels"|, entrypoint
+      end
+    end
+  end
+
+  test "pin javascript dependencies" do
     run_generator ["chat"]
 
     assert_file "config/importmap.rb" do |content|
@@ -64,15 +99,7 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_channels_index_is_included_in_application_entrypoint
-    run_generator ["chat"]
-
-    assert_file "app/javascript/application.js" do |content|
-      assert_match %r|import "channels"|, content
-    end
-  end
-
-  def test_channel_first_setup_only_happens_once
+  test "first setup only happens once" do
     run_generator ["chat"]
     assert_file "app/javascript/channels/consumer.js"
 
@@ -81,19 +108,7 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/javascript/channels/consumer.js"
   end
 
-  def test_channel_is_created_with_node_path_loading
-    run_generator ["chat"]
-
-    # Prevent yarn add from running by doing this as a second run
-    FileUtils.touch("#{destination_root}/package.json")
-    run_generator ["another"]
-
-    assert_file "app/javascript/channels/another_channel.js" do |channel|
-      assert_match(/import consumer from ".\/consumer"\s+consumer\.subscriptions\.create\("AnotherChannel/, channel)
-    end
-  end
-
-  def test_channel_asset_is_not_created_when_skip_assets_is_passed
+  test "javascripts not generated when assets are skipped" do
     run_generator ["chat", "--skip-assets"]
 
     assert_file "app/channels/chat_channel.rb" do |channel|
@@ -103,7 +118,7 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/javascript/channels/chat_channel.js"
   end
 
-  def test_invokes_default_test_framework
+  test "invokes default test framework" do
     run_generator %w(chat -t=test_unit)
 
     assert_file "test/channels/chat_channel_test.rb" do |test|
@@ -113,7 +128,7 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_channel_on_revoke
+  test "revoking" do
     run_generator ["chat"]
     run_generator ["chat"], behavior: :revoke
 
@@ -126,7 +141,7 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     assert_file "app/javascript/channels/consumer.js"
   end
 
-  def test_channel_suffix_is_not_duplicated
+  test "channel suffix is not duplicated" do
     run_generator ["chat_channel"]
 
     assert_no_file "app/channels/chat_channel_channel.rb"
@@ -138,4 +153,21 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/channels/chat_channel_channel_test.rb"
     assert_file "test/channels/chat_channel_test.rb"
   end
+
+  private
+    def use_with_javascript
+      FileUtils.mkdir_p("#{destination_root}/app/javascript")
+      FileUtils.touch("#{destination_root}/app/javascript/application.js")
+    end
+
+    def use_under_importmap
+      FileUtils.mkdir_p("#{destination_root}/config")
+      FileUtils.touch("#{destination_root}/config/importmap.rb")
+      FileUtils.rm_rf("#{destination_root}/package.json")
+    end
+
+    def use_under_node
+      FileUtils.touch("#{destination_root}/package.json")
+      FileUtils.rm_rf("#{destination_root}/config/importmap.rb")
+    end
 end
