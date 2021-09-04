@@ -49,7 +49,7 @@ module ActiveSupport # :nodoc:
 
     # This is a private set that collects all eager load paths during bootstrap.
     # Useful for Zeitwerk integration. The public interface to push custom
-    # directories to this collection is from applications or engines is
+    # directories to this collection from applications or engines is
     # config.eager_load_paths.
     mattr_accessor :_eager_load_paths, default: Set.new
 
