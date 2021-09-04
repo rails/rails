@@ -300,8 +300,10 @@ module Rails
           GemfileEntry.version "webpacker", "~> 6.0.0.rc.5", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
         when "esbuild"
           GemfileEntry.version "esbuild-rails", "~> 0.1.2", "Transpile app-like JavaScript. Read more: https://github.com/rails/esbuild-rails"
+        when "rollup"
+          GemfileEntry.version "rollupjs-rails", "~> 0.1.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/rollupjs-rails"
         else
-          raise "Unknown JavaScript approach: #{options[:javascript]}"
+          raise "Unknown JavaScript approach: #{options[:javascript]} [options are: importmap, webpack, esbuild, rollup]"
         end
       end
 
@@ -382,6 +384,7 @@ module Rails
         when "importmap" then rails_command "importmap:install"
         when "webpack"   then rails_command "webpacker:install"
         when "esbuild"   then rails_command "esbuild:install"
+        when "rollup"    then rails_command "rollup:install"
         end
       end
 

@@ -270,7 +270,7 @@ module Rails
       class_option :version, type: :boolean, aliases: "-v", group: :rails, desc: "Show Rails version number and quit"
       class_option :api, type: :boolean, desc: "Preconfigure smaller stack for API only apps"
       class_option :minimal, type: :boolean, desc: "Preconfigure a minimal rails app"
-      class_option :javascript, type: :string, aliases: "-j", default: "importmap", desc: "Choose JavaScript approach"
+      class_option :javascript, type: :string, aliases: "-j", default: "importmap", desc: "Choose JavaScript approach [options: importmap (default), webpack, esbuild, rollup]"
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false, desc: "Don't run bundle install"
 
       def initialize(*args)
