@@ -2,7 +2,6 @@
 
 require "set"
 require "isolation/abstract_unit"
-require "active_support/dependencies/zeitwerk_integration"
 
 class ZeitwerkIntegrationTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
