@@ -208,15 +208,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "#{app_root}/config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/
   end
 
-  def test_csp_initializer_include_connect_src_example
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root, "--webpack"]
-
-    assert_file "#{app_root}/config/initializers/content_security_policy.rb" do |content|
-      assert_match(/#   policy\.connect_src/, content)
-    end
-  end
-
   def test_app_update_keep_the_cookie_serializer_if_it_is_already_configured
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
@@ -774,8 +765,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator([destination_root], skip_javascript: true)
 
     command_check = -> command, *_ do
-      if command == "webpacker:install"
-        flunk "`webpacker:install` expected to not be called."
+      if command == "importmap:install"
+        flunk "`importmap:install` expected to not be called."
       end
     end
 
@@ -783,7 +774,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       run_generator_instance
     end
 
-    assert_no_gem "webpacker"
+    assert_no_gem "importmap-rails"
 
     assert_file "config/initializers/content_security_policy.rb" do |content|
       assert_no_match(/policy\.connect_src/, content)
@@ -795,7 +786,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_webpack_option
-    generator([destination_root], webpack: true)
+    generator([destination_root], javascript: "webpack")
 
     webpacker_called = 0
     command_check = -> command, *_ do
@@ -822,7 +813,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "app/javascript/application.js" do |content|
       assert_match(/turbo/, content)
-      assert_match(/stimulus/, content)
+      assert_match(/controllers/, content)
     end
   end
 

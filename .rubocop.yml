@@ -218,9 +218,6 @@ Lint/RedundantStringCoercion:
 Lint/UriEscapeUnescape:
   Enabled: true
 
-Lint/UselessAssignment:
-  Enabled: true
-
 Lint/DeprecatedClassMethods:
   Enabled: true
 

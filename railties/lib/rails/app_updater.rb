@@ -27,7 +27,6 @@ module Rails
           options[:skip_action_cable]   = !defined?(ActionCable::Engine)
           options[:skip_sprockets]      = !defined?(Sprockets::Railtie)
           options[:skip_bootsnap]       = !defined?(Bootsnap)
-          options[:webpack]             = File.exist?(Rails.root.join("config", "webpacker.yml"))
           options[:updating]            = true
           options
         end
