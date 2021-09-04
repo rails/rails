@@ -10,8 +10,7 @@
 
     *Xavier Noria*
 
-*   Improves the performance of ActiveSupport::NumberHelper formatters by avoiding the use of
-    exceptions as flow control.
+*   Improves the performance of `ActiveSupport::NumberHelper` formatters by avoiding the use of exceptions as flow control.
 
     *Mike Dalessio*
 
