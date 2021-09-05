@@ -424,14 +424,14 @@ module ActiveRecord
     #
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
-    def scoping(all_queries: nil)
+    def scoping(all_queries: nil, &block)
       registry = klass.scope_registry
       if global_scope?(registry) && all_queries == false
         raise ArgumentError, "Scoping is set to apply to all queries and cannot be unset in a nested block."
       elsif already_in_scope?(registry)
         yield
       else
-        _scoping(self, registry, all_queries) { yield }
+        _scoping(self, registry, all_queries, &block)
       end
     end
 
@@ -935,11 +935,9 @@ module ActiveRecord
         end
       end
 
-      def skip_query_cache_if_necessary
+      def skip_query_cache_if_necessary(&block)
         if skip_query_cache_value
-          uncached do
-            yield
-          end
+          uncached(&block)
         else
           yield
         end

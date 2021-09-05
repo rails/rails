@@ -922,7 +922,7 @@ module ActionDispatch
         #   namespace :admin, as: "sekret" do
         #     resources :posts
         #   end
-        def namespace(path, options = {})
+        def namespace(path, options = {}, &block)
           path = path.to_s
 
           defaults = {
@@ -933,7 +933,7 @@ module ActionDispatch
           }
 
           path_scope(options.delete(:path) { path }) do
-            scope(defaults.merge!(options)) { yield }
+            scope(defaults.merge!(options), &block)
           end
         end
 
@@ -992,8 +992,8 @@ module ActionDispatch
         #    constraints(Iphone) do
         #      resources :iphones
         #    end
-        def constraints(constraints = {})
-          scope(constraints: constraints) { yield }
+        def constraints(constraints = {}, &block)
+          scope(constraints: constraints, &block)
         end
 
         # Allows you to set default parameters for a route, such as this:
@@ -1493,15 +1493,13 @@ module ActionDispatch
         # with GET, and route to the search action of +PhotosController+. It will also
         # create the <tt>search_photos_url</tt> and <tt>search_photos_path</tt>
         # route helpers.
-        def collection
+        def collection(&block)
           unless resource_scope?
             raise ArgumentError, "can't use collection outside resource(s) scope"
           end
 
           with_scope_level(:collection) do
-            path_scope(parent_resource.collection_scope) do
-              yield
-            end
+            path_scope(parent_resource.collection_scope, &block)
           end
         end
 
@@ -1516,7 +1514,7 @@ module ActionDispatch
         # This will recognize <tt>/photos/1/preview</tt> with GET, and route to the
         # preview action of +PhotosController+. It will also create the
         # <tt>preview_photo_url</tt> and <tt>preview_photo_path</tt> helpers.
-        def member
+        def member(&block)
           unless resource_scope?
             raise ArgumentError, "can't use member outside resource(s) scope"
           end
@@ -1524,27 +1522,25 @@ module ActionDispatch
           with_scope_level(:member) do
             if shallow?
               shallow_scope {
-                path_scope(parent_resource.member_scope) { yield }
+                path_scope(parent_resource.member_scope, &block)
               }
             else
-              path_scope(parent_resource.member_scope) { yield }
+              path_scope(parent_resource.member_scope, &block)
             end
           end
         end
 
-        def new
+        def new(&block)
           unless resource_scope?
             raise ArgumentError, "can't use new outside resource(s) scope"
           end
 
           with_scope_level(:new) do
-            path_scope(parent_resource.new_scope(action_path(:new))) do
-              yield
-            end
+            path_scope(parent_resource.new_scope(action_path(:new)), &block)
           end
         end
 
-        def nested
+        def nested(&block)
           unless resource_scope?
             raise ArgumentError, "can't use nested outside resource(s) scope"
           end
@@ -1553,12 +1549,12 @@ module ActionDispatch
             if shallow? && shallow_nesting_depth >= 1
               shallow_scope do
                 path_scope(parent_resource.nested_scope) do
-                  scope(nested_options) { yield }
+                  scope(nested_options, &block)
                 end
               end
             else
               path_scope(parent_resource.nested_scope) do
-                scope(nested_options) { yield }
+                scope(nested_options, &block)
               end
             end
           end
@@ -1744,10 +1740,10 @@ module ActionDispatch
             @scope = @scope.parent
           end
 
-          def resource_scope(resource)
+          def resource_scope(resource, &block)
             @scope = @scope.new(scope_level_resource: resource)
 
-            controller(resource.resource_scope) { yield }
+            controller(resource.resource_scope, &block)
           ensure
             @scope = @scope.parent
           end

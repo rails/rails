@@ -14,22 +14,22 @@ module ActiveSupport # :nodoc:
 
     # Execute the supplied block without interference from any
     # concurrent loads.
-    def self.run_interlock
-      interlock.running { yield }
+    def self.run_interlock(&block)
+      interlock.running(&block)
     end
 
     # Execute the supplied block while holding an exclusive lock,
     # preventing any other thread from being inside a #run_interlock
     # block at the same time.
-    def self.load_interlock
-      interlock.loading { yield }
+    def self.load_interlock(&block)
+      interlock.loading(&block)
     end
 
     # Execute the supplied block while holding an exclusive lock,
     # preventing any other thread from being inside a #run_interlock
     # block at the same time.
-    def self.unload_interlock
-      interlock.unloading { yield }
+    def self.unload_interlock(&block)
+      interlock.unloading(&block)
     end
 
     # :nodoc:

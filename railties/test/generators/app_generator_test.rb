@@ -1026,11 +1026,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   private
-    def stub_rails_application(root)
+    def stub_rails_application(root, &block)
       Rails.application.config.root = root
-      Rails.application.class.stub(:name, "Myapp") do
-        yield
-      end
+      Rails.application.class.stub(:name, "Myapp", &block)
     end
 
     def action(*args, &block)

@@ -143,6 +143,9 @@ Style/DefWithParentheses:
 Style/MethodDefParentheses:
   Enabled: true
 
+Style/ExplicitBlockArgument:
+  Enabled: true
+
 Style/FrozenStringLiteralComment:
   Enabled: true
   EnforcedStyle: always
