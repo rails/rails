@@ -634,14 +634,12 @@ module RequestForgeryProtectionTests
     assert_response :success
   end
 
-  def assert_cross_origin_blocked
-    assert_raises(ActionController::InvalidCrossOriginRequest) do
-      yield
-    end
+  def assert_cross_origin_blocked(&block)
+    assert_raises(ActionController::InvalidCrossOriginRequest, &block)
   end
 
-  def assert_cross_origin_not_blocked
-    assert_not_blocked { yield }
+  def assert_cross_origin_not_blocked(&block)
+    assert_not_blocked(&block)
   end
 
   def forgery_protection_origin_check
@@ -701,10 +699,8 @@ end
 
 class RequestForgeryProtectionControllerUsingExceptionTest < ActionController::TestCase
   include RequestForgeryProtectionTests
-  def assert_blocked
-    assert_raises(ActionController::InvalidAuthenticityToken) do
-      yield
-    end
+  def assert_blocked(&block)
+    assert_raises(ActionController::InvalidAuthenticityToken, &block)
   end
 
   def test_raised_exception_message_explains_why_it_occurred
@@ -1105,10 +1101,8 @@ class SkipProtectionControllerTest < ActionController::TestCase
     assert_not_blocked { post :index }
   end
 
-  def assert_blocked
-    assert_raises(ActionController::InvalidAuthenticityToken) do
-      yield
-    end
+  def assert_blocked(&block)
+    assert_raises(ActionController::InvalidAuthenticityToken, &block)
   end
 
   def assert_not_blocked(&block)

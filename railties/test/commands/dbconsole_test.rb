@@ -293,10 +293,8 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   private :aborted, :output
 
   private
-    def app_db_config(results)
-      Rails.application.config.stub(:database_configuration, results || {}) do
-        yield
-      end
+    def app_db_config(results, &block)
+      Rails.application.config.stub(:database_configuration, results || {}, &block)
     end
 
     def make_dbconsole
