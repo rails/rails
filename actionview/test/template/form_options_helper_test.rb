@@ -31,6 +31,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     Continent   = Struct.new("Continent", :continent_name, :countries)
     Country     = Struct.new("Country", :country_id, :country_name)
     Album       = Struct.new("Album", :id, :title, :genre)
+    Digest      = Struct.new("Digest", :send_day)
   end
 
   class Firm
@@ -1503,6 +1504,75 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       %Q{<select id="post_origin" name="post[origin]"><optgroup label="&lt;Africa&gt;"><option value="&lt;sa&gt;">&lt;South Africa&gt;</option>\n<option value="so">Somalia</option></optgroup><optgroup label="Europe"><option value="dk" selected="selected">Denmark</option>\n<option value="ie">Ireland</option></optgroup></select>},
+      output_buffer
+    )
+  end
+
+  def test_weekday_options_for_select_with_no_params
+    assert_dom_equal(
+      "<option value=\"Sunday\">Sunday</option>\n<option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option>",
+      weekday_options_for_select
+    )
+  end
+
+  def test_weekday_options_for_select_with_index_as_value
+    assert_dom_equal(
+      "<option value=\"0\">Sunday</option>\n<option value=\"1\">Monday</option>\n<option value=\"2\">Tuesday</option>\n<option value=\"3\">Wednesday</option>\n<option value=\"4\">Thursday</option>\n<option value=\"5\">Friday</option>\n<option value=\"6\">Saturday</option>",
+      weekday_options_for_select(index_as_value: true)
+    )
+  end
+
+  def test_weekday_options_for_select_with_abberviated_day_names
+    assert_dom_equal(
+      "<option value=\"Sun\">Sun</option>\n<option value=\"Mon\">Mon</option>\n<option value=\"Tue\">Tue</option>\n<option value=\"Wed\">Wed</option>\n<option value=\"Thu\">Thu</option>\n<option value=\"Fri\">Fri</option>\n<option value=\"Sat\">Sat</option>",
+      weekday_options_for_select(day_format: :abbr_day_names)
+    )
+  end
+
+  def test_weekday_options_for_select_with_selected_value
+    assert_dom_equal(
+      "<option value=\"Sunday\">Sunday</option>\n<option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option selected=\"selected\" value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option>",
+      weekday_options_for_select("Friday")
+    )
+  end
+
+  def test_weekday_select
+    assert_dom_equal(
+      "<select name=\"model[weekday]\" id=\"model_weekday\"><option value=\"Sunday\">Sunday</option>\n<option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option></select>",
+      weekday_select(:model, :weekday)
+    )
+  end
+
+  def test_weekday_select_with_selected_value
+    assert_dom_equal(
+      "<select name=\"model[weekday]\" id=\"model_weekday\"><option value=\"Sunday\">Sunday</option>\n<option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option selected=\"selected\" value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option></select>",
+      weekday_select(:model, :weekday, selected: "Friday")
+    )
+  end
+
+  def test_weekday_select_under_fields_for
+    @digest = Digest.new
+
+    output_buffer = fields_for :digest, @digest do |f|
+      concat f.weekday_select(:send_day)
+    end
+
+    assert_dom_equal(
+      "<select id=\"digest_send_day\" name=\"digest[send_day]\"><option value=\"Sunday\">Sunday</option>\n<option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option></select>",
+      output_buffer
+    )
+  end
+
+  def test_weekday_select_under_fields_for_with_value
+    @digest = Digest.new
+    @digest.send_day = "Monday"
+
+    output_buffer = fields_for :digest, @digest do |f|
+      concat f.weekday_select(:send_day)
+    end
+
+    assert_dom_equal(
+      "<select name=\"digest[send_day]\" id=\"digest_send_day\"><option value=\"Sunday\">Sunday</option>\n<option selected=\"selected\" value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option></select>",
       output_buffer
     )
   end

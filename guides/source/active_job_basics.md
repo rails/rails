@@ -451,11 +451,11 @@ end
 and add this serializer to the list:
 
 ```ruby
-# config/initializer/custom_serializers.rb
+# config/initializers/custom_serializers.rb
 Rails.application.config.active_job.custom_serializers << MoneySerializer
 ```
 
-Note that auto-loading reloadable code during initialization is not supported. Thus it is recommended
+Note that autoloading reloadable code during initialization is not supported. Thus it is recommended
 to set-up serializers to be loaded only once, e.g. by amending `config/application.rb` like this:
 
 ```ruby

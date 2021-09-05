@@ -91,7 +91,7 @@ class ActiveStorage::Variant
 
   alias_method :content_type_for_serving, :content_type
 
-  def forced_disposition_for_serving #:nodoc:
+  def forced_disposition_for_serving # :nodoc:
     nil
   end
 

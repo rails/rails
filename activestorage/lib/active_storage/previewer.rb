@@ -26,7 +26,7 @@ module ActiveStorage
 
     private
       # Downloads the blob to a tempfile on disk. Yields the tempfile.
-      def download_blob_to_tempfile(&block) #:doc:
+      def download_blob_to_tempfile(&block) # :doc:
         blob.open tmpdir: tmpdir, &block
       end
 
@@ -44,7 +44,7 @@ module ActiveStorage
       #   end
       #
       # The output tempfile is opened in the directory returned by #tmpdir.
-      def draw(*argv) #:doc:
+      def draw(*argv) # :doc:
         open_tempfile do |file|
           instrument :preview, key: blob.key do
             capture(*argv, to: file)
@@ -83,11 +83,11 @@ module ActiveStorage
         to.rewind
       end
 
-      def logger #:doc:
+      def logger # :doc:
         ActiveStorage.logger
       end
 
-      def tmpdir #:doc:
+      def tmpdir # :doc:
         Dir.tmpdir
       end
   end

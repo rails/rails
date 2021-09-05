@@ -115,7 +115,7 @@ module ActiveRecord
         reflections[association.to_s]
       end
 
-      def _reflect_on_association(association) #:nodoc:
+      def _reflect_on_association(association) # :nodoc:
         _reflections[association.to_s]
       end
 
@@ -398,7 +398,7 @@ module ActiveRecord
 
     # Holds all the metadata about an aggregation as it was specified in the
     # Active Record class.
-    class AggregateReflection < MacroReflection #:nodoc:
+    class AggregateReflection < MacroReflection # :nodoc:
       def mapping
         mapping = options[:mapping] || [name, name]
         mapping.first.is_a?(Array) ? mapping : [mapping]
@@ -407,7 +407,7 @@ module ActiveRecord
 
     # Holds all the metadata about an association as it was specified in the
     # Active Record class.
-    class AssociationReflection < MacroReflection #:nodoc:
+    class AssociationReflection < MacroReflection # :nodoc:
       def compute_class(name)
         if polymorphic?
           raise ArgumentError, "Polymorphic associations do not support computing the class."
@@ -751,7 +751,7 @@ module ActiveRecord
 
     # Holds all the metadata about a :through association as it was specified
     # in the Active Record class.
-    class ThroughReflection < AbstractReflection #:nodoc:
+    class ThroughReflection < AbstractReflection # :nodoc:
       delegate :foreign_key, :foreign_type, :association_foreign_key, :join_id_for, :type,
                :active_record_primary_key, :join_foreign_key, to: :source_reflection
 

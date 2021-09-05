@@ -3,7 +3,7 @@
 require "active_support/string_inquirer"
 
 module ActiveSupport
-  class EnvironmentInquirer < StringInquirer #:nodoc:
+  class EnvironmentInquirer < StringInquirer # :nodoc:
     DEFAULT_ENVIRONMENTS = ["development", "test", "production"]
     def initialize(env)
       super(env)

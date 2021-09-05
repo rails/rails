@@ -627,14 +627,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_dummy_application_skip_listen_by_default
-    run_generator
-
-    assert_file "test/dummy/config/environments/development.rb" do |contents|
-      assert_match(/^\s*# config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, contents)
-    end
-  end
-
   def test_ensure_that_gitignore_can_be_generated_from_a_template_for_dummy_path
     FileUtils.cd(Rails.root)
     run_generator([destination_root, "--dummy_path", "spec/dummy", "--skip-test"])
@@ -657,14 +649,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_directory "test/dummy/test"
     assert_no_directory "test/dummy/vendor"
     assert_no_directory "test/dummy/.git"
-  end
-
-  def test_spring_binstub_is_not_generated_in_dummy_application
-    run_generator
-    assert_no_file "test/dummy/bin/spring"
-    assert_file "test/dummy/bin/rails" do |contents|
-      assert_no_match %r/spring/, contents
-    end
   end
 
   def test_skipping_test_files

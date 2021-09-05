@@ -4,7 +4,7 @@ require "active_support/deprecation"
 
 module ActiveSupport
   module Testing
-    module Deprecation #:nodoc:
+    module Deprecation # :nodoc:
       def assert_deprecated(match = nil, deprecator = nil, &block)
         result, warnings = collect_deprecations(deprecator, &block)
         assert !warnings.empty?, "Expected a deprecation warning within the block but received none"

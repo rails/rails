@@ -5,7 +5,7 @@ require "active_support/core_ext/enumerable"
 
 module ActionView
   # = Active Model Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     module ActiveModelHelper
     end
 

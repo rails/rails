@@ -76,4 +76,14 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     assert metadata[:video]
     assert_not metadata[:audio]
   end
+
+  test "instrumenting analysis" do
+    events = subscribe_events_from("analyze.active_storage")
+
+    blob = create_file_blob(filename: "video_without_audio_stream.mp4", content_type: "video/mp4")
+    blob.analyze
+
+    assert_equal 1, events.size
+    assert_equal({ analyzer: "ffprobe" }, events.first.payload)
+  end
 end

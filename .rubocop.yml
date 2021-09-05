@@ -1,4 +1,5 @@
 require:
+  - rubocop-minitest
   - rubocop-packaging
   - rubocop-performance
   - rubocop-rails
@@ -217,9 +218,6 @@ Lint/RedundantStringCoercion:
 Lint/UriEscapeUnescape:
   Enabled: true
 
-Lint/UselessAssignment:
-  Enabled: true
-
 Lint/DeprecatedClassMethods:
   Enabled: true
 
@@ -290,4 +288,7 @@ Performance/DeletePrefix:
   Enabled: true
 
 Performance/DeleteSuffix:
+  Enabled: true
+
+Minitest/UnreachableAssertion:
   Enabled: true

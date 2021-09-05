@@ -8,7 +8,7 @@ require "action_view/helpers/tag_helper"
 
 module ActionView
   # = Action View Asset Tag Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # This module provides methods for generating HTML that links views to assets such
     # as images, JavaScripts, stylesheets, and feeds. These methods do not verify
     # the assets exist before linking to them:
@@ -530,16 +530,12 @@ module ActionView
         end
 
         def resolve_link_as(extname, mime_type)
-          if extname == "js"
-            "script"
-          elsif extname == "css"
-            "style"
-          elsif extname == "vtt"
-            "track"
-          elsif extname == "svg"
-            "image"
-          elsif (type = mime_type.to_s.split("/")[0]) && type.in?(%w(audio video font))
-            type
+          case extname
+          when "js"  then "script"
+          when "css" then "style"
+          when "vtt" then "track"
+          else
+            mime_type.to_s.split("/").first.presence_in(%w(audio video font image))
           end
         end
 

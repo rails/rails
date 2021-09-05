@@ -12,6 +12,7 @@ require "models/ship_part"
 require "models/strict_zine"
 require "models/interest"
 require "models/treasure"
+require "models/pirate"
 
 class StrictLoadingTest < ActiveRecord::TestCase
   fixtures :developers, :developers_projects, :projects, :ships

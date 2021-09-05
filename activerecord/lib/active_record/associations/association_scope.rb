@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Associations
-    class AssociationScope #:nodoc:
+    class AssociationScope # :nodoc:
       def self.scope(association)
         INSTANCE.scope(association)
       end

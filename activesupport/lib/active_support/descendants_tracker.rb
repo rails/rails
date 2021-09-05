@@ -21,17 +21,20 @@ module ActiveSupport
         arr
       end
 
-      def clear
-        if defined? ActiveSupport::Dependencies
-          @@direct_descendants.each do |klass, descendants|
-            if Dependencies.autoloaded?(klass)
-              @@direct_descendants.delete(klass)
-            else
-              descendants.reject! { |v| Dependencies.autoloaded?(v) }
+      def clear(only: nil)
+        if only.nil?
+          @@direct_descendants.clear
+          return
+        end
+
+        @@direct_descendants.each do |klass, direct_descendants_of_klass|
+          if only.member?(klass)
+            @@direct_descendants.delete(klass)
+          else
+            direct_descendants_of_klass.reject! do |direct_descendant_of_class|
+              only.member?(direct_descendant_of_class)
             end
           end
-        else
-          @@direct_descendants.clear
         end
       end
 

@@ -2,7 +2,7 @@
 
 require "action_view/template/resolver"
 
-module ActionView #:nodoc:
+module ActionView # :nodoc:
   # Use FixtureResolver in your tests to simulate the presence of files on the
   # file system. This is used internally by Rails' own test suite, and is
   # useful for testing extensions that have no way of knowing what the file

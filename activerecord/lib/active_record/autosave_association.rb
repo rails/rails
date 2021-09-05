@@ -138,7 +138,7 @@ module ActiveRecord
   module AutosaveAssociation
     extend ActiveSupport::Concern
 
-    module AssociationBuilderExtension #:nodoc:
+    module AssociationBuilderExtension # :nodoc:
       def self.build(model, reflection)
         model.send(:add_autosave_association_callbacks, reflection)
       end

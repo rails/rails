@@ -178,6 +178,8 @@ module ActiveRecord
         return if database_configs.count == 1
 
         database_configs.each do |db_config|
+          next unless db_config.database_tasks?
+
           yield db_config.name
         end
       end

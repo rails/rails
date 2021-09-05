@@ -586,9 +586,8 @@ require a higher level of protection consider implementing
 To generate a permanent URL for a blob, you can pass the blob to the
 [`url_for`][ActionView::RoutingUrlFor#url_for] view helper. This generates a
 URL with the blob's [`signed_id`][ActiveStorage::Blob#signed_id]
-that is routed to the blob's [`RedirectController`][ActiveStorage::Blobs::RedirectController]
+that is routed to the blob's [`RedirectController`][`ActiveStorage::Blobs::RedirectController`]
 
-[ActiveStorage::Blobs::RedirectController]: https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/blobs/redirect_controller.rb
 ```ruby
 url_for(user.avatar)
 # => /rails/active_storage/blobs/:signed_id/my-avatar.png
@@ -721,10 +720,10 @@ config.active_storage.draw_routes = false
 
 to prevent files being accessed with the publicly accessible URLs.
 
-[`ActiveStorage::Blobs::RedirectController`]: https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/blobs/redirect_controller.rb
-[`ActiveStorage::Blobs::ProxyController`]: https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/blobs/proxy_controller.rb
-[`ActiveStorage::Representations::RedirectController`]: https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/representations/redirect_controller.rb
-[`ActiveStorage::Representations::ProxyController`]: https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/representations/proxy_controller.rb
+[`ActiveStorage::Blobs::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Blobs/RedirectController.html
+[`ActiveStorage::Blobs::ProxyController`]: https://api.rubyonrails.org/classes/ActiveStorage/Blobs/ProxyController.html
+[`ActiveStorage::Representations::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/RedirectController.html
+[`ActiveStorage::Representations::ProxyController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/ProxyController.html
 
 Downloading Files
 -----------------
@@ -849,6 +848,15 @@ location.
 ```erb
 <%= image_tag user.avatar.variant(resize_to_limit: [100, 100]) %>
 ```
+
+If a variant is requested, Active Storage will automatically apply
+transformations depending on the image's format:
+
+1. Content types that are variable (as dictated by `config.active_storage.variable_content_types`)
+  and not considered web images (as dictated by `config.active_storage.web_image_content_types`),
+  will be converted to PNG.
+
+2. If `quality` is not specified, the variant processor's default quality for the format will be used.
 
 The default processor for Active Storage is MiniMagick, but you can also use
 [Vips][]. To switch to Vips, add the following to `config/application.rb`:
@@ -1379,7 +1387,7 @@ Implementing Support for Other Cloud Services
 
 If you need to support a cloud service other than these, you will need to
 implement the Service. Each service extends
-[`ActiveStorage::Service`](https://github.com/rails/rails/blob/main/activestorage/lib/active_storage/service.rb)
+[`ActiveStorage::Service`](https://api.rubyonrails.org/classes/ActiveStorage/Service.html)
 by implementing the methods necessary to upload and download files to the cloud.
 
 Purging Unattached Uploads

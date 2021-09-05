@@ -4,11 +4,11 @@ require "rack/session/abstract/id"
 require "action_controller/metal/exceptions"
 require "active_support/security_utils"
 
-module ActionController #:nodoc:
-  class InvalidAuthenticityToken < ActionControllerError #:nodoc:
+module ActionController # :nodoc:
+  class InvalidAuthenticityToken < ActionControllerError # :nodoc:
   end
 
-  class InvalidCrossOriginRequest < ActionControllerError #:nodoc:
+  class InvalidCrossOriginRequest < ActionControllerError # :nodoc:
   end
 
   # Controller actions are protected from Cross-Site Request Forgery (CSRF) attacks
@@ -186,7 +186,7 @@ module ActionController #:nodoc:
         end
 
         private
-          class NullSessionHash < Rack::Session::Abstract::SessionHash #:nodoc:
+          class NullSessionHash < Rack::Session::Abstract::SessionHash # :nodoc:
             def initialize(req)
               super(nil, req)
               @data = {}
@@ -205,7 +205,7 @@ module ActionController #:nodoc:
             end
           end
 
-          class NullCookieJar < ActionDispatch::Cookies::CookieJar #:nodoc:
+          class NullCookieJar < ActionDispatch::Cookies::CookieJar # :nodoc:
             def write(*)
               # nothing
             end
@@ -266,7 +266,7 @@ module ActionController #:nodoc:
         protection_strategy.handle_unverified_request
       end
 
-      def unverified_request_warning_message #:nodoc:
+      def unverified_request_warning_message # :nodoc:
         if valid_request_origin?
           "Can't verify CSRF token authenticity."
         else
@@ -274,7 +274,7 @@ module ActionController #:nodoc:
         end
       end
 
-      #:nodoc:
+      # :nodoc:
       CROSS_ORIGIN_JAVASCRIPT_WARNING = "Security warning: an embedded " \
         "<script> tag on another site requested protected JavaScript. " \
         "If you know what you're doing, go ahead and disable forgery " \

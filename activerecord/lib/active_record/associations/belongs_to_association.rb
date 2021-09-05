@@ -3,7 +3,7 @@
 module ActiveRecord
   module Associations
     # = Active Record Belongs To Association
-    class BelongsToAssociation < SingularAssociation #:nodoc:
+    class BelongsToAssociation < SingularAssociation # :nodoc:
       def handle_dependency
         return unless load_target
 

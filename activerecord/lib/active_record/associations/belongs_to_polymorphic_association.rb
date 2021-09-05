@@ -3,7 +3,7 @@
 module ActiveRecord
   module Associations
     # = Active Record Belongs To Polymorphic Association
-    class BelongsToPolymorphicAssociation < BelongsToAssociation #:nodoc:
+    class BelongsToPolymorphicAssociation < BelongsToAssociation # :nodoc:
       def klass
         type = owner[reflection.foreign_type]
         type.presence && owner.class.polymorphic_class_for(type)

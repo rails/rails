@@ -632,6 +632,15 @@ module ActiveRecord
       def check_version # :nodoc:
       end
 
+      def field_ordered_value(column, values) # :nodoc:
+        node = Arel::Nodes::Case.new(column)
+        values.each.with_index(1) do |value, order|
+          node.when(value).then(order)
+        end
+
+        Arel::Nodes::Ascending.new(node.else(values.length + 1))
+      end
+
       class << self
         private
           def initialize_type_map(m)
@@ -730,6 +739,13 @@ module ActiveRecord
           rescue => e
             raise translate_exception_class(e, sql, binds)
           end
+        end
+
+        def transform_query(sql)
+          ActiveRecord.query_transformers.each do |transformer|
+            sql = transformer.call(sql)
+          end
+          sql
         end
 
         def translate_exception(exception, message:, sql:, binds:)

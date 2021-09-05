@@ -7,7 +7,7 @@ require "action_view/helpers/tag_helper"
 
 module ActionView
   # = Action View URL Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # Provides a set of methods for making links and getting URLs that
     # depend on the routing subsystem (see ActionDispatch::Routing).
     # This allows you to use the same format for links in views
@@ -103,17 +103,8 @@ module ActionView
       #   completion of the Ajax request and performing JavaScript operations once
       #   they're complete
       #
-      # ==== Data attributes
-      #
-      # * <tt>confirm: 'question?'</tt> - This will allow the unobtrusive JavaScript
-      #   driver to prompt with the question specified (in this case, the
-      #   resulting text would be <tt>question?</tt>. If the user accepts, the
-      #   link is processed normally, otherwise no action is taken.
-      # * <tt>:disable_with</tt> - Value of this parameter will be used as the
-      #   name for a disabled version of the link. This feature is provided by
-      #   the unobtrusive JavaScript driver.
-      #
       # ==== Examples
+      #
       # Because it relies on +url_for+, +link_to+ supports both older-style controller/action/id arguments
       # and newer RESTful routes. Current Rails style favors RESTful routes whenever possible, so base
       # your application on resources and use
@@ -186,15 +177,27 @@ module ActionView
       #   link_to("Destroy", "http://www.example.com", method: :delete)
       #   # => <a href='http://www.example.com' rel="nofollow" data-method="delete">Destroy</a>
       #
-      # You can also use custom data attributes using the <tt>:data</tt> option:
-      #
-      #   link_to "Visit Other Site", "http://www.rubyonrails.org/", data: { confirm: "Are you sure?" }
-      #   # => <a href="http://www.rubyonrails.org/" data-confirm="Are you sure?">Visit Other Site</a>
-      #
       # Also you can set any link attributes such as <tt>target</tt>, <tt>rel</tt>, <tt>type</tt>:
       #
       #   link_to "External link", "http://www.rubyonrails.org/", target: "_blank", rel: "nofollow"
       #   # => <a href="http://www.rubyonrails.org/" target="_blank" rel="nofollow">External link</a>
+      #
+      # ==== Deprecated: Rails UJS attributes
+      #
+      # Prior to Rails 7, Rails shipped with a JavaScript library called @rails/ujs on by default. Following Rails 7,
+      # this library is no longer on by default. This library integrated with the following options:
+      #
+      # * <tt>confirm: 'question?'</tt> - This will allow the unobtrusive JavaScript
+      #   driver to prompt with the question specified (in this case, the
+      #   resulting text would be <tt>question?</tt>. If the user accepts, the
+      #   link is processed normally, otherwise no action is taken.
+      # * <tt>:disable_with</tt> - Value of this parameter will be used as the
+      #   name for a disabled version of the link. This feature is provided by
+      #   the unobtrusive JavaScript driver.
+      #
+      #   link_to "Visit Other Site", "http://www.rubyonrails.org/", data: { confirm: "Are you sure?" }
+      #   # => <a href="http://www.rubyonrails.org/" data-confirm="Are you sure?">Visit Other Site</a>
+      #
       def link_to(name = nil, options = nil, html_options = nil, &block)
         html_options, options, name = options, name, block if block_given?
         options ||= {}

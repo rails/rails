@@ -8,7 +8,7 @@ require "active_support/core_ext/module/attribute_accessors"
 
 module ActionView
   # = Action View Form Tag Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # Provides a number of methods for creating form tags that don't rely on an Active Record object assigned to the template like
     # FormHelper does. Instead, you provide the names and values manually.
     #
@@ -453,16 +453,6 @@ module ActionView
       # * <tt>:disabled</tt> - If true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
-      # ==== Data attributes
-      #
-      # * <tt>confirm: 'question?'</tt> - If present the unobtrusive JavaScript
-      #   drivers will provide a prompt with the question specified. If the user accepts,
-      #   the form is processed normally, otherwise no action is taken.
-      # * <tt>:disable_with</tt> - Value of this parameter will be used as the value for a
-      #   disabled version of the submit button when the form is submitted. This feature is
-      #   provided by the unobtrusive JavaScript driver. To disable this feature for a single submit tag
-      #   pass <tt>:data => { disable_with: false }</tt> Defaults to value attribute.
-      #
       # ==== Examples
       #   submit_tag
       #   # => <input name="commit" data-disable-with="Save changes" type="submit" value="Save changes" />
@@ -473,14 +463,27 @@ module ActionView
       #   submit_tag "Save edits", disabled: true
       #   # => <input disabled="disabled" name="commit" data-disable-with="Save edits" type="submit" value="Save edits" />
       #
-      #   submit_tag "Complete sale", data: { disable_with: "Submitting..." }
-      #   # => <input name="commit" data-disable-with="Submitting..." type="submit" value="Complete sale" />
-      #
       #   submit_tag nil, class: "form_submit"
       #   # => <input class="form_submit" name="commit" type="submit" />
       #
       #   submit_tag "Edit", class: "edit_button"
       #   # => <input class="edit_button" data-disable-with="Edit" name="commit" type="submit" value="Edit" />
+      #
+      # ==== Deprecated: Rails UJS attributes
+      #
+      # Prior to Rails 7, Rails shipped with the JavaScript library called @rails/ujs on by default. Following Rails 7,
+      # this library is no longer on by default. This library integrated with the following options:
+      #
+      # * <tt>confirm: 'question?'</tt> - If present the unobtrusive JavaScript
+      #   drivers will provide a prompt with the question specified. If the user accepts,
+      #   the form is processed normally, otherwise no action is taken.
+      # * <tt>:disable_with</tt> - Value of this parameter will be used as the value for a
+      #   disabled version of the submit button when the form is submitted. This feature is
+      #   provided by the unobtrusive JavaScript driver. To disable this feature for a single submit tag
+      #   pass <tt>:data => { disable_with: false }</tt> Defaults to value attribute.
+      #
+      #   submit_tag "Complete sale", data: { disable_with: "Submitting..." }
+      #   # => <input name="commit" data-disable-with="Submitting..." type="submit" value="Complete sale" />
       #
       #   submit_tag "Save", data: { confirm: "Are you sure?" }
       #   # => <input name='commit' type='submit' value='Save' data-disable-with="Save" data-confirm="Are you sure?" />
@@ -506,17 +509,6 @@ module ActionView
       #   use this input.
       # * Any other key creates standard HTML options for the tag.
       #
-      # ==== Data attributes
-      #
-      # * <tt>confirm: 'question?'</tt> - If present, the
-      #   unobtrusive JavaScript drivers will provide a prompt with
-      #   the question specified. If the user accepts, the form is
-      #   processed normally, otherwise no action is taken.
-      # * <tt>:disable_with</tt> - Value of this parameter will be
-      #   used as the value for a disabled version of the submit
-      #   button when the form is submitted. This feature is provided
-      #   by the unobtrusive JavaScript driver.
-      #
       # ==== Examples
       #   button_tag
       #   # => <button name="button" type="submit">Button</button>
@@ -536,6 +528,20 @@ module ActionView
       #   # => <button name="button" type="button">
       #   #     <strong>Ask me!</strong>
       #   #    </button>
+      #
+      # ==== Deprecated: Rails UJS attributes
+      #
+      # Prior to Rails 7, Rails shipped with a JavaScript library called @rails/ujs on by default. Following Rails 7,
+      # this library is no longer on by default. This library integrated with the following options:
+      #
+      # * <tt>confirm: 'question?'</tt> - If present, the
+      #   unobtrusive JavaScript drivers will provide a prompt with
+      #   the question specified. If the user accepts, the form is
+      #   processed normally, otherwise no action is taken.
+      # * <tt>:disable_with</tt> - Value of this parameter will be
+      #   used as the value for a disabled version of the submit
+      #   button when the form is submitted. This feature is provided
+      #   by the unobtrusive JavaScript driver.
       #
       #   button_tag "Save", data: { confirm: "Are you sure?" }
       #   # => <button name="button" type="submit" data-confirm="Are you sure?">Save</button>

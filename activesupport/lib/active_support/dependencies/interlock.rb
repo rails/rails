@@ -2,8 +2,8 @@
 
 require "active_support/concurrency/share_lock"
 
-module ActiveSupport #:nodoc:
-  module Dependencies #:nodoc:
+module ActiveSupport # :nodoc:
+  module Dependencies # :nodoc:
     class Interlock
       def initialize # :nodoc:
         @lock = ActiveSupport::Concurrency::ShareLock.new

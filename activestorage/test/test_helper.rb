@@ -27,6 +27,12 @@ rescue Errno::ENOENT
   puts "Missing service configuration file in test/service/configurations.yml"
   {}
 end
+# Azure service tests are currently failing on the main branch.
+# We temporarily disable them while we get things working again.
+if ENV["CI"]
+  SERVICE_CONFIGURATIONS.delete(:azure)
+  SERVICE_CONFIGURATIONS.delete(:azure_public)
+end
 
 require "tmpdir"
 
@@ -138,6 +144,26 @@ class ActiveSupport::TestCase
       ActiveStorage.track_variants = false
       yield
       ActiveStorage.track_variants = variant_tracking_was
+    end
+
+    def with_raise_on_open_redirects(service)
+      old_raise_on_open_redirects = ActionController::Base.raise_on_open_redirects
+      old_service = ActiveStorage::Blob.service
+
+      ActionController::Base.raise_on_open_redirects = true
+      ActiveStorage::Blob.service = ActiveStorage::Service.configure(service, SERVICE_CONFIGURATIONS)
+      yield
+    ensure
+      ActionController::Base.raise_on_open_redirects = old_raise_on_open_redirects
+      ActiveStorage::Blob.service = old_service
+    end
+
+    def subscribe_events_from(name)
+      events = []
+      ActiveSupport::Notifications.subscribe(name) do |*args|
+        events << ActiveSupport::Notifications::Event.new(*args)
+      end
+      events
     end
 end
 

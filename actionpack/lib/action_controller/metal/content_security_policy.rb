@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module ActionController #:nodoc:
+module ActionController # :nodoc:
   module ContentSecurityPolicy
     # TODO: Documentation
     extend ActiveSupport::Concern

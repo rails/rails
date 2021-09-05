@@ -41,7 +41,7 @@ module ActiveRecord
     #
     # This could result in many rows that contain redundant data and it performs poorly at scale
     # and is therefore only used when necessary.
-    class Preloader #:nodoc:
+    class Preloader # :nodoc:
       extend ActiveSupport::Autoload
 
       eager_autoload do

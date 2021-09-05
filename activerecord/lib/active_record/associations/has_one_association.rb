@@ -3,7 +3,7 @@
 module ActiveRecord
   module Associations
     # = Active Record Has One Association
-    class HasOneAssociation < SingularAssociation #:nodoc:
+    class HasOneAssociation < SingularAssociation # :nodoc:
       include ForeignAssociation
 
       def handle_dependency

@@ -9,7 +9,7 @@ require "action_view/helpers/output_safety_helper"
 
 module ActionView
   # = Action View Text Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # The TextHelper module provides a set of methods for filtering, formatting
     # and transforming strings, which can reduce the amount of inline Ruby code in
     # your views. These helper methods extend Action View making them callable
@@ -407,7 +407,7 @@ module ActionView
         cycle.reset if cycle
       end
 
-      class Cycle #:nodoc:
+      class Cycle # :nodoc:
         attr_reader :values
 
         def initialize(first_value, *values)

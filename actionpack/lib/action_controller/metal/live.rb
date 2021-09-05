@@ -124,7 +124,7 @@ module ActionController
     class ClientDisconnected < RuntimeError
     end
 
-    class Buffer < ActionDispatch::Response::Buffer #:nodoc:
+    class Buffer < ActionDispatch::Response::Buffer # :nodoc:
       include MonitorMixin
 
       class << self
@@ -230,7 +230,7 @@ module ActionController
         end
     end
 
-    class Response < ActionDispatch::Response #:nodoc: all
+    class Response < ActionDispatch::Response # :nodoc: all
       private
         def before_committed
           super

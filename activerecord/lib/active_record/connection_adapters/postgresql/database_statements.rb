@@ -10,7 +10,7 @@ module ActiveRecord
         end
 
         # Queries the database and returns the results in an Array-like object
-        def query(sql, name = nil) #:nodoc:
+        def query(sql, name = nil) # :nodoc:
           materialize_transactions
           mark_transaction_written_if_write(sql)
 
@@ -35,6 +35,7 @@ module ActiveRecord
         # Note: the PG::Result object is manually memory managed; if you don't
         # need it specifically, you may want consider the <tt>exec_query</tt> wrapper.
         def execute(sql, name = nil)
+          sql = transform_query(sql)
           check_if_write_query(sql)
 
           materialize_transactions

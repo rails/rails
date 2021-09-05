@@ -22,8 +22,8 @@ module ActiveSupport
       Encoding.json_encoder.new(options).encode(value)
     end
 
-    module Encoding #:nodoc:
-      class JSONGemEncoder #:nodoc:
+    module Encoding # :nodoc:
+      class JSONGemEncoder # :nodoc:
         attr_reader :options
 
         def initialize(options = nil)
@@ -51,7 +51,7 @@ module ActiveSupport
           ESCAPE_REGEX_WITHOUT_HTML_ENTITIES = /[\u2028\u2029]/u
 
           # This class wraps all the strings we see and does the extra escaping
-          class EscapedString < String #:nodoc:
+          class EscapedString < String # :nodoc:
             def to_json(*)
               if Encoding.escape_html_entities_in_json
                 s = super

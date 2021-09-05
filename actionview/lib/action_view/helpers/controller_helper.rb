@@ -3,10 +3,10 @@
 require "active_support/core_ext/module/attr_internal"
 
 module ActionView
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # This module keeps all methods and behavior in ActionView
     # that simply delegates to the controller.
-    module ControllerHelper #:nodoc:
+    module ControllerHelper # :nodoc:
       attr_internal :controller, :request
 
       CONTROLLER_DELEGATES = [:request_forgery_protection_token, :params,

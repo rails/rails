@@ -17,6 +17,7 @@ require "models/chef"
 require "models/department"
 require "models/club"
 require "models/membership"
+require "models/parrot"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?

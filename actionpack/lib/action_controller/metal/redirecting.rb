@@ -123,7 +123,7 @@ module ActionController
       end
     end
 
-    def _compute_redirect_to_location(request, options) #:nodoc:
+    def _compute_redirect_to_location(request, options) # :nodoc:
       case options
       # The scheme name consist of a letter followed by any combination of
       # letters, digits, and the plus ("+"), period ("."), or hyphen ("-")

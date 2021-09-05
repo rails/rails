@@ -132,11 +132,11 @@ module ActionMailbox
     end
 
     test "missing route" do
+      inbound_email = create_inbound_email_from_mail(to: "going-nowhere@example.com", subject: "This is a reply")
       assert_raises(ActionMailbox::Router::RoutingError) do
-        inbound_email = create_inbound_email_from_mail(to: "going-nowhere@example.com", subject: "This is a reply")
         @router.route inbound_email
-        assert inbound_email.bounced?
       end
+      assert inbound_email.bounced?
     end
 
     test "invalid address" do

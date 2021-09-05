@@ -35,7 +35,7 @@ module ActionText
       end
     end
 
-    def render_action_text_attachment(attachment, locals: {}) #:nodoc:
+    def render_action_text_attachment(attachment, locals: {}) # :nodoc:
       options = { locals: locals, object: attachment, partial: attachment }
 
       if attachment.respond_to?(:to_attachable_partial_path)

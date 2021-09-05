@@ -78,7 +78,11 @@ module ActiveRecord
           PG.connect(conn_params)
         rescue ::PG::Error => error
           if conn_params && conn_params[:dbname] && error.message.include?(conn_params[:dbname])
-            raise ActiveRecord::NoDatabaseError
+            raise ActiveRecord::NoDatabaseError.db_error(conn_params[:dbname])
+          elsif conn_params && conn_params[:user] && error.message.include?(conn_params[:user])
+            raise ActiveRecord::DatabaseConnectionError.username_error(conn_params[:user])
+          elsif conn_params && conn_params[:hostname] && error.message.include?(conn_params[:hostname])
+            raise ActiveRecord::DatabaseConnectionError.hostname_error(conn_params[:hostname])
           else
             raise ActiveRecord::ConnectionNotEstablished, error.message
           end
@@ -161,7 +165,7 @@ module ActiveRecord
         oid:         { name: "oid" },
       }
 
-      OID = PostgreSQL::OID #:nodoc:
+      OID = PostgreSQL::OID # :nodoc:
 
       include PostgreSQL::Quoting
       include PostgreSQL::ReferentialIntegrity
@@ -343,11 +347,11 @@ module ActiveRecord
         @connection = nil
       end
 
-      def native_database_types #:nodoc:
+      def native_database_types # :nodoc:
         self.class.native_database_types
       end
 
-      def self.native_database_types #:nodoc:
+      def self.native_database_types # :nodoc:
         @native_database_types ||= begin
           types = NATIVE_DATABASE_TYPES.dup
           types[:datetime] = types[datetime_type]
@@ -689,9 +693,10 @@ module ActiveRecord
           end
         end
 
-        FEATURE_NOT_SUPPORTED = "0A000" #:nodoc:
+        FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
 
         def execute_and_clear(sql, name, binds, prepare: false, async: false)
+          sql = transform_query(sql)
           check_if_write_query(sql)
 
           if !prepare || without_prepared_statement?(binds)

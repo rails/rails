@@ -367,7 +367,7 @@ module Rails
         end
       end
 
-      def session_store? #:nodoc:
+      def session_store? # :nodoc:
         @session_store
       end
 
@@ -403,7 +403,7 @@ module Rails
         f
       end
 
-      class Custom #:nodoc:
+      class Custom # :nodoc:
         def initialize
           @configurations = Hash.new
         end

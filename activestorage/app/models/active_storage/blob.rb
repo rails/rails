@@ -86,13 +86,13 @@ class ActiveStorage::Blob < ActiveStorage::Record
       super(id, purpose: purpose)
     end
 
-    def build_after_unfurling(key: nil, io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil) #:nodoc:
+    def build_after_unfurling(key: nil, io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil) # :nodoc:
       new(key: key, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name).tap do |blob|
         blob.unfurl(io, identify: identify)
       end
     end
 
-    def create_after_unfurling!(key: nil, io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil) #:nodoc:
+    def create_after_unfurling!(key: nil, io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil) # :nodoc:
       build_after_unfurling(key: key, io: io, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name, identify: identify).tap(&:save!)
     end
 
@@ -126,7 +126,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
     end
 
     # Customize signed ID purposes for backwards compatibility.
-    def combine_signed_id_purposes(purpose) #:nodoc:
+    def combine_signed_id_purposes(purpose) # :nodoc:
       purpose.to_s
     end
 
@@ -134,11 +134,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
     #
     # We override the reader (.signed_id_verifier) instead of just calling the writer (.signed_id_verifier=)
     # to guard against the case where ActiveStorage.verifier isn't yet initialized at load time.
-    def signed_id_verifier #:nodoc:
+    def signed_id_verifier # :nodoc:
       @signed_id_verifier ||= ActiveStorage.verifier
     end
 
-    def scope_for_strict_loading #:nodoc:
+    def scope_for_strict_loading # :nodoc:
       if strict_loading_by_default? && ActiveStorage.track_variants
         includes(variant_records: { image_attachment: :blob }, preview_image_attachment: :blob)
       else
@@ -208,11 +208,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum
   end
 
-  def content_type_for_serving #:nodoc:
+  def content_type_for_serving # :nodoc:
     forcibly_serve_as_binary? ? ActiveStorage.binary_content_type : content_type
   end
 
-  def forced_disposition_for_serving #:nodoc:
+  def forced_disposition_for_serving # :nodoc:
     if forcibly_serve_as_binary? || !allowed_inline?
       :attachment
     end
@@ -236,14 +236,14 @@ class ActiveStorage::Blob < ActiveStorage::Record
     upload_without_unfurling io
   end
 
-  def unfurl(io, identify: true) #:nodoc:
+  def unfurl(io, identify: true) # :nodoc:
     self.checksum     = compute_checksum_in_chunks(io)
     self.content_type = extract_content_type(io) if content_type.nil? || identify
     self.byte_size    = io.size
     self.identified   = true
   end
 
-  def upload_without_unfurling(io) #:nodoc:
+  def upload_without_unfurling(io) # :nodoc:
     service.upload key, io, checksum: checksum, **service_metadata
   end
 
@@ -251,6 +251,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
   # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.
   def download(&block)
     service.download key, &block
+  end
+
+  # Downloads a part of the file associated with this blob.
+  def download_chunk(range)
+    service.download_chunk key, range
   end
 
   # Downloads the blob to a tempfile on disk. Yields the tempfile.
@@ -271,7 +276,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
       name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ], tmpdir: tmpdir, &block
   end
 
-  def mirror_later #:nodoc:
+  def mirror_later # :nodoc:
     ActiveStorage::MirrorJob.perform_later(key, checksum: checksum) if service.respond_to?(:mirror)
   end
 

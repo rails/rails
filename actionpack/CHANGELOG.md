@@ -2,6 +2,14 @@
 
     *Georg Ledermann*
 
+*   Use a static error message when raising `ActionDispatch::Http::Parameters::ParseError`
+    to avoid inadvertently logging the HTTP request body at the `fatal` level when it contains
+    malformed JSON.
+
+    Fixes #41145
+
+    *Aaron Lahey*
+
 *   Add `Middleware#delete!` to delete middleware or raise if not found.
 
     `Middleware#delete!` works just like `Middleware#delete` but will

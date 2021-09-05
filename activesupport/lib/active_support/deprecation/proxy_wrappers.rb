@@ -2,7 +2,7 @@
 
 module ActiveSupport
   class Deprecation
-    class DeprecationProxy #:nodoc:
+    class DeprecationProxy # :nodoc:
       def self.new(*args, &block)
         object = args.first
 
