@@ -152,15 +152,6 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_not Rails.autoloaders.once.reloading_enabled?
   end
 
-  test "reloading raises if config.cache_classes is true" do
-    boot("production")
-
-    e = assert_raises(StandardError) do
-      deps.clear
-    end
-    assert_equal "reloading is disabled because config.cache_classes is true", e.message
-  end
-
   test "eager loading loads code in engines" do
     $test_blog_engine_eager_loaded = false
 

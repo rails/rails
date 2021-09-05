@@ -58,6 +58,12 @@ module ActiveSupport # :nodoc:
     # main autoloader. Used to clear state.
     mattr_accessor :_autoloaded_tracked_classes, default: Set.new
 
+    # If reloading is enabled, this private attribute stores the main autoloader
+    # of a Rails application. It is `nil` otherwise.
+    #
+    # The public interface for this autoloader is `Rails.autoloaders.main`.
+    mattr_accessor :autoloader
+
     # Private method that reloads constants autoloaded by the main autoloader.
     #
     # Rails.application.reloader.reload! is the public interface for application
@@ -66,9 +72,7 @@ module ActiveSupport # :nodoc:
     def self.clear
       unload_interlock do
         _autoloaded_tracked_classes.clear
-        Rails.autoloaders.main.reload
-      rescue Zeitwerk::ReloadingDisabledError
-        raise "reloading is disabled because config.cache_classes is true"
+        autoloader.reload
       end
     end
 
