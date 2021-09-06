@@ -1,3 +1,26 @@
+*   Add support for array syntax on enums backed by string columns.
+
+    If you create an enum backed by a string column, you can use the following
+    syntax:
+
+    ```ruby
+    class Book < ActiveRecord::Base
+      enum cover: [:hard, :soft]
+    end
+    ```
+
+    It will behave like this:
+
+    ```ruby
+    class Book < ActiveRecord::Base
+      enum cover: { hard: "hard", soft: "soft" }
+    end
+    ```
+
+    This feature doesn't affect enums backed by integer columns.
+
+    *Matheus Richard*
+
 *   Add config option for ignoring tables when dumping the schema cache.
 
     Applications can now be configured to ignore certain tables when dumping the schema cache.
