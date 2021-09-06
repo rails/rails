@@ -87,6 +87,7 @@ module ApplicationTests
 
       cases.each do |(view_method, tag_match)|
         app_file "app/views/posts/index.html.erb", "<%= #{view_method} '#{contents}', skip_pipeline: true %>"
+        puts File.read("#{app_path}/app/views/posts/index.html.erb")
 
         app "development"
 
@@ -95,6 +96,7 @@ module ApplicationTests
         get "/posts?debug_assets=true"
 
         body = last_response.body
+        puts body
         assert_match(tag_match, body, "Expected `#{view_method}` to produce a match to #{tag_match}, but did not: #{body}")
       end
     end
