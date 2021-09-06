@@ -216,8 +216,8 @@ Within the Ruby on Rails framework, there are a number of hooks provided for com
 | `:method`       | HTTP request verb                                         |
 | `:path`         | Request path                                              |
 | `:request`      | The `ActionDispatch::Request`                             |
+| `:response`     | The `ActionDispatch::Response`                            |
 | `:status`       | HTTP status code                                          |
-| `:location`     | Location response header                                  |
 | `:view_runtime` | Amount spent in view in ms                                |
 | `:db_runtime`   | Amount spent executing database queries in ms             |
 
@@ -231,6 +231,7 @@ Within the Ruby on Rails framework, there are a number of hooks provided for com
   method: "GET",
   path: "/posts",
   request: #<ActionDispatch::Request:0x00007ff1cb9bd7b8>,
+  response: #<ActionDispatch::Response:0x00007f8521841ec8>,
   status: 200,
   view_runtime: 46.848,
   db_runtime: 0.157
