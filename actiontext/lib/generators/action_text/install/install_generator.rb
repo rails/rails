@@ -9,7 +9,7 @@ module ActionText
       source_root File.expand_path("templates", __dir__)
 
       def install_javascript_dependencies
-        if using_node = Pathname(destination_root).join("package.json").exist?
+        if Pathname(destination_root).join("package.json").exist?
           say "Installing JavaScript dependencies", :green
           run "yarn add @rails/actiontext trix"
         end
