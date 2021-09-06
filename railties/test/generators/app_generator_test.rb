@@ -822,7 +822,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "app/javascript/application.js" do |content|
       assert_match(/turbo/, content)
-      assert_match(/stimulus/, content)
+      assert_no_match(/stimulus/, content)
+      assert content.include?(%(import "controllers")), content
+    end
+    assert_file "config/importmap.rb" do |content|
+      assert content.include?(%(pin "@hotwired/turbo-rails", to: "turbo.js")), content
+      assert content.include?(%(pin "@hotwired/stimulus", to: "stimulus.js")), content
     end
   end
 

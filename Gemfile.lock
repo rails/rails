@@ -467,7 +467,7 @@ GEM
       sprockets (>= 3.0.0)
     sqlite3 (1.4.2)
     stackprof (0.2.17)
-    stimulus-rails (0.3.9)
+    stimulus-rails (0.4.2)
       rails (>= 6.0.0)
     sucker_punch (3.0.1)
       concurrent-ruby (~> 1.0)
