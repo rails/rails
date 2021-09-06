@@ -94,14 +94,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
   # brings setup, teardown, and some tests
   include SharedGeneratorTests
 
-  setup do
-    ENV["SKIP_REQUIRE_WEBPACKER"] = "true"
-  end
-
-  teardown do
-    ENV["SKIP_REQUIRE_WEBPACKER"] = nil
-  end
-
   def default_files
     ::DEFAULT_APP_FILES
   end
@@ -791,7 +783,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     webpacker_called = 0
     command_check = -> command, *_ do
       case command
-      when "webpacker:install"
+      when "javascript:install:webpack"
         webpacker_called += 1
       end
     end
@@ -800,8 +792,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
       run_generator_instance
     end
 
-    assert_equal 1, webpacker_called, "`webpacker:install` expected to be called once, but was called #{webpacker_called} times."
-    assert_gem "webpacker"
+    assert_equal 1, webpacker_called, "`javascript:install:webpack` expected to be called once, but was called #{webpacker_called} times."
+    assert_gem "jsbundling-rails"
   end
 
   def test_hotwire

@@ -296,12 +296,8 @@ module Rails
         case options[:javascript]
         when "importmap"
           GemfileEntry.version("importmap-rails", ">= 0.3.4", "Manage modern JavaScript using ESM without transpiling or bundling")
-        when "webpack"
-          GemfileEntry.version "webpacker", "~> 6.0.0.rc.5", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
-        when "esbuild"
-          GemfileEntry.version "esbuild-rails", "~> 0.1.2", "Transpile app-like JavaScript. Read more: https://github.com/rails/esbuild-rails"
-        when "rollup"
-          GemfileEntry.version "rollupjs-rails", "~> 0.1.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/rollupjs-rails"
+        when "webpack", "esbuild", "rollup"
+          GemfileEntry.version "jsbundling-rails", "~> 0.1.0", "Bundle and transpile JavaScript with esbuild, rollup.js, or Webpack. Read more: https://github.com/rails/jsbundling-rails"
         else
           raise "Unknown JavaScript approach: #{options[:javascript]} [options are: importmap, webpack, esbuild, rollup]"
         end
@@ -381,10 +377,8 @@ module Rails
         return if options[:skip_javascript] || !bundle_install?
 
         case options[:javascript]
-        when "importmap" then rails_command "importmap:install"
-        when "webpack"   then rails_command "webpacker:install"
-        when "esbuild"   then rails_command "esbuild:install"
-        when "rollup"    then rails_command "rollup:install"
+        when "importmap"                    then rails_command "importmap:install"
+        when "webpack", "esbuild", "rollup" then rails_command "javascript:install:#{options[:javascript]}"
         end
       end
 
