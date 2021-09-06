@@ -94,14 +94,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
   # brings setup, teardown, and some tests
   include SharedGeneratorTests
 
-  setup do
-    ENV["SKIP_REQUIRE_WEBPACKER"] = "true"
-  end
-
-  teardown do
-    ENV["SKIP_REQUIRE_WEBPACKER"] = nil
-  end
-
   def default_files
     ::DEFAULT_APP_FILES
   end
