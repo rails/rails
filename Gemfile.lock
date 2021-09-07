@@ -184,6 +184,8 @@ GEM
     crack (0.4.5)
       rexml
     crass (1.0.6)
+    cssbundling-rails (0.1.0)
+      rails (>= 6.0.0)
     curses (1.4.2)
     daemons (1.4.0)
     dalli (2.7.11)
@@ -470,6 +472,8 @@ GEM
       rails (>= 6.0.0)
     sucker_punch (3.0.1)
       concurrent-ruby (~> 1.0)
+    tailwindcss-rails (0.4.3)
+      rails (>= 6.0.0)
     terser (1.1.4)
       execjs (>= 0.3.0, < 3)
     thin (1.8.1)
@@ -530,6 +534,7 @@ DEPENDENCIES
   byebug
   capybara (>= 3.26)
   connection_pool
+  cssbundling-rails
   dalli
   delayed_job
   delayed_job_active_record
@@ -578,6 +583,7 @@ DEPENDENCIES
   stackprof
   stimulus-rails
   sucker_punch
+  tailwindcss-rails
   terser (>= 1.1.4)
   turbo-rails
   tzinfo-data

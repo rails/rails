@@ -819,6 +819,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/javascript/application.js"
   end
 
+  def test_css_option_with_asset_pipeline_tailwind
+    run_generator [destination_root, "--dev", "--css", "tailwind"]
+    assert_gem "tailwindcss-rails"
+    assert_file "app/views/layouts/application.html.erb" do |content|
+      assert_match(/tailwind/, content)
+    end
+  end
+
+  def test_css_option_with_cssbundling_gem
+    run_generator [destination_root, "--dev", "--css", "postcss"]
+    assert_gem "cssbundling-rails"
+    assert_file "app/assets/stylesheets/application.postcss.css"
+  end
+
   def test_bootsnap
     run_generator [destination_root, "--no-skip-bootsnap"]
 
