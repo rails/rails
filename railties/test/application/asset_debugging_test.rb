@@ -85,17 +85,37 @@ module ApplicationTests
         image_submit_tag:       %r{<input type="image" src="/images/#{contents}" />}
       }
 
-      cases.each do |(view_method, tag_match)|
-        app_file "app/views/posts/index.html.erb", "<%= #{view_method} '#{contents}', skip_pipeline: true %>"
+      s = ""
+      20.times do
+        cases.each do |(view_method, tag_match)|
+          s += "x"
+          app_file "app/views/posts/index.html.erb", "<%= #{view_method} '#{contents}', skip_pipeline: true %>#{s}"
+          puts "------ view_method: #{view_method}"
+          app "development"
 
-        app "development"
+          class ::PostsController < ActionController::Base
+          end
 
-        class ::PostsController < ActionController::Base ; end
+          get "/posts?debug_assets=true"
 
-        get "/posts?debug_assets=true"
+          body = last_response.body
 
-        body = last_response.body
-        assert_match(tag_match, body, "Expected `#{view_method}` to produce a match to #{tag_match}, but did not: #{body}")
+          begin
+            assert_match(tag_match, body, "Expected `#{view_method}` to produce a match to #{tag_match}, but did not: #{body}")
+          rescue Minitest::Assertion
+            puts "failed_response:"
+            puts last_response.inspect
+            puts body.inspect
+            puts "...trying again"
+            get "/posts?debug_assets=true"
+            puts last_response.inspect
+            puts last_response.body.inspect
+            raise
+          end
+          puts "last_response:"
+          puts last_response.inspect
+          puts body.inspect
+        end
       end
     end
 
