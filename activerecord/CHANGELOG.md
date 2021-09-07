@@ -1,3 +1,8 @@
+*   Raise an ArgumentError when `add_column` is given options that are not
+    supported. The old behavior silently ignored any unsupported options.
+
+    *Nick Pezza*
+
 *   Fix 2 cases that inferred polymorphic class from the association's `foreign_type`
     using `String#constantize` instead of the model's `polymorphic_class_for`.
 

@@ -9,6 +9,12 @@ module ActiveRecord
 
       self.use_transactional_tests = false
 
+      def test_add_column_with_an_unsupported_option
+        assert_raises ArgumentError do
+          add_column "test_models", "command", :string, index: true
+        end
+      end
+
       def test_add_column_newline_default
         string = "foo\nbar"
         add_column "test_models", "command", :string, default: string

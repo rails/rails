@@ -56,11 +56,16 @@ module ActiveRecord
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
     ColumnDefinition = Struct.new(:name, :type, :options, :sql_type) do # :nodoc:
+      self::OPTIONS = %i(limit precision scale default null collation comment
+                         primary_key).freeze
+      self::ADAPTER_OPTIONS = %i(array using cast_as auto_increment first after
+                                 size type as unsigned charset stored).freeze
+
       def primary_key?
         options[:primary_key]
       end
 
-      [:limit, :precision, :scale, :default, :null, :collation, :comment].each do |option_name|
+      self::OPTIONS.excluding(:primary_key).each do |option_name|
         module_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{option_name}
             options[:#{option_name}]
@@ -74,6 +79,10 @@ module ActiveRecord
 
       def aliased_types(name, fallback)
         "timestamp" == name ? :datetime : fallback
+      end
+
+      def unsupported_options
+        options.keys.map(&:to_sym) - self.class::OPTIONS - self.class::ADAPTER_OPTIONS
       end
     end
 
@@ -503,7 +512,12 @@ module ActiveRecord
 
       private
         def create_column_definition(name, type, options)
-          ColumnDefinition.new(name, type, options)
+          ColumnDefinition.new(name, type, options).tap do |definition|
+            unsupported = definition.unsupported_options
+            message = "unknown #{'option'.pluralize(unsupported.size)}: #{unsupported.join(', ')}"
+
+            raise ArgumentError, message if unsupported.any?
+          end
         end
 
         def aliased_types(name, fallback)
