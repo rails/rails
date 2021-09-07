@@ -294,13 +294,10 @@ module Rails
       def javascript_gemfile_entry
         return [] if options[:skip_javascript]
 
-        case options[:javascript]
-        when "importmap"
+        if options[:javascript] == "importmap"
           GemfileEntry.version("importmap-rails", ">= 0.3.4", "Manage modern JavaScript using ESM without transpiling or bundling")
-        when "webpack", "esbuild", "rollup"
-          GemfileEntry.version "jsbundling-rails", "~> 0.1.0", "Bundle and transpile JavaScript with esbuild, rollup.js, or Webpack. Read more: https://github.com/rails/jsbundling-rails"
         else
-          raise "Unknown JavaScript approach: #{options[:javascript]} [options are: importmap, webpack, esbuild, rollup]"
+          GemfileEntry.version "jsbundling-rails", "~> 0.1.0", "Bundle and transpile JavaScript with a JavaScript bundler. Read more: https://github.com/rails/jsbundling-rails"
         end
       end
 
