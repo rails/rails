@@ -66,26 +66,24 @@ module ApplicationTests
       assert_match(/<script src="\/assets\/application(\.debug|\.self)?-([0-z]+)\.js(\?body=1)?"><\/script>/, last_response.body)
     end
 
-    test "public path and tag methods are not over-written by the asset pipeline" do
-      contents = "doesnotexist"
-      cases = {
-        asset_path:             %r{/#{contents}},
-        image_path:             %r{/images/#{contents}},
-        video_path:             %r{/videos/#{contents}},
-        audio_path:             %r{/audios/#{contents}},
-        font_path:              %r{/fonts/#{contents}},
-        javascript_path:        %r{/javascripts/#{contents}},
-        stylesheet_path:        %r{/stylesheets/#{contents}},
-        image_tag:              %r{<img src="/images/#{contents}"},
-        favicon_link_tag:       %r{<link rel="shortcut icon" type="image/x-icon" href="/images/#{contents}" />},
-        stylesheet_link_tag:    %r{<link rel="stylesheet" href="/stylesheets/#{contents}.css" />},
-        javascript_include_tag: %r{<script src="/javascripts/#{contents}.js">},
-        audio_tag:              %r{<audio src="/audios/#{contents}"></audio>},
-        video_tag:              %r{<video src="/videos/#{contents}"></video>},
-        image_submit_tag:       %r{<input type="image" src="/images/#{contents}" />}
-      }
-
-      cases.each do |(view_method, tag_match)|
+    contents = "doesnotexist"
+    {
+      asset_path:             %r{/#{contents}},
+      image_path:             %r{/images/#{contents}},
+      video_path:             %r{/videos/#{contents}},
+      audio_path:             %r{/audios/#{contents}},
+      font_path:              %r{/fonts/#{contents}},
+      javascript_path:        %r{/javascripts/#{contents}},
+      stylesheet_path:        %r{/stylesheets/#{contents}},
+      image_tag:              %r{<img src="/images/#{contents}"},
+      favicon_link_tag:       %r{<link rel="shortcut icon" type="image/x-icon" href="/images/#{contents}" />},
+      stylesheet_link_tag:    %r{<link rel="stylesheet" href="/stylesheets/#{contents}.css" />},
+      javascript_include_tag: %r{<script src="/javascripts/#{contents}.js">},
+      audio_tag:              %r{<audio src="/audios/#{contents}"></audio>},
+      video_tag:              %r{<video src="/videos/#{contents}"></video>},
+      image_submit_tag:       %r{<input type="image" src="/images/#{contents}" />}
+    }.each do |(view_method, tag_match)|
+      test "public path and tag methods are not over-written by the asset pipeline: #{view_method}" do
         app_file "app/views/posts/index.html.erb", "<%= #{view_method} '#{contents}', skip_pipeline: true %>"
 
         app "development"
@@ -99,19 +97,16 @@ module ApplicationTests
       end
     end
 
-    test "public URL methods are not over-written by the asset pipeline" do
-      contents = "doesnotexist"
-      cases = {
-        asset_url:       %r{http://example.org/#{contents}},
-        image_url:       %r{http://example.org/images/#{contents}},
-        video_url:       %r{http://example.org/videos/#{contents}},
-        audio_url:       %r{http://example.org/audios/#{contents}},
-        font_url:        %r{http://example.org/fonts/#{contents}},
-        javascript_url:  %r{http://example.org/javascripts/#{contents}},
-        stylesheet_url:  %r{http://example.org/stylesheets/#{contents}},
-      }
-
-      cases.each do |(view_method, tag_match)|
+    {
+      asset_url:       %r{http://example.org/#{contents}},
+      image_url:       %r{http://example.org/images/#{contents}},
+      video_url:       %r{http://example.org/videos/#{contents}},
+      audio_url:       %r{http://example.org/audios/#{contents}},
+      font_url:        %r{http://example.org/fonts/#{contents}},
+      javascript_url:  %r{http://example.org/javascripts/#{contents}},
+      stylesheet_url:  %r{http://example.org/stylesheets/#{contents}},
+    }.each do |(view_method, tag_match)|
+      test "public URL methods are not over-written by the asset pipeline: #{view_method}" do
         app_file "app/views/posts/index.html.erb", "<%= #{view_method} '#{contents}', skip_pipeline: true %>"
 
         app "development"
@@ -144,13 +139,11 @@ module ApplicationTests
       end
     end
 
-    test "public_compute_asset_path does not use the asset pipeline" do
-      cases = {
-        compute_asset_path:        /\/assets\/application-.*.\.js/,
-        public_compute_asset_path: /application.js/,
-      }
-
-      cases.each do |(view_method, tag_match)|
+    {
+      compute_asset_path:        /\/assets\/application-.*.\.js/,
+      public_compute_asset_path: /application.js/,
+    }.each do |(view_method, tag_match)|
+      test "public_compute_asset_path does not use the asset pipeline: #{view_method}" do
         app_file "app/views/posts/index.html.erb", "<%= #{ view_method } 'application.js' %>"
 
         app "development"
