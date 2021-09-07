@@ -404,7 +404,7 @@ module Rails
       end
 
       def run_css
-        return unless options[:css] || bundle_install?
+        return if !options[:css] || !bundle_install?
 
         if !using_node? && options[:css] == "tailwind"
           rails_command "tailwindcss:install"
