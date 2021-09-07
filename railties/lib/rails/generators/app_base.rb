@@ -110,6 +110,7 @@ module Rails
          web_server_gemfile_entry,
          javascript_gemfile_entry,
          hotwire_gemfile_entry,
+         css_gemfile_entry,
          jbuilder_gemfile_entry,
          psych_gemfile_entry,
          cable_gemfile_entry].flatten.find_all(&@gem_filter)
@@ -315,6 +316,20 @@ module Rails
         [ turbo_rails_entry, stimulus_rails_entry ]
       end
 
+      def using_node?
+        options[:javascript] && options[:javascript] != "importmap"
+      end
+
+      def css_gemfile_entry
+        return [] unless options[:css]
+
+        if !using_node? && options[:css] == "tailwind"
+          GemfileEntry.version("tailwindcss-rails", ">= 0.4.3", "Use Tailwind CSS. See: https://github.com/rails/tailwindcss-rails")
+        else
+          GemfileEntry.version("cssbundling-rails", ">= 0.1.0", "Bundle and process CSS with Tailwind, PostCSS, or Sass. Read more: https://github.com/rails/cssbundling-rails")
+        end
+      end
+
       def psych_gemfile_entry
         return [] unless defined?(Rubinius)
 
@@ -386,6 +401,16 @@ module Rails
         return if options[:skip_javascript] || options[:skip_hotwire] || !bundle_install?
 
         rails_command "turbo:install stimulus:install"
+      end
+
+      def run_css
+        return unless options[:css] || bundle_install?
+
+        if !using_node? && options[:css] == "tailwind"
+          rails_command "tailwindcss:install"
+        else
+          rails_command "css:install:#{options[:css]}"
+        end
       end
 
       def generate_bundler_binstub
