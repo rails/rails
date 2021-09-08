@@ -119,7 +119,7 @@ group :test do
 
   platforms :mri do
     gem "stackprof"
-    gem "byebug"
+    gem "debug", ">= 1.0.0.rc", require: false
   end
 
   gem "benchmark-ips"

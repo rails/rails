@@ -607,9 +607,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_inclusion_of_a_debugger
     run_generator
     if defined?(JRUBY_VERSION) || RUBY_ENGINE == "rbx"
-      assert_no_gem "byebug"
+      assert_no_gem "debug"
     else
-      assert_gem "byebug"
+      assert_gem "debug"
     end
   end
 

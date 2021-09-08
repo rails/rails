@@ -2,7 +2,6 @@
 
 require "cases/helper"
 require "models/bird"
-require "byebug"
 
 class BasePreventWritesTest < ActiveRecord::TestCase
   if !in_memory_db?

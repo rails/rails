@@ -1,3 +1,7 @@
+*   New applications get a dependency on the new `debug` gem, replacing `byebug`.
+
+    *Xavier Noria*
+
 *   Add SSL support for postgresql in `bin/rails dbconsole`.
 
     Fixes #43114.

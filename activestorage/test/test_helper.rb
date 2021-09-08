@@ -12,11 +12,6 @@ require "active_support/configuration_file"
 require "active_storage/service/mirror_service"
 require "image_processing/mini_magick"
 
-begin
-  require "byebug"
-rescue LoadError
-end
-
 require "active_job"
 ActiveJob::Base.queue_adapter = :test
 ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
