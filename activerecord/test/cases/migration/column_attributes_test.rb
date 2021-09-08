@@ -11,7 +11,7 @@ module ActiveRecord
 
       def test_add_column_with_an_unsupported_option
         assert_raises ArgumentError do
-          add_column "test_models", "command", :string, index: true
+          add_column "test_models", "command", :string, unknown: true
         end
       end
 
