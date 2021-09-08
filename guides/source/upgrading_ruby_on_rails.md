@@ -80,7 +80,7 @@ Upgrading from Rails 6.1 to Rails 7.0
 
 ### Spring
 
-If your application uses Spring, it needs to be upgraded to at least version 2.2.0. Otherwise you'll get
+If your application uses Spring, it needs to be upgraded to at least version 3.0.0. Otherwise you'll get
 
 ```
 undefined method `mechanism=' for ActiveSupport::Dependencies:Module
