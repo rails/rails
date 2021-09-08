@@ -78,6 +78,16 @@ To allow you to upgrade to new defaults one by one, the update task has created 
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 
+### Spring
+
+If your application uses Spring, it needs to be upgraded to at least version 2.2.0. Otherwise you'll get
+
+```
+undefined method `mechanism=' for ActiveSupport::Dependencies:Module
+```
+
+Also, make sure `config.cache_classes` is set to `false` in `config/environments/test.rb`.
+
 ### Applications need to run in `zeitwerk` mode
 
 Applications still running in `classic` mode have to switch to `zeitwerk` mode. Please check the [upgrading guide for Rails 6.0](https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#autoloading) for details.
