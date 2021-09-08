@@ -14,4 +14,3 @@
 <% end -%>
 /<%= dummy_path %>/tmp/
 <% end -%>
-.byebug_history
