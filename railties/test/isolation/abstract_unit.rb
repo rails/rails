@@ -419,10 +419,16 @@ module TestHelpers
 
     def app_file(path, contents, mode = "w")
       file_name = "#{app_path}/#{path}"
+
+      # Lets wait a bit to allow FileUpdateChecker detects the file change.
+      sleep 1 if File.exist?(file_name)
       FileUtils.mkdir_p File.dirname(file_name)
       File.open(file_name, mode) do |f|
         f.puts contents
       end
+
+      # Force touch to ensure the FileUpdateChecker detects the file change
+      FileUtils.touch(file_name)
       file_name
     end
 
