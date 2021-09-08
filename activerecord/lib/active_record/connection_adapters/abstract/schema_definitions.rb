@@ -514,7 +514,7 @@ module ActiveRecord
         def create_column_definition(name, type, options)
           ColumnDefinition.new(name, type, options).tap do |definition|
             unsupported = definition.unsupported_options
-            message = "unknown #{'option'.pluralize(unsupported.size)}: #{unsupported.join(', ')}"
+            message = "Unknown #{'option'.pluralize(unsupported.size)}: #{unsupported.join(', ')}"
 
             raise ArgumentError, message if unsupported.any?
           end
