@@ -172,6 +172,7 @@ Here is a noncomprehensive list of documentation:
 - [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
 - [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
 - [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
+- [Good Job](https://github.com/bensheldon/good_job#readme)
 
 Queues
 ------
