@@ -33,7 +33,7 @@ end
 <% end -%>
 <% if RUBY_ENGINE == "ruby" -%>
 # To use a debugger
-# gem "debug", ">= 1.0.0", group: %i[ development test ], require: false
+# gem "debug", ">= 1.0.0", group: %i[ development test ]
 <% end -%>
 <% if RUBY_PLATFORM.match(/bccwin|cygwin|emx|mingw|mswin|wince|java/) -%>
 
