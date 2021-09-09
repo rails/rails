@@ -6,7 +6,7 @@ require "active_support/values/time_zone"
 
 class Time
   DATE_FORMATS = {
-    db: "%Y-%m-%d %H:%M:%S",
+    db: "%Y-%m-%d %H:%M:%S.%6N",
     inspect: "%Y-%m-%d %H:%M:%S.%9N %z",
     number: "%Y%m%d%H%M%S",
     nsec: "%Y%m%d%H%M%S%9N",
@@ -34,7 +34,7 @@ class Time
   #   time.to_formatted_s(:time)         # => "06:10"
   #   time.to_s(:time)                   # => "06:10"
   #
-  #   time.to_formatted_s(:db)           # => "2007-01-18 06:10:17"
+  #   time.to_formatted_s(:db)           # => "2007-01-18 06:10:17.123456"
   #   time.to_formatted_s(:number)       # => "20070118061017"
   #   time.to_formatted_s(:short)        # => "18 Jan 06:10"
   #   time.to_formatted_s(:long)         # => "January 18, 2007 06:10"
