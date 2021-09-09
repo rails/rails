@@ -172,7 +172,7 @@ module ActionView
 
           def name_and_id_index(options)
             if options.key?("index")
-              options.delete("index") || ""
+              options.delete("index")
             elsif @generate_indexed_names
               @auto_index || ""
             end
