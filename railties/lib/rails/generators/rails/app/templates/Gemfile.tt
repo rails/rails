@@ -44,7 +44,7 @@ gem "bootsnap", ">= 1.4.4", require: false
 <% if RUBY_ENGINE == "ruby" -%>
 group :development, :test do
   # See https://github.com/ruby/debug for usage.
-  gem "debug", ">= 1.0.0", platforms: [:mri, :mingw, :x64_mingw]
+  gem "debug", ">= 1.0.0", platforms: %i[ mri mingw x64_mingw ]
 end
 
 <% end -%>
@@ -72,4 +72,4 @@ end
 
 <%- end -%>
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
