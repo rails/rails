@@ -1446,6 +1446,36 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_index_nil
+    assert_dom_equal(
+      '<input name="post[title]" id="post_title" type="text" value="Hello World" />',
+      text_field("post", "title", "index" => nil)
+    )
+    assert_dom_equal(
+      %{<textarea name="post[body]" id="post_body">\nBack to the hill and over it again!</textarea>},
+      text_area("post", "body", "index" => nil)
+    )
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" name="post[secret]" type="checkbox" value="1" id="post_secret" />',
+      check_box("post", "secret", "index" => nil)
+    )
+  end
+
+  def test_index_empty
+    assert_dom_equal(
+      '<input name="post[][title]" id="post__title" type="text" value="Hello World" />',
+      text_field("post", "title", "index" => "")
+    )
+    assert_dom_equal(
+      %{<textarea name="post[][body]" id="post__body">\nBack to the hill and over it again!</textarea>},
+      text_area("post", "body", "index" => "")
+    )
+    assert_dom_equal(
+      '<input name="post[][secret]" type="hidden" value="0" /><input checked="checked" name="post[][secret]" type="checkbox" value="1" id="post__secret" />',
+      check_box("post", "secret", "index" => "")
+    )
+  end
+
   def test_index_with_nil_id
     assert_dom_equal(
       '<input name="post[5][title]" type="text" value="Hello World" />',
