@@ -44,7 +44,7 @@ gem "bootsnap", ">= 1.4.4", require: false
 <% if RUBY_ENGINE == "ruby" -%>
 group :development, :test do
   # See https://github.com/ruby/debug for usage.
-  gem "debug", ">= 1.0.0", platforms: [:mri, :mingw, :x64_mingw], require: false
+  gem "debug", ">= 1.0.0", platforms: [:mri, :mingw, :x64_mingw]
 end
 
 <% end -%>
