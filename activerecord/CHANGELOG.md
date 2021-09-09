@@ -1,3 +1,10 @@
+*   Avoid scoping update callbacks in `ActiveRecord::Relation#update!`.
+
+    Making it consistent with how scoping is applied only to the query in `ActiveRecord::Relation#update`
+    and not also to the callbacks from the update itself.
+
+    *Dylan Thacker-Smith*
+
 *   Fix 2 cases that inferred polymorphic class from the association's `foreign_type`
     using `String#constantize` instead of the model's `polymorphic_class_for`.
 

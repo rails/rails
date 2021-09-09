@@ -498,6 +498,14 @@ module ActiveRecord
       end
     end
 
+    def update!(id = :all, attributes) # :nodoc:
+      if id == :all
+        each { |record| record.update!(attributes) }
+      else
+        klass.update!(id, attributes)
+      end
+    end
+
     # Updates the counters of the records in the current relation.
     #
     # ==== Parameters
