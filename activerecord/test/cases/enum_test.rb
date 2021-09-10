@@ -879,9 +879,6 @@ class EnumTest < ActiveRecord::TestCase
       " This has caused a conflict with auto generated negative scopes."\
       " Avoid using enum elements starting with 'not' where the positive form is also an element."
 
-    # this message comes from ActiveRecord::Scoping::Named, but it's worth noting that both occur in this case
-    expected_message_2 = "Creating scope :not_sent. Overwriting existing method Book.not_sent."
-
     Class.new(ActiveRecord::Base) do
       def self.name
         "Book"
@@ -892,7 +889,6 @@ class EnumTest < ActiveRecord::TestCase
     end
 
     assert_includes(logger.logged(:warn), expected_message_1)
-    assert_includes(logger.logged(:warn), expected_message_2)
   ensure
     ActiveRecord::Base.logger = old_logger
   end
@@ -907,9 +903,6 @@ class EnumTest < ActiveRecord::TestCase
       " This has caused a conflict with auto generated negative scopes."\
       " Avoid using enum elements starting with 'not' where the positive form is also an element."
 
-    # this message comes from ActiveRecord::Scoping::Named, but it's worth noting that both occur in this case
-    expected_message_2 = "Creating scope :not_sent. Overwriting existing method Book.not_sent."
-
     Class.new(ActiveRecord::Base) do
       def self.name
         "Book"
@@ -920,7 +913,6 @@ class EnumTest < ActiveRecord::TestCase
     end
 
     assert_includes(logger.logged(:warn), expected_message_1)
-    assert_includes(logger.logged(:warn), expected_message_2)
   ensure
     ActiveRecord::Base.logger = old_logger
   end

@@ -1,3 +1,13 @@
+*   Remove warning when overwriting existing scopes
+
+    Removes the following unnecessary warning message that appeared when overwriting existing scopes
+
+    ```
+    Creating scope :my_scope_name. Overwriting existing method "MyClass.my_scope_name" when overwriting existing scopes
+    ```
+
+    *Weston Ganger*
+
 *   Fix `ActiveRecord::InternalMetadata` to not be broken by `config.active_record.record_timestamps = false`
 
     Since the model always create the timestamp columns, it has to set them, otherwise it breaks
