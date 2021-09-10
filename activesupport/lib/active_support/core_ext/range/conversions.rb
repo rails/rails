@@ -5,7 +5,12 @@ module ActiveSupport
     RANGE_FORMATS = {
       db: -> (start, stop) do
         case start
-        when String then "BETWEEN '#{start}' AND '#{stop}'"
+        when String
+          "BETWEEN '#{start}' AND '#{stop}'"
+        when -> s { s.acts_like?(:time) }
+          start_usec = "#{start.to_s(:db)}.#{start.strftime("%6N")}"
+          stop_usec = "#{stop.to_s(:db)}.#{stop.strftime("%6N")}"
+          "BETWEEN '#{start_usec}' AND '#{stop_usec}'"
         else
           "BETWEEN '#{start.to_s(:db)}' AND '#{stop.to_s(:db)}'"
         end
