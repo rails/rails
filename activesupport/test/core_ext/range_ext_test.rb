@@ -12,8 +12,8 @@ class RangeTest < ActiveSupport::TestCase
   end
 
   def test_to_s_from_times
-    date_range = Time.utc(2005, 12, 10, 15, 30, 40, 123456)..Time.utc(2005, 12, 10, 17, 30, 50, 789123)
-    assert_equal "BETWEEN '2005-12-10 15:30:40.123456' AND '2005-12-10 17:30:50.789123'", date_range.to_s(:db)
+    date_range = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
+    assert_equal "BETWEEN '2005-12-10 15:30:00' AND '2005-12-10 17:30:00'", date_range.to_s(:db)
   end
 
   def test_to_s_with_alphabets

@@ -15,7 +15,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_to_s
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0, 0)
-    assert_equal "2005-02-21 14:30:00.000000",          datetime.to_s(:db)
+    assert_equal "2005-02-21 14:30:00",                 datetime.to_s(:db)
     assert_equal "2005-02-21 14:30:00.000000000 +0000", datetime.to_s(:inspect)
     assert_equal "14:30",                               datetime.to_s(:time)
     assert_equal "21 Feb 14:30",                        datetime.to_s(:short)
