@@ -17,7 +17,7 @@ After reading this guide you will know:
 
 Active Record supports application-level encryption. It works by declaring which attributes should be encrypted and seamlessly encrypting and decrypting them when necessary. The encryption layer is placed between the database and the application. The application will access unencrypted data but the database will store it encrypted.
 
-## Why Encrypting Data at the Application Level?
+## Why Encrypt Data at the Application Level?
 
 Active Record Encryption is meant to protect sensitive information in your application. A typical example is personal information from customers. But why would you want to do this if, for example, you are already encrypting your database at rest?
 
