@@ -1564,6 +1564,31 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
   end
 end
 
+class TestAutosaveAssociationOnABelongsToPolymorphicAssociation < ActiveRecord::TestCase
+  fixtures :posts
+
+  def setup
+    super
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table(:actors) do |t|
+      t.string :uuid
+    end
+  end
+
+  def teardown
+    @connection.drop_table(:actors)
+  end
+
+  def test_should_save_custom_belongs_to_polymorphic_association_with_custom_primary_key
+    actor = Actor.create! uuid: "93eca10a-102b-405a-84de-4a324035db9d"
+    comment = Comment.new(post: posts(:welcome), body: "nice")
+    comment.moderator = actor
+
+    comment.save!
+    assert_not_nil comment.reload.moderator
+  end
+end
+
 module AutosaveAssociationOnACollectionAssociationTests
   def test_should_automatically_save_the_associated_models
     new_names = ["Grace OMalley", "Privateers Greed"]

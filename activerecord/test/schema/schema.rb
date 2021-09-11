@@ -242,6 +242,8 @@ ActiveRecord::Schema.define do
     t.datetime :deleted_at
     t.integer :comments
     t.integer :company
+    t.string :moderator_type
+    t.string :moderator_id
   end
 
   create_table :companies, force: true do |t|

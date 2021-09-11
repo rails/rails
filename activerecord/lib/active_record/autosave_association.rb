@@ -491,7 +491,7 @@ module ActiveRecord
             saved = record.save(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
 
             if association.updated?
-              association_id = record.public_send(reflection.options[:primary_key] || :id)
+              association_id = record.public_send(reflection.association_primary_key(record.class))
               self[reflection.foreign_key] = association_id
               association.loaded!
             end
