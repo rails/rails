@@ -27,6 +27,7 @@ require "models/cake_designer"
 require "models/drink_designer"
 require "models/recipe"
 require "models/user_with_invalid_relation"
+require "models/comment"
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -359,6 +360,10 @@ class ReflectionTest < ActiveRecord::TestCase
       define_method(:source_reflection) { reflection }
     }.new(reflection)
     assert_raises(ActiveRecord::UnknownPrimaryKey) { through.association_primary_key }
+  end
+
+  def test_association_primary_key_custom_primary_key_for_polymorphic_association
+    assert_equal "uuid", Comment.reflect_on_association(:moderator).association_primary_key(Actor).to_s
   end
 
   def test_active_record_primary_key

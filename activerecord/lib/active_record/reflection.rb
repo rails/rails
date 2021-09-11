@@ -719,6 +719,7 @@ module ActiveRecord
         if primary_key = options[:primary_key]
           @association_primary_key ||= -primary_key.to_s
         else
+          (klass && options.dig(:association_primary_key, klass.name)&.to_s) ||
           primary_key(klass || self.klass)
         end
       end

@@ -2,6 +2,7 @@
 
 # `counter_cache` requires association class before `attr_readonly`.
 class Post < ActiveRecord::Base; end
+class Actor < ActiveRecord::Base; end
 
 class Comment < ActiveRecord::Base
   scope :limit_by, lambda { |l| limit(l) }
@@ -16,6 +17,7 @@ class Comment < ActiveRecord::Base
   belongs_to :author,   polymorphic: true
   belongs_to :resource, polymorphic: true
   belongs_to :origin, polymorphic: true
+  belongs_to :moderator, polymorphic: true, association_primary_key: { "Actor" => :uuid }
   belongs_to :company, foreign_key: "company"
 
   has_many :ratings
