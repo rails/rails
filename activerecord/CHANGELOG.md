@@ -1,3 +1,15 @@
+*   Support setting custom association class and column for polymorphic `belongs_to` association.
+
+    This change introduced a new option for polymorphic `belongs_to` association: `association_primary_key`. That you can set the model name and column name to lookup the association.
+
+    ```ruby
+    class Mentor
+      belongs_to :teacher, polymorphic: true, association_primary_key: { "User" => :uuid }
+    end
+    ```
+
+    *Juanito Fatas*
+
 *   Avoid scoping update callbacks in `ActiveRecord::Relation#update!`.
 
     Making it consistent with how scoping is applied only to the query in `ActiveRecord::Relation#update`
