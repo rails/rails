@@ -1,3 +1,8 @@
+*   Add a deprecation warning when `prepared_statements` configuration is not 
+    set for the mysql2 adapter.
+
+    *Thiago Araujo and Stefanni Brasil*
+
 *   Add `authenticate_by` when using `has_secure_password`.
 
     `authenticate_by` is intended to replace code like the following, which
