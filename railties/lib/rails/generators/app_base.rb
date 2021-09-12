@@ -108,8 +108,9 @@ module Rails
         [rails_gemfile_entry,
          database_gemfile_entry,
          web_server_gemfile_entry,
-         webpacker_gemfile_entry,
          javascript_gemfile_entry,
+         hotwire_gemfile_entry,
+         css_gemfile_entry,
          jbuilder_gemfile_entry,
          psych_gemfile_entry,
          cable_gemfile_entry].flatten.find_all(&@gem_filter)
@@ -284,36 +285,6 @@ module Rails
         end
       end
 
-      # This "npm-ifies" the current version number
-      # With npm, versions such as "5.0.0.rc1" or "5.0.0.beta1.1" are not compliant with its
-      # versioning system, so they must be transformed to "5.0.0-rc1" and "5.0.0-beta1-1" respectively.
-      #
-      # "5.0.1"     --> "5.0.1"
-      # "5.0.1.1"   --> "5.0.1-1" *
-      # "5.0.0.rc1" --> "5.0.0-rc1"
-      #
-      # * This makes it a prerelease. That's bad, but we haven't come up with
-      # a better solution at the moment.
-      def npm_version
-        if options.edge? || options.main? || options.dev?
-          # TODO: ideally this would read from Github
-          # https://github.com/rails/rails/blob/main/actioncable/app/assets/javascripts/action_cable.js
-          # https://github.com/rails/rails/blob/main/activestorage/app/assets/javascripts/activestorage.js
-          # https://github.com/rails/rails/tree/main/actionview/app/assets/javascripts -> not clear where the output file is
-          "latest"
-        else
-          Rails.version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
-        end
-      end
-
-      def webpacker_gemfile_entry
-        if options[:webpack]
-          GemfileEntry.version "webpacker", "~> 6.0.0.rc.5", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
-        else
-          []
-        end
-      end
-
       def jbuilder_gemfile_entry
         return [] if options[:skip_jbuilder]
         comment = "Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder"
@@ -321,21 +292,38 @@ module Rails
       end
 
       def javascript_gemfile_entry
-        importmap_rails_entry =
+        return [] if options[:skip_javascript]
+
+        if options[:javascript] == "importmap"
           GemfileEntry.version("importmap-rails", ">= 0.3.4", "Manage modern JavaScript using ESM without transpiling or bundling")
+        else
+          GemfileEntry.version "jsbundling-rails", "~> 0.1.0", "Bundle and transpile JavaScript with a JavaScript bundler. Read more: https://github.com/rails/jsbundling-rails"
+        end
+      end
+
+      def hotwire_gemfile_entry
+        return [] if options[:skip_javascript] || options[:skip_hotwire]
 
         turbo_rails_entry =
-          GemfileEntry.version("turbo-rails", ">= 0.7.4", "Hotwire's SPA-like page accelerator. Read more: https://turbo.hotwired.dev")
+          GemfileEntry.version("turbo-rails", ">= 0.7.11", "Hotwire's SPA-like page accelerator. Read more: https://turbo.hotwired.dev")
 
         stimulus_rails_entry =
-          GemfileEntry.version("stimulus-rails", ">= 0.3.9", "Hotwire's modest JavaScript framework for the HTML you already have. Read more: https://stimulus.hotwired.dev")
+          GemfileEntry.version("stimulus-rails", ">= 0.4.0", "Hotwire's modest JavaScript framework for the HTML you already have. Read more: https://stimulus.hotwired.dev")
 
-        if options[:skip_javascript]
-          []
-        elsif options[:skip_hotwire]
-          [ importmap_rails_entry ]
+        [ turbo_rails_entry, stimulus_rails_entry ]
+      end
+
+      def using_node?
+        options[:javascript] && options[:javascript] != "importmap"
+      end
+
+      def css_gemfile_entry
+        return [] unless options[:css]
+
+        if !using_node? && options[:css] == "tailwind"
+          GemfileEntry.version("tailwindcss-rails", ">= 0.4.3", "Use Tailwind CSS. See: https://github.com/rails/tailwindcss-rails")
         else
-          [ importmap_rails_entry, turbo_rails_entry, stimulus_rails_entry ]
+          GemfileEntry.version("cssbundling-rails", ">= 0.1.0", "Bundle and process CSS with Tailwind, PostCSS, or Sass. Read more: https://github.com/rails/cssbundling-rails")
         end
       end
 
@@ -385,18 +373,6 @@ module Rails
         !(options[:skip_bundle] || options[:pretend])
       end
 
-      def webpack_install?
-        options[:webpack]
-      end
-
-      def importmap_install?
-        !(options[:skip_javascript] || options[:webpack])
-      end
-
-      def hotwire_install?
-        !(options[:skip_javascript] || options[:skip_hotwire])
-      end
-
       def depends_on_system_test?
         !(options[:skip_system_test] || options[:skip_test] || options[:api])
       end
@@ -409,46 +385,29 @@ module Rails
         bundle_command("install", "BUNDLE_IGNORE_MESSAGES" => "1") if bundle_install?
       end
 
-      def run_webpack
-        return unless webpack_install?
+      def run_javascript
+        return if options[:skip_javascript] || !bundle_install?
 
-        unless bundle_install?
-          say <<~EXPLAIN
-            Skipping `rails webpacker:install` because `bundle install` was skipped.
-            To complete setup, you must run `bundle install` followed by `rails webpacker:install`.
-          EXPLAIN
-          return
+        case options[:javascript]
+        when "importmap"                    then rails_command "importmap:install"
+        when "webpack", "esbuild", "rollup" then rails_command "javascript:install:#{options[:javascript]}"
         end
-
-        rails_command "webpacker:install"
-      end
-
-      def run_importmap
-        return unless importmap_install?
-
-        unless bundle_install?
-          say <<~EXPLAIN
-            Skipping `rails importmap:install` because `bundle install` was skipped.
-            To complete setup, you must run `bundle install` followed by `rails importmap:install`.
-          EXPLAIN
-          return
-        end
-
-        rails_command "importmap:install"
       end
 
       def run_hotwire
-        return unless hotwire_install?
-
-        unless bundle_install?
-          say <<~EXPLAIN
-            Skipping `rails turbo:install stimulus:install` because `bundle install` was skipped.
-            To complete setup, you must run `bundle install` followed by `rails turbo:install stimulus:install`.
-          EXPLAIN
-          return
-        end
+        return if options[:skip_javascript] || options[:skip_hotwire] || !bundle_install?
 
         rails_command "turbo:install stimulus:install"
+      end
+
+      def run_css
+        return if !options[:css] || !bundle_install?
+
+        if !using_node? && options[:css] == "tailwind"
+          rails_command "tailwindcss:install"
+        else
+          rails_command "css:install:#{options[:css]}"
+        end
       end
 
       def generate_bundler_binstub

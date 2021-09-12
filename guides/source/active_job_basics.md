@@ -172,6 +172,7 @@ Here is a noncomprehensive list of documentation:
 - [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
 - [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
 - [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
+- [Good Job](https://github.com/bensheldon/good_job#readme)
 
 Queues
 ------
@@ -455,7 +456,7 @@ and add this serializer to the list:
 Rails.application.config.active_job.custom_serializers << MoneySerializer
 ```
 
-Note that auto-loading reloadable code during initialization is not supported. Thus it is recommended
+Note that autoloading reloadable code during initialization is not supported. Thus it is recommended
 to set-up serializers to be loaded only once, e.g. by amending `config/application.rb` like this:
 
 ```ruby

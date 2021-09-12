@@ -138,11 +138,9 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       private
-        def with_stubbed_connection_establish_connection
+        def with_stubbed_connection_establish_connection(&block)
           ActiveRecord::Base.stub(:connection, @connection) do
-            ActiveRecord::Base.stub(:establish_connection, nil) do
-              yield
-            end
+            ActiveRecord::Base.stub(:establish_connection, nil, &block)
           end
         end
     end
@@ -199,11 +197,9 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       private
-        def with_stubbed_connection_establish_connection
+        def with_stubbed_connection_establish_connection(&block)
           ActiveRecord::Base.stub(:connection, @connection) do
-            ActiveRecord::Base.stub(:establish_connection, nil) do
-              yield
-            end
+            ActiveRecord::Base.stub(:establish_connection, nil, &block)
           end
         end
     end
@@ -297,10 +293,8 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       private
-        def with_stubbed_connection
-          ActiveRecord::Base.stub(:connection, @connection) do
-            yield
-          end
+        def with_stubbed_connection(&block)
+          ActiveRecord::Base.stub(:connection, @connection, &block)
         end
     end
 

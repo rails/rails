@@ -764,8 +764,8 @@ module ActiveRecord
       model_class.name if model_class
     end
 
-    def each
-      fixture.each { |item| yield item }
+    def each(&block)
+      fixture.each(&block)
     end
 
     def [](key)

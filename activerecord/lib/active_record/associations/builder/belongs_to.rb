@@ -49,7 +49,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
         if reflection.polymorphic?
           foreign_type = reflection.foreign_type
           klass = changes[foreign_type] && changes[foreign_type].first || o.public_send(foreign_type)
-          klass = klass.constantize
+          klass = o.class.polymorphic_class_for(klass)
         else
           klass = association.klass
         end

@@ -1,3 +1,17 @@
+*   New applications get a dependency on the new `debug` gem, replacing `byebug`.
+
+    *Xavier Noria*
+
+*   Add SSL support for postgresql in `bin/rails dbconsole`.
+
+    Fixes #43114.
+
+    *Michael Bayucot*
+
+*   Add support for comments above gem declaration in Rails application templates, e.g. `gem("nokogiri", comment: "For XML")`.
+
+    *Linas Juškevičius*
+
 *   The setter `config.autoloader=` has been deleted. `zeitwerk` is the only
     available autoloading mode.
 
@@ -22,7 +36,7 @@
     railties initializers.
 
     Please check the [autoloading
-    guide](https://edgeguides.rubyonrails.org/autoloading_and_reloading_constants.html#autoloading-when-the-application-boots)
+    guide](https://guides.rubyonrails.org/v7.0/autoloading_and_reloading_constants.html#autoloading-when-the-application-boots)
     for details.
 
     *Xavier Noria*
@@ -34,9 +48,9 @@
 
     *Xavier Noria*
 
-*   Show Rake task description if command is run with -h.
+*   Show Rake task description if command is run with `-h`.
 
-    Adding `-h` (or `--help`) to a Rails command that's a Rake task, now returns
+    Adding `-h` (or `--help`) to a Rails command that's a Rake task now outputs
     the task description instead of the general Rake help.
 
     *Petrik de Heus*
@@ -88,7 +102,7 @@
 
     *Jean Boussier*
 
-*   Remove Rack::Runtime from the default middleware stack and deprecate
+*   Remove `Rack::Runtime` from the default middleware stack and deprecate
     referencing it in middleware operations without adding it back.
 
     *Hartley McGuire*
@@ -115,20 +129,17 @@
 
     *Prateek Choudhary*
 
-*   Add benchmark method that can be called from anywhere.
+*   The new method `Rails.benchmark` gives you a quick way to measure and log the execution time taken by a block:
 
-    This method is used as a quick way to measure & log the speed of some code.
-    However, it was previously available only in specific contexts, mainly views and controllers.
-    The new Rails.benchmark can be used in the rest of your app: services, API wrappers, models, etc.
-
-        def test
-          Rails.benchmark("test") { ... }
+        def test_expensive_stuff
+          Rails.benchmark("test_expensive_stuff") { ... }
         end
+
+    This functionality was available in some contexts only before.
 
     *Simon Perepelitsa*
 
-*   Removed manifest.js and application.css in app/assets
-    folder when --skip-sprockets option passed as flag to rails.
+*   Applications generated with `--skip-sprockets` no longer get `app/assets/config/manifest.js` and `app/assets/stylesheets/application.css`.
 
     *Cindy Gao*
 

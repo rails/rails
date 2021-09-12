@@ -314,8 +314,8 @@ module ActionController
     def setup
       super
 
-      def @controller.new_controller_thread
-        Thread.new { yield }
+      def @controller.new_controller_thread(&block)
+        Thread.new(&block)
       end
     end
 

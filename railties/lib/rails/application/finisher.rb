@@ -29,6 +29,7 @@ module Rails
 
         unless config.cache_classes
           autoloader.enable_reloading
+          ActiveSupport::Dependencies.autoloader = autoloader
 
           autoloader.on_load do |_cpath, value, _abspath|
             if value.is_a?(Class) && value.singleton_class < ActiveSupport::DescendantsTracker

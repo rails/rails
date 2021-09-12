@@ -131,8 +131,8 @@ module ActionDispatch
         alias []    get
         alias clear clear!
 
-        def each
-          routes.each { |name, route| yield name, route }
+        def each(&block)
+          routes.each(&block)
           self
         end
 

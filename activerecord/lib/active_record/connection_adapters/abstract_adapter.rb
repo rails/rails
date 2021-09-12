@@ -723,7 +723,7 @@ module ActiveRecord
           exception
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil, async: false) # :doc:
+        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil, async: false, &block) # :doc:
           @instrumenter.instrument(
             "sql.active_record",
             sql:               sql,
@@ -733,9 +733,7 @@ module ActiveRecord
             statement_name:    statement_name,
             async:             async,
             connection:        self) do
-            @lock.synchronize do
-              yield
-            end
+            @lock.synchronize(&block)
           rescue => e
             raise translate_exception_class(e, sql, binds)
           end

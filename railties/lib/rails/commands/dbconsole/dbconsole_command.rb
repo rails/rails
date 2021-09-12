@@ -44,10 +44,14 @@ module Rails
         find_cmd_and_exec(["mysql", "mysql5"], *args)
 
       when /^postgres|^postgis/
-        ENV["PGUSER"]     = config[:username] if config[:username]
-        ENV["PGHOST"]     = config[:host] if config[:host]
-        ENV["PGPORT"]     = config[:port].to_s if config[:port]
-        ENV["PGPASSWORD"] = config[:password].to_s if config[:password] && @options[:include_password]
+        ENV["PGUSER"]         = config[:username] if config[:username]
+        ENV["PGHOST"]         = config[:host] if config[:host]
+        ENV["PGPORT"]         = config[:port].to_s if config[:port]
+        ENV["PGPASSWORD"]     = config[:password].to_s if config[:password] && @options[:include_password]
+        ENV["PGSSLMODE"]      = config[:sslmode].to_s if config[:sslmode]
+        ENV["PGSSLCERT"]      = config[:sslcert].to_s if config[:sslcert]
+        ENV["PGSSLKEY"]       = config[:sslkey].to_s if config[:sslkey]
+        ENV["PGSSLROOTCERT"]  = config[:sslrootcert].to_s if config[:sslrootcert]
         find_cmd_and_exec("psql", db_config.database)
 
       when "sqlite3"

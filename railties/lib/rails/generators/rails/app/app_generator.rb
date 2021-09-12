@@ -267,20 +267,12 @@ module Rails
       add_shared_options_for "application"
 
       # Add rails command options
-      class_option :version, type: :boolean, aliases: "-v", group: :rails,
-                             desc: "Show Rails version number and quit"
-
-      class_option :api, type: :boolean,
-                         desc: "Preconfigure smaller stack for API only apps"
-
-      class_option :minimal, type: :boolean,
-                             desc: "Preconfigure a minimal rails app"
-
-      class_option :skip_bundle, type: :boolean, aliases: "-B", default: false,
-                                 desc: "Don't run bundle install"
-
-      class_option :webpack, type: :boolean, aliases: "--webpacker", default: false,
-                             desc: "Preconfigure Webpack"
+      class_option :version, type: :boolean, aliases: "-v", group: :rails, desc: "Show Rails version number and quit"
+      class_option :api, type: :boolean, desc: "Preconfigure smaller stack for API only apps"
+      class_option :minimal, type: :boolean, desc: "Preconfigure a minimal rails app"
+      class_option :javascript, type: :string, aliases: "-j", default: "importmap", desc: "Choose JavaScript approach [options: importmap (default), webpack, esbuild, rollup]"
+      class_option :css, type: :string, desc: "Choose CSS processor [options: tailwind, postcss, sass]"
+      class_option :skip_bundle, type: :boolean, aliases: "-B", default: false, desc: "Don't run bundle install"
 
       def initialize(*args)
         super
@@ -308,11 +300,7 @@ module Rails
             skip_javascript: true,
             skip_jbuilder: true,
             skip_system_test: true,
-            skip_hotwire: true).tap do |option|
-              if option[:webpack]
-                option[:skip_javascript] = false
-              end
-            end.freeze
+            skip_hotwire: true).freeze
         end
 
         @after_bundle_callbacks = []
@@ -523,9 +511,9 @@ module Rails
 
       public_task :apply_rails_template, :run_bundle
       public_task :generate_bundler_binstub
-      public_task :run_webpack
-      public_task :run_importmap
+      public_task :run_javascript
       public_task :run_hotwire
+      public_task :run_css
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each(&:call)
