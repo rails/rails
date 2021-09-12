@@ -1,3 +1,31 @@
+* Add ssl support for postgresql database tasks
+
+    Add `PGSSLMODE`, `PGSSLCERT`, `PGSSLKEY` and `PGSSLROOTCERT` to pg_env from database config
+    when running postgresql database tasks.
+
+    ```yaml
+    # config/database.yml
+
+    production:
+      sslmode: verify-full
+      sslcert: client.crt
+      sslkey: client.key
+      sslrootcert: ca.crt
+    ```
+
+    Environment variables
+
+    ```
+    PGSSLMODE=verify-full
+    PGSSLCERT=client.crt
+    PGSSLKEY=client.key
+    PGSSLROOTCERT=ca.crt
+    ```
+
+    Fixes #42994
+
+    *Michael Bayucot*
+
 *   Avoid scoping update callbacks in `ActiveRecord::Relation#update!`.
 
     Making it consistent with how scoping is applied only to the query in `ActiveRecord::Relation#update`
