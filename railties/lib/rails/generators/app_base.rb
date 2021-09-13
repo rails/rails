@@ -262,7 +262,7 @@ module Rails
           ]
         elsif options.main?
           [
-            GemfileEntry.github("rails", "rails/rails", "main", "Use main branch of Rails")
+            GemfileEntry.github("rails", "rails/rails", "main", "Use main development branch of Rails")
           ]
         else
           [GemfileEntry.version("rails",
