@@ -158,12 +158,11 @@ module Rails
         return [] if options[:skip_active_record]
         gem_name, gem_version = gem_for_database
         GemfileEntry.version gem_name, gem_version,
-                            "Use #{options[:database]} as the database for Active Record"
+          "Use #{options[:database]} as the database for Active Record"
       end
 
       def web_server_gemfile_entry # :doc:
-        comment = "Use Puma as the app server"
-        GemfileEntry.new("puma", "~> 5.0", comment)
+        GemfileEntry.new "puma", "~> 5.0", "Use the Puma web server [https://github.com/puma/puma]"
       end
 
       def include_all_railties? # :doc:
@@ -254,21 +253,21 @@ module Rails
       def rails_gemfile_entry
         if options.dev?
           [
-            GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH)
+            GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH, "Use local checkout of Rails")
           ]
         elsif options.edge?
           edge_branch = Rails.gem_version.prerelease? ? "main" : [*Rails.gem_version.segments.first(2), "stable"].join("-")
           [
-            GemfileEntry.github("rails", "rails/rails", edge_branch)
+            GemfileEntry.github("rails", "rails/rails", edge_branch, "Use specific branch of Rails")
           ]
         elsif options.main?
           [
-            GemfileEntry.github("rails", "rails/rails", "main")
+            GemfileEntry.github("rails", "rails/rails", "main", "Use main development branch of Rails")
           ]
         else
           [GemfileEntry.version("rails",
                             rails_version_specifier,
-                            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails', branch: 'main'")]
+                            %(Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"))]
         end
       end
 
@@ -287,7 +286,7 @@ module Rails
 
       def jbuilder_gemfile_entry
         return [] if options[:skip_jbuilder]
-        comment = "Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder"
+        comment = "Build JSON APIs with ease [https://github.com/rails/jbuilder]"
         GemfileEntry.new "jbuilder", "~> 2.7", comment, {}, options[:api]
       end
 
@@ -295,9 +294,9 @@ module Rails
         return [] if options[:skip_javascript]
 
         if options[:javascript] == "importmap"
-          GemfileEntry.version("importmap-rails", ">= 0.3.4", "Manage modern JavaScript using ESM without transpiling or bundling")
+          GemfileEntry.version("importmap-rails", ">= 0.3.4", "Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]")
         else
-          GemfileEntry.version "jsbundling-rails", "~> 0.1.0", "Bundle and transpile JavaScript with a JavaScript bundler. Read more: https://github.com/rails/jsbundling-rails"
+          GemfileEntry.version "jsbundling-rails", "~> 0.1.0", "Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]"
         end
       end
 
@@ -305,10 +304,10 @@ module Rails
         return [] if options[:skip_javascript] || options[:skip_hotwire]
 
         turbo_rails_entry =
-          GemfileEntry.version("turbo-rails", ">= 0.7.11", "Hotwire's SPA-like page accelerator. Read more: https://turbo.hotwired.dev")
+          GemfileEntry.version("turbo-rails", ">= 0.7.11", "Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]")
 
         stimulus_rails_entry =
-          GemfileEntry.version("stimulus-rails", ">= 0.4.0", "Hotwire's modest JavaScript framework for the HTML you already have. Read more: https://stimulus.hotwired.dev")
+          GemfileEntry.version("stimulus-rails", ">= 0.4.0", "Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]")
 
         [ turbo_rails_entry, stimulus_rails_entry ]
       end
@@ -321,9 +320,9 @@ module Rails
         return [] unless options[:css]
 
         if !using_node? && options[:css] == "tailwind"
-          GemfileEntry.version("tailwindcss-rails", ">= 0.4.3", "Use Tailwind CSS. See: https://github.com/rails/tailwindcss-rails")
+          GemfileEntry.version("tailwindcss-rails", ">= 0.4.3", "Use Tailwind CSS [https://github.com/rails/tailwindcss-rails]")
         else
-          GemfileEntry.version("cssbundling-rails", ">= 0.1.0", "Bundle and process CSS with Tailwind, PostCSS, or Sass. Read more: https://github.com/rails/cssbundling-rails")
+          GemfileEntry.version("cssbundling-rails", ">= 0.1.0", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]")
         end
       end
 

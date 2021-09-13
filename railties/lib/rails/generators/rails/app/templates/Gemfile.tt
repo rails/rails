@@ -2,74 +2,66 @@ source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 ruby <%= "\"#{RUBY_VERSION}\"" -%>
-
-<% unless gemfile_entries.first&.comment -%>
-
-<% end -%>
 <% gemfile_entries.each do |gem| -%>
-<% if gem.comment -%>
+<% if gem.comment %>
 
 # <%= gem.comment %>
 <% end -%>
 <%= gem.commented_out ? "# " : "" %>gem "<%= gem.name %>"<%= %(, "#{gem.version}") if gem.version -%>
-<% if gem.options.any? -%>
-, <%= gem.options.map { |k,v|
-  "#{k}: #{v.inspect.gsub('"', '\'')}" }.join(", ") %>
-<% end -%>
-<% end -%>
-<% unless options.skip_sprockets? %>
+<% if gem.options.any? -%>, <%= gem.options.map { |k,v| "#{k}: #{v.inspect}" }.join(", ") %><% end -%>
+<% end %>
 
-# Use Sass to process CSS
-# gem "sassc-rails", "~> 2.1"
-<% end -%>
-
-# Use Active Model has_secure_password
-# gem "bcrypt", "~> 3.1.7"
-<% unless skip_active_storage? -%>
-
-# Use Active Storage variant
-# gem "image_processing", "~> 1.2"
-<% end -%>
+# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
+gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 
 <% if depend_on_bootsnap? -%>
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", ">= 1.4.4", require: false
 
 <%- end -%>
+# Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
+# gem "bcrypt", "~> 3.1.7"
+<% unless options.skip_sprockets? || options.minimal? -%>
+
+# Use Sass to process CSS
+# gem "sassc-rails", "~> 2.1"
+<% end -%>
+<% unless skip_active_storage? -%>
+
+# Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
+# gem "image_processing", "~> 1.2"
+<% end -%>
 <%- if options.api? -%>
+
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible
 # gem "rack-cors"
-
 <%- end -%>
 <% if RUBY_ENGINE == "ruby" -%>
+
 group :development, :test do
-  # See https://github.com/ruby/debug for usage
+  # Start debugger with binding.b [https://github.com/ruby/debug]
   gem "debug", ">= 1.0.0", platforms: %i[ mri mingw x64_mingw ]
 end
-
 <% end -%>
+
 group :development do
 <%- unless options.api? || options.skip_dev_gems? -%>
-  # Access an interactive console on exception pages or by calling "console" anywhere in the code.
+  # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console", ">= 4.1.0"
 
-  # Display speed badge on every html page with SQL times and flame graphs.
-  # Note: Interferes with etag cache testing. Can be configured to work on production: https://github.com/MiniProfiler/rack-mini-profiler/blob/master/README.md
+  # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]
   # gem "rack-mini-profiler", "~> 2.0"
+
 <%- end -%>
-  # Speed up rails commands in dev on slow machines / big apps. See: https://github.com/rails/spring
+  # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
 end
 
 <%- if depends_on_system_test? -%>
 group :test do
-  # Adds support for Capybara system testing and selenium driver
+  # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara", ">= 3.26"
   gem "selenium-webdriver"
-  # Easy installation and use of web drivers to run system tests with browsers
   gem "webdrivers"
 end
-
 <%- end -%>
-# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
