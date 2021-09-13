@@ -158,7 +158,7 @@ module Rails
         return [] if options[:skip_active_record]
         gem_name, gem_version = gem_for_database
         GemfileEntry.version gem_name, gem_version,
-                            "Use #{options[:database]} as the database for Active Record"
+          "Use #{options[:database]} as the database for Active Record"
       end
 
       def web_server_gemfile_entry # :doc:
