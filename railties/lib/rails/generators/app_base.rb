@@ -253,21 +253,21 @@ module Rails
       def rails_gemfile_entry
         if options.dev?
           [
-            GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH)
+            GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH, "Use local checkout of Rails")
           ]
         elsif options.edge?
           edge_branch = Rails.gem_version.prerelease? ? "main" : [*Rails.gem_version.segments.first(2), "stable"].join("-")
           [
-            GemfileEntry.github("rails", "rails/rails", edge_branch)
+            GemfileEntry.github("rails", "rails/rails", edge_branch, "Use specific branch of Rails")
           ]
         elsif options.main?
           [
-            GemfileEntry.github("rails", "rails/rails", "main")
+            GemfileEntry.github("rails", "rails/rails", "main", "Use main branch of Rails")
           ]
         else
           [GemfileEntry.version("rails",
                             rails_version_specifier,
-                            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails', branch: 'main'")]
+                            %(Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"))]
         end
       end
 
