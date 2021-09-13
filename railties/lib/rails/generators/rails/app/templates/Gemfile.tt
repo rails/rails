@@ -2,12 +2,8 @@ source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 ruby <%= "\"#{RUBY_VERSION}\"" -%>
-
-<% unless gemfile_entries.first&.comment -%>
-
-<% end -%>
 <% gemfile_entries.each do |gem| -%>
-<% if gem.comment -%>
+<% if gem.comment %>
 
 # <%= gem.comment %>
 <% end -%>
