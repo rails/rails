@@ -162,8 +162,7 @@ module Rails
       end
 
       def web_server_gemfile_entry # :doc:
-        comment = "Use Puma as the app server"
-        GemfileEntry.new("puma", "~> 5.0", comment)
+        GemfileEntry.new "puma", "~> 5.0", "Use the Puma web server. Read more: https://github.com/puma/puma"
       end
 
       def include_all_railties? # :doc:
@@ -295,9 +294,9 @@ module Rails
         return [] if options[:skip_javascript]
 
         if options[:javascript] == "importmap"
-          GemfileEntry.version("importmap-rails", ">= 0.3.4", "Manage modern JavaScript using ESM without transpiling or bundling")
+          GemfileEntry.version("importmap-rails", ">= 0.3.4", "Use JavaScript with ESM import maps. Read more: https://github.com/rails/importmap-rails")
         else
-          GemfileEntry.version "jsbundling-rails", "~> 0.1.0", "Bundle and transpile JavaScript with a JavaScript bundler. Read more: https://github.com/rails/jsbundling-rails"
+          GemfileEntry.version "jsbundling-rails", "~> 0.1.0", "Bundle and transpile JavaScript. Read more: https://github.com/rails/jsbundling-rails"
         end
       end
 
@@ -308,7 +307,7 @@ module Rails
           GemfileEntry.version("turbo-rails", ">= 0.7.11", "Hotwire's SPA-like page accelerator. Read more: https://turbo.hotwired.dev")
 
         stimulus_rails_entry =
-          GemfileEntry.version("stimulus-rails", ">= 0.4.0", "Hotwire's modest JavaScript framework for the HTML you already have. Read more: https://stimulus.hotwired.dev")
+          GemfileEntry.version("stimulus-rails", ">= 0.4.0", "Hotwire's modest JavaScript framework. Read more: https://stimulus.hotwired.dev")
 
         [ turbo_rails_entry, stimulus_rails_entry ]
       end

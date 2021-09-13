@@ -50,11 +50,10 @@ end
 <% end -%>
 group :development do
 <%- unless options.api? || options.skip_dev_gems? -%>
-  # Access an interactive console on exception pages or by calling "console" anywhere in the code.
+  # Jump into a console on exception pages or by calling "console"
   gem "web-console", ">= 4.1.0"
 
-  # Display speed badge on every html page with SQL times and flame graphs.
-  # Note: Interferes with etag cache testing. Can be configured to work on production: https://github.com/MiniProfiler/rack-mini-profiler/blob/master/README.md
+  # Display speed badges w/ SQL times + flame graphs. Read more: https://github.com/MiniProfiler/rack-mini-profiler
   # gem "rack-mini-profiler", "~> 2.0"
 <%- end -%>
   # Speed up rails commands in dev on slow machines / big apps. See: https://github.com/rails/spring
@@ -66,7 +65,6 @@ group :test do
   # Adds support for Capybara system testing and selenium driver
   gem "capybara", ">= 3.26"
   gem "selenium-webdriver"
-  # Easy installation and use of web drivers to run system tests with browsers
   gem "webdrivers"
 end
 
