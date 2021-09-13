@@ -53,6 +53,7 @@ group :development do
   # Display speed badges w/ SQL times + flame graphs. Read more: https://github.com/MiniProfiler/rack-mini-profiler
   # gem "rack-mini-profiler", "~> 2.0"
 <%- end -%>
+
   # Speed up rails commands in dev on slow machines / big apps. See: https://github.com/rails/spring
   # gem "spring"
 end
