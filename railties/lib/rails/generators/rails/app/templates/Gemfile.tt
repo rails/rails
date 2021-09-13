@@ -34,6 +34,9 @@ gem "bootsnap", ">= 1.4.4", require: false
 # gem "rack-cors"
 
 <%- end -%>
+# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
+gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
+
 <% if RUBY_ENGINE == "ruby" -%>
 group :development, :test do
   # Start debugger with binding.b -- Read more: https://github.com/ruby/debug
@@ -61,7 +64,4 @@ group :test do
   gem "selenium-webdriver"
   gem "webdrivers"
 end
-
 <%- end -%>
-# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
