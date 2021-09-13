@@ -162,7 +162,7 @@ module Rails
       end
 
       def web_server_gemfile_entry # :doc:
-        GemfileEntry.new "puma", "~> 5.0", "Use the Puma web server. Read more: https://github.com/puma/puma"
+        GemfileEntry.new "puma", "~> 5.0", "Use the Puma web server [https://github.com/puma/puma]"
       end
 
       def include_all_railties? # :doc:
@@ -286,7 +286,7 @@ module Rails
 
       def jbuilder_gemfile_entry
         return [] if options[:skip_jbuilder]
-        comment = "Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder"
+        comment = "Build JSON APIs with ease [https://github.com/rails/jbuilder]"
         GemfileEntry.new "jbuilder", "~> 2.7", comment, {}, options[:api]
       end
 
@@ -294,9 +294,9 @@ module Rails
         return [] if options[:skip_javascript]
 
         if options[:javascript] == "importmap"
-          GemfileEntry.version("importmap-rails", ">= 0.3.4", "Use JavaScript with ESM import maps. Read more: https://github.com/rails/importmap-rails")
+          GemfileEntry.version("importmap-rails", ">= 0.3.4", "Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]")
         else
-          GemfileEntry.version "jsbundling-rails", "~> 0.1.0", "Bundle and transpile JavaScript. Read more: https://github.com/rails/jsbundling-rails"
+          GemfileEntry.version "jsbundling-rails", "~> 0.1.0", "Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]"
         end
       end
 
@@ -304,10 +304,10 @@ module Rails
         return [] if options[:skip_javascript] || options[:skip_hotwire]
 
         turbo_rails_entry =
-          GemfileEntry.version("turbo-rails", ">= 0.7.11", "Hotwire's SPA-like page accelerator. Read more: https://turbo.hotwired.dev")
+          GemfileEntry.version("turbo-rails", ">= 0.7.11", "Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]")
 
         stimulus_rails_entry =
-          GemfileEntry.version("stimulus-rails", ">= 0.4.0", "Hotwire's modest JavaScript framework. Read more: https://stimulus.hotwired.dev")
+          GemfileEntry.version("stimulus-rails", ">= 0.4.0", "Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]")
 
         [ turbo_rails_entry, stimulus_rails_entry ]
       end
@@ -320,9 +320,9 @@ module Rails
         return [] unless options[:css]
 
         if !using_node? && options[:css] == "tailwind"
-          GemfileEntry.version("tailwindcss-rails", ">= 0.4.3", "Use Tailwind CSS. See: https://github.com/rails/tailwindcss-rails")
+          GemfileEntry.version("tailwindcss-rails", ">= 0.4.3", "Use Tailwind CSS [https://github.com/rails/tailwindcss-rails]")
         else
-          GemfileEntry.version("cssbundling-rails", ">= 0.1.0", "Bundle and process CSS with Tailwind, PostCSS, or Sass. Read more: https://github.com/rails/cssbundling-rails")
+          GemfileEntry.version("cssbundling-rails", ">= 0.1.0", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]")
         end
       end
 
