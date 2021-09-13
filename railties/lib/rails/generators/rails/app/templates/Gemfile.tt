@@ -12,10 +12,7 @@ ruby <%= "\"#{RUBY_VERSION}\"" -%>
 # <%= gem.comment %>
 <% end -%>
 <%= gem.commented_out ? "# " : "" %>gem "<%= gem.name %>"<%= %(, "#{gem.version}") if gem.version -%>
-<% if gem.options.any? -%>
-, <%= gem.options.map { |k,v|
-  "#{k}: #{v.inspect.gsub('"', '\'')}" }.join(", ") %>
-<% end -%>
+<% if gem.options.any? -%>, <%= gem.options.map { |k,v| "#{k}: #{v.inspect}" }.join(", ") %><% end -%>
 <% end -%>
 <% unless options.skip_sprockets? %>
 
