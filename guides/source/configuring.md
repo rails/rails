@@ -898,7 +898,7 @@ Is a hash with HTTP headers that are set by default in each response. By default
 ```ruby
 config.action_dispatch.default_headers = {
   'X-Frame-Options' => 'SAMEORIGIN',
-  'X-XSS-Protection' => '1; mode=block',
+  'X-XSS-Protection' => '0',
   'X-Content-Type-Options' => 'nosniff',
   'X-Download-Options' => 'noopen',
   'X-Permitted-Cross-Domain-Policies' => 'none',
@@ -1681,6 +1681,16 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.active_storage.video_preview_arguments`: `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
 - `config.active_record.verify_foreign_keys_for_fixtures`: `true`
 - `config.active_storage.variant_processor`: `:vips`
+- `config.action_dispatch.default_headers`:
+
+    {
+      "X-Frame-Options" => "SAMEORIGIN",
+      "X-XSS-Protection" => "0",
+      "X-Content-Type-Options" => "nosniff",
+      "X-Download-Options" => "noopen",
+      "X-Permitted-Cross-Domain-Policies" => "none",
+      "Referrer-Policy" => "strict-origin-when-cross-origin"
+    }
 
 #### For '6.1', defaults from previous versions below and:
 

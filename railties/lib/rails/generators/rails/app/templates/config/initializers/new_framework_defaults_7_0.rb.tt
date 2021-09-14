@@ -70,3 +70,13 @@
 # operations. See the upgrading guide for detail on the changes required.
 # The `:mini_magick` option is not deprecated; it's fine to keep using it.
 # Rails.application.config.active_storage.variant_processor = :vips
+
+# Change the default headers to disable browsers' flawed legacy XSS protection
+# Rails.application.config.action_dispatch.default_headers = {
+#   "X-Frame-Options" => "SAMEORIGIN",
+#   "X-XSS-Protection" => "0",
+#   "X-Content-Type-Options" => "nosniff",
+#   "X-Download-Options" => "noopen",
+#   "X-Permitted-Cross-Domain-Policies" => "none",
+#   "Referrer-Policy" => "strict-origin-when-cross-origin"
+# }
