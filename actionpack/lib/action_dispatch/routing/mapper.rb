@@ -1861,7 +1861,7 @@ module ActionDispatch
           end
 
           def map_match(paths, options)
-            if options[:on] && !VALID_ON_OPTIONS.include?(options[:on])
+            if (on = options[:on]) && !VALID_ON_OPTIONS.include?(on)
               raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
             end
 
