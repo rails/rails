@@ -143,6 +143,9 @@ Style/DefWithParentheses:
 Style/MethodDefParentheses:
   Enabled: true
 
+Style/ExplicitBlockArgument:
+  Enabled: true
+
 Style/FrozenStringLiteralComment:
   Enabled: true
   EnforcedStyle: always
@@ -216,6 +219,9 @@ Lint/RedundantStringCoercion:
   Enabled: true
 
 Lint/UriEscapeUnescape:
+  Enabled: true
+
+Lint/UselessAssignment:
   Enabled: true
 
 Lint/DeprecatedClassMethods:

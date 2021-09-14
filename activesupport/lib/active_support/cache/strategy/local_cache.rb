@@ -66,8 +66,8 @@ module ActiveSupport
         end
 
         # Use a local cache for the duration of block.
-        def with_local_cache
-          use_temporary_local_cache(LocalStore.new) { yield }
+        def with_local_cache(&block)
+          use_temporary_local_cache(LocalStore.new, &block)
         end
 
         # Middleware class can be inserted as a Rack handler to be local cache for the
@@ -170,8 +170,8 @@ module ActiveSupport
             LocalCacheRegistry.cache_for(local_cache_key)
           end
 
-          def bypass_local_cache
-            use_temporary_local_cache(nil) { yield }
+          def bypass_local_cache(&block)
+            use_temporary_local_cache(nil, &block)
           end
 
           def use_temporary_local_cache(temporary_cache)

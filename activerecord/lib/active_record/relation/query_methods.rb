@@ -1295,11 +1295,9 @@ module ActiveRecord
         nil
       end
 
-      def each_join_dependencies(join_dependencies = build_join_dependencies)
+      def each_join_dependencies(join_dependencies = build_join_dependencies, &block)
         join_dependencies.each do |join_dependency|
-          join_dependency.each do |join|
-            yield join
-          end
+          join_dependency.each(&block)
         end
       end
 

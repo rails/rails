@@ -2,7 +2,6 @@
 
 require "generators/generators_test_helper"
 require "rails/generators/channel/channel_generator"
-require "byebug"
 
 class ChannelGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper

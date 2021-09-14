@@ -2,41 +2,43 @@
 
 require "zeitwerk"
 
-module Rails::Autoloaders # :nodoc:
-  require_relative "autoloaders/inflector"
+module Rails
+  module Autoloaders # :nodoc:
+    require_relative "autoloaders/inflector"
 
-  class << self
-    include Enumerable
+    class << self
+      include Enumerable
 
-    def main
-      @main ||= Zeitwerk::Loader.new.tap do |loader|
-        loader.tag = "rails.main"
-        loader.inflector = Inflector
+      def main
+        @main ||= Zeitwerk::Loader.new.tap do |loader|
+          loader.tag = "rails.main"
+          loader.inflector = Inflector
+        end
       end
-    end
 
-    def once
-      @once ||= Zeitwerk::Loader.new.tap do |loader|
-        loader.tag = "rails.once"
-        loader.inflector = Inflector
+      def once
+        @once ||= Zeitwerk::Loader.new.tap do |loader|
+          loader.tag = "rails.once"
+          loader.inflector = Inflector
+        end
       end
-    end
 
-    def each
-      yield main
-      yield once
-    end
+      def each
+        yield main
+        yield once
+      end
 
-    def logger=(logger)
-      each { |loader| loader.logger = logger }
-    end
+      def logger=(logger)
+        each { |loader| loader.logger = logger }
+      end
 
-    def log!
-      each(&:log!)
-    end
+      def log!
+        each(&:log!)
+      end
 
-    def zeitwerk_enabled?
-      true
+      def zeitwerk_enabled?
+        true
+      end
     end
   end
 end

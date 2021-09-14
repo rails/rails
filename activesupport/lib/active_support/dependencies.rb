@@ -1,35 +1,35 @@
 # frozen_string_literal: true
 
 require "set"
-require "active_support/core_ext/module/attribute_accessors"
 require "active_support/dependencies/interlock"
 
 module ActiveSupport # :nodoc:
   module Dependencies # :nodoc:
     require_relative "dependencies/require_dependency"
 
-    mattr_accessor :interlock, default: Interlock.new
+    singleton_class.attr_accessor :interlock
+    @interlock = Interlock.new
 
     # :doc:
 
     # Execute the supplied block without interference from any
     # concurrent loads.
-    def self.run_interlock
-      interlock.running { yield }
+    def self.run_interlock(&block)
+      interlock.running(&block)
     end
 
     # Execute the supplied block while holding an exclusive lock,
     # preventing any other thread from being inside a #run_interlock
     # block at the same time.
-    def self.load_interlock
-      interlock.loading { yield }
+    def self.load_interlock(&block)
+      interlock.loading(&block)
     end
 
     # Execute the supplied block while holding an exclusive lock,
     # preventing any other thread from being inside a #run_interlock
     # block at the same time.
-    def self.unload_interlock
-      interlock.unloading { yield }
+    def self.unload_interlock(&block)
+      interlock.unloading(&block)
     end
 
     # :nodoc:
@@ -40,29 +40,33 @@ module ActiveSupport # :nodoc:
     #
     # This collection is allowed to have intersection with autoload_once_paths.
     # Common directories are not reloaded.
-    mattr_accessor :autoload_paths, default: []
+    singleton_class.attr_accessor :autoload_paths
+    self.autoload_paths = []
 
     # The array of directories from which we autoload and never reload, even if
     # reloading is enabled. The public interface to push directories to this
     # collection from applications or engines is config.autoload_once_paths.
-    mattr_accessor :autoload_once_paths, default: []
+    singleton_class.attr_accessor :autoload_once_paths
+    self.autoload_once_paths = []
 
     # This is a private set that collects all eager load paths during bootstrap.
     # Useful for Zeitwerk integration. The public interface to push custom
     # directories to this collection from applications or engines is
     # config.eager_load_paths.
-    mattr_accessor :_eager_load_paths, default: Set.new
+    singleton_class.attr_accessor :_eager_load_paths
+    self._eager_load_paths = Set.new
 
     # If reloading is enabled, this private set holds autoloaded classes tracked
     # by the descendants tracker. It is populated by an on_load callback in the
     # main autoloader. Used to clear state.
-    mattr_accessor :_autoloaded_tracked_classes, default: Set.new
+    singleton_class.attr_accessor :_autoloaded_tracked_classes
+    self._autoloaded_tracked_classes = Set.new
 
     # If reloading is enabled, this private attribute stores the main autoloader
     # of a Rails application. It is `nil` otherwise.
     #
     # The public interface for this autoloader is `Rails.autoloaders.main`.
-    mattr_accessor :autoloader
+    singleton_class.attr_accessor :autoloader
 
     # Private method that reloads constants autoloaded by the main autoloader.
     #
