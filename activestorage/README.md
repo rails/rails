@@ -148,13 +148,10 @@ Active Storage, with its included JavaScript library, supports uploading directl
     ```html
     <%= javascript_include_tag "activestorage" %>
     ```
-    Requiring via importmap (as used by Stimulus) without bundling through the asset pipeline in the application html without autostart as ESM:
-    ```js
-    {
-      "imports": { 
-        "@rails/activestorage": "<%= asset_path "activestorage.esm" %>"
-      }
-    }
+    Requiring via importmap-rails without bundling through the asset pipeline in the application html without autostart as ESM:
+    ```ruby
+    # config/importmap.rb
+    pin "@rails/activestorage", to: "activestorage.esm.js"
     ```
     ```html
     <script type="module-shim">

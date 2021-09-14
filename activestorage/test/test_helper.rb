@@ -12,11 +12,6 @@ require "active_support/configuration_file"
 require "active_storage/service/mirror_service"
 require "image_processing/mini_magick"
 
-begin
-  require "byebug"
-rescue LoadError
-end
-
 require "active_job"
 ActiveJob::Base.queue_adapter = :test
 ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
@@ -156,6 +151,14 @@ class ActiveSupport::TestCase
     ensure
       ActionController::Base.raise_on_open_redirects = old_raise_on_open_redirects
       ActiveStorage::Blob.service = old_service
+    end
+
+    def subscribe_events_from(name)
+      events = []
+      ActiveSupport::Notifications.subscribe(name) do |*args|
+        events << ActiveSupport::Notifications::Event.new(*args)
+      end
+      events
     end
 end
 

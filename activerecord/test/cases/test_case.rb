@@ -37,8 +37,8 @@ module ActiveRecord
       SQLCounter.log.dup
     end
 
-    def assert_sql(*patterns_to_match)
-      capture_sql { yield }
+    def assert_sql(*patterns_to_match, &block)
+      capture_sql(&block)
     ensure
       failed_patterns = []
       patterns_to_match.each do |pattern|

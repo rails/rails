@@ -10,6 +10,50 @@
 
     *Sam Bostock*
 
+* Add ssl support for postgresql database tasks
+
+    Add `PGSSLMODE`, `PGSSLCERT`, `PGSSLKEY` and `PGSSLROOTCERT` to pg_env from database config
+    when running postgresql database tasks.
+
+    ```yaml
+    # config/database.yml
+
+    production:
+      sslmode: verify-full
+      sslcert: client.crt
+      sslkey: client.key
+      sslrootcert: ca.crt
+    ```
+
+    Environment variables
+
+    ```
+    PGSSLMODE=verify-full
+    PGSSLCERT=client.crt
+    PGSSLKEY=client.key
+    PGSSLROOTCERT=ca.crt
+    ```
+
+    Fixes #42994
+
+    *Michael Bayucot*
+
+*   Avoid scoping update callbacks in `ActiveRecord::Relation#update!`.
+
+    Making it consistent with how scoping is applied only to the query in `ActiveRecord::Relation#update`
+    and not also to the callbacks from the update itself.
+
+    *Dylan Thacker-Smith*
+
+*   Fix 2 cases that inferred polymorphic class from the association's `foreign_type`
+    using `String#constantize` instead of the model's `polymorphic_class_for`.
+
+    When updating a polymorphic association, the old `foreign_type` was not inferred correctly when:
+    1. `touch`ing the previously associated record
+    2. updating the previously associated record's `counter_cache`
+
+    *Jimmy Bourassa*
+
 *   Add config option for ignoring tables when dumping the schema cache.
 
     Applications can now be configured to ignore certain tables when dumping the schema cache.
@@ -30,7 +74,7 @@
 
 *   Make schema cache methods return consistent results.
 
-    Previously the schema cache methods `primary_keys`, `columns, `columns_hash`, and `indexes`
+    Previously the schema cache methods `primary_keys`, `columns`, `columns_hash`, and `indexes`
     would behave differently than one another when a table didn't exist and differently across
     database adapters. This change unifies the behavior so each method behaves the same regardless
     of adapter.

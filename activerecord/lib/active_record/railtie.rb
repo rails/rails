@@ -360,6 +360,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record.query_log_tags_config" do |app|
       config.after_initialize do
         if app.config.active_record.query_log_tags_enabled
+          ActiveRecord.query_transformers << ActiveRecord::QueryLogs
           ActiveRecord::QueryLogs.taggings.merge!(
             application:  Rails.application.class.name.split("::").first,
             pid:          -> { Process.pid },
@@ -374,12 +375,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
           if app.config.active_record.cache_query_log_tags
             ActiveRecord::QueryLogs.cache_query_log_tags = true
-          end
-
-          ActiveSupport.on_load(:active_record) do
-            ConnectionAdapters::AbstractAdapter.descendants.each do |klass|
-              klass.prepend(QueryLogs::ExecutionMethods) if klass.descendants.empty?
-            end
           end
         end
       end

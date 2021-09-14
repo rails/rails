@@ -270,9 +270,10 @@ module ActionDispatch
       #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.standard_port # => 80
       def standard_port
-        case protocol
-        when "https://" then 443
-        else 80
+        if "https://" == protocol
+          443
+        else
+          80
         end
       end
 

@@ -258,7 +258,7 @@ NOTE: For historical reasons, this callback may run twice. The code it executes 
 
 ### Use case 2: During boot, load code that remains cached
 
-Some configurations take a class or module object, and they store it in a place that is not reloaded, for example, within the state of the framework.
+Some configurations take a class or module object, and they store it in a place that is not reloaded.
 
 One example is middleware:
 
@@ -277,22 +277,23 @@ Rails.application.config.active_job.custom_serializers << MoneySerializer
 
 Whatever `MoneySerializer` evaluates to during initialization gets pushed to the custom serializers. If that was reloadable, the initial object would be still within Active Job, not reflecting your changes.
 
-Corollary: those classes or modules **cannot be reloadable**.
+Yet another example are railties or engines decorating framework classes by including modules. For instance, [`turbo-rails`](https://github.com/hotwired/turbo-rails) decorates `ActiveRecord::Base` this way:
 
-The easiest way to refer to those classes or modules during boot is to have them defined in a directory which does not belong to the autoload paths. For instance, `lib` is an idiomatic choice. It does not belong to the autoload paths by default, but it does belong to `$LOAD_PATH`. Just perform a regular `require` to load it and done.
-
-As noted above, another option is to have the directory that defines them in the autoload once paths:
-
-```
-# config/application.rb
-module YourApp
-  class Application < Rails::Application
-    config.autoload_once_paths << Rails.root.join('app', 'serializers')
+```ruby
+initializer "turbo.broadcastable" do
+  ActiveSupport.on_load(:active_record) do
+    include Turbo::Broadcastable
   end
 end
 ```
 
-in this option, you can autoload serializers during initialization, because they are managed by the `once` autoloader.
+That adds a module object to the ancestor chain of `ActiveRecord::Base`. Changes in `Turbo::Broadcastable` would have no effect if reloaded, the ancestor chain would still have the original one.
+
+Corollary: Those classes or modules **cannot be reloadable**.
+
+The easiest way to refer to those classes or modules during boot is to have them defined in a directory which does not belong to the autoload paths. For instance, `lib` is an idiomatic choice. It does not belong to the autoload paths by default, but it does belong to `$LOAD_PATH`. Just perform a regular `require` to load it and done.
+
+As noted above, another option is to have the directory that defines them in the autoload once paths and autoload. Please check the [section about config.autoload_once_paths](https://edgeguides.rubyonrails.org/autoloading_and_reloading_constants.html#config-autoload-once-paths) for details.
 
 Eager Loading
 -------------

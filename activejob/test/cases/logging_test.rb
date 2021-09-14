@@ -49,11 +49,9 @@ class LoggingTest < ActiveSupport::TestCase
     ActiveJob::Base.logger = logger
   end
 
-  def subscribed
+  def subscribed(&block)
     [].tap do |events|
-      ActiveSupport::Notifications.subscribed(-> (*args) { events << args }, /enqueue.*\.active_job/) do
-        yield
-      end
+      ActiveSupport::Notifications.subscribed(-> (*args) { events << args }, /enqueue.*\.active_job/, &block)
     end
   end
 
