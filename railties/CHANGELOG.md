@@ -1,3 +1,11 @@
+*   New and upgraded Rails apps no longer generate `config/initializers/application_controller_renderer.rb`
+    or `config/initializers/cookies_serializer.rb`
+
+    The default value for `cookies_serializer` (`:json`) has been moved to `config.load_defaults("7.0")`.
+    The new framework defaults file sets the serializer to `:marshal`.
+
+    *Alex Ghiculescu*
+
 *   New applications get a dependency on the new `debug` gem, replacing `byebug`.
 
     *Xavier Noria*
