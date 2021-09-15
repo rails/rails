@@ -87,7 +87,7 @@ module ActionDispatch
         controller_param = name.underscore
         const_name = controller_param.camelize << "Controller"
         begin
-          ActiveSupport::Dependencies.constantize(const_name)
+          const_name.constantize
         rescue NameError => error
           if error.missing_name == const_name || const_name.start_with?("#{error.missing_name}::")
             raise MissingController.new(error.message, error.name)

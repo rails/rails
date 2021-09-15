@@ -113,6 +113,10 @@ module ActiveRecord
       def schema_dump
         configuration_hash.fetch(:schema_dump, true)
       end
+
+      def database_tasks? # :nodoc:
+        !replica? && !!configuration_hash.fetch(:database_tasks, true)
+      end
     end
   end
 end

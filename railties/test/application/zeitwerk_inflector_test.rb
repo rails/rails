@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
-require "active_support/dependencies/zeitwerk_integration"
+require "abstract_unit"
 
 class ZeitwerkInflectorTest < ActiveSupport::TestCase
-  INFLECTOR = ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector
+  INFLECTOR = Rails::Autoloaders::Inflector
 
   def reset_overrides
     INFLECTOR.instance_variable_get(:@overrides).clear

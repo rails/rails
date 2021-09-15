@@ -38,6 +38,7 @@ module ActionView
         autoload :TimeZoneSelect
         autoload :UrlField
         autoload :WeekField
+        autoload :WeekdaySelect
       end
     end
   end

@@ -16,7 +16,7 @@ module ActionView
     #
     # * <tt>:include_blank</tt> - set to true or a prompt string if the first option element of the select element is a blank. Useful if there is not a default value required for the select element.
     #
-    #     select("post", "category", Post::CATEGORIES, { include_blank: true })
+    #     select(:post, :category, Post::CATEGORIES, { include_blank: true })
     #
     #   could become:
     #
@@ -30,7 +30,7 @@ module ActionView
     #
     #   Example with <tt>@post.person_id => 2</tt>:
     #
-    #     select("post", "person_id", Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: 'None' })
+    #     select(:post, :person_id, Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: "None" })
     #
     #   could become:
     #
@@ -43,7 +43,7 @@ module ActionView
     #
     # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this prepends an option with a generic prompt -- "Please select" -- or the given prompt string.
     #
-    #     select("post", "person_id", Person.all.collect { |p| [ p.name, p.id ] }, { prompt: 'Select Person' })
+    #     select(:post, :person_id, Person.all.collect { |p| [ p.name, p.id ] }, { prompt: "Select Person" })
     #
     #   could become:
     #
@@ -54,10 +54,10 @@ module ActionView
     #       <option value="3">Rafael</option>
     #     </select>
     #
-    # * <tt>:index</tt> - like the other form helpers, +select+ can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, +select+ expects this
+    # * <tt>:index</tt> - like the other form helpers, <tt>select</tt> can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, <tt>select</tt> expects this
     #   option to be in the +html_options+ parameter.
     #
-    #     select("album[]", "genre", %w[rap rock country], {}, { index: nil })
+    #     select("album[]", :genre, %w[ rap rock country ], {}, { index: nil })
     #
     #   becomes:
     #
@@ -69,7 +69,7 @@ module ActionView
     #
     # * <tt>:disabled</tt> - can be a single value or an array of values that will be disabled options in the final output.
     #
-    #     select("post", "category", Post::CATEGORIES, { disabled: 'restricted' })
+    #     select(:post, :category, Post::CATEGORIES, { disabled: "restricted" })
     #
     #   could become:
     #
@@ -90,7 +90,6 @@ module ActionView
     #       <option value="3">Jokes</option>
     #       <option value="4">Poems</option>
     #     </select>
-    #
     module FormOptionsHelper
       # ERB::Util can mask some helpers like textilize. Make sure to include them.
       include TextHelper
@@ -100,24 +99,21 @@ module ActionView
       #
       # There are two possible formats for the +choices+ parameter, corresponding to other helpers' output:
       #
-      # * A flat collection (see +options_for_select+).
+      # * A flat collection (see <tt>options_for_select</tt>).
+      # * A nested collection (see <tt>grouped_options_for_select</tt>).
       #
-      # * A nested collection (see +grouped_options_for_select+).
+      # Example with <tt>@post.person_id => 2</tt>:
       #
-      # For example:
-      #
-      #   select("post", "person_id", Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: true })
+      #   select :post, :person_id, Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: true })
       #
       # would become:
       #
       #   <select name="post[person_id]" id="post_person_id">
       #     <option value="" label=" "></option>
-      #     <option value="1" selected="selected">David</option>
-      #     <option value="2">Eileen</option>
+      #     <option value="1">David</option>
+      #     <option value="2" selected="selected">Eileen</option>
       #     <option value="3">Rafael</option>
       #   </select>
-      #
-      # assuming the associated person has ID 1.
       #
       # This can be used to provide a default set of options in the standard way: before rendering the create form, a
       # new model instance is assigned the default options and bound to @model_name. Usually this model is not saved
@@ -132,9 +128,9 @@ module ActionView
       # A block can be passed to +select+ to customize how the options tags will be rendered. This
       # is useful when the options tag has complex attributes.
       #
-      #   select(report, "campaign_ids") do
+      #   select(report, :campaign_ids) do
       #     available_campaigns.each do |c|
-      #       content_tag(:option, c.name, value: c.id, data: { tags: c.tags.to_json })
+      #       tag.option(c.name, value: c.id, data: { tags: c.tags.to_json })
       #     end
       #   end
       #
@@ -159,7 +155,6 @@ module ActionView
       #
       # In case if you don't want the helper to generate this hidden field you can specify
       # <tt>include_hidden: false</tt> option.
-      #
       def select(object, method, choices = nil, options = {}, html_options = {}, &block)
         Tags::Select.new(object, method, self, choices, options, html_options, &block).render
       end
@@ -183,6 +178,7 @@ module ActionView
       #
       #   class Author < ActiveRecord::Base
       #     has_many :posts
+      #
       #     def name_with_initial
       #       "#{first_name.first}. #{last_name}"
       #     end
@@ -227,19 +223,19 @@ module ActionView
       #
       # Example object structure for use with this method:
       #
+      #   # attributes: id, name
       #   class Continent < ActiveRecord::Base
       #     has_many :countries
-      #     # attribs: id, name
       #   end
       #
+      #   # attributes: id, name, continent_id
       #   class Country < ActiveRecord::Base
       #     belongs_to :continent
-      #     # attribs: id, name, continent_id
       #   end
       #
+      #   # attributes: id, name, country_id
       #   class City < ActiveRecord::Base
       #     belongs_to :country
-      #     # attribs: id, name, country_id
       #   end
       #
       # Sample usage:
@@ -258,7 +254,6 @@ module ActionView
       #       <option value="2">Ireland</option>
       #     </optgroup>
       #   </select>
-      #
       def grouped_collection_select(object, method, collection, group_method, group_label_method, option_key_method, option_value_method, options = {}, html_options = {})
         Tags::GroupedCollectionSelect.new(object, method, self, collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options).render
       end
@@ -282,19 +277,25 @@ module ActionView
       # Finally, this method supports a <tt>:default</tt> option, which selects
       # a default ActiveSupport::TimeZone if the object's time zone is +nil+.
       #
-      #   time_zone_select("user", "time_zone", nil, include_blank: true)
+      #   time_zone_select(:user, :time_zone, nil, include_blank: true)
       #
-      #   time_zone_select("user", "time_zone", nil, default: "Pacific Time (US & Canada)")
+      #   time_zone_select(:user, :time_zone, nil, default: "Pacific Time (US & Canada)")
       #
-      #   time_zone_select("user", 'time_zone', ActiveSupport::TimeZone.us_zones, default: "Pacific Time (US & Canada)")
+      #   time_zone_select(:user, :time_zone, ActiveSupport::TimeZone.us_zones, default: "Pacific Time (US & Canada)")
       #
-      #   time_zone_select("user", 'time_zone', [ ActiveSupport::TimeZone['Alaska'], ActiveSupport::TimeZone['Hawaii'] ])
+      #   time_zone_select(:user, :time_zone, [ ActiveSupport::TimeZone["Alaska"], ActiveSupport::TimeZone["Hawaii"] ])
       #
-      #   time_zone_select("user", 'time_zone', /Australia/)
+      #   time_zone_select(:user, :time_zone, /Australia/)
       #
-      #   time_zone_select("user", "time_zone", ActiveSupport::TimeZone.all.sort, model: ActiveSupport::TimeZone)
+      #   time_zone_select(:user, :time_zone, ActiveSupport::TimeZone.all.sort, model: ActiveSupport::TimeZone)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
         Tags::TimeZoneSelect.new(object, method, self, priority_zones, options, html_options).render
+      end
+
+      # Returns select and option tags for the given object and method, using
+      # <tt>weekday_options_for_select</tt> to generate the list of option tags.
+      def weekday_select(object, method, options = {}, html_options = {}, &block)
+        Tags::WeekdaySelect.new(object, method, self, options, html_options, &block).render
       end
 
       # Accepts a container (hash, array, enumerable, your type) and returns a string of option tags. Given a container
@@ -593,6 +594,22 @@ module ActionView
         zone_options.safe_concat options_for_select(convert_zones[zones], selected)
       end
 
+      # Returns a string of option tags for the days of the week.
+      #
+      # Options:
+      # * <tt>:index_as_value</tt> - Defaults to false, set to true to use the index of the weekday as the value.
+      # * <tt>:day_format</tt> - The I18n key of the array to use for the weekday options.
+      # Defaults to :day_names, set to :abbr_day_names for abbreviations.
+      #
+      # NOTE: Only the option tags are returned, you have to wrap this call in
+      # a regular HTML select tag.
+      def weekday_options_for_select(selected = nil, index_as_value: false, day_format: :day_names)
+        day_names = I18n.translate("date.#{day_format}")
+        day_names = day_names.map.with_index.to_h if index_as_value
+
+        options_for_select(day_names, selected)
+      end
+
       # Returns radio button tags for the collection of existing return values
       # of +method+ for +object+'s class. The value returned from calling
       # +method+ on the instance +object+ will be selected. If calling +method+
@@ -606,11 +623,14 @@ module ActionView
       # retrieve the value/text.
       #
       # Example object structure for use with this method:
+      #
       #   class Post < ActiveRecord::Base
       #     belongs_to :author
       #   end
+      #
       #   class Author < ActiveRecord::Base
       #     has_many :posts
+      #
       #     def name_with_initial
       #       "#{first_name.first}. #{last_name}"
       #     end
@@ -857,6 +877,18 @@ module ActionView
       # Please refer to the documentation of the base helper for details.
       def time_zone_select(method, priority_zones = nil, options = {}, html_options = {})
         @template.time_zone_select(@object_name, method, priority_zones, objectify_options(options), @default_html_options.merge(html_options))
+      end
+
+      # Wraps ActionView::Helpers::FormOptionsHelper#weekday_select for form builders:
+      #
+      #   <%= form_for @user do |f| %>
+      #     <%= f.weekday_select :weekday, include_blank: true %>
+      #     <%= f.submit %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+      def weekday_select(method, options = {}, html_options = {})
+        @template.weekday_select(@object_name, method, objectify_options(options), @default_html_options.merge(html_options))
       end
 
       # Wraps ActionView::Helpers::FormOptionsHelper#collection_check_boxes for form builders:

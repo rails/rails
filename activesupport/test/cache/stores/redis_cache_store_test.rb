@@ -283,6 +283,38 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
   end
 
+  class FailureRaisingFromUnavailableClientTest < StoreTest
+    include FailureRaisingBehavior
+
+    private
+      def emulating_unavailability
+        old_client = Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, UnavailableRedisClient)
+
+        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace,
+                                                        error_handler: -> (method:, returning:, exception:) { raise exception })
+      ensure
+        Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, old_client)
+      end
+  end
+
+  class FailureRaisingFromMaxClientsReachedErrorTest < StoreTest
+    include FailureRaisingBehavior
+
+    private
+      def emulating_unavailability
+        old_client = Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, MaxClientsReachedRedisClient)
+
+        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace,
+                                                        error_handler: -> (method:, returning:, exception:) { raise exception })
+      ensure
+        Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, old_client)
+      end
+  end
+
   class FailureSafetyFromUnavailableClientTest < StoreTest
     include FailureSafetyBehavior
 

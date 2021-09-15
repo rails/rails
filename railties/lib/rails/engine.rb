@@ -570,17 +570,14 @@ module Rails
       $LOAD_PATH.uniq!
     end
 
-    # Set the paths from which Rails will automatically load source files,
-    # and the load_once paths.
-    #
-    # This needs to be an initializer, since it needs to run once
-    # per engine and get the engine as a block parameter.
-    initializer :set_autoload_paths, before: :bootstrap_hook do
-      ActiveSupport::Dependencies.autoload_paths.unshift(*_all_autoload_paths)
-      ActiveSupport::Dependencies.autoload_once_paths.unshift(*_all_autoload_once_paths)
-
-      config.autoload_paths.freeze
+    initializer :set_autoload_once_paths, before: :setup_once_autoloader do
       config.autoload_once_paths.freeze
+      ActiveSupport::Dependencies.autoload_once_paths.unshift(*_all_autoload_once_paths)
+    end
+
+    initializer :set_autoload_paths, before: :setup_main_autoloader do
+      config.autoload_paths.freeze
+      ActiveSupport::Dependencies.autoload_paths.unshift(*_all_autoload_paths)
     end
 
     initializer :set_eager_load_paths, before: :bootstrap_hook do
@@ -694,17 +691,25 @@ module Rails
       end
 
       def _all_autoload_once_paths
-        config.autoload_once_paths
+        config.autoload_once_paths.uniq
       end
 
       def _all_autoload_paths
-        @_all_autoload_paths ||= (config.autoload_paths + config.eager_load_paths + config.autoload_once_paths).uniq
+        @_all_autoload_paths ||= begin
+          autoload_paths  = config.autoload_paths
+          autoload_paths += config.eager_load_paths
+          autoload_paths -= config.autoload_once_paths
+          autoload_paths.uniq
+        end
       end
 
       def _all_load_paths(add_autoload_paths_to_load_path)
         @_all_load_paths ||= begin
-          load_paths  = config.paths.load_paths
-          load_paths += _all_autoload_paths if add_autoload_paths_to_load_path
+          load_paths = config.paths.load_paths
+          if add_autoload_paths_to_load_path
+            load_paths += _all_autoload_paths
+            load_paths += _all_autoload_once_paths
+          end
           load_paths.uniq
         end
       end

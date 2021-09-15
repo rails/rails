@@ -37,7 +37,10 @@ module ActiveRecord
   #
   #    tags = [
   #      :application,
-  #      { custom_tag: -> { context[:controller].controller_name } }
+  #      {
+  #        custom_tag: ->(context) { context[:controller].controller_name },
+  #        custom_value: -> { Custom.value },
+  #      }
   #    ]
   #    ActiveRecord::QueryLogs.tags = tags
   #
@@ -72,6 +75,21 @@ module ActiveRecord
     mattr_accessor :cache_query_log_tags, instance_accessor: false, default: false
     thread_mattr_accessor :cached_comment, instance_accessor: false
 
+    class NullObject # :nodoc:
+      def method_missing(method, *args, &block)
+        NullObject.new
+      end
+
+      def nil?
+        true
+      end
+
+      private
+        def respond_to_missing?(method, include_private = false)
+          true
+        end
+    end
+
     class << self
       # Updates the context used to construct tags in the SQL comment.
       # Resets the cached comment if <tt>cache_query_log_tags</tt> is +true+.
@@ -81,13 +99,15 @@ module ActiveRecord
       end
 
       # Updates the context used to construct tags in the SQL comment during
-      # execution of the provided block. Resets provided values to nil after
-      # the block is executed.
+      # execution of the provided block. Resets the provided keys to their
+      # previous value once the block exits.
       def set_context(**options)
+        keys = options.keys
+        previous_context = keys.zip(context.values_at(*keys)).to_h
         update_context(**options)
         yield if block_given?
       ensure
-        update_context(**options.transform_values! { nil })
+        update_context(**previous_context)
       end
 
       # Temporarily tag any query executed within `&block`. Can be nested.
@@ -98,13 +118,14 @@ module ActiveRecord
         inline_tags.pop
       end
 
-      def add_query_log_tags_to_sql(sql) # :nodoc:
-        comments.each do |comment|
-          unless sql.include?(comment)
-            sql = prepend_comment ? "#{comment} #{sql}" : "#{sql} #{comment}"
-          end
+      def call(sql) # :nodoc:
+        parts = self.comments
+        if prepend_comment
+          parts << sql
+        else
+          parts.unshift(sql)
         end
-        sql
+        parts.join(" ")
       end
 
       private
@@ -139,11 +160,15 @@ module ActiveRecord
 
         # Return the set of active inline tags from +with_tag+.
         def inline_tags
-          context[:inline_tags] ||= []
+          if context[:inline_tags].nil?
+            context[:inline_tags] = []
+          else
+            context[:inline_tags]
+          end
         end
 
         def context
-          Thread.current[:active_record_query_log_tags_context] ||= {}
+          Thread.current[:active_record_query_log_tags_context] ||= Hash.new { NullObject.new }
         end
 
         def escape_sql_comment(content)
@@ -152,11 +177,19 @@ module ActiveRecord
 
         def tag_content
           tags.flat_map { |i| [*i] }.filter_map do |tag|
-            key, value_input = tag
-            val = case value_input
-                  when nil then instance_exec(&taggings[key]) if taggings.has_key? key
-                  when Proc then instance_exec(&value_input)
-                  else value_input
+            key, handler = tag
+            handler ||= taggings[key]
+
+            val = if handler.nil?
+              context[key]
+            elsif handler.respond_to?(:call)
+              if handler.arity == 0
+                handler.call
+              else
+                handler.call(context)
+              end
+            else
+              handler
             end
             "#{key}:#{val}" unless val.nil?
           end.join(",")
@@ -166,22 +199,5 @@ module ActiveRecord
           inline_tags.join
         end
     end
-
-    module ExecutionMethods
-      def execute(sql, *args, **kwargs)
-        super(ActiveRecord::QueryLogs.add_query_log_tags_to_sql(sql), *args, **kwargs)
-      end
-
-      def exec_query(sql, *args, **kwargs)
-        super(ActiveRecord::QueryLogs.add_query_log_tags_to_sql(sql), *args, **kwargs)
-      end
-    end
   end
-end
-
-ActiveSupport.on_load(:active_record) do
-  ActiveRecord::QueryLogs.taggings.merge! \
-    socket:   -> { ActiveRecord::Base.connection_db_config.socket },
-    db_host:  -> { ActiveRecord::Base.connection_db_config.host },
-    database: -> { ActiveRecord::Base.connection_db_config.database }
 end

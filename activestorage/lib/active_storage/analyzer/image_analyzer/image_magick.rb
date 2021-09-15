@@ -12,7 +12,10 @@ module ActiveStorage
       def read_image
         download_blob_to_tempfile do |file|
           require "mini_magick"
-          image = MiniMagick::Image.new(file.path)
+
+          image = instrument("mini_magick") do
+            MiniMagick::Image.new(file.path)
+          end
 
           if image.valid?
             yield image

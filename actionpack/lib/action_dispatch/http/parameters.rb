@@ -17,8 +17,8 @@ module ActionDispatch
       # Raised when raw data from the request cannot be parsed by the parser
       # defined for request's content MIME type.
       class ParseError < StandardError
-        def initialize
-          super($!.message)
+        def initialize(message = $!.message)
+          super(message)
         end
       end
 
@@ -93,7 +93,7 @@ module ActionDispatch
             strategy.call(raw_post)
           rescue # JSON or Ruby code block errors.
             log_parse_error_once
-            raise ParseError
+            raise ParseError, "Error occurred while parsing request parameters"
           end
         end
 

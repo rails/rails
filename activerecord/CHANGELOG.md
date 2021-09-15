@@ -6,6 +6,123 @@
     Creating scope :my_scope_name. Overwriting existing method "MyClass.my_scope_name" when overwriting existing scopes
     ```
 
+     *Weston Ganger*
+
+*   Use full precision for `updated_at` in `insert_all`/`upsert_all`
+
+    `CURRENT_TIMESTAMP` provides differing precision depending on the database,
+    and not all databases support explicitly specifying additional precision.
+
+    Instead, we delegate to the new `connection.high_precision_current_timestamp`
+    for the SQL to produce a high precision timestamp on the current database.
+
+    Fixes #42992
+
+    *Sam Bostock*
+
+* Add ssl support for postgresql database tasks
+
+    Add `PGSSLMODE`, `PGSSLCERT`, `PGSSLKEY` and `PGSSLROOTCERT` to pg_env from database config
+    when running postgresql database tasks.
+
+    ```yaml
+    # config/database.yml
+
+    production:
+      sslmode: verify-full
+      sslcert: client.crt
+      sslkey: client.key
+      sslrootcert: ca.crt
+    ```
+
+    Environment variables
+
+    ```
+    PGSSLMODE=verify-full
+    PGSSLCERT=client.crt
+    PGSSLKEY=client.key
+    PGSSLROOTCERT=ca.crt
+    ```
+
+    Fixes #42994
+
+    *Michael Bayucot*
+
+*   Avoid scoping update callbacks in `ActiveRecord::Relation#update!`.
+
+    Making it consistent with how scoping is applied only to the query in `ActiveRecord::Relation#update`
+    and not also to the callbacks from the update itself.
+
+    *Dylan Thacker-Smith*
+
+*   Fix 2 cases that inferred polymorphic class from the association's `foreign_type`
+    using `String#constantize` instead of the model's `polymorphic_class_for`.
+
+    When updating a polymorphic association, the old `foreign_type` was not inferred correctly when:
+    1. `touch`ing the previously associated record
+    2. updating the previously associated record's `counter_cache`
+
+    *Jimmy Bourassa*
+
+*   Add config option for ignoring tables when dumping the schema cache.
+
+    Applications can now be configured to ignore certain tables when dumping the schema cache.
+
+    The configuration option can table an array of tables:
+
+    ```ruby
+    config.active_record.schema_cache_ignored_tables = ["ignored_table", "another_ignored_table"]
+    ```
+
+    Or a regex:
+
+    ```ruby
+    config.active_record.schema_cache_ignored_tables = [/^_/]
+    ```
+
+    *Eileen M. Uchitelle*
+
+*   Make schema cache methods return consistent results.
+
+    Previously the schema cache methods `primary_keys`, `columns`, `columns_hash`, and `indexes`
+    would behave differently than one another when a table didn't exist and differently across
+    database adapters. This change unifies the behavior so each method behaves the same regardless
+    of adapter.
+
+    The behavior now is:
+
+    `columns`: (unchanged) raises a db error if the table does not exist
+    `columns_hash`: (unchanged) raises a db error if the table does not exist
+    `primary_keys`: (unchanged) returns `nil` if the table does not exist
+    `indexes`: (changed for mysql2) returns `[]` if the table does not exist
+
+    *Eileen M. Uchitelle*
+
+*   Reestablish connection to previous database after after running `db:schema:load:name`
+
+    After running `db:schema:load:name` the previous connection is restored.
+
+    *Jacopo Beschi*
+
+*   Add database config option `database_tasks`
+
+    If you would like to connect to an external database without any database
+    management tasks such as schema management, migrations, seeds, etc. you can set
+    the per database config option `database_tasks: false`
+
+    ```yaml
+    # config/database.yml
+
+    production:
+      primary:
+        database: my_database
+        adapter: mysql2
+      animals:
+        database: my_animals_database
+        adapter: mysql2
+        database_tasks: false
+    ```
+
     *Weston Ganger*
 
 *   Fix `ActiveRecord::InternalMetadata` to not be broken by `config.active_record.record_timestamps = false`

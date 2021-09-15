@@ -196,14 +196,7 @@ module ActiveRecord
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil, async: false)
-        materialize_transactions
-        mark_transaction_written_if_write(sql)
-
-        log(sql, name, async: async) do
-          ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-            @connection.query(sql)
-          end
-        end
+        raw_execute(sql, name, async)
       end
 
       # Mysql2Adapter doesn't have to free a result after using it, but we use this method
@@ -627,6 +620,17 @@ module ActiveRecord
       private
         def type_map
           emulate_booleans ? TYPE_MAP_WITH_BOOLEAN : TYPE_MAP
+        end
+
+        def raw_execute(sql, name, async: false)
+          materialize_transactions
+          mark_transaction_written_if_write(sql)
+
+          log(sql, name, async: async) do
+            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+              @connection.query(sql)
+            end
+          end
         end
 
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html

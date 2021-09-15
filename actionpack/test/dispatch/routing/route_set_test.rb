@@ -36,7 +36,7 @@ module ActionDispatch
 
         assert_equal "/foo", url_helpers.foo_path
         assert_raises NoMethodError do
-          assert_equal "/bar", url_helpers.bar_path
+          url_helpers.bar_path
         end
 
         draw do
@@ -77,7 +77,7 @@ module ActionDispatch
 
         assert_equal "/foo", url_helpers.foo_path
         assert_raises NoMethodError do
-          assert_equal "/bar", url_helpers.bar_path
+          url_helpers.bar_path
         end
       end
 
@@ -95,7 +95,7 @@ module ActionDispatch
         end
 
         assert_raises ArgumentError do
-          assert_equal "http://example.com/foo", url_helpers.foo_url(only_path: false)
+          url_helpers.foo_url(only_path: false)
         end
       end
 

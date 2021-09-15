@@ -193,6 +193,16 @@ module ActionDispatch
         end
       end
 
+      def test_raising_error_when_invalid_on_option_is_given
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        error = assert_raise ArgumentError do
+          mapper.get "/foo", on: :invalid_option
+        end
+
+        assert_equal "Unknown scope :invalid_option given to :on", error.message
+      end
+
       def test_scope_does_not_destructively_mutate_default_options
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset

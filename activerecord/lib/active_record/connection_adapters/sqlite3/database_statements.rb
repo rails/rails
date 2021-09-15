@@ -19,6 +19,7 @@ module ActiveRecord
         end
 
         def execute(sql, name = nil) # :nodoc:
+          sql = transform_query(sql)
           check_if_write_query(sql)
 
           materialize_transactions
@@ -32,6 +33,7 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = nil, binds = [], prepare: false, async: false) # :nodoc:
+          sql = transform_query(sql)
           check_if_write_query(sql)
 
           materialize_transactions
@@ -95,6 +97,15 @@ module ActiveRecord
           reset_read_uncommitted
         end
 
+        # https://stackoverflow.com/questions/17574784
+        # https://www.sqlite.org/lang_datefunc.html
+        HIGH_PRECISION_CURRENT_TIMESTAMP = Arel.sql("STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')").freeze # :nodoc:
+        private_constant :HIGH_PRECISION_CURRENT_TIMESTAMP
+
+        def high_precision_current_timestamp
+          HIGH_PRECISION_CURRENT_TIMESTAMP
+        end
+
         private
           def reset_read_uncommitted
             read_uncommitted = Thread.current.thread_variable_get("read_uncommitted")
@@ -104,6 +115,7 @@ module ActiveRecord
           end
 
           def execute_batch(statements, name = nil)
+            statements = statements.map { |sql| transform_query(sql) }
             sql = combine_multi_statements(statements)
 
             check_if_write_query(sql)

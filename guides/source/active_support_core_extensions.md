@@ -1571,17 +1571,16 @@ and understands strings that start with lowercase:
 
 `underscore` accepts no argument though.
 
-Rails class and module autoloading uses `underscore` to infer the relative path without extension of a file that would define a given missing constant:
+Rails uses `underscore` to get a lowercased name for controller classes:
 
 ```ruby
-# active_support/dependencies.rb
-def load_missing_constant(from_mod, const_name)
-  # ...
-  qualified_name = qualified_name_for from_mod, const_name
-  path_suffix = qualified_name.underscore
-  # ...
+# actionpack/lib/abstract_controller/base.rb
+def controller_path
+  @controller_path ||= name.delete_suffix("Controller").underscore
 end
 ```
+
+For example, that value is the one you get in `params[:controller]`.
 
 INFO: As a rule of thumb you can think of `underscore` as the inverse of `camelize`, though there are cases where that does not hold. For example, `"SSLError".underscore.camelize` gives back `"SslError"`.
 

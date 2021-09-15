@@ -11,6 +11,7 @@ module ActionController
   class Railtie < Rails::Railtie # :nodoc:
     config.action_controller = ActiveSupport::OrderedOptions.new
     config.action_controller.raise_on_open_redirects = false
+    config.action_controller.log_query_tags_around_actions = true
 
     config.eager_load_namespaces << ActionController
 
@@ -26,14 +27,19 @@ module ActionController
       options = app.config.action_controller
 
       ActiveSupport.on_load(:action_controller, run_once: true) do
-        ActionController::Parameters.permit_all_parameters = options.delete(:permit_all_parameters) { false }
+        ActionController::Parameters.permit_all_parameters = options.permit_all_parameters || false
         if app.config.action_controller[:always_permitted_parameters]
           ActionController::Parameters.always_permitted_parameters =
-            app.config.action_controller.delete(:always_permitted_parameters)
+            app.config.action_controller.always_permitted_parameters
         end
-        ActionController::Parameters.action_on_unpermitted_parameters = options.delete(:action_on_unpermitted_parameters) do
-          (Rails.env.test? || Rails.env.development?) ? :log : false
+
+        action_on_unpermitted_parameters = options.action_on_unpermitted_parameters
+
+        if action_on_unpermitted_parameters.nil?
+          action_on_unpermitted_parameters = (Rails.env.test? || Rails.env.development?) ? :log : false
         end
+
+        ActionController::Parameters.action_on_unpermitted_parameters = action_on_unpermitted_parameters
       end
     end
 
@@ -55,6 +61,14 @@ module ActionController
         include app.routes.mounted_helpers
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
         extend ::ActionController::Railties::Helpers
+
+        # Configs used in other initializers
+        options = options.except(
+          :log_query_tags_around_actions,
+          :permit_all_parameters,
+          :action_on_unpermitted_parameters,
+          :always_permitted_parameters
+        )
 
         options.each do |k, v|
           k = "#{k}="
@@ -88,31 +102,23 @@ module ActionController
     end
 
     initializer "action_controller.query_log_tags" do |app|
-      ActiveSupport.on_load(:action_controller_base) do
-        singleton_class.attr_accessor :log_query_tags_around_actions
-        self.log_query_tags_around_actions = true
-      end
+      query_logs_tags_enabled = app.config.respond_to?(:active_record) &&
+        app.config.active_record.query_log_tags_enabled &&
+        app.config.action_controller.log_query_tags_around_actions
 
-      ActiveSupport.on_load(:active_record) do
-        if app.config.active_record.query_log_tags_enabled && app.config.action_controller.log_query_tags_around_actions != false
-          ActiveRecord::QueryLogs.taggings.merge! \
-            controller:            -> { context[:controller]&.controller_name },
-            action:                -> { context[:controller]&.action_name },
-            namespaced_controller: -> { context[:controller]&.class&.name }
+      if query_logs_tags_enabled
+        app.config.active_record.query_log_tags += [:controller, :action]
 
-          ActiveRecord::QueryLogs.tags << :controller << :action
+        ActiveSupport.on_load(:action_controller) do
+          include ActionController::QueryTags
+        end
 
-          context_extension = ->(controller) do
-            around_action :expose_controller_to_query_logs
-
-            private
-            def expose_controller_to_query_logs(&block)
-              ActiveRecord::QueryLogs.set_context(controller: self, &block)
-            end
-          end
-
-          ActionController::Base.class_eval(&context_extension)
-          ActionController::API.class_eval(&context_extension)
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::QueryLogs.taggings.merge!(
+            controller:            ->(context) { context[:controller].controller_name },
+            action:                ->(context) { context[:controller].action_name },
+            namespaced_controller: ->(context) { context[:controller].class.name }
+          )
         end
       end
     end

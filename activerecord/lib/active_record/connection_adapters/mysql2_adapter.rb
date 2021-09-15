@@ -89,11 +89,9 @@ module ActiveRecord
 
       # HELPER METHODS ===========================================
 
-      def each_hash(result) # :nodoc:
+      def each_hash(result, &block) # :nodoc:
         if block_given?
-          result.each(as: :hash, symbolize_keys: true) do |row|
-            yield row
-          end
+          result.each(as: :hash, symbolize_keys: true, &block)
         else
           to_enum(:each_hash, result)
         end
