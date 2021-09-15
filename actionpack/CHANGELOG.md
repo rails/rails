@@ -1,3 +1,8 @@
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
+
+*   No changes.
+
+
 ## Rails 7.0.0.alpha1 (September 15, 2021) ##
 
 *   Use a static error message when raising `ActionDispatch::Http::Parameters::ParseError`

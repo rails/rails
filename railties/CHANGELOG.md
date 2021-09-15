@@ -1,3 +1,9 @@
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
+
+*   Fix activestorage dependency in the npm package.
+
+    *Rafael Mendonça França*
+
 ## Rails 7.0.0.alpha1 (September 15, 2021) ##
 
 *   New and upgraded Rails apps no longer generate `config/initializers/application_controller_renderer.rb`

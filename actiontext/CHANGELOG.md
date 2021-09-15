@@ -1,3 +1,8 @@
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
+
+*   No changes.
+
+
 ## Rails 7.0.0.alpha1 (September 15, 2021) ##
 
 *   Make the Action Text + Trix JavaScript and CSS available through the asset pipeline.
