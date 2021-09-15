@@ -414,6 +414,10 @@ Allows thread safe code reloading. Disabled if `config.allow_concurrency` is `fa
 
 Serves as a basic memory backed cache. This cache is not thread safe and is intended only for serving as a temporary memory cache for a single thread.
 
+#### `Rack::Runtime`
+
+Sets an `X-Runtime` header, containing the time (in seconds) taken to execute the request.
+
 #### `Rails::Rack::Logger`
 
 Notifies the logs that the request has begun. After request is complete, flushes all the logs.
@@ -1503,7 +1507,7 @@ The image analyzers can extract width and height of an image blob; the video ana
 
 #### `config.active_storage.previewers`
 
-Accepts an array of classes indicating the image previewers available in Active Storage blobs. 
+Accepts an array of classes indicating the image previewers available in Active Storage blobs.
 By default, this is defined as:
 
 ```ruby
@@ -2212,7 +2216,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `initialize_logger`: Initializes the logger (an `ActiveSupport::Logger` object) for the application and makes it accessible at `Rails.logger`, provided that no initializer inserted before this point has defined `Rails.logger`.
 
-* `initialize_cache`: If `Rails.cache` isn't set yet, initializes the cache by referencing the value in `config.cache_store` and stores the outcome as `Rails.cache`. If this object responds to the `middleware` method, its middleware is inserted after `ActionDispatch::Executor` in the middleware stack.
+* `initialize_cache`: If `Rails.cache` isn't set yet, initializes the cache by referencing the value in `config.cache_store` and stores the outcome as `Rails.cache`. If this object responds to the `middleware` method, its middleware is inserted before `Rack::Runtime` in the middleware stack.
 
 * `set_clear_dependencies_hook`: This initializer - which runs only if `cache_classes` is set to `false` - uses `ActionDispatch::Callbacks.after` to remove the constants which have been referenced during the request from the object space so that they will be reloaded during the following request.
 

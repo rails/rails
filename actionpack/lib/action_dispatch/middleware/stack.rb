@@ -5,16 +5,6 @@ require "active_support/dependencies"
 
 module ActionDispatch
   class MiddlewareStack
-    class FakeRuntime # :nodoc:
-      def initialize(app)
-        @app = app
-      end
-
-      def call(env)
-        @app.call(env)
-      end
-    end
-
     class Middleware
       attr_reader :args, :block, :klass
 
@@ -79,7 +69,6 @@ module ActionDispatch
 
     def initialize(*args)
       @middlewares = []
-      @rack_runtime_deprecated = true
       yield(self) if block_given?
     end
 
@@ -181,31 +170,13 @@ module ActionDispatch
 
     private
       def assert_index(index, where)
-        i = index.is_a?(Integer) ? index : index_of(index)
+        i = index.is_a?(Integer) ? index : middlewares.index { |m| m.klass == index }
         raise "No such middleware to insert #{where}: #{index.inspect}" unless i
         i
       end
 
       def build_middleware(klass, args, block)
-        @rack_runtime_deprecated = false if klass == Rack::Runtime
-
         Middleware.new(klass, args, block)
-      end
-
-      def index_of(klass)
-        raise "ActionDispatch::MiddlewareStack::FakeRuntime can not be referenced in middleware operations" if klass == FakeRuntime
-
-        if klass == Rack::Runtime && @rack_runtime_deprecated
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Rack::Runtime is removed from the default middleware stack in Rails
-            and referencing it in middleware operations without adding it back
-            is deprecated and will throw an error in Rails 7.1
-          MSG
-        end
-
-        middlewares.index do |m|
-          m.name == klass.name || (@rack_runtime_deprecated && m.klass == FakeRuntime && klass == Rack::Runtime)
-        end
       end
   end
 end
