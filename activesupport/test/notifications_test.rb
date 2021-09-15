@@ -140,6 +140,64 @@ module Notifications
     end
   end
 
+  class InterleavedTimedSubscriberTest < TestCase
+    def test_interleaved_subscribe
+      event_name = "foo"
+      actual_times = []
+
+      ActiveSupport::Notifications.subscribe(event_name) do |name, started, finished, unique_id, data|
+        actual_times << [started, finished]
+      end
+
+      times = (1..4).map { |s| Time.new(2020, 1, 1) + s }
+
+      # note that a stack-based approach would expect start1, start2, start2, start1
+      instrumenter = ActiveSupport::Notifications.instrumenter
+      travel_to times[0]
+      start1 = instrumenter.start(event_name, {})
+      travel_to times[1]
+      start2 = instrumenter.start(event_name, {})
+      travel_to times[2]
+      instrumenter.finish_with_state(start1, event_name, {})
+      travel_to times[3]
+      instrumenter.finish_with_state(start2, event_name, {})
+
+      assert_equal [
+        # from when start1 was returned, to when its state passed to finish
+        [times[0], times[2]],
+        # from when start2 was returned, to when its state passed to finish
+        [times[1], times[3]],
+      ], actual_times
+    end
+
+    def test_interleaved_monotonic_subscribe
+      event_name = "foo"
+      actual_times = []
+
+      ActiveSupport::Notifications.monotonic_subscribe(event_name) do |name, started, finished, unique_id, data|
+        actual_times << [started, finished]
+      end
+
+      times = (1..4).to_a
+      times_left = times.dup
+      Concurrent.stub(:monotonic_time, proc { times_left.shift }) do # every time we ask, it will increment by 1 second
+        # note that a stack-based approach would expect start1, start2, start2, start1
+        instrumenter = ActiveSupport::Notifications.instrumenter
+        start1 = instrumenter.start(event_name, {})
+        start2 = instrumenter.start(event_name, {})
+        instrumenter.finish_with_state(start1, event_name, {})
+        instrumenter.finish_with_state(start2, event_name, {})
+      end
+
+      assert_equal [
+        # from when start1 was returned, to when its state passed to finish
+        [times[0], times[2]],
+        # from when start2 was returned, to when its state passed to finish
+        [times[1], times[3]],
+      ], actual_times
+    end
+  end
+
   class SubscribedTest < TestCase
     def test_subscribed
       name     = "foo"

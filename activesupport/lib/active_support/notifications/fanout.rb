@@ -59,11 +59,33 @@ module ActiveSupport
       end
 
       def start(name, id, payload)
-        listeners_for(name).each { |s| s.start(name, id, payload) }
+        # for each listener, we want to remember the listener and also the state returned by #start.
+        # this allows us to call the same listeners in finish, with the same state they previously returned.
+        state = listeners_for(name).map { |s| [s, s.start(name, id, payload)] }
+
+        # for backwards compatibility with callers that use Instrumenter's start/finish methods rather than
+        # start/finish_with_state, store the results in a stack like individual events did previously.
+        fanoutstack = Thread.current[:_fanoutstack] ||= []
+        fanoutstack.push state
+
+        state
       end
 
-      def finish(name, id, payload, listeners = listeners_for(name))
-        listeners.each { |s| s.finish(name, id, payload) }
+      def finish(name, id, payload, listeners = nil)
+        # always extract events from the thread-based stack created above, even if we are provided with state
+        # (when we are called via finish_with_state and `listeners` is set)
+        fanoutstack = Thread.current[:_fanoutstack]
+        compat_stack = fanoutstack.pop # must be popped even if unused
+        listeners = compat_stack if listeners.nil?
+
+        # as an absolute fallback, if start wasn't called, match previous behavior and send to fresh listeners
+        listeners = listeners_for(name) if listeners.nil?
+
+        listeners.each do |listener, state|
+          # `state` may be nil if state was not propegated correctly, e.g. if the caller of Instrumenter uses
+          # start/finish rather than start/finish_with_state
+          listener.finish_with_state(state, name, id, payload)
+        end
       end
 
       def publish(name, *args)
@@ -95,7 +117,7 @@ module ActiveSupport
         def self.new(pattern, listener, monotonic)
           subscriber_class = monotonic ? MonotonicTimed : Timed
 
-          if listener.respond_to?(:start) && listener.respond_to?(:finish)
+          if listener.respond_to?(:start) && (listener.respond_to?(:finish) || listener.respond_to?(:finish_with_state))
             subscriber_class = Evented
           else
             # Doing this to detect a single argument block or callable
@@ -169,8 +191,12 @@ module ActiveSupport
             @delegate.start name, id, payload
           end
 
-          def finish(name, id, payload)
-            @delegate.finish name, id, payload
+          def finish_with_state(state, name, id, payload)
+            if @delegate.respond_to?(:finish_with_state)
+              @delegate.finish_with_state state, name, id, payload
+            else
+              @delegate.finish name, id, payload
+            end
           end
 
           def subscribed_to?(name)
@@ -192,13 +218,12 @@ module ActiveSupport
           end
 
           def start(name, id, payload)
-            timestack = Thread.current[:_timestack] ||= []
-            timestack.push Time.now
+            # save the current time as state, which will be provided to finish_with_state
+            Time.now
           end
 
-          def finish(name, id, payload)
-            timestack = Thread.current[:_timestack]
-            started = timestack.pop
+          def finish_with_state(state, name, id, payload)
+            started = state
             @delegate.call(name, started, Time.now, id, payload)
           end
         end
@@ -209,28 +234,26 @@ module ActiveSupport
           end
 
           def start(name, id, payload)
-            timestack = Thread.current[:_timestack_monotonic] ||= []
-            timestack.push Concurrent.monotonic_time
+            # save the current time as state, which will be provided to finish_with_state
+            Concurrent.monotonic_time
           end
 
-          def finish(name, id, payload)
-            timestack = Thread.current[:_timestack_monotonic]
-            started = timestack.pop
+          def finish_with_state(state, name, id, payload)
+            started = state
             @delegate.call(name, started, Concurrent.monotonic_time, id, payload)
           end
         end
 
         class EventObject < Evented
           def start(name, id, payload)
-            stack = Thread.current[:_event_stack] ||= []
             event = build_event name, id, payload
             event.start!
-            stack.push event
+            # save the event as the state so we can finish! it below
+            event
           end
 
-          def finish(name, id, payload)
-            stack = Thread.current[:_event_stack]
-            event = stack.pop
+          def finish_with_state(state, name, id, payload)
+            event = state
             event.payload = payload
             event.finish!
             @delegate.call event
@@ -255,8 +278,8 @@ module ActiveSupport
             @delegate.start name, id, payload
           end
 
-          def finish(name, id, payload)
-            @delegate.finish name, id, payload
+          def finish_with_state(state, name, id, payload)
+            @delegate.finish_with_state state, name, id, payload
           end
 
           def publish(name, *args)

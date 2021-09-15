@@ -14,7 +14,7 @@ module ActiveSupport
           @finishes = []
         end
 
-        def start(*args);  @starts << args; end
+        def start(*args);  @starts << args; "state #{@starts.size}"; end
         def finish(*args); @finishes << args; end
       end
 
@@ -60,6 +60,14 @@ module ActiveSupport
         instrumenter.finish("foo", payload)
         assert_equal [["foo", instrumenter.id, payload]], notifier.finishes
         assert_empty notifier.starts
+      end
+
+      def test_finish_with_state
+        state = instrumenter.start("foo", payload)
+        instrumenter.finish_with_state(state, "foo", payload)
+
+        assert_equal [["foo", instrumenter.id, payload]], notifier.starts
+        assert_equal [["foo", instrumenter.id, payload, state]], notifier.finishes
       end
 
       def test_record
