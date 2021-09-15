@@ -1,3 +1,5 @@
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
 *   Use a static error message when raising `ActionDispatch::Http::Parameters::ParseError`
     to avoid inadvertently logging the HTTP request body at the `fatal` level when it contains
     malformed JSON.

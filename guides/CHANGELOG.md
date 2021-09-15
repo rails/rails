@@ -1,3 +1,5 @@
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
 *   The autoloading guide for `zeitwerk` mode has been revised.
 
     *Xavier Noria*

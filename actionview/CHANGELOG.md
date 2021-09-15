@@ -1,3 +1,5 @@
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
 *   Improves the performance of ActionView::Helpers::NumberHelper formatters by avoiding the use of
     exceptions as flow control.
 

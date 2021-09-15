@@ -1,3 +1,5 @@
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
 *   Remove warning when overwriting existing scopes
 
     Removes the following unnecessary warning message that appeared when overwriting existing scopes

@@ -1,3 +1,5 @@
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
 *   Compile ESM package that can be used directly in the browser as actioncable.esm.js.
 
     *DHH*

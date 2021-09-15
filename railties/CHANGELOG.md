@@ -1,3 +1,5 @@
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
 *   New and upgraded Rails apps no longer generate `config/initializers/application_controller_renderer.rb`
     or `config/initializers/cookies_serializer.rb`
 

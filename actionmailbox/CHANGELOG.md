@@ -1,3 +1,5 @@
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
 *   Add `attachments` to the list of permitted parameters for inbound emails conductor.
 
     When using the conductor to test inbound emails with attachments, this prevents an
