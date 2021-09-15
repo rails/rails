@@ -170,13 +170,19 @@ module ActionDispatch
 
     private
       def assert_index(index, where)
-        i = index.is_a?(Integer) ? index : middlewares.index { |m| m.klass == index }
+        i = index.is_a?(Integer) ? index : index_of(index)
         raise "No such middleware to insert #{where}: #{index.inspect}" unless i
         i
       end
 
       def build_middleware(klass, args, block)
         Middleware.new(klass, args, block)
+      end
+
+      def index_of(klass)
+        middlewares.index do |m|
+          m.name == klass.name
+        end
       end
   end
 end
