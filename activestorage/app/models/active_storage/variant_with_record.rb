@@ -4,6 +4,7 @@
 # ActiveStorage::VariantRecord. This is only used if `ActiveStorage.track_variants` is enabled.
 class ActiveStorage::VariantWithRecord
   attr_reader :blob, :variation
+  delegate :service, to: :blob
 
   def initialize(blob, variation)
     @blob, @variation = blob, ActiveStorage::Variation.wrap(variation)
@@ -27,9 +28,6 @@ class ActiveStorage::VariantWithRecord
   end
 
   delegate :key, :url, :download, to: :image, allow_nil: true
-
-  alias_method :service_url, :url
-  deprecate service_url: :url
 
   private
     def transform_blob

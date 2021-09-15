@@ -99,6 +99,40 @@ module ActiveRecord
       end
 
       unless in_memory_db?
+        def test_not_setting_writing_role_while_using_another_named_role_raises
+          old_handler = ActiveRecord::Base.connection_handler
+          assert_deprecated do
+            ActiveRecord::Base.connection_handlers = { writing: ConnectionHandler.new }
+          end
+          ActiveRecord::Base.connection_handler = ActiveRecord::Base.connection_handlers[:writing]
+          ActiveRecord::Base.establish_connection :arunit
+
+          ActiveRecord::Base.connects_to(shards: { default: { all: :arunit }, one: { all: :arunit } })
+
+          assert_raises(ArgumentError) { setup_shared_connection_pool }
+        ensure
+          ActiveRecord::Base.connection_handler = old_handler
+          ActiveRecord::Base.establish_connection :arunit
+        end
+
+        def test_setting_writing_role_while_using_another_named_role_does_not_raise
+          old_role, ActiveRecord.writing_role = ActiveRecord.writing_role, :all
+          old_handler = ActiveRecord::Base.connection_handler
+          assert_deprecated do
+            ActiveRecord::Base.connection_handlers = { all: ConnectionHandler.new }
+          end
+          ActiveRecord::Base.connection_handler = ActiveRecord::Base.connection_handlers[:all]
+          ActiveRecord::Base.establish_connection :arunit
+
+          ActiveRecord::Base.connects_to(shards: { default: { all: :arunit }, one: { all: :arunit } })
+
+          assert_nothing_raised { setup_shared_connection_pool }
+        ensure
+          ActiveRecord.writing_role = old_role
+          ActiveRecord::Base.connection_handler = old_handler
+          ActiveRecord::Base.establish_connection :arunit
+        end
+
         def test_establish_connection_using_3_levels_config
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
 
@@ -146,7 +180,7 @@ module ActiveRecord
             assert_equal :reading, ActiveRecord::Base.current_role
             assert ActiveRecord::Base.connected_to?(role: :reading)
             assert_not ActiveRecord::Base.connected_to?(role: :writing)
-            assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
+            assert_predicate ActiveRecord::Base.connection, :preventing_writes?
           end
 
           ActiveRecord::Base.connected_to(role: :writing) do

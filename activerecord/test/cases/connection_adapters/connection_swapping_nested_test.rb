@@ -391,23 +391,23 @@ module ActiveRecord
 
             # Switch only primary to reading
             PrimaryBase.connected_to(role: :reading) do
-              assert_not_predicate PrimaryBase.connection, :preventing_writes?
+              assert_predicate PrimaryBase.connection, :preventing_writes?
               assert_not_predicate SecondaryBase.connection, :preventing_writes?
 
               # Switch global to reading
               ActiveRecord::Base.connected_to(role: :reading) do
-                assert_not_predicate PrimaryBase.connection, :preventing_writes?
-                assert_not_predicate SecondaryBase.connection, :preventing_writes?
+                assert_predicate PrimaryBase.connection, :preventing_writes?
+                assert_predicate SecondaryBase.connection, :preventing_writes?
 
                 # Switch only secondary to writing
                 SecondaryBase.connected_to(role: :writing) do
-                  assert_not_predicate PrimaryBase.connection, :preventing_writes?
+                  assert_predicate PrimaryBase.connection, :preventing_writes?
                   assert_not_predicate SecondaryBase.connection, :preventing_writes?
                 end
 
                 # Ensure restored to global reading
-                assert_not_predicate PrimaryBase.connection, :preventing_writes?
-                assert_not_predicate SecondaryBase.connection, :preventing_writes?
+                assert_predicate PrimaryBase.connection, :preventing_writes?
+                assert_predicate SecondaryBase.connection, :preventing_writes?
               end
 
               # Switch everything to writing
@@ -416,7 +416,7 @@ module ActiveRecord
                 assert_not_predicate SecondaryBase.connection, :preventing_writes?
               end
 
-              assert_not_predicate PrimaryBase.connection, :preventing_writes?
+              assert_predicate PrimaryBase.connection, :preventing_writes?
               assert_not_predicate SecondaryBase.connection, :preventing_writes?
             end
 
@@ -444,7 +444,7 @@ module ActiveRecord
             assert_not_predicate ApplicationRecord.connection, :preventing_writes?
 
             ApplicationRecord.connected_to(role: :reading) do
-              assert_not_predicate ApplicationRecord.connection, :preventing_writes?
+              assert_predicate ApplicationRecord.connection, :preventing_writes?
             end
           end
         ensure

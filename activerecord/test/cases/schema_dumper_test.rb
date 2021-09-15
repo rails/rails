@@ -814,6 +814,7 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
       t.datetime :datetime_with_default, default: "2014-06-05 07:17:04"
       t.time     :time_with_default,     default: "07:17:04"
       t.decimal  :decimal_with_default,  default: "1234567890.0123456789", precision: 20, scale: 10
+      t.text :text_with_default, default: "John' Doe" if supports_text_column_with_default?
     end
 
     if current_adapter?(:PostgreSQLAdapter)
@@ -837,18 +838,24 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
 
     assert_match %r{t\.string\s+"string_with_default",.*?default: "Hello!"}, output
     assert_match %r{t\.date\s+"date_with_default",\s+default: "2014-06-05"}, output
-    assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: "2014-06-05 07:17:04"}, output
+    assert_match %r{t\.datetime\s+"datetime_with_default",\s+precision: 6,\s+default: "2014-06-05 07:17:04"}, output
     assert_match %r{t\.time\s+"time_with_default",\s+default: "2000-01-01 07:17:04"}, output
     assert_match %r{t\.decimal\s+"decimal_with_default",\s+precision: 20,\s+scale: 10,\s+default: "1234567890.0123456789"}, output
   end
+
+  def test_schema_dump_with_text_column
+    output = dump_table_schema("dump_defaults")
+
+    assert_match %r{t\.text\s+"text_with_default",.*?default: "John' Doe"}, output
+  end if supports_text_column_with_default?
 
   def test_schema_dump_with_column_infinity_default
     skip unless current_adapter?(:PostgreSQLAdapter)
     output = dump_table_schema("infinity_defaults")
     assert_match %r{t\.float\s+"float_with_inf_default",\s+default: ::Float::INFINITY}, output
     assert_match %r{t\.float\s+"float_with_nan_default",\s+default: ::Float::NAN}, output
-    assert_match %r{t\.datetime\s+"beginning_of_time",\s+default: -::Float::INFINITY}, output
-    assert_match %r{t\.datetime\s+"end_of_time",\s+default: ::Float::INFINITY}, output
+    assert_match %r{t\.datetime\s+"beginning_of_time",\s+precision: 6,\s+default: -::Float::INFINITY}, output
+    assert_match %r{t\.datetime\s+"end_of_time",\s+precision: 6,\s+default: ::Float::INFINITY}, output
     assert_match %r{t\.date\s+"date_with_neg_inf_default",\s+default: -::Float::INFINITY}, output
     assert_match %r{t\.date\s+"date_with_pos_inf_default",\s+default: ::Float::INFINITY}, output
   end

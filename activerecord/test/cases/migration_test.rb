@@ -15,6 +15,12 @@ require MIGRATIONS_ROOT + "/rename/1_we_need_things"
 require MIGRATIONS_ROOT + "/rename/2_rename_things"
 require MIGRATIONS_ROOT + "/decimal/1_give_me_big_numbers"
 
+class ValidPeopleHaveLastNames < ActiveRecord::Migration::Current
+  def change
+    drop_table :people
+  end
+end
+
 class BigNumber < ActiveRecord::Base
   unless current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
     attribute :value_of_e, :integer
@@ -106,6 +112,14 @@ class MigrationTest < ActiveRecord::TestCase
 
     ActiveRecord::SchemaMigration.create!(version: 3)
     assert_equal true, migrator.needs_migration?
+  end
+
+  def test_name_collision_across_dbs
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    migrator = ActiveRecord::MigrationContext.new(migrations_path)
+    migrator.up
+
+    assert_column Person, :last_name
   end
 
   def test_migration_detection_without_schema_migration_table
@@ -1362,13 +1376,11 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
     end
 
     private
-      def with_bulk_change_table
+      def with_bulk_change_table(&block)
         # Reset columns/indexes cache as we're changing the table
         @columns = @indexes = nil
 
-        Person.connection.change_table(:delete_me, bulk: true) do |t|
-          yield t
-        end
+        Person.connection.change_table(:delete_me, bulk: true, &block)
       end
 
       def column(name)
@@ -1412,7 +1424,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     assert_equal [@migrations_path + "/4_people_have_hobbies.bukkits.rb", @migrations_path + "/5_people_have_descriptions.bukkits.rb"], copied.map(&:filename)
 
     expected = "# This migration comes from bukkits (originally 1)"
-    assert_equal expected, IO.readlines(@migrations_path + "/4_people_have_hobbies.bukkits.rb")[1].chomp
+    assert_equal expected, IO.readlines(@migrations_path + "/4_people_have_hobbies.bukkits.rb")[2].chomp
 
     files_count = Dir[@migrations_path + "/*.rb"].length
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy")
@@ -1515,8 +1527,8 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     assert File.exist?(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")
     assert_equal [@migrations_path + "/4_currencies_have_symbols.bukkits.rb"], copied.map(&:filename)
 
-    expected = "# frozen_string_literal: true\n# coding: ISO-8859-15\n# This migration comes from bukkits (originally 1)"
-    assert_equal expected, IO.readlines(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")[0..2].join.chomp
+    expected = "# frozen_string_literal: true\n# coding: ISO-8859-15\n\n# This migration comes from bukkits (originally 1)"
+    assert_equal expected, IO.readlines(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")[0..3].join.chomp
 
     files_count = Dir[@migrations_path + "/*.rb"].length
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/magic")

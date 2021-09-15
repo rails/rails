@@ -9,11 +9,12 @@ module ActiveStorage
   # * Angle (degrees)
   # * Display aspect ratio
   # * Audio (true if file has an audio channel, false if not)
+  # * Video (true if file has an video channel, false if not)
   #
   # Example:
   #
   #   ActiveStorage::Analyzer::VideoAnalyzer.new(blob).metadata
-  #   # => { width: 640.0, height: 480.0, duration: 5.0, angle: 0, display_aspect_ratio: [4, 3], audio: true }
+  #   # => { width: 640.0, height: 480.0, duration: 5.0, angle: 0, display_aspect_ratio: [4, 3], audio: true, video: true }
   #
   # When a video's angle is 90 or 270 degrees, its width and height are automatically swapped for convenience.
   #
@@ -24,7 +25,7 @@ module ActiveStorage
     end
 
     def metadata
-      { width: width, height: height, duration: duration, angle: angle, display_aspect_ratio: display_aspect_ratio, audio: audio? }.compact
+      { width: width, height: height, duration: duration, angle: angle, display_aspect_ratio: display_aspect_ratio, audio: audio?, video: video? }.compact
     end
 
     private
@@ -72,6 +73,10 @@ module ActiveStorage
         audio_stream.present?
       end
 
+      def video?
+        video_stream.present?
+      end
+
       def computed_height
         if encoded_width && display_height_scale
           encoded_width * display_height_scale
@@ -116,14 +121,16 @@ module ActiveStorage
       end
 
       def probe_from(file)
-        IO.popen([ ffprobe_path,
-          "-print_format", "json",
-          "-show_streams",
-          "-show_format",
-          "-v", "error",
-          file.path
-        ]) do |output|
-          JSON.parse(output.read)
+        instrument(File.basename(ffprobe_path)) do
+          IO.popen([ ffprobe_path,
+            "-print_format", "json",
+            "-show_streams",
+            "-show_format",
+            "-v", "error",
+            file.path
+          ]) do |output|
+            JSON.parse(output.read)
+          end
         end
       rescue Errno::ENOENT
         logger.info "Skipping video analysis because FFmpeg isn't installed"

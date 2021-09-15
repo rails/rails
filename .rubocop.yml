@@ -1,4 +1,5 @@
 require:
+  - rubocop-minitest
   - rubocop-packaging
   - rubocop-performance
   - rubocop-rails
@@ -47,6 +48,9 @@ Layout/CaseIndentation:
   Enabled: true
 
 Layout/ClosingHeredocIndentation:
+  Enabled: true
+
+Layout/ClosingParenthesisIndentation:
   Enabled: true
 
 # Align comments with method definitions.
@@ -137,6 +141,9 @@ Style/DefWithParentheses:
 
 # Defining a method with parameters needs parentheses.
 Style/MethodDefParentheses:
+  Enabled: true
+
+Style/ExplicitBlockArgument:
   Enabled: true
 
 Style/FrozenStringLiteralComment:
@@ -287,4 +294,7 @@ Performance/DeletePrefix:
   Enabled: true
 
 Performance/DeleteSuffix:
+  Enabled: true
+
+Minitest/UnreachableAssertion:
   Enabled: true

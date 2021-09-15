@@ -2,8 +2,10 @@
 
 module ActionView
   # = Action View Cache Helper
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     module CacheHelper
+      class UncacheableFragmentError < StandardError; end
+
       # This helper exposes a method for caching fragments of a view
       # rather than an entire action or page. This technique is useful
       # caching pieces like menus, lists of new topics, static HTML
@@ -165,13 +167,43 @@ module ActionView
       # expire the cache.
       def cache(name = {}, options = {}, &block)
         if controller.respond_to?(:perform_caching) && controller.perform_caching
-          name_options = options.slice(:skip_digest)
-          safe_concat(fragment_for(cache_fragment_name(name, **name_options), options, &block))
+          CachingRegistry.track_caching do
+            name_options = options.slice(:skip_digest)
+            safe_concat(fragment_for(cache_fragment_name(name, **name_options), options, &block))
+          end
         else
           yield
         end
 
         nil
+      end
+
+      # Returns whether the current view fragment is within a +cache+ block.
+      #
+      # Useful when certain fragments aren't cacheable:
+      #
+      #   <% cache project do %>
+      #     <% raise StandardError, "Caching private data!" if caching? %>
+      #   <% end %>
+      def caching?
+        CachingRegistry.caching?
+      end
+
+      # Raises +UncacheableFragmentError+ when called from within a +cache+ block.
+      #
+      # Useful to denote helper methods that can't participate in fragment caching:
+      #
+      #   def project_name_with_time(project)
+      #     uncacheable!
+      #     "#{project.name} - #{Time.now}"
+      #   end
+      #
+      #   # Which will then raise if used within a +cache+ block:
+      #   <% cache project do %>
+      #     <%= project_name_with_time(project) %>
+      #   <% end %>
+      def uncacheable!
+        raise UncacheableFragmentError, "can't be fragment cached" if caching?
       end
 
       # Cache fragments of a view if +condition+ is true
@@ -258,6 +290,22 @@ module ActionView
           self.output_buffer = output_buffer.class.new(output_buffer)
         end
         controller.write_fragment(name, fragment, options)
+      end
+
+      class CachingRegistry
+        extend ActiveSupport::PerThreadRegistry
+
+        attr_accessor :caching
+        alias caching? caching
+
+        def self.track_caching
+          caching_was = self.caching
+          self.caching = true
+
+          yield
+        ensure
+          self.caching = caching_was
+        end
       end
     end
   end

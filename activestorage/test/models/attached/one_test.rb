@@ -451,6 +451,22 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "detaching when record is not persisted" do
+    create_blob(filename: "funky.jpg").tap do |blob|
+      user = User.new
+      user.avatar.attach blob
+      assert user.avatar.attached?
+
+      perform_enqueued_jobs do
+        user.avatar.detach
+      end
+
+      assert_not user.avatar.attached?
+      assert ActiveStorage::Blob.exists?(blob.id)
+      assert ActiveStorage::Blob.service.exist?(blob.key)
+    end
+  end
+
   test "purging" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.avatar.attach blob

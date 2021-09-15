@@ -197,7 +197,7 @@ namespace :db do
   namespace :mysql do
     connection_arguments = lambda do |connection_name|
       config = ARTest.config["connections"]["mysql2"][connection_name]
-      ["--user=#{config["username"]}", "--password=#{config["password"]}", ("--host=#{config["host"]}" if config["host"])].join(" ")
+      ["--user=#{config["username"]}", "--password=#{config["password"]}", ("--host=#{config["host"]}" if config["host"]), ("--socket=#{config["socket"]}" if config["socket"])].join(" ")
     end
 
     desc "Build the MySQL test databases"

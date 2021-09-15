@@ -755,7 +755,7 @@ unless in_memory_db?
     end
 
     private
-      def duel(zzz = 5)
+      def duel(zzz = 5, &block)
         t0, t1, t2, t3 = nil, nil, nil, nil
 
         a = Thread.new do
@@ -770,7 +770,7 @@ unless in_memory_db?
         b = Thread.new do
           sleep zzz / 2.0   # ensure thread 1 tx starts first
           t2 = Time.now
-          Person.transaction { yield }
+          Person.transaction(&block)
           t3 = Time.now
         end
 

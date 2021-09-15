@@ -4,7 +4,6 @@ require "active_support"
 require "active_support/testing/autorun"
 require "active_support/testing/method_call_assertions"
 require "active_support/testing/stream"
-require "active_record/testing/query_assertions"
 require "active_record/fixtures"
 
 require "cases/validations_repair_helper"
@@ -13,9 +12,8 @@ module ActiveRecord
   # = Active Record Test Case
   #
   # Defines some test assertions to test against SQL queries.
-  class TestCase < ActiveSupport::TestCase #:nodoc:
+  class TestCase < ActiveSupport::TestCase # :nodoc:
     include ActiveSupport::Testing::MethodCallAssertions
-    include ActiveRecord::Testing::QueryAssertions
     include ActiveSupport::Testing::Stream
     include ActiveRecord::TestFixtures
     include ActiveRecord::ValidationsRepairHelper
@@ -39,14 +37,34 @@ module ActiveRecord
       SQLCounter.log.dup
     end
 
-    def assert_sql(*patterns_to_match)
-      capture_sql { yield }
+    def assert_sql(*patterns_to_match, &block)
+      capture_sql(&block)
     ensure
       failed_patterns = []
       patterns_to_match.each do |pattern|
         failed_patterns << pattern unless SQLCounter.log_all.any? { |sql| pattern === sql }
       end
       assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map(&:inspect).join(', ')} not found.#{SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{SQLCounter.log.join("\n")}"}"
+    end
+
+    def assert_queries(num = 1, options = {})
+      ignore_none = options.fetch(:ignore_none) { num == :any }
+      ActiveRecord::Base.connection.materialize_transactions
+      SQLCounter.clear_log
+      x = yield
+      the_log = ignore_none ? SQLCounter.log_all : SQLCounter.log
+      if num == :any
+        assert_operator the_log.size, :>=, 1, "1 or more queries expected, but none were executed."
+      else
+        mesg = "#{the_log.size} instead of #{num} queries were executed.#{the_log.size == 0 ? '' : "\nQueries:\n#{the_log.join("\n")}"}"
+        assert_equal num, the_log.size, mesg
+      end
+      x
+    end
+
+    def assert_no_queries(options = {}, &block)
+      options.reverse_merge! ignore_none: true
+      assert_queries(0, options, &block)
     end
 
     def assert_column(model, column_name, msg = nil)
@@ -117,4 +135,23 @@ module ActiveRecord
       super if current_adapter?(:SQLite3Adapter)
     end
   end
+
+  class SQLCounter
+    class << self
+      attr_accessor :ignored_sql, :log, :log_all
+      def clear_log; self.log = []; self.log_all = []; end
+    end
+
+    clear_log
+
+    def call(name, start, finish, message_id, values)
+      return if values[:cached]
+
+      sql = values[:sql]
+      self.class.log_all << sql
+      self.class.log << sql unless ["SCHEMA", "TRANSACTION"].include? values[:name]
+    end
+  end
+
+  ActiveSupport::Notifications.subscribe("sql.active_record", SQLCounter.new)
 end

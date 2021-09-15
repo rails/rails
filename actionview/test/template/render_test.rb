@@ -79,7 +79,20 @@ module RenderTestCases
 
   def test_render_file_with_full_path_no_extension
     template_path = File.expand_path("../fixtures/test/hello_world", __dir__)
-    assert_raise(ArgumentError) { @view.render(file: template_path) }
+    e = assert_raise(ArgumentError) { @view.render(file: template_path) }
+    assert_match(/File (.+) does not exist/, e.message)
+  end
+
+  def test_render_file_with_invalid_full_path
+    template_path = File.expand_path("../fixtures/test/hello_world_invalid.erb", __dir__)
+    e = assert_raise(ArgumentError) { @view.render(file: template_path) }
+    assert_match(/File (.+) does not exist/, e.message)
+  end
+
+  def test_render_file_with_relative_path
+    template_path = "fixtures/test/hello_world.erb"
+    e = assert_raise(ArgumentError) { @view.render(file: template_path) }
+    assert_match(%r{`render file:` should be given the absolute path to a file. (.+) was given instead}, e.message)
   end
 
   # Test if :formats, :locale etc. options are passed correctly to the resolvers.
@@ -378,7 +391,7 @@ module RenderTestCases
   def test_without_compiled_method_container_is_deprecated
     view = ActionView::Base.with_view_paths(ActionController::Base.view_paths)
     assert_raises(NotImplementedError) do
-      assert_equal "Hello world!", view.render(template: "test/hello_world")
+      view.render(template: "test/hello_world")
     end
   end
 
@@ -627,31 +640,29 @@ module RenderTestCases
     assert_match "Missing partial /_true with", e.message
   end
 
-  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-    def test_render_partial_provides_spellcheck
-      e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/partail") }
-      assert_match %r{Did you mean\?  test/partial\n *test/partialhtml}, e.message
-    end
+  def test_render_partial_provides_spellcheck
+    e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/partail") }
+    assert_match %r{Did you mean\?  test/partial\n *test/partialhtml}, e.message
+  end
 
-    def test_spellcheck_doesnt_list_directories
-      e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/directory") }
-      assert_match %r{Did you mean\?}, e.message
-      assert_no_match %r{Did you mean\?  test/directory\n}, e.message # test/hello is a directory
-    end
+  def test_spellcheck_doesnt_list_directories
+    e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/directory") }
+    assert_match %r{Did you mean\?}, e.message
+    assert_no_match %r{Did you mean\?  test/directory\n}, e.message # test/hello is a directory
+  end
 
-    def test_spellcheck_only_lists_templates
-      e = assert_raises(ActionView::MissingTemplate) { @view.render(template: "test/partial") }
+  def test_spellcheck_only_lists_templates
+    e = assert_raises(ActionView::MissingTemplate) { @view.render(template: "test/partial") }
 
-      assert_match %r{Did you mean\?}, e.message
-      assert_no_match %r{Did you mean\?  test/partial\n}, e.message
-    end
+    assert_match %r{Did you mean\?}, e.message
+    assert_no_match %r{Did you mean\?  test/partial\n}, e.message
+  end
 
-    def test_spellcheck_only_lists_partials
-      e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/template") }
+  def test_spellcheck_only_lists_partials
+    e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/template") }
 
-      assert_match %r{Did you mean\?}, e.message
-      assert_no_match %r{Did you mean\?  test/template\n}, e.message
-    end
+    assert_match %r{Did you mean\?}, e.message
+    assert_no_match %r{Did you mean\?  test/template\n}, e.message
   end
 
   def test_render_partial_wrong_details_no_spellcheck
@@ -709,6 +720,24 @@ class CachedViewRenderTest < ActiveSupport::TestCase
     dog = @view.render(template: "test/cache_fragment_inside_render_layout_block_2")
 
     assert_not_equal cat, dog
+  end
+
+  def test_caching_predicate_method
+    result = @view.render(template: "test/caching_predicate")
+
+    assert_match "Cached!", result
+  end
+
+  def test_caching_predicate_method_outside_of_cache
+    result = @view.render(template: "test/caching_predicate_outside_cache")
+
+    assert_match "Not cached!", result
+  end
+
+  def test_uncacheable
+    e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/uncacheable") }
+
+    assert_match "can't be fragment cached", e.cause.message
   end
 end
 

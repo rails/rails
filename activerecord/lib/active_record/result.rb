@@ -64,9 +64,9 @@ module ActiveRecord
     # row as parameter.
     #
     # Returns an +Enumerator+ if no block is given.
-    def each
+    def each(&block)
       if block_given?
-        hash_rows.each { |row| yield row }
+        hash_rows.each(&block)
       else
         hash_rows.to_enum { @rows.size }
       end

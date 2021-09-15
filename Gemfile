@@ -13,9 +13,12 @@ gem "capybara", ">= 3.26"
 gem "selenium-webdriver", ">= 4.0.0.alpha7"
 
 gem "rack-cache", "~> 1.2"
-gem "sass-rails"
-gem "turbolinks", "~> 5"
-gem "webpacker", "~> 5.0", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"
+gem "stimulus-rails"
+gem "turbo-rails"
+gem "jsbundling-rails"
+gem "cssbundling-rails"
+gem "importmap-rails"
+gem "tailwindcss-rails"
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
@@ -23,13 +26,14 @@ gem "bcrypt", "~> 3.1.11", require: false
 
 # This needs to be with require false to avoid it being automatically loaded by
 # sprockets.
-gem "uglifier", ">= 1.3.0", require: false
+gem "terser", ">= 1.1.4", require: false
 
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0"
 
 group :rubocop do
   gem "rubocop", ">= 0.90", require: false
+  gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
   gem "rubocop-rails", require: false
@@ -85,7 +89,7 @@ end
 group :storage do
   gem "aws-sdk-s3", require: false
   gem "google-cloud-storage", "~> 1.11", require: false
-  gem "azure-storage-blob", require: false
+  gem "azure-storage-blob", "~> 2.0", require: false
 
   gem "image_processing", "~> 1.2"
 end
@@ -95,7 +99,6 @@ gem "aws-sdk-sns", require: false
 gem "webmock"
 
 group :ujs do
-  gem "qunit-selenium"
   gem "webdrivers"
 end
 
@@ -111,12 +114,12 @@ instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
   gem "minitest-bisect"
+  gem "minitest-ci", require: false
   gem "minitest-retry"
-  gem "minitest-reporters"
 
   platforms :mri do
     gem "stackprof"
-    gem "byebug"
+    gem "debug", ">= 1.0.0", require: false
   end
 
   gem "benchmark-ips"
@@ -176,6 +179,9 @@ if RUBY_VERSION >= "3.1"
   gem "net-smtp", require: false
   gem "net-imap", require: false
   gem "net-pop", require: false
+
+  # digest gem, which is one of the default gems has bumped to 3.0.1.pre for ruby 3.1.0dev.
+  gem "digest", "~> 3.0.1.pre", require: false
 
   # matrix was removed from default gems in Ruby 3.1, but is used by the `capybara` gem.
   # So we need to add it as a dependency until `capybara` is fixed: https://github.com/teamcapybara/capybara/pull/2468

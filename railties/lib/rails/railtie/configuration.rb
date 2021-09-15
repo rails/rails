@@ -10,7 +10,7 @@ module Rails
       end
 
       # Expose the eager_load_namespaces at "module" level for convenience.
-      def self.eager_load_namespaces #:nodoc:
+      def self.eager_load_namespaces # :nodoc:
         @@eager_load_namespaces ||= []
       end
 

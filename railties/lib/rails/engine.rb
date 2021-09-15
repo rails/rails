@@ -482,17 +482,8 @@ module Rails
     end
 
     def eager_load!
-      # Already done by Zeitwerk::Loader.eager_load_all. We need this guard to
-      # easily provide a compatible API for both zeitwerk and classic modes.
-      return if Rails.autoloaders.zeitwerk_enabled?
-
-      config.eager_load_paths.each do |load_path|
-        # Starts after load_path plus a slash, ends before ".rb".
-        relname_range = (load_path.to_s.length + 1)...-3
-        Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
-          require_dependency file[relname_range]
-        end
-      end
+      # Already done by Zeitwerk::Loader.eager_load_all. By now, we leave the
+      # method as a no-op for backwards compatibility.
     end
 
     def railties
@@ -579,17 +570,14 @@ module Rails
       $LOAD_PATH.uniq!
     end
 
-    # Set the paths from which Rails will automatically load source files,
-    # and the load_once paths.
-    #
-    # This needs to be an initializer, since it needs to run once
-    # per engine and get the engine as a block parameter.
-    initializer :set_autoload_paths, before: :bootstrap_hook do
-      ActiveSupport::Dependencies.autoload_paths.unshift(*_all_autoload_paths)
-      ActiveSupport::Dependencies.autoload_once_paths.unshift(*_all_autoload_once_paths)
-
-      config.autoload_paths.freeze
+    initializer :set_autoload_once_paths, before: :setup_once_autoloader do
       config.autoload_once_paths.freeze
+      ActiveSupport::Dependencies.autoload_once_paths.unshift(*_all_autoload_once_paths)
+    end
+
+    initializer :set_autoload_paths, before: :setup_main_autoloader do
+      config.autoload_paths.freeze
+      ActiveSupport::Dependencies.autoload_paths.unshift(*_all_autoload_paths)
     end
 
     initializer :set_eager_load_paths, before: :bootstrap_hook do
@@ -665,12 +653,12 @@ module Rails
       end
     end
 
-    def routes? #:nodoc:
+    def routes? # :nodoc:
       @routes
     end
 
     protected
-      def run_tasks_blocks(*) #:nodoc:
+      def run_tasks_blocks(*) # :nodoc:
         super
         paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
       end
@@ -686,7 +674,7 @@ module Rails
         paths["db/migrate"].existent.any?
       end
 
-      def self.find_root_with_flag(flag, root_path, default = nil) #:nodoc:
+      def self.find_root_with_flag(flag, root_path, default = nil) # :nodoc:
         while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
           parent = File.dirname(root_path)
           root_path = parent != root_path && parent
@@ -703,17 +691,25 @@ module Rails
       end
 
       def _all_autoload_once_paths
-        config.autoload_once_paths
+        config.autoload_once_paths.uniq
       end
 
       def _all_autoload_paths
-        @_all_autoload_paths ||= (config.autoload_paths + config.eager_load_paths + config.autoload_once_paths).uniq
+        @_all_autoload_paths ||= begin
+          autoload_paths  = config.autoload_paths
+          autoload_paths += config.eager_load_paths
+          autoload_paths -= config.autoload_once_paths
+          autoload_paths.uniq
+        end
       end
 
       def _all_load_paths(add_autoload_paths_to_load_path)
         @_all_load_paths ||= begin
-          load_paths  = config.paths.load_paths
-          load_paths += _all_autoload_paths if add_autoload_paths_to_load_path
+          load_paths = config.paths.load_paths
+          if add_autoload_paths_to_load_path
+            load_paths += _all_autoload_paths
+            load_paths += _all_autoload_once_paths
+          end
           load_paths.uniq
         end
       end

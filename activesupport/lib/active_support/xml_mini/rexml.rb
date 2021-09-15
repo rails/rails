@@ -5,7 +5,7 @@ require "active_support/core_ext/object/blank"
 require "stringio"
 
 module ActiveSupport
-  module XmlMini_REXML #:nodoc:
+  module XmlMini_REXML # :nodoc:
     extend self
 
     CONTENT_KEY = "__content__"

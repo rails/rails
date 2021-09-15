@@ -4,7 +4,7 @@ require "action_view/helpers/tag_helper"
 
 module ActionView
   # = Action View Translation Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     module TranslationHelper
       extend ActiveSupport::Concern
 

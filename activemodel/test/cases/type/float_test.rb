@@ -28,6 +28,8 @@ module ActiveModel
         assert_not type.changed?(5.0, 5.0, "5.0")
         assert_not type.changed?(500.0, 500.0, "0.5E+4")
         assert_not type.changed?(nil, nil, nil)
+        assert_not type.changed?(0.0 / 0.0, 0.0 / 0.0, 0.0 / 0.0)
+        assert type.changed?(0.0 / 0.0, BigDecimal("0.0") / 0, BigDecimal("0.0") / 0)
       end
     end
   end

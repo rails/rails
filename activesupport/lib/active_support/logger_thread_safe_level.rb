@@ -9,10 +9,6 @@ module ActiveSupport
   module LoggerThreadSafeLevel # :nodoc:
     extend ActiveSupport::Concern
 
-    included do
-      cattr_accessor :local_levels, default: Concurrent::Map.new(initial_capacity: 2), instance_accessor: false
-    end
-
     Logger::Severity.constants.each do |severity|
       class_eval(<<-EOT, __FILE__, __LINE__ + 1)
         def #{severity.downcase}?                # def debug?
@@ -21,25 +17,21 @@ module ActiveSupport
       EOT
     end
 
-    def local_log_id
-      Fiber.current.__id__
-    end
-
     def local_level
-      self.class.local_levels[local_log_id]
+      # Note: Thread#[] is fiber-local
+      Thread.current[:logger_thread_safe_level]
     end
 
     def local_level=(level)
       case level
       when Integer
-        self.class.local_levels[local_log_id] = level
       when Symbol
-        self.class.local_levels[local_log_id] = Logger::Severity.const_get(level.to_s.upcase)
+        level = Logger::Severity.const_get(level.to_s.upcase)
       when nil
-        self.class.local_levels.delete(local_log_id)
       else
         raise ArgumentError, "Invalid log level: #{level.inspect}"
       end
+      Thread.current[:logger_thread_safe_level] = level
     end
 
     def level
@@ -56,7 +48,7 @@ module ActiveSupport
 
     # Redefined to check severity against #level, and thus the thread-local level, rather than +@level+.
     # FIXME: Remove when the minimum Ruby version supports overriding Logger#level.
-    def add(severity, message = nil, progname = nil, &block) #:nodoc:
+    def add(severity, message = nil, progname = nil, &block) # :nodoc:
       severity ||= UNKNOWN
       progname ||= @progname
 

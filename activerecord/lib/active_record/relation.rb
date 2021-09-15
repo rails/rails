@@ -182,7 +182,7 @@ module ActiveRecord
       find_by(attributes) || create!(attributes, &block)
     end
 
-    # Attempts to create a record with the given attributes in a table that has a unique constraint
+    # Attempts to create a record with the given attributes in a table that has a unique database constraint
     # on one or several of its columns. If a row already exists with one or several of these
     # unique constraints, the exception such an insertion would normally raise is caught,
     # and the existing record with those attributes is found using #find_by!.
@@ -193,7 +193,7 @@ module ActiveRecord
     #
     # There are several drawbacks to #create_or_find_by, though:
     #
-    # * The underlying table must have the relevant columns defined with unique constraints.
+    # * The underlying table must have the relevant columns defined with unique database constraints.
     # * A unique constraint violation may be triggered by only one, or at least less than all,
     #   of the given attributes. This means that the subsequent #find_by! may fail to find a
     #   matching record, which will then raise an <tt>ActiveRecord::RecordNotFound</tt> exception,
@@ -424,14 +424,14 @@ module ActiveRecord
     #
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
-    def scoping(all_queries: nil)
+    def scoping(all_queries: nil, &block)
       registry = klass.scope_registry
       if global_scope?(registry) && all_queries == false
         raise ArgumentError, "Scoping is set to apply to all queries and cannot be unset in a nested block."
       elsif already_in_scope?(registry)
         yield
       else
-        _scoping(self, registry, all_queries) { yield }
+        _scoping(self, registry, all_queries, &block)
       end
     end
 
@@ -495,6 +495,14 @@ module ActiveRecord
         each { |record| record.update(attributes) }
       else
         klass.update(id, attributes)
+      end
+    end
+
+    def update!(id = :all, attributes) # :nodoc:
+      if id == :all
+        each { |record| record.update!(attributes) }
+      else
+        klass.update!(id, attributes)
       end
     end
 
@@ -935,11 +943,9 @@ module ActiveRecord
         end
       end
 
-      def skip_query_cache_if_necessary
+      def skip_query_cache_if_necessary(&block)
         if skip_query_cache_value
-          uncached do
-            yield
-          end
+          uncached(&block)
         else
           yield
         end

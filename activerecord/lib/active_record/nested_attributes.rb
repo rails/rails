@@ -5,7 +5,7 @@ require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveRecord
-  module NestedAttributes #:nodoc:
+  module NestedAttributes # :nodoc:
     class TooManyRecords < ActiveRecordError
     end
 

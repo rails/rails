@@ -40,6 +40,7 @@ require "models/subscriber"
 require "models/subscription"
 require "models/zine"
 require "models/interest"
+require "models/human"
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :posts, :comments
@@ -1034,21 +1035,23 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_with_bang_on_has_many_when_parent_is_new_raises
+    firm = Firm.new
     error = assert_raise(ActiveRecord::RecordNotSaved) do
-      firm = Firm.new
       firm.plain_clients.create! name: "Whoever"
     end
 
     assert_equal "You cannot call create unless the parent is saved", error.message
+    assert_equal firm, error.record
   end
 
   def test_regular_create_on_has_many_when_parent_is_new_raises
+    firm = Firm.new
     error = assert_raise(ActiveRecord::RecordNotSaved) do
-      firm = Firm.new
       firm.plain_clients.create name: "Whoever"
     end
 
     assert_equal "You cannot call create unless the parent is saved", error.message
+    assert_equal firm, error.record
   end
 
   def test_create_with_bang_on_has_many_raises_when_record_not_saved
@@ -1059,11 +1062,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_with_bang_on_habtm_when_parent_is_new_raises
+    developer = Developer.new("name" => "Aredridel")
     error = assert_raise(ActiveRecord::RecordNotSaved) do
-      Developer.new("name" => "Aredridel").projects.create!
+      developer.projects.create!
     end
 
     assert_equal "You cannot call create unless the parent is saved", error.message
+    assert_equal developer, error.record
   end
 
   def test_adding_a_mismatch_class
@@ -3080,6 +3085,24 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised do
       firm = Firm.find(15)
       assert_not_nil(firm.comments.first)
+    end
+  end
+
+  def test_key_ensuring_owner_was_is_not_valid_without_dependent_option
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        has_many :books, ensuring_owner_was: :destroyed?
+      end
+    end
+
+    assert_match(/Unknown key: :ensuring_owner_was/, error.message)
+  end
+
+  def test_key_ensuring_owner_was_is_valid_when_dependent_option_is_destroy_async
+    Class.new(ActiveRecord::Base) do
+      self.destroy_association_async_job = Class.new
+
+      has_many :books, dependent: :destroy_async, ensuring_owner_was: :destroyed?
     end
   end
 

@@ -2,7 +2,7 @@
 
 module ActiveStorage
   # This is an abstract base class for analyzers, which extract metadata from blobs. See
-  # ActiveStorage::Analyzer::ImageAnalyzer for an example of a concrete subclass.
+  # ActiveStorage::Analyzer::VideoAnalyzer for an example of a concrete subclass.
   class Analyzer
     attr_reader :blob
 
@@ -29,16 +29,20 @@ module ActiveStorage
 
     private
       # Downloads the blob to a tempfile on disk. Yields the tempfile.
-      def download_blob_to_tempfile(&block) #:doc:
+      def download_blob_to_tempfile(&block) # :doc:
         blob.open tmpdir: tmpdir, &block
       end
 
-      def logger #:doc:
+      def logger # :doc:
         ActiveStorage.logger
       end
 
-      def tmpdir #:doc:
+      def tmpdir # :doc:
         Dir.tmpdir
+      end
+
+      def instrument(analyzer, &block) # :doc:
+        ActiveSupport::Notifications.instrument("analyze.active_storage", analyzer: analyzer, &block)
       end
   end
 end

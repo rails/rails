@@ -491,7 +491,7 @@ The first step is to update the README file with detailed information about how 
 * How to add the functionality to the app (several examples of common use cases)
 * Warnings, gotchas or tips that might help users and save them time
 
-Once your README is solid, go through and add rdoc comments to all the methods that developers will use. It's also customary to add `#:nodoc:` comments to those parts of the code that are not included in the public API.
+Once your README is solid, go through and add rdoc comments to all the methods that developers will use. It's also customary to add `# :nodoc:` comments to those parts of the code that are not included in the public API.
 
 Once your comments are good to go, navigate to your plugin directory and run:
 

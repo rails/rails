@@ -131,8 +131,8 @@ module ActionDispatch
         alias []    get
         alias clear clear!
 
-        def each
-          routes.each { |name, route| yield name, route }
+        def each(&block)
+          routes.each(&block)
           self
         end
 
@@ -823,7 +823,11 @@ module ActionDispatch
         params = route_with_params.params
 
         if options.key? :params
-          params.merge! options[:params]
+          if options[:params]&.respond_to?(:to_hash)
+            params.merge! options[:params]
+          else
+            params[:params] = options[:params]
+          end
         end
 
         options[:path]        = path

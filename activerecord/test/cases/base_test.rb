@@ -1266,17 +1266,18 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal c1, c2
   end
 
-  def test_current_scope_is_reset
-    Object.const_set :UnloadablePost, Class.new(ActiveRecord::Base)
-    UnloadablePost.current_scope = UnloadablePost.all
+  def test_before_remove_const_resets_the_current_scope
+    # Done this way because a class cannot be defined in a method using the
+    # class keyword.
+    Object.const_set(:ReloadableModel, Class.new(ActiveRecord::Base))
+    ReloadableModel.current_scope = ReloadableModel.all
+    assert_not_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(ReloadableModel) # precondition
 
-    UnloadablePost.unloadable
-    klass = UnloadablePost
-    assert_not_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(klass)
-    ActiveSupport::Dependencies.remove_unloadable_constants!
-    assert_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(klass)
+    ReloadableModel.before_remove_const
+
+    assert_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(ReloadableModel)
   ensure
-    Object.class_eval { remove_const :UnloadablePost } if defined?(UnloadablePost)
+    Object.send(:remove_const, :ReloadableModel)
   end
 
   def test_marshal_round_trip
@@ -1721,7 +1722,7 @@ class BasicsTest < ActiveRecord::TestCase
     SecondAbstractClass.connecting_to(role: :reading)
 
     assert SecondAbstractClass.connected_to?(role: :reading)
-    assert_not SecondAbstractClass.current_preventing_writes
+    assert SecondAbstractClass.current_preventing_writes
   ensure
     ActiveRecord::Base.connected_to_stack.pop
   end
@@ -1777,24 +1778,24 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  test "#connected_to_many does not sets prevent_writes if role is reading" do
+  test "#connected_to_many sets prevent_writes if role is reading" do
     ActiveRecord::Base.connected_to_many([SecondAbstractClass], role: :reading) do
-      assert_not SecondAbstractClass.current_preventing_writes
+      assert SecondAbstractClass.current_preventing_writes
       assert_not ActiveRecord::Base.current_preventing_writes
     end
   end
 
-  test "#connected_to_many with a single argument for classes does not set prevent_writes" do
+  test "#connected_to_many with a single argument for classes" do
     ActiveRecord::Base.connected_to_many(SecondAbstractClass, role: :reading) do
-      assert_not SecondAbstractClass.current_preventing_writes
+      assert SecondAbstractClass.current_preventing_writes
       assert_not ActiveRecord::Base.current_preventing_writes
     end
   end
 
-  test "#connected_to_many with a multiple classes without brackets does not prevent_writes" do
+  test "#connected_to_many with a multiple classes without brackets works" do
     ActiveRecord::Base.connected_to_many(FirstAbstractClass, SecondAbstractClass, role: :reading) do
-      assert_not FirstAbstractClass.current_preventing_writes
-      assert_not SecondAbstractClass.current_preventing_writes
+      assert FirstAbstractClass.current_preventing_writes
+      assert SecondAbstractClass.current_preventing_writes
       assert_not ActiveRecord::Base.current_preventing_writes
     end
   end

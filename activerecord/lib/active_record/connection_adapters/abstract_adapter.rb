@@ -131,12 +131,15 @@ module ActiveRecord
 
       # Determines whether writes are currently being prevented.
       #
+      # Returns true if the connection is a replica.
+      #
       # If the application is using legacy handling, returns
       # true if +connection_handler.prevent_writes+ is set.
       #
       # If the application is using the new connection handling
       # will return true based on +current_preventing_writes+.
       def preventing_writes?
+        return true if replica?
         return ActiveRecord::Base.connection_handler.prevent_writes if ActiveRecord.legacy_connection_handling
         return false if connection_klass.nil?
 
@@ -486,6 +489,11 @@ module ActiveRecord
         yield
       end
 
+      # Override to check all foreign key constraints in a database.
+      def all_foreign_keys_valid?
+        true
+      end
+
       # CONNECTION MANAGEMENT ====================================
 
       # Checks whether the connection to the database is still active. This includes
@@ -624,78 +632,85 @@ module ActiveRecord
       def check_version # :nodoc:
       end
 
-      private
-        def type_map
-          @type_map ||= Type::TypeMap.new.tap do |mapping|
-            initialize_type_map(mapping)
-          end
+      def field_ordered_value(column, values) # :nodoc:
+        node = Arel::Nodes::Case.new(column)
+        values.each.with_index(1) do |value, order|
+          node.when(value).then(order)
         end
 
-        def initialize_type_map(m = type_map)
-          register_class_with_limit m, %r(boolean)i,       Type::Boolean
-          register_class_with_limit m, %r(char)i,          Type::String
-          register_class_with_limit m, %r(binary)i,        Type::Binary
-          register_class_with_limit m, %r(text)i,          Type::Text
-          register_class_with_precision m, %r(date)i,      Type::Date
-          register_class_with_precision m, %r(time)i,      Type::Time
-          register_class_with_precision m, %r(datetime)i,  Type::DateTime
-          register_class_with_limit m, %r(float)i,         Type::Float
-          register_class_with_limit m, %r(int)i,           Type::Integer
+        Arel::Nodes::Ascending.new(node.else(values.length + 1))
+      end
 
-          m.alias_type %r(blob)i,      "binary"
-          m.alias_type %r(clob)i,      "text"
-          m.alias_type %r(timestamp)i, "datetime"
-          m.alias_type %r(numeric)i,   "decimal"
-          m.alias_type %r(number)i,    "decimal"
-          m.alias_type %r(double)i,    "float"
+      class << self
+        private
+          def initialize_type_map(m)
+            register_class_with_limit m, %r(boolean)i,       Type::Boolean
+            register_class_with_limit m, %r(char)i,          Type::String
+            register_class_with_limit m, %r(binary)i,        Type::Binary
+            register_class_with_limit m, %r(text)i,          Type::Text
+            register_class_with_precision m, %r(date)i,      Type::Date
+            register_class_with_precision m, %r(time)i,      Type::Time
+            register_class_with_precision m, %r(datetime)i,  Type::DateTime
+            register_class_with_limit m, %r(float)i,         Type::Float
+            register_class_with_limit m, %r(int)i,           Type::Integer
 
-          m.register_type %r(^json)i, Type::Json.new
+            m.alias_type %r(blob)i,      "binary"
+            m.alias_type %r(clob)i,      "text"
+            m.alias_type %r(timestamp)i, "datetime"
+            m.alias_type %r(numeric)i,   "decimal"
+            m.alias_type %r(number)i,    "decimal"
+            m.alias_type %r(double)i,    "float"
 
-          m.register_type(%r(decimal)i) do |sql_type|
-            scale = extract_scale(sql_type)
-            precision = extract_precision(sql_type)
+            m.register_type %r(^json)i, Type::Json.new
 
-            if scale == 0
-              # FIXME: Remove this class as well
-              Type::DecimalWithoutScale.new(precision: precision)
-            else
-              Type::Decimal.new(precision: precision, scale: scale)
+            m.register_type(%r(decimal)i) do |sql_type|
+              scale = extract_scale(sql_type)
+              precision = extract_precision(sql_type)
+
+              if scale == 0
+                # FIXME: Remove this class as well
+                Type::DecimalWithoutScale.new(precision: precision)
+              else
+                Type::Decimal.new(precision: precision, scale: scale)
+              end
             end
           end
-        end
 
-        def reload_type_map
-          type_map.clear
-          initialize_type_map
-        end
-
-        def register_class_with_limit(mapping, key, klass)
-          mapping.register_type(key) do |*args|
-            limit = extract_limit(args.last)
-            klass.new(limit: limit)
+          def register_class_with_limit(mapping, key, klass)
+            mapping.register_type(key) do |*args|
+              limit = extract_limit(args.last)
+              klass.new(limit: limit)
+            end
           end
-        end
 
-        def register_class_with_precision(mapping, key, klass)
-          mapping.register_type(key) do |*args|
-            precision = extract_precision(args.last)
-            klass.new(precision: precision)
+          def register_class_with_precision(mapping, key, klass)
+            mapping.register_type(key) do |*args|
+              precision = extract_precision(args.last)
+              klass.new(precision: precision)
+            end
           end
-        end
 
-        def extract_scale(sql_type)
-          case sql_type
-          when /\((\d+)\)/ then 0
-          when /\((\d+)(,(\d+))\)/ then $3.to_i
+          def extract_scale(sql_type)
+            case sql_type
+            when /\((\d+)\)/ then 0
+            when /\((\d+)(,(\d+))\)/ then $3.to_i
+            end
           end
-        end
 
-        def extract_precision(sql_type)
-          $1.to_i if sql_type =~ /\((\d+)(,\d+)?\)/
-        end
+          def extract_precision(sql_type)
+            $1.to_i if sql_type =~ /\((\d+)(,\d+)?\)/
+          end
 
-        def extract_limit(sql_type)
-          $1.to_i if sql_type =~ /\((.*)\)/
+          def extract_limit(sql_type)
+            $1.to_i if sql_type =~ /\((.*)\)/
+          end
+      end
+
+      TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
+
+      private
+        def type_map
+          TYPE_MAP
         end
 
         def translate_exception_class(e, sql, binds)
@@ -708,7 +723,7 @@ module ActiveRecord
           exception
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil, async: false) # :doc:
+        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil, async: false, &block) # :doc:
           @instrumenter.instrument(
             "sql.active_record",
             sql:               sql,
@@ -718,12 +733,17 @@ module ActiveRecord
             statement_name:    statement_name,
             async:             async,
             connection:        self) do
-            @lock.synchronize do
-              yield
-            end
+            @lock.synchronize(&block)
           rescue => e
             raise translate_exception_class(e, sql, binds)
           end
+        end
+
+        def transform_query(sql)
+          ActiveRecord.query_transformers.each do |transformer|
+            sql = transformer.call(sql)
+          end
+          sql
         end
 
         def translate_exception(exception, message:, sql:, binds:)

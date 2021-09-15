@@ -120,11 +120,8 @@ module Rails
       opts = options.transform_keys(&:to_sym).except(*DUMMY_IGNORE_OPTIONS)
       opts[:force] = force
       opts[:skip_bundle] = true
-      opts[:skip_spring] = true
-      opts[:skip_listen] = true
       opts[:skip_git] = true
-      opts[:skip_turbolinks] = true
-      opts[:skip_webpack_install] = true
+      opts[:skip_hotwire] = true
       opts[:dummy_app] = true
 
       invoke Rails::Generators::AppGenerator,
@@ -148,10 +145,6 @@ module Rails
           config.action_controller.include_all_helpers = false
         RUBY
       end
-    end
-
-    def test_dummy_webpacker_assets
-      template "rails/javascripts.js",    "#{dummy_path}/app/javascript/packs/application.js", force: true
     end
 
     def test_dummy_sprocket_assets
@@ -248,7 +241,7 @@ module Rails
         build(:gemspec)   unless options[:skip_gemspec]
         build(:license)
         build(:gitignore) unless options[:skip_git]
-        build(:gemfile)   unless options[:skip_gemfile]
+        build(:gemfile)
         build(:version_control)
       end
 
@@ -323,7 +316,6 @@ module Rails
         mute do
           build(:generate_test_dummy)
           build(:test_dummy_config)
-          build(:test_dummy_webpacker_assets)
           build(:test_dummy_sprocket_assets) unless options[:skip_sprockets]
           build(:test_dummy_clean)
           # ensure that bin/rails has proper dummy_path

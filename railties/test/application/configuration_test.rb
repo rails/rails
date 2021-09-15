@@ -460,17 +460,6 @@ module ApplicationTests
       end
     end
 
-    test "initialize an eager loaded, cache classes app" do
-      add_to_config <<-RUBY
-        config.eager_load = true
-        config.cache_classes = true
-      RUBY
-
-      app "development"
-
-      assert_equal :require, ActiveSupport::Dependencies.mechanism
-    end
-
     test "application is always added to eager_load namespaces" do
       app "development"
       assert_includes Rails.application.config.eager_load_namespaces, AppTemplate::Application
@@ -1270,8 +1259,8 @@ module ApplicationTests
       assert_instance_of Zeitwerk::Loader, Rails.autoloaders.once
       assert_equal "rails.once", Rails.autoloaders.once.tag
       assert_equal [Rails.autoloaders.main, Rails.autoloaders.once], Rails.autoloaders.to_a
-      assert_equal ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector, Rails.autoloaders.main.inflector
-      assert_equal ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector, Rails.autoloaders.once.inflector
+      assert_equal Rails::Autoloaders::Inflector, Rails.autoloaders.main.inflector
+      assert_equal Rails::Autoloaders::Inflector, Rails.autoloaders.once.inflector
     end
 
     test "config.action_view.cache_template_loading with cache_classes default" do
@@ -1328,6 +1317,32 @@ module ApplicationTests
       app "development"
 
       assert_equal false, ActionView::Resolver.caching?
+    end
+
+    test "ActionController::Base.raise_on_open_redirects is true by default for new apps" do
+      app "development"
+
+      assert_equal true, ActionController::Base.raise_on_open_redirects
+    end
+
+    test "ActionController::Base.raise_on_open_redirects is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+      app "development"
+
+      assert_equal false, ActionController::Base.raise_on_open_redirects
+    end
+
+    test "ActionController::Base.raise_on_open_redirects can be configured in the new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_2.rb", <<-RUBY
+        Rails.application.config.action_controller.raise_on_open_redirects = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActionController::Base.raise_on_open_redirects
     end
 
     test "config.action_dispatch.show_exceptions is sent in env" do
@@ -1859,60 +1874,6 @@ module ApplicationTests
       assert_includes $LOAD_PATH, "#{app_path}/custom_eager_load_path"
     end
 
-    test "autoloading during initialization gets deprecation message and clearing if config.cache_classes is false" do
-      app_file "lib/c.rb", <<~EOS
-        class C
-          extend ActiveSupport::DescendantsTracker
-        end
-
-        class X < C
-        end
-      EOS
-
-      app_file "app/models/d.rb", <<~EOS
-        require "c"
-
-        class D < C
-        end
-      EOS
-
-      app_file "config/initializers/autoload.rb", "D.class"
-
-      app "development"
-
-      # TODO: Test deprecation message, assert_deprecated { app "development" }
-      # does not collect it.
-
-      assert_equal [X], C.descendants
-      assert_empty ActiveSupport::Dependencies.autoloaded_constants
-    end
-
-    test "autoloading during initialization triggers nothing if config.cache_classes is true" do
-      app_file "lib/c.rb", <<~EOS
-        class C
-          extend ActiveSupport::DescendantsTracker
-        end
-
-        class X < C
-        end
-      EOS
-
-      app_file "app/models/d.rb", <<~EOS
-        require "c"
-
-        class D < C
-        end
-      EOS
-
-      app_file "config/initializers/autoload.rb", "D.class"
-
-      app "production"
-
-      # TODO: Test no deprecation message is issued.
-
-      assert_equal [X, D], C.descendants
-    end
-
     test "load_database_yaml returns blank hash if configuration file is blank" do
       app_file "config/database.yml", ""
       app "development"
@@ -2055,6 +2016,32 @@ module ApplicationTests
       app "development"
 
       assert_equal %w( foo bar ), Rails.application.config.my_custom_config
+    end
+
+    test "config_for works with only a shared root array" do
+      set_custom_config <<~RUBY
+        shared:
+          - foo
+          - bar
+      RUBY
+
+      app "development"
+
+      assert_equal %w( foo bar ), Rails.application.config.my_custom_config
+    end
+
+    test "config_for returns only the env array when shared is an array" do
+      set_custom_config <<~RUBY
+        development:
+          - baz
+        shared:
+          - foo
+          - bar
+      RUBY
+
+      app "development"
+
+      assert_equal %w( baz ), Rails.application.config.my_custom_config
     end
 
     test "config_for uses the Pathname object if it is provided" do
@@ -2279,6 +2266,32 @@ module ApplicationTests
       assert_equal true, ActiveRecord::Base.has_many_inversing
     end
 
+    test "ActiveRecord.verify_foreign_keys_for_fixtures is true by default for new apps" do
+      app "development"
+
+      assert_equal true, ActiveRecord.verify_foreign_keys_for_fixtures
+    end
+
+    test "ActiveRecord.verify_foreign_keys_for_fixtures is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal false, ActiveRecord.verify_foreign_keys_for_fixtures
+    end
+
+    test "ActiveRecord.verify_foreign_keys_for_fixtures can be configured via config.active_record.verify_foreign_keys_for_fixtures" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+        Rails.application.config.active_record.verify_foreign_keys_for_fixtures = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord.verify_foreign_keys_for_fixtures
+    end
+
     test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption is true by default for new apps" do
       app "development"
 
@@ -2367,6 +2380,20 @@ module ApplicationTests
       app "development"
 
       assert_equal OpenSSL::Digest::SHA256, ActiveSupport::KeyGenerator.hash_digest_class
+    end
+
+    test "ActiveSupport.test_parallelization_threshold can be configured via config.active_support.test_parallelization_threshold" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/environments/test.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_support.test_parallelization_threshold = 1234
+        end
+      RUBY
+
+      app "test"
+
+      assert_equal 1234, ActiveSupport.test_parallelization_threshold
     end
 
     test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
@@ -2946,6 +2973,25 @@ module ApplicationTests
       assert_equal :another_queue, ActionMailbox.queues[:routing]
     end
 
+    test "ActionMailbox.storage_service is nil by default (default service)" do
+      app "development"
+      assert_nil(ActionMailbox.storage_service)
+    end
+
+    test "ActionMailbox.storage_service can be configured" do
+      add_to_config <<-RUBY
+        config.active_storage.service_configurations = {
+          email: {
+            root: "#{Dir.tmpdir}/email",
+            service: "Disk"
+          }
+        }
+        config.action_mailbox.storage_service = :email
+      RUBY
+      app "development"
+      assert_equal(:email, ActionMailbox.storage_service)
+    end
+
     test "ActionMailer::Base.delivery_job is ActionMailer::MailDeliveryJob by default" do
       app "development"
 
@@ -3032,7 +3078,22 @@ module ApplicationTests
       app "development"
 
       assert_equal ActiveStorage.video_preview_arguments,
-        "-vf select=eq(n\,0)+eq(key\,1)+gt(scene\,0.015),loop=loop=-1:size=2,trim=start_frame=1 -frames:v 1 -f image2"
+        "-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1'" \
+        " -frames:v 1 -f image2"
+    end
+
+    test "ActiveStorage.variant_processor uses mini_magick without Rails 7 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal :mini_magick, ActiveStorage.variant_processor
+    end
+
+    test "ActiveStorage.variant_processor uses vips by default" do
+      app "development"
+
+      assert_equal :vips, ActiveStorage.variant_processor
     end
 
     test "hosts include .localhost in development" do
@@ -3158,6 +3219,22 @@ module ApplicationTests
       assert_equal false, ActionDispatch::Request.return_only_media_type_on_content_type
     end
 
+    test "action_dispatch.log_rescued_responses is true by default" do
+      app "development"
+
+      assert_equal true, Rails.application.env_config["action_dispatch.log_rescued_responses"]
+    end
+
+    test "action_dispatch.log_rescued_responses can be configured" do
+      add_to_config <<-RUBY
+        config.action_dispatch.log_rescued_responses = false
+      RUBY
+
+      app "development"
+
+      assert_equal false, Rails.application.env_config["action_dispatch.log_rescued_responses"]
+    end
+
     test "logs a warning when running SQLite3 in production" do
       restore_sqlite3_warning
       app_file "config/initializers/active_record.rb", <<~RUBY
@@ -3207,6 +3284,124 @@ module ApplicationTests
       app "development"
 
       assert_no_match(/You are running SQLite in production, this is generally not recommended/, Rails.logger.recording)
+    end
+
+    test "app starts with LocalCache middleware" do
+      app "development"
+
+      assert(Rails.application.config.middleware.map(&:name).include?("ActiveSupport::Cache::Strategy::LocalCache"))
+
+      local_cache_index = Rails.application.config.middleware.map(&:name).index("ActiveSupport::Cache::Strategy::LocalCache")
+      logger_index = Rails.application.config.middleware.map(&:name).index("Rails::Rack::Logger")
+      assert local_cache_index < logger_index
+    end
+
+    test "LocalCache middleware can be moved via app config" do
+      # you can't move Rails.cache.middleware as it doesn't exist yet
+      add_to_config "config.middleware.move_after(Rails::Rack::Logger, ActiveSupport::Cache::Strategy::LocalCache)"
+
+      app "development"
+
+      local_cache_index = Rails.application.config.middleware.map(&:name).index("ActiveSupport::Cache::Strategy::LocalCache")
+      logger_index = Rails.application.config.middleware.map(&:name).index("Rails::Rack::Logger")
+      assert local_cache_index > logger_index
+    end
+
+    test "LocalCache middleware can be moved via initializer" do
+      app_file "config/initializers/move_local_cache_middleware.rb", <<~RUBY
+        Rails.application.config.middleware.move_after(Rails::Rack::Logger, Rails.cache.middleware)
+      RUBY
+
+      app "development"
+
+      local_cache_index = Rails.application.config.middleware.map(&:name).index("ActiveSupport::Cache::Strategy::LocalCache")
+      logger_index = Rails.application.config.middleware.map(&:name).index("Rails::Rack::Logger")
+      assert local_cache_index > logger_index
+    end
+
+    test "LocalCache middleware can be removed via app config" do
+      # you can't delete Rails.cache.middleware as it doesn't exist yet
+      add_to_config "config.middleware.delete(ActiveSupport::Cache::Strategy::LocalCache)"
+
+      app "development"
+
+      assert_not(Rails.application.config.middleware.map(&:name).include?("ActiveSupport::Cache::Strategy::LocalCache"))
+    end
+
+    test "LocalCache middleware can be removed via initializer" do
+      app_file "config/initializers/remove_local_cache_middleware.rb", <<~RUBY
+        Rails.application.config.middleware.delete(Rails.cache.middleware)
+      RUBY
+
+      app "development"
+
+      assert_not(Rails.application.config.middleware.map(&:name).include?("ActiveSupport::Cache::Strategy::LocalCache"))
+    end
+
+    test "custom middleware with overridden names can be added, moved, or deleted" do
+      app_file "config/initializers/add_custom_middleware.rb", <<~RUBY
+        class CustomMiddlewareOne
+          def self.name
+            "1st custom middleware"
+          end
+          def initialize(app, *args); end
+          def new(app); self; end
+        end
+
+        class CustomMiddlewareTwo
+          def initialize(app, *args); end
+          def new(app); self; end
+        end
+
+        class CustomMiddlewareThree
+          def self.name
+            "3rd custom middleware"
+          end
+          def initialize(app, *args); end
+          def new(app); self; end
+        end
+
+        Rails.application.config.middleware.use(CustomMiddlewareOne)
+        Rails.application.config.middleware.use(CustomMiddlewareTwo)
+        Rails.application.config.middleware.use(CustomMiddlewareThree)
+        Rails.application.config.middleware.move_after(CustomMiddlewareTwo, CustomMiddlewareOne)
+        Rails.application.config.middleware.delete(CustomMiddlewareThree)
+      RUBY
+
+      app "development"
+
+      custom_middleware_one = Rails.application.config.middleware.map(&:name).index("1st custom middleware")
+      custom_middleware_two = Rails.application.config.middleware.map(&:name).index("CustomMiddlewareTwo")
+      assert custom_middleware_one > custom_middleware_two
+
+      assert_nil Rails.application.config.middleware.map(&:name).index("3rd custom middleware")
+    end
+
+    test "ActiveSupport::TimeWithZone.name uses default Ruby implementation by default" do
+      app "development"
+      assert_equal false, ActiveSupport::TimeWithZone.methods(false).include?(:name)
+    end
+
+    test "ActiveSupport::TimeWithZone.name can be configured in the new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+        Rails.application.config.active_support.remove_deprecated_time_with_zone_name = false
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveSupport::TimeWithZone.methods(false).include?(:name)
+    end
+
+    test "can entirely opt out of ActiveSupport::Deprecations" do
+      add_to_config "config.active_support.report_deprecations = false"
+
+      app "production"
+
+      assert_equal true, ActiveSupport::Deprecation.silenced
+      assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], ActiveSupport::Deprecation.behavior
+      assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], ActiveSupport::Deprecation.disallowed_behavior
     end
 
     private

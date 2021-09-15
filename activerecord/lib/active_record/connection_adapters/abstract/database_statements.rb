@@ -306,20 +306,20 @@ module ActiveRecord
       #
       # The mysql2 and postgresql adapters support setting the transaction
       # isolation level.
-      def transaction(requires_new: nil, isolation: nil, joinable: true)
+      def transaction(requires_new: nil, isolation: nil, joinable: true, &block)
         if !requires_new && current_transaction.joinable?
           if isolation
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
           end
           yield
         else
-          transaction_manager.within_new_transaction(isolation: isolation, joinable: joinable) { yield }
+          transaction_manager.within_new_transaction(isolation: isolation, joinable: joinable, &block)
         end
       rescue ActiveRecord::Rollback
         # rollbacks are silently swallowed
       end
 
-      attr_reader :transaction_manager #:nodoc:
+      attr_reader :transaction_manager # :nodoc:
 
       delegate :within_new_transaction, :open_transactions, :current_transaction, :begin_transaction,
                :commit_transaction, :rollback_transaction, :materialize_transactions,
@@ -336,7 +336,7 @@ module ActiveRecord
         current_transaction.open?
       end
 
-      def reset_transaction #:nodoc:
+      def reset_transaction # :nodoc:
         @transaction_manager = ConnectionAdapters::TransactionManager.new(self)
       end
 
@@ -374,7 +374,7 @@ module ActiveRecord
         exec_rollback_db_transaction
       end
 
-      def exec_rollback_db_transaction() end #:nodoc:
+      def exec_rollback_db_transaction() end # :nodoc:
 
       def rollback_to_savepoint(name = nil)
         exec_rollback_to_savepoint(name)
@@ -439,6 +439,19 @@ module ActiveRecord
         else
           value
         end
+      end
+
+      # This is a safe default, even if not high precision on all databases
+      HIGH_PRECISION_CURRENT_TIMESTAMP = Arel.sql("CURRENT_TIMESTAMP").freeze # :nodoc:
+      private_constant :HIGH_PRECISION_CURRENT_TIMESTAMP
+
+      # Returns an Arel SQL literal for the CURRENT_TIMESTAMP for usage with
+      # arbitrary precision date/time columns.
+      #
+      # Adapters supporting datetime with precision should override this to
+      # provide as much precision as is available.
+      def high_precision_current_timestamp
+        HIGH_PRECISION_CURRENT_TIMESTAMP
       end
 
       private

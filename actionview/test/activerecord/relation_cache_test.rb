@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
 require "active_record_unit"
-require "active_record/testing/query_assertions"
 
 class RelationCacheTest < ActionView::TestCase
-  include ActiveRecord::Testing::QueryAssertions
-
   tests ActionView::Helpers::CacheHelper
 
   def setup
@@ -27,4 +24,17 @@ class RelationCacheTest < ActionView::TestCase
   end
 
   def view_cache_dependencies; []; end
+
+  def assert_queries(num)
+    ActiveRecord::Base.connection.materialize_transactions
+    count = 0
+
+    ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _start, _finish, _id, payload|
+      count += 1 unless ["SCHEMA", "TRANSACTION"].include? payload[:name]
+    end
+
+    result = yield
+    assert_equal num, count, "#{count} instead of #{num} queries were executed."
+    result
+  end
 end

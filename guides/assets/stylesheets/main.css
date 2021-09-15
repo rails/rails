@@ -185,10 +185,15 @@ body {
   }
   .more-info:after {
     content: " |";
+    color: #8a8a8a;
   }
 
   .more-info:last-child:after {
     content: "";
+  }
+
+  #topNav a, #footer a {
+    color: #F1938C;
   }
 }
 
@@ -250,12 +255,6 @@ body {
 
 .clipboard-button:active {
   background: #ccc;
-}
-
-.clipboard-content {
-  opacity:0;
-  position:absolute;
-  z-index:-1;
 }
 
 #header {

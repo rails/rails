@@ -22,7 +22,7 @@ What is Action Mailer?
 Action Mailer allows you to send emails from your application using mailer classes
 and views.
 
-#### Mailers are similar to controllers
+### Mailers are similar to controllers
 
 They inherit from [`ActionMailer::Base`][] and live in `app/mailers`. Mailers also work
 very similarly to controllers. Some examples of similarities are enumerated below.

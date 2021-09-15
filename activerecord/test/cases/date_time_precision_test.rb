@@ -48,8 +48,8 @@ if supports_datetime_with_precision?
     unless current_adapter?(:Mysql2Adapter)
       def test_no_datetime_precision_isnt_truncated_on_assignment
         @connection.create_table(:foos, force: true)
-        @connection.add_column :foos, :created_at, :datetime
-        @connection.add_column :foos, :updated_at, :datetime, precision: 6
+        @connection.add_column :foos, :created_at, :datetime, precision: nil
+        @connection.add_column :foos, :updated_at, :datetime
 
         time = ::Time.now.change(nsec: 123)
         foo = Foo.new(created_at: time, updated_at: time)

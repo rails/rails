@@ -10,6 +10,8 @@ module ActiveRecord
   # This is enabled by default. To disable this functionality set
   # `use_metadata_table` to false in your database configuration.
   class InternalMetadata < ActiveRecord::Base # :nodoc:
+    self.record_timestamps = true
+
     class << self
       def enabled?
         ActiveRecord::Base.connection.use_metadata_table?
@@ -32,7 +34,7 @@ module ActiveRecord
       def [](key)
         return unless enabled?
 
-        where(key: key).pluck(:value).first
+        where(key: key).pick(:value)
       end
 
       # Creates an internal metadata table with columns +key+ and +value+

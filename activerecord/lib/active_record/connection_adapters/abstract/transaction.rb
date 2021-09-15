@@ -33,6 +33,10 @@ module ActiveRecord
         @state == :fully_rolledback
       end
 
+      def invalidated?
+        @state == :invalidated
+      end
+
       def fully_completed?
         completed?
       end
@@ -51,6 +55,11 @@ module ActiveRecord
         @state = :fully_rolledback
       end
 
+      def invalidate!
+        @children&.each { |c| c.invalidate! }
+        @state = :invalidated
+      end
+
       def commit!
         @state = :committed
       end
@@ -64,7 +73,7 @@ module ActiveRecord
       end
     end
 
-    class NullTransaction #:nodoc:
+    class NullTransaction # :nodoc:
       def initialize; end
       def state; end
       def closed?; true; end
@@ -73,7 +82,7 @@ module ActiveRecord
       def add_record(record, _ = true); end
     end
 
-    class Transaction #:nodoc:
+    class Transaction # :nodoc:
       attr_reader :connection, :state, :savepoint_name, :isolation_level
       attr_accessor :written
 
@@ -212,7 +221,7 @@ module ActiveRecord
       end
     end
 
-    class TransactionManager #:nodoc:
+    class TransactionManager # :nodoc:
       def initialize(connection)
         @stack = []
         @connection = connection
@@ -299,7 +308,7 @@ module ActiveRecord
       def rollback_transaction(transaction = nil)
         @connection.lock.synchronize do
           transaction ||= @stack.pop
-          transaction.rollback
+          transaction.rollback unless transaction.state.invalidated?
           transaction.rollback_records
         end
       end
@@ -312,15 +321,17 @@ module ActiveRecord
           ret
         rescue Exception => error
           if transaction
+            transaction.state.invalidate! if error.is_a? ActiveRecord::TransactionRollbackError
             rollback_transaction
             after_failure_actions(transaction, error)
           end
+
           raise
         ensure
           if transaction
             if error
-              # @connection still holds an open transaction, so we must not
-              # put it back in the pool for reuse
+              # @connection still holds an open or invalid transaction, so we must not
+              # put it back in the pool for reuse.
               @connection.throw_away! unless transaction.state.rolledback?
             else
               if Thread.current.status == "aborting"

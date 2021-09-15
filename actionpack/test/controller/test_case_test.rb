@@ -973,6 +973,16 @@ XML
     end
   end
 
+  def test_fixture_file_upload_fixture_path_same_as_file_fixture_path
+    TestCaseTest.stub :fixture_path, File.expand_path("../fixtures/multipart", __dir__) do
+      TestCaseTest.stub :file_fixture_path, File.expand_path("../fixtures/multipart", __dir__) do
+        assert_not_deprecated do
+          fixture_file_upload("ruby_on_rails.jpg", "image/jpg")
+        end
+      end
+    end
+  end
+
   def test_fixture_file_upload_ignores_fixture_path_given_full_path
     TestCaseTest.stub :fixture_path, __dir__ do
       uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpeg")

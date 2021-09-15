@@ -68,6 +68,15 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_match message, e.message
   end
 
+  def test_field_type_with_unknown_index_type_raises_error
+    index_type = :unknown
+    e = assert_raise Rails::Generators::Error do
+      create_generated_attribute "string", "name", index_type
+    end
+    message = "Could not generate field 'name' with unknown index 'unknown'"
+    assert_match message, e.message
+  end
+
   def test_default_value_is_integer
     assert_field_default_value :integer, 1
   end

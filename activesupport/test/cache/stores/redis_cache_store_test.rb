@@ -216,7 +216,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       super
     end
 
-    def forward_compatibility
+    def test_forward_compatibility
       previous_format = ActiveSupport::Cache.format_version
       ActiveSupport::Cache.format_version = 6.1
       @old_store = lookup_store
@@ -226,7 +226,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_equal "bar", @cache.read("foo")
     end
 
-    def forward_compatibility
+    def test_backward_compatibility
       previous_format = ActiveSupport::Cache.format_version
       ActiveSupport::Cache.format_version = 6.1
       @old_store = lookup_store
@@ -281,6 +281,38 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     def ensure_connected
       raise Redis::CommandError
     end
+  end
+
+  class FailureRaisingFromUnavailableClientTest < StoreTest
+    include FailureRaisingBehavior
+
+    private
+      def emulating_unavailability
+        old_client = Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, UnavailableRedisClient)
+
+        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace,
+                                                        error_handler: -> (method:, returning:, exception:) { raise exception })
+      ensure
+        Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, old_client)
+      end
+  end
+
+  class FailureRaisingFromMaxClientsReachedErrorTest < StoreTest
+    include FailureRaisingBehavior
+
+    private
+      def emulating_unavailability
+        old_client = Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, MaxClientsReachedRedisClient)
+
+        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace,
+                                                        error_handler: -> (method:, returning:, exception:) { raise exception })
+      ensure
+        Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, old_client)
+      end
   end
 
   class FailureSafetyFromUnavailableClientTest < StoreTest

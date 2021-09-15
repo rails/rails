@@ -115,6 +115,7 @@ module ActionController
     #   before_action { fresh_when @article, template: 'widgets/show' }
     #
     def fresh_when(object = nil, etag: nil, weak_etag: nil, strong_etag: nil, last_modified: nil, public: false, cache_control: {}, template: nil)
+      response.cache_control.delete(:no_store)
       weak_etag ||= etag || object unless strong_etag
       last_modified ||= object.try(:updated_at) || object.try(:maximum, :updated_at)
 
@@ -273,6 +274,7 @@ module ActionController
     #
     # The method will also ensure an HTTP Date header for client compatibility.
     def expires_in(seconds, options = {})
+      response.cache_control.delete(:no_store)
       response.cache_control.merge!(
         max_age: seconds,
         public: options.delete(:public),
@@ -307,6 +309,12 @@ module ActionController
       yield if stale?(etag: request.fullpath,
                       last_modified: Time.new(2011, 1, 1).utc,
                       public: public)
+    end
+
+    # Sets an HTTP 1.1 Cache-Control header of <tt>no-store</tt>. This means the
+    # resource may not be stored in any cache.
+    def no_store
+      response.cache_control.replace(no_store: true)
     end
 
     private

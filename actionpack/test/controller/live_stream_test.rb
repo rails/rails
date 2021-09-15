@@ -3,6 +3,8 @@
 require "abstract_unit"
 require "timeout"
 require "concurrent/atomic/count_down_latch"
+require "zeitwerk"
+
 Thread.abort_on_exception = true
 
 module ActionController
@@ -173,18 +175,22 @@ module ActionController
 
       def write_sleep_autoload
         path = File.expand_path("../fixtures", __dir__)
-        ActiveSupport::Dependencies.autoload_paths << path
+        Zeitwerk.with_loader do |loader|
+          loader.push_dir(path)
+          loader.ignore(File.join(path, "公共"))
+          loader.setup
 
-        response.headers["Content-Type"] = "text/event-stream"
-        response.stream.write "before load"
-        sleep 0.01
-        silence_warnings do
-          ::LoadMe
+          response.headers["Content-Type"] = "text/event-stream"
+          response.stream.write "before load"
+          sleep 0.01
+          silence_warnings do
+            ::LoadMe
+          end
+          response.stream.close
+          latch.count_down
+        ensure
+          loader.unload
         end
-        response.stream.close
-        latch.count_down
-
-        ActiveSupport::Dependencies.autoload_paths.reject! { |p| p == path }
       end
 
       def thread_locals
@@ -264,6 +270,13 @@ module ActionController
         end
       end
 
+      def overfill_default_buffer
+        ("a".."z").each do |char|
+          response.stream.write(char)
+        end
+        response.stream.close
+      end
+
       def ignore_client_disconnect
         response.stream.ignore_disconnect = true
 
@@ -301,8 +314,8 @@ module ActionController
     def setup
       super
 
-      def @controller.new_controller_thread
-        Thread.new { yield }
+      def @controller.new_controller_thread(&block)
+        Thread.new(&block)
       end
     end
 
@@ -368,7 +381,15 @@ module ActionController
       assert t.join(3), "timeout expired before the thread terminated"
     end
 
+    def test_infinite_test_buffer
+      get :overfill_default_buffer
+      assert_equal ("a".."z").to_a.join, response.stream.body
+    end
+
     def test_abort_with_full_buffer
+      old_queue_size = ActionController::Live::Buffer.queue_size
+      ActionController::Live::Buffer.queue_size = 10
+
       @controller.latch = Concurrent::CountDownLatch.new
       @controller.error_latch = Concurrent::CountDownLatch.new
 
@@ -389,6 +410,8 @@ module ActionController
         @controller.error_latch.wait
         assert_match "Error while streaming", output.rewind && output.read
       end
+    ensure
+      ActionController::Live::Buffer.queue_size = old_queue_size
     end
 
     def test_ignore_client_disconnect

@@ -29,7 +29,7 @@ module Arel
 
   # Wrap a known-safe SQL string for passing to query methods, e.g.
   #
-  #   Post.order(Arel.sql("length(title)")).last
+  #   Post.order(Arel.sql("REPLACE(title, 'misc', 'zzzz') asc")).pluck(:id)
   #
   # Great caution should be taken to avoid SQL injection vulnerabilities.
   # This method should not be used with unsafe values such as request

@@ -3,7 +3,7 @@
 require "active_support/time_with_zone"
 
 module ActiveSupport
-  module EachTimeWithZone #:nodoc:
+  module EachTimeWithZone # :nodoc:
     def each(&block)
       ensure_iteration_allowed
       super

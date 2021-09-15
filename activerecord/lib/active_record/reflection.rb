@@ -115,7 +115,7 @@ module ActiveRecord
         reflections[association.to_s]
       end
 
-      def _reflect_on_association(association) #:nodoc:
+      def _reflect_on_association(association) # :nodoc:
         _reflections[association.to_s]
       end
 
@@ -194,9 +194,9 @@ module ActiveRecord
         klass_scope
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass) # :nodoc:
+      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
         if scope
-          [scope_for(build_scope(table, predicate_builder, klass))]
+          [scope_for(build_scope(table, predicate_builder, klass), record)]
         else
           []
         end
@@ -237,7 +237,7 @@ module ActiveRecord
         end
       end
 
-      # This shit is nasty. We need to avoid the following situation:
+      # We need to avoid the following situation:
       #
       #   * An associated record is deleted via record.destroy
       #   * Hence the callbacks run, and they find a belongs_to on the record with a
@@ -398,7 +398,7 @@ module ActiveRecord
 
     # Holds all the metadata about an aggregation as it was specified in the
     # Active Record class.
-    class AggregateReflection < MacroReflection #:nodoc:
+    class AggregateReflection < MacroReflection # :nodoc:
       def mapping
         mapping = options[:mapping] || [name, name]
         mapping.first.is_a?(Array) ? mapping : [mapping]
@@ -407,7 +407,7 @@ module ActiveRecord
 
     # Holds all the metadata about an association as it was specified in the
     # Active Record class.
-    class AssociationReflection < MacroReflection #:nodoc:
+    class AssociationReflection < MacroReflection # :nodoc:
       def compute_class(name)
         if polymorphic?
           raise ArgumentError, "Polymorphic associations do not support computing the class."
@@ -416,7 +416,7 @@ module ActiveRecord
         msg = <<-MSG.squish
           Rails couldn't find a valid model for #{name} association.
           Please provide the :class_name option on the association declaration.
-          If :class_name is already provided make sure is an ActiveRecord::Base subclass.
+          If :class_name is already provided, make sure it's an ActiveRecord::Base subclass.
         MSG
 
         begin
@@ -483,18 +483,17 @@ module ActiveRecord
         check_validity_of_inverse!
       end
 
-      def check_preloadable!
+      def check_eager_loadable!
         return unless scope
 
         unless scope.arity == 0
           raise ArgumentError, <<-MSG.squish
             The association scope '#{name}' is instance dependent (the scope
-            block takes an argument). Preloading instance dependent scopes is
-            not supported.
+            block takes an argument). Eager loading instance dependent scopes
+            is not supported.
           MSG
         end
       end
-      alias :check_eager_loadable! :check_preloadable!
 
       def join_id_for(owner) # :nodoc:
         owner[join_foreign_key]
@@ -752,7 +751,7 @@ module ActiveRecord
 
     # Holds all the metadata about a :through association as it was specified
     # in the Active Record class.
-    class ThroughReflection < AbstractReflection #:nodoc:
+    class ThroughReflection < AbstractReflection # :nodoc:
       delegate :foreign_key, :foreign_type, :association_foreign_key, :join_id_for, :type,
                :active_record_primary_key, :join_foreign_key, to: :source_reflection
 
@@ -842,8 +841,8 @@ module ActiveRecord
         source_reflection.scopes + super
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass) # :nodoc:
-        source_reflection.join_scopes(table, predicate_builder, klass) + super
+      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
+        source_reflection.join_scopes(table, predicate_builder, klass, record) + super
       end
 
       def has_scope?
@@ -1015,9 +1014,9 @@ module ActiveRecord
         @previous_reflection = previous_reflection
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass) # :nodoc:
-        scopes = @previous_reflection.join_scopes(table, predicate_builder) + super
-        scopes << build_scope(table, predicate_builder, klass).instance_exec(nil, &source_type_scope)
+      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
+        scopes = @previous_reflection.join_scopes(table, predicate_builder, record) + super
+        scopes << build_scope(table, predicate_builder, klass).instance_exec(record, &source_type_scope)
       end
 
       def constraints

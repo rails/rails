@@ -1,11 +1,103 @@
+*   Emit Active Support instrumentation events from Active Storage analyzers.
+
+    Fixes #42930
+
+    *Shouichi Kamiya*
+
+*   Add support for byte range requests
+
+    *Tom Prats*
+
+*   Attachments can be deleted after their association is no longer defined.
+
+    Fixes #42514
+
+    *Don Sisco*
+
+*   Make `vips` the default variant processor for new apps.
+
+    See the upgrade guide for instructions on converting from `mini_magick` to `vips`. `mini_magick` is
+    not deprecated, existing apps can keep using it.
+
+    *Breno Gazzola*
+
+*   Deprecate `ActiveStorage::Current.host` in favor of `ActiveStorage::Current.url_options` which accepts
+    a host, protocol and port.
+
+    *Santiago Bartesaghi*
+
+*   Allow using [IAM](https://cloud.google.com/storage/docs/access-control/signed-urls) when signing URLs with GCS.
+
+    ```yaml
+    gcs:
+      service: GCS
+      ...
+      iam: true
+    ```
+
+    *RRethy*
+
+*   OpenSSL constants are now used for Digest computations.
+
+    *Dirkjan Bussink*
+
+*   Deprecate `config.active_storage.replace_on_assign_to_many`. Future versions of Rails
+    will behave the same way as when the config is set to `true`.
+
+    *Santiago Bartesaghi*
+
+*   Remove deprecated methods: `build_after_upload`, `create_after_upload!` in favor of `create_and_upload!`,
+    and `service_url` in favor of `url`.
+
+    *Santiago Bartesaghi*
+
+*   Add support of `strict_loading_by_default` to `ActiveStorage::Representations` controllers.
+
+    *Anton Topchii*, *Andrew White*
+
+*   Allow to detach an attachment when record is not persisted.
+
+    *Jacopo Beschi*
+
+*   Use libvips instead of ImageMagick to analyze images when `active_storage.variant_processor = vips`.
+
+    *Breno Gazzola*
+
+*   Add metadata value for presence of video channel in video blobs.
+
+    The `metadata` attribute of video blobs has a new boolean key named `video` that is set to
+    `true` if the file has an video channel and `false` if it doesn't.
+
+    *Breno Gazzola*
+
+*   Deprecate usage of `purge` and `purge_later` from the association extension.
+
+    *Jacopo Beschi*
+
+*   Passing extra parameters in `ActiveStorage::Blob#url` to S3 Client.
+
+    This allows calls of `ActiveStorage::Blob#url` to have more interaction with
+    the S3 Presigner, enabling, amongst other options, custom S3 domain URL
+    Generation.
+
+    ```ruby
+    blob = ActiveStorage::Blob.last
+
+    blob.url # => https://<bucket-name>.s3.<region>.amazonaws.com/<key>
+    blob.url(virtual_host: true) # => # => https://<bucket-name>/<key>
+    ```
+
+    *josegomezr*
+
 *   Allow setting a `Cache-Control` on files uploaded to GCS.
-    
+
     ```yaml
     gcs:
       service: GCS
       ...
       cache_control: "public, max-age=3600"
-    ``` 
+    ```
+
     *maleblond*
 
 *   The parameters sent to `ffmpeg` for generating a video preview image are now
@@ -31,7 +123,7 @@
 
     *aki77*
 
-*   Allow to purge an attachment when record is not persisted for `has_many_attached`
+*   Allow to purge an attachment when record is not persisted for `has_many_attached`.
 
     *Jacopo Beschi*
 
@@ -40,7 +132,7 @@
 
     *Alex Ghiculescu*
 
-*   Add metadata value for presence of audio channel in video blobs
+*   Add metadata value for presence of audio channel in video blobs.
 
     The `metadata` attribute of video blobs has a new boolean key named `audio` that is set to
     `true` if the file has an audio channel and `false` if it doesn't.
@@ -51,11 +143,15 @@
 
     *Breno Gazzola*
 
+*   Respect Active Record's primary_key_type in Active Storage migrations.
+
+    *fatkodima*
+
 *   Allow `expires_in` for ActiveStorage signed ids.
 
     *aki77*
 
-*   Allow to purge an attachment when record is not persisted for `has_one_attached`
+*   Allow to purge an attachment when record is not persisted for `has_one_attached`.
 
     *Jacopo Beschi*
 
@@ -115,8 +211,9 @@
     *Ali Ismayilov*
 
 *   Declare `ActiveStorage::FixtureSet` and `ActiveStorage::FixtureSet.blob` to
-    improve fixture integration
+    improve fixture integration.
 
     *Sean Doyle*
+
 
 Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/activestorage/CHANGELOG.md) for previous changes.

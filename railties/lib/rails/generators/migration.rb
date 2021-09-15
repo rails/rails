@@ -12,7 +12,7 @@ module Rails
       extend ActiveSupport::Concern
       attr_reader :migration_number, :migration_file_name, :migration_class_name
 
-      module ClassMethods #:nodoc:
+      module ClassMethods # :nodoc:
         def migration_lookup_at(dirname)
           Dir.glob("#{dirname}/[0-9]*_*.rb")
         end

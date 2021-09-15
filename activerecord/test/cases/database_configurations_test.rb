@@ -142,4 +142,28 @@ class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase
       assert_equal "primary", db_config.spec_name
     end
   end
+
+  def test_hidden_returns_replicas
+    config = {
+      "default_env" => {
+        "readonly" => { "adapter" => "sqlite3", "database" => "test/db/readonly.sqlite3", "replica" => true },
+        "hidden" => { "adapter" => "sqlite3", "database" => "test/db/hidden.sqlite3", "database_tasks" => false },
+        "default" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
+      }
+    }
+    prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+    assert_equal 1, ActiveRecord::Base.configurations.configs_for(env_name: "default_env").count
+    assert_equal 3, ActiveRecord::Base.configurations.configs_for(env_name: "default_env", include_hidden: true).count
+  ensure
+    ActiveRecord::Base.configurations = prev_configs
+  end
+
+  def test_include_replicas_is_deprecated
+    assert_deprecated do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary", include_replicas: true)
+
+      assert_equal "primary", db_config.name
+    end
+  end
 end

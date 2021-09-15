@@ -848,13 +848,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_match(/Association named 'monkeys' was not found on Post; perhaps you misspelled it\?/, e.message)
   end
 
-  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-    test "exceptions have suggestions for fix" do
-      error = assert_raise(ActiveRecord::AssociationNotFoundError) {
-        Post.all.merge!(includes: :monkeys).find(6)
-      }
-      assert_match "Did you mean?", error.message
-    end
+  test "exceptions have suggestions for fix" do
+    error = assert_raise(ActiveRecord::AssociationNotFoundError) {
+      Post.all.merge!(includes: :taggingz).find(6)
+    }
+    assert_match "Did you mean?  tagging\n", error.message
   end
 
   def test_eager_has_many_through_with_order
@@ -1493,36 +1491,32 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal pets(:parrot), Owner.including_last_pet.first.last_pet
   end
 
-  test "preloading and eager loading of instance dependent associations is not supported" do
+  test "preloading of instance dependent associations is supported" do
+    authors = Author.preload(:posts_with_signature).to_a
+    assert_not authors.empty?
+    authors.each do |author|
+      assert_predicate author.posts_with_signature, :loaded?
+    end
+  end
+
+  test "eager loading of instance dependent associations is not supported" do
     message = "association scope 'posts_with_signature' is"
-    error = assert_raises(ArgumentError) do
-      Author.includes(:posts_with_signature).to_a
-    end
-    assert_match message, error.message
-
-    error = assert_raises(ArgumentError) do
-      Author.preload(:posts_with_signature).to_a
-    end
-    assert_match message, error.message
-
     error = assert_raises(ArgumentError) do
       Author.eager_load(:posts_with_signature).to_a
     end
     assert_match message, error.message
   end
 
-  test "preloading and eager loading of optional instance dependent associations is not supported" do
+  test "preloading of optional instance dependent associations is supported" do
+    authors = Author.includes(:posts_mentioning_author).to_a
+    assert_not authors.empty?
+    authors.each do |author|
+      assert_predicate author.posts_mentioning_author, :loaded?
+    end
+  end
+
+  test "eager loading of optional instance dependent associations is not supported" do
     message = "association scope 'posts_mentioning_author' is"
-    error = assert_raises(ArgumentError) do
-      Author.includes(:posts_mentioning_author).to_a
-    end
-    assert_match message, error.message
-
-    error = assert_raises(ArgumentError) do
-      Author.preload(:posts_mentioning_author).to_a
-    end
-    assert_match message, error.message
-
     error = assert_raises(ArgumentError) do
       Author.eager_load(:posts_mentioning_author).to_a
     end
@@ -1542,11 +1536,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
-  test "including associations with extensions and an instance dependent scope is not supported" do
-    e = assert_raises(ArgumentError) do
-      Author.includes(:posts_with_extension_and_instance).to_a
+  test "including associations with extensions and an instance dependent scope is supported" do
+    authors = Author.includes(:posts_with_extension_and_instance).to_a
+    assert_not authors.empty?
+    authors.each do |author|
+      assert_predicate author.posts_with_extension_and_instance, :loaded?
     end
-    assert_match(/Preloading instance dependent scopes is not supported/, e.message)
   end
 
   test "preloading readonly association" do

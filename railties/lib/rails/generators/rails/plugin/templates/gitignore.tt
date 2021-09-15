@@ -9,13 +9,8 @@
 /<%= dummy_path %>/db/*.sqlite3-*
 <% end -%>
 /<%= dummy_path %>/log/*.log
-<% unless options[:skip_javascript] -%>
-/<%= dummy_path %>/node_modules/
-/<%= dummy_path %>/yarn-error.log
-<% end -%>
 <% unless skip_active_storage? -%>
 /<%= dummy_path %>/storage/
 <% end -%>
 /<%= dummy_path %>/tmp/
 <% end -%>
-.byebug_history

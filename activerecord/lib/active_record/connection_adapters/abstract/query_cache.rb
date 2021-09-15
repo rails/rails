@@ -6,7 +6,7 @@ module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module QueryCache
       class << self
-        def included(base) #:nodoc:
+        def included(base) # :nodoc:
           dirties_query_cache base, :create, :insert, :update, :delete, :truncate, :truncate_tables,
             :rollback_to_savepoint, :rollback_db_transaction, :exec_insert_all
 

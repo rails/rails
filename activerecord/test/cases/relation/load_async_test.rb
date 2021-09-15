@@ -62,6 +62,7 @@ module ActiveRecord
           status[:executed] = true
           status[:async] = event.payload[:async]
           status[:thread_id] = Thread.current.object_id
+          status[:lock_wait] = event.payload[:lock_wait]
         end
       end
 
@@ -70,6 +71,11 @@ module ActiveRecord
       assert_equal expected_records, deferred_posts.to_a
       assert_equal Post.connection.supports_concurrent_connections?, status[:async]
       assert_equal Thread.current.object_id, status[:thread_id]
+      if Post.connection.supports_concurrent_connections?
+        assert_instance_of Float, status[:lock_wait]
+      else
+        assert_nil status[:lock_wait]
+      end
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end

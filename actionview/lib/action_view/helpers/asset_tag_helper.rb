@@ -8,7 +8,7 @@ require "action_view/helpers/tag_helper"
 
 module ActionView
   # = Action View Asset Tag Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # This module provides methods for generating HTML that links views to assets such
     # as images, JavaScripts, stylesheets, and feeds. These methods do not verify
     # the assets exist before linking to them:
@@ -317,7 +317,7 @@ module ActionView
       #   # => <link rel="preload" href="/media/audio.ogg" as="audio" type="audio/ogg" />
       #
       def preload_link_tag(source, options = {})
-        href = asset_path(source, skip_pipeline: options.delete(:skip_pipeline))
+        href = path_to_asset(source, skip_pipeline: options.delete(:skip_pipeline))
         extname = File.extname(source).downcase.delete(".")
         mime_type = options.delete(:type) || Template::Types[extname]&.to_s
         as_type = options.delete(:as) || resolve_link_as(extname, mime_type)
@@ -530,14 +530,12 @@ module ActionView
         end
 
         def resolve_link_as(extname, mime_type)
-          if extname == "js"
-            "script"
-          elsif extname == "css"
-            "style"
-          elsif extname == "vtt"
-            "track"
-          elsif (type = mime_type.to_s.split("/")[0]) && type.in?(%w(audio video font))
-            type
+          case extname
+          when "js"  then "script"
+          when "css" then "style"
+          when "vtt" then "track"
+          else
+            mime_type.to_s.split("/").first.presence_in(%w(audio video font image))
           end
         end
 

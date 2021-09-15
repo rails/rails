@@ -86,14 +86,25 @@ db_namespace = namespace :db do
 
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
   task migrate: :load_config do
-    original_db_config = ActiveRecord::Base.connection_db_config
-    ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-      ActiveRecord::Base.establish_connection(db_config)
+    db_configs = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env)
+
+    if db_configs.size == 1
       ActiveRecord::Tasks::DatabaseTasks.migrate
+    else
+      original_db_config = ActiveRecord::Base.connection_db_config
+      mapped_versions = ActiveRecord::Tasks::DatabaseTasks.db_configs_with_versions(db_configs)
+
+      mapped_versions.sort.each do |version, db_configs|
+        db_configs.each do |db_config|
+          ActiveRecord::Base.establish_connection(db_config)
+          ActiveRecord::Tasks::DatabaseTasks.migrate(version)
+        end
+      end
     end
+
     db_namespace["_dump"].invoke
   ensure
-    ActiveRecord::Base.establish_connection(original_db_config)
+    ActiveRecord::Base.establish_connection(original_db_config) if original_db_config
   end
 
   # IMPORTANT: This task won't dump the schema if ActiveRecord.dump_schema_after_migration is set to false
@@ -110,9 +121,13 @@ db_namespace = namespace :db do
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
       # IMPORTANT: This task won't dump the schema if ActiveRecord.dump_schema_after_migration is set to false
       task name do
-        if ActiveRecord.dump_schema_after_migration
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
+
+        if ActiveRecord.dump_schema_after_migration && db_config.schema_dump
+          ActiveRecord::Base.establish_connection(db_config)
           db_namespace["schema:dump:#{name}"].invoke
         end
+
         # Allow this task to be called as many times as required. An example is the
         # migrate:redo task, which calls other two internally that depend on this one.
         db_namespace["_dump:#{name}"].reenable
@@ -291,7 +306,16 @@ db_namespace = namespace :db do
     db_namespace["_dump"].invoke
   end
 
-  desc "Drops and recreates the database from db/schema.rb for the current environment and loads the seeds."
+  namespace :reset do
+    task all: ["db:drop", "db:setup"]
+
+    ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
+      desc "Drops and recreates the #{name} database from its schema for the current environment and loads the seeds."
+      task name => ["db:drop:#{name}", "db:setup:#{name}"]
+    end
+  end
+
+  desc "Drops and recreates all databases from their schema for the current environment and loads the seeds."
   task reset: [ "db:drop", "db:setup" ]
 
   # desc "Retrieves the charset for the current environment's database"
@@ -350,7 +374,16 @@ db_namespace = namespace :db do
     end
   end
 
-  desc "Creates the database, loads the schema, and initializes with the seed data (use db:reset to also drop the database first)"
+  namespace :setup do
+    task all: ["db:create", :environment, "db:schema:load", :seed]
+
+    ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
+      desc "Creates the #{name} database, loads the schema, and initializes with the seed data (use db:reset:#{name} to also drop the database first)"
+      task name => ["db:create:#{name}", :environment, "db:schema:load:#{name}", "db:seed"]
+    end
+  end
+
+  desc "Creates all databases, loads all schemas, and initializes with the seed data (use db:reset to also drop all databases first)"
   task setup: ["db:create", :environment, "db:schema:load", :seed]
 
   desc "Runs setup if database does not exist, or runs migrations if it does"
@@ -385,8 +418,9 @@ db_namespace = namespace :db do
       fixture_files = if ENV["FIXTURES"]
         ENV["FIXTURES"].split(",")
       else
-        # The use of String#[] here is to support namespaced fixtures.
-        Dir["#{fixtures_dir}/**/*.yml"].map { |f| f[(fixtures_dir.size + 1)..-5] }
+        files = Dir[File.join(fixtures_dir, "**/*.{yml}")]
+        files.reject! { |f| f.start_with?(File.join(fixtures_dir, "files")) }
+        files.map! { |f| f[fixtures_dir.to_s.size..-5].delete_prefix("/") }
       end
 
       ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_files)
@@ -421,8 +455,10 @@ db_namespace = namespace :db do
     desc "Creates a database schema file (either db/schema.rb or db/structure.sql, depending on `config.active_record.schema_format`)"
     task dump: :load_config do
       ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-        ActiveRecord::Base.establish_connection(db_config)
-        ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+        if db_config.schema_dump
+          ActiveRecord::Base.establish_connection(db_config)
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+        end
       end
 
       db_namespace["schema:dump"].reenable
@@ -457,8 +493,11 @@ db_namespace = namespace :db do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
         desc "Loads a database schema file (either db/schema.rb or db/structure.sql, depending on `config.active_record.schema_format`) into the #{name} database"
         task name => :load_config do
+          original_db_config = ActiveRecord::Base.connection_db_config
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
           ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ActiveRecord.schema_format, ENV["SCHEMA"])
+        ensure
+          ActiveRecord::Base.establish_connection(original_db_config) if original_db_config
         end
       end
     end

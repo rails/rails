@@ -23,7 +23,7 @@ module ActiveRecord
 
     RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
 
-    class GeneratedAttributeMethods < Module #:nodoc:
+    class GeneratedAttributeMethods < Module # :nodoc:
       include Mutex_m
     end
 
@@ -39,7 +39,7 @@ module ActiveRecord
     end
 
     module ClassMethods
-      def inherited(child_class) #:nodoc:
+      def inherited(child_class) # :nodoc:
         child_class.initialize_generated_modules
         super
       end

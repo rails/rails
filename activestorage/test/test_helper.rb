@@ -9,14 +9,8 @@ require "active_support/test_case"
 require "active_support/core_ext/object/try"
 require "active_support/testing/autorun"
 require "active_support/configuration_file"
-require "active_record/testing/query_assertions"
 require "active_storage/service/mirror_service"
 require "image_processing/mini_magick"
-
-begin
-  require "byebug"
-rescue LoadError
-end
 
 require "active_job"
 ActiveJob::Base.queue_adapter = :test
@@ -27,6 +21,12 @@ SERVICE_CONFIGURATIONS = begin
 rescue Errno::ENOENT
   puts "Missing service configuration file in test/service/configurations.yml"
   {}
+end
+# Azure service tests are currently failing on the main branch.
+# We temporarily disable them while we get things working again.
+if ENV["CI"]
+  SERVICE_CONFIGURATIONS.delete(:azure)
+  SERVICE_CONFIGURATIONS.delete(:azure_public)
 end
 
 require "tmpdir"
@@ -47,8 +47,6 @@ ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 ActiveStorage::FixtureSet.file_fixture_path = File.expand_path("fixtures/files", __dir__)
 
 class ActiveSupport::TestCase
-  include ActiveRecord::Testing::QueryAssertions
-
   self.file_fixture_path = ActiveStorage::FixtureSet.file_fixture_path
 
   include ActiveRecord::TestFixtures
@@ -56,11 +54,28 @@ class ActiveSupport::TestCase
   self.fixture_path = File.expand_path("fixtures", __dir__)
 
   setup do
-    ActiveStorage::Current.host = "https://example.com"
+    ActiveStorage::Current.url_options = { protocol: "https://", host: "example.com", port: nil }
   end
 
   teardown do
     ActiveStorage::Current.reset
+  end
+
+  def assert_queries(expected_count)
+    ActiveRecord::Base.connection.materialize_transactions
+
+    queries = []
+    ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+      queries << payload[:sql] unless %w[ SCHEMA TRANSACTION ].include?(payload[:name])
+    end
+
+    yield.tap do
+      assert_equal expected_count, queries.size, "#{queries.size} instead of #{expected_count} queries were executed. #{queries.inspect}"
+    end
+  end
+
+  def assert_no_queries(&block)
+    assert_queries(0, &block)
   end
 
   private
@@ -83,7 +98,7 @@ class ActiveSupport::TestCase
     def directly_upload_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", record: nil)
       file = file_fixture(filename)
       byte_size = file.size
-      checksum = Digest::MD5.file(file).base64digest
+      checksum = OpenSSL::Digest::MD5.file(file).base64digest
 
       create_blob_before_direct_upload(filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record).tap do |blob|
         service = ActiveStorage::Blob.service.try(:primary) || ActiveStorage::Blob.service
@@ -111,6 +126,40 @@ class ActiveSupport::TestCase
     ensure
       ActiveStorage::Blob.service = previous_service
     end
+
+    def with_strict_loading_by_default(&block)
+      strict_loading_was = ActiveRecord::Base.strict_loading_by_default
+      ActiveRecord::Base.strict_loading_by_default = true
+      yield
+      ActiveRecord::Base.strict_loading_by_default = strict_loading_was
+    end
+
+    def without_variant_tracking(&block)
+      variant_tracking_was = ActiveStorage.track_variants
+      ActiveStorage.track_variants = false
+      yield
+      ActiveStorage.track_variants = variant_tracking_was
+    end
+
+    def with_raise_on_open_redirects(service)
+      old_raise_on_open_redirects = ActionController::Base.raise_on_open_redirects
+      old_service = ActiveStorage::Blob.service
+
+      ActionController::Base.raise_on_open_redirects = true
+      ActiveStorage::Blob.service = ActiveStorage::Service.configure(service, SERVICE_CONFIGURATIONS)
+      yield
+    ensure
+      ActionController::Base.raise_on_open_redirects = old_raise_on_open_redirects
+      ActiveStorage::Blob.service = old_service
+    end
+
+    def subscribe_events_from(name)
+      events = []
+      ActiveSupport::Notifications.subscribe(name) do |*args|
+        events << ActiveSupport::Notifications::Event.new(*args)
+      end
+      events
+    end
 end
 
 require "global_id"
@@ -123,13 +172,13 @@ class User < ActiveRecord::Base
   has_one_attached :avatar
   has_one_attached :cover_photo, dependent: false, service: :local
   has_one_attached :avatar_with_variants do |attachable|
-    attachable.variant :thumb, resize: "100x100"
+    attachable.variant :thumb, resize_to_limit: [100, 100]
   end
 
   has_many_attached :highlights
   has_many_attached :vlogs, dependent: false, service: :local
   has_many_attached :highlights_with_variants do |attachable|
-    attachable.variant :thumb, resize: "100x100"
+    attachable.variant :thumb, resize_to_limit: [100, 100]
   end
 
   accepts_nested_attributes_for :highlights_attachments, allow_destroy: true

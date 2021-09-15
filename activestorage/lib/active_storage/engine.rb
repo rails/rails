@@ -12,6 +12,8 @@ require "active_storage/previewer/mupdf_previewer"
 require "active_storage/previewer/video_previewer"
 
 require "active_storage/analyzer/image_analyzer"
+require "active_storage/analyzer/image_analyzer/image_magick"
+require "active_storage/analyzer/image_analyzer/vips"
 require "active_storage/analyzer/video_analyzer"
 require "active_storage/analyzer/audio_analyzer"
 
@@ -25,7 +27,7 @@ module ActiveStorage
 
     config.active_storage = ActiveSupport::OrderedOptions.new
     config.active_storage.previewers = [ ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
-    config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer ]
+    config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new
 
@@ -40,6 +42,9 @@ module ActiveStorage
       image/vnd.adobe.photoshop
       image/vnd.microsoft.icon
       image/webp
+      image/avif
+      image/heic
+      image/heif
     )
 
     config.active_storage.web_image_content_types = %w(
@@ -144,6 +149,12 @@ module ActiveStorage
       ActiveSupport.on_load(:active_record) do
         include Reflection::ActiveRecordExtensions
         ActiveRecord::Reflection.singleton_class.prepend(Reflection::ReflectionExtension)
+      end
+    end
+
+    initializer "active_storage.asset" do
+      if Rails.application.config.respond_to?(:assets)
+        Rails.application.config.assets.precompile += %w( activestorage activestorage.esm )
       end
     end
 

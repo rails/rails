@@ -263,7 +263,7 @@ module ActiveRecord
       end
 
       # Computes the table name, (re)sets it internally, and returns it.
-      def reset_table_name #:nodoc:
+      def reset_table_name # :nodoc:
         self.table_name = if abstract_class?
           superclass == Base ? nil : superclass.table_name
         elsif superclass.abstract_class?
@@ -273,11 +273,11 @@ module ActiveRecord
         end
       end
 
-      def full_table_name_prefix #:nodoc:
+      def full_table_name_prefix # :nodoc:
         (module_parents.detect { |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
       end
 
-      def full_table_name_suffix #:nodoc:
+      def full_table_name_suffix # :nodoc:
         (module_parents.detect { |p| p.respond_to?(:table_name_suffix) } || self).table_name_suffix
       end
 
@@ -354,7 +354,7 @@ module ActiveRecord
         end
       end
 
-      def reset_sequence_name #:nodoc:
+      def reset_sequence_name # :nodoc:
         @explicit_sequence_name = false
         @sequence_name          = connection.default_sequence_name(table_name, primary_key)
       end
@@ -501,7 +501,7 @@ module ActiveRecord
       #
       # The most common usage pattern for this method is probably in a migration,
       # when just after creating a table you want to populate it with some default
-      # values, eg:
+      # values, e.g.:
       #
       #  class CreateJobLevels < ActiveRecord::Migration[7.0]
       #    def up

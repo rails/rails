@@ -5,7 +5,7 @@ require "action_view/helpers/tags/checkable"
 module ActionView
   module Helpers
     module Tags # :nodoc:
-      class CheckBox < Base #:nodoc:
+      class CheckBox < Base # :nodoc:
         include Checkable
 
         def initialize(object_name, method_name, template_object, checked_value, unchecked_value, options)

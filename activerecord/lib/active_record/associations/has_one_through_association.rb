@@ -3,14 +3,8 @@
 module ActiveRecord
   module Associations
     # = Active Record Has One Through Association
-    class HasOneThroughAssociation < HasOneAssociation #:nodoc:
+    class HasOneThroughAssociation < HasOneAssociation # :nodoc:
       include ThroughAssociation
-
-      def find_target
-        return scope.first if disable_joins
-
-        super
-      end
 
       private
         def replace(record, save = true)

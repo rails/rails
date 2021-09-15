@@ -6,6 +6,7 @@ require "models/admin"
 require "models/admin/account"
 require "models/admin/randomly_named_c1"
 require "models/admin/user"
+require "models/author"
 require "models/binary"
 require "models/book"
 require "models/bulb"
@@ -18,6 +19,7 @@ require "models/course"
 require "models/developer"
 require "models/dog"
 require "models/doubloon"
+require "models/essay"
 require "models/joke"
 require "models/matey"
 require "models/other_dog"
@@ -790,6 +792,76 @@ class ForeignKeyFixturesTest < ActiveRecord::TestCase
   end
 end
 
+class FkObjectToPointTo < ActiveRecord::Base
+  has_many :fk_pointing_to_non_existent_objects
+end
+class FkPointingToNonExistentObject < ActiveRecord::Base
+  belongs_to :fk_object_to_point_to
+end
+
+class FixturesWithForeignKeyViolationsTest < ActiveRecord::TestCase
+  fixtures :fk_object_to_point_to
+
+  def setup
+    # other tests in this file load the parrots fixture but not the treasure one (see `test_create_fixtures`).
+    # this creates FK violations since Parrot and ParrotTreasure records are created.
+    # those violations can cause false positives in these tests. since they aren't related to these tests we
+    # delete the irrelevant records here (this test is transactional so it's fine).
+    Parrot.all.each(&:destroy)
+  end
+
+  def test_raises_fk_violations
+    fk_pointing_to_non_existent_object = <<~FIXTURE
+    first:
+      fk_object_to_point_to: one
+    FIXTURE
+    File.write(FIXTURES_ROOT + "/fk_pointing_to_non_existent_object.yml", fk_pointing_to_non_existent_object)
+
+    with_verify_foreign_keys_for_fixtures do
+      if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
+        assert_raise RuntimeError do
+          ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
+        end
+      else
+        assert_nothing_raised do
+          ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
+        end
+      end
+    end
+
+  ensure
+    File.delete(FIXTURES_ROOT + "/fk_pointing_to_non_existent_object.yml")
+    ActiveRecord::FixtureSet.reset_cache
+  end
+
+  def test_does_not_raise_if_no_fk_violations
+    fk_pointing_to_valid_object = <<~FIXTURE
+    first:
+      fk_object_to_point_to_id: 1
+    FIXTURE
+    File.write(FIXTURES_ROOT + "/fk_pointing_to_non_existent_object.yml", fk_pointing_to_valid_object)
+
+    with_verify_foreign_keys_for_fixtures do
+      assert_nothing_raised do
+        ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
+      end
+    end
+
+  ensure
+    File.delete(FIXTURES_ROOT + "/fk_pointing_to_non_existent_object.yml")
+    ActiveRecord::FixtureSet.reset_cache
+  end
+
+  private
+    def with_verify_foreign_keys_for_fixtures
+      setting_was = ActiveRecord.verify_foreign_keys_for_fixtures
+      ActiveRecord.verify_foreign_keys_for_fixtures = true
+      yield
+    ensure
+      ActiveRecord.verify_foreign_keys_for_fixtures = setting_was
+    end
+end
+
 class OverRideFixtureMethodTest < ActiveRecord::TestCase
   fixtures :topics
 
@@ -1419,6 +1491,16 @@ class FileFixtureConflictTest < ActiveRecord::TestCase
     self.class.fixtures :all
 
     assert_equal %w(developers namespaced/accounts people tasks), fixture_table_names.sort
+  end
+end
+
+class PrimaryKeyErrorTest < ActiveRecord::TestCase
+  test "generates the correct value" do
+    e = assert_raise(ActiveRecord::FixtureSet::TableRow::PrimaryKeyError) do
+      ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT + "/primary_key_error", "primary_key_error")
+    end
+
+    assert_includes e.message, "Unable to set"
   end
 end
 

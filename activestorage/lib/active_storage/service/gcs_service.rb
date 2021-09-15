@@ -1,12 +1,16 @@
 # frozen_string_literal: true
 
 gem "google-cloud-storage", "~> 1.11"
+require "google/apis/iamcredentials_v1"
 require "google/cloud/storage"
 
 module ActiveStorage
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::GCSService < Service
+    class MetadataServerError < ActiveStorage::Error; end
+    class MetadataServerNotFoundError < ActiveStorage::Error; end
+
     def initialize(public: false, **config)
       @config = config
       @public = public
@@ -95,13 +99,20 @@ module ActiveStorage
           version = :v4
         end
 
-        generated_url = bucket.signed_url(key,
+        args = {
           content_md5: checksum,
           expires: expires_in,
           headers: headers,
           method: "PUT",
-          version: version
-        )
+          version: version,
+        }
+
+        if @config[:iam]
+          args[:issuer] = issuer
+          args[:signer] = signer
+        end
+
+        generated_url = bucket.signed_url(key, **args)
 
         payload[:url] = generated_url
 
@@ -123,10 +134,20 @@ module ActiveStorage
 
     private
       def private_url(key, expires_in:, filename:, content_type:, disposition:, **)
-        file_for(key).signed_url expires: expires_in, query: {
-          "response-content-disposition" => content_disposition_with(type: disposition, filename: filename),
-          "response-content-type" => content_type
+        args = {
+          expires: expires_in,
+          query: {
+            "response-content-disposition" => content_disposition_with(type: disposition, filename: filename),
+            "response-content-type" => content_type
+          }
         }
+
+        if @config[:iam]
+          args[:issuer] = issuer
+          args[:signer] = signer
+        end
+
+        file_for(key).signed_url(**args)
       end
 
       def public_url(key, **)
@@ -160,7 +181,47 @@ module ActiveStorage
       end
 
       def client
-        @client ||= Google::Cloud::Storage.new(**config.except(:bucket, :cache_control))
+        @client ||= Google::Cloud::Storage.new(**config.except(:bucket, :cache_control, :iam, :gsa_email))
+      end
+
+      def issuer
+        @issuer ||= if @config[:gsa_email]
+          @config[:gsa_email]
+        else
+          uri = URI.parse("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email")
+          http = Net::HTTP.new(uri.host, uri.port)
+          request = Net::HTTP::Get.new(uri.request_uri)
+          request["Metadata-Flavor"] = "Google"
+
+          begin
+            response = http.request(request)
+          rescue SocketError
+            raise MetadataServerNotFoundError
+          end
+
+          if response.is_a?(Net::HTTPSuccess)
+            response.body
+          else
+            raise MetadataServerError
+          end
+        end
+      end
+
+      def signer
+        # https://googleapis.dev/ruby/google-cloud-storage/latest/Google/Cloud/Storage/Project.html#signed_url-instance_method
+        lambda do |string_to_sign|
+          iam_client = Google::Apis::IamcredentialsV1::IAMCredentialsService.new
+
+          scopes = ["https://www.googleapis.com/auth/iam"]
+          iam_client.authorization = Google::Auth.get_application_default(scopes)
+
+          request = Google::Apis::IamcredentialsV1::SignBlobRequest.new(
+            payload: string_to_sign
+          )
+          resource = "projects/-/serviceAccounts/#{issuer}"
+          response = iam_client.sign_service_account_blob(resource, request)
+          response.signed_blob
+        end
       end
   end
 end

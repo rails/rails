@@ -35,8 +35,8 @@ module ActiveStorage
   # can configure the service to use like this:
   #
   #   ActiveStorage::Blob.service = ActiveStorage::Service.configure(
-  #     :Disk,
-  #     root: Pathname("/foo/bar/storage")
+  #     :local,
+  #     { local: {service: "Disk",  root: Pathname("/tmp/foo/storage") } }
   #   )
   class Service
     extend ActiveSupport::Autoload
@@ -57,7 +57,7 @@ module ActiveStorage
       # Passes the configurator and all of the service's config as keyword args.
       #
       # See MirrorService for an example.
-      def build(configurator:, name:, service: nil, **service_config) #:nodoc:
+      def build(configurator:, name:, service: nil, **service_config) # :nodoc:
         new(**service_config).tap do |service_instance|
           service_instance.name = name
         end

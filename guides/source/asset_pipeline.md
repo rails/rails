@@ -33,24 +33,11 @@ passing the `--skip-sprockets` option.
 $ rails new appname --skip-sprockets
 ```
 
-Rails automatically adds the [`sass-rails`](https://github.com/rails/sass-rails)
-gem to your `Gemfile`, which is used by Sprockets for
-[Sass](https://sass-lang.com) compilation:
+Rails can easily work with Sass by adding the [`sassc-rails`](https://github.com/sass/sassc-rails)
+gem to your `Gemfile`, which is used by Sprockets for [Sass](https://sass-lang.com) compilation:
 
 ```ruby
-gem 'sass-rails'
-```
-
-Using the `--skip-sprockets` option will prevent Rails from adding
-this gem, so if you later want to enable the asset pipeline
-you will have to add it to your `Gemfile` manually. Also,
-creating an application with the `--skip-sprockets` option will generate
-a slightly different `config/application.rb` file, with a require statement
-for the sprockets railtie that is commented-out. You will have to remove
-the comment operator on that line to later enable the asset pipeline:
-
-```ruby
-# require "sprockets/railtie"
+gem 'sassc-rails'
 ```
 
 To set asset compression methods, set the appropriate configuration options
@@ -62,7 +49,7 @@ config.assets.css_compressor = :yui
 config.assets.js_compressor = :uglifier
 ```
 
-NOTE: The `sass-rails` gem is automatically used for CSS compression if included
+NOTE: The `sassc-rails` gem is automatically used for CSS compression if included
 in the `Gemfile` and no `config.assets.css_compressor` option is set.
 
 ### Main Features
@@ -205,15 +192,6 @@ NOTE: You must have an ExecJS supported runtime in order to use CoffeeScript.
 If you are using macOS or Windows, you have a JavaScript runtime installed in
 your operating system. Check [ExecJS](https://github.com/rails/execjs#readme) documentation to know all supported JavaScript runtimes.
 
-You can also disable generation of controller specific asset files by adding the
-following to your `config/application.rb` configuration:
-
-```ruby
-  config.generators do |g|
-    g.assets false
-  end
-```
-
 ### Asset Organization
 
 Pipeline assets can be placed inside an application in one of three locations:
@@ -317,12 +295,12 @@ familiar `javascript_include_tag` and `stylesheet_link_tag`:
 ```
 
 If using the turbolinks gem, which is included by default in Rails, then
-include the 'data-turbolinks-track' option which causes turbolinks to check if
+include the 'data-turbo-track' option which causes Turbo to check if
 an asset has been updated and if so loads it into the page:
 
 ```erb
-<%= stylesheet_link_tag "application", media: "all", "data-turbolinks-track" => "reload" %>
-<%= javascript_include_tag "application", "data-turbolinks-track" => "reload" %>
+<%= stylesheet_link_tag "application", media: "all", "data-turbo-track" => "reload" %>
+<%= javascript_include_tag "application", "data-turbo-track" => "reload" %>
 ```
 
 In regular views you can access images in the `app/assets/images` directory
@@ -407,17 +385,10 @@ If you add an `erb` extension to a JavaScript asset, making it something such as
 JavaScript code:
 
 ```js
-$('#logo').attr({ src: "<%= asset_path('logo.png') %>" });
+document.getElementById('logo').src = "<%= asset_path('logo.png') %>"
 ```
 
 This writes the path to the particular asset being referenced.
-
-Similarly, you can use the `asset_path` helper in CoffeeScript files with `erb`
-extension (e.g., `application.coffee.erb`):
-
-```js
-$('#logo').attr src: "<%= asset_path('logo.png') %>"
-```
 
 ### Manifest Files and Directives
 
@@ -1071,24 +1042,24 @@ config.assets.css_compressor = :sass
 
 ### JavaScript Compression
 
-Possible options for JavaScript compression are `:closure`, `:uglifier` and
-`:yui`. These require the use of the `closure-compiler`, `uglifier` or
+Possible options for JavaScript compression are `:terser`, `:closure`, `:uglifier` and
+`:yui`. These require the use of the `terser`, `closure-compiler`, `uglifier` or
 `yui-compressor` gems, respectively.
 
-Take the `uglifier` gem, for example.
-This gem wraps [UglifyJS](https://github.com/mishoo/UglifyJS) (written for
+Take the `terser` gem, for example.
+This gem wraps [Terser](https://github.com/terser/terser) (written for
 NodeJS) in Ruby. It compresses your code by removing white space and comments,
 shortening local variable names, and performing other micro-optimizations such
 as changing `if` and `else` statements to ternary operators where possible.
 
-The following line invokes `uglifier` for JavaScript compression.
+The following line invokes `terser` for JavaScript compression.
 
 ```ruby
-config.assets.js_compressor = :uglifier
+config.assets.js_compressor = :terser
 ```
 
 NOTE: You will need an [ExecJS](https://github.com/rails/execjs#readme)
-supported runtime in order to use `uglifier`. If you are using macOS or
+supported runtime in order to use `terser`. If you are using macOS or
 Windows you have a JavaScript runtime installed in your operating system.
 
 ### GZipping your assets

@@ -9,47 +9,45 @@ module ActionText
       source_root File.expand_path("templates", __dir__)
 
       def install_javascript_dependencies
-        rails_command "app:binstub:yarn", inline: true
-
-        say "Installing JavaScript dependencies", :green
-        yarn_command "add #{js_dependencies.map { |name, version| "#{name}@#{version}" }.join(" ")}", capture: true
+        if Pathname(destination_root).join("package.json").exist?
+          say "Installing JavaScript dependencies", :green
+          run "yarn add @rails/actiontext trix"
+        end
       end
 
-      def append_dependencies_to_package_file
-        in_root do
-          if (app_javascript_pack_path = Pathname.new("app/javascript/packs/application.js")).exist?
-            js_dependencies.each_key do |dependency|
-              line = %[require("#{dependency}")]
+      def append_javascript_dependencies
+        destination = Pathname(destination_root)
 
-              unless app_javascript_pack_path.read.include? line
-                say "Adding #{dependency} to #{app_javascript_pack_path}", :green
-                append_to_file app_javascript_pack_path, "\n#{line}"
-              end
-            end
-          else
-            say <<~WARNING, :red
-              WARNING: Action Text can't locate your JavaScript bundle to add its package dependencies.
+        if (application_javascript_path = destination.join("app/javascript/application.js")).exist?
+          insert_into_file application_javascript_path.to_s, %(import "trix"\nimport "@rails/actiontext"\n)
+        else
+          say <<~INSTRUCTIONS, :green
+            You must import the @rails/actiontext and trix JavaScript modules in your application entrypoint.
+          INSTRUCTIONS
+        end
 
-              Add these lines to any bundles:
-
-              require("trix")
-              require("@rails/actiontext")
-
-              Alternatively, install and setup the webpacker gem then rerun `bin/rails action_text:install`
-              to have these dependencies added automatically.
-            WARNING
-          end
+        if (importmap_path = destination.join("config/importmap.rb")).exist?
+          append_to_file importmap_path.to_s, %(pin "trix"\npin "@rails/actiontext", to: "actiontext.js"\n)
         end
       end
 
       def create_actiontext_files
-        template "actiontext.scss", "app/assets/stylesheets/actiontext.scss"
+        template "actiontext.css", "app/assets/stylesheets/actiontext.css"
 
-        copy_file "#{GEM_ROOT}/app/views/active_storage/blobs/_blob.html.erb",
+        gem_root = "#{__dir__}/../../../.."
+
+        copy_file "#{gem_root}/app/views/active_storage/blobs/_blob.html.erb",
           "app/views/active_storage/blobs/_blob.html.erb"
 
-        copy_file "#{GEM_ROOT}/app/views/layouts/action_text/contents/_content.html.erb",
+        copy_file "#{gem_root}/app/views/layouts/action_text/contents/_content.html.erb",
           "app/views/layouts/action_text/contents/_content.html.erb"
+      end
+
+      def enable_image_processing_gem
+        if (gemfile_path = Pathname(destination_root).join("Gemfile")).exist?
+          say "Ensure image_processing gem has been enabled so image uploads will work (remember to bundle!)"
+          uncomment_lines gemfile_path, /gem "image_processing"/
+        end
       end
 
       def create_migrations
@@ -57,19 +55,6 @@ module ActionText
       end
 
       hook_for :test_framework
-
-      private
-        GEM_ROOT = "#{__dir__}/../../../.."
-
-        def js_dependencies
-          js_package = JSON.load(Pathname.new("#{GEM_ROOT}/package.json"))
-          js_package["peerDependencies"].merge \
-            js_package["name"] => "^#{js_package["version"]}"
-        end
-
-        def yarn_command(command, config = {})
-          in_root { run "#{Thor::Util.ruby_command} bin/yarn #{command}", abort_on_failure: true, **config }
-        end
     end
   end
 end

@@ -95,6 +95,14 @@ class SanitizeTest < ActiveRecord::TestCase
     end
   end
 
+  def test_disallow_raw_sql_with_unknown_attribute_string
+    assert_raise(ActiveRecord::UnknownAttributeReference) { Binary.disallow_raw_sql!(["field(id, ?)"]) }
+  end
+
+  def test_disallow_raw_sql_with_unknown_attribute_sql_literal
+    assert_nothing_raised { Binary.disallow_raw_sql!([Arel.sql("field(id, ?)")]) }
+  end
+
   def test_bind_arity
     assert_nothing_raised                                { bind "" }
     assert_raise(ActiveRecord::PreparedStatementInvalid) { bind "", 1 }

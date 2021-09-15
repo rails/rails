@@ -42,7 +42,7 @@
 # You can combine any number of ImageMagick/libvips operations into a variant, as well as any macros provided by the
 # ImageProcessing gem (such as +resize_to_limit+):
 #
-#   avatar.variant(resize_to_limit: [800, 800], monochrome: true, rotate: "-90")
+#   avatar.variant(resize_to_limit: [800, 800], colourspace: "b-w", rotate: "-90")
 #
 # Visit the following links for a list of available ImageProcessing commands and ImageMagick/libvips operations:
 #
@@ -67,7 +67,7 @@ class ActiveStorage::Variant
 
   # Returns a combination key of the blob and the variation that together identifies a specific variant.
   def key
-    "variants/#{blob.key}/#{Digest::SHA256.hexdigest(variation.key)}"
+    "variants/#{blob.key}/#{OpenSSL::Digest::SHA256.hexdigest(variation.key)}"
   end
 
   # Returns the URL of the blob variant on the service. See {ActiveStorage::Blob#url} for details.
@@ -78,9 +78,6 @@ class ActiveStorage::Variant
   def url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline)
     service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end
-
-  alias_method :service_url, :url
-  deprecate service_url: :url
 
   # Downloads the file associated with this variant. If no block is given, the entire file is read into memory and returned.
   # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.
@@ -94,7 +91,7 @@ class ActiveStorage::Variant
 
   alias_method :content_type_for_serving, :content_type
 
-  def forced_disposition_for_serving #:nodoc:
+  def forced_disposition_for_serving # :nodoc:
     nil
   end
 

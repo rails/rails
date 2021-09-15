@@ -22,7 +22,7 @@ module ActiveStorage::Service::SharedServiceTests
     test "uploading with integrity" do
       key  = SecureRandom.base58(24)
       data = "Something else entirely!"
-      @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data))
+      @service.upload(key, StringIO.new(data), checksum: OpenSSL::Digest::MD5.base64digest(data))
 
       assert_equal data, @service.download(key)
     ensure
@@ -34,7 +34,7 @@ module ActiveStorage::Service::SharedServiceTests
       data = "Something else entirely!"
 
       assert_raises(ActiveStorage::IntegrityError) do
-        @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest("bad data"))
+        @service.upload(key, StringIO.new(data), checksum: OpenSSL::Digest::MD5.base64digest("bad data"))
       end
 
       assert_not @service.exist?(key)
@@ -48,7 +48,7 @@ module ActiveStorage::Service::SharedServiceTests
       @service.upload(
         key,
         StringIO.new(data),
-        checksum: Digest::MD5.base64digest(data),
+        checksum: OpenSSL::Digest::MD5.base64digest(data),
         filename: "racecar.jpg",
         content_type: "image/jpeg"
       )

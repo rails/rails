@@ -54,7 +54,7 @@ module ActiveRecord
         super(connection, logger, config)
       end
 
-      def get_database_version #:nodoc:
+      def get_database_version # :nodoc:
         full_version_string = get_full_version
         version_string = version_string(full_version_string)
         Version.new(version_string, full_version_string)
@@ -137,6 +137,11 @@ module ActiveRecord
         true
       end
 
+      def field_ordered_value(column, values) # :nodoc:
+        field = Arel::Nodes::NamedFunction.new("FIELD", [column, values.reverse])
+        Arel::Nodes::Descending.new(field)
+      end
+
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end
@@ -174,7 +179,7 @@ module ActiveRecord
 
       # REFERENTIAL INTEGRITY ====================================
 
-      def disable_referential_integrity #:nodoc:
+      def disable_referential_integrity # :nodoc:
         old = query_value("SELECT @@FOREIGN_KEY_CHECKS")
 
         begin
@@ -185,27 +190,13 @@ module ActiveRecord
         end
       end
 
-      # CONNECTION MANAGEMENT ====================================
-
-      def clear_cache! # :nodoc:
-        reload_type_map
-        super
-      end
-
       #--
       # DATABASE STATEMENTS ======================================
       #++
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil, async: false)
-        materialize_transactions
-        mark_transaction_written_if_write(sql)
-
-        log(sql, name, async: async) do
-          ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-            @connection.query(sql)
-          end
-        end
+        raw_execute(sql, name, async)
       end
 
       # Mysql2Adapter doesn't have to free a result after using it, but we use this method
@@ -215,24 +206,24 @@ module ActiveRecord
         yield execute(sql, name, async: async)
       end
 
-      def begin_db_transaction
+      def begin_db_transaction # :nodoc:
         execute("BEGIN", "TRANSACTION")
       end
 
-      def begin_isolated_db_transaction(isolation)
+      def begin_isolated_db_transaction(isolation) # :nodoc:
         execute "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}"
         begin_db_transaction
       end
 
-      def commit_db_transaction #:nodoc:
+      def commit_db_transaction # :nodoc:
         execute("COMMIT", "TRANSACTION")
       end
 
-      def exec_rollback_db_transaction #:nodoc:
+      def exec_rollback_db_transaction # :nodoc:
         execute("ROLLBACK", "TRANSACTION")
       end
 
-      def empty_insert_statement_value(primary_key = nil)
+      def empty_insert_statement_value(primary_key = nil) # :nodoc:
         "VALUES ()"
       end
 
@@ -270,7 +261,7 @@ module ActiveRecord
       #
       # Example:
       #   drop_database('sebastian_development')
-      def drop_database(name) #:nodoc:
+      def drop_database(name) # :nodoc:
         execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
       end
 
@@ -346,12 +337,12 @@ module ActiveRecord
         end
       end
 
-      def change_column_default(table_name, column_name, default_or_changes) #:nodoc:
+      def change_column_default(table_name, column_name, default_or_changes) # :nodoc:
         default = extract_new_default_value(default_or_changes)
         change_column table_name, column_name, nil, default: default
       end
 
-      def change_column_null(table_name, column_name, null, default = nil) #:nodoc:
+      def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
         unless null || default.nil?
           execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
@@ -364,16 +355,16 @@ module ActiveRecord
         change_column table_name, column_name, nil, comment: comment
       end
 
-      def change_column(table_name, column_name, type, **options) #:nodoc:
+      def change_column(table_name, column_name, type, **options) # :nodoc:
         execute("ALTER TABLE #{quote_table_name(table_name)} #{change_column_for_alter(table_name, column_name, type, **options)}")
       end
 
-      def rename_column(table_name, column_name, new_column_name) #:nodoc:
+      def rename_column(table_name, column_name, new_column_name) # :nodoc:
         execute("ALTER TABLE #{quote_table_name(table_name)} #{rename_column_for_alter(table_name, column_name, new_column_name)}")
         rename_column_indexes(table_name, column_name, new_column_name)
       end
 
-      def add_index(table_name, column_name, **options) #:nodoc:
+      def add_index(table_name, column_name, **options) # :nodoc:
         index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
 
         return if if_not_exists && index_exists?(table_name, column_name, name: index.name)
@@ -568,55 +559,77 @@ module ActiveRecord
         end
       end
 
-      private
-        def initialize_type_map(m = type_map)
-          super
+      class << self
+        private
+          def initialize_type_map(m)
+            super
 
-          m.register_type(%r(char)i) do |sql_type|
-            limit = extract_limit(sql_type)
-            Type.lookup(:string, adapter: :mysql2, limit: limit)
+            m.register_type(%r(char)i) do |sql_type|
+              limit = extract_limit(sql_type)
+              Type.lookup(:string, adapter: :mysql2, limit: limit)
+            end
+
+            m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
+            m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
+            m.register_type %r(text)i,       Type::Text.new(limit: 2**16 - 1)
+            m.register_type %r(blob)i,       Type::Binary.new(limit: 2**16 - 1)
+            m.register_type %r(mediumtext)i, Type::Text.new(limit: 2**24 - 1)
+            m.register_type %r(mediumblob)i, Type::Binary.new(limit: 2**24 - 1)
+            m.register_type %r(longtext)i,   Type::Text.new(limit: 2**32 - 1)
+            m.register_type %r(longblob)i,   Type::Binary.new(limit: 2**32 - 1)
+            m.register_type %r(^float)i,     Type::Float.new(limit: 24)
+            m.register_type %r(^double)i,    Type::Float.new(limit: 53)
+
+            register_integer_type m, %r(^bigint)i,    limit: 8
+            register_integer_type m, %r(^int)i,       limit: 4
+            register_integer_type m, %r(^mediumint)i, limit: 3
+            register_integer_type m, %r(^smallint)i,  limit: 2
+            register_integer_type m, %r(^tinyint)i,   limit: 1
+
+            m.alias_type %r(year)i, "integer"
+            m.alias_type %r(bit)i,  "binary"
+
+            m.register_type %r(^enum)i, Type.lookup(:string, adapter: :mysql2)
+            m.register_type %r(^set)i,  Type.lookup(:string, adapter: :mysql2)
           end
 
-          m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
-          m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
-          m.register_type %r(text)i,       Type::Text.new(limit: 2**16 - 1)
-          m.register_type %r(blob)i,       Type::Binary.new(limit: 2**16 - 1)
-          m.register_type %r(mediumtext)i, Type::Text.new(limit: 2**24 - 1)
-          m.register_type %r(mediumblob)i, Type::Binary.new(limit: 2**24 - 1)
-          m.register_type %r(longtext)i,   Type::Text.new(limit: 2**32 - 1)
-          m.register_type %r(longblob)i,   Type::Binary.new(limit: 2**32 - 1)
-          m.register_type %r(^float)i,     Type::Float.new(limit: 24)
-          m.register_type %r(^double)i,    Type::Float.new(limit: 53)
-
-          register_integer_type m, %r(^bigint)i,    limit: 8
-          register_integer_type m, %r(^int)i,       limit: 4
-          register_integer_type m, %r(^mediumint)i, limit: 3
-          register_integer_type m, %r(^smallint)i,  limit: 2
-          register_integer_type m, %r(^tinyint)i,   limit: 1
-
-          m.register_type %r(^tinyint\(1\))i, Type::Boolean.new if emulate_booleans
-          m.alias_type %r(year)i, "integer"
-          m.alias_type %r(bit)i,  "binary"
-
-          m.register_type %r(^enum)i, Type.lookup(:string, adapter: :mysql2)
-          m.register_type %r(^set)i,  Type.lookup(:string, adapter: :mysql2)
-        end
-
-        def register_integer_type(mapping, key, **options)
-          mapping.register_type(key) do |sql_type|
-            if /\bunsigned\b/.match?(sql_type)
-              Type::UnsignedInteger.new(**options)
-            else
-              Type::Integer.new(**options)
+          def register_integer_type(mapping, key, **options)
+            mapping.register_type(key) do |sql_type|
+              if /\bunsigned\b/.match?(sql_type)
+                Type::UnsignedInteger.new(**options)
+              else
+                Type::Integer.new(**options)
+              end
             end
           end
+
+          def extract_precision(sql_type)
+            if /\A(?:date)?time(?:stamp)?\b/.match?(sql_type)
+              super || 0
+            else
+              super
+            end
+          end
+      end
+
+      TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
+      TYPE_MAP_WITH_BOOLEAN = Type::TypeMap.new(TYPE_MAP).tap do |m|
+        m.register_type %r(^tinyint\(1\))i, Type::Boolean.new
+      end
+
+      private
+        def type_map
+          emulate_booleans ? TYPE_MAP_WITH_BOOLEAN : TYPE_MAP
         end
 
-        def extract_precision(sql_type)
-          if /\A(?:date)?time(?:stamp)?\b/.match?(sql_type)
-            super || 0
-          else
-            super
+        def raw_execute(sql, name, async: false)
+          materialize_transactions
+          mark_transaction_written_if_write(sql)
+
+          log(sql, name, async: async) do
+            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+              @connection.query(sql)
+            end
           end
         end
 

@@ -606,7 +606,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       Task.find(1)
 
       # Preload the type cache again (so we don't have those queries issued during our assertions)
-      Task.connection.send(:reload_type_map)
+      Task.connection.send(:reload_type_map) if Task.connection.respond_to?(:reload_type_map, true)
 
       # Clear places where type information is cached
       Task.reset_column_information
@@ -759,13 +759,11 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   private
-    def with_temporary_connection_pool
+    def with_temporary_connection_pool(&block)
       pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("ActiveRecord::Base").get_pool_config(ActiveRecord.writing_role, :default)
       new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
 
-      pool_config.stub(:pool, new_pool) do
-        yield
-      end
+      pool_config.stub(:pool, new_pool, &block)
     end
 
     def middleware(&app)

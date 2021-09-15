@@ -12,7 +12,7 @@
 #      - HasManyAssociation
 
 module ActiveRecord::Associations::Builder # :nodoc:
-  class Association #:nodoc:
+  class Association # :nodoc:
     class << self
       attr_accessor :extensions
     end
@@ -33,6 +33,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       define_accessors model, reflection
       define_callbacks model, reflection
       define_validations model, reflection
+      define_change_tracking_methods model, reflection
       reflection
     end
 
@@ -117,6 +118,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
       # noop
     end
 
+    def self.define_change_tracking_methods(model, reflection)
+      # noop
+    end
+
     def self.valid_dependent_options
       raise NotImplementedError
     end
@@ -158,6 +163,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     private_class_method :build_scope, :macro, :valid_options, :validate_options, :define_extensions,
       :define_callbacks, :define_accessors, :define_readers, :define_writers, :define_validations,
-      :valid_dependent_options, :check_dependent_options, :add_destroy_callbacks, :add_after_commit_jobs_callback
+      :define_change_tracking_methods, :valid_dependent_options, :check_dependent_options,
+      :add_destroy_callbacks, :add_after_commit_jobs_callback
   end
 end

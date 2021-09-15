@@ -119,8 +119,13 @@ ActiveRecord::Schema.define do
     t.index :isbn, where: "published_on IS NOT NULL", unique: true
     t.index "(lower(external_id))", unique: true if supports_expression_index?
 
-    t.datetime :created_at
-    t.datetime :updated_at
+    if supports_datetime_with_precision?
+      t.datetime :created_at, precision: 6
+      t.datetime :updated_at, precision: 6
+    else
+      t.datetime :created_at
+      t.datetime :updated_at
+    end
     t.date :updated_on
   end
 
@@ -1238,6 +1243,16 @@ ActiveRecord::Schema.define do
     create_table :fk_test_has_fk, force: true do |t|
       t.references :fk, null: false
       t.foreign_key :fk_test_has_pk, column: "fk_id", name: "fk_name", primary_key: "pk_id"
+    end
+  end
+
+  disable_referential_integrity do
+    create_table :fk_object_to_point_tos, force: :cascade do |t|
+    end
+
+    create_table :fk_pointing_to_non_existent_objects, force: true do |t|
+      t.references :fk_object_to_point_to, null: false, index: false
+      t.foreign_key :fk_object_to_point_tos, column: "fk_object_to_point_to_id", name: "fk_that_will_be_broken"
     end
   end
 

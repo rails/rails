@@ -533,7 +533,8 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_joins_with_string_array
-    person_with_reader_and_post = Post.joins([
+    person_with_reader_and_post = Post.joins(
+      [
         "INNER JOIN categorizations ON categorizations.post_id = posts.id",
         "INNER JOIN categories ON categories.id = categorizations.category_id AND categories.type = 'SpecialCategory'"
       ]
@@ -1700,6 +1701,36 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_references_doesnt_trigger_eager_loading_if_reference_not_included
     scope = Post.references(:comments)
+    assert_not_predicate scope, :eager_loading?
+  end
+
+  def test_order_triggers_eager_loading
+    scope = Post.includes(:comments).order("comments.label ASC")
+    assert_predicate scope, :eager_loading?
+  end
+
+  def test_order_doesnt_trigger_eager_loading_when_ordering_using_the_owner_table
+    scope = Post.includes(:comments).order("posts.title ASC")
+    assert_not_predicate scope, :eager_loading?
+  end
+
+  def test_order_triggers_eager_loading_when_ordering_using_symbols
+    scope = Post.includes(:comments).order(:"comments.label")
+    assert_predicate scope, :eager_loading?
+  end
+
+  def test_order_doesnt_trigger_eager_loading_when_ordering_using_owner_table_and_symbols
+    scope = Post.includes(:comments).order(:"posts.title")
+    assert_not_predicate scope, :eager_loading?
+  end
+
+  def test_order_triggers_eager_loading_when_ordering_using_hash_syntax
+    scope = Post.includes(:comments).order({ "comments.label": :ASC })
+    assert_predicate scope, :eager_loading?
+  end
+
+  def test_order_doesnt_trigger_eager_loading_when_ordering_using_the_owner_table_and_hash_syntax
+    scope = Post.includes(:comments).order({ "posts.title": :ASC })
     assert_not_predicate scope, :eager_loading?
   end
 

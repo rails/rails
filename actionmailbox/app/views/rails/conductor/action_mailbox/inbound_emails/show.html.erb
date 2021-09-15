@@ -4,7 +4,7 @@
 
 <ul>
   <li><%= button_to "Route again", main_app.rails_conductor_inbound_email_reroute_path(@inbound_email), method: :post %></li>
-  <li>Incinerate</li>
+  <li><%= button_to "Incinerate", main_app.rails_conductor_inbound_email_incinerate_path(@inbound_email), method: :post %></li>
 </ul>
 
 <details>

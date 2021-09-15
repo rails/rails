@@ -102,6 +102,39 @@ module ActiveRecord
         config = HashConfig.new("default_env", "primary", idle_timeout: "0")
         assert_nil config.idle_timeout
       end
+
+      def test_default_schema_dump_value
+        config = HashConfig.new("default_env", "primary", {})
+        assert_equal true, config.schema_dump
+      end
+
+      def test_schema_dump_value_set_to_true
+        config = HashConfig.new("default_env", "primary", { schema_dump: true })
+        assert_equal true, config.schema_dump
+      end
+
+      def test_schema_dump_value_set_to_nil
+        config = HashConfig.new("default_env", "primary", { schema_dump: nil })
+        assert_nil config.schema_dump
+      end
+
+      def test_schema_dump_value_set_to_false
+        config = HashConfig.new("default_env", "primary", { schema_dump: false })
+        assert_equal false, config.schema_dump
+      end
+
+      def test_database_tasks_defaults_to_true
+        config = HashConfig.new("default_env", "primary", {})
+        assert_equal true, config.database_tasks?
+      end
+
+      def test_database_tasks_overrides_with_value
+        config = HashConfig.new("default_env", "primary", database_tasks: false)
+        assert_equal false, config.database_tasks?
+
+        config = HashConfig.new("default_env", "primary", database_tasks: "str")
+        assert_equal true, config.database_tasks?
+      end
     end
   end
 end

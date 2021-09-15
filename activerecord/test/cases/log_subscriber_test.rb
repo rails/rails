@@ -133,6 +133,12 @@ class LogSubscriberTest < ActiveRecord::TestCase
     end
   end
 
+  def test_async_query
+    logger = TestDebugLogSubscriber.new
+    logger.sql(Event.new(0.9, sql: "SELECT * from models", name: "Model Load", async: true, lock_wait: 0.01))
+    assert_match(/ASYNC Model Load \(0\.0ms\) \(db time 0\.9ms\)  SELECT/i, logger.debugs.last)
+  end
+
   def test_query_logging_coloration_with_nested_select
     logger = TestDebugLogSubscriber.new
     logger.colorize_logging = true

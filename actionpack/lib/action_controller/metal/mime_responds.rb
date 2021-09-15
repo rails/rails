@@ -2,7 +2,7 @@
 
 require "abstract_controller/collector"
 
-module ActionController #:nodoc:
+module ActionController # :nodoc:
   module MimeResponds
     # Without web-service support, an action which collects the data for displaying a list of people
     # might look something like this:
@@ -289,7 +289,7 @@ module ActionController #:nodoc:
         @format = request.negotiate_mime(@responses.keys)
       end
 
-      class VariantCollector #:nodoc:
+      class VariantCollector # :nodoc:
         def initialize(variant = nil)
           @variant = variant
           @variants = {}

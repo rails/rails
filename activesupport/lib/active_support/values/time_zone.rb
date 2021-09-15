@@ -260,7 +260,7 @@ module ActiveSupport
         @country_zones[code] ||= load_country_zones(code)
       end
 
-      def clear #:nodoc:
+      def clear # :nodoc:
         @lazy_zones_map = Concurrent::Map.new
         @country_zones  = Concurrent::Map.new
         @zones = nil
@@ -387,10 +387,21 @@ module ActiveSupport
     def iso8601(str)
       parts = Date._iso8601(str)
 
+      year = parts.fetch(:year)
+
+      if parts.key?(:yday)
+        ordinal_date = Date.ordinal(year, parts.fetch(:yday))
+        month = ordinal_date.month
+        day = ordinal_date.day
+      else
+        month = parts.fetch(:mon)
+        day = parts.fetch(:mday)
+      end
+
       time = Time.new(
-        parts.fetch(:year),
-        parts.fetch(:mon),
-        parts.fetch(:mday),
+        year,
+        month,
+        day,
         parts.fetch(:hour, 0),
         parts.fetch(:min, 0),
         parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
@@ -403,7 +414,7 @@ module ActiveSupport
         TimeWithZone.new(nil, self, time)
       end
 
-    rescue KeyError
+    rescue Date::Error, KeyError
       raise ArgumentError, "invalid date"
     end
 
@@ -539,15 +550,15 @@ module ActiveSupport
       tzinfo.period_for_local(time, dst) { |periods| periods.last }
     end
 
-    def periods_for_local(time) #:nodoc:
+    def periods_for_local(time) # :nodoc:
       tzinfo.periods_for_local(time)
     end
 
-    def init_with(coder) #:nodoc:
+    def init_with(coder) # :nodoc:
       initialize(coder["name"])
     end
 
-    def encode_with(coder) #:nodoc:
+    def encode_with(coder) # :nodoc:
       coder.tag = "!ruby/object:#{self.class}"
       coder.map = { "name" => tzinfo.name }
     end
