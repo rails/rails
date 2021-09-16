@@ -82,7 +82,7 @@ module ActiveSupport
         # use the faster _get when dealing with OrderedOptions
         super() { |h, k| parent._get(k) }
       elsif parent
-        super() { |h, k| parent[k] }
+        super() { |h, k| parent[k].kind_of?(Hash) ? InheritableOptions.new(parent[k]) : parent[k] }
       else
         super()
       end

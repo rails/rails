@@ -72,6 +72,26 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     assert_equal :baz, child.foo
   end
 
+  def test_inheritable_options_nested_hash
+    a = ActiveSupport::InheritableOptions.new(foo: { bar: 1 })
+
+    assert_equal 1, a.foo.bar
+    assert_equal a.foo.bar, a.foo.bar!
+
+    b = ActiveSupport::OrderedOptions.new
+    b[:bar] = 1
+    a = ActiveSupport::InheritableOptions.new(foo: b)
+
+    assert_equal 1, a.foo.bar
+    assert_equal a.foo.bar, a.foo.bar!
+
+    b = ActiveSupport::InheritableOptions.new(bar: 1)
+    a = ActiveSupport::InheritableOptions.new(foo: b)
+
+    assert_equal 1, a.foo.bar
+    assert_equal a.foo.bar, a.foo.bar!
+  end
+
   def test_inheritable_options_inheritable_copy
     original = ActiveSupport::InheritableOptions.new
     copy     = original.inheritable_copy
