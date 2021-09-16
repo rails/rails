@@ -1714,7 +1714,35 @@ app/models/concerns
 
 A given blog article might have various statuses - for instance, it might be visible to everyone (i.e. `public`), or only visible to the author (i.e. `private`). It may also be hidden to all but still retrievable (i.e. `archived`). Comments may similarly be hidden or visible. This could be represented using a `status` column in each model.
 
-Within the `article` model, after running a migration to add a `status` column, you might add:
+First, let's run the following migrations to add `status` to `Articles` and `Comments`:
+
+```bash
+$ bin/rails generate migration AddStatusToArticles status:string
+$ bin/rails generate migration AddStatusToComments status:string
+```
+
+TIP: To learn more about migrations, see [Active Record Migrations](
+active_record_migrations.html).
+
+We also have to permit the `:status` key as part of the strong parameter, in `app/controllers/articles_controller.rb`:
+
+```ruby
+  private
+    def article_params
+      params.require(:article).permit(:title, :body, :status)
+    end
+```
+
+and in `app/controllers/comments_controller.rb`:
+
+```ruby
+  private
+    def comment_params
+      params.require(:comment).permit(:commenter, :body, :status)
+    end
+```
+
+Within the `article` model, after running a migration to add a `status` column, you would add:
 
 ```ruby
 class Article < ApplicationRecord
@@ -1883,34 +1911,6 @@ Our blog has <%= Article.public_count %> articles and counting!
 </ul>
 
 <%= link_to "New Article", new_article_path %>
-```
-
-There are a few more steps to be carried out before our application works with the addition of `status` column. First, let's run the following migrations to add `status` to `Articles` and `Comments`:
-
-```bash
-$ bin/rails generate migration AddStatusToArticles status:string
-$ bin/rails generate migration AddStatusToComments status:string
-```
-
-TIP: To learn more about migrations, see [Active Record Migrations](
-active_record_migrations.html).
-
-We also have to permit the `:status` key as part of the strong parameter, in `app/controllers/articles_controller.rb`:
-
-```ruby
-  private
-    def article_params
-      params.require(:article).permit(:title, :body, :status)
-    end
-```
-
-and in `app/controllers/comments_controller.rb`:
-
-```ruby
-  private
-    def comment_params
-      params.require(:comment).permit(:commenter, :body, :status)
-    end
 ```
 
 To finish up, we will add a select box to the forms, and let the user select the status when they create a new article or post a new comment. We can also specify the default status as `public`. In `app/views/articles/_form.html.erb`, we can add:
