@@ -52,7 +52,6 @@ module ActiveModel
       attr_name = attribute.tr(".", "_").humanize
       attr_name = base_class.human_attribute_name(attribute, {
         default: attr_name,
-        base: base,
       })
 
       I18n.t(defaults.shift,
@@ -67,9 +66,8 @@ module ActiveModel
 
       options = {
         model: base.model_name.human,
-        attribute: base.class.human_attribute_name(attribute, { base: base }),
-        value: value,
-        object: base
+        attribute: base.class.human_attribute_name(attribute),
+        value: value
       }.merge!(options)
 
       if base.class.respond_to?(:i18n_scope)
