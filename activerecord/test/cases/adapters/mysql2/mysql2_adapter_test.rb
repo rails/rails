@@ -282,6 +282,31 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     @conn.drop_table :foos, if_exists: true
   end
 
+  def test_prepared_statements_defaults
+    fake_connection = Class.new do
+      def query_options
+        {}
+      end
+
+      def query(*)
+      end
+
+      def close
+      end
+    end.new
+
+    config = { socket: File::NULL }
+
+    adapter = ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(
+      fake_connection,
+      ActiveRecord::Base.logger,
+      nil,
+      config
+    )
+
+    assert_equal true, adapter.prepared_statements?
+  end
+
   def test_read_timeout_exception
     db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
 
