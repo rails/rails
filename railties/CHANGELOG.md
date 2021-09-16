@@ -10,7 +10,7 @@
     or `config/initializers/cookies_serializer.rb`
 
     The default value for `cookies_serializer` (`:json`) has been moved to `config.load_defaults("7.0")`.
-    The new framework defaults file sets the serializer to `:marshal`.
+    The new framework defaults file can be used to upgrade the serializer.
 
     *Alex Ghiculescu*
 
