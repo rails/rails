@@ -562,7 +562,7 @@ create_table :documents do |t|
   t.string :body
 
   t.virtual :textsearchable_index_col,
-            type: :tsvector, as: "to_tsvector('english', title || ' ' || body)"
+            type: :tsvector, as: "to_tsvector('english', title || ' ' || body)", stored: true
 end
 
 add_index :documents, :textsearchable_index_col, using: :gin, name: 'documents_idx'
