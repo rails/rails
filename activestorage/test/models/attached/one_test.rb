@@ -24,6 +24,13 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_not_nil @user.avatar_blob
   end
 
+  test "attaching an existing blob to an existing record, immediate result" do
+    attached = @user.avatar.attach(create_blob(filename: "funky.jpg"))
+    assert_not_nil attached
+
+    assert_equal "funky.jpg", attached.filename.to_s
+  end
+
   test "attaching an existing blob from a signed ID to an existing record" do
     @user.avatar.attach create_blob(filename: "funky.jpg").signed_id
     assert_equal "funky.jpg", @user.avatar.filename.to_s
