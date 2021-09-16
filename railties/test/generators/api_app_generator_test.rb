@@ -133,12 +133,9 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         config/environments/production.rb
         config/environments/test.rb
         config/initializers
-        config/initializers/backtrace_silencers.rb
         config/initializers/cors.rb
         config/initializers/filter_parameter_logging.rb
         config/initializers/inflections.rb
-        config/initializers/mime_types.rb
-        config/initializers/wrap_parameters.rb
         config/locales
         config/locales/en.yml
         config/puma.rb

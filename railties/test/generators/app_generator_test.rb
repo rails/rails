@@ -47,12 +47,9 @@ DEFAULT_APP_FILES = %w(
   config/environments/test.rb
   config/initializers
   config/initializers/assets.rb
-  config/initializers/backtrace_silencers.rb
   config/initializers/content_security_policy.rb
   config/initializers/filter_parameter_logging.rb
   config/initializers/inflections.rb
-  config/initializers/mime_types.rb
-  config/initializers/wrap_parameters.rb
   config/locales
   config/locales/en.yml
   config/puma.rb
