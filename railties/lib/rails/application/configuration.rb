@@ -238,11 +238,7 @@ module Rails
           if respond_to?(:action_controller)
             action_controller.raise_on_open_redirects = true
 
-            # This can't use the standard configuration pattern because you can call
-            # wrap_parameters at the top level or on any controller.
-            ActiveSupport.on_load(:action_controller) do
-              ActionController::Base.wrap_parameters format: [:json]
-            end
+            action_controller.wrap_parameters_by_default = true
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"

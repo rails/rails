@@ -889,6 +889,11 @@ Raises an `ArgumentError` when an unpermitted open redirect occurs. The default 
 Determines whether controller context for query tags will be automatically
 updated via an `around_filter`. The default value is `true`.
 
+#### `config.action_controller.wrap_parameters_by_default`
+
+Configures the [`ParamsWrapper`](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html) to wrap json
+request by default.
+
 #### `ActionController::Base.wrap_parameters`
 
 Configures the [`ParamsWrapper`](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html). This can be called at
@@ -1690,7 +1695,7 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.active_storage.video_preview_arguments`: `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
 - `config.active_record.verify_foreign_keys_for_fixtures`: `true`
 - `config.active_storage.variant_processor`: `:vips`
-- `ActionController::Base.wrap_parameters`: `format: [:json]`
+- `config.action_controller.wrap_parameters_by_default`: `true`
 
 #### For '6.1', defaults from previous versions below and:
 
@@ -1773,6 +1778,7 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.action_mailer.smtp_timeout`: `nil`
 - `config.active_storage.video_preview_arguments`: `"-y -vframes 1 -f image2"`
 - `config.active_storage.variant_processor`: `:mini_magick`
+- `config.action_controller.wrap_parameters_by_default`: `false`
 
 ### Configuring a Database
 
