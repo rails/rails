@@ -10,17 +10,22 @@ ruby <%= "\"#{RUBY_VERSION}\"" -%>
 <%= gem.commented_out ? "# " : "" %>gem "<%= gem.name %>"<%= %(, "#{gem.version}") if gem.version -%>
 <% if gem.options.any? -%>, <%= gem.options.map { |k,v| "#{k}: #{v.inspect}" }.join(", ") %><% end -%>
 <% end %>
+<% unless options.minimal? -%>
+
+# Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
+# gem "kredis"
+
+# Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
+# gem "bcrypt", "~> 3.1.7"
+<% end -%>
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
-
 <% if depend_on_bootsnap? -%>
+
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", ">= 1.4.4", require: false
-
-<%- end -%>
-# Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
-# gem "bcrypt", "~> 3.1.7"
+<% end -%>
 <% unless options.skip_sprockets? || options.minimal? -%>
 
 # Use Sass to process CSS
