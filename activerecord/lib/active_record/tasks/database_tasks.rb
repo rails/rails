@@ -461,12 +461,30 @@ module ActiveRecord
         end
       end
 
-      def schema_file(format = ActiveRecord.schema_format)
+      def schema_file(format = nil)
+        unless format
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Omitting a schema format is deprecated and will raise an error in Rails 7.0.
+            The +DatabaseConfiguration+ instance providing the database name also contains
+            the appropriate schema format that should be passed.
+          MSG
+          format = ActiveRecord.schema_format
+        end
+
         File.join(db_dir, schema_file_type(format))
       end
       deprecate :schema_file
 
-      def schema_file_type(format = ActiveRecord.schema_format)
+      def schema_file_type(format = nil)
+        unless format
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Omitting a schema format is deprecated and will raise an error in Rails 7.0.
+            The +DatabaseConfiguration+ instance providing the database name also contains
+            the appropriate schema format that should be passed.
+          MSG
+          format = ActiveRecord.schema_format
+        end
+
         case format
         when :ruby
           "schema.rb"
@@ -475,7 +493,16 @@ module ActiveRecord
         end
       end
 
-      def dump_filename(db_config_name, format = ActiveRecord.schema_format)
+      def dump_filename(db_config_name, format = nil)
+        unless format
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Omitting a schema format is deprecated and will raise an error in Rails 7.0.
+            The +DatabaseConfiguration+ instance providing the database name also contains
+            the appropriate schema format that should be passed.
+          MSG
+          format = ActiveRecord.schema_format
+        end
+
         filename = if ActiveRecord::Base.configurations.primary?(db_config_name)
           schema_file_type(format)
         else

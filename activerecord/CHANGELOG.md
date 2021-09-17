@@ -1,4 +1,15 @@
-*   Add support for generated columns in PostgreSQL adapter
+* Override `schema_format` per database via configuration
+
+    Allow each database configuration to specify a `schema_format`, and move the default value of
+    `ActiveRecord.schema_format` to the configuration accessor from default parameter values.  This allows removal of 
+    the `format` parameter from methods that already take in a database configuration, but also makes it necessary to
+    pass the format from the configuration (which may be the default) to methods where it was previously optional.
+
+    Fixes #43173
+
+    *Ryan Kerr*
+
+* Add support for generated columns in PostgreSQL adapter
 
     Generated columns are supported since version 12.0 of PostgreSQL. This adds
     support of those to the PostgreSQL adapter.

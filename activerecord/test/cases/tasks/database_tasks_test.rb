@@ -1688,10 +1688,21 @@ module ActiveRecord
       end
     end
 
+    def test_dump_filename_without_schema_format_is_deprecated
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
+        with_stubbed_configurations do
+          assert_deprecated do
+            assert_equal "/tmp/schema.rb", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "primary").name)
+          end
+        end
+      end
+    end
+
     def test_check_dump_filename_defaults
       ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
         with_stubbed_configurations do
-          assert_equal "/tmp/schema.rb", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "primary").name)
+          db_config = config_for("development", "primary")
+          assert_equal "/tmp/schema.rb", ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.name, db_config.schema_format)
         end
       end
     end
@@ -1701,7 +1712,8 @@ module ActiveRecord
       ENV["SCHEMA"] = "schema_path"
       ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
         with_stubbed_configurations do
-          assert_equal "schema_path", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "primary").name)
+          db_config = config_for("development", "primary")
+          assert_equal "schema_path", ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.name, db_config.schema_format)
         end
       end
     ensure
@@ -1718,13 +1730,27 @@ module ActiveRecord
       end
     end
 
+    def test_dump_filename_for_non_primary_databases_without_schema_format_is_deprecated
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
+        configurations = {
+          "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
+        }
+        with_stubbed_configurations(configurations) do
+          assert_deprecated do
+            assert_equal "/tmp/secondary_schema.rb", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "secondary").name)
+          end
+        end
+      end
+    end
+
     def test_check_dump_filename_defaults_for_non_primary_databases
       ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
         configurations = {
           "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
         }
         with_stubbed_configurations(configurations) do
-          assert_equal "/tmp/secondary_schema.rb", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "secondary").name)
+          db_config = config_for("development", "secondary")
+          assert_equal "/tmp/secondary_schema.rb", ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.name, db_config.schema_format)
         end
       end
     end
@@ -1737,7 +1763,8 @@ module ActiveRecord
           "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
         }
         with_stubbed_configurations(configurations) do
-          assert_equal "schema_path", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "secondary").name)
+          db_config = config_for("development", "secondary")
+          assert_equal "schema_path", ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.name, db_config.schema_format)
         end
       end
     ensure
@@ -1748,10 +1775,11 @@ module ActiveRecord
       define_method("test_check_dump_filename_for_#{fmt}_format_with_non_primary_databases") do
         ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
           configurations = {
-            "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } }
+            "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db", "schema_format" => fmt } }
           }
           with_stubbed_configurations(configurations) do
-            assert_equal "/tmp/secondary_#{filename}", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "secondary").name, fmt)
+            db_config = config_for("development", "secondary")
+            assert_equal "/tmp/secondary_#{filename}", ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.name, db_config.schema_format)
           end
         end
       end
