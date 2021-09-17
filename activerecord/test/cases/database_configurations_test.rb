@@ -77,6 +77,7 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
 
     assert_equal "arunit2", config.env_name
     assert_equal "primary", config.name
+    assert_equal :ruby, config.schema_format
   end
 
   def test_find_db_config_prioritize_db_config_object_for_the_current_env

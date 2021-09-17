@@ -114,6 +114,13 @@ module ActiveRecord
         configuration_hash.fetch(:schema_dump, true)
       end
 
+      # The format to use for database schema dumping and loading.
+      # If omitted, the global default (+ActiveRecord.schema_format+)
+      # will be used.
+      def schema_format
+        configuration_hash.fetch(:schema_format, ActiveRecord.schema_format).to_sym
+      end
+
       def database_tasks? # :nodoc:
         !replica? && !!configuration_hash.fetch(:database_tasks, true)
       end

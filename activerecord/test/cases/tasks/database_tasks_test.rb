@@ -294,23 +294,116 @@ module ActiveRecord
     end
   end
 
-  class DatabaseTasksDumpSchemaTest < ActiveRecord::TestCase
-    def test_ensure_db_dir
-      Dir.mktmpdir do |dir|
-        ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
-          db_config = OpenStruct.new(name: "fake_db_config")
-          path = "#{dir}/fake_db_config_schema.rb"
-
-          FileUtils.rm_rf(dir)
-          assert_not File.file?(path)
-
-          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
-
-          assert File.file?(path)
+  module SchemaFormatTestHelpers
+    private
+      def with_stubbed_db_dir
+        Dir.mktmpdir do |dir|
+          ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
+            yield dir
+          end
         end
       end
-    ensure
-      ActiveRecord::Base.clear_cache!
+
+      def with_stubbed_configurations
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = {
+          "development" => {
+            "primary" => { "database" => "dev-db" },
+            "simple" => { "database" => "simple-dev-db", "schema_format" => "ruby" },
+            "complex" => { "database" => "complex-dev-db", "schema_format" => "sql" }
+          }
+        }
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+        ActiveRecord::Base.clear_cache!
+      end
+  end
+
+  class DatabaseTasksDumpSchemaTest < ActiveRecord::TestCase
+    include SchemaFormatTestHelpers
+
+    def test_ensure_db_dir
+      with_stubbed_db_dir do |dir|
+        db_config = OpenStruct.new(name: "fake_db_config", schema_format: :ruby)
+        path = "#{dir}/fake_db_config_schema.rb"
+
+        FileUtils.rm_rf(dir)
+        assert_not File.file?(path)
+
+        ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+
+        assert File.file?(path)
+      end
+    end
+
+    def test_default_format_schema_dump
+      with_stubbed_db_dir do
+        with_stubbed_configurations do
+          assert_called(ActiveRecord::SchemaDumper, :dump) do
+            db_config = ActiveRecord::Base.configurations.configs_for(env_name: "development", name: "primary")
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+          end
+        end
+      end
+    end
+
+    def test_config_override_ruby_format_schema_dump
+      with_stubbed_db_dir do
+        with_stubbed_configurations do
+          assert_called(ActiveRecord::SchemaDumper, :dump) do
+            db_config = ActiveRecord::Base.configurations.configs_for(env_name: "development", name: "simple")
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+          end
+        end
+      end
+    end
+
+    def test_config_override_sql_format_schema_dump
+      with_stubbed_db_dir do
+        with_stubbed_configurations do
+          assert_called(ActiveRecord::Tasks::DatabaseTasks, :structure_dump) do
+            db_config = ActiveRecord::Base.configurations.configs_for(env_name: "development", name: "complex")
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+          end
+        end
+      end
+    end
+  end
+
+  class DatabaseTasksLoadSchemaTest < ActiveRecord::TestCase
+    include SchemaFormatTestHelpers
+
+    def test_default_format_schema_load
+      with_stubbed_db_dir do
+        with_stubbed_configurations do
+          assert_called(ActiveRecord::Tasks::DatabaseTasks, :load) do
+            db_config = ActiveRecord::Base.configurations.configs_for(env_name: "development", name: "primary")
+            ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config)
+          end
+        end
+      end
+    end
+
+    def test_config_override_ruby_format_schema_load
+      with_stubbed_db_dir do
+        with_stubbed_configurations do
+          assert_called(ActiveRecord::Tasks::DatabaseTasks, :load) do
+            db_config = ActiveRecord::Base.configurations.configs_for(env_name: "development", name: "simple")
+            ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config)
+          end
+        end
+      end
+    end
+
+    def test_config_override_sql_format_schema_load
+      with_stubbed_db_dir do
+        with_stubbed_configurations do
+          assert_called(ActiveRecord::Tasks::DatabaseTasks, :structure_load) do
+            db_config = ActiveRecord::Base.configurations.configs_for(env_name: "development", name: "complex")
+            ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config)
+          end
+        end
+      end
     end
   end
 
@@ -1655,7 +1748,7 @@ module ActiveRecord
       define_method("test_check_dump_filename_for_#{fmt}_format_with_non_primary_databases") do
         ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
           configurations = {
-            "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
+            "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } }
           }
           with_stubbed_configurations(configurations) do
             assert_equal "/tmp/secondary_#{filename}", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "secondary").name, fmt)

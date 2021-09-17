@@ -135,6 +135,27 @@ module ActiveRecord
         config = HashConfig.new("default_env", "primary", database_tasks: "str")
         assert_equal true, config.database_tasks?
       end
+
+      def test_default_schema_format
+        config = HashConfig.new("default_env", "primary", {})
+        assert_equal ActiveRecord.schema_format, config.schema_format
+      end
+
+      def test_schema_format_overrides_with_value
+        config = HashConfig.new("default_env", "primary", { schema_format: :ruby })
+        assert_equal :ruby, config.schema_format
+
+        config = HashConfig.new("default_env", "primary", { schema_format: :sql })
+        assert_equal :sql, config.schema_format
+      end
+
+      def test_schema_format_always_symbol
+        config = HashConfig.new("default_env", "primary", { schema_format: "ruby" })
+        assert_equal :ruby, config.schema_format
+
+        config = HashConfig.new("default_env", "primary", { schema_format: "sql" })
+        assert_equal :sql, config.schema_format
+      end
     end
   end
 end

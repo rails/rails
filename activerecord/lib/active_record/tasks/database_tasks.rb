@@ -213,16 +213,15 @@ module ActiveRecord
           migrate
 
           if ActiveRecord.dump_schema_after_migration
-            dump_schema(db_config, ActiveRecord.schema_format)
+            dump_schema(db_config)
           end
         rescue ActiveRecord::NoDatabaseError
           config_name = db_config.name
           create_current(db_config.env_name, config_name)
 
-          if File.exist?(dump_filename(config_name))
+          if File.exist?(dump_filename(config_name, db_config.schema_format))
             load_schema(
               db_config,
-              ActiveRecord.schema_format,
               nil
             )
           else
@@ -377,7 +376,8 @@ module ActiveRecord
         database_adapter_for(db_config, *arguments).structure_load(filename, flags)
       end
 
-      def load_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
+      def load_schema(db_config, file = nil) # :nodoc:
+        format = db_config.schema_format
         file ||= dump_filename(db_config.name, format)
 
         verbose_was, Migration.verbose = Migration.verbose, verbose? && ENV["VERBOSE"]
@@ -399,7 +399,7 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def schema_up_to_date?(configuration, format = ActiveRecord.schema_format, file = nil, environment = nil, name = nil)
+      def schema_up_to_date?(configuration, file = nil, environment = nil, name = nil)
         db_config = resolve_configuration(configuration)
 
         if environment || name
@@ -408,7 +408,7 @@ module ActiveRecord
 
         name ||= db_config.name
 
-        file ||= dump_filename(name, format)
+        file ||= dump_filename(name, db_config.schema_format)
 
         return true unless File.exist?(file)
 
@@ -420,26 +420,27 @@ module ActiveRecord
         ActiveRecord::InternalMetadata[:schema_sha1] == schema_sha1(file)
       end
 
-      def reconstruct_from_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
-        file ||= dump_filename(db_config.name, format)
+      def reconstruct_from_schema(db_config, file = nil) # :nodoc:
+        file ||= dump_filename(db_config.name, db_config.schema_format)
 
         check_schema_file(file)
 
         ActiveRecord::Base.establish_connection(db_config)
 
-        if schema_up_to_date?(db_config, format, file)
+        if schema_up_to_date?(db_config, file)
           truncate_tables(db_config)
         else
           purge(db_config)
-          load_schema(db_config, format, file)
+          load_schema(db_config, file)
         end
       rescue ActiveRecord::NoDatabaseError
         create(db_config)
-        load_schema(db_config, format, file)
+        load_schema(db_config, file)
       end
 
-      def dump_schema(db_config, format = ActiveRecord.schema_format) # :nodoc:
+      def dump_schema(db_config) # :nodoc:
         require "active_record/schema_dumper"
+        format = db_config.schema_format
         filename = dump_filename(db_config.name, format)
         connection = ActiveRecord::Base.connection
 
@@ -494,9 +495,9 @@ module ActiveRecord
         schema_cache_path || ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
       end
 
-      def load_schema_current(format = ActiveRecord.schema_format, file = nil, environment = env)
+      def load_schema_current(file = nil, environment = env)
         each_current_configuration(environment) do |db_config|
-          load_schema(db_config, format, file)
+          load_schema(db_config, file)
         end
         ActiveRecord::Base.establish_connection(environment.to_sym)
       end
