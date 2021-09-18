@@ -1565,6 +1565,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
 end
 
 class TestAutosaveAssociationOnABelongsToPolymorphicAssociation < ActiveRecord::TestCase
+  self.use_transactional_tests = false
   fixtures :posts
 
   def setup
