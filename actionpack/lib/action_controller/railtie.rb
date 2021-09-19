@@ -63,7 +63,7 @@ module ActionController
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
         extend ::ActionController::Railties::Helpers
 
-        wrap_parameters format: [:json] if options.wrap_parameters_by_default
+        wrap_parameters format: [:json] if options.wrap_parameters_by_default && respond_to?(:wrap_parameters)
 
         # Configs used in other initializers
         filtered_options = options.except(
