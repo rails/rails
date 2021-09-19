@@ -161,7 +161,7 @@ module ActiveModel
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "is not a number").
       # * <tt>:only_integer</tt> - Specifies whether the value has to be an
-      #   integer, e.g. an integral value (default is +false+).
+      #   integer (default is +false+).
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is
       #   +false+). Notice that for Integer and Float columns empty strings are
       #   converted to +nil+.
