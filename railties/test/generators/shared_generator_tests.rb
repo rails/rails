@@ -288,7 +288,7 @@ module SharedGeneratorTests
     assert_no_directory "#{application_path}/app/javascript/channels"
     assert_no_directory "#{application_path}/app/channels"
     assert_file "Gemfile" do |content|
-      assert_no_match(/redis/, content)
+      assert_no_match(/"redis"/, content)
     end
   end
 

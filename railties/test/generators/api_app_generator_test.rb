@@ -65,7 +65,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "config/cable.yml"
     assert_no_file "app/channels"
     assert_file "Gemfile" do |content|
-      assert_no_match(/redis/, content)
+      assert_no_match(/"redis"/, content)
     end
   end
 
