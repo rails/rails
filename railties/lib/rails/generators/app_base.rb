@@ -58,9 +58,6 @@ module Rails
         class_option :skip_action_cable,   type: :boolean, aliases: "-C", default: false,
                                            desc: "Skip Action Cable files"
 
-        class_option :skip_sprockets,      type: :boolean, aliases: "-S", default: false,
-                                           desc: "Skip Sprockets files"
-
         class_option :skip_javascript,     type: :boolean, aliases: "-J", default: name == "plugin",
                                            desc: "Skip JavaScript files"
 
@@ -106,6 +103,7 @@ module Rails
     private
       def gemfile_entries # :doc:
         [rails_gemfile_entry,
+         asset_pipeline_gemfile_entry,
          database_gemfile_entry,
          web_server_gemfile_entry,
          javascript_gemfile_entry,
@@ -163,6 +161,16 @@ module Rails
 
       def web_server_gemfile_entry # :doc:
         GemfileEntry.new "puma", "~> 5.0", "Use the Puma web server [https://github.com/puma/puma]"
+      end
+
+      def asset_pipeline_gemfile_entry
+        if options[:asset_pipeline] == "sprockets"
+          GemfileEntry.version "sprockets-rails", ">= 2.0.0",
+            "The traditional bundling and transpiling asset pipeline for Rails."
+        elsif options[:asset_pipeline] == "propshaft"
+          # GemfileEntry.version "propshaft", nil, "The modern asset pipeline for Rails."
+          GemfileEntry.path "propshaft", "~/Work/rails/propshaft", "The modern asset pipeline for Rails."
+        end
       end
 
       def include_all_railties? # :doc:
