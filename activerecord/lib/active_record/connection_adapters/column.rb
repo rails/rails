@@ -87,6 +87,10 @@ module ActiveRecord
           comment.hash
       end
 
+      def virtual?
+        false
+      end
+
       private
         def deduplicated
           @name = -name
