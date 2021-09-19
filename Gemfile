@@ -16,7 +16,9 @@ gem "rack-cache", "~> 1.2"
 gem "stimulus-rails"
 gem "turbo-rails"
 gem "jsbundling-rails"
-gem "cssbundling-rails"
+
+# I don't mind to merge this on main. It is temporal until the PR is merged and released.
+gem "cssbundling-rails", github: "ceritium/cssbundling-rails", branch: "bundle-list"
 gem "importmap-rails"
 gem "tailwindcss-rails"
 # require: false so bcrypt is loaded only when has_secure_password is used.

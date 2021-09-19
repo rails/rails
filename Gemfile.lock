@@ -12,6 +12,15 @@ GIT
     mysql2 (0.5.3)
 
 GIT
+  remote: https://github.com/ceritium/cssbundling-rails.git
+  revision: cf888b2dbb91e8c9fac994c379690bcee5491ee0
+  branch: bundle-list
+  specs:
+    cssbundling-rails (0.1.8)
+      railties (>= 6.0.0)
+      sprockets-rails (>= 2.0.0)
+
+GIT
   remote: https://github.com/matthewd/websocket-client-simple.git
   revision: e161305f1a466b9398d86df3b1731b03362da91b
   branch: close-race
@@ -183,8 +192,6 @@ GEM
     crack (0.4.5)
       rexml
     crass (1.0.6)
-    cssbundling-rails (0.1.0)
-      rails (>= 6.0.0)
     curses (1.4.2)
     daemons (1.4.0)
     dalli (2.7.11)
@@ -340,10 +347,6 @@ GEM
     nio4r (2.5.7)
     nokogiri (1.11.7)
       mini_portile2 (~> 2.5.0)
-      racc (~> 1.4)
-    nokogiri (1.11.7-x86_64-darwin)
-      racc (~> 1.4)
-    nokogiri (1.11.7-x86_64-linux)
       racc (~> 1.4)
     os (1.1.1)
     parallel (1.20.1)
@@ -522,9 +525,6 @@ GEM
 
 PLATFORMS
   ruby
-  x86_64-darwin-19
-  x86_64-darwin-20
-  x86_64-linux
 
 DEPENDENCIES
   activerecord-jdbcmysql-adapter (>= 1.3.0)
@@ -540,7 +540,7 @@ DEPENDENCIES
   bootsnap (>= 1.4.4)
   capybara (>= 3.26)
   connection_pool
-  cssbundling-rails
+  cssbundling-rails!
   dalli
   debug (>= 1.0.0)
   delayed_job
