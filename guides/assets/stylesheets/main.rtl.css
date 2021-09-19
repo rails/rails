@@ -273,7 +273,6 @@ body {
 
 #mainCol {
   max-width: 630px;
-  margin-right: 2em;
 }
 
 #subCol {
@@ -295,7 +294,7 @@ body {
     position: static;
     width: inherit;
     margin-right: -1em;
-    margin-left: 0;
+    margin-left: -1em;
     padding-left: 1.25em;
   }
 }
@@ -309,6 +308,10 @@ body {
   max-width: 960px;
 }
 
+#footer p:last-child {
+  margin-bottom: 0;
+}
+
 #header .wrapper, #topNav .wrapper, #feature .wrapper {padding-right: 1em; max-width: 960px;}
 #feature .wrapper {max-width: 720px; padding-left: 23em; position: relative; z-index: 0;}
 
@@ -317,7 +320,7 @@ body {
 }
 
 @media screen and (max-width: 800px) {
-  #feature .wrapper, #container .wrapper { padding-left: 0; }
+  #feature .wrapper, #container .wrapper { padding-left: 1em; }
 }
 
 /* Links
