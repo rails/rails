@@ -57,6 +57,7 @@ module ApplicationTests
     test "default middleware stack when requests are local" do
       add_to_config "config.consider_all_requests_local = true"
       add_to_config "config.active_record.migration_error = :page_load"
+      add_to_config "config.server_timing = true"
 
       boot!
 
