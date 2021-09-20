@@ -184,7 +184,6 @@ module Rails
             :skip_active_record,
             :skip_action_mailer,
             :skip_test,
-            :skip_sprockets,
             :skip_action_cable,
             :skip_active_job
           ),
