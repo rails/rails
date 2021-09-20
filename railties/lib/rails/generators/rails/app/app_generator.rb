@@ -120,6 +120,9 @@ module Rails
       action_cable_config_exist       = File.exist?("config/cable.yml")
       active_storage_config_exist     = File.exist?("config/storage.yml")
       rack_cors_config_exist          = File.exist?("config/initializers/cors.rb")
+      assets_config_exist             = File.exist?("config/initializers/assets.rb")
+      asset_manifest_exist            = File.exist?("app/assets/config/manifest.js")
+      asset_app_stylesheet_exist      = File.exist?("app/assets/stylesheets/application.css")
       csp_config_exist                = File.exist?("config/initializers/content_security_policy.rb")
       permissions_policy_config_exist = File.exist?("config/initializers/permissions_policy.rb")
 
@@ -133,6 +136,18 @@ module Rails
 
       if !skip_active_storage? && !active_storage_config_exist
         template "config/storage.yml"
+      end
+
+      if options[:asset_pipeline] != "sprockets" && !assets_config_exist
+        remove_file "config/initializers/assets.rb"
+      end
+
+      if options[:asset_pipeline] != "sprockets" && !asset_manifest_exist
+        remove_file "app/assets/config/manifest.js"
+      end
+
+      if options[:asset_pipeline] != "sprockets" && !asset_app_stylesheet_exist
+        remove_file "app/assets/stylesheets/application.css"
       end
 
       unless rack_cors_config_exist
@@ -425,7 +440,7 @@ module Rails
         end
       end
 
-      def delete_unneeded_assets_pipeline_files
+      def delete_assets_initializer_skipping_sprockets
         if options[:asset_pipeline] != "sprockets"
           remove_file "config/initializers/assets.rb"
           remove_file "app/assets/config/manifest.js"
