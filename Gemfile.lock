@@ -74,7 +74,7 @@ PATH
       activejob (= 7.0.0.alpha2)
       activerecord (= 7.0.0.alpha2)
       activesupport (= 7.0.0.alpha2)
-      marcel (~> 1.0.0)
+      marcel (~> 1.0)
       mini_mime (>= 1.1.0)
     activesupport (7.0.0.alpha2)
       concurrent-ruby (~> 1.0, >= 1.0.2)
