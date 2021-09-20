@@ -81,7 +81,7 @@ PATH
       activejob (= 6.1.4.1)
       activerecord (= 6.1.4.1)
       activesupport (= 6.1.4.1)
-      marcel (~> 1.0.0)
+      marcel (~> 1.0)
       mini_mime (>= 1.1.0)
     activesupport (6.1.4.1)
       concurrent-ruby (~> 1.0, >= 1.0.2)
@@ -348,6 +348,7 @@ GEM
       ast (~> 2.4.1)
     path_expander (1.1.0)
     pg (1.2.3)
+    psych (3.3.2)
     public_suffix (4.0.6)
     puma (5.2.2)
       nio4r (~> 2.0)
@@ -598,4 +599,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   2.2.15
+   2.2.25
