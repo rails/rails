@@ -95,7 +95,6 @@ PATH
       activesupport (= 7.0.0.alpha2)
       bundler (>= 1.15.0)
       railties (= 7.0.0.alpha2)
-      sprockets-rails (>= 2.0.0)
     railties (7.0.0.alpha2)
       actionpack (= 7.0.0.alpha2)
       activesupport (= 7.0.0.alpha2)
@@ -586,6 +585,7 @@ DEPENDENCIES
   sidekiq
   sneakers
   sprockets-export
+  sprockets-rails (>= 2.0.0)
   sqlite3 (~> 1.4)
   stackprof
   stimulus-rails
