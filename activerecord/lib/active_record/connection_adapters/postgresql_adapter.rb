@@ -125,6 +125,7 @@ module ActiveRecord
         string:      { name: "character varying" },
         text:        { name: "text" },
         integer:     { name: "integer", limit: 4 },
+        bigint:      { name: "bigint" },
         float:       { name: "float" },
         decimal:     { name: "decimal" },
         datetime:    {}, # set dynamically based on datetime_type
