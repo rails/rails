@@ -80,7 +80,7 @@ PATH
       actionpack (= 6.0.4.1)
       activejob (= 6.0.4.1)
       activerecord (= 6.0.4.1)
-      marcel (~> 1.0.0)
+      marcel (~> 1.0)
     activesupport (6.0.4.1)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 0.7, < 2)
@@ -585,4 +585,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   2.2.15
+   2.2.25
