@@ -622,6 +622,16 @@ module ActiveRecord
         "INSERT #{insert.into} #{insert.values_list}"
       end
 
+      def conflict_target(insert)
+        if index = insert.unique_by
+          sql = +"(#{format_columns(index.columns)})"
+          sql << " WHERE #{index.where}" if index.where
+          sql
+        elsif update_duplicates?
+          "(#{format_columns(insert.primary_keys)})"
+        end
+      end
+
       def get_database_version # :nodoc:
       end
 

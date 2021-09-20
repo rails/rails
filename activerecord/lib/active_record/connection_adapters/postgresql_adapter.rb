@@ -469,9 +469,9 @@ module ActiveRecord
         sql = +"INSERT #{insert.into} #{insert.values_list}"
 
         if insert.skip_duplicates?
-          sql << " ON CONFLICT #{insert.conflict_target(:postgresql)} DO NOTHING"
+          sql << " ON CONFLICT #{conflict_target(insert)} DO NOTHING"
         elsif insert.update_duplicates?
-          sql << " ON CONFLICT #{insert.conflict_target(:postgresql)} DO UPDATE SET "
+          sql << " ON CONFLICT #{conflict_target(insert)} DO UPDATE SET "
           if insert.raw_update_sql?
             sql << insert.raw_update_sql
           else
@@ -482,6 +482,16 @@ module ActiveRecord
 
         sql << " RETURNING #{insert.returning}" if insert.returning
         sql
+      end
+
+      # Override AbstractAdapter to allow usage of all unique indexes
+      # when using PostgreSQL
+      def conflict_target(insert)
+        if index = insert.unique_by
+          sql = +"(#{format_columns(index.columns)})"
+          sql << " WHERE #{index.where}" if index.where
+          sql
+        end
       end
 
       def check_version # :nodoc:

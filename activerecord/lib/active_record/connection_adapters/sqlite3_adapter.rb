@@ -322,9 +322,9 @@ module ActiveRecord
         sql = +"INSERT #{insert.into} #{insert.values_list}"
 
         if insert.skip_duplicates?
-          sql << " ON CONFLICT #{insert.conflict_target(:sqlite)} DO NOTHING"
+          sql << " ON CONFLICT #{conflict_target(insert)} DO NOTHING"
         elsif insert.update_duplicates?
-          sql << " ON CONFLICT #{insert.conflict_target(:sqlite)} DO UPDATE SET "
+          sql << " ON CONFLICT #{conflict_target(insert)} DO UPDATE SET "
           if insert.raw_update_sql?
             sql << insert.raw_update_sql
           else

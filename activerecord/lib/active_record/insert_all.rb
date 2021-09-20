@@ -181,18 +181,6 @@ module ActiveRecord
           end
         end
 
-        def conflict_target(connection_type = :postgresql)
-          if index = insert_all.unique_by
-            sql = +"(#{format_columns(index.columns)})"
-            sql << " WHERE #{index.where}" if index.where
-            sql
-          elsif update_duplicates?
-            return if connection_type == :postgresql
-
-            "(#{format_columns(insert_all.primary_keys)})"
-          end
-        end
-
         def updatable_columns
           quote_columns(insert_all.updatable_columns)
         end
