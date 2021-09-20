@@ -19,12 +19,12 @@ module ActiveStorage
       @public = public
     end
 
-    def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, **)
+    def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, custom_metadata: {}, **)
       instrument :upload, key: key, checksum: checksum do
         handle_errors do
           content_disposition = content_disposition_with(filename: filename, type: disposition) if disposition && filename
 
-          client.create_block_blob(container, key, IO.try_convert(io) || io, content_md5: checksum, content_type: content_type, content_disposition: content_disposition)
+          client.create_block_blob(container, key, IO.try_convert(io) || io, content_md5: checksum, content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata)
         end
       end
     end
@@ -86,7 +86,7 @@ module ActiveStorage
       end
     end
 
-    def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
+    def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:, custom_metadata: {})
       instrument :url, key: key do |payload|
         generated_url = signer.signed_uri(
           uri_for(key), false,
@@ -101,10 +101,10 @@ module ActiveStorage
       end
     end
 
-    def headers_for_direct_upload(key, content_type:, checksum:, filename: nil, disposition: nil, **)
+    def headers_for_direct_upload(key, content_type:, checksum:, filename: nil, disposition: nil, custom_metadata:, **)
       content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
 
-      { "Content-Type" => content_type, "Content-MD5" => checksum, "x-ms-blob-content-disposition" => content_disposition, "x-ms-blob-type" => "BlockBlob" }
+      { "Content-Type" => content_type, "Content-MD5" => checksum, "x-ms-blob-content-disposition" => content_disposition, "x-ms-blob-type" => "BlockBlob", **custom_metadata_headers(custom_metadata) }
     end
 
     private
@@ -165,6 +165,10 @@ module ActiveStorage
         else
           raise
         end
+      end
+
+      def custom_metadata_headers(metadata)
+        metadata.transform_keys { |key| "x-ms-meta-#{key}" }
       end
   end
 end

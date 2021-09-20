@@ -52,7 +52,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
     self.service_name ||= self.class.service&.name
   end
 
-  after_update_commit :update_service_metadata, if: :content_type_previously_changed?
+  after_update_commit :update_service_metadata, if: -> { content_type_previously_changed? || metadata_previously_changed? }
 
   before_destroy(prepend: true) do
     raise ActiveRecord::InvalidForeignKey if attachments.exists?
@@ -168,6 +168,14 @@ class ActiveStorage::Blob < ActiveStorage::Record
     ActiveStorage::Filename.new(self[:filename])
   end
 
+  def custom_metadata
+    self[:metadata][:custom] || {}
+  end
+
+  def custom_metadata=(metadata)
+    self[:metadata] = self[:metadata].merge(custom: metadata)
+  end
+
   # Returns true if the content_type of this blob is in the image range, like image/png.
   def image?
     content_type.start_with?("image")
@@ -200,12 +208,12 @@ class ActiveStorage::Blob < ActiveStorage::Record
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
   # short-lived for security and only generated on-demand by the client-side JavaScript responsible for doing the uploading.
   def service_url_for_direct_upload(expires_in: ActiveStorage.service_urls_expire_in)
-    service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum
+    service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum, custom_metadata: custom_metadata
   end
 
   # Returns a Hash of headers for +service_url_for_direct_upload+ requests.
   def service_headers_for_direct_upload
-    service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum
+    service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum, custom_metadata: custom_metadata
   end
 
   def content_type_for_serving # :nodoc:
@@ -362,11 +370,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
     def service_metadata
       if forcibly_serve_as_binary?
-        { content_type: ActiveStorage.binary_content_type, disposition: :attachment, filename: filename }
+        { content_type: ActiveStorage.binary_content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
       elsif !allowed_inline?
-        { content_type: content_type, disposition: :attachment, filename: filename }
+        { content_type: content_type, disposition: :attachment, filename: filename, custom_metadatata: custom_metadata }
       else
-        { content_type: content_type }
+        { content_type: content_type, custom_metadata: custom_metadata }
       end
     end
 
