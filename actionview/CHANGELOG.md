@@ -1,6 +1,11 @@
 ## Rails 7.0.0.alpha2 (September 15, 2021) ##
 
-*   No changes.
+*   Support svg unpaired tags for `tag` helper.
+
+        tag.svg { tag.use('href' => "#cool-icon") }
+        # => <svg><use href="#cool-icon"></svg>
+
+    *Oleksii Vasyliev*
 
 
 ## Rails 7.0.0.alpha1 (September 15, 2021) ##
