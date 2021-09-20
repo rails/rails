@@ -173,6 +173,8 @@ module Rails
             "The traditional bundling and transpiling asset pipeline for Rails."
         elsif options[:asset_pipeline] == "propshaft"
           GemfileEntry.version "propshaft", ">= 0.1.0", "The modern asset pipeline for Rails."
+        else
+          []
         end
       end
 
