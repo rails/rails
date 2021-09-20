@@ -90,8 +90,8 @@
     ```
 
     In the example, `dog.treats` would still raise even though
-    `strict_loading` was set to false. This is a bug effecting more than
-    Active Storage which is why I made this PR superceeding #41461. We need
+    `strict_loading` was set to false. This is a bug affecting more than
+    Active Storage which is why I made this PR superseding #41461. We need
     to fix this for all applications since the behavior is a little
     surprising. I took the test from #41461 and the code suggestion from #41453
     with some additions.
