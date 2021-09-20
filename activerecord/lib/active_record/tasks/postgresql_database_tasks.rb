@@ -57,8 +57,12 @@ module ActiveRecord
             ActiveRecord.dump_schemas
           end
 
-        args = ["--schema-only", "--no-privileges", "--no-owner", "--file", filename]
+        args = ["--schema-only", "--no-privileges", "--no-owner"]
+        args << "--no-comment" if connection.database_version >= 110_000
+        args.concat(["--file", filename])
+
         args.concat(Array(extra_flags)) if extra_flags
+
         unless search_path.blank?
           args += search_path.split(",").map do |part|
             "--schema=#{part.strip}"

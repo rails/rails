@@ -1,3 +1,12 @@
+* Avoid COMMENT statements in PostgreSQL structure dumps
+
+    COMMENT statements are now omitted from the output of `db:structure:dump` when using PostgreSQL >= 11.
+    This allows loading the dump without a pgsql superuser account.
+
+    Fixes #36816, #43107.
+
+    *Janosch Müller*
+
 *   Add support for generated columns in PostgreSQL adapter
 
     Generated columns are supported since version 12.0 of PostgreSQL. This adds
