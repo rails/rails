@@ -125,6 +125,7 @@ module Rails
       asset_app_stylesheet_exist      = File.exist?("app/assets/stylesheets/application.css")
       csp_config_exist                = File.exist?("config/initializers/content_security_policy.rb")
       permissions_policy_config_exist = File.exist?("config/initializers/permissions_policy.rb")
+      uses_sprockets                  = options[:asset_pipeline] == "sprockets"
 
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
@@ -138,15 +139,15 @@ module Rails
         template "config/storage.yml"
       end
 
-      if options[:asset_pipeline] != "sprockets" && !assets_config_exist
+      if !uses_sprockets && !assets_config_exist
         remove_file "config/initializers/assets.rb"
       end
 
-      if options[:asset_pipeline] != "sprockets" && !asset_manifest_exist
+      if !uses_sprockets && !asset_manifest_exist
         remove_file "app/assets/config/manifest.js"
       end
 
-      if options[:asset_pipeline] != "sprockets" && !asset_app_stylesheet_exist
+      if !uses_sprockets && !asset_app_stylesheet_exist
         remove_file "app/assets/stylesheets/application.css"
       end
 
