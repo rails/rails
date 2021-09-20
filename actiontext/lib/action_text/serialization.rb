@@ -15,6 +15,8 @@ module ActionText
           nil
         when self
           content.to_html
+        when ActionText::RichText
+          content.body.to_html
         else
           new(content).to_html
         end

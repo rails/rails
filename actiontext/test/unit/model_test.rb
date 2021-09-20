@@ -60,6 +60,13 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_equal "Hello world", message.content.to_plain_text
   end
 
+  test "duplicating content" do
+    message = Message.create!(subject: "Greetings", content: "<b>Hello!</b>")
+    other_message = Message.create!(subject: "Greetings", content: message.content)
+
+    assert_equal message.content.body.to_html, other_message.content.body.to_html
+  end
+
   test "saving body" do
     message = Message.create(subject: "Greetings", body: "<h1>Hello world</h1>")
     assert_equal "Hello world", message.body.to_plain_text
