@@ -23,6 +23,16 @@ if ActiveRecord::Base.connection.supports_virtual_columns?
       VirtualColumn.create(name: "Rails")
     end
 
+    def test_virtual_column_with_full_inserts
+      partial_inserts_was = VirtualColumn.partial_inserts
+      VirtualColumn.partial_inserts = false
+      assert_nothing_raised do
+        VirtualColumn.create!(name: "Rails")
+      end
+    ensure
+      VirtualColumn.partial_inserts = partial_inserts_was
+    end
+
     def teardown
       @connection.drop_table :virtual_columns, if_exists: true
       VirtualColumn.reset_column_information
