@@ -189,7 +189,7 @@ GEM
     daemons (1.4.0)
     dalli (2.7.11)
     dante (0.2.0)
-    debug (1.0.0)
+    debug (1.1.0)
       irb
       reline (>= 0.2.7)
     declarative (0.0.20)
@@ -542,7 +542,7 @@ DEPENDENCIES
   connection_pool
   cssbundling-rails
   dalli
-  debug (>= 1.0.0)
+  debug (>= 1.1.0)
   delayed_job
   delayed_job_active_record
   google-cloud-storage (~> 1.11)
