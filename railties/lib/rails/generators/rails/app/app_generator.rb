@@ -281,7 +281,7 @@ module Rails
         # Force sprockets and JavaScript to be skipped when generating API only apps.
         # Can't modify options hash as it's frozen by default.
         if options[:api]
-          self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze
+          self.options = options.merge(skip_asset_pipeline: true, skip_javascript: true).freeze
         end
 
         if options[:minimal]

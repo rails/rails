@@ -58,6 +58,8 @@ module Rails
         class_option :skip_action_cable,   type: :boolean, aliases: "-C", default: false,
                                            desc: "Skip Action Cable files"
 
+        class_option :skip_asset_pipeline, type: :boolean, aliases: "-A", default: false
+
         class_option :skip_javascript,     type: :boolean, aliases: "-J", default: name == "plugin",
                                            desc: "Skip JavaScript files"
 
@@ -164,6 +166,8 @@ module Rails
       end
 
       def asset_pipeline_gemfile_entry
+        return [] if [:skip_asset_pipeline]
+
         if options[:asset_pipeline] == "sprockets"
           GemfileEntry.version "sprockets-rails", ">= 2.0.0",
             "The traditional bundling and transpiling asset pipeline for Rails."
