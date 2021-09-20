@@ -15,14 +15,14 @@ Rails::TestUnit::Runner.singleton_class.prepend Module.new {
    private
      def list_tests(argv)
        tests = super
-       tests.concat FileList["test/cases/adapters/#{adapter_short}/**/*_test.rb"]
+       tests.concat FileList["test/cases/adapters/#{adapter_name}/**/*_test.rb"]
      end
 
      def default_test_exclude_glob
        ENV["DEFAULT_TEST_EXCLUDE"] || "test/cases/adapters/*/*_test.rb"
      end
 
-     def adapter_short
+     def adapter_name
        ENV["ARCONN"] || "sqlite3"
      end
  }
