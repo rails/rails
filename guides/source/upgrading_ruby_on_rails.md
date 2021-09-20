@@ -333,7 +333,7 @@ Because of this you must manually invalidate your affected cache keys.
 
 For example, if you have something like this in a view:
 
-```ruby
+```erb
 <% @products.each do |product| %>
   <% cache product do %>
     <%= image_tag product.cover_photo.variant(resize: "200x") %>
@@ -343,7 +343,7 @@ For example, if you have something like this in a view:
 
 You can invalidate the cache either by touching the product, or changing the cache key:
 
-```ruby
+```erb
 <% @products.each do |product| %>
   <% cache ["v2", product] do %>
     <%= image_tag product.cover_photo.variant(resize_to_limit: [200, nill]) %>
