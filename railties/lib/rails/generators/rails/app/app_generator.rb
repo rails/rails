@@ -120,8 +120,6 @@ module Rails
       action_cable_config_exist       = File.exist?("config/cable.yml")
       active_storage_config_exist     = File.exist?("config/storage.yml")
       rack_cors_config_exist          = File.exist?("config/initializers/cors.rb")
-      assets_config_exist             = File.exist?("config/initializers/assets.rb")
-      asset_app_stylesheet_exist      = File.exist?("app/assets/stylesheets/application.css")
       csp_config_exist                = File.exist?("config/initializers/content_security_policy.rb")
       permissions_policy_config_exist = File.exist?("config/initializers/permissions_policy.rb")
 
