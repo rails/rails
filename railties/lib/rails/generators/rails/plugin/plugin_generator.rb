@@ -316,7 +316,7 @@ module Rails
         mute do
           build(:generate_test_dummy)
           build(:test_dummy_config)
-          build(:test_dummy_sprocket_assets) unless options[:skip_sprockets]
+          build(:test_dummy_sprocket_assets) unless skip_sprockets?
           build(:test_dummy_clean)
           # ensure that bin/rails has proper dummy_path
           build(:bin, true)
