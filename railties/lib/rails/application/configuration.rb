@@ -21,7 +21,7 @@ module Rails
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
-                    :rake_eager_load
+                    :rake_eager_load, :server_timing
 
       attr_reader :encoding, :api_only, :loaded_config_version
 
@@ -74,6 +74,7 @@ module Rails
         @add_autoload_paths_to_load_path         = true
         @permissions_policy                      = nil
         @rake_eager_load                         = false
+        @server_timing                           = false
       end
 
       # Loads default configurations. See {the result of the method for each version}[https://guides.rubyonrails.org/configuring.html#results-of-config-load-defaults].
@@ -238,11 +239,7 @@ module Rails
           if respond_to?(:action_controller)
             action_controller.raise_on_open_redirects = true
 
-            # This can't use the standard configuration pattern because you can call
-            # wrap_parameters at the top level or on any controller.
-            ActiveSupport.on_load(:action_controller) do
-              ActionController::Base.wrap_parameters format: [:json]
-            end
+            action_controller.wrap_parameters_by_default = true
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"

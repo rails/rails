@@ -518,10 +518,10 @@ custom message or call `presence` prior to `length`.
 ### `numericality`
 
 This helper validates that your attributes have only numeric values. By
-default, it will match an optional sign followed by an integral or floating
+default, it will match an optional sign followed by an integer or floating
 point number.
 
-To specify that only integral numbers are allowed,
+To specify that only integer numbers are allowed,
 set `:only_integer` to true. Then it will use the
 
 ```ruby

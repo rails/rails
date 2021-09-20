@@ -263,7 +263,7 @@ module Rails
       class_option :minimal, type: :boolean, desc: "Preconfigure a minimal rails app"
       class_option :asset_pipeline, type: :string, aliases: "-a", default: "sprockets", desc: "Choose your asset pipeline [options: sprockets (default), propshaft]"
       class_option :javascript, type: :string, aliases: "-j", default: "importmap", desc: "Choose JavaScript approach [options: importmap (default), webpack, esbuild, rollup]"
-      class_option :css, type: :string, desc: "Choose CSS processor [options: tailwind, postcss, sass]"
+      class_option :css, type: :string, desc: "Choose CSS processor [options: tailwind, bootstrap, bulma, postcss, sass... check https://github.com/rails/cssbundling-rails]"
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false, desc: "Don't run bundle install"
 
       def initialize(*args)

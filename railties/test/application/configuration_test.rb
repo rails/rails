@@ -3415,7 +3415,7 @@ module ApplicationTests
       add_to_config 'config.load_defaults "6.1"'
 
       app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
-        ActionController::Base.wrap_parameters format: [:json]
+        Rails.application.config.action_controller.wrap_parameters_by_default = true
       RUBY
 
       app "production"
@@ -3423,17 +3423,11 @@ module ApplicationTests
       assert_equal [:json], ActionController::Base._wrapper_options.format
     end
 
-    test "ParamsWrapper can be changed from the default" do
-      add_to_config "ActionController::Base.wrap_parameters format: [:xml]"
-
-      app "production"
-
-      assert_equal [:xml], ActionController::Base._wrapper_options.format
-    end
-
     test "ParamsWrapper can be changed from the default in the initializer that was created prior to Rails 7" do
       app_file "config/initializers/wrap_parameters.rb", <<-RUBY
-        ActionController::Base.wrap_parameters format: [:xml]
+        ActiveSupport.on_load(:action_controller) do
+          wrap_parameters format: [:xml]
+        end
       RUBY
 
       app "production"
@@ -3442,7 +3436,7 @@ module ApplicationTests
     end
 
     test "ParamsWrapper can be turned off" do
-      add_to_config "ActionController::Base.wrap_parameters false"
+      add_to_config "Rails.application.config.action_controller.wrap_parameters_by_default = false"
 
       app "production"
 
