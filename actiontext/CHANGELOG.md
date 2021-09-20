@@ -1,8 +1,12 @@
-## Rails 7.0.0.alpha2 (September 15, 2021) ##
-
-*   Allow passing in a custom `direct_upload_url` or `blob_url_template` to `rich_text_area_tag`
+*   Allow passing in a custom `direct_upload_url` or `blob_url_template` to `rich_text_area_tag`.
 
     *Lucas Mansur*
+
+
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
+
+*   No changes.
+
 
 ## Rails 7.0.0.alpha1 (September 15, 2021) ##
 
