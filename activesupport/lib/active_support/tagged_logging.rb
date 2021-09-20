@@ -26,6 +26,21 @@ module ActiveSupport
   # it easy to stamp log lines with subdomains, request ids, and anything else
   # to aid debugging of multi-user production applications.
   module TaggedLogging
+    module TagComputer
+      def self.call(request, taggers)
+        taggers.collect do |tag|
+          case tag
+          when Proc
+            tag.call(request)
+          when Symbol
+            request.send(tag)
+          else
+            tag
+          end
+        end
+      end
+    end
+
     module Formatter # :nodoc:
       # This method is invoked when a log event occurs.
       def call(severity, timestamp, progname, msg)

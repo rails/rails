@@ -1,3 +1,24 @@
+*   Add `config.log_tag_computer` to configure the computation of tags in
+    Rails::Rack::Logger.
+
+        module StructuredTagComputer
+          def self.call(request, taggers)
+            {
+              request_id: request.request_id
+            }
+          end
+        end
+
+        config.log_tag_computer = StructuredTagComputer
+
+    The `compute_tags` method on Rails::Rack::Logger is deprecated, but its functionality
+    can be restored by passing ActiveSupport::TaggedLogging::TagComputer as the
+    third argument when adding Rails::Rack::Logger to the middleware stack:
+
+        app.middleware.use Rails::Rack::Logger, [:request_id], ActiveSupport::TaggedLogging::TagComputer
+
+    *Hartley McGuire*
+
 *   No longer add autoloaded paths to `$LOAD_PATH`.
 
     This means it won't be possible to load them with a manual `require` call, the class or module can be referenced instead.

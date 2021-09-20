@@ -48,7 +48,7 @@ module Rails
           middleware.use ::ActionDispatch::RequestId, header: config.action_dispatch.request_id_header
           middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
 
-          middleware.use ::Rails::Rack::Logger, config.log_tags
+          middleware.use ::Rails::Rack::Logger, config.log_tags, config.log_tag_computer
           middleware.use ::ActionDispatch::ShowExceptions, show_exceptions_app
           middleware.use ::ActionDispatch::DebugExceptions, app, config.debug_exception_response_format
 

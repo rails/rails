@@ -13,16 +13,17 @@ module Rails
     # object responds to, objects that respond to +to_s+ or Proc objects that accept
     # an instance of the +request+ object.
     class Logger < ActiveSupport::LogSubscriber
-      def initialize(app, taggers = nil)
+      def initialize(app, taggers = nil, tag_computer = nil)
         @app          = app
         @taggers      = taggers || []
+        @tag_computer = tag_computer || lambda { |request, _| compute_tags(request) }
       end
 
       def call(env)
         request = ActionDispatch::Request.new(env)
 
         if logger.respond_to?(:tagged)
-          logger.tagged(compute_tags(request)) { call_app(request, env) }
+          logger.tagged(@tag_computer.call(request, @taggers)) { call_app(request, env) }
         else
           call_app(request, env)
         end
@@ -53,6 +54,21 @@ module Rails
         end
 
         def compute_tags(request) # :doc:
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            The compute_tags method in Rails::Rack::Logger is deprecated and will
+            be removed in Rails 7.2. Tag computation can now be configured by
+            instantiating Rails::Rack::Logger with a callable that takes the request
+            and taggers as arguments.
+
+            To restore the current functionality, you should pass
+            ActiveSupport::TaggedLogging::TagComputer as the third argument
+            when adding Rails::Rack::Logger to the middleware stack.
+
+            For example:
+
+            app.middleware.use Rails::Rack::Logger, [:request_id], ActiveSupport::TaggedLogging::TagComputer
+          MSG
+
           @taggers.collect do |tag|
             case tag
             when Proc

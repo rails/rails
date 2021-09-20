@@ -14,7 +14,7 @@ module Rails
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :hosts, :host_authorization, :logger, :log_formatter,
-                    :log_tags, :railties_order, :relative_url_root, :secret_key_base,
+                    :log_tags, :log_tag_computer, :railties_order, :relative_url_root, :secret_key_base,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
@@ -58,6 +58,7 @@ module Rails
         @exceptions_app                          = nil
         @autoflush_log                           = true
         @log_formatter                           = ActiveSupport::Logger::SimpleFormatter.new
+        @log_tag_computer                        = ActiveSupport::TaggedLogging::TagComputer
         @eager_load                              = nil
         @secret_key_base                         = nil
         @api_only                                = false
