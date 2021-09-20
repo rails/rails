@@ -39,7 +39,7 @@ class ErrorsTest < ActiveModel::TestCase
 
   def test_include?
     errors = ActiveModel::Errors.new(Person.new)
-    assert_deprecated { errors[:foo] << "omg" }
+    errors.add(:foo, "omg")
     assert_includes errors, :foo, "errors should include :foo"
     assert_includes errors, "foo", "errors should include 'foo' as :foo"
   end
