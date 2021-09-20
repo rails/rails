@@ -30,6 +30,7 @@ module ApplicationTests
         "Rack::Sendfile",
         "ActionDispatch::Static",
         "ActionDispatch::Executor",
+        "ActionDispatch::ServerTiming",
         "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
         "Rack::MethodOverride",
