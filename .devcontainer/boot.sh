@@ -2,7 +2,7 @@ bundle install
 yarn install
 
 sudo service postgresql start
-sudo service mysql start
+sudo service mariadb start
 sudo service redis-server start
 sudo service memcached start
 
