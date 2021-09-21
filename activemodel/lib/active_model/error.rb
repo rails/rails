@@ -155,9 +155,15 @@ module ActiveModel
     #   error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
     #   error.full_message
     #   # => "Name is too short (minimum is 5 characters)"
+    #
+    #   Override the entire full message instead of combining `attribute` and `message` with either
+    # * <tt>activemodel.errors.models.person.attributes.name.full_messages.too_short</tt>
+    # * <tt>activemodel.errors.models.person.full_messages.too_short</tt>
+    # * <tt>activemodel.errors.messages.full_messages.too_short</tt>
+    # * <tt>activemodel.errors.attributes.name.full_messages.too_short</tt>
+    # * <tt>errors.messages.full_messages.too_short</tt>
     def full_message
-      generate_message_with_full_messages_scope ||
-        self.class.full_message(attribute, message, @base)
+      generate_message_with_full_messages_scope || self.class.full_message(attribute, message, @base)
     end
 
     # See if error matches provided +attribute+, +type+ and +options+.
