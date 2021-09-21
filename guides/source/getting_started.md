@@ -1721,6 +1721,12 @@ $ bin/rails generate migration AddStatusToArticles status:string
 $ bin/rails generate migration AddStatusToComments status:string
 ```
 
+And next, let's update the database with the generated migrations:
+
+```bash
+$ bin/rails db:migrate
+```
+
 TIP: To learn more about migrations, see [Active Record Migrations](
 active_record_migrations.html).
 
