@@ -1,3 +1,8 @@
+*   `email_address_with_name` returns just the address if name is blank.
+
+    *Thomas Hutterer*
+
+
 ## Rails 7.0.0.alpha2 (September 15, 2021) ##
 
 *   No changes.
