@@ -1,3 +1,12 @@
+*   Update `HostAuthorization` middleware to render debug info only
+    when `config.consider_all_requests_local` is set to true.
+
+    Also, blocked host info is always logged with level `error`.
+
+    Fixes #42813
+
+    *Nikita Vyrko*
+
 *  Add Server-Timing middleware
 
    Server-Timing specification defines how the server can communicate to browsers performance metrics
