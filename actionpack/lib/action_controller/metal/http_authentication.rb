@@ -2,6 +2,7 @@
 
 require "base64"
 require "active_support/security_utils"
+require "active_support/core_ext/array/access"
 
 module ActionController
   # HTTP Basic, Digest and Token authentication.
