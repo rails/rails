@@ -35,6 +35,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     get "/other" => "foo#other"
     get "/article/:id" => "foo#article", :as => :article
     get "/category/:category" => "foo#category"
+    resources :workshops
 
     scope :engine do
       get "/" => "foo#bar"
@@ -509,6 +510,12 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_link_tag_does_not_escape_html_safe_content
     assert_dom_equal %{<a href="/">Malicious <script>content</script></a>},
       link_to(raw("Malicious <script>content</script>"), "/")
+  end
+
+  def test_link_tag_using_active_record_model
+    @workshop = Workshop.new(1.to_s)
+    link = link_to(@workshop)
+    assert_dom_equal %{<a href="/workshops/1">1</a>}, link
   end
 
   def test_link_to_unless
