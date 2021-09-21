@@ -156,7 +156,7 @@ module ActiveModel
     #   error.full_message
     #   # => "Name is too short (minimum is 5 characters)"
     def full_message
-      innermost_error.generate_message_with_full_messages_scope ||
+      generate_message_with_full_messages_scope ||
         self.class.full_message(attribute, message, @base)
     end
 
@@ -203,14 +203,6 @@ module ActiveModel
     protected
       def attributes_for_hash
         [@base, @attribute, @raw_type, @options.except(*CALLBACKS_OPTIONS)]
-      end
-
-      def innermost_error
-        result = self
-        while result.respond_to?(:inner_error)
-          result = result.inner_error
-        end
-        result
       end
 
       def generate_message_with_full_messages_scope

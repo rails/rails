@@ -17,6 +17,6 @@ module ActiveModel
     attr_reader :inner_error
 
     extend Forwardable
-    def_delegators :@inner_error, :message
+    def_delegators :@inner_error, :message, :generate_message_with_full_messages_scope
   end
 end
