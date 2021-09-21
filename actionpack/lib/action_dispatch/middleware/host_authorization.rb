@@ -13,7 +13,10 @@ module ActionDispatch
   #
   # When a request comes to an unauthorized host, the +response_app+
   # application will be executed and rendered. If no +response_app+ is given, a
-  # default one will run, which responds with <tt>403 Forbidden</tt>.
+  # default one will run.
+  # The default response app logs blocked host info with level 'error' and
+  # responds with <tt>403 Forbidden</tt>. The body of the response contains debug info
+  # if +config.consider_all_requests_local+ is set to true, otherwise the body is empty.
   class HostAuthorization
     class Permissions # :nodoc:
       def initialize(hosts)
@@ -58,17 +61,43 @@ module ActionDispatch
         end
     end
 
-    DEFAULT_RESPONSE_APP = -> env do
-      request = Request.new(env)
+    class DefaultResponseApp # :nodoc:
+      RESPONSE_STATUS = 403
 
-      format = request.xhr? ? "text/plain" : "text/html"
-      template = DebugView.new(host: request.host)
-      body = template.render(template: "rescues/blocked_host", layout: "rescues/layout")
+      def call(env)
+        request = Request.new(env)
+        format = request.xhr? ? "text/plain" : "text/html"
 
-      [403, {
-        "Content-Type" => "#{format}; charset=#{Response.default_charset}",
-        "Content-Length" => body.bytesize.to_s,
-      }, [body]]
+        log_error(request)
+        response(format, response_body(request))
+      end
+
+      private
+        def response_body(request)
+          return "" unless request.get_header("action_dispatch.show_detailed_exceptions")
+
+          template = DebugView.new(host: request.host)
+          template.render(template: "rescues/blocked_host", layout: "rescues/layout")
+        end
+
+        def response(format, body)
+          [RESPONSE_STATUS,
+           { "Content-Type" => "#{format}; charset=#{Response.default_charset}",
+             "Content-Length" => body.bytesize.to_s },
+           [body]]
+        end
+
+        def log_error(request)
+          logger = available_logger(request)
+
+          return unless logger
+
+          logger.error("[#{self.class.name}] Blocked host: #{request.host}")
+        end
+
+        def available_logger(request)
+          request.logger || ActionView::Base.logger
+        end
     end
 
     def initialize(app, hosts, deprecated_response_app = nil, exclude: nil, response_app: nil)
@@ -85,7 +114,7 @@ module ActionDispatch
         response_app ||= deprecated_response_app
       end
 
-      @response_app = response_app || DEFAULT_RESPONSE_APP
+      @response_app = response_app || DefaultResponseApp.new
     end
 
     def call(env)

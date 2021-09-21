@@ -1,3 +1,13 @@
+*   Update `HostAuthorization` middleware to render debug info only
+    when `config.consider_all_requests_local` is set to true.
+
+    Also, blocked host info is always logged with level `error`.
+
+    Fixes #42813
+
+    *Nikita Vyrko*
+
+
 ## Rails 6.1.4.1 (August 19, 2021) ##
 
 *   [CVE-2021-22942] Fix possible open redirect in Host Authorization middleware.
