@@ -48,6 +48,22 @@ class I18nValidationTest < ActiveModel::TestCase
     assert_equal ["Field Name empty"], @person.errors.full_messages
   end
 
+  def test_errors_full_messages_uses_full_messages_scope
+    I18n.backend.store_translations("en", errors: { messages: { full_messages: { blank: "This field is required" }} })
+    @person.errors.add("title", :blank)
+    assert_equal ["This field is required"], @person.errors.full_messages
+  end
+
+  def test_errors_full_messages_on_nested_error_uses_full_messages_scope_on_innermost_error
+    I18n.backend.store_translations("en", activemodel: {
+      errors: { models: { person: { attributes: { title: { full_messages: { blank: "A person must have a title" } } } } } }
+    })
+
+    person = person_class.new
+    error = ActiveModel::Error.new(person, :title, :blank)
+    person.errors.import(error, attribute: "person[0].contacts.title")
+    assert_equal ["A person must have a title"], person.errors.full_messages
+  end
   def test_errors_full_messages_doesnt_use_attribute_format_without_config
     ActiveModel::Error.i18n_customize_full_message = false
 
