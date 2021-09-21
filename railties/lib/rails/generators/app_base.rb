@@ -166,7 +166,7 @@ module Rails
       end
 
       def asset_pipeline_gemfile_entry
-        return [] if [:skip_asset_pipeline]
+        return [] if options[:skip_asset_pipeline]
 
         if options[:asset_pipeline] == "sprockets"
           GemfileEntry.version "sprockets-rails", ">= 2.0.0",
