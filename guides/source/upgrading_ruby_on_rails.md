@@ -603,6 +603,14 @@ config.load_defaults 6.0
 
 enables `zeitwerk` autoloading mode on CRuby. In that mode, autoloading, reloading, and eager loading are managed by [Zeitwerk](https://github.com/fxn/zeitwerk).
 
+If you are using defaults from a previous Rails version, you can enable zeitwerk like so:
+
+```ruby
+# config/application.rb
+
+config.autoloader = :zeitwerk
+```
+
 #### Public API
 
 In general, applications do not need to use the API of Zeitwerk directly. Rails sets things up according to the existing contract: `config.autoload_paths`, `config.cache_classes`, etc.
