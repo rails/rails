@@ -47,6 +47,7 @@ module ActionDispatch
         request.set_header "action_dispatch.exception", wrapper.unwrapped_exception
         request.set_header "action_dispatch.original_path", request.path_info
         request.set_header "action_dispatch.original_request_method", request.raw_request_method
+        fallback_to_html_format_if_invalid_mime_type(request)
         request.path_info = "/#{status}"
         request.request_method = "GET"
         response = @exceptions_app.call(request.env)
@@ -54,6 +55,15 @@ module ActionDispatch
       rescue Exception => failsafe_error
         $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
         FAILSAFE_RESPONSE
+      end
+
+      def fallback_to_html_format_if_invalid_mime_type(request)
+        # If the MIME type for the request is invalid then the
+        # @exceptions_app may not be able to handle it. To make it
+        # easier to handle, we switch to HTML.
+        request.formats
+      rescue ActionDispatch::Http::MimeNegotiation::InvalidType
+        request.set_header "HTTP_ACCEPT", "text/html"
       end
 
       def pass_response(status)
