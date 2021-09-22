@@ -1,3 +1,22 @@
+*   PostgreSQL: support custom enum types
+
+    In migrations, use `create_enum` to add a new enum type, and `t.enum` to add a column.
+
+    ```ruby
+    def up
+      create_enum :mood, ["happy", "sad"]
+
+      change_table :cats do |t|
+        t.enum :current_mood, enum_type: "mood", default: "happy", null: false
+      end
+    end
+    ```
+
+    Enums will be presented correctly in `schema.rb`. Note that this is only supported by
+    the PostgreSQL adapter.
+
+    *Alex Ghiculescu*
+
 * Avoid COMMENT statements in PostgreSQL structure dumps
 
     COMMENT statements are now omitted from the output of `db:structure:dump` when using PostgreSQL >= 11.
