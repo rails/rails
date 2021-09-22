@@ -362,7 +362,8 @@ module ActionView
         inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
         if params
           to_form_params(params).each do |param|
-            inner_tags.safe_concat tag(:input, type: "hidden", name: param[:name], value: param[:value])
+            inner_tags.safe_concat tag(:input, type: "hidden", name: param[:name], value: param[:value],
+                                       autocomplete: "off")
           end
         end
         content_tag("form", inner_tags, form_options)
@@ -768,14 +769,14 @@ module ActionView
         def token_tag(token = nil, form_options: {})
           if token != false && defined?(protect_against_forgery?) && protect_against_forgery?
             token ||= form_authenticity_token(form_options: form_options)
-            tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token)
+            tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token, autocomplete: "off")
           else
             ""
           end
         end
 
         def method_tag(method)
-          tag("input", type: "hidden", name: "_method", value: method.to_s)
+          tag("input", type: "hidden", name: "_method", value: method.to_s, autocomplete: "off")
         end
 
         # Returns an array of hashes each containing :name and :value keys
