@@ -218,7 +218,7 @@ module ActiveModel
           attribute,
           "full_messages.#{raw_type}",
           base,
-          options.except(CALLBACKS_OPTIONS).merge(raise: true)
+          options.except(*CALLBACKS_OPTIONS, :message).merge(raise: true)
         )
       rescue I18n::MissingTranslationData
       end
