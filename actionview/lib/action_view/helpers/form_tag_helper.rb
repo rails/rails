@@ -241,7 +241,7 @@ module ActionView
       #   # => <input id="collected_input" name="collected_input" onchange="alert('Input collected!')"
       #   #    type="hidden" value="" />
       def hidden_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.merge(type: :hidden))
+        text_field_tag(name, value, options.merge(type: :hidden, autocomplete: "off"))
       end
 
       # Creates a file upload field. If you are using file uploads then you will also need
@@ -823,7 +823,7 @@ module ActionView
         # Use raw HTML to ensure the value is written as an HTML entity; it
         # needs to be the right character regardless of which encoding the
         # browser infers.
-        '<input name="utf8" type="hidden" value="&#x2713;" />'.html_safe
+        '<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off" />'.html_safe
       end
 
       private

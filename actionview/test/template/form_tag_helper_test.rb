@@ -28,11 +28,11 @@ class FormTagHelperTest < ActionView::TestCase
 
     (+"").tap do |txt|
       if enforce_utf8
-        txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
+        txt << %{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off" />}
       end
 
       if method && !%w(get post).include?(method.to_s)
-        txt << %{<input name="_method" type="hidden" value="#{method}" />}
+        txt << %{<input name="_method" type="hidden" value="#{method}" autocomplete="off" />}
       end
     end
   end
@@ -189,7 +189,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_hidden_field_tag
     actual = hidden_field_tag "id", 3
-    expected = %(<input id="id" name="id" type="hidden" value="3" />)
+    expected = %(<input id="id" name="id" type="hidden" value="3" autocomplete="off" />)
     assert_dom_equal expected, actual
   end
 

@@ -162,7 +162,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     self.request_forgery = true
 
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><input type="submit" value="Hello" /><input name="form_token" type="hidden" value="secret" /></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to"><input type="submit" value="Hello" /><input name="form_token" type="hidden" value="secret" autocomplete="off" /></form>},
       button_to("Hello", "http://www.example.com")
     )
   ensure
@@ -244,7 +244,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_method_delete
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><input type="hidden" name="_method" value="delete" /><input type="submit" value="Hello" /></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to"><input type="hidden" name="_method" value="delete" autocomplete="off" /><input type="submit" value="Hello" /></form>},
       button_to("Hello", "http://www.example.com", method: :delete)
     )
   end
@@ -265,7 +265,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="baz" value="quux" /><input type="hidden" name="foo" value="bar" /></form>},
+      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="baz" value="quux" autocomplete="off" /><input type="hidden" name="foo" value="bar" /></form>},
       button_to("Hello", "http://www.example.com", params: { foo: :bar, baz: "quux" })
     )
   end
@@ -290,7 +290,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_permitted_strong_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="baz" value="quux" /><input type="hidden" name="foo" value="bar" /></form>},
+      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="baz" value="quux" autocomplete="off" /><input type="hidden" name="foo" value="bar" /></form>},
       button_to("Hello", "http://www.example.com", params: FakeParams.new)
     )
   end
@@ -303,14 +303,14 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_nested_hash_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="foo[bar]" value="baz" /></form>},
+      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="foo[bar]" value="baz" autocomplete="off" /></form>},
       button_to("Hello", "http://www.example.com", params: { foo: { bar: "baz" } })
     )
   end
 
   def test_button_to_with_nested_array_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="foo[]" value="bar" /></form>},
+      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="foo[]" value="bar" autocomplete="off" /></form>},
       button_to("Hello", "http://www.example.com", params: { foo: ["bar"] })
     )
   end
