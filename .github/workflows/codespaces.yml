@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: github/codespaces-precache@v1.0.1
         with:
-          regions: ["WestUs2", "EastUs", "WestEurope", "SouthEastAsia"]
+          regions: "WestUs2 EastUs WestEurope SouthEastAsia"
           sku_name: largePremiumLinux
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
