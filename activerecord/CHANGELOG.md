@@ -1,3 +1,43 @@
+*   Adds support for deferrable foreign key constraints in PostgreSQL.
+
+    By default, foreign key constraints in PostgreSQL are checked after each statement. This works for most use cases,
+    but becomes a major limitation when creating related records before the parent record is inserted into the database.
+    One example of this is looking up / creating a person via one or more unique alias.
+
+    ```ruby
+    Person.transaction do
+      alias = Alias
+        .create_with(user_id: SecureRandom.uuid)
+        .create_or_find_by(name: "DHH")
+
+      person = Person
+        .create_with(name: "David Heinemeier Hansson")
+        .create_or_find_by(id: alias.user_id)
+    end
+    ```
+
+    Using the default behavior, the transaction would fail when executing the first `INSERT` statement.
+
+    By passing the `:deferrable` option to the `add_foreign_key` statement in migrations, it's possible to defer this
+    check.
+
+    ```ruby
+    add_foreign_key :aliases, :person, deferrable: true
+    ```
+
+    Passing `deferrable: true` doesn't change the default behavior, but allows manually deferring the check using
+    `SET CONSTRAINTS ALL DEFERRED` within a transaction. This will cause the foreign keys to be checked after the
+    transaction.
+
+    It's also possible to adjust the default behavior from an immediate check (after the statement), to a deferred check
+    (after the transaction):
+
+    ```ruby
+    add_foreign_key :aliases, :person, deferrable: :deferred
+    ```
+
+    *Benedikt Deicke*
+
 *   Allow configuring Postgres password through the socket URL.
 
     For example:

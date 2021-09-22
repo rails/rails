@@ -480,6 +480,80 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           end
         end
 
+        if ActiveRecord::Base.connection.supports_deferrable_constraints?
+          def test_deferrable_foreign_key
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: true
+
+            foreign_keys = @connection.foreign_keys("astronauts")
+            assert_equal 1, foreign_keys.size
+
+            fk = foreign_keys.first
+            assert_equal true, fk.options[:deferrable]
+          end
+
+          def test_not_deferrable_foreign_key
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: false
+
+            foreign_keys = @connection.foreign_keys("astronauts")
+            assert_equal 1, foreign_keys.size
+
+            fk = foreign_keys.first
+            assert_equal false, fk.options[:deferrable]
+          end
+
+          def test_deferrable_initially_deferred_foreign_key
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: :deferred
+
+            foreign_keys = @connection.foreign_keys("astronauts")
+            assert_equal 1, foreign_keys.size
+
+            fk = foreign_keys.first
+            assert_equal :deferred, fk.options[:deferrable]
+          end
+
+          def test_deferrable_initially_immediate_foreign_key
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: :immediate
+
+            foreign_keys = @connection.foreign_keys("astronauts")
+            assert_equal 1, foreign_keys.size
+
+            fk = foreign_keys.first
+            assert_equal true, fk.options[:deferrable]
+          end
+
+          def test_schema_dumping_with_defferable
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: true
+
+            output = dump_table_schema "astronauts"
+
+            assert_match %r{\s+add_foreign_key "astronauts", "rockets", deferrable: true$}, output
+          end
+
+          def test_schema_dumping_with_disabled_defferable
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: false
+
+            output = dump_table_schema "astronauts"
+
+            assert_match %r{\s+add_foreign_key "astronauts", "rockets"$}, output
+          end
+
+          def test_schema_dumping_with_defferable_initially_deferred
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: :deferred
+
+            output = dump_table_schema "astronauts"
+
+            assert_match %r{\s+add_foreign_key "astronauts", "rockets", deferrable: :deferred$}, output
+          end
+
+          def test_schema_dumping_with_defferable_initially_immediate
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: :immediate
+
+            output = dump_table_schema "astronauts"
+
+            assert_match %r{\s+add_foreign_key "astronauts", "rockets", deferrable: true$}, output
+          end
+        end
+
         def test_schema_dumping
           @connection.add_foreign_key :astronauts, :rockets
           output = dump_table_schema "astronauts"
