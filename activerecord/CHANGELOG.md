@@ -1,3 +1,20 @@
+*   Allow configuring Postgres password through the socket URL.
+
+    For example:
+    ```ruby
+    ActiveRecord::DatabaseConfigurations::UrlConfig.new(
+      :production, :production, 'postgres:///?user=user&password=secret&dbname=app', {}
+    ).configuration_hash
+    ```
+
+    will now return,
+
+    ```ruby
+    { :user=>"user", :password=>"secret", :dbname=>"app", :adapter=>"postgresql" }
+    ```
+
+    *Abeid Ahmed*
+
 *   PostgreSQL: support custom enum types
 
     In migrations, use `create_enum` to add a new enum type, and `t.enum` to add a column.
