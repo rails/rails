@@ -89,29 +89,22 @@ module ActionView
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
-        preload_links = []
+        options["crossorigin"] = "anonymous" if options["crossorigin"] == true
+        options["nonce"] = content_security_policy_nonce if options["nonce"] == true
         nopush = options["nopush"].nil? ? true : options.delete("nopush")
-        crossorigin = options.delete("crossorigin")
-        crossorigin = "anonymous" if crossorigin == true
-        integrity = options["integrity"]
-        rel = options["type"] == "module" ? "modulepreload" : "preload"
+        preload_links = []
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_javascript(source, path_options)
           if preload_links_header && !options["defer"] && href.present? && !href.start_with?("data:")
-            preload_link = "<#{href}>; rel=#{rel}; as=script"
-            preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
-            preload_link += "; integrity=#{integrity}" unless integrity.nil?
-            preload_link += "; nopush" if nopush
-            preload_links << preload_link
+            rel = options["type"] == "module" ? "modulepreload" : "preload"
+            preload_options = { rel: rel, as: "script"}
+            params = tag.attributes(preload_options.merge!(options.except("type"))).split(" ").join("; ")
+            preload_links << "<#{href}>; #{params}#{"; nopush" if nopush}"
           end
-          tag_options = {
-            "src" => href,
-            "crossorigin" => crossorigin
-          }.merge!(options)
-          if tag_options["nonce"] == true
-            tag_options["nonce"] = content_security_policy_nonce
-          end
+
+          tag_options = { "src" => href }.merge!(options)
+
           content_tag("script", "", tag_options)
         }.join("\n").html_safe
 
@@ -171,23 +164,18 @@ module ActionView
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
         preload_links = []
-        crossorigin = options.delete("crossorigin")
-        crossorigin = "anonymous" if crossorigin == true
+        options["crossorigin"] = "anonymous" if options["crossorigin"] == true
         nopush = options["nopush"].nil? ? true : options.delete("nopush")
-        integrity = options["integrity"]
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_stylesheet(source, path_options)
           if preload_links_header && href.present? && !href.start_with?("data:")
-            preload_link = "<#{href}>; rel=preload; as=style"
-            preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
-            preload_link += "; integrity=#{integrity}" unless integrity.nil?
-            preload_link += "; nopush" if nopush
-            preload_links << preload_link
+            preload_options = { rel: "preload", as: "style"}
+            params = tag.attributes(preload_options.merge!(options)).split(" ").join("; ")
+            preload_links << "<#{href}>; #{params}#{"; nopush" if nopush}"
           end
           tag_options = {
             "rel" => "stylesheet",
-            "crossorigin" => crossorigin,
             "href" => href
           }.merge!(options)
 
@@ -323,26 +311,19 @@ module ActionView
         as_type = options.delete(:as) || resolve_link_as(extname, mime_type)
         crossorigin = options.delete(:crossorigin)
         crossorigin = "anonymous" if crossorigin == true || (crossorigin.blank? && as_type == "font")
-        integrity = options[:integrity]
-        nopush = options.delete(:nopush) || false
 
-        link_tag = tag.link(**{
+        attributes = {
           rel: "preload",
           href: href,
           as: as_type,
           type: mime_type,
           crossorigin: crossorigin
-        }.merge!(options.symbolize_keys))
+        }.merge!(options.symbolize_keys)
 
-        preload_link = "<#{href}>; rel=preload; as=#{as_type}"
-        preload_link += "; type=#{mime_type}" if mime_type
-        preload_link += "; crossorigin=#{crossorigin}" if crossorigin
-        preload_link += "; integrity=#{integrity}" if integrity
-        preload_link += "; nopush" if nopush
+        preload_header = "<#{href}>; #{tag.attributes(attributes.except(:href, :nopush))}"
+        send_preload_links_header(["#{preload_header}#{"; nopush" if attributes.delete(:nopush)}"])
 
-        send_preload_links_header([preload_link])
-
-        link_tag
+        tag("link", **attributes)
       end
 
       # Returns an HTML image tag for the +source+. The +source+ can be a full

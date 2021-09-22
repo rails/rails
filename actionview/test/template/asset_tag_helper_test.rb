@@ -548,7 +548,7 @@ class AssetTagHelperTest < ActionView::TestCase
     with_preload_links_header do
       stylesheet_link_tag("http://example.com/style.css")
       javascript_include_tag("http://example.com/all.js")
-      expected = "<http://example.com/style.css>; rel=preload; as=style; nopush,<http://example.com/all.js>; rel=preload; as=script; nopush"
+      expected = "<http://example.com/style.css>; rel=\"preload\"; as=\"style\"; nopush,<http://example.com/all.js>; rel=\"preload\"; as=\"script\"; nopush"
       assert_equal expected, @response.headers["Link"]
     end
   end
@@ -583,7 +583,7 @@ class AssetTagHelperTest < ActionView::TestCase
     with_preload_links_header do
       stylesheet_link_tag("http://example.com/style.css", nopush: false)
       javascript_include_tag("http://example.com/all.js", nopush: false)
-      expected = "<http://example.com/style.css>; rel=preload; as=style,<http://example.com/all.js>; rel=preload; as=script"
+      expected = "<http://example.com/style.css>; rel=\"preload\"; as=\"style\",<http://example.com/all.js>; rel=\"preload\"; as=\"script\""
       assert_equal expected, @response.headers["Link"]
     end
   end
@@ -592,7 +592,7 @@ class AssetTagHelperTest < ActionView::TestCase
     with_preload_links_header do
       stylesheet_link_tag("http://example.com/style.css", crossorigin: "use-credentials")
       javascript_include_tag("http://example.com/all.js", crossorigin: true)
-      expected = "<http://example.com/style.css>; rel=preload; as=style; crossorigin=use-credentials; nopush,<http://example.com/all.js>; rel=preload; as=script; crossorigin=anonymous; nopush"
+      expected = "<http://example.com/style.css>; rel=\"preload\"; as=\"style\"; crossorigin=\"use-credentials\"; nopush,<http://example.com/all.js>; rel=\"preload\"; as=\"script\"; crossorigin=\"anonymous\"; nopush"
       assert_equal expected, @response.headers["Link"]
     end
   end
@@ -600,7 +600,7 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_should_set_preload_links_with_rel_modulepreload
     with_preload_links_header do
       javascript_include_tag("http://example.com/all.js", type: "module")
-      expected = "<http://example.com/all.js>; rel=modulepreload; as=script; nopush"
+      expected = "<http://example.com/all.js>; rel=\"modulepreload\"; as=\"script\"; nopush"
       assert_equal expected, @response.headers["Link"]
     end
   end
@@ -609,7 +609,7 @@ class AssetTagHelperTest < ActionView::TestCase
     with_preload_links_header do
       stylesheet_link_tag("http://example.com/style.css", integrity: "sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs")
       javascript_include_tag("http://example.com/all.js", integrity: "sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs")
-      expected = "<http://example.com/style.css>; rel=preload; as=style; integrity=sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs; nopush,<http://example.com/all.js>; rel=preload; as=script; integrity=sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs; nopush"
+      expected = "<http://example.com/style.css>; rel=\"preload\"; as=\"style\"; integrity=\"sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs\"; nopush,<http://example.com/all.js>; rel=\"preload\"; as=\"script\"; integrity=\"sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs\"; nopush"
       assert_equal expected, @response.headers["Link"]
     end
   end
@@ -619,6 +619,22 @@ class AssetTagHelperTest < ActionView::TestCase
       stylesheet_link_tag("http://example.com/style.css")
       javascript_include_tag("http://example.com/all.js")
       assert_nil @response.headers["Link"]
+    end
+  end
+
+  def test_preload_links_added_to_preload_header
+    with_preload_links_header do
+      preload_link_tag("sprite.svg")
+      expected = "</sprite.svg>; rel=\"preload\" as=\"image\" type=\"image/svg+xml\""
+      assert_equal expected, @response.headers["Link"]
+    end
+  end
+
+  def test_preload_links_added_to_preload_header_media
+    with_preload_links_header do
+      preload_link_tag("sprite.svg", media: "(min-width: 1024px)")
+      expected = "</sprite.svg>; rel=\"preload\" as=\"image\" type=\"image/svg+xml\" media=\"(min-width: 1024px)\""
+      assert_equal expected, @response.headers["Link"]
     end
   end
 
