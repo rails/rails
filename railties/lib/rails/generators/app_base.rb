@@ -60,6 +60,9 @@ module Rails
 
         class_option :skip_asset_pipeline, type: :boolean, aliases: "-A", default: false
 
+        class_option :asset_pipeline,      type: :string, aliases: "-a", default: "sprockets",
+                                           desc: "Choose your asset pipeline [options: sprockets (default), propshaft]"
+
         class_option :skip_javascript,     type: :boolean, aliases: "-J", default: name == "plugin",
                                            desc: "Skip JavaScript files"
 

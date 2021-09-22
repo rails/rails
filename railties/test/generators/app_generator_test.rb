@@ -232,7 +232,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_app_update_does_not_generate_assets_initializer_when_sprockets_is_not_used
     app_root = File.join(destination_root, "myapp")
-    run_generator [app_root, "-a none"]
+    run_generator [app_root, "-a", "none"]
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], { update: true, asset_pipeline: "none" }, { destination_root: app_root, shell: @shell }
@@ -986,7 +986,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/#\s+require\s+["']action_mailbox\/engine["']/, content)
       assert_match(/#\s+require\s+["']action_text\/engine["']/, content)
       assert_match(/#\s+require\s+["']action_cable\/engine["']/, content)
-      assert_match(/\s+require\s+["']sprockets\/railtie["']/, content)
     end
 
     assert_no_gem "jbuilder", app_root
