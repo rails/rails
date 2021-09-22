@@ -1545,7 +1545,7 @@ can transform through ImageMagick.
 By default, this is defined as:
 
 ```ruby
-config.active_storage.variable_content_types = %w(image/png image/gif image/jpg image/jpeg image/pjpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon image/webp image/avif image/heic image/heif)
+config.active_storage.variable_content_types = %w(image/png image/gif image/jpeg image/tiff image/vnd.adobe.photoshop image/vnd.microsoft.icon image/webp image/avif image/heic image/heif)
 ```
 
 #### `config.active_storage.web_image_content_types`
@@ -1557,7 +1557,7 @@ If you want to use `WebP` or `AVIF` variants in your application you can add
 By default, this is defined as:
 
 ```ruby
-config.active_storage.web_image_content_types = %w(image/png image/jpeg image/jpg image/gif)
+config.active_storage.web_image_content_types = %w(image/png image/jpeg image/gif)
 ```
 
 #### `config.active_storage.content_types_to_serve_as_binary`
@@ -1566,7 +1566,7 @@ Accepts an array of strings indicating the content types that Active Storage wil
 By default, this is defined as:
 
 ```ruby
-config.active_storage.content_types_to_serve_as_binary = %w(text/html text/javascript image/svg+xml application/postscript application/x-shockwave-flash text/xml application/xml application/xhtml+xml application/mathml+xml text/cache-manifest)
+config.active_storage.content_types_to_serve_as_binary = %w(text/html image/svg+xml application/postscript application/x-shockwave-flash text/xml application/xml application/xhtml+xml application/mathml+xml text/cache-manifest)
 ```
 
 #### `config.active_storage.content_types_allowed_inline`
@@ -1575,7 +1575,15 @@ Accepts an array of strings indicating the content types that Active Storage all
 By default, this is defined as:
 
 ```ruby
-config.active_storage.content_types_allowed_inline` = %w(image/png image/gif image/jpg image/jpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)
+config.active_storage.content_types_allowed_inline` = %w(image/png image/gif image/jpeg image/tiff image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)
+```
+
+#### `config.active_storage.silence_invalid_content_types_warning`
+
+Since Rails 7, Active Storage will warn if you use an invalid content type that was incorrectly supported in Rails 6. You can use this config to turn the warning off.
+
+```ruby
+config.active_storage.silence_invalid_content_types_warning = false
 ```
 
 #### `config.active_storage.queues.analysis`
