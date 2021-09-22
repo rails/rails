@@ -118,7 +118,7 @@ module ActiveModel
         #   user.authenticate_password('mUc3m00RsqyRe') # => user
         define_method("authenticate_#{attribute}") do |unencrypted_password|
           attribute_digest = public_send("#{attribute}_digest")
-          BCrypt::Password.new(attribute_digest).is_password?(unencrypted_password) && self
+          attribute_digest.present? && BCrypt::Password.new(attribute_digest).is_password?(unencrypted_password) && self
         end
 
         alias_method :authenticate, :authenticate_password if attribute == :password
