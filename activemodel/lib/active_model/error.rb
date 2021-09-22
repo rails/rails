@@ -216,8 +216,8 @@ module ActiveModel
 
         self.class.generate_message(
           attribute,
-          "full_messages.#{@raw_type}",
-          @base,
+          "full_messages.#{raw_type}",
+          base,
           options.except(CALLBACKS_OPTIONS).merge(raise: true)
         )
       rescue I18n::MissingTranslationData
