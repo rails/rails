@@ -125,7 +125,6 @@ module Rails
       asset_app_stylesheet_exist      = File.exist?("app/assets/stylesheets/application.css")
       csp_config_exist                = File.exist?("config/initializers/content_security_policy.rb")
       permissions_policy_config_exist = File.exist?("config/initializers/permissions_policy.rb")
-      uses_sprockets                  = !options[:skip_asset_pipeline] && options[:asset_pipeline] == "sprockets"
 
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
@@ -139,15 +138,15 @@ module Rails
         template "config/storage.yml"
       end
 
-      if !uses_sprockets && !assets_config_exist
+      if skip_sprockets? && !assets_config_exist
         remove_file "config/initializers/assets.rb"
       end
 
-      if !uses_sprockets && !asset_manifest_exist
+      if skip_sprockets? && !asset_manifest_exist
         remove_file "app/assets/config/manifest.js"
       end
 
-      if !uses_sprockets && !asset_app_stylesheet_exist
+      if skip_sprockets? && !asset_app_stylesheet_exist
         remove_file "app/assets/stylesheets/application.css"
       end
 
@@ -165,7 +164,7 @@ module Rails
         end
       end
 
-      if uses_sprockets
+      if !skip_sprockets?
         insert_into_file "config/application.rb", %(require "sprockets/railtie"), after: /require\(["']rails\/all["']\)\n/
       end
     end
@@ -445,7 +444,7 @@ module Rails
       end
 
       def delete_assets_initializer_skipping_sprockets
-        if options[:skip_asset_pipeline] || options[:asset_pipeline] != "sprockets"
+        if skip_sprockets?
           remove_file "config/initializers/assets.rb"
           remove_file "app/assets/config/manifest.js"
           remove_file "app/assets/stylesheets/application.css"
