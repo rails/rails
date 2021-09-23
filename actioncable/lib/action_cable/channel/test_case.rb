@@ -64,17 +64,13 @@ module ActionCable
       end
 
       def connection_identifier
-        unless defined? @connection_identifier
-          @connection_identifier = connection_gid identifiers.filter_map { |id| send(id.to_sym) if id }
-        end
-
-        @connection_identifier
+        @connection_identifier ||= connection_gid(identifiers.filter_map { |id| send(id.to_sym) if id })
       end
 
       private
         def connection_gid(ids)
           ids.map do |o|
-            if o.respond_to? :to_gid_param
+            if o.respond_to?(:to_gid_param)
               o.to_gid_param
             else
               o.to_s
