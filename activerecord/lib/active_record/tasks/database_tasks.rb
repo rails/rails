@@ -522,7 +522,15 @@ module ActiveRecord
         schema_cache_path || ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
       end
 
-      def load_schema_current(file = nil, environment = env)
+      def load_schema_current(deprecated_format = nil, file = nil, environment = env)
+        if deprecated_format
+          ActiveSupport::Deprecation.warn(<<~MSG.squish)
+            The `format` argument is no longer used by `load_schema_current` and will be removed
+            from the method signature in Rails 7.1. To load a specific schema format for a database,
+            set its `schema_format` in your database configuration file (i.e., database.yml).
+          MSG
+        end
+
         each_current_configuration(environment) do |db_config|
           load_schema(db_config, file)
         end
