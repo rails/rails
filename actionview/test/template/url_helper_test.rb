@@ -265,7 +265,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="baz" value="quux" autocomplete="off" /><input type="hidden" name="foo" value="bar" /></form>},
+      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="baz" value="quux" autocomplete="off" /><input type="hidden" name="foo" value="bar" autocomplete="off" /></form>},
       button_to("Hello", "http://www.example.com", params: { foo: :bar, baz: "quux" })
     )
   end
@@ -290,7 +290,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_permitted_strong_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="baz" value="quux" autocomplete="off" /><input type="hidden" name="foo" value="bar" /></form>},
+      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="baz" value="quux" autocomplete="off" /><input type="hidden" name="foo" value="bar" autocomplete="off" /></form>},
       button_to("Hello", "http://www.example.com", params: FakeParams.new)
     )
   end
