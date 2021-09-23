@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/person"
+require "byebug"
 
 class I18nValidationTest < ActiveModel::TestCase
   def setup
@@ -59,11 +60,11 @@ class I18nValidationTest < ActiveModel::TestCase
       errors: { models: { person: { attributes: { title: { full_messages: { blank: "A person must have a title" } } } } } }
     })
 
-    person = person_class.new
-    error = ActiveModel::Error.new(person, :title, :blank)
-    person.errors.import(error, attribute: "person[0].contacts.title")
-    assert_equal ["A person must have a title"], person.errors.full_messages
+    error = ActiveModel::Error.new(@person, :title, :blank)
+    @person.errors.import(error, attribute: "person[0].contacts.title")
+    assert_equal ["A person must have a title"], @person.errors.full_messages
   end
+
   def test_errors_full_messages_doesnt_use_attribute_format_without_config
     ActiveModel::Error.i18n_customize_full_message = false
 
