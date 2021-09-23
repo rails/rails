@@ -6,10 +6,19 @@ require "ipaddr"
 class HostAuthorizationTest < ActionDispatch::IntegrationTest
   App = -> env { [200, {}, %w(Success)] }
 
-  test "blocks requests to unallowed host" do
+  test "blocks requests to unallowed host with empty body" do
     @app = ActionDispatch::HostAuthorization.new(App, %w(only.com))
 
     get "/"
+
+    assert_response :forbidden
+    assert_empty response.body
+  end
+
+  test "renders debug info when all requests considered as local" do
+    @app = ActionDispatch::HostAuthorization.new(App, %w(only.com))
+
+    get "/", env: { "action_dispatch.show_detailed_exceptions" => true }
 
     assert_response :forbidden
     assert_match "Blocked host: www.example.com", response.body
@@ -80,6 +89,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
 
     get "/", env: {
       "HOST" => "www.example.local",
+      "action_dispatch.show_detailed_exceptions" => true
     }
 
     assert_response :forbidden
@@ -100,6 +110,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
 
     get "/", env: {
       "HOST" => ".example.com",
+      "action_dispatch.show_detailed_exceptions" => true
     }
 
     assert_response :forbidden
@@ -126,7 +137,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
   test "sanitizes regular expressions to prevent accidental matches" do
     @app = ActionDispatch::HostAuthorization.new(App, [/w.example.co/])
 
-    get "/"
+    get "/", env: { "action_dispatch.show_detailed_exceptions" => true }
 
     assert_response :forbidden
     assert_match "Blocked host: www.example.com", response.body
@@ -149,6 +160,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     get "/", env: {
       "HTTP_X_FORWARDED_HOST" => "127.0.0.1",
       "HOST" => "www.example.com",
+      "action_dispatch.show_detailed_exceptions" => true
     }
 
     assert_response :forbidden
@@ -173,6 +185,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     get "/", env: {
       "HTTP_X_FORWARDED_HOST" => "localhost",
       "HOST" => "www.example.com",
+      "action_dispatch.show_detailed_exceptions" => true
     }
 
     assert_response :forbidden
@@ -185,6 +198,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     get "/", env: {
       "HTTP_X_FORWARDED_HOST" => "sub.domain.com",
       "HOST" => "domain.com",
+      "action_dispatch.show_detailed_exceptions" => true
     }
 
     assert_response :forbidden
@@ -215,7 +229,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
   test "exclude misses block unallowed hosts" do
     @app = ActionDispatch::HostAuthorization.new(App, "only.com", exclude: ->(req) { req.path == "/bar" })
 
-    get "/foo"
+    get "/foo", env: { "action_dispatch.show_detailed_exceptions" => true }
 
     assert_response :forbidden
     assert_match "Blocked host: www.example.com", response.body
@@ -226,6 +240,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
 
     get "/", env: {
       "HOST" => "attacker.com#x.example.com",
+      "action_dispatch.show_detailed_exceptions" => true
     }
 
     assert_response :forbidden
@@ -237,6 +252,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
 
     get "/", env: {
       "HOST" => "sub-example.com",
+      "action_dispatch.show_detailed_exceptions" => true
     }
 
     assert_response :forbidden
@@ -247,5 +263,31 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_deprecated do
       ActionDispatch::HostAuthorization.new(App, "example.com", ->(env) { true })
     end
+  end
+
+  test "uses logger from the env" do
+    @app = ActionDispatch::HostAuthorization.new(App, %w(only.com))
+    output = StringIO.new
+
+    get "/", env: { "action_dispatch.logger" => Logger.new(output) }
+
+    assert_response :forbidden
+    assert_match "Blocked host: www.example.com", output.rewind && output.read
+  end
+
+  test "uses ActionView::Base logger when no logger in the env" do
+    @app = ActionDispatch::HostAuthorization.new(App, %w(only.com))
+    output = StringIO.new
+    logger = Logger.new(output)
+
+    _old, ActionView::Base.logger = ActionView::Base.logger, logger
+    begin
+      get "/"
+    ensure
+      ActionView::Base.logger = _old
+    end
+
+    assert_response :forbidden
+    assert_match "Blocked host: www.example.com", output.rewind && output.read
   end
 end

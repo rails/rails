@@ -3404,6 +3404,45 @@ module ApplicationTests
       assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], ActiveSupport::Deprecation.disallowed_behavior
     end
 
+    test "ParamsWrapper is enabled in a new app and uses JSON as the format" do
+      app "production"
+
+      assert_equal [:json], ActionController::Base._wrapper_options.format
+    end
+
+    test "ParamsWrapper is enabled in an upgrade and uses JSON as the format" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+        Rails.application.config.action_controller.wrap_parameters_by_default = true
+      RUBY
+
+      app "production"
+
+      assert_equal [:json], ActionController::Base._wrapper_options.format
+    end
+
+    test "ParamsWrapper can be changed from the default in the initializer that was created prior to Rails 7" do
+      app_file "config/initializers/wrap_parameters.rb", <<-RUBY
+        ActiveSupport.on_load(:action_controller) do
+          wrap_parameters format: [:xml]
+        end
+      RUBY
+
+      app "production"
+
+      assert_equal [:xml], ActionController::Base._wrapper_options.format
+    end
+
+    test "ParamsWrapper can be turned off" do
+      add_to_config "Rails.application.config.action_controller.wrap_parameters_by_default = false"
+
+      app "production"
+
+      assert_equal [], ActionController::Base._wrapper_options.format
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents

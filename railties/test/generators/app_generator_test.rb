@@ -47,12 +47,9 @@ DEFAULT_APP_FILES = %w(
   config/environments/test.rb
   config/initializers
   config/initializers/assets.rb
-  config/initializers/backtrace_silencers.rb
   config/initializers/content_security_policy.rb
   config/initializers/filter_parameter_logging.rb
   config/initializers/inflections.rb
-  config/initializers/mime_types.rb
-  config/initializers/wrap_parameters.rb
   config/locales
   config/locales/en.yml
   config/puma.rb
@@ -581,6 +578,25 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
     assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
+  end
+
+  def test_template_from_url
+    url = "https://raw.githubusercontent.com/rails/rails/f95c0b7e96/railties/test/fixtures/lib/template.rb"
+    FileUtils.cd(Rails.root)
+    assert_match(/It works from file!/, run_generator([destination_root, "-m", url]))
+  end
+
+  def test_template_from_abs_path
+    absolute_path = File.expand_path(Rails.root, "fixtures")
+    FileUtils.cd(Rails.root)
+    assert_match(/It works from file!/, run_generator([destination_root, "-m", "#{absolute_path}/lib/template.rb"]))
+  end
+
+  def test_template_from_env_var_path
+    ENV["FIXTURES_HOME"] = File.expand_path(Rails.root, "fixtures")
+    FileUtils.cd(Rails.root)
+    assert_match(/It works from file!/, run_generator([destination_root, "-m", "$FIXTURES_HOME/lib/template.rb"]))
+    ENV.delete("FIXTURES_HOME")
   end
 
   def test_usage_read_from_file

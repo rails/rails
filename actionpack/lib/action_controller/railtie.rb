@@ -12,6 +12,7 @@ module ActionController
     config.action_controller = ActiveSupport::OrderedOptions.new
     config.action_controller.raise_on_open_redirects = false
     config.action_controller.log_query_tags_around_actions = true
+    config.action_controller.wrap_parameters_by_default = false
 
     config.eager_load_namespaces << ActionController
 
@@ -62,15 +63,18 @@ module ActionController
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
         extend ::ActionController::Railties::Helpers
 
+        wrap_parameters format: [:json] if options.wrap_parameters_by_default && respond_to?(:wrap_parameters)
+
         # Configs used in other initializers
-        options = options.except(
+        filtered_options = options.except(
           :log_query_tags_around_actions,
           :permit_all_parameters,
           :action_on_unpermitted_parameters,
-          :always_permitted_parameters
+          :always_permitted_parameters,
+          :wrap_parameters_by_default
         )
 
-        options.each do |k, v|
+        filtered_options.each do |k, v|
           k = "#{k}="
           if respond_to?(k)
             send(k, v)

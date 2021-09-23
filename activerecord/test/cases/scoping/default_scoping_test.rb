@@ -94,6 +94,12 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_match(/mentor_id/, create_sql)
   end
 
+  def test_nilable_default_scope_with_all_queries_runs_on_create
+    create_sql = capture_sql { DeveloperWithDefaultNilableMentorScopeAllQueries.create!(name: "Nikita") }.first
+
+    assert_no_match(/AND$/, create_sql)
+  end
+
   def test_default_scope_runs_on_select
     Mentor.create!
     DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen")
@@ -108,6 +114,13 @@ class DefaultScopingTest < ActiveRecord::TestCase
     select_sql = capture_sql { DeveloperWithDefaultMentorScopeAllQueries.find_by(name: "Eileen") }.first
 
     assert_match(/mentor_id/, select_sql)
+  end
+
+  def test_nilable_default_scope_with_all_queries_runs_on_select
+    DeveloperWithDefaultNilableMentorScopeAllQueries.create!(name: "Nikita")
+    select_sql = capture_sql { DeveloperWithDefaultNilableMentorScopeAllQueries.find_by(name: "Nikita") }.first
+
+    assert_no_match(/AND$/, select_sql)
   end
 
   def test_default_scope_doesnt_run_on_update
@@ -126,6 +139,13 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_match(/mentor_id/, update_sql)
   end
 
+  def test_nilable_default_scope_with_all_queries_runs_on_update
+    dev = DeveloperWithDefaultNilableMentorScopeAllQueries.create!(name: "Nikita")
+    update_sql = capture_sql { dev.update!(name: "Not Nikita") }.first
+
+    assert_no_match(/AND$/, update_sql)
+  end
+
   def test_default_scope_doesnt_run_on_update_columns
     Mentor.create!
     dev = DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen")
@@ -140,6 +160,13 @@ class DefaultScopingTest < ActiveRecord::TestCase
     update_sql = capture_sql { dev.update_columns(name: "Not Eileen") }.first
 
     assert_match(/mentor_id/, update_sql)
+  end
+
+  def test_nilable_default_scope_with_all_queries_runs_on_update_columns
+    dev = DeveloperWithDefaultNilableMentorScopeAllQueries.create!(name: "Nikita")
+    update_sql = capture_sql { dev.update_columns(name: "Not Nikita") }.first
+
+    assert_no_match(/AND$/, update_sql)
   end
 
   def test_default_scope_doesnt_run_on_destroy
@@ -158,6 +185,13 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_match(/mentor_id/, destroy_sql)
   end
 
+  def test_nilable_default_scope_with_all_queries_runs_on_destroy
+    dev = DeveloperWithDefaultNilableMentorScopeAllQueries.create!(name: "Nikita")
+    destroy_sql = capture_sql { dev.destroy }.first
+
+    assert_no_match(/AND$/, destroy_sql)
+  end
+
   def test_default_scope_doesnt_run_on_reload
     Mentor.create!
     dev = DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen")
@@ -172,6 +206,13 @@ class DefaultScopingTest < ActiveRecord::TestCase
     reload_sql = capture_sql { dev.reload }.first
 
     assert_match(/mentor_id/, reload_sql)
+  end
+
+  def test_nilable_default_scope_with_all_queries_runs_on_destroy
+    dev = DeveloperWithDefaultNilableMentorScopeAllQueries.create!(name: "Nikita")
+    reload_sql = capture_sql { dev.reload }.first
+
+    assert_no_match(/AND$/, reload_sql)
   end
 
   def test_default_scope_with_all_queries_doesnt_run_on_destroy_when_unscoped

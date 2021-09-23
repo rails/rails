@@ -21,6 +21,7 @@ module ApplicationTests
 
     test "default middleware stack" do
       add_to_config "config.active_record.migration_error = :page_load"
+      add_to_config "config.server_timing = true"
 
       boot!
 
@@ -29,6 +30,7 @@ module ApplicationTests
         "Rack::Sendfile",
         "ActionDispatch::Static",
         "ActionDispatch::Executor",
+        "ActionDispatch::ServerTiming",
         "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
         "Rack::MethodOverride",
@@ -55,6 +57,7 @@ module ApplicationTests
     test "default middleware stack when requests are local" do
       add_to_config "config.consider_all_requests_local = true"
       add_to_config "config.active_record.migration_error = :page_load"
+      add_to_config "config.server_timing = true"
 
       boot!
 
@@ -63,6 +66,7 @@ module ApplicationTests
         "Rack::Sendfile",
         "ActionDispatch::Static",
         "ActionDispatch::Executor",
+        "ActionDispatch::ServerTiming",
         "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
         "Rack::MethodOverride",

@@ -148,7 +148,7 @@ module Rails
           when /^https?:\/\//
             options[:template]
           when String
-            File.expand_path(options[:template], Dir.pwd)
+            File.expand_path(`echo #{options[:template]}`.strip)
           else
             options[:template]
           end

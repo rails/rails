@@ -1,3 +1,25 @@
+*   Update `HostAuthorization` middleware to render debug info only
+    when `config.consider_all_requests_local` is set to true.
+
+    Also, blocked host info is always logged with level `error`.
+
+    Fixes #42813
+
+    *Nikita Vyrko*
+
+*  Add Server-Timing middleware
+
+   Server-Timing specification defines how the server can communicate to browsers performance metrics
+   about the request it is responding to.
+
+   The ServerTiming middleware is enabled by default on `development` environment by default using the
+   `config.server_timing` setting and set the relevant duration metrics in the `Server-Timing` header
+
+   The full specification for Server-Timing header can be found in: https://www.w3.org/TR/server-timing/#dfn-server-timing-header-field
+
+   *Sebastian Sogamoso*, *Guillermo Iguaran*
+
+
 ## Rails 7.0.0.alpha2 (September 15, 2021) ##
 
 *   No changes.

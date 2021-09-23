@@ -1,3 +1,9 @@
+*   `ActiveSupport::Inflector::Inflections#clear(:acronyms)` is now supported,
+    and `inflector.clear` / `inflector.clear(:all)` also clears acronyms.
+
+    *Alex Ghiculescu*, *Oliver Peate*
+
+
 ## Rails 7.0.0.alpha2 (September 15, 2021) ##
 
 *   No changes.

@@ -1075,6 +1075,9 @@ module ActiveRecord
       #   duplicate column errors.
       # [<tt>:validate</tt>]
       #   (PostgreSQL only) Specify whether or not the constraint should be validated. Defaults to +true+.
+      # [<tt>:deferrable</tt>]
+      #   (PostgreSQL only) Specify whether or not the foreign key should be deferrable. Valid values are booleans or
+      #   +:deferred+ or +:immediate+ to specify the default behavior. Defaults to +false+.
       def add_foreign_key(from_table, to_table, **options)
         return unless supports_foreign_keys?
         return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table)

@@ -700,7 +700,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_select_with_multiple_to_add_hidden_input
     output_buffer = select(:post, :category, "", {}, { multiple: true })
     assert_dom_equal(
-      "<input type=\"hidden\" name=\"post[category][]\" value=\"\"/><select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
+      "<input type=\"hidden\" name=\"post[category][]\" value=\"\" autocomplete=\"off\"/><select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
     )
   end
@@ -724,7 +724,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_select_with_multiple_and_disabled_to_add_disabled_hidden_input
     output_buffer = select(:post, :category, "", {}, { multiple: true, disabled: true })
     assert_dom_equal(
-      "<input disabled=\"disabled\"type=\"hidden\" name=\"post[category][]\" value=\"\"/><select multiple=\"multiple\" disabled=\"disabled\" id=\"post_category\" name=\"post[category][]\"></select>",
+      "<input disabled=\"disabled\"type=\"hidden\" name=\"post[category][]\" value=\"\" autocomplete=\"off\"/><select multiple=\"multiple\" disabled=\"disabled\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
     )
   end
@@ -898,7 +898,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_required_select_with_multiple_option
     assert_dom_equal(
-      %(<input name="post[category][]" type="hidden" value=""/><select id="post_category" multiple="multiple" name="post[category][]" required="required"><option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
+      %(<input name="post[category][]" type="hidden" value="" autocomplete="off"/><select id="post_category" multiple="multiple" name="post[category][]" required="required"><option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
       select("post", "category", %w(abe mus hest), {}, { required: true, multiple: true })
     )
   end
@@ -1086,7 +1086,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
     @post.author_name = "Babe"
 
-    expected = "<input type=\"hidden\" name=\"post[author_name][]\" value=\"\"/><select id=\"post_author_name\" name=\"post[author_name][]\" multiple=\"multiple\"><option value=\"\" label=\" \"></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>"
+    expected = "<input type=\"hidden\" name=\"post[author_name][]\" value=\"\" autocomplete=\"off\"/><select id=\"post_author_name\" name=\"post[author_name][]\" multiple=\"multiple\"><option value=\"\" label=\" \"></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>"
 
     # Should suffix default name with [].
     assert_dom_equal expected, collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { include_blank: true }, { multiple: true })
@@ -1510,42 +1510,65 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_weekday_options_for_select_with_no_params
     assert_dom_equal(
-      "<option value=\"Sunday\">Sunday</option>\n<option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option>",
+      "<option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option>\n<option value=\"Sunday\">Sunday</option>",
       weekday_options_for_select
     )
   end
 
   def test_weekday_options_for_select_with_index_as_value
     assert_dom_equal(
-      "<option value=\"0\">Sunday</option>\n<option value=\"1\">Monday</option>\n<option value=\"2\">Tuesday</option>\n<option value=\"3\">Wednesday</option>\n<option value=\"4\">Thursday</option>\n<option value=\"5\">Friday</option>\n<option value=\"6\">Saturday</option>",
+      "<option value=\"1\">Monday</option>\n<option value=\"2\">Tuesday</option>\n<option value=\"3\">Wednesday</option>\n<option value=\"4\">Thursday</option>\n<option value=\"5\">Friday</option>\n<option value=\"6\">Saturday</option>\n<option value=\"0\">Sunday</option>",
       weekday_options_for_select(index_as_value: true)
     )
   end
 
   def test_weekday_options_for_select_with_abberviated_day_names
     assert_dom_equal(
-      "<option value=\"Sun\">Sun</option>\n<option value=\"Mon\">Mon</option>\n<option value=\"Tue\">Tue</option>\n<option value=\"Wed\">Wed</option>\n<option value=\"Thu\">Thu</option>\n<option value=\"Fri\">Fri</option>\n<option value=\"Sat\">Sat</option>",
+      "<option value=\"Mon\">Mon</option>\n<option value=\"Tue\">Tue</option>\n<option value=\"Wed\">Wed</option>\n<option value=\"Thu\">Thu</option>\n<option value=\"Fri\">Fri</option>\n<option value=\"Sat\">Sat</option>\n<option value=\"Sun\">Sun</option>",
       weekday_options_for_select(day_format: :abbr_day_names)
     )
   end
 
+  def test_weekday_options_for_select_with_beginning_of_week_set_to_sunday
+    assert_dom_equal(
+      "<option value=\"Sunday\">Sunday</option>\n<option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option>",
+      weekday_options_for_select(beginning_of_week: :sunday)
+    )
+  end
+
+  def test_weekday_options_for_select_with_beginning_of_week_set_to_saturday
+    assert_dom_equal(
+      "<option value=\"Saturday\">Saturday</option>\n<option value=\"Sunday\">Sunday</option>\n<option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>",
+      weekday_options_for_select(beginning_of_week: :saturday)
+    )
+  end
+
+  def test_weekday_options_for_select_with_beginning_of_week_set_elsewhere
+    Date.beginning_of_week = :sunday
+    assert_dom_equal(
+      "<option value=\"Sunday\">Sunday</option>\n<option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option>",
+      weekday_options_for_select
+    )
+    Date.beginning_of_week = :monday
+  end
+
   def test_weekday_options_for_select_with_selected_value
     assert_dom_equal(
-      "<option value=\"Sunday\">Sunday</option>\n<option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option selected=\"selected\" value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option>",
+      "<option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option selected=\"selected\" value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option>\n<option value=\"Sunday\">Sunday</option>",
       weekday_options_for_select("Friday")
     )
   end
 
   def test_weekday_select
     assert_dom_equal(
-      "<select name=\"model[weekday]\" id=\"model_weekday\"><option value=\"Sunday\">Sunday</option>\n<option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option></select>",
+      "<select name=\"model[weekday]\" id=\"model_weekday\"><option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option>\n<option value=\"Sunday\">Sunday</option></select>",
       weekday_select(:model, :weekday)
     )
   end
 
   def test_weekday_select_with_selected_value
     assert_dom_equal(
-      "<select name=\"model[weekday]\" id=\"model_weekday\"><option value=\"Sunday\">Sunday</option>\n<option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option selected=\"selected\" value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option></select>",
+      "<select name=\"model[weekday]\" id=\"model_weekday\"><option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option selected=\"selected\" value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option>\n<option value=\"Sunday\">Sunday</option></select>",
       weekday_select(:model, :weekday, selected: "Friday")
     )
   end
@@ -1558,7 +1581,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal(
-      "<select id=\"digest_send_day\" name=\"digest[send_day]\"><option value=\"Sunday\">Sunday</option>\n<option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option></select>",
+      "<select id=\"digest_send_day\" name=\"digest[send_day]\"><option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option>\n<option value=\"Sunday\">Sunday</option></select>",
       output_buffer
     )
   end
@@ -1572,7 +1595,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal(
-      "<select name=\"digest[send_day]\" id=\"digest_send_day\"><option value=\"Sunday\">Sunday</option>\n<option selected=\"selected\" value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option></select>",
+      "<select name=\"digest[send_day]\" id=\"digest_send_day\"><option selected=\"selected\" value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option>\n<option value=\"Sunday\">Sunday</option></select>",
       output_buffer
     )
   end

@@ -441,7 +441,7 @@ User Management
 
 NOTE: _Almost every web application has to deal with authorization and authentication. Instead of rolling your own, it is advisable to use common plug-ins. But keep them up-to-date, too. A few additional precautions can make your application even more secure._
 
-There are a number of authentication plug-ins for Rails available. Good ones, such as the popular [devise](https://github.com/heartcombo/devise) and [authlogic](https://github.com/binarylogic/authlogic), store only encrypted passwords, not plain-text passwords. Since Rails 3.1 you can also use the built-in [`has_secure_password`](https://api.rubyonrails.org/classes/ActiveModel/SecurePassword/ClassMethods.html#method-i-has_secure_password) method which supports password encryption, confirmation, and recovery mechanisms.
+There are a number of authentication plug-ins for Rails available. Good ones, such as the popular [devise](https://github.com/heartcombo/devise) and [authlogic](https://github.com/binarylogic/authlogic), store only cryptographically hashed passwords, not plain-text passwords. Since Rails 3.1 you can also use the built-in [`has_secure_password`](https://api.rubyonrails.org/classes/ActiveModel/SecurePassword/ClassMethods.html#method-i-has_secure_password) method which supports secure password hashing, confirmation, and recovery mechanisms.
 
 ### Brute-Forcing Accounts
 
@@ -651,7 +651,7 @@ SELECT * FROM projects WHERE (name = '') UNION
   SELECT id,login AS name,password AS description,1,1,1 FROM users --'
 ```
 
-The result won't be a list of projects (because there is no project with an empty name), but a list of usernames and their password. So hopefully you encrypted the passwords in the database! The only problem for the attacker is, that the number of columns has to be the same in both queries. That's why the second query includes a list of ones (1), which will be always the value 1, in order to match the number of columns in the first query.
+The result won't be a list of projects (because there is no project with an empty name), but a list of usernames and their password. So hopefully you [securely hashed the passwords](#user-management) in the database! The only problem for the attacker is, that the number of columns has to be the same in both queries. That's why the second query includes a list of ones (1), which will be always the value 1, in order to match the number of columns in the first query.
 
 Also, the second query renames some columns with the AS statement so that the web application displays the values from the user table. Be sure to update your Rails [to at least 2.1.1](https://rorsecurity.info/journal/2008/09/08/sql-injection-issue-in-limit-and-offset-parameter.html).
 
