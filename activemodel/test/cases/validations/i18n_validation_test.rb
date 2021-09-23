@@ -2,7 +2,6 @@
 
 require "cases/helper"
 require "models/person"
-require "byebug"
 
 class I18nValidationTest < ActiveModel::TestCase
   def setup
