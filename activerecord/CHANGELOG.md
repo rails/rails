@@ -1,3 +1,10 @@
+*   Fix migration compatibility to create SQLite references/belongs_to column as integer when migration version is 6.0.
+
+    Reference/belongs_to in migrations with version 6.0 were creating columns as
+    bigint instead of integer for the SQLite Adapter.
+
+    *Marcelo Lauxen*
+
 *   Add `authenticate_by` when using `has_secure_password`.
 
     `authenticate_by` is intended to replace code like the following, which
