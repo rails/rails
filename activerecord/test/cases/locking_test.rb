@@ -738,12 +738,41 @@ unless in_memory_db?
       assert_equal old, person.reload.first_name
     end
 
+    def test_with_lock_configures_transaction
+      person = Person.find 1
+      Person.transaction do
+        outer_transaction = Person.connection.transaction_manager.current_transaction
+        assert_equal true, outer_transaction.joinable?
+        person.with_lock(requires_new: true, joinable: false) do
+          current_transaction = Person.connection.transaction_manager.current_transaction
+          assert_not_equal outer_transaction, current_transaction
+          assert_equal false, current_transaction.joinable?
+        end
+      end
+    end
+
     if current_adapter?(:PostgreSQLAdapter)
       def test_lock_sending_custom_lock_statement
         Person.transaction do
           person = Person.find(1)
           assert_sql(/LIMIT \$?\d FOR SHARE NOWAIT/) do
             person.lock!("FOR SHARE NOWAIT")
+          end
+        end
+      end
+
+      def test_with_lock_sets_isolation
+        person = Person.find 1
+        person.with_lock(isolation: :read_uncommitted) do
+          current_transaction = Person.connection.transaction_manager.current_transaction
+          assert_equal :read_uncommitted, current_transaction.isolation_level
+        end
+      end
+
+      def test_with_lock_locks_with_no_args
+        person = Person.find 1
+        assert_sql(/LIMIT \$?\d FOR UPDATE/i) do
+          person.with_lock do
           end
         end
       end
