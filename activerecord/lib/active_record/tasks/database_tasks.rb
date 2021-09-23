@@ -399,7 +399,7 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def schema_up_to_date?(configuration, file = nil, environment = nil, name = nil)
+      def schema_up_to_date?(configuration, file = nil, environment = nil, name = nil) # :nodoc:
         db_config = resolve_configuration(configuration)
 
         if environment || name
@@ -464,8 +464,8 @@ module ActiveRecord
       def schema_file(format = nil)
         unless format
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Omitting a schema format is deprecated and will raise an error in Rails 7.0.
-            The +DatabaseConfiguration+ instance providing the database name also contains
+            Omitting a schema format is deprecated and will raise an error in Rails 7.1.
+            The `DatabaseConfiguration` instance providing the database name also contains
             the appropriate schema format that should be passed.
           MSG
           format = ActiveRecord.schema_format
@@ -478,8 +478,8 @@ module ActiveRecord
       def schema_file_type(format = nil)
         unless format
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Omitting a schema format is deprecated and will raise an error in Rails 7.0.
-            The +DatabaseConfiguration+ instance providing the database name also contains
+            Omitting a schema format is deprecated and will raise an error in Rails 7.1.
+            The `DatabaseConfiguration` instance providing the database name also contains
             the appropriate schema format that should be passed.
           MSG
           format = ActiveRecord.schema_format
@@ -496,8 +496,8 @@ module ActiveRecord
       def dump_filename(db_config_name, format = nil)
         unless format
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Omitting a schema format is deprecated and will raise an error in Rails 7.0.
-            The +DatabaseConfiguration+ instance providing the database name also contains
+            Omitting a schema format is deprecated and will raise an error in Rails 7.1.
+            The `DatabaseConfiguration` instance providing the database name also contains
             the appropriate schema format that should be passed.
           MSG
           format = ActiveRecord.schema_format
