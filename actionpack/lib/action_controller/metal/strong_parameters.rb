@@ -349,8 +349,8 @@ module ActionController
     # are sorted lexicographically in ascending order.
     #
     # This method is also aliased as +to_param+.
-    def to_query(*args)
-      to_h.to_query(*args)
+    def to_query(...)
+      to_h.to_query(...)
     end
     alias_method :to_param, :to_query
 
