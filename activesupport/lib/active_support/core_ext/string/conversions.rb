@@ -59,14 +59,6 @@ class String
   end
 
   def to_spongebob
-    new_string = []
-    self.chars.each_with_index do |char, index|
-      if index.even?
-        new_string << char.upcase
-      else
-        new_string << char.downcase
-      end
-    end
-    new_string.join("")
+    chars.map.with_index { |char, index| index.even? ? char.upcase : char.downcase }.join("")
   end
 end

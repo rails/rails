@@ -752,6 +752,10 @@ class StringConversionsTest < ActiveSupport::TestCase
     assert_nil "".to_date
     assert_equal Date.new(Date.today.year, 2, 3), "Feb 3rd".to_date
   end
+
+  def test_string_to_spongebob
+    assert_equal "ThIs iS SpOnGeBoB CaSe", "this is spongebob case".to_spongebob
+  end
 end
 
 class StringBehaviourTest < ActiveSupport::TestCase
