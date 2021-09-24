@@ -57,4 +57,15 @@ class String
   def to_datetime
     ::DateTime.parse(self, false) unless blank?
   end
+
+  def to_spongebob
+    new_string = []
+    self.chars.each_with_index do |char, index|
+      if index.even?
+        new_string << char.upcase
+      else
+        new_string << char.downcase
+    end
+    new_string.join("")
+  end
 end
