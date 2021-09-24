@@ -1,3 +1,15 @@
+*   Avoid loading every records in `ActiveRecord::Relation#pretty_print`
+
+    ```ruby
+    # Before
+    pp Foo.all # Loads the whole table.
+
+    # After
+    pp Foo.all # Shows 10 items and an ellipsis.
+    ```
+
+    *Ulysse Buonomo*
+
 *   Change `QueryMethods#in_order_of` to drop records not listed in values.
 
     `in_order_of` now filters down to the values provided, to match the behavior of the `Enumerable` version.
