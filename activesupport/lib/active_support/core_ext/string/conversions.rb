@@ -65,6 +65,7 @@ class String
         new_string << char.upcase
       else
         new_string << char.downcase
+      end
     end
     new_string.join("")
   end
