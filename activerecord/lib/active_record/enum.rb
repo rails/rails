@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/hash/slice"
+require "active_support/hash_with_indifferent_access.rb"
 require "active_support/core_ext/object/deep_dup"
 
 module ActiveRecord
@@ -76,7 +77,7 @@ module ActiveRecord
   #
   # In rare circumstances you might need to access the mapping directly.
   # The mappings are exposed through a class method with the pluralized attribute
-  # name, which return the mapping in a +HashWithIndifferentAccess+:
+  # name, which return the mapping in a +TemporaryNameEnum+:
   #
   #   Conversation.statuses[:active]    # => 0
   #   Conversation.statuses["archived"] # => 1
@@ -101,12 +102,14 @@ module ActiveRecord
   #
   #   conversation.active_status!
   #   conversation.archived_status? # => false
+  #   conversation.statuses.suffix # => :status
   #
   #   conversation.comments_inactive!
   #   conversation.comments_active? # => false
+  #   conversation.comment_statuses.prefix # => :comments
   module Enum
     def self.extended(base) # :nodoc:
-      base.class_attribute(:defined_enums, instance_writer: false, default: {})
+      base.class_attribute(:defined_enums, instance_writer: false, default: TemporaryNameEnum.new)
     end
 
     def inherited(base) # :nodoc:
@@ -169,11 +172,47 @@ module ActiveRecord
       definitions.each { |name, values| _enum(name, values, **options) }
     end
 
+    # TODO: not intending to merge with this here, it's just temporary functionality holder.
+    # I don't know where to put it or what to call it
+    class TemporaryNameEnum
+      delegate_missing_to :@values
+      attr_reader :prefix, :suffix, :scopes, :options
+
+      def initialize(values = ActiveSupport::HashWithIndifferentAccess.new, prefix: nil, suffix: nil, **options)
+        @values = values
+        @prefix = prefix
+        @suffix = suffix
+        @options = options
+      end
+
+      def freeze
+        @values.freeze
+        super
+      end
+
+      def deep_dup
+        self.class.new(
+          @values.deep_dup,
+          prefix: prefix,
+          suffix: suffix,
+          **options
+        )
+      end
+    end
+    private_constant :TemporaryNameEnum
+
     private
       def _enum(name, values, prefix: nil, suffix: nil, scopes: true, **options)
         assert_valid_enum_definition_values(values)
-        # statuses = { }
-        enum_values = ActiveSupport::HashWithIndifferentAccess.new
+
+        if prefix == true
+          prefix = name 
+        end
+        if suffix == true
+          suffix = name 
+        end
+
+        enum_values = TemporaryNameEnum.new(prefix: prefix, suffix: suffix, scopes: scopes, name: name, **options)
         name = name.to_s
 
         # def self.statuses() statuses end
@@ -191,25 +230,17 @@ module ActiveRecord
 
         value_method_names = []
         _enum_methods_module.module_eval do
-          prefix = if prefix
-            prefix == true ? "#{name}_" : "#{prefix}_"
-          end
-
-          suffix = if suffix
-            suffix == true ? "_#{name}" : "_#{suffix}"
-          end
-
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |label, value|
             enum_values[label] = value
             label = label.to_s
 
-            value_method_name = "#{prefix}#{label}#{suffix}"
+            value_method_name = [prefix, label, suffix].compact.join("_")
             value_method_names << value_method_name
             define_enum_methods(name, value_method_name, value, scopes)
 
             method_friendly_label = label.gsub(/[\W&&[:ascii:]]+/, "_")
-            value_method_alias = "#{prefix}#{method_friendly_label}#{suffix}"
+            value_method_alias = [prefix, method_friendly_label, suffix].compact.join("_")
 
             if value_method_alias != value_method_name && !value_method_names.include?(value_method_alias)
               value_method_names << value_method_alias

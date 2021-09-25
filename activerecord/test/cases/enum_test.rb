@@ -344,6 +344,20 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal 2, Book.statuses[:published]
   end
 
+  test "access prefix and suffix through mapping" do
+    # no prefix or suffix
+    assert_nil Book.statuses.prefix
+    assert_nil Book.statuses.suffix
+
+    # default prefix or suffix
+    assert_equal :author_visibility, Book.author_visibilities.prefix
+    assert_equal :font_size, Book.font_sizes.suffix
+
+    # custom prefix or suffix
+    assert_equal :in, Book.languages.prefix
+    assert_equal :to_read, Book.difficulties.suffix
+  end
+
   test "building new objects with enum scopes" do
     assert_predicate Book.written.build, :written?
     assert_predicate Book.read.build, :read?
