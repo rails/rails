@@ -176,7 +176,7 @@ module ActiveRecord
     # I don't know where to put it or what to call it
     class TemporaryNameEnum
       delegate_missing_to :@values
-      attr_reader :prefix, :suffix, :scopes, :options
+      attr_reader :values, :prefix, :suffix, :scopes, :options
 
       def initialize(values = ActiveSupport::HashWithIndifferentAccess.new, prefix: nil, suffix: nil, **options)
         @values = values
@@ -205,12 +205,8 @@ module ActiveRecord
       def _enum(name, values, prefix: nil, suffix: nil, scopes: true, **options)
         assert_valid_enum_definition_values(values)
 
-        if prefix == true
-          prefix = name 
-        end
-        if suffix == true
-          suffix = name 
-        end
+        prefix = name if prefix == true
+        suffix = name if suffix == true
 
         enum_values = TemporaryNameEnum.new(prefix: prefix, suffix: suffix, scopes: scopes, name: name, **options)
         name = name.to_s
