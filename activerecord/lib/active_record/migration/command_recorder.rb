@@ -154,9 +154,9 @@ module ActiveRecord
 
         include StraightReversions
 
-        def invert_transaction(args)
+        def invert_transaction(args, &block)
           sub_recorder = CommandRecorder.new(delegate)
-          sub_recorder.revert { yield }
+          sub_recorder.revert(&block)
 
           invertions_proc = proc {
             sub_recorder.replay(self)

@@ -78,6 +78,68 @@ To allow you to upgrade to new defaults one by one, the update task has created 
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 
+### Spring
+
+If your application uses Spring, it needs to be upgraded to at least version 3.0.0. Otherwise you'll get
+
+```
+undefined method `mechanism=' for ActiveSupport::Dependencies:Module
+```
+
+Also, make sure `config.cache_classes` is set to `false` in `config/environments/test.rb`.
+
+### Applications need to run in `zeitwerk` mode
+
+Applications still running in `classic` mode have to switch to `zeitwerk` mode. Please check the [upgrading guide for Rails 6.0](https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#autoloading) for details.
+
+### The setter `config.autoloader=` has been deleted
+
+In Rails 7 there is no configuration point to set the autoloading mode, `config.autoloader=` has been deleted. If you had it set to `:zeitwerk` for whatever reason, just remove it.
+
+### `ActiveSupport::Dependencies` private API has been deleted
+
+The private API of `ActiveSupport::Dependencies` has been deleted. That includes methods like `hook!`, `unhook!`, `depend_on`, `require_or_load`, `mechanism`, and many others.
+
+A few of highlights:
+
+* If you used `ActiveSupport::Dependencies.constantize` or ``ActiveSupport::Dependencies.safe_constantize`, just change them to `String#constantize` or `String#safe_constantize`.
+
+  ```ruby
+  ActiveSupport::Dependencies.constantize("User") # NO LONGER POSSIBLE
+  "User".constantize # 👍
+  ```
+
+* Any usage of `ActiveSupport::Dependencies.mechanism`, reader or writer, has to be replaced by accessing `config.cache_classes` accordingly.
+
+* If you want to trace the activity of the autoloader, `ActiveSupport::Dependencies.verbose=` is no longer available, just throw `Rails.autoloaders.log!` in `config/application.rb`.
+
+Auxiliary internal classes or modules are also gone, like like `ActiveSupport::Dependencies::Reference`, `ActiveSupport::Dependencies::Blamable`, and others.
+
+### Autoloading during initialization
+
+Applications that autoloaded reloadable constants during initialization outside of `to_prepare` blocks got those constants unloaded and had this warning issued since Rails 6.0:
+
+```
+DEPRECATION WARNING: Initialization autoloaded the constant ....
+
+Being able to do this is deprecated. Autoloading during initialization is going
+to be an error condition in future versions of Rails.
+
+...
+```
+
+If you still get this warning in the logs, please check the section about autoloading when the application boots in the [autoloading guide](https://guides.rubyonrails.org/v7.0/autoloading_and_reloading_constants.html#autoloading-when-the-application-boots). You'd get a `NameError` in Rails 7 otherwise.
+
+### Ability to configure `config.autoload_once_paths`
+
+`config.autoload_once_paths` can be set in the body of the application class defined in `config/application.rb` or in the configuration for environments in `config/environments/*`.
+
+Similarly, engines can configure that collection in the class body of the engine class or in the configuration for environments.
+
+After that, the collection is frozen, and you can autoload from those paths. In particular, you can autoload from there during initialization. They are managed by the `Rails.autoloaders.once` autoloader, which does not reload, only autoloads/eager loads.
+
+If you configured this setting after the environments configuration has been processed and are getting `FrozenError`, please just move the code.
+
 ### `ActionDispatch::Request#content_type` now returned Content-Type header as it is.
 
 Previously, `ActionDispatch::Request#content_type` returned value does NOT contain charset part.
@@ -169,16 +231,22 @@ more meaningful preview images. Previously the first frame of the video would be
 and that caused problems if the video faded in from black. This change requires
 FFmpeg v3.4+.
 
-### ActiveStorage variant processor changed to :vips
+### Active Storage default variant processor changed to `:vips`
 
-Image transformation will now use libvips instead of ImageMagick. This will reduce
+For new apps, image transformation will use libvips instead of ImageMagick. This will reduce
 the time taken to generate variants as well as CPU and memory usage, improving response
-times in apps that rely on active storage to serve their images. 
+times in apps that rely on active storage to serve their images.
 
 The `:mini_magick` option is not being deprecated, so it is fine to keep using it.
 
-Migrating to libvips requires changing existing image transformation code to the
-`image_processing` macros, and replacing ImageMagick's options with libvips' options.
+To migrate an existing app to libvips, set:
+
+```ruby
+Rails.application.config.active_storage.variant_processor = :vips
+```
+
+You will then need to change existing image transformation code to the
+`image_processing` macros, and replace ImageMagick's options with libvips' options.
 
 #### Replace resize with resize_to_limit
 ```diff
@@ -186,7 +254,7 @@ Migrating to libvips requires changing existing image transformation code to the
 + variant(resize_to_limit: [100, nil])
 ```
 
-If you forget to do this, when you switch to vips you will see this error: `no implicit conversion to float from string`.
+If you don't do this, when you switch to vips you will see this error: `no implicit conversion to float from string`.
 
 #### Use an array when cropping
 ```diff
@@ -194,17 +262,20 @@ If you forget to do this, when you switch to vips you will see this error: `no i
 + variant(crop: [0, 0, 1920, 1080])
 ```
 
-If you forget to do this, when you switch to vips you will see this error: `unable to call crop: you supplied 2 arguments, but operation needs 5`.
+If you don't do this when migrating to vips, you will see the following error: `unable to call crop: you supplied 2 arguments, but operation needs 5`.
 
 #### Clamp your crop values:
+
 Vips is more strict than ImageMagick when it comes to cropping:
+
 1. It will not crop if `x` and/or `y` are negative values. e.g.: `[-10, -10, 100, 100]`
 2. It will not crop if position (`x` or `y`) plus crop dimension (`width`, `height`) is larger than the image. e.g.: a 125x125 image and a crop of `[50, 50, 100, 100]`
 
-If you forget to do this, when you switch to vips you will see this error: `extract_area: bad extract area`
+If you don't do this when migrating to vips, you will see the following error: `extract_area: bad extract area`
 
-#### Adjust the background color used in resize and pad
+#### Adjust the background color used for `resize_and_pad`
 Vips uses black as the default background color `resize_and_pad`, instead of white like ImageMagick. Fix that by using the `background` option:
+
 ```diff
 - variant(resize_and_pad: [300, 300])
 + variant(resize_and_pad: [300, 300, background: [255]])
@@ -212,6 +283,7 @@ Vips uses black as the default background color `resize_and_pad`, instead of whi
 
 #### Remove any EXIF based rotation
 Vips will auto rotate images using the EXIF value when processing variants. If you were storing rotation values from user uploaded photos to apply rotation with ImageMagick, you must stop doing that:
+
 ```diff
 - variant(format: :jpg, rotate: rotation_value)
 + variant(format: :jpg)
@@ -219,6 +291,7 @@ Vips will auto rotate images using the EXIF value when processing variants. If y
 
 #### Replace monochrome with colourspace
 Vips uses a different option to make monochrome images:
+
 ```diff
 - variant(monochrome: true)
 + variant(colourspace: "b-w")
@@ -226,24 +299,28 @@ Vips uses a different option to make monochrome images:
 
 #### Switch to libvips options for compressing images
 JPEG
+
 ```diff
 - variant(strip: true, quality: 80, interlace: "JPEG", sampling_factor: "4:2:0", colorspace: "sRGB")
 + variant(saver: { strip: true, quality: 80, interlace: true })
 ```
 
 PNG
+
 ```diff
 - variant(strip: true, quality: 75)
 + variant(saver: { strip: true, compression: 9 })
 ```
 
 WEBP
+
 ```diff
 - variant(strip: true, quality: 75, define: { webp: { lossless: false, alpha_quality: 85, thread_level: 1 } })
 + variant(saver: { strip: true, quality: 75, lossless: false, alpha_q: 85, reduction_effort: 6, smart_subsample: true })
 ```
 
 GIF
+
 ```diff
 - variant(layers: "Optimize")
 + variant(saver: { optimize_gif_frames: true, optimize_gif_transparency: true })
@@ -251,11 +328,12 @@ GIF
 
 #### Deploy to production
 Active Storage encodes into the url for the image the list of transformations that must be performed.
-If you app is caching these urls, your images will break after you deploy the new code to production.
+If your app is caching these urls, your images will break after you deploy the new code to production.
 Because of this you must manually invalidate your affected cache keys.
 
 For example, if you have something like this in a view:
-```rhtml
+
+```erb
 <% @products.each do |product| %>
   <% cache product do %>
     <%= image_tag product.cover_photo.variant(resize: "200x") %>
@@ -264,7 +342,8 @@ For example, if you have something like this in a view:
 ```
 
 You can invalidate the cache either by touching the product, or changing the cache key:
-```rhtml
+
+```erb
 <% @products.each do |product| %>
   <% cache ["v2", product] do %>
     <%= image_tag product.cover_photo.variant(resize_to_limit: [200, nill]) %>
@@ -524,6 +603,14 @@ config.load_defaults 6.0
 
 enables `zeitwerk` autoloading mode on CRuby. In that mode, autoloading, reloading, and eager loading are managed by [Zeitwerk](https://github.com/fxn/zeitwerk).
 
+If you are using defaults from a previous Rails version, you can enable zeitwerk like so:
+
+```ruby
+# config/application.rb
+
+config.autoloader = :zeitwerk
+```
+
 #### Public API
 
 In general, applications do not need to use the API of Zeitwerk directly. Rails sets things up according to the existing contract: `config.autoload_paths`, `config.cache_classes`, etc.
@@ -534,7 +621,7 @@ While applications should stick to that interface, the actual Zeitwerk loader ob
 Rails.autoloaders.main
 ```
 
-That may be handy if you need to preload STIs or configure a custom inflector, for example.
+That may be handy if you need to preload Single Table Inheritance (STI) classes or configure a custom inflector, for example.
 
 #### Project Structure
 
@@ -554,7 +641,7 @@ All is good!
 
 All known use cases of `require_dependency` have been eliminated, you should grep the project and delete them.
 
-If your application has STIs, please check their section in the guide [Autoloading and Reloading Constants (Zeitwerk Mode)](autoloading_and_reloading_constants.html#single-table-inheritance).
+If your application uses Single Table Inheritance, please see the [Single Table Inheritance section](autoloading_and_reloading_constants.html#single-table-inheritance) of the Autoloading and Reloading Constants (Zeitwerk Mode) guide.
 
 #### Qualified names in class and module definitions
 

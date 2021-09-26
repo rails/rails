@@ -13,8 +13,8 @@ module Mime
       @symbols = []
     end
 
-    def each
-      @mimes.each { |x| yield x }
+    def each(&block)
+      @mimes.each(&block)
     end
 
     def <<(type)
@@ -42,9 +42,9 @@ module Mime
       Type.lookup_by_extension(type)
     end
 
-    def fetch(type)
+    def fetch(type, &block)
       return type if type.is_a?(Type)
-      EXTENSION_LOOKUP.fetch(type.to_s) { |k| yield k }
+      EXTENSION_LOOKUP.fetch(type.to_s, &block)
     end
   end
 

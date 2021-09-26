@@ -149,10 +149,10 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--full"]
     if defined?(JRUBY_VERSION) || RUBY_ENGINE == "rbx"
       assert_file "Gemfile" do |content|
-        assert_no_match(/byebug/, content)
+        assert_no_match(/debug/, content)
       end
     else
-      assert_file "Gemfile", /# gem "byebug"/
+      assert_file "Gemfile", /# gem "debug"/
     end
   end
 

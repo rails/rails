@@ -159,7 +159,7 @@ INFO: Technically, you can autoload classes and modules managed by the `once` au
 
 The autoload once paths are managed by `Rails.autoloaders.once`.
 
-$LOAD_PATH
+$LOAD_PATH{#load_path}
 ----------
 
 Autoload paths are added to `$LOAD_PATH` by default. However, Zeitwerk uses absolute file names internally, and your application should not issue `require` calls for autoloadable files, so those directories are actually not needed there. You can opt out with this flag:
@@ -258,7 +258,7 @@ NOTE: For historical reasons, this callback may run twice. The code it executes 
 
 ### Use case 2: During boot, load code that remains cached
 
-Some configurations take a class or module object, and they store it in a place that is not reloaded, for example, within the state of the framework.
+Some configurations take a class or module object, and they store it in a place that is not reloaded.
 
 One example is middleware:
 
@@ -277,22 +277,23 @@ Rails.application.config.active_job.custom_serializers << MoneySerializer
 
 Whatever `MoneySerializer` evaluates to during initialization gets pushed to the custom serializers. If that was reloadable, the initial object would be still within Active Job, not reflecting your changes.
 
-Corollary: those classes or modules **cannot be reloadable**.
+Yet another example are railties or engines decorating framework classes by including modules. For instance, [`turbo-rails`](https://github.com/hotwired/turbo-rails) decorates `ActiveRecord::Base` this way:
 
-The easiest way to refer to those classes or modules during boot is to have them defined in a directory which does not belong to the autoload paths. For instance, `lib` is an idiomatic choice. It does not belong to the autoload paths by default, but it does belong to `$LOAD_PATH`. Just perform a regular `require` to load it and done.
-
-As noted above, another option is to have the directory that defines them in the autoload once paths:
-
-```
-# config/application.rb
-module YourApp
-  class Application < Rails::Application
-    config.autoload_once_paths << Rails.root.join('app', 'serializers')
+```ruby
+initializer "turbo.broadcastable" do
+  ActiveSupport.on_load(:active_record) do
+    include Turbo::Broadcastable
   end
 end
 ```
 
-in this option, you can autoload serializers during initialization, because they are managed by the `once` autoloader.
+That adds a module object to the ancestor chain of `ActiveRecord::Base`. Changes in `Turbo::Broadcastable` would have no effect if reloaded, the ancestor chain would still have the original one.
+
+Corollary: Those classes or modules **cannot be reloadable**.
+
+The easiest way to refer to those classes or modules during boot is to have them defined in a directory which does not belong to the autoload paths. For instance, `lib` is an idiomatic choice. It does not belong to the autoload paths by default, but it does belong to `$LOAD_PATH`. Just perform a regular `require` to load it.
+
+As noted above, another option is to have the directory that defines them in the autoload once paths and autoload. Please check the [section about config.autoload_once_paths](https://edgeguides.rubyonrails.org/autoloading_and_reloading_constants.html#config-autoload-once-paths) for details.
 
 Eager Loading
 -------------
@@ -313,69 +314,16 @@ Single Table Inheritance is a feature that doesn't play well with lazy loading. 
 
 In a sense, applications need to eager load STI hierarchies regardless of the loading mode.
 
-Of course, if the application eager loads on boot, that is already accomplished. When it does not, it is in practice enough to instantiate the existing types in the database, which in development or test modes is usually fine. One way to do that is to include an STI preloading module in your `lib` directory:
+Of course, if the application eager loads on boot, that is already accomplished. When it does not, it is in practice enough to instantiate the existing types in the database, which in development or test modes is usually fine:
 
 ```ruby
-module StiPreload
-  unless Rails.application.config.eager_load
-    extend ActiveSupport::Concern
-
-    included do
-      cattr_accessor :preloaded, instance_accessor: false
-    end
-
-    class_methods do
-      def descendants
-        preload_sti unless preloaded
-        super
-      end
-
-      # Constantizes all types present in the database. There might be more on
-      # disk, but that does not matter in practice as far as the STI API is
-      # concerned.
-      #
-      # Assumes store_full_sti_class is true, the default.
-      def preload_sti
-        types_in_db = \
-          base_class.
-            unscoped.
-            select(inheritance_column).
-            distinct.
-            pluck(inheritance_column).
-            compact
-
-        types_in_db.each do |type|
-          logger.debug("Preloading STI type #{type}")
-          type.constantize
-        end
-
-        self.preloaded = true
-      end
-    end
+# config/initializers/preload_stis.rb
+unless Rails.application.config.eager_load
+  Rails.autoloaders.main.on_load("RootSTIModel") do |klass|
+    klass.connection.select_values(<<~SQL).each(&:constantize)
+      SELECT DISTINCT("#{klass.inheritance_column}") FROM "#{klass.table_name}"
+    SQL
   end
-end
-```
-
-and then include it in the STI root classes of your project:
-
-```ruby
-# app/models/shape.rb
-require "sti_preload"
-
-class Shape < ApplicationRecord
-  include StiPreload # Only in the root class.
-end
-```
-
-```ruby
-# app/models/polygon.rb
-class Polygon < Shape
-end
-```
-
-```ruby
-# app/models/triangle.rb
-class Triangle < Polygon
 end
 ```
 
@@ -449,9 +397,9 @@ If the engine controls the autoloading mode of its parent application, the engin
 
 However, if an engine supports Rails 6 or Rails 6.1 and does not control its parent applications, it has to be ready to run under either `classic` or `zeitwerk` mode. Things to take into account:
 
-1. If `classic` mode would need a `require_dependency` call to ensure some constant is loaded at some point, write it. While `zeitwerk` would not need it, it won't hurt, will just work in `zeitwerk` mode too.
+1. If `classic` mode would need a `require_dependency` call to ensure some constant is loaded at some point, write it. While `zeitwerk` would not need it, it won't hurt, it will work in `zeitwerk` mode too.
 
-2. `classic` mode underscores constant names ("User" -> "user.rb"), and `zeitwerk` mode camelizes file names ("user.rb" -> "User"). They coincide in most cases, but they don't if there are series of consecutive uppercase letters as in "HTMLParser". The easiest way to be compatible is to avoid such names. In this case, better pick "HtmlParser".
+2. `classic` mode underscores constant names ("User" -> "user.rb"), and `zeitwerk` mode camelizes file names ("user.rb" -> "User"). They coincide in most cases, but they don't if there are series of consecutive uppercase letters as in "HTMLParser". The easiest way to be compatible is to avoid such names. In this case, pick "HtmlParser".
 
 3. In `classic` mode, a file `app/model/concerns/foo.rb` is allowed to define both `Foo` and `Concerns::Foo`. In `zeitwerk` mode, there's only one option: it has to define `Foo`. In order to be compatible, define `Foo`.
 

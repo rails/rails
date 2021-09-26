@@ -11,14 +11,14 @@ module Kernel
   #   end
   #
   #   noisy_call # warning voiced
-  def silence_warnings
-    with_warnings(nil) { yield }
+  def silence_warnings(&block)
+    with_warnings(nil, &block)
   end
 
   # Sets $VERBOSE to +true+ for the duration of the block and back to its
   # original value afterwards.
-  def enable_warnings
-    with_warnings(true) { yield }
+  def enable_warnings(&block)
+    with_warnings(true, &block)
   end
 
   # Sets $VERBOSE for the duration of the block and back to its original

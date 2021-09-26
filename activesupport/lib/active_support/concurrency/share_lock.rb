@@ -215,9 +215,9 @@ module ActiveSupport
           @waiting.any? { |t, (p, _)| compatible.include?(p) && @waiting.all? { |t2, (_, c2)| t == t2 || c2.include?(p) } }
         end
 
-        def wait_for(method)
+        def wait_for(method, &block)
           @sleeping[Thread.current] = method
-          @cv.wait_while { yield }
+          @cv.wait_while(&block)
         ensure
           @sleeping.delete Thread.current
         end

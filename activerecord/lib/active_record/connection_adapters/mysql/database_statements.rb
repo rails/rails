@@ -37,24 +37,10 @@ module ActiveRecord
           MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
         end
 
-        def execute(sql, name = nil, async: false)
-          # make sure we carry over any changes to ActiveRecord.default_timezone that have been
-          # made since we established the connection
-          @connection.query_options[:database_timezone] = ActiveRecord.default_timezone
-
-          super
-        end
-        alias_method :raw_execute, :execute
-        private :raw_execute
-
         # Executes the SQL statement in the context of this connection.
         def execute(sql, name = nil, async: false)
           sql = transform_query(sql)
           check_if_write_query(sql)
-
-          # make sure we carry over any changes to ActiveRecord.default_timezone that have been
-          # made since we established the connection
-          @connection.query_options[:database_timezone] = ActiveRecord.default_timezone
 
           raw_execute(sql, name, async: async)
         end
@@ -90,7 +76,24 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
+        # https://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html#function_current-timestamp
+        # https://dev.mysql.com/doc/refman/5.7/en/date-and-time-type-syntax.html
+        HIGH_PRECISION_CURRENT_TIMESTAMP = Arel.sql("CURRENT_TIMESTAMP(6)").freeze # :nodoc:
+        private_constant :HIGH_PRECISION_CURRENT_TIMESTAMP
+
+        def high_precision_current_timestamp
+          HIGH_PRECISION_CURRENT_TIMESTAMP
+        end
+
         private
+          def raw_execute(sql, name, async: false)
+            # make sure we carry over any changes to ActiveRecord.default_timezone that have been
+            # made since we established the connection
+            @connection.query_options[:database_timezone] = ActiveRecord.default_timezone
+
+            super
+          end
+
           def execute_batch(statements, name = nil)
             statements = statements.map { |sql| transform_query(sql) }
             combine_multi_statements(statements).each do |statement|

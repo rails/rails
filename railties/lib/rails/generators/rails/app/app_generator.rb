@@ -117,7 +117,6 @@ module Rails
     end
 
     def config_when_updating
-      cookie_serializer_config_exist  = File.exist?("config/initializers/cookies_serializer.rb")
       action_cable_config_exist       = File.exist?("config/cable.yml")
       active_storage_config_exist     = File.exist?("config/storage.yml")
       rack_cors_config_exist          = File.exist?("config/initializers/cors.rb")
@@ -130,10 +129,6 @@ module Rails
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
       config
-
-      unless cookie_serializer_config_exist
-        gsub_file "config/initializers/cookies_serializer.rb", /json(?!,)/, "marshal"
-      end
 
       if !options[:skip_action_cable] && !action_cable_config_exist
         template "config/cable.yml"
@@ -160,10 +155,6 @@ module Rails
       end
 
       if options[:api]
-        unless cookie_serializer_config_exist
-          remove_file "config/initializers/cookies_serializer.rb"
-        end
-
         unless csp_config_exist
           remove_file "config/initializers/content_security_policy.rb"
         end
@@ -267,20 +258,12 @@ module Rails
       add_shared_options_for "application"
 
       # Add rails command options
-      class_option :version, type: :boolean, aliases: "-v", group: :rails,
-                             desc: "Show Rails version number and quit"
-
-      class_option :api, type: :boolean,
-                         desc: "Preconfigure smaller stack for API only apps"
-
-      class_option :minimal, type: :boolean,
-                             desc: "Preconfigure a minimal rails app"
-
-      class_option :skip_bundle, type: :boolean, aliases: "-B", default: false,
-                                 desc: "Don't run bundle install"
-
-      class_option :webpack, type: :boolean, aliases: "--webpacker", default: false,
-                             desc: "Preconfigure Webpack"
+      class_option :version, type: :boolean, aliases: "-v", group: :rails, desc: "Show Rails version number and quit"
+      class_option :api, type: :boolean, desc: "Preconfigure smaller stack for API only apps"
+      class_option :minimal, type: :boolean, desc: "Preconfigure a minimal rails app"
+      class_option :javascript, type: :string, aliases: "-j", default: "importmap", desc: "Choose JavaScript approach [options: importmap (default), webpack, esbuild, rollup]"
+      class_option :css, type: :string, desc: "Choose CSS processor [options: tailwind, bootstrap, bulma, postcss, sass... check https://github.com/rails/cssbundling-rails]"
+      class_option :skip_bundle, type: :boolean, aliases: "-B", default: false, desc: "Don't run bundle install"
 
       def initialize(*args)
         super
@@ -308,11 +291,7 @@ module Rails
             skip_javascript: true,
             skip_jbuilder: true,
             skip_system_test: true,
-            skip_hotwire: true).tap do |option|
-              if option[:webpack]
-                option[:skip_javascript] = false
-              end
-            end.freeze
+            skip_hotwire: true).freeze
         end
 
         @after_bundle_callbacks = []
@@ -499,7 +478,6 @@ module Rails
 
       def delete_non_api_initializers_if_api_option
         if options[:api]
-          remove_file "config/initializers/cookies_serializer.rb"
           remove_file "config/initializers/content_security_policy.rb"
           remove_file "config/initializers/permissions_policy.rb"
         end
@@ -523,9 +501,9 @@ module Rails
 
       public_task :apply_rails_template, :run_bundle
       public_task :generate_bundler_binstub
-      public_task :run_webpack
-      public_task :run_importmap
+      public_task :run_javascript
       public_task :run_hotwire
+      public_task :run_css
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each(&:call)

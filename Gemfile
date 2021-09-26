@@ -15,8 +15,10 @@ gem "selenium-webdriver", ">= 4.0.0.alpha7"
 gem "rack-cache", "~> 1.2"
 gem "stimulus-rails"
 gem "turbo-rails"
-gem "webpacker", "~> 6.0.0.rc.5", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"
+gem "jsbundling-rails"
+gem "cssbundling-rails"
 gem "importmap-rails"
+gem "tailwindcss-rails"
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
@@ -117,7 +119,7 @@ group :test do
 
   platforms :mri do
     gem "stackprof"
-    gem "byebug"
+    gem "debug", ">= 1.1.0", require: false
   end
 
   gem "benchmark-ips"

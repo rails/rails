@@ -46,15 +46,10 @@ DEFAULT_APP_FILES = %w(
   config/environments/production.rb
   config/environments/test.rb
   config/initializers
-  config/initializers/application_controller_renderer.rb
   config/initializers/assets.rb
-  config/initializers/backtrace_silencers.rb
-  config/initializers/cookies_serializer.rb
   config/initializers/content_security_policy.rb
   config/initializers/filter_parameter_logging.rb
   config/initializers/inflections.rb
-  config/initializers/mime_types.rb
-  config/initializers/wrap_parameters.rb
   config/locales
   config/locales/en.yml
   config/puma.rb
@@ -93,14 +88,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   # brings setup, teardown, and some tests
   include SharedGeneratorTests
-
-  setup do
-    ENV["SKIP_REQUIRE_WEBPACKER"] = "true"
-  end
-
-  teardown do
-    ENV["SKIP_REQUIRE_WEBPACKER"] = nil
-  end
 
   def default_files
     ::DEFAULT_APP_FILES
@@ -185,12 +172,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_new_application_use_json_serializer
-    run_generator
-
-    assert_file("config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :json/)
-  end
-
   def test_new_application_not_include_api_initializers
     run_generator
 
@@ -206,42 +187,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, "myfirstapp")
     run_generator [app_root]
     assert_file "#{app_root}/config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/
-  end
-
-  def test_csp_initializer_include_connect_src_example
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root, "--webpack"]
-
-    assert_file "#{app_root}/config/initializers/content_security_policy.rb" do |content|
-      assert_match(/#   policy\.connect_src/, content)
-    end
-  end
-
-  def test_app_update_keep_the_cookie_serializer_if_it_is_already_configured
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root]
-
-    stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
-      generator.send(:app_const)
-      quietly { generator.update_config_files }
-      assert_file("#{app_root}/config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :json/)
-    end
-  end
-
-  def test_app_update_set_the_cookie_serializer_to_marshal_if_it_is_not_already_configured
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root]
-
-    FileUtils.rm("#{app_root}/config/initializers/cookies_serializer.rb")
-
-    stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
-      generator.send(:app_const)
-      quietly { generator.update_config_files }
-      assert_file("#{app_root}/config/initializers/cookies_serializer.rb",
-                  /Valid options are :json, :marshal, and :hybrid\.\nRails\.application\.config\.action_dispatch\.cookies_serializer = :marshal/)
-    end
   end
 
   def test_app_update_create_new_framework_defaults
@@ -624,15 +569,34 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_inclusion_of_a_debugger
     run_generator
     if defined?(JRUBY_VERSION) || RUBY_ENGINE == "rbx"
-      assert_no_gem "byebug"
+      assert_no_gem "debug"
     else
-      assert_gem "byebug"
+      assert_gem "debug"
     end
   end
 
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
     assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
+  end
+
+  def test_template_from_url
+    url = "https://raw.githubusercontent.com/rails/rails/f95c0b7e96/railties/test/fixtures/lib/template.rb"
+    FileUtils.cd(Rails.root)
+    assert_match(/It works from file!/, run_generator([destination_root, "-m", url]))
+  end
+
+  def test_template_from_abs_path
+    absolute_path = File.expand_path(Rails.root, "fixtures")
+    FileUtils.cd(Rails.root)
+    assert_match(/It works from file!/, run_generator([destination_root, "-m", "#{absolute_path}/lib/template.rb"]))
+  end
+
+  def test_template_from_env_var_path
+    ENV["FIXTURES_HOME"] = File.expand_path(Rails.root, "fixtures")
+    FileUtils.cd(Rails.root)
+    assert_match(/It works from file!/, run_generator([destination_root, "-m", "$FIXTURES_HOME/lib/template.rb"]))
+    ENV.delete("FIXTURES_HOME")
   end
 
   def test_usage_read_from_file
@@ -686,33 +650,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_web_console
     run_generator
     assert_gem "web-console"
-  end
-
-  def test_web_console_with_dev_option
-    run_generator [destination_root, "--dev", "--skip-bundle"]
-
-    assert_file "Gemfile" do |content|
-      assert_match(/gem "web-console",\s+github: "rails\/web-console"/, content)
-      assert_no_match(/\Agem "web-console", ">= 4\.1\.0"\z/, content)
-    end
-  end
-
-  def test_web_console_with_edge_option
-    run_generator [destination_root, "--edge"]
-
-    assert_file "Gemfile" do |content|
-      assert_match(/gem "web-console",\s+github: "rails\/web-console"/, content)
-      assert_no_match(/\Agem "web-console", ">= 4\.1\.0"\z/, content)
-    end
-  end
-
-  def test_web_console_with_main_option
-    run_generator [destination_root, "--main"]
-
-    assert_file "Gemfile" do |content|
-      assert_match(/gem "web-console",\s+github: "rails\/web-console"/, content)
-      assert_no_match(/\Agem "web-console", ">= 4\.1\.0"\z/, content)
-    end
   end
 
   def test_generation_runs_bundle_install
@@ -801,8 +738,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator([destination_root], skip_javascript: true)
 
     command_check = -> command, *_ do
-      if command == "webpacker:install"
-        flunk "`webpacker:install` expected to not be called."
+      if command == "importmap:install"
+        flunk "`importmap:install` expected to not be called."
       end
     end
 
@@ -810,7 +747,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       run_generator_instance
     end
 
-    assert_no_gem "webpacker"
+    assert_no_gem "importmap-rails"
 
     assert_file "config/initializers/content_security_policy.rb" do |content|
       assert_no_match(/policy\.connect_src/, content)
@@ -822,12 +759,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_webpack_option
-    generator([destination_root], webpack: true)
+    generator([destination_root], javascript: "webpack")
 
     webpacker_called = 0
     command_check = -> command, *_ do
       case command
-      when "webpacker:install"
+      when "javascript:install:webpack"
         webpacker_called += 1
       end
     end
@@ -836,8 +773,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
       run_generator_instance
     end
 
-    assert_equal 1, webpacker_called, "`webpacker:install` expected to be called once, but was called #{webpacker_called} times."
-    assert_gem "webpacker"
+    assert_equal 1, webpacker_called, "`javascript:install:webpack` expected to be called once, but was called #{webpacker_called} times."
+    assert_gem "jsbundling-rails"
   end
 
   def test_hotwire
@@ -849,7 +786,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "app/javascript/application.js" do |content|
       assert_match(/turbo/, content)
-      assert_match(/stimulus/, content)
+      assert_match(/controllers/, content)
     end
   end
 
@@ -861,6 +798,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/data-turbo-track/, content)
     end
     assert_no_file "app/javascript/application.js"
+  end
+
+  def test_css_option_with_asset_pipeline_tailwind
+    run_generator [destination_root, "--dev", "--css", "tailwind"]
+    assert_gem "tailwindcss-rails"
+    assert_file "app/views/layouts/application.html.erb" do |content|
+      assert_match(/tailwind/, content)
+    end
+  end
+
+  def test_css_option_with_cssbundling_gem
+    run_generator [destination_root, "--dev", "--css", "postcss"]
+    assert_gem "cssbundling-rails"
+    assert_file "app/assets/stylesheets/application.postcss.css"
   end
 
   def test_bootsnap
@@ -1062,11 +1013,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   private
-    def stub_rails_application(root)
+    def stub_rails_application(root, &block)
       Rails.application.config.root = root
-      Rails.application.class.stub(:name, "Myapp") do
-        yield
-      end
+      Rails.application.class.stub(:name, "Myapp", &block)
     end
 
     def action(*args, &block)

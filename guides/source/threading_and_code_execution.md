@@ -289,7 +289,7 @@ Another example, using Concurrent Ruby:
 ```ruby
 Rails.application.executor.wrap do
   futures = 3.times.collect do |i|
-    Concurrent::Future.execute do
+    Concurrent::Promises.future do
       Rails.application.executor.wrap do
         # do work here
       end

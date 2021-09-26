@@ -36,6 +36,10 @@ class SetDriverToSeleniumHeadlessFirefoxTest < DrivenBySeleniumWithHeadlessFiref
 end
 
 class SetHostTest < DrivenByRackTest
+  teardown do
+    Capybara.app_host = nil
+  end
+
   test "overrides host" do
     assert_deprecated do
       host! "http://example.com"

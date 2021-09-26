@@ -1,3 +1,27 @@
+*   Invalid default content types are deprecated
+
+    Blobs created with content_type `image/jpg`, `image/pjpeg`, `image/bmp`, `text/javascript` will now produce
+    a deprecation warning, since these are not valid content types.
+
+    These content types will be removed from the defaults in Rails 7.1.
+
+    You can set `config.active_storage.silence_invalid_content_types_warning = true` to dismiss the warning.
+
+    *Alex Ghiculescu*
+
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
+
+*   No changes.
+
+
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
+*   Emit Active Support instrumentation events from Active Storage analyzers.
+
+    Fixes #42930
+
+    *Shouichi Kamiya*
+
 *   Add support for byte range requests
 
     *Tom Prats*

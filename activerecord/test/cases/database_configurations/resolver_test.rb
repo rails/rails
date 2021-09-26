@@ -62,6 +62,18 @@ module ActiveRecord
           }, pool_config.configuration_hash)
         end
 
+        def test_url_sub_key_merges_correctly_when_query_param
+          hash = { "url" => "abstract:///?user=user&password=passwd&dbname=app" }
+          pool_config = resolve_db_config :production, "production" => hash
+
+          assert_equal({
+            adapter:  "abstract",
+            user:     "user",
+            password: "passwd",
+            dbname:   "app"
+          }, pool_config.configuration_hash)
+        end
+
         def test_url_host_no_db
           pool_config = resolve_db_config "abstract://foo?encoding=utf8"
           assert_equal({

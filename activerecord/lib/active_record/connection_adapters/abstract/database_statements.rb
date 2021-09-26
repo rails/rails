@@ -306,14 +306,14 @@ module ActiveRecord
       #
       # The mysql2 and postgresql adapters support setting the transaction
       # isolation level.
-      def transaction(requires_new: nil, isolation: nil, joinable: true)
+      def transaction(requires_new: nil, isolation: nil, joinable: true, &block)
         if !requires_new && current_transaction.joinable?
           if isolation
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
           end
           yield
         else
-          transaction_manager.within_new_transaction(isolation: isolation, joinable: joinable) { yield }
+          transaction_manager.within_new_transaction(isolation: isolation, joinable: joinable, &block)
         end
       rescue ActiveRecord::Rollback
         # rollbacks are silently swallowed
@@ -441,6 +441,19 @@ module ActiveRecord
         end
       end
 
+      # This is a safe default, even if not high precision on all databases
+      HIGH_PRECISION_CURRENT_TIMESTAMP = Arel.sql("CURRENT_TIMESTAMP").freeze # :nodoc:
+      private_constant :HIGH_PRECISION_CURRENT_TIMESTAMP
+
+      # Returns an Arel SQL literal for the CURRENT_TIMESTAMP for usage with
+      # arbitrary precision date/time columns.
+      #
+      # Adapters supporting datetime with precision should override this to
+      # provide as much precision as is available.
+      def high_precision_current_timestamp
+        HIGH_PRECISION_CURRENT_TIMESTAMP
+      end
+
       private
         def execute_batch(statements, name = nil)
           statements.each do |statement|
@@ -456,7 +469,7 @@ module ActiveRecord
         end
 
         def build_fixture_sql(fixtures, table_name)
-          columns = schema_cache.columns_hash(table_name)
+          columns = schema_cache.columns_hash(table_name).reject { |_, column| supports_virtual_columns? && column.virtual? }
 
           values_list = fixtures.map do |fixture|
             fixture = fixture.stringify_keys

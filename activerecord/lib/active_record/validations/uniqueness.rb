@@ -161,7 +161,7 @@ module ActiveRecord
       #   <tt>WHERE</tt> SQL fragment to limit the uniqueness constraint lookup
       #   (e.g. <tt>conditions: -> { where(status: 'active') }</tt>).
       # * <tt>:case_sensitive</tt> - Looks for an exact match. Ignored by
-      #   non-text columns (+true+ by default).
+      #   non-text columns. The default behavior respects the default database collation.
       # * <tt>:allow_nil</tt> - If set to +true+, skips this validation if the
       #   attribute is +nil+ (default is +false+).
       # * <tt>:allow_blank</tt> - If set to +true+, skips this validation if the

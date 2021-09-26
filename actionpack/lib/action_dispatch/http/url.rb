@@ -71,7 +71,8 @@ module ActionDispatch
           path = options[:script_name].to_s.chomp("/")
           path << options[:path] if options.key?(:path)
 
-          add_trailing_slash(path) if options[:trailing_slash]
+          path = "/" if options[:trailing_slash] && path.blank?
+
           add_params(path, options[:params]) if options.key?(:params)
           add_anchor(path, options[:anchor]) if options.key?(:anchor)
 
@@ -99,14 +100,6 @@ module ActionDispatch
           def extract_subdomains_from(host, tld_length)
             parts = host.split(".")
             parts[0..-(tld_length + 2)]
-          end
-
-          def add_trailing_slash(path)
-            if path.include?("?")
-              path.sub!(/\?/, '/\&')
-            elsif !path.include?(".")
-              path.sub!(/[^\/]\z|\A\z/, '\&/')
-            end
           end
 
           def build_host_url(host, port, protocol, options, path)
@@ -270,9 +263,10 @@ module ActionDispatch
       #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.standard_port # => 80
       def standard_port
-        case protocol
-        when "https://" then 443
-        else 80
+        if "https://" == protocol
+          443
+        else
+          80
         end
       end
 

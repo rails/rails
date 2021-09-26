@@ -1,3 +1,181 @@
+*   Accept optional transaction args to `ActiveRecord::Locking::Pessimistic#with_lock`
+
+    `#with_lock` now accepts transaction options like `requires_new:`,
+    `isolation:`, and `joinable:`
+
+*   Adds support for deferrable foreign key constraints in PostgreSQL.
+
+    By default, foreign key constraints in PostgreSQL are checked after each statement. This works for most use cases,
+    but becomes a major limitation when creating related records before the parent record is inserted into the database.
+    One example of this is looking up / creating a person via one or more unique alias.
+
+    ```ruby
+    Person.transaction do
+      alias = Alias
+        .create_with(user_id: SecureRandom.uuid)
+        .create_or_find_by(name: "DHH")
+
+      person = Person
+        .create_with(name: "David Heinemeier Hansson")
+        .create_or_find_by(id: alias.user_id)
+    end
+    ```
+
+    Using the default behavior, the transaction would fail when executing the first `INSERT` statement.
+
+    By passing the `:deferrable` option to the `add_foreign_key` statement in migrations, it's possible to defer this
+    check.
+
+    ```ruby
+    add_foreign_key :aliases, :person, deferrable: true
+    ```
+
+    Passing `deferrable: true` doesn't change the default behavior, but allows manually deferring the check using
+    `SET CONSTRAINTS ALL DEFERRED` within a transaction. This will cause the foreign keys to be checked after the
+    transaction.
+
+    It's also possible to adjust the default behavior from an immediate check (after the statement), to a deferred check
+    (after the transaction):
+
+    ```ruby
+    add_foreign_key :aliases, :person, deferrable: :deferred
+    ```
+
+    *Benedikt Deicke*
+
+*   Allow configuring Postgres password through the socket URL.
+
+    For example:
+    ```ruby
+    ActiveRecord::DatabaseConfigurations::UrlConfig.new(
+      :production, :production, 'postgres:///?user=user&password=secret&dbname=app', {}
+    ).configuration_hash
+    ```
+
+    will now return,
+
+    ```ruby
+    { :user=>"user", :password=>"secret", :dbname=>"app", :adapter=>"postgresql" }
+    ```
+
+    *Abeid Ahmed*
+
+*   PostgreSQL: support custom enum types
+
+    In migrations, use `create_enum` to add a new enum type, and `t.enum` to add a column.
+
+    ```ruby
+    def up
+      create_enum :mood, ["happy", "sad"]
+
+      change_table :cats do |t|
+        t.enum :current_mood, enum_type: "mood", default: "happy", null: false
+      end
+    end
+    ```
+
+    Enums will be presented correctly in `schema.rb`. Note that this is only supported by
+    the PostgreSQL adapter.
+
+    *Alex Ghiculescu*
+
+* Avoid COMMENT statements in PostgreSQL structure dumps
+
+    COMMENT statements are now omitted from the output of `db:structure:dump` when using PostgreSQL >= 11.
+    This allows loading the dump without a pgsql superuser account.
+
+    Fixes #36816, #43107.
+
+    *Janosch Müller*
+
+*   Add support for generated columns in PostgreSQL adapter
+
+    Generated columns are supported since version 12.0 of PostgreSQL. This adds
+    support of those to the PostgreSQL adapter.
+
+    ```ruby
+    create_table :users do |t|
+      t.string :name
+      t.virtual :name_upcased, type: :string, as: 'upper(name)', stored: true
+    end
+    ```
+
+    *Michał Begejowicz*
+
+
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
+
+*   No changes.
+
+
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
+*   Remove warning when overwriting existing scopes
+
+    Removes the following unnecessary warning message that appeared when overwriting existing scopes
+
+    ```
+    Creating scope :my_scope_name. Overwriting existing method "MyClass.my_scope_name" when overwriting existing scopes
+    ```
+
+     *Weston Ganger*
+
+*   Use full precision for `updated_at` in `insert_all`/`upsert_all`
+
+    `CURRENT_TIMESTAMP` provides differing precision depending on the database,
+    and not all databases support explicitly specifying additional precision.
+
+    Instead, we delegate to the new `connection.high_precision_current_timestamp`
+    for the SQL to produce a high precision timestamp on the current database.
+
+    Fixes #42992
+
+    *Sam Bostock*
+
+* Add ssl support for postgresql database tasks
+
+    Add `PGSSLMODE`, `PGSSLCERT`, `PGSSLKEY` and `PGSSLROOTCERT` to pg_env from database config
+    when running postgresql database tasks.
+
+    ```yaml
+    # config/database.yml
+
+    production:
+      sslmode: verify-full
+      sslcert: client.crt
+      sslkey: client.key
+      sslrootcert: ca.crt
+    ```
+
+    Environment variables
+
+    ```
+    PGSSLMODE=verify-full
+    PGSSLCERT=client.crt
+    PGSSLKEY=client.key
+    PGSSLROOTCERT=ca.crt
+    ```
+
+    Fixes #42994
+
+    *Michael Bayucot*
+
+*   Avoid scoping update callbacks in `ActiveRecord::Relation#update!`.
+
+    Making it consistent with how scoping is applied only to the query in `ActiveRecord::Relation#update`
+    and not also to the callbacks from the update itself.
+
+    *Dylan Thacker-Smith*
+
+*   Fix 2 cases that inferred polymorphic class from the association's `foreign_type`
+    using `String#constantize` instead of the model's `polymorphic_class_for`.
+
+    When updating a polymorphic association, the old `foreign_type` was not inferred correctly when:
+    1. `touch`ing the previously associated record
+    2. updating the previously associated record's `counter_cache`
+
+    *Jimmy Bourassa*
+
 *   Add config option for ignoring tables when dumping the schema cache.
 
     Applications can now be configured to ignore certain tables when dumping the schema cache.
@@ -18,7 +196,7 @@
 
 *   Make schema cache methods return consistent results.
 
-    Previously the schema cache methods `primary_keys`, `columns, `columns_hash`, and `indexes`
+    Previously the schema cache methods `primary_keys`, `columns`, `columns_hash`, and `indexes`
     would behave differently than one another when a table didn't exist and differently across
     database adapters. This change unifies the behavior so each method behaves the same regardless
     of adapter.
