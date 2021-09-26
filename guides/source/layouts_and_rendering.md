@@ -862,7 +862,7 @@ You can specify a full path relative to the document root, or a URL, if you pref
 Rails will then output a `script` tag such as this:
 
 ```html
-<script src='/assets/main.js'></script>
+<script src='/assets/javascripts/main.js'></script>
 ```
 
 The request to this asset is then served by the Sprockets gem.
