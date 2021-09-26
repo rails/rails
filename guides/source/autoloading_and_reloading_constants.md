@@ -314,18 +314,44 @@ Single Table Inheritance is a feature that doesn't play well with lazy loading. 
 
 In a sense, applications need to eager load STI hierarchies regardless of the loading mode.
 
-Of course, if the application eager loads on boot, that is already accomplished. When it does not, it is in practice enough to instantiate the existing types in the database, which in development or test modes is usually fine:
+Of course, if the application eager loads on boot, that is already accomplished. When it does not, there are two options.
+
+### Enumerate the leaves of the hierarchy
+
+Since the leaves of the hierarchy connect all the hiearchy nodes upwards, following super classes, as soon as the root of the hierarchy is loaded, you can force loading them all:
+
+```ruby
+unless Rails.application.config.eager_load
+  Rails.autoloaders.main.on_load("RootSTIModel") do
+    Leaf1
+    Leaf2
+    Leaf3
+  end
+end
+```
+
+This approach is easy and loads the entire STI hierarchy, but you need to maintain this list by hand. This may be OK.
+
+### Load what's in the database
+
+As far as Active Record is concerned, in practice it may be enough to load what's in the database. Normally, in the environments where eager load is disabled, you can afford this query:
 
 ```ruby
 # config/initializers/preload_stis.rb
 unless Rails.application.config.eager_load
   Rails.autoloaders.main.on_load("RootSTIModel") do |klass|
     klass.connection.select_values(<<~SQL).each(&:constantize)
-      SELECT DISTINCT("#{klass.inheritance_column}") FROM "#{klass.table_name}"
+      SELECT DISTINCT("#{klass.inheritance_column}")
+      FROM "#{klass.table_name}"
+      WHERE "#{klass.inheritance_column}" IS NOT NULL
     SQL
   end
 end
 ```
+
+This approach does not need manual maintenance. However, if you need an exhaustive enumeration to fill a dropdown or something, and the database does not have rows for all types, you'll miss some.
+
+Both approaches have compromises.
 
 Customizing Inflections
 -----------------------
