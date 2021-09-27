@@ -19,3 +19,10 @@ changes, guidelines for those changes are [available
 here](https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation)
 
 Thanks for contributing to Rails! -->
+
+<!--
+Note: Please avoid making *Draft* pull requests, as they still send
+notifications to everyone watching the Rails repo.
+Create a pull request when it is ready for review and feedback
+from the Rails team :)
+-->
