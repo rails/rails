@@ -37,7 +37,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
   self.table_name = "active_storage_blobs"
 
   MINIMUM_TOKEN_LENGTH = 28
-  KEY_PATH_SEPARATOR = "/"
 
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
   store :metadata, accessors: [ :analyzed, :identified, :composed ], coder: ActiveRecord::Coders::JSON
@@ -68,11 +67,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
         errors.add(:service_name, :invalid)
       end
     end
-  end
-
-  def move_to!(target_key)
-    service.move(key, target_key)
-    update_columns(key: target_key)
   end
 
   class << self
@@ -169,20 +163,12 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
     # Interpolates the custom storage key if needed and appends to it a unique_secure_token
     def generate_unique_interpolated_secure_key(key:, record:, blob:, length: MINIMUM_TOKEN_LENGTH)
-      [
-        interpolate(key: key, record: record, blob: blob),
-        generate_unique_secure_token(length: length)
-      ].compact.join(KEY_PATH_SEPARATOR)
-    end
+      interpolated_key = key.gsub(/:(\w+)/) do |key_part|
+        key_part = key_part.delete_prefix(":")
+        ActiveStorage.key_interpolation_procs[key_part.to_sym].call(record, blob)
+      end
 
-    # Interpolates configured variables into keys,
-    # with procs coming from key_interpolation_procs configuration hash
-    def interpolate(key:, record:, blob:)
-      key.split(KEY_PATH_SEPARATOR).map do |key_part|
-        key_part.gsub(/:(\w*)/) do
-          ActiveStorage.key_interpolation_procs[$1.to_sym].call(record, blob)
-        end
-      end.join(KEY_PATH_SEPARATOR)
+      interpolated_key.concat("/", generate_unique_secure_token(length: length))
     end
   end
 
@@ -336,6 +322,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   def mirror_later # :nodoc:
     ActiveStorage::MirrorJob.perform_later(key, checksum: checksum) if service.respond_to?(:mirror)
+  end
+
+  def move_to!(target_key)
+    service.move(key, target_key)
+    update_columns(key: target_key)
   end
 
   # Deletes the files on the service associated with the blob. This should only be done if the blob is going to be

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveStorage
-  class Attached::Changes::CreateMany #:nodoc:
+  class Attached::Changes::CreateMany # :nodoc:
     attr_reader :name, :record, :attachables, :key
 
     def initialize(name, record, attachables, key)
@@ -27,7 +27,7 @@ module ActiveStorage
       reset_associated_blobs
 
       unless key.blank?
-        blobs.each |blob| do
+        blobs.each do |blob|
           blob.move_to!(
             ActiveStorage::Blob.generate_unique_interpolated_secure_key(key: key, record: record, blob: blob)
           )

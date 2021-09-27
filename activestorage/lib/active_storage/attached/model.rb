@@ -7,8 +7,6 @@ module ActiveStorage
   module Attached::Model
     extend ActiveSupport::Concern
 
-    KEY_PATH_SEPARATOR = "/"
-
     class_methods do
       # Specifies the relation between a single attachment and the model.
       #

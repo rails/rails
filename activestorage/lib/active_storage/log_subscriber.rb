@@ -28,6 +28,10 @@ module ActiveStorage
       debug event, color("Checked if file exists at key: #{key_in(event)} (#{event.payload[:exist] ? "yes" : "no"})", BLUE)
     end
 
+    def service_move(event)
+      debug event, color("File moved from: #{event.payload[:source_key]} to: #{event.payload[:target_key]}", BLUE)
+    end
+
     def service_url(event)
       debug event, color("Generated URL for file at key: #{key_in(event)} (#{event.payload[:url]})", BLUE)
     end
