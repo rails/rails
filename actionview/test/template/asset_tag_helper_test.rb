@@ -625,7 +625,7 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_preload_links_added_to_preload_header
     with_preload_links_header do
       preload_link_tag("sprite.svg")
-      expected = "</sprite.svg>; rel=\"preload\" as=\"image\" type=\"image/svg+xml\""
+      expected = "</sprite.svg>; rel=\"preload\"; as=\"image\"; type=\"image/svg+xml\""
       assert_equal expected, @response.headers["Link"]
     end
   end
@@ -633,7 +633,7 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_preload_links_added_to_preload_header_media
     with_preload_links_header do
       preload_link_tag("sprite.svg", media: "(min-width: 1024px)")
-      expected = "</sprite.svg>; rel=\"preload\" as=\"image\" type=\"image/svg+xml\" media=\"(min-width: 1024px)\""
+      expected = "</sprite.svg>; rel=\"preload\"; as=\"image\"; media=\"(min-width: 1024px)\"; type=\"image/svg+xml\""
       assert_equal expected, @response.headers["Link"]
     end
   end

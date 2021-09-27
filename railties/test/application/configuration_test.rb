@@ -2616,7 +2616,7 @@ module ApplicationTests
 
       get "/"
       assert_match %r[<script src="/application.js"></script>], last_response.body
-      assert_equal "</application.js>; rel=preload; as=script; nopush", last_response.headers["Link"]
+      assert_equal "</application.js>; rel=\"preload\"; as=\"script\"; nopush", last_response.headers["Link"]
     end
 
     test "javascript_include_tag doesn't set the Link header when disabled" do

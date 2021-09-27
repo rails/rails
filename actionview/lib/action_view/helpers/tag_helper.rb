@@ -80,10 +80,9 @@ module ActionView
           "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".html_safe
         end
 
-        def tag_options(options, escape = true)
+        def tag_options(options, escape = true, sep = " ")
           return if options.blank?
           output = +""
-          sep    = " "
           options.each_pair do |key, value|
             type = TAG_TYPES[key]
             if type == :data && value.is_a?(Hash)

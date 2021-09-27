@@ -87,32 +87,15 @@ module ActionView
       #   javascript_include_tag "http://www.example.com/xmlhr.js", nonce: true
       #   # => <script src="http://www.example.com/xmlhr.js" nonce="..."></script>
       def javascript_include_tag(*sources)
-        options = sources.extract_options!.stringify_keys
-        path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
-        options["crossorigin"] = "anonymous" if options["crossorigin"] == true
-        options["nonce"] = content_security_policy_nonce if options["nonce"] == true
-        nopush = options["nopush"].nil? ? true : options.delete("nopush")
-        preload_links = []
-
-        sources_tags = sources.uniq.map { |source|
-          href = path_to_javascript(source, path_options)
-          if preload_links_header && !options["defer"] && href.present? && !href.start_with?("data:")
-            rel = options["type"] == "module" ? "modulepreload" : "preload"
-            preload_options = { rel: rel, as: "script"}
-            params = tag.attributes(preload_options.merge!(options.except("type"))).split(" ").join("; ")
-            preload_links << "<#{href}>; #{params}#{"; nopush" if nopush}"
-          end
-
-          tag_options = { "src" => href }.merge!(options)
-
-          content_tag("script", "", tag_options)
-        }.join("\n").html_safe
-
-        if preload_links_header
-          send_preload_links_header(preload_links)
+        multiple_assets_tag_builder(
+          "javascript",
+          sources,
+          tag_name: "script",
+          preload_as: "script",
+          url_attr: "src"
+        ) do |tag_options|
+          tag_options["nonce"] = content_security_policy_nonce if tag_options["nonce"] == true
         end
-
-        sources_tags
       end
 
       # Returns a stylesheet link tag for the sources specified as arguments.
@@ -161,36 +144,12 @@ module ActionView
       #   # => <link href="/assets/random.styles" rel="stylesheet" />
       #   #    <link href="/css/stylish.css" rel="stylesheet" />
       def stylesheet_link_tag(*sources)
-        options = sources.extract_options!.stringify_keys
-        path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
-        preload_links = []
-        options["crossorigin"] = "anonymous" if options["crossorigin"] == true
-        nopush = options["nopush"].nil? ? true : options.delete("nopush")
-
-        sources_tags = sources.uniq.map { |source|
-          href = path_to_stylesheet(source, path_options)
-          if preload_links_header && href.present? && !href.start_with?("data:")
-            preload_options = { rel: "preload", as: "style"}
-            params = tag.attributes(preload_options.merge!(options)).split(" ").join("; ")
-            preload_links << "<#{href}>; #{params}#{"; nopush" if nopush}"
-          end
-          tag_options = {
-            "rel" => "stylesheet",
-            "href" => href
-          }.merge!(options)
-
+        multiple_assets_tag_builder("stylesheet", sources, tag_name: :link, preload_as: :style) do |tag_options|
+          tag_options["rel"] = "stylesheet"
           if apply_stylesheet_media_default && tag_options["media"].blank?
             tag_options["media"] = "screen"
           end
-
-          tag(:link, tag_options)
-        }.join("\n").html_safe
-
-        if preload_links_header
-          send_preload_links_header(preload_links)
         end
-
-        sources_tags
       end
 
       # Returns a link tag that browsers and feed readers can use to auto-detect
@@ -305,25 +264,20 @@ module ActionView
       #   # => <link rel="preload" href="/media/audio.ogg" as="audio" type="audio/ogg" />
       #
       def preload_link_tag(source, options = {})
-        href = path_to_asset(source, skip_pipeline: options.delete(:skip_pipeline))
+        options = options.stringify_keys
+        options["rel"] = "preload"
+        options["href"] = path_to_asset(source, skip_pipeline: options.delete("skip_pipeline"))
         extname = File.extname(source).downcase.delete(".")
-        mime_type = options.delete(:type) || Template::Types[extname]&.to_s
-        as_type = options.delete(:as) || resolve_link_as(extname, mime_type)
-        crossorigin = options.delete(:crossorigin)
-        crossorigin = "anonymous" if crossorigin == true || (crossorigin.blank? && as_type == "font")
+        options["type"] ||= Template::Types[extname]&.to_s
+        options["as"] ||= resolve_link_as(extname, options["type"])
+        options["crossorigin"] ||= "anonymous" if options["crossorigin"] == true || (options["crossorigin"].blank? && options["as"] == "font")
+        options["nopush"] = false
 
-        attributes = {
-          rel: "preload",
-          href: href,
-          as: as_type,
-          type: mime_type,
-          crossorigin: crossorigin
-        }.merge!(options.symbolize_keys)
+        send_preload_links_header([
+          preload_header_for(options["href"], options["as"], options.except("href", "as"))
+        ])
 
-        preload_header = "<#{href}>; #{tag.attributes(attributes.except(:href, :nopush))}"
-        send_preload_links_header(["#{preload_header}#{"; nopush" if attributes.delete(:nopush)}"])
-
-        tag("link", **attributes)
+        tag("link", options.except("nopush"))
       end
 
       # Returns an HTML image tag for the +source+. The +source+ can be a full
@@ -483,6 +437,45 @@ module ActionView
             options[:src] = send("path_to_#{type}", sources.first, skip_pipeline: skip_pipeline)
             content_tag(type, nil, options)
           end
+        end
+
+        def multiple_assets_tag_builder(type, sources, tag_name:, preload_as: nil, url_attr: "href")
+          options = sources.extract_options!.stringify_keys
+          path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
+          options["crossorigin"] = "anonymous" if options["crossorigin"] == true
+          preload_links = []
+
+          yield options if block_given?
+
+          sources_tags = sources.uniq.map { |source|
+            url = send("path_to_#{type}", source, path_options)
+            if preload_as && preloadable_asset?(url, options["defer"])
+              preload_links << preload_header_for(url, preload_as, options)
+            end
+
+            tag(tag_name, { url_attr => url }.merge(options))
+          }.join("\n").html_safe
+
+          send_preload_links_header(preload_links) if preload_links_header
+
+          sources_tags
+        end
+
+        def preloadable_asset?(url, defer)
+          preload_links_header && url.present? && !url.start_with?("data:") && !defer
+        end
+
+        def preload_header_for(url, preload_as, options)
+          rel = options["type"] == "module" ? "modulepreload" : "preload"
+          # In preload tags, type attributes must be parsable MIME type
+          options.delete("type") if options["type"] == "module"
+          preload_options = { rel: rel, as: preload_as }
+          nopush = options["nopush"].nil? ? true : options.delete("nopush")
+
+          preload_opts = preload_options.merge!(options.except("rel"))
+          params = tag.tag_options(preload_opts, true, "; ").to_s.strip.html_safe
+
+          "<#{url}>#{params}#{"; nopush" if nopush}"
         end
 
         def resolve_image_source(source, skip_pipeline)
