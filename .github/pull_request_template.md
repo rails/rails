@@ -1,3 +1,9 @@
+<!-- Just looking to see the CI status of your changes?
+Please avoid making a Draft pull request. Instead, you can
+watch your build at https://buildkite.com/rails/rails
+Please only create a pull request when it is ready for review and feedback
+from the Rails team :) -->
+
 ### Summary
 
 <!-- Provide a general description of the code changes in your pull
