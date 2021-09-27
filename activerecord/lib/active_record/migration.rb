@@ -728,16 +728,16 @@ module ActiveRecord
     #   end
     #
     # This command can be nested.
-    def revert(*migration_classes)
+    def revert(*migration_classes, &block)
       run(*migration_classes.reverse, revert: true) unless migration_classes.empty?
       if block_given?
         if connection.respond_to? :revert
-          connection.revert { yield }
+          connection.revert(&block)
         else
           recorder = command_recorder
           @connection = recorder
           suppress_messages do
-            connection.revert { yield }
+            connection.revert(&block)
           end
           @connection = recorder.delegate
           recorder.replay(self)
@@ -804,8 +804,8 @@ module ActiveRecord
     #        end
     #      end
     #    end
-    def up_only
-      execute_block { yield } unless reverting?
+    def up_only(&block)
+      execute_block(&block) unless reverting?
     end
 
     # Runs the given migration classes.
@@ -957,6 +957,12 @@ module ActiveRecord
               magic_comments << magic_comment; ""
             end || break
           end
+
+          if !magic_comments.empty? && source.start_with?("\n")
+            magic_comments << "\n"
+            source = source[1..-1]
+          end
+
           source = "#{magic_comments}#{inserted_comment}#{source}"
 
           if duplicate = destination_migrations.detect { |m| m.name == migration.name }
@@ -1100,9 +1106,9 @@ module ActiveRecord
       move(:up, steps)
     end
 
-    def up(target_version = nil) # :nodoc:
+    def up(target_version = nil, &block) # :nodoc:
       selected_migrations = if block_given?
-        migrations.select { |m| yield m }
+        migrations.select(&block)
       else
         migrations
       end
@@ -1110,9 +1116,9 @@ module ActiveRecord
       Migrator.new(:up, selected_migrations, schema_migration, target_version).migrate
     end
 
-    def down(target_version = nil) # :nodoc:
+    def down(target_version = nil, &block) # :nodoc:
       selected_migrations = if block_given?
-        migrations.select { |m| yield m }
+        migrations.select(&block)
       else
         migrations
       end
@@ -1399,9 +1405,9 @@ module ActiveRecord
       end
 
       # Wrap the migration in a transaction only if supported by the adapter.
-      def ddl_transaction(migration)
+      def ddl_transaction(migration, &block)
         if use_transaction?(migration)
-          Base.transaction { yield }
+          Base.transaction(&block)
         else
           yield
         end
@@ -1432,12 +1438,12 @@ module ActiveRecord
         end
       end
 
-      def with_advisory_lock_connection
+      def with_advisory_lock_connection(&block)
         pool = ActiveRecord::ConnectionAdapters::ConnectionHandler.new.establish_connection(
           ActiveRecord::Base.connection_db_config
         )
 
-        pool.with_connection { |connection| yield(connection) }
+        pool.with_connection(&block)
       ensure
         pool&.disconnect!
       end

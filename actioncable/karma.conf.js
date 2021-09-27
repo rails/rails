@@ -27,7 +27,6 @@ if (process.env.CI) {
     sl_ff: sauce("firefox", 63),
     sl_safari: sauce("safari", 12.0, "macOS 10.13"),
     sl_edge: sauce("microsoftedge", 17.17134, "Windows 10"),
-    sl_ie_11: sauce("internet explorer", 11, "Windows 8.1"),
   }
 
   config.browsers = Object.keys(config.customLaunchers)

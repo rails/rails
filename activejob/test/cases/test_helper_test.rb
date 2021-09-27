@@ -3,6 +3,7 @@
 require "helper"
 require "active_support/core_ext/time"
 require "active_support/core_ext/date"
+require "zeitwerk"
 require "jobs/hello_job"
 require "jobs/logging_job"
 require "jobs/nested_job"
@@ -2009,18 +2010,13 @@ class InheritedJobTest < ActiveJob::TestCase
 end
 
 class QueueAdapterJobTest < ActiveJob::TestCase
-  def before_setup
-    @original_autoload_paths = ActiveSupport::Dependencies.autoload_paths
-    ActiveSupport::Dependencies.autoload_paths = %w(test/jobs)
-    super
-  end
-
-  def after_teardown
-    ActiveSupport::Dependencies.autoload_paths = @original_autoload_paths
-    super
-  end
-
   def test_queue_adapter_is_test_adapter
-    assert_instance_of ActiveJob::QueueAdapters::TestAdapter, QueueAdapterJob.queue_adapter
+    Zeitwerk.with_loader do |loader|
+      loader.push_dir("test/jobs")
+      loader.setup
+      assert_instance_of ActiveJob::QueueAdapters::TestAdapter, QueueAdapterJob.queue_adapter
+    ensure
+      loader.unload
+    end
   end
 end

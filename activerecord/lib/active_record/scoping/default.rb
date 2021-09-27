@@ -39,8 +39,8 @@ module ActiveRecord
         #   Post.unscoped {
         #     Post.limit(10) # Fires "SELECT * FROM posts LIMIT 10"
         #   }
-        def unscoped
-          block_given? ? relation.scoping { yield } : relation
+        def unscoped(&block)
+          block_given? ? relation.scoping(&block) : relation
         end
 
         # Are there attributes associated with this scope?

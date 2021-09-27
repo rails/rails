@@ -987,8 +987,8 @@ class LiveHeadRenderTest < ActionController::TestCase
   def setup
     super
 
-    def @controller.new_controller_thread
-      Thread.new { yield }
+    def @controller.new_controller_thread(&block)
+      Thread.new(&block)
     end
 
     def @controller.response_body=(body)

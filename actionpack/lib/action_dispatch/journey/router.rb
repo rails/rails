@@ -77,7 +77,7 @@ module ActionDispatch
 
       def visualizer
         tt     = GTG::Builder.new(ast).transition_table
-        groups = partitioned_routes.first.map(&:ast_root).group_by(&:to_s)
+        groups = partitioned_routes.first.map(&:ast).group_by(&:to_s)
         asts   = groups.values.map(&:first)
         tt.visualizer(asts)
       end

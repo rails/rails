@@ -55,6 +55,10 @@ module ActiveRecord
         configuration_hash[:host]
       end
 
+      def socket # :nodoc:
+        configuration_hash[:socket]
+      end
+
       def database
         configuration_hash[:database]
       end
@@ -108,6 +112,10 @@ module ActiveRecord
       # Determines whether to dump the schema for a database.
       def schema_dump
         configuration_hash.fetch(:schema_dump, true)
+      end
+
+      def database_tasks? # :nodoc:
+        !replica? && !!configuration_hash.fetch(:database_tasks, true)
       end
     end
   end

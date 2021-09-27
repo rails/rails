@@ -49,28 +49,17 @@ Run `bin/rails action_text:install` to add the Yarn package and copy over the ne
 
 NOTE: ActionText uses polymorphic relationships with the `action_text_rich_texts` table so that it can be shared with all models that have rich text attributes. If your models with ActionText content use UUID values for identifiers, all models that use ActionText attributes will need to use UUID values for their unique identifiers. The generated migration for ActionText will also need to be updated to specify `type: :uuid` for the `:record` `references` line.
 
-After the installation is complete, a Rails app using Webpacker should have the following changes:
+After the installation is complete, a Rails app should have the following changes:
 
-1. Both `trix` and `@rails/actiontext` should be required in your JavaScript pack.
+1. Both `trix` and `@rails/actiontext` should be required in your JavaScript entrypoint.
 
     ```js
     // application.js
-    require("trix")
-    require("@rails/actiontext")
+    import "trix"
+    import "@rails/actiontext"
     ```
 
-2. The `trix` stylesheet should be imported into `actiontext.scss`.
-
-    ```scss
-    @import "trix/dist/trix";
-    ```
-
-    Additionally, this `actiontext.scss` file should be imported into your stylesheet pack.
-
-    ```scss
-    // application.scss
-    @import "./actiontext.scss";
-    ```
+2. The `trix` stylesheet will be included together with Action Text styles in your `application.css` file.
 
 ## Creating Rich Text content
 

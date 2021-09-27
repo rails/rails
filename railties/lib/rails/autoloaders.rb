@@ -1,24 +1,25 @@
 # frozen_string_literal: true
 
-require "active_support/dependencies/zeitwerk_integration"
 require "zeitwerk"
 
 module Rails
   module Autoloaders # :nodoc:
+    require_relative "autoloaders/inflector"
+
     class << self
       include Enumerable
 
       def main
         @main ||= Zeitwerk::Loader.new.tap do |loader|
           loader.tag = "rails.main"
-          loader.inflector = ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector
+          loader.inflector = Inflector
         end
       end
 
       def once
         @once ||= Zeitwerk::Loader.new.tap do |loader|
           loader.tag = "rails.once"
-          loader.inflector = ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector
+          loader.inflector = Inflector
         end
       end
 

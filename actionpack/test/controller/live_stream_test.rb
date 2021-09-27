@@ -3,6 +3,8 @@
 require "abstract_unit"
 require "timeout"
 require "concurrent/atomic/count_down_latch"
+require "zeitwerk"
+
 Thread.abort_on_exception = true
 
 module ActionController
@@ -173,18 +175,22 @@ module ActionController
 
       def write_sleep_autoload
         path = File.expand_path("../fixtures", __dir__)
-        ActiveSupport::Dependencies.autoload_paths << path
+        Zeitwerk.with_loader do |loader|
+          loader.push_dir(path)
+          loader.ignore(File.join(path, "公共"))
+          loader.setup
 
-        response.headers["Content-Type"] = "text/event-stream"
-        response.stream.write "before load"
-        sleep 0.01
-        silence_warnings do
-          ::LoadMe
+          response.headers["Content-Type"] = "text/event-stream"
+          response.stream.write "before load"
+          sleep 0.01
+          silence_warnings do
+            ::LoadMe
+          end
+          response.stream.close
+          latch.count_down
+        ensure
+          loader.unload
         end
-        response.stream.close
-        latch.count_down
-
-        ActiveSupport::Dependencies.autoload_paths.reject! { |p| p == path }
       end
 
       def thread_locals
@@ -308,8 +314,8 @@ module ActionController
     def setup
       super
 
-      def @controller.new_controller_thread
-        Thread.new { yield }
+      def @controller.new_controller_thread(&block)
+        Thread.new(&block)
       end
     end
 

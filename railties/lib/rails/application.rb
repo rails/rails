@@ -57,29 +57,6 @@ module Rails
   #   9)  Build the middleware stack and run to_prepare callbacks
   #   10) Run config.before_eager_load and eager_load! if eager_load is true
   #   11) Run config.after_initialize callbacks
-  #
-  # == Multiple Applications
-  #
-  # If you decide to define multiple applications, then the first application
-  # that is initialized will be set to +Rails.application+, unless you override
-  # it with a different application.
-  #
-  # To create a new application, you can instantiate a new instance of a class
-  # that has already been created:
-  #
-  #   class Application < Rails::Application
-  #   end
-  #
-  #   first_application  = Application.new
-  #   second_application = Application.new(config: first_application.config)
-  #
-  # In the above example, the configuration from the first application was used
-  # to initialize the second application. You can also use the +initialize_copy+
-  # on one of the applications to create a copy of the application which shares
-  # the configuration.
-  #
-  # If you decide to define Rake tasks, runners, or initializers in an
-  # application other than +Rails.application+, then you must run them manually.
   class Application < Engine
     autoload :Bootstrap,              "rails/application/bootstrap"
     autoload :Configuration,          "rails/application/configuration"

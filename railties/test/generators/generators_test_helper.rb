@@ -94,8 +94,6 @@ module GeneratorsTestHelper
       {
         skip_active_storage: true,
         depend_on_bootsnap: false,
-        depend_on_listen: false,
-        spring_install: false,
         depends_on_system_test: false,
         options: ActiveSupport::OrderedOptions.new,
       }

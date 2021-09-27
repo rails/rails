@@ -391,7 +391,7 @@ module RenderTestCases
   def test_without_compiled_method_container_is_deprecated
     view = ActionView::Base.with_view_paths(ActionController::Base.view_paths)
     assert_raises(NotImplementedError) do
-      assert_equal "Hello world!", view.render(template: "test/hello_world")
+      view.render(template: "test/hello_world")
     end
   end
 
@@ -720,6 +720,24 @@ class CachedViewRenderTest < ActiveSupport::TestCase
     dog = @view.render(template: "test/cache_fragment_inside_render_layout_block_2")
 
     assert_not_equal cat, dog
+  end
+
+  def test_caching_predicate_method
+    result = @view.render(template: "test/caching_predicate")
+
+    assert_match "Cached!", result
+  end
+
+  def test_caching_predicate_method_outside_of_cache
+    result = @view.render(template: "test/caching_predicate_outside_cache")
+
+    assert_match "Not cached!", result
+  end
+
+  def test_uncacheable
+    e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/uncacheable") }
+
+    assert_match "can't be fragment cached", e.cause.message
   end
 end
 

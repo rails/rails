@@ -1,4 +1,332 @@
-*   Fix `eager_loading?` when ordering with `Symbol`
+*   Accept optional transaction args to `ActiveRecord::Locking::Pessimistic#with_lock`
+
+    `#with_lock` now accepts transaction options like `requires_new:`,
+    `isolation:`, and `joinable:`
+
+*   Adds support for deferrable foreign key constraints in PostgreSQL.
+
+    By default, foreign key constraints in PostgreSQL are checked after each statement. This works for most use cases,
+    but becomes a major limitation when creating related records before the parent record is inserted into the database.
+    One example of this is looking up / creating a person via one or more unique alias.
+
+    ```ruby
+    Person.transaction do
+      alias = Alias
+        .create_with(user_id: SecureRandom.uuid)
+        .create_or_find_by(name: "DHH")
+
+      person = Person
+        .create_with(name: "David Heinemeier Hansson")
+        .create_or_find_by(id: alias.user_id)
+    end
+    ```
+
+    Using the default behavior, the transaction would fail when executing the first `INSERT` statement.
+
+    By passing the `:deferrable` option to the `add_foreign_key` statement in migrations, it's possible to defer this
+    check.
+
+    ```ruby
+    add_foreign_key :aliases, :person, deferrable: true
+    ```
+
+    Passing `deferrable: true` doesn't change the default behavior, but allows manually deferring the check using
+    `SET CONSTRAINTS ALL DEFERRED` within a transaction. This will cause the foreign keys to be checked after the
+    transaction.
+
+    It's also possible to adjust the default behavior from an immediate check (after the statement), to a deferred check
+    (after the transaction):
+
+    ```ruby
+    add_foreign_key :aliases, :person, deferrable: :deferred
+    ```
+
+    *Benedikt Deicke*
+
+*   Allow configuring Postgres password through the socket URL.
+
+    For example:
+    ```ruby
+    ActiveRecord::DatabaseConfigurations::UrlConfig.new(
+      :production, :production, 'postgres:///?user=user&password=secret&dbname=app', {}
+    ).configuration_hash
+    ```
+
+    will now return,
+
+    ```ruby
+    { :user=>"user", :password=>"secret", :dbname=>"app", :adapter=>"postgresql" }
+    ```
+
+    *Abeid Ahmed*
+
+*   PostgreSQL: support custom enum types
+
+    In migrations, use `create_enum` to add a new enum type, and `t.enum` to add a column.
+
+    ```ruby
+    def up
+      create_enum :mood, ["happy", "sad"]
+
+      change_table :cats do |t|
+        t.enum :current_mood, enum_type: "mood", default: "happy", null: false
+      end
+    end
+    ```
+
+    Enums will be presented correctly in `schema.rb`. Note that this is only supported by
+    the PostgreSQL adapter.
+
+    *Alex Ghiculescu*
+
+* Avoid COMMENT statements in PostgreSQL structure dumps
+
+    COMMENT statements are now omitted from the output of `db:structure:dump` when using PostgreSQL >= 11.
+    This allows loading the dump without a pgsql superuser account.
+
+    Fixes #36816, #43107.
+
+    *Janosch Müller*
+
+*   Add support for generated columns in PostgreSQL adapter
+
+    Generated columns are supported since version 12.0 of PostgreSQL. This adds
+    support of those to the PostgreSQL adapter.
+
+    ```ruby
+    create_table :users do |t|
+      t.string :name
+      t.virtual :name_upcased, type: :string, as: 'upper(name)', stored: true
+    end
+    ```
+
+    *Michał Begejowicz*
+
+
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
+
+*   No changes.
+
+
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
+*   Remove warning when overwriting existing scopes
+
+    Removes the following unnecessary warning message that appeared when overwriting existing scopes
+
+    ```
+    Creating scope :my_scope_name. Overwriting existing method "MyClass.my_scope_name" when overwriting existing scopes
+    ```
+
+     *Weston Ganger*
+
+*   Use full precision for `updated_at` in `insert_all`/`upsert_all`
+
+    `CURRENT_TIMESTAMP` provides differing precision depending on the database,
+    and not all databases support explicitly specifying additional precision.
+
+    Instead, we delegate to the new `connection.high_precision_current_timestamp`
+    for the SQL to produce a high precision timestamp on the current database.
+
+    Fixes #42992
+
+    *Sam Bostock*
+
+* Add ssl support for postgresql database tasks
+
+    Add `PGSSLMODE`, `PGSSLCERT`, `PGSSLKEY` and `PGSSLROOTCERT` to pg_env from database config
+    when running postgresql database tasks.
+
+    ```yaml
+    # config/database.yml
+
+    production:
+      sslmode: verify-full
+      sslcert: client.crt
+      sslkey: client.key
+      sslrootcert: ca.crt
+    ```
+
+    Environment variables
+
+    ```
+    PGSSLMODE=verify-full
+    PGSSLCERT=client.crt
+    PGSSLKEY=client.key
+    PGSSLROOTCERT=ca.crt
+    ```
+
+    Fixes #42994
+
+    *Michael Bayucot*
+
+*   Avoid scoping update callbacks in `ActiveRecord::Relation#update!`.
+
+    Making it consistent with how scoping is applied only to the query in `ActiveRecord::Relation#update`
+    and not also to the callbacks from the update itself.
+
+    *Dylan Thacker-Smith*
+
+*   Fix 2 cases that inferred polymorphic class from the association's `foreign_type`
+    using `String#constantize` instead of the model's `polymorphic_class_for`.
+
+    When updating a polymorphic association, the old `foreign_type` was not inferred correctly when:
+    1. `touch`ing the previously associated record
+    2. updating the previously associated record's `counter_cache`
+
+    *Jimmy Bourassa*
+
+*   Add config option for ignoring tables when dumping the schema cache.
+
+    Applications can now be configured to ignore certain tables when dumping the schema cache.
+
+    The configuration option can table an array of tables:
+
+    ```ruby
+    config.active_record.schema_cache_ignored_tables = ["ignored_table", "another_ignored_table"]
+    ```
+
+    Or a regex:
+
+    ```ruby
+    config.active_record.schema_cache_ignored_tables = [/^_/]
+    ```
+
+    *Eileen M. Uchitelle*
+
+*   Make schema cache methods return consistent results.
+
+    Previously the schema cache methods `primary_keys`, `columns`, `columns_hash`, and `indexes`
+    would behave differently than one another when a table didn't exist and differently across
+    database adapters. This change unifies the behavior so each method behaves the same regardless
+    of adapter.
+
+    The behavior now is:
+
+    `columns`: (unchanged) raises a db error if the table does not exist
+    `columns_hash`: (unchanged) raises a db error if the table does not exist
+    `primary_keys`: (unchanged) returns `nil` if the table does not exist
+    `indexes`: (changed for mysql2) returns `[]` if the table does not exist
+
+    *Eileen M. Uchitelle*
+
+*   Reestablish connection to previous database after after running `db:schema:load:name`
+
+    After running `db:schema:load:name` the previous connection is restored.
+
+    *Jacopo Beschi*
+
+*   Add database config option `database_tasks`
+
+    If you would like to connect to an external database without any database
+    management tasks such as schema management, migrations, seeds, etc. you can set
+    the per database config option `database_tasks: false`
+
+    ```yaml
+    # config/database.yml
+
+    production:
+      primary:
+        database: my_database
+        adapter: mysql2
+      animals:
+        database: my_animals_database
+        adapter: mysql2
+        database_tasks: false
+    ```
+
+    *Weston Ganger*
+
+*   Fix `ActiveRecord::InternalMetadata` to not be broken by `config.active_record.record_timestamps = false`
+
+    Since the model always create the timestamp columns, it has to set them, otherwise it breaks
+    various DB management tasks.
+
+    Fixes #42983
+
+*   Add `ActiveRecord::QueryLogs`.
+
+    Configurable tags can be automatically added to all SQL queries generated by Active Record.
+
+    ```ruby
+    # config/application.rb
+    module MyApp
+      class Application < Rails::Application
+        config.active_record.query_log_tags_enabled = true
+      end
+    end
+    ```
+
+    By default the application, controller and action details are added to the query tags:
+
+    ```ruby
+    class BooksController < ApplicationController
+      def index
+        @books = Book.all
+      end
+    end
+    ```
+
+    ```ruby
+    GET /books
+    # SELECT * FROM books /*application:MyApp;controller:books;action:index*/
+    ```
+
+    Custom tags containing static values and Procs can be defined in the application configuration:
+
+    ```ruby
+    config.active_record.query_log_tags = [
+      :application,
+      :controller,
+      :action,
+      {
+        custom_static: "foo",
+        custom_dynamic: -> { Time.now }
+      }
+    ]
+    ```
+
+    *Keeran Raj Hawoldar*, *Eileen M. Uchitelle*, *Kasper Timm Hansen*
+
+*   Added support for multiple databases to `rails db:setup` and `rails db:reset`.
+
+    *Ryan Hall*
+
+*   Add `ActiveRecord::Relation#structurally_compatible?`.
+
+    Adds a query method by which a user can tell if the relation that they're
+    about to use for `#or` or `#and` is structurally compatible with the
+    receiver.
+
+    *Kevin Newton*
+
+*   Add `ActiveRecord::QueryMethods#in_order_of`.
+
+    This allows you to specify an explicit order that you'd like records
+    returned in based on a SQL expression. By default, this will be accomplished
+    using a case statement, as in:
+
+    ```ruby
+    Post.in_order_of(:id, [3, 5, 1])
+    ```
+
+    will generate the SQL:
+
+    ```sql
+    SELECT "posts".* FROM "posts" ORDER BY CASE "posts"."id" WHEN 3 THEN 1 WHEN 5 THEN 2 WHEN 1 THEN 3 ELSE 4 END ASC
+    ```
+
+    However, because this functionality is built into MySQL in the form of the
+    `FIELD` function, that connection adapter will generate the following SQL
+    instead:
+
+    ```sql
+    SELECT "posts".* FROM "posts" ORDER BY FIELD("posts"."id", 1, 5, 3) DESC
+    ```
+
+    *Kevin Newton*
+
+*   Fix `eager_loading?` when ordering with `Symbol`.
 
     `eager_loading?` is triggered correctly when using `order` with symbols.
 

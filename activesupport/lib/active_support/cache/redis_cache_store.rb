@@ -467,8 +467,6 @@ module ActiveSupport
           if @error_handler
             @error_handler.(method: method, exception: exception, returning: returning)
           end
-        rescue => failsafe
-          warn "RedisCacheStore ignored exception in handle_exception: #{failsafe.class}: #{failsafe.message}\n  #{failsafe.backtrace.join("\n  ")}"
         end
     end
   end

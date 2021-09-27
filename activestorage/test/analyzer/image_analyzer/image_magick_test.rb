@@ -46,6 +46,18 @@ class ActiveStorage::Analyzer::ImageAnalyzer::ImageMagickTest < ActiveSupport::T
     end
   end
 
+  test "instrumenting analysis" do
+    analyze_with_image_magick do
+      events = subscribe_events_from("analyze.active_storage")
+
+      blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+      blob.analyze
+
+      assert_equal 1, events.size
+      assert_equal({ analyzer: "mini_magick" }, events.first.payload)
+    end
+  end
+
   private
     def analyze_with_image_magick
       previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, :mini_magick

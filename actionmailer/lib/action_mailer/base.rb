@@ -507,10 +507,12 @@ module ActionMailer
       end
 
       # Returns an email in the format "Name <email@example.com>".
+      #
+      # If the name is a blank string, it returns just the address.
       def email_address_with_name(address, name)
         Mail::Address.new.tap do |builder|
           builder.address = address
-          builder.display_name = name
+          builder.display_name = name.presence
         end.to_s
       end
 
@@ -582,6 +584,8 @@ module ActionMailer
     end
 
     # Returns an email in the format "Name <email@example.com>".
+    #
+    # If the name is a blank string, it returns just the address.
     def email_address_with_name(address, name)
       self.class.email_address_with_name(address, name)
     end

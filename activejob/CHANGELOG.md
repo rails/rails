@@ -1,3 +1,10 @@
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
+
+*   No changes.
+
+
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
 *   Allow a job to retry indefinitely
 
     The `attempts` parameter of the `retry_on` method now accepts the

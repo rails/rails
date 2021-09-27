@@ -20,7 +20,7 @@ module ActiveRecord
     end
 
     # Collects the configs for the environment and optionally the specification
-    # name passed in. To include replica configurations pass <tt>include_replicas: true</tt>.
+    # name passed in. To include replica configurations pass <tt>include_hidden: true</tt>.
     #
     # If a name is provided a single DatabaseConfig object will be
     # returned, otherwise an array of DatabaseConfig objects will be
@@ -33,22 +33,31 @@ module ActiveRecord
     # * <tt>name:</tt> The db config name (i.e. primary, animals, etc.). Defaults
     #   to +nil+. If no +env_name+ is specified the config for the default env and the
     #   passed +name+ will be returned.
-    # * <tt>include_replicas:</tt> Determines whether to include replicas in
+    # * <tt>include_replicas:</tt> Deprecated. Determines whether to include replicas in
     #   the returned list. Most of the time we're only iterating over the write
     #   connection (i.e. migrations don't need to run for the write and read connection).
     #   Defaults to +false+.
-    def configs_for(env_name: nil, spec_name: nil, name: nil, include_replicas: false)
+    # * <tt>include_hidden:</tte Determines whether to include replicas and configurations
+    #   hidden by +database_tasks: false+ in the returned list. Most of the time we're only
+    #   iterating over the primary connections (i.e. migrations don't need to run for the
+    #   write and read connection). Defaults to +false+.
+    def configs_for(env_name: nil, spec_name: nil, name: nil, include_replicas: false, include_hidden: false)
       if spec_name
         name = spec_name
         ActiveSupport::Deprecation.warn("The kwarg `spec_name` is deprecated in favor of `name`. `spec_name` will be removed in Rails 7.0")
       end
 
+      if include_replicas
+        include_hidden = include_replicas
+        ActiveSupport::Deprecation.warn("The kwarg `include_replicas` is deprecated in favor of `include_hidden`. When `include_hidden` is passed, configurations with `replica: true` or `database_tasks: false` will be returned. `include_replicas` will be removed in Rails 7.1.")
+      end
+
       env_name ||= default_env if name
       configs = env_with_configs(env_name)
 
-      unless include_replicas
+      unless include_hidden
         configs = configs.select do |db_config|
-          !db_config.replica?
+          db_config.database_tasks?
         end
       end
 
@@ -201,7 +210,7 @@ module ActiveRecord
       end
 
       def build_configuration_sentence
-        configs = configs_for(include_replicas: true)
+        configs = configs_for(include_hidden: true)
 
         configs.group_by(&:env_name).map do |env, config|
           names = config.map(&:name)

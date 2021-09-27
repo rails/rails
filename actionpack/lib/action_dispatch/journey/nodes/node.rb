@@ -5,7 +5,6 @@ require "action_dispatch/journey/visitors"
 module ActionDispatch
   module Journey # :nodoc:
     class Ast # :nodoc:
-      delegate :find_all, :left, :right, :to_s, :to_sym, :type, to: :tree
       attr_reader :names, :path_params, :tree, :wildcard_options, :terminals
       alias :root :tree
 
