@@ -318,7 +318,7 @@ Of course, if the application eager loads on boot, that is already accomplished.
 
 ### Enumerate the leaves of the hierarchy
 
-Since the leaves of the hierarchy connect all the hiearchy nodes upwards, following super classes, as soon as the root of the hierarchy is loaded, you can force loading them all:
+Since the leaves of the hierarchy connect all the hierarchy nodes upwards, following super classes, as soon as the root of the hierarchy is loaded, you can force loading them all:
 
 ```ruby
 unless Rails.application.config.eager_load
