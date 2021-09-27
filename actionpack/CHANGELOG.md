@@ -1,3 +1,29 @@
+*   Allow permitting numeric params.
+
+    Previously it was impossible to permit different fields on numeric parameters.
+    After this change you can specify different fields for each numbered parameter.
+    For example params like,
+    ```ruby
+    book: {
+            authors_attributes: {
+              '0': { name: "William Shakespeare", age_of_death: "52" },
+              '1': { name: "Unattributed Assistant" },
+              '2': "Not a hash",
+              'new_record': { name: "Some name" }
+            }
+          }
+    ```
+
+    Before you could permit name on each author with,
+    `permit book: { authors_attributes: [ :name ] }`
+
+    After this change you can permit different keys on each numbered element,
+    `permit book: { authors_attributes: { '1': [ :name ], '0': [ :name, :age_of_death ] } }`
+
+    Fixes #41625
+
+    *Adam Hess*
+
 *   Update `HostAuthorization` middleware to render debug info only
     when `config.consider_all_requests_local` is set to true.
 
