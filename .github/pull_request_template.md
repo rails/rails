@@ -24,5 +24,5 @@ Thanks for contributing to Rails! -->
 Note: Please avoid making *Draft* pull requests, as they still send
 notifications to everyone watching the Rails repo.
 Create a pull request when it is ready for review and feedback
-from the Rails team :)
+from the Rails team :).
 -->
