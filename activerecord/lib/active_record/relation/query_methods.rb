@@ -432,6 +432,7 @@ module ActiveRecord
       references = column_references([column])
       self.references_values |= references unless references.empty?
 
+      values = values.map { |value| type_caster.type_cast_for_database(column, value) }
       column = order_column(column.to_s) if column.is_a?(Symbol)
 
       spawn.order!(connection.field_ordered_value(column, values))
