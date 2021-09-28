@@ -104,7 +104,7 @@ module ActionController
     # options and the behavior is identical.
     def redirect_back_or_to(fallback_location, allow_other_host: _allow_other_host, **options)
       if request.referer && (allow_other_host || _url_host_allowed?(request.referer))
-        redirect_to request.referer,   allow_other_host: allow_other_host, **options
+        redirect_to request.referer,allow_other_host: allow_other_host, **options
       else
         allow_other_host = true if _allow_other_host && !allow_other_host # if the fallback is an open redirect
         redirect_to fallback_location, allow_other_host: allow_other_host, **options
@@ -130,6 +130,28 @@ module ActionController
     end
     module_function :_compute_redirect_to_location
     public :_compute_redirect_to_location
+
+    # Extract an internal URL that's safe to redirect to, to allow falling back to an alternative URL in case it's an external potentially-unsafe URL.
+    #
+    #   redirect_to url_from(params[:redirect_url]) || root_url
+    #
+    # A URL is considered safe if it's internal, e.g. on the same host as the <tt>request.host</tt>:
+    #
+    #   # If request.host is example.com:
+    #   url_from("https://example.com/profile") # => "https://example.com/profile"
+    #   url_from("http://example.com/profile")  # => "http://example.com/profile"
+    #   url_from("http://evil.com/profile")     # => nil
+    #
+    # Subdomains are considered part of the host:
+    #
+    #   # If request.host is on https://example.com or https://app.example.com, you'd get:
+    #   url_from("https://dev.example.com/profile") # => nil
+    #
+    # NOTE: there's a similarity with <tt>url_for</tt> which generates an internal URL from various options from within the app, e.g. `url_for(@post)`,
+    # while <tt>url_from</tt> takes an external parameter to validate the internal URL, e.g. `url_from(params[:redirect_url])`.
+    def url_from(location)
+      location if location.present? && _url_host_allowed?(location)
+    end
 
     private
       def _allow_other_host

@@ -1,3 +1,17 @@
+*   Add a way to verify a location is internal.
+
+    This is helpful if you are redirecting from a user-submitted param. Rails
+    could already reject unsafe redirects, but it was difficult to provide a
+    fallback location in cases where you still want the redirect.
+
+    ```ruby
+    def return_url
+      url_from(params[:return_to]) || root_path
+    end
+    ```
+
+    *Kasper Timm Hansen*, *dmcge*
+
 *   Allow Capybara driver name overrides in `SystemTestCase::driven_by`
 
     Allow users to prevent conflicts among drivers that use the same driver
