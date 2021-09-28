@@ -484,7 +484,7 @@ module ActionView
       #     <%= form.text_field :title %>
       #   <% end %>
       #   # =>
-      #   <form action="/posts" method="post" data-remote="true">
+      #   <form action="/posts" method="post">
       #     <input type="text" name="title">
       #   </form>
       #
@@ -493,7 +493,7 @@ module ActionView
       #     <%= form.text_field :title %>
       #   <% end %>
       #   # =>
-      #   <form action="/posts" method="post" data-remote="true">
+      #   <form action="/posts" method="post">
       #     <input type="text" name="post[title]">
       #   </form>
       #
@@ -502,7 +502,7 @@ module ActionView
       #     <%= form.text_field :title %>
       #   <% end %>
       #   # =>
-      #   <form action="/posts" method="post" data-remote="true">
+      #   <form action="/posts" method="post">
       #     <input type="text" name="post[title]">
       #   </form>
       #
@@ -511,7 +511,7 @@ module ActionView
       #     <%= form.text_field :title %>
       #   <% end %>
       #   # =>
-      #   <form action="/posts/1" method="post" data-remote="true">
+      #   <form action="/posts/1" method="post">
       #     <input type="hidden" name="_method" value="patch">
       #     <input type="text" name="post[title]" value="<the title of the post>">
       #   </form>
@@ -522,7 +522,7 @@ module ActionView
       #     <%= form.text_field :but_in_forms_they_can %>
       #   <% end %>
       #   # =>
-      #   <form action="/cats" method="post" data-remote="true">
+      #   <form action="/cats" method="post">
       #     <input type="text" name="cat[cats_dont_have_gills]">
       #     <input type="text" name="cat[but_in_forms_they_can]">
       #   </form>
