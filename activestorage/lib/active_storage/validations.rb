@@ -6,6 +6,7 @@ require "active_support/core_ext/array/wrap"
 require "active_storage/validations/base_validator"
 require "active_storage/validations/attachment_byte_size_validator"
 require "active_storage/validations/attachment_content_type_validator"
+require "active_storage/validations/attachment_presence_validator"
 
 module ActiveStorage
   # Provides the class-level DSL for declaring ActiveStorage validations
