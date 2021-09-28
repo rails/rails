@@ -131,6 +131,30 @@ module ActionController
     module_function :_compute_redirect_to_location
     public :_compute_redirect_to_location
 
+    # Verifies the passed +location+ is an internal URL that's safe to redirect to and returns it, or nil if not.
+    # Useful to wrap a params provided redirect URL and fallback to an alternate URL to redirect to:
+    #
+    #   redirect_to url_from(params[:redirect_url]) || root_url
+    #
+    # The +location+ is considered internal, and safe, if it's on the same host as the <tt>request.host</tt>:
+    #
+    #   # If request.host is example.com:
+    #   url_from("https://example.com/profile") # => "https://example.com/profile"
+    #   url_from("http://example.com/profile")  # => "http://example.com/profile"
+    #   url_from("http://evil.com/profile")     # => nil
+    #
+    # Subdomains are considered part of the host:
+    #
+    #   # If request.host is on https://example.com or https://app.example.com, you'd get:
+    #   url_from("https://dev.example.com/profile") # => nil
+    #
+    # NOTE: there's a similarity with <tt>url_for</tt>, which generates an internal URL from various options from within the app, e.g. `url_for(@post)`.
+    # However, <tt>url_from</tt> is meant to take an external parameter to verify as in `url_from(params[:redirect_url])`.
+    def url_from(location)
+      location = location.presence
+      location if location && _url_host_allowed?(location)
+    end
+
     private
       def _allow_other_host
         !raise_on_open_redirects
