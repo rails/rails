@@ -483,7 +483,7 @@ module ActiveRecord
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
           fk_info = exec_query(<<~SQL, "SCHEMA")
-            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid
+            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred
             FROM pg_constraint c
             JOIN pg_class t1 ON c.conrelid = t1.oid
             JOIN pg_class t2 ON c.confrelid = t2.oid
@@ -505,6 +505,8 @@ module ActiveRecord
 
             options[:on_delete] = extract_foreign_key_action(row["on_delete"])
             options[:on_update] = extract_foreign_key_action(row["on_update"])
+            options[:deferrable] = extract_foreign_key_deferrable(row["deferrable"], row["deferred"])
+
             options[:validate] = row["valid"]
 
             ForeignKeyDefinition.new(table_name, row["to_table"], options)
@@ -542,7 +544,7 @@ module ActiveRecord
         end
 
         # Maps logical Rails types to PostgreSQL-specific data types.
-        def type_to_sql(type, limit: nil, precision: nil, scale: nil, array: nil, **) # :nodoc:
+        def type_to_sql(type, limit: nil, precision: nil, scale: nil, array: nil, enum_type: nil, **) # :nodoc:
           sql = \
             case type.to_s
             when "binary"
@@ -566,6 +568,10 @@ module ActiveRecord
               when 5..8; "bigint"
               else raise ArgumentError, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead."
               end
+            when "enum"
+              raise ArgumentError "enum_type is required for enums" if enum_type.nil?
+
+              enum_type
             else
               super
             end
@@ -654,7 +660,7 @@ module ActiveRecord
           end
 
           def new_column_from_field(table_name, field)
-            column_name, type, default, notnull, oid, fmod, collation, comment = field
+            column_name, type, default, notnull, oid, fmod, collation, comment, attgenerated = field
             type_metadata = fetch_type_metadata(column_name, type, oid.to_i, fmod.to_i)
             default_value = extract_value_from_default(default)
             default_function = extract_default_function(default_value, default)
@@ -671,7 +677,8 @@ module ActiveRecord
               default_function,
               collation: collation,
               comment: comment.presence,
-              serial: serial
+              serial: serial,
+              generated: attgenerated
             )
           end
 
@@ -709,6 +716,10 @@ module ActiveRecord
             when "n"; :nullify
             when "r"; :restrict
             end
+          end
+
+          def extract_foreign_key_deferrable(deferrable, deferred)
+            deferrable && (deferred ? :deferred : true)
           end
 
           def add_column_for_alter(table_name, column_name, type, **options)

@@ -21,6 +21,7 @@ class TagHelperTest < ActionView::TestCase
   def test_tag_builder_void_tag
     assert_equal "<br>", tag.br
     assert_equal "<br class=\"some_class\">", tag.br(class: "some_class")
+    assert_equal "<svg><use href=\"#cool-icon\"></svg>", tag.svg { tag.use("href" => "#cool-icon") }
   end
 
   def test_tag_builder_void_tag_with_forced_content

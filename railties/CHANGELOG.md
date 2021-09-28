@@ -1,3 +1,19 @@
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
+
+*   Fix activestorage dependency in the npm package.
+
+    *Rafael Mendonça França*
+
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
+*   New and upgraded Rails apps no longer generate `config/initializers/application_controller_renderer.rb`
+    or `config/initializers/cookies_serializer.rb`
+
+    The default value for `cookies_serializer` (`:json`) has been moved to `config.load_defaults("7.0")`.
+    The new framework defaults file can be used to upgrade the serializer.
+
+    *Alex Ghiculescu*
+
 *   New applications get a dependency on the new `debug` gem, replacing `byebug`.
 
     *Xavier Noria*

@@ -2,6 +2,7 @@
 
 require "base64"
 require "active_support/security_utils"
+require "active_support/core_ext/array/access"
 
 module ActionController
   # HTTP Basic, Digest and Token authentication.
@@ -103,7 +104,7 @@ module ActionController
       end
 
       def has_basic_credentials?(request)
-        request.authorization.present? && (auth_scheme(request).downcase == "basic")
+        request.authorization.present? && (auth_scheme(request).downcase == "basic") && user_name_and_password(request).length == 2
       end
 
       def user_name_and_password(request)

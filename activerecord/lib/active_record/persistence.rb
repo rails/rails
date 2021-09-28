@@ -431,9 +431,8 @@ module ActiveRecord
       def _update_record(values, constraints) # :nodoc:
         constraints = constraints.map { |name, value| predicate_builder[name, value] }
 
-        if default_scopes?(all_queries: true)
-          constraints << default_scoped(all_queries: true).where_clause.ast
-        end
+        default_constraint = build_default_constraint
+        constraints << default_constraint if default_constraint
 
         if current_scope = self.global_current_scope
           constraints << current_scope.where_clause.ast
@@ -449,9 +448,8 @@ module ActiveRecord
       def _delete_record(constraints) # :nodoc:
         constraints = constraints.map { |name, value| predicate_builder[name, value] }
 
-        if default_scopes?(all_queries: true)
-          constraints << default_scoped(all_queries: true).where_clause.ast
-        end
+        default_constraint = build_default_constraint
+        constraints << default_constraint if default_constraint
 
         if current_scope = self.global_current_scope
           constraints << current_scope.where_clause.ast
@@ -478,6 +476,16 @@ module ActiveRecord
         # the single-table inheritance discriminator.
         def discriminate_class_for_record(record)
           self
+        end
+
+        # Called by +_update_record+ and +_delete_record+
+        # to build `where` clause from default scopes.
+        # Skips empty scopes.
+        def build_default_constraint
+          return unless default_scopes?(all_queries: true)
+
+          default_where_clause = default_scoped(all_queries: true).where_clause
+          default_where_clause.ast unless default_where_clause.empty?
         end
     end
 

@@ -37,7 +37,7 @@ arbitrary files.
 Various features of Active Storage depend on third-party software which Rails 
 will not install, and must be installed separately:
 
-* [libvips](https://github.com/libvips/libvips) or [ImageMagick](https://imagemagick.org/index.php) v8.6+ for image analysis and transformations
+* [libvips](https://github.com/libvips/libvips) v8.6+ or [ImageMagick](https://imagemagick.org/index.php) for image analysis and transformations
 * [ffmpeg](http://ffmpeg.org/) v3.4+ for video/audio analysis and video previews
 * [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) for PDF previews
 

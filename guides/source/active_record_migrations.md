@@ -281,7 +281,7 @@ end
 
 ### Model Generators
 
-The model and scaffold generators will create migrations appropriate for adding
+The model, resource and scaffold generators will create migrations appropriate for adding
 a new model. This migration will already contain instructions for creating the
 relevant table. If you tell Rails what columns you want, then statements for
 adding these columns will also be created. For example, running:
@@ -340,7 +340,7 @@ get to work!
 ### Creating a Table
 
 The [`create_table`][] method is one of the most fundamental, but most of the time,
-will be generated for you from using a model or scaffold generator. A typical
+will be generated for you from using a model, resource or scaffold generator. A typical
 use would be
 
 ```ruby
