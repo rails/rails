@@ -1257,6 +1257,12 @@ module ActionView
       # Additional options on the input tag can be passed as a hash with +options+. The +checked_value+ defaults to 1
       # while the default +unchecked_value+ is set to 0 which is convenient for boolean values.
       #
+      # ==== Options
+      #
+      # * Any standard HTML attributes for the tag can be passed in, for example +:class+.
+      # * <tt>:checked</tt> - +true+ or +false+ forces the state of the checkbox to be checked or not.
+      # * <tt>:include_hidden</tt> - If set to false, the auxiliary hidden field described below will not be generated.
+      #
       # ==== Gotcha
       #
       # The HTML specification says unchecked check boxes are not successful, and
@@ -1293,6 +1299,8 @@ module ActionView
       #
       # In that case it is preferable to either use +check_box_tag+ or to use
       # hashes instead of arrays.
+      #
+      # ==== Examples
       #
       #   # Let's say that @post.validated? is 1:
       #   check_box("post", "validated")
@@ -2334,6 +2342,12 @@ module ActionView
       # Additional options on the input tag can be passed as a hash with +options+. The +checked_value+ defaults to 1
       # while the default +unchecked_value+ is set to 0 which is convenient for boolean values.
       #
+      # ==== Options
+      #
+      # * Any standard HTML attributes for the tag can be passed in, for example +:class+.
+      # * <tt>:checked</tt> - +true+ or +false+ forces the state of the checkbox to be checked or not.
+      # * <tt>:include_hidden</tt> - If set to false, the auxiliary hidden field described below will not be generated.
+      #
       # ==== Gotcha
       #
       # The HTML specification says unchecked check boxes are not successful, and
@@ -2370,6 +2384,8 @@ module ActionView
       #
       # In that case it is preferable to either use +check_box_tag+ or to use
       # hashes instead of arrays.
+      #
+      # ==== Examples
       #
       #   # Let's say that @post.validated? is 1:
       #   check_box("validated")
