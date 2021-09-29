@@ -956,7 +956,7 @@ It is recommended to use the  ActionDispatch::HostAuthorization middleware to gu
 ```ruby
 Rails.application.config.hosts << "product.com"
 
-Rails.application.config.host_configuration = {
+Rails.application.config.host_authorization = {
   # Exclude requests for the /healthcheck/ path from host checking
   exclude: ->(request) { request.path =~ /healthcheck/ }
   # Add custom Rack application for the response

@@ -377,21 +377,21 @@ Rails.application.config.hosts << ".product.com"
 ```
 
 You can exclude certain requests from Host Authorization checks by setting
-`config.host_configuration.exclude`:
+`config.host_authorization.exclude`:
 
 ```ruby
 # Exclude requests for the /healthcheck/ path from host checking
-Rails.application.config.host_configuration = {
+Rails.application.config.host_authorization = {
   exclude: ->(request) { request.path =~ /healthcheck/ }
 }
 ```
 
 When a request comes to an unauthorized host, a default Rack application
 will run and respond with `403 Forbidden`. This can be customized by setting
-`config.host_configuration.response_app`. For example:
+`config.host_authorization.response_app`. For example:
 
 ```ruby
-Rails.application.config.host_configuration = {
+Rails.application.config.host_authorization = {
   response_app: -> env do
     [400, { "Content-Type" => "text/plain" }, ["Bad Request"]]
   end
