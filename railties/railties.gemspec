@@ -42,7 +42,7 @@ Gem::Specification.new do |s|
   s.add_dependency "rake", ">= 0.13"
   s.add_dependency "thor", "~> 1.0"
   s.add_dependency "method_source"
-  s.add_dependency "zeitwerk", "~> 2.5.0.beta4"
+  s.add_dependency "zeitwerk", "~> 2.5.0.beta5"
 
   s.add_development_dependency "actionview", version
 end

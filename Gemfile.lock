@@ -102,7 +102,7 @@ PATH
       method_source
       rake (>= 0.13)
       thor (~> 1.0)
-      zeitwerk (~> 2.5.0.beta4)
+      zeitwerk (~> 2.5.0.beta5)
 
 GEM
   remote: https://rubygems.org/
@@ -518,7 +518,7 @@ GEM
     websocket-extensions (0.1.5)
     xpath (3.2.0)
       nokogiri (~> 1.8)
-    zeitwerk (2.5.0.beta4)
+    zeitwerk (2.5.0.beta5)
 
 PLATFORMS
   ruby
