@@ -949,6 +949,25 @@ Location: http://www.malicious.tld
 
 So _attack vectors for Header Injection are based on the injection of CRLF characters in a header field._ And what could an attacker do with a false redirection? They could redirect to a phishing site that looks the same as yours, but ask to login again (and sends the login credentials to the attacker). Or they could install malicious software through browser security holes on that site. Rails 2.1.2 escapes these characters for the Location field in the `redirect_to` method. _Make sure you do it yourself when you build other header fields with user input._
 
+#### Host header attacks
+
+It is recommended to use the  ActionDispatch::HostAuthorization middleware to guard against DNS rebinding and other Host header attacks. It is enabled by default in the development environment, you have to activate it in production and other environments by setting the list of allowed hosts. You can also configure exceptions and set your own response app.
+
+```ruby
+Rails.application.config.hosts << "product.com"
+
+Rails.application.config.host_configuration = {
+  # Exclude requests for the /healthcheck/ path from host checking
+  exclude: ->(request) { request.path =~ /healthcheck/ }
+  # Add custom Rack application for the response
+  response_app: -> env do
+    [400, { "Content-Type" => "text/plain" }, ["Bad Request"]]
+  end
+}
+```
+
+You can read more about it in the [ActionDispatch::HostAuthorization middleware documentation](/configuring.html#actiondispatch-hostauthorization)
+
 #### Response Splitting
 
 If Header Injection was possible, Response Splitting might be, too. In HTTP, the header block is followed by two CRLFs and the actual data (usually HTML). The idea of Response Splitting is to inject two CRLFs into a header field, followed by another response with malicious HTML. The response will be:
