@@ -4,19 +4,20 @@ require_relative "../../abstract_unit"
 require "active_support/core_ext/module/attribute_accessors_per_thread"
 
 class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
-  class MyClass
-    thread_mattr_accessor :foo
-    thread_mattr_accessor :bar,  instance_writer: false
-    thread_mattr_reader   :shaq, instance_reader: false
-    thread_mattr_accessor :camp, instance_accessor: false
-  end
-
-  class SubMyClass < MyClass
-  end
-
   setup do
-    @class = MyClass
-    @subclass = SubMyClass
+    @class = Class.new do
+      def self.name; "MyClass#{object_id}"; end
+
+      thread_mattr_accessor :foo
+      thread_mattr_accessor :bar,  instance_writer: false
+      thread_mattr_reader   :shaq, instance_reader: false
+      thread_mattr_accessor :camp, instance_accessor: false
+    end
+
+    @subclass = Class.new(@class) do
+      def self.name; "Sub#{super}"; end
+    end
+
     @object = @class.new
   end
 
@@ -41,14 +42,35 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
     ActiveSupport::IsolatedExecutionState.isolation_level = previous_level
   end
 
-  def test_can_initialize_with_default_value
-    Thread.new do
-      @class.thread_mattr_accessor :baz, default: "default_value"
+  def test_default_value
+    @class.thread_mattr_accessor :baz, default: "default_value"
 
+    assert_equal "default_value", @class.baz
+  end
+
+  def test_default_value_is_accessible_from_subclasses
+    @class.thread_mattr_accessor :baz, default: "default_value"
+
+    assert_equal "default_value", @subclass.baz
+  end
+
+  def test_default_value_is_accessible_from_other_threads
+    @class.thread_mattr_accessor :baz, default: "default_value"
+
+    Thread.new do
       assert_equal "default_value", @class.baz
     end.join
+  end
 
-    assert_nil @class.baz
+  def test_default_value_is_the_same_object
+    default = Object.new
+    @class.thread_mattr_accessor :baz, default: default
+
+    assert_same default, @class.baz
+
+    Thread.new do
+      assert_same default, @class.baz
+    end.join
   end
 
   def test_should_use_mattr_default
@@ -159,5 +181,29 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
     @subclass.foo = "sub"
     assert_equal "super", @class.foo
     assert_equal "sub", @subclass.foo
+  end
+
+  def test_superclass_keeps_default_value_when_value_set_on_subclass
+    @class.thread_mattr_accessor :baz, default: "default_value"
+    @subclass.baz = "sub"
+
+    assert_equal "default_value", @class.baz
+    assert_equal "sub", @subclass.baz
+  end
+
+  def test_subclass_keeps_default_value_when_value_set_on_superclass
+    @class.thread_mattr_accessor :baz, default: "default_value"
+    @class.baz = "super"
+
+    assert_equal "super", @class.baz
+    assert_equal "default_value", @subclass.baz
+  end
+
+  def test_subclass_can_override_default_value_without_affecting_superclass
+    @class.thread_mattr_accessor :baz, default: "super"
+    @subclass.thread_mattr_accessor :baz, default: "sub"
+
+    assert_equal "super", @class.baz
+    assert_equal "sub", @subclass.baz
   end
 end
