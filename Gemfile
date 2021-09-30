@@ -10,7 +10,7 @@ gemspec
 gem "rake", ">= 11.1"
 
 gem "sprockets-rails", ">= 2.0.0"
-gem "propshaft", ">= 0.1.4"
+gem "propshaft", ">= 0.1.5"
 gem "capybara", ">= 3.26"
 gem "selenium-webdriver", ">= 4.0.0.alpha7"
 
