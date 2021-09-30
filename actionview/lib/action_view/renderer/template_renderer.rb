@@ -12,6 +12,10 @@ module ActionView
     end
 
     private
+      def template_name_or_default(*name)
+        name.empty? ? :layout : name
+      end
+
       # Determine the template to be rendered using the given options.
       def determine_template(options)
         keys = options.has_key?(:locals) ? options[:locals].keys : []
@@ -73,7 +77,9 @@ module ActionView
         body = if layout
           ActiveSupport::Notifications.instrument("render_layout.action_view", identifier: layout.identifier) do
             view.view_flow.set(:layout, yield(layout))
-            layout.render(view, locals) { |*name| view._layout_for(*name) }
+            layout.render(view, locals) do |*name|
+              view._layout_for(*template_name_or_default(*name))
+            end
           end
         else
           yield

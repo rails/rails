@@ -1,3 +1,13 @@
+*   Don't double-render a view, if a partial is called from a layout without a block and calls `yield`
+
+    Previously if a layout rendered a partial without a block, but the partial called `yield`, the
+    relevant view would be rendered twice in the layout: once where the layout `yield`ed, and again
+    from inside the partial. [#43341](https://github.com/rails/rails/pull/43341) contains replication steps.
+
+    This is now fixed, and the view will only be rendered once.
+
+    *Alex Ghiculescu*
+
 *   Allow `link_to` helper to infer link name from `Model#to_s` when it
     is used with a single argument:
 

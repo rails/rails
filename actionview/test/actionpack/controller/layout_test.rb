@@ -258,6 +258,94 @@ class LayoutExceptionRaisedTest < ActionController::TestCase
   end
 end
 
+class SetsLayoutThatYieldsAndHasPartialsThatYield < LayoutTest
+  layout "yields_and_has_partial"
+
+  def hello
+    render "hello"
+  end
+end
+
+class NoLayoutButViewWillRenderPartialThatYields < LayoutTest
+  layout false
+
+  def hello
+    render "hello_and_partial"
+  end
+end
+
+class LayoutWithPartialsThatYieldTest < ActionController::TestCase
+  with_routes do
+    get :hello, to: "views#hello"
+  end
+
+  def test_yield_called_from_partial_in_layout_does_not_double_render_view
+    @controller = SetsLayoutThatYieldsAndHasPartialsThatYield.new
+    get :hello
+    expected = <<~ERB
+yield:
+hello.erb
+
+partial:
+inside partial that yields
+
+finished partial that yields
+
+after partial
+
+partial with block:
+inside partial that yields
+
+  yielding block
+
+finished partial that yields
+after partial with block
+
+partial with empty block:
+inside partial that yields
+
+
+finished partial that yields
+after partial with empty block
+    ERB
+    assert_equal @response.body, expected
+  end
+
+  def test_yield_called_from_partial_in_view_does_not_double_render_view
+    @controller = NoLayoutButViewWillRenderPartialThatYields.new
+    get :hello
+    expected = <<~ERB
+hello_and_partial.erb
+
+yield should render nothing, since empty block given to this view by Rails:
+
+
+partial without block:
+inside partial that yields
+
+finished partial that yields
+
+after partial
+
+partial with block:
+inside partial that yields
+
+  yielding block
+
+finished partial that yields
+after partial with block
+
+partial with empty block:
+inside partial that yields
+
+
+finished partial that yields
+after partial with empty block
+    ERB
+    assert_equal @response.body, expected
+  end
+end
+
 class LayoutStatusIsRendered < LayoutTest
   def hello
     render status: 401

@@ -60,7 +60,7 @@ module ActionView
         # to the buffer, it is not appended to an array, but streamed straight
         # to the client.
         output  = ActionView::StreamingBuffer.new(buffer)
-        yielder = lambda { |*name| view._layout_for(*name) }
+        yielder = lambda { |*name| view._layout_for(*template_name_or_default(*name)) }
 
         ActiveSupport::Notifications.instrument(
           "render_template.action_view",

@@ -1,0 +1,19 @@
+hello_and_partial.erb
+
+yield should render nothing, since empty block given to this view by Rails:
+<%= yield %>
+
+partial without block:
+<%= render "partial_that_yields" %>
+after partial
+
+partial with block:
+<%= render "partial_that_yields" do %>
+  yielding block
+<% end %>
+after partial with block
+
+partial with empty block:
+<%= render "partial_that_yields" do %>
+<% end %>
+after partial with empty block

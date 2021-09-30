@@ -100,8 +100,10 @@ module ActionView
 
         if block && !name.is_a?(Symbol)
           capture(*args, &block)
-        else
+        elsif name
           super
+        else
+          super("_no_block_given_to_partial_")
         end
       end
     end
