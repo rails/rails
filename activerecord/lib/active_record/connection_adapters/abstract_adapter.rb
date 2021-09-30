@@ -363,6 +363,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support creating deferrable constraints?
+      def supports_deferrable_constraints?
+        false
+      end
+
       # Does this adapter support creating check constraints?
       def supports_check_constraints?
         false
@@ -452,6 +457,10 @@ module ActiveRecord
 
       # This is meant to be implemented by the adapters that support extensions
       def enable_extension(name)
+      end
+
+      # This is meant to be implemented by the adapters that support custom enum types
+      def create_enum(*) # :nodoc:
       end
 
       def advisory_locks_enabled? # :nodoc:

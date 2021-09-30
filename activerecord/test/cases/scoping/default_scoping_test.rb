@@ -208,7 +208,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_match(/mentor_id/, reload_sql)
   end
 
-  def test_nilable_default_scope_with_all_queries_runs_on_destroy
+  def test_nilable_default_scope_with_all_queries_runs_on_reload
     dev = DeveloperWithDefaultNilableMentorScopeAllQueries.create!(name: "Nikita")
     reload_sql = capture_sql { dev.reload }.first
 

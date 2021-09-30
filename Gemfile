@@ -121,7 +121,7 @@ group :test do
 
   platforms :mri do
     gem "stackprof"
-    gem "debug", ">= 1.0.0", require: false
+    gem "debug", ">= 1.1.0", require: false
   end
 
   gem "benchmark-ips"

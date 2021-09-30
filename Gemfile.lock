@@ -74,7 +74,7 @@ PATH
       activejob (= 7.0.0.alpha2)
       activerecord (= 7.0.0.alpha2)
       activesupport (= 7.0.0.alpha2)
-      marcel (~> 1.0.0)
+      marcel (~> 1.0)
       mini_mime (>= 1.1.0)
     activesupport (7.0.0.alpha2)
       concurrent-ruby (~> 1.0, >= 1.0.2)
@@ -101,7 +101,7 @@ PATH
       method_source
       rake (>= 0.13)
       thor (~> 1.0)
-      zeitwerk (~> 2.5.0.beta3)
+      zeitwerk (~> 2.5.0.beta5)
 
 GEM
   remote: https://rubygems.org/
@@ -188,7 +188,7 @@ GEM
     daemons (1.4.0)
     dalli (2.7.11)
     dante (0.2.0)
-    debug (1.0.0)
+    debug (1.1.0)
       irb
       reline (>= 0.2.7)
     declarative (0.0.20)
@@ -519,7 +519,7 @@ GEM
     websocket-extensions (0.1.5)
     xpath (3.2.0)
       nokogiri (~> 1.8)
-    zeitwerk (2.5.0.beta3)
+    zeitwerk (2.5.0.beta5)
 
 PLATFORMS
   ruby
@@ -543,7 +543,7 @@ DEPENDENCIES
   connection_pool
   cssbundling-rails
   dalli
-  debug (>= 1.0.0)
+  debug (>= 1.1.0)
   delayed_job
   delayed_job_active_record
   google-cloud-storage (~> 1.11)
