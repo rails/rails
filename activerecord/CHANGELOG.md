@@ -388,7 +388,7 @@
     config.active_record.partial_inserts = true
     ```
 
-    If a migration remove the default value of a column, this option
+    If a migration removes the default value of a column, this option
     would cause old processes to no longer be able to create new records.
 
     If you need to remove a column, you should first use `ignored_columns`
