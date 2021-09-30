@@ -1,3 +1,11 @@
+*   Add option to lazily load the schema cache on the connection.
+
+    Previously, the only way to load the schema cache in Active Record was through the Railtie on boot. This option provides the ability to load the schema cache on the connection after it's been established. Loading the cache lazily on the connection can be beneficial for Rails applications that use multiple databases because it will load the cache at the time the connection is established. Currently Railties doesn't have access to the connections before boot.
+
+    To use the cache, set `config.active_record.lazily_load_schema_cache = true` in your application configuration. In addition a `schema_cache_path` should be set in your database configuration if you don't want to use the default "db/schema_cache.yml" path.
+
+    *Eileen M. Uchitelle*
+
 *   Allow automatic `inverse_of` detection for associations with scopes.
 
     Automatic `inverse_of` detection now works for associations with scopes. For
