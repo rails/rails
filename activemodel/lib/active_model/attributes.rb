@@ -101,6 +101,24 @@ module ActiveModel
       @attributes.to_hash
     end
 
+    # Returns a hash of all the attributes with their names symbolized as keys and the values of the attributes as values.
+    # It allows for pattern matching directly on an object.
+    #
+    #   class Person
+    #     include ActiveModel::Attributes
+    #
+    #     attribute :name, :string
+    #     attribute :age, :integer
+    #   end
+    #
+    #   person = Person.new(name: 'Francesco', age: 22)
+    #   person => {name:}
+    #   name 
+    #   # => "Francesco"
+    def deconstruct_keys(_keys)
+      attributes.symbolize_keys
+    end
+
     # Returns an array of attribute names as strings
     #
     #   class Person
