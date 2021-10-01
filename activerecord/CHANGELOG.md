@@ -1,3 +1,9 @@
+*   Remove deprecation warning of `merge` with `where.not(field_id: nil)` conditions
+
+    Merging a `where.not(field_id: nil)` doesn't print a deprecation warning.
+
+    *Jacopo Beschi*
+
 *   Add option to lazily load the schema cache on the connection.
 
     Previously, the only way to load the schema cache in Active Record was through the Railtie on boot. This option provides the ability to load the schema cache on the connection after it's been established. Loading the cache lazily on the connection can be beneficial for Rails applications that use multiple databases because it will load the cache at the time the connection is established. Currently Railties doesn't have access to the connections before boot.

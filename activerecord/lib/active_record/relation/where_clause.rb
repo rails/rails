@@ -168,6 +168,9 @@ module ActiveRecord
             ref = referenced_columns[attr]
             next false unless ref
 
+            next true if where_not_nil?(node) && !where_nil?(ref)
+            next false if where_not_nil?(ref) && !where_nil?(node)
+
             if equality_node?(node) && equality_node?(ref) || node == ref
               true
             else
@@ -179,6 +182,14 @@ module ActiveRecord
               false
             end
           end
+        end
+
+        def where_not_nil?(node)
+          node.is_a?(Arel::Nodes::NotEqual) && node.right.value.nil?
+        end
+
+        def where_nil?(node)
+          equality_node?(node) && node.right.value.nil?
         end
 
         def equality_node?(node)
