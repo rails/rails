@@ -453,11 +453,7 @@
       url = url();
     }
     if (url && !/^wss?:/i.test(url)) {
-      const a = document.createElement("a");
-      a.href = url;
-      a.href = a.href;
-      a.protocol = a.protocol.replace("http", "ws");
-      return a.href;
+      return url.replace(/^http:/, "ws:").replace(/^https:/, "wss:");
     } else {
       return url;
     }
