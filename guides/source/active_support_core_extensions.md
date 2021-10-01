@@ -220,7 +220,7 @@ NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
 
 ### `try`
 
-When you want to call a method on an object only if it is not `nil`, the simplest way to achieve it is with conditional statements, adding unnecessary clutter. The alternative is to use [`try`][Object#try]. `try` is like `Object#send` except that it returns `nil` if sent to `nil`.
+When you want to call a method on an object only if it is not `nil`, the simplest way to achieve it is with conditional statements, adding unnecessary clutter. The alternative is to use [`try`][Object#try]. `try` is like `Object#public_send` except that it returns `nil` if sent to `nil`.
 
 Here is an example:
 
