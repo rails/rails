@@ -28,7 +28,9 @@
         this.startedAt = now();
         delete this.stoppedAt;
         this.startPolling();
-        addEventListener("visibilitychange", this.visibilityDidChange);
+        if (typeof addEventListener !== "undefined") {
+          addEventListener("visibilitychange", this.visibilityDidChange);
+        }
         logger.log(`ConnectionMonitor started. stale threshold = ${this.constructor.staleThreshold} s`);
       }
     }
@@ -36,7 +38,9 @@
       if (this.isRunning()) {
         this.stoppedAt = now();
         this.stopPolling();
-        removeEventListener("visibilitychange", this.visibilityDidChange);
+        if (typeof removeEventListener !== "undefined") {
+          removeEventListener("visibilitychange", this.visibilityDidChange);
+        }
         logger.log("ConnectionMonitor stopped");
       }
     }
