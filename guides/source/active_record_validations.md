@@ -272,13 +272,16 @@ validated.
 Each helper accepts an arbitrary number of attribute names, so with a single
 line of code you can add the same kind of validation to several attributes.
 
-All of them accept the `:on` and `:message` options, which define when the
-validation should be run and what message should be added to the `errors`
-collection if it fails, respectively. The `:on` option takes one of the values
-`:create` or `:update`. There is a default error
-message for each one of the validation helpers. These messages are used when
-the `:message` option isn't specified. Let's take a look at each one of the
-available helpers.
+All of them accept the `:on`, `:message` and `:full_message_format` options,
+which define when the validation should be run, what message should be added
+to the `errors` collection if it fails and how this message should be formatted,
+respectively.
+
+The `:on` option takes one of the values `:create` or `:update`. There is a
+default error message for each one of the validation helpers. These messages
+are used when the `:message` option isn't specified. `"%{attribute} %{message}"`
+is the default for all validation helpers `:full_message_format` option.
+Let's take a look at each one of the available helpers.
 
 ### `acceptance`
 
@@ -300,6 +303,28 @@ You can also pass in a custom message via the `message` option.
 ```ruby
 class Person < ApplicationRecord
   validates :terms_of_service, acceptance: { message: 'must be abided' }
+end
+```
+
+You can pass a message format via the `full_message_format` option.
+You can use both `attribute` and `message` to format your full error message.
+This format will take precedence over a format defined in a locale file using
+I18n.
+
+```ruby
+class Person < ApplicationRecord
+  validates :terms_of_service, acceptance: {
+    full_message_format: '** %{attribute} / %{message} **'
+  }
+end
+```
+
+Finally, you can pass format a custom message via the `full_message` option.
+This is the same as passing a custom message with the `"%{message}"` full message format
+
+```ruby
+class Person < ApplicationRecord
+  validates :terms_of_service, acceptance: { full_message: 'Terms must be agreed' }
 end
 ```
 
@@ -875,6 +900,63 @@ class Person < ApplicationRecord
       end
     }
 end
+```
+
+### `:full_message_format`
+
+This option allows you to format your full error message when calling
+`Error#full_message`. It can optionally contain any/all of `%{attribute}` and
+`%{message}` which will be dynamically replaced when validation fails. This
+replacement is done using the I18n gem, and the placeholders must match
+exactly, no spaces are allowed.
+
+```ruby
+class Person < ApplicationRecord
+  validates :name, presence: { full_message_format: "** %{attribute} /**/ %{message} **" }
+end
+```
+
+```irb
+person = Person.new(name: nil)
+person.valid?
+
+puts person.errors.full_messages
+=> ['** name /**/ must be present **']
+
+person.errors.where(:name).map(&:message)
+=> ["must be present"]
+```
+
+### `:full_message`
+
+This option is a helper passing both a custom `message` with `%{message}` as a `full_message_format`
+
+```ruby
+# These definitions are equivalent
+
+class Person < ApplicationRecord
+  validates :name, presence: {
+    full_message: 'Person requires a name'
+  }
+end
+
+class Person < ApplicationRecord
+  validates :name, presence: {
+    message: 'Person requires a name',
+    full_message_format: "%{message}"
+  }
+end
+```
+
+```irb
+person = Person.new(name: nil)
+person.valid?
+
+puts person.errors.full_messages
+=> ['Person requires a name']
+
+person.errors.where(:name).map(&:message)
+=> ['Person requires a name']
 ```
 
 ### `:on`
