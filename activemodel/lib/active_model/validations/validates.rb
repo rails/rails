@@ -99,8 +99,8 @@ module ActiveModel
       #   validates :token, length: 24, strict: TokenLengthException
       #
       #
-      # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+, +:strict+
-      # and +:message+ can be given to one specific validator, as a hash:
+      # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+, +:strict+,
+      # +:message+, +:full_message_format+ and +:full_message+ can be given to one specific validator, as a hash:
       #
       #   validates :password, presence: { if: :password_required?, message: 'is forgotten.' }, confirmation: true
       def validates(*attributes)

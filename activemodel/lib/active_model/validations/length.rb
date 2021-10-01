@@ -115,6 +115,8 @@ module ActiveModel
       # * <tt>:message</tt> - The error message to use for a <tt>:minimum</tt>,
       #   <tt>:maximum</tt>, or <tt>:is</tt> violation. An alias of the appropriate
       #   <tt>too_long</tt>/<tt>too_short</tt>/<tt>wrong_length</tt> message.
+      # * <tt>:full_message_format</tt> - Format of full_message (default is: "%{attribute} %{message}").
+      # * <tt>:full_message</tt> - A custom error message with "%{message}" as a full_message_format
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+ and +:strict+.

@@ -91,6 +91,8 @@ module ActiveModel
       #
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "is invalid").
+      # * <tt>:full_message_format</tt> - Format of full_message (default is: "%{attribute} %{message}").
+      # * <tt>:full_message</tt> - A custom error message with "%{message}" as a full_message_format
       # * <tt>:with</tt> - Regular expression that if the attribute matches will
       #   result in a successful validation. This can be provided as a proc or
       #   lambda returning regular expression which will be called at runtime.

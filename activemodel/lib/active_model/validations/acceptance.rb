@@ -95,6 +95,8 @@ module ActiveModel
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "must be
       #   accepted").
+      # * <tt>:full_message_format</tt> - Format of full_message (default is: "%{attribute} %{message}").
+      # * <tt>:full_message</tt> - A custom error message with "%{message}" as a full_message_format
       # * <tt>:accept</tt> - Specifies a value that is considered accepted.
       #   Also accepts an array of possible values. The default value is
       #   an array ["1", true], which makes it easy to relate to an HTML

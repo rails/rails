@@ -66,6 +66,8 @@ module ActiveModel
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "doesn't match
       #   <tt>%{translated_attribute_name}</tt>").
+      # * <tt>:full_message_format</tt> - Format of full_message (default is: "%{attribute} %{message}").
+      # * <tt>:full_message</tt> - A custom error message with "%{message}" as a full_message_format
       # * <tt>:case_sensitive</tt> - Looks for an exact match. Ignored by
       #   non-text columns (+true+ by default).
       #

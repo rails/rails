@@ -160,6 +160,8 @@ module ActiveModel
       #
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "is not a number").
+      # * <tt>:full_message_format</tt> - Format of full_message (default is: "%{attribute} %{message}").
+      # * <tt>:full_message</tt> - A custom error message with "%{message}" as a full_message_format
       # * <tt>:only_integer</tt> - Specifies whether the value has to be an
       #   integer (default is +false+).
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is
