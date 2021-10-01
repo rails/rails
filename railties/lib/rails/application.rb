@@ -584,7 +584,7 @@ module Rails
           key_file = Rails.root.join("tmp/development_secret.txt")
 
           if !File.exist?(key_file)
-            random_key = SecureRandom.hex(64)
+            random_key = SecureRandom.alphanumeric(128)
             FileUtils.mkdir_p(key_file.dirname)
             File.binwrite(key_file, random_key)
           end

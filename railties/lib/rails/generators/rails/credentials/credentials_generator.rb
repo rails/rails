@@ -48,7 +48,7 @@ module Rails
             #   secret_access_key: 345
 
             # Used as the base secret for all MessageVerifiers in Rails, including the one protecting cookies.
-            secret_key_base: #{SecureRandom.hex(64)}
+            secret_key_base: #{SecureRandom.alphanumeric(128)}
           YAML
         end
     end
