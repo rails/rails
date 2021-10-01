@@ -8,17 +8,19 @@ module ActiveModel
   # Represents one single error
   class Error
     CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank, :strict]
-    MESSAGE_OPTIONS = [:message, :full_message, :message_format]
+    MESSAGE_OPTIONS = [:message, :full_message, :full_message_format]
 
     class_attribute :i18n_customize_full_message, default: false
 
-    def self.full_message(attribute, message, base, message_format = nil) # :nodoc:
+    def self.full_message(attribute, message, base, full_message_format = nil) # :nodoc:
       return message if attribute == :base
 
       base_class = base.class
       attribute = attribute.to_s
 
-      if i18n_customize_full_message && base_class.respond_to?(:i18n_scope)
+      defaults = if full_message_format
+        [:"errors._hardcoded_format", full_message_format]
+      elsif i18n_customize_full_message && base_class.respond_to?(:i18n_scope)
         attribute = attribute.remove(/\[\d+\]/)
         parts = attribute.split(".")
         attribute_name = parts.pop
@@ -26,34 +28,26 @@ module ActiveModel
         attributes_scope = "#{base_class.i18n_scope}.errors.models"
 
         if namespace
-          defaults = base_class.lookup_ancestors.map do |klass|
+          base_class.lookup_ancestors.flat_map do |klass|
             [
               :"#{attributes_scope}.#{klass.model_name.i18n_key}/#{namespace}.attributes.#{attribute_name}.format",
               :"#{attributes_scope}.#{klass.model_name.i18n_key}/#{namespace}.format",
             ]
           end
         else
-          defaults = base_class.lookup_ancestors.map do |klass|
+          base_class.lookup_ancestors.flat_map do |klass|
             [
               :"#{attributes_scope}.#{klass.model_name.i18n_key}.attributes.#{attribute_name}.format",
               :"#{attributes_scope}.#{klass.model_name.i18n_key}.format",
             ]
           end
         end
-
-        defaults.flatten!
       else
-        defaults = []
+        []
       end
 
-
-      if message_format
-        defaults << :"errors._hardcoded_format"
-        defaults << message_format
-      else
-        defaults << :"errors.format"
-        defaults << "%{attribute} %{message}"
-      end
+      defaults << :"errors.format"
+      defaults << "%{attribute} %{message}"
 
       attr_name = attribute.tr(".", "_").humanize
       attr_name = base_class.human_attribute_name(attribute, {
@@ -115,7 +109,7 @@ module ActiveModel
 
       if full_message = @options.delete(:full_message)
         @options[:message] = full_message
-        @options[:message_format] ||= "%{message}"
+        @options[:full_message_format] ||= "%{message}"
       end
     end
 
@@ -167,7 +161,7 @@ module ActiveModel
     #   error.full_message
     #   # => "Name is too short (minimum is 5 characters)"
     def full_message
-      self.class.full_message(attribute, message, @base, @options[:message_format])
+      self.class.full_message(attribute, message, @base, @options[:full_message_format])
     end
 
     # See if error matches provided +attribute+, +type+ and +options+.

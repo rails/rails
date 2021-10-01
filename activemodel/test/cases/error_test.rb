@@ -181,21 +181,28 @@ class ErrorTest < ActiveModel::TestCase
     assert_equal "press the button", error.full_message
   end
 
-  test "full_message returns the given message when passed message_format option" do
-    error = ActiveModel::Error.new(Person.new, :name, message: "press the button", message_format: "%{message}")
+  test "full_message returns the given message when passed full_message_format option" do
+    error = ActiveModel::Error.new(Person.new, :name, message: "press the button", full_message_format: "%{message}")
     assert_equal "press the button", error.full_message
 
-    error = ActiveModel::Error.new(Person.new, :name, message: "should be valid", message_format: "%{attribute} %{message}")
+    error = ActiveModel::Error.new(Person.new, :name, message: "should be valid", full_message_format: "%{attribute} %{message}")
     assert_equal "name should be valid", error.full_message
 
-    error = ActiveModel::Error.new(Person.new, :name, :blank, message_format: "%{attribute} %{message}")
+    error = ActiveModel::Error.new(Person.new, :name, :blank, full_message_format: "%{attribute} %{message}")
     assert_equal "name can't be blank", error.full_message
 
-    error = ActiveModel::Error.new(Person.new, :name, :blank, message_format: "%{message}")
+    error = ActiveModel::Error.new(Person.new, :name, :blank, full_message_format: "%{message}")
     assert_equal "can't be blank", error.full_message
 
-    error = ActiveModel::Error.new(Person.new, :name, :blank, message_format: "something hardcoded")
+    error = ActiveModel::Error.new(Person.new, :name, :blank, full_message_format: "something hardcoded")
     assert_equal "something hardcoded", error.full_message
+
+    # Use a locale without errors.format
+    error = ActiveModel::Error.new(Person.new, :name, full_message: "can't be blank")
+    I18n.with_locale(:unknown) { assert_equal "can't be blank", error.full_message }
+
+    error = ActiveModel::Error.new(Person.new, :name, message: "can't be blank", full_message_format: "%{message}")
+    I18n.with_locale(:unknown) { assert_equal "can't be blank", error.full_message }
   end
 
   test "full_message returns the given message with the attribute name included" do
@@ -255,7 +262,7 @@ class ErrorTest < ActiveModel::TestCase
       allow_blank: false,
       strict: true,
       message: "message",
-      message_format: "%{message}",
+      full_message_format: "%{message}",
       full_message: "message",
     )
 
