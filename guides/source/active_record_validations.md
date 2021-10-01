@@ -1454,6 +1454,103 @@ irb> person.errors.size
 => 0
 ```
 
+Formatting Full Validation Messages
+-----------------------------------
+
+There are multiple ways to format your error messages.
+
+### i18n
+
+ActiveRecord and ActiveModels both use i18n as their main way to format a
+full validation message. When using i18n you can format your full messages by
+adding a format key to your locale file.
+
+To enable the formatting of full messages, the `i18n_customize_full_message`
+config must be set to true in your `config/application.rb` file.
+
+For example, if we have a class and locale defined as such
+
+```ruby
+class Person < ApplicationRecord
+  validates :name, presence: true
+  validates :age, numericality: true
+end
+```
+
+```yml
+activerecord:
+  errors:
+    models:
+      person:
+        attributes:
+          format: "** %{attribute} %{message} **"
+          name:
+            format: "-- %{message} --"
+            blank: "can't be blank"
+          age:
+            not_a_number: "is not a number"
+```
+
+You will get these results
+
+```irb
+person = Person.new.tap(&:valid?)
+
+person.errors.full_messages
+["-- can't be blank --", "** Age is not a number **"]
+
+person.errors.where(:age).map(&:message)
+["is not a number"]
+
+person.errors.where(:name).map(&:message)
+["can't be blank"]
+```
+
+### :full_message_format & :full_message options
+
+When not using i18n you can pass the `:full_message_format` option on a
+validation helper to format your full messages. This definition will take
+precedence over i18n. You can optionally use `%{attribute}` and `%{message}`
+which will be dynamically replaced when validation fails.
+
+`:full_message` option is a shorter version for a custom message with
+`"%{message}"` as `full_message_format`
+
+```ruby
+class Person
+  include ActiveModel::Model
+  attr_accessor :age, :name
+
+  validates :name, presence: { full_message: 'A person name cannot be blank' }
+  validates :age, numericality: {
+    message: 'The age must be a number',
+    full_message_format: '%{message}'
+  }
+end
+```
+
+```irb
+person = Person.new.tap(&:valid?)
+
+person.errors.full_messages
+["The age must be a number", "A person name cannot be blank"]
+
+person.errors.where(:name).map(&:message)
+["A person name cannot be blank"]
+
+# works with Errors#add
+
+person = Person.new
+person.errors.add(:name, full_message: 'A person name cannot be blank')
+person.errors.add(:age, 'The age must be a number', full_message_format: '%{message}')
+
+person.errors.full_messages
+["The age must be a number", "A person name cannot be blank"]
+
+person.errors.where(:name).map(&:message)
+["A person name cannot be blank"]
+```
+
 Displaying Validation Errors in Views
 -------------------------------------
 
