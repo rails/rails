@@ -934,7 +934,7 @@ XML
   def test_fixture_file_upload_output_deprecation_when_file_fixture_path_is_not_set
     TestCaseTest.stub :fixture_path, File.expand_path("../fixtures", __dir__) do
       TestCaseTest.stub :file_fixture_path, nil do
-        assert_deprecated(/In Rails 6.2, the path needs to be relative to `file_fixture_path`/) do
+        assert_deprecated(/In Rails 7.0, the path needs to be relative to `file_fixture_path`/) do
           fixture_file_upload("multipart/ruby_on_rails.jpg", "image/jpg")
         end
       end
@@ -968,6 +968,16 @@ XML
         assert_deprecated(expected) do
           uploaded_file = fixture_file_upload("multipart/ruby_on_rails.jpg", "image/jpg")
           assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
+        end
+      end
+    end
+  end
+
+  def test_fixture_file_upload_fixture_path_same_as_file_fixture_path
+    TestCaseTest.stub :fixture_path, File.expand_path("../fixtures/multipart", __dir__) do
+      TestCaseTest.stub :file_fixture_path, File.expand_path("../fixtures/multipart", __dir__) do
+        assert_not_deprecated do
+          fixture_file_upload("ruby_on_rails.jpg", "image/jpg")
         end
       end
     end
