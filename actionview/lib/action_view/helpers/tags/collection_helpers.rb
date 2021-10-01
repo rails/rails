@@ -54,7 +54,7 @@ module ActionView
               accept = if current_value.respond_to?(:call)
                 current_value.call(item)
               else
-                Array(current_value).map(&:to_s).include?(value.to_s)
+                Array(current_value).any? { |cv| cv.to_s == value.to_s }
               end
 
               if accept
