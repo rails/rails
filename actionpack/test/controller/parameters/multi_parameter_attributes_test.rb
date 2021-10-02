@@ -23,17 +23,19 @@ class MultiParameterAttributesTest < ActiveSupport::TestCase
 
     assert_predicate permitted, :permitted?
 
-    assert_equal "2012", permitted[:book]["shipped_at(1i)"]
-    assert_equal "3", permitted[:book]["shipped_at(2i)"]
-    assert_equal "25", permitted[:book]["shipped_at(3i)"]
-    assert_equal "10", permitted[:book]["shipped_at(4i)"]
-    assert_equal "15", permitted[:book]["shipped_at(5i)"]
+    book_params = permitted.param_at(:book)
 
-    assert_equal "R$", permitted[:book]["price(1)"]
-    assert_equal "2.02", permitted[:book]["price(2f)"]
+    assert_equal "2012", book_params["shipped_at(1i)"]
+    assert_equal "3", book_params["shipped_at(2i)"]
+    assert_equal "25", book_params["shipped_at(3i)"]
+    assert_equal "10", book_params["shipped_at(4i)"]
+    assert_equal "15", book_params["shipped_at(5i)"]
 
-    assert_nil permitted[:book]["published_at(1i)"]
-    assert_nil permitted[:book]["published_at(2i)"]
-    assert_nil permitted[:book]["published_at(3i)"]
+    assert_equal "R$", book_params["price(1)"]
+    assert_equal "2.02", book_params["price(2f)"]
+
+    assert_nil book_params["published_at(1i)"]
+    assert_nil book_params["published_at(2i)"]
+    assert_nil book_params["published_at(3i)"]
   end
 end

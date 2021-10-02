@@ -24,3 +24,7 @@
 #   "X-Permitted-Cross-Domain-Policies" => "none",
 #   "Referrer-Policy" => "strict-origin-when-cross-origin"
 # }
+#
+# Only allow calling `[]` on scalar-types.
+# Rails.application.config.permit_accessor_on_non_scalar_parameter_types = false
+

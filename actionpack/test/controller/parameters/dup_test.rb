@@ -46,11 +46,11 @@ class ParametersDupTest < ActiveSupport::TestCase
 
   test "deep_dup content" do
     dupped_params = @params.deep_dup
-    dupped_params[:person][:age] = "45"
-    dupped_params[:person][:addresses].clear
+    dupped_params.param_at(:person)[:age] = "45"
+    dupped_params.dig(:person, :addresses).clear
 
-    assert_not_equal @params[:person][:age], dupped_params[:person][:age]
-    assert_not_equal @params[:person][:addresses], dupped_params[:person][:addresses]
+    assert_not_equal @params.dig(:person, :age), dupped_params.dig(:person, :age)
+    assert_not_equal @params.dig(:person, :addresses), dupped_params.dig(:person, :addresses)
   end
 
   test "deep_dup @permitted" do

@@ -134,6 +134,8 @@ module ActionController
 
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
+    cattr_accessor :permit_accessor_on_non_scalar_parameter_types, instance_accessor: true
+
     ##
     # :method: as_json
     #
@@ -488,7 +490,7 @@ module ActionController
     # for example.
     def require(key)
       return key.map { |k| require(k) } if key.is_a?(Array)
-      value = self[key]
+      value = param_at(key)
       if value.present? || value == false
         value
       else
@@ -629,20 +631,49 @@ module ActionController
       params.permit!
     end
 
-    # Returns a parameter for the given +key+. If not found,
-    # returns +nil+.
+    # Returns a parameter for the given +key+.
+    # If not found, returns +nil+.
+    #
+    #   params = ActionController::Parameters.new(color: "blue" })
+    #   params[:color] # => "blue"
+    #   params[:none]  # => nil
+    #
+    # For nested parameters and Arrays this is deprecated. Use +param_at+ or
+    # +dig+ instead.
     #
     #   params = ActionController::Parameters.new(person: { name: "Francesco" })
     #   params[:person] # => #<ActionController::Parameters {"name"=>"Francesco"} permitted: false>
-    #   params[:none]   # => nil
     def [](key)
-      convert_hashes_to_parameters(key, @parameters[key])
+      value = convert_hashes_to_parameters(key, @parameters[key])
+      if non_scalar?(value)
+        if self.class.permit_accessor_on_non_scalar_parameter_types
+          deprecation_message = (<<-MSG.squish)
+            Calling [] for nested parameters and Arrays is deprecated and will not be permitted
+            in Rails 7.2. Use param_at or dig instead.
+          MSG
+          ActiveSupport::Deprecation::DeprecatedObjectProxy.new(value, deprecation_message)
+        else
+          permit[key]
+        end
+      else
+        value
+      end
     end
 
     # Assigns a value to a given +key+. The given key may still get filtered out
     # when +permit+ is called.
     def []=(key, value)
       @parameters[key] = value
+    end
+
+    # Returns a parameter for the given +key+. If not found,
+    # returns +nil+.
+    #
+    #   params = ActionController::Parameters.new(person: { name: "Francesco" })
+    #   params.param_at(:person) # => #<ActionController::Parameters {"name"=>"Francesco"} permitted: false>
+    #   params[:none]   # => nil
+    def param_at(key)
+      convert_hashes_to_parameters(key, @parameters[key])
     end
 
     # Returns a parameter for the given +key+. If the +key+
@@ -1052,15 +1083,15 @@ module ActionController
       def permitted_scalar_filter(params, permitted_key)
         permitted_key = permitted_key.to_s
 
-        if has_key?(permitted_key) && permitted_scalar?(self[permitted_key])
-          params[permitted_key] = self[permitted_key]
+        if has_key?(permitted_key) && permitted_scalar?(param_at(permitted_key))
+          params[permitted_key] = param_at(permitted_key)
         end
 
         each_key do |key|
           next unless key =~ /\(\d+[if]?\)\z/
           next unless $~.pre_match == permitted_key
 
-          params[key] = self[key] if permitted_scalar?(self[key])
+          params[key] = self.param_at(key) if permitted_scalar?(param_at(key))
         end
       end
 
@@ -1086,7 +1117,7 @@ module ActionController
 
           if filter[key] == EMPTY_ARRAY
             # Declaration { comment_ids: [] }.
-            array_of_permitted_scalars?(self[key]) do |val|
+            array_of_permitted_scalars?(param_at(key)) do |val|
               params[key] = val
             end
           elsif filter[key] == EMPTY_HASH

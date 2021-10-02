@@ -4,11 +4,11 @@ require "abstract_unit"
 
 class PeopleController < ActionController::Base
   def create
-    render plain: params[:person].permitted? ? "permitted" : "forbidden"
+    render plain: params.param_at(:person).permitted? ? "permitted" : "forbidden"
   end
 
   def create_with_permit
-    render plain: params[:person].permit(:name).permitted? ? "permitted" : "forbidden"
+    render plain: params.param_at(:person).permit(:name).permitted? ? "permitted" : "forbidden"
   end
 end
 

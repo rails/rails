@@ -46,8 +46,8 @@ class ParametersPermitTest < ActiveSupport::TestCase
 
     walk_permitted params
 
-    sanitized = params[:foo].permit(bar: [:baz])
-    assert_equal({ "0" => { "baz" => "hello" } }, sanitized[:bar].to_unsafe_h)
+    sanitized = params.require(:foo).permit(bar: [:baz])
+    assert_equal({ "0" => { "baz" => "hello" } }, sanitized.param_at(:bar).to_unsafe_h)
   end
 
   test "if nothing is permitted, the hash becomes empty" do
@@ -142,7 +142,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   test "key to empty array: empty arrays pass" do
     params = ActionController::Parameters.new(id: [])
     permitted = params.permit(id: [])
-    assert_equal [], permitted[:id]
+    assert_equal [], permitted.param_at(:id)
   end
 
   test "do not break params filtering on nil values" do
@@ -150,7 +150,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
 
     permitted = params.permit(:a, c: [], b: [])
     assert_equal 1, permitted[:a]
-    assert_equal [1, 2, 3], permitted[:b]
+    assert_equal [1, 2, 3], permitted.param_at(:b)
     assert_nil permitted[:c]
   end
 
@@ -158,7 +158,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     [["foo"], [1], ["foo", "bar"], [1, 2, 3]].each do |array|
       params = ActionController::Parameters.new(id: array)
       permitted = params.permit(id: [])
-      assert_equal array, permitted[:id]
+      assert_equal array, permitted.param_at(:id)
     end
   end
 
@@ -198,16 +198,16 @@ class ParametersPermitTest < ActiveSupport::TestCase
     permitted = params.permit(:username, preferences: {}, hacked: {})
 
     assert_equal "fxn",             permitted[:username]
-    assert_equal "Marazul",         permitted[:preferences][:scheme]
-    assert_equal "Source Code Pro", permitted[:preferences][:font][:name]
-    assert_equal 12,                permitted[:preferences][:font][:size]
-    assert_equal [4, 8, 12, 16],    permitted[:preferences][:tabstops]
-    assert_equal [true, false],     permitted[:preferences][:suspicious]
-    assert_equal :a,                permitted[:preferences][:dubious][0][:a]
-    assert_equal :c,                permitted[:preferences][:dubious][1][:c]
+    assert_equal "Marazul",         permitted.dig(:preferences, :scheme)
+    assert_equal "Source Code Pro", permitted.dig(:preferences, :font, :name)
+    assert_equal 12,                permitted.dig(:preferences, :font, :size)
+    assert_equal [4, 8, 12, 16],    permitted.dig(:preferences, :tabstops)
+    assert_equal [true, false],     permitted.dig(:preferences, :suspicious)
+    assert_equal :a,                permitted.dig(:preferences, :dubious, 0, :a)
+    assert_equal :c,                permitted.dig(:preferences, :dubious, 1, :c)
 
-    assert_filtered_out permitted[:preferences][:dubious][0], :b
-    assert_filtered_out permitted[:preferences], :injected
+    assert_filtered_out permitted.dig(:preferences, :dubious, 0), :b
+    assert_filtered_out permitted.param_at(:preferences), :injected
     assert_filtered_out permitted, :hacked
   end
 
@@ -226,7 +226,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
 
   test "hashes in array values get wrapped" do
     params = ActionController::Parameters.new(foo: [{}, {}])
-    params[:foo].each do |hash|
+    params.param_at(:foo).each do |hash|
       assert_not_predicate hash, :permitted?
     end
   end
@@ -236,7 +236,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   # optimization here.
   test "arrays are converted at most once" do
     params = ActionController::Parameters.new(foo: [{}])
-    assert_same params[:foo], params[:foo]
+    assert_same params.param_at(:foo), params.param_at(:foo)
   end
 
   # Strong params has an internal cache to avoid duplicated loops in the most
@@ -249,21 +249,21 @@ class ParametersPermitTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new(users: [{ id: 1 }])
 
     permitted = params.permit(users: [:id])
-    permitted[:users] << { injected: 1 }
-    assert_not_predicate permitted[:users].last, :permitted?
+    permitted.param_at(:users) << { injected: 1 }
+    assert_not_predicate permitted.param_at(:users).last, :permitted?
   end
 
   test "grow until set rehashes" do
     params = ActionController::Parameters.new(users: [{ id: 1 }])
 
     permitted = params.permit(users: [:id])
-    permitted[:users] << { injected: 1 }
+    permitted.param_at(:users) << { injected: 1 }
     20.times { |i|
       list = ["foo#{i}"]
       permitted[:xx] = list
-      assert_equal permitted[:xx], list
+      assert_equal permitted.param_at(:xx), list
     }
-    assert_not_predicate permitted[:users].last, :permitted?
+    assert_not_predicate permitted.param_at(:users).last, :permitted?
   end
 
   test "fetch doesn't raise ParameterMissing exception if there is a default" do
@@ -314,7 +314,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     @params.merge!(other_params)
 
     assert_equal "1234", @params[:id]
-    assert_equal "32", @params[:person][:age]
+    assert_equal "32", @params.dig(:person, :age)
   end
 
   test "#reverse_merge with parameters" do
@@ -322,7 +322,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     merged_params = @params.reverse_merge(default_params)
 
     assert_equal "1234", merged_params[:id]
-    assert_not_predicate merged_params[:person], :empty?
+    assert_not_predicate merged_params.param_at(:person), :empty?
   end
 
   test "#with_defaults is an alias of reverse_merge" do
@@ -330,7 +330,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     merged_params = @params.with_defaults(default_params)
 
     assert_equal "1234", merged_params[:id]
-    assert_not_predicate merged_params[:person], :empty?
+    assert_not_predicate merged_params.param_at(:person), :empty?
   end
 
   test "not permitted is sticky beyond reverse_merge" do
@@ -347,7 +347,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     @params.reverse_merge!(default_params)
 
     assert_equal "1234", @params[:id]
-    assert_not_predicate @params[:person], :empty?
+    assert_not_predicate @params.param_at(:person), :empty?
   end
 
   test "#with_defaults! is an alias of reverse_merge!" do
@@ -355,26 +355,26 @@ class ParametersPermitTest < ActiveSupport::TestCase
     @params.with_defaults!(default_params)
 
     assert_equal "1234", @params[:id]
-    assert_not_predicate @params[:person], :empty?
+    assert_not_predicate @params.param_at(:person), :empty?
   end
 
   test "modifying the parameters" do
-    @params[:person][:hometown] = "Chicago"
-    @params[:person][:family] = { brother: "Jonas" }
+    @params.param_at(:person)[:hometown] = "Chicago"
+    @params.param_at(:person)[:family] = { brother: "Jonas" }
 
-    assert_equal "Chicago", @params[:person][:hometown]
-    assert_equal "Jonas", @params[:person][:family][:brother]
+    assert_equal "Chicago", @params.dig(:person, :hometown)
+    assert_equal "Jonas", @params.dig(:person, :family, :brother)
   end
 
   test "permit! is recursive" do
     @params[:nested_array] = [[{ x: 2, y: 3 }, { x: 21, y: 42 }]]
     @params.permit!
     assert_predicate @params, :permitted?
-    assert_predicate @params[:person], :permitted?
-    assert_predicate @params[:person][:name], :permitted?
-    assert_predicate @params[:person][:addresses][0], :permitted?
-    assert_predicate @params[:nested_array][0][0], :permitted?
-    assert_predicate @params[:nested_array][0][1], :permitted?
+    assert_predicate @params.dig(:person), :permitted?
+    assert_predicate @params.dig(:person, :name), :permitted?
+    assert_predicate @params.dig(:person, :addresses, 0), :permitted?
+    assert_predicate @params.dig(:nested_array, 0, 0), :permitted?
+    assert_predicate @params.dig(:nested_array, 0, 1), :permitted?
   end
 
   test "permitted takes a default value when Parameters.permit_all_parameters is set" do
@@ -384,13 +384,13 @@ class ParametersPermitTest < ActiveSupport::TestCase
     })
 
     assert_predicate params.slice(:person), :permitted?
-    assert_predicate params[:person][:name], :permitted?
+    assert_predicate params.dig(:person, :name), :permitted?
   ensure
     ActionController::Parameters.permit_all_parameters = false
   end
 
   test "permitting parameters as an array" do
-    assert_equal "32", @params[:person].permit([ :age ])[:age]
+    assert_equal "32", @params.param_at(:person).permit([ :age ])[:age]
   end
 
   test "to_h raises UnfilteredParameters on unfiltered params" do
@@ -458,18 +458,18 @@ class ParametersPermitTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new("f" => { "language_facet" => ["Tibetan"] })
     expected = { "f" => { "language_facet" => ["Tibetan"] } }
 
-    assert_instance_of ActionController::Parameters, params["f"]
+    assert_instance_of ActionController::Parameters, params.param_at("f")
     assert_equal expected, params.to_unsafe_h
   end
 
   test "to_unsafe_h does not mutate the parameters" do
     params = ActionController::Parameters.new("f" => { "language_facet" => ["Tibetan"] })
-    params[:f]
+    params.param_at(:f)
 
     params.to_unsafe_h
 
     assert_not_predicate params, :permitted?
-    assert_not_predicate params[:f], :permitted?
+    assert_not_predicate params.param_at(:f), :permitted?
   end
 
   test "to_h only deep dups Ruby collections" do

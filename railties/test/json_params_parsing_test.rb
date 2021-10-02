@@ -21,8 +21,8 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     app = ->(env) {
       request = ActionDispatch::Request.new env
       params = ActionController::Parameters.new request.parameters
-      if params[:t]
-        klass.find_by_title(params[:t])
+      if params.param_at(:t)
+        klass.find_by_title(params.param_at(:t))
       else
         nil
       end

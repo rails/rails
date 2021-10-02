@@ -7,9 +7,9 @@ class RespondToController < ActionController::Base
   layout :set_layout
 
   before_action {
-    case params[:v]
+    case params.param_at(:v)
     when String then request.variant = params[:v].to_sym
-    when Array then request.variant = params[:v].map(&:to_sym)
+    when Array then request.variant = params.param_at(:v).map(&:to_sym)
     end
   }
 

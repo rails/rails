@@ -272,6 +272,10 @@ module Rails
               "Referrer-Policy" => "strict-origin-when-cross-origin"
             }
           end
+
+          if respond_to?(:action_controller)
+            action_controller.permit_accessor_on_non_scalar_parameter_types = false
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

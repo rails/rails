@@ -15,7 +15,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
 
     def dump_params_keys(hash = params)
       hash.keys.sort.each_with_object(+"") do |k, s|
-        value = hash[k]
+        value = hash.param_at(k)
 
         if value.is_a?(Hash) || value.is_a?(ActionController::Parameters)
           value = "(#{dump_params_keys(value)})"
@@ -49,7 +49,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
 
       assert_equal "entry", @controller.response.body
       assert @controller.params.has_key?(:entry)
-      assert_equal "content...", @controller.params["entry"]["summary"]
+      assert_equal "content...", @controller.params.dig("entry", "summary")
     end
   end
 
@@ -61,7 +61,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
 
       assert_equal "entry", @controller.response.body
       assert @controller.params.has_key?(:entry)
-      assert_equal "content...", @controller.params["entry"]["summary"]
+      assert_equal "content...", @controller.params.dig("entry", "summary")
     end
   end
 
@@ -94,7 +94,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
         params: '{"first-key":{"sub-key":"..."}}',
         headers: { "CONTENT_TYPE" => "application/json" }
       assert_equal "action, controller, first-key(sub-key), full", @controller.response.body
-      assert_equal "...", @controller.params["first-key"]["sub-key"]
+      assert_equal "...", @controller.params.dig("first-key", "sub-key")
     end
   end
 

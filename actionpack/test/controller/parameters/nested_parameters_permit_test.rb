@@ -33,16 +33,16 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
     permitted = params.permit book: [ :title, { authors: [ :name ] }, { details: :pages }, :id ]
 
     assert_predicate permitted, :permitted?
-    assert_equal "Romeo and Juliet", permitted[:book][:title]
-    assert_equal "William Shakespeare", permitted[:book][:authors][0][:name]
-    assert_equal "Christopher Marlowe", permitted[:book][:authors][1][:name]
-    assert_equal 200, permitted[:book][:details][:pages]
+    assert_equal "Romeo and Juliet", permitted.dig(:book, :title)
+    assert_equal "William Shakespeare", permitted.dig(:book, :authors, 0, :name)
+    assert_equal "Christopher Marlowe", permitted.dig(:book, :authors, 1, :name)
+    assert_equal 200, permitted.dig(:book, :details, :pages)
 
     assert_filtered_out permitted, :magazine
-    assert_filtered_out permitted[:book], :id
-    assert_filtered_out permitted[:book][:details], :genre
-    assert_filtered_out permitted[:book][:authors][0], :born
-    assert_filtered_out permitted[:book][:authors][2], :name
+    assert_filtered_out permitted.dig(:book), :id
+    assert_filtered_out permitted.dig(:book, :details), :genre
+    assert_filtered_out permitted.dig(:book, :authors, 0), :born
+    assert_filtered_out permitted.dig(:book, :authors, 2), :name
   end
 
   test "permitted nested parameters with a string or a symbol as a key" do
@@ -56,17 +56,17 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
 
     permitted = params.permit book: [ { "authors" => [ :name ] } ]
 
-    assert_equal "William Shakespeare", permitted[:book]["authors"][0][:name]
-    assert_equal "William Shakespeare", permitted[:book][:authors][0][:name]
-    assert_equal "Christopher Marlowe", permitted[:book]["authors"][1][:name]
-    assert_equal "Christopher Marlowe", permitted[:book][:authors][1][:name]
+    assert_equal "William Shakespeare", permitted.dig(:book, "authors", 0, :name)
+    assert_equal "William Shakespeare", permitted.dig(:book, :authors, 0, :name)
+    assert_equal "Christopher Marlowe", permitted.dig(:book, "authors", 1, :name)
+    assert_equal "Christopher Marlowe", permitted.dig(:book, :authors, 1, :name)
 
     permitted = params.permit book: [ { authors: [ :name ] } ]
 
-    assert_equal "William Shakespeare", permitted[:book]["authors"][0][:name]
-    assert_equal "William Shakespeare", permitted[:book][:authors][0][:name]
-    assert_equal "Christopher Marlowe", permitted[:book]["authors"][1][:name]
-    assert_equal "Christopher Marlowe", permitted[:book][:authors][1][:name]
+    assert_equal "William Shakespeare", permitted.dig(:book, "authors", 0, :name)
+    assert_equal "William Shakespeare", permitted.dig(:book, :authors, 0, :name)
+    assert_equal "Christopher Marlowe", permitted.dig(:book, "authors", 1, :name)
+    assert_equal "Christopher Marlowe", permitted.dig(:book, :authors, 1, :name)
   end
 
   test "nested arrays with strings" do
@@ -76,7 +76,7 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
       })
 
     permitted = params.permit book: { genres: [] }
-    assert_equal ["Tragedy"], permitted[:book][:genres]
+    assert_equal ["Tragedy"], permitted.dig(:book, :genres)
   end
 
   test "permit may specify symbols or strings" do
@@ -88,8 +88,8 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
       magazine: "Shakespeare Today")
 
     permitted = params.permit({ book: ["title", :author] }, "magazine")
-    assert_equal "Romeo and Juliet", permitted[:book][:title]
-    assert_equal "William Shakespeare", permitted[:book][:author]
+    assert_equal "Romeo and Juliet", permitted.dig(:book, :title)
+    assert_equal "William Shakespeare", permitted.dig(:book, :author)
     assert_equal "Shakespeare Today", permitted[:magazine]
   end
 
@@ -100,7 +100,7 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
       })
 
     permitted = params.permit book: { genres: :type }
-    assert_empty permitted[:book][:genres]
+    assert_empty permitted.dig(:book, :genres)
   end
 
   test "nested array with strings that should be hashes and additional values" do
@@ -111,8 +111,8 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
       })
 
     permitted = params.permit book: [ :title, { genres: :type } ]
-    assert_equal "Romeo and Juliet", permitted[:book][:title]
-    assert_empty permitted[:book][:genres]
+    assert_equal "Romeo and Juliet", permitted.dig(:book, :title)
+    assert_empty permitted.dig(:book, :genres)
   end
 
   test "nested string that should be a hash" do
@@ -122,7 +122,7 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
       })
 
     permitted = params.permit book: { genre: :type }
-    assert_nil permitted[:book][:genre]
+    assert_nil permitted.dig(:book, :genre)
   end
 
   test "nested params with numeric keys" do
@@ -136,18 +136,18 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
       })
     permitted = params.permit book: { authors_attributes: [ :name ] }
 
-    assert_not_nil permitted[:book][:authors_attributes]["0"]
-    assert_not_nil permitted[:book][:authors_attributes]["1"]
-    assert_empty permitted[:book][:authors_attributes]["2"]
-    assert_equal "William Shakespeare", permitted[:book][:authors_attributes]["0"][:name]
-    assert_equal "Unattributed Assistant", permitted[:book][:authors_attributes]["1"][:name]
+    assert_not_nil permitted.dig(:book, :authors_attributes, "0")
+    assert_not_nil permitted.dig(:book, :authors_attributes, "1")
+    assert_empty permitted.dig(:book, :authors_attributes, "2")
+    assert_equal "William Shakespeare", permitted.dig(:book, :authors_attributes, "0", :name)
+    assert_equal "Unattributed Assistant", permitted.dig(:book, :authors_attributes, "1", :name)
 
     assert_equal(
       { "book" => { "authors_attributes" => { "0" => { "name" => "William Shakespeare" }, "1" => { "name" => "Unattributed Assistant" }, "2" => {} } } },
       permitted.to_h
     )
 
-    assert_filtered_out permitted[:book][:authors_attributes]["0"], :age_of_death
+    assert_filtered_out permitted.dig(:book, :authors_attributes, "0"), :age_of_death
   end
 
   test "nested params with non_numeric keys" do
@@ -162,13 +162,14 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
       })
     permitted = params.permit book: { authors_attributes: [ :name ] }
 
-    assert_not_nil permitted[:book][:authors_attributes]["0"]
-    assert_not_nil permitted[:book][:authors_attributes]["1"]
+    assert_not_nil permitted.dig(:book, :authors_attributes, "0")
+    assert_not_nil permitted.dig(:book, :authors_attributes, "1")
 
-    assert_nil permitted[:book][:authors_attributes]["2"]
-    assert_nil permitted[:book][:authors_attributes]["new_record"]
-    assert_equal "William Shakespeare", permitted[:book][:authors_attributes]["0"][:name]
-    assert_equal "Unattributed Assistant", permitted[:book][:authors_attributes]["1"][:name]
+    assert_nil permitted.dig(:book, :authors_attributes, "2")
+    assert_nil permitted.dig(:book, :authors_attributes, "new_record")
+
+    assert_equal "William Shakespeare", permitted.dig(:book, :authors_attributes, "0", :name)
+    assert_equal "Unattributed Assistant", permitted.dig(:book, :authors_attributes, "1", :name)
 
     assert_equal(
       { "book" => { "authors_attributes" => { "0" => { "name" => "William Shakespeare" }, "1" => { "name" => "Unattributed Assistant" } } } },
@@ -186,12 +187,12 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
       })
     permitted = params.permit book: { authors_attributes: [:name] }
 
-    assert_not_nil permitted[:book][:authors_attributes]["-1"]
-    assert_not_nil permitted[:book][:authors_attributes]["-2"]
-    assert_equal "William Shakespeare", permitted[:book][:authors_attributes]["-1"][:name]
-    assert_equal "Unattributed Assistant", permitted[:book][:authors_attributes]["-2"][:name]
+    assert_not_nil permitted.dig(:book, :authors_attributes, "-1")
+    assert_not_nil permitted.dig(:book, :authors_attributes, "-2")
+    assert_equal "William Shakespeare", permitted.dig(:book, :authors_attributes, "-1", :name)
+    assert_equal "Unattributed Assistant", permitted.dig(:book, :authors_attributes, "-2", :name)
 
-    assert_filtered_out permitted[:book][:authors_attributes]["-1"], :age_of_death
+    assert_filtered_out permitted.dig(:book, :authors_attributes, "-1"), :age_of_death
   end
 
   test "nested params with numeric keys addressing individual numeric keys" do
@@ -272,8 +273,8 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
         }
       })
     params = params.require(:product).permit(properties: ["0"])
-    assert_not_nil        params[:properties]["0"]
-    assert_nil            params[:properties]["1"]
-    assert_equal "prop0", params[:properties]["0"]
+    assert_not_nil        params.dig(:properties, "0")
+    assert_nil            params.dig(:properties, "1")
+    assert_equal "prop0", params.dig(:properties, "0")
   end
 end

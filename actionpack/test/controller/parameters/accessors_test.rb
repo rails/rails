@@ -6,6 +6,7 @@ require "action_controller/metal/strong_parameters"
 class ParametersAccessorsTest < ActiveSupport::TestCase
   setup do
     ActionController::Parameters.permit_all_parameters = false
+    ActionController::Parameters.permit_accessor_on_non_scalar_parameter_types = false
 
     @params = ActionController::Parameters.new(
       person: {
@@ -31,15 +32,41 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_same @params, @params.each_value { |_| _ }
   end
 
-  test "[] retains permitted status" do
-    @params.permit!
-    assert_predicate @params[:person], :permitted?
-    assert_predicate @params[:person][:name], :permitted?
+  test "[] doesn't permit parameter values" do
+    assert_nil @params[:person]
   end
 
-  test "[] retains unpermitted status" do
-    assert_not_predicate @params[:person], :permitted?
-    assert_not_predicate @params[:person][:name], :permitted?
+  test "[] doesn't permit array values" do
+    assert_nil @params.param_at(:person)[:addresses]
+  end
+
+  test "[] returns a deprecation proxy for parameter values" do
+    ActionController::Parameters.permit_accessor_on_non_scalar_parameter_types = true
+    assert_deprecated do
+      @params[:person][:name]
+    end
+  ensure
+    ActionController::Parameters.permit_accessor_on_non_scalar_parameter_types = false
+  end
+
+  test "[] returns a deprecation proxy for array values" do
+    ActionController::Parameters.permit_accessor_on_non_scalar_parameter_types = true
+    assert_deprecated do
+      @params.param_at(:person)[:addresses].first
+    end
+  ensure
+    ActionController::Parameters.permit_accessor_on_non_scalar_parameter_types = false
+  end
+
+  test "param_at retains permitted status" do
+    @params.permit!
+    assert_predicate @params.param_at(:person), :permitted?
+    assert_predicate @params.param_at(:person).param_at(:name), :permitted?
+  end
+
+  test "param_at retains unpermitted status" do
+    assert_not_predicate @params.param_at(:person), :permitted?
+    assert_not_predicate @params.param_at(:person).param_at(:name), :permitted?
   end
 
   test "as_json returns the JSON representation of the parameters hash" do
@@ -141,23 +168,23 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   test "except retains permitted status" do
     @params.permit!
     assert_predicate @params.except(:person), :permitted?
-    assert_predicate @params[:person].except(:name), :permitted?
+    assert_predicate @params.param_at(:person).except(:name), :permitted?
   end
 
   test "except retains unpermitted status" do
     assert_not_predicate @params.except(:person), :permitted?
-    assert_not_predicate @params[:person].except(:name), :permitted?
+    assert_not_predicate @params.param_at(:person).except(:name), :permitted?
   end
 
   test "fetch retains permitted status" do
     @params.permit!
     assert_predicate @params.fetch(:person), :permitted?
-    assert_predicate @params[:person].fetch(:name), :permitted?
+    assert_predicate @params.param_at(:person).fetch(:name), :permitted?
   end
 
   test "fetch retains unpermitted status" do
     assert_not_predicate @params.fetch(:person), :permitted?
-    assert_not_predicate @params[:person].fetch(:name), :permitted?
+    assert_not_predicate @params.param_at(:person).fetch(:name), :permitted?
   end
 
   test "has_key? returns true if the given key is present in the params" do
@@ -204,7 +231,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "keys returns an array of the keys of the params" do
     assert_equal ["person"], @params.keys
-    assert_equal ["age", "name", "addresses"], @params[:person].keys
+    assert_equal ["age", "name", "addresses"], @params.param_at(:person).keys
   end
 
   test "reject retains permitted status" do
@@ -312,12 +339,12 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   test "values_at retains permitted status" do
     @params.permit!
     assert_predicate @params.values_at(:person).first, :permitted?
-    assert_predicate @params[:person].values_at(:name).first, :permitted?
+    assert_predicate @params.param_at(:person).values_at(:name).first, :permitted?
   end
 
   test "values_at retains unpermitted status" do
     assert_not_predicate @params.values_at(:person).first, :permitted?
-    assert_not_predicate @params[:person].values_at(:name).first, :permitted?
+    assert_not_predicate @params.param_at(:person).values_at(:name).first, :permitted?
   end
 
   test "is equal to Parameters instance with same params" do
@@ -393,6 +420,17 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_kind_of ActionController::Parameters, @params.dig(:person)
     assert_kind_of ActionController::Parameters, @params.dig(:person, :addresses, 0)
     assert @params.dig(:person, :addresses).all?(ActionController::Parameters)
+  end
+
+  test "dig retains permitted status" do
+    @params.permit!
+    assert_predicate @params.dig(:person), :permitted?
+    assert_predicate @params.dig(:person, :name), :permitted?
+  end
+
+  test "dig retains unpermitted status" do
+    assert_not_predicate @params.dig(:person), :permitted?
+    assert_not_predicate @params.dig(:person, :name), :permitted?
   end
 
   test "mutating #dig return value mutates underlying parameters" do

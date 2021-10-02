@@ -34,6 +34,11 @@ module ActionController
             app.config.action_controller.always_permitted_parameters
         end
 
+        if app.config.action_controller[:permit_accessor_on_non_scalar_parameter_types]
+          ActionController::Parameters.permit_accessor_on_non_scalar_parameter_types =
+            options.permit_accessor_on_non_scalar_parameter_types
+        end
+
         action_on_unpermitted_parameters = options.action_on_unpermitted_parameters
 
         if action_on_unpermitted_parameters.nil?
@@ -69,6 +74,7 @@ module ActionController
         filtered_options = options.except(
           :log_query_tags_around_actions,
           :permit_all_parameters,
+          :permit_accessor_on_non_scalar_parameter_types,
           :action_on_unpermitted_parameters,
           :always_permitted_parameters,
           :wrap_parameters_by_default
