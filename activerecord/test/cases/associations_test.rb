@@ -702,14 +702,32 @@ class PreloaderTest < ActiveRecord::TestCase
 
     AuthorFavorite.create!(author: mary, favorite_author: bob)
 
+    associations = { similar_posts: :comments, favorite_authors: { similar_posts: :comments } }
+
     assert_queries(9) do
-      preloader = ActiveRecord::Associations::Preloader.new(records: [mary], associations: { similar_posts: :comments, favorite_authors: { similar_posts: :comments } })
+      preloader = ActiveRecord::Associations::Preloader.new(records: [mary], associations: associations)
       preloader.call
     end
 
     assert_no_queries do
       mary.similar_posts.map(&:comments).each(&:to_a)
       mary.favorite_authors.flat_map(&:similar_posts).map(&:comments).each(&:to_a)
+    end
+
+    # Preloading with automatic scope inversing reduces the number of queries
+    tag_reflection = Tagging.reflect_on_association(:tag)
+    taggings_reflection = Tag.reflect_on_association(:taggings)
+
+    assert tag_reflection.scope
+    assert_not taggings_reflection.scope
+
+    with_automatic_scope_inversing(tag_reflection, taggings_reflection) do
+      mary.reload
+
+      assert_queries(8) do
+        preloader = ActiveRecord::Associations::Preloader.new(records: [mary], associations: associations)
+        preloader.call
+      end
     end
   end
 

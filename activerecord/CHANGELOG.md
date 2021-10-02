@@ -1,3 +1,46 @@
+*   Don't require `role` when passing `shard` to `connected_to`.
+
+    `connected_to` can now be called with a `shard` only. Note that `role` is still inherited if `connected_to` calls are nested.
+
+    *Eileen M. Uchitelle*
+
+*   Add option to lazily load the schema cache on the connection.
+
+    Previously, the only way to load the schema cache in Active Record was through the Railtie on boot. This option provides the ability to load the schema cache on the connection after it's been established. Loading the cache lazily on the connection can be beneficial for Rails applications that use multiple databases because it will load the cache at the time the connection is established. Currently Railties doesn't have access to the connections before boot.
+
+    To use the cache, set `config.active_record.lazily_load_schema_cache = true` in your application configuration. In addition a `schema_cache_path` should be set in your database configuration if you don't want to use the default "db/schema_cache.yml" path.
+
+    *Eileen M. Uchitelle*
+
+*   Allow automatic `inverse_of` detection for associations with scopes.
+
+    Automatic `inverse_of` detection now works for associations with scopes. For
+    example, the `comments` association here now automatically detects
+    `inverse_of: :post`, so we don't need to pass that option:
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      has_many :comments, -> { visible }
+    end
+
+    class Comment < ActiveRecord::Base
+      belongs_to :post
+    end
+    ```
+
+    Note that the automatic detection still won't work if the inverse
+    association has a scope. In this example a scope on the `post` association
+    would still prevent Rails from finding the inverse for the `comments`
+    association.
+
+    This will be the default for new apps in Rails 7. To opt in:
+
+    ```ruby
+    config.active_record.automatic_scope_inversing = true
+    ```
+
+    *Daniel Colson*, *Chris Bloom*
+
 *   Accept optional transaction args to `ActiveRecord::Locking::Pessimistic#with_lock`
 
     `#with_lock` now accepts transaction options like `requires_new:`,

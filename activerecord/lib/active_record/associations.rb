@@ -748,9 +748,10 @@ module ActiveRecord
       # inverse detection only works on #has_many, #has_one, and
       # #belongs_to associations.
       #
-      # <tt>:foreign_key</tt> and <tt>:through</tt> options on the associations,
-      # or a custom scope, will also prevent the association's inverse
-      # from being found automatically.
+      # <tt>:foreign_key</tt> and <tt>:through</tt> options on the associations
+      # will also prevent the association's inverse from being found automatically,
+      # as will a custom scopes in some cases. See further details in the
+      # {Active Record Associations guide}[https://guides.rubyonrails.org/association_basics.html#bi-directional-associations].
       #
       # The automatic guessing of the inverse association uses a heuristic based
       # on the name of the class, so it may not work for all associations,

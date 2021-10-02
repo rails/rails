@@ -711,6 +711,10 @@ support recycling cache key.
 Enables setting the inverse record when traversing `belongs_to` to `has_many`
 associations.
 
+#### `config.active_record.automatic_scope_inversing`
+
+Enables automatically inferring the `inverse_of` for associations with a scope.
+
 #### `config.active_record.legacy_connection_handling`
 
 Allows to enable new connection handling API. For applications using multiple
@@ -727,12 +731,6 @@ Allows specifying the Active Job queue to use for destroy jobs. When this option
 #### `config.active_record.enumerate_columns_in_select_statements`
 
 When true, will always include column names in `SELECT` statements, and avoid wildcard `SELECT * FROM ...` queries. This avoids prepared statement cache errors when adding columns to a PostgreSQL database for example. Defaults to `false`.
-
-#### `config.active_record.destroy_all_in_batches`
-
-Ensures `ActiveRecord::Relation#destroy_all` performs the record's deletion in
-batches. `ActiveRecord::Relation#destroy_all` will no longer return the collection
-of the deleted records after enabling this option.
 
 #### `config.active_record.verify_foreign_keys_for_fixtures`
 
@@ -1701,6 +1699,7 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.action_controller.silence_disabled_session_errors`: `false`
 - `config.action_mailer.smtp_timeout`: `5`
 - `config.active_storage.video_preview_arguments`: `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
+- `config.active_record.automatic_scope_inversing`: `true`
 - `config.active_record.verify_foreign_keys_for_fixtures`: `true`
 - `config.active_record.partial_inserts`: `false`
 - `config.active_storage.variant_processor`: `:vips`

@@ -587,7 +587,7 @@ Debug mode can also be enabled in Rails helper methods:
 
 The `:debug` option is redundant if debug mode is already on.
 
-You can also enable compression in development mode as a sanity check, and
+You can also enable compression in development mode, and
 disable it on-demand as required for debugging.
 
 In Production

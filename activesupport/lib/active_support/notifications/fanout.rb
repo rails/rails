@@ -108,23 +108,20 @@ module ActiveSupport
             end
           end
 
-          wrap_all pattern, subscriber_class.new(pattern, listener)
-        end
-
-        def self.wrap_all(pattern, subscriber)
-          unless pattern
-            AllMessages.new(subscriber)
-          else
-            subscriber
-          end
+          subscriber_class.new(pattern, listener)
         end
 
         class Matcher # :nodoc:
           attr_reader :pattern, :exclusions
 
           def self.wrap(pattern)
-            return pattern if String === pattern
-            new(pattern)
+            if String === pattern
+              pattern
+            elsif pattern.nil?
+              AllMessages.new
+            else
+              new(pattern)
+            end
           end
 
           def initialize(pattern)
@@ -138,6 +135,16 @@ module ActiveSupport
 
           def ===(name)
             pattern === name && !exclusions.include?(name)
+          end
+
+          class AllMessages
+            def ===(name)
+              true
+            end
+
+            def unsubscribe!(*)
+              false
+            end
           end
         end
 
@@ -175,10 +182,6 @@ module ActiveSupport
 
           def subscribed_to?(name)
             pattern === name
-          end
-
-          def matches?(name)
-            pattern && pattern === name
           end
 
           def unsubscribe!(name)
@@ -244,34 +247,6 @@ module ActiveSupport
             def build_event(name, id, payload)
               ActiveSupport::Notifications::Event.new name, nil, nil, id, payload
             end
-        end
-
-        class AllMessages # :nodoc:
-          def initialize(delegate)
-            @delegate = delegate
-          end
-
-          def start(name, id, payload)
-            @delegate.start name, id, payload
-          end
-
-          def finish(name, id, payload)
-            @delegate.finish name, id, payload
-          end
-
-          def publish(name, *args)
-            @delegate.publish name, *args
-          end
-
-          def subscribed_to?(name)
-            true
-          end
-
-          def unsubscribe!(*)
-            false
-          end
-
-          alias :matches? :===
         end
       end
     end
