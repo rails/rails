@@ -16,7 +16,7 @@ module Kindle
       puts "=> Using output dir: #{output_dir}"
       puts "=> Arranging html pages in document order"
       toc = File.read("toc.ncx")
-      doc = Nokogiri::XML(toc).xpath("//ncx:content", "ncx" => "http://www.daisy.org/z3986/2005/ncx/")
+      doc = Nokogiri::XML(toc).xpath("//ncx:content", "ncx": "http://www.daisy.org/z3986/2005/ncx/")
       html_pages = doc.filter_map { |c| c[:src] }.uniq
 
       generate_front_matter(html_pages)
@@ -87,15 +87,15 @@ module Kindle
     cover_gif = cover_jpg.sub(/jpg$/, "gif")
     puts `convert #{cover_jpg} #{cover_gif}`
     document = {
-      "doc_uuid" => x.at("package")["unique-identifier"],
-      "title" => x.at("title").inner_text.gsub(/\(.*$/, " v2"),
-      "publisher" => x.at("publisher").inner_text,
-      "author" => x.at("creator").inner_text,
-      "subject" => x.at("subject").inner_text,
-      "date" => x.at("date").inner_text,
-      "cover" => cover_gif,
-      "masthead" => nil,
-      "mobi_outfile" => mobi_outfile
+      "doc_uuid": x.at("package")["unique-identifier"],
+      "title": x.at("title").inner_text.gsub(/\(.*$/, " v2"),
+      "publisher": x.at("publisher").inner_text,
+      "author": x.at("creator").inner_text,
+      "subject": x.at("subject").inner_text,
+      "date": x.at("date").inner_text,
+      "cover": cover_gif,
+      "masthead": nil,
+      "mobi_outfile": mobi_outfile
     }
     puts document.to_yaml
     File.open("_document.yml", "w") { |f| f.puts document.to_yaml }

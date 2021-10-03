@@ -90,8 +90,8 @@ Here are some basic examples:
 ```ruby
 xml.em("emphasized")
 xml.em { xml.b("emph & bold") }
-xml.a("A Link", "href" => "https://rubyonrails.org")
-xml.target("name" => "compile", "option" => "fast")
+xml.a("A Link", "href": "https://rubyonrails.org")
+xml.target("name": "compile", "option": "fast")
 ```
 
 which would produce:
@@ -124,7 +124,7 @@ would produce something like:
 Below is a full-length RSS example actually used on Basecamp:
 
 ```ruby
-xml.rss("version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/") do
+xml.rss("version": "2.0", "xmlns:dc": "http://purl.org/dc/elements/1.1/") do
   xml.channel do
     xml.title(@feed_title)
     xml.link(@url)
