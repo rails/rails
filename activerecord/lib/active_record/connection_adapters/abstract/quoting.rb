@@ -12,7 +12,7 @@ module ActiveRecord
         if value.is_a?(Base)
           ActiveSupport::Deprecation.warn(<<~MSG)
             Passing an Active Record object to `quote` directly is deprecated
-            and will be no longer quoted as id value in Rails 6.2.
+            and will be no longer quoted as id value in Rails 7.0.
           MSG
           value = value.id_for_database
         end
@@ -27,14 +27,14 @@ module ActiveRecord
         if value.is_a?(Base)
           ActiveSupport::Deprecation.warn(<<~MSG)
             Passing an Active Record object to `type_cast` directly is deprecated
-            and will be no longer type casted as id value in Rails 6.2.
+            and will be no longer type casted as id value in Rails 7.0.
           MSG
           value = value.id_for_database
         end
 
         if column
           ActiveSupport::Deprecation.warn(<<~MSG)
-            Passing a column to `type_cast` is deprecated and will be removed in Rails 6.2.
+            Passing a column to `type_cast` is deprecated and will be removed in Rails 7.0.
           MSG
           type = lookup_cast_type_from_column(column)
           value = type.serialize(value)

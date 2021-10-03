@@ -140,8 +140,8 @@ class CalculationsTest < ActiveRecord::TestCase
       [9, 9] => 53
     }
     message = <<-MSG.squish
-      `maximum` with group by duplicated fields does no longer affect to result in Rails 6.2.
-      To migrate to Rails 6.2's behavior, use `uniq!(:group)` to deduplicate group fields
+      `maximum` with group by duplicated fields does no longer affect to result in Rails 7.0.
+      To migrate to Rails 7.0's behavior, use `uniq!(:group)` to deduplicate group fields
       (`accounts.uniq!(:group).maximum(:credit_limit)`).
     MSG
     assert_deprecated(message) do
@@ -156,8 +156,8 @@ class CalculationsTest < ActiveRecord::TestCase
       [9, 9, 9, 9] => 53
     }
     message = <<-MSG.squish
-      `minimum` with group by duplicated fields does no longer affect to result in Rails 6.2.
-      To migrate to Rails 6.2's behavior, use `uniq!(:group)` to deduplicate group fields
+      `minimum` with group by duplicated fields does no longer affect to result in Rails 7.0.
+      To migrate to Rails 7.0's behavior, use `uniq!(:group)` to deduplicate group fields
       (`accounts.uniq!(:group).minimum(:credit_limit)`).
     MSG
     assert_deprecated(message) do

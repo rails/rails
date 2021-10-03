@@ -287,7 +287,7 @@
 
     *Max Gurewitz*
 
-*   `URI.parser` is deprecated and will be removed in Rails 6.2. Use
+*   `URI.parser` is deprecated and will be removed in Rails 7.0. Use
     `URI::DEFAULT_PARSER` instead.
 
     *Jean Boussier*

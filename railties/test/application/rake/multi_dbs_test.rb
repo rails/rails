@@ -476,7 +476,7 @@ module ApplicationTests
 
           add_to_config("config.active_support.deprecation = :stderr")
           stderr_output = capture(:stderr) { rails("db:structure:#{command}:animals", stderr: true, allow_failure: true) }
-          assert_match(/DEPRECATION WARNING: Using `bin\/rails db:structure:#{command}:animals` is deprecated and will be removed in Rails 6.2/, stderr_output)
+          assert_match(/DEPRECATION WARNING: Using `bin\/rails db:structure:#{command}:animals` is deprecated and will be removed in Rails 7.0/, stderr_output)
         end
       end
 

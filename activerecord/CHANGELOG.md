@@ -595,7 +595,7 @@
 
         attribute :duration, :interval
 
-    To keep old behavior until 6.2 is released:
+    To keep old behavior until 7.0 is released:
 
         attribute :duration, :string
 
@@ -767,8 +767,8 @@
     *Ryuta Kamizono*
 
 *   Merging conditions on the same column no longer maintain both conditions,
-    and will be consistently replaced by the latter condition in Rails 6.2.
-    To migrate to Rails 6.2's behavior, use `relation.merge(other, rewhere: true)`.
+    and will be consistently replaced by the latter condition in Rails 7.0.
+    To migrate to Rails 7.0's behavior, use `relation.merge(other, rewhere: true)`.
 
     ```ruby
     # Rails 6.1 (IN clause is replaced by merger side equality condition)
@@ -777,10 +777,10 @@
     # Rails 6.1 (both conflict conditions exists, deprecated)
     Author.where(id: david.id..mary.id).merge(Author.where(id: bob)) # => []
 
-    # Rails 6.1 with rewhere to migrate to Rails 6.2's behavior
+    # Rails 6.1 with rewhere to migrate to Rails 7.0's behavior
     Author.where(id: david.id..mary.id).merge(Author.where(id: bob), rewhere: true) # => [bob]
 
-    # Rails 6.2 (same behavior with IN clause, mergee side condition is consistently replaced)
+    # Rails 7.0 (same behavior with IN clause, mergee side condition is consistently replaced)
     Author.where(id: [david.id, mary.id]).merge(Author.where(id: bob)) # => [bob]
     Author.where(id: david.id..mary.id).merge(Author.where(id: bob)) # => [bob]
     ```
@@ -872,7 +872,7 @@
 
 *   Deprecate aggregations with group by duplicated fields.
 
-    To migrate to Rails 6.2's behavior, use `uniq!(:group)` to deduplicate group fields.
+    To migrate to Rails 7.0's behavior, use `uniq!(:group)` to deduplicate group fields.
 
     ```ruby
     accounts = Account.group(:firm_id)
@@ -896,7 +896,7 @@
 
 *   Deprecate duplicated query annotations.
 
-    To migrate to Rails 6.2's behavior, use `uniq!(:annotate)` to deduplicate query annotations.
+    To migrate to Rails 7.0's behavior, use `uniq!(:annotate)` to deduplicate query annotations.
 
     ```ruby
     accounts = Account.where(id: [1, 2]).annotate("david and mary")
@@ -1317,13 +1317,13 @@
 
 *   Deprecate `#remove_connection` in favor of `#remove_connection_pool` when called on the handler.
 
-    `#remove_connection` is deprecated in order to support returning a `DatabaseConfig` object instead of a `Hash`. Use `#remove_connection_pool`, `#remove_connection` will be removed in 6.2.
+    `#remove_connection` is deprecated in order to support returning a `DatabaseConfig` object instead of a `Hash`. Use `#remove_connection_pool`, `#remove_connection` will be removed in Rails 7.0.
 
     *Eileen M. Uchitelle*, *John Crepezzi*
 
 *   Deprecate `#default_hash` and it's alias `#[]` on database configurations.
 
-    Applications should use `configs_for`. `#default_hash` and `#[]` will be removed in 6.2.
+    Applications should use `configs_for`. `#default_hash` and `#[]` will be removed in Rails 7.0.
 
     *Eileen M. Uchitelle*, *John Crepezzi*
 

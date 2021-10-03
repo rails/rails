@@ -100,7 +100,7 @@
         end
 
     `after_enqueue` and `after_perform` callbacks will no longer run if the callback chain is halted.
-    This behaviour is a breaking change and won't take effect until Rails 6.2.
+    This behaviour is a breaking change and won't take effect until Rails 7.0.
     To enable this behaviour in your app right now, you can add in your app's configuration file
     `config.active_job.skip_after_callbacks_if_terminated = true`.
 

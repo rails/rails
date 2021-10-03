@@ -168,8 +168,8 @@ module ActiveRecord
             else
               ActiveSupport::Deprecation.warn(<<-MSG.squish)
                 Merging (#{node.to_sql}) and (#{ref.to_sql}) no longer maintain
-                both conditions, and will be replaced by the latter in Rails 6.2.
-                To migrate to Rails 6.2's behavior, use `relation.merge(other, rewhere: true)`.
+                both conditions, and will be replaced by the latter in Rails 7.0.
+                To migrate to Rails 7.0's behavior, use `relation.merge(other, rewhere: true)`.
               MSG
               false
             end

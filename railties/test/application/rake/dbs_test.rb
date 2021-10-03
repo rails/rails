@@ -489,7 +489,7 @@ module ApplicationTests
         test "db:structure:#{command} is deprecated" do
           add_to_config("config.active_support.deprecation = :stderr")
           stderr_output = capture(:stderr) { rails("db:structure:#{command}", stderr: true, allow_failure: true) }
-          assert_match(/DEPRECATION WARNING: Using `bin\/rails db:structure:#{command}` is deprecated and will be removed in Rails 6.2/, stderr_output)
+          assert_match(/DEPRECATION WARNING: Using `bin\/rails db:structure:#{command}` is deprecated and will be removed in Rails 7.0/, stderr_output)
         end
       end
 
@@ -606,7 +606,7 @@ module ApplicationTests
       test "db:test:load_structure is deprecated" do
         add_to_config("config.active_support.deprecation = :stderr")
         stderr_output = capture(:stderr) { rails("db:test:load_structure", stderr: true, allow_failure: true) }
-        assert_match(/DEPRECATION WARNING: Using `bin\/rails db:test:load_structure` is deprecated and will be removed in Rails 6.2/, stderr_output)
+        assert_match(/DEPRECATION WARNING: Using `bin\/rails db:test:load_structure` is deprecated and will be removed in Rails 7.0/, stderr_output)
       end
 
       test "db:setup loads schema and seeds database" do

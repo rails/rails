@@ -79,13 +79,13 @@ module ActionMailbox
       def key
         if Rails.application.credentials.dig(:action_mailbox, :mailgun_api_key)
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Rails.application.credentials.action_mailbox.api_key is deprecated and will be ignored in Rails 6.2.
+            Rails.application.credentials.action_mailbox.api_key is deprecated and will be ignored in Rails 7.0.
             Use Rails.application.credentials.action_mailbox.signing_key instead.
           MSG
           Rails.application.credentials.dig(:action_mailbox, :mailgun_api_key)
         elsif ENV["MAILGUN_INGRESS_API_KEY"]
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            The MAILGUN_INGRESS_API_KEY environment variable is deprecated and will be ignored in Rails 6.2.
+            The MAILGUN_INGRESS_API_KEY environment variable is deprecated and will be ignored in Rails 7.0.
             Use MAILGUN_INGRESS_SIGNING_KEY instead.
           MSG
           ENV["MAILGUN_INGRESS_API_KEY"]

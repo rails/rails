@@ -630,7 +630,7 @@ module ActiveRecord
           if column.sql_type.start_with?("interval")
             precision_arguments = column.precision.presence && ", precision: #{column.precision}"
             ActiveSupport::Deprecation.warn(<<~WARNING)
-              The behavior of the `:interval` type will be changing in Rails 6.2
+              The behavior of the `:interval` type will be changing in Rails 7.0
               to return an `ActiveSupport::Duration` object. If you'd like to keep
               the old behavior, you can add this line to #{self.name} model:
 
