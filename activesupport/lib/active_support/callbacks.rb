@@ -289,7 +289,7 @@ module ActiveSupport
           new chain.name, filter, kind, options, chain.config
         end
 
-        attr_accessor :kind, :name
+        attr_accessor :kind, :name, :target
         attr_reader :chain_config, :filter
 
         def initialize(name, filter, kind, options, chain_config)
@@ -299,6 +299,7 @@ module ActiveSupport
           @filter  = filter
           @if      = check_conditionals(options[:if])
           @unless  = check_conditionals(options[:unless])
+          @target = options[:target]
         end
 
         def merge_conditional_options(chain, if_option:, unless_option:)
@@ -313,14 +314,17 @@ module ActiveSupport
           self.class.build chain, @filter, @kind, options
         end
 
-        def matches?(_kind, _filter)
-          @kind == _kind && filter == _filter
+        def matches?(_kind, _filter, _target = nil)
+          callback_match = @kind == _kind && filter == _filter
+          return callback_match unless _target
+
+          target == _target && callback_match
         end
 
         def duplicates?(other)
           case @filter
           when Symbol
-            matches?(other.kind, other.filter)
+            matches?(other.kind, other.filter, other.target)
           else
             false
           end
@@ -661,6 +665,8 @@ module ActiveSupport
         def set_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
 
+          options[:target] ||= self.name
+
           self_chain = get_callbacks name
           mapped = filters.map do |filter|
             Callback.build(self_chain, filter, type, options)
@@ -711,18 +717,18 @@ module ActiveSupport
 
           __update_callbacks(name) do |target, chain|
             filters.each do |filter|
-              callback = chain.find { |c| c.matches?(type, filter) }
+              while callback = chain.find { |c| c.matches?(type, filter) }
+                if !callback && options[:raise]
+                  raise ArgumentError, "#{type.to_s.capitalize} #{name} callback #{filter.inspect} has not been defined"
+                end
 
-              if !callback && options[:raise]
-                raise ArgumentError, "#{type.to_s.capitalize} #{name} callback #{filter.inspect} has not been defined"
+                if callback && (options.key?(:if) || options.key?(:unless))
+                  new_callback = callback.merge_conditional_options(chain, if_option: options[:if], unless_option: options[:unless])
+                  chain.insert(chain.index(callback), new_callback)
+                end
+
+                chain.delete(callback)
               end
-
-              if callback && (options.key?(:if) || options.key?(:unless))
-                new_callback = callback.merge_conditional_options(chain, if_option: options[:if], unless_option: options[:unless])
-                chain.insert(chain.index(callback), new_callback)
-              end
-
-              chain.delete(callback)
             end
             target.set_callbacks name, chain
           end
