@@ -156,30 +156,6 @@ Within the Ruby on Rails framework, there are a number of hooks provided for com
 }
 ```
 
-#### write_page.action_controller
-
-| Key     | Value             |
-| ------- | ----------------- |
-| `:path` | The complete path |
-
-```ruby
-{
-  path: '/users/1'
-}
-```
-
-#### expire_page.action_controller
-
-| Key     | Value             |
-| ------- | ----------------- |
-| `:path` | The complete path |
-
-```ruby
-{
-  path: '/users/1'
-}
-```
-
 #### start_processing.action_controller
 
 | Key           | Value                                                     |
