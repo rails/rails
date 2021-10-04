@@ -89,7 +89,7 @@ module ActiveSupport
 
         listeners.each do |s|
           yield s
-        rescue => e
+        rescue Exception => e
           exceptions ||= []
           exceptions << e
         end

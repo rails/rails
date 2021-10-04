@@ -5,7 +5,8 @@ require_relative "../abstract_unit"
 module ActiveSupport
   module Notifications
     class EventedTest < ActiveSupport::TestCase
-      class BadListenerException < RuntimeError; end
+      # we expect all exception types to be handled, so test with the most basic type
+      class BadListenerException < Exception; end
 
       class Listener
         attr_reader :events
