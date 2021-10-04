@@ -64,8 +64,8 @@ module Rails
         class_option :skip_javascript,     type: :boolean, aliases: "-J", default: name == "plugin",
                                            desc: "Skip JavaScript files"
 
-        class_option :skip_turbolinks,     type: :boolean, default: false,
-                                           desc: "Skip turbolinks gem"
+        class_option :skip_hotwire,        type: :boolean, default: false,
+                                           desc: "Skip Hotwire integration"
 
         class_option :skip_jbuilder,       type: :boolean, default: false,
                                            desc: "Skip jbuilder gem"
@@ -108,9 +108,9 @@ module Rails
         [rails_gemfile_entry,
          database_gemfile_entry,
          web_server_gemfile_entry,
-         assets_gemfile_entry,
-         webpacker_gemfile_entry,
          javascript_gemfile_entry,
+         hotwire_gemfile_entry,
+         css_gemfile_entry,
          jbuilder_gemfile_entry,
          psych_gemfile_entry,
          cable_gemfile_entry].flatten.find_all(&@gem_filter)
@@ -148,7 +148,7 @@ module Rails
           when /^https?:\/\//
             options[:template]
           when String
-            File.expand_path(options[:template], Dir.pwd)
+            File.expand_path(`echo #{options[:template]}`.strip)
           else
             options[:template]
           end
@@ -158,12 +158,11 @@ module Rails
         return [] if options[:skip_active_record]
         gem_name, gem_version = gem_for_database
         GemfileEntry.version gem_name, gem_version,
-                            "Use #{options[:database]} as the database for Active Record"
+          "Use #{options[:database]} as the database for Active Record"
       end
 
       def web_server_gemfile_entry # :doc:
-        comment = "Use Puma as the app server"
-        GemfileEntry.new("puma", "~> 5.0", comment)
+        GemfileEntry.new "puma", "~> 5.0", "Use the Puma web server [https://github.com/puma/puma]"
       end
 
       def include_all_railties? # :doc:
@@ -254,21 +253,21 @@ module Rails
       def rails_gemfile_entry
         if options.dev?
           [
-            GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH)
+            GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH, "Use local checkout of Rails")
           ]
         elsif options.edge?
           edge_branch = Rails.gem_version.prerelease? ? "main" : [*Rails.gem_version.segments.first(2), "stable"].join("-")
           [
-            GemfileEntry.github("rails", "rails/rails", edge_branch)
+            GemfileEntry.github("rails", "rails/rails", edge_branch, "Use specific branch of Rails")
           ]
         elsif options.main?
           [
-            GemfileEntry.github("rails", "rails/rails", "main")
+            GemfileEntry.github("rails", "rails/rails", "main", "Use main development branch of Rails")
           ]
         else
           [GemfileEntry.version("rails",
                             rails_version_specifier,
-                            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails', branch: 'main'")]
+                            %(Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"))]
         end
       end
 
@@ -285,64 +284,45 @@ module Rails
         end
       end
 
-      # This "npm-ifies" the current version number
-      # With npm, versions such as "5.0.0.rc1" or "5.0.0.beta1.1" are not compliant with its
-      # versioning system, so they must be transformed to "5.0.0-rc1" and "5.0.0-beta1-1" respectively.
-      #
-      # "5.0.1"     --> "5.0.1"
-      # "5.0.1.1"   --> "5.0.1-1" *
-      # "5.0.0.rc1" --> "5.0.0-rc1"
-      #
-      # * This makes it a prerelease. That's bad, but we haven't come up with
-      # a better solution at the moment.
-      def npm_version
-        # TODO: support `options.dev?`
-
-        if options.edge? || options.main?
-          # TODO: ideally this would read from Github
-          # https://github.com/rails/rails/blob/main/actioncable/app/assets/javascripts/action_cable.js
-          # https://github.com/rails/rails/blob/main/activestorage/app/assets/javascripts/activestorage.js
-          # https://github.com/rails/rails/tree/main/actionview/app/assets/javascripts -> not clear where the output file is
-          "latest"
-        else
-          Rails.version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
-        end
-      end
-
-      def turbolinks_npm_version
-        # since Turbolinks is deprecated, let's just always point to main.
-        # expect this to be replaced with Hotwire at some point soon.
-        if options.main? || options.edge?
-          "turbolinks/turbolinks#master"
-        else
-          "^5.2.0"
-        end
-      end
-
-      def assets_gemfile_entry
-        return [] if options[:skip_sprockets]
-
-        GemfileEntry.version("sass-rails", ">= 6", "Use SCSS for stylesheets")
-      end
-
-      def webpacker_gemfile_entry
-        return [] if options[:skip_javascript]
-
-        GemfileEntry.version "webpacker", "~> 5.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
-      end
-
       def jbuilder_gemfile_entry
         return [] if options[:skip_jbuilder]
-        comment = "Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder"
+        comment = "Build JSON APIs with ease [https://github.com/rails/jbuilder]"
         GemfileEntry.new "jbuilder", "~> 2.7", comment, {}, options[:api]
       end
 
       def javascript_gemfile_entry
-        if options[:skip_javascript] || options[:skip_turbolinks]
-          []
+        return [] if options[:skip_javascript]
+
+        if options[:javascript] == "importmap"
+          GemfileEntry.version("importmap-rails", ">= 0.3.4", "Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]")
         else
-          [ GemfileEntry.version("turbolinks", "~> 5",
-             "Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks") ]
+          GemfileEntry.version "jsbundling-rails", "~> 0.1.0", "Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]"
+        end
+      end
+
+      def hotwire_gemfile_entry
+        return [] if options[:skip_javascript] || options[:skip_hotwire]
+
+        turbo_rails_entry =
+          GemfileEntry.version("turbo-rails", ">= 0.7.11", "Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]")
+
+        stimulus_rails_entry =
+          GemfileEntry.version("stimulus-rails", ">= 0.4.0", "Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]")
+
+        [ turbo_rails_entry, stimulus_rails_entry ]
+      end
+
+      def using_node?
+        options[:javascript] && options[:javascript] != "importmap"
+      end
+
+      def css_gemfile_entry
+        return [] unless options[:css]
+
+        if !using_node? && options[:css] == "tailwind"
+          GemfileEntry.version("tailwindcss-rails", ">= 0.4.3", "Use Tailwind CSS [https://github.com/rails/tailwindcss-rails]")
+        else
+          GemfileEntry.version("cssbundling-rails", ">= 0.1.0", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]")
         end
       end
 
@@ -392,10 +372,6 @@ module Rails
         !(options[:skip_bundle] || options[:pretend])
       end
 
-      def webpack_install?
-        !(options[:skip_javascript] || options[:skip_webpack_install])
-      end
-
       def depends_on_system_test?
         !(options[:skip_system_test] || options[:skip_test] || options[:api])
       end
@@ -408,20 +384,28 @@ module Rails
         bundle_command("install", "BUNDLE_IGNORE_MESSAGES" => "1") if bundle_install?
       end
 
-      def run_webpack
-        return unless webpack_install?
+      def run_javascript
+        return if options[:skip_javascript] || !bundle_install?
 
-        unless bundle_install?
-          say <<~EXPLAIN
-            Skipping `rails webpacker:install` because `bundle install` was skipped.
-            To complete setup, you must run `bundle install` followed by `rails webpacker:install`.
-          EXPLAIN
-          return
+        case options[:javascript]
+        when "importmap"                    then rails_command "importmap:install"
+        when "webpack", "esbuild", "rollup" then rails_command "javascript:install:#{options[:javascript]}"
         end
+      end
 
-        rails_command "webpacker:install"
-        if options[:webpack] && options[:webpack] != "webpack"
-          rails_command "webpacker:install:#{options[:webpack]}"
+      def run_hotwire
+        return if options[:skip_javascript] || options[:skip_hotwire] || !bundle_install?
+
+        rails_command "turbo:install stimulus:install"
+      end
+
+      def run_css
+        return if !options[:css] || !bundle_install?
+
+        if !using_node? && options[:css] == "tailwind"
+          rails_command "tailwindcss:install"
+        else
+          rails_command "css:install:#{options[:css]}"
         end
       end
 

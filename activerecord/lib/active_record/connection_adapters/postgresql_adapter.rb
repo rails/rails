@@ -125,6 +125,7 @@ module ActiveRecord
         string:      { name: "character varying" },
         text:        { name: "text" },
         integer:     { name: "integer", limit: 4 },
+        bigint:      { name: "bigint" },
         float:       { name: "float" },
         decimal:     { name: "decimal" },
         datetime:    {}, # set dynamically based on datetime_type
@@ -163,6 +164,7 @@ module ActiveRecord
         money:       { name: "money" },
         interval:    { name: "interval" },
         oid:         { name: "oid" },
+        enum:        {} # special type https://www.postgresql.org/docs/current/datatype-enum.html
       }
 
       OID = PostgreSQL::OID # :nodoc:
@@ -181,7 +183,7 @@ module ActiveRecord
       end
 
       def supports_partitioned_indexes?
-        database_version >= 110_000
+        database_version >= 110_000 # >= 11.0
       end
 
       def supports_partial_index?
@@ -205,6 +207,10 @@ module ActiveRecord
       end
 
       def supports_validate_constraints?
+        true
+      end
+
+      def supports_deferrable_constraints?
         true
       end
 
@@ -233,11 +239,15 @@ module ActiveRecord
       end
 
       def supports_insert_on_conflict?
-        database_version >= 90500
+        database_version >= 90500 # >= 9.5
       end
       alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
       alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
       alias supports_insert_conflict_target? supports_insert_on_conflict?
+
+      def supports_virtual_columns?
+        database_version >= 120_000 # >= 12.0
+      end
 
       def index_algorithms
         { concurrently: "CONCURRENTLY" }
@@ -388,7 +398,7 @@ module ActiveRecord
       end
 
       def supports_pgcrypto_uuid?
-        database_version >= 90400
+        database_version >= 90400 # >= 9.4
       end
 
       def supports_optimizer_hints?
@@ -444,6 +454,38 @@ module ActiveRecord
         exec_query("SELECT extname FROM pg_extension", "SCHEMA").cast_values
       end
 
+      # Returns a list of defined enum types, and their values.
+      def enum_types
+        query = <<~SQL
+          SELECT
+            type.typname AS name,
+            string_agg(enum.enumlabel, ',') AS value
+          FROM pg_enum AS enum
+          JOIN pg_type AS type
+            ON (type.oid = enum.enumtypid)
+          GROUP BY type.typname;
+        SQL
+        exec_query(query, "SCHEMA").cast_values
+      end
+
+      # Given a name and an array of values, creates an enum type.
+      def create_enum(name, values)
+        sql_values = values.map { |s| "'#{s}'" }.join(", ")
+        query = <<~SQL
+          DO $$
+          BEGIN
+              IF NOT EXISTS (
+                SELECT 1 FROM pg_type t
+                WHERE t.typname = '#{name}'
+              ) THEN
+                  CREATE TYPE \"#{name}\" AS ENUM (#{sql_values});
+              END IF;
+          END
+          $$;
+        SQL
+        exec_query(query)
+      end
+
       # Returns the configured supported identifier length supported by PostgreSQL
       def max_identifier_length
         @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
@@ -489,7 +531,7 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < 90300
+        if database_version < 90300 # < 9.3
           raise "Your version of PostgreSQL (#{database_version}) is too old. Active Record supports PostgreSQL >= 9.3."
         end
       end
@@ -696,6 +738,7 @@ module ActiveRecord
         FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
 
         def execute_and_clear(sql, name, binds, prepare: false, async: false)
+          sql = transform_query(sql)
           check_if_write_query(sql)
 
           if !prepare || without_prepared_statement?(binds)
@@ -873,7 +916,8 @@ module ActiveRecord
           query(<<~SQL, "SCHEMA")
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
-                     c.collname, col_description(a.attrelid, a.attnum) AS comment
+                     c.collname, col_description(a.attrelid, a.attnum) AS comment,
+                     #{supports_virtual_columns? ? 'attgenerated' : quote('')} as attgenerated
                 FROM pg_attribute a
                 LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
                 LEFT JOIN pg_type t ON a.atttypid = t.oid

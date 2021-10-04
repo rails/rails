@@ -43,10 +43,7 @@ module Rails
         end
 
         def load_tests(argv)
-          patterns = extract_filters(argv)
-
-          tests = Rake::FileList[patterns.any? ? patterns : default_test_glob]
-          tests.exclude(default_test_exclude_glob) if patterns.empty?
+          tests = list_tests(argv)
           tests.to_a.each { |path| require File.expand_path(path) }
         end
 
@@ -93,6 +90,14 @@ module Rails
 
           def path_argument?(arg)
             %r"^[/\\]?\w+[/\\]".match?(arg)
+          end
+
+          def list_tests(argv)
+            patterns = extract_filters(argv)
+
+            tests = Rake::FileList[patterns.any? ? patterns : default_test_glob]
+            tests.exclude(default_test_exclude_glob) if patterns.empty?
+            tests
           end
       end
     end

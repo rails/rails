@@ -167,6 +167,8 @@ module ApplicationTests
       add_to_config <<-RUBY
         # Enable AEAD cookies
         config.action_dispatch.use_authenticated_cookie_encryption = true
+
+        config.action_dispatch.cookies_serializer = :marshal
       RUBY
 
       require "#{app_path}/config/environment"
@@ -217,6 +219,7 @@ module ApplicationTests
       add_to_config <<-RUBY
         # Enable AEAD cookies
         config.action_dispatch.use_authenticated_cookie_encryption = true
+        config.action_dispatch.cookies_serializer = :marshal
       RUBY
 
       require "#{app_path}/config/environment"
@@ -280,6 +283,8 @@ module ApplicationTests
 
         # Use SHA1 key derivation
         config.active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA1
+
+        config.action_dispatch.cookies_serializer = :marshal
       RUBY
 
       begin

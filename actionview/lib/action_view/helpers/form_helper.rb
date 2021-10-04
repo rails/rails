@@ -484,7 +484,7 @@ module ActionView
       #     <%= form.text_field :title %>
       #   <% end %>
       #   # =>
-      #   <form action="/posts" method="post" data-remote="true">
+      #   <form action="/posts" method="post">
       #     <input type="text" name="title">
       #   </form>
       #
@@ -493,7 +493,7 @@ module ActionView
       #     <%= form.text_field :title %>
       #   <% end %>
       #   # =>
-      #   <form action="/posts" method="post" data-remote="true">
+      #   <form action="/posts" method="post">
       #     <input type="text" name="post[title]">
       #   </form>
       #
@@ -502,7 +502,7 @@ module ActionView
       #     <%= form.text_field :title %>
       #   <% end %>
       #   # =>
-      #   <form action="/posts" method="post" data-remote="true">
+      #   <form action="/posts" method="post">
       #     <input type="text" name="post[title]">
       #   </form>
       #
@@ -511,7 +511,7 @@ module ActionView
       #     <%= form.text_field :title %>
       #   <% end %>
       #   # =>
-      #   <form action="/posts/1" method="post" data-remote="true">
+      #   <form action="/posts/1" method="post">
       #     <input type="hidden" name="_method" value="patch">
       #     <input type="text" name="post[title]" value="<the title of the post>">
       #   </form>
@@ -522,7 +522,7 @@ module ActionView
       #     <%= form.text_field :but_in_forms_they_can %>
       #   <% end %>
       #   # =>
-      #   <form action="/cats" method="post" data-remote="true">
+      #   <form action="/cats" method="post">
       #     <input type="text" name="cat[cats_dont_have_gills]">
       #     <input type="text" name="cat[but_in_forms_they_can]">
       #   </form>
@@ -1257,6 +1257,12 @@ module ActionView
       # Additional options on the input tag can be passed as a hash with +options+. The +checked_value+ defaults to 1
       # while the default +unchecked_value+ is set to 0 which is convenient for boolean values.
       #
+      # ==== Options
+      #
+      # * Any standard HTML attributes for the tag can be passed in, for example +:class+.
+      # * <tt>:checked</tt> - +true+ or +false+ forces the state of the checkbox to be checked or not.
+      # * <tt>:include_hidden</tt> - If set to false, the auxiliary hidden field described below will not be generated.
+      #
       # ==== Gotcha
       #
       # The HTML specification says unchecked check boxes are not successful, and
@@ -1293,6 +1299,8 @@ module ActionView
       #
       # In that case it is preferable to either use +check_box_tag+ or to use
       # hashes instead of arrays.
+      #
+      # ==== Examples
       #
       #   # Let's say that @post.validated? is 1:
       #   check_box("post", "validated")
@@ -2334,6 +2342,12 @@ module ActionView
       # Additional options on the input tag can be passed as a hash with +options+. The +checked_value+ defaults to 1
       # while the default +unchecked_value+ is set to 0 which is convenient for boolean values.
       #
+      # ==== Options
+      #
+      # * Any standard HTML attributes for the tag can be passed in, for example +:class+.
+      # * <tt>:checked</tt> - +true+ or +false+ forces the state of the checkbox to be checked or not.
+      # * <tt>:include_hidden</tt> - If set to false, the auxiliary hidden field described below will not be generated.
+      #
       # ==== Gotcha
       #
       # The HTML specification says unchecked check boxes are not successful, and
@@ -2370,6 +2384,8 @@ module ActionView
       #
       # In that case it is preferable to either use +check_box_tag+ or to use
       # hashes instead of arrays.
+      #
+      # ==== Examples
       #
       #   # Let's say that @post.validated? is 1:
       #   check_box("validated")

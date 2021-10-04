@@ -390,6 +390,8 @@ def welcome_email
 end
 ```
 
+If the name is a blank string, it returns just the address.
+
 [`email_address_with_name`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-email_address_with_name
 
 ### Mailer Views

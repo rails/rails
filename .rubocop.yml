@@ -1,4 +1,5 @@
 require:
+  - rubocop-minitest
   - rubocop-packaging
   - rubocop-performance
   - rubocop-rails
@@ -140,6 +141,9 @@ Style/DefWithParentheses:
 
 # Defining a method with parameters needs parentheses.
 Style/MethodDefParentheses:
+  Enabled: true
+
+Style/ExplicitBlockArgument:
   Enabled: true
 
 Style/FrozenStringLiteralComment:
@@ -290,4 +294,7 @@ Performance/DeletePrefix:
   Enabled: true
 
 Performance/DeleteSuffix:
+  Enabled: true
+
+Minitest/UnreachableAssertion:
   Enabled: true

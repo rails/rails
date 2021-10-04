@@ -18,7 +18,7 @@ module ApplicationTests
       app_file "app/controllers/users_controller.rb", <<-RUBY
         class UsersController < ApplicationController
           def index
-            render inline: ActiveRecord::QueryLogs.add_query_log_tags_to_sql("")
+            render inline: ActiveRecord::QueryLogs.call("")
           end
 
           def dynamic_content
@@ -30,7 +30,7 @@ module ApplicationTests
       app_file "app/jobs/user_job.rb", <<-RUBY
         class UserJob < ActiveJob::Base
           def perform
-            ActiveRecord::QueryLogs.add_query_log_tags_to_sql("")
+            ActiveRecord::QueryLogs.call("")
           end
 
           def dynamic_content
@@ -57,7 +57,7 @@ module ApplicationTests
     test "does not modify the query execution path by default" do
       boot_app
 
-      assert_equal ActiveRecord::Base.connection.method(:execute).owner, ActiveRecord::ConnectionAdapters::SQLite3::DatabaseStatements
+      assert_not_includes ActiveRecord.query_transformers, ActiveRecord::QueryLogs
     end
 
     test "prepends the query execution path when enabled" do
@@ -65,7 +65,7 @@ module ApplicationTests
 
       boot_app
 
-      assert_equal ActiveRecord::Base.connection.method(:execute).owner, ActiveRecord::QueryLogs::ExecutionMethods
+      assert_includes ActiveRecord.query_transformers, ActiveRecord::QueryLogs
     end
 
     test "controller and job tags are defined by default" do
@@ -123,7 +123,7 @@ module ApplicationTests
     test "query cache is cleared between requests" do
       add_to_config "config.active_record.query_log_tags_enabled = true"
       add_to_config "config.active_record.cache_query_log_tags = true"
-      add_to_config "config.active_record.query_log_tags = [ { dynamic: -> { context[:controller].dynamic_content } } ]"
+      add_to_config "config.active_record.query_log_tags = [ { dynamic: ->(context) { context[:controller].dynamic_content } } ]"
 
       boot_app
 
@@ -141,7 +141,7 @@ module ApplicationTests
     test "query cache is cleared between job executions" do
       add_to_config "config.active_record.query_log_tags_enabled = true"
       add_to_config "config.active_record.cache_query_log_tags = true"
-      add_to_config "config.active_record.query_log_tags = [ { dynamic: -> { context[:job].dynamic_content } } ]"
+      add_to_config "config.active_record.query_log_tags = [ { dynamic: ->(context) { context[:job].dynamic_content } } ]"
 
       boot_app
 

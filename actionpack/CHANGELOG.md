@@ -1,3 +1,66 @@
+*   Allow permitting numeric params.
+
+    Previously it was impossible to permit different fields on numeric parameters.
+    After this change you can specify different fields for each numbered parameter.
+    For example params like,
+    ```ruby
+    book: {
+            authors_attributes: {
+              '0': { name: "William Shakespeare", age_of_death: "52" },
+              '1': { name: "Unattributed Assistant" },
+              '2': "Not a hash",
+              'new_record': { name: "Some name" }
+            }
+          }
+    ```
+
+    Before you could permit name on each author with,
+    `permit book: { authors_attributes: [ :name ] }`
+
+    After this change you can permit different keys on each numbered element,
+    `permit book: { authors_attributes: { '1': [ :name ], '0': [ :name, :age_of_death ] } }`
+
+    Fixes #41625
+
+    *Adam Hess*
+
+*   Update `HostAuthorization` middleware to render debug info only
+    when `config.consider_all_requests_local` is set to true.
+
+    Also, blocked host info is always logged with level `error`.
+
+    Fixes #42813
+
+    *Nikita Vyrko*
+
+*  Add Server-Timing middleware
+
+   Server-Timing specification defines how the server can communicate to browsers performance metrics
+   about the request it is responding to.
+
+   The ServerTiming middleware is enabled by default on `development` environment by default using the
+   `config.server_timing` setting and set the relevant duration metrics in the `Server-Timing` header
+
+   The full specification for Server-Timing header can be found in: https://www.w3.org/TR/server-timing/#dfn-server-timing-header-field
+
+   *Sebastian Sogamoso*, *Guillermo Iguaran*
+
+
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
+
+*   No changes.
+
+
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
+*   Use a static error message when raising `ActionDispatch::Http::Parameters::ParseError`
+    to avoid inadvertently logging the HTTP request body at the `fatal` level when it contains
+    malformed JSON.
+
+    Fixes #41145
+
+    *Aaron Lahey*
+
 *   Add `Middleware#delete!` to delete middleware or raise if not found.
 
     `Middleware#delete!` works just like `Middleware#delete` but will

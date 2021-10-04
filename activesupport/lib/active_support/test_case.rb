@@ -99,9 +99,7 @@ module ActiveSupport
       #     end
       #   end
       def parallelize_setup(&block)
-        ActiveSupport::Testing::Parallelization.after_fork_hook do |worker|
-          yield worker
-        end
+        ActiveSupport::Testing::Parallelization.after_fork_hook(&block)
       end
 
       # Clean up hook for parallel testing. This can be used to drop databases
@@ -118,9 +116,7 @@ module ActiveSupport
       #     end
       #   end
       def parallelize_teardown(&block)
-        ActiveSupport::Testing::Parallelization.run_cleanup_hook do |worker|
-          yield worker
-        end
+        ActiveSupport::Testing::Parallelization.run_cleanup_hook(&block)
       end
     end
 

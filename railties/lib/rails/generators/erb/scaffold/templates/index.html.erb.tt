@@ -1,6 +1,6 @@
 <p id="notice"><%%= notice %></p>
 
-<h1><%= human_name %></h1>
+<h1><%= human_name.pluralize %></h1>
 
 <div id="<%= plural_table_name %>">
   <%%= render @<%= plural_table_name %> %>

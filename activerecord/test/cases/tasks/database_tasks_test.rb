@@ -30,12 +30,10 @@ module ActiveRecord
       $stdout, $stderr = @original_stdout, @original_stderr
     end
 
-    def with_stubbed_new
+    def with_stubbed_new(&block)
       ActiveRecord::Tasks::MySQLDatabaseTasks.stub(:new, @mysql_tasks) do
         ActiveRecord::Tasks::PostgreSQLDatabaseTasks.stub(:new, @postgresql_tasks) do
-          ActiveRecord::Tasks::SQLiteDatabaseTasks.stub(:new, @sqlite_tasks) do
-            yield
-          end
+          ActiveRecord::Tasks::SQLiteDatabaseTasks.stub(:new, @sqlite_tasks, &block)
         end
       end
     end
@@ -154,13 +152,11 @@ module ActiveRecord
     end
 
     private
-      def with_stubbed_configurations
+      def with_stubbed_configurations(&block)
         old_configurations = ActiveRecord::Base.configurations
         ActiveRecord::Base.configurations = { "production" => { "exists" => { "database" => "my-db" } } }
 
-        assert_deprecated do
-          yield
-        end
+        assert_deprecated(&block)
       ensure
         ActiveRecord::Base.configurations = old_configurations
         assert_deprecated do
@@ -392,15 +388,13 @@ module ActiveRecord
     end
 
     private
-      def with_stubbed_configurations_establish_connection
+      def with_stubbed_configurations_establish_connection(&block)
         old_configurations = ActiveRecord::Base.configurations
         ActiveRecord::Base.configurations = @configurations
 
         # To refrain from connecting to a newly created empty DB in
         # sqlite3_mem tests
-        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
-          yield
-        end
+        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil, &block)
       ensure
         ActiveRecord::Base.configurations = old_configurations
       end
@@ -520,13 +514,11 @@ module ActiveRecord
         ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
       end
 
-      def with_stubbed_configurations_establish_connection
+      def with_stubbed_configurations_establish_connection(&block)
         old_configurations = ActiveRecord::Base.configurations
         ActiveRecord::Base.configurations = @configurations
 
-        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
-          yield
-        end
+        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil, &block)
       ensure
         ActiveRecord::Base.configurations = old_configurations
       end
@@ -637,13 +629,11 @@ module ActiveRecord
         ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
       end
 
-      def with_stubbed_configurations_establish_connection
+      def with_stubbed_configurations_establish_connection(&block)
         old_configurations = ActiveRecord::Base.configurations
         ActiveRecord::Base.configurations = @configurations
 
-        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
-          yield
-        end
+        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil, &block)
       ensure
         ActiveRecord::Base.configurations = old_configurations
       end

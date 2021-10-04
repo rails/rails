@@ -13,9 +13,12 @@ gem "capybara", ">= 3.26"
 gem "selenium-webdriver", ">= 4.0.0.alpha7"
 
 gem "rack-cache", "~> 1.2"
-gem "sass-rails"
-gem "turbolinks", "~> 5"
-gem "webpacker", "~> 5.0", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"
+gem "stimulus-rails"
+gem "turbo-rails"
+gem "jsbundling-rails"
+gem "cssbundling-rails"
+gem "importmap-rails"
+gem "tailwindcss-rails"
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
@@ -30,6 +33,7 @@ gem "json", ">= 2.0.0"
 
 group :rubocop do
   gem "rubocop", ">= 0.90", require: false
+  gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
   gem "rubocop-rails", require: false
@@ -85,7 +89,7 @@ end
 group :storage do
   gem "aws-sdk-s3", require: false
   gem "google-cloud-storage", "~> 1.11", require: false
-  gem "azure-storage-blob", require: false
+  gem "azure-storage-blob", "~> 2.0", require: false
 
   gem "image_processing", "~> 1.2"
 end
@@ -110,12 +114,12 @@ instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
   gem "minitest-bisect"
+  gem "minitest-ci", require: false
   gem "minitest-retry"
-  gem "minitest-reporters"
 
   platforms :mri do
     gem "stackprof"
-    gem "byebug"
+    gem "debug", ">= 1.1.0", require: false
   end
 
   gem "benchmark-ips"

@@ -245,18 +245,19 @@ module ActiveRecord
     #
     # === Validating the presence of a parent model
     #
-    # If you want to validate that a child record is associated with a parent
-    # record, you can use the +validates_presence_of+ method and the +:inverse_of+
-    # key as this example illustrates:
+    # The +belongs_to+ association validates the presence of the parent model
+    # by default. You can disable this behavior by specifying <code>optional: true</code>.
+    # This can be used, for example, when conditionally validating the presence
+    # of the parent model:
     #
-    #   class Member < ActiveRecord::Base
-    #     has_many :posts, inverse_of: :member
-    #     accepts_nested_attributes_for :posts
+    #   class Veterinarian < ActiveRecord::Base
+    #     has_many :patients, inverse_of: :veterinarian
+    #     accepts_nested_attributes_for :patients
     #   end
     #
-    #   class Post < ActiveRecord::Base
-    #     belongs_to :member, inverse_of: :posts
-    #     validates_presence_of :member
+    #   class Patient < ActiveRecord::Base
+    #     belongs_to :veterinarian, inverse_of: :patients, optional: true
+    #     validates :veterinarian, presence: true, unless: -> { awaiting_intake }
     #   end
     #
     # Note that if you do not specify the +:inverse_of+ option, then

@@ -1331,6 +1331,47 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal groucho, sponsor.thing
   end
 
+  class WheelPolymorphicName < ActiveRecord::Base
+    self.table_name = "wheels"
+    belongs_to :wheelable, polymorphic: true, counter_cache: :wheels_count, touch: :wheels_owned_at
+
+    def self.polymorphic_class_for(name)
+      raise "Unexpected name: #{name}" unless name == "polymorphic_car"
+      CarPolymorphicName
+    end
+  end
+
+  class CarPolymorphicName < ActiveRecord::Base
+    self.table_name = "cars"
+    has_many :wheels, as: :wheelable
+
+    def self.polymorphic_name
+      "polymorphic_car"
+    end
+  end
+
+  def test_polymorphic_with_custom_name_counter_cache
+    car = CarPolymorphicName.create!
+    wheel = WheelPolymorphicName.create!(wheelable_type: "polymorphic_car", wheelable_id: car.id)
+    assert_equal 1, car.reload.wheels_count
+
+    wheel.update! wheelable: nil
+
+    assert_equal 0, car.reload.wheels_count
+  end
+
+  def test_polymorphic_with_custom_name_touch_old_belongs_to_model
+    car = CarPolymorphicName.create!
+    wheel = WheelPolymorphicName.create!(wheelable: car)
+
+    touch_time = 1.day.ago.round
+    travel_to(touch_time) do
+      wheel.update!(wheelable: nil)
+    end
+
+    assert_equal touch_time, car.reload.wheels_owned_at
+  end
+
   def test_build_with_conditions
     client = companies(:second_client)
     firm   = client.build_bob_firm

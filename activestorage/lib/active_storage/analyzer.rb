@@ -40,5 +40,9 @@ module ActiveStorage
       def tmpdir # :doc:
         Dir.tmpdir
       end
+
+      def instrument(analyzer, &block) # :doc:
+        ActiveSupport::Notifications.instrument("analyze.active_storage", analyzer: analyzer, &block)
+      end
   end
 end

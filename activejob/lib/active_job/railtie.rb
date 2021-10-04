@@ -8,6 +8,7 @@ module ActiveJob
   class Railtie < Rails::Railtie # :nodoc:
     config.active_job = ActiveSupport::OrderedOptions.new
     config.active_job.custom_serializers = []
+    config.active_job.log_query_tags_around_perform = true
 
     initializer "active_job.logger" do
       ActiveSupport.on_load(:active_job) { self.logger = ::Rails.logger }
@@ -15,7 +16,7 @@ module ActiveJob
 
     initializer "active_job.custom_serializers" do |app|
       config.after_initialize do
-        custom_serializers = app.config.active_job.delete(:custom_serializers)
+        custom_serializers = app.config.active_job.custom_serializers
         ActiveJob::Serializers.add_serializers custom_serializers
       end
     end
@@ -25,6 +26,12 @@ module ActiveJob
       options.queue_adapter ||= :async
 
       ActiveSupport.on_load(:active_job) do
+        # Configs used in other initializers
+        options = options.except(
+          :log_query_tags_around_perform,
+          :custom_serializers
+        )
+
         options.each do  |k, v|
           k = "#{k}="
           send(k, v) if respond_to? k
@@ -51,24 +58,19 @@ module ActiveJob
     end
 
     initializer "active_job.query_log_tags" do |app|
-      ActiveSupport.on_load(:active_job) do
-        singleton_class.attr_accessor :log_query_tags_around_perform
-        self.log_query_tags_around_perform = true
-      end
+      query_logs_tags_enabled = app.config.respond_to?(:active_record) &&
+        app.config.active_record.query_log_tags_enabled &&
+        app.config.active_job.log_query_tags_around_perform
 
-      ActiveSupport.on_load(:active_record) do
-        if app.config.active_record.query_log_tags_enabled && app.config.active_job.log_query_tags_around_perform != false
-          ActiveRecord::QueryLogs.taggings[:job] = -> { context[:job]&.class&.name }
-          ActiveRecord::QueryLogs.tags << :job
+      if query_logs_tags_enabled
+        app.config.active_record.query_log_tags << :job
 
-          ActiveJob::Base.class_eval do
-            around_perform :expose_job_to_query_logs
+        ActiveSupport.on_load(:active_job) do
+          include ActiveJob::QueryTags
+        end
 
-            private
-              def expose_job_to_query_logs(&block)
-                ActiveRecord::QueryLogs.set_context(job: self, &block)
-              end
-          end
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::QueryLogs.taggings[:job] = ->(context) { context[:job].class.name unless context[:job].nil? }
         end
       end
     end

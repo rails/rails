@@ -759,13 +759,11 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   private
-    def with_temporary_connection_pool
+    def with_temporary_connection_pool(&block)
       pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("ActiveRecord::Base").get_pool_config(ActiveRecord.writing_role, :default)
       new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
 
-      pool_config.stub(:pool, new_pool) do
-        yield
-      end
+      pool_config.stub(:pool, new_pool, &block)
     end
 
     def middleware(&app)

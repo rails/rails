@@ -8,7 +8,7 @@ if adapter_index
 end
 
 COMPONENT_ROOT = File.expand_path("..", __dir__)
-require_relative "../../tools/test"
+require_relative "../test/support/tools"
 
 module Minitest
   def self.plugin_active_record_options(opts, options)

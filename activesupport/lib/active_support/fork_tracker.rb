@@ -20,11 +20,7 @@ module ActiveSupport
 
     module CoreExtPrivate
       include CoreExt
-
-      private
-        def fork(...)
-          super
-        end
+      private :fork
     end
 
     @pid = Process.pid
@@ -40,7 +36,7 @@ module ActiveSupport
 
       def hook!
         if Process.respond_to?(:fork)
-          ::Object.prepend(CoreExtPrivate)
+          ::Object.prepend(CoreExtPrivate) if RUBY_VERSION < "3.0"
           ::Kernel.prepend(CoreExtPrivate)
           ::Kernel.singleton_class.prepend(CoreExt)
           ::Process.singleton_class.prepend(CoreExt)
