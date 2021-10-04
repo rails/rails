@@ -458,12 +458,20 @@ module ActiveRecord
       def enum_types
         query = <<~SQL
           SELECT
-            type.typname AS name,
-            string_agg(enum.enumlabel, ',') AS value
-          FROM pg_enum AS enum
-          JOIN pg_type AS type
-            ON (type.oid = enum.enumtypid)
-          GROUP BY type.typname;
+            enum_types.type AS name,
+            string_agg(enum_types.values, ',') AS value
+          FROM (
+            SELECT
+              type.typname AS type,
+              enum.enumlabel AS values
+            FROM
+              pg_enum AS enum
+              JOIN pg_type AS TYPE
+                ON (type.oid = enum.enumtypid)
+            ORDER BY
+              enum.enumsortorder
+            ) enum_types
+          GROUP BY enum_types.type;
         SQL
         exec_query(query, "SCHEMA").cast_values
       end
