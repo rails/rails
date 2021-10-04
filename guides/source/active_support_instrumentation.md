@@ -287,13 +287,17 @@ INFO. Additional keys may be added by the caller.
 
 #### render_partial.action_view
 
-| Key           | Value                 |
-| ------------- | --------------------- |
-| `:identifier` | Full path to template |
+| Key           | Value                                                             |
+| ------------- | ----------------------------------------------------------------- |
+| `:identifier` | Full path to template                                             |
+| `:layout`     | Applicable layout                                                 |
+| `:cache_hit`  | `:hit` or `:miss` is added when the view is rendered with `cache` |
 
 ```ruby
 {
-  identifier: "/Users/adam/projects/notifications/app/views/posts/_form.html.erb"
+  identifier: "/Users/adam/projects/notifications/app/views/posts/_post.html.erb",
+  layout: nil,
+  cache_hit: :hit
 }
 ```
 
