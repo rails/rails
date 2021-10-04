@@ -1,3 +1,9 @@
+## Unreleased
+
+*   Fix a regression in which autoload paths were initialized too late.
+
+    *Xavier Noria*
+
 ## Rails 7.0.0.alpha2 (September 15, 2021) ##
 
 *   Fix activestorage dependency in the npm package.
