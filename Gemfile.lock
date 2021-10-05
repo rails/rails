@@ -1,15 +1,16 @@
 GIT
-  remote: https://github.com/QueueClassic/queue_classic.git
-  revision: 1e40ddd810c416619ead88316b2b251936ee2495
-  specs:
-    queue_classic (4.0.0.pre.alpha1)
-      pg (>= 0.17, < 2.0)
-
-GIT
   remote: https://github.com/brianmario/mysql2.git
   revision: 7f4e844fccf6afa888d0bd108d4707a2a7784484
   specs:
     mysql2 (0.5.3)
+
+GIT
+  remote: https://github.com/jhawthorn/queue_classic.git
+  revision: dbfee9bda71020b8f11ae8d9b85932462b7fbee0
+  branch: fix-connection-pg-14
+  specs:
+    queue_classic (4.0.0.pre.alpha1)
+      pg (>= 0.17, < 2.0)
 
 GIT
   remote: https://github.com/matthewd/websocket-client-simple.git
