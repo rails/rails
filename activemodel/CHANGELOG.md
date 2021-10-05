@@ -1,3 +1,21 @@
+*   Clear secure password cache if password is set to `nil`
+
+    Before:
+
+       user.password = 'something'
+       user.password = nil
+
+       user.password # => 'something'
+
+    Now:
+
+       user.password = 'something'
+       user.password = nil
+
+       user.password # => nil
+
+    *Markus Doits*
+
 *   Fix delegation in ActiveModel::Type::Registry#lookup and ActiveModel::Type.lookup
 
     Passing a last positional argument `{}` would be incorrectly considered as keyword argument.
