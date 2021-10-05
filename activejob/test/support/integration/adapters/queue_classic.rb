@@ -28,7 +28,9 @@ module QueueClassicJobsManager
       worker.start
     end
 
-  rescue PG::ConnectionBad
+  rescue PG::ConnectionBad => e
+    p e.backtrace
+    p ENV
     puts "Cannot run integration tests for queue_classic. To be able to run integration tests for queue_classic you need to install and start postgresql.\n"
     status = ENV["CI"] ? false : true
     exit status
