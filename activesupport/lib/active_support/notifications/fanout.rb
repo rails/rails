@@ -177,10 +177,6 @@ module ActiveSupport
             pattern === name
           end
 
-          def matches?(name)
-            pattern && pattern === name
-          end
-
           def unsubscribe!(name)
             pattern.unsubscribe!(name)
           end
@@ -270,8 +266,6 @@ module ActiveSupport
           def unsubscribe!(*)
             false
           end
-
-          alias :matches? :===
         end
       end
     end
