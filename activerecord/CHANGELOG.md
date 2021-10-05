@@ -1,3 +1,32 @@
+*   Allow automatic `inverse_of` detection for associations with scopes.
+
+    Automatic `inverse_of` detection now works for associations with scopes. For
+    example, the `comments` association here now automatically detects
+    `inverse_of: :post`, so we don't need to pass that option:
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      has_many :comments, -> { visible }
+    end
+
+    class Comment < ActiveRecord::Base
+      belongs_to :post
+    end
+    ```
+
+    Note that the automatic detection still won't work if the inverse
+    association has a scope. In this example a scope on the `post` association
+    would still prevent Rails from finding the inverse for the `comments`
+    association.
+
+    This will be the default for new apps in Rails 7. To opt in:
+
+    ```ruby
+    config.active_record.automatic_scope_inversing = true
+    ```
+
+    *Daniel Colson*, *Chris Bloom*
+
 *   Accept optional transaction args to `ActiveRecord::Locking::Pessimistic#with_lock`
 
     `#with_lock` now accepts transaction options like `requires_new:`,
