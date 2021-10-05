@@ -109,6 +109,18 @@ module ActiveRecord
         configuration_hash[:schema_cache_path]
       end
 
+      def default_schema_cache_path
+        "db/schema_cache.yml"
+      end
+
+      def lazy_schema_cache_path
+        schema_cache_path || default_schema_cache_path
+      end
+
+      def primary? # :nodoc:
+        Base.configurations.primary?(name)
+      end
+
       # Determines whether to dump the schema for a database.
       def schema_dump
         configuration_hash.fetch(:schema_dump, true)

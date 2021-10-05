@@ -135,6 +135,16 @@ module ActiveRecord
         config = HashConfig.new("default_env", "primary", database_tasks: "str")
         assert_equal true, config.database_tasks?
       end
+
+      def test_schema_cache_path_default_for_primary
+        config = HashConfig.new("default_env", "primary", {})
+        assert_equal "db/schema_cache.yml", config.default_schema_cache_path
+      end
+
+      def test_schema_cache_path_configuration_hash
+        config = HashConfig.new("default_env", "primary", { schema_cache_path: "db/config_schema_cache.yml" })
+        assert_equal "db/config_schema_cache.yml", config.schema_cache_path
+      end
     end
   end
 end
