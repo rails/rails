@@ -75,6 +75,24 @@ class TransactionTest < ActiveRecord::TestCase
 
       assert_equal "The Fifth Topic of the day", topic.reload.title
     end
+
+    def test_raise_TransactionRollbackError_keeps_connection_in_pool
+      topic = topics(:first)
+      connection = Topic.connection
+
+      assert_raises(ActiveRecord::Deadlocked) do
+        connection.transaction do
+          topic.update(title: "Ruby on Rails - updated")
+          raise ActiveRecord::Deadlocked
+        end
+      end
+
+      assert connection.active?
+      assert Topic.connection_pool.connections.include?(connection)
+
+      # transaction did not actually deadlock, is still open
+      connection.throw_away!
+    end
   end
 
   def test_rollback_dirty_changes_multiple_saves

@@ -330,9 +330,11 @@ module ActiveRecord
         ensure
           if transaction
             if error
-              # @connection still holds an open or invalid transaction, so we must not
+              # @connection still holds an open transaction, so we must not
               # put it back in the pool for reuse.
-              @connection.throw_away! unless transaction.state.rolledback?
+              unless transaction.state.rolledback? || transaction.state.invalidated?
+                @connection.throw_away!
+              end
             else
               if Thread.current.status == "aborting"
                 rollback_transaction
