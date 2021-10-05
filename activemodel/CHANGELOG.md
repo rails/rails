@@ -1,3 +1,21 @@
+*   Clear secure password cache if password is set to `nil`
+
+    Before:
+
+       user.password = 'something'
+       user.password = nil
+
+       user.password # => 'something'
+
+    Now:
+
+       user.password = 'something'
+       user.password = nil
+
+       user.password # => nil
+
+    *Markus Doits*
+
 ## Rails 7.0.0.alpha2 (September 15, 2021) ##
 
 *   No changes.
