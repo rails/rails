@@ -688,15 +688,15 @@ class QueryCacheTest < ActiveRecord::TestCase
       assert @topic
 
       ActiveRecord::Base.connected_to(role: :writing) do
-        @topic.title = "It doesn't have to be crazy at work"
+        @topic.title = "Topic title"
         @topic.save!
       end
 
-      assert_equal "It doesn't have to be crazy at work", @topic.title
+      assert_equal "Topic title", @topic.title
 
       ActiveRecord::Base.connected_to(role: :reading) do
         @topic = Topic.first
-        assert_equal "It doesn't have to be crazy at work", @topic.title
+        assert_equal "Topic title", @topic.title
       end
     }
 
@@ -724,15 +724,15 @@ class QueryCacheTest < ActiveRecord::TestCase
       assert @topic
 
       ActiveRecord::Base.connected_to(role: :writing) do
-        @topic.title = "It doesn't have to be crazy at work"
+        @topic.title = "Topic title"
         @topic.save!
       end
 
-      assert_equal "It doesn't have to be crazy at work", @topic.title
+      assert_equal "Topic title", @topic.title
 
       ActiveRecord::Base.connected_to(role: :reading) do
         @topic = Topic.first
-        assert_equal "It doesn't have to be crazy at work", @topic.title
+        assert_equal "Topic title", @topic.title
       end
     }
 
