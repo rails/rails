@@ -1,3 +1,9 @@
+*   Don't require `role` when passing `shard` to `connected_to`.
+
+    `connected_to` can now be called with a `shard` only. Note that `role` is still inherited if `connected_to` calls are nested.
+
+    *Eileen M. Uchitelle*
+
 *   Add option to lazily load the schema cache on the connection.
 
     Previously, the only way to load the schema cache in Active Record was through the Railtie on boot. This option provides the ability to load the schema cache on the connection after it's been established. Loading the cache lazily on the connection can be beneficial for Rails applications that use multiple databases because it will load the cache at the time the connection is established. Currently Railties doesn't have access to the connections before boot.
