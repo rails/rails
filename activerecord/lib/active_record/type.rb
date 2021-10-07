@@ -60,6 +60,7 @@ module ActiveRecord
     Binary = ActiveModel::Type::Binary
     Boolean = ActiveModel::Type::Boolean
     Decimal = ActiveModel::Type::Decimal
+    Document = ActiveModel::Type::Document
     Float = ActiveModel::Type::Float
     Integer = ActiveModel::Type::Integer
     ImmutableString = ActiveModel::Type::ImmutableString
@@ -72,6 +73,7 @@ module ActiveRecord
     register(:date, Type::Date, override: false)
     register(:datetime, Type::DateTime, override: false)
     register(:decimal, Type::Decimal, override: false)
+    register(:document, Type::Document, override: false)
     register(:float, Type::Float, override: false)
     register(:integer, Type::Integer, override: false)
     register(:immutable_string, Type::ImmutableString, override: false)
