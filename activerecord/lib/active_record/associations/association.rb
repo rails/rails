@@ -295,7 +295,7 @@ module ActiveRecord
 
         # Raises ActiveRecord::AssociationTypeMismatch unless +record+ is of
         # the kind of the class of the associated objects. Meant to be used as
-        # a sanity check when you are about to assign an associated record.
+        # a safety check when you are about to assign an associated record.
         def raise_on_type_mismatch!(record)
           unless record.is_a?(reflection.klass)
             fresh_class = reflection.class_name.safe_constantize

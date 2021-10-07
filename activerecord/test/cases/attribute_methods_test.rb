@@ -1085,7 +1085,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     model = @target.select("id").last!
 
     assert_equal ["id"], model.attribute_names
-    # Sanity check, make sure other columns exist.
+    # Ensure other columns exist.
     assert_not_equal ["id"], @target.column_names
   end
 
