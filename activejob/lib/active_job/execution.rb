@@ -15,7 +15,7 @@ module ActiveJob
       #   MyJob.perform_now("mike")
       #
       def perform_now(...)
-        job_or_instantiate(...).perform_now
+        new(...).perform_now
       end
 
       def execute(job_data) # :nodoc:
