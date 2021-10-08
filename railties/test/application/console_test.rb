@@ -43,6 +43,23 @@ class ConsoleTest < ActiveSupport::TestCase
     assert_equal "/foo", console_session.foo_path
   end
 
+  def test_app_can_access_default_url_options_host
+    load_environment
+    Rails.application.routes.default_url_options.merge!(host: "localhost:3000")
+    console_session = irb_context.app
+
+    assert_equal "localhost:3000", console_session.host
+  end
+
+  def test_app_uses_fallback_session_host_if_default_url_options_host_is_nil
+    load_environment
+    console_session = irb_context.app
+
+    fallback_session_host = "www.example.com"
+
+    assert_equal fallback_session_host, console_session.host
+  end
+
   def test_new_session_should_return_integration_session
     load_environment
     session = irb_context.new_session
