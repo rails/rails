@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/html_safe_translation"
+
 module AbstractController
   module Translation
     mattr_accessor :raise_on_missing_translations, default: false
@@ -23,19 +25,7 @@ module AbstractController
 
       i18n_raise = options.fetch(:raise, self.raise_on_missing_translations)
 
-      if html_safe_translation_key?(key)
-        html_safe_options = options.dup
-        options.except(*I18n::RESERVED_KEYS).each do |name, value|
-          unless name == :count && value.is_a?(Numeric)
-            html_safe_options[name] = ERB::Util.html_escape(value.to_s)
-          end
-        end
-        translation = I18n.translate(key, **html_safe_options, raise: i18n_raise)
-
-        translation.respond_to?(:html_safe) ? translation.html_safe : translation
-      else
-        I18n.translate(key, **options, raise: i18n_raise)
-      end
+      ActiveSupport::HtmlSafeTranslation.translate(key, **options, raise: i18n_raise)
     end
     alias :t :translate
 
@@ -44,10 +34,5 @@ module AbstractController
       I18n.localize(object, **options)
     end
     alias :l :localize
-
-    private
-      def html_safe_translation_key?(key)
-        /(\b|_|\.)html$/.match?(key.to_s)
-      end
   end
 end
