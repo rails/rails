@@ -332,7 +332,8 @@ module ActionView
         remote = html_options.delete("remote")
         params = html_options.delete("params")
 
-        method     = html_options.delete("method").to_s
+        method     = (html_options.delete("method").presence || method_for_options(options)).to_s
+
         method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : "".html_safe
 
         form_method  = method == "get" ? "get" : "post"
@@ -751,6 +752,16 @@ module ActionView
             end
           end
           html_options["data-method"] = method
+        end
+
+        def method_for_options(options)
+          if options.is_a?(Array)
+            method_for_options(options.last)
+          elsif options.respond_to?(:persisted?)
+            options.persisted? ? :patch : :post
+          elsif options.respond_to?(:to_model)
+            method_for_options(options.to_model)
+          end
         end
 
         STRINGIFIED_COMMON_METHODS = {

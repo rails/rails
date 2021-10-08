@@ -35,7 +35,10 @@ class UrlHelperTest < ActiveSupport::TestCase
     get "/other" => "foo#other"
     get "/article/:id" => "foo#article", :as => :article
     get "/category/:category" => "foo#category"
-    resources :workshops
+    resources :sessions
+    resources :workshops do
+      resources :sessions
+    end
 
     scope :engine do
       get "/" => "foo#bar"
@@ -158,6 +161,62 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal(
       %{<form method="post" action="/article/Hello" class="button_to"><button type="submit">Hello</button></form>},
       button_to("Hello", article_path("Hello"))
+    )
+  end
+
+  def test_button_to_with_new_record_model
+    session = Session.new(nil)
+
+    assert_dom_equal(
+      %{<form method="post" action="/sessions" class="button_to"><button type="submit">Create Session</button></form>},
+      button_to("Create Session", session)
+    )
+  end
+
+  def test_button_to_with_new_record_model_and_block
+    workshop = Workshop.new(nil)
+
+    assert_dom_equal(
+      %{<form method="post" action="/workshops" class="button_to"><button type="submit">Create</button></form>},
+      button_to(workshop) { "Create" }
+    )
+  end
+
+  def test_button_to_with_nested_new_record_model_and_block
+    workshop = Workshop.new("1")
+    session = Session.new(nil)
+
+    assert_dom_equal(
+      %{<form method="post" action="/workshops/1/sessions" class="button_to"><button type="submit">Create</button></form>},
+      button_to([workshop, session]) { "Create" }
+    )
+  end
+
+  def test_button_to_with_persisted_model
+    workshop = Workshop.new("1")
+
+    assert_dom_equal(
+      %{<form method="post" action="/workshops/1" class="button_to"><input type="hidden" name="_method" value="patch" autocomplete="off" /><button type="submit">Update</button></form>},
+      button_to(workshop) { "Update" }
+    )
+  end
+
+  def test_button_to_with_persisted_model_and_block
+    workshop = Workshop.new("1")
+
+    assert_dom_equal(
+      %{<form method="post" action="/workshops/1" class="button_to"><input type="hidden" name="_method" value="patch" autocomplete="off" /><button type="submit">Update</button></form>},
+      button_to(workshop) { "Update" }
+    )
+  end
+
+  def test_button_to_with_nested_persisted_model_and_block
+    workshop = Workshop.new("1")
+    session = Session.new("1")
+
+    assert_dom_equal(
+      %{<form method="post" action="/workshops/1/sessions/1" class="button_to"><input type="hidden" name="_method" value="patch" autocomplete="off" /><button type="submit">Update</button></form>},
+      button_to([workshop, session]) { "Update" }
     )
   end
 
