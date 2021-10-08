@@ -1,3 +1,7 @@
+*   Treat html suffix in controller translation.
+
+    *Rui Onodera*, *Gavin Miller*
+
 *   Allow permitting numeric params.
 
     Previously it was impossible to permit different fields on numeric parameters.
