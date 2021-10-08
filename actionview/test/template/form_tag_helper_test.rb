@@ -211,6 +211,66 @@ class FormTagHelperTest < ActionView::TestCase
     assert_equal "post_author_name", value
   end
 
+  def test_field_name_without_object_name
+    value = field_name("", :title)
+
+    assert_equal "title", value
+  end
+
+  def test_field_name_without_object_name_and_multiple
+    value = field_name("", :title, multiple: true)
+
+    assert_equal "title[]", value
+  end
+
+  def test_field_name_without_method_names_or_multiple_or_index
+    value = field_name(:post, :title)
+
+    assert_equal "post[title]", value
+  end
+
+  def test_field_name_without_method_names_and_multiple
+    value = field_name(:post, :title, multiple: true)
+
+    assert_equal "post[title][]", value
+  end
+
+  def test_field_name_without_method_names_and_index
+    value = field_name(:post, :title, index: 1)
+
+    assert_equal "post[1][title]", value
+  end
+
+  def test_field_name_without_method_names_and_index_and_multiple
+    value = field_name(:post, :title, index: 1, multiple: true)
+
+    assert_equal "post[1][title][]", value
+  end
+
+  def test_field_name_with_method_names
+    value = field_name(:post, :title, :subtitle)
+
+    assert_equal "post[title][subtitle]", value
+  end
+
+  def test_field_name_with_method_names_and_index
+    value = field_name(:post, :title, :subtitle, index: 1)
+
+    assert_equal "post[1][title][subtitle]", value
+  end
+
+  def test_field_name_with_method_names_and_multiple
+    value = field_name(:post, :title, :subtitle, multiple: true)
+
+    assert_equal "post[title][subtitle][]", value
+  end
+
+  def test_field_name_with_method_names_and_multiple_and_index
+    value = field_name(:post, :title, :subtitle, index: 1, multiple: true)
+
+    assert_equal "post[1][title][subtitle][]", value
+  end
+
   def test_hidden_field_tag
     actual = hidden_field_tag "id", 3
     expected = %(<input id="id" name="id" type="hidden" value="3" autocomplete="off" />)
