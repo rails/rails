@@ -2532,6 +2532,30 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
+  def test_button_with_method_name
+    form_for(@post) do |f|
+      concat f.button(:secret, value: true)
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      %(<button type="submit" name="post[secret]" value="true">Update Post</button>)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_button_with_method_name_and_block
+    form_for(@post) do |f|
+      concat f.button(:secret, value: true) { "Update secret Post" }
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      %(<button type="submit" name="post[secret]" value="true">Update secret Post</button>)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_button_with_get_formmethod_attribute
     form_for(@post, as: :another_post) do |f|
       concat f.button "GET", formmethod: :get

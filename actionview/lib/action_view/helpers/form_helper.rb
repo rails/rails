@@ -2597,6 +2597,9 @@ module ActionView
       #   button("Create post")
       #   # => <button name='button' type='submit'>Create post</button>
       #
+      #   button(:draft, value: true)
+      #   # => <button name="post[draft]" value="true" type="submit">Create post</button>
+      #
       #   button do
       #     content_tag(:strong, 'Ask me!')
       #   end
@@ -2611,8 +2614,20 @@ module ActionView
       #   #      <strong>Create post</strong>
       #   #    </button>
       #
+      #   button(:draft, value: true) do
+      #     content_tag(:strong, "Save as draft")
+      #   end
+      #   # =>  <button name="post[draft]" value="true" type="submit">
+      #   #       <strong>Save as draft</strong>
+      #   #     </button>
+      #
       def button(value = nil, options = {}, &block)
-        value, options = nil, value if value.is_a?(Hash)
+        case value
+        when Hash
+          value, options = nil, value
+        when Symbol
+          value, options[:name] = nil, field_name(value)
+        end
         value ||= submit_default_value
 
         if block_given?
