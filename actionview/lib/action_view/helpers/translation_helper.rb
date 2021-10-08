@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "action_view/helpers/tag_helper"
+require "active_support/html_safe_translation"
 require "active_support/core_ext/symbol/starts_ends_with"
 
 module ActionView
@@ -85,14 +86,9 @@ module ActionView
 
           key = scope_key_by_partial(key)
 
-          if html_safe_translation_key?(key)
-            html_safe_options ||= html_escape_translation_options(options)
-            translated = I18n.translate(key, **html_safe_options, default: default)
-            break html_safe_translation(translated) unless translated.equal?(MISSING_TRANSLATION)
-          else
-            translated = I18n.translate(key, **options, default: default)
-            break translated unless translated.equal?(MISSING_TRANSLATION)
-          end
+          translated = ActiveSupport::HtmlSafeTranslation.translate(key, **options, default: default)
+
+          break translated unless translated.equal?(MISSING_TRANSLATION)
 
           if alternatives.present? && !alternatives.first.is_a?(Symbol)
             break alternatives.first && I18n.translate(**options, default: alternatives)
@@ -127,10 +123,6 @@ module ActionView
         NO_DEFAULT = [].freeze
         private_constant :NO_DEFAULT
 
-        def self.i18n_option?(name)
-          (@i18n_option_names ||= I18n::RESERVED_KEYS.to_set).include?(name)
-        end
-
         def scope_key_by_partial(key)
           if key&.start_with?(".")
             if @virtual_path
@@ -142,31 +134,6 @@ module ActionView
             end
           else
             key
-          end
-        end
-
-        def html_escape_translation_options(options)
-          return options if options.empty?
-          html_safe_options = options.dup
-
-          options.each do |name, value|
-            unless TranslationHelper.i18n_option?(name) || (name == :count && value.is_a?(Numeric))
-              html_safe_options[name] = ERB::Util.html_escape(value.to_s)
-            end
-          end
-
-          html_safe_options
-        end
-
-        def html_safe_translation_key?(key)
-          /(?:_|\b)html\z/.match?(key)
-        end
-
-        def html_safe_translation(translation)
-          if translation.respond_to?(:map)
-            translation.map { |element| element.respond_to?(:html_safe) ? element.html_safe : element }
-          else
-            translation.respond_to?(:html_safe) ? translation.html_safe : translation
           end
         end
 
