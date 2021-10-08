@@ -1,3 +1,15 @@
+*   Introduce the `field_name` view helper, along with the
+    `FormBuilder#field_name` counterpart:
+
+    ```ruby
+    form_for @post do |f|
+      f.field_tag :tag, name: f.field_name(:tag, multiple: true)
+      # => <input type="text" name="post[tag][]">
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Add `:day_format` option to `date_select`
 
         date_select("article", "written_on", day_format: ->(day) { day.ordinalize })
