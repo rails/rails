@@ -1689,6 +1689,22 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_field_id_with_namespace
+    form_for(Post.new, namespace: :special) do |form|
+      concat form.label(:title)
+      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) })
+      concat tag.span("is blank", id: form.field_id(:title, :error))
+    end
+
+    expected = whole_form("/posts", "special_new_post", "new_post") do
+      '<label for="special_post_title">Title</label>' \
+      '<input id="special_post_title" name="post[title]" type="text" aria-describedby="special_post_title_error">' \
+      '<span id="special_post_title_error">is blank</span>'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_field_name_with_blank_as_and_multiple
     form_for(Post.new, as: "") do |form|
       concat form.text_field(:title, name: form.field_name(:title, multiple: true))
@@ -1792,6 +1808,20 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form("/posts", "new_post", "new_post") do
       %(<input id="post_1_title" name="post[1][title][subtitle][]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_id_with_namespace_and_index
+    form_for(Post.new, namespace: :special, index: 1) do |form|
+      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) })
+      concat tag.span("is blank", id: form.field_id(:title, :error))
+    end
+
+    expected = whole_form("/posts", "special_new_post", "new_post") do
+      '<input id="special_post_1_title" name="post[1][title]" type="text" aria-describedby="special_post_1_title_error">' \
+      '<span id="special_post_1_title_error">is blank</span>'
     end
 
     assert_dom_equal expected, output_buffer
