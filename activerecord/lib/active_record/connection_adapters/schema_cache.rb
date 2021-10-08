@@ -37,6 +37,7 @@ module ActiveRecord
 
       def initialize(conn)
         @connection = conn
+        @loaded = false
 
         @columns      = {}
         @columns_hash = {}
@@ -73,7 +74,18 @@ module ActiveRecord
         @version          = coder["version"]
         @database_version = coder["database_version"]
 
+        @loaded = true
+
         derive_columns_hash_and_deduplicate_values
+      end
+
+      # Was this cache bulk-loaded from a previous schema dump?
+      #
+      # When true, the cache may be assumed to be complete, and unlikely to
+      # generate schema introspection queries. When false, the cache is being
+      # populated on demand.
+      def loaded?
+        @loaded
       end
 
       def primary_keys(table_name)
@@ -152,6 +164,7 @@ module ActiveRecord
         @primary_keys.clear
         @data_sources.clear
         @indexes.clear
+        @loaded = false
         @version = nil
         @database_version = nil
       end
@@ -190,6 +203,7 @@ module ActiveRecord
       def marshal_load(array)
         @version, @columns, _columns_hash, @primary_keys, @data_sources, @indexes, @database_version = array
         @indexes ||= {}
+        @loaded = true
 
         derive_columns_hash_and_deduplicate_values
       end

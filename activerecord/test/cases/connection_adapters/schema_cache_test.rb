@@ -22,6 +22,8 @@ module ActiveRecord
         # Load the cache.
         cache = SchemaCache.load_from(tempfile.path)
 
+        assert cache.loaded?
+
         # Give it a connection. Usually the connection
         # would get set on the cache when it's retrieved
         # from the pool.
@@ -43,6 +45,8 @@ module ActiveRecord
         # Create an empty cache.
         cache = SchemaCache.new @connection
 
+        assert_not cache.loaded?
+
         tempfile = Tempfile.new(["schema_cache-", ".yml.gz"])
         # Dump it. It should get populated before dumping.
         cache.dump_to(tempfile.path)
@@ -51,6 +55,8 @@ module ActiveRecord
         cache = Zlib::GzipReader.open(tempfile.path) do |gz|
           YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(gz.read) : YAML.load(gz.read)
         end
+
+        assert cache.loaded?
 
         # Give it a connection. Usually the connection
         # would get set on the cache when it's retrieved
@@ -68,6 +74,8 @@ module ActiveRecord
 
         # Load the cache the usual way.
         cache = SchemaCache.load_from(tempfile.path)
+
+        assert cache.loaded?
 
         # Give it a connection.
         cache.connection = @connection
@@ -88,6 +96,8 @@ module ActiveRecord
         cache = SchemaCache.load_from(schema_dump_path)
         cache.connection = @connection
 
+        assert cache.loaded?
+
         assert_no_queries do
           assert_equal 11, cache.columns("posts").size
           assert_equal 11, cache.columns_hash("posts").size
@@ -99,6 +109,9 @@ module ActiveRecord
       def test_yaml_loads_5_1_dump_without_indexes_still_queries_for_indexes
         cache = SchemaCache.load_from(schema_dump_path)
         cache.connection = @connection
+
+        # It still counts as "loaded", despite being incomplete
+        assert cache.loaded?
 
         assert_queries :any, ignore_none: true do
           assert_equal 1, cache.indexes("posts").size
@@ -176,15 +189,31 @@ module ActiveRecord
         assert_nil @cache.instance_variable_get(:@database_version)
       end
 
+      def test_clearing_after_load
+        cache = SchemaCache.load_from(schema_dump_path)
+        cache.connection = @connection
+
+        assert cache.loaded?
+
+        cache.clear!
+
+        assert_not cache.loaded?
+        assert_equal 0, cache.size
+      end
+
       def test_marshal_dump_and_load
         # Create an empty cache.
         cache = SchemaCache.new @connection
+
+        assert_not cache.loaded?
 
         # Populate it.
         cache.add("posts")
 
         # Create a new cache by marshal dumping / loading.
         cache = Marshal.load(Marshal.dump(cache))
+
+        assert cache.loaded?
 
         assert_no_queries do
           assert_equal 12, cache.columns("posts").size
@@ -200,6 +229,8 @@ module ActiveRecord
         # Create an empty cache.
         cache = SchemaCache.new @connection
 
+        assert_not cache.loaded?
+
         tempfile = Tempfile.new(["schema_cache-", ".dump"])
         # Dump it. It should get populated before dumping.
         cache.dump_to(tempfile.path)
@@ -207,6 +238,8 @@ module ActiveRecord
         # Load a new cache.
         cache = SchemaCache.load_from(tempfile.path)
         cache.connection = @connection
+
+        assert cache.loaded?
 
         assert_no_queries do
           assert_equal 12, cache.columns("posts").size
@@ -317,6 +350,10 @@ module ActiveRecord
         @cache.data_source_exists?("posts")
 
         assert_not @cache.columns_hash?("posts")
+      end
+
+      test "#loaded? defaults to false" do
+        assert_not @cache.loaded?
       end
 
       unless in_memory_db?
