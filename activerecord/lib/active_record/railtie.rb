@@ -130,7 +130,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record.check_schema_cache_dump" do
       check_schema_cache_dump_version = config.active_record.check_schema_cache_dump_version
 
-      if config.active_record.use_schema_cache_dump && !config.active_record.lazily_load_schema_cache
+      if config.active_record.use_schema_cache_dump
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
             db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).first

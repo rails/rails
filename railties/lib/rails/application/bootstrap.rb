@@ -66,7 +66,7 @@ module Rails
 
       # We setup the once autoloader this early so that engines and applications
       # are able to autoload from these paths during initialization.
-      initializer :setup_once_autoloader, after: :set_eager_load_paths, before: :bootstrap_hook do
+      initializer :setup_once_autoloader do
         autoloader = Rails.autoloaders.once
 
         ActiveSupport::Dependencies.autoload_once_paths.freeze

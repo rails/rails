@@ -62,7 +62,8 @@ module ActionController
       end
     end
 
-    %w(write_fragment read_fragment exist_fragment? expire_fragment).each do |method|
+    %w(write_fragment read_fragment exist_fragment?
+       expire_fragment expire_page write_page).each do |method|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{method}(event)
           return unless logger.info? && ActionController::Base.enable_fragment_cache_logging

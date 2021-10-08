@@ -1166,7 +1166,7 @@ class InferringClassNameTest < ActionController::TestCase
     end
 end
 
-class ManuallySetNameTest < ActionController::TestCase
+class CrazyNameTest < ActionController::TestCase
   tests ContentController
 
   def test_controller_class_can_be_set_manually_not_just_inferred
@@ -1174,7 +1174,7 @@ class ManuallySetNameTest < ActionController::TestCase
   end
 end
 
-class ManuallySetSymbolNameTest < ActionController::TestCase
+class CrazySymbolNameTest < ActionController::TestCase
   tests :content
 
   def test_set_controller_class_using_symbol
@@ -1182,7 +1182,7 @@ class ManuallySetSymbolNameTest < ActionController::TestCase
   end
 end
 
-class ManuallySetStringNameTest < ActionController::TestCase
+class CrazyStringNameTest < ActionController::TestCase
   tests "content"
 
   def test_set_controller_class_using_string

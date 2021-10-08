@@ -156,17 +156,17 @@ module ActiveRecord
             assert_equal "secondary", SecondaryBase.connection_pool.db_config.name
 
             # Switch only primary to shard_one
-            PrimaryBase.connected_to(shard: :shard_one) do
+            PrimaryBase.connected_to(role: global_role, shard: :shard_one) do
               assert_equal "primary_shard_one", PrimaryBase.connection_pool.db_config.name
               assert_equal "secondary", SecondaryBase.connection_pool.db_config.name
 
               # Switch global to shard_one
-              ActiveRecord::Base.connected_to(shard: :shard_one) do
+              ActiveRecord::Base.connected_to(role: global_role, shard: :shard_one) do
                 assert_equal "primary_shard_one", PrimaryBase.connection_pool.db_config.name
                 assert_equal "secondary_shard_one", SecondaryBase.connection_pool.db_config.name
 
                 # Switch only secondary to shard_two
-                SecondaryBase.connected_to(shard: :shard_two) do
+                SecondaryBase.connected_to(role: global_role, shard: :shard_two) do
                   assert_equal "primary_shard_one", PrimaryBase.connection_pool.db_config.name
                   assert_equal "secondary_shard_two", SecondaryBase.connection_pool.db_config.name
                 end
@@ -183,7 +183,7 @@ module ActiveRecord
               end
 
               # Switch everything to default
-              ActiveRecord::Base.connected_to(shard: :default) do
+              ActiveRecord::Base.connected_to(role: global_role, shard: :default) do
                 assert_equal "primary", PrimaryBase.connection_pool.db_config.name
                 assert_equal "secondary", SecondaryBase.connection_pool.db_config.name
               end

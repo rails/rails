@@ -773,13 +773,10 @@ irb> a.first_name == b.author.first_name
 => true
 ```
 
-Active Record supports automatic identification for most associations with
-standard names. However, Active Record will not automatically identify
-bi-directional associations that contain the `:through` or `:foreign_key`
-options. Custom scopes on the opposite association also prevent automatic
-identification, as do custom scopes on the association itself unless
-`config.active_record.automatic_scope_inversing` is set to true (the default for
-new applications).
+Active Record supports automatic identification for most associations with standard names. However, Active Record will not automatically identify bi-directional associations that contain a scope or any of the following options:
+
+* `:through`
+* `:foreign_key`
 
 For example, consider the following model declarations:
 

@@ -10,7 +10,7 @@ module Rails
     def app(create = false)
       @app_integration_instance = nil if create
       @app_integration_instance ||= new_session do |sess|
-        sess.host! Rails.application.routes.default_url_options[:host] || "www.example.com"
+        sess.host! "www.example.com"
       end
     end
 

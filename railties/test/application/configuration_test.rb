@@ -2266,32 +2266,6 @@ module ApplicationTests
       assert_equal true, ActiveRecord::Base.has_many_inversing
     end
 
-    test "ActiveRecord::Base.automatic_scope_inversing is true by default for new apps" do
-      app "development"
-
-      assert_equal true, ActiveRecord::Base.automatic_scope_inversing
-    end
-
-    test "ActiveRecord::Base.automatic_scope_inversing is false by default for upgraded apps" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app "development"
-
-      assert_equal false, ActiveRecord::Base.automatic_scope_inversing
-    end
-
-    test "ActiveRecord::Base.automatic_scope_inversing can be configured via config.active_record.automatic_scope_inversing" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
-        Rails.application.config.active_record.automatic_scope_inversing = true
-      RUBY
-
-      app "development"
-
-      assert_equal true, ActiveRecord::Base.automatic_scope_inversing
-    end
-
     test "ActiveRecord.verify_foreign_keys_for_fixtures is true by default for new apps" do
       app "development"
 

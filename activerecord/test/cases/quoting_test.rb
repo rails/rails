@@ -60,7 +60,7 @@ module ActiveRecord
         end
       end
 
-      def test_quoted_timestamp_nonsense
+      def test_quoted_timestamp_crazy
         with_timezone_config default: :asdfasdf do
           t = Time.now.change(usec: 0)
           assert_equal t.getlocal.to_s(:db), @quoter.quoted_date(t)
@@ -115,7 +115,7 @@ module ActiveRecord
         end
       end
 
-      def test_quoted_time_nonsense
+      def test_quoted_time_crazy
         with_timezone_config default: :asdfasdf do
           t = Time.now.change(usec: 0)
 
@@ -185,10 +185,10 @@ module ActiveRecord
         assert_equal "'Object'", @quoter.quote(Object)
       end
 
-      def test_quote_object_instance
-        object = Object.new
+      def test_crazy_object
+        crazy = Object.new
         e = assert_raises(TypeError) do
-          @quoter.quote(object)
+          @quoter.quote(crazy)
         end
         assert_equal "can't quote Object", e.message
       end

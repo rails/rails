@@ -673,7 +673,7 @@ unless in_memory_db?
     end
 
     # Test typical find.
-    def test_typical_find_with_lock
+    def test_sane_find_with_lock
       assert_nothing_raised do
         Person.transaction do
           Person.lock.find(1)

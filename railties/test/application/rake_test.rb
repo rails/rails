@@ -181,7 +181,7 @@ module ApplicationTests
       assert_equal "Answer: 42\n", output
     end
 
-    def test_code_statistics
+    def test_code_statistics_sanity
       assert_match "Code LOC: 61     Test LOC: 3     Code to Test Ratio: 1:0.0",
         rails("stats")
     end

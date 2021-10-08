@@ -30,7 +30,7 @@ class TextHelperTest < ActionView::TestCase
   def test_simple_format
     assert_equal "<p></p>", simple_format(nil)
 
-    assert_equal "<p>ridiculous\n<br /> cross\n<br /> platform linebreaks</p>", simple_format("ridiculous\r\n cross\r platform linebreaks")
+    assert_equal "<p>crazy\n<br /> cross\n<br /> platform linebreaks</p>", simple_format("crazy\r\n cross\r platform linebreaks")
     assert_equal "<p>A paragraph</p>\n\n<p>and another one!</p>", simple_format("A paragraph\n\nand another one!")
     assert_equal "<p>A paragraph\n<br /> With a newline</p>", simple_format("A paragraph\n With a newline")
 

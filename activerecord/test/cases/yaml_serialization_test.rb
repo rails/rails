@@ -61,7 +61,7 @@ class YamlSerializationTest < ActiveRecord::TestCase
   def test_new_records_remain_new_after_round_trip
     topic = Topic.new
 
-    assert topic.new_record?, "New record should be new"
+    assert topic.new_record?, "Sanity check that new records are new"
     assert yaml_load(YAML.dump(topic)).new_record?, "Record should be new after deserialization"
 
     topic.save!

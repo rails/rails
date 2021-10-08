@@ -233,26 +233,6 @@ module RailtiesTest
       assert_equal "Another", Another.name
     end
 
-    test "when the bootstrap hook runs, autoload paths are set" do
-      $test_autoload_once_paths = []
-      $test_autoload_paths = []
-
-      add_to_config <<~RUBY
-        # Unrealistic configuration, but keeps the test simple.
-        config.autoload_once_paths << "#{app_path}/app/helpers"
-
-        initializer "inspect autoload paths", after: :bootstrap_hook do
-          $test_autoload_once_paths += ActiveSupport::Dependencies.autoload_once_paths
-          $test_autoload_paths += ActiveSupport::Dependencies.autoload_paths
-        end
-      RUBY
-
-      boot_rails
-
-      assert_includes $test_autoload_once_paths, "#{app_path}/app/helpers"
-      assert_includes $test_autoload_paths, "#{app_path}/app/controllers"
-    end
-
     test "puts its models directory on autoload path" do
       @plugin.write "app/models/my_bukkit.rb", "class MyBukkit ; end"
       boot_rails

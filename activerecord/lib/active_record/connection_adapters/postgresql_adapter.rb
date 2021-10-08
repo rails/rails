@@ -459,7 +459,7 @@ module ActiveRecord
         query = <<~SQL
           SELECT
             type.typname AS name,
-            string_agg(enum.enumlabel, ',' ORDER BY enum.enumsortorder) AS value
+            string_agg(enum.enumlabel, ',') AS value
           FROM pg_enum AS enum
           JOIN pg_type AS type
             ON (type.oid = enum.enumtypid)

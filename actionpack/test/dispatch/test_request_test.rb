@@ -3,7 +3,7 @@
 require "abstract_unit"
 
 class TestRequestTest < ActiveSupport::TestCase
-  test "reasonable defaults" do
+  test "sane defaults" do
     env = ActionDispatch::TestRequest.create.env
 
     assert_equal "GET", env.delete("REQUEST_METHOD")

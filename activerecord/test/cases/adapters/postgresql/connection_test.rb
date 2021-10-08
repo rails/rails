@@ -141,7 +141,7 @@ module ActiveRecord
     def test_reconnection_after_actual_disconnection_with_verify
       original_connection_pid = @connection.query("select pg_backend_pid()")
 
-      # Double check we are connected to begin with
+      # Sanity check.
       assert_predicate @connection, :active?
 
       secondary_connection = ActiveRecord::Base.connection_pool.checkout

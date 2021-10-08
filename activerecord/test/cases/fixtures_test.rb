@@ -473,7 +473,7 @@ class FixturesTest < ActiveRecord::TestCase
   def test_nonexistent_fixture_file
     nonexistent_fixture_path = FIXTURES_ROOT + "/imnothere"
 
-    # Ensure that this file never exists
+    # sanity check to make sure that this file never exists
     assert_empty Dir[nonexistent_fixture_path + "*"]
 
     assert_raise(Errno::ENOENT) do

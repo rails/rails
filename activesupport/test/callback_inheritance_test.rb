@@ -160,11 +160,11 @@ class InheritedCallbacksTest2 < ActiveSupport::TestCase
     @update2 = Child.new("update", :closed).dispatch
   end
 
-  def test_complex_mix_on
+  def test_crazy_mix_on
     assert_equal %w(before1 update after2 after1), @update1.log
   end
 
-  def test_complex_mix_off
+  def test_crazy_mix_off
     assert_equal %w(before1 before2 update after2 after1), @update2.log
   end
 end

@@ -63,7 +63,7 @@ module ActiveSupport
       module Subprocess
         ORIG_ARGV = ARGV.dup unless defined?(ORIG_ARGV)
 
-        # Complicated H4X to get this working in windows / jruby with
+        # Crazy H4X to get this working in windows / jruby with
         # no forking.
         def run_in_isolation(&blk)
           require "tempfile"

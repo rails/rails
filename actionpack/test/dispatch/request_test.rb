@@ -908,7 +908,7 @@ class RequestFormat < BaseRequestTest
 
       assert_equal [ Mime[:html] ], request.formats
 
-      request = stub_request "HTTP_ACCEPT" => "koz-asked/something-wild",
+      request = stub_request "HTTP_ACCEPT" => "koz-asked/something-crazy",
                              "QUERY_STRING" => ""
 
       assert_equal [ Mime[:html] ], request.formats

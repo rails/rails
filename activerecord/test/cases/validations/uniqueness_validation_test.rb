@@ -249,10 +249,10 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
     t = Topic.create("title" => "The earth is actually flat!")
 
-    r1 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy@rubyonrails.com", "title" => "You're joking!", "content" => "Silly reply"
+    r1 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy@rubyonrails.com", "title" => "You're crazy!", "content" => "Crazy reply"
     assert r1.valid?, "Saving r1"
 
-    r2 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy@rubyonrails.com", "title" => "You're joking!", "content" => "Silly reply again..."
+    r2 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy@rubyonrails.com", "title" => "You're crazy!", "content" => "Crazy reply again..."
     assert_not r2.valid?, "Saving r2. Double reply by same author."
 
     r2.author_email_address = "jeremy_alt_email@rubyonrails.com"

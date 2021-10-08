@@ -234,7 +234,6 @@ module Rails
           if respond_to?(:active_record)
             active_record.verify_foreign_keys_for_fixtures = true
             active_record.partial_inserts = false
-            active_record.automatic_scope_inversing = true
           end
 
           if respond_to?(:action_controller)

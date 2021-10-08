@@ -12,7 +12,7 @@ module ActiveRecord
           super(record, attribute, value)
 
           klass = record.class
-          klass.deterministic_encrypted_attributes&.each do |attribute_name|
+          if klass.deterministic_encrypted_attributes&.each do |attribute_name|
             encrypted_type = klass.type_for_attribute(attribute_name)
             [ encrypted_type, *encrypted_type.previous_types ].each do |type|
               encrypted_value = type.serialize(value)
@@ -20,6 +20,7 @@ module ActiveRecord
                 super(record, attribute, encrypted_value)
               end
             end
+          end
           end
         end
       end

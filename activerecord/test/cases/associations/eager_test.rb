@@ -679,7 +679,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_queries(1) do
       posts = Post.references(:authors, :comments).
         merge(includes: [ :author, :comments ], limit: 2, offset: 10,
-          where: [ "authors.name = ? and comments.body = ?", "David", "go wild" ]).to_a
+          where: [ "authors.name = ? and comments.body = ?", "David", "go crazy" ]).to_a
       assert_equal 0, posts.size
     end
   end
@@ -687,7 +687,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_with_has_many_and_limit_and_high_offset_and_multiple_hash_conditions
     assert_queries(1) do
       posts = Post.all.merge!(includes: [ :author, :comments ], limit: 2, offset: 10,
-        where: { "authors.name" => "David", "comments.body" => "go wild" }).to_a
+        where: { "authors.name" => "David", "comments.body" => "go crazy" }).to_a
       assert_equal 0, posts.size
     end
   end

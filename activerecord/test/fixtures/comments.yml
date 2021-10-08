@@ -55,7 +55,7 @@ check_eager_sti_on_associations2:
 eager_other_comment1:
   id: 11
   post_id: 7
-  body: go wild
+  body: go crazy
   type: SpecialComment
 
 sub_special_comment:

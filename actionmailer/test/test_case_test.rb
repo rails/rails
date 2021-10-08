@@ -43,7 +43,7 @@ class MailerDeliveriesClearingTest < ActionMailer::TestCase
   end
 end
 
-class ManuallySetNameMailerTest < ActionMailer::TestCase
+class CrazyNameMailerTest < ActionMailer::TestCase
   tests TestTestMailer
 
   def test_set_mailer_class_manual
@@ -51,7 +51,7 @@ class ManuallySetNameMailerTest < ActionMailer::TestCase
   end
 end
 
-class ManuallySetSymbolNameMailerTest < ActionMailer::TestCase
+class CrazySymbolNameMailerTest < ActionMailer::TestCase
   tests :test_test_mailer
 
   def test_set_mailer_class_manual_using_symbol
@@ -59,7 +59,7 @@ class ManuallySetSymbolNameMailerTest < ActionMailer::TestCase
   end
 end
 
-class ManuallySetStringNameMailerTest < ActionMailer::TestCase
+class CrazyStringNameMailerTest < ActionMailer::TestCase
   tests "test_test_mailer"
 
   def test_set_mailer_class_manual_using_string

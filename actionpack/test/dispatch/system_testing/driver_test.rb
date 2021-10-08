@@ -160,7 +160,7 @@ class DriverTest < ActiveSupport::TestCase
   end
 
   test "does not configure browser if driver is not :selenium" do
-    # Check that it does configure browser if the driver is :selenium
+    # sanity check
     assert ActionDispatch::SystemTesting::Driver.new(:selenium).instance_variable_get(:@browser)
 
     assert_nil ActionDispatch::SystemTesting::Driver.new(:rack_test).instance_variable_get(:@browser)

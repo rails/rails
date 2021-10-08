@@ -22,12 +22,9 @@ require "models/project"
 require "models/author"
 require "models/user"
 require "models/room"
-require "models/contract"
-require "models/subscription"
-require "models/book"
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
-  fixtures :ratings, :comments, :cars, :books
+  fixtures :ratings, :comments, :cars
 
   def test_has_one_and_belongs_to_should_find_inverse_automatically_on_multiple_word_name
     monkey_reflection = MixedCaseMonkey.reflect_on_association(:human)
@@ -110,51 +107,6 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
 
     assert_not_predicate owner_reflection, :has_inverse?
     assert_not_equal room_reflection, owner_reflection.inverse_of
-  end
-
-  def test_has_many_and_belongs_to_with_a_scope_and_automatic_scope_inversing_should_find_inverse_automatically
-    contacts_reflection = Company.reflect_on_association(:special_contracts)
-    company_reflection = SpecialContract.reflect_on_association(:company)
-
-    assert contacts_reflection.scope
-    assert_not company_reflection.scope
-
-    with_automatic_scope_inversing(contacts_reflection, company_reflection) do
-      assert_predicate contacts_reflection, :has_inverse?
-      assert_equal company_reflection, contacts_reflection.inverse_of
-      assert_not_equal contacts_reflection, company_reflection.inverse_of
-    end
-  end
-
-  def test_has_one_and_belongs_to_with_a_scope_and_automatic_scope_inversing_should_find_inverse_automatically
-    post_reflection = Author.reflect_on_association(:recent_post)
-    author_reflection = Post.reflect_on_association(:author)
-
-    assert post_reflection.scope
-    assert_not author_reflection.scope
-
-    with_automatic_scope_inversing(post_reflection, author_reflection) do
-      assert_predicate post_reflection, :has_inverse?
-      assert_equal author_reflection, post_reflection.inverse_of
-      assert_not_equal post_reflection, author_reflection.inverse_of
-    end
-  end
-
-  def test_has_many_with_scoped_belongs_to_does_not_find_inverse_automatically
-    book = books(:tlg)
-    book.update_attribute(:author_visibility, :invisible)
-
-    assert_nil book.subscriptions.new.book
-
-    subscription_reflection = Book.reflect_on_association(:subscriptions)
-    book_reflection = Subscription.reflect_on_association(:book)
-
-    assert_not subscription_reflection.scope
-    assert book_reflection.scope
-
-    with_automatic_scope_inversing(book_reflection, subscription_reflection) do
-      assert_nil book.subscriptions.new.book
-    end
   end
 
   def test_has_one_and_belongs_to_automatic_inverse_shares_objects

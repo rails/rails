@@ -326,7 +326,7 @@ module ActiveRecord
   #           # The system must fail on Friday so that our support department
   #           # won't be out of job. We silently rollback this transaction
   #           # without telling the user.
-  #           raise ActiveRecord::Rollback
+  #           raise ActiveRecord::Rollback, "Call tech support!"
   #         end
   #       end
   #       # ActiveRecord::Rollback is the only exception that won't be passed on
