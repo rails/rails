@@ -1,3 +1,19 @@
+*   Support passing a Symbol as the first argument to `FormBuilder#button`:
+
+    ```ruby
+    form.button(:draft, value: true)
+    # => <button name="post[draft]" value="true" type="submit">Create post</button>
+
+    form.button(:draft, value: true) do
+      content_tag(:strong, "Save as draft")
+    end
+    # =>  <button name="post[draft]" value="true" type="submit">
+    #       <strong>Save as draft</strong>
+    #     </button>
+    ```
+
+    *Sean Doyle*
+
 *   Introduce the `field_name` view helper, along with the
     `FormBuilder#field_name` counterpart:
 
