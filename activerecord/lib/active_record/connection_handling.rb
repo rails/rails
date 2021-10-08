@@ -108,6 +108,16 @@ module ActiveRecord
       connections
     end
 
+    # Establishes connections based on configurations defined in `connections.yml`.
+    def connects_with_file
+      raise ArgumentError, "must provide a connections.yml to use connects_with_file" if connection_configurations.none?
+
+      config_for_class = connection_configurations.configs_for(class_name: name)
+      raise ArgumentError, "no entry for #{name} found in connections.yml" if config_for_class.nil?
+
+      connects_to(**config_for_class.connection_config)
+    end
+
     # Connects to a role (ex writing, reading or a custom role) and/or
     # shard for the duration of the block. At the end of the block the
     # connection will be returned to the original role / shard.

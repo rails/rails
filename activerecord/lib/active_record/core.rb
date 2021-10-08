@@ -57,6 +57,15 @@ module ActiveRecord
         @@configurations
       end
 
+      def self.connection_configurations=(config) # :nodoc:
+        @@connection_configurations = ActiveRecord::ConnectionConfigurations.new(config)
+      end
+      self.connection_configurations = {}
+
+      def self.connection_configurations
+        @@connection_configurations
+      end
+
       ##
       # :singleton-method:
       # Force enumeration of all columns in SELECT statements.

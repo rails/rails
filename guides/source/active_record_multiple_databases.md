@@ -43,6 +43,8 @@ Let's say we have an application with a single writer database and we need to ad
 new database for some new tables we're adding. The name of the new database will be
 "animals".
 
+### Defining databases
+
 The `database.yml` looks like this:
 
 ```yaml
@@ -106,6 +108,8 @@ Lastly, for new writer databases, you need to set the `migrations_paths` to the 
 where you will store migrations for that database. We'll look more at `migrations_paths`
 later on in this guide.
 
+### Defining connections in the model
+
 Now that we have a new database, let's set up the connection model. In order to use the
 new database we need to create a new abstract class and connect to the animals databases.
 
@@ -159,6 +163,8 @@ for the tables rather than connect multiple individual models to the same databa
 clients have a limit to the number of open connections there can be and if you do this it will
 multiply the number of connections you have since Rails uses the model class name for the
 connection specification name.
+
+## Rake Tasks
 
 Now that we have the `database.yml` and the new model set up, it's time to create the databases.
 Rails 6.0 ships with all the rails tasks you need to use multiple databases in Rails.
@@ -424,6 +430,46 @@ role and the shard with the `connected_to` API.
 ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
   Person.first # Lookup record from read replica of shard one
 end
+```
+
+### Defining connections in a file
+
+Some application authors may want to set up connections outside the model if they have a lot of shards or are using tenant sharding. To use this method add a file alongside your database.yml called `config/connections.yml` which should include the class name, shard names, and roles:
+
+```yaml
+ApplicationRecord:
+  shards:
+    default:
+      writing: primary
+      reading: primary_replica
+    shard_one:
+      writing: primary_shard_one
+      reading: primary_shard_one_replica
+```
+
+Each shard must be defined and the first shard must be default. The writing and reading roles correspond to a database from your database configuration.
+
+Then in your model you call `connects_to_file` with no arguments:
+
+```ruby
+class ApplicationRecord
+  primary_abstract_class
+
+  connects_to_file
+end
+```
+
+The `connections.yml` also supports not setting a shard and using just roles.
+
+```yaml
+ApplicationRecord:
+  database:
+    writing: primary
+    reading: primary_replica
+AnimalsRecord:
+  database:
+    writing: animals
+    reading: animals_replica
 ```
 
 ## Migrate to the new connection handling

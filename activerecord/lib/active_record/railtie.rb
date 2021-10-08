@@ -264,6 +264,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           self.connection_handlers = { ActiveRecord.writing_role => ActiveRecord::Base.default_connection_handler }
         end
         self.configurations = Rails.application.config.database_configuration
+        self.connection_configurations = Rails.application.config.connection_configuration
 
         establish_connection
       end

@@ -47,6 +47,10 @@ class ThirdAbstractClass < SecondAbstractClass
   self.abstract_class = true
 end
 
+class FourthAbstractClass < ActiveRecord::Base
+  self.abstract_class = true
+end
+
 class Photo < SecondAbstractClass; end
 class Smarts < ActiveRecord::Base; end
 class CreditCard < ActiveRecord::Base
@@ -1692,7 +1696,6 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert_equal "`connected_to` can only be called on ActiveRecord::Base with legacy connection handling.", error.message
   ensure
-    clean_up_legacy_connection_handlers
     ActiveRecord.legacy_connection_handling = old_value
   end
 
@@ -1798,5 +1801,90 @@ class BasicsTest < ActiveRecord::TestCase
       assert SecondAbstractClass.current_preventing_writes
       assert_not ActiveRecord::Base.current_preventing_writes
     end
+  end
+
+  test "#connects_with_file with a file that defines shards" do
+    arunit = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+    configs = {
+      "FourthAbstractClass" => {
+        "shards" => {
+          "default" => {
+            "writing" => "arunit",
+            "reading" => "arunit"
+          }
+        }
+      }
+    }
+
+    ActiveRecord::Base.connection_configurations = configs
+
+    FourthAbstractClass.connects_with_file
+
+    pool_manager = FourthAbstractClass.connection_handler.instance_variable_get(:@owner_to_pool_manager)["FourthAbstractClass"]
+
+    assert_equal [:default, :default], pool_manager.shard_names
+    assert_equal [:writing, :reading], pool_manager.role_names
+    assert_equal arunit, pool_manager.get_pool_config(:writing, :default).db_config
+    assert_equal arunit, pool_manager.get_pool_config(:reading, :default).db_config
+  ensure
+    ActiveRecord::Base.connection_configurations = {}
+    clean_up_connection_handler
+  end
+
+  test "#connects_with_file with a file that defines database" do
+    arunit = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+    configs = {
+      "FourthAbstractClass" => {
+        "database" => {
+          "writing" => "arunit",
+          "reading" => "arunit"
+        }
+      }
+    }
+
+    ActiveRecord::Base.connection_configurations = configs
+
+    FourthAbstractClass.connects_with_file
+
+    pool_manager = FourthAbstractClass.connection_handler.instance_variable_get(:@owner_to_pool_manager)["FourthAbstractClass"]
+
+    assert_equal [:default, :default], pool_manager.shard_names
+    assert_equal [:writing, :reading], pool_manager.role_names
+    assert_equal arunit, pool_manager.get_pool_config(:writing, :default).db_config
+    assert_equal arunit, pool_manager.get_pool_config(:reading, :default).db_config
+  ensure
+    ActiveRecord::Base.connection_configurations = {}
+    clean_up_connection_handler
+  end
+
+  test "#connects_with_file with no file present" do
+    e = assert_raises ArgumentError do
+      FourthAbstractClass.connects_with_file
+    end
+    assert_equal "must provide a connections.yml to use connects_with_file", e.message
+  end
+
+  test "#connects_with_file fails if no configuration exists for the class" do
+    configs = {
+      "AnotherAbstractClass" => {
+        "database" => {
+          "writing" => "arunit",
+          "reading" => "arunit"
+        }
+      }
+    }
+
+    ActiveRecord::Base.connection_configurations = configs
+
+    error = assert_raises ArgumentError do
+      FourthAbstractClass.connects_with_file
+    end
+
+    assert_equal "no entry for FourthAbstractClass found in connections.yml", error.message
+  ensure
+    ActiveRecord::Base.connection_configurations = {}
+    clean_up_connection_handler
   end
 end

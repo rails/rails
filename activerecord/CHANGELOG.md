@@ -1,3 +1,40 @@
+*   Add ability to define connections in a separate YAML file.
+
+    Rails will now parse a `connections.yml` file if present. This file takes precedence over `connects_to` in the models. The feature is useful for applications that are using tenant sharding or need more dynamic connection management. While the feature is more useful for sharding, it can be used for roles as well.
+
+    Simply create a `config/connections.yml` file in your application and setup your connections like you would in the model. Note that this will only work with database configurations that are defined in your `config/database.yml`.
+
+    ```yml
+    ApplicationRecord:
+      shards:
+        default:
+          writing: primary
+          reading: primary_replica
+        shard_one:
+          writing: shard_one_primary
+          reading: shard_one_replica
+    AnimalsRecord:
+      database:
+        writing: animals
+        reading: animals_replica
+    ```
+
+    ```ruby
+    class ApplicationRecord < ActiveRecord::Base
+      primary_abstract_class
+
+      connects_to_file
+    end
+
+    class AnimalsRecord < ApplicationRecord
+      self.abstract_class = true
+
+      connects_to_file
+    end
+    ```
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 *   Add `ActiveRecord::Base.prohibit_shard_swapping` to prevent attempts to change the shard within a block.
 
     *John Crepezzi*, *Eileen M. Uchitelle*

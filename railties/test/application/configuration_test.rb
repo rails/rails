@@ -1788,6 +1788,22 @@ module ApplicationTests
       assert Rails.configuration.ran_block
     end
 
+    test "loading the first existing connection configuration available" do
+      config = {
+        "ApplicationRecord" => { "shards" => { "default" => { "writing" => "primary", "reading" => "primary" } } },
+        "OtherRecord" => { "shards" => { "default" => { "writing" => "primary", "reading" => "primary" } } }
+      }
+
+      app_file "config/connections.yml", YAML.dump(config)
+
+      app "development"
+
+      assert_equal false,  Rails.application.config.rake_eager_load
+      assert_equal config, Rails.application.config.connection_configuration
+
+      assert_equal 1, ActiveRecord::Base.connection_handler.connection_pool_list.count
+    end
+
     test "loading the first existing database configuration available" do
       app_file "config/environments/development.rb", <<-RUBY
 
