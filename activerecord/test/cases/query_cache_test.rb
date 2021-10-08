@@ -489,11 +489,13 @@ class QueryCacheTest < ActiveRecord::TestCase
       payload[:sql].downcase!
     end
 
-    assert_raises FrozenError do
+    error = assert_raises ActiveSupport::Notifications::InstrumentationSubscriberError do
       ActiveRecord::Base.cache do
         assert_queries(1) { Task.find(1); Task.find(1) }
       end
     end
+
+    assert error.exceptions.first.is_a?(FrozenError)
   ensure
     ActiveSupport::Notifications.unsubscribe subscriber
   end
