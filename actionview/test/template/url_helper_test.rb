@@ -150,6 +150,39 @@ class UrlHelperTest < ActiveSupport::TestCase
     self.class.define_method(:protect_against_forgery?) { request_forgery }
   end
 
+  def test_button_to_with_authenticity_token
+    self.request_forgery = true
+
+    assert_dom_equal(
+      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button><input name="form_token" type="hidden" value="token" autocomplete="off" /></form>},
+      button_to("Hello", "http://www.example.com", authenticity_token: "token")
+    )
+  ensure
+    self.request_forgery = false
+  end
+
+  def test_button_to_with_authenticity_token_true
+    self.request_forgery = true
+
+    assert_dom_equal(
+      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button><input name="form_token" type="hidden" value="secret" autocomplete="off" /></form>},
+      button_to("Hello", "http://www.example.com", authenticity_token: true)
+    )
+  ensure
+    self.request_forgery = false
+  end
+
+  def test_button_to_with_authenticity_token_false
+    self.request_forgery = true
+
+    assert_dom_equal(
+      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button></form>},
+      button_to("Hello", "http://www.example.com", authenticity_token: false)
+    )
+  ensure
+    self.request_forgery = false
+  end
+
   def test_button_to_with_straight_url
     assert_dom_equal %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button></form>}, button_to("Hello", "http://www.example.com")
   end

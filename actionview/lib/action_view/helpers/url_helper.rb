@@ -332,6 +332,8 @@ module ActionView
         remote = html_options.delete("remote")
         params = html_options.delete("params")
 
+        authenticity_token = html_options.delete("authenticity_token")
+
         method     = html_options.delete("method").to_s
         method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : "".html_safe
 
@@ -344,7 +346,7 @@ module ActionView
 
         request_token_tag = if form_method == "post"
           request_method = method.empty? ? "post" : method
-          token_tag(nil, form_options: { action: url, method: request_method })
+          token_tag(authenticity_token, form_options: { action: url, method: request_method })
         else
           ""
         end
@@ -768,7 +770,12 @@ module ActionView
 
         def token_tag(token = nil, form_options: {})
           if token != false && defined?(protect_against_forgery?) && protect_against_forgery?
-            token ||= form_authenticity_token(form_options: form_options)
+            token =
+              if token == true || token.nil?
+                form_authenticity_token(form_options: form_options.merge(authenticity_token: token))
+              else
+                token
+              end
             tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token, autocomplete: "off")
           else
             ""
