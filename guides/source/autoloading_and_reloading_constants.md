@@ -314,44 +314,71 @@ Single Table Inheritance is a feature that doesn't play well with lazy loading. 
 
 In a sense, applications need to eager load STI hierarchies regardless of the loading mode.
 
-Of course, if the application eager loads on boot, that is already accomplished. When it does not, there are two options.
-
-### Enumerate the leaves of the hierarchy
-
-Since the leaves of the hierarchy connect all the hierarchy nodes upwards, following super classes, as soon as the root of the hierarchy is loaded, you can force loading them all:
+Of course, if the application eager loads on boot, that is already accomplished. When it does not, it is in practice enough to instantiate the existing types in the database, which in development or test modes is usually fine. One way to do that is to include an STI preloading module in your `lib` directory:
 
 ```ruby
-unless Rails.application.config.eager_load
-  Rails.autoloaders.main.on_load("RootSTIModel") do
-    Leaf1
-    Leaf2
-    Leaf3
+module StiPreload
+  unless Rails.application.config.eager_load
+    extend ActiveSupport::Concern
+
+    included do
+      cattr_accessor :preloaded, instance_accessor: false
+    end
+
+    class_methods do
+      def descendants
+        preload_sti unless preloaded
+        super
+      end
+
+      # Constantizes all types present in the database. There might be more on
+      # disk, but that does not matter in practice as far as the STI API is
+      # concerned.
+      #
+      # Assumes store_full_sti_class is true, the default.
+      def preload_sti
+        types_in_db = \
+          base_class.
+            unscoped.
+            select(inheritance_column).
+            distinct.
+            pluck(inheritance_column).
+            compact
+
+        types_in_db.each do |type|
+          logger.debug("Preloading STI type #{type}")
+          type.constantize
+        end
+
+        self.preloaded = true
+      end
+    end
   end
 end
 ```
 
-This approach is easy and loads the entire STI hierarchy, but you need to maintain this list by hand. This may be OK.
-
-### Load what's in the database
-
-As far as Active Record is concerned, in practice it may be enough to load what's in the database. Normally, in the environments where eager load is disabled, you can afford this query:
+and then include it in the STI root classes of your project:
 
 ```ruby
-# config/initializers/preload_stis.rb
-unless Rails.application.config.eager_load
-  Rails.autoloaders.main.on_load("RootSTIModel") do |klass|
-    klass.connection.select_values(<<~SQL).each(&:constantize)
-      SELECT DISTINCT("#{klass.inheritance_column}")
-      FROM "#{klass.table_name}"
-      WHERE "#{klass.inheritance_column}" IS NOT NULL
-    SQL
-  end
+# app/models/shape.rb
+require "sti_preload"
+
+class Shape < ApplicationRecord
+  include StiPreload # Only in the root class.
 end
 ```
 
-This approach does not need manual maintenance. However, if you need an exhaustive enumeration to fill a dropdown or something, and the database does not have rows for all types, you'll miss some.
+```ruby
+# app/models/polygon.rb
+class Polygon < Shape
+end
+```
 
-Both approaches have compromises.
+```ruby
+# app/models/triangle.rb
+class Triangle < Polygon
+end
+```
 
 Customizing Inflections
 -----------------------
