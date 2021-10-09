@@ -1,3 +1,8 @@
+*   Support `fields model: [@nested, @model]` the same way as `form_with model:
+    [@nested, @model]`.
+
+    *Sean Doyle*
+
 *   Add `:day_format` option to `date_select`
 
         date_select("article", "written_on", day_format: ->(day) { day.ordinalize })
