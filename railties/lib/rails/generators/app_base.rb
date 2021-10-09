@@ -58,8 +58,10 @@ module Rails
         class_option :skip_action_cable,   type: :boolean, aliases: "-C", default: false,
                                            desc: "Skip Action Cable files"
 
-        class_option :skip_sprockets,      type: :boolean, aliases: "-S", default: false,
-                                           desc: "Skip Sprockets files"
+        class_option :skip_asset_pipeline, type: :boolean, aliases: "-A", default: false
+
+        class_option :asset_pipeline,      type: :string, aliases: "-a", default: "sprockets",
+                                           desc: "Choose your asset pipeline [options: sprockets (default), propshaft]"
 
         class_option :skip_javascript,     type: :boolean, aliases: "-J", default: name == "plugin",
                                            desc: "Skip JavaScript files"
@@ -106,6 +108,7 @@ module Rails
     private
       def gemfile_entries # :doc:
         [rails_gemfile_entry,
+         asset_pipeline_gemfile_entry,
          database_gemfile_entry,
          web_server_gemfile_entry,
          javascript_gemfile_entry,
@@ -165,13 +168,25 @@ module Rails
         GemfileEntry.new "puma", "~> 5.0", "Use the Puma web server [https://github.com/puma/puma]"
       end
 
+      def asset_pipeline_gemfile_entry
+        return [] if options[:skip_asset_pipeline]
+
+        if options[:asset_pipeline] == "sprockets"
+          GemfileEntry.version "sprockets-rails", ">= 2.0.0",
+            "The traditional bundling and transpiling asset pipeline for Rails."
+        elsif options[:asset_pipeline] == "propshaft"
+          GemfileEntry.version "propshaft", ">= 0.1.7", "The modern asset pipeline for Rails."
+        else
+          []
+        end
+      end
+
       def include_all_railties? # :doc:
         [
           options.values_at(
             :skip_active_record,
             :skip_action_mailer,
             :skip_test,
-            :skip_sprockets,
             :skip_action_cable,
             :skip_active_job
           ),
@@ -217,6 +232,11 @@ module Rails
       def skip_dev_gems? # :doc:
         options[:skip_dev_gems]
       end
+
+      def skip_sprockets?
+        options[:skip_asset_pipeline] || options[:asset_pipeline] != "sprockets"
+      end
+
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
         def initialize(name, version, comment, options = {}, commented_out = false)

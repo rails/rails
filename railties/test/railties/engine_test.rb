@@ -1670,7 +1670,6 @@ en:
         require "action_controller/railtie"
         require "action_mailer/railtie"
         require "action_view/railtie"
-        require "sprockets/railtie"
         require "rails/test_unit/railtie"
       RUBY
       environment = File.read("#{app_path}/config/application.rb")
