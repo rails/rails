@@ -124,7 +124,9 @@ class FormWithActsLikeFormTagTest < FormWithTest
   end
 
   def test_form_with_with_local_true
-    actual = form_with(local: true)
+    actual = ActionView.deprecator.silence do
+      form_with(local: true)
+    end
 
     expected = whole_form("http://www.example.com", local: true)
     assert_dom_equal expected, actual
@@ -173,7 +175,9 @@ class FormWithActsLikeFormTagTest < FormWithTest
   end
 
   def test_form_with_with_block_in_erb_and_local_true
-    @rendered = render_erb("<%= form_with(url: 'http://www.example.com', local: true) do %>Hello world!<% end %>")
+    @rendered = ActionView.deprecator.silence do
+      render_erb("<%= form_with(url: 'http://www.example.com', local: true) do %>Hello world!<% end %>")
+    end
 
     expected = whole_form("http://www.example.com", local: true) do
       "Hello world!"

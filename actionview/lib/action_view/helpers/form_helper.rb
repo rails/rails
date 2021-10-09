@@ -181,16 +181,22 @@ module ActionView
       # * <tt>:authenticity_token</tt> - Authenticity token to use in the form.
       #   Use only if you need to pass custom authenticity token string, or to
       #   not add authenticity_token field at all (by passing <tt>false</tt>).
+      # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name
+      #   utf8 is not output.
+      # * <tt>:html</tt> - Optional HTML attributes for the form tag.
+      #
+      # ==== Deprecated: Rails UJS options
+      #
+      # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive
+      #   JavaScript drivers to control the submit behavior.
+      # * <tt>:authenticity_token</tt> - Authenticity token to use in the form.
+      #   Use only if you need to pass custom authenticity token string, or to
+      #   not add authenticity_token field at all (by passing <tt>false</tt>).
       #   Remote forms may omit the embedded authenticity token by setting
       #   <tt>config.action_view.embed_authenticity_token_in_remote_forms = false</tt>.
       #   This is helpful when you're fragment-caching the form. Remote forms
       #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
       #   unnecessary unless you support browsers without JavaScript.
-      # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive
-      #   JavaScript drivers to control the submit behavior.
-      # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name
-      #   utf8 is not output.
-      # * <tt>:html</tt> - Optional HTML attributes for the form tag.
       #
       # Also note that +form_for+ doesn't create an exclusive scope. It's still
       # possible to use both the stand-alone FormHelper methods and methods
@@ -322,7 +328,7 @@ module ActionView
       # supported by HTML forms, the form will be set to POST and a hidden input
       # called _method will carry the intended verb for the server to interpret.
       #
-      # === Unobtrusive JavaScript
+      # === Deprecated: Unobtrusive JavaScript
       #
       # Specifying:
       #
@@ -447,7 +453,15 @@ module ActionView
           apply_form_for_options!(object, options)
         end
 
-        remote = options.delete(:remote)
+        remote =
+          if options.key?(:remote)
+            ActionView.deprecator.warn \
+              "Passing :remote as an option is deprecated and will be removed in a future version of Rails. " \
+              "To control the [data-remote] attribute, pass that option directly as `data: { remote: true }`. " \
+              "To control the generation of CSRF tokens, pass authenticity_token: directly."
+
+            options.delete(:remote)
+          end
 
         if remote && !embed_authenticity_token_in_remote_forms && options[:authenticity_token].blank?
           options[:authenticity_token] = false
@@ -455,7 +469,12 @@ module ActionView
 
         options[:model]                               = model
         options[:scope]                               = object_name
-        options[:local]                               = !remote
+
+        case options[:data]
+        when Hash then options[:data][:remote]        = remote
+        else options[:"data-remote"]                  = remote
+        end
+
         options[:skip_default_ids]                    = false
         options[:allow_method_names_outside_object]   = options.fetch(:allow_method_names_outside_object, false)
 
@@ -616,6 +635,16 @@ module ActionView
       #   This is helpful when fragment-caching the form. Remote forms
       #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
       #   unnecessary unless you support browsers without JavaScript.
+      # * <tt>:skip_enforcing_utf8</tt> - If set to true, a hidden input with name
+      #   utf8 is not output.
+      # * <tt>:builder</tt> - Override the object used to build the form.
+      # * <tt>:id</tt> - Optional HTML id attribute.
+      # * <tt>:class</tt> - Optional HTML class attribute.
+      # * <tt>:data</tt> - Optional HTML data attributes.
+      # * <tt>:html</tt> - Other optional HTML attributes for the form tag.
+      #
+      # ==== Deprecated: Rails UJS options
+      #
       # * <tt>:local</tt> - Whether to use standard HTTP form submission.
       #   When set to <tt>true</tt>, the form is submitted via standard HTTP.
       #   When set to <tt>false</tt>, the form is submitted as a "remote form", which
@@ -626,13 +655,6 @@ module ActionView
       #   (which has the equivalent effect of passing <tt>local: true</tt>).
       #   In previous versions of \Rails, that configuration option defaults to
       #   <tt>true</tt> (the equivalent of passing <tt>local: false</tt>).
-      # * <tt>:skip_enforcing_utf8</tt> - If set to true, a hidden input with name
-      #   utf8 is not output.
-      # * <tt>:builder</tt> - Override the object used to build the form.
-      # * <tt>:id</tt> - Optional HTML id attribute.
-      # * <tt>:class</tt> - Optional HTML class attribute.
-      # * <tt>:data</tt> - Optional HTML data attributes.
-      # * <tt>:html</tt> - Other optional HTML attributes for the form tag.
       #
       # === Examples
       #
@@ -1592,10 +1614,41 @@ module ActionView
       end
 
       private
-        def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: !form_with_generates_remote_forms,
-          skip_enforcing_utf8: nil, **options)
+        def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, skip_enforcing_utf8: nil, **options)
           html_options = options.slice(:id, :class, :multipart, :method, :data, :authenticity_token).merge!(html)
-          html_options[:remote] = html.delete(:remote) || !local
+
+          remote =
+            if options.key?(:remote)
+              ActionView.deprecator.warn \
+                "Passing :remote as an option nested inside :html is deprecated and will be removed in a future version of Rails. " \
+                "To control the [data-remote] attribute, pass that option directly as `data: { remote: true }`. " \
+                "To control the generation of CSRF tokens, pass authenticity_token: directly."
+
+              options.delete(:remote)
+            elsif options.key?(:local)
+              ActionView.deprecator.warn \
+                "Passing :local as an option is deprecated and will be removed in a future version of Rails. " \
+                "To control the [data-remote] attribute, pass that option directly as `data: { remote: true }`. " \
+                "To control the generation of CSRF tokens, pass authenticity_token: directly."
+
+              !options.delete(:local)
+            elsif (data = options[:data]) && data.is_a?(Hash) && data.key?(:remote)
+              options.dig(:data, :remote)
+            elsif options.key?(:"data-remote")
+              options[:"data-remote"]
+            elsif options.key?("data-remote")
+              options["data-remote"]
+            else
+              form_with_generates_remote_forms
+            end
+
+          if remote
+            case html_options[:data]
+            when Hash then html_options[:data][:remote] = true
+            else html_options[:"data-remote"] = true
+            end
+          end
+
           html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
           if skip_enforcing_utf8.nil?
             if options.key?(:enforce_utf8)
