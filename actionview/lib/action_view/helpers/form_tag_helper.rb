@@ -62,7 +62,7 @@ module ActionView
       #   <% end -%>
       #   # => <form action="/posts" method="post"><div><input type="submit" name="commit" value="Save" /></div></form>
       #
-      #   <%= form_tag('/posts', remote: true) %>
+      #   <%= form_tag('/posts', data: { remote: true }) %>
       #   # => <form action="/posts" method="post" data-remote="true">
       #
       #   form_tag(false, method: :get)
@@ -1003,7 +1003,14 @@ module ActionView
             end
             html_options["accept-charset"] = "UTF-8"
 
-            html_options["data-remote"] = true if html_options.delete("remote")
+            if html_options.delete("remote")
+              ActionView.deprecator.warn \
+                "Passing :local as an option is deprecated and will be removed in a future version of Rails. " \
+                "To control the [data-remote] attribute, pass that option directly. " \
+                "To control the generation of CSRF tokens, pass an :authenticity_token option directly."
+
+              html_options["data-remote"] = true
+            end
 
             if html_options["data-remote"] &&
                embed_authenticity_token_in_remote_forms == false &&

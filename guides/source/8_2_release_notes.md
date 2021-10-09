@@ -63,6 +63,8 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Deprecations
 
+*  Deprecate `:remote` option for `form_for` and `:local` option for `form_with`
+
 ### Notable changes
 
 Action Mailer

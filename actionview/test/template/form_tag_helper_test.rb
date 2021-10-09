@@ -165,7 +165,9 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_form_tag_with_remote
-    actual = form_tag({}, { remote: true })
+    actual = ActionView.deprecator.silence do
+      form_tag({}, { remote: true })
+    end
 
     expected = whole_form("http://www.example.com", remote: true)
     assert_dom_equal expected, actual
