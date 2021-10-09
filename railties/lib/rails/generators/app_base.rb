@@ -175,7 +175,7 @@ module Rails
           GemfileEntry.version "sprockets-rails", ">= 2.0.0",
             "The traditional bundling and transpiling asset pipeline for Rails."
         elsif options[:asset_pipeline] == "propshaft"
-          GemfileEntry.version "propshaft", ">= 0.1.6", "The modern asset pipeline for Rails."
+          GemfileEntry.version "propshaft", ">= 0.1.7", "The modern asset pipeline for Rails."
         else
           []
         end

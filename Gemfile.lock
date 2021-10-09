@@ -351,7 +351,7 @@ GEM
       ast (~> 2.4.1)
     path_expander (1.1.0)
     pg (1.2.3)
-    propshaft (0.1.6)
+    propshaft (0.1.7)
       rails (>= 7.0.0.alpha2)
     psych (3.3.2)
     public_suffix (4.0.6)
@@ -562,7 +562,7 @@ DEPENDENCIES
   mysql2 (~> 0.5)!
   nokogiri (>= 1.8.1, != 1.11.0)
   pg (~> 1.1)
-  propshaft (>= 0.1.6)
+  propshaft (>= 0.1.7)
   psych (~> 3.0)
   puma
   que
