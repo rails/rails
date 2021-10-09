@@ -732,12 +732,6 @@ Allows specifying the Active Job queue to use for destroy jobs. When this option
 
 When true, will always include column names in `SELECT` statements, and avoid wildcard `SELECT * FROM ...` queries. This avoids prepared statement cache errors when adding columns to a PostgreSQL database for example. Defaults to `false`.
 
-#### `config.active_record.destroy_all_in_batches`
-
-Ensures `ActiveRecord::Relation#destroy_all` performs the record's deletion in
-batches. `ActiveRecord::Relation#destroy_all` will no longer return the collection
-of the deleted records after enabling this option.
-
 #### `config.active_record.verify_foreign_keys_for_fixtures`
 
 Ensures all foreign key constraints are valid after fixtures are loaded in tests. Supported by PostgreSQL and SQLite only. Defaults to `false`.

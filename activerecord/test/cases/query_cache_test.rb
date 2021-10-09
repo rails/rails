@@ -489,11 +489,13 @@ class QueryCacheTest < ActiveRecord::TestCase
       payload[:sql].downcase!
     end
 
-    assert_raises FrozenError do
+    error = assert_raises ActiveSupport::Notifications::InstrumentationSubscriberError do
       ActiveRecord::Base.cache do
         assert_queries(1) { Task.find(1); Task.find(1) }
       end
     end
+
+    assert error.exceptions.first.is_a?(FrozenError)
   ensure
     ActiveSupport::Notifications.unsubscribe subscriber
   end
@@ -621,7 +623,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_query_cache_does_not_establish_connection_if_unconnected
     ActiveRecord::Base.clear_active_connections!
-    assert_not ActiveRecord::Base.connection_handler.active_connections? # sanity check
+    assert_not ActiveRecord::Base.connection_handler.active_connections? # Double check they are cleared
 
     middleware {
       assert_not ActiveRecord::Base.connection_handler.active_connections?, "QueryCache forced ActiveRecord::Base to establish a connection in setup"
@@ -632,7 +634,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_query_cache_is_enabled_on_connections_established_after_middleware_runs
     ActiveRecord::Base.clear_active_connections!
-    assert_not ActiveRecord::Base.connection_handler.active_connections? # sanity check
+    assert_not ActiveRecord::Base.connection_handler.active_connections? # Double check they are cleared
 
     middleware {
       assert_predicate ActiveRecord::Base.connection, :query_cache_enabled
