@@ -432,52 +432,45 @@ module ActionView
       #   <% end %>
       def form_for(record, options = {}, &block)
         raise ArgumentError, "Missing block" unless block_given?
-        html_options = options[:html] ||= {}
 
         case record
         when String, Symbol
+          model       = nil
           object_name = record
-          object      = nil
         else
+          model       = record
           object      = _object_for_form_builder(record)
           raise ArgumentError, "First argument in form cannot contain nil or be empty" unless object
           object_name = options[:as] || model_name_from_record_or_class(object).param_key
-          apply_form_for_options!(record, object, options)
+          apply_form_for_options!(object, options)
         end
 
-        html_options[:data]   = options.delete(:data)   if options.has_key?(:data)
-        html_options[:remote] = options.delete(:remote) if options.has_key?(:remote)
-        html_options[:method] = options.delete(:method) if options.has_key?(:method)
-        html_options[:enforce_utf8] = options.delete(:enforce_utf8) if options.has_key?(:enforce_utf8)
-        html_options[:authenticity_token] = options.delete(:authenticity_token)
+        remote = options.delete(:remote)
 
-        builder = instantiate_builder(object_name, object, options)
-        output  = capture(builder, &block)
-        html_options[:multipart] ||= builder.multipart?
+        if remote && !embed_authenticity_token_in_remote_forms && options[:authenticity_token].blank?
+          options[:authenticity_token] = false
+        end
 
-        html_options = html_options_for_form(options.fetch(:url, {}), html_options)
-        form_tag_with_body(html_options, output)
+        options[:model]                               = model
+        options[:scope]                               = object_name
+        options[:local]                               = !remote
+        options[:skip_default_ids]                    = false
+        options[:allow_method_names_outside_object]   = options.fetch(:allow_method_names_outside_object, false)
+
+        form_with(**options, &block)
       end
 
-      def apply_form_for_options!(record, object, options) # :nodoc:
+      def apply_form_for_options!(object, options) # :nodoc:
         object = convert_to_model(object)
 
         as = options[:as]
         namespace = options[:namespace]
-        action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, :patch] : [:new, :post]
+        action = object.respond_to?(:persisted?) && object.persisted? ? :edit : :new
+        options[:html] ||= {}
         options[:html].reverse_merge!(
           class:  as ? "#{action}_#{as}" : dom_class(object, action),
           id:     (as ? [namespace, action, as] : [namespace, dom_id(object, action)]).compact.join("_").presence,
-          method: method
         )
-
-        if options[:url] != false
-          options[:url] ||= if options.key?(:format)
-            polymorphic_path(record, format: options.delete(:format))
-          else
-            polymorphic_path(record, {})
-          end
-        end
       end
       private :apply_form_for_options!
 
@@ -1023,8 +1016,9 @@ module ActionView
       # hidden field is not needed and you can pass <tt>include_id: false</tt>
       # to prevent fields_for from rendering it automatically.
       def fields_for(record_name, record_object = nil, options = {}, &block)
-        builder = instantiate_builder(record_name, record_object, options)
-        capture(builder, &block)
+        options = { model: record_object, allow_method_names_outside_object: false, skip_default_ids: false }.merge!(options)
+
+        fields(record_name, **options, &block)
       end
 
       # Scopes input fields with either an explicit scope or model.
@@ -1073,8 +1067,7 @@ module ActionView
       # to work with an object as a base, like
       # FormOptionsHelper#collection_select and DateHelper#datetime_select.
       def fields(scope = nil, model: nil, **options, &block)
-        options[:allow_method_names_outside_object] = true
-        options[:skip_default_ids] = !form_with_generates_ids
+        options = { allow_method_names_outside_object: true, skip_default_ids: !form_with_generates_ids }.merge!(options)
 
         if model
           model   = _object_for_form_builder(model)
@@ -1575,9 +1568,15 @@ module ActionView
         def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: !form_with_generates_remote_forms,
           skip_enforcing_utf8: nil, **options)
           html_options = options.slice(:id, :class, :multipart, :method, :data, :authenticity_token).merge!(html)
-          html_options[:remote] = !local
+          html_options[:remote] = html.delete(:remote) || !local
           html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
-          html_options[:enforce_utf8] = !skip_enforcing_utf8 unless skip_enforcing_utf8.nil?
+          if skip_enforcing_utf8.nil?
+            if options.key?(:enforce_utf8)
+              html_options[:enforce_utf8] = options[:enforce_utf8]
+            end
+          else
+            html_options[:enforce_utf8] = !skip_enforcing_utf8
+          end
           html_options_for_form(url_for_options.nil? ? {} : url_for_options, html_options)
         end
 
