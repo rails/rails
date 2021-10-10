@@ -757,8 +757,7 @@ module ActionView
       #     form_with(**options.merge(builder: LabellingFormBuilder), &block)
       #   end
       def form_with(model: nil, scope: nil, url: nil, format: nil, **options, &block)
-        options[:allow_method_names_outside_object] = true
-        options[:skip_default_ids] = !form_with_generates_ids
+        options = { allow_method_names_outside_object: true, skip_default_ids: !form_with_generates_ids }.merge!(options)
 
         if model
           if url != false
@@ -1575,35 +1574,11 @@ module ActionView
       private
         def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: !form_with_generates_remote_forms,
           skip_enforcing_utf8: nil, **options)
-          html_options = options.slice(:id, :class, :multipart, :method, :data).merge(html)
+          html_options = options.slice(:id, :class, :multipart, :method, :data, :authenticity_token).merge!(html)
+          html_options[:remote] = !local
           html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
           html_options[:enforce_utf8] = !skip_enforcing_utf8 unless skip_enforcing_utf8.nil?
-
-          html_options[:enctype] = "multipart/form-data" if html_options.delete(:multipart)
-
-          # The following URL is unescaped, this is just a hash of options, and it is the
-          # responsibility of the caller to escape all the values.
-          if url_for_options == false || html_options[:action] == false
-            html_options.delete(:action)
-          else
-            html_options[:action] = url_for(url_for_options || {})
-          end
-          html_options[:"accept-charset"] = "UTF-8"
-          html_options[:"data-remote"] = true unless local
-
-          html_options[:authenticity_token] = options.delete(:authenticity_token)
-
-          if !local && html_options[:authenticity_token].blank?
-            html_options[:authenticity_token] = embed_authenticity_token_in_remote_forms
-          end
-
-          if html_options[:authenticity_token] == true
-            # Include the default authenticity_token, which is only generated when it's set to nil,
-            # but we needed the true value to override the default of no authenticity_token on data-remote.
-            html_options[:authenticity_token] = nil
-          end
-
-          html_options.stringify_keys!
+          html_options_for_form(url_for_options.nil? ? {} : url_for_options, html_options)
         end
 
         def instantiate_builder(record_name, record_object, options)
