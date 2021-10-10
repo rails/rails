@@ -111,9 +111,9 @@ Hold on, I am eager loading the application.
 All is good!
 ```
 
-There can be additional input depending on the application configuration, but the last "All is good!" is what you are looking for.
+There can be additional onput depending on the application configuration, but the last "All is good!" is what you are looking for.
 
-If there's any file that does not define the expected constant, the task will tell you. It does so one file at a time, because if it moved on, the failure loading one file could cascade into other failures unrelated to the check we want to run and the error report would be unreliable.
+If there's any file that does not define the expected constant, the task will tell you. It does so one file at a time, because if it moved on, the failure loading one file could cascade into other failures unrelated to the check we want to run and the error report would be confusing.
 
 If there's one constant reported, fix that particular one and run the task again. Repeat until you get "All is good!".
 
