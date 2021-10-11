@@ -35,7 +35,7 @@ When upgrading to Rails 6.x, it is highly encouraged to switch to `zeitwerk` mod
 
 Rails 7 ends the transition period and does not include `classic` mode.
 
-I am scared
+I am Scared
 -----------
 
 Don't :).
