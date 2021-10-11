@@ -1,3 +1,11 @@
+*   Change format of generated `INSERT INTO 'schema_migrations'` statement in `db:structure:dump`
+
+    Values are now separated by leading commas instead of trailing ones, and the final semicolon is on its own line.
+
+    This ensures multiple new migrations being added do not cause merge conflicts.
+
+    *Matt Larraz*
+
 *   Don't require `role` when passing `shard` to `connected_to`.
 
     `connected_to` can now be called with a `shard` only. Note that `role` is still inherited if `connected_to` calls are nested.
