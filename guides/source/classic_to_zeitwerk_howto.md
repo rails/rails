@@ -52,7 +52,7 @@ How to Activate `zeitwerk` Mode
 
 ### Applications running Rails 5.x or Less
 
-In applications running a Rails version previous to 6.0, `zeitwerk` mode is not available. You need to be in at least Rails 6.0.
+In applications running a Rails version previous to 6.0, `zeitwerk` mode is not available. You need to be at least in Rails 6.0.
 
 ### Applications running Rails 6.x
 
@@ -164,24 +164,32 @@ All is good!
 
 ### Concerns
 
-You can autoload and eager load from a standard structure like
+You can autoload and eager load from a standard structure with `concerns` subdirectories like
 
 ```
 app/models
 app/models/concerns
 ```
 
-In that case, `app/models/concerns` is assumed to be a root directory (because it belongs to the autoload paths), and it is ignored as namespace. So, `app/models/concerns/foo.rb` should define `Foo`, not `Concerns::Foo`.
+By default, `app/models/concerns` belongs to the autoload paths and therefore it is assumed to be a root directory. So, by default, `app/models/concerns/foo.rb` should define `Foo`, not `Concerns::Foo`.
 
-The `Concerns::` namespace worked with the classic autoloader as a side-effect of the implementation, but it was not really an intended behavior. An application using `Concerns::` needs to rename those classes and modules to be able to run in `zeitwerk` mode.
+If your application uses `Concerns` as namespace, you have two options:
+
+1. Remove the `Concerns` namespace from those classes and modules and update client code.
+2. Leave things as they are by removing `app/models/concerns` from the autoload paths:
+
+  ```ruby
+  # config/initializers/zeitwerk.rb
+  ActiveSupport::Dependencies.autoload_paths.delete("#{Rails.root}/app/models/concerns")
+  ```
 
 ### Having `app` in the autoload paths
 
-Some projects want something like `app/api/base.rb` to define `API::Base`, and add `app` to the autoload paths to accomplish that in `classic` mode.
+Some projects want something like `app/api/base.rb` to define `API::Base`, and add `app` to the autoload paths to accomplish that.
 
-Since Rails adds all subdirectories of `app` to the autoload paths automatically, we have another situation in which there are nested root directories, so that setup no longer works. Similar principle we explained above with `concerns`.
+Since Rails adds all subdirectories of `app` to the autoload paths automatically (with a few exceptions like directories for assets), we have another situation in which there are nested root directories, similar to what happens with `app/models/concerns`. That setup no longer works as is.
 
-If you want to keep that structure, you'll need to delete the subdirectory from the autoload paths in an initializer:
+However, you can keep that structure, just delete `app/api` from the autoload paths in an initializer:
 
 ```ruby
 # config/initializers/zeitwerk.rb
@@ -255,18 +263,18 @@ If the application reloads `Foo`, it will reload `Foo::InnerClass` too.
 
 ### Globs in `config.autoload_paths`
 
-Beware of configurations like
+Beware of configurations that use wildcards like
 
 ```ruby
-config.autoload_paths += Dir["#{config.root}/lib/**/"]
+config.autoload_paths += Dir["#{config.root}/extras/**/"]
 ```
 
-Every element of `config.autoload_paths` should represent the top-level namespace (`Object`) and they cannot be nested in consequence (with the exception of `concerns` directories explained above).
+Every element of `config.autoload_paths` should represent the top-level namespace (`Object`). That won't work.
 
 To fix this, just remove the wildcards:
 
 ```ruby
-config.autoload_paths << "#{config.root}/lib"
+config.autoload_paths << "#{config.root}/extras"
 ```
 
 ### Spring and the `test` Environment
