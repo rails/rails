@@ -154,7 +154,7 @@ Rails.autoloaders.each do |autoloader|
 end
 ```
 
-With that in place, the check passes :
+With that in place, the check passes!
 
 ```
 % bin/rails zeitwerk:check
