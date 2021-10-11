@@ -19,9 +19,9 @@ other_guys_membership:
   favorite: false
   type: CurrentMembership
 
-blarpy_winkup_crazy_club:
+blarpy_winkup_outrageous_club:
   joined_on: <%= 4.weeks.ago.to_s(:db) %>
-  club: crazy_club
+  club: outrageous_club
   member_id: 3
   favorite: false
   type: CurrentMembership

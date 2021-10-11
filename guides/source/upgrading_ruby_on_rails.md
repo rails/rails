@@ -90,7 +90,7 @@ Also, make sure `config.cache_classes` is set to `false` in `config/environments
 
 ### Applications need to run in `zeitwerk` mode
 
-Applications still running in `classic` mode have to switch to `zeitwerk` mode. Please check the [upgrading guide for Rails 6.0](https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#autoloading) for details.
+Applications still running in `classic` mode have to switch to `zeitwerk` mode. Please check the [Classic to Zeitwerk HOWTO](https://guides.rubyonrails.org/classic_to_zeitwerk_howto.html) guide for details.
 
 ### The setter `config.autoloader=` has been deleted
 

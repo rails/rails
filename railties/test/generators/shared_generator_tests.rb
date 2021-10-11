@@ -119,8 +119,7 @@ module SharedGeneratorTests
       "--skip-action-mailer",
       "--skip-action-mailbox",
       "--skip-action-text",
-      "--skip-action-cable",
-      "--skip-sprockets"
+      "--skip-action-cable"
     ]
 
     assert_file "#{application_path}/config/application.rb", /^require\s+["']rails["']/
@@ -136,7 +135,6 @@ module SharedGeneratorTests
     end
     assert_file "#{application_path}/config/application.rb", /^require\s+["']action_view\/railtie["']/
     assert_file "#{application_path}/config/application.rb", /^# require\s+["']action_cable\/engine["']/
-    assert_file "#{application_path}/config/application.rb", /^# require\s+["']sprockets\/railtie["']/
     assert_file "#{application_path}/config/application.rb", /^require\s+["']rails\/test_unit\/railtie["']/
   end
 
@@ -292,14 +290,12 @@ module SharedGeneratorTests
     end
   end
 
-  def test_generator_if_skip_sprockets_is_given
-    run_generator [destination_root, "--skip-sprockets"]
+  def test_generator_when_sprockets_is_not_used
+    run_generator [destination_root, "-a", "none"]
 
     assert_no_file "#{application_path}/config/initializers/assets.rb"
     assert_no_file "#{application_path}/app/assets/config/manifest.js"
     assert_no_file "#{application_path}/app/assets/stylesheets/application.css"
-
-    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']sprockets\/railtie["']/
 
     assert_file "Gemfile" do |content|
       assert_no_match(/sass-rails/, content)

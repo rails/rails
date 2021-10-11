@@ -7,6 +7,16 @@ require "active_support/core_ext/object/try"
 
 module ActiveSupport
   module Notifications
+    class InstrumentationSubscriberError < RuntimeError
+      attr_reader :exceptions
+
+      def initialize(exceptions)
+        @exceptions = exceptions
+        exception_class_names = exceptions.map { |e| e.class.name }
+        super "Exception(s) occurred within instrumentation subscribers: #{exception_class_names.join(', ')}"
+      end
+    end
+
     # This is a default queue implementation that ships with Notifications.
     # It just pushes events to all registered log subscribers.
     #
@@ -59,19 +69,32 @@ module ActiveSupport
       end
 
       def start(name, id, payload)
-        listeners_for(name).each { |s| s.start(name, id, payload) }
+        iterate_guarding_exceptions(listeners_for(name)) { |s| s.start(name, id, payload) }
       end
 
       def finish(name, id, payload, listeners = listeners_for(name))
-        listeners.each { |s| s.finish(name, id, payload) }
+        iterate_guarding_exceptions(listeners) { |s| s.finish(name, id, payload) }
       end
 
       def publish(name, *args)
-        listeners_for(name).each { |s| s.publish(name, *args) }
+        iterate_guarding_exceptions(listeners_for(name)) { |s| s.publish(name, *args) }
       end
 
       def publish_event(event)
-        listeners_for(event.name).each { |s| s.publish_event(event) }
+        iterate_guarding_exceptions(listeners_for(event.name)) { |s| s.publish_event(event) }
+      end
+
+      def iterate_guarding_exceptions(listeners)
+        exceptions = nil
+
+        listeners.each do |s|
+          yield s
+        rescue Exception => e
+          exceptions ||= []
+          exceptions << e
+        end
+      ensure
+        raise InstrumentationSubscriberError.new(exceptions) unless exceptions.nil?
       end
 
       def listeners_for(name)
@@ -108,23 +131,20 @@ module ActiveSupport
             end
           end
 
-          wrap_all pattern, subscriber_class.new(pattern, listener)
-        end
-
-        def self.wrap_all(pattern, subscriber)
-          unless pattern
-            AllMessages.new(subscriber)
-          else
-            subscriber
-          end
+          subscriber_class.new(pattern, listener)
         end
 
         class Matcher # :nodoc:
           attr_reader :pattern, :exclusions
 
           def self.wrap(pattern)
-            return pattern if String === pattern
-            new(pattern)
+            if String === pattern
+              pattern
+            elsif pattern.nil?
+              AllMessages.new
+            else
+              new(pattern)
+            end
           end
 
           def initialize(pattern)
@@ -138,6 +158,16 @@ module ActiveSupport
 
           def ===(name)
             pattern === name && !exclusions.include?(name)
+          end
+
+          class AllMessages
+            def ===(name)
+              true
+            end
+
+            def unsubscribe!(*)
+              false
+            end
           end
         end
 
@@ -175,10 +205,6 @@ module ActiveSupport
 
           def subscribed_to?(name)
             pattern === name
-          end
-
-          def matches?(name)
-            pattern && pattern === name
           end
 
           def unsubscribe!(name)
@@ -244,34 +270,6 @@ module ActiveSupport
             def build_event(name, id, payload)
               ActiveSupport::Notifications::Event.new name, nil, nil, id, payload
             end
-        end
-
-        class AllMessages # :nodoc:
-          def initialize(delegate)
-            @delegate = delegate
-          end
-
-          def start(name, id, payload)
-            @delegate.start name, id, payload
-          end
-
-          def finish(name, id, payload)
-            @delegate.finish name, id, payload
-          end
-
-          def publish(name, *args)
-            @delegate.publish name, *args
-          end
-
-          def subscribed_to?(name)
-            true
-          end
-
-          def unsubscribe!(*)
-            false
-          end
-
-          alias :matches? :===
         end
       end
     end

@@ -28,7 +28,7 @@ curve diving straight into Rails. There are several curated lists of online reso
 for learning Ruby:
 
 * [Official Ruby Programming Language website](https://www.ruby-lang.org/en/documentation/)
-* [List of Free Programming Books](https://github.com/EbookFoundation/free-programming-books/blob/master/books/free-programming-books.md#ruby)
+* [List of Free Programming Books](https://github.com/EbookFoundation/free-programming-books/blob/master/books/free-programming-books-langs.md#ruby)
 
 Be aware that some resources, while still excellent, cover older versions of
 Ruby, and may not include some syntax that you will see in day-to-day
@@ -1344,7 +1344,7 @@ This is very similar to the `Article` model that you saw earlier. The difference
 is the line `belongs_to :article`, which sets up an Active Record _association_.
 You'll learn a little about associations in the next section of this guide.
 
-The (`:references`) keyword used in the bash command is a special data type for models.
+The (`:references`) keyword used in the shell command is a special data type for models.
 It creates a new column on your database table with the provided model name appended with an `_id`
 that can hold integer values. To get a better understanding, analyze the
 `db/schema.rb` file after running the migration.

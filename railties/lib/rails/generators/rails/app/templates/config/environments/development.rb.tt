@@ -64,7 +64,7 @@ Rails.application.configure do
   config.active_record.verbose_query_logs = true
 
   <%- end -%>
-  <%- unless options.skip_sprockets? -%>
+  <%- unless skip_sprockets? -%>
   # Suppress logger output for asset requests.
   config.assets.quiet = true
   <%- end -%>

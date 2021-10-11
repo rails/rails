@@ -570,14 +570,12 @@ module Rails
       $LOAD_PATH.uniq!
     end
 
-    initializer :set_autoload_once_paths, before: :setup_once_autoloader do
-      config.autoload_once_paths.freeze
-      ActiveSupport::Dependencies.autoload_once_paths.unshift(*_all_autoload_once_paths)
-    end
-
-    initializer :set_autoload_paths, before: :setup_main_autoloader do
-      config.autoload_paths.freeze
+    initializer :set_autoload_paths, before: :bootstrap_hook do
       ActiveSupport::Dependencies.autoload_paths.unshift(*_all_autoload_paths)
+      ActiveSupport::Dependencies.autoload_once_paths.unshift(*_all_autoload_once_paths)
+
+      config.autoload_paths.freeze
+      config.autoload_once_paths.freeze
     end
 
     initializer :set_eager_load_paths, before: :bootstrap_hook do

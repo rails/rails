@@ -121,7 +121,7 @@ module ActionView
       URI_REGEXP = %r{^[-a-z]+://|^(?:cid|data):|^//}i
 
       # This is the entry point for all assets.
-      # When using the asset pipeline (i.e. sprockets and sprockets-rails), the
+      # When using an asset pipeline gem (e.g. propshaft or sprockets-rails), the
       # behavior is "enhanced". You can bypass the asset pipeline by passing in
       # <tt>skip_pipeline: true</tt> to the options.
       #
@@ -130,7 +130,7 @@ module ActionView
       # === With the asset pipeline
       #
       # All options passed to +asset_path+ will be passed to +compute_asset_path+
-      # which is implemented by sprockets-rails.
+      # which is implemented by asset pipeline gems.
       #
       #   asset_path("application.js") # => "/assets/application-60aa4fdc5cea14baf5400fba1abf4f2a46a5166bad4772b1effe341570f07de9.js"
       #   asset_path('application.js', host: 'example.com') # => "//example.com/assets/application.js"

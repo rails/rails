@@ -788,9 +788,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal firm.clients.count, firm.clients.update_all(description: "Great!")
   end
 
-  def test_belongs_to_sanity
+  def test_belongs_to_with_new_object
     c = Client.new
-    assert_nil c.firm, "belongs_to failed sanity check on new object"
+    assert_nil c.firm, "belongs_to failed on new object"
   end
 
   def test_find_ids

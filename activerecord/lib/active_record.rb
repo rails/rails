@@ -170,6 +170,12 @@ module ActiveRecord
   autoload :TestDatabases, "active_record/test_databases"
   autoload :TestFixtures, "active_record/fixtures"
 
+  # Lazily load the schema cache. This option will load the schema cache
+  # when a connection is established rather than on boot. If set,
+  # +config.active_record.use_schema_cache_dump+ will be set to false.
+  singleton_class.attr_accessor :lazily_load_schema_cache
+  self.lazily_load_schema_cache = false
+
   # A list of tables or regex's to match tables to ignore when
   # dumping the schema cache. For example if this is set to +[/^_/]+
   # the schema cache will not dump tables named with an underscore.

@@ -627,7 +627,7 @@ module ActionController
         end
 
         def check_required_ivars
-          # Sanity check for required instance variables so we can give an
+          # Check for required instance variables so we can give an
           # understandable error message.
           [:@routes, :@controller, :@request, :@response].each do |iv_name|
             if !instance_variable_defined?(iv_name) || instance_variable_get(iv_name).nil?

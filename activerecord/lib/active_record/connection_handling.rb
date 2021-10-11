@@ -153,10 +153,6 @@ module ActiveRecord
         raise ArgumentError, "must provide a `shard` and/or `role`."
       end
 
-      unless role
-        raise ArgumentError, "`connected_to` cannot accept a `shard` argument without a `role`."
-      end
-
       with_role_and_shard(role, shard, prevent_writes, &blk)
     end
 

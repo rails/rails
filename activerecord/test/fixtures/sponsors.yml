@@ -6,8 +6,8 @@ boring_club_sponsor_for_groucho:
   sponsor_club: boring_club
   sponsorable_id: 2
   sponsorable_type: Member
-crazy_club_sponsor_for_groucho:
-  sponsor_club: crazy_club
+outrageous_club_sponsor_for_groucho:
+  sponsor_club: outrageous_club
   sponsorable_id: 3
   sponsorable_type: Member
 sponsor_for_author_david:

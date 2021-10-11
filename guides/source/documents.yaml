@@ -225,6 +225,10 @@
       url: autoloading_and_reloading_constants.html
       description: This guide documents how autoloading and reloading constants work (Zeitwerk mode).
     -
+      name: "Classic to Zeitwerk HOWTO"
+      url: "classic_to_zeitwerk_howto.html"
+      description: "This guide documents how to migrate Rails applications from `classic` to `zeitwerk` mode."
+    -
       name: "Caching with Rails: An Overview"
       url: caching_with_rails.html
       description: This guide is an introduction to speeding up your Rails application with caching.

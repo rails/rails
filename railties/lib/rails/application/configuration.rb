@@ -203,10 +203,6 @@ module Rails
             action_dispatch.cookies_serializer = :json
           end
 
-          if respond_to?(:action_controller)
-            action_controller.silence_disabled_session_errors = false
-          end
-
           if respond_to?(:action_view)
             action_view.button_to_generates_button_tag = true
             action_view.apply_stylesheet_media_default = false
@@ -234,6 +230,7 @@ module Rails
           if respond_to?(:active_record)
             active_record.verify_foreign_keys_for_fixtures = true
             active_record.partial_inserts = false
+            active_record.automatic_scope_inversing = true
           end
 
           if respond_to?(:action_controller)

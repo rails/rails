@@ -25,7 +25,7 @@ module Rails
           options[:skip_active_storage] = !defined?(ActiveStorage::Engine) || !defined?(ActiveRecord::Railtie)
           options[:skip_action_mailer]  = !defined?(ActionMailer::Railtie)
           options[:skip_action_cable]   = !defined?(ActionCable::Engine)
-          options[:skip_sprockets]      = !defined?(Sprockets::Railtie)
+          options[:skip_asset_pipeline] = !defined?(Sprockets::Railtie) && !defined?(Propshaft::Railtie)
           options[:skip_bootsnap]       = !defined?(Bootsnap)
           options[:updating]            = true
           options
