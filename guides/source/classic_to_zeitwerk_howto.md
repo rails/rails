@@ -68,7 +68,7 @@ config.autoloader = :classic # DELETE THIS LINE
 
 As noted, just delete the override, `zeitwerk` mode is the default.
 
-On the other hand, if the application is loading old framework defaults you need to enable `zeitwerk` mode explictly:
+On the other hand, if the application is loading old framework defaults you need to enable `zeitwerk` mode explicitly:
 
 ```ruby
 # config/application.rb
@@ -112,7 +112,7 @@ Hold on, I am eager loading the application.
 All is good!
 ```
 
-There can be additional ouput depending on the application configuration, but the last "All is good!" is what you are looking for.
+There can be additional output depending on the application configuration, but the last "All is good!" is what you are looking for.
 
 If there's any file that does not define the expected constant, the task will tell you. It does so one file at a time, because if it moved on, the failure loading one file could cascade into other failures unrelated to the check we want to run and the error report would be confusing.
 
@@ -154,7 +154,7 @@ Rails.autoloaders.each do |autoloader|
 end
 ```
 
-With that in place, the check passes 🎉:
+With that in place, the check passes :
 
 ```
 % bin/rails zeitwerk:check
