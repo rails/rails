@@ -162,7 +162,7 @@ Hold on, I am eager loading the application.
 All is good!
 ```
 
-#### Concerns
+### Concerns
 
 You can autoload and eager load from a standard structure like
 
@@ -175,7 +175,7 @@ In that case, `app/models/concerns` is assumed to be a root directory (because i
 
 The `Concerns::` namespace worked with the classic autoloader as a side-effect of the implementation, but it was not really an intended behavior. An application using `Concerns::` needs to rename those classes and modules to be able to run in `zeitwerk` mode.
 
-#### Having `app` in the autoload paths
+### Having `app` in the autoload paths
 
 Some projects want something like `app/api/base.rb` to define `API::Base`, and add `app` to the autoload paths to accomplish that in `classic` mode.
 
@@ -188,7 +188,7 @@ If you want to keep that structure, you'll need to delete the subdirectory from 
 ActiveSupport::Dependencies.autoload_paths.delete("#{Rails.root}/app/api")
 ```
 
-#### Autoloaded Constants and Explicit Namespaces
+### Autoloaded Constants and Explicit Namespaces
 
 If a namespace is defined in a file, as `Hotel` is here:
 
@@ -222,7 +222,7 @@ won't work, child objects like `Hotel::Pricing` won't be found.
 
 This restriction only applies to explicit namespaces. Classes and modules not defining a namespace can be defined using those idioms.
 
-#### One file, one constant (at the same top-level)
+### One file, one constant (at the same top-level)
 
 In `classic` mode you could technically define several constants at the same top-level and have them all reloaded. For example, given
 
@@ -253,7 +253,23 @@ end
 
 If the application reloads `Foo`, it will reload `Foo::InnerClass` too.
 
-#### Spring and the `test` Environment
+### Globs in `config.autoload_paths`
+
+Beware of configurations like
+
+```ruby
+config.autoload_paths += Dir["#{config.root}/lib/**/"]
+```
+
+Every element of `config.autoload_paths` should represent the top-level namespace (`Object`) and they cannot be nested in consequence (with the exception of `concerns` directories explained above).
+
+To fix this, just remove the wildcards:
+
+```ruby
+config.autoload_paths << "#{config.root}/lib"
+```
+
+### Spring and the `test` Environment
 
 Spring reloads the application code if something changes. In the `test` environment you need to enable reloading for that to work:
 
@@ -270,7 +286,7 @@ reloading is disabled because config.cache_classes is true
 
 This has no performance penalty.
 
-#### Bootsnap
+### Bootsnap
 
 Please make sure to depend on at least Bootsnap 1.4.4.
 
@@ -308,22 +324,6 @@ RSpec.describe "Zeitwerk compliance" do
     expect{ Rails.application.eager_load! }.not_to raise_error
   end
 end
-```
-
-### Globs in `config.autoload_paths`
-
-Beware of configurations like
-
-```ruby
-config.autoload_paths += Dir["#{config.root}/lib/**/"]
-```
-
-Every element of `config.autoload_paths` should represent the top-level namespace (`Object`) and they cannot be nested in consequence (with the exception of `concerns` directories explained above).
-
-To fix this, just remove the wildcards:
-
-```ruby
-config.autoload_paths << "#{config.root}/lib"
 ```
 
 New Features You Can Leverage
