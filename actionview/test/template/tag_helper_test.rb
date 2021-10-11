@@ -404,9 +404,29 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_attributes_escapes_values
-    assert_not_includes "<script>alert()</script>", render_erb(<<~HTML.strip)
-      <input type="text" <%= tag.attributes xss: '"><script>alert()</script>' %>>
+    rendered = render_erb(<<~HTML.strip)
+      <input type="text" <%= tag.attributes xss: '"><script>evil_js</script>' %>>
     HTML
+
+    assert_not rendered.include?("<script>evil_js</script>")
+  end
+
+  def test_tag_attributes_escapes_keys
+    rendered = render_erb(<<~HTML.strip)
+      <input type="text" <%= tag.attributes '"><script>evil_js</script>': :xss %>>
+    HTML
+    assert_not rendered.include?("<script>evil_js</script>")
+  end
+
+  def test_content_tag_escapes_values
+    rendered = render_erb(content_tag(:div, "", xss: '"><script>evil_js</script>'))
+
+    assert_not rendered.include?("<script>evil_js</script>")
+  end
+
+  def test_content_tag_escapes_keys
+    rendered = render_erb(content_tag(:div, "", '"><script>evil_js</script>': :xss))
+    assert_not rendered.include?("<script>evil_js</script>")
   end
 
   def test_tag_attributes_nil

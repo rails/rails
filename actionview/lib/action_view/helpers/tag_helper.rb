@@ -137,6 +137,7 @@ module ActionView
             value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
           end
           value = value.gsub('"', "&quot;") if value.include?('"')
+          key = escape ? ERB::Util.unwrapped_html_escape(key) : key.to_s
           %(#{key}="#{value}")
         end
 
