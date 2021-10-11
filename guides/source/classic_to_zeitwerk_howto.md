@@ -132,7 +132,7 @@ VAT is an European tax. The file `app/models/vat.rb` defines `VAT` but the autol
 
 This is the most common kind of discrepancy you may find, it has to do with acronyms. Let's understand why do we get that error message.
 
-The classic autoloader is able to autoload `VAT` because its input is the name of the missing constant, `VAT`, invokes `underscore` on it, which yields `vat`, and looks for a file called `var.rb`. It works.
+The classic autoloader is able to autoload `VAT` because its input is the name of the missing constant, `VAT`, invokes `underscore` on it, which yields `vat`, and looks for a file called `vat.rb`. It works.
 
 The input of the new autoloader is the file system. Give the file `vat.rb`, Zeitwerk invokes `camelize` on `vat`, which yields `Vat`, and expects the file to define the constant `Vat`. That is what the error message says.
 
