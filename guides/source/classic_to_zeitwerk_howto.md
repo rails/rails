@@ -14,6 +14,7 @@ After reading this guide, you will know:
 * How to verify your project loads OK in the command line
 * How to verify your project loads OK in the test suite
 * How to address possible edge cases
+* New features in Zeitwerk you can leverage
 
 --------------------------------------------------------------------------------
 
@@ -288,7 +289,7 @@ require "test_helper"
 
 class ZeitwerkComplianceTest < ActiveSupport::TestCase
   test "eager loads all files without errors" do
-    Zeitwerk::Loader.eager_load_all
+    Rails.application.eager_load!
   rescue => e
     flunk(e.message)
   else
@@ -304,22 +305,38 @@ require "rails_helper"
 
 RSpec.describe "Zeitwerk compliance" do
   it "eager loads all files without errors" do
-    expect{ Zeitwerk::Loader.eager_load_all }.not_to raise_error
+    expect{ Rails.application.eager_load! }.not_to raise_error
   end
 end
 ```
 
+### Globs in `config.autoload_paths`
 
-Delete `require_dependency` calls
----------------------------------
+Beware of configurations like
+
+```ruby
+config.autoload_paths += Dir["#{config.root}/lib/**/"]
+```
+
+Every element of `config.autoload_paths` should represent the top-level namespace (`Object`) and they cannot be nested in consequence (with the exception of `concerns` directories explained above).
+
+To fix this, just remove the wildcards:
+
+```ruby
+config.autoload_paths << "#{config.root}/lib"
+```
+
+New Features You Can Leverage
+-----------------------------
+
+### Delete `require_dependency` calls
 
 All known use cases of `require_dependency` have been eliminated with Zeitwerk. You should grep the project and delete them.
 
 If your application uses Single Table Inheritance, please see the [Single Table Inheritance section](autoloading_and_reloading_constants.html#single-table-inheritance) of the Autoloading and Reloading Constants (Zeitwerk Mode) guide.
 
 
-Qualified Names in Class and Module Definitions Are Now Possible
-----------------------------------------------------------------
+### Qualified Names in Class and Module Definitions Are Now Possible
 
 You can now robustly use constant paths in class and module definitions:
 
@@ -356,35 +373,13 @@ module Foo
 end
 ```
 
-
-Thread-safety
--------------
+### Thread-safety Everywhere
 
 In classic mode, constant autoloading is not thread-safe, though Rails has locks in place for example to make web requests thread-safe.
 
 Constant autoloading is thread-safe in `zeitwerk` mode. For example, you can now autoload in multi-threaded scripts executed by the `runner` command.
 
-
-Globs in `config.autoload_paths`
---------------------------------
-
-Beware of configurations like
-
-```ruby
-config.autoload_paths += Dir["#{config.root}/lib/**/"]
-```
-
-Every element of `config.autoload_paths` should represent the top-level namespace (`Object`) and they cannot be nested in consequence (with the exception of `concerns` directories explained above).
-
-To fix this, just remove the wildcards:
-
-```ruby
-config.autoload_paths << "#{config.root}/lib"
-```
-
-
-Eager loading and autoloading are consistent
---------------------------------------------
+### Eager Loading and Autoloading are Consistent
 
 In `classic` mode, if `app/models/foo.rb` defines `Bar`, you won't be able to autoload that file, but eager loading will work because it loads files recursively blindly. This can be a source of errors if you test things first eager loading, execution may fail later autoloading.
 
