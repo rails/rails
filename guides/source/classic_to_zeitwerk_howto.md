@@ -180,7 +180,9 @@ If your application uses `Concerns` as namespace, you have two options:
 
   ```ruby
   # config/initializers/zeitwerk.rb
-  ActiveSupport::Dependencies.autoload_paths.delete("#{Rails.root}/app/models/concerns")
+  ActiveSupport::Dependencies.
+    autoload_paths.
+    delete("#{Rails.root}/app/models/concerns")
   ```
 
 ### Having `app` in the autoload paths
@@ -193,7 +195,9 @@ However, you can keep that structure, just delete `app/api` from the autoload pa
 
 ```ruby
 # config/initializers/zeitwerk.rb
-ActiveSupport::Dependencies.autoload_paths.delete("#{Rails.root}/app/api")
+ActiveSupport::Dependencies.
+  autoload_paths.
+  delete("#{Rails.root}/app/api")
 ```
 
 ### Autoloaded Constants and Explicit Namespaces
