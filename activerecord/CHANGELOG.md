@@ -647,7 +647,7 @@
 
     ```ruby
     class Person
-      belongs_to :dog
+      has_one :dog
       has_one :veterinarian, through: :dog, disable_joins: true
     end
     ```

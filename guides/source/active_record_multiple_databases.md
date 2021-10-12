@@ -506,8 +506,17 @@ class Dog < AnimalsRecord
   has_many :treats, through: :humans, disable_joins: true
   has_many :humans
 
-  belongs_to :home
+  has_one :home
   has_one :yard, through: :home, disable_joins: true
+end
+
+class Home
+  belongs_to :dog
+  has_one :yard
+end
+
+class Yard
+  belongs_to :home
 end
 ```
 
