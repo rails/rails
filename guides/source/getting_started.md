@@ -1259,7 +1259,7 @@ class ArticlesController < ApplicationController
     @article = Article.find(params[:id])
     @article.destroy
 
-    redirect_to root_path, status: 303
+    redirect_to root_path
   end
 
   private
@@ -1271,13 +1271,13 @@ end
 
 The `destroy` action fetches the article from the database, and calls [`destroy`](
 https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-destroy)
-on it. Then, it redirects the browser to the root path, with a HTTP status of 303.
+on it. Then, it redirects the browser to the root path.
 
 We have chosen to redirect to the root path because that is our main access
 point for articles. But, in other circumstances, you might choose to redirect to
 e.g. `articles_path`.
 
-Now let's add a link at the bottom of `app/views/articles/show.html.erb` so that
+Now let's add a button at the bottom of `app/views/articles/show.html.erb` so that
 we can delete an article from its own page:
 
 ```html+erb
@@ -1287,20 +1287,13 @@ we can delete an article from its own page:
 
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
-  <li><%= link_to "Destroy", article_path(@article),
-                  "data-turbo-method": :delete } %></li>
+  <li><%= button_to "Delete Article", { id: @article.id}, method: :delete %>
 </ul>
 ```
 
-In the above code, we're passing an additional option to `link_to`. The
-`"data-turbo-method": :delete` option causes the link to make a `DELETE` request
-via Turbo instead of a `GET` request.
-
-This option is powered by a JavaScript framework called *Turbo Drive*. The JavaScript file that
-implements these behaviors is included by default in fresh Rails applications.
-
-TIP: To learn more about Turbo Drive, see [Navigating With Turbo Drive in
-Rails](https://turbo.hotwired.dev/handbook/drive).
+In the above code, we're using the button_to helper, since the action will modify the
+application state.  We're specifying the article id and that the button should submit
+using the 'delete' HTTP method.
 
 And that's it! We can now list, show, create, update, and delete articles!
 InCRUDable!
@@ -1617,8 +1610,7 @@ following:
 
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
-  <li><%= link_to "Destroy", article_path(@article),
-                  "data-turbo-method": :delete %></li>
+  <li><%= button_to "Delete Article", { id: @article.id}, method: :delete %>
 </ul>
 
 <h2>Comments</h2>
@@ -1676,8 +1668,7 @@ Then you make the `app/views/articles/show.html.erb` look like the following:
 
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
-    <li><%= link_to "Destroy", article_path(@article),
-                  "data-turbo-method": :delete %></li>
+  <li><%= button_to "Delete Article", { id: @article.id}, method: :delete %>
 
 </ul>
 
@@ -1939,7 +1930,7 @@ Another important feature of a blog is being able to delete spam comments. To do
 this, we need to implement a link of some sort in the view and a `destroy`
 action in the `CommentsController`.
 
-So first, let's add the delete link in the
+So first, let's add the delete button in the
 `app/views/comments/_comment.html.erb` partial:
 
 ```html+erb
@@ -1954,11 +1945,10 @@ So first, let's add the delete link in the
 </p>
 
 <p>
-  <%= link_to 'Destroy Comment', [comment.article, comment],
-              "data-turbo-method": :delete %>
+  <%= button_to "Destroy Comment", [comment.article, comment], method: :delete %>
 </p>```
 
-Clicking this new "Destroy Comment" link will fire off a `DELETE
+Clicking this new "Destroy Comment" button will fire off a `DELETE
 /articles/:article_id/comments/:id` to our `CommentsController`, which can then
 use this to find the comment we want to delete, so let's add a `destroy` action
 to our controller (`app/controllers/comments_controller.rb`):
@@ -1975,7 +1965,7 @@ class CommentsController < ApplicationController
     @article = Article.find(params[:article_id])
     @comment = @article.comments.find(params[:id])
     @comment.destroy
-    redirect_to article_path(@article), status: 303
+    redirect_to article_path(@article)
   end
 
   private
