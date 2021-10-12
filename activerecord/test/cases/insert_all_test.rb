@@ -4,6 +4,7 @@ require "cases/helper"
 require "models/author"
 require "models/book"
 require "models/cart"
+require "models/developer"
 require "models/ship"
 require "models/speedometer"
 require "models/subscription"
@@ -512,6 +513,28 @@ class InsertAllTest < ActiveRecord::TestCase
       assert_equal Time.now.year, ship.updated_at.year
       assert_equal Time.now.year, ship.updated_on.year
     end
+  end
+
+  def test_upsert_all_implicitly_sets_timestamps_even_when_columns_are_aliased
+    skip unless supports_insert_on_duplicate_update?
+
+    Developer.upsert_all [{ id: 101, name: "Alice" }]
+    alice = Developer.find(101)
+
+    assert_not_nil alice.created_at
+    assert_not_nil alice.created_on
+    assert_not_nil alice.updated_at
+    assert_not_nil alice.updated_on
+
+    alice.update!(created_at: nil, created_on: nil, updated_at: nil, updated_on: nil)
+
+    Developer.upsert_all [{ id: alice.id, name: alice.name, salary: alice.salary * 2 }]
+    alice.reload
+
+    assert_nil alice.created_at
+    assert_nil alice.created_on
+    assert_not_nil alice.updated_at
+    assert_not_nil alice.updated_on
   end
 
   def test_insert_all_raises_on_unknown_attribute
