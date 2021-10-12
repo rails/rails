@@ -196,6 +196,8 @@ module ActiveRecord
         end
 
         def touch_model_timestamps_unless(&block)
+          return "" unless update_duplicates?
+
           model.timestamp_attributes_for_update_in_model.filter_map do |column_name|
             if touch_timestamp_attribute?(column_name)
               "#{column_name}=(CASE WHEN (#{updatable_columns.map(&block).join(" AND ")}) THEN #{model.quoted_table_name}.#{column_name} ELSE #{connection.high_precision_current_timestamp} END),"
@@ -213,7 +215,7 @@ module ActiveRecord
           attr_reader :connection, :insert_all
 
           def touch_timestamp_attribute?(column_name)
-            update_duplicates? && !insert_all.updatable_columns.include?(column_name)
+            insert_all.updatable_columns.exclude?(column_name)
           end
 
           def columns_list
