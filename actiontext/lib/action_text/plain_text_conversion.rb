@@ -33,12 +33,12 @@ module ActionText
         "#{remove_trailing_newlines(plain_text_for_node_children(node))}\n\n"
       end
 
-      def plain_text_for_list(node, index)
-        "#{break_if_nested_list(node, plain_text_for_block(node))}"
-      end
-
       %i[ h1 p ].each do |element|
         alias_method :"plain_text_for_#{element}_node", :plain_text_for_block
+      end
+
+      def plain_text_for_list(node, index)
+        "#{break_if_nested_list(node, plain_text_for_block(node))}"
       end
 
       %i[ ul ol ].each do |element|
