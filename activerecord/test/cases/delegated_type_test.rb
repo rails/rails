@@ -7,6 +7,9 @@ require "models/comment"
 require "models/uuid_entry"
 require "models/uuid_message"
 require "models/uuid_comment"
+require "models/catalog/book"
+require "models/catalog/book/printed_book"
+require "models/catalog/book/ebook"
 
 class DelegatedTypeTest < ActiveRecord::TestCase
   fixtures :comments
@@ -76,5 +79,24 @@ class DelegatedTypeTest < ActiveRecord::TestCase
   test "builder method" do
     assert_respond_to Entry.new, :build_entryable
     assert_equal Message, Entry.new(entryable_type: "Message").build_entryable.class
+  end
+
+  test "should be able to map types to scope names" do
+    book1 = Catalog::Book.create! name: "Smalltalk Best Practices", readable: Catalog::Book::PrintedBook.new
+    book2 = Catalog::Book.create! name: "Smalltalk Best Practices", readable: Catalog::Book::Ebook.new
+
+    assert_equal "Catalog::Book::PrintedBook", book1.readable_type.force_encoding(Encoding::UTF_8)
+    assert_equal Catalog::Book::PrintedBook, book1.readable_class
+    assert_equal book1, Catalog::Book.printed_books.last
+    assert book1.printed_book
+    assert book1.printed_book?
+    assert book1.printed_book_id
+
+    assert_equal "Catalog::Book::Ebook", book2.readable_type.force_encoding(Encoding::UTF_8)
+    assert_equal Catalog::Book::Ebook, book2.readable_class
+    assert_equal book2, Catalog::Book.ebooks.last
+    assert book2.ebook
+    assert book2.ebook?
+    assert book2.ebook_id
   end
 end

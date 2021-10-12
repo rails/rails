@@ -139,11 +139,11 @@
 
     ```ruby
     class Post < ActiveRecord::Base
-      has_many :comments, -> { visible }
+    has_many :comments, -> { visible }
     end
 
     class Comment < ActiveRecord::Base
-      belongs_to :post
+    belongs_to :post
     end
     ```
 
@@ -173,13 +173,13 @@
 
     ```ruby
     Person.transaction do
-      alias = Alias
-        .create_with(user_id: SecureRandom.uuid)
-        .create_or_find_by(name: "DHH")
+    alias = Alias
+    .create_with(user_id: SecureRandom.uuid)
+    .create_or_find_by(name: "DHH")
 
-      person = Person
-        .create_with(name: "David Heinemeier Hansson")
-        .create_or_find_by(id: alias.user_id)
+    person = Person
+    .create_with(name: "David Heinemeier Hansson")
+    .create_or_find_by(id: alias.user_id)
     end
     ```
 
@@ -210,7 +210,7 @@
     For example:
     ```ruby
     ActiveRecord::DatabaseConfigurations::UrlConfig.new(
-      :production, :production, 'postgres:///?user=user&password=secret&dbname=app', {}
+    :production, :production, 'postgres:///?user=user&password=secret&dbname=app', {}
     ).configuration_hash
     ```
 
@@ -228,11 +228,11 @@
 
     ```ruby
     def up
-      create_enum :mood, ["happy", "sad"]
+    create_enum :mood, ["happy", "sad"]
 
-      change_table :cats do |t|
-        t.enum :current_mood, enum_type: "mood", default: "happy", null: false
-      end
+    change_table :cats do |t|
+    t.enum :current_mood, enum_type: "mood", default: "happy", null: false
+    end
     end
     ```
 
@@ -257,8 +257,8 @@
 
     ```ruby
     create_table :users do |t|
-      t.string :name
-      t.virtual :name_upcased, type: :string, as: 'upper(name)', stored: true
+    t.string :name
+    t.virtual :name_upcased, type: :string, as: 'upper(name)', stored: true
     end
     ```
 
@@ -280,7 +280,7 @@
     Creating scope :my_scope_name. Overwriting existing method "MyClass.my_scope_name" when overwriting existing scopes
     ```
 
-     *Weston Ganger*
+    *Weston Ganger*
 
 *   Use full precision for `updated_at` in `insert_all`/`upsert_all`
 
@@ -300,27 +300,27 @@
     when running postgresql database tasks.
 
     ```yaml
-    # config/database.yml
+# config/database.yml
 
-    production:
-      sslmode: verify-full
-      sslcert: client.crt
-      sslkey: client.key
-      sslrootcert: ca.crt
-    ```
+production:
+sslmode: verify-full
+sslcert: client.crt
+sslkey: client.key
+sslrootcert: ca.crt
+```
 
-    Environment variables
+Environment variables
 
-    ```
-    PGSSLMODE=verify-full
-    PGSSLCERT=client.crt
-    PGSSLKEY=client.key
-    PGSSLROOTCERT=ca.crt
-    ```
+```
+PGSSLMODE=verify-full
+PGSSLCERT=client.crt
+PGSSLKEY=client.key
+PGSSLROOTCERT=ca.crt
+```
 
-    Fixes #42994
+Fixes #42994
 
-    *Michael Bayucot*
+*Michael Bayucot*
 
 *   Avoid scoping update callbacks in `ActiveRecord::Relation#update!`.
 
@@ -388,13 +388,13 @@
     # config/database.yml
 
     production:
-      primary:
-        database: my_database
-        adapter: mysql2
-      animals:
-        database: my_animals_database
-        adapter: mysql2
-        database_tasks: false
+    primary:
+    database: my_database
+    adapter: mysql2
+    animals:
+    database: my_animals_database
+    adapter: mysql2
+    database_tasks: false
     ```
 
     *Weston Ganger*
@@ -413,9 +413,9 @@
     ```ruby
     # config/application.rb
     module MyApp
-      class Application < Rails::Application
-        config.active_record.query_log_tags_enabled = true
-      end
+    class Application < Rails::Application
+    config.active_record.query_log_tags_enabled = true
+    end
     end
     ```
 
@@ -423,9 +423,9 @@
 
     ```ruby
     class BooksController < ApplicationController
-      def index
-        @books = Book.all
-      end
+    def index
+    @books = Book.all
+    end
     end
     ```
 
@@ -438,13 +438,13 @@
 
     ```ruby
     config.active_record.query_log_tags = [
-      :application,
-      :controller,
-      :action,
-      {
-        custom_static: "foo",
-        custom_dynamic: -> { Time.now }
-      }
+    :application,
+    :controller,
+    :action,
+    {
+    custom_static: "foo",
+    custom_dynamic: -> { Time.now }
+    }
     ]
     ```
 
@@ -519,7 +519,7 @@
     # config/database.yml
 
     production:
-      schema_dump: false
+    schema_dump: false
     ```
 
     *Luis Vasconcellos*, *Eileen M. Uchitelle*
@@ -594,17 +594,17 @@
 
     ```ruby
     class AddAuthorsForeignKeyToArticles < ActiveRecord::Migration[7.0]
-      def change
-        add_foreign_key :articles, :authors, if_not_exists: true
-      end
+    def change
+    add_foreign_key :articles, :authors, if_not_exists: true
+    end
     end
     ```
 
     ```ruby
     class RemoveAuthorsForeignKeyFromArticles < ActiveRecord::Migration[7.0]
-      def change
-        remove_foreign_key :articles, :authors, if_exists: true
-      end
+    def change
+    remove_foreign_key :articles, :authors, if_exists: true
+    end
     end
     ```
 
@@ -766,8 +766,8 @@
 
     ```ruby
     class Person
-      has_one :dog
-      has_one :veterinarian, through: :dog, disable_joins: true
+    has_one :dog
+    has_one :veterinarian, through: :dog, disable_joins: true
     end
     ```
 
@@ -825,8 +825,8 @@
 
     ```ruby
     class Dog
-      has_many :treats, through: :humans, disable_joins: true
-      has_many :humans
+    has_many :treats, through: :humans, disable_joins: true
+    has_many :humans
     end
     ```
 
@@ -861,14 +861,14 @@
     ```ruby
     # config/application.rb
     module MyApp
-      class Application < Rails::Application
-        config.active_record.enumerate_columns_in_select_statements = true
-      end
+    class Application < Rails::Application
+    config.active_record.enumerate_columns_in_select_statements = true
+    end
     end
 
     # or, configure per-model
     class Book < ApplicationRecord
-      self.enumerate_columns_in_select_statements = true
+    self.enumerate_columns_in_select_statements = true
     end
     ```
 
@@ -883,8 +883,8 @@
 
     ```ruby
     Book.upsert_all(
-      [{ id: 1, status: 1 }, { id: 2, status: 1 }],
-      on_duplicate: Arel.sql("status = GREATEST(books.status, EXCLUDED.status)")
+    [{ id: 1, status: 1 }, { id: 2, status: 1 }],
+    on_duplicate: Arel.sql("status = GREATEST(books.status, EXCLUDED.status)")
     )
     ```
 
@@ -894,11 +894,11 @@
 
     ```ruby
     Article.insert_all(
-      [
-        { title: "Article 1", slug: "article-1", published: false },
-        { title: "Article 2", slug: "article-2", published: false }
-      ],
-      returning: Arel.sql("id, (xmax = '0') as inserted, name as new_name")
+    [
+    { title: "Article 1", slug: "article-1", published: false },
+    { title: "Article 2", slug: "article-2", published: false }
+    ],
+    returning: Arel.sql("id, (xmax = '0') as inserted, name as new_name")
     )
     ```
 
@@ -917,17 +917,17 @@
     decrypt them when retrieving their values.
 
 
-    ```ruby
-    class Person < ApplicationRecord
-      encrypts :name
-      encrypts :email_address, deterministic: true
-    end
-    ```
+```ruby
+class Person < ApplicationRecord
+encrypts :name
+encrypts :email_address, deterministic: true
+end
+```
 
-    You can learn more in the [Active Record Encryption
-    guide](https://edgeguides.rubyonrails.org/active_record_encryption.html).
+You can learn more in the [Active Record Encryption
+guide](https://edgeguides.rubyonrails.org/active_record_encryption.html).
 
-    *Jorge Manrubia*
+*Jorge Manrubia*
 
 *   Changed Arel predications `contains` and `overlaps` to use
     `quoted_node` so that PostgreSQL arrays are quoted properly.
@@ -963,7 +963,7 @@
 
     # and the following schema:
     create_table "postgresql_infinities" do |t|
-      t.datetime "datetime"
+    t.datetime "datetime"
     end
 
     # This test fails
@@ -981,7 +981,7 @@
 
     ```ruby
     class Book < ActiveRecord::Base
-      enum :status, { proposed: 0, written: 1, published: 2 }
+    enum :status, { proposed: 0, written: 1, published: 2 }
     end
     ```
 
@@ -1012,12 +1012,12 @@
     ```yml
     ### monkeys.yml
     george:
-      name: George the Monkey
-      fruits: apple
+    name: George the Monkey
+    fruits: apple
 
     ### fruits.yml
     apple:
-      name: apple
+    name: apple
     ```
 
     If the join table (`fruit_monkeys`) contains `created_at` or `updated_at` columns,
@@ -1048,8 +1048,8 @@
 
     ```ruby
     class Book < ActiveRecord::Base
-      enum status: [ :proposed, :written ], _prefix: true, _scopes: false
-      enum cover: [ :hard, :soft ], _suffix: true, _default: :hard
+    enum status: [ :proposed, :written ], _prefix: true, _scopes: false
+    enum cover: [ :hard, :soft ], _suffix: true, _default: :hard
     end
     ```
 
@@ -1057,8 +1057,8 @@
 
     ```ruby
     class Book < ActiveRecord::Base
-      enum :status, [ :proposed, :written ], prefix: true, scopes: false
-      enum :cover, [ :hard, :soft ], suffix: true, default: :hard
+    enum :status, [ :proposed, :written ], prefix: true, scopes: false
+    enum :cover, [ :hard, :soft ], suffix: true, default: :hard
     end
     ```
 
@@ -1076,8 +1076,8 @@
 
     ```ruby
     def index
-      @categories = Category.some_complex_scope.load_async
-      @posts = Post.some_complex_scope.load_async
+    @categories = Category.some_complex_scope.load_async
+    @posts = Post.some_complex_scope.load_async
     end
     ```
 
@@ -1123,31 +1123,31 @@
 
     Relations that have aliased select values AND a having clause that
     references an aliased select value would generate an error when
-    #include? was called, due to an optimisation that would generate
-    call #exists? on the relation instead, which effectively alters
-    the select values of the query (and thus removes the aliased select
-    values), but leaves the having clause intact. Because the having
-    clause is then referencing an aliased column that is no longer
-    present in the simplified query, an ActiveRecord::InvalidStatement
-    error was raised.
+#include? was called, due to an optimisation that would generate
+call #exists? on the relation instead, which effectively alters
+the select values of the query (and thus removes the aliased select
+values), but leaves the having clause intact. Because the having
+clause is then referencing an aliased column that is no longer
+present in the simplified query, an ActiveRecord::InvalidStatement
+error was raised.
 
-    A sample query affected by this problem:
+A sample query affected by this problem:
 
-    ```ruby
-    Author.select('COUNT(*) as total_posts', 'authors.*')
-          .joins(:posts)
-          .group(:id)
-          .having('total_posts > 2')
-          .include?(Author.first)
-    ```
+```ruby
+Author.select('COUNT(*) as total_posts', 'authors.*')
+.joins(:posts)
+.group(:id)
+.having('total_posts > 2')
+.include?(Author.first)
+```
 
-    This change adds an addition check to the condition that skips the
-    simplified #exists? query, which simply checks for the presence of
-    a having clause.
+This change adds an addition check to the condition that skips the
+simplified #exists? query, which simply checks for the presence of
+a having clause.
 
-    Fixes #41417.
+Fixes #41417.
 
-    *Michael Smart*
+*Michael Smart*
 
 *   Increment postgres prepared statement counter before making a prepared statement, so if the statement is aborted
     without Rails knowledge (e.g., if app gets killed during long-running query or due to Rack::Timeout), app won't end
@@ -1163,7 +1163,7 @@
 
     ```ruby
     Post.where(blog_id: post.blog_id).scoping(all_queries: true) do
-      post.update(title: "a post title") # adds `posts.blog_id = 1` to the query
+    post.update(title: "a post title") # adds `posts.blog_id = 1` to the query
     end
     ```
 
@@ -1180,7 +1180,7 @@
     ```ruby
     # With the following schema:
     create_table "measurements" do |t|
-      t.float "temperature"
+    t.float "temperature"
     end
 
     # Before:
@@ -1230,7 +1230,7 @@
 
     ```ruby
     class PrimaryApplicationRecord
-      self.primary_abstract_class
+    self.primary_abstract_class
     end
     ```
 
@@ -1259,8 +1259,8 @@
 
     ```ruby
     ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = {
-      mysql2: ['--no-defaults', '--skip-add-drop-table'],
-      postgres: '--no-tablespaces'
+    mysql2: ['--no-defaults', '--skip-add-drop-table'],
+    postgres: '--no-tablespaces'
     }
     ```
 
@@ -1282,8 +1282,8 @@
 
     ```ruby
     class User < ApplicationRecord
-      has_many :bookmarks
-      has_many :articles, strict_loading: true
+    has_many :bookmarks
+    has_many :articles, strict_loading: true
     end
 
     user = User.first
@@ -1325,9 +1325,9 @@
 
     ```ruby
     class User
-      def admin
-        false # Overriding the getter to always return false
-      end
+    def admin
+    false # Overriding the getter to always return false
+    end
     end
 
     user = User.first
@@ -1356,7 +1356,7 @@
 
     ```ruby
     class User
-      scope :active, -> { where(accepted: true, locked: false) }
+    scope :active, -> { where(accepted: true, locked: false) }
     end
 
     User.active
@@ -1407,7 +1407,7 @@
 
     ```ruby
     class Article < ApplicationRecord
-      default_scope -> { where(blog_id: Current.blog.id) }, all_queries: true
+    default_scope -> { where(blog_id: Current.blog.id) }, all_queries: true
     end
     ```
 

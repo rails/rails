@@ -1283,6 +1283,18 @@ ActiveRecord::Schema.define do
     t.integer :id
     t.datetime :created_at
   end
+
+  create_table :catalog_books, force: true do |t|
+    t.string :name
+    t.string :readable_type
+    t.bigint :readable_id
+  end
+
+  create_table :catalog_book_printed_books, force: true do
+  end
+
+  create_table :catalog_book_ebooks, force: true do
+  end
 end
 
 Course.connection.create_table :courses, force: true do |t|

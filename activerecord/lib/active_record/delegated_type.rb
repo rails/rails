@@ -182,6 +182,20 @@ module ActiveRecord
     #   entry.access_notice_message
     #   entry.access_notice_message?
     #
+    # And use aliases:
+    #
+    #   class Entry < ApplicationRecord
+    #     delegated_type :readable, types: [
+    #       "Message",
+    #       "Comment",
+    #       { name: "Access::NoticeMessage", scope: "notice_messages" }
+    #     ]
+    #   end
+    #
+    #   Entry.notice_messages
+    #   entry.notice_message
+    #   entry.notice_message?
+    #
     # === Options
     #
     # The +options+ are passed directly to the +belongs_to+ call, so this is where you declare +dependent+ etc.
@@ -227,7 +241,12 @@ module ActiveRecord
         end
 
         types.each do |type|
-          scope_name = type.tableize.tr("/", "_")
+          if type.respond_to?(:each_pair)
+            type, scope_name = type[:name], type[:scope]
+          else
+            scope_name = type.tableize.tr("/", "_")
+          end
+
           singular   = scope_name.singularize
           query      = "#{singular}?"
 
