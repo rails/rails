@@ -5,6 +5,7 @@ require "support/schema_dumping_helper"
 
 class Mysql2TableOptionsTest < ActiveRecord::Mysql2TestCase
   include SchemaDumpingHelper
+  self.use_transactional_tests = false
 
   def setup
     @connection = ActiveRecord::Base.connection
@@ -17,29 +18,46 @@ class Mysql2TableOptionsTest < ActiveRecord::Mysql2TestCase
   test "table options with ENGINE" do
     @connection.create_table "mysql_table_options", force: true, options: "ENGINE=MyISAM"
     output = dump_table_schema("mysql_table_options")
-    options = %r{create_table "mysql_table_options", options: "(?<options>.*)"}.match(output)[:options]
-    assert_match %r{ENGINE=MyISAM}, options
+    expected = /create_table "mysql_table_options", charset: "utf8mb4"(?:, collation: "\w+")?, options: "ENGINE=MyISAM", force: :cascade/
+    assert_match expected, output
   end
 
   test "table options with ROW_FORMAT" do
     @connection.create_table "mysql_table_options", force: true, options: "ROW_FORMAT=REDUNDANT"
     output = dump_table_schema("mysql_table_options")
-    options = %r{create_table "mysql_table_options", options: "(?<options>.*)"}.match(output)[:options]
-    assert_match %r{ROW_FORMAT=REDUNDANT}, options
+    expected = /create_table "mysql_table_options", charset: "utf8mb4"(?:, collation: "\w+")?, options: "ENGINE=InnoDB ROW_FORMAT=REDUNDANT", force: :cascade/
+    assert_match expected, output
   end
 
   test "table options with CHARSET" do
-    @connection.create_table "mysql_table_options", force: true, options: "CHARSET=utf8mb4"
+    @connection.create_table "mysql_table_options", force: true, options: "CHARSET=latin1"
     output = dump_table_schema("mysql_table_options")
-    options = %r{create_table "mysql_table_options", options: "(?<options>.*)"}.match(output)[:options]
-    assert_match %r{CHARSET=utf8mb4}, options
+    expected = /create_table "mysql_table_options", charset: "latin1", force: :cascade/
+    assert_match expected, output
   end
 
   test "table options with COLLATE" do
     @connection.create_table "mysql_table_options", force: true, options: "COLLATE=utf8mb4_bin"
     output = dump_table_schema("mysql_table_options")
-    options = %r{create_table "mysql_table_options", options: "(?<options>.*)"}.match(output)[:options]
-    assert_match %r{COLLATE=utf8mb4_bin}, options
+    expected = /create_table "mysql_table_options", charset: "utf8mb4", collation: "utf8mb4_bin", force: :cascade/
+    assert_match expected, output
+  end
+
+  test "charset and collation options" do
+    @connection.create_table "mysql_table_options", force: true, charset: "utf8mb4", collation: "utf8mb4_bin"
+    output = dump_table_schema("mysql_table_options")
+    expected = /create_table "mysql_table_options", charset: "utf8mb4", collation: "utf8mb4_bin", force: :cascade/
+    assert_match expected, output
+  end
+
+  test "charset and partitioned table options" do
+    @connection.create_table "mysql_table_options", primary_key: ["id", "account_id"], charset: "utf8mb4", collation: "utf8mb4_bin", options: "ENGINE=InnoDB\n/*!50100 PARTITION BY HASH (`account_id`)\nPARTITIONS 128 */", force: :cascade do |t|
+      t.bigint "id", null: false, auto_increment: true
+      t.bigint "account_id", null: false, unsigned: true
+    end
+    output = dump_table_schema("mysql_table_options")
+    expected = /create_table "mysql_table_options", primary_key: \["id", "account_id"\], charset: "utf8mb4", collation: "utf8mb4_bin", options: "ENGINE=InnoDB\\n(\/\*!50100)? PARTITION BY HASH \(`account_id`\)\\nPARTITIONS 128( \*\/)?", force: :cascade/
+    assert_match expected, output
   end
 
   test "schema dump works with NO_TABLE_OPTIONS sql mode" do
@@ -60,45 +78,8 @@ class Mysql2TableOptionsTest < ActiveRecord::Mysql2TestCase
   end
 end
 
-class Mysql2DefaultEngineOptionSchemaDumpTest < ActiveRecord::Mysql2TestCase
+class Mysql2DefaultEngineOptionTest < ActiveRecord::Mysql2TestCase
   include SchemaDumpingHelper
-  self.use_transactional_tests = false
-
-  def setup
-    @verbose_was = ActiveRecord::Migration.verbose
-    ActiveRecord::Migration.verbose = false
-  end
-
-  def teardown
-    ActiveRecord::Base.connection.drop_table "mysql_table_options", if_exists: true
-    ActiveRecord::Migration.verbose = @verbose_was
-    ActiveRecord::SchemaMigration.delete_all rescue nil
-  end
-
-  test "schema dump includes ENGINE=InnoDB if not provided" do
-    ActiveRecord::Base.connection.create_table "mysql_table_options", force: true
-
-    output  = dump_table_schema("mysql_table_options")
-    options = %r{create_table "mysql_table_options", options: "(?<options>.*)"}.match(output)[:options]
-    assert_match %r{ENGINE=InnoDB}, options
-  end
-
-  test "schema dump includes ENGINE=InnoDB in legacy migrations" do
-    migration = Class.new(ActiveRecord::Migration[5.1]) do
-      def migrate(x)
-        create_table "mysql_table_options", force: true
-      end
-    end.new
-
-    ActiveRecord::Migrator.new(:up, [migration], ActiveRecord::Base.connection.schema_migration).migrate
-
-    output  = dump_table_schema("mysql_table_options")
-    options = %r{create_table "mysql_table_options", options: "(?<options>.*)"}.match(output)[:options]
-    assert_match %r{ENGINE=InnoDB}, options
-  end
-end
-
-class Mysql2DefaultEngineOptionSqlOutputTest < ActiveRecord::Mysql2TestCase
   self.use_transactional_tests = false
 
   def setup
@@ -120,6 +101,10 @@ class Mysql2DefaultEngineOptionSqlOutputTest < ActiveRecord::Mysql2TestCase
     ActiveRecord::Base.connection.create_table "mysql_table_options", force: true
 
     assert_no_match %r{ENGINE=InnoDB}, @log.string
+
+    output = dump_table_schema("mysql_table_options")
+    expected = /create_table "mysql_table_options", charset: "utf8mb4"(?:, collation: "\w+")?, force: :cascade/
+    assert_match expected, output
   end
 
   test "legacy migrations contain default ENGINE=InnoDB option" do
@@ -132,5 +117,9 @@ class Mysql2DefaultEngineOptionSqlOutputTest < ActiveRecord::Mysql2TestCase
     ActiveRecord::Migrator.new(:up, [migration], ActiveRecord::Base.connection.schema_migration).migrate
 
     assert_match %r{ENGINE=InnoDB}, @log.string
+
+    output = dump_table_schema("mysql_table_options")
+    expected = /create_table "mysql_table_options", charset: "utf8mb4"(?:, collation: "\w+")?, force: :cascade/
+    assert_match expected, output
   end
 end

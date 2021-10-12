@@ -136,5 +136,18 @@ module ActiveRecord
     ensure
       Book.table_name = :books
     end
+
+    def test_find_association_does_not_use_statement_cache_if_table_name_is_changed
+      salty = Liquid.create(name: "salty")
+      molecule = salty.molecules.create(name: "dioxane")
+
+      assert_equal salty, molecule.liquid
+
+      Liquid.table_name = :birds
+
+      assert_nil molecule.reload_liquid
+    ensure
+      Liquid.table_name = :liquid
+    end
   end
 end

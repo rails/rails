@@ -15,7 +15,7 @@ module ActiveModel
   #     attr_accessor :first_name, :last_name
   #
   #     validates_each :first_name, :last_name do |record, attr, value|
-  #       record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
+  #       record.errors.add attr, "starts with z." if value.start_with?("z")
   #     end
   #   end
   #
@@ -61,7 +61,7 @@ module ActiveModel
       #     attr_accessor :first_name, :last_name
       #
       #     validates_each :first_name, :last_name, allow_blank: true do |record, attr, value|
-      #       record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
+      #       record.errors.add attr, "starts with z." if value.start_with?("z")
       #     end
       #   end
       #
@@ -118,7 +118,7 @@ module ActiveModel
       #     end
       #   end
       #
-      # Or with a block where self points to the current record to be validated:
+      # Or with a block where +self+ points to the current record to be validated:
       #
       #   class Comment
       #     include ActiveModel::Validations
@@ -152,7 +152,7 @@ module ActiveModel
       def validate(*args, &block)
         options = args.extract_options!
 
-        if args.all? { |arg| arg.is_a?(Symbol) }
+        if args.all?(Symbol)
           options.each_key do |k|
             unless VALID_OPTIONS_FOR_VALIDATE.include?(k)
               raise ArgumentError.new("Unknown key: #{k.inspect}. Valid keys are: #{VALID_OPTIONS_FOR_VALIDATE.map(&:inspect).join(', ')}. Perhaps you meant to call `validates` instead of `validate`?")
@@ -163,10 +163,10 @@ module ActiveModel
         if options.key?(:on)
           options = options.dup
           options[:on] = Array(options[:on])
-          options[:if] = Array(options[:if])
-          options[:if].unshift ->(o) {
-            !(options[:on] & Array(o.validation_context)).empty?
-          }
+          options[:if] = [
+            ->(o) { !(options[:on] & Array(o.validation_context)).empty? },
+            *options[:if]
+          ]
         end
 
         set_callback(:validate, *args, options, &block)
@@ -272,7 +272,7 @@ module ActiveModel
       end
 
       # Copy validators on inheritance.
-      def inherited(base) #:nodoc:
+      def inherited(base) # :nodoc:
         dup = _validators.dup
         base._validators = dup.each { |k, v| dup[k] = v.dup }
         super
@@ -280,7 +280,7 @@ module ActiveModel
     end
 
     # Clean the +Errors+ object if instance is duped.
-    def initialize_dup(other) #:nodoc:
+    def initialize_dup(other) # :nodoc:
       @errors = nil
       super
     end

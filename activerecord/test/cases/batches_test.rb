@@ -154,6 +154,24 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_find_in_batches_should_quote_batch_order_with_desc_order
+    c = Post.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
+      Post.find_in_batches(batch_size: 1, order: :desc) do |batch|
+        assert_kind_of Array, batch
+        assert_kind_of Post, batch.first
+      end
+    end
+  end
+
+  def test_each_should_raise_if_order_is_invalid
+    assert_raise(ArgumentError) do
+      Post.select(:title).find_each(batch_size: 1, order: :invalid) { |post|
+        flunk "should not call this block"
+      }
+    end
+  end
+
   def test_find_in_batches_should_not_use_records_after_yielding_them_in_case_original_array_is_modified
     not_a_post = +"not a post"
     def not_a_post.id; end
@@ -189,26 +207,26 @@ class EachTest < ActiveRecord::TestCase
 
   def test_find_in_batches_should_not_error_if_config_overridden
     # Set the config option which will be overridden
-    prev = ActiveRecord::Base.error_on_ignored_order
-    ActiveRecord::Base.error_on_ignored_order = true
+    prev = ActiveRecord.error_on_ignored_order
+    ActiveRecord.error_on_ignored_order = true
     assert_nothing_raised do
       PostWithDefaultScope.find_in_batches(error_on_ignore: false) { }
     end
   ensure
     # Set back to default
-    ActiveRecord::Base.error_on_ignored_order = prev
+    ActiveRecord.error_on_ignored_order = prev
   end
 
   def test_find_in_batches_should_error_on_config_specified_to_error
     # Set the config option
-    prev = ActiveRecord::Base.error_on_ignored_order
-    ActiveRecord::Base.error_on_ignored_order = true
+    prev = ActiveRecord.error_on_ignored_order
+    ActiveRecord.error_on_ignored_order = true
     assert_raise(ArgumentError) do
       PostWithDefaultScope.find_in_batches() { }
     end
   ensure
     # Set back to default
-    ActiveRecord::Base.error_on_ignored_order = prev
+    ActiveRecord.error_on_ignored_order = prev
   end
 
   def test_find_in_batches_should_not_error_by_default
@@ -288,6 +306,14 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_has_attribute_readers
+    enumerator = Post.no_comments.in_batches(of: 2, start: 42, finish: 84)
+    assert_equal Post.no_comments, enumerator.relation
+    assert_equal 2, enumerator.batch_size
+    assert_equal 42, enumerator.start
+    assert_equal 84, enumerator.finish
+  end
+
   def test_in_batches_should_yield_relation_if_block_given
     assert_queries(6) do
       Post.in_batches(of: 2) do |relation|
@@ -338,11 +364,27 @@ class EachTest < ActiveRecord::TestCase
     assert_equal Post.all.pluck(:title), ["updated-title"] * Post.count
   end
 
+  def test_in_batches_update_all_returns_rows_affected
+    assert_equal 11, Post.in_batches(of: 2).update_all(title: "updated-title")
+  end
+
+  def test_in_batches_update_all_returns_zero_when_no_batches
+    assert_equal 0, Post.where("1=0").in_batches(of: 2).update_all(title: "updated-title")
+  end
+
   def test_in_batches_delete_all_should_not_delete_records_in_other_batches
     not_deleted_count = Post.where("id <= 2").count
     Post.where("id > 2").in_batches(of: 2).delete_all
     assert_equal 0, Post.where("id > 2").count
     assert_equal not_deleted_count, Post.count
+  end
+
+  def test_in_batches_delete_all_returns_rows_affected
+    assert_equal 11, Post.in_batches(of: 2).delete_all
+  end
+
+  def test_in_batches_delete_all_returns_zero_when_no_batches
+    assert_equal 0, Post.where("1=0").in_batches(of: 2).delete_all
   end
 
   def test_in_batches_should_not_be_loaded
@@ -407,6 +449,16 @@ class EachTest < ActiveRecord::TestCase
     c = Post.connection
     assert_sql(/ORDER BY #{c.quote_table_name('posts')}\.#{c.quote_column_name('id')}/) do
       Post.in_batches(of: 1) do |relation|
+        assert_kind_of ActiveRecord::Relation, relation
+        assert_kind_of Post, relation.first
+      end
+    end
+  end
+
+  def test_in_batches_should_quote_batch_order_with_desc_order
+    c = Post.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
+      Post.in_batches(of: 1, order: :desc) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
         assert_kind_of Post, relation.first
       end

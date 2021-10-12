@@ -7,10 +7,8 @@ module Arel # :nodoc: all
     STRING_OR_SYMBOL_CLASS = [Symbol, String]
 
     def initialize(table = nil)
-      super()
-      @ast = Nodes::SelectStatement.new
+      @ast = Nodes::SelectStatement.new(table)
       @ctx = @ast.cores.last
-      from table
     end
 
     def initialize_copy(other)
@@ -98,7 +96,7 @@ module Arel # :nodoc: all
     end
 
     def froms
-      @ast.cores.map { |x| x.from }.compact
+      @ast.cores.filter_map { |x| x.from }
     end
 
     def join(relation, klass = Nodes::InnerJoin)
@@ -183,11 +181,18 @@ module Arel # :nodoc: all
       @ast.orders
     end
 
+    def where(expr)
+      if Arel::TreeManager === expr
+        expr = expr.ast
+      end
+      @ctx.wheres << expr
+      self
+    end
+
     def where_sql(engine = Table.engine)
       return if @ctx.wheres.empty?
 
-      viz = Visitors::WhereSql.new(engine.connection.visitor, engine.connection)
-      Nodes::SqlLiteral.new viz.accept(@ctx, Collectors::SQLString.new).value
+      Nodes::SqlLiteral.new("WHERE #{Nodes::And.new(@ctx.wheres).to_sql(engine)}")
     end
 
     def union(operation, other = nil)

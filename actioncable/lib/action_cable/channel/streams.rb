@@ -25,7 +25,7 @@ module ActionCable
     #
     # An example broadcasting for this channel looks like so:
     #
-    #   ActionCable.server.broadcast "comments_for_45", author: 'DHH', content: 'Rails is just swell'
+    #   ActionCable.server.broadcast "comments_for_45", { author: 'DHH', content: 'Rails is just swell' }
     #
     # If you have a stream that is related to a model, then the broadcasting used can be generated from the model and channel.
     # The following example would subscribe to a broadcasting like <tt>comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE</tt>.
@@ -122,6 +122,16 @@ module ActionCable
           pubsub.unsubscribe broadcasting, callback
           logger.info "#{self.class.name} stopped streaming from #{broadcasting}"
         end.clear
+      end
+
+      # Calls stream_for with the given <tt>model</tt> if it's present to start streaming,
+      # otherwise rejects the subscription.
+      def stream_or_reject_for(model)
+        if model
+          stream_for model
+        else
+          reject
+        end
       end
 
       private

@@ -136,6 +136,23 @@ module ApplicationTests
         assert_match(/up\s+002\s+Two migration/, output)
       end
 
+      test "rollback raises when VERSION is passed" do
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        rails "db:migrate"
+
+        output = rails("db:rollback", "VERSION=01_one_migration.rb", allow_failure: true)
+        assert_match(/VERSION is not supported - To rollback a specific version, use db:migrate:down/, output)
+      end
+
       test "migration with 0 version" do
         app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
           class OneMigration < ActiveRecord::Migration::Current
@@ -408,6 +425,42 @@ module ApplicationTests
         assert_match(/up\s+002\s+Two migration/, output)
       end
 
+      test "schema generation when dump_schema_after_migration and schema_dump are true" do
+        add_to_config("config.active_record.dump_schema_after_migration = true")
+
+        app_file "config/database.yml", <<~EOS
+          development:
+            adapter: sqlite3
+            database: 'dev_db'
+            schema_dump: true
+        EOS
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+
+          assert File.exist?("db/schema.rb"), "should dump schema when configured to"
+        end
+      end
+
+      test "schema generation when dump_schema_after_migration is true schema_dump is false" do
+        add_to_config("config.active_record.dump_schema_after_migration = true")
+
+        app_file "config/database.yml", <<~EOS
+          development:
+            adapter: sqlite3
+            database: 'dev_db'
+            schema_dump: false
+        EOS
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+
+          assert_not File.exist?("db/schema.rb"), "should not dump schema when configured not to"
+        end
+      end
+
       test "schema generation when dump_schema_after_migration is set" do
         add_to_config("config.active_record.dump_schema_after_migration = false")
 
@@ -416,7 +469,8 @@ module ApplicationTests
           output = rails("generate", "model", "author", "name:string")
           version = output =~ %r{[^/]+db/migrate/(\d+)_create_authors\.rb} && $1
 
-          rails "db:migrate", "db:rollback", "db:forward", "db:migrate:up", "db:migrate:down", "VERSION=#{version}"
+          rails "db:migrate", "db:rollback", "db:forward"
+          rails "db:migrate:up", "db:migrate:down", "VERSION=#{version}"
           assert_not File.exist?("db/schema.rb"), "should not dump schema when configured not to"
         end
 

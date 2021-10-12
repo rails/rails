@@ -83,6 +83,11 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     end
   end
 
+  test "should enqueue a delivery with a priority" do
+    job = @mail.deliver_later priority: 10
+    assert_equal 10, job.priority
+  end
+
   test "should enqueue a delivery at a specific time" do
     later_time = Time.current + 1.hour
     assert_performed_with(job: ActionMailer::MailDeliveryJob, at: later_time, args: ["DelayedMailer", "test_message", "deliver_now", args: [1, 2, 3]]) do

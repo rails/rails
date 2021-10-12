@@ -12,9 +12,23 @@ module ActionText
     isolate_namespace ActionText
     config.eager_load_namespaces << ActionText
 
+    config.action_text = ActiveSupport::OrderedOptions.new
+    config.action_text.attachment_tag_name = "action-text-attachment"
+    config.autoload_once_paths = %W(
+      #{root}/app/helpers
+      #{root}/app/models
+    )
+
     initializer "action_text.attribute" do
       ActiveSupport.on_load(:active_record) do
         include ActionText::Attribute
+        prepend ActionText::Encryption
+      end
+    end
+
+    initializer "action_text.asset" do
+      if Rails.application.config.respond_to?(:assets)
+        Rails.application.config.assets.precompile += %w( actiontext.js trix.js trix.css )
       end
     end
 
@@ -37,21 +51,24 @@ module ActionText
     end
 
     initializer "action_text.helper" do
-      ActiveSupport.on_load(:action_controller_base) do
-        helper ActionText::Engine.helpers
+      %i[action_controller_base action_mailer].each do |abstract_controller|
+        ActiveSupport.on_load(abstract_controller) do
+          helper ActionText::Engine.helpers
+        end
       end
     end
 
-    initializer "action_text.renderer" do |app|
-      app.executor.to_run      { ActionText::Content.renderer = ApplicationController.renderer }
-      app.executor.to_complete { ActionText::Content.renderer = ApplicationController.renderer }
-
+    initializer "action_text.renderer" do
       ActiveSupport.on_load(:action_text_content) do
-        self.renderer = ApplicationController.renderer
+        self.default_renderer = Class.new(ActionController::Base).renderer
       end
 
-      ActiveSupport.on_load(:action_controller_base) do
-        before_action { ActionText::Content.renderer = ApplicationController.renderer.new(request.env) }
+      %i[action_controller_base action_mailer].each do |abstract_controller|
+        ActiveSupport.on_load(abstract_controller) do
+          around_action do |controller, action|
+            ActionText::Content.with_renderer(controller, &action)
+          end
+        end
       end
     end
 
@@ -60,6 +77,10 @@ module ActionText
         require "action_text/system_test_helper"
         include ActionText::SystemTestHelper
       end
+    end
+
+    initializer "action_text.configure" do |app|
+      ActionText::Attachment.tag_name = app.config.action_text.attachment_tag_name
     end
   end
 end

@@ -8,7 +8,7 @@ module Rails
     class NamedBase < Base
       argument :name, type: :string
 
-      def initialize(args, *options) #:nodoc:
+      def initialize(args, *options) # :nodoc:
         @inside_template = nil
         # Unfreeze name in case it's given as a frozen string
         args[0] = args[0].dup if args[0].is_a?(String) && args[0].frozen?
@@ -22,7 +22,7 @@ module Rails
       no_tasks do
         def template(source, *args, &block)
           inside_template do
-            super
+            Rails::Generators.add_generated_file(super)
           end
         end
 

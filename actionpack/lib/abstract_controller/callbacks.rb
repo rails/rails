@@ -35,12 +35,18 @@ module AbstractController
                        skip_after_callbacks_if_terminated: true
     end
 
-    # Override <tt>AbstractController::Base#process_action</tt> to run the
-    # <tt>process_action</tt> callbacks around the normal behavior.
-    def process_action(*)
-      run_callbacks(:process_action) do
-        super
+    class ActionFilter
+      def initialize(actions)
+        @actions = Array(actions).map(&:to_s).to_set
       end
+
+      def match?(controller)
+        @actions.include?(controller.action_name)
+      end
+
+      alias after  match?
+      alias before match?
+      alias around match?
     end
 
     module ClassMethods
@@ -69,9 +75,8 @@ module AbstractController
       end
 
       def _normalize_callback_option(options, from, to) # :nodoc:
-        if from = options[from]
-          _from = Array(from).map(&:to_s).to_set
-          from = proc { |c| _from.include? c.action_name }
+        if from = options.delete(from)
+          from = ActionFilter.new(from)
           options[to] = Array(options[to]).unshift(from)
         end
       end
@@ -220,5 +225,14 @@ module AbstractController
         alias_method :"append_#{callback}_action", :"#{callback}_action"
       end
     end
+
+    private
+      # Override <tt>AbstractController::Base#process_action</tt> to run the
+      # <tt>process_action</tt> callbacks around the normal behavior.
+      def process_action(*)
+        run_callbacks(:process_action) do
+          super
+        end
+      end
   end
 end

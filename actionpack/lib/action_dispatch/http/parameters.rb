@@ -17,8 +17,8 @@ module ActionDispatch
       # Raised when raw data from the request cannot be parsed by the parser
       # defined for request's content MIME type.
       class ParseError < StandardError
-        def initialize
-          super($!.message)
+        def initialize(message = $!.message)
+          super(message)
         end
       end
 
@@ -57,16 +57,15 @@ module ActionDispatch
                    query_parameters.dup
                  end
         params.merge!(path_parameters)
-        params = set_binary_encoding(params, params[:controller], params[:action])
         set_header("action_dispatch.request.parameters", params)
         params
       end
       alias :params :parameters
 
-      def path_parameters=(parameters) #:nodoc:
+      def path_parameters=(parameters) # :nodoc:
         delete_header("action_dispatch.request.parameters")
 
-        parameters = set_binary_encoding(parameters, parameters[:controller], parameters[:action])
+        parameters = Request::Utils.set_binary_encoding(self, parameters, parameters[:controller], parameters[:action])
         # If any of the path parameters has an invalid encoding then
         # raise since it's likely to trigger errors further on.
         Request::Utils.check_param_encoding(parameters)
@@ -85,23 +84,6 @@ module ActionDispatch
       end
 
       private
-        def set_binary_encoding(params, controller, action)
-          return params unless controller && controller.valid_encoding?
-
-          if binary_params_for?(controller, action)
-            ActionDispatch::Request::Utils.each_param_value(params) do |param|
-              param.force_encoding ::Encoding::ASCII_8BIT
-            end
-          end
-          params
-        end
-
-        def binary_params_for?(controller, action)
-          controller_class_for(controller).binary_params_for?(action)
-        rescue MissingController
-          false
-        end
-
         def parse_formatted_parameters(parsers)
           return yield if content_length.zero? || content_mime_type.nil?
 
@@ -111,7 +93,7 @@ module ActionDispatch
             strategy.call(raw_post)
           rescue # JSON or Ruby code block errors.
             log_parse_error_once
-            raise ParseError
+            raise ParseError, "Error occurred while parsing request parameters"
           end
         end
 

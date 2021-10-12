@@ -106,7 +106,7 @@ class String
       self.class.new.tap do |cut|
         cut_at = truncate_at - omission.bytesize
 
-        scan(/\X/) do |grapheme|
+        each_grapheme_cluster do |grapheme|
           if cut.bytesize + grapheme.bytesize <= cut_at
             cut << grapheme
           else

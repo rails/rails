@@ -8,15 +8,16 @@ module ActionCable
       #
       #   <head>
       #     <%= action_cable_meta_tag %>
-      #     <%= javascript_include_tag 'application', 'data-turbolinks-track' => 'reload' %>
+      #     <%= javascript_include_tag 'application', 'data-turbo-track' => 'reload' %>
       #   </head>
       #
       # This is then used by Action Cable to determine the URL of your WebSocket server.
-      # Your CoffeeScript can then connect to the server without needing to specify the
+      # Your JavaScript can then connect to the server without needing to specify the
       # URL directly:
       #
-      #   #= require cable
-      #   @App = {}
+      #   import Cable from "@rails/actioncable"
+      #   window.Cable = Cable
+      #   window.App = {}
       #   App.cable = Cable.createConsumer()
       #
       # Make sure to specify the correct server location in each of your environment

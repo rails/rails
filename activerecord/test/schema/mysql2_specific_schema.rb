@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
 ActiveRecord::Schema.define do
-  if subsecond_precision_supported?
+  if supports_datetime_with_precision?
     create_table :datetime_defaults, force: true do |t|
-      t.datetime :modified_datetime, default: -> { "CURRENT_TIMESTAMP" }
-      t.datetime :precise_datetime, precision: 6, default: -> { "CURRENT_TIMESTAMP(6)" }
+      t.datetime :modified_datetime, precision: nil, default: -> { "CURRENT_TIMESTAMP" }
+      t.datetime :precise_datetime, default: -> { "CURRENT_TIMESTAMP(6)" }
     end
 
     create_table :timestamp_defaults, force: true do |t|
       t.timestamp :nullable_timestamp
-      t.timestamp :modified_timestamp, default: -> { "CURRENT_TIMESTAMP" }
+      t.timestamp :modified_timestamp, precision: nil, default: -> { "CURRENT_TIMESTAMP" }
       t.timestamp :precise_timestamp, precision: 6, default: -> { "CURRENT_TIMESTAMP(6)" }
     end
   end

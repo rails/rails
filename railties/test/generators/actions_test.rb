@@ -31,19 +31,19 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_create_file_should_write_data_to_file_path
-    action :create_file, "lib/test_file.rb", "heres test data"
-    assert_file "lib/test_file.rb", "heres test data"
+    action :create_file, "lib/test_file.rb", "here's test data"
+    assert_file "lib/test_file.rb", "here's test data"
   end
 
   def test_create_file_should_write_block_contents_to_file_path
-    action(:create_file, "lib/test_file.rb") { "heres block data" }
-    assert_file "lib/test_file.rb", "heres block data"
+    action(:create_file, "lib/test_file.rb") { "here's block data" }
+    assert_file "lib/test_file.rb", "here's block data"
   end
 
   def test_add_source_adds_source_to_gemfile
     run_generator
     action :add_source, "http://gems.github.com"
-    assert_file "Gemfile", /source 'http:\/\/gems\.github\.com'\n/
+    assert_file "Gemfile", /source "http:\/\/gems\.github\.com"\n/
   end
 
   def test_add_source_with_block_adds_source_to_gemfile_with_gem
@@ -51,7 +51,7 @@ class ActionsTest < Rails::Generators::TestCase
     action :add_source, "http://gems.github.com" do
       gem "rspec-rails"
     end
-    assert_file "Gemfile", /\n\nsource 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend\n\z/
+    assert_file "Gemfile", /\n\nsource "http:\/\/gems\.github\.com" do\n  gem "rspec-rails"\nend\n\z/
   end
 
   def test_add_source_with_block_adds_source_to_gemfile_after_gem
@@ -60,7 +60,7 @@ class ActionsTest < Rails::Generators::TestCase
     action :add_source, "http://gems.github.com" do
       gem "rspec-rails"
     end
-    assert_file "Gemfile", /\ngem 'will-paginate'\n\nsource 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend\n\z/
+    assert_file "Gemfile", /\ngem "will-paginate"\n\nsource "http:\/\/gems\.github\.com" do\n  gem "rspec-rails"\nend\n\z/
   end
 
   def test_add_source_should_create_newline_between_blocks
@@ -72,13 +72,13 @@ class ActionsTest < Rails::Generators::TestCase
     action :add_source, "http://gems2.github.com" do
       gem "fakeweb"
     end
-    assert_file "Gemfile", /\n\nsource 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend\n\nsource 'http:\/\/gems2\.github\.com' do\n  gem 'fakeweb'\nend\n\z/
+    assert_file "Gemfile", /\n\nsource "http:\/\/gems\.github\.com" do\n  gem "rspec-rails"\nend\n\nsource "http:\/\/gems2\.github\.com" do\n  gem "fakeweb"\nend\n\z/
   end
 
   def test_gem_should_put_gem_dependency_in_gemfile
     run_generator
     action :gem, "will-paginate"
-    assert_file "Gemfile", /gem 'will\-paginate'\n\z/
+    assert_file "Gemfile", /gem "will-paginate"\n\z/
   end
 
   def test_gem_with_version_should_include_version_in_gemfile
@@ -89,10 +89,10 @@ class ActionsTest < Rails::Generators::TestCase
     action :gem, "faker", version: [">= 0.1.0", "< 0.3.0"]
 
     assert_file "Gemfile" do |content|
-      assert_match(/gem 'rspec', '>= 2\.0\.0\.a5'/, content)
-      assert_match(/gem 'RedCloth', '>= 4\.1\.0', '< 4\.2\.0'/, content)
-      assert_match(/gem 'nokogiri', '>= 1\.4\.2'/, content)
-      assert_match(/gem 'faker', '>= 0\.1\.0', '< 0\.3\.0'/, content)
+      assert_match(/gem "rspec", ">= 2\.0\.0\.a5"/, content)
+      assert_match(/gem "RedCloth", ">= 4\.1\.0", "< 4\.2\.0"/, content)
+      assert_match(/gem "nokogiri", ">= 1\.4\.2"/, content)
+      assert_match(/gem "faker", ">= 0\.1\.0", "< 0\.3\.0"/, content)
     end
   end
 
@@ -104,8 +104,8 @@ class ActionsTest < Rails::Generators::TestCase
     action :gem, "rspec"
     action :gem, "rspec-rails"
 
-    assert_file "Gemfile", /^gem 'rspec'$/
-    assert_file "Gemfile", /^gem 'rspec-rails'$/
+    assert_file "Gemfile", /^gem "rspec"$/
+    assert_file "Gemfile", /^gem "rspec-rails"$/
   end
 
   def test_gem_should_include_options
@@ -113,7 +113,23 @@ class ActionsTest < Rails::Generators::TestCase
 
     action :gem, "rspec", github: "dchelimsky/rspec", tag: "1.2.9.rc1"
 
-    assert_file "Gemfile", /gem 'rspec', github: 'dchelimsky\/rspec', tag: '1\.2\.9\.rc1'/
+    assert_file "Gemfile", /gem "rspec", github: "dchelimsky\/rspec", tag: "1\.2\.9\.rc1"/
+  end
+
+  def test_gem_should_put_the_comment_before_gem_declaration
+    run_generator
+
+    action :gem, "rspec", comment: "Use RSpec"
+
+    assert_file "Gemfile", /# Use RSpec\ngem "rspec"/
+  end
+
+  def test_gem_should_support_multiline_comments
+    run_generator
+
+    action :gem, "rspec", comment: "Use RSpec\nReplaces minitest"
+
+    assert_file "Gemfile", /# Use RSpec\n# Replaces minitest\ngem "rspec"/
   end
 
   def test_gem_with_non_string_options
@@ -122,16 +138,16 @@ class ActionsTest < Rails::Generators::TestCase
     action :gem, "rspec", require: false
     action :gem, "rspec-rails", group: [:development, :test]
 
-    assert_file "Gemfile", /^gem 'rspec', require: false$/
-    assert_file "Gemfile", /^gem 'rspec-rails', group: \[:development, :test\]$/
+    assert_file "Gemfile", /^gem "rspec", require: false$/
+    assert_file "Gemfile", /^gem "rspec-rails", group: \[:development, :test\]$/
   end
 
   def test_gem_falls_back_to_inspect_if_string_contains_single_quote
     run_generator
 
-    action :gem, "rspec", ">=2.0'0"
+    action :gem, "rspec", ">=2.0.0"
 
-    assert_file "Gemfile", /^gem 'rspec', ">=2\.0'0"$/
+    assert_file "Gemfile", /^gem "rspec", ">=2\.0\.0"$/
   end
 
   def test_gem_works_even_if_frozen_string_is_passed_as_argument
@@ -139,7 +155,7 @@ class ActionsTest < Rails::Generators::TestCase
 
     action :gem, -"frozen_gem", -"1.0.0"
 
-    assert_file "Gemfile", /^gem 'frozen_gem', '1.0.0'$/
+    assert_file "Gemfile", /^gem "frozen_gem", "1\.0\.0"$/
   end
 
   def test_gem_group_should_wrap_gems_in_a_group
@@ -153,7 +169,27 @@ class ActionsTest < Rails::Generators::TestCase
       gem "fakeweb"
     end
 
-    assert_file "Gemfile", /\n\ngroup :development, :test do\n  gem 'rspec-rails'\nend\n\ngroup :test do\n  gem 'fakeweb'\nend\n\z/
+    assert_file "Gemfile", /\n\ngroup :development, :test do\n  gem "rspec-rails"\nend\n\ngroup :test do\n  gem "fakeweb"\nend\n\z/
+  end
+
+  def test_gem_group_should_indent_comments
+    run_generator
+
+    action :gem_group, :test do
+      gem "fakeweb", comment: "Fake requests"
+    end
+
+    assert_file "Gemfile", /\n\ngroup :test do\n  # Fake requests\n  gem "fakeweb"\nend\n\z/
+  end
+
+  def test_gem_group_should_indent_multiline_comments
+    run_generator
+
+    action :gem_group, :test do
+      gem "fakeweb", comment: "Fake requests\nNeeded in tests"
+    end
+
+    assert_file "Gemfile", /\n\ngroup :test do\n  # Fake requests\n  # Needed in tests\n  gem "fakeweb"\nend\n\z/
   end
 
   def test_github_should_create_an_indented_block
@@ -165,7 +201,7 @@ class ActionsTest < Rails::Generators::TestCase
       gem "baz"
     end
 
-    assert_file "Gemfile", /\n\ngithub 'user\/repo' do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\z/
+    assert_file "Gemfile", /\n\ngithub "user\/repo" do\n  gem "foo"\n  gem "bar"\n  gem "baz"\nend\n\z/
   end
 
   def test_github_should_create_an_indented_block_with_options
@@ -177,7 +213,7 @@ class ActionsTest < Rails::Generators::TestCase
       gem "baz"
     end
 
-    assert_file "Gemfile", /\n\ngithub 'user\/repo', a: 'correct', other: true do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\z/
+    assert_file "Gemfile", /\n\ngithub "user\/repo", a: "correct", other: true do\n  gem "foo"\n  gem "bar"\n  gem "baz"\nend\n\z/
   end
 
   def test_github_should_create_an_indented_block_within_a_group
@@ -196,7 +232,7 @@ class ActionsTest < Rails::Generators::TestCase
       end
     end
 
-    assert_file "Gemfile", /\n\ngroup :magic do\n  github 'user\/repo', a: 'correct', other: true do\n    gem 'foo'\n    gem 'bar'\n    gem 'baz'\n  end\n  github 'user\/repo2', a: 'correct', other: true do\n    gem 'foo'\n    gem 'bar'\n    gem 'baz'\n  end\nend\n\z/
+    assert_file "Gemfile", /\n\ngroup :magic do\n  github "user\/repo", a: "correct", other: true do\n    gem "foo"\n    gem "bar"\n    gem "baz"\n  end\n  github "user\/repo2", a: "correct", other: true do\n    gem "foo"\n    gem "bar"\n    gem "baz"\n  end\nend\n\z/
   end
 
   def test_github_should_create_newline_between_blocks
@@ -214,48 +250,48 @@ class ActionsTest < Rails::Generators::TestCase
       gem "baz"
     end
 
-    assert_file "Gemfile", /\n\ngithub 'user\/repo', a: 'correct', other: true do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\ngithub 'user\/repo2', a: 'correct', other: true do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\z/
+    assert_file "Gemfile", /\n\ngithub "user\/repo", a: "correct", other: true do\n  gem "foo"\n  gem "bar"\n  gem "baz"\nend\n\ngithub "user\/repo2", a: "correct", other: true do\n  gem "foo"\n  gem "bar"\n  gem "baz"\nend\n\z/
   end
 
   def test_gem_with_gemfile_without_newline_at_the_end
     run_generator
-    File.open("Gemfile", "a") { |f| f.write("gem 'rspec-rails'") }
+    File.open("Gemfile", "a") { |f| f.write('gem "rspec-rails"') }
 
     action :gem, "will-paginate"
-    assert_file "Gemfile", /gem 'rspec-rails'\ngem 'will-paginate'\n\z/
+    assert_file "Gemfile", /gem "rspec-rails"\ngem "will-paginate"\n\z/
   end
 
   def test_gem_group_with_gemfile_without_newline_at_the_end
     run_generator
-    File.open("Gemfile", "a") { |f| f.write("gem 'rspec-rails'") }
+    File.open("Gemfile", "a") { |f| f.write('gem "rspec-rails"') }
 
     action :gem_group, :test do
       gem "fakeweb"
     end
 
-    assert_file "Gemfile", /gem 'rspec-rails'\n\ngroup :test do\n  gem 'fakeweb'\nend\n\z/
+    assert_file "Gemfile", /gem "rspec-rails"\n\ngroup :test do\n  gem "fakeweb"\nend\n\z/
   end
 
   def test_add_source_with_gemfile_without_newline_at_the_end
     run_generator
-    File.open("Gemfile", "a") { |f| f.write("gem 'rspec-rails'") }
+    File.open("Gemfile", "a") { |f| f.write('gem "rspec-rails"') }
 
     action :add_source, "http://gems.github.com" do
       gem "fakeweb"
     end
 
-    assert_file "Gemfile", /gem 'rspec-rails'\n\nsource 'http:\/\/gems\.github\.com' do\n  gem 'fakeweb'\nend\n\z/
+    assert_file "Gemfile", /gem "rspec-rails"\n\nsource "http:\/\/gems\.github\.com" do\n  gem "fakeweb"\nend\n\z/
   end
 
   def test_github_with_gemfile_without_newline_at_the_end
     run_generator
-    File.open("Gemfile", "a") { |f| f.write("gem 'rspec-rails'") }
+    File.open("Gemfile", "a") { |f| f.write('gem "rspec-rails"') }
 
     action :github, "user/repo" do
       gem "fakeweb"
     end
 
-    assert_file "Gemfile", /gem 'rspec-rails'\n\ngithub 'user\/repo' do\n  gem 'fakeweb'\nend\n\z/
+    assert_file "Gemfile", /gem "rspec-rails"\n\ngithub "user\/repo" do\n  gem "fakeweb"\nend\n\z/
   end
 
   def test_environment_should_include_data_in_environment_initializer_block
@@ -276,13 +312,13 @@ class ActionsTest < Rails::Generators::TestCase
     run_generator
 
     action :environment do
-      _ = "# This wont be added" # assignment to silence parse-time warning "unused literal ignored"
+      _ = "# This won't be added" # assignment to silence parse-time warning "unused literal ignored"
       "# This will be added"
     end
 
     assert_file "config/application.rb" do |content|
       assert_match(/# This will be added/, content)
-      assert_no_match(/# This wont be added/, content)
+      assert_no_match(/# This won't be added/, content)
     end
   end
 
@@ -378,22 +414,36 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file "config/initializers/constants.rb", code.strip_heredoc
   end
 
-  def test_generate_should_run_script_generate_with_argument_and_options
+  test "generate" do
     run_generator
     action :generate, "model", "MyModel"
     assert_file "app/models/my_model.rb", /MyModel/
   end
 
-  def test_generate_aborts_when_subprocess_fails_if_requested
+  test "generate should raise on failure" do
     run_generator
-    content = capture(:stderr) do
+    message = capture(:stderr) do
       assert_raises SystemExit do
-        action :generate, "model", "MyModel:ADsad", abort_on_failure: true
-        action :generate, "model", "MyModel"
+        action :generate, "model", "1234567890"
       end
     end
-    assert_match(/wrong constant name MyModel:aDsad/, content)
-    assert_no_file "app/models/my_model.rb"
+    assert_match(/1234567890/, message)
+  end
+
+  test "generate with inline option" do
+    run_generator
+    assert_not_called(generator, :run) do
+      action :generate, "model", "MyModel", inline: true
+    end
+    assert_file "app/models/my_model.rb", /MyModel/
+  end
+
+  test "generate with inline option should raise on failure" do
+    run_generator
+    error = assert_raises do
+      action :generate, "model", "1234567890", inline: true
+    end
+    assert_match(/1234567890/, error.message)
   end
 
   test "rake should run rake with the default environment" do
@@ -435,6 +485,14 @@ class ActionsTest < Rails::Generators::TestCase
   test "rake with capture option should run rake with capture" do
     assert_runs "rake log:clear", capture: true do
       action :rake, "log:clear", capture: true
+    end
+  end
+
+  test "rake with abort_on_failure option should raise on failure" do
+    capture(:stderr) do
+      assert_raises SystemExit do
+        action :rake, "invalid", abort_on_failure: true
+      end
     end
   end
 
@@ -484,9 +542,34 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
+  test "rails_command with abort_on_failure option should raise on failure" do
+    run_generator
+    capture(:stderr) do
+      assert_raises SystemExit do
+        action :rails_command, "invalid", abort_on_failure: true
+      end
+    end
+  end
+
+  test "rails_command with inline option" do
+    run_generator
+    assert_not_called(generator, :run) do
+      action :rails_command, "generate model MyModel", inline: true
+    end
+    assert_file "app/models/my_model.rb", /MyModel/
+  end
+
+  test "rails_command with inline option should raise on failure" do
+    run_generator
+    error = assert_raises do
+      action :rails_command, "generate model 1234567890", inline: true
+    end
+    assert_match(/1234567890/, error.message)
+  end
+
   test "route should add route" do
     run_generator
-    route_commands = ["get 'foo'", "get 'bar'", "get 'baz'"]
+    route_commands = ['get "foo"', 'get "bar"', 'get "baz"']
     route_commands.each do |route_command|
       action :route, route_command
     end
@@ -495,14 +578,14 @@ class ActionsTest < Rails::Generators::TestCase
 
   test "route should indent routing code" do
     run_generator
-    route_commands = ["get 'foo'", "get 'bar'", "get 'baz'"]
+    route_commands = ['get "foo"', 'get "bar"', 'get "baz"']
     action :route, route_commands.join("\n")
     assert_routes route_commands
   end
 
   test "route should be idempotent" do
     run_generator
-    route_command = "root 'welcome#index'"
+    route_command = 'root "welcome#index"'
 
     # runs first time
     action :route, route_command
@@ -518,6 +601,7 @@ class ActionsTest < Rails::Generators::TestCase
   test "route with namespace option should nest route" do
     run_generator
     action :route, "get 'foo'\nget 'bar'", namespace: :baz
+
     assert_routes <<~ROUTING_CODE.chomp
       namespace :baz do
         get 'foo'
@@ -529,11 +613,36 @@ class ActionsTest < Rails::Generators::TestCase
   test "route with namespace option array should deeply nest route" do
     run_generator
     action :route, "get 'foo'\nget 'bar'", namespace: %w[baz qux]
+
     assert_routes <<~ROUTING_CODE.chomp
       namespace :baz do
         namespace :qux do
           get 'foo'
           get 'bar'
+        end
+      end
+    ROUTING_CODE
+  end
+
+  test "route with namespace option injects into existing namespace blocks" do
+    run_generator
+    action :route, "get 'foo1'\nget 'bar1'", namespace: %w[baz qux]
+    action :route, "get 'foo2'\nget 'bar2'", namespace: %w[baz hoge]
+    action :route, "get 'foo3'\nget 'bar3'", namespace: %w[baz qux hoge]
+
+    assert_routes <<~ROUTING_CODE.chomp
+      namespace :baz do
+        namespace :hoge do
+          get 'foo2'
+          get 'bar2'
+        end
+        namespace :qux do
+          namespace :hoge do
+            get 'foo3'
+            get 'bar3'
+          end
+          get 'foo1'
+          get 'bar1'
         end
       end
     ROUTING_CODE
@@ -573,14 +682,8 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   private
-    if RUBY_VERSION < "2.7"
-      def action(*args, &block)
-        capture(:stdout) { generator.send(*args, &block) }
-      end
-    else
-      def action(*args, **kwargs, &block)
-        capture(:stdout) { generator.send(*args, **kwargs, &block) }
-      end
+    def action(*args, **kwargs, &block)
+      capture(:stdout) { generator.send(*args, **kwargs, &block) }
     end
 
     def assert_runs(commands, config = {}, &block)

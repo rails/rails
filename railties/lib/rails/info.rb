@@ -21,7 +21,7 @@ module Rails
       end
     end
 
-    class << self #:nodoc:
+    class << self # :nodoc:
       def property(name, value = nil)
         value ||= yield
         properties << [name, value] if value
@@ -95,7 +95,7 @@ module Rails
 
     # The name of the database adapter for the current environment.
     property "Database adapter" do
-      ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: "primary").adapter
+      ActiveRecord::Base.connection.pool.db_config.adapter
     end
 
     property "Database schema version" do

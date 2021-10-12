@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class CodeStatisticsCalculator #:nodoc:
+class CodeStatisticsCalculator # :nodoc:
   attr_reader :lines, :code_lines, :classes, :methods
 
   PATTERNS = {
@@ -10,6 +10,15 @@ class CodeStatisticsCalculator #:nodoc:
       end_block_comment: /^=end/,
       class: /^\s*class\s+[_A-Z]/,
       method: /^\s*def\s+[_a-z]/,
+    },
+    erb: {
+      line_comment: %r{((^\s*<%#.*%>)|(<!--.*-->))},
+    },
+    css: {
+      line_comment: %r{^\s*/\*.*\*/},
+    },
+    scss: {
+      line_comment: %r{((^\s*/\*.*\*/)|(^\s*//))},
     },
     js: {
       line_comment: %r{^\s*//},
@@ -82,7 +91,7 @@ class CodeStatisticsCalculator #:nodoc:
       if file_path.end_with? "_test.rb"
         :minitest
       else
-        File.extname(file_path).sub(/\A\./, "").downcase.to_sym
+        File.extname(file_path).delete_prefix(".").downcase.to_sym
       end
     end
 end

@@ -170,6 +170,22 @@ module RailtiesTest
       assert $ran_block
     end
 
+    test "server block is executed when MyApp.load_server is called" do
+      $ran_block = false
+
+      class MyTie < Rails::Railtie
+        server do
+          $ran_block = true
+        end
+      end
+
+      require "#{app_path}/config/environment"
+
+      assert_not $ran_block
+      Rails.application.load_server
+      assert $ran_block
+    end
+
     test "runner block is executed when MyApp.load_runner is called" do
       $ran_block = false
 

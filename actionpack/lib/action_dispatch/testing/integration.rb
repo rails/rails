@@ -2,14 +2,13 @@
 
 require "stringio"
 require "uri"
-require "active_support/core_ext/kernel/singleton_class"
 require "rack/test"
 require "minitest"
 
 require "action_dispatch/testing/request_encoder"
 
 module ActionDispatch
-  module Integration #:nodoc:
+  module Integration # :nodoc:
     module RequestHelpers
       # Performs a GET request with the given parameters. See ActionDispatch::Integration::Session#process
       # for more details.
@@ -55,16 +54,21 @@ module ActionDispatch
 
       # Follow a single redirect response. If the last response was not a
       # redirect, an exception will be raised. Otherwise, the redirect is
-      # performed on the location header. If the redirection is a 307 redirect,
+      # performed on the location header. If the redirection is a 307 or 308 redirect,
       # the same HTTP verb will be used when redirecting, otherwise a GET request
       # will be performed. Any arguments are passed to the
       # underlying request.
       def follow_redirect!(**args)
         raise "not a redirect! #{status} #{status_message}" unless redirect?
 
-        method = response.status == 307 ? request.method.downcase : :get
-        public_send(method, response.location, **args)
+        method =
+          if [307, 308].include?(response.status)
+            request.method.downcase
+          else
+            :get
+          end
 
+        public_send(method, response.location, **args)
         status
       end
     end
@@ -83,13 +87,8 @@ module ActionDispatch
       include Minitest::Assertions
       include TestProcess, RequestHelpers, Assertions
 
-      %w( status status_message headers body redirect? ).each do |method|
-        delegate method, to: :response, allow_nil: true
-      end
-
-      %w( path ).each do |method|
-        delegate method, to: :request, allow_nil: true
-      end
+      delegate :status, :status_message, :headers, :body, :redirect?, to: :response, allow_nil: true
+      delegate :path, to: :request, allow_nil: true
 
       # The hostname used in the last request.
       def host
@@ -200,11 +199,11 @@ module ActionDispatch
       #   merged into the Rack env hash.
       # - +env+: Additional env to pass, as a Hash. The headers will be
       #   merged into the Rack env hash.
-      # - +xhr+: Set to `true` if you want to make and Ajax request.
+      # - +xhr+: Set to +true+ if you want to make an Ajax request.
       #   Adds request headers characteristic of XMLHttpRequest e.g. HTTP_X_REQUESTED_WITH.
       #   The headers will be merged into the Rack env hash.
       # - +as+: Used for encoding the request with different content type.
-      #   Supports `:json` by default and will set the appropriate request headers.
+      #   Supports +:json+ by default and will set the appropriate request headers.
       #   The headers will be merged into the Rack env hash.
       #
       # This method is rarely used directly. Use +#get+, +#post+, or other standard
@@ -359,20 +358,20 @@ module ActionDispatch
       end
 
       %w(get post patch put head delete cookies assigns follow_redirect!).each do |method|
-        define_method(method) do |*args, **options|
-          # reset the html_document variable, except for cookies/assigns calls
-          unless method == "cookies" || method == "assigns"
-            @html_document = nil
-          end
-
-          result = if options.any?
-            integration_session.__send__(method, *args, **options)
-          else
-            integration_session.__send__(method, *args)
-          end
-          copy_session_variables!
-          result
+        # reset the html_document variable, except for cookies/assigns calls
+        unless method == "cookies" || method == "assigns"
+          reset_html_document = "@html_document = nil"
         end
+
+        module_eval <<~RUBY, __FILE__, __LINE__ + 1
+          def #{method}(...)
+            #{reset_html_document}
+
+            result = integration_session.#{method}(...)
+            copy_session_variables!
+            result
+          end
+        RUBY
       end
 
       # Open a new session instance. If a block is given, the new session is
@@ -403,7 +402,7 @@ module ActionDispatch
 
       # Copy the instance variables from the current session instance into the
       # test instance.
-      def copy_session_variables! #:nodoc:
+      def copy_session_variables! # :nodoc:
         @controller = @integration_session.controller
         @response   = @integration_session.response
         @request    = @integration_session.request
@@ -432,7 +431,7 @@ module ActionDispatch
           super
         end
       end
-      ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
+      ruby2_keywords(:method_missing)
     end
   end
 
@@ -516,7 +515,7 @@ module ActionDispatch
   #
   # A simple integration test that exercises multiple controllers:
   #
-  #   require 'test_helper'
+  #   require "test_helper"
   #
   #   class UserFlowsTest < ActionDispatch::IntegrationTest
   #     test "login and browse site" do
@@ -545,7 +544,7 @@ module ActionDispatch
   #
   # Here's an example of multiple sessions and custom DSL in an integration test
   #
-  #   require 'test_helper'
+  #   require "test_helper"
   #
   #   class UserFlowsTest < ActionDispatch::IntegrationTest
   #     test "login and browse site" do

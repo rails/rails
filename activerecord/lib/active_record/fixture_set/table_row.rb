@@ -33,6 +33,33 @@ module ActiveRecord
         def join_table
           @association.through_reflection.table_name
         end
+
+        def timestamp_column_names
+          @association.through_reflection.klass.all_timestamp_attributes_in_model
+        end
+      end
+
+      class PrimaryKeyError < StandardError # :nodoc:
+        def initialize(label, association, value)
+          super(<<~MSG)
+            Unable to set #{association.name} to #{value} because the association has a
+            custom primary key (#{association.join_primary_key}) that does not match the
+            associated table's primary key (#{association.klass.primary_key}).
+
+            To fix this, change your fixture from
+
+            #{label}:
+              #{association.name}: #{value}
+
+            to
+
+            #{label}:
+              #{association.foreign_key}: **value**
+
+            where **value** is the #{association.join_primary_key} value for the
+            associated #{association.klass.name} record.
+          MSG
+        end
       end
 
       def initialize(fixture, table_rows:, label:, now:)
@@ -112,12 +139,16 @@ module ActiveRecord
             case association.macro
             when :belongs_to
               # Do not replace association name with association foreign key if they are named the same
-              fk_name = (association.options[:foreign_key] || "#{association.name}_id").to_s
+              fk_name = association.join_foreign_key
 
               if association.name.to_s != fk_name && value = @row.delete(association.name.to_s)
-                if association.polymorphic? && value.sub!(/\s*\(([^\)]*)\)\s*$/, "")
-                  # support polymorphic belongs_to as "label (Type)"
-                  @row[association.foreign_type] = $1
+                if association.polymorphic?
+                  if value.sub!(/\s*\(([^)]*)\)\s*$/, "")
+                    # support polymorphic belongs_to as "label (Type)"
+                    @row[association.join_foreign_type] = $1
+                  end
+                elsif association.join_primary_key != association.klass.primary_key
+                  raise PrimaryKeyError.new(@label, association, value)
                 end
 
                 fk_type = reflection_class.type_for_attribute(fk_name).type
@@ -141,8 +172,12 @@ module ActiveRecord
 
             targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
             joins   = targets.map do |target|
-              { lhs_key => @row[model_metadata.primary_key_name],
-                rhs_key => ActiveRecord::FixtureSet.identify(target, column_type) }
+              join = { lhs_key => @row[model_metadata.primary_key_name],
+                       rhs_key => ActiveRecord::FixtureSet.identify(target, column_type) }
+              association.timestamp_column_names.each do |col|
+                join[col] = @now
+              end
+              join
             end
             @table_rows.tables[table_name].concat(joins)
           end

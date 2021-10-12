@@ -17,14 +17,12 @@ module ActiveSupport
           ActiveSupport::Dependencies.interlock.permit_concurrent_loads { super }
       end
 
-      def synchronize
+      def synchronize(&block)
         Thread.handle_interrupt(EXCEPTION_NEVER) do
           mon_enter
 
           begin
-            Thread.handle_interrupt(EXCEPTION_IMMEDIATE) do
-              yield
-            end
+            Thread.handle_interrupt(EXCEPTION_IMMEDIATE, &block)
           ensure
             mon_exit
           end

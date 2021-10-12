@@ -11,11 +11,17 @@ module ActiveRecord
         topic = Topic.new(bonus_time: { 4 => 10, 5 => 30 })
 
         assert_equal expected_time, topic.bonus_time
+        assert_instance_of ::Time, topic.bonus_time
 
         topic.save!
+
+        assert_equal expected_time, topic.bonus_time
+        assert_instance_of ::Time, topic.bonus_time
+
         topic.reload
 
         assert_equal expected_time, topic.bonus_time
+        assert_instance_of ::Time, topic.bonus_time
       end
     end
   end

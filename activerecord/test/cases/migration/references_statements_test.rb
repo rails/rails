@@ -22,6 +22,13 @@ module ActiveRecord
         assert column_exists?(table_name, :user_id, :integer)
       end
 
+      def test_primary_key_and_references_columns_should_be_identical_type
+        add_reference table_name, :user
+        pk = connection.send(:column_for, :users, :id)
+        ref = connection.send(:column_for, table_name, :user_id)
+        assert_equal pk.sql_type, ref.sql_type
+      end
+
       def test_does_not_create_reference_type_column
         add_reference table_name, :taggable
         assert_not column_exists?(table_name, :taggable_type, :string)

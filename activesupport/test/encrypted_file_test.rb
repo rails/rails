@@ -55,6 +55,38 @@ class EncryptedFileTest < ActiveSupport::TestCase
     end
   end
 
+  test "raise MissingKeyError when env key is blank" do
+    FileUtils.rm_rf @key_path
+
+    begin
+      ENV["CONTENT_KEY"] = ""
+      raised = assert_raise ActiveSupport::EncryptedFile::MissingKeyError do
+        @encrypted_file.write @content
+        @encrypted_file.read
+      end
+
+      assert_match(/Missing encryption key to decrypt file/, raised.message)
+    ensure
+      ENV["CONTENT_KEY"] = nil
+    end
+  end
+
+  test "raise InvalidKeyLengthError when key is too short" do
+    File.write(@key_path, ActiveSupport::EncryptedFile.generate_key[0..-2])
+
+    assert_raise ActiveSupport::EncryptedFile::InvalidKeyLengthError do
+      @encrypted_file.write(@content)
+    end
+  end
+
+  test "raise InvalidKeyLengthError when key is too long" do
+    File.write(@key_path, ActiveSupport::EncryptedFile.generate_key + "0")
+
+    assert_raise ActiveSupport::EncryptedFile::InvalidKeyLengthError do
+      @encrypted_file.write(@content)
+    end
+  end
+
   test "respects existing content_path symlink" do
     @encrypted_file.write(@content)
 

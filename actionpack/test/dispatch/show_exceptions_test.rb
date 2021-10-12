@@ -10,7 +10,7 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
       when "/not_found"
         raise AbstractController::ActionNotFound
       when "/invalid_mimetype"
-        raise Mime::Type::InvalidMimeType
+        raise ActionDispatch::Http::MimeNegotiation::InvalidType
       when "/bad_params", "/bad_params.json"
         begin
           raise StandardError.new

@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 require "active_record_unit"
-require "active_record/railties/collection_cache_association_loading"
-
-ActionView::PartialRenderer.prepend(ActiveRecord::Railties::CollectionCacheAssociationLoading)
 
 class MultifetchCacheTest < ActiveRecordTestCase
   fixtures :topics, :replies
@@ -11,7 +8,6 @@ class MultifetchCacheTest < ActiveRecordTestCase
   def setup
     view_paths = ActionController::Base.view_paths
     view_paths.each(&:clear_cache)
-    ActionView::LookupContext.fallbacks.each(&:clear_cache)
 
     @view = Class.new(ActionView::Base.with_empty_template_cache) do
       def view_cache_dependencies

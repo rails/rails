@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Local and cloud file storage framework."
   s.description = "Attach cloud and local files in Rails applications."
 
-  s.required_ruby_version = ">= 2.5.0"
+  s.required_ruby_version = ">= 2.7.0"
 
   s.license = "MIT"
 
@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
     "bug_tracker_uri"   => "https://github.com/rails/rails/issues",
     "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/activestorage/CHANGELOG.md",
     "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
-    "mailing_list_uri"  => "https://groups.google.com/forum/#!forum/rubyonrails-talk",
+    "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
     "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/activestorage",
   }
 
@@ -36,5 +36,6 @@ Gem::Specification.new do |s|
   s.add_dependency "activejob",     version
   s.add_dependency "activerecord",  version
 
-  s.add_dependency "marcel", "~> 0.3.1"
+  s.add_dependency "marcel",    "~> 1.0"
+  s.add_dependency "mini_mime", ">= 1.1.0"
 end

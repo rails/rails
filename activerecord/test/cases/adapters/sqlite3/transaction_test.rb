@@ -10,7 +10,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
   end
 
   test "shared_cached? is false when cache-mode is disabled" do
-    flags =::SQLite3::Constants::Open::READWRITE | SQLite3::Constants::Open::CREATE
+    flags = ::SQLite3::Constants::Open::READWRITE | SQLite3::Constants::Open::CREATE
 
     with_connection(flags: flags) do |conn|
       assert_not_predicate(conn, :shared_cache?)
@@ -102,15 +102,19 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
     end
 
     def shared_cache_flags
-      ::SQLite3::Constants::Open::READWRITE | SQLite3::Constants::Open::CREATE | ::SQLite3::Constants::Open::SHAREDCACHE | ::SQLite3::Constants::Open::URI
+      ::SQLite3::Constants::Open::READWRITE | SQLite3::Constants::Open::CREATE | ::SQLite3::Constants::Open::SHAREDCACHE
     end
 
     def with_connection(options = {})
-      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
-      conn_options = options.reverse_merge(
-        database: in_memory_db? ? "file::memory:" : db_config.database
-      )
-      conn = ActiveRecord::Base.sqlite3_connection(conn_options)
+      options = options.dup
+      if in_memory_db?
+        options[:database] ||= "file::memory:"
+        options[:flags] = options[:flags].to_i | ::SQLite3::Constants::Open::URI | ::SQLite3::Constants::Open::READWRITE
+      else
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        options[:database] ||= db_config.database
+      end
+      conn = ActiveRecord::Base.sqlite3_connection(options)
 
       yield(conn)
     ensure

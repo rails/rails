@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "mutex_m"
+require "active_support/core_ext/module/delegation"
 
 module ActiveRecord
   module Delegation # :nodoc:
@@ -14,7 +15,8 @@ module ActiveRecord
         [
           ActiveRecord::Relation,
           ActiveRecord::Associations::CollectionProxy,
-          ActiveRecord::AssociationRelation
+          ActiveRecord::AssociationRelation,
+          ActiveRecord::DisableJoinsAssociationRelation
         ].each do |klass|
           delegate = Class.new(klass) {
             include ClassSpecificRelation
@@ -59,18 +61,17 @@ module ActiveRecord
         synchronize do
           return if method_defined?(method)
 
-          if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method)
-            definition = RUBY_VERSION >= "2.7" ? "..." : "*args, &block"
+          if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method) && !DELEGATION_RESERVED_METHOD_NAMES.include?(method.to_s)
             module_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def #{method}(#{definition})
-                scoping { klass.#{method}(#{definition}) }
+              def #{method}(...)
+                scoping { klass.#{method}(...) }
               end
             RUBY
           else
             define_method(method) do |*args, &block|
               scoping { klass.public_send(method, *args, &block) }
             end
-            ruby2_keywords(method) if respond_to?(:ruby2_keywords, true)
+            ruby2_keywords(method)
           end
         end
       end
@@ -109,7 +110,7 @@ module ActiveRecord
             super
           end
         end
-        ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
+        ruby2_keywords(:method_missing)
     end
 
     module ClassMethods # :nodoc:

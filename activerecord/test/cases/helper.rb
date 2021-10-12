@@ -8,6 +8,7 @@ require "active_record"
 require "cases/test_case"
 require "active_support/dependencies"
 require "active_support/logger"
+require "active_support/core_ext/kernel/singleton_class"
 
 require "support/config"
 require "support/connection"
@@ -40,10 +41,6 @@ def in_memory_db?
   ActiveRecord::Base.connection_pool.db_config.database == ":memory:"
 end
 
-def subsecond_precision_supported?
-  ActiveRecord::Base.connection.supports_datetime_with_precision?
-end
-
 def mysql_enforcing_gtid_consistency?
   current_adapter?(:Mysql2Adapter) && "ON" == ActiveRecord::Base.connection.show_variable("enforce_gtid_consistency")
 end
@@ -57,14 +54,35 @@ def supports_default_expression?
   end
 end
 
+def supports_non_unique_constraint_name?
+  if current_adapter?(:Mysql2Adapter)
+    conn = ActiveRecord::Base.connection
+    conn.mariadb?
+  else
+    false
+  end
+end
+
+def supports_text_column_with_default?
+  if current_adapter?(:Mysql2Adapter)
+    conn = ActiveRecord::Base.connection
+    conn.mariadb? && conn.database_version >= "10.2.1"
+  else
+    true
+  end
+end
+
 %w[
   supports_savepoints?
   supports_partial_index?
+  supports_partitioned_indexes?
+  supports_expression_index?
   supports_insert_returning?
   supports_insert_on_duplicate_skip?
   supports_insert_on_duplicate_update?
   supports_insert_conflict_target?
   supports_optimizer_hints?
+  supports_datetime_with_precision?
 ].each do |method_name|
   define_method method_name do
     ActiveRecord::Base.connection.public_send(method_name)
@@ -81,12 +99,12 @@ end
 def with_timezone_config(cfg)
   verify_default_timezone_config
 
-  old_default_zone = ActiveRecord::Base.default_timezone
+  old_default_zone = ActiveRecord.default_timezone
   old_awareness = ActiveRecord::Base.time_zone_aware_attributes
   old_zone = Time.zone
 
   if cfg.has_key?(:default)
-    ActiveRecord::Base.default_timezone = cfg[:default]
+    ActiveRecord.default_timezone = cfg[:default]
   end
   if cfg.has_key?(:aware_attributes)
     ActiveRecord::Base.time_zone_aware_attributes = cfg[:aware_attributes]
@@ -96,7 +114,7 @@ def with_timezone_config(cfg)
   end
   yield
 ensure
-  ActiveRecord::Base.default_timezone = old_default_zone
+  ActiveRecord.default_timezone = old_default_zone
   ActiveRecord::Base.time_zone_aware_attributes = old_awareness
   Time.zone = old_zone
 end
@@ -114,12 +132,12 @@ def verify_default_timezone_config
       Got: #{Time.zone}
     MSG
   end
-  if ActiveRecord::Base.default_timezone != EXPECTED_DEFAULT_TIMEZONE
+  if ActiveRecord.default_timezone != EXPECTED_DEFAULT_TIMEZONE
     $stderr.puts <<-MSG
 \n#{self}
-    Global state `ActiveRecord::Base.default_timezone` was leaked.
+    Global state `ActiveRecord.default_timezone` was leaked.
       Expected: #{EXPECTED_DEFAULT_TIMEZONE}
-      Got: #{ActiveRecord::Base.default_timezone}
+      Got: #{ActiveRecord.default_timezone}
     MSG
   end
   if ActiveRecord::Base.time_zone_aware_attributes != EXPECTED_TIME_ZONE_AWARE_ATTRIBUTES
@@ -147,6 +165,29 @@ def disable_extension!(extension, connection)
 
   connection.disable_extension extension
   connection.reconnect!
+end
+
+def clean_up_legacy_connection_handlers
+  handler = ActiveRecord::Base.default_connection_handler
+  assert_deprecated do
+    ActiveRecord::Base.connection_handlers = {}
+  end
+
+  handler.connection_pool_names.each do |name|
+    next if ["ActiveRecord::Base", "ARUnit2Model", "Contact", "ContactSti", "FirstAbstractClass", "SecondAbstractClass"].include?(name)
+
+    handler.send(:owner_to_pool_manager).delete(name)
+  end
+end
+
+def clean_up_connection_handler
+  handler = ActiveRecord::Base.connection_handler
+  handler.instance_variable_get(:@owner_to_pool_manager).each do |owner, pool_manager|
+    pool_manager.role_names.each do |role_name|
+      next if role_name == ActiveRecord::Base.default_role
+      pool_manager.remove_role(role_name)
+    end
+  end
 end
 
 def load_schema
@@ -202,4 +243,12 @@ module InTimeZone
     end
 end
 
-require_relative "../../../tools/test_common"
+# Encryption
+
+ActiveRecord::Encryption.configure \
+  primary_key: "test master key",
+  deterministic_key: "test deterministic key",
+  key_derivation_salt: "testing key derivation salt"
+
+ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
+ActiveRecord::Encryption::ExtendedDeterministicUniquenessValidator.install_support

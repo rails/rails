@@ -4,7 +4,7 @@ require "cases/helper"
 require "models/post"
 
 if supports_optimizer_hints?
-  class PostgresqlOptimzerHintsTest < ActiveRecord::PostgreSQLTestCase
+  class PostgresqlOptimizerHintsTest < ActiveRecord::PostgreSQLTestCase
     fixtures :posts
 
     def setup
@@ -47,6 +47,25 @@ if supports_optimizer_hints?
         posts = posts.select(:id).where(author_id: [0, 1])
         posts.unscope(:optimizer_hints).load
       end
+    end
+
+    def test_optimizer_hints_with_or
+      assert_sql(%r{\ASELECT /\*\+ SeqScan\(posts\) \*/}) do
+        Post.optimizer_hints("SeqScan(posts)").or(Post.all).load
+      end
+
+      queries = capture_sql do
+        Post.optimizer_hints("SeqScan(posts)").or(Post.optimizer_hints("IndexScan(posts)")).load
+      end
+      assert_equal 1, queries.length
+      assert_includes queries.first, "/*+ SeqScan(posts) */"
+      assert_not_includes queries.first, "/*+ IndexScan(posts) */"
+
+      queries = capture_sql do
+        Post.all.or(Post.optimizer_hints("IndexScan(posts)")).load
+      end
+      assert_equal 1, queries.length
+      assert_not_includes queries.first, "/*+ IndexScan(posts) */"
     end
   end
 end

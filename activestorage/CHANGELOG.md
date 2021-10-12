@@ -1,162 +1,237 @@
-*   Only enqueue analysis jobs for blobs with non-null analyzer classes.
+*   Invalid default content types are deprecated
 
-    *Gannon McGibbon*
+    Blobs created with content_type `image/jpg`, `image/pjpeg`, `image/bmp`, `text/javascript` will now produce
+    a deprecation warning, since these are not valid content types.
 
-*   Previews are created on the same service as the original blob.
+    These content types will be removed from the defaults in Rails 7.1.
 
-    *Peter Zhu*
+    You can set `config.active_storage.silence_invalid_content_types_warning = true` to dismiss the warning.
 
-*   Remove unused `disposition` and `content_type` query parameters for `DiskService`.
+    *Alex Ghiculescu*
 
-    *Peter Zhu*
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
 
-*   Use `DiskController` for both public and private files.
+*   No changes.
 
-    `DiskController` is able to handle multiple services by adding a
-    `service_name` field in the generated URL in `DiskService`.
 
-    *Peter Zhu*
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
 
-*   Variants are tracked in the database to avoid existence checks in the storage service.
+*   Emit Active Support instrumentation events from Active Storage analyzers.
 
-    *George Claghorn*
+    Fixes #42930
 
-*   Deprecate `service_url` methods in favour of `url`.
+    *Shouichi Kamiya*
 
-    Deprecate `Variant#service_url` and `Preview#service_url` to instead use
-    `#url` method to be consistent with `Blob`.
+*   Add support for byte range requests
 
-    *Peter Zhu*
+    *Tom Prats*
 
-*   Permanent URLs for public storage blobs.
+*   Attachments can be deleted after their association is no longer defined.
 
-    Services can be configured in `config/storage.yml` with a new key
-    `public: true | false` to indicate whether a service holds public
-    blobs or private blobs. Public services will always return a permanent URL.
+    Fixes #42514
 
-    Deprecates `Blob#service_url` in favor of `Blob#url`.
+    *Don Sisco*
 
-    *Peter Zhu*
+*   Make `vips` the default variant processor for new apps.
 
-*   Make services aware of configuration names.
+    See the upgrade guide for instructions on converting from `mini_magick` to `vips`. `mini_magick` is
+    not deprecated, existing apps can keep using it.
 
-    *Gannon McGibbon*
+    *Breno Gazzola*
 
-*   The `Content-Type` header is set on image variants when they're uploaded to third-party storage services.
+*   Deprecate `ActiveStorage::Current.host` in favor of `ActiveStorage::Current.url_options` which accepts
+    a host, protocol and port.
 
-    *Kyle Ribordy*
+    *Santiago Bartesaghi*
 
-*   Allow storage services to be configured per attachment.
+*   Allow using [IAM](https://cloud.google.com/storage/docs/access-control/signed-urls) when signing URLs with GCS.
+
+    ```yaml
+    gcs:
+      service: GCS
+      ...
+      iam: true
+    ```
+
+    *RRethy*
+
+*   OpenSSL constants are now used for Digest computations.
+
+    *Dirkjan Bussink*
+
+*   Deprecate `config.active_storage.replace_on_assign_to_many`. Future versions of Rails
+    will behave the same way as when the config is set to `true`.
+
+    *Santiago Bartesaghi*
+
+*   Remove deprecated methods: `build_after_upload`, `create_after_upload!` in favor of `create_and_upload!`,
+    and `service_url` in favor of `url`.
+
+    *Santiago Bartesaghi*
+
+*   Add support of `strict_loading_by_default` to `ActiveStorage::Representations` controllers.
+
+    *Anton Topchii*, *Andrew White*
+
+*   Allow to detach an attachment when record is not persisted.
+
+    *Jacopo Beschi*
+
+*   Use libvips instead of ImageMagick to analyze images when `active_storage.variant_processor = vips`.
+
+    *Breno Gazzola*
+
+*   Add metadata value for presence of video channel in video blobs.
+
+    The `metadata` attribute of video blobs has a new boolean key named `video` that is set to
+    `true` if the file has an video channel and `false` if it doesn't.
+
+    *Breno Gazzola*
+
+*   Deprecate usage of `purge` and `purge_later` from the association extension.
+
+    *Jacopo Beschi*
+
+*   Passing extra parameters in `ActiveStorage::Blob#url` to S3 Client.
+
+    This allows calls of `ActiveStorage::Blob#url` to have more interaction with
+    the S3 Presigner, enabling, amongst other options, custom S3 domain URL
+    Generation.
+
+    ```ruby
+    blob = ActiveStorage::Blob.last
+
+    blob.url # => https://<bucket-name>.s3.<region>.amazonaws.com/<key>
+    blob.url(virtual_host: true) # => # => https://<bucket-name>/<key>
+    ```
+
+    *josegomezr*
+
+*   Allow setting a `Cache-Control` on files uploaded to GCS.
+
+    ```yaml
+    gcs:
+      service: GCS
+      ...
+      cache_control: "public, max-age=3600"
+    ```
+
+    *maleblond*
+
+*   The parameters sent to `ffmpeg` for generating a video preview image are now
+    configurable under `config.active_storage.video_preview_arguments`.
+
+    *Brendon Muir*
+
+*   The ActiveStorage video previewer will now use scene change detection to generate
+    better preview images (rather than the previous default of using the first frame
+    of the video). This change requires FFmpeg v3.4+.
+
+    *Jonathan Hefner*
+
+*   Add support for ActiveStorage expiring URLs.
+
+    ```ruby
+    rails_blob_path(user.avatar, disposition: "attachment", expires_in: 30.minutes)
+
+    <%= image_tag rails_blob_path(user.avatar.variant(resize: "100x100"), expires_in: 30.minutes) %>
+    ```
+
+    If you want to set default expiration time for ActiveStorage URLs throughout your application, set `config.active_storage.urls_expire_in`.
+
+    *aki77*
+
+*   Allow to purge an attachment when record is not persisted for `has_many_attached`.
+
+    *Jacopo Beschi*
+
+*   Add `with_all_variant_records` method to eager load all variant records on an attachment at once.
+    `with_attached_image` scope now eager loads variant records if using variant tracking.
+
+    *Alex Ghiculescu*
+
+*   Add metadata value for presence of audio channel in video blobs.
+
+    The `metadata` attribute of video blobs has a new boolean key named `audio` that is set to
+    `true` if the file has an audio channel and `false` if it doesn't.
+
+    *Breno Gazzola*
+
+*   Adds analyzer for audio files.
+
+    *Breno Gazzola*
+
+*   Respect Active Record's primary_key_type in Active Storage migrations.
+
+    *fatkodima*
+
+*   Allow `expires_in` for ActiveStorage signed ids.
+
+    *aki77*
+
+*   Allow to purge an attachment when record is not persisted for `has_one_attached`.
+
+    *Jacopo Beschi*
+
+*   Add a load hook called `active_storage_variant_record` (providing `ActiveStorage::VariantRecord`)
+    to allow for overriding aspects of the `ActiveStorage::VariantRecord` class. This makes
+    `ActiveStorage::VariantRecord` consistent with `ActiveStorage::Blob` and `ActiveStorage::Attachment`
+    that already have load hooks.
+
+    *Brendon Muir*
+
+*   `ActiveStorage::PreviewError` is raised when a previewer is unable to generate a preview image.
+
+    *Alex Robbin*
+
+*   Add `ActiveStorage::Streaming` module that can be included in a controller to get access to `#send_blob_stream`,
+    which wraps the new `ActionController::Base#send_stream` method to stream a blob from cloud storage:
+
+    ```ruby
+    class MyPublicBlobsController < ApplicationController
+      include ActiveStorage::SetBlob, ActiveStorage::Streaming
+
+      def show
+        http_cache_forever(public: true) do
+          send_blob_stream @blob, disposition: params[:disposition]
+        end
+      end
+    end
+    ```
+
+    *DHH*
+
+*   Add ability to use pre-defined variants.
 
     ```ruby
     class User < ActiveRecord::Base
-      has_one_attached :avatar, service: :s3
+      has_one_attached :avatar do |attachable|
+        attachable.variant :thumb, resize: "100x100"
+        attachable.variant :medium, resize: "300x300", monochrome: true
+      end
     end
 
     class Gallery < ActiveRecord::Base
-      has_many_attached :photos, service: :s3
+      has_many_attached :photos do |attachable|
+        attachable.variant :thumb, resize: "100x100"
+        attachable.variant :medium, resize: "300x300", monochrome: true
+      end
     end
+
+    <%= image_tag user.avatar.variant(:thumb) %>
     ```
 
-    *Dmitry Tsepelev*
+    *fatkodima*
 
-*   You can optionally provide a custom blob key when attaching a new file:
+*   After setting `config.active_storage.resolve_model_to_route = :rails_storage_proxy`
+    `rails_blob_path` and `rails_representation_path` will generate proxy URLs by default.
 
-    ```ruby
-    user.avatar.attach key: "avatars/#{user.id}.jpg",
-      io: io, content_type: "image/jpeg", filename: "avatar.jpg"
-    ```
+    *Ali Ismayilov*
 
-    Active Storage will store the blob's data on the configured service at the provided key.
+*   Declare `ActiveStorage::FixtureSet` and `ActiveStorage::FixtureSet.blob` to
+    improve fixture integration.
 
-    *George Claghorn*
-
-*   Replace `Blob.create_after_upload!` with `Blob.create_and_upload!` and deprecate the former.
-
-    `create_after_upload!` has been removed since it could lead to data
-    corruption by uploading to a key on the storage service which happened to
-    be already taken. Creating the record would then correctly raise a
-    database uniqueness exception but the stored object would already have
-    overwritten another. `create_and_upload!` swaps the order of operations
-    so that the key gets reserved up-front or the uniqueness error gets raised,
-    before the upload to a key takes place.
-
-    *Julik Tarkhanov*
-
-*   Set content disposition in direct upload using `filename` and `disposition` parameters to `ActiveStorage::Service#headers_for_direct_upload`.
-
-    *Peter Zhu*
-
-*   Allow record to be optionally passed to blob finders to make sharding
-    easier.
-
-    *Gannon McGibbon*
-
-*   Switch from `azure-storage` gem to `azure-storage-blob` gem for Azure service.
-
-    *Peter Zhu*
-
-*   Add `config.active_storage.draw_routes` to disable Active Storage routes.
-
-    *Gannon McGibbon*
-
-*   Image analysis is skipped if ImageMagick returns an error.
-
-    `ActiveStorage::Analyzer::ImageAnalyzer#metadata` would previously raise a
-    `MiniMagick::Error`, which caused persistent `ActiveStorage::AnalyzeJob`
-    failures. It now logs the error and returns `{}`, resulting in no metadata
-    being added to the offending image blob.
-
-    *George Claghorn*
-
-*   Method calls on singular attachments return `nil` when no file is attached.
-
-    Previously, assuming the following User model, `user.avatar.filename` would
-    raise a `Module::DelegationError` if no avatar was attached:
-
-    ```ruby
-    class User < ApplicationRecord
-      has_one_attached :avatar
-    end
-    ```
-
-    They now return `nil`.
-
-    *Matthew Tanous*
-
-*   The mirror service supports direct uploads.
-
-    New files are directly uploaded to the primary service. When a
-    directly-uploaded file is attached to a record, a background job is enqueued
-    to copy it to each secondary service.
-
-    Configure the queue used to process mirroring jobs by setting
-    `config.active_storage.queues.mirror`. The default is `:active_storage_mirror`.
-
-    *George Claghorn*
-
-*   The S3 service now permits uploading files larger than 5 gigabytes.
-
-    When uploading a file greater than 100 megabytes in size, the service
-    transparently switches to [multipart uploads](https://docs.aws.amazon.com/AmazonS3/latest/dev/mpuoverview.html)
-    using a part size computed from the file's total size and S3's part count limit.
-
-    No application changes are necessary to take advantage of this feature. You
-    can customize the default 100 MB multipart upload threshold in your S3
-    service's configuration:
-
-    ```yaml
-    production:
-      service: s3
-      access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-      secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
-      region: us-east-1
-      bucket: my-bucket
-      upload:
-        multipart_threshold: <%= 250.megabytes %>
-    ```
-
-    *George Claghorn*
+    *Sean Doyle*
 
 
-Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activestorage/CHANGELOG.md) for previous changes.
+Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/activestorage/CHANGELOG.md) for previous changes.

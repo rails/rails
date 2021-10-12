@@ -183,7 +183,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
     assert_empty activerecord.developers_log
   end
 
-  def test_has_many_and_belongs_to_many_callbacks_for_save_on_parent
+  def test_has_and_belongs_to_many_callbacks_for_save_on_parent
     project = Project.new name: "Callbacks"
     project.developers_with_callbacks.build name: "Jack", salary: 95000
 

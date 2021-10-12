@@ -16,6 +16,16 @@ module ActiveRecord
           value
         end
       end
+
+      private
+        def cast_value(value)
+          case value = super
+          when Value
+            value.__getobj__
+          else
+            value
+          end
+        end
     end
   end
 end

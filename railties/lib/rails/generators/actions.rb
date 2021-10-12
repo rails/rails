@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "shellwords"
+require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/string/strip"
 
 module Rails
@@ -16,6 +18,7 @@ module Rails
       #   gem "technoweenie-restful-authentication", lib: "restful-authentication", source: "http://gems.github.com/"
       #   gem "rails", "3.0", git: "https://github.com/rails/rails"
       #   gem "RedCloth", ">= 4.1.0", "< 4.2.0"
+      #   gem "rspec", comment: "Put this comment above the gem declaration"
       def gem(*args)
         options = args.extract_options!
         name, *versions = args
@@ -23,6 +26,9 @@ module Rails
         # Set the message to be shown in logs. Uses the git repo if one is given,
         # otherwise use name (version).
         parts, message = [ quote(name) ], name.dup
+
+        # Output a comment above the gem declaration.
+        comment = options.delete(:comment)
 
         if versions = versions.any? ? versions : options.delete(:version)
           _versions = Array(versions)
@@ -38,9 +44,17 @@ module Rails
         parts << quote(options) unless options.empty?
 
         in_root do
-          str = "gem #{parts.join(", ")}"
-          str = indentation + str
-          append_file_with_newline "Gemfile", str, verbose: false
+          str = []
+          if comment
+            comment.each_line do |comment_line|
+              str << indentation
+              str << "# #{comment_line}"
+            end
+            str << "\n"
+          end
+          str << indentation
+          str << "gem #{parts.join(", ")}"
+          append_file_with_newline "Gemfile", str.join, verbose: false
         end
       end
 
@@ -109,11 +123,11 @@ module Rails
       # file in <tt>config/environments</tt>.
       #
       #   environment do
-      #     "config.action_controller.asset_host = 'cdn.provider.com'"
+      #     "config.asset_host = 'cdn.provider.com'"
       #   end
       #
       #   environment(nil, env: "development") do
-      #     "config.action_controller.asset_host = 'localhost:3000'"
+      #     "config.asset_host = 'localhost:3000'"
       #   end
       def environment(data = nil, options = {})
         sentinel = "class Application < Rails::Application\n"
@@ -225,9 +239,9 @@ module Rails
         log :generate, what
 
         options = args.extract_options!
-        argument = args.flat_map(&:to_s).join(" ")
+        options[:abort_on_failure] = !options[:inline]
 
-        execute_command :rails, "generate #{what} #{argument}", options
+        rails_command "generate #{what} #{args.join(" ")}", options
       end
 
       # Runs the supplied rake task (invoked with 'rake ...')
@@ -247,7 +261,17 @@ module Rails
       #   rails_command("gems:install", sudo: true)
       #   rails_command("gems:install", capture: true)
       def rails_command(command, options = {})
-        execute_command :rails, command, options
+        if options[:inline]
+          log :rails, command
+          command, *args = Shellwords.split(command)
+          in_root do
+            silence_warnings do
+              ::Rails::Command.invoke(command, args, **options)
+            end
+          end
+        else
+          execute_command :rails, command, options
+        end
       end
 
       # Make an entry in Rails routing file <tt>config/routes.rb</tt>
@@ -256,14 +280,25 @@ module Rails
       #   route "root 'admin#index'", namespace: :admin
       def route(routing_code, namespace: nil)
         routing_code = Array(namespace).reverse.reduce(routing_code) do |code, ns|
-          "namespace :#{ns} do\n#{indent(code, 2)}\nend"
+          "namespace :#{ns} do\n#{optimize_indentation(code, 2)}end"
         end
 
         log :route, routing_code
-        sentinel = /\.routes\.draw do\s*\n/m
+
+        after_pattern = Array(namespace).each_with_index.reverse_each.reduce(nil) do |pattern, (ns, i)|
+          margin = "\\#{i + 1}[ ]{2}"
+          "(?:(?:^[ ]*\n|^#{margin}.*\n)*?^(#{margin})namespace :#{ns} do\n#{pattern})?"
+        end.then do |pattern|
+          /^([ ]*).+\.routes\.draw do[ ]*\n#{pattern}/
+        end
 
         in_root do
-          inject_into_file "config/routes.rb", optimize_indentation(routing_code, 2), after: sentinel, verbose: false, force: false
+          if existing = match_file("config/routes.rb", after_pattern)
+            base_indent, *, prev_indent = existing.captures.compact.map(&:length)
+            routing_code = optimize_indentation(routing_code, base_indent + 2).lines.grep_v(/^[ ]{,#{prev_indent}}\S/).join
+          end
+
+          inject_into_file "config/routes.rb", routing_code, after: after_pattern, verbose: false, force: false
         end
       end
 
@@ -311,8 +346,7 @@ module Rails
           end
         end
 
-        # Surround string with single quotes if there is no quotes.
-        # Otherwise fall back to double quotes
+        # Always returns value in double quotes.
         def quote(value) # :doc:
           if value.respond_to? :each_pair
             return value.map do |k, v|
@@ -321,11 +355,7 @@ module Rails
           end
           return value.inspect unless value.is_a? String
 
-          if value.include?("'")
-            value.inspect
-          else
-            "'#{value}'"
-          end
+          "\"#{value.tr("'", '"')}\""
         end
 
         # Returns optimized string with indentation
@@ -352,6 +382,10 @@ module Rails
           gsub_file path, /\n?\z/, options do |match|
             match.end_with?("\n") ? "" : "\n#{str}\n"
           end
+        end
+
+        def match_file(path, pattern)
+          File.read(path).match(pattern) if File.exist?(path)
         end
     end
   end

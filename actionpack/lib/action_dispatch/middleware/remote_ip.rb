@@ -33,7 +33,7 @@ module ActionDispatch
     # not be the ultimate client IP in production, and so are discarded. See
     # https://en.wikipedia.org/wiki/Private_network for details.
     TRUSTED_PROXIES = [
-      "127.0.0.1",      # localhost IPv4
+      "127.0.0.0/8",    # localhost IPv4 range, per RFC-3330
       "::1",            # localhost IPv6
       "fc00::/7",       # private IPv6 range fc00::/7
       "10.0.0.0/8",     # private IPv4 range 10.x.x.x
@@ -51,10 +51,8 @@ module ActionDispatch
     # clients (like WAP devices), or behind proxies that set headers in an
     # incorrect or confusing way (like AWS ELB).
     #
-    # The +custom_proxies+ argument can take an Array of string, IPAddr, or
-    # Regexp objects which will be used instead of +TRUSTED_PROXIES+. If a
-    # single string, IPAddr, or Regexp object is provided, it will be used in
-    # addition to +TRUSTED_PROXIES+. Any proxy setup will put the value you
+    # The +custom_proxies+ argument can take an enumerable which will be used
+    # instead of +TRUSTED_PROXIES+. Any proxy setup will put the value you
     # want in the middle (or at the beginning) of the X-Forwarded-For list,
     # with your proxy servers after it. If your proxies aren't removed, pass
     # them in via the +custom_proxies+ parameter. That way, the middleware will
@@ -67,6 +65,20 @@ module ActionDispatch
       elsif custom_proxies.respond_to?(:any?)
         custom_proxies
       else
+        ActiveSupport::Deprecation.warn(<<~EOM)
+          Setting config.action_dispatch.trusted_proxies to a single value has
+          been deprecated. Please set this to an enumerable instead. For
+          example, instead of:
+
+          config.action_dispatch.trusted_proxies = IPAddr.new("10.0.0.0/8")
+
+          Wrap the value in an Array:
+
+          config.action_dispatch.trusted_proxies = [IPAddr.new("10.0.0.0/8")]
+
+          Note that unlike passing a single argument, passing an enumerable
+          will *replace* the default set of trusted proxies.
+        EOM
         Array(custom_proxies) + TRUSTED_PROXIES
       end
     end

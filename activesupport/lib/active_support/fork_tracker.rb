@@ -3,7 +3,7 @@
 module ActiveSupport
   module ForkTracker # :nodoc:
     module CoreExt
-      def fork(*)
+      def fork(...)
         if block_given?
           super do
             ForkTracker.check!
@@ -36,7 +36,7 @@ module ActiveSupport
 
       def hook!
         if Process.respond_to?(:fork)
-          ::Object.prepend(CoreExtPrivate)
+          ::Object.prepend(CoreExtPrivate) if RUBY_VERSION < "3.0"
           ::Kernel.prepend(CoreExtPrivate)
           ::Kernel.singleton_class.prepend(CoreExt)
           ::Process.singleton_class.prepend(CoreExt)

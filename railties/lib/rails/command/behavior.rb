@@ -4,7 +4,7 @@ require "active_support"
 
 module Rails
   module Command
-    module Behavior #:nodoc:
+    module Behavior # :nodoc:
       extend ActiveSupport::Concern
 
       class_methods do
@@ -56,7 +56,7 @@ module Rails
           def lookup!
             $LOAD_PATH.each do |base|
               Dir[File.join(base, *file_lookup_paths)].each do |path|
-                path = path.sub("#{base}/", "")
+                path = path.delete_prefix("#{base}/")
                 require path
               rescue Exception
                 # No problem

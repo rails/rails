@@ -88,7 +88,7 @@ class TransliterateTest < ActiveSupport::TestCase
       exception = assert_raises ArgumentError do
         ActiveSupport::Inflector.transliterate(string)
       end
-      assert_equal "Can not transliterate strings with #{encoding} encoding", exception.message
+      assert_equal "Cannot transliterate strings with #{encoding} encoding", exception.message
     end
   end
 

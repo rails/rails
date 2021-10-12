@@ -27,7 +27,7 @@ module ActionCable
         @remote_connections = @event_loop = @worker_pool = @pubsub = nil
       end
 
-      # Called by Rack to setup the server.
+      # Called by Rack to set up the server.
       def call(env)
         setup_heartbeat_timer
         config.connection_class.call.new(self, env).process

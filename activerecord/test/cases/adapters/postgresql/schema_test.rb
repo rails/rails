@@ -45,6 +45,8 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   PK_TABLE_NAME = "table_with_pk"
   UNMATCHED_SEQUENCE_NAME = "unmatched_primary_key_default_value_seq"
   UNMATCHED_PK_TABLE_NAME = "table_with_unmatched_sequence_for_pk"
+  PARTITIONED_TABLE = "measurements"
+  PARTITIONED_TABLE_INDEX = "index_measurements_on_logdate_and_city_id"
 
   class Thing1 < ActiveRecord::Base
     self.table_name = "test_schema.things"
@@ -74,6 +76,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   class Album < ActiveRecord::Base
     self.table_name = "music.albums"
     has_and_belongs_to_many :songs
+    def self.default_scope; where(deleted: false); end
   end
 
   def setup
@@ -147,14 +150,16 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     ActiveRecord::Base.connection.drop_schema "music", if_exists: true
     ActiveRecord::Base.connection.create_schema "music"
     ActiveRecord::Base.connection.execute <<~SQL
-      CREATE TABLE music.albums (id serial primary key);
+      CREATE TABLE music.albums (id serial primary key, deleted boolean default false);
       CREATE TABLE music.songs (id serial primary key);
       CREATE TABLE music.albums_songs (album_id integer, song_id integer);
     SQL
 
     song = Song.create
-    Album.create
-    assert_equal song, Song.includes(:albums).references(:albums).first
+    album = song.albums.create
+    assert_equal song, Song.includes(:albums).where("albums.id": album.id).first
+    assert_equal [album.id], Song.joins(:albums).pluck("albums.id")
+    assert_equal [album.id], Song.joins(:albums).pluck("music.albums.id")
   ensure
     ActiveRecord::Base.connection.drop_schema "music", if_exists: true
   end
@@ -311,6 +316,12 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
       assert @connection.index_name_exists?(TABLE_NAME, INDEX_E_NAME)
       assert @connection.index_name_exists?(TABLE_NAME, INDEX_E_NAME)
       assert_not @connection.index_name_exists?(TABLE_NAME, "missing_index")
+
+      if supports_partitioned_indexes?
+        create_partitioned_table
+        create_partitioned_table_index
+        assert @connection.index_name_exists?(PARTITIONED_TABLE, PARTITIONED_TABLE_INDEX)
+      end
     end
   end
 
@@ -329,6 +340,13 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   def test_dump_indexes_for_table_with_scheme_specified_in_name
     indexes = @connection.indexes("#{SCHEMA_NAME}.#{TABLE_NAME}")
     assert_equal 5, indexes.size
+
+    if supports_partitioned_indexes?
+      create_partitioned_table
+      create_partitioned_table_index
+      indexes = @connection.indexes("#{SCHEMA_NAME}.#{PARTITIONED_TABLE}")
+      assert_equal 1, indexes.size
+    end
   end
 
   def test_with_uppercase_index_name
@@ -336,6 +354,15 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
     with_schema_search_path SCHEMA_NAME do
       assert_nothing_raised { @connection.remove_index "things", name: "things_Index" }
+    end
+
+    if supports_partitioned_indexes?
+      create_partitioned_table
+      @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
+
+      with_schema_search_path SCHEMA_NAME do
+        assert_nothing_raised { @connection.remove_index PARTITIONED_TABLE, name: "#{PARTITIONED_TABLE}_Index" }
+      end
     end
   end
 
@@ -351,6 +378,22 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
     @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
     assert_raises(ArgumentError) { @connection.remove_index "#{SCHEMA2_NAME}.things", name: "#{SCHEMA_NAME}.things_Index" }
+
+    if supports_partitioned_indexes?
+      create_partitioned_table
+
+      @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
+      assert_nothing_raised { @connection.remove_index PARTITIONED_TABLE, name: "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}_Index" }
+
+      @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
+      assert_nothing_raised { @connection.remove_index "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}", name: "#{PARTITIONED_TABLE}_Index" }
+
+      @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
+      assert_nothing_raised { @connection.remove_index "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}", name: "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}_Index" }
+
+      @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
+      assert_raises(ArgumentError) { @connection.remove_index "#{SCHEMA2_NAME}.#{PARTITIONED_TABLE}", name: "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}_Index" }
+    end
   end
 
   def test_primary_key_with_schema_specified
@@ -472,6 +515,14 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
     def bind_param(value)
       ActiveRecord::Relation::QueryAttribute.new(nil, value, ActiveRecord::Type::Value.new)
+    end
+
+    def create_partitioned_table
+      @connection.execute "CREATE TABLE #{SCHEMA_NAME}.\"#{PARTITIONED_TABLE}\" (city_id integer not null, logdate date not null) PARTITION BY LIST (city_id)"
+    end
+
+    def create_partitioned_table_index
+      @connection.execute "CREATE INDEX #{PARTITIONED_TABLE_INDEX} ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
     end
 end
 

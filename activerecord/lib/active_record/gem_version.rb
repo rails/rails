@@ -7,10 +7,10 @@ module ActiveRecord
   end
 
   module VERSION
-    MAJOR = 6
-    MINOR = 1
+    MAJOR = 7
+    MINOR = 0
     TINY  = 0
-    PRE   = "alpha"
+    PRE   = "alpha2"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end

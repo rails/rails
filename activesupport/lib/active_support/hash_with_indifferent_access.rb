@@ -3,6 +3,7 @@
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/hash/reverse_merge"
 require "active_support/core_ext/hash/except"
+require "active_support/core_ext/hash/slice"
 
 module ActiveSupport
   # Implements a hash where keys <tt>:foo</tt> and <tt>"foo"</tt> are considered
@@ -64,7 +65,7 @@ module ActiveSupport
       self
     end
 
-    def initialize(constructor = {})
+    def initialize(constructor = nil)
       if constructor.respond_to?(:to_hash)
         super()
         update(constructor)
@@ -72,6 +73,8 @@ module ActiveSupport
         hash = constructor.is_a?(Hash) ? constructor : constructor.to_hash
         self.default = hash.default if hash.default
         self.default_proc = hash.default_proc if hash.default_proc
+      elsif constructor.nil?
+        super()
       else
         super(constructor)
       end
@@ -113,7 +116,7 @@ module ActiveSupport
     # <tt>ActiveSupport::HashWithIndifferentAccess</tt> or a regular +Hash+.
     # In either case the merge respects the semantics of indifferent access.
     #
-    # If the argument is a regular hash with keys +:key+ and +"key"+ only one
+    # If the argument is a regular hash with keys +:key+ and <tt>"key"</tt> only one
     # of the values end up in the receiver, but which one is unspecified.
     #
     # When given a block, the value for duplicated keys will be determined
@@ -125,7 +128,7 @@ module ActiveSupport
     #   hash_2['key'] = 12
     #   hash_1.update(hash_2) { |key, old, new| old + new } # => {"key"=>22}
     def update(*other_hashes, &block)
-      if other_hashes.one?
+      if other_hashes.size == 1
         update_with_single_argument(other_hashes.first, block)
       else
         other_hashes.each do |other_hash|
@@ -293,6 +296,10 @@ module ActiveSupport
       super(convert_key(key))
     end
 
+    # Returns a hash with indifferent access that includes everything except given keys.
+    #   hash = { a: "x", b: "y", c: 10 }.with_indifferent_access
+    #   hash.except(:a, "b") # => {c: 10}.with_indifferent_access
+    #   hash                 # => { a: "x", b: "y", c: 10 }.with_indifferent_access
     def except(*keys)
       slice(*self.keys - keys.map { |key| convert_key(key) })
     end
@@ -363,8 +370,14 @@ module ActiveSupport
     end
 
     private
-      def convert_key(key)
-        key.kind_of?(Symbol) ? key.to_s : key
+      if Symbol.method_defined?(:name)
+        def convert_key(key)
+          key.kind_of?(Symbol) ? key.name : key
+        end
+      else
+        def convert_key(key)
+          key.kind_of?(Symbol) ? key.to_s : key
+        end
       end
 
       def convert_value(value, conversion: nil)

@@ -6,7 +6,7 @@ module ActiveRecord
       module SchemaStatements
         # Drops the database specified on the +name+ attribute
         # and creates it again using the provided +options+.
-        def recreate_database(name, options = {}) #:nodoc:
+        def recreate_database(name, options = {}) # :nodoc:
           drop_database(name)
           create_database(name, options)
         end
@@ -50,11 +50,11 @@ module ActiveRecord
         #
         # Example:
         #   drop_database 'matt_development'
-        def drop_database(name) #:nodoc:
+        def drop_database(name) # :nodoc:
           execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
         end
 
-        def drop_table(table_name, options = {}) # :nodoc:
+        def drop_table(table_name, **options) # :nodoc:
           schema_cache.clear_data_source_cache!(table_name.to_s)
           execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
         end
@@ -75,7 +75,7 @@ module ActiveRecord
             INNER JOIN pg_index d ON t.oid = d.indrelid
             INNER JOIN pg_class i ON d.indexrelid = i.oid
             LEFT JOIN pg_namespace n ON n.oid = i.relnamespace
-            WHERE i.relkind = 'i'
+            WHERE i.relkind IN ('i', 'I')
               AND i.relname = #{index[:name]}
               AND t.relname = #{table[:name]}
               AND n.nspname = #{index[:schema]}
@@ -93,7 +93,7 @@ module ActiveRecord
             INNER JOIN pg_index d ON t.oid = d.indrelid
             INNER JOIN pg_class i ON d.indexrelid = i.oid
             LEFT JOIN pg_namespace n ON n.oid = i.relnamespace
-            WHERE i.relkind = 'i'
+            WHERE i.relkind IN ('i', 'I')
               AND d.indisprimary = 'f'
               AND t.relname = #{scope[:name]}
               AND n.nspname = #{scope[:schema]}
@@ -212,7 +212,7 @@ module ActiveRecord
         end
 
         # Drops the schema for the given schema name.
-        def drop_schema(schema_name, options = {})
+        def drop_schema(schema_name, **options)
           execute "DROP SCHEMA#{' IF EXISTS' if options[:if_exists]} #{quote_schema_name(schema_name)} CASCADE"
         end
 
@@ -244,7 +244,7 @@ module ActiveRecord
         end
 
         # Returns the sequence name for a table's primary key or some other specified key.
-        def default_sequence_name(table_name, pk = "id") #:nodoc:
+        def default_sequence_name(table_name, pk = "id") # :nodoc:
           result = serial_sequence(table_name, pk)
           return nil unless result
           Utils.extract_schema_qualified_name(result).to_s
@@ -257,7 +257,7 @@ module ActiveRecord
         end
 
         # Sets the sequence of a table's primary key to the specified value.
-        def set_pk_sequence!(table, value) #:nodoc:
+        def set_pk_sequence!(table, value) # :nodoc:
           pk, sequence = pk_and_sequence_for(table)
 
           if pk
@@ -272,7 +272,7 @@ module ActiveRecord
         end
 
         # Resets the sequence of a table's primary key to the maximum value.
-        def reset_pk_sequence!(table, pk = nil, sequence = nil) #:nodoc:
+        def reset_pk_sequence!(table, pk = nil, sequence = nil) # :nodoc:
           unless pk && sequence
             default_pk, default_sequence = pk_and_sequence_for(table)
 
@@ -300,7 +300,7 @@ module ActiveRecord
         end
 
         # Returns a table's primary key and belonging sequence.
-        def pk_and_sequence_for(table) #:nodoc:
+        def pk_and_sequence_for(table) # :nodoc:
           # First try looking for a sequence with a dependency on the
           # given table's primary key.
           result = query(<<~SQL, "SCHEMA")[0]
@@ -393,15 +393,15 @@ module ActiveRecord
           rename_table_indexes(table_name, new_name)
         end
 
-        def add_column(table_name, column_name, type, **options) #:nodoc:
+        def add_column(table_name, column_name, type, **options) # :nodoc:
           clear_cache!
           super
           change_column_comment(table_name, column_name, options[:comment]) if options.key?(:comment)
         end
 
-        def change_column(table_name, column_name, type, options = {}) #:nodoc:
+        def change_column(table_name, column_name, type, **options) # :nodoc:
           clear_cache!
-          sqls, procs = Array(change_column_for_alter(table_name, column_name, type, options)).partition { |v| v.is_a?(String) }
+          sqls, procs = Array(change_column_for_alter(table_name, column_name, type, **options)).partition { |v| v.is_a?(String) }
           execute "ALTER TABLE #{quote_table_name(table_name)} #{sqls.join(", ")}"
           procs.each(&:call)
         end
@@ -411,7 +411,7 @@ module ActiveRecord
           execute "ALTER TABLE #{quote_table_name(table_name)} #{change_column_default_for_alter(table_name, column_name, default_or_changes)}"
         end
 
-        def change_column_null(table_name, column_name, null, default = nil) #:nodoc:
+        def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
           clear_cache!
           unless null || default.nil?
             column = column_for(table_name, column_name)
@@ -435,26 +435,24 @@ module ActiveRecord
         end
 
         # Renames a column in a table.
-        def rename_column(table_name, column_name, new_column_name) #:nodoc:
+        def rename_column(table_name, column_name, new_column_name) # :nodoc:
           clear_cache!
-          execute "ALTER TABLE #{quote_table_name(table_name)} RENAME COLUMN #{quote_column_name(column_name)} TO #{quote_column_name(new_column_name)}"
+          execute("ALTER TABLE #{quote_table_name(table_name)} #{rename_column_sql(table_name, column_name, new_column_name)}")
           rename_column_indexes(table_name, column_name, new_column_name)
         end
 
-        def add_index(table_name, column_name, options = {}) #:nodoc:
-          index_name, index_type, index_columns_and_opclasses, index_options, index_algorithm, index_using, comment = add_index_options(table_name, column_name, **options)
-          execute("CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns_and_opclasses})#{index_options}").tap do
-            execute "COMMENT ON INDEX #{quote_column_name(index_name)} IS #{quote(comment)}" if comment
-          end
+        def add_index(table_name, column_name, **options) # :nodoc:
+          index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
+
+          create_index = CreateIndexDefinition.new(index, algorithm, if_not_exists)
+          result = execute schema_creation.accept(create_index)
+
+          execute "COMMENT ON INDEX #{quote_column_name(index.name)} IS #{quote(index.comment)}" if index.comment
+          result
         end
 
-        def remove_index(table_name, column_name = nil, options = {}) #:nodoc:
+        def remove_index(table_name, column_name = nil, **options) # :nodoc:
           table = Utils.extract_schema_qualified_name(table_name.to_s)
-
-          if column_name.is_a?(Hash)
-            options = column_name.dup
-            column_name = options.delete(:column)
-          end
 
           if options.key?(:name)
             provided_index = Utils.extract_schema_qualified_name(options[:name].to_s)
@@ -467,14 +465,11 @@ module ActiveRecord
             end
           end
 
+          return if options[:if_exists] && !index_exists?(table_name, column_name, **options)
+
           index_to_remove = PostgreSQL::Name.new(table.schema, index_name_for_remove(table.to_s, column_name, options))
-          algorithm =
-            if options.key?(:algorithm)
-              index_algorithms.fetch(options[:algorithm]) do
-                raise ArgumentError.new("Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}")
-              end
-            end
-          execute "DROP INDEX #{algorithm} #{quote_table_name(index_to_remove)}"
+
+          execute "DROP INDEX #{index_algorithm(options[:algorithm])} #{quote_table_name(index_to_remove)}"
         end
 
         # Renames an index of a table. Raises error if length of new
@@ -488,7 +483,7 @@ module ActiveRecord
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
           fk_info = exec_query(<<~SQL, "SCHEMA")
-            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid
+            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred
             FROM pg_constraint c
             JOIN pg_class t1 ON c.conrelid = t1.oid
             JOIN pg_class t2 ON c.confrelid = t2.oid
@@ -510,6 +505,8 @@ module ActiveRecord
 
             options[:on_delete] = extract_foreign_key_action(row["on_delete"])
             options[:on_update] = extract_foreign_key_action(row["on_update"])
+            options[:deferrable] = extract_foreign_key_deferrable(row["deferrable"], row["deferred"])
+
             options[:validate] = row["valid"]
 
             ForeignKeyDefinition.new(table_name, row["to_table"], options)
@@ -524,8 +521,30 @@ module ActiveRecord
           query_values(data_source_sql(table_name, type: "FOREIGN TABLE"), "SCHEMA").any? if table_name.present?
         end
 
+        def check_constraints(table_name) # :nodoc:
+          scope = quoted_scope(table_name)
+
+          check_info = exec_query(<<-SQL, "SCHEMA")
+            SELECT conname, pg_get_constraintdef(c.oid) AS constraintdef, c.convalidated AS valid
+            FROM pg_constraint c
+            JOIN pg_class t ON c.conrelid = t.oid
+            WHERE c.contype = 'c'
+              AND t.relname = #{scope[:name]}
+          SQL
+
+          check_info.map do |row|
+            options = {
+              name: row["conname"],
+              validate: row["valid"]
+            }
+            expression = row["constraintdef"][/CHECK \({2}(.+)\){2}/, 1]
+
+            CheckConstraintDefinition.new(table_name, expression, options)
+          end
+        end
+
         # Maps logical Rails types to PostgreSQL-specific data types.
-        def type_to_sql(type, limit: nil, precision: nil, scale: nil, array: nil, **) # :nodoc:
+        def type_to_sql(type, limit: nil, precision: nil, scale: nil, array: nil, enum_type: nil, **) # :nodoc:
           sql = \
             case type.to_s
             when "binary"
@@ -549,6 +568,10 @@ module ActiveRecord
               when 5..8; "bigint"
               else raise ArgumentError, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead."
               end
+            when "enum"
+              raise ArgumentError "enum_type is required for enums" if enum_type.nil?
+
+              enum_type
             else
               super
             end
@@ -559,14 +582,14 @@ module ActiveRecord
 
         # PostgreSQL requires the ORDER BY columns in the select list for distinct queries, and
         # requires that the ORDER BY include the distinct column.
-        def columns_for_distinct(columns, orders) #:nodoc:
+        def columns_for_distinct(columns, orders) # :nodoc:
           order_columns = orders.compact_blank.map { |s|
-              # Convert Arel node to string
-              s = s.to_sql unless s.is_a?(String)
-              # Remove any ASC/DESC modifiers
-              s.gsub(/\s+(?:ASC|DESC)\b/i, "")
-               .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
-            }.compact_blank.map.with_index { |column, i| "#{column} AS alias_#{i}" }
+            # Convert Arel node to string
+            s = visitor.compile(s) unless s.is_a?(String)
+            # Remove any ASC/DESC modifiers
+            s.gsub(/\s+(?:ASC|DESC)\b/i, "")
+             .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
+          }.compact_blank.map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
           (order_columns << super).join(", ")
         end
@@ -585,8 +608,6 @@ module ActiveRecord
         #
         #   validate_constraint :accounts, :constraint_name
         def validate_constraint(table_name, constraint_name)
-          return unless supports_validate_constraints?
-
           at = create_alter_table table_name
           at.validate_constraint constraint_name
 
@@ -609,11 +630,20 @@ module ActiveRecord
         #
         # The +options+ hash accepts the same keys as SchemaStatements#add_foreign_key.
         def validate_foreign_key(from_table, to_table = nil, **options)
-          return unless supports_validate_constraints?
-
           fk_name_to_validate = foreign_key_for!(from_table, to_table: to_table, **options).name
 
           validate_constraint from_table, fk_name_to_validate
+        end
+
+        # Validates the given check constraint.
+        #
+        #   validate_check_constraint :products, name: "price_check"
+        #
+        # The +options+ hash accepts the same keys as add_check_constraint[rdoc-ref:ConnectionAdapters::SchemaStatements#add_check_constraint].
+        def validate_check_constraint(table_name, **options)
+          chk_name_to_validate = check_constraint_for!(table_name, **options).name
+
+          validate_constraint table_name, chk_name_to_validate
         end
 
         private
@@ -621,8 +651,8 @@ module ActiveRecord
             PostgreSQL::SchemaCreation.new(self)
           end
 
-          def create_table_definition(*args, **options)
-            PostgreSQL::TableDefinition.new(self, *args, **options)
+          def create_table_definition(name, **options)
+            PostgreSQL::TableDefinition.new(self, name, **options)
           end
 
           def create_alter_table(name)
@@ -630,7 +660,7 @@ module ActiveRecord
           end
 
           def new_column_from_field(table_name, field)
-            column_name, type, default, notnull, oid, fmod, collation, comment = field
+            column_name, type, default, notnull, oid, fmod, collation, comment, attgenerated = field
             type_metadata = fetch_type_metadata(column_name, type, oid.to_i, fmod.to_i)
             default_value = extract_value_from_default(default)
             default_function = extract_default_function(default_value, default)
@@ -647,7 +677,8 @@ module ActiveRecord
               default_function,
               collation: collation,
               comment: comment.presence,
-              serial: serial
+              serial: serial,
+              generated: attgenerated
             )
           end
 
@@ -687,12 +718,16 @@ module ActiveRecord
             end
           end
 
+          def extract_foreign_key_deferrable(deferrable, deferred)
+            deferrable && (deferred ? :deferred : true)
+          end
+
           def add_column_for_alter(table_name, column_name, type, **options)
             return super unless options.key?(:comment)
             [super, Proc.new { change_column_comment(table_name, column_name, options[:comment]) }]
           end
 
-          def change_column_for_alter(table_name, column_name, type, options = {})
+          def change_column_for_alter(table_name, column_name, type, **options)
             td = create_table_definition(table_name)
             cd = td.new_column_definition(column_name, type, **options)
             sqls = [schema_creation.accept(ChangeColumnDefinition.new(cd, column_name))]

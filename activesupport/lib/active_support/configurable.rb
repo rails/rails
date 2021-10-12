@@ -5,7 +5,7 @@ require "active_support/ordered_options"
 
 module ActiveSupport
   # Configurable provides a <tt>config</tt> method to store and retrieve
-  # configuration options as an <tt>OrderedHash</tt>.
+  # configuration options as an <tt>OrderedOptions</tt>.
   module Configurable
     extend ActiveSupport::Concern
 
@@ -94,17 +94,19 @@ module ActiveSupport
       #   User.new.allowed_access = true # => NoMethodError
       #   User.new.allowed_access        # => NoMethodError
       #
-      # Also you can pass a block to set up the attribute with a default value.
+      # Also you can pass <tt>default</tt> or a block to set up the attribute with a default value.
       #
       #   class User
       #     include ActiveSupport::Configurable
+      #     config_accessor :allowed_access, default: false
       #     config_accessor :hair_colors do
       #       [:brown, :black, :blonde, :red]
       #     end
       #   end
       #
+      #   User.allowed_access # => false
       #   User.hair_colors # => [:brown, :black, :blonde, :red]
-      def config_accessor(*names, instance_reader: true, instance_writer: true, instance_accessor: true) # :doc:
+      def config_accessor(*names, instance_reader: true, instance_writer: true, instance_accessor: true, default: nil) # :doc:
         names.each do |name|
           raise NameError.new("invalid config attribute name") unless /\A[_A-Za-z]\w*\z/.match?(name)
 
@@ -118,15 +120,16 @@ module ActiveSupport
             class_eval reader, __FILE__, reader_line if instance_reader
             class_eval writer, __FILE__, writer_line if instance_writer
           end
-          send("#{name}=", yield) if block_given?
+
+          send("#{name}=", block_given? ? yield : default)
         end
       end
       private :config_accessor
     end
 
-    # Reads and writes attributes from a configuration <tt>OrderedHash</tt>.
+    # Reads and writes attributes from a configuration <tt>OrderedOptions</tt>.
     #
-    #   require 'active_support/configurable'
+    #   require "active_support/configurable"
     #
     #   class User
     #     include ActiveSupport::Configurable

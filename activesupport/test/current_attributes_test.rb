@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
+require "active_support/current_attributes/test_helper"
 
 class CurrentAttributesTest < ActiveSupport::TestCase
+  # Automatically included in Rails apps via railtie but that don't run here.
+  include ActiveSupport::CurrentAttributes::TestHelper
+
   Person = Struct.new(:id, :name, :time_zone)
 
   class Current < ActiveSupport::CurrentAttributes
@@ -27,6 +31,19 @@ class CurrentAttributesTest < ActiveSupport::TestCase
       Session.current = person&.id
     end
 
+    def set_world_and_account(world:, account:)
+      self.world = world
+      self.account = account
+    end
+
+    def get_world_and_account(hash)
+      hash[:world] = world
+      hash[:account] = account
+      hash
+    end
+
+    def respond_to_test; end
+
     def request
       "#{super} something"
     end
@@ -40,15 +57,22 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     attribute :current, :previous
   end
 
-  setup do
+  # Eagerly set-up `instance`s by reference.
+  [ Current.instance, Session.instance ]
+
+  # Use library specific minitest hook to catch Time.zone before reset is called via TestHelper
+  def before_setup
     @original_time_zone = Time.zone
-    Current.reset
-    Session.reset
+    super
   end
 
-  teardown do
+  # Use library specific minitest hook to set Time.zone after reset is called via TestHelper
+  def after_teardown
+    super
     Time.zone = @original_time_zone
   end
+
+  setup { assert_nil Session.previous, "Expected Session to not have leaked state" }
 
   test "read and write attribute" do
     Current.world = "world/1"
@@ -78,6 +102,7 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
     Current.reset
     assert_equal "UTC", Time.zone.name
+    assert_equal 42, Session.previous
     assert_nil Session.current
   end
 
@@ -114,6 +139,26 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     assert_equal "account/1", Current.account
   end
 
+  test "using keyword arguments" do
+    Current.set_world_and_account(world: "world/1", account: "account/1")
+
+    assert_equal "world/1", Current.world
+    assert_equal "account/1", Current.account
+
+    hash = {}
+    assert_same hash, Current.get_world_and_account(hash)
+    assert_equal "world/1", hash[:world]
+    assert_equal "account/1", hash[:account]
+  end
+
+  setup { @testing_teardown = false }
+  teardown { assert_equal 42, Session.current if @testing_teardown }
+
+  test "accessing attributes in teardown" do
+    Session.current = 42
+    @testing_teardown = true
+  end
+
   test "delegation" do
     Current.person = Person.new(42, "David", "Central Time (US & Canada)")
     assert_equal "Central Time (US & Canada)", Current.time_zone
@@ -124,5 +169,28 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     Current.person = Person.new(42, "David", "Central Time (US & Canada)")
     assert_equal "David, in Central Time (US & Canada)", Current.intro
     assert_equal "David, in Central Time (US & Canada)", Current.instance.intro
+  end
+
+  test "respond_to? for methods that have not been called" do
+    assert_equal true, Current.respond_to?("respond_to_test")
+  end
+
+  test "CurrentAttributes use fiber-local variables" do
+    Session.current = 42
+    enumerator = Enumerator.new do |yielder|
+      yielder.yield Session.current
+    end
+    assert_nil enumerator.next
+  end
+
+  test "CurrentAttributes can use thread-local variables" do
+    ActiveSupport::CurrentAttributes._use_thread_variables = true
+    Session.current = 42
+    enumerator = Enumerator.new do |yielder|
+      yielder.yield Session.current
+    end
+    assert_equal 42, enumerator.next
+  ensure
+    ActiveSupport::CurrentAttributes._use_thread_variables = false
   end
 end

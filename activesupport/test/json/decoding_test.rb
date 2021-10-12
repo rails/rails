@@ -40,6 +40,8 @@ class TestJSONDecoding < ActiveSupport::TestCase
     # needs to be *exact*
     %({"a": " 2007-01-01 01:12:34 Z "})          => { "a" => " 2007-01-01 01:12:34 Z " },
     %({"a": "2007-01-01 : it's your birthday"})  => { "a" => "2007-01-01 : it's your birthday" },
+    %({"a": "Today is:\\n2020-05-21"})           => { "a" => "Today is:\n2020-05-21" },
+    %({"a": "2007-01-01 01:12:34 Z\\nwas my birthday"}) => { "a" => "2007-01-01 01:12:34 Z\nwas my birthday" },
     %([])    => [],
     %({})    => {},
     %({"a":1}) => { "a" => 1 },

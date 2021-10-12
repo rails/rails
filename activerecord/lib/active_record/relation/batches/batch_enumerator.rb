@@ -5,11 +5,25 @@ module ActiveRecord
     class BatchEnumerator
       include Enumerable
 
-      def initialize(of: 1000, start: nil, finish: nil, relation:) #:nodoc:
+      def initialize(of: 1000, start: nil, finish: nil, relation:) # :nodoc:
         @of       = of
         @relation = relation
         @start = start
         @finish = finish
+      end
+
+      # The primary key value from which the BatchEnumerator starts, inclusive of the value.
+      attr_reader :start
+
+      # The primary key value at which the BatchEnumerator ends, inclusive of the value.
+      attr_reader :finish
+
+      # The relation from which the BatchEnumerator yields batches.
+      attr_reader :relation
+
+      # The size of the batches yielded by the BatchEnumerator.
+      def batch_size
+        @of
       end
 
       # Looping through a collection of records from the database (using the
@@ -33,25 +47,41 @@ module ActiveRecord
       #   Person.in_batches.each_record.with_index do |person, index|
       #     person.award_trophy(index + 1)
       #   end
-      def each_record
+      def each_record(&block)
         return to_enum(:each_record) unless block_given?
 
         @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: true).each do |relation|
-          relation.records.each { |record| yield record }
+          relation.records.each(&block)
         end
       end
 
-      # Delegates #delete_all, #update_all, #destroy_all methods to each batch.
+      # Deletes records in batches. Returns the total number of rows affected.
       #
-      #   People.in_batches.delete_all
-      #   People.where('age < 10').in_batches.destroy_all
-      #   People.in_batches.update_all('age = age + 1')
-      [:delete_all, :update_all, :destroy_all].each do |method|
-        define_method(method) do |*args, &block|
-          @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: false).each do |relation|
-            relation.send(method, *args, &block)
-          end
+      #   Person.in_batches.delete_all
+      #
+      # See Relation#delete_all for details of how each batch is deleted.
+      def delete_all
+        sum(&:delete_all)
+      end
+
+      # Updates records in batches. Returns the total number of rows affected.
+      #
+      #   Person.in_batches.update_all("age = age + 1")
+      #
+      # See Relation#update_all for details of how each batch is updated.
+      def update_all(updates)
+        sum do |relation|
+          relation.update_all(updates)
         end
+      end
+
+      # Destroys records in batches.
+      #
+      #   Person.where("age < 10").in_batches.destroy_all
+      #
+      # See Relation#destroy_all for details of how each batch is destroyed.
+      def destroy_all
+        each(&:destroy_all)
       end
 
       # Yields an ActiveRecord::Relation object for each batch of records.
@@ -59,9 +89,9 @@ module ActiveRecord
       #   Person.in_batches.each do |relation|
       #     relation.update_all(awesome: true)
       #   end
-      def each
+      def each(&block)
         enum = @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: false)
-        return enum.each { |relation| yield relation } if block_given?
+        return enum.each(&block) if block_given?
         enum
       end
     end

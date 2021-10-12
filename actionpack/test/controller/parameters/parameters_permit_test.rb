@@ -253,12 +253,12 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_not_predicate permitted[:users].last, :permitted?
   end
 
-  test "fetch doesnt raise ParameterMissing exception if there is a default" do
+  test "fetch doesn't raise ParameterMissing exception if there is a default" do
     assert_equal "monkey", @params.fetch(:foo, "monkey")
     assert_equal "monkey", @params.fetch(:foo) { "monkey" }
   end
 
-  test "fetch doesnt raise ParameterMissing exception if there is a default that is nil" do
+  test "fetch doesn't raise ParameterMissing exception if there is a default that is nil" do
     assert_nil @params.fetch(:foo, nil)
     assert_nil @params.fetch(:foo) { nil }
   end

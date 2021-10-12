@@ -8,8 +8,6 @@ require "mysql2"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
-    ER_BAD_DB_ERROR = 1049
-
     # Establishes a connection to the database that's used by all Active Record objects.
     def mysql2_connection(config)
       config = config.symbolize_keys
@@ -21,22 +19,41 @@ module ActiveRecord
         config[:flags] |= Mysql2::Client::FOUND_ROWS
       end
 
-      client = Mysql2::Client.new(config)
-      ConnectionAdapters::Mysql2Adapter.new(client, logger, nil, config)
-    rescue Mysql2::Error => error
-      if error.error_number == ER_BAD_DB_ERROR
-        raise ActiveRecord::NoDatabaseError
-      else
-        raise
-      end
+      ConnectionAdapters::Mysql2Adapter.new(
+        ConnectionAdapters::Mysql2Adapter.new_client(config),
+        logger,
+        nil,
+        config,
+      )
     end
   end
 
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
+      ER_BAD_DB_ERROR        = 1049
+      ER_ACCESS_DENIED_ERROR = 1045
+      ER_CONN_HOST_ERROR     = 2003
+      ER_UNKNOWN_HOST_ERROR  = 2005
+
       ADAPTER_NAME = "Mysql2"
 
       include MySQL::DatabaseStatements
+
+      class << self
+        def new_client(config)
+          Mysql2::Client.new(config)
+        rescue Mysql2::Error => error
+          if error.error_number == ConnectionAdapters::Mysql2Adapter::ER_BAD_DB_ERROR
+            raise ActiveRecord::NoDatabaseError.db_error(config[:database])
+          elsif error.error_number == ConnectionAdapters::Mysql2Adapter::ER_ACCESS_DENIED_ERROR
+            raise ActiveRecord::DatabaseConnectionError.username_error(config[:username])
+          elsif [ConnectionAdapters::Mysql2Adapter::ER_CONN_HOST_ERROR, ConnectionAdapters::Mysql2Adapter::ER_UNKNOWN_HOST_ERROR].include?(error.error_number)
+            raise ActiveRecord::DatabaseConnectionError.hostname_error(config[:host])
+          else
+            raise ActiveRecord::ConnectionNotEstablished, error.message
+          end
+        end
+      end
 
       def initialize(connection, logger, connection_options, config)
         superclass_config = config.reverse_merge(prepared_statements: false)
@@ -72,11 +89,9 @@ module ActiveRecord
 
       # HELPER METHODS ===========================================
 
-      def each_hash(result) # :nodoc:
+      def each_hash(result, &block) # :nodoc:
         if block_given?
-          result.each(as: :hash, symbolize_keys: true) do |row|
-            yield row
-          end
+          result.each(as: :hash, symbolize_keys: true, &block)
         else
           to_enum(:each_hash, result)
         end
@@ -92,6 +107,8 @@ module ActiveRecord
 
       def quote_string(string)
         @connection.escape(string)
+      rescue Mysql2::Error => error
+        raise translate_exception(error, message: error.message, sql: "<escape>", binds: [])
       end
 
       #--
@@ -124,7 +141,7 @@ module ActiveRecord
 
       private
         def connect
-          @connection = Mysql2::Client.new(@config)
+          @connection = self.class.new_client(@config)
           configure_connection
         end
 

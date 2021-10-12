@@ -39,14 +39,24 @@ class UpdateAllTest < ActiveRecord::TestCase
   end
 
   def test_update_all_with_blank_argument
-    assert_raises(ArgumentError) { Comment.update_all({}) }
+    error = assert_raises(ArgumentError) { Comment.update_all({}) }
+
+    assert_equal "Empty list of attributes to change", error.message
   end
 
   def test_update_all_with_joins
     pets = Pet.joins(:toys).where(toys: { name: "Bone" })
 
     assert_equal true, pets.exists?
-    assert_equal pets.count, pets.update_all(name: "Bob")
+    sqls = capture_sql do
+      assert_equal pets.count, pets.update_all(name: "Bob")
+    end
+
+    if current_adapter?(:Mysql2Adapter)
+      assert_no_match %r/SELECT DISTINCT #{Regexp.escape(Pet.connection.quote_table_name("pets.pet_id"))}/, sqls.last
+    else
+      assert_match %r/SELECT #{Regexp.escape(Pet.connection.quote_table_name("pets.pet_id"))}/, sqls.last
+    end
   end
 
   def test_update_all_with_left_joins
@@ -163,6 +173,24 @@ class UpdateAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_update_bang_on_relation
+    topic1 = TopicWithCallbacks.create! title: "arel", author_name: nil
+    topic2 = TopicWithCallbacks.create! title: "activerecord", author_name: nil
+    topic3 = TopicWithCallbacks.create! title: "ar", author_name: nil
+    topics = TopicWithCallbacks.where(id: [topic1.id, topic2.id])
+    topics.update!(title: "adequaterecord")
+
+    assert_equal TopicWithCallbacks.count, TopicWithCallbacks.topic_count
+
+    assert_equal "adequaterecord", topic1.reload.title
+    assert_equal "adequaterecord", topic2.reload.title
+    assert_equal "ar", topic3.reload.title
+    # Testing that the before_update callbacks have run
+    assert_equal "David", topic1.reload.author_name
+    assert_equal "David", topic2.reload.author_name
+    assert_nil topic3.reload.author_name
+  end
+
   def test_update_all_cares_about_optimistic_locking
     david = people(:david)
 
@@ -194,7 +222,7 @@ class UpdateAllTest < ActiveRecord::TestCase
       people = Person.where(id: people(:michael, :david, :susan))
       expected = people.pluck(:lock_version)
       expected.map! { |version| version + 1 }
-      people.update_counters(touch: [time: now])
+      people.update_counters(touch: { time: now })
 
       assert_equal [now] * 3, people.pluck(:updated_at)
       assert_equal expected, people.pluck(:lock_version)

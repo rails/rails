@@ -2,7 +2,6 @@
 
 require "openssl"
 require "base64"
-require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/message_verifier"
 require "active_support/messages/metadata"
@@ -23,6 +22,11 @@ module ActiveSupport
   #   crypt = ActiveSupport::MessageEncryptor.new(key)                            # => #<ActiveSupport::MessageEncryptor ...>
   #   encrypted_data = crypt.encrypt_and_sign('my secret data')                   # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
   #   crypt.decrypt_and_verify(encrypted_data)                                    # => "my secret data"
+  # The +decrypt_and_verify+ method will raise an
+  # <tt>ActiveSupport::MessageEncryptor::InvalidMessage</tt> exception if the data
+  # provided cannot be decrypted or verified.
+  #
+  #   crypt.decrypt_and_verify('not encrypted data') # => ActiveSupport::MessageEncryptor::InvalidMessage
   #
   # === Confining messages to a specific purpose
   #
@@ -85,7 +89,7 @@ module ActiveSupport
     cattr_accessor :use_authenticated_message_encryption, instance_accessor: false, default: false
 
     class << self
-      def default_cipher #:nodoc:
+      def default_cipher # :nodoc:
         if use_authenticated_message_encryption
           "aes-256-gcm"
         else
@@ -94,7 +98,7 @@ module ActiveSupport
       end
     end
 
-    module NullSerializer #:nodoc:
+    module NullSerializer # :nodoc:
       def self.load(value)
         value
       end
@@ -104,7 +108,7 @@ module ActiveSupport
       end
     end
 
-    module NullVerifier #:nodoc:
+    module NullVerifier # :nodoc:
       def self.verify(value)
         value
       end
@@ -134,15 +138,13 @@ module ActiveSupport
     # * <tt>:digest</tt> - String of digest to use for signing. Default is
     #   +SHA1+. Ignored when using an AEAD cipher like 'aes-256-gcm'.
     # * <tt>:serializer</tt> - Object serializer to use. Default is +Marshal+.
-    def initialize(secret, *signature_key_or_options)
-      options = signature_key_or_options.extract_options!
-      sign_secret = signature_key_or_options.first
+    def initialize(secret, sign_secret = nil, cipher: nil, digest: nil, serializer: nil)
       @secret = secret
       @sign_secret = sign_secret
-      @cipher = options[:cipher] || self.class.default_cipher
-      @digest = options[:digest] || "SHA1" unless aead_mode?
+      @cipher = cipher || self.class.default_cipher
+      @digest = digest || "SHA1" unless aead_mode?
       @verifier = resolve_verifier
-      @serializer = options[:serializer] || Marshal
+      @serializer = serializer || Marshal
     end
 
     # Encrypt and sign a message. We need to sign the message in order to avoid

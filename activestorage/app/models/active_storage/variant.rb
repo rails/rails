@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "ostruct"
-
 # Image blobs can have variants that are the result of a set of transformations applied to the original.
 # These variants are used to create thumbnails, fixed-size avatars, or any other derivative image from the
 # original.
@@ -10,7 +8,7 @@ require "ostruct"
 # of the file, so you must add <tt>gem "image_processing"</tt> to your Gemfile if you wish to use variants. By
 # default, images will be processed with {ImageMagick}[http://imagemagick.org] using the
 # {MiniMagick}[https://github.com/minimagick/minimagick] gem, but you can also switch to the
-# {libvips}[http://jcupitt.github.io/libvips/] processor operated by the {ruby-vips}[https://github.com/jcupitt/ruby-vips]
+# {libvips}[http://libvips.github.io/libvips/] processor operated by the {ruby-vips}[https://github.com/libvips/ruby-vips]
 # gem).
 #
 #   Rails.application.config.active_storage.variant_processor
@@ -44,7 +42,7 @@ require "ostruct"
 # You can combine any number of ImageMagick/libvips operations into a variant, as well as any macros provided by the
 # ImageProcessing gem (such as +resize_to_limit+):
 #
-#   avatar.variant(resize_to_limit: [800, 800], monochrome: true, rotate: "-90")
+#   avatar.variant(resize_to_limit: [800, 800], colourspace: "b-w", rotate: "-90")
 #
 # Visit the following links for a list of available ImageProcessing commands and ImageMagick/libvips operations:
 #
@@ -53,10 +51,9 @@ require "ostruct"
 # * {ImageProcessing::Vips}[https://github.com/janko-m/image_processing/blob/master/doc/vips.md#methods]
 # * {ruby-vips reference}[http://www.rubydoc.info/gems/ruby-vips/Vips/Image]
 class ActiveStorage::Variant
-  WEB_IMAGE_CONTENT_TYPES = %w[ image/png image/jpeg image/jpg image/gif ]
-
   attr_reader :blob, :variation
   delegate :service, to: :blob
+  delegate :content_type, to: :variation
 
   def initialize(blob, variation_or_variation_key)
     @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)
@@ -70,7 +67,7 @@ class ActiveStorage::Variant
 
   # Returns a combination key of the blob and the variation that together identifies a specific variant.
   def key
-    "variants/#{blob.key}/#{Digest::SHA256.hexdigest(variation.key)}"
+    "variants/#{blob.key}/#{OpenSSL::Digest::SHA256.hexdigest(variation.key)}"
   end
 
   # Returns the URL of the blob variant on the service. See {ActiveStorage::Blob#url} for details.
@@ -82,8 +79,21 @@ class ActiveStorage::Variant
     service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end
 
-  alias_method :service_url, :url
-  deprecate service_url: :url
+  # Downloads the file associated with this variant. If no block is given, the entire file is read into memory and returned.
+  # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.
+  def download(&block)
+    service.download key, &block
+  end
+
+  def filename
+    ActiveStorage::Filename.new "#{blob.filename.base}.#{variation.format.downcase}"
+  end
+
+  alias_method :content_type_for_serving, :content_type
+
+  def forced_disposition_for_serving # :nodoc:
+    nil
+  end
 
   # Returns the receiving variant. Allows ActiveStorage::Variant and ActiveStorage::Preview instances to be used interchangeably.
   def image
@@ -97,29 +107,9 @@ class ActiveStorage::Variant
 
     def process
       blob.open do |input|
-        variation.transform(input, format: format) do |output|
+        variation.transform(input) do |output|
           service.upload(key, output, content_type: content_type)
         end
       end
     end
-
-
-    def specification
-      @specification ||=
-        if WEB_IMAGE_CONTENT_TYPES.include?(blob.content_type)
-          Specification.new \
-            filename: blob.filename,
-            content_type: blob.content_type,
-            format: nil
-        else
-          Specification.new \
-            filename: ActiveStorage::Filename.new("#{blob.filename.base}.png"),
-            content_type: "image/png",
-            format: "png"
-        end
-    end
-
-    delegate :filename, :content_type, :format, to: :specification
-
-    class Specification < OpenStruct; end
 end

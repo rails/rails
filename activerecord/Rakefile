@@ -47,23 +47,36 @@ namespace :db do
   task drop: ["db:mysql:drop", "db:postgresql:drop"]
 end
 
-%w( mysql2 postgresql sqlite3 sqlite3_mem db2 oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
+%w( mysql2 postgresql sqlite3 sqlite3_mem oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
   namespace :test do
-    Rake::TestTask.new(adapter => "#{adapter}:env") { |t|
-      adapter_short = adapter == "db2" ? adapter : adapter[/^[a-z0-9]+/]
+    Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
+      adapter_short = adapter[/^[a-z0-9]+/]
       t.libs << "test"
       t.test_files = (FileList["test/cases/**/*_test.rb"].reject {
-        |x| x.include?("/adapters/")
+        |x| x.include?("/adapters/") || x.include?("/encryption/performance")
       } + FileList["test/cases/adapters/#{adapter_short}/**/*_test.rb"])
 
       t.warning = true
       t.verbose = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
-    }
+    end
+
+    namespace :integration do
+      # Active Job Integration Tests
+      namespace :active_job do
+        Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
+          t.libs << "test"
+          t.test_files = FileList["test/activejob/*_test.rb"]
+          t.warning = true
+          t.verbose = true
+          t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+        end
+      end
+    end
 
     namespace :isolated do
       task adapter => "#{adapter}:env" do
-        adapter_short = adapter == "db2" ? adapter : adapter[/^[a-z0-9]+/]
+        adapter_short = adapter[/^[a-z0-9]+/]
         puts [adapter, adapter_short].inspect
 
         dash_i = [
@@ -99,14 +112,14 @@ end
         test_options = ENV["TESTOPTS"].to_s.split(/[\s]+/)
 
         test_files = (Dir["test/cases/**/*_test.rb"].reject {
-          |x| x.include?("/adapters/")
+          |x| x.include?("/adapters/") || x.include?("/encryption/performance")
         } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).sort
 
         if ENV["BUILDKITE_PARALLEL_JOB_COUNT"]
           n = ENV["BUILDKITE_PARALLEL_JOB"].to_i
           m = ENV["BUILDKITE_PARALLEL_JOB_COUNT"].to_i
 
-          test_files = test_files.each_slice(m).map { |slice| slice[n] }.compact
+          test_files = test_files.each_slice(m).filter_map { |slice| slice[n] }
         end
 
         test_files.each do |file|
@@ -151,6 +164,20 @@ end
         end
       end
     end
+
+    namespace :encryption do
+      namespace :performance do
+        Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
+          t.description = "Encryption performance tests for #{adapter}"
+          t.libs << "test"
+          t.test_files = FileList["test/cases/encryption/performance/*_test.rb"]
+
+          t.warning = true
+          t.verbose = true
+          t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+        end
+      end
+    end
   end
 
   namespace adapter do
@@ -162,7 +189,7 @@ end
   end
 
   # Make sure the adapter test evaluates the env setting task
-  task "test_#{adapter}" => ["#{adapter}:env", "test:#{adapter}"]
+  task "test_#{adapter}" => ["#{adapter}:env", "test:#{adapter}", "test:integration:active_job:#{adapter}"]
   task "isolated_test_#{adapter}" => ["#{adapter}:env", "test:isolated:#{adapter}"]
 end
 
@@ -170,7 +197,7 @@ namespace :db do
   namespace :mysql do
     connection_arguments = lambda do |connection_name|
       config = ARTest.config["connections"]["mysql2"][connection_name]
-      ["--user=#{config["username"]}", "--password=#{config["password"]}", ("--host=#{config["host"]}" if config["host"])].join(" ")
+      ["--user=#{config["username"]}", "--password=#{config["password"]}", ("--host=#{config["host"]}" if config["host"]), ("--socket=#{config["socket"]}" if config["socket"])].join(" ")
     end
 
     desc "Build the MySQL test databases"

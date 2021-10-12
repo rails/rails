@@ -19,7 +19,7 @@ module ActiveSupport
 
     # This module decorates files deserialized using Hash.from_xml with
     # the <tt>original_filename</tt> and <tt>content_type</tt> methods.
-    module FileLike #:nodoc:
+    module FileLike # :nodoc:
       attr_writer :original_filename, :content_type
 
       def original_filename
@@ -50,6 +50,7 @@ module ActiveSupport
         "Hash"       => "hash"
       }
     end
+    TYPE_NAMES["ActiveSupport::TimeWithZone"] = TYPE_NAMES["Time"]
 
     FORMATTING = {
       "symbol"   => Proc.new { |symbol| symbol.to_s },

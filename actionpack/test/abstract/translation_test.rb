@@ -43,10 +43,31 @@ module AbstractController
         assert_respond_to @controller, :l
       end
 
+      def test_raises_missing_translation_message_with_raise_config_option
+        AbstractController::Translation.raise_on_missing_translations = true
+
+        assert_raise(I18n::MissingTranslationData) do
+          @controller.t("translations.missing")
+        end
+      ensure
+        AbstractController::Translation.raise_on_missing_translations = false
+      end
+
+      def test_raises_missing_translation_message_with_raise_option
+        assert_raise(I18n::MissingTranslationData) do
+          @controller.t(:"translations.missing", raise: true)
+        end
+      end
+
       def test_lazy_lookup
         @controller.stub :action_name, :index do
           assert_equal "bar", @controller.t(".foo")
         end
+      end
+
+      def test_nil_key_lookup
+        default = "foo"
+        assert_equal default, @controller.t(nil, default: default)
       end
 
       def test_lazy_lookup_with_symbol

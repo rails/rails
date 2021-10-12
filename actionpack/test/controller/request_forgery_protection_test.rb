@@ -175,12 +175,15 @@ end
 # common test methods
 module RequestForgeryProtectionTests
   def setup
-    @token = Base64.strict_encode64("railstestrailstestrailstestrails")
+    @old_urlsafe_csrf_tokens = ActionController::Base.urlsafe_csrf_tokens
+    ActionController::Base.urlsafe_csrf_tokens = true
+    @token = Base64.urlsafe_encode64("railstestrailstestrailstestrails")
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
 
   def teardown
+    ActionController::Base.urlsafe_csrf_tokens = @old_urlsafe_csrf_tokens
     ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
   end
 
@@ -375,6 +378,28 @@ module RequestForgeryProtectionTests
     @controller.stub :form_authenticity_token, @token do
       assert_not_blocked { post :index, params: { custom_authenticity_token: @token } }
     end
+  end
+
+  def test_should_allow_post_with_strict_encoded_token
+    token_length = (ActionController::RequestForgeryProtection::AUTHENTICITY_TOKEN_LENGTH * 4.0 / 3).ceil
+    token_including_url_unsafe_chars = "+/".ljust(token_length, "A")
+    session[:_csrf_token] = token_including_url_unsafe_chars
+    @controller.stub :form_authenticity_token, token_including_url_unsafe_chars do
+      assert_not_blocked { post :index, params: { custom_authenticity_token: token_including_url_unsafe_chars } }
+    end
+  end
+
+  def test_should_allow_post_with_urlsafe_token_when_migrating
+    config_before = ActionController::Base.urlsafe_csrf_tokens
+    ActionController::Base.urlsafe_csrf_tokens = false
+    token_length = (ActionController::RequestForgeryProtection::AUTHENTICITY_TOKEN_LENGTH * 4.0 / 3).ceil
+    token_including_url_safe_chars = "-_".ljust(token_length, "A")
+    session[:_csrf_token] = token_including_url_safe_chars
+    @controller.stub :form_authenticity_token, token_including_url_safe_chars do
+      assert_not_blocked { post :index, params: { custom_authenticity_token: token_including_url_safe_chars } }
+    end
+  ensure
+    ActionController::Base.urlsafe_csrf_tokens = config_before
   end
 
   def test_should_allow_patch_with_token
@@ -591,15 +616,6 @@ module RequestForgeryProtectionTests
     end
   end
 
-  def test_should_not_trigger_content_type_deprecation
-    original = ActionDispatch::Response.return_only_media_type_on_content_type
-    ActionDispatch::Response.return_only_media_type_on_content_type = true
-
-    assert_not_deprecated { get :same_origin_js, xhr: true }
-  ensure
-    ActionDispatch::Response.return_only_media_type_on_content_type = original
-  end
-
   def test_should_not_raise_error_if_token_is_not_a_string
     assert_blocked do
       patch :index, params: { custom_authenticity_token: { foo: "bar" } }
@@ -618,14 +634,12 @@ module RequestForgeryProtectionTests
     assert_response :success
   end
 
-  def assert_cross_origin_blocked
-    assert_raises(ActionController::InvalidCrossOriginRequest) do
-      yield
-    end
+  def assert_cross_origin_blocked(&block)
+    assert_raises(ActionController::InvalidCrossOriginRequest, &block)
   end
 
-  def assert_cross_origin_not_blocked
-    assert_not_blocked { yield }
+  def assert_cross_origin_not_blocked(&block)
+    assert_not_blocked(&block)
   end
 
   def forgery_protection_origin_check
@@ -685,9 +699,23 @@ end
 
 class RequestForgeryProtectionControllerUsingExceptionTest < ActionController::TestCase
   include RequestForgeryProtectionTests
-  def assert_blocked
-    assert_raises(ActionController::InvalidAuthenticityToken) do
-      yield
+  def assert_blocked(&block)
+    assert_raises(ActionController::InvalidAuthenticityToken, &block)
+  end
+
+  def test_raised_exception_message_explains_why_it_occurred
+    forgery_protection_origin_check do
+      session[:_csrf_token] = @token
+      @controller.stub :form_authenticity_token, @token do
+        exception = assert_raises(ActionController::InvalidAuthenticityToken) do
+          @request.set_header "HTTP_ORIGIN", "http://bad.host"
+          post :index, params: { custom_authenticity_token: @token }
+        end
+        assert_match(
+          "HTTP Origin header (http://bad.host) didn't match request.base_url (http://test.host)",
+          exception.message
+        )
+      end
     end
   end
 end
@@ -735,21 +763,21 @@ class FreeCookieControllerTest < ActionController::TestCase
   end
 
   def test_should_not_render_form_with_token_tag
-    SecureRandom.stub :base64, @token do
+    SecureRandom.stub :urlsafe_base64, @token do
       get :index
       assert_select "form>div>input[name=?][value=?]", "authenticity_token", @token, false
     end
   end
 
   def test_should_not_render_button_to_with_token_tag
-    SecureRandom.stub :base64, @token do
+    SecureRandom.stub :urlsafe_base64, @token do
       get :show_button
       assert_select "form>div>input[name=?][value=?]", "authenticity_token", @token, false
     end
   end
 
   def test_should_allow_all_methods_without_token
-    SecureRandom.stub :base64, @token do
+    SecureRandom.stub :urlsafe_base64, @token do
       [:post, :patch, :put, :delete].each do |method|
         assert_nothing_raised { send(method, :index) }
       end
@@ -757,7 +785,7 @@ class FreeCookieControllerTest < ActionController::TestCase
   end
 
   test "should not emit a csrf-token meta tag" do
-    SecureRandom.stub :base64, @token do
+    SecureRandom.stub :urlsafe_base64, @token do
       get :meta
       assert_predicate @response.body, :blank?
     end
@@ -769,7 +797,7 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
     super
     @old_logger = ActionController::Base.logger
     @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
-    @token = Base64.strict_encode64(SecureRandom.random_bytes(32))
+    @token = Base64.urlsafe_encode64(SecureRandom.random_bytes(32))
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = @token
   end
@@ -856,9 +884,10 @@ class PerFormTokensControllerTest < ActionController::TestCase
 
     # Set invalid URI in PATH_INFO
     @request.env["PATH_INFO"] = "/foo/bar<"
-    assert_raise ActionController::InvalidAuthenticityToken do
+    exception = assert_raises(ActionController::InvalidAuthenticityToken) do
       post :post_one, params: { custom_authenticity_token: form_token }
     end
+    assert_match "Can't verify CSRF token authenticity.", exception.message
   end
 
   def test_rejects_token_for_incorrect_path
@@ -946,6 +975,39 @@ class PerFormTokensControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  def test_does_not_return_old_csrf_token
+    get :index
+
+    token = @controller.send(:form_authenticity_token)
+
+    unmasked_token = @controller.send(:unmask_token, Base64.urlsafe_decode64(token))
+
+    assert_not_equal @controller.send(:real_csrf_token, session), unmasked_token
+  end
+
+  def test_returns_hmacd_token
+    get :index
+
+    token = @controller.send(:form_authenticity_token)
+
+    unmasked_token = @controller.send(:unmask_token, Base64.urlsafe_decode64(token))
+
+    assert_equal @controller.send(:global_csrf_token, session), unmasked_token
+  end
+
+  def test_accepts_old_csrf_token
+    get :index
+
+    non_hmac_token = @controller.send(:mask_token, @controller.send(:real_csrf_token, session))
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
+    assert_nothing_raised do
+      post :post_one, params: { custom_authenticity_token: non_hmac_token }
+    end
+    assert_response :success
+  end
+
   def test_chomps_slashes
     get :index, params: { form_path: "/per_form_tokens/post_one?foo=bar" }
 
@@ -1022,7 +1084,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     end
 
     def assert_matches_session_token_on_server(form_token, method = "post")
-      actual = @controller.send(:unmask_token, Base64.strict_decode64(form_token))
+      actual = @controller.send(:unmask_token, Base64.urlsafe_decode64(form_token))
       expected = @controller.send(:per_form_csrf_token, session, "/per_form_tokens/post_one", method)
       assert_equal expected, actual
     end
@@ -1039,10 +1101,8 @@ class SkipProtectionControllerTest < ActionController::TestCase
     assert_not_blocked { post :index }
   end
 
-  def assert_blocked
-    assert_raises(ActionController::InvalidAuthenticityToken) do
-      yield
-    end
+  def assert_blocked(&block)
+    assert_raises(ActionController::InvalidAuthenticityToken, &block)
   end
 
   def assert_not_blocked(&block)

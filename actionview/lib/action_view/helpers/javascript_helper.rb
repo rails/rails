@@ -1,18 +1,18 @@
 # frozen_string_literal: true
 
-require "action_view/helpers/tag_helper"
-
 module ActionView
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     module JavaScriptHelper
       JS_ESCAPE_MAP = {
-        '\\'    => '\\\\',
+        "\\"    => "\\\\",
         "</"    => '<\/',
         "\r\n"  => '\n',
         "\n"    => '\n',
         "\r"    => '\n',
         '"'     => '\\"',
-        "'"     => "\\'"
+        "'"     => "\\'",
+        "`"     => "\\`",
+        "$"     => "\\$"
       }
 
       JS_ESCAPE_MAP[(+"\342\200\250").force_encoding(Encoding::UTF_8).encode!] = "&#x2028;"
@@ -29,7 +29,7 @@ module ActionView
         if javascript.empty?
           result = ""
         else
-          result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|\342\200\251|[\n\r"'])/u, JS_ESCAPE_MAP)
+          result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|\342\200\251|[\n\r"']|[`]|[$])/u, JS_ESCAPE_MAP)
         end
         javascript.html_safe? ? result.html_safe : result
       end
@@ -49,10 +49,10 @@ module ActionView
       # +html_options+ may be a hash of attributes for the <tt>\<script></tt>
       # tag.
       #
-      #   javascript_tag "alert('All is good')", defer: 'defer'
+      #   javascript_tag "alert('All is good')", type: 'application/javascript'
       #
       # Returns:
-      #   <script defer="defer">
+      #   <script type="application/javascript">
       #   //<![CDATA[
       #   alert('All is good')
       #   //]]>
@@ -61,7 +61,7 @@ module ActionView
       # Instead of passing the content as an argument, you can also use a block
       # in which case, you pass your +html_options+ as the first parameter.
       #
-      #   <%= javascript_tag defer: 'defer' do -%>
+      #   <%= javascript_tag type: 'application/javascript' do -%>
       #     alert('All is good')
       #   <% end -%>
       #
@@ -87,7 +87,7 @@ module ActionView
         content_tag("script", javascript_cdata_section(content), html_options)
       end
 
-      def javascript_cdata_section(content) #:nodoc:
+      def javascript_cdata_section(content) # :nodoc:
         "\n//#{cdata_section("\n#{content}\n//")}\n".html_safe
       end
     end

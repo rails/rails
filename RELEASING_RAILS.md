@@ -21,7 +21,7 @@ https://buildkite.com/rails/rails
 
 Sam Ruby keeps a [test suite](https://github.com/rubys/awdwr) that makes
 sure the code samples in his book
-([Agile Web Development with Rails](https://pragprog.com/book/rails51/agile-web-development-with-rails-51))
+([Agile Web Development with Rails](https://pragprog.com/titles/rails6))
 all work. These are valuable system tests
 for Rails. You can check the status of these tests here:
 
@@ -49,12 +49,12 @@ give them a heads up that Rails will be released soonish.
 This is only required for major and minor releases, bugfix releases aren't a
 big enough deal, and are supposed to be backward compatible.
 
-Send an email just giving a heads up about the upcoming release to these
+Send a message just giving a heads up about the upcoming release to these
 lists:
 
 * team@jruby.org
 * community@rubini.us
-* rubyonrails-core@googlegroups.com
+* [rubyonrails-core](https://discuss.rubyonrails.org/c/rubyonrails-core)
 
 Implementors will love you and help you.
 
@@ -93,7 +93,7 @@ You can review the commits for the 3.0.10 release like this:
 ```
 
 If you're doing a stable branch release, you should also ensure that all of
-the CHANGELOG entries in the stable branch are also synced to the master
+the CHANGELOG entries in the stable branch are also synced to the main
 branch.
 
 ### Put the new version in the RAILS_VERSION file.
@@ -135,8 +135,8 @@ Write a release announcement that includes the version, changes, and links to
 GitHub where people can find the specific commit list. Here are the mailing
 lists where you should announce:
 
-* rubyonrails-core@googlegroups.com
-* rubyonrails-talk@googlegroups.com
+* [rubyonrails-core](https://discuss.rubyonrails.org/c/rubyonrails-core)
+* [rubyonrails-talk](https://discuss.rubyonrails.org/c/rubyonrails-talk)
 * ruby-talk@ruby-lang.org
 
 Use Markdown format for your announcement. Remember to ask people to report

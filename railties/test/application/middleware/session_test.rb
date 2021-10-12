@@ -167,6 +167,8 @@ module ApplicationTests
       add_to_config <<-RUBY
         # Enable AEAD cookies
         config.action_dispatch.use_authenticated_cookie_encryption = true
+
+        config.action_dispatch.cookies_serializer = :marshal
       RUBY
 
       require "#{app_path}/config/environment"
@@ -217,6 +219,7 @@ module ApplicationTests
       add_to_config <<-RUBY
         # Enable AEAD cookies
         config.action_dispatch.use_authenticated_cookie_encryption = true
+        config.action_dispatch.cookies_serializer = :marshal
       RUBY
 
       require "#{app_path}/config/environment"
@@ -246,7 +249,7 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ActionController::Base
           def write_raw_session
-            # AES-256-CBC with SHA1 HMAC
+            # AES-256-CBC with SHA1 HMAC & SHA1 key derivation
             # {"session_id"=>"1965d95720fffc123941bdfb7d2e6870", "foo"=>1}
             cookies[:_myapp_session] = "TlgrdS85aUpDd1R2cDlPWlR6K0FJeGExckwySjZ2Z0pkR3d2QnRObGxZT25aalJWYWVvbFVLcHF4d0VQVDdSaFF2QjFPbG9MVjJzeWp3YjcyRUlKUUU2ZlR4bXlSNG9ZUkJPRUtld0E3dVU9LS0xNDZXbGpRZ3NjdW43N2haUEZJSUNRPT0=--3639b5ce54c09495cfeaae928cd5634e0c4b2e96"
             head :ok
@@ -277,6 +280,11 @@ module ApplicationTests
 
         # Enable AEAD cookies
         config.action_dispatch.use_authenticated_cookie_encryption = true
+
+        # Use SHA1 key derivation
+        config.active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA1
+
+        config.action_dispatch.cookies_serializer = :marshal
       RUBY
 
       begin
@@ -334,10 +342,84 @@ module ApplicationTests
       assert_not_includes Rails.application.middleware, ActionDispatch::Flash
     end
 
+    test "disabled session allows reads and delete but fail on writes" do
+      add_to_config "config.session_store :disabled"
+
+      controller :test, <<-RUBY
+        class TestController < ApplicationController
+          def write_session
+            request.session[:foo] = "bar"
+            render plain: "This shouldn't work"
+          end
+
+          def read_session
+            render plain: request.session[:foo].inspect
+          end
+
+          def reset_session
+            request.reset_session
+            render plain: "It worked!"
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get "/write_session" => "test#write_session"
+          get "/read_session" => "test#read_session"
+          get "/reset_session" => "test#reset_session"
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      get "/write_session"
+      assert_equal 500, last_response.status
+
+      get "/read_session"
+      assert_equal 200, last_response.status
+      assert_equal nil.inspect, last_response.body
+
+      get "/reset_session"
+      assert_equal 200, last_response.status
+      assert_equal "It worked!", last_response.body
+    end
+
     test "cookie_only is set to true even if user tries to overwrite it" do
       add_to_config "config.session_store :cookie_store, key: '_myapp_session', cookie_only: false"
       require "#{app_path}/config/environment"
       assert app.config.session_options[:cookie_only], "Expected cookie_only to be set to true"
+    end
+
+    test "session uses default options if previous sessions exist" do
+      add_to_config <<-RUBY
+        config.api_only = true
+        config.session_store :cookie_store, key: "_random_key"
+        config.middleware.use ActionDispatch::Cookies
+        config.middleware.use config.session_store, config.session_options
+        config.active_record.database_selector = { delay: 2.seconds }
+        config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+        config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+      RUBY
+
+      controller :test, <<-RUBY
+        class TestController < ApplicationController
+          def test_action
+            head :ok
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get "/test_action" => "test#test_action"
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      get "/test_action"
+      assert_equal 200, last_response.status
     end
   end
 end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-gem "aws-sdk-s3", "~> 1.14"
+gem "aws-sdk-s3", "~> 1.48"
 
 require "aws-sdk-s3"
 require "active_support/core_ext/numeric/bytes"
@@ -16,7 +16,7 @@ module ActiveStorage
       @client = Aws::S3::Resource.new(**options)
       @bucket = @client.bucket(bucket)
 
-      @multipart_upload_threshold = upload.fetch(:multipart_threshold, 100.megabytes)
+      @multipart_upload_threshold = upload.delete(:multipart_threshold) || 100.megabytes
       @public = public
 
       @upload_options = upload
@@ -80,7 +80,8 @@ module ActiveStorage
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
       instrument :url, key: key do |payload|
         generated_url = object_for(key).presigned_url :put, expires_in: expires_in.to_i,
-          content_type: content_type, content_length: content_length, content_md5: checksum
+          content_type: content_type, content_length: content_length, content_md5: checksum,
+          whitelist_headers: ["content-length"], **upload_options
 
         payload[:url] = generated_url
 
@@ -95,14 +96,14 @@ module ActiveStorage
     end
 
     private
-      def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
+      def private_url(key, expires_in:, filename:, disposition:, content_type:, **client_opts)
         object_for(key).presigned_url :get, expires_in: expires_in.to_i,
           response_content_disposition: content_disposition_with(type: disposition, filename: filename),
-          response_content_type: content_type
+          response_content_type: content_type, **client_opts
       end
 
-      def public_url(key, **)
-        object_for(key).public_url
+      def public_url(key, **client_opts)
+        object_for(key).public_url(**client_opts)
       end
 
 

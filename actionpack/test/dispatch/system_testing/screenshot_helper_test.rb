@@ -36,6 +36,17 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     end
   end
 
+  test "image path uses the Capybara.save_path to set a custom directory" do
+    original_save_path = Capybara.save_path
+    Capybara.save_path = "custom_dir"
+
+    Rails.stub :root, Pathname.getwd do
+      assert_equal Rails.root.join("custom_dir/0_x.png").to_s, @new_test.send(:image_path)
+    end
+  ensure
+    Capybara.save_path = original_save_path
+  end
+
   test "image path includes failures text if test did not pass" do
     Rails.stub :root, Pathname.getwd do
       @new_test.stub :passed?, false do

@@ -4,25 +4,16 @@ module ActionDispatch
   module Journey # :nodoc:
     module Path # :nodoc:
       class Pattern # :nodoc:
-        attr_reader :spec, :requirements, :anchored
-
-        def self.from_string(string)
-          build(string, {}, "/.?", true)
-        end
-
-        def self.build(path, requirements, separators, anchored)
-          parser = Journey::Parser.new
-          ast = parser.parse path
-          new ast, requirements, separators, anchored
-        end
+        attr_reader :ast, :names, :requirements, :anchored, :spec
 
         def initialize(ast, requirements, separators, anchored)
-          @spec         = ast
+          @ast          = ast
+          @spec         = ast.root
           @requirements = requirements
           @separators   = separators
           @anchored     = anchored
 
-          @names          = nil
+          @names          = ast.names
           @optional_names = nil
           @required_names = nil
           @re             = nil
@@ -37,25 +28,28 @@ module ActionDispatch
           required_names
           offsets
           to_regexp
-          nil
+          @ast = nil
         end
 
-        def ast
-          @spec.find_all(&:symbol?).each do |node|
-            re = @requirements[node.to_sym]
-            node.regexp = re if re
-          end
+        def requirements_anchored?
+          # each required param must not be surrounded by a literal, otherwise it isn't simple to chunk-match the url piecemeal
+          terminals = ast.terminals
 
-          @spec.find_all(&:star?).each do |node|
-            node = node.left
-            node.regexp = @requirements[node.to_sym] || /(.+)/
-          end
+          terminals.each_with_index { |s, index|
+            next if index < 1
+            next if s.type == :DOT || s.type == :SLASH
 
-          @spec
-        end
+            back = terminals[index - 1]
+            fwd = terminals[index + 1]
 
-        def names
-          @names ||= spec.find_all(&:symbol?).map(&:name)
+            # we also don't support this yet, constraints must be regexps
+            return false if s.symbol? && s.regexp.is_a?(Array)
+
+            return false if back.literal?
+            return false if !fwd.nil? && fwd.literal?
+          }
+
+          true
         end
 
         def required_names
@@ -81,7 +75,7 @@ module ActionDispatch
           end
 
           def visit_CAT(node)
-            [visit(node.left), visit(node.right)].join
+            "#{visit(node.left)}#{visit(node.right)}"
           end
 
           def visit_SYMBOL(node)
@@ -107,8 +101,8 @@ module ActionDispatch
           end
 
           def visit_STAR(node)
-            re = @matchers[node.left.to_sym] || ".+"
-            "(#{re})"
+            re = @matchers[node.left.to_sym]
+            re ? "(#{re})" : "(.+)"
           end
 
           def visit_OR(node)
@@ -178,8 +172,8 @@ module ActionDispatch
         end
 
         def requirements_for_missing_keys_check
-          @requirements_for_missing_keys_check ||= requirements.each_with_object({}) do |(key, regex), hash|
-            hash[key] = /\A#{regex}\Z/
+          @requirements_for_missing_keys_check ||= requirements.transform_values do |regex|
+            /\A#{regex}\Z/
           end
         end
 

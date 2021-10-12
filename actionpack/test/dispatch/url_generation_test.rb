@@ -12,10 +12,16 @@ module TestUrlGeneration
       def index
         render plain: foo_path
       end
+
+      def add_trailing_slash
+        render plain: url_for(trailing_slash: true, params: request.query_parameters, format: params[:format])
+      end
     end
 
     Routes.draw do
       get "/foo", to: "my_route_generating#index", as: :foo
+      get "(/optional/:optional_id)/baz", to: "my_route_generating#index", as: :baz
+      get "/add_trailing_slash", to: "my_route_generating#add_trailing_slash", as: :add_trailing_slash
 
       resources :bars
 
@@ -53,6 +59,17 @@ module TestUrlGeneration
     test "handling http protocol with https set" do
       https!
       assert_equal "http://www.example.com/foo", foo_url(protocol: "http")
+    end
+
+    test "respects secure_protocol configuration when protocol not present" do
+      old_secure_protocol = ActionDispatch::Http::URL.secure_protocol
+
+      begin
+        ActionDispatch::Http::URL.secure_protocol = true
+        assert_equal "https://www.example.com/foo", foo_url(protocol: nil)
+      ensure
+        ActionDispatch::Http::URL.secure_protocol = old_secure_protocol
+      end
     end
 
     test "extracting protocol from host when protocol not present" do
@@ -116,7 +133,70 @@ module TestUrlGeneration
       assert_equal "http://example.com/foo", foo_url(subdomain: "")
     end
 
+    test "keep optional path parameter when given" do
+      assert_equal "http://www.example.com/optional/123/baz", baz_url(optional_id: 123)
+    end
+
+    test "keep optional path parameter when true" do
+      assert_equal "http://www.example.com/optional/true/baz", baz_url(optional_id: true)
+    end
+
+    test "omit optional path parameter when false" do
+      assert_equal "http://www.example.com/optional/false/baz", baz_url(optional_id: false)
+    end
+
+    test "omit optional path parameter when blank" do
+      assert_equal "http://www.example.com/baz", baz_url(optional_id: "")
+    end
+
+    test "keep positional path parameter when true" do
+      assert_equal "http://www.example.com/optional/true/baz", baz_url(true)
+    end
+
+    test "omit positional path parameter when false" do
+      assert_equal "http://www.example.com/optional/false/baz", baz_url(false)
+    end
+
+    test "omit positional path parameter when blank" do
+      assert_equal "http://www.example.com/baz", baz_url("")
+    end
+
+    test "generating the current URL with a trailing slashes" do
+      get "/add_trailing_slash"
+      assert_equal "http://www.example.com/add_trailing_slash/", response.body
+    end
+
+    test "generating the current URL with a trailing slashes and query string" do
+      get "/add_trailing_slash?a=b"
+      assert_equal "http://www.example.com/add_trailing_slash/?a=b", response.body
+    end
+
+    test "generating the current URL with a trailing slashes and format indicator" do
+      get "/add_trailing_slash.json"
+      assert_equal "http://www.example.com/add_trailing_slash.json", response.body
+    end
+
     test "generating URLs with trailing slashes" do
+      assert_equal "/bars/", bars_path(
+        trailing_slash: true,
+      )
+    end
+
+    test "generating URLs with trailing slashes and dot including param" do
+      assert_equal "/bars/hax0r.json/", bar_path(
+        "hax0r.json",
+        trailing_slash: true,
+      )
+    end
+
+    test "generating URLs with trailing slashes and query string" do
+      assert_equal "/bars/?a=b", bars_path(
+        trailing_slash: true,
+        a: "b"
+      )
+    end
+
+    test "generating URLs with trailing slashes and format" do
       assert_equal "/bars.json", bars_path(
         trailing_slash: true,
         format: "json"

@@ -5,7 +5,7 @@ require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveRecord
-  module NestedAttributes #:nodoc:
+  module NestedAttributes # :nodoc:
     class TooManyRecords < ActiveRecordError
     end
 
@@ -180,7 +180,7 @@ module ActiveRecord
     #   member.posts.second.title # => '[UPDATED] other post'
     #
     # However, the above applies if the parent model is being updated as well.
-    # For example, If you wanted to create a +member+ named _joe_ and wanted to
+    # For example, if you wanted to create a +member+ named _joe_ and wanted to
     # update the +posts+ at the same time, that would give an
     # ActiveRecord::RecordNotFound error.
     #
@@ -245,18 +245,19 @@ module ActiveRecord
     #
     # === Validating the presence of a parent model
     #
-    # If you want to validate that a child record is associated with a parent
-    # record, you can use the +validates_presence_of+ method and the +:inverse_of+
-    # key as this example illustrates:
+    # The +belongs_to+ association validates the presence of the parent model
+    # by default. You can disable this behavior by specifying <code>optional: true</code>.
+    # This can be used, for example, when conditionally validating the presence
+    # of the parent model:
     #
-    #   class Member < ActiveRecord::Base
-    #     has_many :posts, inverse_of: :member
-    #     accepts_nested_attributes_for :posts
+    #   class Veterinarian < ActiveRecord::Base
+    #     has_many :patients, inverse_of: :veterinarian
+    #     accepts_nested_attributes_for :patients
     #   end
     #
-    #   class Post < ActiveRecord::Base
-    #     belongs_to :member, inverse_of: :posts
-    #     validates_presence_of :member
+    #   class Patient < ActiveRecord::Base
+    #     belongs_to :veterinarian, inverse_of: :patients, optional: true
+    #     validates :veterinarian, presence: true, unless: -> { awaiting_intake }
     #   end
     #
     # Note that if you do not specify the +:inverse_of+ option, then
@@ -486,7 +487,7 @@ module ActiveRecord
         existing_records = if association.loaded?
           association.target
         else
-          attribute_ids = attributes_collection.map { |a| a["id"] || a[:id] }.compact
+          attribute_ids = attributes_collection.filter_map { |a| a["id"] || a[:id] }
           attribute_ids.empty? ? [] : association.scope.where(association.klass.primary_key => attribute_ids)
         end
 
@@ -509,7 +510,7 @@ module ActiveRecord
               if target_record
                 existing_record = target_record
               else
-                association.add_to_target(existing_record, :skip_callbacks)
+                association.add_to_target(existing_record, skip_callbacks: true)
               end
 
               assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])

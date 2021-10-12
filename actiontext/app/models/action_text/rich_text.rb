@@ -5,7 +5,7 @@ module ActionText
   # It also holds all the references to the embedded files, which are stored using Active Storage.
   # This record is then associated with the Active Record model the application desires to have
   # rich text content using the +has_rich_text+ class method.
-  class RichText < ActiveRecord::Base
+  class RichText < Record
     self.table_name = "action_text_rich_texts"
 
     serialize :body, ActionText::Content
@@ -20,6 +20,10 @@ module ActionText
 
     def to_plain_text
       body&.to_plain_text.to_s
+    end
+
+    def to_trix_html
+      body&.to_trix_html
     end
 
     delegate :blank?, :empty?, :present?, to: :to_plain_text

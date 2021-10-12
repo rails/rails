@@ -9,6 +9,7 @@ module ActionCable
   class Engine < Rails::Engine # :nodoc:
     config.action_cable = ActiveSupport::OrderedOptions.new
     config.action_cable.mount_path = ActionCable::INTERNAL[:default_mount_path]
+    config.action_cable.precompile_assets = true
 
     config.eager_load_namespaces << ActionCable
 
@@ -22,6 +23,14 @@ module ActionCable
       ActiveSupport.on_load(:action_cable) { self.logger ||= ::Rails.logger }
     end
 
+    initializer "action_cable.asset" do
+      config.after_initialize do |app|
+        if Rails.application.config.respond_to?(:assets) && app.config.action_cable.precompile_assets
+          Rails.application.config.assets.precompile += %w( actioncable.js actioncable.esm.js )
+        end
+      end
+    end
+
     initializer "action_cable.set_configs" do |app|
       options = app.config.action_cable
       options.allowed_request_origins ||= /https?:\/\/localhost:\d+/ if ::Rails.env.development?
@@ -30,7 +39,7 @@ module ActionCable
 
       ActiveSupport.on_load(:action_cable) do
         if (config_path = Pathname.new(app.config.paths["config/cable"].first)).exist?
-          self.cable = Rails.application.config_for(config_path).with_indifferent_access
+          self.cable = Rails.application.config_for(config_path).to_h.with_indifferent_access
         end
 
         previous_connection_class = connection_class

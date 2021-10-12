@@ -30,3 +30,9 @@ end
 class NewContract < Contract
   validates :company_id, presence: true
 end
+
+class SpecialContract < ActiveRecord::Base
+  self.table_name = "contracts"
+  belongs_to :company
+  belongs_to :special_developer, foreign_key: "developer_id"
+end

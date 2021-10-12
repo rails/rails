@@ -53,6 +53,29 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_equal "2 updated", Topic.find(2).content
   end
 
+  def test_update_many_with_active_record_base_object
+    error = assert_raises(ArgumentError) do
+      Topic.update(Topic.first, "content" => "1 updated")
+    end
+
+    assert_equal "You are passing an instance of ActiveRecord::Base to `update`. " \
+    "Please pass the id of the object by calling `.id`.", error.message
+
+    assert_not_equal "1 updated", Topic.first.content
+  end
+
+  def test_update_many_with_array_of_active_record_base_objects
+    error = assert_raise(ArgumentError) do
+      Topic.update(Topic.first(2), content: "updated")
+    end
+
+    assert_equal "You are passing an array of ActiveRecord::Base instances to `update`. " \
+    "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`.", error.message
+
+    assert_not_equal "updated", Topic.first.content
+    assert_not_equal "updated", Topic.second.content
+  end
+
   def test_class_level_update_without_ids
     topics = Topic.all
     assert_equal 5, topics.length
@@ -78,6 +101,94 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_equal "2 updated", Topic.find(2).content
   end
 
+  def test_returns_object_even_if_validations_failed
+    assert_equal Developer.all.to_a, Developer.update(salary: 1_000_000)
+  end
+
+  def test_update_many!
+    topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
+    updated = Topic.update!(topic_data.keys, topic_data.values)
+
+    assert_equal [1, 2], updated.map(&:id)
+    assert_equal "1 updated", Topic.find(1).content
+    assert_equal "2 updated", Topic.find(2).content
+  end
+
+  def test_update_many_with_duplicated_ids!
+    updated = Topic.update!([1, 1, 2], [
+      { "content" => "1 duplicated" }, { "content" => "1 updated" }, { "content" => "2 updated" }
+    ])
+
+    assert_equal [1, 1, 2], updated.map(&:id)
+    assert_equal "1 updated", Topic.find(1).content
+    assert_equal "2 updated", Topic.find(2).content
+  end
+
+  def test_update_many_with_invalid_id!
+    topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" }, 99999 => {} }
+
+    assert_raise(ActiveRecord::RecordNotFound) do
+      Topic.update!(topic_data.keys, topic_data.values)
+    end
+
+    assert_not_equal "1 updated", Topic.find(1).content
+    assert_not_equal "2 updated", Topic.find(2).content
+  end
+
+  def test_update_many_with_active_record_base_object!
+    error = assert_raises(ArgumentError) do
+      Topic.update!(Topic.first, "content" => "1 updated")
+    end
+
+    assert_equal "You are passing an instance of ActiveRecord::Base to `update!`. " \
+    "Please pass the id of the object by calling `.id`.", error.message
+
+    assert_not_equal "1 updated", Topic.first.content
+  end
+
+  def test_update_many_with_array_of_active_record_base_objects!
+    error = assert_raise(ArgumentError) do
+      Topic.update!(Topic.first(2), content: "updated")
+    end
+
+    assert_equal "You are passing an array of ActiveRecord::Base instances to `update!`. " \
+    "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`.", error.message
+
+    assert_not_equal "updated", Topic.first.content
+    assert_not_equal "updated", Topic.second.content
+  end
+
+  def test_class_level_update_without_ids!
+    topics = Topic.all
+    assert_equal 5, topics.length
+    topics.each do |topic|
+      assert_not_equal "updated", topic.content
+    end
+
+    updated = Topic.update!(content: "updated")
+    assert_equal 5, updated.length
+    updated.each do |topic|
+      assert_equal "updated", topic.content
+    end
+  end
+
+  def test_class_level_update_is_affected_by_scoping!
+    topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
+
+    assert_raise(ActiveRecord::RecordNotFound) do
+      Topic.where("1=0").scoping { Topic.update!(topic_data.keys, topic_data.values) }
+    end
+
+    assert_not_equal "1 updated", Topic.find(1).content
+    assert_not_equal "2 updated", Topic.find(2).content
+  end
+
+  def test_raises_error_when_validations_failed
+    assert_raises(ActiveRecord::RecordInvalid) do
+      Developer.update!(salary: 1_000_000)
+    end
+  end
+
   def test_delete_all
     assert Topic.count > 0
 
@@ -86,11 +197,22 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_increment_attribute
     assert_equal 50, accounts(:signals37).credit_limit
+
     accounts(:signals37).increment! :credit_limit
     assert_equal 51, accounts(:signals37, :reload).credit_limit
 
     accounts(:signals37).increment(:credit_limit).increment!(:credit_limit)
     assert_equal 53, accounts(:signals37, :reload).credit_limit
+  end
+
+  def test_increment_aliased_attribute
+    assert_equal 50, accounts(:signals37).available_credit
+
+    accounts(:signals37).increment!(:available_credit)
+    assert_equal 51, accounts(:signals37, :reload).available_credit
+
+    accounts(:signals37).increment(:available_credit).increment!(:available_credit)
+    assert_equal 53, accounts(:signals37, :reload).available_credit
   end
 
   def test_increment_nil_attribute
@@ -285,12 +407,25 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal("New Topic", topic_reloaded.title)
   end
 
-  def test_save!
+  def test_save_valid_record
     topic = Topic.new(title: "New Topic")
     assert topic.save!
+  end
 
-    reply = WrongReply.new
-    assert_raise(ActiveRecord::RecordInvalid) { reply.save! }
+  def test_save_invalid_record
+    reply = WrongReply.new(title: "New reply")
+    error = assert_raise(ActiveRecord::RecordInvalid) { reply.save! }
+
+    assert_equal "Validation failed: Content Empty", error.message
+  end
+
+  def test_save_destroyed_object
+    topic = Topic.create!(title: "New Topic")
+    topic.destroy!
+
+    error = assert_raise(ActiveRecord::RecordNotSaved) { topic.save! }
+
+    assert_equal "Failed to save the record", error.message
   end
 
   def test_save_null_string_attributes
@@ -457,6 +592,51 @@ class PersistenceTest < ActiveRecord::TestCase
     topic_reloaded = Topic.find(topic.id)
     assert_equal("Another New Topic", topic_reloaded.title)
     assert_equal("David", topic_reloaded.author_name)
+  end
+
+  def test_update_attribute_after_update
+    klass = Class.new(Topic) do
+      def self.name; "Topic"; end
+      after_update :update_author, if: :saved_change_to_title?
+      def update_author
+        update_attribute("author_name", "David")
+      end
+    end
+    topic = klass.create(title: "New Topic")
+    topic.update(title: "Another Topic")
+
+    topic_reloaded = Topic.find(topic.id)
+    assert_equal("Another Topic", topic_reloaded.title)
+    assert_equal("David", topic_reloaded.author_name)
+  end
+
+  def test_update_attribute_in_before_validation_respects_callback_chain
+    klass = Class.new(Topic) do
+      def self.name; "Topic"; end
+
+      before_validation :set_author_name
+      after_create :track_create
+      after_update :call_once, if: :saved_change_to_author_name?
+
+      attr_reader :counter
+
+      def set_author_name
+        update_attribute :author_name, "David"
+      end
+
+      def track_create
+        call_once if saved_change_to_author_name?
+      end
+
+      def call_once
+        @counter ||= 0
+        @counter += 1
+      end
+    end
+
+    comment = klass.create(title: "New Topic", author_name: "Not David")
+
+    assert_equal 1, comment.counter
   end
 
   def test_update_attribute_does_not_run_sql_if_attribute_is_not_changed
@@ -865,13 +1045,6 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal topic.title, Topic.find(1234).title
   end
 
-  def test_update_attributes
-    topic = Topic.find(1)
-    assert_deprecated do
-      topic.update_attributes("title" => "The First Topic Updated")
-    end
-  end
-
   def test_update_parameters
     topic = Topic.find(1)
     assert_nothing_raised do
@@ -902,13 +1075,6 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordInvalid) { reply.update!(title: nil, content: "Have a nice evening") }
   ensure
     Reply.clear_validators!
-  end
-
-  def test_update_attributes!
-    reply = Reply.find(2)
-    assert_deprecated do
-      reply.update_attributes!("title" => "The Second Topic of the day updated")
-    end
   end
 
   def test_destroyed_returns_boolean

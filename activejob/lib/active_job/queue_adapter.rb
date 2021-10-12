@@ -5,7 +5,7 @@ require "active_support/core_ext/string/inflections"
 module ActiveJob
   # The <tt>ActiveJob::QueueAdapter</tt> module is used to load the
   # correct adapter. The default queue adapter is the +:async+ queue.
-  module QueueAdapter #:nodoc:
+  module QueueAdapter # :nodoc:
     extend ActiveSupport::Concern
 
     included do
@@ -26,7 +26,7 @@ module ActiveJob
       end
 
       # Returns string denoting the name of the configured queue adapter.
-      # By default returns +"async"+.
+      # By default returns <tt>"async"</tt>.
       def queue_adapter_name
         _queue_adapter_name
       end

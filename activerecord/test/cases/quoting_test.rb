@@ -60,7 +60,7 @@ module ActiveRecord
         end
       end
 
-      def test_quoted_timestamp_crazy
+      def test_quoted_timestamp_nonsense
         with_timezone_config default: :asdfasdf do
           t = Time.now.change(usec: 0)
           assert_equal t.getlocal.to_s(:db), @quoter.quoted_date(t)
@@ -115,7 +115,7 @@ module ActiveRecord
         end
       end
 
-      def test_quoted_time_crazy
+      def test_quoted_time_nonsense
         with_timezone_config default: :asdfasdf do
           t = Time.now.change(usec: 0)
 
@@ -185,10 +185,10 @@ module ActiveRecord
         assert_equal "'Object'", @quoter.quote(Object)
       end
 
-      def test_crazy_object
-        crazy = Object.new
+      def test_quote_object_instance
+        object = Object.new
         e = assert_raises(TypeError) do
-          @quoter.quote(crazy)
+          @quoter.quote(object)
         end
         assert_equal "can't quote Object", e.message
       end
@@ -267,7 +267,7 @@ module ActiveRecord
       end
     end
 
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       class QuoteARBaseTest < ActiveRecord::TestCase
         class DatetimePrimaryKey < ActiveRecord::Base
         end
@@ -284,12 +284,18 @@ module ActiveRecord
 
         def test_quote_ar_object
           value = DatetimePrimaryKey.new(id: @time)
-          assert_equal "'2017-02-14 12:34:56.789000'",  @connection.quote(value)
+          expected = "'2017-02-14 12:34:56.789000'"
+          assert_deprecated do
+            assert_equal expected, @connection.quote(value)
+          end
         end
 
         def test_type_cast_ar_object
           value = DatetimePrimaryKey.new(id: @time)
-          assert_equal @connection.type_cast(value.id),  @connection.type_cast(value)
+          expected = @connection.type_cast(value.id)
+          assert_deprecated do
+            assert_equal expected, @connection.type_cast(value)
+          end
         end
       end
     end

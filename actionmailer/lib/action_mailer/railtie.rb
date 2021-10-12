@@ -18,11 +18,6 @@ module ActionMailer
       paths   = app.config.paths
       options = app.config.action_mailer
 
-      if app.config.force_ssl
-        options.default_url_options ||= {}
-        options.default_url_options[:protocol] ||= "https"
-      end
-
       options.assets_dir      ||= paths["public"].first
       options.javascripts_dir ||= paths["public/javascripts"].first
       options.stylesheets_dir ||= paths["public/stylesheets"].first
@@ -48,6 +43,15 @@ module ActionMailer
 
         if delivery_job = options.delete(:delivery_job)
           self.delivery_job = delivery_job.constantize
+        end
+
+        if smtp_settings = options.delete(:smtp_settings)
+          self.smtp_settings = smtp_settings
+        end
+
+        if smtp_timeout = options.delete(:smtp_timeout)
+          self.smtp_settings[:open_timeout] ||= smtp_timeout
+          self.smtp_settings[:read_timeout] ||= smtp_timeout
         end
 
         options.each { |k, v| send("#{k}=", v) }

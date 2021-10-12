@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2017-2020 David Heinemeier Hansson, Basecamp
+# Copyright (c) 2017-2021 David Heinemeier Hansson, Basecamp
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -37,6 +37,7 @@ module ActiveStorage
   extend ActiveSupport::Autoload
 
   autoload :Attached
+  autoload :FixtureSet
   autoload :Service
   autoload :Previewer
   autoload :Analyzer
@@ -53,23 +54,29 @@ module ActiveStorage
   mattr_accessor :paths, default: {}
 
   mattr_accessor :variable_content_types,           default: []
+  mattr_accessor :web_image_content_types,          default: []
   mattr_accessor :binary_content_type,              default: "application/octet-stream"
   mattr_accessor :content_types_to_serve_as_binary, default: []
   mattr_accessor :content_types_allowed_inline,     default: []
 
   mattr_accessor :service_urls_expire_in, default: 5.minutes
+  mattr_accessor :urls_expire_in
 
   mattr_accessor :routes_prefix, default: "/rails/active_storage"
   mattr_accessor :draw_routes, default: true
+  mattr_accessor :resolve_model_to_route, default: :rails_storage_redirect
 
   mattr_accessor :replace_on_assign_to_many, default: false
   mattr_accessor :track_variants, default: false
+
+  mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
+
+  mattr_accessor :silence_invalid_content_types_warning, default: false
 
   module Transformers
     extend ActiveSupport::Autoload
 
     autoload :Transformer
     autoload :ImageProcessingTransformer
-    autoload :MiniMagickTransformer
   end
 end

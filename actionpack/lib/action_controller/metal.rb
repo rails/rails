@@ -2,8 +2,6 @@
 
 require "active_support/core_ext/array/extract_options"
 require "action_dispatch/middleware/stack"
-require "action_dispatch/http/request"
-require "action_dispatch/http/response"
 
 module ActionController
   # Extend ActionDispatch middleware stack to make it aware of options
@@ -13,8 +11,8 @@ module ActionController
   #     use AuthenticationMiddleware, except: [:index, :show]
   #   end
   #
-  class MiddlewareStack < ActionDispatch::MiddlewareStack #:nodoc:
-    class Middleware < ActionDispatch::MiddlewareStack::Middleware #:nodoc:
+  class MiddlewareStack < ActionDispatch::MiddlewareStack # :nodoc:
+    class Middleware < ActionDispatch::MiddlewareStack::Middleware # :nodoc:
       def initialize(klass, args, actions, strategy, block)
         @actions = actions
         @strategy = strategy
@@ -126,7 +124,7 @@ module ActionController
     # ==== Returns
     # * <tt>string</tt>
     def self.controller_name
-      @controller_name ||= name.demodulize.sub(/Controller$/, "").underscore
+      @controller_name ||= (name.demodulize.delete_suffix("Controller").underscore unless anonymous?)
     end
 
     def self.make_response!(request)
@@ -135,7 +133,7 @@ module ActionController
       end
     end
 
-    def self.binary_params_for?(action) # :nodoc:
+    def self.action_encoding_template(action) # :nodoc:
       false
     end
 
@@ -184,7 +182,7 @@ module ActionController
       response_body || response.committed?
     end
 
-    def dispatch(name, request, response) #:nodoc:
+    def dispatch(name, request, response) # :nodoc:
       set_request!(request)
       set_response!(response)
       process(name)
@@ -196,12 +194,12 @@ module ActionController
       @_response = response
     end
 
-    def set_request!(request) #:nodoc:
+    def set_request!(request) # :nodoc:
       @_request = request
       @_request.controller_instance = self
     end
 
-    def to_a #:nodoc:
+    def to_a # :nodoc:
       response.to_a
     end
 
@@ -219,10 +217,9 @@ module ActionController
     class << self
       # Pushes the given Rack middleware and its arguments to the bottom of the
       # middleware stack.
-      def use(*args, &block)
-        middleware_stack.use(*args, &block)
+      def use(...)
+        middleware_stack.use(...)
       end
-      ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
     end
 
     # Alias for +middleware_stack+.

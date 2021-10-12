@@ -52,12 +52,12 @@
 
   @media (prefers-color-scheme: dark) {
     #route_table tbody tr:nth-child(odd) {
-      background: #333;
+      background: #282828;
     }
 
-    #route_table tbody.exact_matches,
-    #route_table tbody.fuzzy_matches {
-      color: #333;
+    #route_table tbody.exact_matches tr,
+    #route_table tbody.fuzzy_matches tr {
+      background: DarkSlateGrey;
     }
   }
 <% end %>
@@ -95,8 +95,8 @@
   </tbody>
 </table>
 
-<script type='text/javascript'>
-  // support forEarch iterator on NodeList
+<script>
+  // support forEach iterator on NodeList
   NodeList.prototype.forEach = Array.prototype.forEach;
 
   // Enables path search functionality

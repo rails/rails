@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord::Associations::Builder # :nodoc:
-  class HasOne < SingularAssociation #:nodoc:
+  class HasOne < SingularAssociation # :nodoc:
     def self.macro
       :has_one
     end
@@ -9,12 +9,14 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.valid_options(options)
       valid = super
       valid += [:as, :foreign_type] if options[:as]
+      valid += [:ensuring_owner_was] if options[:dependent] == :destroy_async
       valid += [:through, :source, :source_type] if options[:through]
+      valid += [:disable_joins] if options[:disable_joins] && options[:through]
       valid
     end
 
     def self.valid_dependent_options
-      [:destroy, :delete, :nullify, :restrict_with_error, :restrict_with_exception]
+      [:destroy, :destroy_async, :delete, :nullify, :restrict_with_error, :restrict_with_exception]
     end
 
     def self.define_callbacks(model, reflection)

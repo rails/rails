@@ -1,4 +1,4 @@
-class MessagesController < ApplicationController
+class MessagesController < ActionController::Base
   before_action :set_message, only: [:show, :edit, :update, :destroy]
 
   # GET /messages
@@ -26,7 +26,7 @@ class MessagesController < ApplicationController
     if @message.save
       redirect_to @message, notice: 'Message was successfully created.'
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -35,7 +35,7 @@ class MessagesController < ApplicationController
     if @message.update(message_params)
       redirect_to @message, notice: 'Message was successfully updated.'
     else
-      render :edit
+      render :edit, status: :unprocessable_entity
     end
   end
 
@@ -51,7 +51,7 @@ class MessagesController < ApplicationController
       @message = Message.find(params[:id])
     end
 
-    # Only allow a trusted parameter "white list" through.
+    # Only allow a trusted parameter list through.
     def message_params
       params.require(:message).permit(:subject, :content)
     end

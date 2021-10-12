@@ -6,7 +6,7 @@ class Topic
   include ActiveModel::AttributeMethods
   include ActiveSupport::NumberHelper
 
-  attribute_method_suffix "_before_type_cast"
+  attribute_method_suffix "_before_type_cast", parameters: false
   define_attribute_method :price
 
   def self._validates_default_keys
@@ -21,7 +21,7 @@ class Topic
 
   def initialize(attributes = {})
     attributes.each do |key, value|
-      send "#{key}=", value
+      public_send "#{key}=", value
     end
   end
 
@@ -42,7 +42,7 @@ class Topic
   end
 
   def my_validation_with_arg(attr)
-    errors.add attr, "is missing" unless send(attr)
+    errors.add attr, "is missing" unless public_send(attr)
   end
 
   def price
@@ -52,4 +52,9 @@ class Topic
   def attribute_before_type_cast(attr)
     instance_variable_get(:"@#{attr}")
   end
+
+  private
+    def five
+      5
+    end
 end

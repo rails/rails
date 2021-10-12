@@ -3,6 +3,7 @@
 # Hack to load json gem first so we can overwrite its to_json.
 require "json"
 require "bigdecimal"
+require "ipaddr"
 require "uri/generic"
 require "pathname"
 require "active_support/core_ext/big_decimal/conversions" # for #to_s
@@ -18,8 +19,7 @@ require "active_support/core_ext/date/conversions"
 # The JSON gem adds a few modules to Ruby core classes containing :to_json definition, overwriting
 # their default behavior. That said, we need to define the basic to_json method in all of them,
 # otherwise they will always use to_json gem implementation, which is backwards incompatible in
-# several cases (for instance, the JSON implementation for Hash does not work) with inheritance
-# and consequently classes as ActiveSupport::OrderedHash cannot be serialized to json.
+# several cases (for instance, the JSON implementation for Hash does not work) with inheritance.
 #
 # On the other hand, we should avoid conflict with ::JSON.{generate,dump}(obj). Unfortunately, the
 # JSON gem's encoder relies on its own to_json implementation to encode objects. Since it always
@@ -45,12 +45,18 @@ module ActiveSupport
   end
 end
 
-[Object, Array, FalseClass, Float, Hash, Integer, NilClass, String, TrueClass, Enumerable].reverse_each do |klass|
+[Enumerable, Object, Array, FalseClass, Float, Hash, Integer, NilClass, String, TrueClass].reverse_each do |klass|
   klass.prepend(ActiveSupport::ToJsonWithActiveSupportEncoder)
 end
 
+class Module
+  def as_json(options = nil) # :nodoc:
+    name
+  end
+end
+
 class Object
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     if respond_to?(:to_hash)
       to_hash.as_json(options)
     else
@@ -59,44 +65,44 @@ class Object
   end
 end
 
-class Struct #:nodoc:
+class Struct # :nodoc:
   def as_json(options = nil)
     Hash[members.zip(values)].as_json(options)
   end
 end
 
 class TrueClass
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     self
   end
 end
 
 class FalseClass
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     self
   end
 end
 
 class NilClass
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     self
   end
 end
 
 class String
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     self
   end
 end
 
 class Symbol
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     to_s
   end
 end
 
 class Numeric
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     self
   end
 end
@@ -104,7 +110,7 @@ end
 class Float
   # Encoding Infinity or NaN to JSON should return "null". The default returns
   # "Infinity" or "NaN" which are not valid JSON.
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     finite? ? self : nil
   end
 end
@@ -119,43 +125,43 @@ class BigDecimal
   # if the other end knows by contract that the data is supposed to be a
   # BigDecimal, it still has the chance to post-process the string and get the
   # real value.
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     finite? ? to_s : nil
   end
 end
 
 class Regexp
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     to_s
   end
 end
 
 module Enumerable
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     to_a.as_json(options)
   end
 end
 
 class IO
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     to_s
   end
 end
 
 class Range
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     to_s
   end
 end
 
 class Array
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     map { |v| options ? v.as_json(options.dup) : v.as_json }
   end
 end
 
 class Hash
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     # create a subset of the hash by applying :only or :except
     subset = if options
       if attrs = options[:only]
@@ -178,7 +184,7 @@ class Hash
 end
 
 class Time
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     if ActiveSupport::JSON::Encoding.use_standard_json_time_format
       xmlschema(ActiveSupport::JSON::Encoding.time_precision)
     else
@@ -188,7 +194,7 @@ class Time
 end
 
 class Date
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     if ActiveSupport::JSON::Encoding.use_standard_json_time_format
       strftime("%Y-%m-%d")
     else
@@ -198,7 +204,7 @@ class Date
 end
 
 class DateTime
-  def as_json(options = nil) #:nodoc:
+  def as_json(options = nil) # :nodoc:
     if ActiveSupport::JSON::Encoding.use_standard_json_time_format
       xmlschema(ActiveSupport::JSON::Encoding.time_precision)
     else
@@ -207,19 +213,25 @@ class DateTime
   end
 end
 
-class URI::Generic #:nodoc:
+class URI::Generic # :nodoc:
   def as_json(options = nil)
     to_s
   end
 end
 
-class Pathname #:nodoc:
+class Pathname # :nodoc:
   def as_json(options = nil)
     to_s
   end
 end
 
-class Process::Status #:nodoc:
+class IPAddr # :nodoc:
+  def as_json(options = nil)
+    to_s
+  end
+end
+
+class Process::Status # :nodoc:
   def as_json(options = nil)
     { exitstatus: exitstatus, pid: pid }
   end

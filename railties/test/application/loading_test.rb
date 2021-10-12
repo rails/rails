@@ -44,10 +44,10 @@ class LoadingTest < ActiveSupport::TestCase
     boot_app
 
     e = assert_raise(NameError) { User }
-    assert_equal "uninitialized constant #{self.class}::User", e.message
+    assert_match "uninitialized constant #{self.class}::User", e.message
 
     e = assert_raise(NameError) { Post }
-    assert_equal "uninitialized constant Post::NON_EXISTING_CONSTANT", e.message
+    assert_match "uninitialized constant Post::NON_EXISTING_CONSTANT", e.message
   end
 
   test "concerns in app are autoloaded" do
@@ -133,15 +133,19 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{rails_root}/config/environment"
     setup_ar!
 
-    initial = [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, ApplicationRecord, "primary::SchemaMigration"].collect(&:to_s).sort
-    assert_equal initial, ActiveRecord::Base.descendants.collect(&:to_s).sort
+    initial = [
+      ActiveStorage::Record, ActiveStorage::Blob, ActiveStorage::Attachment,
+      ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, ApplicationRecord
+    ].collect(&:to_s).sort
+
+    assert_equal initial, ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq
     get "/load"
     assert_equal [Post].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort - initial
     get "/unload"
-    assert_equal ["ActiveRecord::InternalMetadata", "ActiveRecord::SchemaMigration", "primary::SchemaMigration"], ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq
+    assert_equal ["ActiveRecord::InternalMetadata", "ActiveRecord::SchemaMigration"], ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq
   end
 
-  test "initialize cant be called twice" do
+  test "initialize can't be called twice" do
     require "#{app_path}/config/environment"
     assert_raise(RuntimeError) { Rails.application.initialize! }
   end
@@ -285,6 +289,30 @@ class LoadingTest < ActiveSupport::TestCase
 
     get "/c"
     assert_equal "7", last_response.body
+  end
+
+  test "routes are only loaded once on boot" do
+    add_to_config <<-RUBY
+      config.cache_classes = false
+    RUBY
+
+    app_file "config/routes.rb", <<-RUBY
+      $counter ||= 0
+      $counter += 1
+      Rails.application.routes.draw do
+        get '/c', to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
+      end
+    RUBY
+
+    boot_app "development"
+
+    require "rack/test"
+    extend Rack::Test::Methods
+
+    require "#{rails_root}/config/environment"
+
+    get "/c"
+    assert_equal "1", last_response.body
   end
 
   test "columns migrations also trigger reloading" do

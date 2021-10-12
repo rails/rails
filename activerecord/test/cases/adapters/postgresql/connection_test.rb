@@ -141,7 +141,7 @@ module ActiveRecord
     def test_reconnection_after_actual_disconnection_with_verify
       original_connection_pid = @connection.query("select pg_backend_pid()")
 
-      # Sanity check.
+      # Double check we are connected to begin with
       assert_predicate @connection, :active?
 
       secondary_connection = ActiveRecord::Base.connection_pool.checkout
@@ -232,10 +232,6 @@ module ActiveRecord
         assert_equal released_non_existent_lock, false,
           "expected release_advisory_lock to return false when there was no lock to release"
       end
-    end
-
-    def test_supports_ranges_is_deprecated
-      assert_deprecated { @connection.supports_ranges? }
     end
 
     private

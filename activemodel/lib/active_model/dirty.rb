@@ -123,9 +123,11 @@ module ActiveModel
     include ActiveModel::AttributeMethods
 
     included do
-      attribute_method_suffix "_changed?", "_change", "_will_change!", "_was"
-      attribute_method_suffix "_previously_changed?", "_previous_change", "_previously_was"
-      attribute_method_affix prefix: "restore_", suffix: "!"
+      attribute_method_suffix "_previously_changed?", "_changed?", parameters: "**options"
+      attribute_method_suffix "_change", "_will_change!", "_was", parameters: false
+      attribute_method_suffix "_previous_change", "_previously_was", parameters: false
+      attribute_method_affix prefix: "restore_", suffix: "!", parameters: false
+      attribute_method_affix prefix: "clear_", suffix: "_change", parameters: false
     end
 
     def initialize_dup(other) # :nodoc:
@@ -136,6 +138,11 @@ module ActiveModel
         end
       end
       @mutations_from_database = nil
+    end
+
+    def as_json(options = {}) # :nodoc:
+      options[:except] = [*options[:except], "mutations_from_database", "mutations_before_last_save"]
+      super(options)
     end
 
     # Clears dirty data and moves +changes+ to +previous_changes+ and

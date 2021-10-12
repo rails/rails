@@ -1,11 +1,15 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/string/filters"
+require "active_support/core_ext/string/access"
 require "active_support/core_ext/array/extract_options"
+require "action_view/helpers/sanitize_helper"
+require "action_view/helpers/tag_helper"
+require "action_view/helpers/output_safety_helper"
 
 module ActionView
   # = Action View Text Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # The TextHelper module provides a set of methods for filtering, formatting
     # and transforming strings, which can reduce the amount of inline Ruby code in
     # your views. These helper methods extend Action View making them callable
@@ -105,7 +109,7 @@ module ActionView
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
       # a <tt>:highlighter</tt> string. The highlighter can be specialized by passing <tt>:highlighter</tt>
       # as a single-quoted string with <tt>\1</tt> where the phrase is to be inserted (defaults to
-      # '<mark>\1</mark>') or passing a block that receives each matched term. By default +text+
+      # <tt><mark>\1</mark></tt>) or passing a block that receives each matched term. By default +text+
       # is sanitized to prevent possible XSS attacks. If the input is trustworthy, passing false
       # for <tt>:sanitize</tt> will turn sanitizing off.
       #
@@ -129,7 +133,7 @@ module ActionView
       #
       #   highlight('<a href="javascript:alert(\'no!\')">ruby</a> on rails', 'rails', sanitize: false)
       #   # => <a href="javascript:alert('no!')">ruby</a> on <mark>rails</mark>
-      def highlight(text, phrases, options = {})
+      def highlight(text, phrases, options = {}, &block)
         text = sanitize(text) if options.fetch(:sanitize, true)
 
         if text.blank? || phrases.blank?
@@ -140,7 +144,7 @@ module ActionView
           end.join("|")
 
           if block_given?
-            text.gsub(/(#{match})(?![^<]*?>)/i) { |found| yield found }
+            text.gsub(/(#{match})(?![^<]*?>)/i, &block)
           else
             highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
             text.gsub(/(#{match})(?![^<]*?>)/i, highlighter)
@@ -403,7 +407,7 @@ module ActionView
         cycle.reset if cycle
       end
 
-      class Cycle #:nodoc:
+      class Cycle # :nodoc:
         attr_reader :values
 
         def initialize(first_value, *values)
@@ -467,18 +471,25 @@ module ActionView
           radius   = options.fetch(:radius, 100)
           omission = options.fetch(:omission, "...")
 
-          part = part.split(separator)
-          part.delete("")
-          affix = part.size > radius ? omission : ""
-
-          part = if part_position == :first
-            drop_index = [part.length - radius, 0].max
-            part.drop(drop_index)
-          else
-            part.first(radius)
+          if separator != ""
+            part = part.split(separator)
+            part.delete("")
           end
 
-          return affix, part.join(separator)
+          affix = part.length > radius ? omission : ""
+
+          part =
+            if part_position == :first
+              part.last(radius)
+            else
+              part.first(radius)
+            end
+
+          if separator != ""
+            part = part.join(separator)
+          end
+
+          return affix, part
         end
     end
   end

@@ -30,9 +30,6 @@ module Rails
         class_option :database,            type: :string, aliases: "-d", default: "sqlite3",
                                            desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-        class_option :skip_gemfile,        type: :boolean, default: false,
-                                           desc: "Don't create a Gemfile"
-
         class_option :skip_git,            type: :boolean, aliases: "-G", default: false,
                                            desc: "Skip .gitignore file"
 
@@ -52,29 +49,28 @@ module Rails
         class_option :skip_active_record,  type: :boolean, aliases: "-O", default: false,
                                            desc: "Skip Active Record files"
 
+        class_option :skip_active_job,     type: :boolean, default: false,
+                                           desc: "Skip Active Job"
+
         class_option :skip_active_storage, type: :boolean, default: false,
                                            desc: "Skip Active Storage files"
-
-        class_option :skip_puma,           type: :boolean, aliases: "-P", default: false,
-                                           desc: "Skip Puma related files"
 
         class_option :skip_action_cable,   type: :boolean, aliases: "-C", default: false,
                                            desc: "Skip Action Cable files"
 
-        class_option :skip_sprockets,      type: :boolean, aliases: "-S", default: false,
-                                           desc: "Skip Sprockets files"
+        class_option :skip_asset_pipeline, type: :boolean, aliases: "-A", default: false
 
-        class_option :skip_spring,         type: :boolean, default: false,
-                                           desc: "Don't install Spring application preloader"
-
-        class_option :skip_listen,         type: :boolean, default: false,
-                                           desc: "Don't generate configuration that depends on the listen gem"
+        class_option :asset_pipeline,      type: :string, aliases: "-a", default: "sprockets",
+                                           desc: "Choose your asset pipeline [options: sprockets (default), propshaft]"
 
         class_option :skip_javascript,     type: :boolean, aliases: "-J", default: name == "plugin",
                                            desc: "Skip JavaScript files"
 
-        class_option :skip_turbolinks,     type: :boolean, default: false,
-                                           desc: "Skip turbolinks gem"
+        class_option :skip_hotwire,        type: :boolean, default: false,
+                                           desc: "Skip Hotwire integration"
+
+        class_option :skip_jbuilder,       type: :boolean, default: false,
+                                           desc: "Skip jbuilder gem"
 
         class_option :skip_test,           type: :boolean, aliases: "-T", default: false,
                                            desc: "Skip test files"
@@ -91,6 +87,9 @@ module Rails
         class_option :edge,                type: :boolean, default: false,
                                            desc: "Set up the #{name} with Gemfile pointing to Rails repository"
 
+        class_option :main,                type: :boolean, default: false, aliases: "--master",
+                                           desc: "Set up the #{name} with Gemfile pointing to Rails repository main branch"
+
         class_option :rc,                  type: :string, default: nil,
                                            desc: "Path to file containing extra configuration options for rails command"
 
@@ -101,46 +100,23 @@ module Rails
                                            desc: "Show this help message and quit"
       end
 
-      def initialize(*args)
-        @gem_filter    = lambda { |gem| true }
-        @extra_entries = []
+      def initialize(*)
+        @gem_filter = lambda { |gem| true }
         super
       end
 
     private
-      def gemfile_entry(name, *args) # :doc:
-        options = args.extract_options!
-        version = args.first
-        github = options[:github]
-        path   = options[:path]
-
-        if github
-          @extra_entries << GemfileEntry.github(name, github)
-        elsif path
-          @extra_entries << GemfileEntry.path(name, path)
-        else
-          @extra_entries << GemfileEntry.version(name, version)
-        end
-        self
-      end
-
       def gemfile_entries # :doc:
         [rails_gemfile_entry,
+         asset_pipeline_gemfile_entry,
          database_gemfile_entry,
          web_server_gemfile_entry,
-         assets_gemfile_entry,
-         webpacker_gemfile_entry,
          javascript_gemfile_entry,
+         hotwire_gemfile_entry,
+         css_gemfile_entry,
          jbuilder_gemfile_entry,
          psych_gemfile_entry,
-         cable_gemfile_entry,
-         @extra_entries].flatten.find_all(&@gem_filter)
-      end
-
-      def add_gem_entry_filter # :doc:
-        @gem_filter = lambda { |next_filter, entry|
-          yield(entry) && next_filter.call(entry)
-        }.curry[@gem_filter]
+         cable_gemfile_entry].flatten.find_all(&@gem_filter)
       end
 
       def builder # :doc:
@@ -152,7 +128,7 @@ module Rails
       end
 
       def build(meth, *args) # :doc:
-        builder.send(meth, *args) if builder.respond_to?(meth)
+        builder.public_send(meth, *args) if builder.respond_to?(meth)
       end
 
       def create_root # :doc:
@@ -175,7 +151,7 @@ module Rails
           when /^https?:\/\//
             options[:template]
           when String
-            File.expand_path(options[:template], Dir.pwd)
+            File.expand_path(`echo #{options[:template]}`.strip)
           else
             options[:template]
           end
@@ -185,13 +161,24 @@ module Rails
         return [] if options[:skip_active_record]
         gem_name, gem_version = gem_for_database
         GemfileEntry.version gem_name, gem_version,
-                            "Use #{options[:database]} as the database for Active Record"
+          "Use #{options[:database]} as the database for Active Record"
       end
 
       def web_server_gemfile_entry # :doc:
-        return [] if options[:skip_puma]
-        comment = "Use Puma as the app server"
-        GemfileEntry.new("puma", "~> 4.1", comment)
+        GemfileEntry.new "puma", "~> 5.0", "Use the Puma web server [https://github.com/puma/puma]"
+      end
+
+      def asset_pipeline_gemfile_entry
+        return [] if options[:skip_asset_pipeline]
+
+        if options[:asset_pipeline] == "sprockets"
+          GemfileEntry.version "sprockets-rails", ">= 2.0.0",
+            "The traditional bundling and transpiling asset pipeline for Rails."
+        elsif options[:asset_pipeline] == "propshaft"
+          GemfileEntry.version "propshaft", ">= 0.1.7", "The modern asset pipeline for Rails."
+        else
+          []
+        end
       end
 
       def include_all_railties? # :doc:
@@ -200,8 +187,8 @@ module Rails
             :skip_active_record,
             :skip_action_mailer,
             :skip_test,
-            :skip_sprockets,
-            :skip_action_cable
+            :skip_action_cable,
+            :skip_active_job
           ),
           skip_active_storage?,
           skip_action_mailbox?,
@@ -242,6 +229,15 @@ module Rails
         options[:skip_action_text] || skip_active_storage?
       end
 
+      def skip_dev_gems? # :doc:
+        options[:skip_dev_gems]
+      end
+
+      def skip_sprockets?
+        options[:skip_asset_pipeline] || options[:asset_pipeline] != "sprockets"
+      end
+
+
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
         def initialize(name, version, comment, options = {}, commented_out = false)
           super
@@ -267,7 +263,7 @@ module Rails
           version = super
 
           if version.is_a?(Array)
-            version.join("', '")
+            version.join('", "')
           else
             version
           end
@@ -277,16 +273,21 @@ module Rails
       def rails_gemfile_entry
         if options.dev?
           [
-            GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH)
+            GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH, "Use local checkout of Rails")
           ]
         elsif options.edge?
+          edge_branch = Rails.gem_version.prerelease? ? "main" : [*Rails.gem_version.segments.first(2), "stable"].join("-")
           [
-            GemfileEntry.github("rails", "rails/rails")
+            GemfileEntry.github("rails", "rails/rails", edge_branch, "Use specific branch of Rails")
+          ]
+        elsif options.main?
+          [
+            GemfileEntry.github("rails", "rails/rails", "main", "Use main development branch of Rails")
           ]
         else
           [GemfileEntry.version("rails",
                             rails_version_specifier,
-                            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails'")]
+                            %(Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"))]
         end
       end
 
@@ -303,33 +304,45 @@ module Rails
         end
       end
 
-      def assets_gemfile_entry
-        return [] if options[:skip_sprockets]
-
-        GemfileEntry.version("sass-rails", ">= 6", "Use SCSS for stylesheets")
-      end
-
-      def webpacker_gemfile_entry
-        return [] if options[:skip_javascript]
-
-        if options.dev? || options.edge?
-          GemfileEntry.github "webpacker", "rails/webpacker", nil, "Use development version of Webpacker"
-        else
-          GemfileEntry.version "webpacker", "~> 4.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
-        end
-      end
-
       def jbuilder_gemfile_entry
-        comment = "Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder"
+        return [] if options[:skip_jbuilder]
+        comment = "Build JSON APIs with ease [https://github.com/rails/jbuilder]"
         GemfileEntry.new "jbuilder", "~> 2.7", comment, {}, options[:api]
       end
 
       def javascript_gemfile_entry
-        if options[:skip_javascript] || options[:skip_turbolinks]
-          []
+        return [] if options[:skip_javascript]
+
+        if options[:javascript] == "importmap"
+          GemfileEntry.version("importmap-rails", ">= 0.3.4", "Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]")
         else
-          [ GemfileEntry.version("turbolinks", "~> 5",
-             "Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks") ]
+          GemfileEntry.version "jsbundling-rails", "~> 0.1.0", "Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]"
+        end
+      end
+
+      def hotwire_gemfile_entry
+        return [] if options[:skip_javascript] || options[:skip_hotwire]
+
+        turbo_rails_entry =
+          GemfileEntry.version("turbo-rails", ">= 0.7.11", "Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]")
+
+        stimulus_rails_entry =
+          GemfileEntry.version("stimulus-rails", ">= 0.4.0", "Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]")
+
+        [ turbo_rails_entry, stimulus_rails_entry ]
+      end
+
+      def using_node?
+        options[:javascript] && options[:javascript] != "importmap"
+      end
+
+      def css_gemfile_entry
+        return [] unless options[:css]
+
+        if !using_node? && options[:css] == "tailwind"
+          GemfileEntry.version("tailwindcss-rails", ">= 0.4.3", "Use Tailwind CSS [https://github.com/rails/tailwindcss-rails]")
+        else
+          GemfileEntry.version("cssbundling-rails", ">= 0.1.0", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]")
         end
       end
 
@@ -376,53 +389,49 @@ module Rails
       end
 
       def bundle_install?
-        !(options[:skip_gemfile] || options[:skip_bundle] || options[:pretend])
-      end
-
-      def spring_install?
-        !options[:skip_spring] && !options.dev? && Process.respond_to?(:fork) && !RUBY_PLATFORM.include?("cygwin")
-      end
-
-      def webpack_install?
-        !(options[:skip_javascript] || options[:skip_webpack_install])
+        !(options[:skip_bundle] || options[:pretend])
       end
 
       def depends_on_system_test?
         !(options[:skip_system_test] || options[:skip_test] || options[:api])
       end
 
-      def depend_on_listen?
-        !options[:skip_listen] && os_supports_listen_out_of_the_box?
-      end
-
       def depend_on_bootsnap?
         !options[:skip_bootsnap] && !options[:dev] && !defined?(JRUBY_VERSION)
-      end
-
-      def os_supports_listen_out_of_the_box?
-        /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
       end
 
       def run_bundle
         bundle_command("install", "BUNDLE_IGNORE_MESSAGES" => "1") if bundle_install?
       end
 
-      def run_webpack
-        if webpack_install?
-          rails_command "webpacker:install"
-          rails_command "webpacker:install:#{options[:webpack]}" if options[:webpack] && options[:webpack] != "webpack"
+      def run_javascript
+        return if options[:skip_javascript] || !bundle_install?
+
+        case options[:javascript]
+        when "importmap"                    then rails_command "importmap:install"
+        when "webpack", "esbuild", "rollup" then rails_command "javascript:install:#{options[:javascript]}"
+        end
+      end
+
+      def run_hotwire
+        return if options[:skip_javascript] || options[:skip_hotwire] || !bundle_install?
+
+        rails_command "turbo:install stimulus:install"
+      end
+
+      def run_css
+        return if !options[:css] || !bundle_install?
+
+        if !using_node? && options[:css] == "tailwind"
+          rails_command "tailwindcss:install"
+        else
+          rails_command "css:install:#{options[:css]}"
         end
       end
 
       def generate_bundler_binstub
         if bundle_install?
           bundle_command("binstubs bundler")
-        end
-      end
-
-      def generate_spring_binstubs
-        if bundle_install? && spring_install?
-          bundle_command("exec spring binstub --all")
         end
       end
 

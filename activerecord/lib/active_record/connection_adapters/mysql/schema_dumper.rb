@@ -49,7 +49,7 @@ module ActiveRecord
           end
 
           def schema_limit(column)
-            super unless /\A(?:enum|set|(?:tiny|medium|long)?(?:text|blob))\b/.match?(column.sql_type)
+            super unless /\A(?:tiny|medium|long)?(?:text|blob)\b/.match?(column.sql_type)
           end
 
           def schema_precision(column)
@@ -79,7 +79,10 @@ module ActiveRecord
                     " WHERE table_schema = #{scope[:schema]}" \
                     "   AND table_name = #{scope[:name]}" \
                     "   AND column_name = #{column_name}"
-              @connection.query_value(sql, "SCHEMA").inspect
+              # Calling .inspect leads into issues with the query result
+              # which already returns escaped quotes.
+              # We remove the escape sequence from the result in order to deal with double escaping issues.
+              @connection.query_value(sql, "SCHEMA").gsub("\\'", "'").inspect
             end
           end
       end

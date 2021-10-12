@@ -7,14 +7,14 @@ module ActiveRecord
   #
   # This class is used to dump the database schema for some connection to some
   # output format (i.e., ActiveRecord::Schema).
-  class SchemaDumper #:nodoc:
+  class SchemaDumper # :nodoc:
     private_class_method :new
 
     ##
     # :singleton-method:
     # A list of tables which should not be dumped to the schema.
-    # Acceptable values are strings as well as regexp if ActiveRecord::Base.schema_format == :ruby.
-    # Only strings are accepted if ActiveRecord::Base.schema_format == :sql.
+    # Acceptable values are strings as well as regexp if ActiveRecord.schema_format == :ruby.
+    # Only strings are accepted if ActiveRecord.schema_format == :sql.
     cattr_accessor :ignore_tables, default: []
 
     ##
@@ -22,6 +22,12 @@ module ActiveRecord
     # Specify a custom regular expression matching foreign keys which name
     # should not be dumped to db/schema.rb.
     cattr_accessor :fk_ignore_pattern, default: /^fk_rails_[0-9a-f]{10}$/
+
+    ##
+    # :singleton-method:
+    # Specify a custom regular expression matching check constraints which name
+    # should not be dumped to db/schema.rb.
+    cattr_accessor :chk_ignore_pattern, default: /^chk_rails_[0-9a-f]{10}$/
 
     class << self
       def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
@@ -41,6 +47,7 @@ module ActiveRecord
     def dump(stream)
       header(stream)
       extensions(stream)
+      types(stream)
       tables(stream)
       trailer(stream)
       stream
@@ -93,6 +100,10 @@ HEADER
       def extensions(stream)
       end
 
+      # (enum) types are only supported by PostgreSQL
+      def types(stream)
+      end
+
       def tables(stream)
         sorted_tables = @connection.tables.sort
 
@@ -125,7 +136,10 @@ HEADER
             tbl.print ", primary_key: #{pk.inspect}" unless pk == "id"
             pkcol = columns.detect { |c| c.name == pk }
             pkcolspec = column_spec_for_primary_key(pkcol)
-            if pkcolspec.present?
+            unless pkcolspec.empty?
+              if pkcolspec != pkcolspec.slice(:id, :default)
+                pkcolspec = { id: { type: pkcolspec.delete(:id), **pkcolspec }.compact }
+              end
               tbl.print ", #{format_colspec(pkcolspec)}"
             end
           when Array
@@ -145,6 +159,7 @@ HEADER
           columns.each do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
+
             type, colspec = column_spec(column)
             if type.is_a?(Symbol)
               tbl.print "    t.#{type} #{column.name.inspect}"
@@ -156,6 +171,7 @@ HEADER
           end
 
           indexes_in_create(table, tbl)
+          check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
 
           tbl.puts "  end"
           tbl.puts
@@ -209,6 +225,24 @@ HEADER
         index_parts
       end
 
+      def check_constraints_in_create(table, stream)
+        if (check_constraints = @connection.check_constraints(table)).any?
+          add_check_constraint_statements = check_constraints.map do |check_constraint|
+            parts = [
+              "t.check_constraint #{check_constraint.expression.inspect}"
+            ]
+
+            if check_constraint.export_name_on_schema_dump?
+              parts << "name: #{check_constraint.name.inspect}"
+            end
+
+            "    #{parts.join(', ')}"
+          end
+
+          stream.puts add_check_constraint_statements.sort.join("\n")
+        end
+      end
+
       def foreign_keys(table, stream)
         if (foreign_keys = @connection.foreign_keys(table)).any?
           add_foreign_key_statements = foreign_keys.map do |foreign_key|
@@ -231,6 +265,7 @@ HEADER
 
             parts << "on_update: #{foreign_key.on_update.inspect}" if foreign_key.on_update
             parts << "on_delete: #{foreign_key.on_delete.inspect}" if foreign_key.on_delete
+            parts << "deferrable: #{foreign_key.deferrable.inspect}" if foreign_key.deferrable
 
             "  #{parts.join(', ')}"
           end
@@ -240,7 +275,9 @@ HEADER
       end
 
       def format_colspec(colspec)
-        colspec.map { |key, value| "#{key}: #{value}" }.join(", ")
+        colspec.map do |key, value|
+          "#{key}: #{ value.is_a?(Hash) ? "{ #{format_colspec(value)} }" : value }"
+        end.join(", ")
       end
 
       def format_options(options)

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "active_support/callbacks"
+require "active_support/core_ext/enumerable"
+require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
   # Abstract super class that provides a thread-isolated attributes singleton, which resets automatically
@@ -141,13 +143,24 @@ module ActiveSupport
         current_instances.clear
       end
 
+      def _use_thread_variables=(value) # :nodoc:
+        clear_all
+        @@use_thread_variables = value
+      end
+      @@use_thread_variables = false
+
       private
         def generated_attribute_methods
           @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
         end
 
         def current_instances
-          Thread.current[:current_attributes_instances] ||= {}
+          if @@use_thread_variables
+            Thread.current.thread_variable_get(:current_attributes_instances) ||
+              Thread.current.thread_variable_set(:current_attributes_instances, {})
+          else
+            Thread.current[:current_attributes_instances] ||= {}
+          end
         end
 
         def current_instances_key
@@ -161,6 +174,11 @@ module ActiveSupport
           singleton_class.delegate name, to: :instance
 
           send(name, *args, &block)
+        end
+        ruby2_keywords(:method_missing)
+
+        def respond_to_missing?(name, _)
+          super || instance.respond_to?(name)
         end
     end
 
@@ -201,7 +219,7 @@ module ActiveSupport
       end
 
       def compute_attributes(keys)
-        keys.collect { |key| [ key, public_send(key) ] }.to_h
+        keys.index_with { |key| public_send(key) }
       end
   end
 end

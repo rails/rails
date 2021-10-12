@@ -7,4 +7,6 @@ class NumericData < ActiveRecord::Base
   attribute :world_population, :big_integer
   attribute :my_house_population, :big_integer
   attribute :atoms_in_universe, :big_integer
+
+  alias_attribute :new_bank_balance, :bank_balance
 end

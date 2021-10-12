@@ -1,5 +1,5 @@
 Description:
-    Stubs out a scaffolded controller, its seven RESTful actions and related
+    Generates a scaffolded controller, its seven RESTful actions and related
     views. Pass the model name, either CamelCased or under_scored. The
     controller name is retrieved as a pluralized version of the model name.
 

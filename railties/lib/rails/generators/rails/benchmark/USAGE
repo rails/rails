@@ -7,7 +7,7 @@ Description:
      - No need to specify the number of iterations
 
 Example:
-    `rails generate benchmark opt_compare`
+    `bin/rails generate benchmark opt_compare`
 
     This will create:
         script/benchmarks/opt_compare.rb
@@ -16,4 +16,4 @@ Example:
         `ruby script/benchmarks/opt_compare.rb`
 
     You can specify different reports:
-        `rails generate benchmark opt_compare patch1 patch2 patch3`
+        `bin/rails generate benchmark opt_compare patch1 patch2 patch3`

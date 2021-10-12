@@ -11,6 +11,21 @@ class LegacyDeliveryJobTest < ActiveSupport::TestCase
   class LegacyDeliveryJob < ActionMailer::DeliveryJob
   end
 
+  class LegacyArgumentDeliveryJob < ActiveJob::Base
+    def perform(mailer, mail_method, delivery_method, *args)
+    end
+  end
+
+  class NewArgumentDeliveryJob < ActiveJob::Base
+    def perform(mailer, mail_method, delivery_method, args:)
+    end
+  end
+
+  class KeyRestArgumentJob < ActiveJob::Base
+    def perform(mailer, mail_method, delivery_method, **kwargs)
+    end
+  end
+
   setup do
     @previous_logger = ActiveJob::Base.logger
     ActiveJob::Base.logger = Logger.new(nil)
@@ -63,6 +78,36 @@ class LegacyDeliveryJobTest < ActiveSupport::TestCase
       assert_deprecated do
         assert_performed_with(job: LegacyDeliveryJob, args: args) do
           mail.deliver_later
+        end
+      end
+    end
+  end
+
+  test "triggers a deprecation warning when a delivery job use legacy arguments" do
+    with_delivery_job(LegacyArgumentDeliveryJob) do
+      assert_deprecated("Action Mailer will pass the mail arguments inside the `:args` keyword argument") do
+        perform_enqueued_jobs do
+          DelayedMailer.test_message(1, 2, 3).deliver_later
+        end
+      end
+    end
+  end
+
+  test "does not trigger a deprecation warning when a delivery job use a required `args` kwargs" do
+    with_delivery_job(NewArgumentDeliveryJob) do
+      assert_not_deprecated do
+        perform_enqueued_jobs do
+          DelayedMailer.test_message(1, 2, 3).deliver_later
+        end
+      end
+    end
+  end
+
+  test "does not trigger a deprecation warning when a delivery job use a keyrest argument" do
+    with_delivery_job(KeyRestArgumentJob) do
+      assert_not_deprecated do
+        perform_enqueued_jobs do
+          DelayedMailer.test_message(1, 2, 3).deliver_later
         end
       end
     end

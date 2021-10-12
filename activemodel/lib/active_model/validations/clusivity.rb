@@ -4,7 +4,7 @@ require "active_support/core_ext/range"
 
 module ActiveModel
   module Validations
-    module Clusivity #:nodoc:
+    module Clusivity # :nodoc:
       ERROR_MESSAGE = "An object with the method #include? or a proc, lambda or symbol is required, " \
                       "and must be supplied as the :in (or :within) option of the configuration hash"
 
@@ -24,7 +24,11 @@ module ActiveModel
           delimiter
         end
 
-        members.send(inclusion_method(members), value)
+        if value.is_a?(Array)
+          value.all? { |v| members.public_send(inclusion_method(members), v) }
+        else
+          members.public_send(inclusion_method(members), value)
+        end
       end
 
       def delimiter

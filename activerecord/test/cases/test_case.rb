@@ -12,7 +12,7 @@ module ActiveRecord
   # = Active Record Test Case
   #
   # Defines some test assertions to test against SQL queries.
-  class TestCase < ActiveSupport::TestCase #:nodoc:
+  class TestCase < ActiveSupport::TestCase # :nodoc:
     include ActiveSupport::Testing::MethodCallAssertions
     include ActiveSupport::Testing::Stream
     include ActiveRecord::TestFixtures
@@ -37,8 +37,8 @@ module ActiveRecord
       SQLCounter.log.dup
     end
 
-    def assert_sql(*patterns_to_match)
-      capture_sql { yield }
+    def assert_sql(*patterns_to_match, &block)
+      capture_sql(&block)
     ensure
       failed_patterns = []
       patterns_to_match.each do |pattern|
@@ -80,12 +80,33 @@ module ActiveRecord
       model.column_names.include?(column_name.to_s)
     end
 
-    def with_has_many_inversing
-      old = ActiveRecord::Base.has_many_inversing
-      ActiveRecord::Base.has_many_inversing = true
+    def with_has_many_inversing(model = ActiveRecord::Base)
+      old = model.has_many_inversing
+      model.has_many_inversing = true
       yield
     ensure
-      ActiveRecord::Base.has_many_inversing = old
+      model.has_many_inversing = old
+      if model != ActiveRecord::Base && !old
+        model.singleton_class.remove_method(:has_many_inversing) # reset the class_attribute
+      end
+    end
+
+    def with_automatic_scope_inversing(*reflections)
+      old = reflections.map { |reflection| reflection.klass.automatic_scope_inversing }
+
+      reflections.each do |reflection|
+        reflection.klass.automatic_scope_inversing = true
+        reflection.remove_instance_variable(:@inverse_name) if reflection.instance_variable_defined?(:@inverse_name)
+        reflection.remove_instance_variable(:@inverse_of) if reflection.instance_variable_defined?(:@inverse_of)
+      end
+
+      yield
+    ensure
+      reflections.each_with_index do |reflection, i|
+        reflection.klass.automatic_scope_inversing = old[i]
+        reflection.remove_instance_variable(:@inverse_name) if reflection.instance_variable_defined?(:@inverse_name)
+        reflection.remove_instance_variable(:@inverse_of) if reflection.instance_variable_defined?(:@inverse_of)
+      end
     end
 
     def reset_callbacks(klass, kind)
@@ -100,6 +121,18 @@ module ActiveRecord
       klass.subclasses.each do |subclass|
         subclass.send("_#{kind}_callbacks=", old_callbacks[subclass])
       end
+    end
+
+    def with_postgresql_datetime_type(type)
+      adapter = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
+      adapter.remove_instance_variable(:@native_database_types) if adapter.instance_variable_defined?(:@native_database_types)
+      datetime_type_was = adapter.datetime_type
+      adapter.datetime_type = type
+      yield
+    ensure
+      adapter = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
+      adapter.datetime_type = datetime_type_was
+      adapter.remove_instance_variable(:@native_database_types) if adapter.instance_variable_defined?(:@native_database_types)
     end
   end
 

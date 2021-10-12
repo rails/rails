@@ -10,7 +10,6 @@ module Rails
   module Command
     extend ActiveSupport::Autoload
 
-    autoload :Spellchecker
     autoload :Behavior
     autoload :Base
 
@@ -38,14 +37,21 @@ module Rails
         end
 
         command_name, namespace = "help", "help" if command_name.blank? || HELP_MAPPINGS.include?(command_name)
+        command_name, namespace, args = "application", "application", ["--help"] if rails_new_with_no_path?(args)
         command_name, namespace = "version", "version" if %w( -v --version ).include?(command_name)
+
+        original_argv = ARGV.dup
+        ARGV.replace(args)
 
         command = find_by_namespace(namespace, command_name)
         if command && command.all_commands[command_name]
           command.perform(command_name, args, config)
         else
+          args = ["--describe", full_namespace] if HELP_MAPPINGS.include?(args[0])
           find_by_namespace("rake").perform(full_namespace, args, config)
         end
+      ensure
+        ARGV.replace(original_argv)
       end
 
       # Rails finds namespaces similar to Thor, it only adds one rule:
@@ -53,14 +59,12 @@ module Rails
       # Command names must end with "_command.rb". This is required because Rails
       # looks in load paths and loads the command just before it's going to be used.
       #
-      #   find_by_namespace :webrat, :rails, :integration
+      #   find_by_namespace :webrat, :integration
       #
       # Will search for the following commands:
       #
-      #   "rails:webrat", "webrat:integration", "webrat"
+      #   "webrat", "webrat:integration", "rails:webrat", "rails:webrat:integration"
       #
-      # Notice that "rails:commands:webrat" could be loaded as well, what
-      # Rails looks for is the first and last parts of the namespace.
       def find_by_namespace(namespace, command_name = nil) # :nodoc:
         lookups = [ namespace ]
         lookups << "#{namespace}:#{command_name}" if command_name
@@ -88,6 +92,10 @@ module Rails
       private
         COMMANDS_IN_USAGE = %w(generate console server test test:system dbconsole new)
         private_constant :COMMANDS_IN_USAGE
+
+        def rails_new_with_no_path?(args)
+          args == ["new"]
+        end
 
         def commands
           lookup!

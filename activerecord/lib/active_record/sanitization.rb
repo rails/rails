@@ -54,7 +54,7 @@ module ActiveRecord
       # Accepts an array, or string of SQL conditions and sanitizes
       # them into a valid SQL fragment for an ORDER clause.
       #
-      #   sanitize_sql_for_order(["field(id, ?)", [1,3,2]])
+      #   sanitize_sql_for_order([Arel.sql("field(id, ?)"), [1,3,2]])
       #   # => "field(id, 1,3,2)"
       #
       #   sanitize_sql_for_order("id ASC")
@@ -137,26 +137,18 @@ module ActiveRecord
       def disallow_raw_sql!(args, permit: connection.column_name_matcher) # :nodoc:
         unexpected = nil
         args.each do |arg|
-          next if arg.is_a?(Symbol) || Arel.arel_node?(arg) || permit.match?(arg.to_s)
+          next if arg.is_a?(Symbol) || Arel.arel_node?(arg) || permit.match?(arg.to_s.strip)
           (unexpected ||= []) << arg
         end
 
-        return unless unexpected
-
-        if allow_unsafe_raw_sql == :deprecated
-          ActiveSupport::Deprecation.warn(
+        if unexpected
+          raise(ActiveRecord::UnknownAttributeReference,
             "Dangerous query method (method whose arguments are used as raw " \
             "SQL) called with non-attribute argument(s): " \
-            "#{unexpected.map(&:inspect).join(", ")}. Non-attribute " \
-            "arguments will be disallowed in Rails 6.1. This method should " \
-            "not be called with user-provided values, such as request " \
+            "#{unexpected.map(&:inspect).join(", ")}." \
+            "This method should not be called with user-provided values, such as request " \
             "parameters or model attributes. Known-safe values can be passed " \
             "by wrapping them in Arel.sql()."
-          )
-        else
-          raise(ActiveRecord::UnknownAttributeReference,
-            "Query method called with non-attribute argument(s): " +
-            unexpected.map(&:inspect).join(", ")
           )
         end
       end
@@ -193,14 +185,15 @@ module ActiveRecord
 
         def quote_bound_value(value, c = connection)
           if value.respond_to?(:map) && !value.acts_like?(:string)
-            quoted = value.map { |v| c.quote(v) }
-            if quoted.empty?
-              c.quote(nil)
+            values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
+            if values.empty?
+              c.quote_bound_value(nil)
             else
-              quoted.join(",")
+              values.map! { |v| c.quote_bound_value(v) }.join(",")
             end
           else
-            c.quote(value)
+            value = value.id_for_database if value.respond_to?(:id_for_database)
+            c.quote_bound_value(value)
           end
         end
 

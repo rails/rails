@@ -2,11 +2,7 @@
 
 module ActiveJob
   module Serializers
-    class TimeSerializer < ObjectSerializer # :nodoc:
-      def serialize(time)
-        super("value" => time.iso8601)
-      end
-
+    class TimeSerializer < TimeObjectSerializer # :nodoc:
       def deserialize(hash)
         Time.iso8601(hash["value"])
       end

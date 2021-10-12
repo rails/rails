@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  class AssociationRelation < Relation
+  class AssociationRelation < Relation # :nodoc:
     def initialize(klass, association, **)
       super(klass)
       @association = association
@@ -15,29 +15,31 @@ module ActiveRecord
       other == records
     end
 
-    def build(attributes = nil, &block)
-      block = _deprecated_scope_block("new", &block)
-      @association.scoping(self) do
-        @association.build(attributes, &block)
-      end
-    end
-    alias new build
+    %w(insert insert_all insert! insert_all! upsert upsert_all).each do |method|
+      class_eval <<~RUBY
+        def #{method}(attributes, **kwargs)
+          if @association.reflection.through_reflection?
+            raise ArgumentError, "Bulk insert or upsert is currently not supported for has_many through association"
+          end
 
-    def create(attributes = nil, &block)
-      block = _deprecated_scope_block("create", &block)
-      @association.scoping(self) do
-        @association.create(attributes, &block)
-      end
-    end
-
-    def create!(attributes = nil, &block)
-      block = _deprecated_scope_block("create!", &block)
-      @association.scoping(self) do
-        @association.create!(attributes, &block)
-      end
+          scoping { klass.#{method}(attributes, **kwargs) }
+        end
+      RUBY
     end
 
     private
+      def _new(attributes, &block)
+        @association.build(attributes, &block)
+      end
+
+      def _create(attributes, &block)
+        @association.create(attributes, &block)
+      end
+
+      def _create!(attributes, &block)
+        @association.create!(attributes, &block)
+      end
+
       def exec_queries
         super do |record|
           @association.set_inverse_instance_from_queries(record)

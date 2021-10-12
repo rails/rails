@@ -2,7 +2,6 @@
 # Check out https://help.github.com/articles/ignoring-files for how to set that up.
 
 .Gemfile
-.byebug_history
 .ruby-version
 /*/doc/
 /*/test/tmp/
@@ -10,6 +9,7 @@
 /dist/
 /doc/
 /guides/output/
+Brewfile.lock.json
 debug.log
 node_modules/
 package-lock.json

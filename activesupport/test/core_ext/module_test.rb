@@ -24,6 +24,10 @@ Someone = Struct.new(:name, :place) do
   self::FAILED_DELEGATE_LINE_2 = __LINE__ + 1
   delegate :bar, to: :place, allow_nil: true
 
+  def kw_send(method:)
+    public_send(method)
+  end
+
   private
     def private_name
       "Private"
@@ -59,15 +63,11 @@ Product = Struct.new(:name) do
   delegate :name, to: :type, prefix: true
 
   def manufacturer
-    @manufacturer ||= begin
-      nil.unknown_method
-    end
+    @manufacturer ||= nil.unknown_method
   end
 
   def type
-    @type ||= begin
-      nil.type_name
-    end
+    @type ||= nil.type_name
   end
 end
 
@@ -274,7 +274,7 @@ class ModuleTest < ActiveSupport::TestCase
     assert_nil rails.name
   end
 
-  # Ensures with check for nil, not for a falseish target.
+  # Ensures with check for nil, not for a falsy target.
   def test_delegation_with_allow_nil_and_false_value
     project = Project.new(false, false)
     assert_raise(NoMethodError) { project.name }
@@ -383,6 +383,10 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_delegate_missing_to_with_reserved_methods
     assert_equal "David", DecoratedReserved.new(@david).name
+  end
+
+  def test_delegate_missing_to_with_keyword_methods
+    assert_equal "David", DecoratedReserved.new(@david).kw_send(method: "name")
   end
 
   def test_delegate_missing_to_does_not_delegate_to_private_methods

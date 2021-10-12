@@ -43,6 +43,16 @@ module ActiveJob
     # Track when a job was enqueued
     attr_accessor :enqueued_at
 
+    # Track whether the adapter received the job successfully.
+    attr_writer :successfully_enqueued # :nodoc:
+
+    def successfully_enqueued?
+      @successfully_enqueued
+    end
+
+    # Track any exceptions raised by the backend so callers can inspect the errors.
+    attr_accessor :enqueue_error
+
     # These methods will be included into any Active Job object, adding
     # helpers for de/serialization and creation of job instances.
     module ClassMethods
@@ -85,8 +95,9 @@ module ActiveJob
       @priority   = self.class.priority
       @executions = 0
       @exception_executions = {}
+      @timezone   = Time.zone&.name
     end
-    ruby2_keywords(:initialize) if respond_to?(:ruby2_keywords, true)
+    ruby2_keywords(:initialize)
 
     # Returns a hash with the job data that can safely be passed to the
     # queuing adapter.
@@ -101,7 +112,7 @@ module ActiveJob
         "executions" => executions,
         "exception_executions" => exception_executions,
         "locale"     => I18n.locale.to_s,
-        "timezone"   => Time.zone&.name,
+        "timezone"   => timezone,
         "enqueued_at" => Time.now.utc.iso8601
       }
     end

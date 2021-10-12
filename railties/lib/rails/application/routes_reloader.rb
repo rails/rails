@@ -5,8 +5,11 @@ require "active_support/core_ext/module/delegation"
 module Rails
   class Application
     class RoutesReloader
+      include ActiveSupport::Callbacks
+
       attr_reader :route_sets, :paths, :external_routes
       attr_accessor :eager_load
+      attr_writer :run_after_load_paths # :nodoc:
       delegate :execute_if_updated, :execute, :updated?, to: :updater
 
       def initialize
@@ -45,6 +48,11 @@ module Rails
 
       def load_paths
         paths.each { |path| load(path) }
+        run_after_load_paths.call
+      end
+
+      def run_after_load_paths
+        @run_after_load_paths ||= -> { }
       end
 
       def finalize!

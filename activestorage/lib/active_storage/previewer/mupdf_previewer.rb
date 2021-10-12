@@ -12,7 +12,7 @@ module ActiveStorage
       end
 
       def mutool_exists?
-        return @mutool_exists unless @mutool_exists.nil?
+        return @mutool_exists if defined?(@mutool_exists) && !@mutool_exists.nil?
 
         system mutool_path, out: File::NULL, err: File::NULL
 

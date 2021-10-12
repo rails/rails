@@ -6,14 +6,27 @@ require_relative "../behaviors"
 
 class MemoryStoreTest < ActiveSupport::TestCase
   def setup
-    @cache = ActiveSupport::Cache.lookup_store(:memory_store, expires_in: 60)
+    @cache = lookup_store(expires_in: 60)
+  end
+
+  def lookup_store(options = {})
+    ActiveSupport::Cache.lookup_store(:memory_store, options)
   end
 
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
+  include CacheStoreCoderBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
+
+  def test_large_string_with_default_compression_settings
+    assert_uncompressed(LARGE_STRING)
+  end
+
+  def test_large_object_with_default_compression_settings
+    assert_uncompressed(LARGE_OBJECT)
+  end
 end
 
 class MemoryStorePruningTest < ActiveSupport::TestCase

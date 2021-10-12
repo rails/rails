@@ -5,6 +5,9 @@ require_relative "../abstract_unit"
 module ActiveSupport
   module Notifications
     class EventedTest < ActiveSupport::TestCase
+      # we expect all exception types to be handled, so test with the most basic type
+      class BadListenerException < Exception; end
+
       class Listener
         attr_reader :events
 
@@ -24,6 +27,24 @@ module ActiveSupport
       class ListenerWithTimedSupport < Listener
         def call(name, start, finish, id, payload)
           @events << [:call, name, start, finish, id, payload]
+        end
+      end
+
+      class BadStartListener < Listener
+        def start(name, id, payload)
+          raise BadListenerException
+        end
+
+        def finish(name, id, payload)
+        end
+      end
+
+      class BadFinishListener < Listener
+        def start(name, id, payload)
+        end
+
+        def finish(name, id, payload)
+          raise BadListenerException
         end
       end
 
@@ -61,6 +82,54 @@ module ActiveSupport
         notifier.start  "world", 1, {}
         notifier.finish  "world", 1, {}
         notifier.finish  "hello", 1, {}
+
+        assert_equal 4, listener.events.length
+        assert_equal [
+          [:start,  "hello", 1, {}],
+          [:start,  "world", 1, {}],
+          [:finish,  "world", 1, {}],
+          [:finish,  "hello", 1, {}],
+        ], listener.events
+      end
+
+      def test_listen_start_exception_consistency
+        notifier = Fanout.new
+        listener = Listener.new
+        notifier.subscribe nil, BadStartListener.new
+        notifier.subscribe nil, listener
+
+        assert_raises InstrumentationSubscriberError do
+          notifier.start  "hello", 1, {}
+        end
+        assert_raises InstrumentationSubscriberError do
+          notifier.start  "world", 1, {}
+        end
+        notifier.finish  "world", 1, {}
+        notifier.finish  "hello", 1, {}
+
+        assert_equal 4, listener.events.length
+        assert_equal [
+          [:start,  "hello", 1, {}],
+          [:start,  "world", 1, {}],
+          [:finish,  "world", 1, {}],
+          [:finish,  "hello", 1, {}],
+        ], listener.events
+      end
+
+      def test_listen_finish_exception_consistency
+        notifier = Fanout.new
+        listener = Listener.new
+        notifier.subscribe nil, BadFinishListener.new
+        notifier.subscribe nil, listener
+
+        notifier.start  "hello", 1, {}
+        notifier.start  "world", 1, {}
+        assert_raises InstrumentationSubscriberError do
+          notifier.finish  "world", 1, {}
+        end
+        assert_raises InstrumentationSubscriberError do
+          notifier.finish  "hello", 1, {}
+        end
 
         assert_equal 4, listener.events.length
         assert_equal [

@@ -57,12 +57,11 @@ class MultipleDbTest < ActiveRecord::TestCase
     assert_equal e3.course.id, c2.id
   end
 
-  def test_course_connection_should_survive_dependency_reload
+  def test_course_connection_should_survive_reloads
     assert Course.connection
 
-    ActiveSupport::Dependencies.clear
-    Object.send(:remove_const, :Course)
-    require_dependency "models/course"
+    assert Object.send(:remove_const, :Course)
+    assert load("models/course.rb")
 
     assert Course.connection
   end

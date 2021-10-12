@@ -12,14 +12,14 @@
 #      - HasManyAssociation
 
 module ActiveRecord::Associations::Builder # :nodoc:
-  class Association #:nodoc:
+  class Association # :nodoc:
     class << self
       attr_accessor :extensions
     end
     self.extensions = []
 
     VALID_OPTIONS = [
-      :class_name, :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of
+      :class_name, :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of, :strict_loading
     ].freeze # :nodoc:
 
     def self.build(model, name, scope, options, &block)
@@ -33,6 +33,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       define_accessors model, reflection
       define_callbacks model, reflection
       define_validations model, reflection
+      define_change_tracking_methods model, reflection
       reflection
     end
 
@@ -74,8 +75,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.define_callbacks(model, reflection)
       if dependent = reflection.options[:dependent]
-        check_dependent_options(dependent)
+        check_dependent_options(dependent, model)
         add_destroy_callbacks(model, reflection)
+        add_after_commit_jobs_callback(model, dependent)
       end
 
       Association.extensions.each do |extension|
@@ -116,11 +118,19 @@ module ActiveRecord::Associations::Builder # :nodoc:
       # noop
     end
 
+    def self.define_change_tracking_methods(model, reflection)
+      # noop
+    end
+
     def self.valid_dependent_options
       raise NotImplementedError
     end
 
-    def self.check_dependent_options(dependent)
+    def self.check_dependent_options(dependent, model)
+      if dependent == :destroy_async && !model.destroy_association_async_job
+        err_message = "ActiveJob is required to use destroy_async on associations"
+        raise ActiveRecord::ActiveJobRequiredError, err_message
+      end
       unless valid_dependent_options.include? dependent
         raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{dependent}"
       end
@@ -128,11 +138,32 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.add_destroy_callbacks(model, reflection)
       name = reflection.name
-      model.before_destroy lambda { |o| o.association(name).handle_dependency }
+      model.before_destroy(->(o) { o.association(name).handle_dependency })
+    end
+
+    def self.add_after_commit_jobs_callback(model, dependent)
+      if dependent == :destroy_async
+        mixin = model.generated_association_methods
+
+        unless mixin.method_defined?(:_after_commit_jobs)
+          model.after_commit(-> do
+            _after_commit_jobs.each do |job_class, job_arguments|
+              job_class.perform_later(**job_arguments)
+            end
+          end)
+
+          mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+            def _after_commit_jobs
+              @_after_commit_jobs ||= []
+            end
+          CODE
+        end
+      end
     end
 
     private_class_method :build_scope, :macro, :valid_options, :validate_options, :define_extensions,
       :define_callbacks, :define_accessors, :define_readers, :define_writers, :define_validations,
-      :valid_dependent_options, :check_dependent_options, :add_destroy_callbacks
+      :define_change_tracking_methods, :valid_dependent_options, :check_dependent_options,
+      :add_destroy_callbacks, :add_after_commit_jobs_callback
   end
 end

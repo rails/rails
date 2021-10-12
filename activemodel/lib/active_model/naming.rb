@@ -3,12 +3,13 @@
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/introspection"
 require "active_support/core_ext/module/redefine_method"
+require "active_support/core_ext/module/delegation"
 
 module ActiveModel
   class Name
     include Comparable
 
-    attr_reader :singular, :plural, :element, :collection,
+    attr_accessor :singular, :plural, :element, :collection,
       :singular_route_key, :route_key, :param_key, :i18n_key,
       :name
 
@@ -153,6 +154,7 @@ module ActiveModel
     # Returns a new ActiveModel::Name instance. By default, the +namespace+
     # and +name+ option will take the namespace and name of the given class
     # respectively.
+    # Use +locale+ argument for singularize and pluralize model name.
     #
     #   module Foo
     #     class Bar
@@ -161,24 +163,25 @@ module ActiveModel
     #
     #   ActiveModel::Name.new(Foo::Bar).to_s
     #   # => "Foo::Bar"
-    def initialize(klass, namespace = nil, name = nil)
+    def initialize(klass, namespace = nil, name = nil, locale = :en)
       @name = name || klass.name
 
       raise ArgumentError, "Class name cannot be blank. You need to supply a name argument when anonymous class given" if @name.blank?
 
-      @unnamespaced = @name.sub(/^#{namespace.name}::/, "") if namespace
+      @unnamespaced = @name.delete_prefix("#{namespace.name}::") if namespace
       @klass        = klass
       @singular     = _singularize(@name)
-      @plural       = ActiveSupport::Inflector.pluralize(@singular)
+      @plural       = ActiveSupport::Inflector.pluralize(@singular, locale)
+      @uncountable  = @plural == @singular
       @element      = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(@name))
       @human        = ActiveSupport::Inflector.humanize(@element)
       @collection   = ActiveSupport::Inflector.tableize(@name)
       @param_key    = (namespace ? _singularize(@unnamespaced) : @singular)
       @i18n_key     = @name.underscore.to_sym
 
-      @route_key          = (namespace ? ActiveSupport::Inflector.pluralize(@param_key) : @plural.dup)
-      @singular_route_key = ActiveSupport::Inflector.singularize(@route_key)
-      @route_key << "_index" if @plural == @singular
+      @route_key          = (namespace ? ActiveSupport::Inflector.pluralize(@param_key, locale) : @plural.dup)
+      @singular_route_key = ActiveSupport::Inflector.singularize(@route_key, locale)
+      @route_key << "_index" if @uncountable
     end
 
     # Transform the model name into a more human format, using I18n. By default,
@@ -204,6 +207,10 @@ module ActiveModel
 
       options = { scope: [@klass.i18n_scope, :models], count: 1, default: defaults }.merge!(options.except(:default))
       I18n.translate(defaults.shift, **options)
+    end
+
+    def uncountable?
+      @uncountable
     end
 
     private
@@ -232,7 +239,7 @@ module ActiveModel
   # is required to pass the \Active \Model Lint test. So either extending the
   # provided method below, or rolling your own is required.
   module Naming
-    def self.extended(base) #:nodoc:
+    def self.extended(base) # :nodoc:
       base.silence_redefinition_of_method :model_name
       base.delegate :model_name, to: :class
     end
@@ -279,7 +286,7 @@ module ActiveModel
     #   ActiveModel::Naming.uncountable?(Sheep) # => true
     #   ActiveModel::Naming.uncountable?(Post)  # => false
     def self.uncountable?(record_or_class)
-      plural(record_or_class) == singular(record_or_class)
+      model_name_from_record_or_class(record_or_class).uncountable?
     end
 
     # Returns string to use while generating route names. It differs for
@@ -321,7 +328,7 @@ module ActiveModel
       model_name_from_record_or_class(record_or_class).param_key
     end
 
-    def self.model_name_from_record_or_class(record_or_class) #:nodoc:
+    def self.model_name_from_record_or_class(record_or_class) # :nodoc:
       if record_or_class.respond_to?(:to_model)
         record_or_class.to_model.model_name
       else

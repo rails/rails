@@ -1,6 +1,6 @@
 Description:
 ============
-    Stubs out a new mailbox class in app/mailboxes and invokes your template
+    Generates a new mailbox class in app/mailboxes and invokes your template
     engine and test framework generators.
 
 Example:

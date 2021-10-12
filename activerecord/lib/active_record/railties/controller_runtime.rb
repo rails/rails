@@ -5,7 +5,7 @@ require "active_record/log_subscriber"
 
 module ActiveRecord
   module Railties # :nodoc:
-    module ControllerRuntime #:nodoc:
+    module ControllerRuntime # :nodoc:
       extend ActiveSupport::Concern
 
       module ClassMethods # :nodoc:

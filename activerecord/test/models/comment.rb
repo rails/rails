@@ -10,18 +10,25 @@ class Comment < ActiveRecord::Base
   scope :for_first_post, -> { where(post_id: 1) }
   scope :for_first_author, -> { joins(:post).where("posts.author_id" => 1) }
   scope :created, -> { all }
+  scope :ordered_by_post_id, -> { order("comments.post_id DESC") }
 
   belongs_to :post, counter_cache: true
   belongs_to :author,   polymorphic: true
   belongs_to :resource, polymorphic: true
+  belongs_to :origin, polymorphic: true
+  belongs_to :company, foreign_key: "company"
 
   has_many :ratings
 
   belongs_to :first_post, foreign_key: :post_id
   belongs_to :special_post_with_default_scope, foreign_key: :post_id
 
-  has_many :children, class_name: "Comment", foreign_key: :parent_id
-  belongs_to :parent, class_name: "Comment", counter_cache: :children_count
+  has_many :children, class_name: "Comment", foreign_key: :parent_id, inverse_of: :parent
+  belongs_to :parent, class_name: "Comment", counter_cache: :children_count, inverse_of: :children
+
+  alias_attribute :entry, :post
+
+  enum label: [:default, :child]
 
   class ::OopsError < RuntimeError; end
 
@@ -59,6 +66,7 @@ class Comment < ActiveRecord::Base
 end
 
 class SpecialComment < Comment
+  belongs_to :ordinary_post, foreign_key: :post_id, class_name: "Post"
   has_one :author, through: :post
   default_scope { where(deleted_at: nil) }
 

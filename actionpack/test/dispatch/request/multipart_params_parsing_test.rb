@@ -4,8 +4,20 @@ require "abstract_unit"
 
 class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
+    skip_parameter_encoding("parse_binary")
+
     class << self
       attr_accessor :last_request_parameters, :last_parameters
+    end
+
+    def parse_binary
+      self.class.last_request_parameters = begin
+        request.request_parameters
+      rescue EOFError
+        {}
+      end
+      self.class.last_parameters = request.parameters
+      head :ok
     end
 
     def parse
@@ -118,7 +130,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
   end
 
   test "parses mixed files" do
-    params = parse_multipart("mixed_files")
+    params = parse_multipart("mixed_files", "/parse_binary")
     assert_equal %w(files foo), params.keys.sort
     assert_equal "bar", params["foo"]
 
@@ -145,7 +157,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
   test "uploads and reads binary file" do
     with_test_routing do
       fixture = FIXTURE_PATH + "/ruby_on_rails.jpg"
-      params = { uploaded_data: fixture_file_upload(fixture, "image/jpg") }
+      params = { uploaded_data: fixture_file_upload(fixture, "image/jpeg") }
       post "/read", params: params
     end
   end
@@ -180,10 +192,10 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
       end
     end
 
-    def parse_multipart(name)
+    def parse_multipart(name, path = "/parse")
       with_test_routing do
         headers = fixture(name)
-        post "/parse", params: headers.delete("rack.input"), headers: headers
+        post path, params: headers.delete("rack.input"), headers: headers
         assert_response :ok
         TestController.last_request_parameters
       end

@@ -3,6 +3,7 @@
 require "shellwords"
 require "method_source"
 require "rake/file_list"
+require "active_support"
 require "active_support/core_ext/module/attribute_accessors"
 
 module Rails
@@ -30,9 +31,9 @@ module Rails
         end
 
         def rake_run(argv = [])
-          ARGV.replace Shellwords.split(ENV["TESTOPTS"] || "")
-
-          run(argv)
+          # Ensure the tests run during the Rake Task action, not when the process exits
+          success = system("rails", "test", *argv, *Shellwords.split(ENV["TESTOPTS"] || ""))
+          success || exit(false)
         end
 
         def run(argv = [])
@@ -42,11 +43,7 @@ module Rails
         end
 
         def load_tests(argv)
-          patterns = extract_filters(argv)
-
-          tests = Rake::FileList[patterns.any? ? patterns : "test/**/*_test.rb"]
-          tests.exclude("test/system/**/*", "test/dummy/**/*") if patterns.empty?
-
+          tests = list_tests(argv)
           tests.to_a.each { |path| require File.expand_path(path) }
         end
 
@@ -61,7 +58,10 @@ module Rails
         private
           def extract_filters(argv)
             # Extract absolute and relative paths but skip -n /.*/ regexp filters.
-            argv.select { |arg| %r%^/?\w+/%.match?(arg) && !arg.end_with?("/") }.map do |path|
+            argv.filter_map do |path|
+              next unless path_argument?(path) && !regexp_filter?(path)
+
+              path = path.tr("\\", "/")
               case
               when /(:\d+)+$/.match?(path)
                 file, *lines = path.split(":")
@@ -74,6 +74,30 @@ module Rails
                 path
               end
             end
+          end
+
+          def default_test_glob
+            ENV["DEFAULT_TEST"] || "test/**/*_test.rb"
+          end
+
+          def default_test_exclude_glob
+            ENV["DEFAULT_TEST_EXCLUDE"] || "test/{system,dummy}/**/*_test.rb"
+          end
+
+          def regexp_filter?(arg)
+            arg.start_with?("/") && arg.end_with?("/")
+          end
+
+          def path_argument?(arg)
+            %r"^[/\\]?\w+[/\\]".match?(arg)
+          end
+
+          def list_tests(argv)
+            patterns = extract_filters(argv)
+
+            tests = Rake::FileList[patterns.any? ? patterns : default_test_glob]
+            tests.exclude(default_test_exclude_glob) if patterns.empty?
+            tests
           end
       end
     end

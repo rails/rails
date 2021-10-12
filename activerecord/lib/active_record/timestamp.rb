@@ -75,16 +75,16 @@ module ActiveRecord
       end
 
       def current_time_from_proper_timezone
-        default_timezone == :utc ? Time.now.utc : Time.now
+        ActiveRecord.default_timezone == :utc ? Time.now.utc : Time.now
       end
 
       private
         def timestamp_attributes_for_create
-          ["created_at", "created_on"]
+          ["created_at", "created_on"].map! { |name| attribute_aliases[name] || name }
         end
 
         def timestamp_attributes_for_update
-          ["updated_at", "updated_on"]
+          ["updated_at", "updated_on"].map! { |name| attribute_aliases[name] || name }
         end
 
         def reload_schema_from_cache
@@ -101,9 +101,7 @@ module ActiveRecord
         current_time = current_time_from_proper_timezone
 
         all_timestamp_attributes_in_model.each do |column|
-          if !attribute_present?(column)
-            _write_attribute(column, current_time)
-          end
+          _write_attribute(column, current_time) unless _read_attribute(column)
         end
       end
 
@@ -129,7 +127,7 @@ module ActiveRecord
     end
 
     def should_record_timestamps?
-      record_timestamps && (!partial_writes? || has_changes_to_save?)
+      record_timestamps && (!partial_updates? || has_changes_to_save?)
     end
 
     def timestamp_attributes_for_create_in_model
@@ -150,8 +148,7 @@ module ActiveRecord
 
     def max_updated_column_timestamp
       timestamp_attributes_for_update_in_model
-        .map { |attr| self[attr]&.to_time }
-        .compact
+        .filter_map { |attr| self[attr]&.to_time }
         .max
     end
 
@@ -159,7 +156,7 @@ module ActiveRecord
     def clear_timestamp_attributes
       all_timestamp_attributes_in_model.each do |attribute_name|
         self[attribute_name] = nil
-        clear_attribute_changes([attribute_name])
+        clear_attribute_change(attribute_name)
       end
     end
   end

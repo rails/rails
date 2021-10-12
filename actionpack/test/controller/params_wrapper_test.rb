@@ -293,6 +293,10 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
     def self.attribute_names
       ["username"]
     end
+
+    def self.attribute_aliases
+      { "nick" => "username" }
+    end
   end
 
   class SampleTwo
@@ -322,6 +326,19 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
         @request.env["CONTENT_TYPE"] = "application/json"
         post :parse, params: { "username" => "sikachu", "title" => "Developer" }
         assert_parameters("username" => "sikachu", "title" => "Developer", "user" => { "username" => "sikachu" })
+      end
+    ensure
+      Admin.send :remove_const, :User
+    end
+  end
+
+  def test_namespace_lookup_from_model_alias
+    Admin.const_set(:User, Class.new(SampleOne))
+    begin
+      with_default_wrapper_options do
+        @request.env["CONTENT_TYPE"] = "application/json"
+        post :parse, params: { "nick" => "sikachu", "title" => "Developer" }
+        assert_parameters({ "nick" => "sikachu", "title" => "Developer", "user" => { "nick" => "sikachu" } })
       end
     ensure
       Admin.send :remove_const, :User

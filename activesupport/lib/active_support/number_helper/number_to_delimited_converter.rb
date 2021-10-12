@@ -4,7 +4,7 @@ require "active_support/number_helper/number_converter"
 
 module ActiveSupport
   module NumberHelper
-    class NumberToDelimitedConverter < NumberConverter #:nodoc:
+    class NumberToDelimitedConverter < NumberConverter # :nodoc:
       self.validate_float = true
 
       DEFAULT_DELIMITER_REGEX = /(\d)(?=(\d\d\d)+(?!\d))/

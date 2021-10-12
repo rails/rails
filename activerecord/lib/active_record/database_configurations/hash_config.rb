@@ -12,12 +12,12 @@ module ActiveRecord
     # Becomes:
     #
     #   #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10
-    #     @env_name="development", @spec_name="primary", @config={database: "db_name"}>
+    #     @env_name="development", @name="primary", @config={database: "db_name"}>
     #
     # ==== Options
     #
     # * <tt>:env_name</tt> - The Rails environment, i.e. "development".
-    # * <tt>:spec_name</tt> - The specification name. In a standard two-tier
+    # * <tt>:name</tt> - The db config name. In a standard two-tier
     #   database configuration this will default to "primary". In a multiple
     #   database three-tier database configuration this corresponds to the name
     #   used in the second tier, for example "primary_readonly".
@@ -25,18 +25,16 @@ module ActiveRecord
     #   database adapter, name, and other important information for database
     #   connections.
     class HashConfig < DatabaseConfig
-      def initialize(env_name, spec_name, config)
-        super(env_name, spec_name)
-        @config = config.symbolize_keys
+      attr_reader :configuration_hash
+
+      def initialize(env_name, name, configuration_hash)
+        super(env_name, name)
+        @configuration_hash = configuration_hash.symbolize_keys.freeze
       end
 
       def config
-        ActiveSupport::Deprecation.warn("DatabaseConfig#config will be removed in 6.2.0 in favor of DatabaseConfigurations#configuration_hash which returns a hash with symbol keys")
+        ActiveSupport::Deprecation.warn("DatabaseConfig#config will be removed in 7.0.0 in favor of DatabaseConfig#configuration_hash which returns a hash with symbol keys")
         configuration_hash.stringify_keys
-      end
-
-      def configuration_hash
-        @config.freeze
       end
 
       # Determines whether a database configuration is for a replica / readonly
@@ -57,16 +55,32 @@ module ActiveRecord
         configuration_hash[:host]
       end
 
+      def socket # :nodoc:
+        configuration_hash[:socket]
+      end
+
       def database
         configuration_hash[:database]
       end
 
       def _database=(database) # :nodoc:
-        @config = configuration_hash.dup.merge(database: database).freeze
+        @configuration_hash = configuration_hash.merge(database: database).freeze
       end
 
       def pool
         (configuration_hash[:pool] || 5).to_i
+      end
+
+      def min_threads
+        (configuration_hash[:min_threads] || 0).to_i
+      end
+
+      def max_threads
+        (configuration_hash[:max_threads] || pool).to_i
+      end
+
+      def max_queue
+        max_threads * 4
       end
 
       def checkout_timeout
@@ -93,6 +107,27 @@ module ActiveRecord
       # default will be derived.
       def schema_cache_path
         configuration_hash[:schema_cache_path]
+      end
+
+      def default_schema_cache_path
+        "db/schema_cache.yml"
+      end
+
+      def lazy_schema_cache_path
+        schema_cache_path || default_schema_cache_path
+      end
+
+      def primary? # :nodoc:
+        Base.configurations.primary?(name)
+      end
+
+      # Determines whether to dump the schema for a database.
+      def schema_dump
+        configuration_hash.fetch(:schema_dump, true)
+      end
+
+      def database_tasks? # :nodoc:
+        !replica? && !!configuration_hash.fetch(:database_tasks, true)
       end
     end
   end

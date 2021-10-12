@@ -12,7 +12,7 @@ module ActionDispatch
     class Mapper
       URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
 
-      class Constraints < Routing::Endpoint #:nodoc:
+      class Constraints < Routing::Endpoint # :nodoc:
         attr_reader :app, :constraints
 
         SERVE = ->(app, req) { app.serve req }
@@ -66,11 +66,11 @@ module ActionDispatch
           end
       end
 
-      class Mapping #:nodoc:
+      class Mapping # :nodoc:
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
         OPTIONAL_FORMAT_REGEX = %r{(?:\(\.:format\)+|\.:format|/)\Z}
 
-        attr_reader :requirements, :defaults, :to, :default_controller,
+        attr_reader :path, :requirements, :defaults, :to, :default_controller,
                     :default_action, :required_defaults, :ast, :scope_options
 
         def self.build(scope, set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, options)
@@ -121,19 +121,17 @@ module ActionDispatch
           @to                 = intern(to)
           @default_controller = intern(controller)
           @default_action     = intern(default_action)
-          @ast                = ast
           @anchor             = anchor
           @via                = via
           @internal           = options.delete(:internal)
           @scope_options      = scope_params[:options]
+          ast                 = Journey::Ast.new(ast, formatted)
 
-          path_params = ast.find_all(&:symbol?).map(&:to_sym)
+          options = ast.wildcard_options.merge!(options)
 
-          options = add_wildcard_options(options, formatted, ast)
+          options = normalize_options!(options, ast.path_params, scope_params[:module])
 
-          options = normalize_options!(options, path_params, scope_params[:module])
-
-          split_options = constraints(options, path_params)
+          split_options = constraints(options, ast.path_params)
 
           constraints = scope_params[:constraints].merge Hash[split_options[:constraints] || []]
 
@@ -147,7 +145,7 @@ module ActionDispatch
             @blocks = blocks(options_constraints)
           end
 
-          requirements, conditions = split_constraints path_params, constraints
+          requirements, conditions = split_constraints ast.path_params, constraints
           verify_regexp_requirements requirements.map(&:last).grep(Regexp)
 
           formats = normalize_format(formatted)
@@ -156,12 +154,17 @@ module ActionDispatch
           @conditions = Hash[conditions]
           @defaults = formats[:defaults].merge(@defaults).merge(normalize_defaults(options))
 
-          if path_params.include?(:action) && !@requirements.key?(:action)
+          if ast.path_params.include?(:action) && !@requirements.key?(:action)
             @defaults[:action] ||= "index"
           end
 
           @required_defaults = (split_options[:required_defaults] || []).map(&:first)
+
+          ast.requirements = @requirements
+          @path = Journey::Path::Pattern.new(ast, @requirements, JOINED_SEPARATORS, @anchor)
         end
+
+        JOINED_SEPARATORS = SEPARATORS.join # :nodoc:
 
         def make_route(name, precedence)
           Journey::Route.new(name: name, app: application, path: path, constraints: conditions,
@@ -172,10 +175,6 @@ module ActionDispatch
 
         def application
           app(@blocks)
-        end
-
-        def path
-          build_path @ast, requirements, @anchor
         end
 
         def conditions
@@ -196,52 +195,9 @@ module ActionDispatch
         end
         private :request_method
 
-        JOINED_SEPARATORS = SEPARATORS.join # :nodoc:
-
-        def build_path(ast, requirements, anchor)
-          pattern = Journey::Path::Pattern.new(ast, requirements, JOINED_SEPARATORS, anchor)
-
-          # Find all the symbol nodes that are adjacent to literal nodes and alter
-          # the regexp so that Journey will partition them into custom routes.
-          ast.find_all { |node|
-            next unless node.cat?
-
-            if node.left.literal? && node.right.symbol?
-              symbol = node.right
-            elsif node.left.literal? && node.right.cat? && node.right.left.symbol?
-              symbol = node.right.left
-            elsif node.left.symbol? && node.right.literal?
-              symbol = node.left
-            elsif node.left.symbol? && node.right.cat? && node.right.left.literal?
-              symbol = node.left
-            else
-              next
-            end
-
-            if symbol
-              symbol.regexp = /(?:#{Regexp.union(symbol.regexp, '-')})+/
-            end
-          }
-
-          pattern
-        end
-        private :build_path
-
         private
           def intern(object)
             object.is_a?(String) ? -object : object
-          end
-
-          def add_wildcard_options(options, formatted, path_ast)
-            # Add a constraint for wildcard route to make it non-greedy and match the
-            # optional format part of the route by default.
-            if formatted != false
-              path_ast.grep(Journey::Nodes::Star).each_with_object({}) { |node, hash|
-                hash[node.name.to_sym] ||= /.+?/
-              }.merge options
-            else
-              options
-            end
           end
 
           def normalize_options!(options, path_params, modyoule)
@@ -347,7 +303,7 @@ module ActionDispatch
 
           def split_to(to)
             if /#/.match?(to)
-              to.split("#")
+              to.split("#").map!(&:-@)
             else
               []
             end
@@ -355,10 +311,10 @@ module ActionDispatch
 
           def add_controller_module(controller, modyoule)
             if modyoule && !controller.is_a?(Regexp)
-              if controller.to_s.start_with?("/")
-                controller[1..-1]
+              if controller&.start_with?("/")
+                -controller[1..-1]
               else
-                [modyoule, controller].compact.join("/")
+                -[modyoule, controller].compact.join("/")
               end
             else
               controller
@@ -700,7 +656,7 @@ module ActionDispatch
 
               # We must actually delete prefix segment keys to avoid passing them to next url_for.
               _route.segment_keys.each { |k| options.delete(k) }
-              _url_helpers.send("#{name}_path", prefix_options)
+              _url_helpers.public_send("#{name}_path", prefix_options)
             end
 
             app.routes.define_mounted_helper(name, script_namer)
@@ -966,7 +922,7 @@ module ActionDispatch
         #   namespace :admin, as: "sekret" do
         #     resources :posts
         #   end
-        def namespace(path, options = {})
+        def namespace(path, options = {}, &block)
           path = path.to_s
 
           defaults = {
@@ -977,7 +933,7 @@ module ActionDispatch
           }
 
           path_scope(options.delete(:path) { path }) do
-            scope(defaults.merge!(options)) { yield }
+            scope(defaults.merge!(options), &block)
           end
         end
 
@@ -1036,8 +992,8 @@ module ActionDispatch
         #    constraints(Iphone) do
         #      resources :iphones
         #    end
-        def constraints(constraints = {})
-          scope(constraints: constraints) { yield }
+        def constraints(constraints = {}, &block)
+          scope(constraints: constraints, &block)
         end
 
         # Allows you to set default parameters for a route, such as this:
@@ -1166,7 +1122,7 @@ module ActionDispatch
         RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns]
         CANONICAL_ACTIONS = %w(index create new show update destroy)
 
-        class Resource #:nodoc:
+        class Resource # :nodoc:
           attr_reader :controller, :path, :param
 
           def initialize(entities, api_only, shallow, options = {})
@@ -1261,7 +1217,7 @@ module ActionDispatch
           def singleton?; false; end
         end
 
-        class SingletonResource < Resource #:nodoc:
+        class SingletonResource < Resource # :nodoc:
           def initialize(entities, api_only, shallow, options)
             super
             @as         = nil
@@ -1316,6 +1272,16 @@ module ActionDispatch
         #   PATCH/PUT /profile
         #   DELETE    /profile
         #   POST      /profile
+        #
+        # If you want instances of a model to work with this resource via
+        # record identification (e.g. in +form_with+ or +redirect_to+), you
+        # will need to call resolve[rdoc-ref:CustomUrls#resolve]:
+        #
+        #   resource :profile
+        #   resolve('Profile') { [:profile] }
+        #
+        #   # Enables this to work with singular routes:
+        #   form_with(model: @profile) {}
         #
         # === Options
         # Takes same options as resources[rdoc-ref:#resources]
@@ -1527,15 +1493,13 @@ module ActionDispatch
         # with GET, and route to the search action of +PhotosController+. It will also
         # create the <tt>search_photos_url</tt> and <tt>search_photos_path</tt>
         # route helpers.
-        def collection
+        def collection(&block)
           unless resource_scope?
             raise ArgumentError, "can't use collection outside resource(s) scope"
           end
 
           with_scope_level(:collection) do
-            path_scope(parent_resource.collection_scope) do
-              yield
-            end
+            path_scope(parent_resource.collection_scope, &block)
           end
         end
 
@@ -1550,7 +1514,7 @@ module ActionDispatch
         # This will recognize <tt>/photos/1/preview</tt> with GET, and route to the
         # preview action of +PhotosController+. It will also create the
         # <tt>preview_photo_url</tt> and <tt>preview_photo_path</tt> helpers.
-        def member
+        def member(&block)
           unless resource_scope?
             raise ArgumentError, "can't use member outside resource(s) scope"
           end
@@ -1558,27 +1522,25 @@ module ActionDispatch
           with_scope_level(:member) do
             if shallow?
               shallow_scope {
-                path_scope(parent_resource.member_scope) { yield }
+                path_scope(parent_resource.member_scope, &block)
               }
             else
-              path_scope(parent_resource.member_scope) { yield }
+              path_scope(parent_resource.member_scope, &block)
             end
           end
         end
 
-        def new
+        def new(&block)
           unless resource_scope?
             raise ArgumentError, "can't use new outside resource(s) scope"
           end
 
           with_scope_level(:new) do
-            path_scope(parent_resource.new_scope(action_path(:new))) do
-              yield
-            end
+            path_scope(parent_resource.new_scope(action_path(:new)), &block)
           end
         end
 
-        def nested
+        def nested(&block)
           unless resource_scope?
             raise ArgumentError, "can't use nested outside resource(s) scope"
           end
@@ -1587,12 +1549,12 @@ module ActionDispatch
             if shallow? && shallow_nesting_depth >= 1
               shallow_scope do
                 path_scope(parent_resource.nested_scope) do
-                  scope(nested_options) { yield }
+                  scope(nested_options, &block)
                 end
               end
             else
               path_scope(parent_resource.nested_scope) do
-                scope(nested_options) { yield }
+                scope(nested_options, &block)
               end
             end
           end
@@ -1714,20 +1676,20 @@ module ActionDispatch
 
           def apply_common_behavior_for(method, resources, options, &block)
             if resources.length > 1
-              resources.each { |r| send(method, r, options, &block) }
+              resources.each { |r| public_send(method, r, options, &block) }
               return true
             end
 
             if options[:shallow]
               options.delete(:shallow)
               shallow do
-                send(method, resources.pop, options, &block)
+                public_send(method, resources.pop, options, &block)
               end
               return true
             end
 
             if resource_scope?
-              nested { send(method, resources.pop, options, &block) }
+              nested { public_send(method, resources.pop, options, &block) }
               return true
             end
 
@@ -1738,7 +1700,7 @@ module ActionDispatch
             scope_options = options.slice!(*RESOURCE_OPTIONS)
             unless scope_options.empty?
               scope(scope_options) do
-                send(method, resources.pop, options, &block)
+                public_send(method, resources.pop, options, &block)
               end
               return true
             end
@@ -1778,10 +1740,10 @@ module ActionDispatch
             @scope = @scope.parent
           end
 
-          def resource_scope(resource)
+          def resource_scope(resource, &block)
             @scope = @scope.new(scope_level_resource: resource)
 
-            controller(resource.resource_scope) { yield }
+            controller(resource.resource_scope, &block)
           ensure
             @scope = @scope.parent
           end
@@ -1899,7 +1861,7 @@ module ActionDispatch
           end
 
           def map_match(paths, options)
-            if options[:on] && !VALID_ON_OPTIONS.include?(options[:on])
+            if (on = options[:on]) && !VALID_ON_OPTIONS.include?(on)
               raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
             end
 
@@ -1944,7 +1906,7 @@ module ActionDispatch
 
             path_without_format = path.sub(/\(\.:format\)$/, "")
             if using_match_shorthand?(path_without_format)
-              path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1').tr("-", "_")
+              path_without_format.delete_prefix("/").sub(%r{/([^/]*)$}, '#\1').tr("-", "_")
             else
               nil
             end
@@ -1989,7 +1951,7 @@ module ActionDispatch
               name_for_action(options.delete(:as), action)
             end
 
-            path = Mapping.normalize_path URI.parser.escape(path), formatted
+            path = Mapping.normalize_path URI::DEFAULT_PARSER.escape(path), formatted
             ast = Journey::Parser.parse path
 
             mapping = Mapping.build(@scope, @set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, options)
@@ -2310,7 +2272,7 @@ module ActionDispatch
         NULL = Scope.new(nil, nil)
       end
 
-      def initialize(set) #:nodoc:
+      def initialize(set) # :nodoc:
         @set = set
         @draw_paths = set.draw_paths
         @scope = Scope.new(path_names: @set.resources_path_names)

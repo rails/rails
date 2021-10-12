@@ -64,7 +64,7 @@ module ActiveSupport
     def transliterate(string, replacement = "?", locale: nil)
       string = string.dup if string.frozen?
       raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
-      raise ArgumentError, "Can not transliterate strings with #{string.encoding} encoding" unless ALLOWED_ENCODINGS_FOR_TRANSLITERATE.include?(string.encoding)
+      raise ArgumentError, "Cannot transliterate strings with #{string.encoding} encoding" unless ALLOWED_ENCODINGS_FOR_TRANSLITERATE.include?(string.encoding)
 
       input_encoding = string.encoding
 

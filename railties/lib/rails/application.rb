@@ -6,8 +6,8 @@ require "active_support/core_ext/object/blank"
 require "active_support/key_generator"
 require "active_support/message_verifier"
 require "active_support/encrypted_configuration"
-require "active_support/deprecation"
 require "active_support/hash_with_indifferent_access"
+require "active_support/configuration_file"
 require "rails/engine"
 require "rails/secrets"
 
@@ -45,7 +45,7 @@ module Rails
   # process. From the moment you require "config/application.rb" in your app,
   # the booting process goes like this:
   #
-  #   1)  require "config/boot.rb" to setup load paths
+  #   1)  require "config/boot.rb" to set up load paths
   #   2)  require railties and engines
   #   3)  Define Rails.application as "class MyApp::Application < Rails::Application"
   #   4)  Run config.before_configuration callbacks
@@ -57,29 +57,6 @@ module Rails
   #   9)  Build the middleware stack and run to_prepare callbacks
   #   10) Run config.before_eager_load and eager_load! if eager_load is true
   #   11) Run config.after_initialize callbacks
-  #
-  # == Multiple Applications
-  #
-  # If you decide to define multiple applications, then the first application
-  # that is initialized will be set to +Rails.application+, unless you override
-  # it with a different application.
-  #
-  # To create a new application, you can instantiate a new instance of a class
-  # that has already been created:
-  #
-  #   class Application < Rails::Application
-  #   end
-  #
-  #   first_application  = Application.new
-  #   second_application = Application.new(config: first_application.config)
-  #
-  # In the above example, the configuration from the first application was used
-  # to initialize the second application. You can also use the +initialize_copy+
-  # on one of the applications to create a copy of the application which shares
-  # the configuration.
-  #
-  # If you decide to define Rake tasks, runners, or initializers in an
-  # application other than +Rails.application+, then you must run them manually.
   class Application < Engine
     autoload :Bootstrap,              "rails/application/bootstrap"
     autoload :Configuration,          "rails/application/configuration"
@@ -205,12 +182,13 @@ module Rails
 
     # Convenience for loading config/foo.yml for the current Rails env.
     #
-    # Example:
+    # Examples:
     #
     #     # config/exception_notification.yml:
     #     production:
     #       url: http://127.0.0.1:8080
     #       namespace: my_app_production
+    #
     #     development:
     #       url: http://localhost:3001
     #       namespace: my_app_development
@@ -219,38 +197,61 @@ module Rails
     #     Rails.application.configure do
     #       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
     #     end
+    #
+    #     # You can also store configurations in a shared section which will be
+    #     # merged with the environment configuration
+    #
+    #     # config/example.yml
+    #     shared:
+    #       foo:
+    #         bar:
+    #           baz: 1
+    #
+    #     development:
+    #       foo:
+    #         bar:
+    #           qux: 2
+    #
+    #     # development environment
+    #     Rails.application.config_for(:example)[:foo][:bar]
+    #     # => { baz: 1, qux: 2 }
     def config_for(name, env: Rails.env)
       yaml = name.is_a?(Pathname) ? name : Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
 
       if yaml.exist?
         require "erb"
-        all_configs    = YAML.load(ERB.new(yaml.read).result, symbolize_names: true) || {}
+        all_configs    = ActiveSupport::ConfigurationFile.parse(yaml).deep_symbolize_keys
         config, shared = all_configs[env.to_sym], all_configs[:shared]
 
-        if config.is_a?(Hash)
-          ActiveSupport::OrderedOptions.new.update(shared&.deep_merge(config) || config)
-        else
-          config || shared
+        if shared
+          config = {} if config.nil? && shared.is_a?(Hash)
+          if config.is_a?(Hash) && shared.is_a?(Hash)
+            config = shared.deep_merge(config)
+          elsif config.nil?
+            config = shared
+          end
         end
+
+        if config.is_a?(Hash)
+          config = ActiveSupport::OrderedOptions.new.update(config)
+        end
+
+        config
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end
-    rescue Psych::SyntaxError => error
-      raise "YAML syntax error occurred while parsing #{yaml}. " \
-        "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
-        "Error: #{error.message}"
     end
 
     # Stores some of the Rails initial environment parameters which
     # will be used by middlewares and engines to configure themselves.
     def env_config
-      @app_env_config ||= begin
-        super.merge(
+      @app_env_config ||= super.merge(
           "action_dispatch.parameter_filter" => config.filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
           "action_dispatch.secret_key_base" => secret_key_base,
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
+          "action_dispatch.log_rescued_responses" => config.action_dispatch.log_rescued_responses,
           "action_dispatch.logger" => Rails.logger,
           "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner,
           "action_dispatch.key_generator" => key_generator,
@@ -265,15 +266,14 @@ module Rails
           "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer,
           "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest,
           "action_dispatch.cookies_rotations" => config.action_dispatch.cookies_rotations,
-          "action_dispatch.cookies_same_site_protection" => config.action_dispatch.cookies_same_site_protection,
+          "action_dispatch.cookies_same_site_protection" => coerce_same_site_protection(config.action_dispatch.cookies_same_site_protection),
           "action_dispatch.use_cookies_with_metadata" => config.action_dispatch.use_cookies_with_metadata,
           "action_dispatch.content_security_policy" => config.content_security_policy,
           "action_dispatch.content_security_policy_report_only" => config.content_security_policy_report_only,
           "action_dispatch.content_security_policy_nonce_generator" => config.content_security_policy_nonce_generator,
           "action_dispatch.content_security_policy_nonce_directives" => config.content_security_policy_nonce_directives,
-          "action_dispatch.feature_policy" => config.feature_policy,
+          "action_dispatch.permissions_policy" => config.permissions_policy,
         )
-      end
     end
 
     # If you try to define a set of Rake tasks on the instance, these will get
@@ -307,6 +307,12 @@ module Rails
       self.class.generators(&blk)
     end
 
+    # Sends any server called in the instance of a new application up
+    # to the +server+ method defined in Rails::Railtie.
+    def server(&blk)
+      self.class.server(&blk)
+    end
+
     # Sends the +isolate_namespace+ method up to the class method.
     def isolate_namespace(mod)
       self.class.isolate_namespace(mod)
@@ -327,26 +333,26 @@ module Rails
     # are changing config.root inside your application definition or having a custom
     # Rails application, you will need to add lib to $LOAD_PATH on your own in case
     # you need to load files in lib/ during the application configuration as well.
-    def self.add_lib_to_load_path!(root) #:nodoc:
+    def self.add_lib_to_load_path!(root) # :nodoc:
       path = File.join root, "lib"
       if File.exist?(path) && !$LOAD_PATH.include?(path)
         $LOAD_PATH.unshift(path)
       end
     end
 
-    def require_environment! #:nodoc:
+    def require_environment! # :nodoc:
       environment = paths["config/environment"].existent.first
       require environment if environment
     end
 
-    def routes_reloader #:nodoc:
+    def routes_reloader # :nodoc:
       @routes_reloader ||= RoutesReloader.new
     end
 
     # Returns an array of file paths appended with a hash of
     # directories-extensions suitable for ActiveSupport::FileUpdateChecker
     # API.
-    def watchable_args #:nodoc:
+    def watchable_args # :nodoc:
       files, dirs = config.watchable_files.dup, config.watchable_dirs.dup
 
       ActiveSupport::Dependencies.autoload_paths.each do |path|
@@ -358,39 +364,25 @@ module Rails
 
     # Initialize the application passing the given group. By default, the
     # group is :default
-    def initialize!(group = :default) #:nodoc:
+    def initialize!(group = :default) # :nodoc:
       raise "Application has been already initialized." if @initialized
       run_initializers(group, self)
       @initialized = true
       self
     end
 
-    def initializers #:nodoc:
+    def initializers # :nodoc:
       Bootstrap.initializers_for(self) +
       railties_initializers(super) +
       Finisher.initializers_for(self)
     end
 
-    def config #:nodoc:
+    def config # :nodoc:
       @config ||= Application::Configuration.new(self.class.find_root(self.class.called_from))
     end
 
     attr_writer :config
 
-    # Returns secrets added to config/secrets.yml.
-    #
-    # Example:
-    #
-    #     development:
-    #       secret_key_base: 836fa3665997a860728bcb9e9a1e704d427cfc920e79d847d79c8a9a907b9e965defa4154b2b86bdec6930adbe33f21364523a6f6ce363865724549fdfc08553
-    #     test:
-    #       secret_key_base: 5a37811464e7d378488b0f073e2193b093682e4e21f5d6f3ae0a4e1781e61a351fdc878a843424e81c73fb484a40d23f92c8dafac4870e74ede6e5e174423010
-    #     production:
-    #       secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
-    #       namespace: my_app_production
-    #
-    # +Rails.application.secrets.namespace+ returns +my_app_production+ in the
-    # production environment.
     def secrets
       @secrets ||= begin
         secrets = ActiveSupport::OrderedOptions.new
@@ -405,7 +397,7 @@ module Rails
       end
     end
 
-    attr_writer :secrets
+    attr_writer :secrets, :credentials
 
     # The secret_key_base is used as the input secret to the application's key generator, which in turn
     # is used to create all MessageVerifiers/MessageEncryptors, including the ones that sign and encrypt cookies.
@@ -473,11 +465,11 @@ module Rails
       )
     end
 
-    def to_app #:nodoc:
+    def to_app # :nodoc:
       self
     end
 
-    def helpers_paths #:nodoc:
+    def helpers_paths # :nodoc:
       config.helpers_paths
     end
 
@@ -499,20 +491,16 @@ module Rails
 
     # Eager loads the application code.
     def eager_load!
-      if Rails.autoloaders.zeitwerk_enabled?
-        Rails.autoloaders.each(&:eager_load)
-      else
-        super
-      end
+      Rails.autoloaders.each(&:eager_load)
     end
 
   protected
     alias :build_middleware_stack :app
 
-    def run_tasks_blocks(app) #:nodoc:
+    def run_tasks_blocks(app) # :nodoc:
       railties.each { |r| r.run_tasks_blocks(app) }
       super
-      require "rails/tasks"
+      load "rails/tasks.rb"
       task :environment do
         ActiveSupport.on_load(:before_initialize) { config.eager_load = config.rake_eager_load }
 
@@ -520,23 +508,28 @@ module Rails
       end
     end
 
-    def run_generators_blocks(app) #:nodoc:
+    def run_generators_blocks(app) # :nodoc:
       railties.each { |r| r.run_generators_blocks(app) }
       super
     end
 
-    def run_runner_blocks(app) #:nodoc:
+    def run_runner_blocks(app) # :nodoc:
       railties.each { |r| r.run_runner_blocks(app) }
       super
     end
 
-    def run_console_blocks(app) #:nodoc:
+    def run_console_blocks(app) # :nodoc:
       railties.each { |r| r.run_console_blocks(app) }
       super
     end
 
+    def run_server_blocks(app) # :nodoc:
+      railties.each { |r| r.run_server_blocks(app) }
+      super
+    end
+
     # Returns the ordered railties for this application considering railties_order.
-    def ordered_railties #:nodoc:
+    def ordered_railties # :nodoc:
       @ordered_railties ||= begin
         order = config.railties_order.map do |railtie|
           if railtie == :main_app
@@ -558,7 +551,7 @@ module Rails
       end
     end
 
-    def railties_initializers(current) #:nodoc:
+    def railties_initializers(current) # :nodoc:
       initializers = []
       ordered_railties.reverse.flatten.each do |r|
         if r == self
@@ -570,7 +563,7 @@ module Rails
       initializers
     end
 
-    def default_middleware_stack #:nodoc:
+    def default_middleware_stack # :nodoc:
       default_stack = DefaultMiddlewareStack.new(self, config, paths)
       default_stack.build_stack
     end
@@ -611,6 +604,10 @@ module Rails
 
       def build_middleware
         config.app_middleware + super
+      end
+
+      def coerce_same_site_protection(protection)
+        protection.respond_to?(:call) ? protection : proc { protection }
       end
   end
 end

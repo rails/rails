@@ -33,6 +33,12 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal "", ActiveSupport::Inflector.pluralize("")
   end
 
+  def test_pluralize_with_fallback
+    I18n.stub(:default_locale, :"en-GB") do
+      assert_equal "days", ActiveSupport::Inflector.pluralize("day")
+    end
+  end
+
   test "uncountability of ascii word" do
     word = "HTTP"
     ActiveSupport::Inflector.inflections do |inflect|
@@ -134,8 +140,39 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
-  def test_camelize_with_lower_downcases_the_first_letter
+  def test_camelize_with_true_upcases_the_first_letter
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("Capital", true))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", true))
+  end
+
+  def test_camelize_with_upper_upcases_the_first_letter
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("Capital", :upper))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", :upper))
+  end
+
+  def test_camelize_with_false_downcases_the_first_letter
     assert_equal("capital", ActiveSupport::Inflector.camelize("Capital", false))
+    assert_equal("capital", ActiveSupport::Inflector.camelize("capital", false))
+  end
+
+  def test_camelize_with_nil_downcases_the_first_letter
+    assert_equal("capital", ActiveSupport::Inflector.camelize("Capital", nil))
+    assert_equal("capital", ActiveSupport::Inflector.camelize("capital", nil))
+  end
+
+  def test_camelize_with_lower_downcases_the_first_letter
+    assert_equal("capital", ActiveSupport::Inflector.camelize("Capital", :lower))
+    assert_equal("capital", ActiveSupport::Inflector.camelize("capital", :lower))
+  end
+
+  def test_camelize_with_any_other_arg_upcases_the_first_letter
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", :true))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("Capital", :true))
+
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", :false))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", :foo))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", 42))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital"))
   end
 
   def test_camelize_with_underscores
@@ -432,6 +469,18 @@ class InflectorTest < ActiveSupport::TestCase
     RUBY
   end
 
+  def test_clear_acronyms_resets_to_reusable_state
+    ActiveSupport::Inflector.inflections.clear(:acronyms)
+
+    assert_empty ActiveSupport::Inflector.inflections.acronyms
+
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.acronym "HTML"
+    end
+
+    assert_equal "HTML", "html".titleize
+  end
+
   def test_inflector_locality
     ActiveSupport::Inflector.inflections(:es) do |inflect|
       inflect.plural(/$/, "s")
@@ -475,6 +524,7 @@ class InflectorTest < ActiveSupport::TestCase
       inflect.singular(/(database)s$/i, '\1')
       inflect.uncountable("series")
       inflect.human("col_rpted_bugs", "Reported bugs")
+      inflect.acronym("HTML")
 
       inflect.clear :all
 
@@ -482,6 +532,7 @@ class InflectorTest < ActiveSupport::TestCase
       assert_empty inflect.singulars
       assert_empty inflect.uncountables
       assert_empty inflect.humans
+      assert_empty inflect.acronyms
     end
   end
 
@@ -492,6 +543,7 @@ class InflectorTest < ActiveSupport::TestCase
       inflect.singular(/(database)s$/i, '\1')
       inflect.uncountable("series")
       inflect.human("col_rpted_bugs", "Reported bugs")
+      inflect.acronym("HTML")
 
       inflect.clear
 
@@ -499,6 +551,22 @@ class InflectorTest < ActiveSupport::TestCase
       assert_empty inflect.singulars
       assert_empty inflect.uncountables
       assert_empty inflect.humans
+      assert_empty inflect.acronyms
+    end
+  end
+
+  def test_clear_all_resets_camelize_and_underscore_regexes
+    ActiveSupport::Inflector.inflections do |inflect|
+      # ensure any data is present
+      inflect.acronym("HTTP")
+      assert_equal "http_s", "HTTPS".underscore
+      assert_equal "Https", "https".camelize
+
+      inflect.clear :all
+
+      assert_empty inflect.acronyms
+      assert_equal "https", "HTTPS".underscore
+      assert_equal "Https", "https".camelize
     end
   end
 
@@ -555,13 +623,20 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
-  %w(plurals singulars uncountables humans acronyms).each do |scope|
+  %i(plurals singulars uncountables humans).each do |scope|
     define_method("test_clear_inflections_with_#{scope}") do
       # clear the inflections
       ActiveSupport::Inflector.inflections do |inflect|
         inflect.clear(scope)
-        assert_equal [], inflect.send(scope)
+        assert_equal [], inflect.public_send(scope)
       end
+    end
+  end
+
+  def test_clear_inflections_with_acronyms
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.clear(:acronyms)
+      assert_equal({}, inflect.acronyms)
     end
   end
 end

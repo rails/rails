@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Full-stack web application framework."
   s.description = "Ruby on Rails is a full-stack web framework optimized for programmer happiness and sustainable productivity. It encourages beautiful code by favoring convention over configuration."
 
-  s.required_ruby_version     = ">= 2.5.0"
+  s.required_ruby_version     = ">= 2.7.0"
   s.required_rubygems_version = ">= 1.8.11"
 
   s.license = "MIT"
@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
     "bug_tracker_uri"   => "https://github.com/rails/rails/issues",
     "changelog_uri"     => "https://github.com/rails/rails/releases/tag/v#{version}",
     "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
-    "mailing_list_uri"  => "https://groups.google.com/forum/#!forum/rubyonrails-talk",
+    "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
     "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}",
   }
 
@@ -41,6 +41,5 @@ Gem::Specification.new do |s|
   s.add_dependency "actiontext",    version
   s.add_dependency "railties",      version
 
-  s.add_dependency "bundler",         ">= 1.3.0"
-  s.add_dependency "sprockets-rails", ">= 2.0.0"
+  s.add_dependency "bundler", ">= 1.15.0"
 end

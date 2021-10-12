@@ -47,8 +47,7 @@ module ActiveRecord
       end
 
       def adapter_name_from(model) # :nodoc:
-        # TODO: this shouldn't depend on a connection to the database
-        model.connection.adapter_name.downcase.to_sym
+        model.connection_db_config.adapter.to_sym
       end
 
       private
@@ -63,6 +62,7 @@ module ActiveRecord
     Decimal = ActiveModel::Type::Decimal
     Float = ActiveModel::Type::Float
     Integer = ActiveModel::Type::Integer
+    ImmutableString = ActiveModel::Type::ImmutableString
     String = ActiveModel::Type::String
     Value = ActiveModel::Type::Value
 
@@ -74,6 +74,7 @@ module ActiveRecord
     register(:decimal, Type::Decimal, override: false)
     register(:float, Type::Float, override: false)
     register(:integer, Type::Integer, override: false)
+    register(:immutable_string, Type::ImmutableString, override: false)
     register(:json, Type::Json, override: false)
     register(:string, Type::String, override: false)
     register(:text, Type::Text, override: false)

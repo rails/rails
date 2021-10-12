@@ -31,6 +31,11 @@ class BaseMailer < ActionMailer::Base
     mail(template_name: "welcome", to: to)
   end
 
+  def with_blank_name
+    to = email_address_with_name("sunny@example.com", "")
+    mail(template_name: "welcome", to: to)
+  end
+
   def html_only(hash = {})
     mail(hash)
   end
@@ -41,6 +46,12 @@ class BaseMailer < ActionMailer::Base
 
   def inline_attachment
     attachments.inline["logo.png"] = "\312\213\254\232"
+    mail
+  end
+
+  def inline_and_other_attachments
+    attachments.inline["logo.png"] = "\312\213\254\232"
+    attachments["certificate.pdf"] = "This is test File content"
     mail
   end
 

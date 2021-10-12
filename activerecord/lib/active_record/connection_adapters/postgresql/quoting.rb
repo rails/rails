@@ -17,8 +17,8 @@ module ActiveRecord
         end
 
         # Quotes strings for use in SQL input.
-        def quote_string(s) #:nodoc:
-          @connection.escape(s)
+        def quote_string(s) # :nodoc:
+          PG::Connection.escape(s)
         end
 
         # Checks the following cases:
@@ -48,7 +48,7 @@ module ActiveRecord
         end
 
         # Quote date/time values for use in SQL input.
-        def quoted_date(value) #:nodoc:
+        def quoted_date(value) # :nodoc:
           if value.year <= 0
             bce_year = format("%04d", -value.year + 1)
             super.sub(/^-?\d+/, bce_year) + " BC"
@@ -67,8 +67,8 @@ module ActiveRecord
           elsif column.type == :uuid && value.is_a?(String) && /\(\)/.match?(value)
             value # Does not quote function default values for UUID columns
           elsif column.respond_to?(:array?)
-            value = type_cast_from_column(column, value)
-            quote(value)
+            type = lookup_cast_type_from_column(column)
+            quote(type.serialize(value))
           else
             super
           end
@@ -90,8 +90,8 @@ module ActiveRecord
           \A
           (
             (?:
-              # "table_name"."column_name"::type_name | function(one or no argument)::type_name
-              ((?:\w+\.|"\w+"\.)?(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
+              # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
+              ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
             )
             (?:(?:\s+AS)?\s+(?:\w+|"\w+"))?
           )
@@ -103,8 +103,8 @@ module ActiveRecord
           \A
           (
             (?:
-              # "table_name"."column_name"::type_name | function(one or no argument)::type_name
-              ((?:\w+\.|"\w+"\.)?(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
+              # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
+              ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
             )
             (?:\s+ASC|\s+DESC)?
             (?:\s+NULLS\s+(?:FIRST|LAST))?

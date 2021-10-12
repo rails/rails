@@ -2,7 +2,7 @@
 
 require "cgi"
 require "action_view/helpers/date_helper"
-require "action_view/helpers/tag_helper"
+require "action_view/helpers/url_helper"
 require "action_view/helpers/form_tag_helper"
 require "action_view/helpers/active_model_helper"
 require "action_view/model_naming"
@@ -14,7 +14,7 @@ require "active_support/core_ext/string/inflections"
 
 module ActionView
   # = Action View Form Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # Form helpers are designed to make working with resources much easier
     # compared to using vanilla HTML.
     #
@@ -185,8 +185,7 @@ module ActionView
       #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
       #   unnecessary unless you support browsers without JavaScript.
       # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive
-      #   JavaScript drivers to control the submit behavior. By default this
-      #   behavior is an ajax submit.
+      #   JavaScript drivers to control the submit behavior.
       # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name
       #   utf8 is not output.
       # * <tt>:html</tt> - Optional HTML attributes for the form tag.
@@ -322,10 +321,8 @@ module ActionView
       #    remote: true
       #
       # in the options hash creates a form that will allow the unobtrusive JavaScript drivers to modify its
-      # behavior. The expected default behavior is an XMLHttpRequest in the background instead of the regular
-      # POST arrangement, but ultimately the behavior is the choice of the JavaScript driver implementor.
-      # Even though it's using JavaScript to serialize the form elements, the form submission will work just like
-      # a regular submission as viewed by the receiving side (all elements available in <tt>params</tt>).
+      # behavior. The form submission will work just like a regular submission as viewed by the receiving
+      # side (all elements available in <tt>params</tt>).
       #
       # Example:
       #
@@ -456,7 +453,7 @@ module ActionView
         form_tag_with_body(html_options, output)
       end
 
-      def apply_form_for_options!(record, object, options) #:nodoc:
+      def apply_form_for_options!(record, object, options) # :nodoc:
         object = convert_to_model(object)
 
         as = options[:as]
@@ -487,7 +484,7 @@ module ActionView
       #     <%= form.text_field :title %>
       #   <% end %>
       #   # =>
-      #   <form action="/posts" method="post" data-remote="true">
+      #   <form action="/posts" method="post">
       #     <input type="text" name="title">
       #   </form>
       #
@@ -496,7 +493,7 @@ module ActionView
       #     <%= form.text_field :title %>
       #   <% end %>
       #   # =>
-      #   <form action="/posts" method="post" data-remote="true">
+      #   <form action="/posts" method="post">
       #     <input type="text" name="post[title]">
       #   </form>
       #
@@ -505,7 +502,7 @@ module ActionView
       #     <%= form.text_field :title %>
       #   <% end %>
       #   # =>
-      #   <form action="/posts" method="post" data-remote="true">
+      #   <form action="/posts" method="post">
       #     <input type="text" name="post[title]">
       #   </form>
       #
@@ -514,7 +511,7 @@ module ActionView
       #     <%= form.text_field :title %>
       #   <% end %>
       #   # =>
-      #   <form action="/posts/1" method="post" data-remote="true">
+      #   <form action="/posts/1" method="post">
       #     <input type="hidden" name="_method" value="patch">
       #     <input type="text" name="post[title]" value="<the title of the post>">
       #   </form>
@@ -525,7 +522,7 @@ module ActionView
       #     <%= form.text_field :but_in_forms_they_can %>
       #   <% end %>
       #   # =>
-      #   <form action="/cats" method="post" data-remote="true">
+      #   <form action="/cats" method="post">
       #     <input type="text" name="cat[cats_dont_have_gills]">
       #     <input type="text" name="cat[but_in_forms_they_can]">
       #   </form>
@@ -534,11 +531,6 @@ module ActionView
       # their name nesting. So inputs named +title+ and <tt>post[title]</tt> are
       # accessible as <tt>params[:title]</tt> and <tt>params[:post][:title]</tt>
       # respectively.
-      #
-      # By default +form_with+ attaches the <tt>data-remote</tt> attribute
-      # submitting the form via an XMLHTTPRequest in the background if an
-      # Unobtrusive JavaScript driver, like rails-ujs, is used. See the
-      # <tt>:local</tt> option for more.
       #
       # For ease of comparison the examples above left out the submit button,
       # as well as the auto generated hidden fields that enable UTF-8 support
@@ -611,8 +603,16 @@ module ActionView
       #   This is helpful when fragment-caching the form. Remote forms
       #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
       #   unnecessary unless you support browsers without JavaScript.
-      # * <tt>:local</tt> - By default form submits are remote and unobtrusive XHRs.
-      #   Disable remote submits with <tt>local: true</tt>.
+      # * <tt>:local</tt> - Whether to use standard HTTP form submission.
+      #   When set to <tt>true</tt>, the form is submitted via standard HTTP.
+      #   When set to <tt>false</tt>, the form is submitted as a "remote form", which
+      #   is handled by Rails UJS as an XHR. When unspecified, the behavior is derived
+      #   from <tt>config.action_view.form_with_generates_remote_forms</tt> where the
+      #   config's value is actually the inverse of what <tt>local</tt>'s value would be.
+      #   As of Rails 6.1, that configuration option defaults to <tt>false</tt>
+      #   (which has the equivalent effect of passing <tt>local: true</tt>).
+      #   In previous versions of Rails, that configuration option defaults to
+      #   <tt>true</tt> (the equivalent of passing <tt>local: false</tt>).
       # * <tt>:skip_enforcing_utf8</tt> - If set to true, a hidden input with name
       #   utf8 is not output.
       # * <tt>:builder</tt> - Override the object used to build the form.
@@ -1110,6 +1110,16 @@ module ActionView
       #   label(:post, :privacy, "Public Post", value: "public")
       #   # => <label for="post_privacy_public">Public Post</label>
       #
+      #   label(:post, :cost) do |translation|
+      #     content_tag(:span, translation, class: "cost_label")
+      #   end
+      #   # => <label for="post_cost"><span class="cost_label">Total cost</span></label>
+      #
+      #   label(:post, :cost) do |builder|
+      #     content_tag(:span, builder.translation, class: "cost_label")
+      #   end
+      #   # => <label for="post_cost"><span class="cost_label">Total cost</span></label>
+      #
       #   label(:post, :terms) do
       #     raw('Accept <a href="/terms">Terms</a>.')
       #   end
@@ -1247,6 +1257,12 @@ module ActionView
       # Additional options on the input tag can be passed as a hash with +options+. The +checked_value+ defaults to 1
       # while the default +unchecked_value+ is set to 0 which is convenient for boolean values.
       #
+      # ==== Options
+      #
+      # * Any standard HTML attributes for the tag can be passed in, for example +:class+.
+      # * <tt>:checked</tt> - +true+ or +false+ forces the state of the checkbox to be checked or not.
+      # * <tt>:include_hidden</tt> - If set to false, the auxiliary hidden field described below will not be generated.
+      #
       # ==== Gotcha
       #
       # The HTML specification says unchecked check boxes are not successful, and
@@ -1283,6 +1299,8 @@ module ActionView
       #
       # In that case it is preferable to either use +check_box_tag+ or to use
       # hashes instead of arrays.
+      #
+      # ==== Examples
       #
       #   # Let's say that @post.validated? is 1:
       #   check_box("post", "validated")
@@ -1398,8 +1416,9 @@ module ActionView
       # Returns a text_field of type "time".
       #
       # The default value is generated by trying to call +strftime+ with "%T.%L"
-      # on the object's value. It is still possible to override that
-      # by passing the "value" option.
+      # on the object's value. If you pass <tt>include_seconds: false</tt>, it will be
+      # formatted by trying to call +strftime+ with "%H:%M" on the object's value.
+      # It is also possible to override this by passing the "value" option.
       #
       # === Options
       # * Accepts same options as time_field_tag
@@ -1420,6 +1439,12 @@ module ActionView
       #   time_field("task", "started_at", min: "01:00:00")
       #   # => <input id="task_started_at" name="task[started_at]" type="time" min="01:00:00.000" />
       #
+      # By default, provided times will be formatted including seconds. You can render just the hour
+      # and minute by passing <tt>include_seconds: false</tt>. Some browsers will render a simpler UI
+      # if you exclude seconds in the timestamp format.
+      #
+      #   time_field("task", "started_at", value: Time.now, include_seconds: false)
+      #   # => <input id="task_started_at" name="task[started_at]" type="time" value="01:00" />
       def time_field(object_name, method, options = {})
         Tags::TimeField.new(object_name, method, self, options).render
       end
@@ -1668,8 +1693,8 @@ module ActionView
 
         convert_to_legacy_options(@options)
 
-        if @object_name.to_s.match(/\[\]$/)
-          if (object ||= @template.instance_variable_get("@#{Regexp.last_match.pre_match}")) && object.respond_to?(:to_param)
+        if @object_name&.end_with?("[]")
+          if (object ||= @template.instance_variable_get("@#{@object_name[0..-3]}")) && object.respond_to?(:to_param)
             @auto_index = object.to_param
           else
             raise ArgumentError, "object[] naming but object param and @object var don't exist or don't respond to to_param: #{object.inspect}"
@@ -1678,6 +1703,47 @@ module ActionView
 
         @multipart = nil
         @index = options[:index] || options[:child_index]
+      end
+
+      # Generate an HTML <tt>id</tt> attribute value.
+      #
+      # return the <tt><form></tt> element's <tt>id</tt> attribute.
+      #
+      #   <%= form_for @post do |f| %>
+      #     <%# ... %>
+      #
+      #     <% content_for :sticky_footer do %>
+      #       <%= form.button(form: f.id) %>
+      #     <% end %>
+      #   <% end %>
+      #
+      # In the example above, the <tt>:sticky_footer</tt> content area will
+      # exist outside of the <tt><form></tt> element. By declaring the
+      # <tt>form</tt> HTML attribute, we hint to the browser that the generated
+      # <tt><button></tt> element should be treated as the <tt><form></tt>
+      # element's submit button, regardless of where it exists in the DOM.
+      def id
+        options.dig(:html, :id)
+      end
+
+      # Generate an HTML <tt>id</tt> attribute value for the given field
+      #
+      # Return the value generated by the <tt>FormBuilder</tt> for the given
+      # attribute name.
+      #
+      #   <%= form_for @post do |f| %>
+      #     <%= f.label :title %>
+      #     <%= f.text_field :title, aria: { describedby: f.field_id(:title, :error) } %>
+      #     <%= tag.span("is blank", id: f.field_id(:title, :error) %>
+      #   <% end %>
+      #
+      # In the example above, the <tt><input type="text"></tt> element built by
+      # the call to <tt>FormBuilder#text_field</tt> declares an
+      # <tt>aria-describedby</tt> attribute referencing the <tt><span></tt>
+      # element, sharing a common <tt>id</tt> root (<tt>post_title</tt>, in this
+      # case).
+      def field_id(method, *suffixes, index: @index)
+        @template.field_id(@object_name, method, *suffixes, index: index)
       end
 
       ##
@@ -1792,7 +1858,7 @@ module ActionView
       # Wraps ActionView::Helpers::FormHelper#time_field for form builders:
       #
       #   <%= form_with model: @user do |f| %>
-      #     <%= f.time_field :borned_at %>
+      #     <%= f.time_field :born_at %>
       #   <% end %>
       #
       # Please refer to the documentation of the base helper for details.
@@ -1904,8 +1970,8 @@ module ActionView
       (field_helpers - [:label, :check_box, :radio_button, :fields_for, :fields, :hidden_field, :file_field]).each do |selector|
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           def #{selector}(method, options = {})  # def text_field(method, options = {})
-            @template.send(                      #   @template.send(
-              #{selector.inspect},               #     "text_field",
+            @template.public_send(               #   @template.public_send(
+              #{selector.inspect},               #     :text_field,
               @object_name,                      #     @object_name,
               method,                            #     method,
               objectify_options(options))        #     objectify_options(options))
@@ -2174,15 +2240,14 @@ module ActionView
         index = if options.has_key?(:index)
           options[:index]
         elsif defined?(@auto_index)
-          object_name = object_name.to_s.sub(/\[\]$/, "")
+          object_name = object_name.to_s.delete_suffix("[]")
           @auto_index
         end
 
         record_name = if index
           "#{object_name}[#{index}][#{record_name}]"
-        elsif record_name.to_s.end_with?("[]")
-          record_name = record_name.to_s.sub(/(.*)\[\]$/, "[\\1][#{record_object.id}]")
-          "#{object_name}#{record_name}"
+        elsif record_name.end_with?("[]")
+          "#{object_name}[#{record_name[0..-3]}][#{record_object.id}]"
         else
           "#{object_name}[#{record_name}]"
         end
@@ -2245,6 +2310,24 @@ module ActionView
       #   label(:privacy, "Public Post", value: "public")
       #   # => <label for="post_privacy_public">Public Post</label>
       #
+      #   label(:cost) do |translation|
+      #     content_tag(:span, translation, class: "cost_label")
+      #   end
+      #   # => <label for="post_cost"><span class="cost_label">Total cost</span></label>
+      #
+      #   label(:cost) do |builder|
+      #     content_tag(:span, builder.translation, class: "cost_label")
+      #   end
+      #   # => <label for="post_cost"><span class="cost_label">Total cost</span></label>
+      #
+      #   label(:cost) do |builder|
+      #     content_tag(:span, builder.translation, class: [
+      #       "cost_label",
+      #       ("error_label" if builder.object.errors.include?(:cost))
+      #     ])
+      #   end
+      #   # => <label for="post_cost"><span class="cost_label error_label">Total cost</span></label>
+      #
       #   label(:terms) do
       #     raw('Accept <a href="/terms">Terms</a>.')
       #   end
@@ -2258,6 +2341,12 @@ module ActionView
       # It's intended that +method+ returns an integer and if that integer is above zero, then the checkbox is checked.
       # Additional options on the input tag can be passed as a hash with +options+. The +checked_value+ defaults to 1
       # while the default +unchecked_value+ is set to 0 which is convenient for boolean values.
+      #
+      # ==== Options
+      #
+      # * Any standard HTML attributes for the tag can be passed in, for example +:class+.
+      # * <tt>:checked</tt> - +true+ or +false+ forces the state of the checkbox to be checked or not.
+      # * <tt>:include_hidden</tt> - If set to false, the auxiliary hidden field described below will not be generated.
       #
       # ==== Gotcha
       #
@@ -2295,6 +2384,8 @@ module ActionView
       #
       # In that case it is preferable to either use +check_box_tag+ or to use
       # hashes instead of arrays.
+      #
+      # ==== Examples
       #
       #   # Let's say that @post.validated? is 1:
       #   check_box("validated")
@@ -2364,7 +2455,7 @@ module ActionView
       # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
       # shown.
       #
-      # Using this method inside a +form_for+ block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
+      # Using this method inside a +form_with+ block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
       #
       # ==== Options
       # * Creates standard HTML attributes for the tag.
@@ -2468,10 +2559,27 @@ module ActionView
       #   #      <strong>Ask me!</strong>
       #   #    </button>
       #
+      #   button do |text|
+      #     content_tag(:strong, text)
+      #   end
+      #   # => <button name='button' type='submit'>
+      #   #      <strong>Create post</strong>
+      #   #    </button>
+      #
       def button(value = nil, options = {}, &block)
         value, options = nil, value if value.is_a?(Hash)
         value ||= submit_default_value
-        @template.button_tag(value, options, &block)
+
+        if block_given?
+          value = @template.capture { yield(value) }
+        end
+
+        formmethod = options[:formmethod]
+        if formmethod.present? && !/post|get/i.match?(formmethod) && !options.key?(:name) && !options.key?(:value)
+          options.merge! formmethod: :post, name: "_method", value: formmethod
+        end
+
+        @template.button_tag(value, options)
       end
 
       def emitted_hidden_id? # :nodoc:
@@ -2517,9 +2625,9 @@ module ActionView
           association = convert_to_model(association)
 
           if association.respond_to?(:persisted?)
-            association = [association] if @object.send(association_name).respond_to?(:to_ary)
+            association = [association] if @object.public_send(association_name).respond_to?(:to_ary)
           elsif !association.respond_to?(:to_ary)
-            association = @object.send(association_name)
+            association = @object.public_send(association_name)
           end
 
           if association.respond_to?(:to_ary)
@@ -2531,7 +2639,9 @@ module ActionView
               else
                 options[:child_index] = nested_child_index(name)
               end
-              output << fields_for_nested_model("#{name}[#{options[:child_index]}]", child, options, block)
+              if content = fields_for_nested_model("#{name}[#{options[:child_index]}]", child, options, block)
+                output << content
+              end
             end
             output
           elsif association

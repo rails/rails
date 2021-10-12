@@ -64,7 +64,7 @@ module ActiveModel
       # and strings in shortcut form.
       #
       #   validates :email, format: /@/
-      #   validates :role, inclusion: %(admin contributor)
+      #   validates :role, inclusion: %w(admin contributor)
       #   validates :password, length: 6..20
       #
       # When using shortcut form, ranges and arrays are passed to your

@@ -11,7 +11,7 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
   def test_help_does_not_show_invoked_generators_options_if_they_already_exist
     content = run_generator ["--help"]
-    assert_no_match(/Helper options\:/, content)
+    assert_no_match(/Helper options:/, content)
   end
 
   def test_controller_skeleton_is_created
@@ -20,7 +20,7 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_check_class_collision
-    Object.send :const_set, :ObjectController, Class.new
+    Object.const_set :ObjectController, Class.new
     content = capture(:stderr) { run_generator ["object"] }
     assert_match(/The name 'ObjectController' is either already used in your application or reserved/, content)
   ensure
@@ -35,16 +35,6 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
   def test_does_not_invoke_helper_if_required
     run_generator ["account", "--skip-helper"]
     assert_no_file "app/helpers/account_helper.rb"
-  end
-
-  def test_invokes_assets
-    run_generator
-    assert_file "app/assets/stylesheets/account.css"
-  end
-
-  def test_does_not_invoke_assets_if_required
-    run_generator ["account", "--skip-assets"]
-    assert_no_file "app/assets/stylesheets/account.css"
   end
 
   def test_invokes_default_test_framework
@@ -136,8 +126,5 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file "app/helpers/account_controller_helper.rb"
     assert_file "app/helpers/account_helper.rb"
-
-    assert_no_file "app/assets/stylesheets/account_controller.css"
-    assert_file "app/assets/stylesheets/account.css"
   end
 end

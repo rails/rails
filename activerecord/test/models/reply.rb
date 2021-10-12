@@ -9,6 +9,18 @@ class Reply < Topic
   has_many :silly_unique_replies, dependent: :destroy, foreign_key: "parent_id"
 
   scope :ordered, -> { Reply.order(:id) }
+
+  alias_attribute :new_content, :content
+  alias_attribute :new_parent_id, :parent_id
+
+  # Method on Kernel
+  def self.open
+    approved
+  end
+
+  # Methods both on Kernel and Relation
+  def self.load(data:); end
+  def self.select(data:); end
 end
 
 class SillyReply < Topic

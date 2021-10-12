@@ -1,80 +1,65 @@
-*   Don't run `after_enqueue` and `after_perform` callbacks if the callback chain is halted.
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
 
-        class MyJob < ApplicationJob
-          before_enqueue { throw(:abort) }
-          after_enqueue { # won't enter here anymore }
+*   No changes.
+
+
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
+*   Allow a job to retry indefinitely
+
+    The `attempts` parameter of the `retry_on` method now accepts the
+    symbol reference `:unlimited` in addition to a specific number of retry
+    attempts to allow a developer to specify that a job should retry
+    forever until it succeeds.
+
+        class MyJob < ActiveJob::Base
+          retry_on(AlwaysRetryException, attempts: :unlimited)
+
+          # the actual job code
         end
 
-    `after_enqueue` and `after_perform` callbacks will no longer run if the callback chain is halted.
-    This behaviour is a breaking change and won't take effect until Rails 6.2.
-    To enable this behaviour in your app right now, you can add in your app's configuration file
-    `config.active_job.skip_after_callbacks_if_terminated = true`
+    *Daniel Morton*
 
-    *Edouard Chin*
+*   Added possibility to check on `:priority` in test helper methods
+    `assert_enqueued_with` and `assert_performed_with`.
 
-*   Fix enqueuing and performing incorrect logging message.
+    *Wojciech Wnętrzak*
 
-    Jobs will no longer always log "Enqueued MyJob" or "Performed MyJob" when they actually didn't get enqueued/performed.
+*   OpenSSL constants are now used for Digest computations.
 
-    ```ruby
-      class MyJob < ApplicationJob
-        before_enqueue { throw(:abort) }
-      end
+    *Dirkjan Bussink*
 
-      MyJob.perform_later # Will no longer log "Enqueued MyJob" since job wasn't even enqueued through adapter.
-    ```
+*   Add a Serializer for the Range class.
 
-    A new message will be logged in case a job couldn't be enqueued, either because the callback chain was halted or
-    because an exception happened during enqueing. (i.e. Redis is down when you try to enqueue your job)
+    This should allow things like `MyJob.perform_later(range: 1..100)`.
 
-    *Edouard Chin*
+*   Communicate enqueue failures to callers of `perform_later`.
 
-*   Add an option to disable logging of the job arguments when enqueuing and executing the job.
+    `perform_later` can now optionally take a block which will execute after
+    the adapter attempts to enqueue the job. The block will receive the job
+    instance as an argument even if the enqueue was not successful.
+    Additionally, `ActiveJob` adapters now have the ability to raise an
+    `ActiveJob::EnqueueError` which will be caught and stored in the job
+    instance so code attempting to enqueue jobs can inspect any raised
+    `EnqueueError` using the block.
 
-        class SensitiveJob < ApplicationJob
-          self.log_arguments = false
-
-          def perform(my_sensitive_argument)
+        MyJob.perform_later do |job|
+          unless job.successfully_enqueued?
+            if job.enqueue_error&.message == "Redis was unavailable"
+              # invoke some code that will retry the job after a delay
+            end
           end
         end
 
-    When dealing with sensitive arguments as password and tokens it is now possible to configure the job
-    to not put the sensitive argument in the logs.
+    *Daniel Morton*
 
-    *Rafael Mendonça França*
+*   Don't log rescuable exceptions defined with `rescue_from`.
 
-*   Changes in `queue_name_prefix` of a job no longer affects all other jobs.
+    *Hu Hailin*
 
-    Fixes #37084.
+*   Allow `rescue_from` to rescue all exceptions.
 
-    *Lucas Mansur*
-
-*   Allow `Class` and `Module` instances to be serialized.
-
-    *Kevin Deisz*
-
-*   Log potential matches in `assert_enqueued_with` and `assert_performed_with`.
-
-    *Gareth du Plooy*
-
-*   Add `at` argument to the `perform_enqueued_jobs` test helper.
-
-    *John Crepezzi*, *Eileen Uchitelle*
-
-*   `assert_enqueued_with` and `assert_performed_with` can now test jobs with relative delay.
-
-    *Vlado Cingel*
-
-*   Add jitter to :exponentially_longer
-
-    ActiveJob::Exceptions.retry_on with :exponentially_longer now uses a random amount of jitter in order to
-    prevent the [thundering herd effect.](https://en.wikipedia.org/wiki/Thundering_herd_problem).  Defaults to
-    15% (represented as 0.15) but overridable via the `:jitter` option when using `retry_on`.
-    Jitter is applied when an `Integer`, `ActiveSupport::Duration` or `exponentially_longer`, is passed to the `wait` argument in `retry_on`.
-
-    retry_on(MyError, wait: :exponentially_longer, jitter: 0.30)
-
-    *Anthony Ross*
+    *Adrianna Chang*, *Étienne Barrié*
 
 
-Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activejob/CHANGELOG.md) for previous changes.
+Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/activejob/CHANGELOG.md) for previous changes.

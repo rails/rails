@@ -3,7 +3,7 @@
 module ActiveModel
   module Validations
     # == \Active \Model Absence Validator
-    class AbsenceValidator < EachValidator #:nodoc:
+    class AbsenceValidator < EachValidator # :nodoc:
       def validate_each(record, attr_name, value)
         record.errors.add(attr_name, :present, **options) if value.present?
       end
@@ -11,7 +11,7 @@ module ActiveModel
 
     module HelperMethods
       # Validates that the specified attributes are blank (as defined by
-      # Object#blank?). Happens by default on save.
+      # Object#present?). Happens by default on save.
       #
       #   class Person < ActiveRecord::Base
       #     validates_absence_of :first_name

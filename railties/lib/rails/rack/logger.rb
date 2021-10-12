@@ -3,7 +3,6 @@
 require "active_support/core_ext/time/conversions"
 require "active_support/core_ext/object/blank"
 require "active_support/log_subscriber"
-require "action_dispatch/http/request"
 require "rack/body_proxy"
 
 module Rails
@@ -47,7 +46,7 @@ module Rails
         # Started GET "/session/new" for 127.0.0.1 at 2012-09-26 14:51:42 -0700
         def started_request_message(request) # :doc:
           'Started %s "%s" for %s at %s' % [
-            request.request_method,
+            request.raw_request_method,
             request.filtered_path,
             request.remote_ip,
             Time.now.to_default_s ]

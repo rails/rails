@@ -1,5 +1,5 @@
 Description:
-    Stubs out a new database migration. Pass the migration name, either
+    Generates a new database migration. Pass the migration name, either
     CamelCased or under_scored, and an optional list of attribute pairs as arguments.
 
     A migration class is generated in db/migrate prefixed by a timestamp of the current date and time.

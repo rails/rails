@@ -56,6 +56,10 @@ module ActionView
       assert_same _view, view
     end
 
+    test "returns controller_name" do
+      assert_equal "test", controller_name
+    end
+
     test "retrieve non existing config values" do
       assert_nil ActionView::Base.empty.config.something_odd
     end
@@ -156,6 +160,13 @@ module ActionView
 
       assert_equal "controller_helper_method", some_method
     end
+
+    class AnotherTestClass < ActionView::TestCase
+      test "doesn't use controller helpers from other tests" do
+        assert_not_respond_to view, :render_from_helper
+        assert_not_includes @controller._helpers.instance_methods, :render_from_helper
+      end
+    end
   end
 
   class ViewAssignsTest < ActionView::TestCase
@@ -176,14 +187,14 @@ module ActionView
   class HelperExposureTest < ActionView::TestCase
     helper(Module.new do
       def render_from_helper
-        from_test_case
+        from_test_case(suffix: "!")
       end
     end)
     test "is able to make methods available to the view" do
       assert_equal "Word!", render(partial: "test/from_helper")
     end
 
-    def from_test_case; "Word!"; end
+    def from_test_case(suffix: "?"); "Word#{suffix}"; end
     helper_method :from_test_case
   end
 

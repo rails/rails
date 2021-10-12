@@ -3,7 +3,7 @@
 require "active_support/descendants_tracker"
 
 module ActionMailer
-  module Previews #:nodoc:
+  module Previews # :nodoc:
     extend ActiveSupport::Concern
 
     included do
@@ -114,7 +114,7 @@ module ActionMailer
 
       # Returns the underscored name of the mailer preview without the suffix.
       def preview_name
-        name.sub(/Preview$/, "").underscore
+        name.delete_suffix("Preview").underscore
       end
 
       private

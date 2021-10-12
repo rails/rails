@@ -53,7 +53,7 @@ namespace :db do
   desc "Rolls the schema back to the previous version (specify steps w/ STEP=n)."
   app_task "rollback"
 
-  desc "Create a db/schema.rb file that can be portably used against any database supported by Active Record"
+  desc "Creates a database schema file (either db/schema.rb or db/structure.sql, depending on `config.active_record.schema_format`)"
   app_task "schema:dump"
 
   desc "Load a schema.rb file into the database"
@@ -64,9 +64,6 @@ namespace :db do
 
   desc "Create the database, load the schema, and initialize with the seed data (use db:reset to also drop the database first)"
   app_task "setup"
-
-  desc "Dump the database structure to an SQL file"
-  app_task "structure:dump"
 
   desc "Retrieves the current schema version number"
   app_task "version"

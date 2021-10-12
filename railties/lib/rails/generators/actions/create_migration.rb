@@ -6,7 +6,7 @@ require "thor/actions"
 module Rails
   module Generators
     module Actions
-      class CreateMigration < Thor::Actions::CreateFile #:nodoc:
+      class CreateMigration < Thor::Actions::CreateFile # :nodoc:
         def migration_dir
           File.dirname(@destination)
         end
@@ -17,6 +17,13 @@ module Rails
 
         def identical?
           exists? && File.binread(existing_migration) == render
+        end
+
+        def invoke!
+          return super if pretend?
+
+          invoked_file = super
+          File.exist?(@destination) ? invoked_file : relative_existing_migration
         end
 
         def revoke!
@@ -32,10 +39,8 @@ module Rails
         end
 
         def existing_migration
-          @existing_migration ||= begin
-            @base.class.migration_exists?(migration_dir, migration_file_name) ||
+          @existing_migration ||= @base.class.migration_exists?(migration_dir, migration_file_name) ||
             File.exist?(@destination) && @destination
-          end
         end
         alias :exists? :existing_migration
 

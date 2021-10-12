@@ -115,4 +115,14 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     end
     assert_raises(KeyError) { a.non_existing_key! }
   end
+
+  def test_inspect
+    a = ActiveSupport::OrderedOptions.new
+    assert_equal "#<ActiveSupport::OrderedOptions {}>", a.inspect
+
+    a.foo   = :bar
+    a[:baz] = :quz
+
+    assert_equal "#<ActiveSupport::OrderedOptions {:foo=>:bar, :baz=>:quz}>", a.inspect
+  end
 end

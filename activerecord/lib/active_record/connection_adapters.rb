@@ -11,20 +11,20 @@ module ActiveRecord
     autoload :Column
     autoload :PoolConfig
     autoload :PoolManager
+    autoload :LegacyPoolManager
+    autoload :SchemaCache
+    autoload :Deduplicable
 
     autoload_at "active_record/connection_adapters/abstract/schema_definitions" do
       autoload :IndexDefinition
       autoload :ColumnDefinition
       autoload :ChangeColumnDefinition
       autoload :ForeignKeyDefinition
+      autoload :CheckConstraintDefinition
       autoload :TableDefinition
       autoload :Table
       autoload :AlterTable
       autoload :ReferenceDefinition
-    end
-
-    autoload_at "active_record/connection_adapters/abstract/connection_pool" do
-      autoload :ConnectionHandler
     end
 
     autoload_under "abstract" do
@@ -32,9 +32,14 @@ module ActiveRecord
       autoload :DatabaseStatements
       autoload :DatabaseLimits
       autoload :Quoting
-      autoload :ConnectionPool
+      autoload :ConnectionHandler
       autoload :QueryCache
       autoload :Savepoints
+    end
+
+    autoload_at "active_record/connection_adapters/abstract/connection_pool" do
+      autoload :ConnectionPool
+      autoload :NullPool
     end
 
     autoload_at "active_record/connection_adapters/abstract/transaction" do

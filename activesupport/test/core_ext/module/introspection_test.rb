@@ -26,32 +26,14 @@ class IntrospectionTest < ActiveSupport::TestCase
     assert_equal "ParentA::B", ParentA::B::FrozenC.module_parent_name
   end
 
-  def test_parent_name
-    assert_deprecated do
-      assert_equal "ParentA", ParentA::B.parent_name
-    end
-  end
-
   def test_module_parent
     assert_equal ParentA::B, ParentA::B::C.module_parent
     assert_equal ParentA, ParentA::B.module_parent
     assert_equal Object, ParentA.module_parent
   end
 
-  def test_parent
-    assert_deprecated do
-      assert_equal ParentA, ParentA::B.parent
-    end
-  end
-
   def test_module_parents
     assert_equal [ParentA::B, ParentA, Object], ParentA::B::C.module_parents
     assert_equal [ParentA, Object], ParentA::B.module_parents
-  end
-
-  def test_parents
-    assert_deprecated do
-      assert_equal [ParentA, Object], ParentA::B.parents
-    end
   end
 end

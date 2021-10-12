@@ -159,6 +159,12 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal ["will never be valid"], t.errors["title"]
   end
 
+  def test_validates_with_array_condition_does_not_mutate_the_array
+    opts = []
+    Topic.validate(if: opts, on: :create) { }
+    assert_empty opts
+  end
+
   def test_invalid_validator
     Topic.validate :i_dont_exist
     assert_raises(NoMethodError) do

@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 require "set"
-require "active_record/connection_adapters/determine_if_preparable_visitor"
-require "active_record/connection_adapters/schema_cache"
 require "active_record/connection_adapters/sql_type_metadata"
 require "active_record/connection_adapters/abstract/schema_dumper"
 require "active_record/connection_adapters/abstract/schema_creation"
@@ -38,7 +36,7 @@ module ActiveRecord
       include Savepoints
 
       SIMPLE_INT = /\A\d+\z/
-      COMMENT_REGEX = %r{/\*(?:[^\*]|\*[^/])*\*/}m
+      COMMENT_REGEX = %r{(?:--.*\n)*|/\*(?:[^*]|\*[^/])*\*/}m
 
       attr_accessor :pool
       attr_reader :visitor, :owner, :logger, :lock
@@ -70,7 +68,7 @@ module ActiveRecord
       def self.build_read_query_regexp(*parts) # :nodoc:
         parts += DEFAULT_READ_QUERY
         parts = parts.map { |part| /#{part}/i }
-        /\A(?:[\(\s]|#{COMMENT_REGEX})*#{Regexp.union(*parts)}/
+        /\A(?:[(\s]|#{COMMENT_REGEX})*#{Regexp.union(*parts)}/
       end
 
       def self.quoted_column_names # :nodoc:
@@ -95,28 +93,57 @@ module ActiveRecord
         @statements = build_statement_pool
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
 
-        if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
-          @prepared_statements = true
-          @visitor.extend(DetermineIfPreparableVisitor)
-        else
-          @prepared_statements = false
-        end
+        @prepared_statements = self.class.type_cast_config_to_boolean(
+          config.fetch(:prepared_statements, true)
+        )
 
         @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
           config.fetch(:advisory_locks, true)
         )
       end
 
+      EXCEPTION_NEVER = { Exception => :never }.freeze # :nodoc:
+      EXCEPTION_IMMEDIATE = { Exception => :immediate }.freeze # :nodoc:
+      private_constant :EXCEPTION_NEVER, :EXCEPTION_IMMEDIATE
+      def with_instrumenter(instrumenter, &block) # :nodoc:
+        Thread.handle_interrupt(EXCEPTION_NEVER) do
+          previous_instrumenter = @instrumenter
+          @instrumenter = instrumenter
+          Thread.handle_interrupt(EXCEPTION_IMMEDIATE, &block)
+        ensure
+          @instrumenter = previous_instrumenter
+        end
+      end
+
+      def check_if_write_query(sql) # :nodoc:
+        if preventing_writes? && write_query?(sql)
+          raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+        end
+      end
+
       def replica?
         @config[:replica] || false
       end
 
-      # Determines whether writes are currently being prevents.
+      def use_metadata_table?
+        @config.fetch(:use_metadata_table, true)
+      end
+
+      # Determines whether writes are currently being prevented.
       #
-      # Returns true if the connection is a replica, or if +prevent_writes+
-      # is set to true.
+      # Returns true if the connection is a replica.
+      #
+      # If the application is using legacy handling, returns
+      # true if +connection_handler.prevent_writes+ is set.
+      #
+      # If the application is using the new connection handling
+      # will return true based on +current_preventing_writes+.
       def preventing_writes?
-        replica? || ActiveRecord::Base.connection_handler.prevent_writes
+        return true if replica?
+        return ActiveRecord::Base.connection_handler.prevent_writes if ActiveRecord.legacy_connection_handling
+        return false if connection_klass.nil?
+
+        connection_klass.current_preventing_writes
       end
 
       def migrations_paths # :nodoc:
@@ -130,26 +157,25 @@ module ActiveRecord
       def schema_migration # :nodoc:
         @schema_migration ||= begin
                                 conn = self
-                                spec_name = conn.pool.db_config.spec_name
-                                name = "#{spec_name}::SchemaMigration"
+                                spec_name = conn.pool.pool_config.connection_specification_name
+
+                                return ActiveRecord::SchemaMigration if spec_name == "ActiveRecord::Base"
+
+                                schema_migration_name = "#{spec_name}::SchemaMigration"
 
                                 Class.new(ActiveRecord::SchemaMigration) do
-                                  define_singleton_method(:name) { name }
-                                  define_singleton_method(:to_s) { name }
+                                  define_singleton_method(:name) { schema_migration_name }
+                                  define_singleton_method(:to_s) { schema_migration_name }
 
-                                  connection_handler.connection_pool_names.each do |pool_name|
-                                    if conn.pool == connection_handler.retrieve_connection_pool(pool_name)
-                                      self.connection_specification_name = pool_name
-                                      break
-                                    end
-                                  end
+                                  self.connection_specification_name = spec_name
                                 end
                               end
       end
 
-      def prepared_statements
+      def prepared_statements?
         @prepared_statements && !prepared_statements_disabled_cache.include?(object_id)
       end
+      alias :prepared_statements :prepared_statements?
 
       def prepared_statements_disabled_cache # :nodoc:
         Thread.current[:ar_prepared_statements_disabled_cache] ||= Set.new
@@ -192,6 +218,10 @@ module ActiveRecord
         end
 
         @owner = Thread.current
+      end
+
+      def connection_klass # :nodoc:
+        @pool.connection_klass
       end
 
       def schema_cache
@@ -239,7 +269,7 @@ module ActiveRecord
       end
 
       def unprepared_statement
-        cache = prepared_statements_disabled_cache.add(object_id) if @prepared_statements
+        cache = prepared_statements_disabled_cache.add?(object_id) if @prepared_statements
         yield
       ensure
         cache&.delete(object_id)
@@ -280,6 +310,10 @@ module ActiveRecord
       # sequence before the insert statement? If true, next_sequence_value
       # is called before each insert to set the record's primary key.
       def prefetch_primary_key?(table_name = nil)
+        false
+      end
+
+      def supports_partitioned_indexes?
         false
       end
 
@@ -329,12 +363,15 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support creating foreign key constraints
-      # in the same statement as creating the table?
-      def supports_foreign_keys_in_create?
-        supports_foreign_keys?
+      # Does this adapter support creating deferrable constraints?
+      def supports_deferrable_constraints?
+        false
       end
-      deprecate :supports_foreign_keys_in_create?
+
+      # Does this adapter support creating check constraints?
+      def supports_check_constraints?
+        false
+      end
 
       # Does this adapter support views?
       def supports_views?
@@ -365,12 +402,6 @@ module ActiveRecord
       def supports_comments_in_create?
         false
       end
-
-      # Does this adapter support multi-value insert?
-      def supports_multi_insert?
-        true
-      end
-      deprecate :supports_multi_insert?
 
       # Does this adapter support virtual columns?
       def supports_virtual_columns?
@@ -411,12 +442,25 @@ module ActiveRecord
         false
       end
 
+      def supports_concurrent_connections?
+        true
+      end
+
+      def async_enabled? # :nodoc:
+        supports_concurrent_connections? &&
+          !ActiveRecord.async_query_executor.nil? && !pool.async_executor.nil?
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end
 
       # This is meant to be implemented by the adapters that support extensions
       def enable_extension(name)
+      end
+
+      # This is meant to be implemented by the adapters that support custom enum types
+      def create_enum(*) # :nodoc:
       end
 
       def advisory_locks_enabled? # :nodoc:
@@ -452,6 +496,11 @@ module ActiveRecord
       # Override to turn off referential integrity while executing <tt>&block</tt>.
       def disable_referential_integrity
         yield
+      end
+
+      # Override to check all foreign key constraints in a database.
+      def all_foreign_keys_valid?
+        true
       end
 
       # CONNECTION MANAGEMENT ====================================
@@ -503,6 +552,12 @@ module ActiveRecord
         # this should be overridden by concrete adapters
       end
 
+      # Removes the connection from the pool and disconnect it.
+      def throw_away!
+        pool.remove self
+        disconnect!
+      end
+
       # Clear any caching the database adapter may be doing.
       def clear_cache!
         @lock.synchronize { @statements.clear } if @statements
@@ -531,7 +586,7 @@ module ActiveRecord
         @connection
       end
 
-      def default_uniqueness_comparison(attribute, value, klass) # :nodoc:
+      def default_uniqueness_comparison(attribute, value) # :nodoc:
         attribute.eq(value)
       end
 
@@ -557,10 +612,6 @@ module ActiveRecord
       # Check the connection back in to the connection pool
       def close
         pool.checkin self
-      end
-
-      def column_name_for_operation(operation, node) # :nodoc:
-        visitor.compile(node)
       end
 
       def default_index_type?(index) # :nodoc:
@@ -590,78 +641,85 @@ module ActiveRecord
       def check_version # :nodoc:
       end
 
-      private
-        def type_map
-          @type_map ||= Type::TypeMap.new.tap do |mapping|
-            initialize_type_map(mapping)
-          end
+      def field_ordered_value(column, values) # :nodoc:
+        node = Arel::Nodes::Case.new(column)
+        values.each.with_index(1) do |value, order|
+          node.when(value).then(order)
         end
 
-        def initialize_type_map(m = type_map)
-          register_class_with_limit m, %r(boolean)i,       Type::Boolean
-          register_class_with_limit m, %r(char)i,          Type::String
-          register_class_with_limit m, %r(binary)i,        Type::Binary
-          register_class_with_limit m, %r(text)i,          Type::Text
-          register_class_with_precision m, %r(date)i,      Type::Date
-          register_class_with_precision m, %r(time)i,      Type::Time
-          register_class_with_precision m, %r(datetime)i,  Type::DateTime
-          register_class_with_limit m, %r(float)i,         Type::Float
-          register_class_with_limit m, %r(int)i,           Type::Integer
+        Arel::Nodes::Ascending.new(node.else(values.length + 1))
+      end
 
-          m.alias_type %r(blob)i,      "binary"
-          m.alias_type %r(clob)i,      "text"
-          m.alias_type %r(timestamp)i, "datetime"
-          m.alias_type %r(numeric)i,   "decimal"
-          m.alias_type %r(number)i,    "decimal"
-          m.alias_type %r(double)i,    "float"
+      class << self
+        private
+          def initialize_type_map(m)
+            register_class_with_limit m, %r(boolean)i,       Type::Boolean
+            register_class_with_limit m, %r(char)i,          Type::String
+            register_class_with_limit m, %r(binary)i,        Type::Binary
+            register_class_with_limit m, %r(text)i,          Type::Text
+            register_class_with_precision m, %r(date)i,      Type::Date
+            register_class_with_precision m, %r(time)i,      Type::Time
+            register_class_with_precision m, %r(datetime)i,  Type::DateTime
+            register_class_with_limit m, %r(float)i,         Type::Float
+            register_class_with_limit m, %r(int)i,           Type::Integer
 
-          m.register_type %r(^json)i, Type::Json.new
+            m.alias_type %r(blob)i,      "binary"
+            m.alias_type %r(clob)i,      "text"
+            m.alias_type %r(timestamp)i, "datetime"
+            m.alias_type %r(numeric)i,   "decimal"
+            m.alias_type %r(number)i,    "decimal"
+            m.alias_type %r(double)i,    "float"
 
-          m.register_type(%r(decimal)i) do |sql_type|
-            scale = extract_scale(sql_type)
-            precision = extract_precision(sql_type)
+            m.register_type %r(^json)i, Type::Json.new
 
-            if scale == 0
-              # FIXME: Remove this class as well
-              Type::DecimalWithoutScale.new(precision: precision)
-            else
-              Type::Decimal.new(precision: precision, scale: scale)
+            m.register_type(%r(decimal)i) do |sql_type|
+              scale = extract_scale(sql_type)
+              precision = extract_precision(sql_type)
+
+              if scale == 0
+                # FIXME: Remove this class as well
+                Type::DecimalWithoutScale.new(precision: precision)
+              else
+                Type::Decimal.new(precision: precision, scale: scale)
+              end
             end
           end
-        end
 
-        def reload_type_map
-          type_map.clear
-          initialize_type_map
-        end
-
-        def register_class_with_limit(mapping, key, klass)
-          mapping.register_type(key) do |*args|
-            limit = extract_limit(args.last)
-            klass.new(limit: limit)
+          def register_class_with_limit(mapping, key, klass)
+            mapping.register_type(key) do |*args|
+              limit = extract_limit(args.last)
+              klass.new(limit: limit)
+            end
           end
-        end
 
-        def register_class_with_precision(mapping, key, klass)
-          mapping.register_type(key) do |*args|
-            precision = extract_precision(args.last)
-            klass.new(precision: precision)
+          def register_class_with_precision(mapping, key, klass)
+            mapping.register_type(key) do |*args|
+              precision = extract_precision(args.last)
+              klass.new(precision: precision)
+            end
           end
-        end
 
-        def extract_scale(sql_type)
-          case sql_type
-          when /\((\d+)\)/ then 0
-          when /\((\d+)(,(\d+))\)/ then $3.to_i
+          def extract_scale(sql_type)
+            case sql_type
+            when /\((\d+)\)/ then 0
+            when /\((\d+)(,(\d+))\)/ then $3.to_i
+            end
           end
-        end
 
-        def extract_precision(sql_type)
-          $1.to_i if sql_type =~ /\((\d+)(,\d+)?\)/
-        end
+          def extract_precision(sql_type)
+            $1.to_i if sql_type =~ /\((\d+)(,\d+)?\)/
+          end
 
-        def extract_limit(sql_type)
-          $1.to_i if sql_type =~ /\((.*)\)/
+          def extract_limit(sql_type)
+            $1.to_i if sql_type =~ /\((.*)\)/
+          end
+      end
+
+      TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
+
+      private
+        def type_map
+          TYPE_MAP
         end
 
         def translate_exception_class(e, sql, binds)
@@ -674,7 +732,7 @@ module ActiveRecord
           exception
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil) # :doc:
+        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil, async: false, &block) # :doc:
           @instrumenter.instrument(
             "sql.active_record",
             sql:               sql,
@@ -682,13 +740,19 @@ module ActiveRecord
             binds:             binds,
             type_casted_binds: type_casted_binds,
             statement_name:    statement_name,
+            async:             async,
             connection:        self) do
-            @lock.synchronize do
-              yield
-            end
+            @lock.synchronize(&block)
           rescue => e
             raise translate_exception_class(e, sql, binds)
           end
+        end
+
+        def transform_query(sql)
+          ActiveRecord.query_transformers.each do |transformer|
+            sql = transformer.call(sql)
+          end
+          sql
         end
 
         def translate_exception(exception, message:, sql:, binds:)
@@ -735,6 +799,14 @@ module ActiveRecord
         end
 
         def build_statement_pool
+        end
+
+        # Builds the result object.
+        #
+        # This is an internal hook to make possible connection adapters to build
+        # custom result objects with connection-specific data.
+        def build_result(columns:, rows:, column_types: {})
+          ActiveRecord::Result.new(columns, rows, column_types)
         end
     end
   end

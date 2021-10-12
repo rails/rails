@@ -82,6 +82,30 @@ module ApplicationTests
       assert_equal "foo", last_response.body
     end
 
+    test "appended root takes precedence over internal welcome controller" do
+      controller :foo, <<-RUBY
+        class FooController < ApplicationController
+          def index
+            render plain: "foo"
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+        end
+
+        Rails.application.routes.append do
+          get "/", to: "foo#index"
+        end
+      RUBY
+
+      app("development")
+      get "/"
+
+      assert_equal "foo", last_response.body
+    end
+
     test "rails/welcome in production" do
       app("production")
       get "/"
@@ -487,7 +511,7 @@ module ApplicationTests
       get "/bar"
       assert_equal 404, last_response.status
       assert_raises NoMethodError do
-        assert_equal "/bar", Rails.application.routes.url_helpers.bar_path
+        Rails.application.routes.url_helpers.bar_path
       end
 
       app_file "config/routes.rb", <<-RUBY
@@ -536,19 +560,19 @@ module ApplicationTests
       get "/bar"
       assert_equal 404, last_response.status
       assert_raises NoMethodError do
-        assert_equal "/bar", Rails.application.routes.url_helpers.bar_path
+        Rails.application.routes.url_helpers.bar_path
       end
 
       get "/custom"
       assert_equal 404, last_response.status
       assert_raises NoMethodError do
-        assert_equal "http://www.apple.com", Rails.application.routes.url_helpers.custom_url
+        Rails.application.routes.url_helpers.custom_url
       end
 
       get "/mapping"
       assert_equal 404, last_response.status
       assert_raises NoMethodError do
-        assert_equal "/profile", Rails.application.routes.url_helpers.polymorphic_path(User.new)
+        Rails.application.routes.url_helpers.polymorphic_path(User.new)
       end
     end
 
@@ -621,7 +645,7 @@ module ApplicationTests
       assert_equal "/users", Rails.application.routes.url_helpers.polymorphic_path(User.new)
 
       assert_raises NoMethodError do
-        assert_equal "http://www.microsoft.com", Rails.application.routes.url_helpers.microsoft_url
+        Rails.application.routes.url_helpers.microsoft_url
       end
     end
 
@@ -709,6 +733,19 @@ module ApplicationTests
 
       get "/url"
       assert_equal "/foo", last_response.body
+    end
+
+    test "request to rails/welcome for api_only app is successful" do
+      add_to_config <<-RUBY
+        config.api_only = true
+        config.action_dispatch.show_exceptions = false
+        config.action_controller.allow_forgery_protection = true
+      RUBY
+
+      app "development"
+
+      get "/"
+      assert_equal 200, last_response.status
     end
   end
 end

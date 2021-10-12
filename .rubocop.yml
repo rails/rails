@@ -1,18 +1,20 @@
 require:
+  - rubocop-minitest
+  - rubocop-packaging
   - rubocop-performance
   - rubocop-rails
 
 AllCops:
-  TargetRubyVersion: 2.5
+  TargetRubyVersion: 2.7
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
+  SuggestExtensions: false
   Exclude:
     - '**/tmp/**/*'
     - '**/templates/**/*'
     - '**/vendor/**/*'
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
-    - 'railties/test/fixtures/tmp/**/*'
     - 'actionmailbox/test/dummy/**/*'
     - 'actiontext/test/dummy/**/*'
     - '**/node_modules/**/*'
@@ -31,6 +33,12 @@ Rails/RefuteMethods:
   Include:
     - '**/test/**/*'
 
+Rails/IndexBy:
+  Enabled: true
+
+Rails/IndexWith:
+  Enabled: true
+
 # Prefer &&/|| over and/or.
 Style/AndOr:
   Enabled: true
@@ -40,6 +48,9 @@ Layout/CaseIndentation:
   Enabled: true
 
 Layout/ClosingHeredocIndentation:
+  Enabled: true
+
+Layout/ClosingParenthesisIndentation:
   Enabled: true
 
 # Align comments with method definitions.
@@ -55,6 +66,9 @@ Layout/EndAlignment:
   Enabled: true
   EnforcedStyleAlignWith: variable
   AutoCorrect: true
+
+Layout/EndOfLine:
+  Enabled: true
 
 Layout/EmptyLineAfterMagicComment:
   Enabled: true
@@ -80,9 +94,6 @@ Layout/EmptyLinesAroundModuleBody:
 
 # Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
 Style/HashSyntax:
-  Enabled: true
-
-Layout/FirstArgumentIndentation:
   Enabled: true
 
 # Method definitions after `private` or `protected` isolated calls need one
@@ -113,6 +124,9 @@ Layout/SpaceAroundEqualsInParameterDefault:
 Layout/SpaceAroundKeyword:
   Enabled: true
 
+Layout/SpaceAroundOperators:
+  Enabled: true
+
 Layout/SpaceBeforeComma:
   Enabled: true
 
@@ -127,6 +141,9 @@ Style/DefWithParentheses:
 
 # Defining a method with parameters needs parentheses.
 Style/MethodDefParentheses:
+  Enabled: true
+
+Style/ExplicitBlockArgument:
   Enabled: true
 
 Style/FrozenStringLiteralComment:
@@ -167,7 +184,7 @@ Style/StringLiterals:
   EnforcedStyle: double_quotes
 
 # Detect hard tabs, no hard tabs.
-Layout/Tab:
+Layout/IndentationStyle:
   Enabled: true
 
 # Empty lines should not have any spaces.
@@ -188,14 +205,14 @@ Lint/AmbiguousOperator:
 Lint/AmbiguousRegexpLiteral:
   Enabled: true
 
+Lint/DuplicateRequire:
+  Enabled: true
+
 Lint/ErbNewArguments:
   Enabled: true
 
 # Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
 Lint/RequireParentheses:
-  Enabled: true
-
-Lint/ShadowingOuterLocalVariable:
   Enabled: true
 
 Lint/RedundantStringCoercion:
@@ -213,12 +230,21 @@ Lint/DeprecatedClassMethods:
 Style/ParenthesesAroundCondition:
   Enabled: true
 
+Style/HashTransformKeys:
+  Enabled: true
+
+Style/HashTransformValues:
+  Enabled: true
+
 Style/RedundantBegin:
   Enabled: true
 
 Style/RedundantReturn:
   Enabled: true
   AllowMultipleReturnValues: true
+
+Style/RedundantRegexpEscape:
+  Enabled: true
 
 Style/Semicolon:
   Enabled: true
@@ -231,7 +257,16 @@ Style/ColonMethodCall:
 Style/TrivialAccessors:
   Enabled: true
 
+Performance/BindCall:
+  Enabled: true
+
 Performance/FlatMap:
+  Enabled: true
+
+Performance/MapCompact:
+  Enabled: true
+
+Performance/SelectMap:
   Enabled: true
 
 Performance/RedundantMerge:
@@ -249,5 +284,17 @@ Performance/RegexpMatch:
 Performance/ReverseEach:
   Enabled: true
 
+Performance/StringReplacement:
+  Enabled: true
+
 Performance/UnfreezeString:
+  Enabled: true
+
+Performance/DeletePrefix:
+  Enabled: true
+
+Performance/DeleteSuffix:
+  Enabled: true
+
+Minitest/UnreachableAssertion:
   Enabled: true

@@ -12,8 +12,8 @@ class RedisAdapterTest < ActionCable::TestCase
 
   def cable_config
     { adapter: "redis", driver: "ruby" }.tap do |x|
-      if host = URI(ENV["REDIS_URL"] || "").hostname
-        x[:host] = host
+      if host = ENV["REDIS_URL"]
+        x[:url] = host
       end
     end
   end
@@ -29,7 +29,8 @@ class RedisAdapterTest::AlternateConfiguration < RedisAdapterTest
   def cable_config
     alt_cable_config = super.dup
     alt_cable_config.delete(:url)
-    alt_cable_config.merge(host: URI(ENV["REDIS_URL"] || "").hostname || "127.0.0.1", port: 6379, db: 12)
+    url = URI(ENV["REDIS_URL"] || "")
+    alt_cable_config.merge(host: url.hostname || "127.0.0.1", port: url.port || 6379, db: 12)
   end
 end
 

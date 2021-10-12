@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Rich text framework."
   s.description = "Edit and display rich text in Rails applications."
 
-  s.required_ruby_version = ">= 2.5.0"
+  s.required_ruby_version = ">= 2.7.0"
 
   s.license  = "MIT"
 
@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
     "bug_tracker_uri"   => "https://github.com/rails/rails/issues",
     "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/actiontext/CHANGELOG.md",
     "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
-    "mailing_list_uri"  => "https://groups.google.com/forum/#!forum/rubyonrails-talk",
+    "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
     "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/actiontext",
   }
 

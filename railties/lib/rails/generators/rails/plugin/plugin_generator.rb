@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/hash/except"
 require "rails/generators/rails/app/app_generator"
 require "date"
 
@@ -24,10 +25,18 @@ module Rails
           directory "app"
           empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
         end
+
+        empty_directory_with_keep_file "app/models/concerns"
+        empty_directory_with_keep_file "app/controllers/concerns"
+        remove_dir "app/mailers" if options[:skip_action_mailer]
+        remove_dir "app/jobs" if options[:skip_active_job]
       elsif full?
         empty_directory_with_keep_file "app/models"
         empty_directory_with_keep_file "app/controllers"
-        empty_directory_with_keep_file "app/mailers"
+        empty_directory_with_keep_file "app/models/concerns"
+        empty_directory_with_keep_file "app/controllers/concerns"
+        empty_directory_with_keep_file "app/mailers" unless options[:skip_action_mailer]
+        empty_directory_with_keep_file "app/jobs" unless options[:skip_active_job]
 
         unless api?
           empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
@@ -46,7 +55,7 @@ module Rails
     end
 
     def license
-      template "MIT-LICENSE"
+      template "MIT-LICENSE" unless inside_application?
     end
 
     def gemspec
@@ -55,6 +64,15 @@ module Rails
 
     def gitignore
       template "gitignore", ".gitignore"
+    end
+
+    def version_control
+      if !options[:skip_git] && !options[:pretend]
+        run "git init", capture: options[:quiet], abort_on_failure: false
+        if user_default_branch.strip.empty?
+          `git symbolic-ref HEAD refs/heads/main`
+        end
+      end
     end
 
     def lib
@@ -76,29 +94,34 @@ module Rails
     def test
       template "test/test_helper.rb"
       template "test/%namespaced_name%_test.rb"
-      append_file "Rakefile", <<-EOF
-
-#{rakefile_test_tasks}
-task default: :test
+      append_file "Rakefile", <<~EOF
+        #{rakefile_test_tasks}
+        task default: :test
       EOF
+
       if engine?
+        empty_directory_with_keep_file "test/fixtures/files"
+        empty_directory_with_keep_file "test/controllers"
+        empty_directory_with_keep_file "test/mailers"
+        empty_directory_with_keep_file "test/models"
+        empty_directory_with_keep_file "test/integration"
+
+        unless api?
+          empty_directory_with_keep_file "test/helpers"
+        end
+
         template "test/integration/navigation_test.rb"
       end
     end
 
-    PASSTHROUGH_OPTIONS = [
-      :skip_active_record, :skip_active_storage, :skip_action_mailer, :skip_javascript, :skip_action_cable, :skip_sprockets, :database,
-      :api, :quiet, :pretend, :skip
-    ]
+    DUMMY_IGNORE_OPTIONS = %i[dev edge master template]
 
     def generate_test_dummy(force = false)
-      opts = (options.dup || {}).keep_if { |k, _| PASSTHROUGH_OPTIONS.map(&:to_s).include?(k) }
+      opts = options.transform_keys(&:to_sym).except(*DUMMY_IGNORE_OPTIONS)
       opts[:force] = force
       opts[:skip_bundle] = true
-      opts[:skip_listen] = true
       opts[:skip_git] = true
-      opts[:skip_turbolinks] = true
-      opts[:skip_webpack_install] = true
+      opts[:skip_hotwire] = true
       opts[:dummy_app] = true
 
       invoke Rails::Generators::AppGenerator,
@@ -107,20 +130,31 @@ task default: :test
 
     def test_dummy_config
       template "rails/boot.rb", "#{dummy_path}/config/boot.rb", force: true
-      template "rails/application.rb", "#{dummy_path}/config/application.rb", force: true
+
+      insert_into_file "#{dummy_path}/config/application.rb", <<~RUBY, after: /^Bundler\.require.+\n/
+        require #{namespaced_name.inspect}
+      RUBY
+
       if mountable?
         template "rails/routes.rb", "#{dummy_path}/config/routes.rb", force: true
       end
+      if engine? && !api?
+        insert_into_file "#{dummy_path}/config/application.rb", indent(<<~RUBY, 4), after: /^\s*config\.load_defaults.*\n/
+
+          # For compatibility with applications that use this config
+          config.action_controller.include_all_helpers = false
+        RUBY
+      end
     end
 
-    def test_dummy_assets
-      template "rails/javascripts.js",    "#{dummy_path}/app/javascript/packs/application.js", force: true
+    def test_dummy_sprocket_assets
       template "rails/stylesheets.css",   "#{dummy_path}/app/assets/stylesheets/application.css", force: true
       template "rails/dummy_manifest.js", "#{dummy_path}/app/assets/config/manifest.js", force: true
     end
 
     def test_dummy_clean
       inside dummy_path do
+        remove_file ".ruby-version"
         remove_file "db/seeds.rb"
         remove_file "Gemfile"
         remove_file "lib/tasks"
@@ -161,6 +195,11 @@ task default: :test
         append_file gemfile_in_app_path, entry
       end
     end
+
+    private
+      def user_default_branch
+        @user_default_branch ||= `git config init.defaultbranch`
+      end
   end
 
   module Generators
@@ -176,7 +215,7 @@ task default: :test
                                   desc: "Generate a rails engine with bundled Rails application for testing"
 
       class_option :mountable,    type: :boolean, default: false,
-                                  desc: "Generate mountable isolated application"
+                                  desc: "Generate mountable isolated engine"
 
       class_option :skip_gemspec, type: :boolean, default: false,
                                   desc: "Skip gemspec file"
@@ -202,7 +241,8 @@ task default: :test
         build(:gemspec)   unless options[:skip_gemspec]
         build(:license)
         build(:gitignore) unless options[:skip_git]
-        build(:gemfile)   unless options[:skip_gemfile]
+        build(:gemfile)
+        build(:version_control)
       end
 
       def create_app_files
@@ -275,9 +315,8 @@ task default: :test
         say_status :vendor_app, dummy_path
         mute do
           build(:generate_test_dummy)
-          store_application_definition!
           build(:test_dummy_config)
-          build(:test_dummy_assets)
+          build(:test_dummy_sprocket_assets) unless skip_sprockets?
           build(:test_dummy_clean)
           # ensure that bin/rails has proper dummy_path
           build(:bin, true)
@@ -375,29 +414,17 @@ task default: :test
         end
       end
 
-      def application_definition
-        @application_definition ||= begin
-
-          dummy_application_path = File.expand_path("#{dummy_path}/config/application.rb", destination_root)
-          unless options[:pretend] || !File.exist?(dummy_application_path)
-            contents = File.read(dummy_application_path)
-            contents[(contents.index(/module ([\w]+)\n(.*)class Application/m))..-1]
-          end
-        end
-      end
-      alias :store_application_definition! :application_definition
-
       def get_builder_class
         defined?(::PluginBuilder) ? ::PluginBuilder : Rails::PluginBuilder
       end
 
       def rakefile_test_tasks
         <<-RUBY
-require 'rake/testtask'
+require "rake/testtask"
 
 Rake::TestTask.new(:test) do |t|
-  t.libs << 'test'
-  t.pattern = 'test/**/*_test.rb'
+  t.libs << "test"
+  t.pattern = "test/**/*_test.rb"
   t.verbose = false
 end
         RUBY
@@ -422,7 +449,7 @@ end
 
       def relative_path
         return unless inside_application?
-        app_path.sub(/^#{rails_app_path}\//, "")
+        app_path.delete_prefix("#{rails_app_path}/")
       end
     end
   end

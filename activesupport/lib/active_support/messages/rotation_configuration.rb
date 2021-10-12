@@ -10,19 +10,12 @@ module ActiveSupport
       end
 
       def rotate(kind, *args, **options)
+        args << options unless options.empty?
         case kind
         when :signed
-          if options&.any?
-            @signed << (args << options)
-          else
-            @signed << args
-          end
+          @signed << args
         when :encrypted
-          if options&.any?
-            @encrypted << (args << options)
-          else
-            @encrypted << args
-          end
+          @encrypted << args
         end
       end
     end

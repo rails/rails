@@ -66,6 +66,18 @@ module ActionDispatch
       assert_equal 400, wrapper.status_code
     end
 
+    test "#rescue_response? returns false for an exception that's not in rescue_responses" do
+      exception = RuntimeError.new
+      wrapper = ExceptionWrapper.new(@cleaner, exception)
+      assert_equal false, wrapper.rescue_response?
+    end
+
+    test "#rescue_response? returns true for an exception that is in rescue_responses" do
+      exception = ActionController::RoutingError.new("")
+      wrapper = ExceptionWrapper.new(@cleaner, exception)
+      assert_equal true, wrapper.rescue_response?
+    end
+
     test "#application_trace cannot be nil" do
       nil_backtrace_wrapper = ExceptionWrapper.new(@cleaner, BadlyDefinedError.new)
       nil_cleaner_wrapper = ExceptionWrapper.new(nil, BadlyDefinedError.new)

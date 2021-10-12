@@ -12,6 +12,7 @@ require "models/category"
 require "models/reply"
 require "models/contact"
 require "models/keyboard"
+require "models/numeric_data"
 
 class AttributeMethodsTest < ActiveRecord::TestCase
   include InTimeZone
@@ -34,12 +35,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     t.title = "The First Topic Now Has A Title With\nNewlines And More Than 50 Characters"
 
     assert_equal '"The First Topic Now Has A Title With\nNewlines And ..."', t.attribute_for_inspect(:title)
+    assert_equal '"The First Topic Now Has A Title With\nNewlines And ..."', t.attribute_for_inspect(:heading)
   end
 
   test "attribute_for_inspect with a date" do
     t = topics(:first)
 
-    assert_equal %("#{t.written_on.to_s(:db)}"), t.attribute_for_inspect(:written_on)
+    assert_equal %("#{t.written_on.to_s(:inspect)}"), t.attribute_for_inspect(:written_on)
   end
 
   test "attribute_for_inspect with an array" do
@@ -69,6 +71,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     t.written_on = Time.now
     t.author_name = ""
     assert t.attribute_present?("title")
+    assert t.attribute_present?("heading")
     assert t.attribute_present?("written_on")
     assert_not t.attribute_present?("content")
     assert_not t.attribute_present?("author_name")
@@ -213,6 +216,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  test "read attributes_for_database" do
+    topic = Topic.new
+    topic.content = { one: 1, two: 2 }
+
+    db_attributes = Topic.instantiate(topic.attributes_for_database).attributes
+    before_type_cast_attributes = Topic.instantiate(topic.attributes_before_type_cast).attributes
+
+    assert_equal topic.attributes, db_attributes
+    assert_not_equal topic.attributes, before_type_cast_attributes
+  end
+
   test "read attributes_after_type_cast on a date" do
     tz = "Pacific Time (US & Canada)"
 
@@ -263,10 +277,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "case-sensitive attributes hash" do
-    # DB2 is not case-sensitive.
-    return true if current_adapter?(:DB2Adapter)
-
-    assert_equal @loaded_fixtures["computers"]["workstation"].to_hash, Computer.first.attributes
+    expected = ["created_at", "developer", "extendedWarranty", "id", "system", "timezone", "updated_at"]
+    assert_equal expected, Computer.first.attributes.keys.sort
   end
 
   test "attributes without primary key" do
@@ -279,14 +291,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "hashes are not mangled" do
-    new_topic = { title: "New Topic" }
-    new_topic_values = { title: "AnotherTopic" }
+    new_topic = { title: "New Topic", content: { key: "First value" } }
+    new_topic_values = { title: "AnotherTopic", content: { key: "Second value" } }
 
     topic = Topic.new(new_topic)
     assert_equal new_topic[:title], topic.title
+    assert_equal new_topic[:content], topic.content
 
     topic.attributes = new_topic_values
     assert_equal new_topic_values[:title], topic.title
+    assert_equal new_topic_values[:content], topic.content
   end
 
   test "create through factory" do
@@ -297,13 +311,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "write_attribute" do
     topic = Topic.new
-    topic.send(:write_attribute, :title, "Still another topic")
+    topic.write_attribute :title, "Still another topic"
     assert_equal "Still another topic", topic.title
 
     topic[:title] = "Still another topic: part 2"
     assert_equal "Still another topic: part 2", topic.title
 
-    topic.send(:write_attribute, "title", "Still another topic: part 3")
+    topic.write_attribute "title", "Still another topic: part 3"
     assert_equal "Still another topic: part 3", topic.title
 
     topic["title"] = "Still another topic: part 4"
@@ -394,13 +408,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       super(attr_name, value.downcase)
     end
 
-    topic.send(:write_attribute, :title, "Yet another topic")
+    topic.write_attribute :title, "Yet another topic"
     assert_equal "yet another topic", topic.title
 
     topic[:title] = "Yet another topic: part 2"
     assert_equal "yet another topic: part 2", topic.title
 
-    topic.send(:write_attribute, "title", "Yet another topic: part 3")
+    topic.write_attribute "title", "Yet another topic: part 3"
     assert_equal "yet another topic: part 3", topic.title
 
     topic["title"] = "Yet another topic: part 4"
@@ -425,6 +439,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.new(title: "a")
     def topic.title() "b" end
     assert_equal "a", topic[:title]
+  end
+
+  test "read overridden attribute with predicate respects override" do
+    topic = Topic.new
+
+    topic.approved = true
+
+    def topic.approved; false; end
+
+    assert_not topic.approved?, "overridden approved should be false"
   end
 
   test "string attribute predicate" do
@@ -565,9 +589,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
       meth = "#{prefix}title"
       assert_respond_to topic, meth
-      assert_equal ["title"], topic.send(meth)
-      assert_equal ["title", "a"], topic.send(meth, "a")
-      assert_equal ["title", 1, 2, 3], topic.send(meth, 1, 2, 3)
+      assert_equal ["title"], topic.public_send(meth)
+      assert_equal ["title", "a"], topic.public_send(meth, "a")
+      assert_equal ["title", 1, 2, 3], topic.public_send(meth, 1, 2, 3)
     end
   end
 
@@ -579,9 +603,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
       meth = "title#{suffix}"
       assert_respond_to topic, meth
-      assert_equal ["title"], topic.send(meth)
-      assert_equal ["title", "a"], topic.send(meth, "a")
-      assert_equal ["title", 1, 2, 3], topic.send(meth, 1, 2, 3)
+      assert_equal ["title"], topic.public_send(meth)
+      assert_equal ["title", "a"], topic.public_send(meth, "a")
+      assert_equal ["title", 1, 2, 3], topic.public_send(meth, 1, 2, 3)
     end
   end
 
@@ -593,9 +617,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
       meth = "#{prefix}title#{suffix}"
       assert_respond_to topic, meth
-      assert_equal ["title"], topic.send(meth)
-      assert_equal ["title", "a"], topic.send(meth, "a")
-      assert_equal ["title", 1, 2, 3], topic.send(meth, 1, 2, 3)
+      assert_equal ["title"], topic.public_send(meth)
+      assert_equal ["title", "a"], topic.public_send(meth, "a")
+      assert_equal ["title", 1, 2, 3], topic.public_send(meth, 1, 2, 3)
     end
   end
 
@@ -609,7 +633,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "typecast attribute from select to false" do
     Topic.create(title: "Budget")
     # Oracle does not support boolean expressions in SELECT.
-    if current_adapter?(:OracleAdapter, :FbAdapter)
+    if current_adapter?(:OracleAdapter)
       topic = Topic.all.merge!(select: "topics.*, 0 as is_test").first
     else
       topic = Topic.all.merge!(select: "topics.*, 1=2 as is_test").first
@@ -620,7 +644,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "typecast attribute from select to true" do
     Topic.create(title: "Budget")
     # Oracle does not support boolean expressions in SELECT.
-    if current_adapter?(:OracleAdapter, :FbAdapter)
+    if current_adapter?(:OracleAdapter)
       topic = Topic.all.merge!(select: "topics.*, 1 as is_test").first
     else
       topic = Topic.all.merge!(select: "topics.*, 2=2 as is_test").first
@@ -776,7 +800,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     in_time_zone "Pacific Time (US & Canada)" do
       record = Topic.new(id: 1)
       record.written_on = "Jan 01 00:00:00 2014"
-      assert_equal record, YAML.load(YAML.dump(record))
+      payload = YAML.dump(record)
+      assert_equal record, YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
     end
   ensure
     # NOTE: Reset column info because global topics
@@ -893,7 +918,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     }
     assert_instance_of Topic, error.record
     assert_equal "hello", error.attribute
-    assert_equal "unknown attribute 'hello' for Topic.", error.message
+    assert_match "unknown attribute 'hello' for Topic.", error.message
   end
 
   test "method overrides in multi-level subclasses" do
@@ -952,6 +977,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "define_attribute_method works with both symbol and string" do
     klass = Class.new(ActiveRecord::Base)
+    klass.table_name = "foo"
 
     assert_nothing_raised { klass.define_attribute_method(:foo) }
     assert_nothing_raised { klass.define_attribute_method("bar") }
@@ -1059,7 +1085,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     model = @target.select("id").last!
 
     assert_equal ["id"], model.attribute_names
-    # Sanity check, make sure other columns exist.
+    # Ensure other columns exist.
     assert_not_equal ["id"], @target.column_names
   end
 
@@ -1084,6 +1110,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "generated attribute methods ancestors have correct module" do
     mod = Topic.send(:generated_attribute_methods)
     assert_equal "Topic::GeneratedAttributeMethods", mod.inspect
+  end
+
+  test "read_attribute_before_type_cast with aliased attribute" do
+    model = NumericData.new(new_bank_balance: "abcd")
+    assert_equal "abcd", model.read_attribute_before_type_cast("new_bank_balance")
   end
 
   private

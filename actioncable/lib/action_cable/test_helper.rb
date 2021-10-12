@@ -45,7 +45,7 @@ module ActionCable
     def assert_broadcasts(stream, number, &block)
       if block_given?
         original_count = broadcasts_size(stream)
-        assert_nothing_raised(&block)
+        _assert_nothing_raised_or_warn("assert_broadcasts", &block)
         new_count = broadcasts_size(stream)
         actual_count = new_count - original_count
       else
@@ -106,7 +106,7 @@ module ActionCable
         old_messages = new_messages
         clear_messages(stream)
 
-        assert_nothing_raised(&block)
+        _assert_nothing_raised_or_warn("assert_broadcast_on", &block)
         new_messages = broadcasts(stream)
         clear_messages(stream)
 

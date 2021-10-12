@@ -12,20 +12,26 @@ module ActiveModel
 
         assert_equal "", registry.lookup(:foo)
         assert_equal [], registry.lookup(:bar)
+        assert_equal [:a, :a], registry.lookup(:bar, 2, :a) # Array.new(2, :a)
+        assert_equal [{}, {}], registry.lookup(:bar, 2, {}) # Array.new(2, {})
       end
 
       test "a block can be registered" do
         registry = Type::Registry.new
-        registry.register(:foo) do |*args|
-          [*args, "block for foo"]
+        registry.register(:foo) do |type, *args|
+          [type, args, "block for foo"]
         end
-        registry.register(:bar) do |*args|
-          [*args, "block for bar"]
+        registry.register(:bar) do |type, *args|
+          [type, args, "block for bar"]
+        end
+        registry.register(:baz) do |type, **kwargs|
+          [type, kwargs, "block for baz"]
         end
 
-        assert_equal [:foo, 1, "block for foo"], registry.lookup(:foo, 1)
-        assert_equal [:foo, 2, "block for foo"], registry.lookup(:foo, 2)
-        assert_equal [:bar, 1, 2, 3, "block for bar"], registry.lookup(:bar, 1, 2, 3)
+        assert_equal [:foo, [1], "block for foo"], registry.lookup(:foo, 1)
+        assert_equal [:foo, [2], "block for foo"], registry.lookup(:foo, 2)
+        assert_equal [:bar, [1, 2, 3], "block for bar"], registry.lookup(:bar, 1, 2, 3)
+        assert_equal [:baz, { kw: 1 }, "block for baz"], registry.lookup(:baz, kw: 1)
       end
 
       test "a reasonable error is given when no type is found" do

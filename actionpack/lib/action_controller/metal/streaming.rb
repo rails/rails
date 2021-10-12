@@ -2,7 +2,7 @@
 
 require "rack/chunked"
 
-module ActionController #:nodoc:
+module ActionController # :nodoc:
   # Allows views to be streamed back to the client as they are rendered.
   #
   # By default, Rails renders views by first rendering the template
@@ -193,8 +193,6 @@ module ActionController #:nodoc:
   # To be described.
   #
   module Streaming
-    extend ActiveSupport::Concern
-
     private
       # Set proper cache control and transfer encoding when streaming
       def _process_options(options)

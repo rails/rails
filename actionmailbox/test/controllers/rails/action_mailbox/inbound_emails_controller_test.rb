@@ -60,7 +60,7 @@ class Rails::Conductor::ActionMailbox::InboundEmailsControllerTest < ActionDispa
             to: "Replies <replies@example.com>",
             subject: "Let's debate some attachments",
             body: "Let's talk about these images:",
-            attachments: [ fixture_file_upload("files/avatar1.jpeg"), fixture_file_upload("files/avatar2.jpeg") ]
+            attachments: [ fixture_file_upload("avatar1.jpeg"), fixture_file_upload("avatar2.jpeg") ]
           }
         }
       end

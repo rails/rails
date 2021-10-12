@@ -10,7 +10,6 @@ module ActionController
   autoload :API
   autoload :Base
   autoload :Metal
-  autoload :Middleware
   autoload :Renderer
   autoload :FormBuilder
 
@@ -19,10 +18,6 @@ module ActionController
   end
 
   autoload_under "metal" do
-    eager_autoload do
-      autoload :Live
-    end
-
     autoload :ConditionalGet
     autoload :ContentSecurityPolicy
     autoload :Cookies
@@ -30,18 +25,19 @@ module ActionController
     autoload :DefaultHeaders
     autoload :EtagWithTemplateDigest
     autoload :EtagWithFlash
-    autoload :FeaturePolicy
+    autoload :PermissionsPolicy
     autoload :Flash
-    autoload :ForceSSL
     autoload :Head
     autoload :Helpers
     autoload :HttpAuthentication
     autoload :BasicImplicitRender
     autoload :ImplicitRender
     autoload :Instrumentation
+    autoload :Live
     autoload :Logging
     autoload :MimeResponds
     autoload :ParamsWrapper
+    autoload :QueryTags
     autoload :Redirecting
     autoload :Renderers
     autoload :Rendering
@@ -67,5 +63,4 @@ require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/load_error"
 require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/name_error"
-require "active_support/core_ext/uri"
 require "active_support/inflector"

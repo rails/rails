@@ -87,6 +87,16 @@ class Rails::Command::EncryptedCommandTest < ActiveSupport::TestCase
     assert_match(/access_key_id: 123/, run_show_command("config/tokens.yml.enc", key: "config/tokens.key"))
   end
 
+  test "show command does not raise when an initializer tries to access non-existent credentials" do
+    app_file "config/initializers/raise_when_loaded.rb", <<-RUBY
+      Rails.application.credentials.missing_key!
+    RUBY
+
+    run_edit_command("config/tokens.yml.enc", key: "config/tokens.key")
+
+    assert_match(/access_key_id: 123/, run_show_command("config/tokens.yml.enc", key: "config/tokens.key"))
+  end
+
   private
     def run_edit_command(file, key: nil, editor: "cat", **options)
       switch_env("EDITOR", editor) do

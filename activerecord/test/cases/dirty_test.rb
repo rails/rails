@@ -16,6 +16,10 @@ class DirtyTest < ActiveRecord::TestCase
     Person.create first_name: "foo"
   end
 
+  def teardown
+    Person.delete_by(first_name: "foo")
+  end
+
   def test_attribute_changes
     # New record - no changes.
     pirate = Pirate.new
@@ -150,8 +154,28 @@ class DirtyTest < ActiveRecord::TestCase
     pirate = Pirate.create!(catchphrase: "Yar!")
     pirate.catchphrase = "Ahoy!"
 
+    assert_equal "Ahoy!", pirate.catchphrase
+    assert_equal ["Yar!", "Ahoy!"], pirate.catchphrase_change
+
     pirate.restore_catchphrase!
+
+    assert_nil pirate.catchphrase_change
     assert_equal "Yar!", pirate.catchphrase
+    assert_equal Hash.new, pirate.changes
+    assert_not_predicate pirate, :catchphrase_changed?
+  end
+
+  def test_clear_attribute_change
+    pirate = Pirate.create!(catchphrase: "Yar!")
+    pirate.catchphrase = "Ahoy!"
+
+    assert_equal "Ahoy!", pirate.catchphrase
+    assert_equal ["Yar!", "Ahoy!"], pirate.catchphrase_change
+
+    pirate.clear_catchphrase_change
+
+    assert_nil pirate.catchphrase_change
+    assert_equal "Ahoy!", pirate.catchphrase
     assert_equal Hash.new, pirate.changes
     assert_not_predicate pirate, :catchphrase_changed?
   end
@@ -596,7 +620,7 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_datetime_attribute_can_be_updated_with_fractional_seconds
-    skip "Fractional seconds are not supported" unless subsecond_precision_supported?
+    skip "Fractional seconds are not supported" unless supports_datetime_with_precision?
     in_time_zone "Paris" do
       target = Class.new(ActiveRecord::Base)
       target.table_name = "topics"
@@ -919,11 +943,14 @@ class DirtyTest < ActiveRecord::TestCase
 
   private
     def with_partial_writes(klass, on = true)
-      old = klass.partial_writes?
-      klass.partial_writes = on
+      old_inserts = klass.partial_inserts?
+      old_updates = klass.partial_updates?
+      klass.partial_inserts = on
+      klass.partial_updates = on
       yield
     ensure
-      klass.partial_writes = old
+      klass.partial_inserts = old_inserts
+      klass.partial_updates = old_updates
     end
 
     def check_pirate_after_save_failure(pirate)

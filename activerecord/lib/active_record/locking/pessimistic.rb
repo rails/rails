@@ -81,9 +81,15 @@ module ActiveRecord
 
       # Wraps the passed block in a transaction, locking the object
       # before yielding. You can pass the SQL locking clause
-      # as argument (see <tt>lock!</tt>).
-      def with_lock(lock = true)
-        transaction do
+      # as an optional argument (see <tt>#lock!</tt>).
+      #
+      # You can also pass options like <tt>requires_new:</tt>, <tt>isolation:</tt>,
+      # and <tt>joinable:</tt> to the wrapping transaction (see
+      # <tt>ActiveRecord::ConnectionAdapters::DatabaseStatements#transaction</tt>).
+      def with_lock(*args)
+        transaction_opts = args.extract_options!
+        lock = args.present? ? args.first : true
+        transaction(**transaction_opts) do
           lock!(lock)
           yield
         end

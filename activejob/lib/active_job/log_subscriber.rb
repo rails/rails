@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/string/filters"
 require "active_support/log_subscriber"
 
 module ActiveJob
-  class LogSubscriber < ActiveSupport::LogSubscriber #:nodoc:
+  class LogSubscriber < ActiveSupport::LogSubscriber # :nodoc:
     def enqueue(event)
       job = event.payload[:job]
       ex = event.payload[:exception_object]

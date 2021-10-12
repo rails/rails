@@ -42,7 +42,7 @@ class FixtureResolverTest < ActiveSupport::TestCase
   end
 
   def test_should_return_all_variants_for_any
-    resolver = ActionView::FixtureResolver.new("arbitrary/path.html.erb" => "this html", "arbitrary/path.html+varient.erb" => "this text")
+    resolver = ActionView::FixtureResolver.new("arbitrary/path.html.erb" => "this html", "arbitrary/path.html+variant.erb" => "this text")
     templates = resolver.find_all("path", "arbitrary", false, locale: [], formats: [:html], variants: [], handlers: [:erb])
     assert_equal 1, templates.size, "expected one template"
     assert_equal "this html", templates.first.source

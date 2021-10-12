@@ -8,7 +8,7 @@ It is an extremely in-depth guide and recommended for advanced Rails developers.
 
 After reading this guide, you will know:
 
-* How to use `rails server`.
+* How to use `bin/rails server`.
 * The timeline of Rails' initialization sequence.
 * Where different files are required by the boot sequence.
 * How the Rails::Server interface is defined and used.
@@ -32,41 +32,7 @@ Launch!
 -------
 
 Let's start to boot and initialize the app. A Rails application is usually
-started by running `rails console` or `rails server`.
-
-### `railties/exe/rails`
-
-The `rails` in the command `rails server` is a ruby executable in your load
-path. This executable contains the following lines:
-
-```ruby
-version = ">= 0"
-load Gem.bin_path('railties', 'rails', version)
-```
-
-If you try out this command in a Rails console, you would see that this loads
-`railties/exe/rails`. A part of the file `railties/exe/rails` has the
-following code:
-
-```ruby
-require "rails/cli"
-```
-
-The file `railties/lib/rails/cli` in turn calls
-`Rails::AppLoader.exec_app`.
-
-### `railties/lib/rails/app_loader.rb`
-
-The primary goal of the function `exec_app` is to execute your app's
-`bin/rails`. If the current directory does not have a `bin/rails`, it will
-navigate upwards until it finds a `bin/rails` executable. Thus one can invoke a
-`rails` command from anywhere inside a rails application.
-
-For `rails server` the equivalent of the following command is executed:
-
-```bash
-$ exec ruby bin/rails server
-```
+started by running `bin/rails console` or `bin/rails server`.
 
 ### `bin/rails`
 
@@ -75,8 +41,8 @@ This file is as follows:
 ```ruby
 #!/usr/bin/env ruby
 APP_PATH = File.expand_path('../config/application', __dir__)
-require_relative '../config/boot'
-require 'rails/commands'
+require_relative "../config/boot"
+require "rails/commands"
 ```
 
 The `APP_PATH` constant will be used later in `rails/commands`. The `config/boot` file referenced here is the `config/boot.rb` file in our application which is responsible for loading Bundler and setting it up.
@@ -88,7 +54,7 @@ The `APP_PATH` constant will be used later in `rails/commands`. The `config/boot
 ```ruby
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
 
-require 'bundler/setup' # Set up gems listed in the Gemfile.
+require "bundler/setup" # Set up gems listed in the Gemfile.
 ```
 
 In a standard Rails application, there's a `Gemfile` which declares all
@@ -352,7 +318,7 @@ module Rails
       log_to_stdout if options[:log_stdout]
 
       super()
-      ...
+      # ...
     end
 
     private
@@ -386,7 +352,7 @@ end
 This method creates a trap for `INT` signals, so if you `CTRL-C` the server, it will exit the process.
 As we can see from the code here, it will create the `tmp/cache`,
 `tmp/pids`, and `tmp/sockets` directories. It then enables caching in development
-if `rails server` is called with `--dev-caching`. Finally, it calls `wrapped_app` which is
+if `bin/rails server` is called with `--dev-caching`. Finally, it calls `wrapped_app` which is
 responsible for creating the Rack app, before creating and assigning an instance
 of `ActiveSupport::Logger`.
 
@@ -410,7 +376,7 @@ module Rack
 
       if options[:debug]
         $DEBUG = true
-        require 'pp'
+        require "pp"
         p options[:server]
         pp wrapped_app
         pp app
@@ -464,7 +430,8 @@ module Rack
     def app
       @app ||= options[:builder] ? build_app_from_string : build_app_and_options_from_config
     end
-    ...
+
+    # ...
 
     private
       def build_app_and_options_from_config
@@ -490,7 +457,7 @@ The `options[:config]` value defaults to `config.ru` which contains this:
 ```ruby
 # This file is used by Rack-based servers to start the application.
 
-require_relative 'config/environment'
+require_relative "config/environment"
 
 run Rails.application
 ```
@@ -502,12 +469,12 @@ The `Rack::Builder.parse_file` method here takes the content from this `config.r
 module Rack
   class Builder
     def self.load_file(path, opts = Server::Options.new)
-      ...
+      # ...
       app = new_from_string cfgfile, config
-      ...
+      # ...
     end
 
-    ...
+    # ...
 
     def self.new_from_string(builder_script, file="(rackup)")
       eval "Rack::Builder.new {\n" + builder_script + "\n}.to_app",
@@ -522,17 +489,17 @@ This is where the majority of the initialization process of Rails happens.
 The `require` line for `config/environment.rb` in `config.ru` is the first to run:
 
 ```ruby
-require_relative 'config/environment'
+require_relative "config/environment"
 ```
 
 ### `config/environment.rb`
 
-This file is the common file required by `config.ru` (`rails server`) and Passenger. This is where these two ways to run the server meet; everything before this point has been Rack and Rails setup.
+This file is the common file required by `config.ru` (`bin/rails server`) and Passenger. This is where these two ways to run the server meet; everything before this point has been Rack and Rails setup.
 
 This file begins with requiring `config/application.rb`:
 
 ```ruby
-require_relative 'application'
+require_relative "application"
 ```
 
 ### `config/application.rb`
@@ -540,10 +507,10 @@ require_relative 'application'
 This file requires `config/boot.rb`:
 
 ```ruby
-require_relative 'boot'
+require_relative "boot"
 ```
 
-But only if it hasn't been required before, which would be the case in `rails server`
+But only if it hasn't been required before, which would be the case in `bin/rails server`
 but **wouldn't** be the case with Passenger.
 
 Then the fun begins!
@@ -554,7 +521,7 @@ Loading Rails
 The next line in `config/application.rb` is:
 
 ```ruby
-require 'rails/all'
+require "rails/all"
 ```
 
 ### `railties/lib/rails/all.rb`
@@ -606,7 +573,7 @@ defined in `rails/application.rb`.
 The `initialize!` method looks like this:
 
 ```ruby
-def initialize!(group = :default) #:nodoc:
+def initialize!(group = :default) # :nodoc:
   raise "Application has been already initialized." if @initialized
   run_initializers(group, self)
   @initialized = true
@@ -614,8 +581,9 @@ def initialize!(group = :default) #:nodoc:
 end
 ```
 
-As you can see, you can only initialize an app once. The initializers are run through
-the `run_initializers` method which is defined in `railties/lib/rails/initializable.rb`:
+You can only initialize an app once. The Railtie [initializers](configuring.html#initializers)
+are run through the `run_initializers` method which is defined in
+`railties/lib/rails/initializable.rb`:
 
 ```ruby
 def run_initializers(group = :default, *args)
@@ -640,6 +608,9 @@ initializers (like building the middleware stack) are run last. The `railtie`
 initializers are the initializers which have been defined on the `Rails::Application`
 itself and are run between the `bootstrap` and `finishers`.
 
+*Note:* Do not confuse Railtie initializers overall with the [load_config_initializers](configuring.html#using-initializer-files)
+initializer instance or its associated config initializers in `config/initializers`.
+
 After this is done we go back to `Rack::Server`.
 
 ### Rack: lib/rack/server.rb
@@ -652,7 +623,8 @@ module Rack
     def app
       @app ||= options[:builder] ? build_app_from_string : build_app_and_options_from_config
     end
-    ...
+
+    # ...
 
     private
       def build_app_and_options_from_config
@@ -708,7 +680,7 @@ the `run` method would look like:
 module Rack
   module Handler
     module Puma
-      ...
+      # ...
       def self.run(app, options = {})
         conf   = self.config(app, options)
 
@@ -725,7 +697,7 @@ module Rack
           puts "* Goodbye!"
         end
       end
-      ...
+      # ...
     end
   end
 end

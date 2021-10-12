@@ -112,7 +112,7 @@ class ClassAttributeTest < ActiveSupport::TestCase
   end
 
   test "setter returns set value" do
-    val = @klass.send(:setting=, 1)
+    val = @klass.public_send(:setting=, 1)
     assert_equal 1, val
   end
 end

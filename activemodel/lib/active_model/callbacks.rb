@@ -63,7 +63,7 @@ module ActiveModel
   # NOTE: Calling the same callback multiple times will overwrite previous callback definitions.
   #
   module Callbacks
-    def self.extended(base) #:nodoc:
+    def self.extended(base) # :nodoc:
       base.class_eval do
         include ActiveSupport::Callbacks
       end
@@ -147,7 +147,7 @@ module ActiveModel
           conditional = ActiveSupport::Callbacks::Conditionals::Value.new { |v|
             v != false
           }
-          options[:if] = Array(options[:if]) << conditional
+          options[:if] = Array(options[:if]) + [conditional]
           set_callback(:"#{callback}", :after, *args, options, &block)
         end
       end

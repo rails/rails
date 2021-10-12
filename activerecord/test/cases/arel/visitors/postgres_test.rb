@@ -316,19 +316,19 @@ module Arel
         end
       end
 
-      describe "Nodes::Ordering" do
-        it "should handle nulls first" do
-          test = Table.new(:users)[:first_name].desc.nulls_first
-          _(compile(test)).must_be_like %{
-            "users"."first_name" DESC NULLS FIRST
-          }
+      describe "Nodes::InfixOperation" do
+        it "should handle Contains" do
+          inner = Nodes.build_quoted('{"foo":"bar"}')
+          outer = Table.new(:products)[:metadata]
+          sql = compile Nodes::Contains.new(outer, inner)
+          _(sql).must_be_like %{ "products"."metadata" @> '{"foo":"bar"}' }
         end
 
-        it "should handle nulls last" do
-          test = Table.new(:users)[:first_name].desc.nulls_last
-          _(compile(test)).must_be_like %{
-            "users"."first_name" DESC NULLS LAST
-          }
+        it "should handle Overlaps" do
+          column = Table.new(:products)[:tags]
+          search = Nodes.build_quoted("{foo,bar,baz}")
+          sql = compile Nodes::Overlaps.new(column, search)
+          _(sql).must_be_like %{ "products"."tags" && '{foo,bar,baz}' }
         end
       end
     end

@@ -1,161 +1,177 @@
-*   Add benchmark generator
+## Unreleased
 
-    Introduce benchmark generator to benchmark Rails applications.
+*   Fix a regression in which autoload paths were initialized too late.
 
-      `rails generate benchmark opt_compare`
+    *Xavier Noria*
 
-    This creates a benchmark file that uses [`benchmark-ips`](https://github.com/evanphx/benchmark-ips).
-    By default, two code blocks can be benchmarked using the `before` and `after` reports.
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
 
-    You can run the generated benchmark file using:
-      `ruby script/benchmarks/opt_compare.rb`
+*   Fix activestorage dependency in the npm package.
 
-    *Kevin Jalbert*, *Gannon McGibbon*
+    *Rafael Mendonça França*
 
-*   Cache compiled view templates when running tests by default
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
 
-    When generating a new app without `--skip-spring`, caching classes is
-    disabled in `environments/test.rb`. This implicitly disables caching
-    view templates too. This change will enable view template caching by
-    adding this to the generated `environments/test.rb`:
+*   New and upgraded Rails apps no longer generate `config/initializers/application_controller_renderer.rb`
+    or `config/initializers/cookies_serializer.rb`
 
-    ```ruby
-    config.action_view.cache_template_loading = true
-    ```
+    The default value for `cookies_serializer` (`:json`) has been moved to `config.load_defaults("7.0")`.
+    The new framework defaults file can be used to upgrade the serializer.
 
-    *Jorge Manrubia*
+    *Alex Ghiculescu*
 
-*   Introduce middleware move operations
+*   New applications get a dependency on the new `debug` gem, replacing `byebug`.
 
-    With this change, you no longer need to delete and reinsert a middleware to
-    move it from one place to another in the stack:
+    *Xavier Noria*
 
-    ```ruby
-    config.middleware.move_before ActionDispatch::Flash, Magical::Unicorns
-    ```
+*   Add SSL support for postgresql in `bin/rails dbconsole`.
 
-    This will move the `Magical::Unicorns` middleware before
-    `ActionDispatch::Flash`. You can also move it after with:
+    Fixes #43114.
 
-    ```ruby
-    config.middleware.move_after ActionDispatch::Flash, Magical::Unicorns
-    ```
+    *Michael Bayucot*
 
-    *Genadi Samokovarov*
+*   Add support for comments above gem declaration in Rails application templates, e.g. `gem("nokogiri", comment: "For XML")`.
 
-*   Generators that inherit from NamedBase respect `--force` option
+    *Linas Juškevičius*
 
-    *Josh Brody*
+*   The setter `config.autoloader=` has been deleted. `zeitwerk` is the only
+    available autoloading mode.
 
-*   Allow configuration of eager_load behaviour for rake environment:
+    *Xavier Noria*
 
-        config.rake_eager_load
+*   `config.autoload_once_paths` can be configured in the body of the
+    application class defined in `config/application.rb` or in the configuration
+    for environments in `config/environments/*`.
 
-    Defaults to `false` as per previous behaviour.
+    Similarly, engines can configure that collection in the class body of the
+    engine class or in the configuration for environments.
 
-    *Thierry Joyal*
+    After that, the collection is frozen, and you can autoload from those paths.
+    They are managed by the `Rails.autoloaders.once` autoloader, which does not
+    reload, only autoloads/eager loads.
 
-*   Ensure Rails migration generator respects system-wide primary key config
+    *Xavier Noria*
 
-    When rails is configured to use a specific primary key type:
+*   During initialization, you cannot autoload reloadable classes or modules
+    like application models, unless they are wrapped in a `to_prepare` block.
+    For example, from `config/initializers/*`, or in application, engines, or
+    railties initializers.
 
-    ```ruby
-    config.generators do |g|
-      g.orm :active_record, primary_key_type: :uuid
-    end
-    ```
+    Please check the [autoloading
+    guide](https://guides.rubyonrails.org/v7.0/autoloading_and_reloading_constants.html#autoloading-when-the-application-boots)
+    for details.
 
-    Previously:
+    *Xavier Noria*
 
-    ```
-    $ bin/rails g migration add_location_to_users location:references
-    ```
+*   While they are allowed to have elements in common, it is no longer required
+    that `config.autoload_once_paths` is a subset of `config.autoload_paths`.
+    The former are managed by the `once` autoloader. The `main` autoloader
+    manages the latter minus the former.
 
-    The references line in the migration would not have `type: :uuid`.
-    This change causes the type to be applied appropriately.
+    *Xavier Noria*
 
-    *Louis-Michel Couture* *Dermot Haughey*
+*   Show Rake task description if command is run with `-h`.
 
-*   Deprecate `Rails::DBConsole#config`
+    Adding `-h` (or `--help`) to a Rails command that's a Rake task now outputs
+    the task description instead of the general Rake help.
 
-    `Rails::DBConsole#config` is deprecated without replacement. Use `Rails::DBConsole.db_config.configuration_hash` instead.
+    *Petrik de Heus*
 
-    *Eileen M. Uchitelle*, *John Crepezzi*
+*   Add missing `plugin new` command to help.
 
-*   `Rails.application.config_for` merges shared configuration deeply.
+    *Petrik de Heus
 
-    ```yaml
-    # config/example.yml
-    shared:
-      foo:
-        bar:
-          baz: 1
-    development:
-      foo:
-        bar:
-          qux: 2
-    ```
+*   Fix `config_for` error when there's only a shared root array.
 
-    ```ruby
-    # Previously
-    Rails.application.config_for(:example)[:foo][:bar] #=> { qux: 2 }
+    *Loïc Delmaire*
 
-    # Now
-    Rails.application.config_for(:example)[:foo][:bar] #=> { baz: 1, qux: 2 }
-    ```
+*   Raise an error in generators if an index type is invalid.
 
-    *Yuhei Kiriyama*
+    *Petrik de Heus*
 
-*   Remove access to values in nested hashes returned by `Rails.application.config_for` via String keys.
+*   `package.json` now uses a strict version constraint for Rails JavaScript packages on new Rails apps.
 
-    ```yaml
-    # config/example.yml
-    development:
-      options:
-        key: value
-    ```
+    *Zachary Scott*, *Alex Ghiculescu*
 
-    ```ruby
-    Rails.application.config_for(:example).options
-    ```
+*   Modified scaffold generator template so that running
+    `rails g scaffold Author` no longer generates tests called "creating
+    a Author", "updating a Author", and "destroying a Author".
 
-    This used to return a Hash on which you could access values with String keys. This was deprecated in 6.0, and now doesn't work anymore.
+    Fixes #40744.
 
-    *Étienne Barrié*
+    *Michael Duchemin*
 
-*   Configuration files for environments (`config/environments/*.rb`) are
-    now able to modify `autoload_paths`, `autoload_once_paths`, and
-    `eager_load_paths`.
+*   Raise an error in generators if a field type is invalid.
 
-    As a consequence, applications cannot autoload within those files. Before, they technically could, but changes in autoloaded classes or modules had no effect anyway in the configuration because reloading does not reboot.
+    *Petrik de Heus*
 
-    Ways to use application code in these files:
+*   `bin/rails tmp:clear` deletes also files and directories in `tmp/storage`.
 
-    * Define early in the boot process a class that is not reloadable, from which the application takes configuration values that get passed to the framework.
+    *George Claghorn*
 
-        ```ruby
-        # In config/application.rb, for example.
-        require "#{Rails.root}/lib/my_app/config"
+*   Fix compatibility with `psych >= 4`.
 
-        # In config/environments/development.rb, for example.
-        config.foo = MyApp::Config.foo
-        ```
+    Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility
+    `Rails.application.config_for` now uses `YAML.unsafe_load` if available.
 
-    * If the class has to be reloadable, then wrap the configuration code in a `to_prepare` block:
+    *Jean Boussier*
 
-        ```ruby
-        config.to_prepare do
-          config.foo = MyModel.foo
+*   Allow loading nested locales in engines.
+
+    *Gannon McGibbon*
+
+*   Ensure `Rails.application.config_for` always cast hashes to `ActiveSupport::OrderedOptions`.
+
+    *Jean Boussier*
+
+*   Remove `Rack::Runtime` from the default middleware stack and deprecate
+    referencing it in middleware operations without adding it back.
+
+    *Hartley McGuire*
+
+*   Allow adding additional authorized hosts in development via `ENV['RAILS_DEVELOPMENT_HOSTS']`.
+
+    *Josh Abernathy*, *Debbie Milburn*
+
+*   Add app concern and test keepfiles to generated engine plugins.
+
+    *Gannon McGibbon*
+
+*   Stop generating a license for in-app plugins.
+
+    *Gannon McGibbon*
+
+*   `rails app:update` no longer prompts you to overwrite files that are generally modified in the
+    course of developing a Rails app. See [#41083](https://github.com/rails/rails/pull/41083) for
+    the full list of changes.
+
+    *Alex Ghiculescu*
+
+*   Change default branch for new Rails projects and plugins to `main`.
+
+    *Prateek Choudhary*
+
+*   The new method `Rails.benchmark` gives you a quick way to measure and log the execution time taken by a block:
+
+        def test_expensive_stuff
+          Rails.benchmark("test_expensive_stuff") { ... }
         end
-        ```
 
-      That assigns the latest `MyModel.foo` to `config.foo` when the application boots, and each time there is a reload. But whether that has an effect or not depends on the configuration point, since it is not uncommon for engines to read the application configuration during initialization and set their own state from them. That process happens only on boot, not on reloads, and if that is how `config.foo` worked, resetting it would have no effect in the state of the engine.
+    This functionality was available in some contexts only before.
 
-    *Allen Hsu* & *Xavier Noria*
+    *Simon Perepelitsa*
 
-*   Support using environment variable to set pidfile.
+*   Applications generated with `--skip-sprockets` no longer get `app/assets/config/manifest.js` and `app/assets/stylesheets/application.css`.
 
-    *Ben Thorner*
+    *Cindy Gao*
+
+*   Add support for stylesheets and ERB views to `rails stats`.
+
+    *Joel Hawksley*
+
+*   Allow appended root routes to take precedence over internal welcome controller.
+
+    *Gannon McGibbon*
 
 
-Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/railties/CHANGELOG.md) for previous changes.
+Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/railties/CHANGELOG.md) for previous changes.

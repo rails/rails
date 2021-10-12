@@ -44,7 +44,7 @@ class TimestampTest < ActiveRecord::TestCase
     assert_predicate @developer, :changed?, "developer should be marked as changed"
     assert_equal ["salary"], @developer.changed
     assert_predicate @developer, :saved_changes?
-    assert_equal ["updated_at", "updated_on"], @developer.saved_changes.keys.sort
+    assert_equal ["legacy_updated_at", "legacy_updated_on"], @developer.saved_changes.keys.sort
 
     @developer.reload
     assert_equal previous_salary, @developer.salary
@@ -57,7 +57,7 @@ class TimestampTest < ActiveRecord::TestCase
     assert_not_equal @previously_updated_at, developer.updated_at
     assert_not_predicate developer, :changed?
     assert_predicate developer, :saved_changes?
-    assert_equal ["updated_at", "updated_on"], developer.saved_changes.keys.sort
+    assert_equal ["legacy_updated_at", "legacy_updated_on"], developer.saved_changes.keys.sort
 
     developer.reload
     assert_not_equal @previously_updated_at, developer.updated_at

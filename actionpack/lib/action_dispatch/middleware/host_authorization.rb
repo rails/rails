@@ -1,14 +1,20 @@
 # frozen_string_literal: true
 
-require "action_dispatch/http/request"
-
 module ActionDispatch
   # This middleware guards from DNS rebinding attacks by explicitly permitting
-  # the hosts a request can be sent to.
+  # the hosts a request can be sent to, and is passed the options set in
+  # +config.host_authorization+.
+  #
+  # Requests can opt-out of Host Authorization with +exclude+:
+  #
+  #    config.host_authorization = { exclude: ->(request) { request.path =~ /healthcheck/ } }
   #
   # When a request comes to an unauthorized host, the +response_app+
   # application will be executed and rendered. If no +response_app+ is given, a
-  # default one will run, which responds with +403 Forbidden+.
+  # default one will run.
+  # The default response app logs blocked host info with level 'error' and
+  # responds with <tt>403 Forbidden</tt>. The body of the response contains debug info
+  # if +config.consider_all_requests_local+ is set to true, otherwise the body is empty.
   class HostAuthorization
     class Permissions # :nodoc:
       def initialize(hosts)
@@ -46,30 +52,67 @@ module ActionDispatch
 
         def sanitize_string(host)
           if host.start_with?(".")
-            /\A(.+\.)?#{Regexp.escape(host[1..-1])}\z/
+            /\A(.+\.)?#{Regexp.escape(host[1..-1])}\z/i
           else
-            host
+            /\A#{Regexp.escape host}\z/i
           end
         end
     end
 
-    DEFAULT_RESPONSE_APP = -> env do
-      request = Request.new(env)
+    class DefaultResponseApp # :nodoc:
+      RESPONSE_STATUS = 403
 
-      format = request.xhr? ? "text/plain" : "text/html"
-      template = DebugView.new(host: request.host)
-      body = template.render(template: "rescues/blocked_host", layout: "rescues/layout")
+      def call(env)
+        request = Request.new(env)
+        format = request.xhr? ? "text/plain" : "text/html"
 
-      [403, {
-        "Content-Type" => "#{format}; charset=#{Response.default_charset}",
-        "Content-Length" => body.bytesize.to_s,
-      }, [body]]
+        log_error(request)
+        response(format, response_body(request))
+      end
+
+      private
+        def response_body(request)
+          return "" unless request.get_header("action_dispatch.show_detailed_exceptions")
+
+          template = DebugView.new(host: request.host)
+          template.render(template: "rescues/blocked_host", layout: "rescues/layout")
+        end
+
+        def response(format, body)
+          [RESPONSE_STATUS,
+           { "Content-Type" => "#{format}; charset=#{Response.default_charset}",
+             "Content-Length" => body.bytesize.to_s },
+           [body]]
+        end
+
+        def log_error(request)
+          logger = available_logger(request)
+
+          return unless logger
+
+          logger.error("[#{self.class.name}] Blocked host: #{request.host}")
+        end
+
+        def available_logger(request)
+          request.logger || ActionView::Base.logger
+        end
     end
 
-    def initialize(app, hosts, response_app = nil)
+    def initialize(app, hosts, deprecated_response_app = nil, exclude: nil, response_app: nil)
       @app = app
       @permissions = Permissions.new(hosts)
-      @response_app = response_app || DEFAULT_RESPONSE_APP
+      @exclude = exclude
+
+      unless deprecated_response_app.nil?
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          `action_dispatch.hosts_response_app` is deprecated and will be ignored in Rails 7.0.
+          Use the Host Authorization `response_app` setting instead.
+        MSG
+
+        response_app ||= deprecated_response_app
+      end
+
+      @response_app = response_app || DefaultResponseApp.new
     end
 
     def call(env)
@@ -77,7 +120,7 @@ module ActionDispatch
 
       request = Request.new(env)
 
-      if authorized?(request)
+      if authorized?(request) || excluded?(request)
         mark_as_authorized(request)
         @app.call(env)
       else
@@ -86,12 +129,19 @@ module ActionDispatch
     end
 
     private
-      def authorized?(request)
-        origin_host = request.get_header("HTTP_HOST").to_s.sub(/:\d+\z/, "")
-        forwarded_host = request.x_forwarded_host.to_s.split(/,\s?/).last.to_s.sub(/:\d+\z/, "")
+      HOSTNAME = /[a-z0-9.-]+|\[[a-f0-9]*:[a-f0-9.:]+\]/i
+      VALID_ORIGIN_HOST = /\A(#{HOSTNAME})(?::\d+)?\z/
+      VALID_FORWARDED_HOST = /(?:\A|,[ ]?)(#{HOSTNAME})(?::\d+)?\z/
 
-        @permissions.allows?(origin_host) &&
-          (forwarded_host.blank? || @permissions.allows?(forwarded_host))
+      def authorized?(request)
+        origin_host = request.get_header("HTTP_HOST")&.slice(VALID_ORIGIN_HOST, 1) || ""
+        forwarded_host = request.x_forwarded_host&.slice(VALID_FORWARDED_HOST, 1) || ""
+
+        @permissions.allows?(origin_host) && (forwarded_host.blank? || @permissions.allows?(forwarded_host))
+      end
+
+      def excluded?(request)
+        @exclude && @exclude.call(request)
       end
 
       def mark_as_authorized(request)

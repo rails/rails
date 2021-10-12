@@ -2,6 +2,7 @@
 
 require "rails/railtie"
 require "rails/engine/railties"
+require "active_support/callbacks"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/try"
 require "pathname"
@@ -32,14 +33,14 @@ module Rails
   # Then ensure that this file is loaded at the top of your <tt>config/application.rb</tt>
   # (or in your +Gemfile+) and it will automatically load models, controllers and helpers
   # inside +app+, load routes at <tt>config/routes.rb</tt>, load locales at
-  # <tt>config/locales/*</tt>, and load tasks at <tt>lib/tasks/*</tt>.
+  # <tt>config/locales/**/*</tt>, and load tasks at <tt>lib/tasks/**/*</tt>.
   #
   # == Configuration
   #
-  # Besides the +Railtie+ configuration which is shared across the application, in a
-  # <tt>Rails::Engine</tt> you can access <tt>autoload_paths</tt>, <tt>eager_load_paths</tt>
-  # and <tt>autoload_once_paths</tt>, which, differently from a <tt>Railtie</tt>, are scoped to
-  # the current engine.
+  # Like railties, engines can access a config object which contains configuration shared by
+  # all railties and the application.
+  # Additionally, each engine can access <tt>autoload_paths</tt>, <tt>eager_load_paths</tt> and
+  # <tt>autoload_once_paths</tt> settings which are scoped to that engine.
   #
   #   class MyEngine < Rails::Engine
   #     # Add a load path for this specific Engine
@@ -113,7 +114,7 @@ module Rails
   # == Endpoint
   #
   # An engine can also be a Rack application. It can be useful if you have a Rack application that
-  # you would like to wrap with +Engine+ and provide with some of the +Engine+'s features.
+  # you would like to provide with some of the +Engine+'s features.
   #
   # To do that, use the +endpoint+ method:
   #
@@ -123,7 +124,7 @@ module Rails
   #     end
   #   end
   #
-  # Now you can mount your engine in application's routes just like that:
+  # Now you can mount your engine in application's routes:
   #
   #   Rails.application.routes.draw do
   #     mount MyEngine::Engine => "/engine"
@@ -314,7 +315,7 @@ module Rails
   #     helper MyEngine::Engine.helpers
   #   end
   #
-  # It will include all of the helpers from engine's directory. Take into account that this does
+  # It will include all of the helpers from engine's directory. Take into account this does
   # not include helpers defined in controllers with helper_method or other similar solutions,
   # only helpers defined in the helpers directory will be included.
   #
@@ -422,6 +423,9 @@ module Rails
       end
     end
 
+    include ActiveSupport::Callbacks
+    define_callbacks :load_seed
+
     delegate :middleware, :root, :paths, to: :config
     delegate :engine_name, :isolated?, to: :class
 
@@ -470,18 +474,16 @@ module Rails
       self
     end
 
-    def eager_load!
-      # Already done by Zeitwerk::Loader.eager_load_all. We need this guard to
-      # easily provide a compatible API for both zeitwerk and classic modes.
-      return if Rails.autoloaders.zeitwerk_enabled?
+    # Invoke the server registered hooks.
+    # Check <tt>Rails::Railtie.server</tt> for more info.
+    def load_server(app = self)
+      run_server_blocks(app)
+      self
+    end
 
-      config.eager_load_paths.each do |load_path|
-        # Starts after load_path plus a slash, ends before ".rb".
-        relname_range = (load_path.to_s.length + 1)...-3
-        Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
-          require_dependency file[relname_range]
-        end
-      end
+    def eager_load!
+      # Already done by Zeitwerk::Loader.eager_load_all. By now, we leave the
+      # method as a no-op for backwards compatibility.
     end
 
     def railties
@@ -552,13 +554,7 @@ module Rails
     # Blog::Engine.load_seed
     def load_seed
       seed_file = paths["db/seeds.rb"].existent.first
-      return unless seed_file
-
-      if config.try(:active_job)&.queue_adapter == :async
-        with_inline_jobs { load(seed_file) }
-      else
-        load(seed_file)
-      end
+      run_callbacks(:load_seed) { load(seed_file) } if seed_file
     end
 
     initializer :load_environment_config, before: :load_environment_hook, group: :all do
@@ -574,11 +570,6 @@ module Rails
       $LOAD_PATH.uniq!
     end
 
-    # Set the paths from which Rails will automatically load source files,
-    # and the load_once paths.
-    #
-    # This needs to be an initializer, since it needs to run once
-    # per engine and get the engine as a block parameter.
     initializer :set_autoload_paths, before: :bootstrap_hook do
       ActiveSupport::Dependencies.autoload_paths.unshift(*_all_autoload_paths)
       ActiveSupport::Dependencies.autoload_once_paths.unshift(*_all_autoload_once_paths)
@@ -630,6 +621,12 @@ module Rails
       end
     end
 
+    initializer :wrap_executor_around_load_seed do |app|
+      self.class.set_callback(:load_seed, :around) do |engine, seeds_block|
+        app.executor.wrap(&seeds_block)
+      end
+    end
+
     initializer :engines_blank_point do
       # We need this initializer so all extra initializers added in engines are
       # consistently executed after all the initializers above across all engines.
@@ -654,12 +651,12 @@ module Rails
       end
     end
 
-    def routes? #:nodoc:
+    def routes? # :nodoc:
       @routes
     end
 
     protected
-      def run_tasks_blocks(*) #:nodoc:
+      def run_tasks_blocks(*) # :nodoc:
         super
         paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
       end
@@ -671,23 +668,11 @@ module Rails
         end
       end
 
-      def with_inline_jobs
-        queue_adapter = config.active_job.queue_adapter
-        ActiveSupport.on_load(:active_job) do
-          self.queue_adapter = :inline
-        end
-        yield
-      ensure
-        ActiveSupport.on_load(:active_job) do
-          self.queue_adapter = queue_adapter
-        end
-      end
-
       def has_migrations?
         paths["db/migrate"].existent.any?
       end
 
-      def self.find_root_with_flag(flag, root_path, default = nil) #:nodoc:
+      def self.find_root_with_flag(flag, root_path, default = nil) # :nodoc:
         while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
           parent = File.dirname(root_path)
           root_path = parent != root_path && parent
@@ -704,17 +689,25 @@ module Rails
       end
 
       def _all_autoload_once_paths
-        config.autoload_once_paths
+        config.autoload_once_paths.uniq
       end
 
       def _all_autoload_paths
-        @_all_autoload_paths ||= (config.autoload_paths + config.eager_load_paths + config.autoload_once_paths).uniq
+        @_all_autoload_paths ||= begin
+          autoload_paths  = config.autoload_paths
+          autoload_paths += config.eager_load_paths
+          autoload_paths -= config.autoload_once_paths
+          autoload_paths.uniq
+        end
       end
 
       def _all_load_paths(add_autoload_paths_to_load_path)
         @_all_load_paths ||= begin
-          load_paths  = config.paths.load_paths
-          load_paths += _all_autoload_paths if add_autoload_paths_to_load_path
+          load_paths = config.paths.load_paths
+          if add_autoload_paths_to_load_path
+            load_paths += _all_autoload_paths
+            load_paths += _all_autoload_once_paths
+          end
           load_paths.uniq
         end
       end

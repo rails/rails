@@ -1,7 +1,8 @@
 {
   "name": "@rails/actioncable",
-  "version": "6.1.0-alpha",
+  "version": "7.0.0-alpha2",
   "description": "WebSocket framework for Ruby on Rails.",
+  "module": "app/javascript/action_cable/index.js",
   "main": "app/assets/javascripts/action_cable.js",
   "files": [
     "app/assets/javascripts/*.js",
@@ -23,9 +24,8 @@
   },
   "homepage": "https://rubyonrails.org/",
   "devDependencies": {
-    "babel-core": "^6.25.0",
-    "babel-plugin-external-helpers": "^6.22.0",
-    "babel-preset-env": "^1.6.0",
+    "@rollup/plugin-node-resolve": "^11.0.1",
+    "@rollup/plugin-commonjs": "^19.0.1",
     "eslint": "^4.3.0",
     "eslint-plugin-import": "^2.7.0",
     "karma": "^3.1.1",
@@ -34,11 +34,8 @@
     "karma-sauce-launcher": "^1.2.0",
     "mock-socket": "^2.0.0",
     "qunit": "^2.8.0",
-    "rollup": "^0.58.2",
-    "rollup-plugin-babel": "^3.0.4",
-    "rollup-plugin-commonjs": "^9.1.0",
-    "rollup-plugin-node-resolve": "^3.3.0",
-    "rollup-plugin-uglify": "^3.0.0"
+    "rollup": "^2.35.1",
+    "rollup-plugin-terser": "^7.0.2"
   },
   "scripts": {
     "prebuild": "yarn lint && bundle exec rake assets:codegen",

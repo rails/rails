@@ -8,9 +8,6 @@ module ActiveStorage
     #
     # * ActiveStorage::Transformers::ImageProcessingTransformer:
     #   backed by ImageProcessing, a common interface for MiniMagick and ruby-vips
-    #
-    # * ActiveStorage::Transformers::MiniMagickTransformer:
-    #   backed by MiniMagick, a wrapper around the ImageMagick CLI
     class Transformer
       attr_reader :transformations
 
@@ -34,7 +31,7 @@ module ActiveStorage
       private
         # Returns an open Tempfile containing a transformed image in the given +format+.
         # All subclasses implement this method.
-        def process(file, format:) #:doc:
+        def process(file, format:) # :doc:
           raise NotImplementedError
         end
     end

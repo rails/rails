@@ -2,9 +2,14 @@
 
 module ActiveStorage::Blob::Identifiable
   def identify
+    identify_without_saving
+    save!
+  end
+
+  def identify_without_saving
     unless identified?
-      update! content_type: identify_content_type, identified: true
-      update_service_metadata
+      self.content_type = identify_content_type
+      self.identified = true
     end
   end
 
@@ -23,9 +28,5 @@ module ActiveStorage::Blob::Identifiable
       else
         ""
       end
-    end
-
-    def update_service_metadata
-      service.update_metadata key, **service_metadata if service_metadata.any?
     end
 end

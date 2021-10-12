@@ -103,7 +103,7 @@ module ActionDispatch
         include(*_url_for_modules) if respond_to?(:_url_for_modules)
       end
 
-      def initialize(*)
+      def initialize(...)
         @_routes = nil
         super
       end

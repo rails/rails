@@ -221,6 +221,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       get "/call_reset_session"
       assert_response :success
       assert_not_equal [], headers["Set-Cookie"]
+      assert_not_nil headers["Set-Cookie"]
       assert_not_nil session_payload
       assert_not_equal session_payload, cookies[SessionKey]
 
@@ -360,14 +361,14 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   def test_session_store_without_domain
     with_test_route_set do
       get "/set_session_value"
-      assert_no_match(/domain\=/, headers["Set-Cookie"])
+      assert_no_match(/domain=/, headers["Set-Cookie"])
     end
   end
 
   def test_session_store_with_nil_domain
     with_test_route_set(domain: nil) do
       get "/set_session_value"
-      assert_no_match(/domain\=/, headers["Set-Cookie"])
+      assert_no_match(/domain=/, headers["Set-Cookie"])
     end
   end
 

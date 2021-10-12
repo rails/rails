@@ -132,17 +132,18 @@ module ActionMailbox
     end
 
     test "missing route" do
+      inbound_email = create_inbound_email_from_mail(to: "going-nowhere@example.com", subject: "This is a reply")
       assert_raises(ActionMailbox::Router::RoutingError) do
-        inbound_email = create_inbound_email_from_mail(to: "going-nowhere@example.com", subject: "This is a reply")
         @router.route inbound_email
-        assert inbound_email.bounced?
       end
+      assert inbound_email.bounced?
     end
 
     test "invalid address" do
-      assert_raises(ArgumentError) do
+      error = assert_raises(ArgumentError) do
         @router.add_route Array.new, to: :first
       end
+      assert_equal "Expected a Symbol, String, Regexp, Proc, or matchable, got []", error.message
     end
 
     test "single string mailbox_for" do

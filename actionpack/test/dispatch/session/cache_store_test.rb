@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
-require "fixtures/session_autoload_test/session_autoload_test/foo"
 
 class CacheStoreTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
@@ -93,6 +92,7 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
       get "/call_reset_session"
       assert_response :success
       assert_not_equal [], headers["Set-Cookie"]
+      assert_not_nil headers["Set-Cookie"]
 
       get "/get_session_value"
       assert_response :success

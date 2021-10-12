@@ -36,4 +36,12 @@ module TimeZoneTestHelpers
     ActiveSupport::TimeZone::MAPPING.clear
     ActiveSupport::TimeZone::MAPPING.merge!(old_mappings)
   end
+
+  def with_utc_to_local_returns_utc_offset_times(value)
+    old_tzinfo2_format = ActiveSupport.utc_to_local_returns_utc_offset_times
+    ActiveSupport.utc_to_local_returns_utc_offset_times = value
+    yield
+  ensure
+    ActiveSupport.utc_to_local_returns_utc_offset_times = old_tzinfo2_format
+  end
 end

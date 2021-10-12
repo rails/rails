@@ -1,3 +1,4 @@
+require "<%= namespaced_name %>/version"
 <% if engine? -%>
 require "<%= namespaced_name %>/engine"
 <% else -%>

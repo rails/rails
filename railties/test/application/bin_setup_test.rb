@@ -41,6 +41,10 @@ module ApplicationTests
         output.sub!(/^Resolving dependencies\.\.\.\n/, "")
         # Suppress Bundler platform warnings from output
         output.gsub!(/^The dependency .* will be unused .*\.\n/, "")
+        # Ignores dynamic data by yarn
+        output.sub!(/^yarn install v.*?$/, "yarn install")
+        output.sub!(/^\[.*?\] Resolving packages\.\.\.$/, "[1/4] Resolving packages...")
+        output.sub!(/^Done in \d+\.\d+s\.\n/, "Done in 0.00s.\n")
         # Ignore warnings such as `Psych.safe_load is deprecated`
         output.gsub!(/^warning:\s.*\n/, "")
 

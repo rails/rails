@@ -1,15 +1,31 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActiveRecord
   class InsertAll # :nodoc:
     attr_reader :model, :connection, :inserts, :keys
-    attr_reader :on_duplicate, :returning, :unique_by
+    attr_reader :on_duplicate, :returning, :unique_by, :update_sql
 
     def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil)
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
-      @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s).to_set
+      @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s)
       @on_duplicate, @returning, @unique_by = on_duplicate, returning, unique_by
+
+      disallow_raw_sql!(returning)
+      disallow_raw_sql!(on_duplicate)
+
+      if Arel.arel_node?(on_duplicate)
+        @update_sql = on_duplicate
+        @on_duplicate = :update
+      end
+
+      if model.scope_attributes?
+        @scope_attributes = model.scope_attributes
+        @keys |= @scope_attributes.keys
+      end
+      @keys = @keys.to_set
 
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
@@ -47,6 +63,8 @@ module ActiveRecord
     def map_key_with_value
       inserts.map do |attributes|
         attributes = attributes.stringify_keys
+        attributes.merge!(scope_attributes) if scope_attributes
+
         verify_attributes(attributes)
 
         keys.map do |key|
@@ -56,7 +74,15 @@ module ActiveRecord
     end
 
     private
+      attr_reader :scope_attributes
+
       def find_unique_index_for(unique_by)
+        if !connection.supports_insert_conflict_target?
+          return if unique_by.nil?
+
+          raise ArgumentError, "#{connection.class} does not support :unique_by"
+        end
+
         name_or_columns = unique_by || model.primary_key
         match = Array(name_or_columns).map(&:to_s)
 
@@ -113,6 +139,15 @@ module ActiveRecord
         end
       end
 
+      def disallow_raw_sql!(value)
+        return if !value.is_a?(String) || Arel.arel_node?(value)
+
+        raise ArgumentError, "Dangerous query method (method whose arguments are used as raw " \
+                             "SQL) called: #{value}. " \
+                             "Known-safe values can be passed " \
+                             "by wrapping them in Arel.sql()."
+      end
+
       class Builder # :nodoc:
         attr_reader :model
 
@@ -133,11 +168,17 @@ module ActiveRecord
             connection.with_yaml_fallback(types[key].serialize(value))
           end
 
-          Arel::InsertManager.new.create_values_list(values_list).to_sql
+          connection.visitor.compile(Arel::Nodes::ValuesList.new(values_list))
         end
 
         def returning
-          format_columns(insert_all.returning) if insert_all.returning
+          return unless insert_all.returning
+
+          if insert_all.returning.is_a?(String)
+            insert_all.returning
+          else
+            format_columns(insert_all.returning)
+          end
         end
 
         def conflict_target
@@ -154,8 +195,26 @@ module ActiveRecord
           quote_columns(insert_all.updatable_columns)
         end
 
+        def touch_model_timestamps_unless(&block)
+          model.timestamp_attributes_for_update_in_model.filter_map do |column_name|
+            if touch_timestamp_attribute?(column_name)
+              "#{column_name}=(CASE WHEN (#{updatable_columns.map(&block).join(" AND ")}) THEN #{model.quoted_table_name}.#{column_name} ELSE #{connection.high_precision_current_timestamp} END),"
+            end
+          end.join
+        end
+
+        def raw_update_sql
+          insert_all.update_sql
+        end
+
+        alias raw_update_sql? raw_update_sql
+
         private
           attr_reader :connection, :insert_all
+
+          def touch_timestamp_attribute?(column_name)
+            update_duplicates? && !insert_all.updatable_columns.include?(column_name)
+          end
 
           def columns_list
             format_columns(insert_all.keys)
@@ -167,11 +226,11 @@ module ActiveRecord
             unknown_column = (keys - columns.keys).first
             raise UnknownAttributeError.new(model.new, unknown_column) if unknown_column
 
-            keys.map { |key| [ key, connection.lookup_cast_type_from_column(columns[key]) ] }.to_h
+            keys.index_with { |key| model.type_for_attribute(key) }
           end
 
           def format_columns(columns)
-            quote_columns(columns).join(",")
+            columns.respond_to?(:map) ? quote_columns(columns).join(",") : columns
           end
 
           def quote_columns(columns)

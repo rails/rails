@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "action_dispatch/http/request"
 require "action_dispatch/middleware/exception_wrapper"
 require "action_dispatch/routing/inspector"
 
@@ -60,8 +59,8 @@ module ActionDispatch
         if request.get_header("action_dispatch.show_detailed_exceptions")
           begin
             content_type = request.formats.first
-          rescue Mime::Type::InvalidMimeType
-            render_for_api_request(Mime[:text], wrapper)
+          rescue ActionDispatch::Http::MimeNegotiation::InvalidType
+            content_type = Mime[:text]
           end
 
           if api_request?(content_type)
@@ -135,25 +134,22 @@ module ActionDispatch
         logger = logger(request)
 
         return unless logger
+        return if !log_rescued_responses?(request) && wrapper.rescue_response?
 
         exception = wrapper.exception
         trace = wrapper.exception_trace
 
-        ActiveSupport::Deprecation.silence do
-          message = []
-          message << "  "
-          message << "#{exception.class} (#{exception.message}):"
-          message.concat(exception.annotated_source_code) if exception.respond_to?(:annotated_source_code)
-          message << "  "
-          message.concat(trace)
+        message = []
+        message << "  "
+        message << "#{exception.class} (#{exception.message}):"
+        message.concat(exception.annotated_source_code) if exception.respond_to?(:annotated_source_code)
+        message << "  "
+        message.concat(trace)
 
-          log_array(logger, message)
-        end
+        log_array(logger, message)
       end
 
-      def log_array(logger, array)
-        lines = Array(array)
-
+      def log_array(logger, lines)
         return if lines.empty?
 
         if logger.formatter && logger.formatter.respond_to?(:tags_text)
@@ -179,6 +175,10 @@ module ActionDispatch
 
       def api_request?(content_type)
         @response_format == :api && !content_type.html?
+      end
+
+      def log_rescued_responses?(request)
+        request.get_header("action_dispatch.log_rescued_responses")
       end
   end
 end

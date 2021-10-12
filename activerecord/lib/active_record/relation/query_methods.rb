@@ -3,20 +3,16 @@
 require "active_record/relation/from_clause"
 require "active_record/relation/query_attribute"
 require "active_record/relation/where_clause"
-require "active_record/relation/where_clause_factory"
 require "active_model/forbidden_attributes_protection"
+require "active_support/core_ext/array/wrap"
 
 module ActiveRecord
   module QueryMethods
-    extend ActiveSupport::Concern
-
     include ActiveModel::ForbiddenAttributesProtection
 
     # WhereChain objects act as placeholder for queries in which #where does not have any parameter.
     # In this case, #where must be chained with #not to return a new relation.
     class WhereChain
-      include ActiveModel::ForbiddenAttributesProtection
-
       def initialize(scope)
         @scope = scope
       end
@@ -41,36 +37,46 @@ module ActiveRecord
       #
       #    User.where.not(name: %w(Ko1 Nobu))
       #    # SELECT * FROM users WHERE name NOT IN ('Ko1', 'Nobu')
+      #
+      #    User.where.not(name: "Jon", role: "admin")
+      #    # SELECT * FROM users WHERE NOT (name == 'Jon' AND role == 'admin')
       def not(opts, *rest)
-        opts = sanitize_forbidden_attributes(opts)
+        where_clause = @scope.send(:build_where_clause, opts, rest)
 
-        where_clause = @scope.send(:where_clause_factory).build(opts, rest)
+        @scope.where_clause += where_clause.invert
 
-        @scope.references!(PredicateBuilder.references(opts)) if Hash === opts
+        @scope
+      end
 
-        if not_behaves_as_nor?(opts)
-          ActiveSupport::Deprecation.warn(<<~MSG.squish)
-            NOT conditions will no longer behave as NOR in Rails 6.1.
-            To continue using NOR conditions, NOT each conditions manually
-            (`#{
-              opts.flat_map { |key, value|
-                if value.is_a?(Hash) && value.size > 1
-                  value.map { |k, v| ".where.not(#{key.inspect} => { #{k.inspect} => ... })" }
-                else
-                  ".where.not(#{key.inspect} => ...)"
-                end
-              }.join
-            }`).
-          MSG
-          @scope.where_clause += where_clause.invert(:nor)
-        else
-          @scope.where_clause += where_clause.invert
+      # Returns a new relation with joins and where clause to identify
+      # associated relations.
+      #
+      # For example, posts that are associated to a related author:
+      #
+      #    Post.where.associated(:author)
+      #    # SELECT "posts".* FROM "posts"
+      #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+      #    # WHERE "authors"."id" IS NOT NULL
+      #
+      # Additionally, multiple relations can be combined. This will return posts
+      # associated to both an author and any comments:
+      #
+      #    Post.where.associated(:author, :comments)
+      #    # SELECT "posts".* FROM "posts"
+      #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+      #    # INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+      #    # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
+      def associated(*associations)
+        associations.each do |association|
+          reflection = @scope.klass._reflect_on_association(association)
+          @scope.joins!(association)
+          self.not(reflection.table_name => { reflection.association_primary_key => nil })
         end
 
         @scope
       end
 
-      # Returns a new relation with left outer joins and where clause to idenitfy
+      # Returns a new relation with left outer joins and where clause to identify
       # missing relations.
       #
       # For example, posts that are missing a related author:
@@ -88,24 +94,15 @@ module ActiveRecord
       #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
       #    # WHERE "authors"."id" IS NULL AND "comments"."id" IS NULL
-      def missing(*args)
-        args.each do |arg|
-          reflection = @scope.klass._reflect_on_association(arg)
-          opts = { reflection.table_name => { reflection.association_primary_key => nil } }
-          @scope.left_outer_joins!(arg)
-          @scope.where!(opts)
+      def missing(*associations)
+        associations.each do |association|
+          reflection = @scope.klass._reflect_on_association(association)
+          @scope.left_outer_joins!(association)
+          @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
         end
 
         @scope
       end
-
-      private
-        def not_behaves_as_nor?(opts)
-          return false unless opts.is_a?(Hash)
-
-          opts.any? { |k, v| v.is_a?(Hash) && v.size > 1 } ||
-            opts.size > 1
-        end
     end
 
     FROZEN_EMPTY_ARRAY = [].freeze
@@ -176,14 +173,11 @@ module ActiveRecord
     #
     #   User.includes(:posts).where(posts: { name: 'example' })
     def includes(*args)
-      check_if_method_has_arguments!(:includes, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.includes!(*args)
     end
 
     def includes!(*args) # :nodoc:
-      args.compact_blank!
-      args.flatten!
-
       self.includes_values |= args
       self
     end
@@ -195,7 +189,7 @@ module ActiveRecord
     #   # FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" =
     #   # "users"."id"
     def eager_load(*args)
-      check_if_method_has_arguments!(:eager_load, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.eager_load!(*args)
     end
 
@@ -209,7 +203,7 @@ module ActiveRecord
     #   User.preload(:posts)
     #   # SELECT "posts".* FROM "posts" WHERE "posts"."user_id" IN (1, 2, 3)
     def preload(*args)
-      check_if_method_has_arguments!(:preload, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.preload!(*args)
     end
 
@@ -242,14 +236,11 @@ module ActiveRecord
     #   User.includes(:posts).where("posts.name = 'foo'").references(:posts)
     #   # Query now knows the string references posts, so adds a JOIN
     def references(*table_names)
-      check_if_method_has_arguments!(:references, table_names)
+      check_if_method_has_arguments!(__callee__, table_names)
       spawn.references!(*table_names)
     end
 
     def references!(*table_names) # :nodoc:
-      table_names.flatten!
-      table_names.map!(&:to_s)
-
       self.references_values |= table_names
       self
     end
@@ -303,14 +294,12 @@ module ActiveRecord
         return super()
       end
 
-      raise ArgumentError, "Call `select' with at least one field" if fields.empty?
+      check_if_method_has_arguments!(__callee__, fields, "Call `select' with at least one field.")
       spawn._select!(*fields)
     end
 
     def _select!(*fields) # :nodoc:
-      fields.compact_blank!
-      fields.flatten!
-      self.select_values += fields
+      self.select_values |= fields
       self
     end
 
@@ -325,7 +314,7 @@ module ActiveRecord
     # This is short-hand for <tt>unscope(:select).select(fields)</tt>.
     # Note that we're unscoping the entire select statement.
     def reselect(*args)
-      check_if_method_has_arguments!(:reselect, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.reselect!(*args)
     end
 
@@ -356,27 +345,45 @@ module ActiveRecord
     #   User.select([:id, :first_name]).group(:id, :first_name).first(3)
     #   # => [#<User id: 1, first_name: "Bill">, #<User id: 2, first_name: "Earl">, #<User id: 3, first_name: "Beto">]
     def group(*args)
-      check_if_method_has_arguments!(:group, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.group!(*args)
     end
 
     def group!(*args) # :nodoc:
-      args.flatten!
-
-      self.group_values |= args
+      self.group_values += args
       self
     end
 
-    # Allows to specify an order attribute:
+    # Applies an <code>ORDER BY</code> clause to a query.
+    #
+    # #order accepts arguments in one of several formats.
+    #
+    # === symbols
+    #
+    # The symbol represents the name of the column you want to order the results by.
     #
     #   User.order(:name)
     #   # SELECT "users".* FROM "users" ORDER BY "users"."name" ASC
     #
+    # By default, the order is ascending. If you want descending order, you can
+    # map the column name symbol to +:desc+.
+    #
     #   User.order(email: :desc)
     #   # SELECT "users".* FROM "users" ORDER BY "users"."email" DESC
     #
+    # Multiple columns can be passed this way, and they will be applied in the order specified.
+    #
     #   User.order(:name, email: :desc)
     #   # SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
+    #
+    # === strings
+    #
+    # Strings are passed directly to the database, allowing you to specify
+    # simple SQL expressions.
+    #
+    # This could be a source of SQL injection, so only strings composed of plain
+    # column names and simple <code>function(column_name)</code> expressions
+    # with optional +ASC+/+DESC+ modifiers are allowed.
     #
     #   User.order('name')
     #   # SELECT "users".* FROM "users" ORDER BY name
@@ -386,17 +393,48 @@ module ActiveRecord
     #
     #   User.order('name DESC, email')
     #   # SELECT "users".* FROM "users" ORDER BY name DESC, email
+    #
+    # === Arel
+    #
+    # If you need to pass in complicated expressions that you have verified
+    # are safe for the database, you can use Arel.
+    #
+    #   User.order(Arel.sql('end_date - start_date'))
+    #   # SELECT "users".* FROM "users" ORDER BY end_date - start_date
+    #
+    # Custom query syntax, like JSON columns for Postgres, is supported in this way.
+    #
+    #   User.order(Arel.sql("payload->>'kind'"))
+    #   # SELECT "users".* FROM "users" ORDER BY payload->>'kind'
     def order(*args)
-      check_if_method_has_arguments!(:order, args)
+      check_if_method_has_arguments!(__callee__, args) do
+        sanitize_order_arguments(args)
+      end
       spawn.order!(*args)
     end
 
     # Same as #order but operates on relation in-place instead of copying.
     def order!(*args) # :nodoc:
-      preprocess_order_args(args)
-
-      self.order_values += args
+      preprocess_order_args(args) unless args.empty?
+      self.order_values |= args
       self
+    end
+
+    # Allows to specify an order by a specific set of values. Depending on your
+    # adapter this will either use a CASE statement or a built-in function.
+    #
+    #   User.in_order_of(:id, [1, 5, 3])
+    #   # SELECT "users".* FROM "users" ORDER BY FIELD("users"."id", 1, 5, 3)
+    #
+    def in_order_of(column, values)
+      klass.disallow_raw_sql!([column], permit: connection.column_name_with_order_matcher)
+
+      references = column_references([column])
+      self.references_values |= references unless references.empty?
+
+      column = order_column(column.to_s) if column.is_a?(Symbol)
+
+      spawn.order!(connection.field_ordered_value(column, values))
     end
 
     # Replaces any existing order defined on the relation with the specified order.
@@ -409,14 +447,16 @@ module ActiveRecord
     #
     # generates a query with 'ORDER BY id ASC, name ASC'.
     def reorder(*args)
-      check_if_method_has_arguments!(:reorder, args)
+      check_if_method_has_arguments!(__callee__, args) do
+        sanitize_order_arguments(args) unless args.all?(&:blank?)
+      end
       spawn.reorder!(*args)
     end
 
     # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
       preprocess_order_args(args) unless args.all?(&:blank?)
-
+      args.uniq!
       self.reordering_value = true
       self.order_values = args
       self
@@ -460,12 +500,11 @@ module ActiveRecord
     #   has_many :comments, -> { unscope(where: :trashed) }
     #
     def unscope(*args)
-      check_if_method_has_arguments!(:unscope, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.unscope!(*args)
     end
 
     def unscope!(*args) # :nodoc:
-      args.flatten!
       self.unscope_values += args
 
       args.each do |scope|
@@ -483,7 +522,7 @@ module ActiveRecord
               raise ArgumentError, "Hash arguments in .unscope(*args) must have :where as the key."
             end
 
-            target_values = Array(target_value).map(&:to_s)
+            target_values = resolve_arel_attributes(Array.wrap(target_value))
             self.where_clause = where_clause.except(*target_values)
           end
         else
@@ -494,7 +533,7 @@ module ActiveRecord
       self
     end
 
-    # Performs a joins on +args+. The given symbol(s) should match the name of
+    # Performs JOINs on +args+. The given symbol(s) should match the name of
     # the association(s).
     #
     #   User.joins(:posts)
@@ -516,26 +555,23 @@ module ActiveRecord
     #   # SELECT "users".*
     #   # FROM "users"
     #   # INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
-    #   # INNER JOIN "comments" "comments_posts"
-    #   #   ON "comments_posts"."post_id" = "posts"."id"
+    #   # INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
     #
     # You can use strings in order to customize your joins:
     #
     #   User.joins("LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id")
     #   # SELECT "users".* FROM "users" LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id
     def joins(*args)
-      check_if_method_has_arguments!(:joins, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.joins!(*args)
     end
 
     def joins!(*args) # :nodoc:
-      args.compact!
-      args.flatten!
       self.joins_values |= args
       self
     end
 
-    # Performs a left outer joins on +args+:
+    # Performs LEFT OUTER JOINs on +args+:
     #
     #   User.left_outer_joins(:posts)
     #   => SELECT "users".* FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"
@@ -547,8 +583,6 @@ module ActiveRecord
     alias :left_joins :left_outer_joins
 
     def left_outer_joins!(*args) # :nodoc:
-      args.compact!
-      args.flatten!
       self.left_outer_joins_values |= args
       self
     end
@@ -619,13 +653,13 @@ module ActiveRecord
     #
     # Fields can be symbols or strings. Values can be single values, arrays, or ranges.
     #
-    #    User.where({ name: "Joe", email: "joe@example.com" })
+    #    User.where(name: "Joe", email: "joe@example.com")
     #    # SELECT * FROM users WHERE name = 'Joe' AND email = 'joe@example.com'
     #
-    #    User.where({ name: ["Alice", "Bob"]})
+    #    User.where(name: ["Alice", "Bob"])
     #    # SELECT * FROM users WHERE name IN ('Alice', 'Bob')
     #
-    #    User.where({ created_at: (Time.now.midnight - 1.day)..Time.now.midnight })
+    #    User.where(created_at: (Time.now.midnight - 1.day)..Time.now.midnight)
     #    # SELECT * FROM users WHERE (created_at BETWEEN '2012-06-09 07:00:00.000000' AND '2012-06-10 07:00:00.000000')
     #
     # In the case of a belongs_to relationship, an association key can be used
@@ -655,8 +689,8 @@ module ActiveRecord
     #
     # For hash conditions, you can either use the table name in the key, or use a sub-hash.
     #
-    #    User.joins(:posts).where({ "posts.published" => true })
-    #    User.joins(:posts).where({ posts: { published: true } })
+    #    User.joins(:posts).where("posts.published" => true)
+    #    User.joins(:posts).where(posts: { published: true })
     #
     # === no argument
     #
@@ -672,20 +706,18 @@ module ActiveRecord
     #
     # If the condition is any blank-ish object, then #where is a no-op and returns
     # the current relation.
-    def where(opts = :chain, *rest)
-      if :chain == opts
+    def where(*args)
+      if args.empty?
         WhereChain.new(spawn)
-      elsif opts.blank?
+      elsif args.length == 1 && args.first.blank?
         self
       else
-        spawn.where!(opts, *rest)
+        spawn.where!(*args)
       end
     end
 
     def where!(opts, *rest) # :nodoc:
-      opts = sanitize_forbidden_attributes(opts)
-      references!(PredicateBuilder.references(opts)) if Hash === opts
-      self.where_clause += where_clause_factory.build(opts, rest)
+      self.where_clause += build_where_clause(opts, rest)
       self
     end
 
@@ -703,7 +735,97 @@ module ActiveRecord
     # This is short-hand for <tt>unscope(where: conditions.keys).where(conditions)</tt>.
     # Note that unlike reorder, we're only unscoping the named conditions -- not the entire where statement.
     def rewhere(conditions)
-      unscope(where: conditions.keys).where(conditions)
+      scope = spawn
+      where_clause = scope.build_where_clause(conditions)
+
+      scope.unscope!(where: where_clause.extract_attributes)
+      scope.where_clause += where_clause
+      scope
+    end
+
+    # Allows you to invert an entire where clause instead of manually applying conditions.
+    #
+    #   class User
+    #     scope :active, -> { where(accepted: true, locked: false) }
+    #   end
+    #
+    #   User.where(accepted: true)
+    #   # WHERE `accepted` = 1
+    #
+    #   User.where(accepted: true).invert_where
+    #   # WHERE `accepted` != 1
+    #
+    #   User.active
+    #   # WHERE `accepted` = 1 AND `locked` = 0
+    #
+    #   User.active.invert_where
+    #   # WHERE NOT (`accepted` = 1 AND `locked` = 0)
+    #
+    # Be careful because this inverts all conditions before +invert_where+ call.
+    #
+    #   class User
+    #     scope :active, -> { where(accepted: true, locked: false) }
+    #     scope :inactive, -> { active.invert_where } # Do not attempt it
+    #   end
+    #
+    #   # It also inverts `where(role: 'admin')` unexpectedly.
+    #   User.where(role: 'admin').inactive
+    #   # WHERE NOT (`role` = 'admin' AND `accepted` = 1 AND `locked` = 0)
+    #
+    def invert_where
+      spawn.invert_where!
+    end
+
+    def invert_where! # :nodoc:
+      self.where_clause = where_clause.invert
+      self
+    end
+
+    # Checks whether the given relation is structurally compatible with this relation, to determine
+    # if it's possible to use the #and and #or methods without raising an error. Structurally
+    # compatible is defined as: they must be scoping the same model, and they must differ only by
+    # #where (if no #group has been defined) or #having (if a #group is present).
+    #
+    #    Post.where("id = 1").structurally_compatible?(Post.where("author_id = 3"))
+    #    # => true
+    #
+    #    Post.joins(:comments).structurally_compatible?(Post.where("id = 1"))
+    #    # => false
+    #
+    def structurally_compatible?(other)
+      structurally_incompatible_values_for(other).empty?
+    end
+
+    # Returns a new relation, which is the logical intersection of this relation and the one passed
+    # as an argument.
+    #
+    # The two relations must be structurally compatible: they must be scoping the same model, and
+    # they must differ only by #where (if no #group has been defined) or #having (if a #group is
+    # present).
+    #
+    #    Post.where(id: [1, 2]).and(Post.where(id: [2, 3]))
+    #    # SELECT `posts`.* FROM `posts` WHERE `posts`.`id` IN (1, 2) AND `posts`.`id` IN (2, 3)
+    #
+    def and(other)
+      if other.is_a?(Relation)
+        spawn.and!(other)
+      else
+        raise ArgumentError, "You have passed #{other.class.name} object to #and. Pass an ActiveRecord::Relation object instead."
+      end
+    end
+
+    def and!(other) # :nodoc:
+      incompatible_values = structurally_incompatible_values_for(other)
+
+      unless incompatible_values.empty?
+        raise ArgumentError, "Relation passed to #and must be structurally compatible. Incompatible values: #{incompatible_values}"
+      end
+
+      self.where_clause |= other.where_clause
+      self.having_clause |= other.having_clause
+      self.references_values |= other.references_values
+
+      self
     end
 
     # Returns a new relation, which is the logical union of this relation and the one passed as an
@@ -711,21 +833,21 @@ module ActiveRecord
     #
     # The two relations must be structurally compatible: they must be scoping the same model, and
     # they must differ only by #where (if no #group has been defined) or #having (if a #group is
-    # present). Neither relation may have a #limit, #offset, or #distinct set.
+    # present).
     #
     #    Post.where("id = 1").or(Post.where("author_id = 3"))
     #    # SELECT `posts`.* FROM `posts` WHERE ((id = 1) OR (author_id = 3))
     #
     def or(other)
-      unless other.is_a? Relation
+      if other.is_a?(Relation)
+        spawn.or!(other)
+      else
         raise ArgumentError, "You have passed #{other.class.name} object to #or. Pass an ActiveRecord::Relation object instead."
       end
-
-      spawn.or!(other)
     end
 
     def or!(other) # :nodoc:
-      incompatible_values = structurally_incompatible_values_for_or(other)
+      incompatible_values = structurally_incompatible_values_for(other)
 
       unless incompatible_values.empty?
         raise ArgumentError, "Relation passed to #or must be structurally compatible. Incompatible values: #{incompatible_values}"
@@ -733,7 +855,7 @@ module ActiveRecord
 
       self.where_clause = self.where_clause.or(other.where_clause)
       self.having_clause = having_clause.or(other.having_clause)
-      self.references_values += other.references_values
+      self.references_values |= other.references_values
 
       self
     end
@@ -747,10 +869,7 @@ module ActiveRecord
     end
 
     def having!(opts, *rest) # :nodoc:
-      opts = sanitize_forbidden_attributes(opts)
-      references!(PredicateBuilder.references(opts)) if Hash === opts
-
-      self.having_clause += having_clause_factory.build(opts, rest)
+      self.having_clause += build_having_clause(opts, rest)
       self
     end
 
@@ -852,6 +971,21 @@ module ActiveRecord
       self
     end
 
+    # Sets the returned relation to strict_loading mode. This will raise an error
+    # if the record tries to lazily load an association.
+    #
+    #   user = User.strict_loading.first
+    #   user.comments.to_a
+    #   => ActiveRecord::StrictLoadingViolationError
+    def strict_loading(value = true)
+      spawn.strict_loading!(value)
+    end
+
+    def strict_loading!(value = true) # :nodoc:
+      self.strict_loading_value = value
+      self
+    end
+
     # Sets attributes to be used when creating new records from a
     # relation object.
     #
@@ -880,7 +1014,7 @@ module ActiveRecord
       self
     end
 
-    # Specifies table from which the records will be fetched. For example:
+    # Specifies the table from which the records will be fetched. For example:
     #
     #   Topic.select('title').from('posts')
     #   # SELECT title FROM posts
@@ -890,9 +1024,26 @@ module ActiveRecord
     #   Topic.select('title').from(Topic.approved)
     #   # SELECT title FROM (SELECT * FROM topics WHERE approved = 't') subquery
     #
+    # Passing a second argument (string or symbol), creates the alias for the SQL from clause. Otherwise the alias "subquery" is used:
+    #
     #   Topic.select('a.title').from(Topic.approved, :a)
     #   # SELECT a.title FROM (SELECT * FROM topics WHERE approved = 't') a
     #
+    # It does not add multiple arguments to the SQL from clause. The last +from+ chained is the one used:
+    #
+    #   Topic.select('title').from(Topic.approved).from(Topic.inactive)
+    #   # SELECT title FROM (SELECT topics.* FROM topics WHERE topics.active = 'f') subquery
+    #
+    # For multiple arguments for the SQL from clause, you can pass a string with the exact elements in the SQL from list:
+    #
+    #   color = "red"
+    #   Color
+    #     .from("colors c, JSONB_ARRAY_ELEMENTS(colored_things) AS colorvalues(colorvalue)")
+    #     .where("colorvalue->>'color' = ?", color)
+    #     .select("c.*").to_a
+    #   # SELECT c.*
+    #   # FROM colors c, JSONB_ARRAY_ELEMENTS(colored_things) AS colorvalues(colorvalue)
+    #   # WHERE (colorvalue->>'color' = 'red')
     def from(value, subquery_name = nil)
       spawn.from!(value, subquery_name)
     end
@@ -988,13 +1139,11 @@ module ActiveRecord
     #   Topic.optimizer_hints("SeqScan(topics)", "Parallel(topics 8)")
     #   # SELECT /*+ SeqScan(topics) Parallel(topics 8) */ "topics".* FROM "topics"
     def optimizer_hints(*args)
-      check_if_method_has_arguments!(:optimizer_hints, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.optimizer_hints!(*args)
     end
 
     def optimizer_hints!(*args) # :nodoc:
-      args.flatten!
-
       self.optimizer_hints_values |= args
       self
     end
@@ -1007,8 +1156,7 @@ module ActiveRecord
     end
 
     def reverse_order! # :nodoc:
-      orders = order_values.uniq
-      orders.compact_blank!
+      orders = order_values.compact_blank
       self.order_values = reverse_sql_order(orders)
       self
     end
@@ -1033,13 +1181,62 @@ module ActiveRecord
     #
     # The SQL block comment delimiters, "/*" and "*/", will be added automatically.
     def annotate(*args)
-      check_if_method_has_arguments!(:annotate, args)
+      check_if_method_has_arguments!(__callee__, args)
       spawn.annotate!(*args)
     end
 
     # Like #annotate, but modifies relation in place.
     def annotate!(*args) # :nodoc:
       self.annotate_values += args
+      self
+    end
+
+    # Deduplicate multiple values.
+    def uniq!(name)
+      if values = @values[name]
+        values.uniq! if values.is_a?(Array) && !values.empty?
+      end
+      self
+    end
+
+    # Excludes the specified record (or collection of records) from the resulting
+    # relation. For example:
+    #
+    #   Post.excluding(post)
+    #   # SELECT "posts".* FROM "posts" WHERE "posts"."id" != 1
+    #
+    #   Post.excluding(post_one, post_two)
+    #   # SELECT "posts".* FROM "posts" WHERE "posts"."id" NOT IN (1, 2)
+    #
+    # This can also be called on associations. As with the above example, either
+    # a single record of collection thereof may be specified:
+    #
+    #   post = Post.find(1)
+    #   comment = Comment.find(2)
+    #   post.comments.excluding(comment)
+    #   # SELECT "comments".* FROM "comments" WHERE "comments"."post_id" = 1 AND "comments"."id" != 2
+    #
+    # This is short-hand for <tt>.where.not(id: post.id)</tt> and <tt>.where.not(id: [post_one.id, post_two.id])</tt>.
+    #
+    # An <tt>ArgumentError</tt> will be raised if either no records are
+    # specified, or if any of the records in the collection (if a collection
+    # is passed in) are not instances of the same model that the relation is
+    # scoping.
+    def excluding(*records)
+      records.flatten!(1)
+      records.compact!
+
+      unless records.all?(klass)
+        raise ArgumentError, "You must only pass a single or collection of #{klass.name} objects to ##{__callee__}."
+      end
+
+      spawn.excluding!(records)
+    end
+    alias :without :excluding
+
+    def excluding!(records) # :nodoc:
+      predicates = [ predicate_builder[primary_key, records].invert ]
+      self.where_clause += Relation::WhereClause.new(predicates)
       self
     end
 
@@ -1063,52 +1260,101 @@ module ActiveRecord
         end
       end
 
+      def build_where_clause(opts, rest = []) # :nodoc:
+        opts = sanitize_forbidden_attributes(opts)
+
+        case opts
+        when String, Array
+          parts = [klass.sanitize_sql(rest.empty? ? opts : [opts, *rest])]
+        when Hash
+          opts = opts.transform_keys do |key|
+            key = key.to_s
+            klass.attribute_aliases[key] || key
+          end
+          references = PredicateBuilder.references(opts)
+          self.references_values |= references unless references.empty?
+
+          parts = predicate_builder.build_from_hash(opts) do |table_name|
+            lookup_table_klass_from_join_dependencies(table_name)
+          end
+        when Arel::Nodes::Node
+          parts = [opts]
+        else
+          raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})"
+        end
+
+        Relation::WhereClause.new(parts)
+      end
+      alias :build_having_clause :build_where_clause
+
     private
+      def lookup_table_klass_from_join_dependencies(table_name)
+        each_join_dependencies do |join|
+          return join.base_klass if table_name == join.table_name
+        end
+        nil
+      end
+
+      def each_join_dependencies(join_dependencies = build_join_dependencies, &block)
+        join_dependencies.each do |join_dependency|
+          join_dependency.each(&block)
+        end
+      end
+
+      def build_join_dependencies
+        associations = joins_values | left_outer_joins_values
+        associations |= eager_load_values unless eager_load_values.empty?
+        associations |= includes_values unless includes_values.empty?
+
+        join_dependencies = []
+        join_dependencies.unshift construct_join_dependency(
+          select_association_list(associations, join_dependencies), nil
+        )
+      end
+
       def assert_mutability!
         raise ImmutableRelation if @loaded
         raise ImmutableRelation if defined?(@arel) && @arel
       end
 
-      def build_arel(aliases)
+      def build_arel(aliases = nil)
         arel = Arel::SelectManager.new(table)
 
-        if !joins_values.empty?
-          build_joins(arel, joins_values.flatten, aliases)
-        elsif !left_outer_joins_values.empty?
-          build_left_outer_joins(arel, left_outer_joins_values.flatten, aliases)
-        end
+        build_joins(arel.join_sources, aliases)
 
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
-        if limit_value
-          limit_attribute = ActiveModel::Attribute.with_cast_value(
-            "LIMIT",
-            connection.sanitize_limit(limit_value),
-            Type.default_value,
-          )
-          arel.take(Arel::Nodes::BindParam.new(limit_attribute))
-        end
-        if offset_value
-          offset_attribute = ActiveModel::Attribute.with_cast_value(
-            "OFFSET",
-            offset_value.to_i,
-            Type.default_value,
-          )
-          arel.skip(Arel::Nodes::BindParam.new(offset_attribute))
-        end
-        arel.group(*arel_columns(group_values.uniq.compact_blank)) unless group_values.empty?
+        arel.take(build_cast_value("LIMIT", connection.sanitize_limit(limit_value))) if limit_value
+        arel.skip(build_cast_value("OFFSET", offset_value.to_i)) if offset_value
+        arel.group(*arel_columns(group_values.uniq)) unless group_values.empty?
 
         build_order(arel)
-
         build_select(arel)
 
         arel.optimizer_hints(*optimizer_hints_values) unless optimizer_hints_values.empty?
         arel.distinct(distinct_value)
         arel.from(build_from) unless from_clause.empty?
         arel.lock(lock_value) if lock_value
-        arel.comment(*annotate_values) unless annotate_values.empty?
+
+        unless annotate_values.empty?
+          annotates = annotate_values
+          annotates = annotates.uniq if annotates.size > 1
+          unless annotates == annotate_values
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Duplicated query annotations are no longer shown in queries in Rails 7.0.
+              To migrate to Rails 7.0's behavior, use `uniq!(:annotate)` to deduplicate query annotations
+              (`#{klass.name&.tableize || klass.table_name}.uniq!(:annotate)`).
+            MSG
+            annotates = annotate_values
+          end
+          arel.comment(*annotates)
+        end
 
         arel
+      end
+
+      def build_cast_value(name, value)
+        ActiveModel::Attribute.with_cast_value(name, value, Type.default_value)
       end
 
       def build_from
@@ -1126,99 +1372,101 @@ module ActiveRecord
         end
       end
 
-      def select_association_list(associations)
+      def select_association_list(associations, stashed_joins = nil)
         result = []
         associations.each do |association|
           case association
           when Hash, Symbol, Array
             result << association
+          when ActiveRecord::Associations::JoinDependency
+            stashed_joins&.<< association
           else
-            yield if block_given?
+            yield association if block_given?
           end
         end
         result
       end
 
-      def valid_association_list(associations)
-        select_association_list(associations) do
-          raise ArgumentError, "only Hash, Symbol and Array are allowed"
-        end
+      class ::Arel::Nodes::LeadingJoin < Arel::Nodes::InnerJoin # :nodoc:
       end
 
-      def build_left_outer_joins(manager, outer_joins, aliases)
-        buckets = Hash.new { |h, k| h[k] = [] }
-        buckets[:association_join] = valid_association_list(outer_joins)
-        build_join_query(manager, buckets, Arel::Nodes::OuterJoin, aliases)
-      end
-
-      def build_joins(manager, joins, aliases)
+      def build_join_buckets
         buckets = Hash.new { |h, k| h[k] = [] }
 
         unless left_outer_joins_values.empty?
-          left_joins = valid_association_list(left_outer_joins_values.flatten)
-          buckets[:stashed_join] << construct_join_dependency(left_joins, Arel::Nodes::OuterJoin)
-        end
-
-        if joins.last.is_a?(ActiveRecord::Associations::JoinDependency)
-          buckets[:stashed_join] << joins.pop if joins.last.base_klass == klass
-        end
-
-        joins.map! do |join|
-          if join.is_a?(String)
-            table.create_string_join(Arel.sql(join.strip)) unless join.blank?
-          else
-            join
+          stashed_left_joins = []
+          left_joins = select_association_list(left_outer_joins_values, stashed_left_joins) do
+            raise ArgumentError, "only Hash, Symbol and Array are allowed"
           end
-        end.compact_blank!.uniq!
+
+          if joins_values.empty?
+            buckets[:association_join] = left_joins
+            buckets[:stashed_join] = stashed_left_joins
+            return buckets, Arel::Nodes::OuterJoin
+          else
+            stashed_left_joins.unshift construct_join_dependency(left_joins, Arel::Nodes::OuterJoin)
+          end
+        end
+
+        joins = joins_values.dup
+        if joins.last.is_a?(ActiveRecord::Associations::JoinDependency)
+          stashed_eager_load = joins.pop if joins.last.base_klass == klass
+        end
+
+        joins.each_with_index do |join, i|
+          joins[i] = Arel::Nodes::StringJoin.new(Arel.sql(join.strip)) if join.is_a?(String)
+        end
 
         while joins.first.is_a?(Arel::Nodes::Join)
           join_node = joins.shift
-          if join_node.is_a?(Arel::Nodes::StringJoin) && !buckets[:stashed_join].empty?
+          if !join_node.is_a?(Arel::Nodes::LeadingJoin) && (stashed_eager_load || stashed_left_joins)
             buckets[:join_node] << join_node
           else
             buckets[:leading_join] << join_node
           end
         end
 
-        joins.each do |join|
-          case join
-          when Hash, Symbol, Array
-            buckets[:association_join] << join
-          when ActiveRecord::Associations::JoinDependency
-            buckets[:stashed_join] << join
-          when Arel::Nodes::Join
+        buckets[:association_join] = select_association_list(joins, buckets[:stashed_join]) do |join|
+          if join.is_a?(Arel::Nodes::Join)
             buckets[:join_node] << join
           else
             raise "unknown class: %s" % join.class.name
           end
         end
 
-        build_join_query(manager, buckets, Arel::Nodes::InnerJoin, aliases)
+        buckets[:stashed_join].concat stashed_left_joins if stashed_left_joins
+        buckets[:stashed_join] << stashed_eager_load if stashed_eager_load
+
+        return buckets, Arel::Nodes::InnerJoin
       end
 
-      def build_join_query(manager, buckets, join_type, aliases)
+      def build_joins(join_sources, aliases = nil)
+        return join_sources if joins_values.empty? && left_outer_joins_values.empty?
+
+        buckets, join_type = build_join_buckets
+
         association_joins = buckets[:association_join]
         stashed_joins     = buckets[:stashed_join]
         leading_joins     = buckets[:leading_join]
         join_nodes        = buckets[:join_node]
 
-        join_sources = manager.join_sources
         join_sources.concat(leading_joins) unless leading_joins.empty?
 
         unless association_joins.empty? && stashed_joins.empty?
           alias_tracker = alias_tracker(leading_joins + join_nodes, aliases)
           join_dependency = construct_join_dependency(association_joins, join_type)
-          join_sources.concat(join_dependency.join_constraints(stashed_joins, alias_tracker))
+          join_sources.concat(join_dependency.join_constraints(stashed_joins, alias_tracker, references_values))
         end
 
         join_sources.concat(join_nodes) unless join_nodes.empty?
+        join_sources
       end
 
       def build_select(arel)
         if select_values.any?
-          arel.project(*arel_columns(select_values.uniq))
-        elsif klass.ignored_columns.any?
-          arel.project(*klass.column_names.map { |field| arel_attribute(field) })
+          arel.project(*arel_columns(select_values))
+        elsif klass.ignored_columns.any? || klass.enumerate_columns_in_select_statements
+          arel.project(*klass.column_names.map { |field| table[field] })
         else
           arel.project(table[Arel.star])
         end
@@ -1246,7 +1494,12 @@ module ActiveRecord
         from = from_clause.name || from_clause.value
 
         if klass.columns_hash.key?(field) && (!from || table_name_matches?(from))
-          arel_attribute(field)
+          table[field]
+        elsif field.match?(/\A\w+\.\w+\z/)
+          table, column = field.split(".")
+          predicate_builder.resolve_arel_attribute(table, column) do
+            lookup_table_klass_from_join_dependencies(table)
+          end
         else
           yield field
         end
@@ -1260,7 +1513,7 @@ module ActiveRecord
 
       def reverse_sql_order(order_query)
         if order_query.empty?
-          return [arel_attribute(primary_key).desc] if primary_key
+          return [table[primary_key].desc] if primary_key
           raise IrreversibleOrderError,
             "Relation has no current order and table has no primary key to be used as default order"
         end
@@ -1271,6 +1524,8 @@ module ActiveRecord
             o.desc
           when Arel::Nodes::Ordering
             o.reverse
+          when Arel::Nodes::NodeExpression
+            o.desc
           when String
             if does_not_support_reverse?(o)
               raise IrreversibleOrderError, "Order #{o.inspect} cannot be reversed automatically"
@@ -1297,9 +1552,7 @@ module ActiveRecord
       end
 
       def build_order(arel)
-        orders = order_values.uniq
-        orders.compact_blank!
-
+        orders = order_values.compact_blank
         arel.order(*orders) unless orders.empty?
       end
 
@@ -1319,12 +1572,6 @@ module ActiveRecord
       end
 
       def preprocess_order_args(order_args)
-        order_args.reject!(&:blank?)
-        order_args.map! do |arg|
-          klass.sanitize_sql_for_order(arg)
-        end
-        order_args.flatten!
-
         @klass.disallow_raw_sql!(
           order_args.flat_map { |a| a.is_a?(Hash) ? a.keys : a },
           permit: connection.column_name_with_order_matcher
@@ -1332,9 +1579,8 @@ module ActiveRecord
 
         validate_order_args(order_args)
 
-        references = order_args.grep(String)
-        references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!
-        references!(references) if references.any?
+        references = column_references(order_args)
+        self.references_values |= references unless references.empty?
 
         # if a symbol is given we prepend the quoted table name
         order_args.map! do |arg|
@@ -1345,9 +1591,9 @@ module ActiveRecord
             arg.map { |field, dir|
               case field
               when Arel::Nodes::SqlLiteral
-                field.send(dir.downcase)
+                field.public_send(dir.downcase)
               else
-                order_column(field.to_s).send(dir.downcase)
+                order_column(field.to_s).public_send(dir.downcase)
               end
             }
           else
@@ -1356,12 +1602,57 @@ module ActiveRecord
         end.flatten!
       end
 
+      def sanitize_order_arguments(order_args)
+        order_args.map! do |arg|
+          klass.sanitize_sql_for_order(arg)
+        end
+        order_args.flatten!
+        order_args.compact_blank!
+      end
+
+      def column_references(order_args)
+        references = order_args.flat_map do |arg|
+          case arg
+          when String, Symbol
+            arg
+          when Hash
+            arg.keys
+          end
+        end
+        references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!
+        references
+      end
+
       def order_column(field)
         arel_column(field) do |attr_name|
           if attr_name == "count" && !group_values.empty?
-            arel_attribute(attr_name)
+            table[attr_name]
           else
             Arel.sql(connection.quote_table_name(attr_name))
+          end
+        end
+      end
+
+      def resolve_arel_attributes(attrs)
+        attrs.flat_map do |attr|
+          case attr
+          when Arel::Predications
+            attr
+          when Hash
+            attr.flat_map do |table, columns|
+              table = table.to_s
+              Array(columns).map do |column|
+                predicate_builder.resolve_arel_attribute(table, column)
+              end
+            end
+          else
+            attr = attr.to_s
+            if attr.include?(".")
+              table, column = attr.split(".", 2)
+              predicate_builder.resolve_arel_attribute(table, column)
+            else
+              attr
+            end
           end
         end
       end
@@ -1375,31 +1666,40 @@ module ActiveRecord
       #    Post.references()   # raises an error
       #    Post.references([]) # does not raise an error
       #
-      # This particular method should be called with a method_name and the args
+      # This particular method should be called with a method_name (__callee__) and the args
       # passed into that method as an input. For example:
       #
       # def references(*args)
-      #   check_if_method_has_arguments!("references", args)
+      #   check_if_method_has_arguments!(__callee__, args)
       #   ...
       # end
-      def check_if_method_has_arguments!(method_name, args)
+      def check_if_method_has_arguments!(method_name, args, message = nil)
         if args.blank?
-          raise ArgumentError, "The method .#{method_name}() must contain arguments."
+          raise ArgumentError, message || "The method .#{method_name}() must contain arguments."
+        elsif block_given?
+          yield args
+        else
+          args.flatten!
+          args.compact_blank!
         end
       end
 
-      STRUCTURAL_OR_METHODS = Relation::VALUE_METHODS - [:extending, :where, :having, :unscope, :references]
-      def structurally_incompatible_values_for_or(other)
+      STRUCTURAL_VALUE_METHODS = (
+        Relation::VALUE_METHODS -
+        [:extending, :where, :having, :unscope, :references, :annotate, :optimizer_hints]
+      ).freeze # :nodoc:
+
+      def structurally_incompatible_values_for(other)
         values = other.values
-        STRUCTURAL_OR_METHODS.reject do |method|
+        STRUCTURAL_VALUE_METHODS.reject do |method|
           v1, v2 = @values[method], values[method]
-          v1 == v2 || (!v1 || v1.empty?) && (!v2 || v2.empty?)
+          if v1.is_a?(Array)
+            next true unless v2.is_a?(Array)
+            v1 = v1.uniq
+            v2 = v2.uniq
+          end
+          v1 == v2
         end
       end
-
-      def where_clause_factory
-        @where_clause_factory ||= Relation::WhereClauseFactory.new(klass, predicate_builder)
-      end
-      alias having_clause_factory where_clause_factory
   end
 end

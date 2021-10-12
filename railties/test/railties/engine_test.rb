@@ -52,7 +52,7 @@ module RailtiesTest
 
       @plugin.write "Rakefile", <<-RUBY
         APP_RAKEFILE = '#{app_path}/Rakefile'
-        load 'rails/tasks/engine.rake'
+        load "rails/tasks/engine.rake"
         task :foo => :environment do
           puts "Task ran"
         end
@@ -147,7 +147,7 @@ module RailtiesTest
       end
     end
 
-    test "dont reverse default railties order" do
+    test "don't reverse default railties order" do
       @api = engine "api" do |plugin|
         plugin.write "lib/api.rb", <<-RUBY
           module Api
@@ -200,10 +200,10 @@ module RailtiesTest
 
       @plugin.write "Rakefile", <<-RUBY
         APP_RAKEFILE = '#{app_path}/Rakefile'
-        load 'rails/tasks/engine.rake'
+        load "rails/tasks/engine.rake"
       RUBY
 
-      add_to_config "ActiveRecord::Base.timestamped_migrations = false"
+      add_to_config "ActiveRecord.timestamped_migrations = false"
 
       boot_rails
 
@@ -231,6 +231,26 @@ module RailtiesTest
       boot_rails
       require "another"
       assert_equal "Another", Another.name
+    end
+
+    test "when the bootstrap hook runs, autoload paths are set" do
+      $test_autoload_once_paths = []
+      $test_autoload_paths = []
+
+      add_to_config <<~RUBY
+        # Unrealistic configuration, but keeps the test simple.
+        config.autoload_once_paths << "#{app_path}/app/helpers"
+
+        initializer "inspect autoload paths", after: :bootstrap_hook do
+          $test_autoload_once_paths += ActiveSupport::Dependencies.autoload_once_paths
+          $test_autoload_paths += ActiveSupport::Dependencies.autoload_paths
+        end
+      RUBY
+
+      boot_rails
+
+      assert_includes $test_autoload_once_paths, "#{app_path}/app/helpers"
+      assert_includes $test_autoload_paths, "#{app_path}/app/controllers"
     end
 
     test "puts its models directory on autoload path" do
@@ -388,6 +408,37 @@ module RailtiesTest
       Rails.application.load_tasks
       Rake::Task[:foo].invoke
       assert $executed
+    end
+
+    test "locales can be nested" do
+      app_file "config/locales/en/models.yml", <<~YAML
+        en:
+          foo: "1"
+      YAML
+
+      app_file "config/locales/en/dates.yml", <<~YAML
+        en:
+          bar: "1"
+      YAML
+
+      app_file "config/locales/extra/nested/folder/en.yml", <<~YAML
+        en:
+          baz: "1"
+      YAML
+
+      boot_rails
+
+      expected_locales = %W(
+        #{app_path}/config/locales/en/models.yml
+        #{app_path}/config/locales/en/dates.yml
+        #{app_path}/config/locales/extra/nested/folder/en.yml
+      ).map { |path| File.expand_path(path) }
+
+      actual_locales = I18n.load_path.map { |path| File.expand_path(path) }
+
+      expected_locales.each do |expected_locale|
+        assert_includes(actual_locales, expected_locale)
+      end
     end
 
     test "i18n files have lower priority than application ones" do
@@ -644,7 +695,7 @@ en:
       assert_equal Rails.application.routes, env["action_dispatch.routes"]
     end
 
-    test "isolated engine should include only its own routes and helpers" do
+    test "isolated engine routes and helpers are isolated to that engine" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
@@ -729,6 +780,30 @@ en:
         end
       RUBY
 
+      @plugin.write "app/controllers/bukkits/session_controller.rb", <<-RUBY
+        module Bukkits
+          class SessionController < ApplicationController
+            def index
+              render plain: default_path
+            end
+
+            private
+              def default_path
+                foo_path
+              end
+          end
+        end
+      RUBY
+
+      controller "bar", <<-RUBY
+        class BarController < Bukkits::SessionController
+          private
+            def default_path
+              bar_path
+            end
+        end
+      RUBY
+
       @plugin.write "app/mailers/bukkits/my_mailer.rb", <<-RUBY
         module Bukkits
           class MyMailer < ActionMailer::Base
@@ -745,6 +820,9 @@ en:
       assert_equal Bukkits.railtie_namespace, Bukkits::Engine
       assert ::Bukkits::MyMailer.method_defined?(:foo_url)
       assert_not ::Bukkits::MyMailer.method_defined?(:bar_url)
+
+      get("/bar")
+      assert_equal "/bar", last_response.body
 
       get("/bukkits/from_app")
       assert_equal "false", last_response.body
@@ -879,29 +957,40 @@ en:
       assert Bukkits::Engine.config.bukkits_seeds_loaded
     end
 
-    test "jobs are ran inline while loading seeds with async adapter configured" do
+    test "loading seed data is wrapped by the executor" do
       app_file "db/seeds.rb", <<-RUBY
-        Rails.application.config.seed_queue_adapter = ActiveJob::Base.queue_adapter
+        Rails.application.config.seeding_wrapped_by_executor = Rails.application.executor.active?
       RUBY
 
       boot_rails
       Rails.application.load_seed
 
-      assert_instance_of ActiveJob::QueueAdapters::InlineAdapter, Rails.application.config.seed_queue_adapter
-      assert_instance_of ActiveJob::QueueAdapters::AsyncAdapter, ActiveJob::Base.queue_adapter
+      assert_predicate Rails.application.config, :seeding_wrapped_by_executor
     end
 
-    test "jobs are ran with original adapter while loading seeds with custom adapter configured" do
+    test "inline jobs do not clear CurrentAttributes when loading seed data" do
       app_file "db/seeds.rb", <<-RUBY
-        Rails.application.config.seed_queue_adapter = ActiveJob::Base.queue_adapter
+        class SeedsAttributes < ActiveSupport::CurrentAttributes
+          attribute :foo
+        end
+
+        class SeedsJob < ActiveJob::Base
+          self.queue_adapter = :inline
+          def perform
+            Rails.application.config.seeds_job_ran = true
+          end
+        end
+
+        SeedsAttributes.foo = 42
+        SeedsJob.perform_later
+        Rails.application.config.seeds_attributes_foo = SeedsAttributes.foo
       RUBY
 
       boot_rails
-      Rails.application.config.active_job.queue_adapter = :delayed_job
       Rails.application.load_seed
 
-      assert_instance_of ActiveJob::QueueAdapters::DelayedJobAdapter, Rails.application.config.seed_queue_adapter
-      assert_instance_of ActiveJob::QueueAdapters::DelayedJobAdapter, ActiveJob::Base.queue_adapter
+      assert Rails.application.config.seeds_job_ran
+      assert_equal 42, Rails.application.config.seeds_attributes_foo
     end
 
     test "seed data can be loaded when ActiveJob is not present" do
@@ -1532,7 +1621,7 @@ en:
     test "active_storage:install task works within engine" do
       @plugin.write "Rakefile", <<-RUBY
         APP_RAKEFILE = '#{app_path}/Rakefile'
-        load 'rails/tasks/engine.rake'
+        load "rails/tasks/engine.rake"
       RUBY
 
       Dir.chdir(@plugin.path) do
@@ -1541,6 +1630,21 @@ en:
 
         active_storage_migration = migrations.detect { |migration| migration.name == "CreateActiveStorageTables" }
         assert active_storage_migration
+      end
+    end
+
+    test "active_storage:update task works within engine" do
+      @plugin.write "Rakefile", <<-RUBY
+        APP_RAKEFILE = '#{app_path}/Rakefile'
+        load "rails/tasks/engine.rake"
+      RUBY
+
+      Dir.chdir(@plugin.path) do
+        output = `bundle exec rake app:active_storage:update`
+        assert $?.success?, output
+
+        assert migrations.detect { |migration| migration.name == "AddServiceNameToActiveStorageBlobs" }
+        assert migrations.detect { |migration| migration.name == "CreateActiveStorageVariantRecords" }
       end
     end
 
@@ -1555,8 +1659,8 @@ en:
 
     # Restrict frameworks to load in order to avoid engine frameworks affect tests.
     def restrict_frameworks
-      remove_from_config("require 'rails/all'")
-      remove_from_config("require_relative 'boot'")
+      remove_from_config('require "rails/all"')
+      remove_from_config('require_relative "boot"')
       remove_from_env_config("development", "config.active_storage.*")
       frameworks = <<~RUBY
         require "rails"
@@ -1566,7 +1670,6 @@ en:
         require "action_controller/railtie"
         require "action_mailer/railtie"
         require "action_view/railtie"
-        require "sprockets/railtie"
         require "rails/test_unit/railtie"
       RUBY
       environment = File.read("#{app_path}/config/application.rb")

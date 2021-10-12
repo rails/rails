@@ -116,7 +116,7 @@ The latest version of Action Mailer can be installed with RubyGems:
 
 Source code can be downloaded as part of the Rails project on GitHub:
 
-* https://github.com/rails/rails/tree/master/actionmailer
+* https://github.com/rails/rails/tree/main/actionmailer
 
 
 == License
@@ -138,4 +138,4 @@ Bug reports for the Ruby on Rails project can be filed here:
 
 Feature requests should be discussed on the rails-core mailing list here:
 
-* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+* https://discuss.rubyonrails.org/c/rubyonrails-core

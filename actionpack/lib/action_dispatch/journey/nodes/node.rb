@@ -4,6 +4,66 @@ require "action_dispatch/journey/visitors"
 
 module ActionDispatch
   module Journey # :nodoc:
+    class Ast # :nodoc:
+      attr_reader :names, :path_params, :tree, :wildcard_options, :terminals
+      alias :root :tree
+
+      def initialize(tree, formatted)
+        @tree = tree
+        @path_params = []
+        @names = []
+        @symbols = []
+        @stars = []
+        @terminals = []
+        @wildcard_options = {}
+
+        visit_tree(formatted)
+      end
+
+      def requirements=(requirements)
+        # inject any regexp requirements for `star` nodes so they can be
+        # determined nullable, which requires knowing if the regex accepts an
+        # empty string.
+        (symbols + stars).each do |node|
+          re = requirements[node.to_sym]
+          node.regexp = re if re
+        end
+      end
+
+      def route=(route)
+        terminals.each { |n| n.memo = route }
+      end
+
+      def glob?
+        stars.any?
+      end
+
+      private
+        attr_reader :symbols, :stars
+
+        def visit_tree(formatted)
+          tree.each do |node|
+            if node.symbol?
+              path_params << node.to_sym
+              names << node.name
+              symbols << node
+            elsif node.star?
+              stars << node
+
+              if formatted != false
+                # Add a constraint for wildcard route to make it non-greedy and
+                # match the optional format part of the route by default.
+                wildcard_options[node.name.to_sym] ||= /.+?/
+              end
+            end
+
+            if node.terminal?
+              terminals << node
+            end
+          end
+        end
+    end
+
     module Nodes # :nodoc:
       class Node # :nodoc:
         include Enumerable
@@ -78,15 +138,12 @@ module ActionDispatch
         alias :symbol :regexp
         attr_reader :name
 
-        DEFAULT_EXP = /[^\.\/\?]+/
-        def initialize(left)
-          super
-          @regexp = DEFAULT_EXP
+        DEFAULT_EXP = /[^.\/?]+/
+        GREEDY_EXP = /(.+)/
+        def initialize(left, regexp = DEFAULT_EXP)
+          super(left)
+          @regexp = regexp
           @name = -left.tr("*:", "")
-        end
-
-        def default_regexp?
-          regexp == DEFAULT_EXP
         end
 
         def type; :SYMBOL; end
@@ -103,6 +160,15 @@ module ActionDispatch
       end
 
       class Star < Unary # :nodoc:
+        attr_accessor :regexp
+
+        def initialize(left)
+          super(left)
+
+          # By default wildcard routes are non-greedy and must match something.
+          @regexp = /.+?/
+        end
+
         def star?; true; end
         def type; :STAR; end
 

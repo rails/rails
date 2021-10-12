@@ -33,6 +33,10 @@ module ActiveRecord
         @state == :fully_rolledback
       end
 
+      def invalidated?
+        @state == :invalidated
+      end
+
       def fully_completed?
         completed?
       end
@@ -51,6 +55,11 @@ module ActiveRecord
         @state = :fully_rolledback
       end
 
+      def invalidate!
+        @children&.each { |c| c.invalidate! }
+        @state = :invalidated
+      end
+
       def commit!
         @state = :committed
       end
@@ -64,17 +73,18 @@ module ActiveRecord
       end
     end
 
-    class NullTransaction #:nodoc:
+    class NullTransaction # :nodoc:
       def initialize; end
       def state; end
       def closed?; true; end
       def open?; false; end
       def joinable?; false; end
-      def add_record(record); end
+      def add_record(record, _ = true); end
     end
 
-    class Transaction #:nodoc:
-      attr_reader :connection, :state, :records, :savepoint_name, :isolation_level
+    class Transaction # :nodoc:
+      attr_reader :connection, :state, :savepoint_name, :isolation_level
+      attr_accessor :written
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         @connection = connection
@@ -84,11 +94,25 @@ module ActiveRecord
         @materialized = false
         @joinable = joinable
         @run_commit_callbacks = run_commit_callbacks
+        @lazy_enrollment_records = nil
       end
 
-      def add_record(record)
+      def add_record(record, ensure_finalize = true)
         @records ||= []
-        @records << record
+        if ensure_finalize
+          @records << record
+        else
+          @lazy_enrollment_records ||= ObjectSpace::WeakMap.new
+          @lazy_enrollment_records[record] = record
+        end
+      end
+
+      def records
+        if @lazy_enrollment_records
+          @records.concat @lazy_enrollment_records.values
+          @lazy_enrollment_records = nil
+        end
+        @records
       end
 
       def materialize!
@@ -101,7 +125,7 @@ module ActiveRecord
 
       def rollback_records
         return unless records
-        ite = records.uniq(&:object_id)
+        ite = records.uniq(&:__id__)
         already_run_callbacks = {}
         while record = ite.shift
           trigger_callbacks = record.trigger_transactional_callbacks?
@@ -121,7 +145,7 @@ module ActiveRecord
 
       def commit_records
         return unless records
-        ite = records.uniq(&:object_id)
+        ite = records.uniq(&:__id__)
         already_run_callbacks = {}
         while record = ite.shift
           if @run_commit_callbacks
@@ -197,7 +221,7 @@ module ActiveRecord
       end
     end
 
-    class TransactionManager #:nodoc:
+    class TransactionManager # :nodoc:
       def initialize(connection)
         @stack = []
         @connection = connection
@@ -284,7 +308,7 @@ module ActiveRecord
       def rollback_transaction(transaction = nil)
         @connection.lock.synchronize do
           transaction ||= @stack.pop
-          transaction.rollback
+          transaction.rollback unless transaction.state.invalidated?
           transaction.rollback_records
         end
       end
@@ -292,23 +316,43 @@ module ActiveRecord
       def within_new_transaction(isolation: nil, joinable: true)
         @connection.lock.synchronize do
           transaction = begin_transaction(isolation: isolation, joinable: joinable)
-          yield
+          ret = yield
+          completed = true
+          ret
         rescue Exception => error
           if transaction
+            transaction.state.invalidate! if error.is_a? ActiveRecord::TransactionRollbackError
             rollback_transaction
             after_failure_actions(transaction, error)
           end
+
           raise
         ensure
-          if !error && transaction
-            if Thread.current.status == "aborting"
-              rollback_transaction
+          if transaction
+            if error
+              # @connection still holds an open or invalid transaction, so we must not
+              # put it back in the pool for reuse.
+              @connection.throw_away! unless transaction.state.rolledback?
             else
-              begin
-                commit_transaction
-              rescue Exception
-                rollback_transaction(transaction) unless transaction.state.completed?
-                raise
+              if Thread.current.status == "aborting"
+                rollback_transaction
+              else
+                if !completed && transaction.written
+                  ActiveSupport::Deprecation.warn(<<~EOW)
+                    Using `return`, `break` or `throw` to exit a transaction block is
+                    deprecated without replacement. If the `throw` came from
+                    `Timeout.timeout(duration)`, pass an exception class as a second
+                    argument so it doesn't use `throw` to abort its block. This results
+                    in the transaction being committed, but in the next release of Rails
+                    it will rollback.
+                  EOW
+                end
+                begin
+                  commit_transaction
+                rescue Exception
+                  rollback_transaction(transaction) unless transaction.state.completed?
+                  raise
+                end
               end
             end
           end

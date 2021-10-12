@@ -21,6 +21,7 @@ module ActiveModel
 
     class GrandchildModelForAttributesTest < ChildModelForAttributesTest
       attribute :integer_field, :string
+      attribute :string_field, default: "default string"
     end
 
     test "properties assignment" do
@@ -94,9 +95,15 @@ module ActiveModel
     end
 
     test "children can override parents" do
+      klass = GrandchildModelForAttributesTest
+
+      assert_instance_of Type::String, klass.attribute_types["integer_field"]
+      assert_instance_of Type::String, klass.attribute_types["string_field"]
+
       data = GrandchildModelForAttributesTest.new(integer_field: "4.4")
 
       assert_equal "4.4", data.integer_field
+      assert_equal "default string", data.string_field
     end
 
     test "attributes with proc defaults can be marshalled" do
@@ -108,11 +115,38 @@ module ActiveModel
       assert_equal attributes, new_attributes
     end
 
+    test "attributes can be dup-ed" do
+      data = ModelForAttributesTest.new
+      data.integer_field = 1
+
+      duped = data.dup
+
+      assert_equal 1, data.integer_field
+      assert_equal 1, duped.integer_field
+
+      duped.integer_field = 2
+
+      assert_equal 1, data.integer_field
+      assert_equal 2, duped.integer_field
+    end
+
     test "can't modify attributes if frozen" do
       data = ModelForAttributesTest.new
       data.freeze
       assert data.frozen?
       assert_raise(FrozenError) { data.integer_field = 1 }
+    end
+
+    test "attributes can be frozen again" do
+      data = ModelForAttributesTest.new
+      data.freeze
+      assert_nothing_raised { data.freeze }
+    end
+
+    test "unknown type error is raised" do
+      assert_raise(ArgumentError) do
+        ModelForAttributesTest.attribute :foo, :unknown
+      end
     end
   end
 end

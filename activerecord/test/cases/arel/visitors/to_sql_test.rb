@@ -322,11 +322,6 @@ module Arel
         }
       end
 
-      it "should visit visit_Arel_Attributes_Time" do
-        attr = Attributes::Time.new(@attr.relation, @attr.name)
-        compile attr
-      end
-
       it "should visit_TrueClass" do
         test = Table.new(:users)[:bool].eq(true)
         _(compile(test)).must_be_like %{ "users"."bool" = 't' }
@@ -387,6 +382,34 @@ module Arel
             "users"."id" DESC
           }
         end
+
+        it "should handle nulls first" do
+          node = @attr.desc.nulls_first
+          _(compile(node)).must_be_like %{
+            "users"."id" DESC NULLS FIRST
+          }
+        end
+
+        it "should handle nulls last" do
+          node = @attr.desc.nulls_last
+          _(compile(node)).must_be_like %{
+            "users"."id" DESC NULLS LAST
+          }
+        end
+
+        it "should handle nulls first reversed" do
+          node = @attr.desc.nulls_first.reverse
+          _(compile(node)).must_be_like %{
+            "users"."id" ASC NULLS LAST
+          }
+        end
+
+        it "should handle nulls last reversed" do
+          node = @attr.desc.nulls_last.reverse
+          _(compile(node)).must_be_like %{
+            "users"."id" ASC NULLS FIRST
+          }
+        end
       end
 
       describe "Nodes::In" do
@@ -394,11 +417,6 @@ module Arel
           node = @attr.in [1, 2, 3]
           _(compile(node)).must_be_like %{
             "users"."id" IN (1, 2, 3)
-          }
-
-          node = @attr.in [1, 2, 3, 4, 5]
-          _(compile(node)).must_be_like %{
-            ("users"."id" IN (1, 2, 3) OR "users"."id" IN (4, 5))
           }
         end
 
@@ -450,22 +468,22 @@ module Arel
 
       describe "Nodes::InfixOperation" do
         it "should handle Multiplication" do
-          node = Arel::Attributes::Decimal.new(Table.new(:products), :price) * Arel::Attributes::Decimal.new(Table.new(:currency_rates), :rate)
+          node = Arel::Attribute.new(Table.new(:products), :price) * Arel::Attribute.new(Table.new(:currency_rates), :rate)
           _(compile(node)).must_equal %("products"."price" * "currency_rates"."rate")
         end
 
         it "should handle Division" do
-          node = Arel::Attributes::Decimal.new(Table.new(:products), :price) / 5
+          node = Arel::Attribute.new(Table.new(:products), :price) / 5
           _(compile(node)).must_equal %("products"."price" / 5)
         end
 
         it "should handle Addition" do
-          node = Arel::Attributes::Decimal.new(Table.new(:products), :price) + 6
+          node = Arel::Attribute.new(Table.new(:products), :price) + 6
           _(compile(node)).must_equal %(("products"."price" + 6))
         end
 
         it "should handle Subtraction" do
-          node = Arel::Attributes::Decimal.new(Table.new(:products), :price) - 7
+          node = Arel::Attribute.new(Table.new(:products), :price) - 7
           _(compile(node)).must_equal %(("products"."price" - 7))
         end
 
@@ -475,36 +493,48 @@ module Arel
           _(compile(node)).must_equal %("users"."name" || "users"."name")
         end
 
+        it "should handle Contains" do
+          table = Table.new(:users)
+          node = table[:name].contains(table[:name])
+          _(compile(node)).must_equal %("users"."name" @> "users"."name")
+        end
+
+        it "should handle Overlaps" do
+          table = Table.new(:users)
+          node = table[:name].overlaps(table[:name])
+          _(compile(node)).must_equal %("users"."name" && "users"."name")
+        end
+
         it "should handle BitwiseAnd" do
-          node = Arel::Attributes::Integer.new(Table.new(:products), :bitmap) & 16
+          node = Arel::Attribute.new(Table.new(:products), :bitmap) & 16
           _(compile(node)).must_equal %(("products"."bitmap" & 16))
         end
 
         it "should handle BitwiseOr" do
-          node = Arel::Attributes::Integer.new(Table.new(:products), :bitmap) | 16
+          node = Arel::Attribute.new(Table.new(:products), :bitmap) | 16
           _(compile(node)).must_equal %(("products"."bitmap" | 16))
         end
 
         it "should handle BitwiseXor" do
-          node = Arel::Attributes::Integer.new(Table.new(:products), :bitmap) ^ 16
+          node = Arel::Attribute.new(Table.new(:products), :bitmap) ^ 16
           _(compile(node)).must_equal %(("products"."bitmap" ^ 16))
         end
 
         it "should handle BitwiseShiftLeft" do
-          node = Arel::Attributes::Integer.new(Table.new(:products), :bitmap) << 4
+          node = Arel::Attribute.new(Table.new(:products), :bitmap) << 4
           _(compile(node)).must_equal %(("products"."bitmap" << 4))
         end
 
         it "should handle BitwiseShiftRight" do
-          node = Arel::Attributes::Integer.new(Table.new(:products), :bitmap) >> 4
+          node = Arel::Attribute.new(Table.new(:products), :bitmap) >> 4
           _(compile(node)).must_equal %(("products"."bitmap" >> 4))
         end
 
         it "should handle arbitrary operators" do
           node = Arel::Nodes::InfixOperation.new(
             "&&",
-            Arel::Attributes::String.new(Table.new(:products), :name),
-            Arel::Attributes::String.new(Table.new(:products), :name)
+            Arel::Attribute.new(Table.new(:products), :name),
+            Arel::Attribute.new(Table.new(:products), :name)
           )
           _(compile(node)).must_equal %("products"."name" && "products"."name")
         end
@@ -512,12 +542,12 @@ module Arel
 
       describe "Nodes::UnaryOperation" do
         it "should handle BitwiseNot" do
-          node = ~ Arel::Attributes::Integer.new(Table.new(:products), :bitmap)
+          node = ~ Arel::Attribute.new(Table.new(:products), :bitmap)
           _(compile(node)).must_equal %( ~ "products"."bitmap")
         end
 
         it "should handle arbitrary operators" do
-          node = Arel::Nodes::UnaryOperation.new("!", Arel::Attributes::String.new(Table.new(:products), :active))
+          node = Arel::Nodes::UnaryOperation.new("!", Arel::Attribute.new(Table.new(:products), :active))
           _(compile(node)).must_equal %( ! "products"."active")
         end
       end
@@ -549,11 +579,6 @@ module Arel
           node = @attr.not_in [1, 2, 3]
           _(compile(node)).must_be_like %{
             "users"."id" NOT IN (1, 2, 3)
-          }
-
-          node = @attr.not_in [1, 2, 3, 4, 5]
-          _(compile(node)).must_be_like %{
-            "users"."id" NOT IN (1, 2, 3) AND "users"."id" NOT IN (4, 5)
           }
         end
 
@@ -715,6 +740,31 @@ module Arel
 
           _(compile(node)).must_be_like %{
             CASE "users"."name" WHEN 'foo' THEN 'bar' ELSE 'baz' END
+          }
+        end
+      end
+
+      describe "Nodes::With" do
+        it "handles table aliases" do
+          manager = Table.new(:foo).project(Arel.star).from(Arel.sql("expr2"))
+          expr1 = Table.new(:bar).project(Arel.star).as("expr1")
+          expr2 = Table.new(:baz).project(Arel.star).as("expr2")
+          manager.with(expr1, expr2)
+
+          _(compile(manager.ast)).must_be_like %{
+            WITH expr1 AS (SELECT * FROM "bar"), expr2 AS (SELECT * FROM "baz") SELECT * FROM expr2
+          }
+        end
+      end
+
+      describe "Nodes::WithRecursive" do
+        it "handles table aliases" do
+          manager = Table.new(:foo).project(Arel.star).from(Arel.sql("expr1"))
+          expr1 = Table.new(:bar).project(Arel.star).as("expr1")
+          manager.with(:recursive, expr1)
+
+          _(compile(manager.ast)).must_be_like %{
+            WITH RECURSIVE expr1 AS (SELECT * FROM "bar") SELECT * FROM expr1
           }
         end
       end

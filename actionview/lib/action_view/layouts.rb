@@ -321,6 +321,7 @@ module ActionView
           end
 
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          # frozen_string_literal: true
           def _layout(lookup_context, formats)
             if _conditional_layout?
               #{layout_definition}

@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require 'fileutils'
+require "fileutils"
 include FileUtils
 
 # path to your application root.
@@ -10,7 +10,7 @@ def system!(*args)
 end
 
 chdir APP_ROOT do
-  # This script is a starting point to setup your application.
+  # This script is a starting point to set up your application.
   # Add necessary setup steps to this file.
 
   puts '== Installing dependencies =='

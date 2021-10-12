@@ -10,7 +10,7 @@ require "active_support/core_ext/object/blank"
 require "stringio"
 
 module ActiveSupport
-  module XmlMini_Nokogiri #:nodoc:
+  module XmlMini_Nokogiri # :nodoc:
     extend self
 
     # Parse an XML Document string or IO into a simple hash using libxml / nokogiri.
@@ -30,14 +30,14 @@ module ActiveSupport
       end
     end
 
-    module Conversions #:nodoc:
-      module Document #:nodoc:
+    module Conversions # :nodoc:
+      module Document # :nodoc:
         def to_hash
           root.to_hash
         end
       end
 
-      module Node #:nodoc:
+      module Node # :nodoc:
         CONTENT_ROOT = "__content__"
 
         # Convert XML document to hash.

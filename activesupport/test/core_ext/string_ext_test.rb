@@ -112,6 +112,10 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal("capital", "Capital".camelize(:lower))
   end
 
+  def test_camelize_upper
+    assert_equal("Capital", "Capital".camelize(:upper))
+  end
+
   def test_camelize_invalid_option
     e = assert_raise ArgumentError do
       "Capital".camelize(nil)
@@ -573,6 +577,14 @@ class StringConversionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_timestamp_string_to_time
+    exception = assert_raises(ArgumentError) do
+      "1604326192".to_time
+    end
+
+    assert_equal "argument out of range", exception.message
+  end
+
   def test_string_to_time_utc_offset
     with_env_tz "US/Eastern" do
       if ActiveSupport.to_time_preserves_timezone
@@ -774,8 +786,13 @@ class OutputSafetyTest < ActiveSupport::TestCase
   def setup
     @string = +"hello"
     @object = Class.new(Object) do
-      def to_s
+      def to_str
         "other"
+      end
+    end.new
+    @to_s_object = Class.new(Object) do
+      def to_s
+        "to_s"
       end
     end.new
   end
@@ -803,6 +820,14 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
   test "An object is unsafe by default" do
     assert_not_predicate @object, :html_safe?
+  end
+
+  test "Adding an object not responding to `#to_str` to a safe string is deprecated" do
+    string = @string.html_safe
+    assert_deprecated("Implicit conversion of #{@to_s_object.class} into String by ActiveSupport::SafeBuffer is deprecated") do
+      string << @to_s_object
+    end
+    assert_equal "helloto_s", string
   end
 
   test "Adding an object to a safe string returns a safe string" do
@@ -899,6 +924,11 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
     @other_string = @other_string % string
     assert_not_predicate @other_string, :html_safe?
+  end
+
+  test "% method explicitly cast the argument to string" do
+    @other_string = "other%s"
+    assert_equal "otherto_s", @other_string % @to_s_object
   end
 
   test "Concatting unsafe onto safe with % yields escaped safe" do

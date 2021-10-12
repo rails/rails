@@ -36,7 +36,7 @@ module ActiveRecord
       end
 
       def test_database_exists_returns_true_when_database_exists
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         assert SQLite3Adapter.database_exists?(db_config.configuration_hash),
           "expected #{db_config.database} to exist"
       end
@@ -355,6 +355,16 @@ module ActiveRecord
         end
       end
 
+      def test_index_with_if_not_exists
+        with_example_table do
+          @conn.add_index "ex", "id"
+
+          assert_nothing_raised do
+            @conn.add_index "ex", "id", if_not_exists: true
+          end
+        end
+      end
+
       def test_non_unique_index
         with_example_table do
           @conn.add_index "ex", "id", name: "fun"
@@ -515,19 +525,29 @@ module ActiveRecord
         Barcode.reset_column_information
       end
 
-      def test_remove_column_preserves_partial_indexes
+      def test_remove_column_preserves_index_options
         connection = Barcode.connection
         connection.create_table :barcodes, force: true do |t|
           t.string :code
           t.string :region
           t.boolean :bool_attr
 
-          t.index :code, unique: true, where: :bool_attr, name: "partial"
+          t.index :code, unique: true, name: "unique"
+          t.index :code, where: :bool_attr, name: "partial"
+          t.index :code, name: "ordered", order: { code: :desc }
         end
         connection.remove_column :barcodes, :region
 
-        index = connection.indexes("barcodes").find { |idx| idx.name == "partial" }
-        assert_equal "bool_attr", index.where
+        indexes = connection.indexes("barcodes")
+
+        partial_index = indexes.find { |idx| idx.name == "partial" }
+        assert_equal "bool_attr", partial_index.where
+
+        unique_index = indexes.find { |idx| idx.name == "unique" }
+        assert unique_index.unique
+
+        ordered_index = indexes.find { |idx| idx.name == "ordered" }
+        assert_equal :desc, ordered_index.orders
       ensure
         Barcode.reset_column_information
       end
@@ -545,7 +565,7 @@ module ActiveRecord
       end
 
       def test_statement_closed
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         db = ::SQLite3::Database.new(db_config.database)
 
         statement = ::SQLite3::Statement.new(db,
@@ -593,72 +613,6 @@ module ActiveRecord
 
         assert_raises(ActiveRecord::StatementInvalid, /SQLite3::ReadOnlyException/) do
           conn.execute("CREATE TABLE test(id integer)")
-        end
-      end
-
-      def test_errors_when_an_insert_query_is_called_while_preventing_writes
-        with_example_table "id int, data string" do
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection_handler.while_preventing_writes do
-              @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-            end
-          end
-        end
-      end
-
-      def test_errors_when_an_update_query_is_called_while_preventing_writes
-        with_example_table "id int, data string" do
-          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection_handler.while_preventing_writes do
-              @conn.execute("UPDATE ex SET data = '9989' WHERE data = '138853948594'")
-            end
-          end
-        end
-      end
-
-      def test_errors_when_a_delete_query_is_called_while_preventing_writes
-        with_example_table "id int, data string" do
-          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection_handler.while_preventing_writes do
-              @conn.execute("DELETE FROM ex where data = '138853948594'")
-            end
-          end
-        end
-      end
-
-      def test_errors_when_a_replace_query_is_called_while_preventing_writes
-        with_example_table "id int, data string" do
-          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection_handler.while_preventing_writes do
-              @conn.execute("REPLACE INTO ex (data) VALUES ('249823948')")
-            end
-          end
-        end
-      end
-
-      def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
-        with_example_table "id int, data string" do
-          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-
-          @connection_handler.while_preventing_writes do
-            assert_equal 1, @conn.execute("SELECT data from ex WHERE data = '138853948594'").count
-          end
-        end
-      end
-
-      def test_doesnt_error_when_a_read_query_with_leading_chars_is_called_while_preventing_writes
-        with_example_table "id int, data string" do
-          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-
-          @connection_handler.while_preventing_writes do
-            assert_equal 1, @conn.execute("  SELECT data from ex WHERE data = '138853948594'").count
-          end
         end
       end
 

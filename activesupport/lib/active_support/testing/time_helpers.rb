@@ -6,6 +6,7 @@ require "concurrent/map"
 
 module ActiveSupport
   module Testing
+    # Manages stubs for TimeHelpers
     class SimpleStubs # :nodoc:
       Stub = Struct.new(:object, :method_name, :original_method)
 
@@ -13,6 +14,13 @@ module ActiveSupport
         @stubs = Concurrent::Map.new { |h, k| h[k] = {} }
       end
 
+      # Stubs object.method_name with the given block
+      # If the method is already stubbed, remove that stub
+      # so that removing this stub will restore the original implementation.
+      #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+      #   target = Time.zone.local(2004, 11, 24, 1, 4, 44)
+      #   simple_stubs.stub_object(Time, :now) { at(target.to_i) }
+      #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
       def stub_object(object, method_name, &block)
         if stub = stubbing(object, method_name)
           unstub_object(stub)
@@ -26,6 +34,7 @@ module ActiveSupport
         object.define_singleton_method(method_name, &block)
       end
 
+      # Remove all object-method stubs held by this instance
       def unstub_all!
         @stubs.each_value do |object_stubs|
           object_stubs.each_value do |stub|
@@ -35,15 +44,19 @@ module ActiveSupport
         @stubs.clear
       end
 
+      # Returns the Stub for object#method_name
+      # (nil if it is not stubbed)
       def stubbing(object, method_name)
         @stubs[object.object_id][method_name]
       end
 
+      # Returns true if any stubs are set, false if there are none
       def stubbed?
         !@stubs.empty?
       end
 
       private
+        # Restores the original object.method described by the Stub
         def unstub_object(stub)
           singleton_class = stub.object.singleton_class
           singleton_class.silence_redefinition_of_method stub.method_name
@@ -113,7 +126,7 @@ module ActiveSupport
       #   end
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       def travel_to(date_or_time)
-        if block_given? && simple_stubs.stubbing(Time, :now)
+        if block_given? && in_block
           travel_to_nested_block_call = <<~MSG
 
       Calling `travel_to` with a block, when we have previously already made a call to `travel_to`, can lead to confusing time stubbing.
@@ -143,19 +156,28 @@ module ActiveSupport
 
         if date_or_time.is_a?(Date) && !date_or_time.is_a?(DateTime)
           now = date_or_time.midnight.to_time
+        elsif date_or_time.is_a?(String)
+          now = Time.zone.parse(date_or_time)
         else
           now = date_or_time.to_time.change(usec: 0)
         end
 
+        stubbed_time = Time.now if simple_stubs.stubbing(Time, :now)
         simple_stubs.stub_object(Time, :now) { at(now.to_i) }
         simple_stubs.stub_object(Date, :today) { jd(now.to_date.jd) }
         simple_stubs.stub_object(DateTime, :now) { jd(now.to_date.jd, now.hour, now.min, now.sec, Rational(now.utc_offset, 86400)) }
 
         if block_given?
           begin
+            self.in_block = true
             yield
           ensure
-            travel_back
+            if stubbed_time
+              travel_to stubbed_time
+            else
+              travel_back
+            end
+            self.in_block = false
           end
         end
       end
@@ -217,6 +239,8 @@ module ActiveSupport
         def simple_stubs
           @simple_stubs ||= SimpleStubs.new
         end
+
+        attr_accessor :in_block
     end
   end
 end

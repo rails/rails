@@ -5,6 +5,7 @@ require "active_support/descendants_tracker"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/string/filters"
+require "active_support/core_ext/object/blank"
 require "thread"
 
 module ActiveSupport
@@ -143,7 +144,7 @@ module ActiveSupport
       # A hook invoked every time a before callback is halted.
       # This can be overridden in ActiveSupport::Callbacks implementors in order
       # to provide better debugging/logging.
-      def halted_callback_hook(filter)
+      def halted_callback_hook(filter, name)
       end
 
       module Conditionals # :nodoc:
@@ -159,17 +160,17 @@ module ActiveSupport
         Environment = Struct.new(:target, :halted, :value)
 
         class Before
-          def self.build(callback_sequence, user_callback, user_conditions, chain_config, filter)
+          def self.build(callback_sequence, user_callback, user_conditions, chain_config, filter, name)
             halted_lambda = chain_config[:terminator]
 
             if user_conditions.any?
-              halting_and_conditional(callback_sequence, user_callback, user_conditions, halted_lambda, filter)
+              halting_and_conditional(callback_sequence, user_callback, user_conditions, halted_lambda, filter, name)
             else
-              halting(callback_sequence, user_callback, halted_lambda, filter)
+              halting(callback_sequence, user_callback, halted_lambda, filter, name)
             end
           end
 
-          def self.halting_and_conditional(callback_sequence, user_callback, user_conditions, halted_lambda, filter)
+          def self.halting_and_conditional(callback_sequence, user_callback, user_conditions, halted_lambda, filter, name)
             callback_sequence.before do |env|
               target = env.target
               value  = env.value
@@ -179,7 +180,7 @@ module ActiveSupport
                 result_lambda = -> { user_callback.call target, value }
                 env.halted = halted_lambda.call(target, result_lambda)
                 if env.halted
-                  target.send :halted_callback_hook, filter
+                  target.send :halted_callback_hook, filter, name
                 end
               end
 
@@ -188,7 +189,7 @@ module ActiveSupport
           end
           private_class_method :halting_and_conditional
 
-          def self.halting(callback_sequence, user_callback, halted_lambda, filter)
+          def self.halting(callback_sequence, user_callback, halted_lambda, filter, name)
             callback_sequence.before do |env|
               target = env.target
               value  = env.value
@@ -197,9 +198,8 @@ module ActiveSupport
               unless halted
                 result_lambda = -> { user_callback.call target, value }
                 env.halted = halted_lambda.call(target, result_lambda)
-
                 if env.halted
-                  target.send :halted_callback_hook, filter
+                  target.send :halted_callback_hook, filter, name
                 end
               end
 
@@ -277,7 +277,7 @@ module ActiveSupport
         end
       end
 
-      class Callback #:nodoc:#
+      class Callback # :nodoc:#
         def self.build(chain, filter, kind, options)
           if filter.is_a?(String)
             raise ArgumentError, <<-MSG.squish
@@ -290,20 +290,16 @@ module ActiveSupport
         end
 
         attr_accessor :kind, :name
-        attr_reader :chain_config
+        attr_reader :chain_config, :filter
 
         def initialize(name, filter, kind, options, chain_config)
           @chain_config = chain_config
           @name    = name
           @kind    = kind
           @filter  = filter
-          @key     = compute_identifier filter
           @if      = check_conditionals(options[:if])
           @unless  = check_conditionals(options[:unless])
         end
-
-        def filter; @key; end
-        def raw_filter; @filter; end
 
         def merge_conditional_options(chain, if_option:, unless_option:)
           options = {
@@ -337,7 +333,7 @@ module ActiveSupport
 
           case kind
           when :before
-            Filters::Before.build(callback_sequence, user_callback.make_lambda, user_conditions, chain_config, @filter)
+            Filters::Before.build(callback_sequence, user_callback.make_lambda, user_conditions, chain_config, @filter, name)
           when :after
             Filters::After.build(callback_sequence, user_callback.make_lambda, user_conditions, chain_config)
           when :around
@@ -357,7 +353,7 @@ module ActiveSupport
             return EMPTY_ARRAY if conditionals.blank?
 
             conditionals = Array(conditionals)
-            if conditionals.any? { |c| c.is_a?(String) }
+            if conditionals.any?(String)
               raise ArgumentError, <<-MSG.squish
                 Passing string to be evaluated in :if and :unless conditional
                 options is not supported. Pass a symbol for an instance method,
@@ -366,15 +362,6 @@ module ActiveSupport
             end
 
             conditionals.freeze
-          end
-
-          def compute_identifier(filter)
-            case filter
-            when ::Proc
-              filter.object_id
-            else
-              filter
-            end
           end
 
           def conditions_lambdas
@@ -518,7 +505,7 @@ module ActiveSupport
         end
       end
 
-      class CallbackChain #:nodoc:#
+      class CallbackChain # :nodoc:#
         include Enumerable
 
         attr_reader :name, :config
@@ -620,7 +607,7 @@ module ActiveSupport
 
         # This is used internally to append, prepend and skip callbacks to the
         # CallbackChain.
-        def __update_callbacks(name) #:nodoc:
+        def __update_callbacks(name) # :nodoc:
           ([self] + ActiveSupport::DescendantsTracker.descendants(self)).reverse_each do |target|
             chain = target.get_callbacks name
             yield target, chain.dup
@@ -689,9 +676,31 @@ module ActiveSupport
         # <tt>:unless</tt> options may be passed in order to control when the
         # callback is skipped.
         #
-        #   class Writer < Person
-        #      skip_callback :validate, :before, :check_membership, if: -> { age > 18 }
+        #   class Writer < PersonRecord
+        #     attr_accessor :age
+        #     skip_callback :save, :before, :saving_message, if: -> { age > 18 }
         #   end
+        #
+        # When if option returns true, callback is skipped.
+        #
+        #   writer = Writer.new
+        #   writer.age = 20
+        #   writer.save
+        #
+        # Output:
+        #   - save
+        #   saved
+        #
+        # When if option returns false, callback is NOT skipped.
+        #
+        #   young_writer = Writer.new
+        #   young_writer.age = 17
+        #   young_writer.save
+        #
+        # Output:
+        #   saving...
+        #   - save
+        #   saved
         #
         # An <tt>ArgumentError</tt> will be raised if the callback has not
         # already been set (unless the <tt>:raise</tt> option is set to <tt>false</tt>).
@@ -846,7 +855,11 @@ module ActiveSupport
           end
 
           def set_callbacks(name, callbacks) # :nodoc:
-            self.__callbacks = __callbacks.merge(name.to_sym => callbacks)
+            unless singleton_class.method_defined?(:__callbacks, false)
+              self.__callbacks = __callbacks.dup
+            end
+            self.__callbacks[name.to_sym] = callbacks
+            self.__callbacks
           end
       end
   end

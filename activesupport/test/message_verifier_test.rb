@@ -161,6 +161,14 @@ class MessageVerifierMetadataTest < ActiveSupport::TestCase
     end
   end
 
+  def test_verify_with_use_standard_json_time_format_as_false
+    format_before = ActiveSupport.use_standard_json_time_format
+    ActiveSupport.use_standard_json_time_format = false
+    assert_equal "My Name", @verifier.verify(generate("My Name"))
+  ensure
+    ActiveSupport.use_standard_json_time_format = format_before
+  end
+
   def test_verify_raises_when_expired
     signed_message = generate(data, expires_in: 1.month)
 

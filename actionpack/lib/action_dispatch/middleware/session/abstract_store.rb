@@ -8,7 +8,7 @@ require "action_dispatch/request/session"
 
 module ActionDispatch
   module Session
-    class SessionRestoreError < StandardError #:nodoc:
+    class SessionRestoreError < StandardError # :nodoc:
       def initialize
         super("Session contains objects whose class definition isn't available.\n" \
           "Remember to require the classes for all objects kept in the session.\n" \
@@ -82,7 +82,7 @@ module ActionDispatch
       include SessionObject
 
       private
-        def set_cookie(request, session_id, cookie)
+        def set_cookie(request, response, cookie)
           request.cookie_jar[key] = cookie
         end
     end
@@ -97,7 +97,7 @@ module ActionDispatch
       end
 
       private
-        def set_cookie(request, session_id, cookie)
+        def set_cookie(request, response, cookie)
           request.cookie_jar[key] = cookie
         end
     end

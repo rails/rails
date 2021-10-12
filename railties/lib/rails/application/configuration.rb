@@ -3,6 +3,7 @@
 require "ipaddr"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/file_update_checker"
+require "active_support/configuration_file"
 require "rails/engine/configuration"
 require "rails/source_annotation_extractor"
 
@@ -12,17 +13,17 @@ module Rails
       attr_accessor :allow_concurrency, :asset_host, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
-                    :force_ssl, :helpers_paths, :hosts, :logger, :log_formatter, :log_tags,
-                    :railties_order, :relative_url_root, :secret_key_base,
+                    :force_ssl, :helpers_paths, :hosts, :host_authorization, :logger, :log_formatter,
+                    :log_tags, :railties_order, :relative_url_root, :secret_key_base,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
-                    :rake_eager_load
+                    :rake_eager_load, :server_timing
 
-      attr_reader :encoding, :api_only, :loaded_config_version, :autoloader
+      attr_reader :encoding, :api_only, :loaded_config_version
 
       def initialize(*)
         super
@@ -32,7 +33,9 @@ module Rails
         @filter_parameters                       = []
         @filter_redirect                         = []
         @helpers_paths                           = []
-        @hosts                                   = Array(([IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0"), ".localhost"] if Rails.env.development?))
+        @hosts                                   = Array(([".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")] if Rails.env.development?))
+        @hosts.concat(ENV["RAILS_DEVELOPMENT_HOSTS"].to_s.split(",").map(&:strip)) if Rails.env.development?
+        @host_authorization                      = {}
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
         @public_file_server.index_name           = "index"
@@ -67,11 +70,11 @@ module Rails
         @credentials                             = ActiveSupport::OrderedOptions.new
         @credentials.content_path                = default_credentials_content_path
         @credentials.key_path                    = default_credentials_key_path
-        @autoloader                              = :classic
         @disable_sandbox                         = false
         @add_autoload_paths_to_load_path         = true
-        @feature_policy                          = nil
+        @permissions_policy                      = nil
         @rake_eager_load                         = false
+        @server_timing                           = false
       end
 
       # Loads default configurations. See {the result of the method for each version}[https://guides.rubyonrails.org/configuring.html#results-of-config-load-defaults].
@@ -113,7 +116,7 @@ module Rails
 
           if respond_to?(:active_support)
             active_support.use_authenticated_message_encryption = true
-            active_support.use_sha1_digests = true
+            active_support.hash_digest_class = OpenSSL::Digest::SHA1
           end
 
           if respond_to?(:action_controller)
@@ -126,23 +129,16 @@ module Rails
         when "6.0"
           load_defaults "5.2"
 
-          self.autoloader = :zeitwerk if RUBY_ENGINE == "ruby"
-
           if respond_to?(:action_view)
             action_view.default_enforce_utf8 = false
           end
 
           if respond_to?(:action_dispatch)
             action_dispatch.use_cookies_with_metadata = true
-            action_dispatch.return_only_media_type_on_content_type = false
           end
 
           if respond_to?(:action_mailer)
             action_mailer.delivery_job = "ActionMailer::MailDeliveryJob"
-          end
-
-          if respond_to?(:active_job)
-            active_job.return_false_on_aborted_enqueue = true
           end
 
           if respond_to?(:active_storage)
@@ -158,24 +154,89 @@ module Rails
         when "6.1"
           load_defaults "6.0"
 
-          if respond_to?(:active_job)
-            active_job.retry_jitter = 0.15
-          end
-
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
-          end
-
-          if respond_to?(:active_storage)
-            active_storage.track_variants = true
+            active_record.legacy_connection_handling = false
           end
 
           if respond_to?(:active_job)
+            active_job.retry_jitter = 0.15
             active_job.skip_after_callbacks_if_terminated = true
           end
 
           if respond_to?(:action_dispatch)
             action_dispatch.cookies_same_site_protection = :lax
+            action_dispatch.ssl_default_redirect_status = 308
+          end
+
+          if respond_to?(:action_controller)
+            action_controller.urlsafe_csrf_tokens = true
+          end
+
+          if respond_to?(:action_view)
+            action_view.form_with_generates_remote_forms = false
+            action_view.preload_links_header = true
+          end
+
+          if respond_to?(:active_storage)
+            active_storage.track_variants = true
+
+            active_storage.queues.analysis = nil
+            active_storage.queues.purge = nil
+          end
+
+          if respond_to?(:action_mailbox)
+            action_mailbox.queues.incineration = nil
+            action_mailbox.queues.routing = nil
+          end
+
+          if respond_to?(:action_mailer)
+            action_mailer.deliver_later_queue_name = nil
+          end
+
+          ActiveSupport.utc_to_local_returns_utc_offset_times = true
+        when "7.0"
+          load_defaults "6.1"
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.return_only_request_media_type_on_content_type = false
+            action_dispatch.cookies_serializer = :json
+          end
+
+          if respond_to?(:action_view)
+            action_view.button_to_generates_button_tag = true
+            action_view.apply_stylesheet_media_default = false
+          end
+
+          if respond_to?(:active_support)
+            active_support.hash_digest_class = OpenSSL::Digest::SHA256
+            active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
+            active_support.remove_deprecated_time_with_zone_name = true
+            active_support.cache_format_version = 7.0
+          end
+
+          if respond_to?(:action_mailer)
+            action_mailer.smtp_timeout = 5
+          end
+
+          if respond_to?(:active_storage)
+            active_storage.video_preview_arguments =
+              "-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1'" \
+              " -frames:v 1 -f image2"
+
+            active_storage.variant_processor = :vips
+          end
+
+          if respond_to?(:active_record)
+            active_record.verify_foreign_keys_for_fixtures = true
+            active_record.partial_inserts = false
+            active_record.automatic_scope_inversing = true
+          end
+
+          if respond_to?(:action_controller)
+            action_controller.raise_on_open_redirects = true
+
+            action_controller.wrap_parameters_by_default = true
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
@@ -232,10 +293,13 @@ module Rails
         if path = paths["config/database"].existent.first
           require "rails/application/dummy_erb_compiler"
 
-          yaml = Pathname.new(path)
-          erb = DummyERB.new(yaml.read)
+          yaml = DummyERB.new(Pathname.new(path).read).result
 
-          YAML.load(erb.result) || {}
+          if YAML.respond_to?(:unsafe_load)
+            YAML.unsafe_load(yaml) || {}
+          else
+            YAML.load(yaml) || {}
+          end
         else
           {}
         end
@@ -247,12 +311,9 @@ module Rails
         path = paths["config/database"].existent.first
         yaml = Pathname.new(path) if path
 
-        config = if yaml && yaml.exist?
-          require "yaml"
-          require "erb"
-          loaded_yaml = YAML.load(ERB.new(yaml.read).result) || {}
-          shared = loaded_yaml.delete("shared")
-          if shared
+        config = if yaml&.exist?
+          loaded_yaml = ActiveSupport::ConfigurationFile.parse(yaml)
+          if (shared = loaded_yaml.delete("shared"))
             loaded_yaml.each do |_k, values|
               values.reverse_merge!(shared)
             end
@@ -267,10 +328,6 @@ module Rails
         end
 
         config
-      rescue Psych::SyntaxError => e
-        raise "YAML syntax error occurred while parsing #{paths["config/database"].first}. " \
-              "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
-              "Error: #{e.message}"
       rescue => e
         raise e, "Cannot load database configuration:\n#{e.message}", e.backtrace
       end
@@ -311,7 +368,7 @@ module Rails
         end
       end
 
-      def session_store? #:nodoc:
+      def session_store? # :nodoc:
         @session_store
       end
 
@@ -327,23 +384,11 @@ module Rails
         end
       end
 
-      def feature_policy(&block)
+      def permissions_policy(&block)
         if block_given?
-          @feature_policy = ActionDispatch::FeaturePolicy.new(&block)
+          @permissions_policy = ActionDispatch::PermissionsPolicy.new(&block)
         else
-          @feature_policy
-        end
-      end
-
-      def autoloader=(autoloader)
-        case autoloader
-        when :classic
-          @autoloader = autoloader
-        when :zeitwerk
-          require "zeitwerk"
-          @autoloader = autoloader
-        else
-          raise ArgumentError, "config.autoloader may be :classic or :zeitwerk, got #{autoloader.inspect} instead"
+          @permissions_policy
         end
       end
 
@@ -359,14 +404,14 @@ module Rails
         f
       end
 
-      class Custom #:nodoc:
+      class Custom # :nodoc:
         def initialize
           @configurations = Hash.new
         end
 
         def method_missing(method, *args)
-          if method =~ /=$/
-            @configurations[$`.to_sym] = args.first
+          if method.end_with?("=")
+            @configurations[:"#{method[0..-2]}"] = args.first
           else
             @configurations.fetch(method) {
               @configurations[method] = ActiveSupport::OrderedOptions.new

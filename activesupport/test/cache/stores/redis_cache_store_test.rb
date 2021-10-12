@@ -17,6 +17,7 @@ class SlowRedis < Redis
   def get(key)
     if /latency/.match?(key)
       sleep 3
+      super
     else
       super
     end
@@ -111,11 +112,15 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     setup do
       @namespace = "test-#{SecureRandom.hex}"
 
-      @cache = ActiveSupport::Cache::RedisCacheStore.new(timeout: 0.1, namespace: @namespace, expires_in: 60, driver: DRIVER)
+      @cache = lookup_store(expires_in: 60)
       # @cache.logger = Logger.new($stdout)  # For test debugging
 
       # For LocalCacheBehavior tests
-      @peek = ActiveSupport::Cache::RedisCacheStore.new(timeout: 0.1, namespace: @namespace, driver: DRIVER)
+      @peek = lookup_store(expires_in: 60)
+    end
+
+    def lookup_store(options = {})
+      ActiveSupport::Cache.lookup_store(:redis_cache_store, { timeout: 0.1, namespace: @namespace, driver: DRIVER }.merge(options))
     end
 
     teardown do
@@ -127,15 +132,23 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   class RedisCacheStoreCommonBehaviorTest < StoreTest
     include CacheStoreBehavior
     include CacheStoreVersionBehavior
+    include CacheStoreCoderBehavior
     include LocalCacheBehavior
     include CacheIncrementDecrementBehavior
     include CacheInstrumentationBehavior
-    include AutoloadingCacheBehavior
     include EncodedKeyCacheBehavior
 
     def test_fetch_multi_uses_redis_mget
       assert_called(@cache.redis, :mget, returns: []) do
         @cache.fetch_multi("a", "b", "c") do |key|
+          key * 2
+        end
+      end
+    end
+
+    def test_fetch_multi_with_namespace
+      assert_called_with(@cache.redis, :mget, ["custom-namespace:a", "custom-namespace:b", "custom-namespace:c"], returns: []) do
+        @cache.fetch_multi("a", "b", "c", namespace: "custom-namespace") do |key|
           key * 2
         end
       end
@@ -186,6 +199,47 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         @cache.decrement "dar", 1, expires_in: 60
       end
     end
+
+    def test_large_string_with_default_compression_settings
+      assert_compressed(LARGE_STRING)
+    end
+
+    def test_large_object_with_default_compression_settings
+      assert_compressed(LARGE_OBJECT)
+    end
+  end
+
+  class OptimizedRedisCacheStoreCommonBehaviorTest < RedisCacheStoreCommonBehaviorTest
+    def before_setup
+      @previous_format = ActiveSupport::Cache.format_version
+      ActiveSupport::Cache.format_version = 7.0
+      super
+    end
+
+    def test_forward_compatibility
+      previous_format = ActiveSupport::Cache.format_version
+      ActiveSupport::Cache.format_version = 6.1
+      @old_store = lookup_store
+      ActiveSupport::Cache.format_version = previous_format
+
+      @old_store.write("foo", "bar")
+      assert_equal "bar", @cache.read("foo")
+    end
+
+    def test_backward_compatibility
+      previous_format = ActiveSupport::Cache.format_version
+      ActiveSupport::Cache.format_version = 6.1
+      @old_store = lookup_store
+      ActiveSupport::Cache.format_version = previous_format
+
+      @cache.write("foo", "bar")
+      assert_equal "bar", @old_store.read("foo")
+    end
+
+    def after_teardown
+      super
+      ActiveSupport::Cache.format_version = @previous_format
+    end
   end
 
   class ConnectionPoolBehaviourTest < StoreTest
@@ -227,6 +281,38 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     def ensure_connected
       raise Redis::CommandError
     end
+  end
+
+  class FailureRaisingFromUnavailableClientTest < StoreTest
+    include FailureRaisingBehavior
+
+    private
+      def emulating_unavailability
+        old_client = Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, UnavailableRedisClient)
+
+        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace,
+                                                        error_handler: -> (method:, returning:, exception:) { raise exception })
+      ensure
+        Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, old_client)
+      end
+  end
+
+  class FailureRaisingFromMaxClientsReachedErrorTest < StoreTest
+    include FailureRaisingBehavior
+
+    private
+      def emulating_unavailability
+        old_client = Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, MaxClientsReachedRedisClient)
+
+        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace,
+                                                        error_handler: -> (method:, returning:, exception:) { raise exception })
+      ensure
+        Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, old_client)
+      end
   end
 
   class FailureSafetyFromUnavailableClientTest < StoreTest
@@ -289,7 +375,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       @cache.redis.set("fu", "baz")
       @cache.clear
       assert_not @cache.exist?("foo")
-      assert @cache.redis.exists("fu")
+      assert @cache.redis.exists?("fu")
     end
 
     test "clear all cache key with Redis::Distributed" do
@@ -301,6 +387,16 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       cache.clear
       assert_not cache.exist?("foo")
       assert_not cache.exist?("fu")
+    end
+  end
+
+  class RawTest < StoreTest
+    test "does not compress values read with \"raw\" enabled" do
+      @cache.write("foo", "bar", raw: true)
+
+      assert_not_called_on_instance_of ActiveSupport::Cache::Entry, :compressed do
+        @cache.read("foo", raw: true)
+      end
     end
   end
 end

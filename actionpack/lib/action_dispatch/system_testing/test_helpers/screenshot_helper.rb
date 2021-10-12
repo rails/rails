@@ -15,8 +15,11 @@ module ActionDispatch
         #
         # The screenshot will be displayed in your console, if supported.
         #
+        # The default screenshots directory is +tmp/screenshots+ but you can set a different
+        # one with +Capybara.save_path+
+        #
         # You can set the +RAILS_SYSTEM_TESTING_SCREENSHOT_HTML+ environment variable to
-        # save the HTML from the page that is being screenhoted so you can investigate the
+        # save the HTML from the page that is being screenshotted so you can investigate the
         # elements on the page at the time of the screenshot
         #
         # You can set the +RAILS_SYSTEM_TESTING_SCREENSHOT+ environment variable to
@@ -37,10 +40,7 @@ module ActionDispatch
         # Takes a screenshot of the current page in the browser if the test
         # failed.
         #
-        # +take_failed_screenshot+ is included in <tt>application_system_test_case.rb</tt>
-        # that is generated with the application. To take screenshots when a test
-        # fails add +take_failed_screenshot+ to the teardown block before clearing
-        # sessions.
+        # +take_failed_screenshot+ is called during system test teardown.
         def take_failed_screenshot
           take_screenshot if failed? && supports_screenshot?
         end
@@ -76,7 +76,11 @@ module ActionDispatch
           end
 
           def absolute_path
-            Rails.root.join("tmp/screenshots/#{image_name}")
+            Rails.root.join(screenshots_dir, image_name)
+          end
+
+          def screenshots_dir
+            Capybara.save_path.presence || "tmp/screenshots"
           end
 
           def absolute_image_path

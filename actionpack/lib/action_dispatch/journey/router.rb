@@ -66,7 +66,8 @@ module ActionDispatch
         find_routes(rails_req).each do |match, parameters, route|
           unless route.path.anchored
             rails_req.script_name = match.to_s
-            rails_req.path_info   = match.post_match.sub(/^([^\/])/, '/\1')
+            rails_req.path_info   = match.post_match
+            rails_req.path_info   = "/" + rails_req.path_info unless rails_req.path_info.start_with? "/"
           end
 
           parameters = route.defaults.merge parameters
@@ -84,7 +85,7 @@ module ActionDispatch
       private
         def partitioned_routes
           routes.partition { |r|
-            r.path.anchored && r.ast.grep(Nodes::Symbol).all? { |n| n.default_regexp?  }
+            r.path.anchored && r.path.requirements_anchored?
           }
         end
 
@@ -106,21 +107,21 @@ module ActionDispatch
         end
 
         def find_routes(req)
-          routes = filter_routes(req.path_info).concat custom_routes.find_all { |r|
-            r.path.match?(req.path_info)
+          path_info = req.path_info
+          routes = filter_routes(path_info).concat custom_routes.find_all { |r|
+            r.path.match?(path_info)
           }
 
-          routes =
-            if req.head?
-              match_head_routes(routes, req)
-            else
-              match_routes(routes, req)
-            end
+          if req.head?
+            routes = match_head_routes(routes, req)
+          else
+            routes.select! { |r| r.matches?(req) }
+          end
 
           routes.sort_by!(&:precedence)
 
           routes.map! { |r|
-            match_data = r.path.match(req.path_info)
+            match_data = r.path.match(path_info)
             path_parameters = {}
             match_data.names.each_with_index { |name, i|
               val = match_data[i + 1]
@@ -131,23 +132,16 @@ module ActionDispatch
         end
 
         def match_head_routes(routes, req)
-          verb_specific_routes = routes.select(&:requires_matching_verb?)
-          head_routes = match_routes(verb_specific_routes, req)
+          head_routes = routes.select { |r| r.requires_matching_verb? && r.matches?(req) }
+          return head_routes unless head_routes.empty?
 
-          if head_routes.empty?
-            begin
-              req.request_method = "GET"
-              match_routes(routes, req)
-            ensure
-              req.request_method = "HEAD"
-            end
-          else
-            head_routes
+          begin
+            req.request_method = "GET"
+            routes.select! { |r| r.matches?(req) }
+            routes
+          ensure
+            req.request_method = "HEAD"
           end
-        end
-
-        def match_routes(routes, req)
-          routes.select { |r| r.matches?(req) }
         end
     end
   end

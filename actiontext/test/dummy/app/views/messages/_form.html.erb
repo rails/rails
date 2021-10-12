@@ -1,4 +1,4 @@
-<%= form_with(model: message, local: true) do |form| %>
+<%= form_with(model: message) do |form| %>
   <% if message.errors.any? %>
     <div id="error_explanation">
       <h2><%= pluralize(message.errors.count, "error") %> prohibited this message from being saved:</h2>
@@ -17,9 +17,9 @@
   </div>
 
   <div class="field">
-    <%= form.label :content %>
+    <%= form.label :content, "Message content label" %>
     <%= form.rich_text_area :content, class: "trix-content",
-          placeholder: "Your message here", aria: { label: "Message content" } %>
+          placeholder: "Your message here", aria: { label: "Message content aria-label" } %>
   </div>
 
   <div class="actions">

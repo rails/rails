@@ -161,7 +161,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
     p2.first_name = "sue"
     error = assert_raise(ActiveRecord::StaleObjectError) { p2.save! }
-    assert_equal(error.record.object_id, p2.object_id)
+    assert_same error.record, p2
   end
 
   def test_lock_new_when_explicitly_passing_nil
@@ -340,6 +340,39 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal "new title2", t2.title
   end
 
+  def test_update_with_lock_version_without_default_should_work_on_dirty_value_before_type_cast
+    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    t1 = LockWithoutDefault.last
+
+    assert_equal 0, t1.lock_version
+    assert_nil t1.lock_version_before_type_cast
+
+    t1.lock_version = t1.lock_version
+
+    assert_equal 0, t1.lock_version
+    assert_equal 0, t1.lock_version_before_type_cast
+
+    assert_nothing_raised { t1.update!(title: "new title1") }
+    assert_equal 1, t1.lock_version
+    assert_equal "new title1", t1.title
+  end
+
+  def test_destroy_with_lock_version_without_default_should_work_on_dirty_value_before_type_cast
+    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    t1 = LockWithoutDefault.last
+
+    assert_equal 0, t1.lock_version
+    assert_nil t1.lock_version_before_type_cast
+
+    t1.lock_version = t1.lock_version
+
+    assert_equal 0, t1.lock_version
+    assert_equal 0, t1.lock_version_before_type_cast
+
+    assert_nothing_raised { t1.destroy! }
+    assert_predicate t1, :destroyed?
+  end
+
   def test_lock_without_default_queries_count
     t1 = LockWithoutDefault.create(title: "title1")
 
@@ -432,7 +465,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
   def test_quote_table_name
     ref = references(:michael_magician)
-    ref.favourite = !ref.favourite
+    ref.favorite = !ref.favorite
     assert ref.save
   end
 
@@ -486,6 +519,12 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 3, car.lock_version
     assert_operator previously_updated_at, :<, car.updated_at
     assert_operator previously_wheels_owned_at, :<, car.wheels_owned_at
+
+    car.wheels << Wheel.create!
+    assert_equal 1, car.wheels_count
+    assert_equal 4, car.lock_version
+    assert_not car.lock_version_changed?
+    assert_nothing_raised { car.update(name: "herbie") }
   end
 
   def test_polymorphic_destroy_with_dependencies_and_lock_version
@@ -511,7 +550,8 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
   def test_yaml_dumping_with_lock_column
     t1 = LockWithoutDefault.new
-    t2 = YAML.load(YAML.dump(t1))
+    payload = YAML.dump(t1)
+    t2 = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
 
     assert_equal t1.attributes, t2.attributes
   end
@@ -607,11 +647,11 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
       add_counter_column_to(model)
       object = model.first
       assert_equal 0, object.test_count
-      assert_equal 0, object.send(model.locking_column)
+      assert_equal 0, object.public_send(model.locking_column)
       yield object.id
       object.reload
       assert_equal expected_count, object.test_count
-      assert_equal 1, object.send(model.locking_column)
+      assert_equal 1, object.public_send(model.locking_column)
     ensure
       remove_counter_column_from(model)
     end
@@ -633,7 +673,7 @@ unless in_memory_db?
     end
 
     # Test typical find.
-    def test_sane_find_with_lock
+    def test_typical_find_with_lock
       assert_nothing_raised do
         Person.transaction do
           Person.lock.find(1)
@@ -698,12 +738,41 @@ unless in_memory_db?
       assert_equal old, person.reload.first_name
     end
 
+    def test_with_lock_configures_transaction
+      person = Person.find 1
+      Person.transaction do
+        outer_transaction = Person.connection.transaction_manager.current_transaction
+        assert_equal true, outer_transaction.joinable?
+        person.with_lock(requires_new: true, joinable: false) do
+          current_transaction = Person.connection.transaction_manager.current_transaction
+          assert_not_equal outer_transaction, current_transaction
+          assert_equal false, current_transaction.joinable?
+        end
+      end
+    end
+
     if current_adapter?(:PostgreSQLAdapter)
       def test_lock_sending_custom_lock_statement
         Person.transaction do
           person = Person.find(1)
           assert_sql(/LIMIT \$?\d FOR SHARE NOWAIT/) do
             person.lock!("FOR SHARE NOWAIT")
+          end
+        end
+      end
+
+      def test_with_lock_sets_isolation
+        person = Person.find 1
+        person.with_lock(isolation: :read_uncommitted) do
+          current_transaction = Person.connection.transaction_manager.current_transaction
+          assert_equal :read_uncommitted, current_transaction.isolation_level
+        end
+      end
+
+      def test_with_lock_locks_with_no_args
+        person = Person.find 1
+        assert_sql(/LIMIT \$?\d FOR UPDATE/i) do
+          person.with_lock do
           end
         end
       end
@@ -715,7 +784,7 @@ unless in_memory_db?
     end
 
     private
-      def duel(zzz = 5)
+      def duel(zzz = 5, &block)
         t0, t1, t2, t3 = nil, nil, nil, nil
 
         a = Thread.new do
@@ -730,7 +799,7 @@ unless in_memory_db?
         b = Thread.new do
           sleep zzz / 2.0   # ensure thread 1 tx starts first
           t2 = Time.now
-          Person.transaction { yield }
+          Person.transaction(&block)
           t3 = Time.now
         end
 

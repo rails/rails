@@ -1,6 +1,6 @@
 Description:
 ============
-    Stubs out a new cable channel for the server (in Ruby) and client (in JavaScript).
+    Generates a new cable channel for the server (in Ruby) and client (in JavaScript).
     Pass the channel name, either CamelCased or under_scored, and an optional list of channel actions as arguments.
 
 Example:
@@ -10,4 +10,4 @@ Example:
     creates a Chat channel class, test and JavaScript asset:
         Channel:    app/channels/chat_channel.rb
         Test:       test/channels/chat_channel_test.rb
-        Assets:     app/javascript/channels/chat_channel.js
+        Assets:     $JAVASCRIPT_PATH/channels/chat_channel.js

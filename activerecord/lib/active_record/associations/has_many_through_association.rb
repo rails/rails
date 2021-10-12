@@ -3,12 +3,12 @@
 module ActiveRecord
   module Associations
     # = Active Record Has Many Through Association
-    class HasManyThroughAssociation < HasManyAssociation #:nodoc:
+    class HasManyThroughAssociation < HasManyAssociation # :nodoc:
       include ThroughAssociation
 
       def initialize(owner, reflection)
         super
-        @through_records = {}
+        @through_records = {}.compare_by_identity
       end
 
       def concat(*records)
@@ -54,7 +54,7 @@ module ActiveRecord
         # However, after insert_record has been called, the cache is cleared in
         # order to allow multiple instances of the same record in an association.
         def build_through_record(record)
-          @through_records[record.object_id] ||= begin
+          @through_records[record] ||= begin
             ensure_mutable
 
             attributes = through_scope_attributes
@@ -65,7 +65,10 @@ module ActiveRecord
           end
         end
 
+        attr_reader :through_scope
+
         def through_scope_attributes
+          scope = through_scope || self.scope
           scope.where_values_hash(through_association.reflection.name.to_s).
             except!(through_association.reflection.foreign_key,
                     through_association.reflection.klass.inheritance_column)
@@ -77,12 +80,13 @@ module ActiveRecord
             association.save!
           end
         ensure
-          @through_records.delete(record.object_id)
+          @through_records.delete(record)
         end
 
         def build_record(attributes)
           ensure_not_nested
 
+          @through_scope = scope
           record = super
 
           inverse = source_reflection.inverse_of
@@ -95,6 +99,8 @@ module ActiveRecord
           end
 
           record
+        ensure
+          @through_scope = nil
         end
 
         def remove_records(existing_records, records, method)
@@ -202,12 +208,13 @@ module ActiveRecord
               end
             end
 
-            @through_records.delete(record.object_id)
+            @through_records.delete(record)
           end
         end
 
         def find_target
           return [] unless target_reflection_has_associated_record?
+          return scope.to_a if disable_joins
           super
         end
 

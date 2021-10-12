@@ -12,7 +12,7 @@ module ActionDispatch
     def initialize(assigns)
       paths = [RESCUES_TEMPLATE_PATH]
       lookup_context = ActionView::LookupContext.new(paths)
-      super(lookup_context, assigns)
+      super(lookup_context, assigns, nil)
     end
 
     def compiled_method_container

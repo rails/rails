@@ -39,7 +39,7 @@ module ActiveJob
       end
 
       # Deserializes an argument from a JSON primitive type.
-      def deserialize(_argument)
+      def deserialize(json)
         raise NotImplementedError
       end
 

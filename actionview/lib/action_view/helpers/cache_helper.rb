@@ -2,8 +2,10 @@
 
 module ActionView
   # = Action View Cache Helper
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     module CacheHelper
+      class UncacheableFragmentError < StandardError; end
+
       # This helper exposes a method for caching fragments of a view
       # rather than an entire action or page. This technique is useful
       # caching pieces like menus, lists of new topics, static HTML
@@ -25,7 +27,7 @@ module ActionView
       # the project. The cache key generated from this call will be something like:
       #
       #   views/template/action:7a1156131a6928cb0026877f8b749ac9/projects/123
-      #         ^template path           ^template tree digest            ^class   ^id
+      #         ^template path  ^template tree digest            ^class   ^id
       #
       # This cache key is stable, but it's combined with a cache version derived from the project
       # record. When the project updated_at is touched, the #cache_version changes, even
@@ -165,13 +167,43 @@ module ActionView
       # expire the cache.
       def cache(name = {}, options = {}, &block)
         if controller.respond_to?(:perform_caching) && controller.perform_caching
-          name_options = options.slice(:skip_digest, :virtual_path)
-          safe_concat(fragment_for(cache_fragment_name(name, **name_options), options, &block))
+          CachingRegistry.track_caching do
+            name_options = options.slice(:skip_digest)
+            safe_concat(fragment_for(cache_fragment_name(name, **name_options), options, &block))
+          end
         else
           yield
         end
 
         nil
+      end
+
+      # Returns whether the current view fragment is within a +cache+ block.
+      #
+      # Useful when certain fragments aren't cacheable:
+      #
+      #   <% cache project do %>
+      #     <% raise StandardError, "Caching private data!" if caching? %>
+      #   <% end %>
+      def caching?
+        CachingRegistry.caching?
+      end
+
+      # Raises +UncacheableFragmentError+ when called from within a +cache+ block.
+      #
+      # Useful to denote helper methods that can't participate in fragment caching:
+      #
+      #   def project_name_with_time(project)
+      #     uncacheable!
+      #     "#{project.name} - #{Time.now}"
+      #   end
+      #
+      #   # Which will then raise if used within a +cache+ block:
+      #   <% cache project do %>
+      #     <%= project_name_with_time(project) %>
+      #   <% end %>
+      def uncacheable!
+        raise UncacheableFragmentError, "can't be fragment cached" if caching?
       end
 
       # Cache fragments of a view if +condition+ is true
@@ -205,14 +237,11 @@ module ActionView
       # fragments can be manually bypassed. This is useful when cache fragments
       # cannot be manually expired unless you know the exact key which is the
       # case when using memcached.
-      #
-      # The digest will be generated using +virtual_path:+ if it is provided.
-      #
-      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil, digest_path: nil)
+      def cache_fragment_name(name = {}, skip_digest: nil, digest_path: nil)
         if skip_digest
           name
         else
-          fragment_name_with_digest(name, virtual_path, digest_path)
+          fragment_name_with_digest(name, digest_path)
         end
       end
 
@@ -227,14 +256,11 @@ module ActionView
       end
 
     private
-      def fragment_name_with_digest(name, virtual_path, digest_path)
-        virtual_path ||= @virtual_path
+      def fragment_name_with_digest(name, digest_path)
+        name = controller.url_for(name).split("://").last if name.is_a?(Hash)
 
-        if virtual_path || digest_path
-          name = controller.url_for(name).split("://").last if name.is_a?(Hash)
-
+        if @current_template&.virtual_path || digest_path
           digest_path ||= digest_path_from_template(@current_template)
-
           [ digest_path, name ]
         else
           name
@@ -243,10 +269,10 @@ module ActionView
 
       def fragment_for(name = {}, options = nil, &block)
         if content = read_fragment_for(name, options)
-          @view_renderer.cache_hits[@virtual_path] = :hit if defined?(@view_renderer)
+          @view_renderer.cache_hits[@current_template&.virtual_path] = :hit if defined?(@view_renderer)
           content
         else
-          @view_renderer.cache_hits[@virtual_path] = :miss if defined?(@view_renderer)
+          @view_renderer.cache_hits[@current_template&.virtual_path] = :miss if defined?(@view_renderer)
           write_fragment_for(name, options, &block)
         end
       end
@@ -264,6 +290,22 @@ module ActionView
           self.output_buffer = output_buffer.class.new(output_buffer)
         end
         controller.write_fragment(name, fragment, options)
+      end
+
+      class CachingRegistry
+        extend ActiveSupport::PerThreadRegistry
+
+        attr_accessor :caching
+        alias caching? caching
+
+        def self.track_caching
+          caching_was = self.caching
+          self.caching = true
+
+          yield
+        ensure
+          self.caching = caching_was
+        end
       end
     end
   end

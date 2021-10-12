@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
+require "zeitwerk"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/array/conversions"
+require "active_support/descendants_tracker"
+require "active_support/dependencies"
 
 module Rails
   class Application
@@ -12,77 +15,34 @@ module Rails
         config.generators.templates.unshift(*paths["lib/templates"].existent)
       end
 
-      initializer :ensure_autoload_once_paths_as_subset do
-        extra = ActiveSupport::Dependencies.autoload_once_paths -
-                ActiveSupport::Dependencies.autoload_paths
+      initializer :setup_main_autoloader do
+        autoloader = Rails.autoloaders.main
 
-        unless extra.empty?
-          abort <<-end_error
-            autoload_once_paths must be a subset of the autoload_paths.
-            Extra items in autoload_once_paths: #{extra * ','}
-          end_error
-        end
-      end
+        ActiveSupport::Dependencies.autoload_paths.freeze
+        ActiveSupport::Dependencies.autoload_paths.uniq.each do |path|
+          # Zeitwerk only accepts existing directories in `push_dir`.
+          next unless File.directory?(path)
 
-      # This will become an error if/when we remove classic mode. The plan is
-      # autoloaders won't be configured up to this point in the finisher, so
-      # constants just won't be found, raising regular NameError exceptions.
-      initializer :warn_if_autoloaded, before: :let_zeitwerk_take_over do
-        next if config.cache_classes
-        next if ActiveSupport::Dependencies.autoloaded_constants.empty?
-
-        autoloaded    = ActiveSupport::Dependencies.autoloaded_constants
-        constants     = "constant".pluralize(autoloaded.size)
-        enum          = autoloaded.to_sentence
-        have          = autoloaded.size == 1 ? "has" : "have"
-        these         = autoloaded.size == 1 ? "This" : "These"
-        example       = autoloaded.first
-        example_klass = example.constantize.class
-
-        if config.autoloader == :zeitwerk
-          ActiveSupport::DescendantsTracker.clear
-          ActiveSupport::Dependencies.clear
-
-          unload_message = "#{these} autoloaded #{constants} #{have} been unloaded."
-        else
-          unload_message = "`config.autoloader` is set to `#{config.autoloader}`. #{these} autoloaded #{constants} would have been unloaded if `config.autoloader` had been set to `:zeitwerk`."
+          autoloader.push_dir(path)
+          autoloader.do_not_eager_load(path) unless ActiveSupport::Dependencies.eager_load?(path)
         end
 
-        ActiveSupport::Deprecation.warn(<<~WARNING)
-          Initialization autoloaded the #{constants} #{enum}.
+        unless config.cache_classes
+          autoloader.enable_reloading
+          ActiveSupport::Dependencies.autoloader = autoloader
 
-          Being able to do this is deprecated. Autoloading during initialization is going
-          to be an error condition in future versions of Rails.
-
-          Reloading does not reboot the application, and therefore code executed during
-          initialization does not run again. So, if you reload #{example}, for example,
-          the expected changes won't be reflected in that stale #{example_klass} object.
-
-          #{unload_message}
-
-          Please, check the "Autoloading and Reloading Constants" guide for solutions.
-        WARNING
-      end
-
-      initializer :let_zeitwerk_take_over do
-        if config.autoloader == :zeitwerk
-          require "active_support/dependencies/zeitwerk_integration"
-          ActiveSupport::Dependencies::ZeitwerkIntegration.take_over(enable_reloading: !config.cache_classes)
-        end
-      end
-
-      initializer :add_builtin_route do |app|
-        if Rails.env.development?
-          app.routes.prepend do
-            get "/rails/info/properties" => "rails/info#properties", internal: true
-            get "/rails/info/routes"     => "rails/info#routes", internal: true
-            get "/rails/info"            => "rails/info#index", internal: true
+          autoloader.on_load do |_cpath, value, _abspath|
+            if value.is_a?(Class) && value.singleton_class < ActiveSupport::DescendantsTracker
+              ActiveSupport::Dependencies._autoloaded_tracked_classes << value
+            end
           end
 
-          app.routes.append do
-            get "/"                      => "rails/welcome#index", internal: true
+          autoloader.on_unload do |_cpath, value, _abspath|
+            value.before_remove_const if value.respond_to?(:before_remove_const)
           end
         end
+
+        autoloader.setup
       end
 
       # Setup default session store if not already set in config/application.rb
@@ -116,10 +76,7 @@ module Rails
       initializer :eager_load! do
         if config.eager_load
           ActiveSupport.run_load_hooks(:before_eager_load, self)
-          # Checks defined?(Zeitwerk) instead of zeitwerk_enabled? because we
-          # want to eager load any dependency managed by Zeitwerk regardless of
-          # the autoloading mode of the application.
-          Zeitwerk::Loader.eager_load_all if defined?(Zeitwerk)
+          Zeitwerk::Loader.eager_load_all
           config.eager_load_namespaces.each(&:eager_load!)
         end
       end
@@ -176,6 +133,22 @@ module Rails
         end
       end
 
+      initializer :add_internal_routes do |app|
+        if Rails.env.development?
+          app.routes.prepend do
+            get "/rails/info/properties" => "rails/info#properties", internal: true
+            get "/rails/info/routes"     => "rails/info#routes",     internal: true
+            get "/rails/info"            => "rails/info#index",      internal: true
+          end
+
+          routes_reloader.run_after_load_paths = -> do
+            app.routes.append do
+              get "/" => "rails/welcome#index", internal: true
+            end
+          end
+        end
+      end
+
       # Set routes reload after the finisher hook to ensure routes added in
       # the hook are taken into account.
       initializer :set_routes_reloader_hook do |app|
@@ -202,7 +175,10 @@ module Rails
       # added in the hook are taken into account.
       initializer :set_clear_dependencies_hook, group: :all do |app|
         callback = lambda do
-          ActiveSupport::DescendantsTracker.clear
+          # Order matters.
+          ActiveSupport::DescendantsTracker.clear(
+            only: ActiveSupport::Dependencies._autoloaded_tracked_classes
+          )
           ActiveSupport::Dependencies.clear
         end
 
@@ -238,13 +214,6 @@ module Rails
           app.reloader.to_complete do
             class_unload!(&callback)
           end
-        end
-      end
-
-      # Disable dependency loading during request cycle
-      initializer :disable_dependency_loading do
-        if config.eager_load && config.cache_classes && !config.enable_dependency_loading
-          ActiveSupport::Dependencies.unhook!
         end
       end
     end

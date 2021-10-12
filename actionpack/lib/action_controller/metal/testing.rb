@@ -2,8 +2,6 @@
 
 module ActionController
   module Testing
-    extend ActiveSupport::Concern
-
     # Behavior specific to functional tests
     module Functional # :nodoc:
       def recycle!

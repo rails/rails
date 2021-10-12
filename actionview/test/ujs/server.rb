@@ -63,7 +63,7 @@ class TestsController < ActionController::Base
     data = { params: params.to_unsafe_h }.update(request.env)
 
     if params[:content_type] && params[:content]
-      render inline: params[:content], content_type: params[:content_type]
+      render plain: params[:content], content_type: params[:content_type]
     elsif request.xhr?
       if params[:with_xhr_redirect]
         response.set_header("X-Xhr-Redirect", "http://example.com/")

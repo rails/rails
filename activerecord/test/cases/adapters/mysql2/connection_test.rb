@@ -22,7 +22,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   def test_bad_connection
     assert_raise ActiveRecord::NoDatabaseError do
-      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
       configuration = db_config.configuration_hash.merge(database: "inexistent_activerecord_unittest")
       connection = ActiveRecord::Base.mysql2_connection(configuration)
       connection.drop_table "ex", if_exists: true
@@ -58,7 +58,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   def test_execute_after_disconnect
     @connection.disconnect!
 
-    error = assert_raise(ActiveRecord::StatementInvalid) do
+    error = assert_raise(ActiveRecord::ConnectionNotEstablished) do
       @connection.execute("SELECT 1")
     end
     assert_kind_of Mysql2::Error, error.cause
@@ -67,7 +67,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   def test_quote_after_disconnect
     @connection.disconnect!
 
-    assert_raise(Mysql2::Error) do
+    assert_raise(ActiveRecord::ConnectionNotEstablished) do
       @connection.quote("string")
     end
   end
@@ -93,9 +93,28 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     end
   end
 
-  def test_mysql_connection_collation_is_configured
+  def test_character_set_connection_is_configured
+    run_without_connection do |orig_connection|
+      configuration_hash = orig_connection.except(:encoding, :collation)
+      ActiveRecord::Base.establish_connection(configuration_hash.merge!(encoding: "cp932"))
+      connection = ActiveRecord::Base.connection
+
+      assert_equal "cp932", connection.show_variable("character_set_client")
+      assert_equal "cp932", connection.show_variable("character_set_results")
+      assert_equal "cp932", connection.show_variable("character_set_connection")
+      assert_equal "cp932_japanese_ci", connection.show_variable("collation_connection")
+
+      expected = "こんにちは".encode(Encoding::CP932)
+      assert_equal expected, connection.query_value("SELECT 'こんにちは'")
+    end
+  end
+
+  def test_collation_connection_is_configured
     assert_equal "utf8mb4_unicode_ci", @connection.show_variable("collation_connection")
+    assert_equal 1, @connection.query_value("SELECT 'こんにちは' = 'コンニチハ'")
+
     assert_equal "utf8mb4_general_ci", ARUnit2Model.connection.show_variable("collation_connection")
+    assert_equal 0, ARUnit2Model.connection.query_value("SELECT 'こんにちは' = 'コンニチハ'")
   end
 
   def test_mysql_default_in_strict_mode
@@ -170,7 +189,11 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     @connection.execute "CREATE TABLE `bar_baz` (`foo` varchar(255))"
     @subscriber.logged.clear
     @connection.send(:rename_column_for_alter, "bar_baz", "foo", "foo2")
-    assert_equal "SCHEMA", @subscriber.logged[0][1]
+    if @connection.send(:supports_rename_column?)
+      assert_empty @subscriber.logged
+    else
+      assert_equal "SCHEMA", @subscriber.logged[0][1]
+    end
   ensure
     @connection.execute "DROP TABLE `bar_baz`"
   end

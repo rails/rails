@@ -23,6 +23,7 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
     if token = decode_verified_token
       if acceptable_content?(token)
         named_disk_service(token[:service_name]).upload token[:key], request.body, checksum: token[:checksum]
+        head :no_content
       else
         head :unprocessable_entity
       end
@@ -39,7 +40,6 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
         ActiveStorage::Blob.service
       end
     end
-
 
     def decode_verified_key
       ActiveStorage.verifier.verified(params[:encoded_key], purpose: :blob_key)

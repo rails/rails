@@ -23,7 +23,7 @@ module ActionDispatch
     include ActionDispatch::Http::FilterParameters
     include ActionDispatch::Http::URL
     include ActionDispatch::ContentSecurityPolicy::Request
-    include ActionDispatch::FeaturePolicy::Request
+    include ActionDispatch::PermissionsPolicy::Request
     include Rack::Request::Env
 
     autoload :Session, "action_dispatch/request/session"
@@ -42,14 +42,14 @@ module ActionDispatch
         HTTP_NEGOTIATE HTTP_PRAGMA HTTP_CLIENT_IP
         HTTP_X_FORWARDED_FOR HTTP_ORIGIN HTTP_VERSION
         HTTP_X_CSRF_TOKEN HTTP_X_REQUEST_ID HTTP_X_FORWARDED_HOST
-        SERVER_ADDR
         ].freeze
 
     ENV_METHODS.each do |env|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        def #{env.sub(/^HTTP_/n, '').downcase}  # def accept_charset
-          get_header "#{env}".freeze            #   get_header "HTTP_ACCEPT_CHARSET".freeze
-        end                                     # end
+        # frozen_string_literal: true
+        def #{env.delete_prefix("HTTP_").downcase}  # def accept_charset
+          get_header "#{env}"                       #   get_header "HTTP_ACCEPT_CHARSET"
+        end                                         # end
       METHOD
     end
 
@@ -73,7 +73,7 @@ module ActionDispatch
     PASS_NOT_FOUND = Class.new { # :nodoc:
       def self.action(_); self; end
       def self.call(_); [404, { "X-Cascade" => "pass" }, []]; end
-      def self.binary_params_for?(action); false; end
+      def self.action_encoding_template(action); false; end
     }
 
     def controller_class
@@ -87,7 +87,7 @@ module ActionDispatch
         controller_param = name.underscore
         const_name = controller_param.camelize << "Controller"
         begin
-          ActiveSupport::Dependencies.constantize(const_name)
+          const_name.constantize
         rescue NameError => error
           if error.missing_name == const_name || const_name.start_with?("#{error.missing_name}::")
             raise MissingController.new(error.message, error.name)
@@ -134,6 +134,8 @@ module ActionDispatch
       HTTP_METHOD_LOOKUP[method] = method.underscore.to_sym
     }
 
+    alias raw_request_method request_method # :nodoc:
+
     # Returns the HTTP \method that the application should see.
     # In the case where the \method was overridden by a middleware
     # (for instance, if a HEAD request was converted to a GET,
@@ -160,7 +162,7 @@ module ActionDispatch
       set_header(routes.env_key, name.dup)
     end
 
-    def request_method=(request_method) #:nodoc:
+    def request_method=(request_method) # :nodoc:
       if check_method(request_method)
         @request_method = set_header("REQUEST_METHOD", request_method)
       end
@@ -261,7 +263,7 @@ module ActionDispatch
     #    # get "/articles"
     #    request.media_type # => "application/x-www-form-urlencoded"
     def media_type
-      content_mime_type.to_s
+      content_mime_type&.to_s
     end
 
     # Returns the content length of the request as an integer.
@@ -331,7 +333,7 @@ module ActionDispatch
     # variable is already set, wrap it in a StringIO.
     def body
       if raw_post = get_header("RAW_POST_DATA")
-        raw_post = raw_post.dup.force_encoding(Encoding::BINARY)
+        raw_post = (+raw_post).force_encoding(Encoding::BINARY)
         StringIO.new(raw_post)
       else
         body_stream
@@ -350,21 +352,15 @@ module ActionDispatch
       FORM_DATA_MEDIA_TYPES.include?(media_type)
     end
 
-    def body_stream #:nodoc:
+    def body_stream # :nodoc:
       get_header("rack.input")
     end
 
-    # TODO This should be broken apart into AD::Request::Session and probably
-    # be included by the session middleware.
     def reset_session
-      if session && session.respond_to?(:destroy)
-        session.destroy
-      else
-        self.session = {}
-      end
+      session.destroy
     end
 
-    def session=(session) #:nodoc:
+    def session=(session) # :nodoc:
       Session.set self, session
     end
 
@@ -376,6 +372,9 @@ module ActionDispatch
     def GET
       fetch_header("action_dispatch.request.query_parameters") do |k|
         rack_query_params = super || {}
+        controller = path_parameters[:controller]
+        action = path_parameters[:action]
+        rack_query_params = Request::Utils.set_binary_encoding(self, rack_query_params, controller, action)
         # Check for non UTF-8 parameter values, which would cause errors later
         Request::Utils.check_param_encoding(rack_query_params)
         set_header k, Request::Utils.normalize_encode_params(rack_query_params)
@@ -391,6 +390,8 @@ module ActionDispatch
         pr = parse_formatted_parameters(params_parsers) do |params|
           super || {}
         end
+        pr = Request::Utils.set_binary_encoding(self, pr, path_parameters[:controller], path_parameters[:action])
+        Request::Utils.check_param_encoding(pr)
         self.request_parameters = Request::Utils.normalize_encode_params(pr)
       end
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
@@ -424,14 +425,18 @@ module ActionDispatch
     def commit_flash
     end
 
-    def ssl?
-      super || scheme == "wss"
+    def inspect # :nodoc:
+      "#<#{self.class.name} #{method} #{original_url.dump} for #{remote_ip}>"
     end
 
     private
       def check_method(name)
         HTTP_METHOD_LOOKUP[name] || raise(ActionController::UnknownHttpMethod, "#{name}, accepted HTTP methods are #{HTTP_METHODS[0...-1].join(', ')}, and #{HTTP_METHODS[-1]}")
         name
+      end
+
+      def default_session
+        Session.disabled(self)
       end
   end
 end

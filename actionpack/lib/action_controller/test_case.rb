@@ -24,11 +24,14 @@ module ActionController
     def new_controller_thread # :nodoc:
       yield
     end
+
+    # Avoid a deadlock from the queue filling up
+    Buffer.queue_size = nil
   end
 
   # ActionController::TestCase will be deprecated and moved to a gem in the future.
   # Please use ActionDispatch::IntegrationTest going forward.
-  class TestRequest < ActionDispatch::TestRequest #:nodoc:
+  class TestRequest < ActionDispatch::TestRequest # :nodoc:
     DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
     DEFAULT_ENV.delete "PATH_INFO"
 
@@ -84,7 +87,7 @@ module ActionController
             value = value.to_param
           end
 
-          path_parameters[key] = value
+          path_parameters[key.to_sym] = value
         end
       end
 
@@ -176,7 +179,7 @@ module ActionController
 
   # Methods #destroy and #load! are overridden to avoid calling methods on the
   # @store object, which does not exist for the TestSession class.
-  class TestSession < Rack::Session::Abstract::PersistedSecure::SecureSessionHash #:nodoc:
+  class TestSession < Rack::Session::Abstract::PersistedSecure::SecureSessionHash # :nodoc:
     DEFAULT_OPTIONS = Rack::Session::Abstract::Persisted::DEFAULT_OPTIONS
 
     def initialize(session = {})
@@ -209,6 +212,10 @@ module ActionController
 
     def fetch(key, *args, &block)
       @data.fetch(key.to_s, *args, &block)
+    end
+
+    def enabled?
+      true
     end
 
     private
@@ -492,57 +499,8 @@ module ActionController
           parameters[:format] = format
         end
 
-        generated_extras = @routes.generate_extras(parameters.merge(controller: controller_class_name, action: action))
-        generated_path = generated_path(generated_extras)
-        query_string_keys = query_parameter_names(generated_extras)
-
-        @request.assign_parameters(@routes, controller_class_name, action, parameters, generated_path, query_string_keys)
-
-        @request.session.update(session) if session
-        @request.flash.update(flash || {})
-
-        if xhr
-          @request.set_header "HTTP_X_REQUESTED_WITH", "XMLHttpRequest"
-          @request.fetch_header("HTTP_ACCEPT") do |k|
-            @request.set_header k, [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(", ")
-          end
-        end
-
-        @request.fetch_header("SCRIPT_NAME") do |k|
-          @request.set_header k, @controller.config.relative_url_root
-        end
-
-        begin
-          @controller.recycle!
-          @controller.dispatch(action, @request, @response)
-        ensure
-          @request = @controller.request
-          @response = @controller.response
-
-          if @request.have_cookie_jar?
-            unless @request.cookie_jar.committed?
-              @request.cookie_jar.write(@response)
-              cookies.update(@request.cookie_jar.instance_variable_get(:@cookies))
-            end
-          end
-          @response.prepare!
-
-          if flash_value = @request.flash.to_session_value
-            @request.session["flash"] = flash_value
-          else
-            @request.session.delete("flash")
-          end
-
-          if xhr
-            @request.delete_header "HTTP_X_REQUESTED_WITH"
-            @request.delete_header "HTTP_ACCEPT"
-          end
-          @request.query_string = ""
-
-          @response.sent!
-        end
-
-        @response
+        setup_request(controller_class_name, action, parameters, session, flash, xhr)
+        process_controller_response(action, cookies, xhr)
       end
 
       def controller_class_name
@@ -598,6 +556,62 @@ module ActionController
       end
 
       private
+        def setup_request(controller_class_name, action, parameters, session, flash, xhr)
+          generated_extras = @routes.generate_extras(parameters.merge(controller: controller_class_name, action: action))
+          generated_path = generated_path(generated_extras)
+          query_string_keys = query_parameter_names(generated_extras)
+
+          @request.assign_parameters(@routes, controller_class_name, action, parameters, generated_path, query_string_keys)
+
+          @request.session.update(session) if session
+          @request.flash.update(flash || {})
+
+          if xhr
+            @request.set_header "HTTP_X_REQUESTED_WITH", "XMLHttpRequest"
+            @request.fetch_header("HTTP_ACCEPT") do |k|
+              @request.set_header k, [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(", ")
+            end
+          end
+
+          @request.fetch_header("SCRIPT_NAME") do |k|
+            @request.set_header k, @controller.config.relative_url_root
+          end
+        end
+
+        def process_controller_response(action, cookies, xhr)
+          begin
+            @controller.recycle!
+            @controller.dispatch(action, @request, @response)
+          ensure
+            @request = @controller.request
+            @response = @controller.response
+
+            if @request.have_cookie_jar?
+              unless @request.cookie_jar.committed?
+                @request.cookie_jar.write(@response)
+                cookies.update(@request.cookie_jar.instance_variable_get(:@cookies))
+              end
+            end
+            @response.prepare!
+
+            if flash_value = @request.flash.to_session_value
+              @request.session["flash"] = flash_value
+            else
+              @request.session.delete("flash")
+            end
+
+            if xhr
+              @request.delete_header "HTTP_X_REQUESTED_WITH"
+              @request.delete_header "HTTP_ACCEPT"
+            end
+            @request.query_string = ""
+
+            @response.sent!
+          end
+
+          @response
+        end
+
         def scrub_env!(env)
           env.delete_if do |k, _|
             k.start_with?("rack.request", "action_dispatch.request", "action_dispatch.rescue")
@@ -613,7 +627,7 @@ module ActionController
         end
 
         def check_required_ivars
-          # Sanity check for required instance variables so we can give an
+          # Check for required instance variables so we can give an
           # understandable error message.
           [:@routes, :@controller, :@request, :@response].each do |iv_name|
             if !instance_variable_defined?(iv_name) || instance_variable_get(iv_name).nil?

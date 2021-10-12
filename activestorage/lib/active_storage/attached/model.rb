@@ -40,12 +40,21 @@ module ActiveStorage
       #     has_one_attached :avatar, service: :s3
       #   end
       #
-      def has_one_attached(name, dependent: :purge_later, service: nil)
+      # If you need to enable +strict_loading+ to prevent lazy loading of attachment,
+      # pass the +:strict_loading+ option. You can do:
+      #
+      #   class User < ApplicationRecord
+      #     has_one_attached :avatar, strict_loading: true
+      #   end
+      #
+      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
         validate_service_configuration(name, service)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
+          # frozen_string_literal: true
           def #{name}
-            @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new("#{name}", self)
+            @active_storage_attached ||= {}
+            @active_storage_attached[:#{name}] ||= ActiveStorage::Attached::One.new("#{name}", self)
           end
 
           def #{name}=(attachable)
@@ -58,8 +67,8 @@ module ActiveStorage
           end
         CODE
 
-        has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: :destroy
-        has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: "ActiveStorage::Blob", source: :blob
+        has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
+        has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
 
         scope :"with_attached_#{name}", -> { includes("#{name}_attachment": :blob) }
 
@@ -74,6 +83,7 @@ module ActiveStorage
           { dependent: dependent, service_name: service },
           self
         )
+        yield reflection if block_given?
         ActiveRecord::Reflection.add_attachment_reflection(self, name, reflection)
       end
 
@@ -109,12 +119,21 @@ module ActiveStorage
       #     has_many_attached :photos, service: :s3
       #   end
       #
-      def has_many_attached(name, dependent: :purge_later, service: nil)
+      # If you need to enable +strict_loading+ to prevent lazy loading of attachments,
+      # pass the +:strict_loading+ option. You can do:
+      #
+      #   class Gallery < ApplicationRecord
+      #     has_many_attached :photos, strict_loading: true
+      #   end
+      #
+      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
         validate_service_configuration(name, service)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
+          # frozen_string_literal: true
           def #{name}
-            @active_storage_attached_#{name} ||= ActiveStorage::Attached::Many.new("#{name}", self)
+            @active_storage_attached ||= {}
+            @active_storage_attached[:#{name}] ||= ActiveStorage::Attached::Many.new("#{name}", self)
           end
 
           def #{name}=(attachables)
@@ -126,6 +145,12 @@ module ActiveStorage
                   ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables)
                 end
             else
+              ActiveSupport::Deprecation.warn \
+                "config.active_storage.replace_on_assign_to_many is deprecated and will be removed in Rails 7.1. " \
+                "Make sure that your code works well with config.active_storage.replace_on_assign_to_many set to true before upgrading. " \
+                "To append new attachables to the Active Storage association, prefer using `attach`. " \
+                "Using association setter would result in purging the existing attached attachments and replacing them with new ones."
+
               if Array(attachables).any?
                 attachment_changes["#{name}"] =
                   ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, #{name}.blobs + attachables)
@@ -134,20 +159,38 @@ module ActiveStorage
           end
         CODE
 
-        has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: :destroy do
+        has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: :destroy, strict_loading: strict_loading do
           def purge
+            deprecate(:purge)
             each(&:purge)
             reset
           end
 
           def purge_later
+            deprecate(:purge_later)
             each(&:purge_later)
             reset
           end
-        end
-        has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: "ActiveStorage::Blob", source: :blob
 
-        scope :"with_attached_#{name}", -> { includes("#{name}_attachments": :blob) }
+          private
+          def deprecate(action)
+            reflection_name = proxy_association.reflection.name
+            attached_name = reflection_name.to_s.partition("_").first
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Calling `#{action}` from `#{reflection_name}` is deprecated and will be removed in Rails 7.1.
+              To migrate to Rails 7.1's behavior call `#{action}` from `#{attached_name}` instead: `#{attached_name}.#{action}`.
+            MSG
+          end
+        end
+        has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
+
+        scope :"with_attached_#{name}", -> {
+          if ActiveStorage.track_variants
+            includes("#{name}_attachments": { blob: :variant_records })
+          else
+            includes("#{name}_attachments": :blob)
+          end
+        }
 
         after_save { attachment_changes[name.to_s]&.save }
 
@@ -160,6 +203,7 @@ module ActiveStorage
           { dependent: dependent, service_name: service },
           self
         )
+        yield reflection if block_given?
         ActiveRecord::Reflection.add_attachment_reflection(self, name, reflection)
       end
 
@@ -173,11 +217,21 @@ module ActiveStorage
         end
     end
 
-    def attachment_changes #:nodoc:
+    def attachment_changes # :nodoc:
       @attachment_changes ||= {}
     end
 
-    def reload(*) #:nodoc:
+    def changed_for_autosave? # :nodoc:
+      super || attachment_changes.any?
+    end
+
+    def initialize_dup(*) # :nodoc:
+      super
+      @active_storage_attached = nil
+      @attachment_changes = nil
+    end
+
+    def reload(*) # :nodoc:
       super.tap { @attachment_changes = nil }
     end
   end

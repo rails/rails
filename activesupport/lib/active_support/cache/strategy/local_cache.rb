@@ -34,57 +34,40 @@ module ActiveSupport
 
         # Simple memory backed cache. This cache is not thread safe and is intended only
         # for serving as a temporary memory cache for a single thread.
-        class LocalStore < Store
+        class LocalStore
           def initialize
-            super
             @data = {}
-          end
-
-          # Don't allow synchronizing since it isn't thread safe.
-          def synchronize # :nodoc:
-            yield
           end
 
           def clear(options = nil)
             @data.clear
           end
 
-          def read_entry(key, **options)
+          def read_entry(key)
             @data[key]
           end
 
-          def read_multi_entries(keys, **options)
-            values = {}
-
-            keys.each do |name|
-              entry = read_entry(name, **options)
-              values[name] = entry.value if entry
-            end
-
-            values
+          def read_multi_entries(keys)
+            @data.slice(*keys)
           end
 
-          def write_entry(key, entry, **options)
-            entry.dup_value!
+          def write_entry(key, entry)
             @data[key] = entry
             true
           end
 
-          def delete_entry(key, **options)
+          def delete_entry(key)
             !!@data.delete(key)
           end
 
-          def fetch_entry(key, options = nil) # :nodoc:
-            entry = @data.fetch(key) { @data[key] = yield }
-            dup_entry = entry.dup
-            dup_entry&.dup_value!
-            dup_entry
+          def fetch_entry(key) # :nodoc:
+            @data.fetch(key) { @data[key] = yield }
           end
         end
 
         # Use a local cache for the duration of block.
-        def with_local_cache
-          use_temporary_local_cache(LocalStore.new) { yield }
+        def with_local_cache(&block)
+          use_temporary_local_cache(LocalStore.new, &block)
         end
 
         # Middleware class can be inserted as a Rack handler to be local cache for the
@@ -107,24 +90,36 @@ module ActiveSupport
           super
         end
 
+        def delete_matched(matcher, options = nil) # :nodoc:
+          return super unless cache = local_cache
+          cache.clear
+          super
+        end
+
         def increment(name, amount = 1, **options) # :nodoc:
           return super unless local_cache
           value = bypass_local_cache { super }
-          write_cache_value(name, value, **options)
+          write_cache_value(name, value, raw: true, **options)
           value
         end
 
         def decrement(name, amount = 1, **options) # :nodoc:
           return super unless local_cache
           value = bypass_local_cache { super }
-          write_cache_value(name, value, **options)
+          write_cache_value(name, value, raw: true, **options)
           value
         end
 
         private
-          def read_entry(key, **options)
+          def read_serialized_entry(key, raw: false, **options)
             if cache = local_cache
-              cache.fetch_entry(key) { super }
+              hit = true
+              entry = cache.fetch_entry(key) do
+                hit = false
+                super
+              end
+              options[:event][:store] = cache.class.name if hit && options[:event]
+              entry
             else
               super
             end
@@ -133,7 +128,7 @@ module ActiveSupport
           def read_multi_entries(keys, **options)
             return super unless local_cache
 
-            local_entries = local_cache.read_multi_entries(keys, **options)
+            local_entries = local_cache.read_multi_entries(keys)
             missed_keys = keys - local_entries.keys
 
             if missed_keys.any?
@@ -143,30 +138,27 @@ module ActiveSupport
             end
           end
 
-          def write_entry(key, entry, **options)
-            if options[:unless_exist]
-              local_cache.delete_entry(key, **options) if local_cache
+          def write_serialized_entry(key, payload, **)
+            if return_value = super
+              local_cache.write_entry(key, payload) if local_cache
             else
-              local_cache.write_entry(key, entry, **options) if local_cache
+              local_cache.delete_entry(key) if local_cache
             end
-
-            super
+            return_value
           end
 
-          def delete_entry(key, **options)
-            local_cache.delete_entry(key, **options) if local_cache
+          def delete_entry(key, **)
+            local_cache.delete_entry(key) if local_cache
             super
           end
 
           def write_cache_value(name, value, **options)
             name = normalize_key(name, options)
             cache = local_cache
-            cache.mute do
-              if value
-                cache.write(name, value, options)
-              else
-                cache.delete(name, **options)
-              end
+            if value
+              cache.write_entry(name, serialize_entry(new_entry(value, **options), **options))
+            else
+              cache.delete_entry(name)
             end
           end
 
@@ -178,8 +170,8 @@ module ActiveSupport
             LocalCacheRegistry.cache_for(local_cache_key)
           end
 
-          def bypass_local_cache
-            use_temporary_local_cache(nil) { yield }
+          def bypass_local_cache(&block)
+            use_temporary_local_cache(nil, &block)
           end
 
           def use_temporary_local_cache(temporary_cache)

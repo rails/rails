@@ -104,10 +104,8 @@ module ActiveRecord
         elsif timestamp = updated_at
           timestamp.utc.to_s(cache_timestamp_format)
         end
-      else
-        if self.class.has_attribute?("updated_at")
-          raise ActiveModel::MissingAttributeError, "missing attribute: updated_at"
-        end
+      elsif self.class.has_attribute?("updated_at")
+        raise ActiveModel::MissingAttributeError, "missing attribute: updated_at"
       end
     end
 
@@ -179,7 +177,7 @@ module ActiveRecord
       def can_use_fast_cache_version?(timestamp)
         timestamp.is_a?(String) &&
           cache_timestamp_format == :usec &&
-          default_timezone == :utc &&
+          ActiveRecord.default_timezone == :utc &&
           !updated_at_came_from_user?
       end
 

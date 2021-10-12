@@ -47,20 +47,22 @@ module ActiveRecord
       end
 
       def structure_dump(filename, extra_flags)
-        set_psql_env
-
         search_path = \
-          case ActiveRecord::Base.dump_schemas
+          case ActiveRecord.dump_schemas
           when :schema_search_path
             configuration_hash[:schema_search_path]
           when :all
             nil
           when String
-            ActiveRecord::Base.dump_schemas
+            ActiveRecord.dump_schemas
           end
 
-        args = ["--schema-only", "--no-privileges", "--no-owner", "--file", filename]
+        args = ["--schema-only", "--no-privileges", "--no-owner"]
+        args << "--no-comment" if connection.database_version >= 110_000
+        args.concat(["--file", filename])
+
         args.concat(Array(extra_flags)) if extra_flags
+
         unless search_path.blank?
           args += search_path.split(",").map do |part|
             "--schema=#{part.strip}"
@@ -79,7 +81,6 @@ module ActiveRecord
       end
 
       def structure_load(filename, extra_flags)
-        set_psql_env
         args = ["--set", ON_ERROR_STOP_1, "--quiet", "--no-psqlrc", "--file", filename]
         args.concat(Array(extra_flags)) if extra_flags
         args << db_config.database
@@ -100,15 +101,21 @@ module ActiveRecord
           )
         end
 
-        def set_psql_env
-          ENV["PGHOST"]     = db_config.host                     if db_config.host
-          ENV["PGPORT"]     = configuration_hash[:port].to_s     if configuration_hash[:port]
-          ENV["PGPASSWORD"] = configuration_hash[:password].to_s if configuration_hash[:password]
-          ENV["PGUSER"]     = configuration_hash[:username].to_s if configuration_hash[:username]
+        def psql_env
+          {}.tap do |env|
+            env["PGHOST"]         = db_config.host                        if db_config.host
+            env["PGPORT"]         = configuration_hash[:port].to_s        if configuration_hash[:port]
+            env["PGPASSWORD"]     = configuration_hash[:password].to_s    if configuration_hash[:password]
+            env["PGUSER"]         = configuration_hash[:username].to_s    if configuration_hash[:username]
+            env["PGSSLMODE"]      = configuration_hash[:sslmode].to_s     if configuration_hash[:sslmode]
+            env["PGSSLCERT"]      = configuration_hash[:sslcert].to_s     if configuration_hash[:sslcert]
+            env["PGSSLKEY"]       = configuration_hash[:sslkey].to_s      if configuration_hash[:sslkey]
+            env["PGSSLROOTCERT"]  = configuration_hash[:sslrootcert].to_s if configuration_hash[:sslrootcert]
+          end
         end
 
         def run_cmd(cmd, args, action)
-          fail run_cmd_error(cmd, args, action) unless Kernel.system(cmd, *args)
+          fail run_cmd_error(cmd, args, action) unless Kernel.system(psql_env, cmd, *args)
         end
 
         def run_cmd_error(cmd, args, action)

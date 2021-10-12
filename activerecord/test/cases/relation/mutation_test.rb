@@ -5,7 +5,7 @@ require "models/post"
 
 module ActiveRecord
   class RelationMutationTest < ActiveRecord::TestCase
-    (Relation::MULTI_VALUE_METHODS - [:references, :extending, :order, :unscope, :select]).each do |method|
+    (Relation::MULTI_VALUE_METHODS - [:extending, :order, :unscope, :select]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal [:foo], relation.public_send("#{method}_values")
@@ -38,11 +38,6 @@ module ActiveRecord
       end
     end
 
-    test "#references!" do
-      assert relation.references!(:foo).equal?(relation)
-      assert_includes relation.references_values, "foo"
-    end
-
     test "extending!" do
       mod, mod2 = Module.new, Module.new
 
@@ -59,7 +54,7 @@ module ActiveRecord
       assert_equal [], relation.extending_values
     end
 
-    (Relation::SINGLE_VALUE_METHODS - [:lock, :reordering, :reverse_order, :create_with, :skip_query_cache]).each do |method|
+    (Relation::SINGLE_VALUE_METHODS - [:lock, :reordering, :reverse_order, :create_with, :skip_query_cache, :strict_loading]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal :foo, relation.public_send("#{method}_value")

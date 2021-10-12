@@ -79,8 +79,7 @@ a class `Book`, you should have a database table called **books**. The Rails
 pluralization mechanisms are very powerful, being capable of pluralizing (and
 singularizing) both regular and irregular words. When using class names composed
 of two or more words, the model class name should follow the Ruby conventions,
-using the CamelCase form, while the table name must contain the words separated
-by underscores. Examples:
+using the CamelCase form, while the table name must use the snake_case form. Examples:
 
 * Model Class - Singular with the first letter of each word capitalized (e.g.,
 `BookClub`).
@@ -93,7 +92,6 @@ by underscores. Examples:
 | `Deer`           | `deers`        |
 | `Mouse`          | `mice`         |
 | `Person`         | `people`       |
-
 
 ### Schema Conventions
 
@@ -147,13 +145,13 @@ that the `products` table was created using an SQL (or one of its extensions) st
 
 ```sql
 CREATE TABLE products (
-   id int(11) NOT NULL auto_increment,
-   name varchar(255),
-   PRIMARY KEY  (id)
+  id int(11) NOT NULL auto_increment,
+  name varchar(255),
+  PRIMARY KEY  (id)
 );
 ```
 
-Schema above declares a table with two columns: `id` and `name`. Each row of
+The schema above declares a table with two columns: `id` and `name`. Each row of
 this table represents a certain product with these two parameters. Thus, you
 would be able to write code like the following:
 
@@ -188,7 +186,7 @@ definition:
 class ProductTest < ActiveSupport::TestCase
   set_fixture_class my_products: Product
   fixtures :my_products
-  ...
+  # ...
 end
 ```
 
@@ -298,6 +296,12 @@ hand, you'd like to update several records in bulk, you may find the
 User.update_all "max_login_attempts = 3, must_change_password = 'true'"
 ```
 
+This is the same as if you wrote:
+
+```ruby
+User.update(:all, max_login_attempts: 3, must_change_password: true)
+```
+
 ### Delete
 
 Likewise, once retrieved an Active Record object can be destroyed which removes
@@ -339,10 +343,14 @@ A quick example to illustrate:
 class User < ApplicationRecord
   validates :name, presence: true
 end
+```
 
-user = User.new
-user.save  # => false
-user.save! # => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+```irb
+irb> user = User.new
+irb> user.save
+=> false
+irb> user.save!
+ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
 You can learn more about validations in the [Active Record Validations
@@ -366,7 +374,7 @@ database that Active Record supports using `rake`. Here's a migration that
 creates a table:
 
 ```ruby
-class CreatePublications < ActiveRecord::Migration[6.0]
+class CreatePublications < ActiveRecord::Migration[7.0]
   def change
     create_table :publications do |t|
       t.string :title
@@ -384,7 +392,7 @@ end
 ```
 
 Rails keeps track of which files have been committed to the database and
-provides rollback features. To actually create the table, you'd run `bin/rails db:migrate`
+provides rollback features. To actually create the table, you'd run `bin/rails db:migrate`,
 and to roll it back, `bin/rails db:rollback`.
 
 Note that the above code is database-agnostic: it will run in MySQL,

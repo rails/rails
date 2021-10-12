@@ -2,7 +2,6 @@
 
 require "active_support/core_ext/big_decimal/conversions"
 require "active_support/number_helper"
-require "active_support/core_ext/module/deprecation"
 
 module ActiveSupport
   module NumericWithFormat
@@ -108,9 +107,9 @@ module ActiveSupport
     #                   separator: ',',
     #                   significant: false)                   # => "1,2 Million"
     def to_s(format = nil, options = nil)
+      return super() if format.nil?
+
       case format
-      when nil
-        super()
       when Integer, String
         super(format)
       when :phone

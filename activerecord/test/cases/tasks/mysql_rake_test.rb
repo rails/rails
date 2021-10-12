@@ -107,11 +107,9 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       private
-        def with_stubbed_connection_establish_connection
+        def with_stubbed_connection_establish_connection(&block)
           ActiveRecord::Base.stub(:establish_connection, nil) do
-            ActiveRecord::Base.stub(:connection, @connection) do
-              yield
-            end
+            ActiveRecord::Base.stub(:connection, @connection, &block)
           end
         end
     end
@@ -188,11 +186,9 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       private
-        def with_stubbed_connection_establish_connection
+        def with_stubbed_connection_establish_connection(&block)
           ActiveRecord::Base.stub(:establish_connection, nil) do
-            ActiveRecord::Base.stub(:connection, @connection) do
-              yield
-            end
+            ActiveRecord::Base.stub(:connection, @connection, &block)
           end
         end
     end
@@ -242,11 +238,9 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       private
-        def with_stubbed_connection_establish_connection
+        def with_stubbed_connection_establish_connection(&block)
           ActiveRecord::Base.stub(:establish_connection, nil) do
-            ActiveRecord::Base.stub(:connection, @connection) do
-              yield
-            end
+            ActiveRecord::Base.stub(:connection, @connection, &block)
           end
         end
     end
@@ -313,6 +307,28 @@ if current_adapter?(:Mysql2Adapter)
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
           with_structure_dump_flags(["--noop"]) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+          end
+        end
+      end
+
+      def test_structure_dump_with_hash_extra_flags_for_a_different_driver
+        filename = "awesome-file.sql"
+        expected_command = ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"]
+
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_dump_flags({ postgresql: ["--noop"] }) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+          end
+        end
+      end
+
+      def test_structure_dump_with_hash_extra_flags_for_the_correct_driver
+        filename = "awesome-file.sql"
+        expected_command = ["mysqldump", "--noop", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"]
+
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_dump_flags({ mysql2: ["--noop"] }) do
             ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
           end
         end
@@ -399,6 +415,28 @@ if current_adapter?(:Mysql2Adapter)
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
           with_structure_load_flags(["--noop"]) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+          end
+        end
+      end
+
+      def test_structure_load_with_hash_extra_flags_for_a_different_driver
+        filename = "awesome-file.sql"
+        expected_command = ["mysql", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db"]
+
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_load_flags({ postgresql: ["--noop"] }) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+          end
+        end
+      end
+
+      def test_structure_load_with_hash_extra_flags_for_the_correct_driver
+        filename = "awesome-file.sql"
+        expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db"]
+
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_load_flags({ mysql2: ["--noop"] }) do
             ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
           end
         end

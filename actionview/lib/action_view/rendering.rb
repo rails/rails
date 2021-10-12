@@ -5,7 +5,7 @@ require "action_view/view_paths"
 module ActionView
   # This is a class to fix I18n global state. Whenever you provide I18n.locale during a request,
   # it will trigger the lookup_context and consequently expire the cache.
-  class I18nProxy < ::I18n::Config #:nodoc:
+  class I18nProxy < ::I18n::Config # :nodoc:
     attr_reader :original_config, :lookup_context
 
     def initialize(original_config, lookup_context)
@@ -33,8 +33,8 @@ module ActionView
       super
     end
 
-    # Overwrite process to setup I18n proxy.
-    def process(*) #:nodoc:
+    # Overwrite process to set up I18n proxy.
+    def process(*) # :nodoc:
       old_config, I18n.config = I18n.config, I18nProxy.new(I18n.config, lookup_context)
       super
     ensure
@@ -145,7 +145,7 @@ module ActionView
           if action.respond_to?(:permitted?) && action.permitted?
             options = action
           elsif action.respond_to?(:render_in)
-            options[:object] = action
+            options[:renderable] = action
           else
             options[:partial] = action
           end

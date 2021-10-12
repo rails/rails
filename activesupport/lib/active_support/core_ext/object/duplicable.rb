@@ -47,3 +47,14 @@ class UnboundMethod
     false
   end
 end
+
+require "singleton"
+
+module Singleton
+  # Singleton instances are not duplicable:
+  #
+  # Class.new.include(Singleton).instance.dup # TypeError (can't dup instance of singleton
+  def duplicable?
+    false
+  end
+end

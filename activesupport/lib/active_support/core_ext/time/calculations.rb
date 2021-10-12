@@ -6,6 +6,7 @@ require "active_support/time_with_zone"
 require "active_support/core_ext/time/zones"
 require "active_support/core_ext/date_and_time/calculations"
 require "active_support/core_ext/date/calculations"
+require "active_support/core_ext/module/remove_method"
 
 class Time
   include DateAndTime::Calculations
@@ -41,13 +42,15 @@ class Time
 
     # Layers additional behavior on Time.at so that ActiveSupport::TimeWithZone and DateTime
     # instances can be used when called with a single argument
-    def at_with_coercion(*args)
-      return at_without_coercion(*args) if args.size != 1
+    def at_with_coercion(*args, **kwargs)
+      return at_without_coercion(*args, **kwargs) if args.size != 1 || !kwargs.empty?
 
       # Time.at can be called with a time or numerical value
       time_or_number = args.first
 
-      if time_or_number.is_a?(ActiveSupport::TimeWithZone) || time_or_number.is_a?(DateTime)
+      if time_or_number.is_a?(ActiveSupport::TimeWithZone)
+        at_without_coercion(time_or_number.to_r).getlocal
+      elsif time_or_number.is_a?(DateTime)
         at_without_coercion(time_or_number.to_f).getlocal
       else
         at_without_coercion(time_or_number)
@@ -105,6 +108,21 @@ class Time
     subsec
   end
 
+  unless Time.method_defined?(:floor)
+    def floor(precision = 0)
+      change(nsec: 0) + subsec.floor(precision)
+    end
+  end
+
+  # Restricted Ruby version due to a bug in `Time#ceil`
+  # See https://bugs.ruby-lang.org/issues/17025 for more details
+  if RUBY_VERSION <= "2.8"
+    remove_possible_method :ceil
+    def ceil(precision = 0)
+      change(nsec: 0) + subsec.ceil(precision)
+    end
+  end
+
   # Returns a new Time where one or more of the elements have been changed according
   # to the +options+ parameter. The time options (<tt>:hour</tt>, <tt>:min</tt>,
   # <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>) reset cascadingly, so if only
@@ -141,6 +159,8 @@ class Time
       ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, new_offset)
     elsif utc?
       ::Time.utc(new_year, new_month, new_day, new_hour, new_min, new_sec)
+    elsif zone&.respond_to?(:utc_to_local)
+      ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, zone)
     elsif zone
       ::Time.local(new_year, new_month, new_day, new_hour, new_min, new_sec)
     else
@@ -257,7 +277,7 @@ class Time
   end
   alias :at_end_of_minute :end_of_minute
 
-  def plus_with_duration(other) #:nodoc:
+  def plus_with_duration(other) # :nodoc:
     if ActiveSupport::Duration === other
       other.since(self)
     else
@@ -267,7 +287,7 @@ class Time
   alias_method :plus_without_duration, :+
   alias_method :+, :plus_with_duration
 
-  def minus_with_duration(other) #:nodoc:
+  def minus_with_duration(other) # :nodoc:
     if ActiveSupport::Duration === other
       other.until(self)
     else

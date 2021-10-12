@@ -22,7 +22,7 @@ module ActiveStorage::Service::SharedServiceTests
     test "uploading with integrity" do
       key  = SecureRandom.base58(24)
       data = "Something else entirely!"
-      @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data))
+      @service.upload(key, StringIO.new(data), checksum: OpenSSL::Digest::MD5.base64digest(data))
 
       assert_equal data, @service.download(key)
     ensure
@@ -34,7 +34,7 @@ module ActiveStorage::Service::SharedServiceTests
       data = "Something else entirely!"
 
       assert_raises(ActiveStorage::IntegrityError) do
-        @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest("bad data"))
+        @service.upload(key, StringIO.new(data), checksum: OpenSSL::Digest::MD5.base64digest("bad data"))
       end
 
       assert_not @service.exist?(key)
@@ -48,9 +48,9 @@ module ActiveStorage::Service::SharedServiceTests
       @service.upload(
         key,
         StringIO.new(data),
-        checksum: Digest::MD5.base64digest(data),
+        checksum: OpenSSL::Digest::MD5.base64digest(data),
         filename: "racecar.jpg",
-        content_type: "image/jpg"
+        content_type: "image/jpeg"
       )
 
       assert_equal data, @service.download(key)
@@ -123,18 +123,20 @@ module ActiveStorage::Service::SharedServiceTests
     end
 
     test "deleting by prefix" do
-      @service.upload("a/a/a", StringIO.new(FIXTURE_DATA))
-      @service.upload("a/a/b", StringIO.new(FIXTURE_DATA))
-      @service.upload("a/b/a", StringIO.new(FIXTURE_DATA))
+      key = SecureRandom.base58(24)
 
-      @service.delete_prefixed("a/a/")
-      assert_not @service.exist?("a/a/a")
-      assert_not @service.exist?("a/a/b")
-      assert @service.exist?("a/b/a")
+      @service.upload("#{key}/a/a/a", StringIO.new(FIXTURE_DATA))
+      @service.upload("#{key}/a/a/b", StringIO.new(FIXTURE_DATA))
+      @service.upload("#{key}/a/b/a", StringIO.new(FIXTURE_DATA))
+
+      @service.delete_prefixed("#{key}/a/a/")
+      assert_not @service.exist?("#{key}/a/a/a")
+      assert_not @service.exist?("#{key}/a/a/b")
+      assert @service.exist?("#{key}/a/b/a")
     ensure
-      @service.delete("a/a/a")
-      @service.delete("a/a/b")
-      @service.delete("a/b/a")
+      @service.delete("#{key}/a/a/a")
+      @service.delete("#{key}/a/a/b")
+      @service.delete("#{key}/a/b/a")
     end
   end
 end

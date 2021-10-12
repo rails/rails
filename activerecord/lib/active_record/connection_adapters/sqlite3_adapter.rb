@@ -26,7 +26,7 @@ module ActiveRecord
       # Allow database path relative to Rails.root, but only if the database
       # path is not the special path that tells sqlite to build a database only
       # in memory.
-      if ":memory:" != config[:database] && !config[:database].to_s.starts_with?("file:")
+      if ":memory:" != config[:database] && !config[:database].to_s.start_with?("file:")
         config[:database] = File.expand_path(config[:database], Rails.root) if defined?(Rails.root)
         dirname = File.dirname(config[:database])
         Dir.mkdir(dirname) unless File.directory?(dirname)
@@ -47,7 +47,7 @@ module ActiveRecord
     end
   end
 
-  module ConnectionAdapters #:nodoc:
+  module ConnectionAdapters # :nodoc:
     # The SQLite3 adapter works with the sqlite3-ruby drivers
     # (available as gem from https://rubygems.org/gems/sqlite3).
     #
@@ -76,16 +76,6 @@ module ActiveRecord
         json:         { name: "json" },
       }
 
-      def self.represent_boolean_as_integer=(value) # :nodoc:
-        if value == false
-          raise "`.represent_boolean_as_integer=` is now always true, so make sure your application can work with it and remove this settings."
-        end
-
-        ActiveSupport::Deprecation.warn(
-          "`.represent_boolean_as_integer=` is now always true, so setting this is deprecated and will be removed in Rails 6.1."
-        )
-      end
-
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private
           def dealloc(stmt)
@@ -94,6 +84,7 @@ module ActiveRecord
       end
 
       def initialize(connection, logger, connection_options, config)
+        @memory_database = config[:database] == ":memory:"
         super(connection, logger, config)
         configure_connection
       end
@@ -136,6 +127,10 @@ module ActiveRecord
         true
       end
 
+      def supports_check_constraints?
+        true
+      end
+
       def supports_views?
         true
       end
@@ -159,6 +154,10 @@ module ActiveRecord
       alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
       alias supports_insert_conflict_target? supports_insert_on_conflict?
 
+      def supports_concurrent_connections?
+        !@memory_database
+      end
+
       def active?
         !@connection.closed?
       end
@@ -179,18 +178,11 @@ module ActiveRecord
         true
       end
 
-      # Returns 62. SQLite supports index names up to 64
-      # characters. The rest is used by Rails internally to perform
-      # temporary rename operations
-      def allowed_index_name_length
-        index_name_length - 2
-      end
-
-      def native_database_types #:nodoc:
+      def native_database_types # :nodoc:
         NATIVE_DATABASE_TYPES
       end
 
-      # Returns the current database encoding format as a string, eg: 'UTF-8'
+      # Returns the current database encoding format as a string, e.g. 'UTF-8'
       def encoding
         @connection.encoding.to_s
       end
@@ -219,6 +211,10 @@ module ActiveRecord
         end
       end
 
+      def all_foreign_keys_valid? # :nodoc:
+        execute("PRAGMA foreign_key_check").blank?
+      end
+
       # SCHEMA STATEMENTS ========================================
 
       def primary_keys(table_name) # :nodoc:
@@ -226,8 +222,11 @@ module ActiveRecord
         pks.sort_by { |f| f["pk"] }.map { |f| f["name"] }
       end
 
-      def remove_index(table_name, column_name, options = {}) #:nodoc:
+      def remove_index(table_name, column_name = nil, **options) # :nodoc:
+        return if options[:if_exists] && !index_exists?(table_name, column_name, **options)
+
         index_name = index_name_for_remove(table_name, column_name, options)
+
         exec_query "DROP INDEX #{quote_column_name(index_name)}"
       end
 
@@ -242,7 +241,7 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name)
       end
 
-      def add_column(table_name, column_name, type, **options) #:nodoc:
+      def add_column(table_name, column_name, type, **options) # :nodoc:
         if invalid_alter_table_type?(type, options)
           alter_table(table_name) do |definition|
             definition.column(column_name, type, **options)
@@ -252,16 +251,24 @@ module ActiveRecord
         end
       end
 
-      def remove_column(table_name, column_name, type = nil, **options) #:nodoc:
+      def remove_column(table_name, column_name, type = nil, **options) # :nodoc:
         alter_table(table_name) do |definition|
           definition.remove_column column_name
-          definition.foreign_keys.delete_if do |_, fk_options|
-            fk_options[:column] == column_name.to_s
-          end
+          definition.foreign_keys.delete_if { |fk| fk.column == column_name.to_s }
         end
       end
 
-      def change_column_default(table_name, column_name, default_or_changes) #:nodoc:
+      def remove_columns(table_name, *column_names, type: nil, **options) # :nodoc:
+        alter_table(table_name) do |definition|
+          column_names.each do |column_name|
+            definition.remove_column column_name
+          end
+          column_names = column_names.map(&:to_s)
+          definition.foreign_keys.delete_if { |fk| column_names.include?(fk.column) }
+        end
+      end
+
+      def change_column_default(table_name, column_name, default_or_changes) # :nodoc:
         default = extract_new_default_value(default_or_changes)
 
         alter_table(table_name) do |definition|
@@ -269,7 +276,7 @@ module ActiveRecord
         end
       end
 
-      def change_column_null(table_name, column_name, null, default = nil) #:nodoc:
+      def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
         unless null || default.nil?
           exec_query("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
@@ -278,21 +285,16 @@ module ActiveRecord
         end
       end
 
-      def change_column(table_name, column_name, type, options = {}) #:nodoc:
+      def change_column(table_name, column_name, type, **options) # :nodoc:
         alter_table(table_name) do |definition|
           definition[column_name].instance_eval do
-            self.type    = type
-            self.limit   = options[:limit] if options.include?(:limit)
-            self.default = options[:default] if options.include?(:default)
-            self.null    = options[:null] if options.include?(:null)
-            self.precision = options[:precision] if options.include?(:precision)
-            self.scale = options[:scale] if options.include?(:scale)
-            self.collation = options[:collation] if options.include?(:collation)
+            self.type = aliased_types(type.to_s, type)
+            self.options.merge!(options)
           end
         end
       end
 
-      def rename_column(table_name, column_name, new_column_name) #:nodoc:
+      def rename_column(table_name, column_name, new_column_name) # :nodoc:
         column = column_for(table_name, column_name)
         alter_table(table_name, rename: { column.name => new_column_name.to_s })
         rename_column_indexes(table_name, column.name, new_column_name)
@@ -323,7 +325,12 @@ module ActiveRecord
           sql << " ON CONFLICT #{insert.conflict_target} DO NOTHING"
         elsif insert.update_duplicates?
           sql << " ON CONFLICT #{insert.conflict_target} DO UPDATE SET "
-          sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
+          if insert.raw_update_sql?
+            sql << insert.raw_update_sql
+          else
+            sql << insert.touch_model_timestamps_unless { |column| "#{column} IS excluded.#{column}" }
+            sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
+          end
         end
 
         sql
@@ -343,16 +350,36 @@ module ActiveRecord
         end
       end
 
+      class SQLite3Integer < Type::Integer # :nodoc:
+        private
+          def _limit
+            # INTEGER storage class can be stored 8 bytes value.
+            # See https://www.sqlite.org/datatype3.html#storage_classes_and_datatypes
+            limit || 8
+          end
+      end
+
+      ActiveRecord::Type.register(:integer, SQLite3Integer, adapter: :sqlite3)
+
+      class << self
+        private
+          def initialize_type_map(m)
+            super
+            register_class_with_limit m, %r(int)i, SQLite3Integer
+          end
+      end
+
+      TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
+
       private
+        def type_map
+          TYPE_MAP
+        end
+
         # See https://www.sqlite.org/limits.html,
         # the default value is 999 when not configured.
         def bind_params_length
           999
-        end
-
-        def initialize_type_map(m = type_map)
-          super
-          register_class_with_limit m, %r(int)i, SQLite3Integer
         end
 
         def table_structure(table_name)
@@ -369,7 +396,12 @@ module ActiveRecord
             options[:null] == false && options[:default].nil?
         end
 
-        def alter_table(table_name, foreign_keys = foreign_keys(table_name), **options)
+        def alter_table(
+          table_name,
+          foreign_keys = foreign_keys(table_name),
+          check_constraints = check_constraints(table_name),
+          **options
+        )
           altered_table_name = "a#{table_name}"
 
           caller = lambda do |definition|
@@ -380,6 +412,10 @@ module ActiveRecord
               end
               to_table = strip_table_name_prefix_and_suffix(fk.to_table)
               definition.foreign_key(to_table, **fk.options)
+            end
+
+            check_constraints.each do |chk|
+              definition.check_constraint(chk.expression, **chk.options)
             end
 
             yield definition if block_given?
@@ -448,10 +484,11 @@ module ActiveRecord
 
             unless columns.empty?
               # index name can't be the same
-              opts = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_"), internal: true }
-              opts[:unique] = true if index.unique
-              opts[:where] = index.where if index.where
-              add_index(to, columns, opts)
+              options = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_"), internal: true }
+              options[:unique] = true if index.unique
+              options[:where] = index.where if index.where
+              options[:order] = index.orders if index.orders
+              add_index(to, columns, **options)
             end
           end
         end
@@ -470,23 +507,24 @@ module ActiveRecord
         end
 
         def translate_exception(exception, message:, sql:, binds:)
-          case exception.message
           # SQLite 3.8.2 returns a newly formatted error message:
           #   UNIQUE constraint failed: *table_name*.*column_name*
           # Older versions of SQLite return:
           #   column *column_name* is not unique
-          when /column(s)? .* (is|are) not unique/, /UNIQUE constraint failed: .*/
+          if exception.message.match?(/(column(s)? .* (is|are) not unique|UNIQUE constraint failed: .*)/i)
             RecordNotUnique.new(message, sql: sql, binds: binds)
-          when /.* may not be NULL/, /NOT NULL constraint failed: .*/
+          elsif exception.message.match?(/(.* may not be NULL|NOT NULL constraint failed: .*)/i)
             NotNullViolation.new(message, sql: sql, binds: binds)
-          when /FOREIGN KEY constraint failed/i
+          elsif exception.message.match?(/FOREIGN KEY constraint failed/i)
             InvalidForeignKey.new(message, sql: sql, binds: binds)
+          elsif exception.message.match?(/called on a closed database/i)
+            ConnectionNotEstablished.new(exception)
           else
             super
           end
         end
 
-        COLLATE_REGEX = /.*\"(\w+)\".*collate\s+\"(\w+)\".*/i.freeze
+        COLLATE_REGEX = /.*"(\w+)".*collate\s+"(\w+)".*/i.freeze
 
         def table_structure_with_collation(table_name, basic_structure)
           collation_hash = {}
@@ -500,12 +538,12 @@ module ActiveRecord
           # Result will have following sample string
           # CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
           #                       "password_digest" varchar COLLATE "NOCASE");
-          result = exec_query(sql, "SCHEMA").first
+          result = query_value(sql, "SCHEMA")
 
           if result
             # Splitting with left parentheses and discarding the first part will return all
             # columns separated with comma(,).
-            columns_string = result["sql"].split("(", 2).last
+            columns_string = result.split("(", 2).last
 
             columns_string.split(",").each do |column_string|
               # This regex will match the column name and collation type and will save
@@ -513,7 +551,7 @@ module ActiveRecord
               collation_hash[$1] = $2 if COLLATE_REGEX =~ column_string
             end
 
-            basic_structure.map! do |column|
+            basic_structure.map do |column|
               column_name = column["name"]
 
               if collation_hash.has_key? column_name
@@ -548,17 +586,6 @@ module ActiveRecord
 
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
-
-        class SQLite3Integer < Type::Integer # :nodoc:
-          private
-            def _limit
-              # INTEGER storage class can be stored 8 bytes value.
-              # See https://www.sqlite.org/datatype3.html#storage_classes_and_datatypes
-              limit || 8
-            end
-        end
-
-        ActiveRecord::Type.register(:integer, SQLite3Integer, adapter: :sqlite3)
     end
     ActiveSupport.run_load_hooks(:active_record_sqlite3adapter, SQLite3Adapter)
   end
