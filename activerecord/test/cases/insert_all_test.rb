@@ -406,6 +406,18 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_true_but_overridden
+    with_record_timestamps(Ship, true) do
+      Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }], record_timestamps: false
+
+      ship = Ship.find(101)
+      assert_nil ship.created_at
+      assert_nil ship.created_on
+      assert_nil ship.updated_at
+      assert_nil ship.updated_on
+    end
+  end
+
   def test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_false
     with_record_timestamps(Ship, false) do
       Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }]
@@ -415,6 +427,18 @@ class InsertAllTest < ActiveRecord::TestCase
       assert_nil ship.created_on
       assert_nil ship.updated_at
       assert_nil ship.updated_on
+    end
+  end
+
+  def test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_false_but_overridden
+    with_record_timestamps(Ship, false) do
+      Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }], record_timestamps: true
+
+      ship = Ship.find(101)
+      assert_equal Time.now.year, ship.created_at.year
+      assert_equal Time.now.year, ship.created_on.year
+      assert_equal Time.now.year, ship.updated_at.year
+      assert_equal Time.now.year, ship.updated_on.year
     end
   end
 
@@ -434,6 +458,22 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_upsert_all_does_not_implicitly_set_timestamps_on_update_when_model_record_timestamps_is_true_but_overridden
+    skip unless supports_insert_on_duplicate_update?
+
+    with_record_timestamps(Ship, true) do
+      travel_to(Date.new(2016, 4, 17)) { Ship.create! id: 101, name: "RSS Boaty McBoatface" }
+
+      Ship.upsert_all [{ id: 101, name: "RSS Sir David Attenborough" }], record_timestamps: false
+
+      ship = Ship.find(101)
+      assert_equal 2016, ship.created_at.year
+      assert_equal 2016, ship.created_on.year
+      assert_equal 2016, ship.updated_at.year
+      assert_equal 2016, ship.updated_on.year
+    end
+  end
+
   def test_upsert_all_does_not_implicitly_set_timestamps_on_update_when_model_record_timestamps_is_false
     skip unless supports_insert_on_duplicate_update?
 
@@ -447,6 +487,22 @@ class InsertAllTest < ActiveRecord::TestCase
       assert_nil ship.created_on
       assert_nil ship.updated_at
       assert_nil ship.updated_on
+    end
+  end
+
+  def test_upsert_all_implicitly_sets_timestamps_on_update_when_model_record_timestamps_is_false_but_overridden
+    skip unless supports_insert_on_duplicate_update?
+
+    with_record_timestamps(Ship, false) do
+      Ship.create! id: 101, name: "RSS Boaty McBoatface"
+
+      Ship.upsert_all [{ id: 101, name: "RSS Sir David Attenborough" }], record_timestamps: true
+
+      ship = Ship.find(101)
+      assert_nil ship.created_at
+      assert_nil ship.created_on
+      assert_equal Time.now.year, ship.updated_at.year
+      assert_equal Time.now.year, ship.updated_on.year
     end
   end
 
