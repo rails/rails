@@ -1259,7 +1259,7 @@ class ArticlesController < ApplicationController
     @article = Article.find(params[:id])
     @article.destroy
 
-    redirect_to root_path
+    redirect_to root_path, status: 303
   end
 
   private
@@ -1271,7 +1271,7 @@ end
 
 The `destroy` action fetches the article from the database, and calls [`destroy`](
 https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-destroy)
-on it. Then, it redirects the browser to the root path.
+on it. Then, it redirects the browser to the root path, with a HTTP status of 303.
 
 We have chosen to redirect to the root path because that is our main access
 point for articles. But, in other circumstances, you might choose to redirect to
@@ -1288,21 +1288,19 @@ we can delete an article from its own page:
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
   <li><%= link_to "Destroy", article_path(@article),
-                  method: :delete,
-                  data: { confirm: "Are you sure?" } %></li>
+                  "data-turbo-method": :delete } %></li>
 </ul>
 ```
 
-In the above code, we're passing a few additional options to `link_to`. The
-`method: :delete` option causes the link to make a `DELETE` request instead of a
-`GET` request. The `data: { confirm: "Are you sure?" }` option causes a
-confirmation dialog to appear when the link is clicked. If the user cancels the
-dialog, the request is aborted. Both of these options are powered by a feature
-of Rails called *Unobtrusive JavaScript* (UJS). The JavaScript file that
+In the above code, we're passing an additional option to `link_to`. The
+`"data-turbo-method": :delete` option causes the link to make a `DELETE` request
+via Turbo instead of a `GET` request.
+
+This option is powered by a JavaScript framework called *Turbo Drive*. The JavaScript file that
 implements these behaviors is included by default in fresh Rails applications.
 
-TIP: To learn more about Unobtrusive JavaScript, see [Working With JavaScript in
-Rails](working_with_javascript_in_rails.html).
+TIP: To learn more about Turbo Drive, see [Navigating With Turbo Drive in
+Rails](https://turbo.hotwired.dev/handbook/drive).
 
 And that's it! We can now list, show, create, update, and delete articles!
 InCRUDable!
@@ -1482,8 +1480,7 @@ So first, we'll wire up the Article show template
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
   <li><%= link_to "Destroy", article_path(@article),
-                  method: :delete,
-                  data: { confirm: "Are you sure?" } %></li>
+                  "data-turbo-method": :delete} %></li>
 </ul>
 
 <h2>Add a comment:</h2>
@@ -1548,8 +1545,7 @@ add that to the `app/views/articles/show.html.erb`.
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
   <li><%= link_to "Destroy", article_path(@article),
-                  method: :delete,
-                  data: { confirm: "Are you sure?" } %></li>
+                  "data-turbo-method": :delete %></li>
 </ul>
 
 <h2>Comments</h2>
@@ -1622,8 +1618,7 @@ following:
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
   <li><%= link_to "Destroy", article_path(@article),
-                  method: :delete,
-                  data: { confirm: "Are you sure?" } %></li>
+                  "data-turbo-method": :delete %></li>
 </ul>
 
 <h2>Comments</h2>
@@ -1681,9 +1676,9 @@ Then you make the `app/views/articles/show.html.erb` look like the following:
 
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
-  <li><%= link_to "Destroy", article_path(@article),
-                  method: :delete,
-                  data: { confirm: "Are you sure?" } %></li>
+    <li><%= link_to "Destroy", article_path(@article),
+                  "data-turbo-method": :delete %></li>
+
 </ul>
 
 <h2>Comments</h2>
@@ -1960,10 +1955,8 @@ So first, let's add the delete link in the
 
 <p>
   <%= link_to 'Destroy Comment', [comment.article, comment],
-              method: :delete,
-              data: { confirm: "Are you sure?" } %>
-</p>
-```
+              "data-turbo-method": :delete %>
+</p>```
 
 Clicking this new "Destroy Comment" link will fire off a `DELETE
 /articles/:article_id/comments/:id` to our `CommentsController`, which can then
@@ -1982,7 +1975,7 @@ class CommentsController < ApplicationController
     @article = Article.find(params[:article_id])
     @comment = @article.comments.find(params[:id])
     @comment.destroy
-    redirect_to article_path(@article)
+    redirect_to article_path(@article), status: 303
   end
 
   private
