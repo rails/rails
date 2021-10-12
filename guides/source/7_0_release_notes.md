@@ -153,6 +153,10 @@ Please refer to the [Changelog][action-mailbox] for detailed changes.
 
 ### Removals
 
+*   Removed deprecated `Rails.application.credentials.action_mailbox.mailgun_api_key`.
+
+*   Removed deprecated environment variable `MAILGUN_INGRESS_API_KEY`.
+
 ### Deprecations
 
 ### Notable changes

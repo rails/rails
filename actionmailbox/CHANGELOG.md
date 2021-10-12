@@ -1,3 +1,12 @@
+*   Removed deprecated environment variable `MAILGUN_INGRESS_API_KEY`.
+
+    *Rafael Mendonça França*
+
+*   Removed deprecated `Rails.application.credentials.action_mailbox.mailgun_api_key`.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 7.0.0.alpha2 (September 15, 2021) ##
 
 *   No changes.
