@@ -1,6 +1,8 @@
 bundle install
 yarn install
 
+sudo chown -R vscode:vscode /usr/local/bundle/bundler
+
 sudo service postgresql start
 sudo service mariadb start
 sudo service redis-server start

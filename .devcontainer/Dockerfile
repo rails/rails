@@ -28,8 +28,6 @@ RUN wget -qO /tmp/im.tar.xz https://imagemagick.org/download/releases/ImageMagic
     && ldconfig /usr/local/lib \
     && rm -rf /tmp/*
 
-
-# [Optional] Uncomment this line to install additional gems.
 # Add the Rails main Gemfile and install the gems. This means the gem install can be done
 # during build instead of on start. When a fork or branch has different gems, we still have an
 # advantage due to caching of the other gems.
@@ -51,6 +49,3 @@ RUN cd /tmp/rails \
     && bundle install \
     && yarn install \
     && rm -rf /tmp/rails
-
-# [Optional] Uncomment this line to install global node packages.
-# RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1

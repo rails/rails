@@ -100,7 +100,7 @@ PATH
       actionpack (= 7.0.0.alpha2)
       activesupport (= 7.0.0.alpha2)
       method_source
-      rake (>= 0.13)
+      rake (>= 12.2)
       thor (~> 1.0)
       zeitwerk (~> 2.5.0.beta5)
 
@@ -606,4 +606,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   2.2.28
+   2.2.29
