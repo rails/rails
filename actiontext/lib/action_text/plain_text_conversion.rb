@@ -34,8 +34,7 @@ module ActionText
       end
 
       def plain_text_for_list(node, index)
-        block_nested_list = "\n" if list_node_depth_for_node(node) > 0
-        "#{block_nested_list}#{remove_trailing_newlines(plain_text_for_node_children(node))}\n\n"
+        "#{break_if_nested_list(node, plain_text_for_block(node))}"
       end
 
       %i[ h1 p ].each do |element|
@@ -100,6 +99,14 @@ module ActionText
 
       def list_node_depth_for_node(node)
         node.ancestors.map(&:name).grep(/^[uo]l$/).count
+      end
+
+      def break_if_nested_list(node, text)
+        if list_node_depth_for_node(node) > 0
+          "\n#{text}"
+        else
+          text
+        end
       end
   end
 end
