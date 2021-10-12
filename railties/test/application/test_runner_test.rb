@@ -745,7 +745,7 @@ module ApplicationTests
 
       file = create_test_for_env("test")
       results = Dir.chdir(app_path) {
-        `ruby -Ilib:test #{file}`.each_line.map { |line| JSON.parse line }
+        `ruby -Ilib:test #{file}`.each_line.filter_map { |line| JSON.parse(line) if line.start_with?("{") }
       }
       assert_equal 1, results.length
       failures = results.first["failures"]
@@ -762,7 +762,8 @@ module ApplicationTests
 
       file = create_test_for_env("development")
       results = Dir.chdir(app_path) {
-        `RAILS_ENV=development ruby -Ilib:test #{file}`.each_line.map { |line| JSON.parse line }
+        `RAILS_ENV=development ruby -Ilib:test #{file}`.each_line.
+          filter_map { |line| JSON.parse(line) if line.start_with?("{") }
       }
       assert_equal 1, results.length
       failures = results.first["failures"]
