@@ -88,6 +88,12 @@ module AbstractController
         )
       end
 
+      def test_anchor_should_escape_hash_once_using_percentage_encoding
+        assert_equal("/c/a#title=%23%20anchor",
+          W.new.url_for(only_path: true, controller: "c", action: "a", anchor: { title: "# anchor" })
+        )
+      end
+
       def test_anchor_should_not_escape_safe_pchar
         assert_equal("/c/a#name=user&email=user@domain.com",
           W.new.url_for(only_path: true, controller: "c", action: "a", anchor: Struct.new(:to_param).new("name=user&email=user@domain.com"))

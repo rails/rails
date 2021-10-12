@@ -1,3 +1,7 @@
+*   Escape anchor once in `url_for` with `Hash` syntax.
+
+    *Jacopo Beschi*
+
 *   Allow permitting numeric params.
 
     Previously it was impossible to permit different fields on numeric parameters.

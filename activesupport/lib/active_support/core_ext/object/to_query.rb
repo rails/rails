@@ -10,8 +10,14 @@ class Object
 
   # Converts an object into a string suitable for use as a URL query string,
   # using the given <tt>key</tt> as the param name.
-  def to_query(key)
-    "#{CGI.escape(key.to_param)}=#{CGI.escape(to_param.to_s)}"
+  #
+  # If <tt>escape: false</tt> is provided values are not escaped.
+  def to_query(key, escape: true)
+    if escape
+      "#{CGI.escape(key.to_param)}=#{CGI.escape(to_param.to_s)}"
+    else
+      "#{key.to_param}=#{to_param}"
+    end
   end
 end
 
@@ -47,13 +53,15 @@ class Array
   # using the given +key+ as the param name.
   #
   #   ['Rails', 'coding'].to_query('hobbies') # => "hobbies%5B%5D=Rails&hobbies%5B%5D=coding"
-  def to_query(key)
+  #
+  # If <tt>escape: false</tt> is provided values are not escaped.
+  def to_query(key, escape: true)
     prefix = "#{key}[]"
 
     if empty?
-      nil.to_query(prefix)
+      nil.to_query(prefix, escape: escape)
     else
-      collect { |value| value.to_query(prefix) }.join "&"
+      collect { |value| value.to_query(prefix, escape: escape) }.join "&"
     end
   end
 end
@@ -70,14 +78,14 @@ class Hash
   #   {name: 'David', nationality: 'Danish'}.to_query('user')
   #   # => "user%5Bname%5D=David&user%5Bnationality%5D=Danish"
   #
+  # If <tt>escape: false</tt> is provided values are not escaped.
+  #
   # The string pairs "key=value" that conform the query string
   # are sorted lexicographically in ascending order.
-  #
-  # This method is also aliased as +to_param+.
-  def to_query(namespace = nil)
+  def to_query(namespace = nil, escape: true)
     query = filter_map do |key, value|
       unless (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
-        value.to_query(namespace ? "#{namespace}[#{key}]" : key)
+        value.to_query(namespace ? "#{namespace}[#{key}]" : key, escape: escape)
       end
     end
 
