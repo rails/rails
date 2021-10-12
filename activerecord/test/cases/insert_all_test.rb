@@ -442,6 +442,14 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_upsert_all_respects_created_at_precision_when_touched_implicitly
+    skip unless supports_datetime_with_precision?
+
+    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8) }]
+
+    assert_not_predicate Book.find(101).created_at.usec, :zero?, "created_at should have sub-second precision"
+  end
+
   def test_upsert_all_implicitly_sets_timestamps_on_update_when_model_record_timestamps_is_true
     skip unless supports_insert_on_duplicate_update?
 
