@@ -1797,7 +1797,7 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.action_controller.raise_on_open_redirects`: `false`
 - `config.action_controller.urlsafe_csrf_tokens`: `false`
 - `config.action_dispatch.cookies_same_site_protection`: `nil`
-- `config.action_mailer.delivery_job`: `ActionMailer::DeliveryJob`
+- `config.action_mailer.delivery_job`: `ActionMailer::MailDeliveryJob`
 - `config.action_view.form_with_generates_ids`: `false`
 - `config.action_view.preload_links_header`: `nil`
 - `config.action_view.button_to_generates_button_tag`: `false`

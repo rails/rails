@@ -1,3 +1,8 @@
+*   Remove deprecated `ActionMailer::DeliveryJob` and `ActionMailer::Parameterized::DeliveryJob`
+    in favor of `ActionMailer::MailDeliveryJob`.
+
+    *Rafael Mendonça França*
+
 *   `email_address_with_name` returns just the address if name is blank.
 
     *Thomas Hutterer*

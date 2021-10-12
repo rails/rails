@@ -1170,7 +1170,7 @@ module ApplicationTests
       assert_equal [::MyMailObserver, ::MyOtherMailObserver], ::Mail.class_variable_get(:@@delivery_notification_observers)
     end
 
-    test "allows setting the queue name for the ActionMailer::DeliveryJob" do
+    test "allows setting the queue name for the ActionMailer::MailDeliveryJob" do
       add_to_config <<-RUBY
         config.action_mailer.deliver_later_queue_name = 'test_default'
       RUBY
@@ -3033,27 +3033,6 @@ module ApplicationTests
     end
 
     test "ActionMailer::Base.delivery_job is ActionMailer::MailDeliveryJob by default" do
-      app "development"
-
-      assert_equal ActionMailer::MailDeliveryJob, ActionMailer::Base.delivery_job
-    end
-
-    test "ActionMailer::Base.delivery_job is ActionMailer::DeliveryJob in the 5.x defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "5.2"'
-
-      app "development"
-
-      assert_equal ActionMailer::DeliveryJob, ActionMailer::Base.delivery_job
-    end
-
-    test "ActionMailer::Base.delivery_job can be configured in the new framework defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.action_mailer.delivery_job = "ActionMailer::MailDeliveryJob"
-      RUBY
-
       app "development"
 
       assert_equal ActionMailer::MailDeliveryJob, ActionMailer::Base.delivery_job

@@ -74,6 +74,9 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `ActionMailer::DeliveryJob` and `ActionMailer::Parameterized::DeliveryJob`
+    in favor of `ActionMailer::MailDeliveryJob`.
+
 ### Deprecations
 
 ### Notable changes
