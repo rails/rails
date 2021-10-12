@@ -4,6 +4,7 @@ require "cases/helper"
 require "models/author"
 require "models/book"
 require "models/cart"
+require "models/ship"
 require "models/speedometer"
 require "models/subscription"
 require "models/subscriber"
@@ -393,6 +394,62 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal updated_on, Book.find(101).updated_on
   end
 
+  def test_upsert_all_does_not_implicitly_set_timestamps_on_create_even_when_model_record_timestamps_is_true
+    with_record_timestamps(Ship, true) do
+      Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }]
+
+      ship = Ship.find(101)
+      assert_nil ship.created_at
+      assert_nil ship.created_on
+      assert_nil ship.updated_at
+      assert_nil ship.updated_on
+    end
+  end
+
+  def test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_false
+    with_record_timestamps(Ship, false) do
+      Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }]
+
+      ship = Ship.find(101)
+      assert_nil ship.created_at
+      assert_nil ship.created_on
+      assert_nil ship.updated_at
+      assert_nil ship.updated_on
+    end
+  end
+
+  def test_upsert_all_implicitly_sets_timestamps_on_update_when_model_record_timestamps_is_true
+    skip unless supports_insert_on_duplicate_update?
+
+    with_record_timestamps(Ship, true) do
+      travel_to(Date.new(2016, 4, 17)) { Ship.create! id: 101, name: "RSS Boaty McBoatface" }
+
+      Ship.upsert_all [{ id: 101, name: "RSS Sir David Attenborough" }]
+
+      ship = Ship.find(101)
+      assert_equal 2016, ship.created_at.year
+      assert_equal 2016, ship.created_on.year
+      assert_equal Time.now.year, ship.updated_at.year
+      assert_equal Time.now.year, ship.updated_on.year
+    end
+  end
+
+  def test_upsert_all_implicitly_sets_timestamps_on_update_even_when_model_record_timestamps_is_false
+    skip unless supports_insert_on_duplicate_update?
+
+    with_record_timestamps(Ship, false) do
+      Ship.create! id: 101, name: "RSS Boaty McBoatface"
+
+      Ship.upsert_all [{ id: 101, name: "RSS Sir David Attenborough" }]
+
+      ship = Ship.find(101)
+      assert_nil ship.created_at
+      assert_nil ship.created_on
+      assert_equal Time.now.year, ship.updated_at.year
+      assert_equal Time.now.year, ship.updated_on.year
+    end
+  end
+
   def test_insert_all_raises_on_unknown_attribute
     assert_raise ActiveRecord::UnknownAttributeError do
       Book.insert_all! [{ unknown_attribute: "Test" }]
@@ -514,5 +571,13 @@ class InsertAllTest < ActiveRecord::TestCase
       ensure
         ActiveRecord::Base.logger = old_logger
       end
+    end
+
+    def with_record_timestamps(model, value)
+      original = model.record_timestamps
+      model.record_timestamps = value
+      yield
+    ensure
+      model.record_timestamps = original
     end
 end
