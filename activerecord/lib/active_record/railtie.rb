@@ -145,7 +145,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
               schema_cache_path: db_config.schema_cache_path
             )
 
-            cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(filename)
+            cache = ActiveRecord::ConnectionAdapters::SchemaCache._load_from(filename)
             next if cache.nil?
 
             if check_schema_cache_dump_version
@@ -157,14 +157,14 @@ To keep using the current cache store, you can turn off cache versioning entirel
               end
               next if current_version.nil?
 
-              if cache.version != current_version
-                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{cache.version}."
+              if cache.schema_version != current_version
+                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{cache.schema_version}."
                 next
               end
             end
 
             Rails.logger.info("Using schema cache file #{filename}")
-            connection_pool.set_schema_cache(cache)
+            connection_pool.schema_reflection.set_schema_cache(cache)
           end
         end
       end
@@ -177,14 +177,17 @@ To keep using the current cache store, you can turn off cache versioning entirel
             begin
               descendants.each do |model|
                 # If the schema cache was loaded from a dump, we can use it without connecting
-                schema_cache = model.connection_pool.schema_cache
-
-                # If there's no connection yet, we avoid connecting.
-                schema_cache ||= model.connected? && model.connection.schema_cache
+                if schema_reflection = model.connection_pool.schema_reflection
+                  # TODO: this is dirty, can we find a better way?
+                  schema_reflection = schema_reflection.bind(nil)
+                elsif model.connected?
+                  # If there's no connection yet, we avoid connecting.
+                  schema_reflection = model.connection.schema_reflection
+                end
 
                 # If the schema cache doesn't have the columns
                 # hash for the model cached, `define_attribute_methods` would trigger a query.
-                if schema_cache && schema_cache.columns_hash?(model.table_name)
+                if schema_reflection && schema_reflection.columns_hash?(model.table_name)
                   model.define_attribute_methods
                 end
               end

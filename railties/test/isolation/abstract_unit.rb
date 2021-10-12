@@ -234,8 +234,7 @@ module TestHelpers
       # We need to change the `database_version` to match what is expected for MySQL
       dump_path = File.join(app_path, "db/schema_cache.yml")
       if File.exist?(dump_path)
-        schema_cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(dump_path)
-        schema_cache.connection = Struct.new(:schema_version).new(schema_cache.version)
+        schema_cache = ActiveRecord::ConnectionAdapters::SchemaCache._load_from(dump_path)
         schema_cache.instance_variable_set(:@database_version, ActiveRecord::ConnectionAdapters::AbstractAdapter::Version.new("8.8.8"))
         File.write(dump_path, YAML.dump(schema_cache))
       end
