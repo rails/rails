@@ -52,7 +52,21 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
     )
   end
 
-  test "nested list tags are indented" do
+  test "basic nested <ul> tags are indented" do
+    assert_converted_to(
+      "• Item 1\n  • Item 2",
+      "<ul><li>Item 1<ul><li>Item 2</li></ul></li></ul>"
+    )
+  end
+
+  test "basic nested <ol> tags are indented" do
+    assert_converted_to(
+      "1. Item 1\n  1. Item 2",
+      "<ol><li>Item 1<ol><li>Item 2</li></ol></li></ol>"
+    )
+  end
+
+  test "complex nested / mixed list tags are indented" do
     assert_converted_to(
       "• Item 0\n• Item 1\n  • Item A\n    1. Item i\n    2. Item ii\n  • Item B\n    • Item i\n• Item 2",
       "<ul><li>Item 0</li><li>Item 1<ul><li>Item A<ol><li>Item i</li><li>Item ii</li></ol></li><li>Item B<ul><li>Item i</li></ul></li></ul></li><li>Item 2</li></ul>"
