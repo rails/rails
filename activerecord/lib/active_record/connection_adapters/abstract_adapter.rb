@@ -41,9 +41,17 @@ module ActiveRecord
       SIMPLE_INT = /\A\d+\z/
       COMMENT_REGEX = %r{(?:--.*\n)|/\*(?:[^*]|\*[^/])*\*/}
 
-      attr_accessor :pool
+      attr_reader :pool
       attr_reader :visitor, :owner, :logger, :lock
       alias :in_use? :owner
+
+      def pool=(value)
+        return if value.eql?(@pool)
+        @schema_cache = nil
+        @pool = value
+
+        @pool.schema_reflection.load!(self) if ActiveRecord.lazily_load_schema_cache
+      end
 
       set_callback :checkin, :after, :enable_lazy_transactions!
 
@@ -327,12 +335,7 @@ module ActiveRecord
       end
 
       def schema_cache
-        @pool.get_schema_cache(self)
-      end
-
-      def schema_cache=(cache)
-        cache.connection = self
-        @pool.set_schema_cache(cache)
+        @schema_cache ||= BoundSchemaReflection.new(@pool.schema_reflection, self)
       end
 
       # this method must only be called while holding connection pool's mutex
@@ -729,12 +732,6 @@ module ActiveRecord
       # rid of a connection that belonged to its parent.
       def discard!
         # This should be overridden by concrete adapters.
-        #
-        # Prevent @raw_connection's finalizer from touching the socket, or
-        # otherwise communicating with its server, when it is collected.
-        if schema_cache.connection == self
-          schema_cache.connection = nil
-        end
       end
 
       # Reset the state of this connection, directing the DBMS to clear
