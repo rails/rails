@@ -258,7 +258,8 @@ body {
 }
 
 #header {
-  background: #c52f24 url(../images/header_tile.gif) repeat-x;
+  background: #c52f24;
+  border-top: 2px ridge #bf2a20bb;
   color: #FFF;
   padding: 1.5em 0;
   z-index: 99;
