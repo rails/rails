@@ -1,0 +1,21 @@
+:root {
+  <%= render "themes/light" %>
+}
+
+@media (prefers-color-scheme: dark) {
+  :root, .dark-theme {
+    <%= render "themes/dark" %>
+  }
+  .light-theme {
+    <%= render "themes/light" %>
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root, .light-theme {
+    <%= render "themes/light" %>
+  }
+  .dark-theme {
+    <%= render "themes/dark" %>
+  }
+}

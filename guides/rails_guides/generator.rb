@@ -38,6 +38,7 @@ module RailsGuides
     def generate
       generate_guides
       copy_assets
+      generate_colors_css
       generate_mobi if @kindle
     end
 
@@ -123,6 +124,19 @@ module RailsGuides
 
       def overwrite_css_with_right_to_left_direction
         FileUtils.mv("#{@output_dir}/stylesheets/main.rtl.css", "#{@output_dir}/stylesheets/main.css")
+      end
+
+      def generate_colors_css
+        output_path = Pathname.new(File.join(@output_dir, "stylesheets"))
+        result      = ActionView::Base.with_empty_template_cache
+                                      .with_view_paths([output_path.to_s])
+                                      .render(formats: [:css], template: "color")
+
+        File.open(output_path.join("color.css"), "w") do |f|
+          f.write(result)
+        end
+
+        FileUtils.rm_rf [output_path.join("color.css.erb"), output_path.join("themes")]
       end
 
       def output_file_for(guide)

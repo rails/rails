@@ -9,6 +9,7 @@ Import advanced style sheet
 ---------------------------------------
 */
 
+@import url("color.css");
 @import url("reset.css");
 @import url("main.css");
 @import url("dark.css");
