@@ -52,6 +52,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `ActionDispatch::Response.return_only_media_type_on_content_type`.
+
 ### Deprecations
 
 ### Notable changes

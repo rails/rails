@@ -1,3 +1,7 @@
+*   Remove deprecated `ActionDispatch::Response.return_only_media_type_on_content_type`.
+
+    *Rafael Mendonça França*
+
 *   Raise `ActionController::Redirecting::UnsafeRedirectError` for unsafe `redirect_to` redirects.
 
     This allows `rescue_from` to be used to add a default fallback route:
