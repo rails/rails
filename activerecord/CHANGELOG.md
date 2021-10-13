@@ -1,3 +1,7 @@
+*   Exclude primary key from the current scope when creating new records
+
+    *Oleksandr Kohulko*
+
 *   Add support for FILTER clause (SQL:2003) to Arel.
 
     Currently supported by PostgreSQL 9.4+ and SQLite 3.30+.

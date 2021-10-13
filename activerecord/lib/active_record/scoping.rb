@@ -47,7 +47,7 @@ module ActiveRecord
     def populate_with_current_scope_attributes # :nodoc:
       return unless self.class.scope_attributes?
 
-      attributes = self.class.scope_attributes
+      attributes = self.class.scope_attributes.reject { |attr| self.class.primary_key == attr }
       _assign_attributes(attributes) if attributes.any?
     end
 

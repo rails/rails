@@ -1280,6 +1280,15 @@ class BasicsTest < ActiveRecord::TestCase
     Object.send(:remove_const, :ReloadableModel)
   end
 
+  def test_dont_include_primary_key_into_current_scope_for_new_records
+    fake_id = "1-meowmeow"
+    scope = Post.where(id: fake_id, title: "Title")
+    new_post = scope.new
+
+    assert_equal "Title", new_post.title
+    assert_nil new_post.id
+  end
+
   def test_marshal_round_trip
     expected = posts(:welcome)
     marshalled = Marshal.dump(expected)
