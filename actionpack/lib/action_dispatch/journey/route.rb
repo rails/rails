@@ -91,7 +91,6 @@ module ActionDispatch
       # as requirements.
       def requirements
         @defaults.merge(path.requirements).delete_if { |_, v|
-          /.+?/ == v ||
           /.+?/m == v
         }
       end

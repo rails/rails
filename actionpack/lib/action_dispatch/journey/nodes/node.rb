@@ -166,7 +166,7 @@ module ActionDispatch
           super(left)
 
           # By default wildcard routes are non-greedy and must match something.
-          @regexp = /.+?/
+          @regexp = /.+?/m
         end
 
         def star?; true; end
