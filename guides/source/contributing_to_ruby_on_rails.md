@@ -268,7 +268,7 @@ The above are guidelines - please use your best judgment in using them.
 Additionally, we have [RuboCop](https://www.rubocop.org/) rules defined to codify some of our coding conventions. You can run RuboCop locally against the file that you have modified before submitting a pull request:
 
 ```bash
-$ rubocop actionpack/lib/action_controller/metal/strong_parameters.rb
+$ bundle exec rubocop actionpack/lib/action_controller/metal/strong_parameters.rb
 Inspecting 1 file
 .
 
