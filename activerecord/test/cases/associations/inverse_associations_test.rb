@@ -766,6 +766,15 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     end
   end
 
+  def test_with_hash_many_inversing_does_not_add_duplicate_associated_objects
+    with_has_many_inversing(Interest) do
+      human = Human.new
+      interest = Interest.new(human: human)
+      human.interests << interest
+      assert_equal 1, human.interests.size
+    end
+  end
+
   def test_unscope_does_not_set_inverse_when_incorrect
     interest = interests(:trainspotting)
     human = interest.human
