@@ -1,9 +1,119 @@
 --color-bg-primary:          #222222;
 --color-bg-secondary:        #000000;
 --color-bg-tertiary:         #333333;
+--color-bg-card-code:        #555555;
+--color-bg-clipboard:        #222222;
+--color-bg-clipboard-active: #313131;
+--color-bg-feature:          #243440;
+--color-bg-footer:           #000000;
+--color-bg-info:             #243440;
+--color-bg-note:             #3e3b2c;
+--color-bg-top-nav:          #222222;
+--color-bg-warn:             #482928;
+--color-bg-warn-code:        #555555;
+--color-bg-syntax-pre:       #272822; /* ????? */
+--color-bg-syntax-hll:       #272822; /* ????? */
+--color-bg-syntax-err:       #1e0010; /* Error */
+--color-bg-syntax-gd:        unset;   /* Generic.Deleted & Diff Deleted */
+--color-bg-syntax-gi:        unset;   /* Generic.Inserted & Diff Inserted */
 
 --color-border-primary:      #111111;
 --color-border-tertiary:     #666666;
+--color-border-code:         #333333;
+--color-border-feature:      #1f313e;
+--color-border-feature:      #1f313e55;
+--color-border-header:       #bf2a20bb;
+--color-border-info:         #d5e9f6;
+--color-border-note:         #fff9d8;
+--color-border-warn:         #f9d9d8;
 
 --color-text-primary:        #dddddd;
 --color-text-secondary:      #eeeeee;
+--color-text-info:           #d5e9f6;
+--color-text-link-red:       #fc4343;
+--color-text-note:           #fff9d8;
+--color-text-pre-code:       #dddddd;
+--color-text-top-nav:        #565656;
+--color-text-warn:           #f9d9d8;
+--color-text-syntax-bp:      #f8f8f2; /* Name.Builtin.Pseudo */
+--color-text-syntax-c:       #75715e; /* Comment */
+--color-text-syntax-c1:      #75715e; /* Comment.Single */
+--color-text-syntax-cm:      #75715e; /* Comment.Multiline */
+--color-text-syntax-cp:      #75715e; /* Comment.Preproc */
+--color-text-syntax-cs:      #75715e; /* Comment.Special */
+--color-text-syntax-err:     #960050; /* Error */
+--color-text-syntax-gd:      #f92672; /* Generic.Deleted & Diff Deleted */
+--color-text-syntax-ge:      #000000; /* Generic.Emph */
+--color-text-syntax-gh:      inherit; /* Generic Heading & Diff Header */
+--color-text-syntax-gi:      #a6e22e; /* Generic.Inserted & Diff Inserted */
+--color-text-syntax-go:      #6c6c6c; /*  */
+--color-text-syntax-gp:      #555555; /*  */
+--color-text-syntax-gr:      #aa0000; /*  */
+--color-text-syntax-gt:      #aa0000; /*  */
+--color-text-syntax-gu:      #75715e; /* Generic.Subheading & Diff Unified/Comment? */
+--color-text-syntax-il:      #ae81ff; /* Literal.Number.Integer.Long */
+--color-text-syntax-k:       #66d9ef; /* Keyword */
+--color-text-syntax-kc:      #66d9ef; /* Keyword.Constant */
+--color-text-syntax-kd:      #66d9ef; /* Keyword.Declaration */
+--color-text-syntax-kn:      #f92672; /* Keyword.Namespace */
+--color-text-syntax-kp:      #66d9ef; /* Keyword.Pseudo */
+--color-text-syntax-kr:      #66d9ef; /* Keyword.Reserved */
+--color-text-syntax-kt:      #66d9ef; /* Keyword.Type */
+--color-text-syntax-l:       #ae81ff; /* Literal */
+--color-text-syntax-ld:      #e6db74; /* Literal.Date */
+--color-text-syntax-m:       #ae81ff; /* Literal.Number */
+--color-text-syntax-mf:      #ae81ff; /* Literal.Number.Float */
+--color-text-syntax-mh:      #ae81ff; /* Literal.Number.Hex */
+--color-text-syntax-mi:      #ae81ff; /* Literal.Number.Integer */
+--color-text-syntax-mo:      #ae81ff; /* Literal.Number.Oct */
+--color-text-syntax-n:       #f8f8f2; /* Name */
+--color-text-syntax-na:      #a6e22e; /* Name.Attribute */
+--color-text-syntax-nb:      #f8f8f2; /* Name.Builtin */
+--color-text-syntax-nc:      #a6e22e; /* Name.Class */
+--color-text-syntax-nd:      #a6e22e; /* Name.Decorator */
+--color-text-syntax-ne:      #a6e22e; /* Name.Exception */
+--color-text-syntax-nf:      #a6e22e; /* Name.Function */
+--color-text-syntax-ni:      #f8f8f2; /* Name.Entity */
+--color-text-syntax-nl:      #f8f8f2; /* Name.Label */
+--color-text-syntax-nn:      #f8f8f2; /* Name.Namespace */
+--color-text-syntax-no:      #66d9ef; /* Name.Constant */
+--color-text-syntax-nt:      #f92672; /* Name.Tag */
+--color-text-syntax-nv:      #f8f8f2; /* Name.Variable */
+--color-text-syntax-nx:      #a6e22e; /* Name.Other */
+--color-text-syntax-o:       #f92672; /* Operator */
+--color-text-syntax-ow:      #f92672; /* Operator.Word */
+--color-text-syntax-p:       #f8f8f2; /* Punctuation */
+--color-text-syntax-py:      #f8f8f2; /* Name.Property */
+--color-text-syntax-s:       #e6db74; /* Literal.String */
+--color-text-syntax-s1:      #e6db74; /* Literal.String.Single */
+--color-text-syntax-s2:      #e6db74; /* Literal.String.Double */
+--color-text-syntax-sb:      #e6db74; /* Literal.String.Backtick */
+--color-text-syntax-sc:      #e6db74; /* Literal.String.Char */
+--color-text-syntax-sd:      #e6db74; /* Literal.String.Doc */
+--color-text-syntax-se:      #ae81ff; /* Literal.String.Escape */
+--color-text-syntax-sh:      #e6db74; /* Literal.String.Heredoc */
+--color-text-syntax-si:      #e6db74; /* Literal.String.Interpol */
+--color-text-syntax-sr:      #e6db74; /* Literal.String.Regex */
+--color-text-syntax-ss:      #e6db74; /* Literal.String.Symbol */
+--color-text-syntax-sx:      #e6db74; /* Literal.String.Other */
+--color-text-syntax-vc:      #f8f8f2; /* Name.Variable.Class */
+--color-text-syntax-vg:      #f8f8f2; /* Name.Variable.Global */
+--color-text-syntax-vi:      #f8f8f2; /* Name.Variable.Instance */
+--color-text-syntax-w:       #f8f8f2; /* Text.Whitespace */
+
+--card-bg-position:          10px 10px;
+--card-bg-size:              28px 28px;
+--card-border-style:         solid;
+--card-border-width:         1px;
+--chapter-bg-position-y:     2px;
+--check-bullet-bg-size:      1.4em 1.4em;
+
+--image-chapter:             url(../images/book_icon.svg);
+--image-chapter-bullet:      url(../images/bullet_dark.gif);
+--image-check:               url(../images/check_icon.svg);
+--image-code-container:      url(../images/cog_icon.svg);
+--image-info:                url(../images/info_icon.svg);
+--image-note:                url(../images/note_icon.svg);
+--image-todo:                url(../images/hand_icon.svg);
+--image-warn:                url(../images/hand_icon.svg);
+--image-wip:                 url(../images/wip_icon.svg);

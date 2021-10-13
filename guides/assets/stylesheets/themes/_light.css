@@ -1,9 +1,121 @@
 --color-bg-primary:          #ffffff;
 --color-bg-secondary:        #eeeeee;
 --color-bg-tertiary:         #eeeeee;
+--color-bg-card-code:        #ffffff;
+--color-bg-clipboard:        #dbdbdb;
+--color-bg-clipboard-active: #cccccc;
+--color-bg-feature:          #d5e9f6;
+--color-bg-footer:           #222222;
+--color-bg-info:             #d5e9f6;
+--color-bg-note:             #fff9d8;
+--color-bg-top-nav:          #222222;
+--color-bg-warn:             #f9d9d8;
+--color-bg-warn-code:        #eeeeee;
+--color-bg-syntax-pre:       unset;
+--color-bg-syntax-hll:       unset;
+--color-bg-syntax-err:       #e3d2d2; /* Error */
+--color-bg-syntax-gd:        #ffdddd; /* Generic.Deleted & Diff Deleted */
+--color-bg-syntax-gi:        #ddffdd; /* Generic.Inserted & Diff Inserted */
 
 --color-border-primary:      #111111;
 --color-border-tertiary:     #cccccc;
+--color-border-code:         #eeeeee;
+--color-border-feature:      #d0e6f4;
+--color-border-feature:      #d0e6f433;
+--color-border-header:       #bf2a20bb;
+--color-border-info:         none;
+--color-border-note:         none;
+--color-border-warn:         none;
 
 --color-text-primary:        #333333;
 --color-text-secondary:      #999999;
+--color-text-info:           inherit;
+--color-text-link-red:       #980905;
+--color-text-note:           inherit;
+--color-text-pre-code:       #222222;
+--color-text-top-nav:        #565656;
+--color-text-warn:           inherit;
+--color-text-syntax-bp:      #6c6c6c; /* Name.Builtin.Pseudo */
+--color-text-syntax-c:       #75715e; /* Comment */
+--color-text-syntax-c1:      #75715e; /* Comment.Single */
+--color-text-syntax-cm:      #75715e; /* Comment.Multiline */
+--color-text-syntax-cp:      #75715e; /* Comment.Preproc */
+--color-text-syntax-cs:      #75715e; /* Comment.Special */
+--color-text-syntax-err:     #a61717; /* Error */
+--color-text-syntax-gd:      #000000; /* Generic.Deleted & Diff Deleted */
+--color-text-syntax-ge:      #000000; /* Generic.Deleted & Diff Deleted */
+--color-text-syntax-gh:      #6c6c6c; /* Generic Heading & Diff Header */
+--color-text-syntax-gi:      #a6e22e; /* Generic.Inserted & Diff Inserted */
+--color-text-syntax-go:      #6c6c6c; /*  */
+--color-text-syntax-gp:      #555555; /*  */
+--color-text-syntax-gr:      #aa0000; /* Generic.Inserted & Diff Inserted */
+--color-text-syntax-gt:      #aa0000; /*  */
+--color-text-syntax-gu:      #6c6c6c; /* Generic.Subheading & Diff Unified/Comment? */
+--color-text-syntax-il:      #007979; /* Literal.Number.Integer.Long */
+--color-text-syntax-k:       #0073a6; /* Keyword */
+--color-text-syntax-kc:      #000000; /* Keyword.Constant */
+--color-text-syntax-kd:      #000000; /* Keyword.Declaration */
+--color-text-syntax-kn:      #000000; /* Keyword.Namespace */
+--color-text-syntax-kp:      #000000; /* Keyword.Pseudo */
+--color-text-syntax-kr:      #000000; /* Keyword.Reserved */
+--color-text-syntax-kt:      #445588; /* Keyword.Type */
+/*--color-text-syntax-l:       #ae81ff; /* Literal */
+/*--color-text-syntax-ld:      #e6db74; /* Literal.Date */
+/*--color-text-syntax-l:       #ae81ff; /* Literal */
+/*--color-text-syntax-ld:      #e6db74; /* Literal.Date */
+--color-text-syntax-m:       #007979; /* Literal.Number */
+--color-text-syntax-mf:      #007979; /* Literal.Number.Float */
+--color-text-syntax-mh:      #007979; /* Literal.Number.Hex */
+--color-text-syntax-mi:      #007979; /* Literal.Number.Integer */
+--color-text-syntax-mo:      #007979; /* Literal.Number.Oct */
+--color-text-syntax-n:       #f8f8f2; /* Name */
+--color-text-syntax-na:      #007979; /* Name.Attribute */
+--color-text-syntax-nb:      #0074a1; /* Name.Builtin */
+--color-text-syntax-nc:      #445588; /* Name.Class */
+--color-text-syntax-nd:      #3c5d5d; /* Name.Decorator */
+--color-text-syntax-ne:      #990000; /* Name.Exception */
+--color-text-syntax-nf:      #990000; /* Name.Function */
+--color-text-syntax-ni:      #800080; /* Name.Entity */
+--color-text-syntax-nl:      #990000; /* Name.Label */
+--color-text-syntax-nn:      #555555; /* Name.Namespace */
+--color-text-syntax-no:      #007979; /* Name.Constant */
+--color-text-syntax-nt:      #000080; /* Name.Tag */
+--color-text-syntax-nv:      #007979; /* Name.Variable */
+/*--color-text-syntax-nx:      #a6e22e; /* Name.Other */
+--color-text-syntax-o:       #000000; /* Operator */
+--color-text-syntax-ow:      #000000; /* Operator.Word */
+/*--color-text-syntax-p:       #f8f8f2; /* Punctuation */
+/*--color-text-syntax-py:      #f8f8f2; /* Name.Property */
+--color-text-syntax-s:       #d51144; /* Literal.String */
+--color-text-syntax-s1:      #d51144; /* Literal.String.Single */
+--color-text-syntax-s2:      #d51144; /* Literal.String.Double */
+--color-text-syntax-sb:      #d51144; /* Literal.String.Backtick */
+--color-text-syntax-sc:      #d51144; /* Literal.String.Char */
+--color-text-syntax-sd:      #d51144; /* Literal.String.Doc */
+--color-text-syntax-se:      #d51144; /* Literal.String.Escape */
+--color-text-syntax-sh:      #d51144; /* Literal.String.Heredoc */
+--color-text-syntax-si:      #d51144; /* Literal.String.Interpol */
+--color-text-syntax-sr:      #007e26; /* Literal.String.Regex */
+--color-text-syntax-ss:      #990073; /* Literal.String.Symbol */
+--color-text-syntax-sx:      #d51144; /* Literal.String.Other */
+--color-text-syntax-vc:      #007979; /* Name.Variable.Class */
+--color-text-syntax-vg:      #007979; /* Name.Variable.Global */
+--color-text-syntax-vi:      #005cc5; /* Name.Variable.Instance */
+--color-text-syntax-w:       #6c6c6c; /* Text.Whitespace */
+
+--card-bg-position:          left top;
+--card-bg-size:              auto;
+--card-border-style:         none;
+--card-border-width:         0px;
+--chapter-bg-position-y:     0%;
+--check-bullet-bg-size:      20px 16px;
+
+--image-chapter:             url(../images/chapters_icon.gif);
+--image-chapter-bullet:      url(../images/bullet.gif);
+--image-check:               url(../images/check_bullet.gif);
+--image-code-container:      url(../images/tab_grey.gif);
+--image-info:                url(../images/tab_info.gif);
+--image-note:                url(../images/tab_note.gif);
+--image-todo:                none;
+--image-warn:                url(../images/tab_red.gif);
+--image-wip:                 url(../images/tab_yellow.gif);

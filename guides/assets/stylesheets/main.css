@@ -31,11 +31,11 @@ pre, code {
   line-height: 1.5;
   margin: 1em 0;
   overflow: auto;
-  color: #222;
+  color: var(--color-text-pre-code);
 }
 
 p code, ul code {
-  background: #eee;
+  background: var(--color-bg-secondary);
   border-radius: 2px;
   padding: 1px 3px;
 }
@@ -71,23 +71,23 @@ textarea, select {
 
 table {
   margin: 0 0 1.5em;
-  background: #FFF;
+  background: var(--color-bg-primary);
   border-collapse: collapse;
 }
 
 tbody, thead {
-  border: 2px solid #CCC;
+  border: 2px solid var(--color-border-tertiary);
 }
 
 table th, table td {
   padding: 9px 10px;
-  border: 1px solid #CCC;
+  border: 1px solid var(--color-border-tertiary);
   border-collapse: collapse;
 }
 
 table th {
-  border-bottom: 2px solid #CCC;
-  background: #EEE;
+  border-bottom: 2px solid var(--color-border-tertiary);
+  background: var(--color-bg-tertiary);
   font-weight: bold;
 }
 
@@ -115,8 +115,8 @@ body {
   font-family: Helvetica, Arial, sans-serif;
   font-size: 87.5%;
   line-height: 1.5;
-  background: #fff;
-  color: #999;
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
 }
 
 .wrapper {
@@ -244,7 +244,8 @@ body {
 }
 
 .clipboard-button {
-  background: #dbdbdb;
+  background: var(--color-bg-clipboard);
+  color: var(--color-text-primary);
   border: 0;
   border-radius: 5px;
   padding: 2px 10px;
@@ -254,7 +255,7 @@ body {
 }
 
 .clipboard-button:active {
-  background: #ccc;
+  background: var(--color-bg-clipboard-active);
 }
 
 #header {
@@ -266,13 +267,14 @@ body {
 }
 
 #feature {
-  background: #d5e9f6 url(../images/feature_tile.gif) repeat-x;
-  color: #333;
+  background: var(--color-bg-feature);
+  border-top: 2px ridge var(--color-border-feature);
+  color: var(--color-text-primary);
   padding: 0.5em 0 1.5em;
 }
 
 #container {
-  color: #333;
+  color: var(--color-text-primary);
   padding: 0.5em 0 1.5em 0;
 }
 
@@ -285,12 +287,22 @@ body {
   z-index: 0;
   top: 21px;
   right: 0;
-  background: #FFF;
+  background: var(--color-bg-primary);
   padding: 1em 1.5em 1em 1.25em;
   width: 20em;
   font-size: 0.9285em;
   line-height: 1.3846;
   margin-right: 1em;
+}
+
+#subCol h3.chapter {
+  background-image: var(--image-chapter);
+  background-size: 34px 32px;
+  background-repeat: no-repeat;
+  background-position-y: var(--chapter-bg-position-y);
+  margin-top: 0.25em;
+  padding-left: 34px;
+  padding-top: 6px;
 }
 
 
@@ -306,7 +318,7 @@ body {
 
 #footer {
   padding: 2em 0;
-  background: #222 url(../images/footer_tile.gif) repeat-x;
+  background: var(--color-bg-footer) url(../images/footer_tile.gif) repeat-x;
 }
 #footer .wrapper {
   padding-left: 1em;
@@ -336,10 +348,10 @@ a, a:link, a:visited {
   text-decoration: underline;
 }
 
-#mainCol a, #subCol a, #feature a {color: #980905;}
-#mainCol a code, #subCol a code, #feature a code {color: #980905;}
+#mainCol a, #subCol a, #feature a {color: var(--color-text-link-red);}
+#mainCol a code, #subCol a code, #feature a code {color: var(--color-text-link-red);}
 
-#mainCol a.anchorlink, #mainCol a.anchorlink code {color: #333;}
+#mainCol a.anchorlink, #mainCol a.anchorlink code {color: var(--color-text-tertiary);}
 #mainCol a.anchorlink { text-decoration: none; }
 #mainCol a.anchorlink:hover { text-decoration: underline; }
 
@@ -620,11 +632,14 @@ only screen and (                min-resolution: 2dppx) {
 
 #feature ul {margin-left: 0;}
 #feature ul li {
-  list-style: none;
-  background: url(../images/check_bullet.gif) no-repeat left 0.5em;
-  padding: 0.5em 1.75em 0.5em 1.75em;
+  background-size: var(--check-bullet-bg-size);
+  background-image: var(--image-check);
+  background-position: left 0.5em;
+  background-repeat: no-repeat;
   font-size: 1.1428em;
   font-weight: bold;
+  list-style: none;
+  padding: 0.5em 1.75em 0.5em 1.75em;
 }
 
 #mainCol dd, #subCol dd {
@@ -649,8 +664,13 @@ only screen and (                min-resolution: 2dppx) {
 }
 
 #mainCol dd.work-in-progress, #subCol dd.work-in-progress {
-  background: #fff9d8 url(../images/tab_yellow.gif) no-repeat left top;
-  border: none;
+  background-color: var(--color-bg-note);
+  background-image: var(--image-wip);
+  background-position: var(--card-bg-position);
+  background-repeat: no-repeat;
+  background-size: var(--card-bg-size);
+  border: var(--card-border-width) var(--card-border-style) var(--color-border-note);
+  color: var(--color-text-note);
   padding: 1.25em 1em 1.25em 48px;
   margin-left: 0;
   margin-top: 0.25em;
@@ -665,24 +685,27 @@ only screen and (                min-resolution: 2dppx) {
 }
 
 #mainCol div.warning, #subCol dd.warning {
-  background: #f9d9d8 url(../images/tab_red.gif) no-repeat left top;
-  border: none;
+  background-color: var(--color-bg-warn);
+  background-image: var(--image-warn);
+  background-position: var(--card-bg-position);
+  background-repeat: no-repeat;
+  background-size: var(--card-bg-size);
+  border: var(--card-border-width) var(--card-border-style) var(--color-border-warn);
+  color: var(--color-text-warn);
   padding: 1.25em 1.25em 0.25em 48px;
   margin-left: 0;
   margin-top: 0.25em;
 }
 
-#subCol .chapters {color: #980905;}
+#subCol .chapters {color: var(--color-text-link-red);}
 #subCol .chapters a {font-weight: bold;}
 #subCol .chapters ul a {font-weight: normal;}
 #subCol .chapters li {margin-bottom: 0.75em;}
-#subCol h3.chapter {margin-top: 0.25em;}
-#subCol h3.chapter img {vertical-align: text-bottom;}
 #subCol .chapters ul {margin-left: 0; margin-top: 0.5em;}
 #subCol .chapters ul li {
   list-style: none;
   padding: 0 0 0 1em;
-  background: url(../images/bullet.gif) no-repeat left 0.45em;
+  background: var(--image-chapter-bullet) no-repeat left 0.45em;
   margin-left: 0;
   font-size: 1em;
   font-weight: normal;
@@ -691,21 +714,36 @@ only screen and (                min-resolution: 2dppx) {
 #subCol li ul, li ol { margin:0 1.5em; }
 
 div.code_container {
-  background: #EEE url(../images/tab_grey.gif) no-repeat left top;
+  background-color: var(--color-bg-secondary);
+  background-image: var(--image-code-container);
+  background-position: var(--card-bg-position);
+  background-repeat: no-repeat;
+  background-size: var(--card-bg-size);
+  border: var(--card-border-width) var(--card-border-style) var(--color-border-code);
   padding: 0.25em 1em 0.5em 48px;
   position: relative;
 }
 
 .note {
-  background: #fff9d8 url(../images/tab_note.gif) no-repeat left top;
-  border: none;
+  background-color: var(--color-bg-note);
+  background-image: var(--image-note);
+  background-position: var(--card-bg-position);
+  background-repeat: no-repeat;
+  background-size: var(--card-bg-size);
+  border: var(--card-border-width) var(--card-border-style) var(--color-border-note);
+  color: var(--color-text-note);
   padding: 1em 1em 0.25em 48px;
   margin: 0.25em 0 1.5em 0;
 }
 
 .info {
-  background: #d5e9f6 url(../images/tab_info.gif) no-repeat left top;
-  border: none;
+  background-color: var(--color-bg-info);
+  background-image: var(--image-info);
+  background-position: var(--card-bg-position);
+  background-repeat: no-repeat;
+  background-size: var(--card-bg-size);
+  border: var(--card-border-width) var(--card-border-style) var(--color-border-info);
+  color: var(--color-text-info);
   padding: 1em 1em 0.25em 48px;
   margin: 0.25em 0 1.5em 0;
 }
@@ -718,7 +756,11 @@ div.code_container {
 }
 
 .note code, .info code, .todo code {
-  background: #fff;
+  background: var(--color-bg-card-code);
+}
+
+.warning code {
+  background: var(--color-bg-warn-code);
 }
 
 #mainCol ul li {
