@@ -98,19 +98,10 @@ module ActionDispatch
         end
     end
 
-    def initialize(app, hosts, deprecated_response_app = nil, exclude: nil, response_app: nil)
+    def initialize(app, hosts, exclude: nil, response_app: nil)
       @app = app
       @permissions = Permissions.new(hosts)
       @exclude = exclude
-
-      unless deprecated_response_app.nil?
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          `action_dispatch.hosts_response_app` is deprecated and will be ignored in Rails 7.0.
-          Use the Host Authorization `response_app` setting instead.
-        MSG
-
-        response_app ||= deprecated_response_app
-      end
 
       @response_app = response_app || DefaultResponseApp.new
     end

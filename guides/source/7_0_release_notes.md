@@ -54,6 +54,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Remove deprecated `ActionDispatch::Response.return_only_media_type_on_content_type`.
 
+*   Remove deprecated `Rails.config.action_dispatch.hosts_response_app`.
+
 ### Deprecations
 
 ### Notable changes

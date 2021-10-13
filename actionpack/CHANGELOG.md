@@ -1,3 +1,7 @@
+*   Remove deprecated `Rails.config.action_dispatch.hosts_response_app`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActionDispatch::Response.return_only_media_type_on_content_type`.
 
     *Rafael Mendonça França*
