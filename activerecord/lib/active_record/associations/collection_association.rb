@@ -461,6 +461,10 @@ module ActiveRecord
 
           yield(record) if block_given?
 
+          if !index && @replaced_or_added_targets.include?(record)
+            index = @target.index(record)
+          end
+
           @replaced_or_added_targets << record if inversing || index || record.new_record?
 
           if index
