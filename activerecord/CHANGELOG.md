@@ -1,3 +1,13 @@
+*   Automatically set timestamps on record creation during bulk insert/upsert
+
+    Prior to this change, only updates during an upsert operation (e.g. `upsert_all`) would touch timestamps (`updated_{at,on}`). Now, record creations also touch timestamp columns (`{created,updated}_{at,on}`).
+
+    This behaviour is controlled by the `<model>.record_timestamps` config, matching the behaviour of `create`, `update`, etc. It can also be overridden by using the `record_timestamps:` keyword argument.
+
+    Note that this means `upsert_all` on models with `record_timestamps = false` will no longer touch `updated_{at,on}` automatically.
+
+    *Sam Bostock*
+
 *   Don't require `role` when passing `shard` to `connected_to`.
 
     `connected_to` can now be called with a `shard` only. Note that `role` is still inherited if `connected_to` calls are nested.

@@ -110,6 +110,17 @@ module ActiveRecord
       #     unique_by: %i[ author_id name ]
       #     unique_by: :index_books_on_isbn
       #
+      # [:record_timestamps]
+      #   By default, automatic setting of timestamp columns is controlled by
+      #   the model's <tt>record_timestamps</tt> config, matching typical
+      #   behavior.
+      #
+      #   To override this and force automatic setting of timestamp columns one
+      #   way or the other, pass <tt>:record_timestamps</tt>:
+      #
+      #     record_timestamps: true  # Always set timestamps automatically
+      #     record_timestamps: false # Never set timestamps automatically
+      #
       # Because it relies on the index information from the database
       # <tt>:unique_by</tt> is recommended to be paired with
       # Active Record's schema_cache.
@@ -173,6 +184,17 @@ module ActiveRecord
       #
       #   You can also pass an SQL string if you need more control on the return values
       #   (for example, <tt>returning: "id, name as new_name"</tt>).
+      #
+      # [:record_timestamps]
+      #   By default, automatic setting of timestamp columns is controlled by
+      #   the model's <tt>record_timestamps</tt> config, matching typical
+      #   behavior.
+      #
+      #   To override this and force automatic setting of timestamp columns one
+      #   way or the other, pass <tt>:record_timestamps</tt>:
+      #
+      #     record_timestamps: true  # Always set timestamps automatically
+      #     record_timestamps: false # Never set timestamps automatically
       #
       # ==== Examples
       #
@@ -249,6 +271,17 @@ module ActiveRecord
       #   Specify a custom SQL for updating rows on conflict.
       #
       #   NOTE: in this case you must provide all the columns you want to update by yourself.
+      #
+      # [:record_timestamps]
+      #   By default, automatic setting of timestamp columns is controlled by
+      #   the model's <tt>record_timestamps</tt> config, matching typical
+      #   behavior.
+      #
+      #   To override this and force automatic setting of timestamp columns one
+      #   way or the other, pass <tt>:record_timestamps</tt>:
+      #
+      #     record_timestamps: true  # Always set timestamps automatically
+      #     record_timestamps: false # Never set timestamps automatically
       #
       # ==== Examples
       #
