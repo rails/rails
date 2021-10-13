@@ -124,10 +124,26 @@ module ActionController # :nodoc:
       #   If you need to add verification to the beginning of the callback chain, use <tt>prepend: true</tt>.
       # * <tt>:with</tt> - Set the method to handle unverified request.
       #
-      # Valid unverified request handling methods are:
+      # Built-in unverified request handling methods are:
       # * <tt>:exception</tt> - Raises ActionController::InvalidAuthenticityToken exception.
       # * <tt>:reset_session</tt> - Resets the session.
       # * <tt>:null_session</tt> - Provides an empty session during request but doesn't reset it completely. Used as default if <tt>:with</tt> option is not specified.
+      #
+      # You can also implement custom strategy classes for unverified request handling:
+      #
+      #    class CustomStrategy
+      #      def initialize(controller)
+      #        @controller = controller
+      #      end
+      #
+      #      def handle_unverified_request
+      #        # Custom behaviour for unverfied request
+      #      end
+      #    end
+      #
+      #    class ApplicationController < ActionController:x:Base
+      #      protect_from_forgery with: CustomStrategy
+      #    end
       def protect_from_forgery(options = {})
         options = options.reverse_merge(prepend: false)
 
@@ -148,9 +164,18 @@ module ActionController # :nodoc:
 
       private
         def protection_method_class(name)
-          ActionController::RequestForgeryProtection::ProtectionMethods.const_get(name.to_s.classify)
-        rescue NameError
-          raise ArgumentError, "Invalid request forgery protection method, use :null_session, :exception, or :reset_session"
+          return name if name.is_a?(Class)
+
+          case name
+          when :null_session
+            ProtectionMethods::NullSession
+          when :reset_session
+            ProtectionMethods::ResetSession
+          when :exception
+            ProtectionMethods::Exception
+          else
+            raise ArgumentError, "Invalid request forgery protection method, use :null_session, :exception, :reset_session, or a custom forgery protection class."
+          end
         end
     end
 
