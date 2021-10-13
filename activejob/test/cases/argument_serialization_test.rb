@@ -50,7 +50,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     end
   end
 
-  [ Object.new, Person.find("5").to_gid ].each do |arg|
+  [ Object.new, Person.find("5").to_gid, Class.new ].each do |arg|
     test "does not serialize #{arg.class}" do
       assert_raises ActiveJob::SerializationError do
         ActiveJob::Arguments.serialize [ arg ]

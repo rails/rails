@@ -4,6 +4,7 @@ module ActiveJob
   module Serializers
     class ModuleSerializer < ObjectSerializer # :nodoc:
       def serialize(constant)
+        raise SerializationError, "Serializing an anonymous class is not supported" unless constant.name
         super("value" => constant.name)
       end
 
