@@ -1,3 +1,7 @@
+*   Remove deprecated `ActionDispatch::SystemTestCase#host!`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `Rails.config.action_dispatch.hosts_response_app`.
 
     *Rafael Mendonça França*

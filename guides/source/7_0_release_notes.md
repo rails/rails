@@ -56,6 +56,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Remove deprecated `Rails.config.action_dispatch.hosts_response_app`.
 
+*   Remove deprecated `ActionDispatch::SystemTestCase#host!`.
+
 ### Deprecations
 
 ### Notable changes
