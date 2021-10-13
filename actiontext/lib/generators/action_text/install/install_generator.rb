@@ -32,7 +32,19 @@ module ActionText
       end
 
       def create_actiontext_files
+        destination = Pathname(destination_root)
+
         template "actiontext.css", "app/assets/stylesheets/actiontext.css"
+
+        unless destination.join("app/assets/application.css").exist?
+          if (stylesheets = Dir.glob "#{destination_root}/app/assets/stylesheets/application.*.{scss,css}").length > 0
+            insert_into_file stylesheets.first.to_s, %(@import 'actiontext.css';)
+          else
+            say <<~INSTRUCTIONS, :green
+              To use the Trix editor, you must require 'app/assets/stylesheets/actiontext.css' in your base stylesheet.
+            INSTRUCTIONS
+          end
+        end
 
         gem_root = "#{__dir__}/../../../.."
 
