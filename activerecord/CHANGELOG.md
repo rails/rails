@@ -1,3 +1,7 @@
+*   Exclude primary key from the current scope when creating new records
+
+    *Oleksandr Kohulko*
+
 *   Don't require `role` when passing `shard` to `connected_to`.
 
     `connected_to` can now be called with a `shard` only. Note that `role` is still inherited if `connected_to` calls are nested.
