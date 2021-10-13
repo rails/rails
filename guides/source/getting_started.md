@@ -1472,8 +1472,7 @@ So first, we'll wire up the Article show template
 
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
-  <li><%= link_to "Destroy", article_path(@article),
-                  "data-turbo-method": :delete} %></li>
+  <li><%= button_to "Delete Article", { id: @article.id}, method: :delete %>
 </ul>
 
 <h2>Add a comment:</h2>
@@ -1537,8 +1536,7 @@ add that to the `app/views/articles/show.html.erb`.
 
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
-  <li><%= link_to "Destroy", article_path(@article),
-                  "data-turbo-method": :delete %></li>
+  <li><%= button_to "Delete Article", { id: @article.id}, method: :delete %>
 </ul>
 
 <h2>Comments</h2>
