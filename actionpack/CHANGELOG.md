@@ -1,3 +1,22 @@
+*   Allow multiline to be passed in routes when using wildcard segments.
+
+    Previously routes with newlines weren't detected when using wildcard segments, returning
+    a `No route matches` error.
+    After this change, routes with newlines are detected on wildcard segments. Example
+
+    ```ruby
+      draw do
+        get "/wildcard/*wildcard_segment", to: SimpleApp.new("foo#index"), as: :wildcard
+      end
+
+      # After the change, the path matches.
+      assert_equal "/wildcard/a%0Anewline", url_helpers.wildcard_path(wildcard_segment: "a\nnewline")
+    ```
+
+    Fixes #39103
+
+    *Ignacio Chiazzo*
+
 *   Treat html suffix in controller translation.
 
     *Rui Onodera*, *Gavin Miller*
