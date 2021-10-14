@@ -187,7 +187,7 @@ GEM
       railties (>= 6.0.0)
     curses (1.4.2)
     daemons (1.4.0)
-    dalli (2.7.11)
+    dalli (3.0.1)
     dante (0.2.0)
     debug (1.1.0)
       irb
