@@ -17,7 +17,7 @@ class SlowDalliClient < Dalli::Client
   end
 end
 
-class UnavailableDalliServer < Dalli::Server
+class UnavailableDalliServer < Dalli::Protocol::Binary
   def alive?
     false
   end
