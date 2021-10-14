@@ -9,7 +9,7 @@ class DateTimeTest < ActiveRecord::TestCase
 
   def test_default_timezone_validation
     assert_raises ArgumentError do
-      ActiveRecord.default_timezone = 'UTC'
+      ActiveRecord.default_timezone = "UTC"
     end
 
     # These values should not raise errors

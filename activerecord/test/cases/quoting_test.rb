@@ -60,13 +60,6 @@ module ActiveRecord
         end
       end
 
-      def test_quoted_timestamp_nonsense
-        with_timezone_config default: :asdfasdf do
-          t = Time.now.change(usec: 0)
-          assert_equal t.getlocal.to_s(:db), @quoter.quoted_date(t)
-        end
-      end
-
       def test_quoted_time_utc
         with_timezone_config default: :utc do
           t = Time.now.change(usec: 0)
@@ -112,17 +105,6 @@ module ActiveRecord
 
             assert_equal expected, @quoter.quoted_time(t)
           end
-        end
-      end
-
-      def test_quoted_time_nonsense
-        with_timezone_config default: :asdfasdf do
-          t = Time.now.change(usec: 0)
-
-          expected = t.change(year: 2000, month: 1, day: 1)
-          expected = expected.getlocal.to_s(:db).sub("2000-01-01 ", "")
-
-          assert_equal expected, @quoter.quoted_time(t)
         end
       end
 

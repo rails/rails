@@ -185,19 +185,19 @@ module ActiveRecord
   singleton_class.attr_accessor :legacy_connection_handling
   self.legacy_connection_handling = true
 
+  singleton_class.attr_reader :default_timezone
+
   # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
   # dates and times from the database. This is set to :utc by default.
   def self.default_timezone=(default_timezone)
-    unless %i[local utc].include?(default_timezone)
-      raise ArgumentError, 'default_timezone must be either :utc (default) or :local'
+    unless %i(local utc).include?(default_timezone)
+      raise ArgumentError, "default_timezone must be either :utc (default) or :local."
     end
 
     @default_timezone = default_timezone
   end
 
-  def self.default_timezone
-    @default_timezone ||= :utc
-  end
+  self.default_timezone = :utc
 
   singleton_class.attr_accessor :writing_role
   self.writing_role = :writing
