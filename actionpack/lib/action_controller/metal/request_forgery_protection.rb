@@ -164,8 +164,6 @@ module ActionController # :nodoc:
 
       private
         def protection_method_class(name)
-          return name if name.is_a?(Class)
-
           case name
           when :null_session
             ProtectionMethods::NullSession
@@ -173,6 +171,8 @@ module ActionController # :nodoc:
             ProtectionMethods::ResetSession
           when :exception
             ProtectionMethods::Exception
+          when Class
+            name
           else
             raise ArgumentError, "Invalid request forgery protection method, use :null_session, :exception, :reset_session, or a custom forgery protection class."
           end
