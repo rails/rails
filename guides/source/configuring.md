@@ -760,6 +760,10 @@ Define the list of table that should be ignored when generating the schema
 cache. It accepts an `Array` of strings, representing the table names, or
 regular expressions.
 
+#### `config.active_record.verbose_query_logs`
+
+Specifies if source locations of methods that call database queries should be logged below relevant queries. By default, the flag is `true` in development and `false` in all other environments.
+
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans`
 
 Controls whether the Active Record MySQL adapter will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
