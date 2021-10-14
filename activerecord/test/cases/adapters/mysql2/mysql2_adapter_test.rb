@@ -163,7 +163,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     end
 
     assert_match(
-      %r/Column `car_id` on table `foos` does not match column `id` on `cars`, which has type `bigint(\(20\))?`\./,
+      %r/Column `car_id` on table `foos` does not match column `id` on `cars`, which has type `bigint unsigned(\(20\))?`\./,
       error.message
     )
     assert_match(

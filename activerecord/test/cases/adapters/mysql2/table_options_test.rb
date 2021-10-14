@@ -18,35 +18,35 @@ class Mysql2TableOptionsTest < ActiveRecord::Mysql2TestCase
   test "table options with ENGINE" do
     @connection.create_table "mysql_table_options", force: true, options: "ENGINE=MyISAM"
     output = dump_table_schema("mysql_table_options")
-    expected = /create_table "mysql_table_options", charset: "utf8mb4"(?:, collation: "\w+")?, options: "ENGINE=MyISAM", force: :cascade/
+    expected = /create_table "mysql_table_options", id: { type: :bigint, unsigned: true }, charset: "utf8mb4"(?:, collation: "\w+")?, options: "ENGINE=MyISAM", force: :cascade/
     assert_match expected, output
   end
 
   test "table options with ROW_FORMAT" do
     @connection.create_table "mysql_table_options", force: true, options: "ROW_FORMAT=REDUNDANT"
     output = dump_table_schema("mysql_table_options")
-    expected = /create_table "mysql_table_options", charset: "utf8mb4"(?:, collation: "\w+")?, options: "ENGINE=InnoDB ROW_FORMAT=REDUNDANT", force: :cascade/
+    expected = /create_table "mysql_table_options", id: { type: :bigint, unsigned: true }, charset: "utf8mb4"(?:, collation: "\w+")?, options: "ENGINE=InnoDB ROW_FORMAT=REDUNDANT", force: :cascade/
     assert_match expected, output
   end
 
   test "table options with CHARSET" do
     @connection.create_table "mysql_table_options", force: true, options: "CHARSET=latin1"
     output = dump_table_schema("mysql_table_options")
-    expected = /create_table "mysql_table_options", charset: "latin1", force: :cascade/
+    expected = /create_table "mysql_table_options", id: { type: :bigint, unsigned: true }, charset: "latin1", force: :cascade/
     assert_match expected, output
   end
 
   test "table options with COLLATE" do
     @connection.create_table "mysql_table_options", force: true, options: "COLLATE=utf8mb4_bin"
     output = dump_table_schema("mysql_table_options")
-    expected = /create_table "mysql_table_options", charset: "utf8mb4", collation: "utf8mb4_bin", force: :cascade/
+    expected = /create_table "mysql_table_options", id: { type: :bigint, unsigned: true }, charset: "utf8mb4", collation: "utf8mb4_bin", force: :cascade/
     assert_match expected, output
   end
 
   test "charset and collation options" do
     @connection.create_table "mysql_table_options", force: true, charset: "utf8mb4", collation: "utf8mb4_bin"
     output = dump_table_schema("mysql_table_options")
-    expected = /create_table "mysql_table_options", charset: "utf8mb4", collation: "utf8mb4_bin"(:?, options: "ENGINE=InnoDB ROW_FORMAT=DYNAMIC")?, force: :cascade/
+    expected = /create_table "mysql_table_options", id: { type: :bigint, unsigned: true }, charset: "utf8mb4", collation: "utf8mb4_bin"(:?, options: "ENGINE=InnoDB ROW_FORMAT=DYNAMIC")?, force: :cascade/
     assert_match expected, output
   end
 
@@ -103,7 +103,7 @@ class Mysql2DefaultEngineOptionTest < ActiveRecord::Mysql2TestCase
     assert_no_match %r{ENGINE=InnoDB}, @log.string
 
     output = dump_table_schema("mysql_table_options")
-    expected = /create_table "mysql_table_options", charset: "utf8mb4"(?:, collation: "\w+")?(:?, options: "ENGINE=InnoDB ROW_FORMAT=DYNAMIC")?, force: :cascade/
+    expected = /create_table "mysql_table_options", id: { type: :bigint, unsigned: true }, charset: "utf8mb4"(?:, collation: "\w+")?(:?, options: "ENGINE=InnoDB ROW_FORMAT=DYNAMIC")?, force: :cascade/
     assert_match expected, output
   end
 
@@ -119,7 +119,7 @@ class Mysql2DefaultEngineOptionTest < ActiveRecord::Mysql2TestCase
     assert_match %r{ENGINE=InnoDB}, @log.string
 
     output = dump_table_schema("mysql_table_options")
-    expected = /create_table "mysql_table_options", charset: "utf8mb4"(?:, collation: "\w+")?, force: :cascade/
+    expected = /create_table "mysql_table_options", id: { type: :bigint, unsigned: true }, charset: "utf8mb4"(?:, collation: "\w+")?, force: :cascade/
     assert_match expected, output
   end
 end

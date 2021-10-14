@@ -197,7 +197,7 @@ if ActiveRecord::Base.connection.supports_comments?
 
     def test_schema_dump_with_primary_key_comment
       output = dump_table_schema "pk_commenteds"
-      assert_match %r[create_table "pk_commenteds", id: { comment: "Primary key comment" }.*, comment: "Table comment"], output
+      assert_match %r[create_table "pk_commenteds", id: { type: :bigint, comment: "Primary key comment", unsigned: true }.*, comment: "Table comment"], output
     end
   end
 end
