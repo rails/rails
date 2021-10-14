@@ -454,6 +454,18 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
     end
 
     if current_adapter?(:Mysql2Adapter)
+      test "primary key defaults to unsigned bigint" do
+        @connection.create_table(:widgets, force: true)
+        column = @connection.columns(:widgets).find { |c| c.name == "id" }
+        assert_predicate column, :auto_increment?
+        assert_equal :integer, column.type
+        assert_predicate column, :bigint?
+        assert_predicate column, :unsigned?
+
+        schema = dump_table_schema "widgets"
+        assert_match %r/create_table "widgets", id: { type: :bigint, unsigned: true }/, schema
+      end
+
       test "primary key column type with options" do
         @connection.create_table(:widgets, id: :primary_key, limit: 4, unsigned: true, force: true)
         column = @connection.columns(:widgets).find { |c| c.name == "id" }
