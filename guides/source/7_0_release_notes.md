@@ -144,7 +144,12 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Removals
 
+*   Removed deprecated behavior that was not halting `after_enqueue`/`after_perform` callbacks when a
+    previous callback was halted with `throw :abort`.
+
 ### Deprecations
+
+*   Deprecated `Rails.config.active_job.skip_after_callbacks_if_terminated`.
 
 ### Notable changes
 

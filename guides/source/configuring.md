@@ -1499,11 +1499,6 @@ Controls if the arguments of a job are logged. Defaults to `true`.
 
 Controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs.
 
-#### `config.active_job.skip_after_callbacks_if_terminated`
-
-Controls whether `after_enqueue` / `after_perform` callbacks run when a
-`before_enqueue` / `before_perform` callback halts with `throw :abort`.
-
 #### `config.active_job.log_query_tags_around_perform`
 
 Determines whether job context for query tags will be automatically updated via
@@ -1750,7 +1745,6 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.action_mailbox.queues.routing`: `nil`
 - `config.action_mailer.deliver_later_queue_name`: `nil`
 - `config.active_job.retry_jitter`: `0.15`
-- `config.active_job.skip_after_callbacks_if_terminated`: `true`
 - `config.action_dispatch.cookies_same_site_protection`: `:lax`
 - `config.action_dispatch.ssl_default_redirect_status` = `308`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `true`
@@ -1803,7 +1797,6 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.action_view.button_to_generates_button_tag`: `false`
 - `config.action_view.apply_stylesheet_media_default`: `true`
 - `config.active_job.retry_jitter`: `0.0`
-- `config.active_job.skip_after_callbacks_if_terminated`: `false`
 - `config.action_mailbox.queues.incineration`: `:action_mailbox_incineration`
 - `config.action_mailbox.queues.routing`: `:action_mailbox_routing`
 - `config.action_mailer.deliver_later_queue_name`: `:mailers`

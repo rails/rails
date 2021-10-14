@@ -1,5 +1,14 @@
+*   Deprecated `Rails.config.active_job.skip_after_callbacks_if_terminated`.
+
+    *Rafael Mendonça França*
+
+*   Removed deprecated behavior that was not halting `after_enqueue`/`after_perform` callbacks when a
+    previous callback was halted with `throw :abort`.
+
+    *Rafael Mendonça França*
+
 *   Raise an `SerializationError` in `Serializer::ModuleSerializer`
-    if the module name is not present. 
+    if the module name is not present.
 
     *Veerpal Brar*
 

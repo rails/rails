@@ -2706,21 +2706,6 @@ module ApplicationTests
       assert_equal 0.22, ActiveJob::Base.retry_jitter
     end
 
-    test "ActiveJob::Base.skip_after_callbacks_if_terminated is true by default" do
-      app "development"
-
-      assert_equal true, ActiveJob::Base.skip_after_callbacks_if_terminated
-    end
-
-    test "ActiveJob::Base.skip_after_callbacks_if_terminated is false in the 6.0 defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "6.0"'
-
-      app "development"
-
-      assert_equal false, ActiveJob::Base.skip_after_callbacks_if_terminated
-    end
-
     test "Rails.application.config.action_dispatch.cookies_same_site_protection is :lax by default" do
       app "production"
 

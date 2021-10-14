@@ -161,7 +161,6 @@ module Rails
 
           if respond_to?(:active_job)
             active_job.retry_jitter = 0.15
-            active_job.skip_after_callbacks_if_terminated = true
           end
 
           if respond_to?(:action_dispatch)
