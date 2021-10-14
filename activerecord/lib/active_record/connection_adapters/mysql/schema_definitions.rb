@@ -76,6 +76,7 @@ module ActiveRecord
             type = :integer
             options[:limit] ||= 8
             options[:primary_key] = true
+            options[:unsigned] ||= true
           when /\Aunsigned_(?<type>.+)\z/
             type = $~[:type].to_sym
             options[:unsigned] = true
@@ -83,6 +84,11 @@ module ActiveRecord
 
           super
         end
+
+        def references(*args, **options)
+          super(*args, type: "bigint unsigned", **options)
+        end
+        alias :belongs_to :references
 
         private
           def aliased_types(name, fallback)

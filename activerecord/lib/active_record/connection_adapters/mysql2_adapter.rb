@@ -139,6 +139,11 @@ module ActiveRecord
         @connection = nil
       end
 
+      def add_reference(table_name, ref_name, **options) # :nodoc:
+        super(table_name, ref_name, type: "bigint unsigned", **options)
+      end
+      alias :add_belongs_to :add_reference
+
       private
         def connect
           @connection = self.class.new_client(@config)
