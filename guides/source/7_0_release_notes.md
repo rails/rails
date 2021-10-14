@@ -71,6 +71,8 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `Rails.config.action_view.raise_on_missing_translations`.
+
 ### Deprecations
 
 ### Notable changes

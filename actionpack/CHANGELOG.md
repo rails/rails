@@ -1,3 +1,7 @@
+*   Remove deprecated `Rails.config.action_view.raise_on_missing_translations`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to passing a path to `fixture_file_upload` relative to `fixture_path`.
 
     *Rafael Mendonça França*
