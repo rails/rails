@@ -664,6 +664,18 @@ class InverseHasManyTests < ActiveRecord::TestCase
     comment.body = "OMG"
     assert_equal comment.body, comment.children.first.parent.body
   end
+
+  def test_changing_the_association_id_makes_the_inversed_association_target_stale
+    post1 = Post.first
+    post2 = Post.second
+    comment = post1.comments.first
+
+    assert_same post1, comment.post
+
+    comment.update!(post_id: post2.id)
+
+    assert_equal post2, comment.post
+  end
 end
 
 class InverseBelongsToTests < ActiveRecord::TestCase
