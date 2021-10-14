@@ -58,6 +58,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Remove deprecated `ActionDispatch::SystemTestCase#host!`.
 
+*   Remove deprecated support to passing a path to `fixture_file_upload` relative to `fixture_path`.
+
 ### Deprecations
 
 ### Notable changes

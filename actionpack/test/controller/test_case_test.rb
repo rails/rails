@@ -883,17 +883,6 @@ XML
     assert_equal new_content_type, file.content_type
   end
 
-  def test_fixture_path_is_accessed_from_self_instead_of_active_support_test_case
-    TestCaseTest.stub :fixture_path, File.expand_path("../fixtures", __dir__) do
-      expected = "`fixture_file_upload(\"multipart/ruby_on_rails.jpg\")` to `fixture_file_upload(\"ruby_on_rails.jpg\")`"
-
-      assert_deprecated(expected) do
-        uploaded_file = fixture_file_upload("multipart/ruby_on_rails.jpg", "image/png")
-        assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
-      end
-    end
-  end
-
   def test_test_uploaded_file_with_binary
     filename = "ruby_on_rails.jpg"
     path = "#{FILES_DIR}/#{filename}"
@@ -929,58 +918,6 @@ XML
         file: fixture_file_upload(FILES_DIR + "/ruby_on_rails.jpg", "image/jpeg")
       }
     assert_equal "45142", @response.body
-  end
-
-  def test_fixture_file_upload_output_deprecation_when_file_fixture_path_is_not_set
-    TestCaseTest.stub :fixture_path, File.expand_path("../fixtures", __dir__) do
-      TestCaseTest.stub :file_fixture_path, nil do
-        assert_deprecated(/In Rails 7.0, the path needs to be relative to `file_fixture_path`/) do
-          fixture_file_upload("multipart/ruby_on_rails.jpg", "image/jpeg")
-        end
-      end
-    end
-  end
-
-  def test_fixture_file_upload_does_not_output_deprecation_when_file_fixture_path_is_set
-    TestCaseTest.stub :fixture_path, File.expand_path("../fixtures", __dir__) do
-      assert_not_deprecated do
-        fixture_file_upload("ruby_on_rails.jpg", "image/jpeg")
-      end
-    end
-  end
-
-  def test_fixture_file_upload_relative_to_fixture_path
-    TestCaseTest.stub :fixture_path, File.expand_path("../fixtures", __dir__) do
-      expected = "`fixture_file_upload(\"multipart/ruby_on_rails.jpg\")` to `fixture_file_upload(\"ruby_on_rails.jpg\")`"
-
-      assert_deprecated(expected) do
-        uploaded_file = fixture_file_upload("multipart/ruby_on_rails.jpg", "image/jpeg")
-        assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
-      end
-    end
-  end
-
-  def test_fixture_file_upload_relative_to_fixture_path_with_relative_file_fixture_path
-    TestCaseTest.stub :fixture_path, File.expand_path("../fixtures", __dir__) do
-      TestCaseTest.stub :file_fixture_path, "test/fixtures/multipart" do
-        expected = "`fixture_file_upload(\"multipart/ruby_on_rails.jpg\")` to `fixture_file_upload(\"ruby_on_rails.jpg\")`"
-
-        assert_deprecated(expected) do
-          uploaded_file = fixture_file_upload("multipart/ruby_on_rails.jpg", "image/jpg")
-          assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
-        end
-      end
-    end
-  end
-
-  def test_fixture_file_upload_fixture_path_same_as_file_fixture_path
-    TestCaseTest.stub :fixture_path, File.expand_path("../fixtures/multipart", __dir__) do
-      TestCaseTest.stub :file_fixture_path, File.expand_path("../fixtures/multipart", __dir__) do
-        assert_not_deprecated do
-          fixture_file_upload("ruby_on_rails.jpg", "image/jpg")
-        end
-      end
-    end
   end
 
   def test_fixture_file_upload_ignores_fixture_path_given_full_path

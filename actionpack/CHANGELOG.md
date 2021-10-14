@@ -1,3 +1,7 @@
+*   Remove deprecated support to passing a path to `fixture_file_upload` relative to `fixture_path`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActionDispatch::SystemTestCase#host!`.
 
     *Rafael Mendonça França*
