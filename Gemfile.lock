@@ -505,10 +505,10 @@ GEM
       json (>= 1.8)
       nokogiri (~> 1.6)
       rexml (~> 3.2)
-    webdrivers (4.6.1)
+    webdrivers (4.7.0)
       nokogiri (~> 1.6)
       rubyzip (>= 1.3.0)
-      selenium-webdriver (>= 3.0, < 4.0)
+      selenium-webdriver (> 3.141, < 5.0)
     webmock (3.13.0)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
@@ -600,7 +600,7 @@ DEPENDENCIES
   tzinfo-data
   w3c_validators (~> 1.3.6)
   wdm (>= 0.1.0)
-  webdrivers (>= 4.6.1)
+  webdrivers
   webmock
   webrick
   websocket-client-simple!

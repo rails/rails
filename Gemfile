@@ -101,8 +101,7 @@ gem "aws-sdk-sns", require: false
 gem "webmock"
 
 group :ujs do
-  # ">= 4.6.1" can be removed once https://github.com/titusfortner/webdrivers/pull/218 is merged and released.
-  gem "webdrivers", ">= 4.6.1"
+  gem "webdrivers"
 end
 
 # Action View
