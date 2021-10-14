@@ -543,7 +543,7 @@ DEPENDENCIES
   capybara (>= 3.26)
   connection_pool
   cssbundling-rails
-  dalli
+  dalli (>= 3.0.1)
   debug (>= 1.1.0)
   delayed_job
   delayed_job_active_record
