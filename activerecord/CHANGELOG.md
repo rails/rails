@@ -1,3 +1,9 @@
+*   Add support for FILTER clause (SQL:2003) to Arel.
+
+    Currently supported by PostgreSQL 9.4+ and SQLite 3.30+.
+
+    *Andrey Novikov*
+
 *   Automatically set timestamps on record creation during bulk insert/upsert
 
     Prior to this change, only updates during an upsert operation (e.g. `upsert_all`) would touch timestamps (`updated_{at,on}`). Now, record creations also touch timestamp columns (`{created,updated}_{at,on}`).

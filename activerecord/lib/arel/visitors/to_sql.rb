@@ -245,6 +245,13 @@ module Arel # :nodoc: all
           collector << ")"
         end
 
+        def visit_Arel_Nodes_Filter(o, collector)
+          visit o.left, collector
+          collector << " FILTER (WHERE "
+          visit o.right, collector
+          collector << ")"
+        end
+
         def visit_Arel_Nodes_Rows(o, collector)
           if o.expr
             collector << "ROWS "
