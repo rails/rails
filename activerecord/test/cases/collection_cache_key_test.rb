@@ -106,6 +106,7 @@ module ActiveRecord
       developers = Developer.where(name: "David")
       cache_key = developers.cache_key
 
+      sleep 1.0 unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
       developers.update_all(updated_at: Time.now.utc)
 
       assert_not_equal cache_key, developers.cache_key
@@ -115,6 +116,7 @@ module ActiveRecord
       developers = Developer.includes(:projects).where("projects.name": "Active Record")
       cache_key = developers.cache_key
 
+      sleep 1.0 unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
       developers.update_all(updated_at: Time.now.utc)
 
       assert_not_equal cache_key, developers.cache_key
