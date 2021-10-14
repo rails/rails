@@ -263,13 +263,13 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
 
     def emulating_unavailability
-      old_server = Dalli.send(:remove_const, :Server)
-      Dalli.const_set(:Server, UnavailableDalliServer)
+      old_server = Dalli::Protocol.send(:remove_const, :Binary)
+      Dalli::Protocol.const_set(:Binary, UnavailableDalliServer)
 
       yield ActiveSupport::Cache::MemCacheStore.new
     ensure
-      Dalli.send(:remove_const, :Server)
-      Dalli.const_set(:Server, old_server)
+      Dalli::Protocol.send(:remove_const, :Binary)
+      Dalli::Protocol.const_set(:Binary, old_server)
     end
 
     def servers(cache = @cache)
