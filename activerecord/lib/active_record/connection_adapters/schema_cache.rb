@@ -239,6 +239,8 @@ module ActiveRecord
         end
 
         def open(filename)
+          FileUtils.mkdir_p(File.dirname(filename))
+
           File.atomic_write(filename) do |file|
             if File.extname(filename) == ".gz"
               zipper = Zlib::GzipWriter.new file
