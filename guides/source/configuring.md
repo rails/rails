@@ -1232,6 +1232,8 @@ Allows detailed configuration for the `:smtp` delivery method. It accepts a hash
 * `:open_timeout` - Number of seconds to wait while attempting to open a connection.
 * `:read_timeout` - Number of seconds to wait until timing-out a read(2) call.
 
+Additionally, it is possible to pass any [configuration option `Mail::SMTP` respects](https://github.com/mikel/mail/blob/master/lib/mail/network/delivery_methods/smtp.rb).
+
 #### `config.action_mailer.smtp_timeout`
 
 Allows to configure both the `:open_timeout` and `:read_timeout`
