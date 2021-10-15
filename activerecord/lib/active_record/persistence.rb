@@ -235,6 +235,10 @@ module ActiveRecord
       # Returns an <tt>ActiveRecord::Result</tt> with its contents based on
       # <tt>:returning</tt> (see below).
       #
+      # By default, +upsert_all+ will update all the columns that can be updated when
+      # there is a conflict. These are all the columns except primary keys, read-only
+      # columns, and columns covered by the optional +unique_by+.
+      #
       # ==== Options
       #
       # [:returning]
@@ -268,9 +272,41 @@ module ActiveRecord
       # Active Record's schema_cache.
       #
       # [:on_duplicate]
-      #   Specify a custom SQL for updating rows on conflict.
+      #   Configure the SQL update sentence that will be used in case of conflict.
       #
-      #   NOTE: in this case you must provide all the columns you want to update by yourself.
+      #   NOTE: If you use this option you must provide all the columns you want to update
+      #   by yourself.
+      #
+      #   Example:
+      #
+      #     Commodity.upsert_all(
+      #       [
+      #         { id: 2, name: "Copper", price: 4.84 },
+      #         { id: 4, name: "Gold", price: 1380.87 },
+      #         { id: 6, name: "Aluminium", price: 0.35 }
+      #       ],
+      #       on_duplicate: Arel.sql("price = GREATEST(commodities.price, EXCLUDED.price)")
+      #     )
+      #
+      #   See the related +:update_only+ option. Both options can't be used at the same time.
+      #
+      # [:update_only]
+      #   Provide a list of column names that will be updated in case of conflict. If not provided,
+      #   +upsert_all+ will update all the columns that can be updated. These are all the columns
+      #   except primary keys, read-only columns, and columns covered by the optional +unique_by+
+      #
+      #   Example:
+      #
+      #     Commodity.upsert_all(
+      #       [
+      #         { id: 2, name: "Copper", price: 4.84 },
+      #         { id: 4, name: "Gold", price: 1380.87 },
+      #         { id: 6, name: "Aluminium", price: 0.35 }
+      #       ],
+      #       on_duplicate: [:price] # Only prices will be updated
+      #     )
+      #
+      #   See the related +:on_duplicate+ option. Both options can't be used at the same time.
       #
       # [:record_timestamps]
       #   By default, automatic setting of timestamp columns is controlled by
@@ -294,8 +330,8 @@ module ActiveRecord
       #   ], unique_by: :isbn)
       #
       #   Book.find_by(isbn: "1").title # => "Eloquent Ruby"
-      def upsert_all(attributes, on_duplicate: :update, returning: nil, unique_by: nil, record_timestamps: nil)
-        InsertAll.new(self, attributes, on_duplicate: on_duplicate, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps).execute
+      def upsert_all(attributes, on_duplicate: :update, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
+        InsertAll.new(self, attributes, on_duplicate: on_duplicate, update_only: update_only, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps).execute
       end
 
       # Given an attributes hash, +instantiate+ returns a new instance of
