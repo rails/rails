@@ -1,3 +1,20 @@
+*   Add a new option `:update_only` to `upsert_all` to configure the list of columns to update in case of conflict.
+
+    Before, you could only customize the update SQL sentence via `:on_duplicate`. There is now a new option `:update_only` that lets you provide a list of columns to update in case of conflict:
+
+    ```ruby
+    Commodity.upsert_all(
+      [
+        { id: 2, name: "Copper", price: 4.84 },
+        { id: 4, name: "Gold", price: 1380.87 },
+        { id: 6, name: "Aluminium", price: 0.35 }
+      ],
+      update_only: [:price] # Only prices will be updated
+    )
+    ```
+
+    *Jorge Manrubia*
+
 *   Remove deprecated `ActiveRecord::Result#map!` and `ActiveRecord::Result#collect!`.
 
     *Rafael Mendonça França*
