@@ -1,3 +1,12 @@
+*   Allow Capybara driver name overrides in `SystemTestCase::driven_by`
+
+    Allow users to prevent conflicts among drivers that use the same driver
+    type (selenium, poltergeist, webkit, rack test).
+
+    Fixes #42502
+
+    *Chris LaRose*
+
 *   Allow multiline to be passed in routes when using wildcard segments.
 
     Previously routes with newlines weren't detected when using wildcard segments, returning
