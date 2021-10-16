@@ -1,3 +1,7 @@
+*   Add support for negative scopes on delegated types
+
+    *Nick Pezza*
+
 *   Remove `ActiveRecord.legacy_connection_handling`.
 
     *Eileen M. Uchitelle*
