@@ -14,7 +14,12 @@ module Arel # :nodoc: all
       InsertManager.new
     end
 
-    def compile_update(values, key = nil)
+    def compile_update(
+      values,
+      key = nil,
+      having_clause = nil,
+      group_values_columns = []
+    )
       um = UpdateManager.new(source)
       um.set(values)
       um.take(limit)
@@ -22,6 +27,9 @@ module Arel # :nodoc: all
       um.order(*orders)
       um.wheres = constraints
       um.key = key
+
+      um.group(group_values_columns) unless group_values_columns.empty?
+      um.having(having_clause) unless having_clause.nil?
       um
     end
 

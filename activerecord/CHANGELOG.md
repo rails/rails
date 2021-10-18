@@ -1,3 +1,24 @@
+*   Use subquery for UPDATE with GROUP_BY and HAVING clauses.
+
+    Prior to this change, updates with GROUP_BY and HAVING were being ignored, generating a SQL like this:
+
+    ```sql
+    UPDATE "posts" SET "flagged" = ? WHERE "posts"."id" IN (
+        SELECT "posts"."id" FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+    )  [["flagged", "t"]]
+    ```
+
+    After this change, GROUP_BY and HAVING clauses are used as a subquery in updates, like this:
+
+    ```sql
+    UPDATE "posts" SET "flagged" = ? WHERE "posts"."id" IN (
+        SELECT "posts"."id" FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id" 
+        GROUP BY posts.id HAVING (count(comments.id) >= 2)
+    )  [["flagged", "t"]]
+    ```
+
+    *Ignacio Chiazzo Cardarello*
+
 *   Add support for setting the filename of the schema or structure dump in the database config.
 
     Applications may now set their the filename or path of the schema / structure dump file in their database configuration.
