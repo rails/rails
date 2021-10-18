@@ -622,6 +622,7 @@ module ActiveRecord
         # make sure that the reflection's active_record name matches up
         # with the current reflection's klass name.
         def valid_inverse_reflection?(reflection)
+            # reflection != self &&
           reflection &&
             foreign_key == reflection.foreign_key &&
             klass <= reflection.active_record &&

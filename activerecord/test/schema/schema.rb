@@ -445,6 +445,10 @@ ActiveRecord::Schema.define do
     t.string :cold_name
   end
 
+  create_table :folders, force: :true do |t|
+    t.integer :folder_id
+  end
+
   create_table :friendships, force: true do |t|
     t.integer :friend_id
     t.integer :follower_id

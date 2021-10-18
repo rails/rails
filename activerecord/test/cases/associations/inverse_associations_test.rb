@@ -23,6 +23,7 @@ require "models/author"
 require "models/post"
 require "models/user"
 require "models/room"
+require "models/folder"
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars
@@ -164,6 +165,37 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     human_reflection = Human.reflect_on_association(:polymorphic_face_without_inverse)
 
     assert_predicate human_reflection, :has_inverse?
+  end
+
+  def test_failure
+    assert false
+  end
+
+  def test_self_referential_models_get_correct_attributes_assigned_when_newly_created
+    f1 = Folder.create!
+    f2 = Folder.create!(folder: f1)
+    f3 = Folder.create!(folder: f2)
+    assert_nil f1.folder_id
+    assert f2.folder_id
+    assert f3.folder_id
+  end
+
+  def test_self_referential_models_get_correct_attributes_when_loaded_from_db
+    f1 = Folder.create!
+    f2 = Folder.create!(folder: f1)
+    f3 = Folder.create!(folder: f2)
+    assert_nil f1.reload.folder_id
+    assert f2.reload.folder_id
+    assert f3.reload.folder_id
+  end
+
+  def test_self_referential_models_point_at_created_objects_when_newly_created
+    f1 = Folder.create!
+    f2 = Folder.create!(folder: f1)
+    f3 = Folder.create!(folder: f2)
+    assert_nil f1.folder
+    assert_equal f2.folder.id, f1.id
+    assert_equal f3.folder.id, f2.id
   end
 end
 
