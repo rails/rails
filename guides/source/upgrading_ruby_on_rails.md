@@ -102,7 +102,7 @@ The private API of `ActiveSupport::Dependencies` has been deleted. That includes
 
 A few of highlights:
 
-* If you used `ActiveSupport::Dependencies.constantize` or ``ActiveSupport::Dependencies.safe_constantize`, just change them to `String#constantize` or `String#safe_constantize`.
+* If you used `ActiveSupport::Dependencies.constantize` or `ActiveSupport::Dependencies.safe_constantize`, just change them to `String#constantize` or `String#safe_constantize`.
 
   ```ruby
   ActiveSupport::Dependencies.constantize("User") # NO LONGER POSSIBLE

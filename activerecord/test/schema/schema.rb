@@ -38,6 +38,7 @@ ActiveRecord::Schema.define do
     t.string :name
     t.integer :wheels_count, default: 0, null: false
     t.datetime :wheels_owned_at
+    t.timestamp :manufactured_at, default: -> { "CURRENT_TIMESTAMP" }
   end
 
   create_table :articles, force: true do |t|

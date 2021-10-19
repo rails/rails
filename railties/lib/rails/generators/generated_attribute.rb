@@ -106,9 +106,9 @@ module Rails
         @field_type ||= case type
                         when :integer                  then :number_field
                         when :float, :decimal          then :text_field
-                        when :time                     then :time_select
-                        when :datetime, :timestamp     then :datetime_select
-                        when :date                     then :date_select
+                        when :time                     then :time_field
+                        when :datetime, :timestamp     then :datetime_field
+                        when :date                     then :date_field
                         when :text                     then :text_area
                         when :rich_text                then :rich_text_area
                         when :boolean                  then :check_box

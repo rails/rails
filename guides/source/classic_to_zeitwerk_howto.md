@@ -317,11 +317,7 @@ require "test_helper"
 
 class ZeitwerkComplianceTest < ActiveSupport::TestCase
   test "eager loads all files without errors" do
-    Rails.application.eager_load!
-  rescue => e
-    flunk(e.message)
-  else
-    pass
+    assert_nothing_raised { Rails.application.eager_load! }
   end
 end
 ```

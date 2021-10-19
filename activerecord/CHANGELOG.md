@@ -2,6 +2,10 @@
 
     *Oleksandr Kohulko*
 
+*   Filter unchanged attributes with default function from insert query when `partial_inserts` is disabled.
+
+    *Akshay Birajdar*, *Jacopo Beschi*
+
 *   Add support for FILTER clause (SQL:2003) to Arel.
 
     Currently supported by PostgreSQL 9.4+ and SQLite 3.30+.
