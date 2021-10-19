@@ -1,3 +1,7 @@
+*   Add `ActiveRecord::Base.prohibit_shard_swapping` to prevent attempts to change the shard within a block.
+
+    *John Crepezzi*, *Eileen M. Uchitelle*
+
 *   Filter unchanged attributes with default function from insert query when `partial_inserts` is disabled.
 
     *Akshay Birajdar*, *Jacopo Beschi*
