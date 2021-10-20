@@ -323,6 +323,28 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_equal extras, Rails.autoloaders.once.dirs.slice(e1_index, extras.length)
   end
 
+  test "the once autoloader is setup before the main autoloader" do
+    $zeitwerk_integration_test_setup_order = []
+
+    add_to_config <<~RUBY
+      once = Rails.autoloaders.once
+      def once.setup
+        $zeitwerk_integration_test_setup_order << :once
+        super
+      end
+
+      main = Rails.autoloaders.main
+      def main.setup
+        $zeitwerk_integration_test_setup_order << :main
+        super
+      end
+    RUBY
+
+    boot
+
+    assert_equal %i(once main), $zeitwerk_integration_test_setup_order
+  end
+
   test "clear reloads the main autoloader, and does not reload the once one" do
     boot
 

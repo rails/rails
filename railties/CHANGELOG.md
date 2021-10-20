@@ -1,3 +1,7 @@
+*   In `zeitwerk` mode, setup the `once` autoloader first, and the `main` autoloader after it. This order plays better with shared namespaces.
+
+    *Xavier Noria*
+
 *   Fix compatibility with `psych >= 4`.
 
     Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility
@@ -41,6 +45,7 @@
 
 
 ## Rails 6.1.3 (February 17, 2021) ##
+
 
 *   No changes.
 

@@ -89,7 +89,10 @@ module ActiveSupport
             end
 
             Rails.autoloaders.main.enable_reloading if enable_reloading
-            Rails.autoloaders.each(&:setup)
+
+            # Order matters.
+            Rails.autoloaders.once.setup
+            Rails.autoloaders.main.setup
           end
 
           def autoload_once?(autoload_path)
