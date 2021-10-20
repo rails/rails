@@ -503,6 +503,11 @@ module ActiveRecord
         supports_advisory_locks? && @advisory_locks_enabled
       end
 
+      def generate_advisory_lock_id
+        db_name_hash = Zlib.crc32(self.current_database)
+        Migrator::MIGRATOR_SALT * db_name_hash
+      end
+
       # This is meant to be implemented by the adapters that support advisory
       # locks
       #
