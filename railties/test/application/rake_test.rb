@@ -41,6 +41,15 @@ module ApplicationTests
       assert_match(/^Rails version/, rails("invoke_about"))
     end
 
+    test "help arguments describe rake tasks" do
+      task_description = <<~DESC
+          rails db:migrate
+              Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog).
+      DESC
+
+      assert_match task_description, rails("db:migrate", "-h")
+    end
+
     test "task backtrace is silenced" do
       add_to_config <<-RUBY
         rake_tasks do
@@ -172,8 +181,8 @@ module ApplicationTests
       assert_equal "Answer: 42\n", output
     end
 
-    def test_code_statistics_sanity
-      assert_match "Code LOC: 73     Test LOC: 3     Code to Test Ratio: 1:0.0",
+    def test_code_statistics
+      assert_match "Code LOC: 61     Test LOC: 3     Code to Test Ratio: 1:0.0",
         rails("stats")
     end
 
@@ -296,25 +305,9 @@ module ApplicationTests
       %w(controller mailer scaffold).each do |dir|
         assert File.exist?(File.join(app_path, "lib", "templates", "erb", dir))
       end
-      %w(controller helper scaffold_controller assets).each do |dir|
+      %w(controller helper scaffold_controller).each do |dir|
         assert File.exist?(File.join(app_path, "lib", "templates", "rails", dir))
       end
-    end
-
-    test "app:binstub:yarn generates bin/yarn" do
-      yarn_binstub = File.join(app_path, "bin/yarn")
-      rails "app:binstub:yarn"
-
-      assert_path_exists yarn_binstub
-      assert_match %r/\A#!/, File.read(yarn_binstub)
-    end
-
-    test "app:binstub:yarn overwrites existing bin/yarn" do
-      yarn_binstub = File.join(app_path, "bin/yarn")
-      File.write(yarn_binstub, "existing")
-      rails "app:binstub:yarn"
-
-      assert_match %r/\A#!/, File.read(yarn_binstub)
     end
 
     def test_template_load_initializers

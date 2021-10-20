@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveStorage
-  class Attached::Changes::DetachMany #:nodoc:
+  class Attached::Changes::DetachMany # :nodoc:
     attr_reader :name, :record, :attachments
 
     def initialize(name, record, attachments)

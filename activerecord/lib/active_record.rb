@@ -58,6 +58,7 @@ module ActiveRecord
   autoload :Persistence
   autoload :QueryCache
   autoload :Querying
+  autoload :QueryLogs
   autoload :ReadonlyAttributes
   autoload :RecordInvalid, "active_record/validations"
   autoload :Reflection
@@ -169,14 +170,33 @@ module ActiveRecord
   autoload :TestDatabases, "active_record/test_databases"
   autoload :TestFixtures, "active_record/fixtures"
 
+  # Lazily load the schema cache. This option will load the schema cache
+  # when a connection is established rather than on boot. If set,
+  # +config.active_record.use_schema_cache_dump+ will be set to false.
+  singleton_class.attr_accessor :lazily_load_schema_cache
+  self.lazily_load_schema_cache = false
+
+  # A list of tables or regex's to match tables to ignore when
+  # dumping the schema cache. For example if this is set to +[/^_/]+
+  # the schema cache will not dump tables named with an underscore.
+  singleton_class.attr_accessor :schema_cache_ignored_tables
+  self.schema_cache_ignored_tables = []
+
   singleton_class.attr_accessor :legacy_connection_handling
   self.legacy_connection_handling = true
 
-  ##
-  # :singleton-method:
+  singleton_class.attr_reader :default_timezone
+
   # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
   # dates and times from the database. This is set to :utc by default.
-  singleton_class.attr_accessor :default_timezone
+  def self.default_timezone=(default_timezone)
+    unless %i(local utc).include?(default_timezone)
+      raise ArgumentError, "default_timezone must be either :utc (default) or :local."
+    end
+
+    @default_timezone = default_timezone
+  end
+
   self.default_timezone = :utc
 
   singleton_class.attr_accessor :writing_role
@@ -321,6 +341,9 @@ module ActiveRecord
   # Supported by PostgreSQL and SQLite.
   singleton_class.attr_accessor :verify_foreign_keys_for_fixtures
   self.verify_foreign_keys_for_fixtures = false
+
+  singleton_class.attr_accessor :query_transformers
+  self.query_transformers = []
 
   def self.eager_load!
     super

@@ -251,6 +251,59 @@ module ActiveRecord
 
           assert_equal "No connection pool for 'ActiveRecord::Base' found for the 'foo' shard.", error.message
         end
+
+        def test_cannot_swap_shards_while_prohibited
+          previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+
+          config = {
+            "default_env" => {
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+              "primary_shard_one" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3" }
+            }
+          }
+
+          @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+          ActiveRecord::Base.connects_to(shards: {
+            default: { writing: :primary },
+            shard_one: { writing: :primary_shard_one }
+          })
+
+          assert_raises(ArgumentError) do
+            ActiveRecord::Base.prohibit_shard_swapping do
+              ActiveRecord::Base.connected_to(role: :reading, shard: :default) do
+              end
+            end
+          end
+        ensure
+          ActiveRecord::Base.configurations = @prev_configs
+          ActiveRecord::Base.establish_connection(:arunit)
+          ENV["RAILS_ENV"] = previous_env
+        end
+
+        def test_can_swap_roles_while_shard_swapping_is_prohibited
+          previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+
+          config = {
+            "default_env" => {
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+              "primary_replica" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3", "replica" => true }
+            }
+          }
+
+          @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+          ActiveRecord::Base.connects_to(shards: { default: { writing: :primary, reading: :primary_replica } })
+
+          ActiveRecord::Base.prohibit_shard_swapping do # no exception
+            ActiveRecord::Base.connected_to(role: :reading) do
+            end
+          end
+        ensure
+          ActiveRecord::Base.configurations = @prev_configs
+          ActiveRecord::Base.establish_connection(:arunit)
+          ENV["RAILS_ENV"] = previous_env
+        end
       end
 
       class SecondaryBase < ActiveRecord::Base

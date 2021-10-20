@@ -67,7 +67,7 @@ module ActiveRecord
               database: uri.opaque
             )
           else
-            query_hash.merge(
+            query_hash.reverse_merge(
               adapter: @adapter,
               username: uri.user,
               password: uri.password,

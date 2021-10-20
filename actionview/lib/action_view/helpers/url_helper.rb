@@ -7,7 +7,7 @@ require "action_view/helpers/tag_helper"
 
 module ActionView
   # = Action View URL Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # Provides a set of methods for making links and getting URLs that
     # depend on the routing subsystem (see ActionDispatch::Routing).
     # This allows you to use the same format for links in views
@@ -85,6 +85,8 @@ module ActionView
       #     # name
       #   end
       #
+      #   link_to(active_record_model)
+      #
       # ==== Options
       # * <tt>:data</tt> - This option can be used to add custom data attributes.
       # * <tt>method: symbol of HTTP verb</tt> - This modifier will dynamically
@@ -103,17 +105,8 @@ module ActionView
       #   completion of the Ajax request and performing JavaScript operations once
       #   they're complete
       #
-      # ==== Data attributes
-      #
-      # * <tt>confirm: 'question?'</tt> - This will allow the unobtrusive JavaScript
-      #   driver to prompt with the question specified (in this case, the
-      #   resulting text would be <tt>question?</tt>. If the user accepts, the
-      #   link is processed normally, otherwise no action is taken.
-      # * <tt>:disable_with</tt> - Value of this parameter will be used as the
-      #   name for a disabled version of the link. This feature is provided by
-      #   the unobtrusive JavaScript driver.
-      #
       # ==== Examples
+      #
       # Because it relies on +url_for+, +link_to+ supports both older-style controller/action/id arguments
       # and newer RESTful routes. Current Rails style favors RESTful routes whenever possible, so base
       # your application on resources and use
@@ -145,6 +138,12 @@ module ActionView
       #
       #   link_to nil, "http://example.com"
       #   # => <a href="http://www.example.com">http://www.example.com</a>
+      #
+      # More concise yet, when +name+ is an Active Record model that defines a
+      # +to_s+ method returning a default value or a model instance attribute
+      #
+      #   link_to @profile
+      #   # => <a href="http://www.example.com/profiles/1">Eileen</a>
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
       #
@@ -186,22 +185,34 @@ module ActionView
       #   link_to("Destroy", "http://www.example.com", method: :delete)
       #   # => <a href='http://www.example.com' rel="nofollow" data-method="delete">Destroy</a>
       #
-      # You can also use custom data attributes using the <tt>:data</tt> option:
-      #
-      #   link_to "Visit Other Site", "http://www.rubyonrails.org/", data: { confirm: "Are you sure?" }
-      #   # => <a href="http://www.rubyonrails.org/" data-confirm="Are you sure?">Visit Other Site</a>
-      #
       # Also you can set any link attributes such as <tt>target</tt>, <tt>rel</tt>, <tt>type</tt>:
       #
       #   link_to "External link", "http://www.rubyonrails.org/", target: "_blank", rel: "nofollow"
       #   # => <a href="http://www.rubyonrails.org/" target="_blank" rel="nofollow">External link</a>
+      #
+      # ==== Deprecated: Rails UJS attributes
+      #
+      # Prior to Rails 7, Rails shipped with a JavaScript library called @rails/ujs on by default. Following Rails 7,
+      # this library is no longer on by default. This library integrated with the following options:
+      #
+      # * <tt>confirm: 'question?'</tt> - This will allow the unobtrusive JavaScript
+      #   driver to prompt with the question specified (in this case, the
+      #   resulting text would be <tt>question?</tt>. If the user accepts, the
+      #   link is processed normally, otherwise no action is taken.
+      # * <tt>:disable_with</tt> - Value of this parameter will be used as the
+      #   name for a disabled version of the link. This feature is provided by
+      #   the unobtrusive JavaScript driver.
+      #
+      #   link_to "Visit Other Site", "http://www.rubyonrails.org/", data: { confirm: "Are you sure?" }
+      #   # => <a href="http://www.rubyonrails.org/" data-confirm="Are you sure?">Visit Other Site</a>
+      #
       def link_to(name = nil, options = nil, html_options = nil, &block)
         html_options, options, name = options, name, block if block_given?
         options ||= {}
 
         html_options = convert_options_to_data_attributes(options, html_options)
 
-        url = url_for(options)
+        url = url_target(name, options)
         html_options["href"] ||= url
 
         content_tag("a", name || url, html_options, &block)
@@ -351,7 +362,8 @@ module ActionView
         inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
         if params
           to_form_params(params).each do |param|
-            inner_tags.safe_concat tag(:input, type: "hidden", name: param[:name], value: param[:value])
+            inner_tags.safe_concat tag(:input, type: "hidden", name: param[:name], value: param[:value],
+                                       autocomplete: "off")
           end
         end
         content_tag("form", inner_tags, form_options)
@@ -573,16 +585,14 @@ module ActionView
         request_uri = url_string.index("?") || check_parameters ? request.fullpath : request.path
         request_uri = URI::DEFAULT_PARSER.unescape(request_uri).force_encoding(Encoding::BINARY)
 
-        if url_string.start_with?("/") && url_string != "/"
-          url_string.chomp!("/")
-          request_uri.chomp!("/")
+        if %r{^\w+://}.match?(url_string)
+          request_uri = +"#{request.protocol}#{request.host_with_port}#{request_uri}"
         end
 
-        if %r{^\w+://}.match?(url_string)
-          url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
-        else
-          url_string == request_uri
-        end
+        remove_trailing_slash!(url_string)
+        remove_trailing_slash!(request_uri)
+
+        url_string == request_uri
       end
 
       if RUBY_VERSION.start_with?("2.7")
@@ -718,6 +728,14 @@ module ActionView
           end
         end
 
+        def url_target(name, options)
+          if name.respond_to?(:model_name) && options.empty?
+            url_for(name)
+          else
+            url_for(options)
+          end
+        end
+
         def link_to_remote_options?(options)
           if options.is_a?(Hash)
             options.delete("remote") || options.delete(:remote)
@@ -751,14 +769,14 @@ module ActionView
         def token_tag(token = nil, form_options: {})
           if token != false && defined?(protect_against_forgery?) && protect_against_forgery?
             token ||= form_authenticity_token(form_options: form_options)
-            tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token)
+            tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token, autocomplete: "off")
           else
             ""
           end
         end
 
         def method_tag(method)
-          tag("input", type: "hidden", name: "_method", value: method.to_s)
+          tag("input", type: "hidden", name: "_method", value: method.to_s, autocomplete: "off")
         end
 
         # Returns an array of hashes each containing :name and :value keys
@@ -801,6 +819,11 @@ module ActionView
           end
 
           params.sort_by { |pair| pair[:name] }
+        end
+
+        def remove_trailing_slash!(url_string)
+          trailing_index = (url_string.index("?") || 0) - 1
+          url_string[trailing_index] = "" if url_string[trailing_index] == "/"
         end
     end
   end

@@ -35,6 +35,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     get "/other" => "foo#other"
     get "/article/:id" => "foo#article", :as => :article
     get "/category/:category" => "foo#category"
+    resources :workshops
 
     scope :engine do
       get "/" => "foo#bar"
@@ -164,7 +165,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     self.request_forgery = true
 
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button><input name="form_token" type="hidden" value="secret" /></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button><input name="form_token" type="hidden" value="secret" autocomplete="off" /></form>},
       button_to("Hello", "http://www.example.com")
     )
   ensure
@@ -250,7 +251,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_method_delete
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><input type="hidden" name="_method" value="delete" /><button type="submit">Hello</button></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to"><input type="hidden" name="_method" value="delete" autocomplete="off" /><button type="submit">Hello</button></form>},
       button_to("Hello", "http://www.example.com", method: :delete)
     )
   end
@@ -271,7 +272,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="baz" value="quux" /><input type="hidden" name="foo" value="bar" /></form>},
+      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="baz" value="quux" autocomplete="off" /><input type="hidden" name="foo" value="bar" autocomplete="off" /></form>},
       button_to("Hello", "http://www.example.com", params: { foo: :bar, baz: "quux" })
     )
   end
@@ -308,7 +309,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_permitted_strong_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="baz" value="quux" /><input type="hidden" name="foo" value="bar" /></form>},
+      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="baz" value="quux" autocomplete="off" /><input type="hidden" name="foo" value="bar" autocomplete="off" /></form>},
       button_to("Hello", "http://www.example.com", params: FakeParams.new)
     )
   end
@@ -321,14 +322,14 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_nested_hash_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="foo[bar]" value="baz" /></form>},
+      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="foo[bar]" value="baz" autocomplete="off" /></form>},
       button_to("Hello", "http://www.example.com", params: { foo: { bar: "baz" } })
     )
   end
 
   def test_button_to_with_nested_array_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="foo[]" value="bar" /></form>},
+      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="foo[]" value="bar" autocomplete="off" /></form>},
       button_to("Hello", "http://www.example.com", params: { foo: ["bar"] })
     )
   end
@@ -511,6 +512,12 @@ class UrlHelperTest < ActiveSupport::TestCase
       link_to(raw("Malicious <script>content</script>"), "/")
   end
 
+  def test_link_tag_using_active_record_model
+    @workshop = Workshop.new(1.to_s)
+    link = link_to(@workshop)
+    assert_dom_equal %{<a href="/workshops/1">1</a>}, link
+  end
+
   def test_link_to_unless
     assert_equal "Showing", link_to_unless(true, "Showing", url_hash)
 
@@ -625,6 +632,14 @@ class UrlHelperTest < ActiveSupport::TestCase
     @request = request_for_url("/posts")
 
     assert current_page?("/posts/")
+    assert current_page?("http://www.example.com/posts/")
+  end
+
+  def test_current_page_with_trailing_slash_and_params
+    @request = request_for_url("/posts?order=desc")
+
+    assert current_page?("/posts/?order=desc")
+    assert current_page?("http://www.example.com/posts/?order=desc")
   end
 
   def test_current_page_with_not_get_verb

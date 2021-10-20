@@ -580,11 +580,11 @@ class FormHelperTest < ActionView::TestCase
 
   def test_hidden_field
     assert_dom_equal(
-      '<input id="post_title" name="post[title]" type="hidden" value="Hello World" />',
+      '<input id="post_title" name="post[title]" type="hidden" value="Hello World" autocomplete="off" />',
       hidden_field("post", "title")
     )
     assert_dom_equal(
-      '<input id="post_secret" name="post[secret]" type="hidden" value="1" />',
+      '<input id="post_secret" name="post[secret]" type="hidden" value="1" autocomplete="off" />',
       hidden_field("post", "secret?")
     )
   end
@@ -592,19 +592,19 @@ class FormHelperTest < ActionView::TestCase
   def test_hidden_field_with_escapes
     @post.title = "<b>Hello World</b>"
     assert_dom_equal(
-      '<input id="post_title" name="post[title]" type="hidden" value="&lt;b&gt;Hello World&lt;/b&gt;" />',
+      '<input id="post_title" name="post[title]" type="hidden" value="&lt;b&gt;Hello World&lt;/b&gt;" autocomplete="off" />',
       hidden_field("post", "title")
     )
   end
 
   def test_hidden_field_with_nil_value
-    expected = '<input id="post_title" name="post[title]" type="hidden" />'
+    expected = '<input id="post_title" name="post[title]" type="hidden" autocomplete="off" />'
     assert_dom_equal expected, hidden_field("post", "title", value: nil)
   end
 
   def test_hidden_field_with_options
     assert_dom_equal(
-      '<input id="post_title" name="post[title]" type="hidden" value="Something Else" />',
+      '<input id="post_title" name="post[title]" type="hidden" value="Something Else" autocomplete="off" />',
       hidden_field("post", "title", value: "Something Else")
     )
   end
@@ -622,7 +622,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_check_box_checked_if_object_value_is_same_that_check_value
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
+      '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret")
     )
   end
@@ -630,14 +630,14 @@ class FormHelperTest < ActionView::TestCase
   def test_check_box_not_checked_if_object_value_is_same_that_unchecked_value
     @post.secret = 0
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="0" /><input id="post_secret" name="post[secret]" type="checkbox" value="1" />',
+      '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret")
     )
   end
 
   def test_check_box_checked_if_option_checked_is_present
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
+      '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret", "checked" => "checked")
     )
   end
@@ -645,12 +645,12 @@ class FormHelperTest < ActionView::TestCase
   def test_check_box_checked_if_object_value_is_true
     @post.secret = true
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
+      '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret")
     )
 
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
+      '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret?")
     )
   end
@@ -658,19 +658,19 @@ class FormHelperTest < ActionView::TestCase
   def test_check_box_checked_if_object_value_includes_checked_value
     @post.secret = ["0"]
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="0" /><input id="post_secret" name="post[secret]" type="checkbox" value="1" />',
+      '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret")
     )
 
     @post.secret = ["1"]
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
+      '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret")
     )
 
     @post.secret = Set.new(["1"])
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
+      '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret")
     )
   end
@@ -686,13 +686,13 @@ class FormHelperTest < ActionView::TestCase
   def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_string
     @post.secret = "on"
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="on" />',
+      '<input name="post[secret]" type="hidden" value="off" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="on" />',
       check_box("post", "secret", {}, "on", "off")
     )
 
     @post.secret = "off"
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="on" />',
+      '<input name="post[secret]" type="hidden" value="off" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="on" />',
       check_box("post", "secret", {}, "on", "off")
     )
   end
@@ -700,13 +700,13 @@ class FormHelperTest < ActionView::TestCase
   def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_boolean
     @post.secret = false
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="true" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="false" />',
+      '<input name="post[secret]" type="hidden" value="true" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="false" />',
       check_box("post", "secret", {}, false, true)
     )
 
     @post.secret = true
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="true" /><input id="post_secret" name="post[secret]" type="checkbox" value="false" />',
+      '<input name="post[secret]" type="hidden" value="true" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="false" />',
       check_box("post", "secret", {}, false, true)
     )
   end
@@ -714,19 +714,19 @@ class FormHelperTest < ActionView::TestCase
   def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_integer
     @post.secret = 0
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="1" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="0" />',
       check_box("post", "secret", {}, 0, 1)
     )
 
     @post.secret = 1
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="1" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
       check_box("post", "secret", {}, 0, 1)
     )
 
     @post.secret = 2
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="1" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
       check_box("post", "secret", {}, 0, 1)
     )
   end
@@ -734,19 +734,19 @@ class FormHelperTest < ActionView::TestCase
   def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_float
     @post.secret = 0.0
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="1" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="0" />',
       check_box("post", "secret", {}, 0, 1)
     )
 
     @post.secret = 1.1
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="1" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
       check_box("post", "secret", {}, 0, 1)
     )
 
     @post.secret = 2.2
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="1" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
       check_box("post", "secret", {}, 0, 1)
     )
   end
@@ -754,19 +754,19 @@ class FormHelperTest < ActionView::TestCase
   def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_big_decimal
     @post.secret = BigDecimal(0)
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="1" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="0" />',
       check_box("post", "secret", {}, 0, 1)
     )
 
     @post.secret = BigDecimal(1)
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="1" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
       check_box("post", "secret", {}, 0, 1)
     )
 
     @post.secret = BigDecimal(2.2, 1)
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="1" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
+      '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
       check_box("post", "secret", {}, 0, 1)
     )
   end
@@ -786,11 +786,11 @@ class FormHelperTest < ActionView::TestCase
   def test_check_box_with_multiple_behavior
     @post.comment_ids = [2, 3]
     assert_dom_equal(
-      '<input name="post[comment_ids][]" type="hidden" value="0" /><input id="post_comment_ids_1" name="post[comment_ids][]" type="checkbox" value="1" />',
+      '<input name="post[comment_ids][]" type="hidden" value="0" autocomplete="off" /><input id="post_comment_ids_1" name="post[comment_ids][]" type="checkbox" value="1" />',
       check_box("post", "comment_ids", { multiple: true }, 1)
     )
     assert_dom_equal(
-      '<input name="post[comment_ids][]" type="hidden" value="0" /><input checked="checked" id="post_comment_ids_3" name="post[comment_ids][]" type="checkbox" value="3" />',
+      '<input name="post[comment_ids][]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_comment_ids_3" name="post[comment_ids][]" type="checkbox" value="3" />',
       check_box("post", "comment_ids", { multiple: true }, 3)
     )
   end
@@ -798,25 +798,25 @@ class FormHelperTest < ActionView::TestCase
   def test_check_box_with_multiple_behavior_and_index
     @post.comment_ids = [2, 3]
     assert_dom_equal(
-      '<input name="post[foo][comment_ids][]" type="hidden" value="0" /><input id="post_foo_comment_ids_1" name="post[foo][comment_ids][]" type="checkbox" value="1" />',
+      '<input name="post[foo][comment_ids][]" type="hidden" value="0" autocomplete="off" /><input id="post_foo_comment_ids_1" name="post[foo][comment_ids][]" type="checkbox" value="1" />',
       check_box("post", "comment_ids", { multiple: true, index: "foo" }, 1)
     )
     assert_dom_equal(
-      '<input name="post[bar][comment_ids][]" type="hidden" value="0" /><input checked="checked" id="post_bar_comment_ids_3" name="post[bar][comment_ids][]" type="checkbox" value="3" />',
+      '<input name="post[bar][comment_ids][]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_bar_comment_ids_3" name="post[bar][comment_ids][]" type="checkbox" value="3" />',
       check_box("post", "comment_ids", { multiple: true, index: "bar" }, 3)
     )
   end
 
   def test_checkbox_disabled_disables_hidden_field
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="0" disabled="disabled"/><input checked="checked" disabled="disabled" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
+      '<input name="post[secret]" type="hidden" value="0" disabled="disabled" autocomplete="off"/><input checked="checked" disabled="disabled" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret", disabled: true)
     )
   end
 
   def test_checkbox_form_html5_attribute
     assert_dom_equal(
-      '<input form="new_form" name="post[secret]" type="hidden" value="0" /><input checked="checked" form="new_form" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
+      '<input form="new_form" name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" form="new_form" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret", form: "new_form")
     )
   end
@@ -1156,6 +1156,14 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value))
   end
 
+  def test_time_field_without_seconds
+    expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02" max="10:25" min="20:45" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    min_value = DateTime.new(2000, 6, 15, 20, 45, 30)
+    max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
+    assert_dom_equal(expected, time_field("post", "written_on", include_seconds: false, min: min_value, max: max_value))
+  end
+
   def test_datetime_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00:00" />}
     assert_dom_equal(expected, datetime_field("post", "written_on"))
@@ -1328,7 +1336,7 @@ class FormHelperTest < ActionView::TestCase
       text_area("post", "body", "name" => "really!")
     )
     assert_dom_equal(
-      '<input name="i mean it" type="hidden" value="0" /><input checked="checked" id="post_secret" name="i mean it" type="checkbox" value="1" />',
+      '<input name="i mean it" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="i mean it" type="checkbox" value="1" />',
       check_box("post", "secret", "name" => "i mean it")
     )
     assert_dom_equal(
@@ -1355,7 +1363,7 @@ class FormHelperTest < ActionView::TestCase
       text_area("post", "body", "id" => "really!")
     )
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="i mean it" name="post[secret]" type="checkbox" value="1" />',
+      '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="i mean it" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret", "id" => "i mean it")
     )
     assert_dom_equal(
@@ -1382,7 +1390,7 @@ class FormHelperTest < ActionView::TestCase
       text_area("post", "body", "id" => nil)
     )
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" name="post[secret]" type="checkbox" value="1" />',
+      '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret", "id" => nil)
     )
     assert_dom_equal(
@@ -1421,7 +1429,7 @@ class FormHelperTest < ActionView::TestCase
       text_area("post", "body", "index" => 5)
     )
     assert_dom_equal(
-      '<input name="post[5][secret]" type="hidden" value="0" /><input checked="checked" name="post[5][secret]" type="checkbox" value="1" id="post_5_secret" />',
+      '<input name="post[5][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[5][secret]" type="checkbox" value="1" id="post_5_secret" />',
       check_box("post", "secret", "index" => 5)
     )
     assert_dom_equal(
@@ -1448,7 +1456,7 @@ class FormHelperTest < ActionView::TestCase
       text_area("post", "body", "index" => 5, "id" => nil)
     )
     assert_dom_equal(
-      '<input name="post[5][secret]" type="hidden" value="0" /><input checked="checked" name="post[5][secret]" type="checkbox" value="1" />',
+      '<input name="post[5][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[5][secret]" type="checkbox" value="1" />',
       check_box("post", "secret", "index" => 5, "id" => nil)
     )
     assert_dom_equal(
@@ -1480,7 +1488,7 @@ class FormHelperTest < ActionView::TestCase
       text_area("post[]", "body")
     )
     assert_dom_equal(
-      %{<input name="post[#{pid}][secret]" type="hidden" value="0" /><input checked="checked" id="post_#{pid}_secret" name="post[#{pid}][secret]" type="checkbox" value="1" />},
+      %{<input name="post[#{pid}][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_#{pid}_secret" name="post[#{pid}][secret]" type="checkbox" value="1" />},
       check_box("post[]", "secret")
     )
     assert_dom_equal(
@@ -1504,7 +1512,7 @@ class FormHelperTest < ActionView::TestCase
       text_area("post[]", "body", id: nil)
     )
     assert_dom_equal(
-      %{<input name="post[#{pid}][secret]" type="hidden" value="0" /><input checked="checked" name="post[#{pid}][secret]" type="checkbox" value="1" />},
+      %{<input name="post[#{pid}][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[#{pid}][secret]" type="checkbox" value="1" />},
       check_box("post[]", "secret", id: nil)
     )
     assert_dom_equal(
@@ -1555,7 +1563,7 @@ class FormHelperTest < ActionView::TestCase
       "<label for='post_title'>The Title</label>" \
       "<input name='post[title]' type='text' id='post_title' value='Hello World' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" \
       "<input name='commit' data-disable-with='Create post' type='submit' value='Create post' />" \
       "<button name='button' type='submit'>Create post</button>" \
@@ -1585,7 +1593,7 @@ class FormHelperTest < ActionView::TestCase
       "<label for='post_title'>The Title</label>" \
       "<input name='post[title]' type='text' id='post_title' value='Hello World' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" \
       "<input name='commit' data-disable-with='Create post' type='submit' value='Create post' />" \
       "<button name='button' type='submit'>Create post</button>" \
@@ -1659,7 +1667,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
-      "<input type='hidden' name='post[active]' value='' />" \
+      "<input type='hidden' name='post[active]' value='' autocomplete='off' />" \
       "<input id='post_active_true' name='post[active]' type='radio' value='true' />" \
       "<label for='post_active_true'>true</label>" \
       "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" \
@@ -1681,7 +1689,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
-      "<input type='hidden' name='post[active]' value='' />" \
+      "<input type='hidden' name='post[active]' value='' autocomplete='off' />" \
       "<label for='post_active_true'>" \
       "<input id='post_active_true' name='post[active]' type='radio' value='true' />" \
       "true</label>" \
@@ -1707,14 +1715,14 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post_1", "new_post") do
-      "<input type='hidden' name='post[active]' value='' />" \
+      "<input type='hidden' name='post[active]' value='' autocomplete='off' />" \
       "<label for='post_active_true'>" \
       "<input id='post_active_true' name='post[active]' type='radio' value='true' />" \
       "true</label>" \
       "<label for='post_active_false'>" \
       "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" \
       "false</label>" \
-      "<input id='post_id' name='post[id]' type='hidden' value='1' />"
+      "<input id='post_id' name='post[id]' type='hidden' value='1' autocomplete='off' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1729,7 +1737,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "foo_new_post", "new_post") do
-      "<input type='hidden' name='post[active]' value='' />" \
+      "<input type='hidden' name='post[active]' value='' autocomplete='off' />" \
       "<input id='foo_post_active_true' name='post[active]' type='radio' value='true' />" \
       "<label for='foo_post_active_true'>true</label>" \
       "<input checked='checked' id='foo_post_active_false' name='post[active]' type='radio' value='false' />" \
@@ -1748,7 +1756,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
-      "<input type='hidden' name='post[1][active]' value='' />" \
+      "<input type='hidden' name='post[1][active]' value='' autocomplete='off' />" \
       "<input id='post_1_active_true' name='post[1][active]' type='radio' value='true' />" \
       "<label for='post_1_active_true'>true</label>" \
       "<input checked='checked' id='post_1_active_false' name='post[1][active]' type='radio' value='false' />" \
@@ -1767,7 +1775,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
-      "<input name='post[tag_ids][]' type='hidden' value='' />" \
+      "<input name='post[tag_ids][]' type='hidden' value='' autocomplete='off' />" \
       "<input checked='checked' id='post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" \
       "<label for='post_tag_ids_1'>Tag 1</label>" \
       "<input id='post_tag_ids_2' name='post[tag_ids][]' type='checkbox' value='2' />" \
@@ -1791,7 +1799,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
-      "<input name='post[tag_ids][]' type='hidden' value='' />" \
+      "<input name='post[tag_ids][]' type='hidden' value='' autocomplete='off' />" \
       "<label for='post_tag_ids_1'>" \
       "<input checked='checked' id='post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" \
       "Tag 1</label>" \
@@ -1821,7 +1829,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post_1", "new_post") do
-      "<input name='post[tag_ids][]' type='hidden' value='' />" \
+      "<input name='post[tag_ids][]' type='hidden' value='' autocomplete='off' />" \
       "<label for='post_tag_ids_1'>" \
       "<input checked='checked' id='post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" \
       "Tag 1</label>" \
@@ -1831,7 +1839,7 @@ class FormHelperTest < ActionView::TestCase
       "<label for='post_tag_ids_3'>" \
       "<input checked='checked' id='post_tag_ids_3' name='post[tag_ids][]' type='checkbox' value='3' />" \
       "Tag 3</label>" \
-      "<input id='post_id' name='post[id]' type='hidden' value='1' />"
+      "<input id='post_id' name='post[id]' type='hidden' value='1' autocomplete='off' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1847,7 +1855,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "foo_new_post", "new_post") do
-      "<input name='post[tag_ids][]' type='hidden' value='' />" \
+      "<input name='post[tag_ids][]' type='hidden' value='' autocomplete='off' />" \
       "<input checked='checked' id='foo_post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" \
       "<label for='foo_post_tag_ids_1'>Tag 1</label>"
     end
@@ -1865,7 +1873,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
-      "<input name='post[1][tag_ids][]' type='hidden' value='' />" \
+      "<input name='post[1][tag_ids][]' type='hidden' value='' autocomplete='off' />" \
       "<input checked='checked' id='post_1_tag_ids_1' name='post[1][tag_ids][]' type='checkbox' value='1' />" \
       "<label for='post_1_tag_ids_1'>Tag 1</label>"
     end
@@ -1940,7 +1948,7 @@ class FormHelperTest < ActionView::TestCase
       "<label for='other_name_title' class='post_title'>Title</label>" \
       "<input name='other_name[title]' id='other_name_title' value='Hello World' type='text' />" \
       "<textarea name='other_name[body]' id='other_name_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='other_name[secret]' value='0' type='hidden' />" \
+      "<input name='other_name[secret]' value='0' type='hidden' autocomplete='off' />" \
       "<input name='other_name[secret]' checked='checked' id='other_name_secret' value='1' type='checkbox' />" \
       "<input name='commit' value='Create post' data-disable-with='Create post' type='submit' />"
     end
@@ -1971,7 +1979,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/", "create-post", "edit_post", method: "delete") do
       "<input name='post[title]' type='text' id='post_title' value='Hello World' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
     end
 
@@ -1988,7 +1996,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/", "create-post", "edit_post", method: "delete") do
       "<input name='post[title]' type='text' id='post_title' value='Hello World' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
     end
 
@@ -2019,7 +2027,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/", "create-post", "edit_post", method: "patch", remote: true) do
       "<input name='post[title]' type='text' id='post_title' value='Hello World' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
     end
 
@@ -2088,7 +2096,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/", "create-post", "edit_post", method: "patch", remote: true) do
       "<input name='post[title]' type='text' id='post_title' value='Hello World' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
     end
 
@@ -2107,7 +2115,7 @@ class FormHelperTest < ActionView::TestCase
       expected = whole_form("/posts", "new_post", "new_post", remote: true) do
         "<input name='post[title]' type='text' id='post_title' value='Hello World' />" \
         "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
-        "<input name='post[secret]' type='hidden' value='0' />" \
+        "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
         "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
       end
 
@@ -2125,7 +2133,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/", "create-post") do
       "<input name='post[title]' type='text' id='post_title' value='Hello World' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
     end
 
@@ -2144,7 +2152,7 @@ class FormHelperTest < ActionView::TestCase
       "<label for='post_123_title'>Title</label>" \
       "<input name='post[123][title]' type='text' id='post_123_title' value='Hello World' />" \
       "<textarea name='post[123][body]' id='post_123_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[123][secret]' type='hidden' value='0' />" \
+      "<input name='post[123][secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[123][secret]' checked='checked' type='checkbox' id='post_123_secret' value='1' />"
     end
 
@@ -2161,7 +2169,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "edit_post[]", "edit_post[]", method: "patch") do
       "<input name='post[][title]' type='text' id='post__title' value='Hello World' />" \
       "<textarea name='post[][body]' id='post__body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[][secret]' type='hidden' value='0' />" \
+      "<input name='post[][secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[][secret]' checked='checked' type='checkbox' id='post__secret' value='1' />"
     end
 
@@ -2226,7 +2234,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "namespace_edit_post_123", "edit_post", method: "patch") do
       "<input name='post[title]' type='text' id='namespace_post_title' value='Hello World' />" \
       "<textarea name='post[body]' id='namespace_post_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' id='namespace_post_secret' value='1' />"
     end
 
@@ -2675,7 +2683,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input name="post[title]" type="text" id="post_title" value="Hello World" />' \
       '<input id="post_author_attributes_name" name="post[author_attributes][name]" type="text" value="author #321" />' \
-      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" />'
+      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -2694,7 +2702,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input name="post[title]" type="text" id="post_title" value="Hello World" />' \
       '<input id="post_author_attributes_name" name="post[author_attributes][name]" type="text" value="author #321" />' \
-      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" />'
+      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -2749,7 +2757,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input name="post[title]" type="text" id="post_title" value="Hello World" />' \
       '<input id="post_author_attributes_name" name="post[author_attributes][name]" type="text" value="author #321" />' \
-      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" />'
+      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -2768,7 +2776,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input name="post[title]" type="text" id="post_title" value="Hello World" />' \
-      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" />' \
+      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" autocomplete="off" />' \
       '<input id="post_author_attributes_name" name="post[author_attributes][name]" type="text" value="author #321" />'
     end
 
@@ -2790,9 +2798,9 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input name="post[title]" type="text" id="post_title" value="Hello World" />' \
       '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" type="text" value="comment #1" />' \
-      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="1" />' \
+      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="1" autocomplete="off" />' \
       '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" type="text" value="comment #2" />' \
-      '<input id="post_comments_attributes_1_id" name="post[comments_attributes][1][id]" type="hidden" value="2" />'
+      '<input id="post_comments_attributes_1_id" name="post[comments_attributes][1][id]" type="hidden" value="2" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -2817,7 +2825,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input name="post[title]" type="text" id="post_title" value="Hello World" />' \
       '<input id="post_author_attributes_name" name="post[author_attributes][name]" type="text" value="author #321" />' \
-      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" />' \
+      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" autocomplete="off" />' \
       '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" type="text" value="comment #1" />' \
       '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" type="text" value="comment #2" />'
     end
@@ -2870,7 +2878,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input name="post[title]" type="text" id="post_title" value="Hello World" />' \
       '<input id="post_author_attributes_name" name="post[author_attributes][name]" type="text" value="author #321" />' \
-      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" />' \
+      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" autocomplete="off" />' \
       '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" type="text" value="comment #1" />' \
       '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" type="text" value="comment #2" />'
     end
@@ -2893,9 +2901,9 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input name="post[title]" type="text" id="post_title" value="Hello World" />' \
       '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" type="text" value="comment #1" />' \
-      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="1" />' \
+      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="1" autocomplete="off" />' \
       '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" type="text" value="comment #2" />' \
-      '<input id="post_comments_attributes_1_id" name="post[comments_attributes][1][id]" type="hidden" value="2" />'
+      '<input id="post_comments_attributes_1_id" name="post[comments_attributes][1][id]" type="hidden" value="2" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -2916,9 +2924,9 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input name="post[title]" type="text" id="post_title" value="Hello World" />' \
-      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="1" />' \
+      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="1" autocomplete="off" />' \
       '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" type="text" value="comment #1" />' \
-      '<input id="post_comments_attributes_1_id" name="post[comments_attributes][1][id]" type="hidden" value="2" />' \
+      '<input id="post_comments_attributes_1_id" name="post[comments_attributes][1][id]" type="hidden" value="2" autocomplete="off" />' \
       '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" type="text" value="comment #2" />'
     end
 
@@ -2961,7 +2969,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input name="post[title]" type="text" id="post_title" value="Hello World" />' \
       '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" type="text" value="comment #321" />' \
-      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="321" />' \
+      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="321" autocomplete="off" />' \
       '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" type="text" value="new comment" />'
     end
 
@@ -2996,9 +3004,9 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input name="post[title]" type="text" id="post_title" value="Hello World" />' \
       '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" type="text" value="comment #1" />' \
-      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="1" />' \
+      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="1" autocomplete="off" />' \
       '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" type="text" value="comment #2" />' \
-      '<input id="post_comments_attributes_1_id" name="post[comments_attributes][1][id]" type="hidden" value="2" />'
+      '<input id="post_comments_attributes_1_id" name="post[comments_attributes][1][id]" type="hidden" value="2" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -3017,9 +3025,9 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input name="post[title]" type="text" id="post_title" value="Hello World" />' \
       '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" type="text" value="comment #1" />' \
-      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="1" />' \
+      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="1" autocomplete="off" />' \
       '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" type="text" value="comment #2" />' \
-      '<input id="post_comments_attributes_1_id" name="post[comments_attributes][1][id]" type="hidden" value="2" />'
+      '<input id="post_comments_attributes_1_id" name="post[comments_attributes][1][id]" type="hidden" value="2" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -3052,9 +3060,9 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input name="post[title]" type="text" id="post_title" value="Hello World" />' \
       '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" type="text" value="comment #1" />' \
-      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="1" />' \
+      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="1" autocomplete="off" />' \
       '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" type="text" value="comment #2" />' \
-      '<input id="post_comments_attributes_1_id" name="post[comments_attributes][1][id]" type="hidden" value="2" />'
+      '<input id="post_comments_attributes_1_id" name="post[comments_attributes][1][id]" type="hidden" value="2" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -3075,7 +3083,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input name="post[title]" type="text" id="post_title" value="Hello World" />' \
       '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" type="text" value="comment #321" />' \
-      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="321" />' \
+      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="321" autocomplete="off" />' \
       '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" type="text" value="new comment" />'
     end
 
@@ -3094,7 +3102,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input id="post_comments_attributes_abc_name" name="post[comments_attributes][abc][name]" type="text" value="comment #321" />' \
-      '<input id="post_comments_attributes_abc_id" name="post[comments_attributes][abc][id]" type="hidden" value="321" />'
+      '<input id="post_comments_attributes_abc_id" name="post[comments_attributes][abc][id]" type="hidden" value="321" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -3111,7 +3119,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input id="post_comments_attributes_abc_name" name="post[comments_attributes][abc][name]" type="text" value="comment #321" />' \
-      '<input id="post_comments_attributes_abc_id" name="post[comments_attributes][abc][id]" type="hidden" value="321" />'
+      '<input id="post_comments_attributes_abc_id" name="post[comments_attributes][abc][id]" type="hidden" value="321" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -3134,7 +3142,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input id="post_comments_attributes_abc_name" name="post[comments_attributes][abc][name]" type="text" value="comment #321" />' \
-      '<input id="post_comments_attributes_abc_id" name="post[comments_attributes][abc][id]" type="hidden" value="321" />'
+      '<input id="post_comments_attributes_abc_id" name="post[comments_attributes][abc][id]" type="hidden" value="321" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -3221,16 +3229,16 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" type="text" value="comment #321" />' \
       '<input id="post_comments_attributes_0_relevances_attributes_0_value" name="post[comments_attributes][0][relevances_attributes][0][value]" type="text" value="commentrelevance #314" />' \
-      '<input id="post_comments_attributes_0_relevances_attributes_0_id" name="post[comments_attributes][0][relevances_attributes][0][id]" type="hidden" value="314" />' \
-      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="321" />' \
+      '<input id="post_comments_attributes_0_relevances_attributes_0_id" name="post[comments_attributes][0][relevances_attributes][0][id]" type="hidden" value="314" autocomplete="off" />' \
+      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="321" autocomplete="off" />' \
       '<input id="post_tags_attributes_0_value" name="post[tags_attributes][0][value]" type="text" value="tag #123" />' \
       '<input id="post_tags_attributes_0_relevances_attributes_0_value" name="post[tags_attributes][0][relevances_attributes][0][value]" type="text" value="tagrelevance #3141" />' \
-      '<input id="post_tags_attributes_0_relevances_attributes_0_id" name="post[tags_attributes][0][relevances_attributes][0][id]" type="hidden" value="3141" />' \
-      '<input id="post_tags_attributes_0_id" name="post[tags_attributes][0][id]" type="hidden" value="123" />' \
+      '<input id="post_tags_attributes_0_relevances_attributes_0_id" name="post[tags_attributes][0][relevances_attributes][0][id]" type="hidden" value="3141" autocomplete="off" />' \
+      '<input id="post_tags_attributes_0_id" name="post[tags_attributes][0][id]" type="hidden" value="123" autocomplete="off" />' \
       '<input id="post_tags_attributes_1_value" name="post[tags_attributes][1][value]" type="text" value="tag #456" />' \
       '<input id="post_tags_attributes_1_relevances_attributes_0_value" name="post[tags_attributes][1][relevances_attributes][0][value]" type="text" value="tagrelevance #31415" />' \
-      '<input id="post_tags_attributes_1_relevances_attributes_0_id" name="post[tags_attributes][1][relevances_attributes][0][id]" type="hidden" value="31415" />' \
-      '<input id="post_tags_attributes_1_id" name="post[tags_attributes][1][id]" type="hidden" value="456" />'
+      '<input id="post_tags_attributes_1_relevances_attributes_0_id" name="post[tags_attributes][1][relevances_attributes][0][id]" type="hidden" value="31415" autocomplete="off" />' \
+      '<input id="post_tags_attributes_1_id" name="post[tags_attributes][1][id]" type="hidden" value="456" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -3262,7 +3270,7 @@ class FormHelperTest < ActionView::TestCase
     expected =
       "<input name='post[title]' type='text' id='post_title' value='Hello World' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
 
     assert_dom_equal expected, output_buffer
@@ -3284,7 +3292,7 @@ class FormHelperTest < ActionView::TestCase
     expected =
       "<input name='post[123][title]' type='text' id='post_123_title' value='Hello World' />" \
       "<textarea name='post[123][body]' id='post_123_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[123][secret]' type='hidden' value='0' />" \
+      "<input name='post[123][secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[123][secret]' checked='checked' type='checkbox' id='post_123_secret' value='1' />"
 
     assert_dom_equal expected, output_buffer
@@ -3306,7 +3314,7 @@ class FormHelperTest < ActionView::TestCase
     expected =
       "<input name='post[][title]' type='text' id='post__title' value='Hello World' />" \
       "<textarea name='post[][body]' id='post__body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[][secret]' type='hidden' value='0' />" \
+      "<input name='post[][secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[][secret]' checked='checked' type='checkbox' id='post__secret' value='1' />"
 
     assert_dom_equal expected, output_buffer
@@ -3328,7 +3336,7 @@ class FormHelperTest < ActionView::TestCase
     expected =
       "<input name='post[abc][title]' type='text' id='post_abc_title' value='Hello World' />" \
       "<textarea name='post[abc][body]' id='post_abc_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[abc][secret]' type='hidden' value='0' />" \
+      "<input name='post[abc][secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[abc][secret]' checked='checked' type='checkbox' id='post_abc_secret' value='1' />"
 
     assert_dom_equal expected, output_buffer
@@ -3344,7 +3352,7 @@ class FormHelperTest < ActionView::TestCase
     expected =
       "<input name='post[title]' type='text' id='post_title' value='Hello World' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
 
     assert_dom_equal expected, output_buffer
@@ -3360,7 +3368,7 @@ class FormHelperTest < ActionView::TestCase
     expected =
       "<input name='post[title]' type='text' id='post_title' value='Hello World' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
 
     assert_dom_equal expected, output_buffer
@@ -3405,7 +3413,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
       "<input name='post[title]' type='text' id='post_title' value='Hello World' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='parent_post[secret]' type='hidden' value='0' />" \
+      "<input name='parent_post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='parent_post[secret]' checked='checked' type='checkbox' id='parent_post_secret' value='1' />"
     end
 
@@ -3465,7 +3473,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       "<label for='title'>Title:</label> <input name='post[title]' type='text' id='post_title' value='Hello World' /><br/>" \
       "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea><br/>" \
-      "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' /><br/>"
+      "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' autocomplete='off' /><input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' /><br/>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -3484,7 +3492,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       "<label for='title'>Title:</label> <input name='post[title]' type='text' id='post_title' value='Hello World' /><br/>" \
       "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea><br/>" \
-      "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' /><br/>"
+      "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' autocomplete='off' /><input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' /><br/>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -3543,7 +3551,7 @@ class FormHelperTest < ActionView::TestCase
     expected =
       "<label for='title'>Title:</label> <input name='post[title]' type='text' id='post_title' value='Hello World' /><br/>" \
       "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea><br/>" \
-      "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' /><br/>"
+      "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' autocomplete='off' /><input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' /><br/>"
 
     assert_dom_equal expected, output_buffer
   end
@@ -3717,13 +3725,13 @@ class FormHelperTest < ActionView::TestCase
       method = options[:method]
 
       if options.fetch(:enforce_utf8, true)
-        txt = +%{<input name="utf8" type="hidden" value="&#x2713;" />}
+        txt = +%{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off" />}
       else
         txt = +""
       end
 
       if method && !%w(get post).include?(method.to_s)
-        txt << %{<input name="_method" type="hidden" value="#{method}" />}
+        txt << %{<input name="_method" type="hidden" value="#{method}" autocomplete="off" />}
       end
 
       txt

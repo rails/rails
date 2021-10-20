@@ -31,7 +31,7 @@ module ActionController
 
   # ActionController::TestCase will be deprecated and moved to a gem in the future.
   # Please use ActionDispatch::IntegrationTest going forward.
-  class TestRequest < ActionDispatch::TestRequest #:nodoc:
+  class TestRequest < ActionDispatch::TestRequest # :nodoc:
     DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
     DEFAULT_ENV.delete "PATH_INFO"
 
@@ -179,7 +179,7 @@ module ActionController
 
   # Methods #destroy and #load! are overridden to avoid calling methods on the
   # @store object, which does not exist for the TestSession class.
-  class TestSession < Rack::Session::Abstract::PersistedSecure::SecureSessionHash #:nodoc:
+  class TestSession < Rack::Session::Abstract::PersistedSecure::SecureSessionHash # :nodoc:
     DEFAULT_OPTIONS = Rack::Session::Abstract::Persisted::DEFAULT_OPTIONS
 
     def initialize(session = {})
@@ -627,7 +627,7 @@ module ActionController
         end
 
         def check_required_ivars
-          # Sanity check for required instance variables so we can give an
+          # Check for required instance variables so we can give an
           # understandable error message.
           [:@routes, :@controller, :@request, :@response].each do |iv_name|
             if !instance_variable_defined?(iv_name) || instance_variable_get(iv_name).nil?

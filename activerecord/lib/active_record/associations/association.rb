@@ -32,7 +32,7 @@ module ActiveRecord
     # The association of <tt>blog.posts</tt> has the object +blog+ as its
     # <tt>owner</tt>, the collection of its posts as <tt>target</tt>, and
     # the <tt>reflection</tt> object represents a <tt>:has_many</tt> macro.
-    class Association #:nodoc:
+    class Association # :nodoc:
       attr_reader :owner, :target, :reflection, :disable_joins
 
       delegate :options, to: :reflection
@@ -52,7 +52,6 @@ module ActiveRecord
         @loaded = false
         @target = nil
         @stale_state = nil
-        @inversed = false
       end
 
       def reset_negative_cache # :nodoc:
@@ -78,7 +77,6 @@ module ActiveRecord
       def loaded!
         @loaded = true
         @stale_state = stale_state
-        @inversed = false
       end
 
       # The target is stale if the target no longer points to the record(s) that the
@@ -88,7 +86,7 @@ module ActiveRecord
       #
       # Note that if the target has not been loaded, it is not considered stale.
       def stale_target?
-        !@inversed && loaded? && @stale_state != stale_state
+        loaded? && @stale_state != stale_state
       end
 
       # Sets the target of this association to <tt>\target</tt>, and the \loaded flag to +true+.
@@ -137,15 +135,11 @@ module ActiveRecord
 
       def inversed_from(record)
         self.target = record
-        @inversed = !!record
       end
 
       def inversed_from_queries(record)
         if inversable?(record)
           self.target = record
-          @inversed = true
-        else
-          @inversed = false
         end
       end
 
@@ -196,7 +190,7 @@ module ActiveRecord
         @reflection = @owner.class._reflect_on_association(reflection_name)
       end
 
-      def initialize_attributes(record, except_from_scope_attributes = nil) #:nodoc:
+      def initialize_attributes(record, except_from_scope_attributes = nil) # :nodoc:
         except_from_scope_attributes ||= {}
         skip_assign = [reflection.foreign_key, reflection.type].compact
         assigned_keys = record.changed_attribute_names_to_save
@@ -295,7 +289,7 @@ module ActiveRecord
 
         # Raises ActiveRecord::AssociationTypeMismatch unless +record+ is of
         # the kind of the class of the associated objects. Meant to be used as
-        # a sanity check when you are about to assign an associated record.
+        # a safety check when you are about to assign an associated record.
         def raise_on_type_mismatch!(record)
           unless record.is_a?(reflection.klass)
             fresh_class = reflection.class_name.safe_constantize

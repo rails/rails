@@ -19,6 +19,13 @@ module ActiveRecord
       def set_schema_cache(cache)
         self.schema_cache = cache
       end
+
+      def lazily_set_schema_cache
+        return unless ActiveRecord.lazily_load_schema_cache
+
+        cache = SchemaCache.load_from(db_config.lazy_schema_cache_path)
+        set_schema_cache(cache)
+      end
     end
 
     class NullPool # :nodoc:
@@ -146,6 +153,8 @@ module ActiveRecord
         @lock_thread = false
 
         @async_executor = build_async_executor
+
+        lazily_set_schema_cache
 
         @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run

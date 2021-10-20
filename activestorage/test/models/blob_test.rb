@@ -212,7 +212,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
   test "purge deletes variants from external service with the purge_later" do
     blob = create_file_blob
-    variant = blob.variant(resize: "100>").processed
+    variant = blob.variant(resize_to_limit: [100, nil]).processed
 
     blob.purge
     assert_enqueued_with(job: ActiveStorage::PurgeJob, args: [variant.image.blob])
@@ -291,6 +291,32 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
         )
       end
     end
+  end
+
+  test "warning if blob is created with invalid mime type" do
+    assert_deprecated do
+      create_blob(filename: "funky.jpg", content_type: "image/jpg")
+    end
+
+    assert_not_deprecated do
+      create_blob(filename: "funky.jpg", content_type: "image/jpeg")
+    end
+  end
+
+  test "warning if blob is created with invalid mime type can be disabled" do
+    warning_was = ActiveStorage.silence_invalid_content_types_warning
+    ActiveStorage.silence_invalid_content_types_warning = true
+
+    assert_not_deprecated do
+      create_blob(filename: "funky.jpg", content_type: "image/jpg")
+    end
+
+    assert_not_deprecated do
+      create_blob(filename: "funky.jpg", content_type: "image/jpeg")
+    end
+
+  ensure
+    ActiveStorage.silence_invalid_content_types_warning = warning_was
   end
 
   private

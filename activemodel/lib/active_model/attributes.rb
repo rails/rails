@@ -4,7 +4,7 @@ require "active_model/attribute_set"
 require "active_model/attribute/user_provided_default"
 
 module ActiveModel
-  module Attributes #:nodoc:
+  module Attributes # :nodoc:
     extend ActiveSupport::Concern
     include ActiveModel::AttributeMethods
 

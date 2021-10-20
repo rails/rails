@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/html_safe_translation"
+
 module AbstractController
   module Translation
     mattr_accessor :raise_on_missing_translations, default: false
@@ -22,7 +24,8 @@ module AbstractController
       end
 
       i18n_raise = options.fetch(:raise, self.raise_on_missing_translations)
-      I18n.translate(key, **options, raise: i18n_raise)
+
+      ActiveSupport::HtmlSafeTranslation.translate(key, **options, raise: i18n_raise)
     end
     alias :t :translate
 

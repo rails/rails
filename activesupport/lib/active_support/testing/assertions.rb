@@ -189,7 +189,7 @@ module ActiveSupport
         error = "#{expression.inspect} didn't change"
         error = "#{error}. It was already #{to}" if before == to
         error = "#{message}.\n#{error}" if message
-        assert_not_equal before, after, error
+        refute_equal before, after, error
 
         unless to == UNTRACKED
           error = "Expected change to #{to}\n"
@@ -253,7 +253,7 @@ module ActiveSupport
             warning = <<~MSG
               #{self.class} - #{name}: #{e.error.class} raised.
               If you expected this exception, use `assert_raises` as near to the code that raises as possible.
-              Other block based assertions (eg. `#{assertion}`) can be used, as long as `assert_raises` is inside their block.
+              Other block based assertions (e.g. `#{assertion}`) can be used, as long as `assert_raises` is inside their block.
             MSG
             tagged_logger.warn warning
           end

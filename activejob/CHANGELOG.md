@@ -1,5 +1,33 @@
+*   Raise an `SerializationError` in `Serializer::ModuleSerializer`
+    if the module name is not present. 
+
+    *Veerpal Brar*
+
+
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
+
+*   No changes.
+
+
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
+*   Allow a job to retry indefinitely
+
+    The `attempts` parameter of the `retry_on` method now accepts the
+    symbol reference `:unlimited` in addition to a specific number of retry
+    attempts to allow a developer to specify that a job should retry
+    forever until it succeeds.
+
+        class MyJob < ActiveJob::Base
+          retry_on(AlwaysRetryException, attempts: :unlimited)
+
+          # the actual job code
+        end
+
+    *Daniel Morton*
+
 *   Added possibility to check on `:priority` in test helper methods
-    `assert_enqueued_with` and `assert_performed_with`
+    `assert_enqueued_with` and `assert_performed_with`.
 
     *Wojciech Wnętrzak*
 
@@ -7,9 +35,9 @@
 
     *Dirkjan Bussink*
 
-*   Add a Serializer for the Range class
+*   Add a Serializer for the Range class.
 
-    This should allow things like `MyJob.perform_later(range: 1..100)`
+    This should allow things like `MyJob.perform_later(range: 1..100)`.
 
 *   Communicate enqueue failures to callers of `perform_later`.
 

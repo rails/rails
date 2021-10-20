@@ -244,6 +244,54 @@ module ApplicationTests
         end
       end
 
+      def db_setup
+        Dir.chdir(app_path) do
+          rails "db:migrate"
+          rails "db:drop"
+          output = rails("db:setup")
+          assert_match(/Created database/, output)
+          ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+            assert_match_namespace(db_config.name, output)
+            assert File.exist?(db_config.database)
+          end
+        end
+      end
+
+      def db_setup_namespaced(namespace, expected_database)
+        Dir.chdir(app_path) do
+         rails "db:migrate"
+         rails "db:drop:#{namespace}"
+         output = rails("db:setup:#{namespace}")
+         assert_match(/Created database/, output)
+         assert_match_namespace(namespace, output)
+         assert File.exist?(expected_database)
+       end
+      end
+
+      def db_reset
+        Dir.chdir(app_path) do
+          rails "db:migrate"
+          output = rails("db:reset")
+          assert_match(/Dropped database/, output)
+          assert_match(/Created database/, output)
+          ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+            assert_match_namespace(db_config.name, output)
+            assert File.exist?(db_config.database)
+          end
+        end
+      end
+
+      def db_reset_namespaced(namespace, expected_database)
+        Dir.chdir(app_path) do
+          rails "db:migrate"
+          output = rails("db:reset:#{namespace}")
+          assert_match(/Dropped database/, output)
+          assert_match(/Created database/, output)
+          assert_match_namespace(namespace, output)
+          assert File.exist?(expected_database)
+        end
+      end
+
       def db_up_and_down(version, namespace = nil)
         Dir.chdir(app_path) do
           generate_models_for_animals
@@ -392,6 +440,7 @@ module ApplicationTests
       end
 
       test "db:migrate set back connection to its original state" do
+        require "#{app_path}/config/environment"
         Dir.chdir(app_path) do
           dummy_task = <<~RUBY
             task foo: :environment do
@@ -409,6 +458,7 @@ module ApplicationTests
       end
 
       test "db:migrate:name sets the connection back to its original state" do
+        require "#{app_path}/config/environment"
         Dir.chdir(app_path) do
           dummy_task = <<~RUBY
             task foo: :environment do
@@ -423,6 +473,28 @@ module ApplicationTests
 
           assert_nothing_raised do
             rails("db:migrate:animals", "foo")
+          end
+        end
+      end
+
+      test "db:schema:load:name sets the connection back to its original state" do
+        require "#{app_path}/config/environment"
+        Dir.chdir(app_path) do
+          dummy_task = <<~RUBY
+            task foo: :environment do
+              Book.first
+            end
+          RUBY
+          app_file("Rakefile", dummy_task, "a+")
+
+          generate_models_for_animals
+
+          rails("db:migrate:primary")
+
+          rails "db:migrate:animals", "db:schema:dump:animals"
+
+          assert_nothing_raised do
+            rails("db:schema:load:animals", "foo")
           end
         end
       end
@@ -721,6 +793,30 @@ module ApplicationTests
         assert_match(/You have 1 pending migration/, output)
       end
 
+      test "db:setup works on all databases" do
+        require "#{app_path}/config/environment"
+        db_setup
+      end
+
+      test "db:setup:namespace works" do
+        require "#{app_path}/config/environment"
+        ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+          db_setup_namespaced db_config.name, db_config.database
+        end
+      end
+
+      test "db:reset works on all databases" do
+        require "#{app_path}/config/environment"
+        db_reset
+      end
+
+      test "db:reset:namespace works" do
+        require "#{app_path}/config/environment"
+        ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+          db_reset_namespaced db_config.name, db_config.database
+        end
+      end
+
       test "db:prepare works on all databases" do
         require "#{app_path}/config/environment"
         db_prepare
@@ -992,6 +1088,42 @@ module ApplicationTests
         YAML
 
         db_migrate_and_schema_dump_and_load
+      end
+
+      test "when database_tasks is false, then do not run the database tasks on that db" do
+        require "#{app_path}/config/environment"
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              database: db/default.sqlite3
+              adapter: sqlite3
+            animals:
+              database: db/development_animals.sqlite3
+              adapter: sqlite3
+              database_tasks: false
+              schema_dump: true ### database_tasks should override all sub-settings
+        YAML
+
+        Dir.chdir(app_path) do
+          animals_db_exists = lambda { rails("runner", "puts !!(AnimalsBase.connection rescue false)").strip }
+
+          generate_models_for_animals
+
+          assert_equal "true", animals_db_exists.call
+
+          assert_not File.exist?("db/animals_schema.yml")
+
+          error = assert_raises do
+            rails "db:migrate:animals" ### Task not defined
+          end
+          assert_includes error.message, "See the list of available tasks"
+
+          rails "db:schema:dump"
+          assert_not File.exist?("db/animals_schema.yml")
+
+          rails "db:drop"
+          assert_equal "true", animals_db_exists.call
+        end
       end
     end
   end

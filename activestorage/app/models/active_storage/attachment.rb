@@ -53,7 +53,6 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   #
   # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
   # unknown pre-defined variant of the attachment.
-
   def variant(transformations)
     case transformations
     when Symbol
@@ -81,7 +80,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     end
 
     def dependent
-      record.attachment_reflections[name]&.options[:dependent]
+      record.attachment_reflections[name]&.options&.fetch(:dependent, nil)
     end
 
     def variants

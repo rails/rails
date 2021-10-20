@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-module ActionView #:nodoc:
+module ActionView # :nodoc:
   # = Action View HTML Template
-  class Template #:nodoc:
-    class HTML #:nodoc:
+  class Template # :nodoc:
+    class HTML # :nodoc:
       attr_reader :type
 
       def initialize(string, type)

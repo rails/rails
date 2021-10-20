@@ -521,15 +521,15 @@ module CacheStoreBehavior
     end
   end
 
-  def test_crazy_key_characters
-    crazy_key = "#/:*(<+=> )&$%@?;'\"\'`~-"
-    assert @cache.write(crazy_key, "1", raw: true)
-    assert_equal "1", @cache.read(crazy_key, raw: true)
-    assert_equal "1", @cache.fetch(crazy_key, raw: true)
-    assert @cache.delete(crazy_key)
-    assert_equal "2", @cache.fetch(crazy_key, raw: true) { "2" }
-    assert_equal 3, @cache.increment(crazy_key)
-    assert_equal 2, @cache.decrement(crazy_key)
+  def test_absurd_key_characters
+    absurd_key = "#/:*(<+=> )&$%@?;'\"\'`~-"
+    assert @cache.write(absurd_key, "1", raw: true)
+    assert_equal "1", @cache.read(absurd_key, raw: true)
+    assert_equal "1", @cache.fetch(absurd_key, raw: true)
+    assert @cache.delete(absurd_key)
+    assert_equal "2", @cache.fetch(absurd_key, raw: true) { "2" }
+    assert_equal 3, @cache.increment(absurd_key)
+    assert_equal 2, @cache.decrement(absurd_key)
   end
 
   def test_really_long_keys

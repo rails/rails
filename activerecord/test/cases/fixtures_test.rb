@@ -6,6 +6,7 @@ require "models/admin"
 require "models/admin/account"
 require "models/admin/randomly_named_c1"
 require "models/admin/user"
+require "models/author"
 require "models/binary"
 require "models/book"
 require "models/bulb"
@@ -18,6 +19,7 @@ require "models/course"
 require "models/developer"
 require "models/dog"
 require "models/doubloon"
+require "models/essay"
 require "models/joke"
 require "models/matey"
 require "models/other_dog"
@@ -93,11 +95,11 @@ class FixturesTest < ActiveRecord::TestCase
       subscriber = InsertQuerySubscriber.new
       subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
 
-      create_fixtures("bulbs", "authors", "computers")
+      create_fixtures("bulbs", "movies", "computers")
 
       expected_sql = <<~EOS.chop
         INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("bulbs")} .*
-        INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("authors")} .*
+        INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("movies")} .*
         INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("computers")} .*
       EOS
       assert_equal 1, subscriber.events.size
@@ -471,7 +473,7 @@ class FixturesTest < ActiveRecord::TestCase
   def test_nonexistent_fixture_file
     nonexistent_fixture_path = FIXTURES_ROOT + "/imnothere"
 
-    # sanity check to make sure that this file never exists
+    # Ensure that this file never exists
     assert_empty Dir[nonexistent_fixture_path + "*"]
 
     assert_raise(Errno::ENOENT) do
@@ -1489,6 +1491,16 @@ class FileFixtureConflictTest < ActiveRecord::TestCase
     self.class.fixtures :all
 
     assert_equal %w(developers namespaced/accounts people tasks), fixture_table_names.sort
+  end
+end
+
+class PrimaryKeyErrorTest < ActiveRecord::TestCase
+  test "generates the correct value" do
+    e = assert_raise(ActiveRecord::FixtureSet::TableRow::PrimaryKeyError) do
+      ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT + "/primary_key_error", "primary_key_error")
+    end
+
+    assert_includes e.message, "Unable to set"
   end
 end
 

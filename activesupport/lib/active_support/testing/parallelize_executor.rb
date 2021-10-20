@@ -49,7 +49,7 @@ module ActiveSupport
         end
 
         def parallelized?
-          @parallelized
+          @parallelized if defined?(@parallelized)
         end
 
         def should_parallelize?

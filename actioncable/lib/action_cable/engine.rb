@@ -9,6 +9,7 @@ module ActionCable
   class Engine < Rails::Engine # :nodoc:
     config.action_cable = ActiveSupport::OrderedOptions.new
     config.action_cable.mount_path = ActionCable::INTERNAL[:default_mount_path]
+    config.action_cable.precompile_assets = true
 
     config.eager_load_namespaces << ActionCable
 
@@ -20,6 +21,14 @@ module ActionCable
 
     initializer "action_cable.logger" do
       ActiveSupport.on_load(:action_cable) { self.logger ||= ::Rails.logger }
+    end
+
+    initializer "action_cable.asset" do
+      config.after_initialize do |app|
+        if Rails.application.config.respond_to?(:assets) && app.config.action_cable.precompile_assets
+          Rails.application.config.assets.precompile += %w( actioncable.js actioncable.esm.js )
+        end
+      end
     end
 
     initializer "action_cable.set_configs" do |app|

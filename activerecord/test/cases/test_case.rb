@@ -12,7 +12,7 @@ module ActiveRecord
   # = Active Record Test Case
   #
   # Defines some test assertions to test against SQL queries.
-  class TestCase < ActiveSupport::TestCase #:nodoc:
+  class TestCase < ActiveSupport::TestCase # :nodoc:
     include ActiveSupport::Testing::MethodCallAssertions
     include ActiveSupport::Testing::Stream
     include ActiveRecord::TestFixtures
@@ -37,8 +37,8 @@ module ActiveRecord
       SQLCounter.log.dup
     end
 
-    def assert_sql(*patterns_to_match)
-      capture_sql { yield }
+    def assert_sql(*patterns_to_match, &block)
+      capture_sql(&block)
     ensure
       failed_patterns = []
       patterns_to_match.each do |pattern|
@@ -88,6 +88,24 @@ module ActiveRecord
       model.has_many_inversing = old
       if model != ActiveRecord::Base && !old
         model.singleton_class.remove_method(:has_many_inversing) # reset the class_attribute
+      end
+    end
+
+    def with_automatic_scope_inversing(*reflections)
+      old = reflections.map { |reflection| reflection.klass.automatic_scope_inversing }
+
+      reflections.each do |reflection|
+        reflection.klass.automatic_scope_inversing = true
+        reflection.remove_instance_variable(:@inverse_name) if reflection.instance_variable_defined?(:@inverse_name)
+        reflection.remove_instance_variable(:@inverse_of) if reflection.instance_variable_defined?(:@inverse_of)
+      end
+
+      yield
+    ensure
+      reflections.each_with_index do |reflection, i|
+        reflection.klass.automatic_scope_inversing = old[i]
+        reflection.remove_instance_variable(:@inverse_name) if reflection.instance_variable_defined?(:@inverse_name)
+        reflection.remove_instance_variable(:@inverse_of) if reflection.instance_variable_defined?(:@inverse_of)
       end
     end
 

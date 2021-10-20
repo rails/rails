@@ -9,7 +9,7 @@ require "active_support/core_ext/object/acts_like"
 require "active_support/core_ext/object/with_options"
 
 module ActionView
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # = Action View Date Helpers
     #
     # The Date Helper primarily creates select/option tags for different kinds of dates and times or date and time
@@ -699,7 +699,7 @@ module ActionView
         end
     end
 
-    class DateTimeSelector #:nodoc:
+    class DateTimeSelector # :nodoc:
       include ActionView::Helpers::TagHelper
 
       DEFAULT_PREFIX = "date"
@@ -1101,7 +1101,8 @@ module ActionView
             type: "hidden",
             id: input_id_from_type(type),
             name: input_name_from_type(type),
-            value: value
+            value: value,
+            autocomplete: "off"
           }.merge!(@html_options.slice(:disabled))
           select_options[:disabled] = "disabled" if @options[:disabled]
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  module ConnectionAdapters #:nodoc:
+  module ConnectionAdapters # :nodoc:
     # Abstract representation of an index definition on a table. Instances of
     # this type are typically created and returned by methods in database
     # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
@@ -79,13 +79,13 @@ module ActiveRecord
 
     AddColumnDefinition = Struct.new(:column) # :nodoc:
 
-    ChangeColumnDefinition = Struct.new(:column, :name) #:nodoc:
+    ChangeColumnDefinition = Struct.new(:column, :name) # :nodoc:
 
     CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists) # :nodoc:
 
     PrimaryKeyDefinition = Struct.new(:name) # :nodoc:
 
-    ForeignKeyDefinition = Struct.new(:from_table, :to_table, :options) do #:nodoc:
+    ForeignKeyDefinition = Struct.new(:from_table, :to_table, :options) do # :nodoc:
       def name
         options[:name]
       end
@@ -104,6 +104,10 @@ module ActiveRecord
 
       def on_update
         options[:on_update]
+      end
+
+      def deferrable
+        options[:deferrable]
       end
 
       def custom_primary_key?

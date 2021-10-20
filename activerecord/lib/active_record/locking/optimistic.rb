@@ -56,11 +56,11 @@ module ActiveRecord
         class_attribute :lock_optimistically, instance_writer: false, default: true
       end
 
-      def locking_enabled? #:nodoc:
+      def locking_enabled? # :nodoc:
         self.class.locking_enabled?
       end
 
-      def increment!(*, **) #:nodoc:
+      def increment!(*, **) # :nodoc:
         super.tap do
           if locking_enabled?
             self[self.class.locking_column] += 1

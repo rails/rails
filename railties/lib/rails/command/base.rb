@@ -71,7 +71,7 @@ module Rails
           Rails::Command.hidden_commands << self
         end
 
-        def inherited(base) #:nodoc:
+        def inherited(base) # :nodoc:
           super
 
           if base.name && !base.name.end_with?("Base")

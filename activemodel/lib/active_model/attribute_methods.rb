@@ -477,7 +477,7 @@ module ActiveModel
           end
         end
 
-        class AttributeMethodMatcher #:nodoc:
+        class AttributeMethodMatcher # :nodoc:
           attr_reader :prefix, :suffix, :target, :parameters
 
           AttributeMethodMatch = Struct.new(:target, :attr_name)

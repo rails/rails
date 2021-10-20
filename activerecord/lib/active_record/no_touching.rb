@@ -26,14 +26,14 @@ module ActiveRecord
     end
 
     class << self
-      def apply_to(klass) #:nodoc:
+      def apply_to(klass) # :nodoc:
         klasses.push(klass)
         yield
       ensure
         klasses.pop
       end
 
-      def applied_to?(klass) #:nodoc:
+      def applied_to?(klass) # :nodoc:
         klasses.any? { |k| k >= klass }
       end
 

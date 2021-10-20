@@ -42,7 +42,7 @@ module ActionDispatch
         req.delete_header ENV_SESSION_KEY
       end
 
-      class Options #:nodoc:
+      class Options # :nodoc:
         def self.set(req, options)
           req.set_header ENV_SESSION_OPTIONS_KEY, options
         end

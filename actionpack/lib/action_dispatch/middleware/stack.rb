@@ -5,16 +5,6 @@ require "active_support/dependencies"
 
 module ActionDispatch
   class MiddlewareStack
-    class FakeRuntime # :nodoc:
-      def initialize(app)
-        @app = app
-      end
-
-      def call(env)
-        @app.call(env)
-      end
-    end
-
     class Middleware
       attr_reader :args, :block, :klass
 
@@ -79,12 +69,11 @@ module ActionDispatch
 
     def initialize(*args)
       @middlewares = []
-      @rack_runtime_deprecated = true
       yield(self) if block_given?
     end
 
-    def each
-      @middlewares.each { |x| yield x }
+    def each(&block)
+      @middlewares.each(&block)
     end
 
     def size
@@ -129,8 +118,20 @@ module ActionDispatch
     end
     ruby2_keywords(:swap)
 
+    # Deletes a middleware from the middleware stack.
+    #
+    # Returns the array of middlewares not including the deleted item, or
+    # returns nil if the target is not found.
     def delete(target)
-      middlewares.reject! { |m| m.name == target.name } || (raise "No such middleware to delete: #{target.inspect}")
+      middlewares.reject! { |m| m.name == target.name }
+    end
+
+    # Deletes a middleware from the middleware stack.
+    #
+    # Returns the array of middlewares not including the deleted item, or
+    # raises +RuntimeError+ if the target is not found.
+    def delete!(target)
+      delete(target) || (raise "No such middleware to remove: #{target.inspect}")
     end
 
     def move(target, source)
@@ -175,24 +176,12 @@ module ActionDispatch
       end
 
       def build_middleware(klass, args, block)
-        @rack_runtime_deprecated = false if klass == Rack::Runtime
-
         Middleware.new(klass, args, block)
       end
 
       def index_of(klass)
-        raise "ActionDispatch::MiddlewareStack::FakeRuntime can not be referenced in middleware operations" if klass == FakeRuntime
-
-        if klass == Rack::Runtime && @rack_runtime_deprecated
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Rack::Runtime is removed from the default middleware stack in Rails
-            and referencing it in middleware operations without adding it back
-            is deprecated and will throw an error in Rails 7.1
-          MSG
-        end
-
         middlewares.index do |m|
-          m.name == klass.name || (@rack_runtime_deprecated && m.klass == FakeRuntime && klass == Rack::Runtime)
+          m.name == klass.name
         end
       end
   end

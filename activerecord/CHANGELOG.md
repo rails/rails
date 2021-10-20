@@ -1,3 +1,409 @@
+*   Add `ActiveRecord::Base.prohibit_shard_swapping` to prevent attempts to change the shard within a block.
+
+    *John Crepezzi*, *Eileen M. Uchitelle*
+
+*   Filter unchanged attributes with default function from insert query when `partial_inserts` is disabled.
+
+    *Akshay Birajdar*, *Jacopo Beschi*
+
+*   Add support for FILTER clause (SQL:2003) to Arel.
+
+    Currently supported by PostgreSQL 9.4+ and SQLite 3.30+.
+
+    *Andrey Novikov*
+
+*   Automatically set timestamps on record creation during bulk insert/upsert
+
+    Prior to this change, only updates during an upsert operation (e.g. `upsert_all`) would touch timestamps (`updated_{at,on}`). Now, record creations also touch timestamp columns (`{created,updated}_{at,on}`).
+
+    This behaviour is controlled by the `<model>.record_timestamps` config, matching the behaviour of `create`, `update`, etc. It can also be overridden by using the `record_timestamps:` keyword argument.
+
+    Note that this means `upsert_all` on models with `record_timestamps = false` will no longer touch `updated_{at,on}` automatically.
+
+    *Sam Bostock*
+
+*   Don't require `role` when passing `shard` to `connected_to`.
+
+    `connected_to` can now be called with a `shard` only. Note that `role` is still inherited if `connected_to` calls are nested.
+
+    *Eileen M. Uchitelle*
+
+*   Add option to lazily load the schema cache on the connection.
+
+    Previously, the only way to load the schema cache in Active Record was through the Railtie on boot. This option provides the ability to load the schema cache on the connection after it's been established. Loading the cache lazily on the connection can be beneficial for Rails applications that use multiple databases because it will load the cache at the time the connection is established. Currently Railties doesn't have access to the connections before boot.
+
+    To use the cache, set `config.active_record.lazily_load_schema_cache = true` in your application configuration. In addition a `schema_cache_path` should be set in your database configuration if you don't want to use the default "db/schema_cache.yml" path.
+
+    *Eileen M. Uchitelle*
+
+*   Allow automatic `inverse_of` detection for associations with scopes.
+
+    Automatic `inverse_of` detection now works for associations with scopes. For
+    example, the `comments` association here now automatically detects
+    `inverse_of: :post`, so we don't need to pass that option:
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      has_many :comments, -> { visible }
+    end
+
+    class Comment < ActiveRecord::Base
+      belongs_to :post
+    end
+    ```
+
+    Note that the automatic detection still won't work if the inverse
+    association has a scope. In this example a scope on the `post` association
+    would still prevent Rails from finding the inverse for the `comments`
+    association.
+
+    This will be the default for new apps in Rails 7. To opt in:
+
+    ```ruby
+    config.active_record.automatic_scope_inversing = true
+    ```
+
+    *Daniel Colson*, *Chris Bloom*
+
+*   Accept optional transaction args to `ActiveRecord::Locking::Pessimistic#with_lock`
+
+    `#with_lock` now accepts transaction options like `requires_new:`,
+    `isolation:`, and `joinable:`
+
+*   Adds support for deferrable foreign key constraints in PostgreSQL.
+
+    By default, foreign key constraints in PostgreSQL are checked after each statement. This works for most use cases,
+    but becomes a major limitation when creating related records before the parent record is inserted into the database.
+    One example of this is looking up / creating a person via one or more unique alias.
+
+    ```ruby
+    Person.transaction do
+      alias = Alias
+        .create_with(user_id: SecureRandom.uuid)
+        .create_or_find_by(name: "DHH")
+
+      person = Person
+        .create_with(name: "David Heinemeier Hansson")
+        .create_or_find_by(id: alias.user_id)
+    end
+    ```
+
+    Using the default behavior, the transaction would fail when executing the first `INSERT` statement.
+
+    By passing the `:deferrable` option to the `add_foreign_key` statement in migrations, it's possible to defer this
+    check.
+
+    ```ruby
+    add_foreign_key :aliases, :person, deferrable: true
+    ```
+
+    Passing `deferrable: true` doesn't change the default behavior, but allows manually deferring the check using
+    `SET CONSTRAINTS ALL DEFERRED` within a transaction. This will cause the foreign keys to be checked after the
+    transaction.
+
+    It's also possible to adjust the default behavior from an immediate check (after the statement), to a deferred check
+    (after the transaction):
+
+    ```ruby
+    add_foreign_key :aliases, :person, deferrable: :deferred
+    ```
+
+    *Benedikt Deicke*
+
+*   Allow configuring Postgres password through the socket URL.
+
+    For example:
+    ```ruby
+    ActiveRecord::DatabaseConfigurations::UrlConfig.new(
+      :production, :production, 'postgres:///?user=user&password=secret&dbname=app', {}
+    ).configuration_hash
+    ```
+
+    will now return,
+
+    ```ruby
+    { :user=>"user", :password=>"secret", :dbname=>"app", :adapter=>"postgresql" }
+    ```
+
+    *Abeid Ahmed*
+
+*   PostgreSQL: support custom enum types
+
+    In migrations, use `create_enum` to add a new enum type, and `t.enum` to add a column.
+
+    ```ruby
+    def up
+      create_enum :mood, ["happy", "sad"]
+
+      change_table :cats do |t|
+        t.enum :current_mood, enum_type: "mood", default: "happy", null: false
+      end
+    end
+    ```
+
+    Enums will be presented correctly in `schema.rb`. Note that this is only supported by
+    the PostgreSQL adapter.
+
+    *Alex Ghiculescu*
+
+* Avoid COMMENT statements in PostgreSQL structure dumps
+
+    COMMENT statements are now omitted from the output of `db:structure:dump` when using PostgreSQL >= 11.
+    This allows loading the dump without a pgsql superuser account.
+
+    Fixes #36816, #43107.
+
+    *Janosch Müller*
+
+*   Add support for generated columns in PostgreSQL adapter
+
+    Generated columns are supported since version 12.0 of PostgreSQL. This adds
+    support of those to the PostgreSQL adapter.
+
+    ```ruby
+    create_table :users do |t|
+      t.string :name
+      t.virtual :name_upcased, type: :string, as: 'upper(name)', stored: true
+    end
+    ```
+
+    *Michał Begejowicz*
+
+
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
+
+*   No changes.
+
+
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
+*   Remove warning when overwriting existing scopes
+
+    Removes the following unnecessary warning message that appeared when overwriting existing scopes
+
+    ```
+    Creating scope :my_scope_name. Overwriting existing method "MyClass.my_scope_name" when overwriting existing scopes
+    ```
+
+     *Weston Ganger*
+
+*   Use full precision for `updated_at` in `insert_all`/`upsert_all`
+
+    `CURRENT_TIMESTAMP` provides differing precision depending on the database,
+    and not all databases support explicitly specifying additional precision.
+
+    Instead, we delegate to the new `connection.high_precision_current_timestamp`
+    for the SQL to produce a high precision timestamp on the current database.
+
+    Fixes #42992
+
+    *Sam Bostock*
+
+* Add ssl support for postgresql database tasks
+
+    Add `PGSSLMODE`, `PGSSLCERT`, `PGSSLKEY` and `PGSSLROOTCERT` to pg_env from database config
+    when running postgresql database tasks.
+
+    ```yaml
+    # config/database.yml
+
+    production:
+      sslmode: verify-full
+      sslcert: client.crt
+      sslkey: client.key
+      sslrootcert: ca.crt
+    ```
+
+    Environment variables
+
+    ```
+    PGSSLMODE=verify-full
+    PGSSLCERT=client.crt
+    PGSSLKEY=client.key
+    PGSSLROOTCERT=ca.crt
+    ```
+
+    Fixes #42994
+
+    *Michael Bayucot*
+
+*   Avoid scoping update callbacks in `ActiveRecord::Relation#update!`.
+
+    Making it consistent with how scoping is applied only to the query in `ActiveRecord::Relation#update`
+    and not also to the callbacks from the update itself.
+
+    *Dylan Thacker-Smith*
+
+*   Fix 2 cases that inferred polymorphic class from the association's `foreign_type`
+    using `String#constantize` instead of the model's `polymorphic_class_for`.
+
+    When updating a polymorphic association, the old `foreign_type` was not inferred correctly when:
+    1. `touch`ing the previously associated record
+    2. updating the previously associated record's `counter_cache`
+
+    *Jimmy Bourassa*
+
+*   Add config option for ignoring tables when dumping the schema cache.
+
+    Applications can now be configured to ignore certain tables when dumping the schema cache.
+
+    The configuration option can table an array of tables:
+
+    ```ruby
+    config.active_record.schema_cache_ignored_tables = ["ignored_table", "another_ignored_table"]
+    ```
+
+    Or a regex:
+
+    ```ruby
+    config.active_record.schema_cache_ignored_tables = [/^_/]
+    ```
+
+    *Eileen M. Uchitelle*
+
+*   Make schema cache methods return consistent results.
+
+    Previously the schema cache methods `primary_keys`, `columns`, `columns_hash`, and `indexes`
+    would behave differently than one another when a table didn't exist and differently across
+    database adapters. This change unifies the behavior so each method behaves the same regardless
+    of adapter.
+
+    The behavior now is:
+
+    `columns`: (unchanged) raises a db error if the table does not exist
+    `columns_hash`: (unchanged) raises a db error if the table does not exist
+    `primary_keys`: (unchanged) returns `nil` if the table does not exist
+    `indexes`: (changed for mysql2) returns `[]` if the table does not exist
+
+    *Eileen M. Uchitelle*
+
+*   Reestablish connection to previous database after after running `db:schema:load:name`
+
+    After running `db:schema:load:name` the previous connection is restored.
+
+    *Jacopo Beschi*
+
+*   Add database config option `database_tasks`
+
+    If you would like to connect to an external database without any database
+    management tasks such as schema management, migrations, seeds, etc. you can set
+    the per database config option `database_tasks: false`
+
+    ```yaml
+    # config/database.yml
+
+    production:
+      primary:
+        database: my_database
+        adapter: mysql2
+      animals:
+        database: my_animals_database
+        adapter: mysql2
+        database_tasks: false
+    ```
+
+    *Weston Ganger*
+
+*   Fix `ActiveRecord::InternalMetadata` to not be broken by `config.active_record.record_timestamps = false`
+
+    Since the model always create the timestamp columns, it has to set them, otherwise it breaks
+    various DB management tasks.
+
+    Fixes #42983
+
+*   Add `ActiveRecord::QueryLogs`.
+
+    Configurable tags can be automatically added to all SQL queries generated by Active Record.
+
+    ```ruby
+    # config/application.rb
+    module MyApp
+      class Application < Rails::Application
+        config.active_record.query_log_tags_enabled = true
+      end
+    end
+    ```
+
+    By default the application, controller and action details are added to the query tags:
+
+    ```ruby
+    class BooksController < ApplicationController
+      def index
+        @books = Book.all
+      end
+    end
+    ```
+
+    ```ruby
+    GET /books
+    # SELECT * FROM books /*application:MyApp;controller:books;action:index*/
+    ```
+
+    Custom tags containing static values and Procs can be defined in the application configuration:
+
+    ```ruby
+    config.active_record.query_log_tags = [
+      :application,
+      :controller,
+      :action,
+      {
+        custom_static: "foo",
+        custom_dynamic: -> { Time.now }
+      }
+    ]
+    ```
+
+    *Keeran Raj Hawoldar*, *Eileen M. Uchitelle*, *Kasper Timm Hansen*
+
+*   Added support for multiple databases to `rails db:setup` and `rails db:reset`.
+
+    *Ryan Hall*
+
+*   Add `ActiveRecord::Relation#structurally_compatible?`.
+
+    Adds a query method by which a user can tell if the relation that they're
+    about to use for `#or` or `#and` is structurally compatible with the
+    receiver.
+
+    *Kevin Newton*
+
+*   Add `ActiveRecord::QueryMethods#in_order_of`.
+
+    This allows you to specify an explicit order that you'd like records
+    returned in based on a SQL expression. By default, this will be accomplished
+    using a case statement, as in:
+
+    ```ruby
+    Post.in_order_of(:id, [3, 5, 1])
+    ```
+
+    will generate the SQL:
+
+    ```sql
+    SELECT "posts".* FROM "posts" ORDER BY CASE "posts"."id" WHEN 3 THEN 1 WHEN 5 THEN 2 WHEN 1 THEN 3 ELSE 4 END ASC
+    ```
+
+    However, because this functionality is built into MySQL in the form of the
+    `FIELD` function, that connection adapter will generate the following SQL
+    instead:
+
+    ```sql
+    SELECT "posts".* FROM "posts" ORDER BY FIELD("posts"."id", 1, 5, 3) DESC
+    ```
+
+    *Kevin Newton*
+
+*   Fix `eager_loading?` when ordering with `Symbol`.
+
+    `eager_loading?` is triggered correctly when using `order` with symbols.
+
+    ```ruby
+    scope = Post.includes(:comments).order(:"comments.label")
+    => true
+    ```
+
+    *Jacopo Beschi*
+
 *   Two change tracking methods are added for `belongs_to` associations.
 
     The `association_changed?` method (assuming an association named `:association`) returns true
@@ -9,7 +415,7 @@
 
     *George Claghorn*
 
-*   Add option to disable schema dump per-database
+*   Add option to disable schema dump per-database.
 
     Dumping the schema is on by default for all databases in an application. To turn it off for a
     specific database use the `schema_dump` option:
@@ -23,14 +429,14 @@
 
     *Luis Vasconcellos*, *Eileen M. Uchitelle*
 
-*   Fix `eager_loading?` when ordering with `Hash` syntax
+*   Fix `eager_loading?` when ordering with `Hash` syntax.
 
     `eager_loading?` is triggered correctly when using `order` with hash syntax
     on an outer table.
 
     ```ruby
     Post.includes(:comments).order({ "comments.label": :ASC }).eager_loading?
-    => true
+    # => true
     ```
 
     *Jacopo Beschi*
@@ -46,10 +452,10 @@
     This will be the default for new apps in Rails 7. To opt in:
 
     ```ruby
-    config.active_record.partial_inserts = false
+    config.active_record.partial_inserts = true
     ```
 
-    If a migration remove the default value of a column, this option
+    If a migration removes the default value of a column, this option
     would cause old processes to no longer be able to create new records.
 
     If you need to remove a column, you should first use `ignored_columns`
@@ -109,7 +515,7 @@
 
     *Roberto Miranda*
 
-*   Prevent polluting ENV during postgresql structure dump/load
+*   Prevent polluting ENV during postgresql structure dump/load.
 
     Some configuration parameters were provided to pg_dump / psql via
     environment variables which persisted beyond the command being run, and may
@@ -119,13 +525,13 @@
 
     *Samuel Cochran*
 
-*   Set precision 6 by default for `datetime` columns
+*   Set precision 6 by default for `datetime` columns.
 
     By default, datetime columns will have microseconds precision instead of seconds precision.
 
     *Roberto Miranda*
 
-*   Allow preloading of associations with instance dependent scopes
+*   Allow preloading of associations with instance dependent scopes.
 
     *John Hawthorn*, *John Crepezzi*, *Adam Hess*, *Eileen M. Uchitelle*, *Dinah Shi*
 
@@ -187,19 +593,19 @@
 
     *Dorian Marié*
 
-*   Add `ActiveRecord::Base#attributes_for_database`
+*   Add `ActiveRecord::Base#attributes_for_database`.
 
     Returns attributes with values for assignment to the database.
 
     *Chris Salzberg*
 
-*   Use an empty query to check if the PostgreSQL connection is still active
+*   Use an empty query to check if the PostgreSQL connection is still active.
 
     An empty query is faster than `SELECT 1`.
 
     *Heinrich Lee Yu*
 
-*   Add `ActiveRecord::Base#previously_persisted?`
+*   Add `ActiveRecord::Base#previously_persisted?`.
 
     Returns `true` if the object has been previously persisted but now it has been deleted.
 
@@ -245,7 +651,7 @@
 
     *Eileen M. Uchitelle*
 
-*   Log a warning message when running SQLite in production
+*   Log a warning message when running SQLite in production.
 
     Using SQLite in production ENV is generally discouraged. SQLite is also the default adapter
     in a new Rails application.
@@ -265,7 +671,7 @@
 
     ```ruby
     class Person
-      belongs_to :dog
+      has_one :dog
       has_one :veterinarian, through: :dog, disable_joins: true
     end
     ```
@@ -393,7 +799,7 @@
 
     ```ruby
     Article.insert_all(
-    [
+      [
         { title: "Article 1", slug: "article-1", published: false },
         { title: "Article 2", slug: "article-2", published: false }
       ],
@@ -433,7 +839,7 @@
 
     *Bradley Priest*
 
-*   Add mode argument to record level `strict_loading!`
+*   Add mode argument to record level `strict_loading!`.
 
     This argument can be used when enabling strict loading for a single record
     to specify that we only want to raise on n plus one queries.
@@ -452,7 +858,7 @@
 
     *Dinah Shi*
 
-*   Fix Float::INFINITY assignment to datetime column with postgresql adapter
+*   Fix Float::INFINITY assignment to datetime column with postgresql adapter.
 
     Before:
 
@@ -504,7 +910,7 @@
 
     *Ryuta Kamizono*
 
-*   Fixtures for `has_many :through` associations now load timestamps on join tables
+*   Fixtures for `has_many :through` associations now load timestamps on join tables.
 
     Given this fixture:
 
@@ -525,7 +931,7 @@
 
     *Alex Ghiculescu*
 
-*   Allow applications to configure the thread pool for async queries
+*   Allow applications to configure the thread pool for async queries.
 
     Some applications may want one thread pool per database whereas others want to use
     a single global thread pool for all queries. By default, Rails will set `async_query_executor`
@@ -618,7 +1024,7 @@
     *Glen Crawford*
 
 *   Skip optimised #exist? query when #include? is called on a relation
-    with a having clause
+    with a having clause.
 
     Relations that have aliased select values AND a having clause that
     references an aliased select value would generate an error when
@@ -644,13 +1050,13 @@
     simplified #exists? query, which simply checks for the presence of
     a having clause.
 
-    Fixes #41417
+    Fixes #41417.
 
     *Michael Smart*
 
 *   Increment postgres prepared statement counter before making a prepared statement, so if the statement is aborted
     without Rails knowledge (e.g., if app gets killed during long-running query or due to Rack::Timeout), app won't end
-    up in perpetual crash state for being inconsistent with Postgres.
+    up in perpetual crash state for being inconsistent with PostgreSQL.
 
     *wbharding*, *Martin Tepper*
 
@@ -698,7 +1104,7 @@
 
     *Josua Schmid*
 
-*   PostgreSQL: introduce `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type`
+*   PostgreSQL: introduce `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type`.
 
     This setting controls what native type Active Record should use when you call `datetime` in
     a migration or schema. It takes a symbol which must correspond to one of the configured
@@ -722,7 +1128,7 @@
 
     *Gannon McGibbon*, *Adrian Hirt*
 
-*   Expose a way for applications to set a `primary_abstract_class`
+*   Expose a way for applications to set a `primary_abstract_class`.
 
     Multiple database applications that use a primary abstract class that is not
     named `ApplicationRecord` can now set a specific class to be the `primary_abstract_class`.
@@ -749,7 +1155,7 @@
 
     ```ruby
     ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ['--no-defaults', '--skip-add-drop-table']
-    #or
+    # or
     ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = '--no-defaults --skip-add-drop-table'
     ```
 
@@ -880,14 +1286,15 @@
 
 *   Allow adding nonnamed expression indexes to be revertible.
 
-    Fixes #40732.
-
     Previously, the following code would raise an error, when executed while rolling back,
     and the index name should be specified explicitly. Now, the index name is inferred
     automatically.
+
     ```ruby
     add_index(:items, "to_tsvector('english', description)")
     ```
+
+    Fixes #40732.
 
     *fatkodima*
 

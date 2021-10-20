@@ -134,6 +134,14 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_equal blob, ActiveStorage::Blob.find_signed(signed_id)
   end
 
+  test "can destroy attachment without existing relation" do
+    blob = create_blob
+    @user.highlights.attach(blob)
+    attachment = @user.highlights.find_by(blob_id: blob.id)
+    attachment.update_attribute(:name, "old_highlights")
+    assert_nothing_raised { attachment.destroy }
+  end
+
   private
     def assert_blob_identified_before_owner_validated(owner, blob, content_type)
       validated_content_type = nil
@@ -148,7 +156,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
       assert_equal content_type, blob.reload.content_type
     end
 
-    def assert_blob_identified_outside_transaction(blob)
+    def assert_blob_identified_outside_transaction(blob, &block)
       baseline_transaction_depth = ActiveRecord::Base.connection.open_transactions
       max_transaction_depth = -1
 
@@ -156,9 +164,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
         max_transaction_depth = [ActiveRecord::Base.connection.open_transactions, max_transaction_depth].max
       end
 
-      blob.stub(:identify_without_saving, track_transaction_depth) do
-        yield
-      end
+      blob.stub(:identify_without_saving, track_transaction_depth, &block)
 
       assert_equal 0, (max_transaction_depth - baseline_transaction_depth)
     end

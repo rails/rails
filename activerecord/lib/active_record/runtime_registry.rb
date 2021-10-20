@@ -16,9 +16,7 @@ module ActiveRecord
 
     attr_accessor :sql_runtime
 
-    [:sql_runtime].each do |val|
-      class_eval %{ def self.#{val}; instance.#{val}; end }, __FILE__, __LINE__
-      class_eval %{ def self.#{val}=(x); instance.#{val}=x; end }, __FILE__, __LINE__
-    end
+    def self.sql_runtime; instance.sql_runtime; end
+    def self.sql_runtime=(x); instance.sql_runtime = x; end
   end
 end

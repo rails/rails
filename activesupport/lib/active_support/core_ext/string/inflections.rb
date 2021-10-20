@@ -260,7 +260,7 @@ class String
   #   'author_id'.humanize                          # => "Author"
   #   'author_id'.humanize(capitalize: false)       # => "author"
   #   '_id'.humanize                                # => "Id"
-  #   'author_id'.humanize(keep_id_suffix: true)    # => "Author Id"
+  #   'author_id'.humanize(keep_id_suffix: true)    # => "Author id"
   #
   # See ActiveSupport::Inflector.humanize.
   def humanize(capitalize: true, keep_id_suffix: false)

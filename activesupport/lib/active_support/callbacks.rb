@@ -277,7 +277,7 @@ module ActiveSupport
         end
       end
 
-      class Callback #:nodoc:#
+      class Callback # :nodoc:#
         def self.build(chain, filter, kind, options)
           if filter.is_a?(String)
             raise ArgumentError, <<-MSG.squish
@@ -505,7 +505,7 @@ module ActiveSupport
         end
       end
 
-      class CallbackChain #:nodoc:#
+      class CallbackChain # :nodoc:#
         include Enumerable
 
         attr_reader :name, :config
@@ -607,7 +607,7 @@ module ActiveSupport
 
         # This is used internally to append, prepend and skip callbacks to the
         # CallbackChain.
-        def __update_callbacks(name) #:nodoc:
+        def __update_callbacks(name) # :nodoc:
           ([self] + ActiveSupport::DescendantsTracker.descendants(self)).reverse_each do |target|
             chain = target.get_callbacks name
             yield target, chain.dup

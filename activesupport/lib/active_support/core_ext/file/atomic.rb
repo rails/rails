@@ -53,7 +53,7 @@ class File
   end
 
   # Private utility method.
-  def self.probe_stat_in(dir) #:nodoc:
+  def self.probe_stat_in(dir) # :nodoc:
     basename = [
       ".permissions_check",
       Thread.current.object_id,

@@ -87,7 +87,7 @@ module ActionDispatch
         controller_param = name.underscore
         const_name = controller_param.camelize << "Controller"
         begin
-          ActiveSupport::Dependencies.constantize(const_name)
+          const_name.constantize
         rescue NameError => error
           if error.missing_name == const_name || const_name.start_with?("#{error.missing_name}::")
             raise MissingController.new(error.message, error.name)
@@ -162,7 +162,7 @@ module ActionDispatch
       set_header(routes.env_key, name.dup)
     end
 
-    def request_method=(request_method) #:nodoc:
+    def request_method=(request_method) # :nodoc:
       if check_method(request_method)
         @request_method = set_header("REQUEST_METHOD", request_method)
       end
@@ -352,7 +352,7 @@ module ActionDispatch
       FORM_DATA_MEDIA_TYPES.include?(media_type)
     end
 
-    def body_stream #:nodoc:
+    def body_stream # :nodoc:
       get_header("rack.input")
     end
 
@@ -360,7 +360,7 @@ module ActionDispatch
       session.destroy
     end
 
-    def session=(session) #:nodoc:
+    def session=(session) # :nodoc:
       Session.set self, session
     end
 

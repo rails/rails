@@ -27,7 +27,7 @@ module ActiveRecord
     #
     # If you need to work on all current children, new and existing records,
     # +load_target+ and the +loaded+ flag are your friends.
-    class CollectionAssociation < Association #:nodoc:
+    class CollectionAssociation < Association # :nodoc:
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
       def reader
         ensure_klass_exists!
@@ -456,6 +456,10 @@ module ActiveRecord
 
           yield(record) if block_given?
 
+          if !index && @replaced_or_added_targets.include?(record)
+            index = @target.index(record)
+          end
+
           @replaced_or_added_targets << record if inversing || index || record.new_record?
 
           if index
@@ -480,7 +484,11 @@ module ActiveRecord
 
         def callbacks_for(callback_name)
           full_callback_name = "#{callback_name}_for_#{reflection.name}"
-          owner.class.send(full_callback_name)
+          if owner.class.respond_to?(full_callback_name)
+            owner.class.send(full_callback_name)
+          else
+            []
+          end
         end
 
         def include_in_memory?(record)

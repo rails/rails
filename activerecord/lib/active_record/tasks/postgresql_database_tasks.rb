@@ -57,8 +57,12 @@ module ActiveRecord
             ActiveRecord.dump_schemas
           end
 
-        args = ["--schema-only", "--no-privileges", "--no-owner", "--file", filename]
+        args = ["--schema-only", "--no-privileges", "--no-owner"]
+        args << "--no-comment" if connection.database_version >= 110_000
+        args.concat(["--file", filename])
+
         args.concat(Array(extra_flags)) if extra_flags
+
         unless search_path.blank?
           args += search_path.split(",").map do |part|
             "--schema=#{part.strip}"
@@ -99,10 +103,14 @@ module ActiveRecord
 
         def psql_env
           {}.tap do |env|
-            env["PGHOST"]     = db_config.host                     if db_config.host
-            env["PGPORT"]     = configuration_hash[:port].to_s     if configuration_hash[:port]
-            env["PGPASSWORD"] = configuration_hash[:password].to_s if configuration_hash[:password]
-            env["PGUSER"]     = configuration_hash[:username].to_s if configuration_hash[:username]
+            env["PGHOST"]         = db_config.host                        if db_config.host
+            env["PGPORT"]         = configuration_hash[:port].to_s        if configuration_hash[:port]
+            env["PGPASSWORD"]     = configuration_hash[:password].to_s    if configuration_hash[:password]
+            env["PGUSER"]         = configuration_hash[:username].to_s    if configuration_hash[:username]
+            env["PGSSLMODE"]      = configuration_hash[:sslmode].to_s     if configuration_hash[:sslmode]
+            env["PGSSLCERT"]      = configuration_hash[:sslcert].to_s     if configuration_hash[:sslcert]
+            env["PGSSLKEY"]       = configuration_hash[:sslkey].to_s      if configuration_hash[:sslkey]
+            env["PGSSLROOTCERT"]  = configuration_hash[:sslrootcert].to_s if configuration_hash[:sslrootcert]
           end
         end
 

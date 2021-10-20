@@ -35,6 +35,20 @@ module AbstractController
                        skip_after_callbacks_if_terminated: true
     end
 
+    class ActionFilter # :nodoc:
+      def initialize(actions)
+        @actions = Array(actions).map(&:to_s).to_set
+      end
+
+      def match?(controller)
+        @actions.include?(controller.action_name)
+      end
+
+      alias after  match?
+      alias before match?
+      alias around match?
+    end
+
     module ClassMethods
       # If +:only+ or +:except+ are used, convert the options into the
       # +:if+ and +:unless+ options of ActiveSupport::Callbacks.
@@ -62,8 +76,7 @@ module AbstractController
 
       def _normalize_callback_option(options, from, to) # :nodoc:
         if from = options.delete(from)
-          _from = Array(from).map(&:to_s).to_set
-          from = proc { |c| _from.include? c.action_name }
+          from = ActionFilter.new(from)
           options[to] = Array(options[to]).unshift(from)
         end
       end

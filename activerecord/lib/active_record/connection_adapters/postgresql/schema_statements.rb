@@ -6,7 +6,7 @@ module ActiveRecord
       module SchemaStatements
         # Drops the database specified on the +name+ attribute
         # and creates it again using the provided +options+.
-        def recreate_database(name, options = {}) #:nodoc:
+        def recreate_database(name, options = {}) # :nodoc:
           drop_database(name)
           create_database(name, options)
         end
@@ -50,7 +50,7 @@ module ActiveRecord
         #
         # Example:
         #   drop_database 'matt_development'
-        def drop_database(name) #:nodoc:
+        def drop_database(name) # :nodoc:
           execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
         end
 
@@ -244,7 +244,7 @@ module ActiveRecord
         end
 
         # Returns the sequence name for a table's primary key or some other specified key.
-        def default_sequence_name(table_name, pk = "id") #:nodoc:
+        def default_sequence_name(table_name, pk = "id") # :nodoc:
           result = serial_sequence(table_name, pk)
           return nil unless result
           Utils.extract_schema_qualified_name(result).to_s
@@ -257,7 +257,7 @@ module ActiveRecord
         end
 
         # Sets the sequence of a table's primary key to the specified value.
-        def set_pk_sequence!(table, value) #:nodoc:
+        def set_pk_sequence!(table, value) # :nodoc:
           pk, sequence = pk_and_sequence_for(table)
 
           if pk
@@ -272,7 +272,7 @@ module ActiveRecord
         end
 
         # Resets the sequence of a table's primary key to the maximum value.
-        def reset_pk_sequence!(table, pk = nil, sequence = nil) #:nodoc:
+        def reset_pk_sequence!(table, pk = nil, sequence = nil) # :nodoc:
           unless pk && sequence
             default_pk, default_sequence = pk_and_sequence_for(table)
 
@@ -300,7 +300,7 @@ module ActiveRecord
         end
 
         # Returns a table's primary key and belonging sequence.
-        def pk_and_sequence_for(table) #:nodoc:
+        def pk_and_sequence_for(table) # :nodoc:
           # First try looking for a sequence with a dependency on the
           # given table's primary key.
           result = query(<<~SQL, "SCHEMA")[0]
@@ -393,13 +393,13 @@ module ActiveRecord
           rename_table_indexes(table_name, new_name)
         end
 
-        def add_column(table_name, column_name, type, **options) #:nodoc:
+        def add_column(table_name, column_name, type, **options) # :nodoc:
           clear_cache!
           super
           change_column_comment(table_name, column_name, options[:comment]) if options.key?(:comment)
         end
 
-        def change_column(table_name, column_name, type, **options) #:nodoc:
+        def change_column(table_name, column_name, type, **options) # :nodoc:
           clear_cache!
           sqls, procs = Array(change_column_for_alter(table_name, column_name, type, **options)).partition { |v| v.is_a?(String) }
           execute "ALTER TABLE #{quote_table_name(table_name)} #{sqls.join(", ")}"
@@ -411,7 +411,7 @@ module ActiveRecord
           execute "ALTER TABLE #{quote_table_name(table_name)} #{change_column_default_for_alter(table_name, column_name, default_or_changes)}"
         end
 
-        def change_column_null(table_name, column_name, null, default = nil) #:nodoc:
+        def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
           clear_cache!
           unless null || default.nil?
             column = column_for(table_name, column_name)
@@ -435,13 +435,13 @@ module ActiveRecord
         end
 
         # Renames a column in a table.
-        def rename_column(table_name, column_name, new_column_name) #:nodoc:
+        def rename_column(table_name, column_name, new_column_name) # :nodoc:
           clear_cache!
           execute("ALTER TABLE #{quote_table_name(table_name)} #{rename_column_sql(table_name, column_name, new_column_name)}")
           rename_column_indexes(table_name, column_name, new_column_name)
         end
 
-        def add_index(table_name, column_name, **options) #:nodoc:
+        def add_index(table_name, column_name, **options) # :nodoc:
           index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
 
           create_index = CreateIndexDefinition.new(index, algorithm, if_not_exists)
@@ -483,7 +483,7 @@ module ActiveRecord
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
           fk_info = exec_query(<<~SQL, "SCHEMA")
-            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid
+            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred
             FROM pg_constraint c
             JOIN pg_class t1 ON c.conrelid = t1.oid
             JOIN pg_class t2 ON c.confrelid = t2.oid
@@ -505,6 +505,8 @@ module ActiveRecord
 
             options[:on_delete] = extract_foreign_key_action(row["on_delete"])
             options[:on_update] = extract_foreign_key_action(row["on_update"])
+            options[:deferrable] = extract_foreign_key_deferrable(row["deferrable"], row["deferred"])
+
             options[:validate] = row["valid"]
 
             ForeignKeyDefinition.new(table_name, row["to_table"], options)
@@ -542,7 +544,7 @@ module ActiveRecord
         end
 
         # Maps logical Rails types to PostgreSQL-specific data types.
-        def type_to_sql(type, limit: nil, precision: nil, scale: nil, array: nil, **) # :nodoc:
+        def type_to_sql(type, limit: nil, precision: nil, scale: nil, array: nil, enum_type: nil, **) # :nodoc:
           sql = \
             case type.to_s
             when "binary"
@@ -566,6 +568,10 @@ module ActiveRecord
               when 5..8; "bigint"
               else raise ArgumentError, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead."
               end
+            when "enum"
+              raise ArgumentError "enum_type is required for enums" if enum_type.nil?
+
+              enum_type
             else
               super
             end
@@ -576,7 +582,7 @@ module ActiveRecord
 
         # PostgreSQL requires the ORDER BY columns in the select list for distinct queries, and
         # requires that the ORDER BY include the distinct column.
-        def columns_for_distinct(columns, orders) #:nodoc:
+        def columns_for_distinct(columns, orders) # :nodoc:
           order_columns = orders.compact_blank.map { |s|
             # Convert Arel node to string
             s = visitor.compile(s) unless s.is_a?(String)
@@ -654,7 +660,7 @@ module ActiveRecord
           end
 
           def new_column_from_field(table_name, field)
-            column_name, type, default, notnull, oid, fmod, collation, comment = field
+            column_name, type, default, notnull, oid, fmod, collation, comment, attgenerated = field
             type_metadata = fetch_type_metadata(column_name, type, oid.to_i, fmod.to_i)
             default_value = extract_value_from_default(default)
             default_function = extract_default_function(default_value, default)
@@ -671,7 +677,8 @@ module ActiveRecord
               default_function,
               collation: collation,
               comment: comment.presence,
-              serial: serial
+              serial: serial,
+              generated: attgenerated
             )
           end
 
@@ -709,6 +716,10 @@ module ActiveRecord
             when "n"; :nullify
             when "r"; :restrict
             end
+          end
+
+          def extract_foreign_key_deferrable(deferrable, deferred)
+            deferrable && (deferred ? :deferred : true)
           end
 
           def add_column_for_alter(table_name, column_name, type, **options)

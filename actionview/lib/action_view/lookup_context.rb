@@ -12,7 +12,7 @@ module ActionView
   # <tt>LookupContext</tt> is also responsible for generating a key, given to
   # view paths, used in the resolver cache lookup. Since this key is generated
   # only once during the request, it speeds up all cache accesses.
-  class LookupContext #:nodoc:
+  class LookupContext # :nodoc:
     attr_accessor :prefixes, :rendered_format
 
     singleton_class.attr_accessor :registered_details
@@ -36,7 +36,7 @@ module ActionView
     end
 
     # Holds accessors for the registered details.
-    module Accessors #:nodoc:
+    module Accessors # :nodoc:
       DEFAULT_PROCS = {}
     end
 
@@ -51,7 +51,7 @@ module ActionView
     register_detail(:variants) { [] }
     register_detail(:handlers) { Template::Handlers.extensions }
 
-    class DetailsKey #:nodoc:
+    class DetailsKey # :nodoc:
       alias :eql? :equal?
 
       @details_keys = Concurrent::Map.new
@@ -67,7 +67,7 @@ module ActionView
           details = details.dup
           details[:formats] &= Template::Types.symbols
         end
-        @details_keys[details] ||= Object.new
+        @details_keys[details] ||= TemplateDetails::Requested.new(**details)
       end
 
       def self.clear
@@ -96,7 +96,7 @@ module ActionView
 
       # Calculate the details key. Remove the handlers from calculation to improve performance
       # since the user cannot modify it explicitly.
-      def details_key #:nodoc:
+      def details_key # :nodoc:
         @details_key ||= DetailsKey.details_cache_key(@details) if @cache
       end
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveStorage
-  class Downloader #:nodoc:
+  class Downloader # :nodoc:
     attr_reader :service
 
     def initialize(service)

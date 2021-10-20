@@ -10,9 +10,11 @@ module ActiveSupport
     config.eager_load_namespaces << ActiveSupport
 
     initializer "active_support.remove_deprecated_time_with_zone_name" do |app|
-      if app.config.active_support.remove_deprecated_time_with_zone_name
-        require "active_support/time_with_zone"
-        TimeWithZone.singleton_class.remove_method(:name)
+      config.after_initialize do
+        if app.config.active_support.remove_deprecated_time_with_zone_name
+          require "active_support/time_with_zone"
+          TimeWithZone.singleton_class.remove_method(:name)
+        end
       end
     end
 
@@ -37,16 +39,22 @@ module ActiveSupport
     end
 
     initializer "active_support.deprecation_behavior" do |app|
-      if deprecation = app.config.active_support.deprecation
-        ActiveSupport::Deprecation.behavior = deprecation
-      end
+      if app.config.active_support.report_deprecations == false
+        ActiveSupport::Deprecation.silenced = true
+        ActiveSupport::Deprecation.behavior = :silence
+        ActiveSupport::Deprecation.disallowed_behavior = :silence
+      else
+        if deprecation = app.config.active_support.deprecation
+          ActiveSupport::Deprecation.behavior = deprecation
+        end
 
-      if disallowed_deprecation = app.config.active_support.disallowed_deprecation
-        ActiveSupport::Deprecation.disallowed_behavior = disallowed_deprecation
-      end
+        if disallowed_deprecation = app.config.active_support.disallowed_deprecation
+          ActiveSupport::Deprecation.disallowed_behavior = disallowed_deprecation
+        end
 
-      if disallowed_warnings = app.config.active_support.disallowed_deprecation_warnings
-        ActiveSupport::Deprecation.disallowed_warnings = disallowed_warnings
+        if disallowed_warnings = app.config.active_support.disallowed_deprecation_warnings
+          ActiveSupport::Deprecation.disallowed_warnings = disallowed_warnings
+        end
       end
     end
 

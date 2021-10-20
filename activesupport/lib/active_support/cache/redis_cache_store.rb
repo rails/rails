@@ -70,35 +70,7 @@ module ActiveSupport
         true
       end
 
-      # Support raw values in the local cache strategy.
-      module LocalCacheWithRaw # :nodoc:
-        private
-          def write_entry(key, entry, **options)
-            if options[:raw] && local_cache
-              raw_entry = Entry.new(serialize_entry(entry, raw: true))
-              raw_entry.expires_at = entry.expires_at
-              super(key, raw_entry, **options)
-            else
-              super
-            end
-          end
-
-          def write_multi_entries(entries, **options)
-            if options[:raw] && local_cache
-              raw_entries = entries.map do |key, entry|
-                raw_entry = Entry.new(serialize_entry(entry, raw: true))
-                raw_entry.expires_at = entry.expires_at
-              end.to_h
-
-              super(raw_entries, **options)
-            else
-              super
-            end
-          end
-      end
-
       prepend Strategy::LocalCache
-      prepend LocalCacheWithRaw
 
       class << self
         # Factory method to create a new Redis instance.
@@ -112,7 +84,7 @@ module ActiveSupport
         #   :url    String  ->  Redis.new(url: …)
         #   :url    Array   ->  Redis::Distributed.new([{ url: … }, { url: … }, …])
         #
-        def build_redis(redis: nil, url: nil, **redis_options) #:nodoc:
+        def build_redis(redis: nil, url: nil, **redis_options) # :nodoc:
           urls = Array(url)
 
           if redis.is_a?(Proc)
@@ -323,12 +295,12 @@ module ActiveSupport
         redis.with { |c| c.info }
       end
 
-      def mget_capable? #:nodoc:
+      def mget_capable? # :nodoc:
         set_redis_capabilities unless defined? @mget_capable
         @mget_capable
       end
 
-      def mset_capable? #:nodoc:
+      def mset_capable? # :nodoc:
         set_redis_capabilities unless defined? @mset_capable
         @mset_capable
       end
@@ -348,9 +320,12 @@ module ActiveSupport
         # Store provider interface:
         # Read an entry from the cache.
         def read_entry(key, **options)
+          deserialize_entry(read_serialized_entry(key, **options), **options)
+        end
+
+        def read_serialized_entry(key, raw: false, **options)
           failsafe :read_entry do
-            raw = options&.fetch(:raw, false)
-            deserialize_entry(redis.with { |c| c.get(key) }, raw: raw)
+            redis.with { |c| c.get(key) }
           end
         end
 
@@ -387,9 +362,11 @@ module ActiveSupport
         # Write an entry to the cache.
         #
         # Requires Redis 2.6.12+ for extended SET options.
-        def write_entry(key, entry, unless_exist: false, raw: false, expires_in: nil, race_condition_ttl: nil, **options)
-          serialized_entry = serialize_entry(entry, raw: raw, **options)
+        def write_entry(key, entry, raw: false, **options)
+          write_serialized_entry(key, serialize_entry(entry, raw: raw, **options), raw: raw, **options)
+        end
 
+        def write_serialized_entry(key, payload, raw: false, unless_exist: false, expires_in: nil, race_condition_ttl: nil, **options)
           # If race condition TTL is in use, ensure that cache entries
           # stick around a bit longer after they would have expired
           # so we can purposefully serve stale entries.
@@ -397,16 +374,14 @@ module ActiveSupport
             expires_in += 5.minutes
           end
 
-          failsafe :write_entry, returning: false do
-            if unless_exist || expires_in
-              modifiers = {}
-              modifiers[:nx] = unless_exist
-              modifiers[:px] = (1000 * expires_in.to_f).ceil if expires_in
+          modifiers = {}
+          if unless_exist || expires_in
+            modifiers[:nx] = unless_exist
+            modifiers[:px] = (1000 * expires_in.to_f).ceil if expires_in
+          end
 
-              redis.with { |c| c.set key, serialized_entry, **modifiers }
-            else
-              redis.with { |c| c.set key, serialized_entry }
-            end
+          failsafe :write_entry, returning: false do
+            redis.with { |c| c.set key, payload, **modifiers }
           end
         end
 
@@ -459,8 +434,8 @@ module ActiveSupport
           end
         end
 
-        def deserialize_entry(payload, raw:)
-          if payload && raw
+        def deserialize_entry(payload, raw: false, **)
+          if raw && !payload.nil?
             Entry.new(payload)
           else
             super(payload)
@@ -492,8 +467,6 @@ module ActiveSupport
           if @error_handler
             @error_handler.(method: method, exception: exception, returning: returning)
           end
-        rescue => failsafe
-          warn "RedisCacheStore ignored exception in handle_exception: #{failsafe.class}: #{failsafe.message}\n  #{failsafe.backtrace.join("\n  ")}"
         end
     end
   end

@@ -5,7 +5,7 @@ module ActionDispatch
   module Journey
     class Route
       attr_reader :app, :path, :defaults, :name, :precedence, :constraints,
-                  :internal, :scope_options
+                  :internal, :scope_options, :ast
 
       alias :conditions :constraints
 
@@ -65,29 +65,20 @@ module ActionDispatch
         @_required_defaults = required_defaults
         @required_parts    = nil
         @parts             = nil
-        @decorated_ast     = nil
         @precedence        = precedence
         @path_formatter    = @path.build_formatter
         @scope_options     = scope_options
         @internal          = internal
+
+        @ast = @path.ast.root
+        @path.ast.route = self
       end
 
       def eager_load!
         path.eager_load!
-        ast
         parts
         required_defaults
         nil
-      end
-
-      def ast
-        @decorated_ast ||= begin
-          decorated_ast = path.ast
-          decorated_ast.find_all(&:terminal?).each { |n| n.memo = self }
-          # inject any regexp requirements for `star` nodes so they can be determined nullable, which requires knowing if the regex accepts an empty string.
-          decorated_ast.find_all(&:star?).each { |n| n.regexp = path.requirements[n.name.to_sym] unless path.requirements[n.name.to_sym].nil? }
-          decorated_ast
-        end
       end
 
       # Needed for `bin/rails routes`. Picks up succinctly defined requirements
@@ -100,7 +91,7 @@ module ActionDispatch
       # as requirements.
       def requirements
         @defaults.merge(path.requirements).delete_if { |_, v|
-          /.+?/ == v
+          /.+?/m == v
         }
       end
 
@@ -144,7 +135,7 @@ module ActionDispatch
       end
 
       def glob?
-        path.spec.any?(Nodes::Star)
+        path.ast.glob?
       end
 
       def dispatcher?

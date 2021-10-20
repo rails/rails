@@ -1,3 +1,72 @@
+*   Allow `link_to` helper to infer link name from `Model#to_s` when it
+    is used with a single argument:
+
+        link_to @profile
+        #=> <a href="/profiles/1">Eileen</a>
+
+    This assumes the model class implements a `to_s` method like this:
+
+        class Profile < ApplicationRecord
+          # ...
+          def to_s
+            name
+          end
+        end
+
+    Previously you had to supply a second argument even if the `Profile`
+    model implemented a `#to_s` method that called the `name` method.
+
+        link_to @profile, @profile.name
+        #=> <a href="/profiles/1">Eileen</a>
+
+    *Olivier Lacan*
+
+*   Support svg unpaired tags for `tag` helper.
+
+        tag.svg { tag.use('href' => "#cool-icon") }
+        # => <svg><use href="#cool-icon"></svg>
+
+    *Oleksii Vasyliev*
+
+
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
+
+*   No changes.
+
+
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
+*   Improves the performance of ActionView::Helpers::NumberHelper formatters by avoiding the use of
+    exceptions as flow control.
+
+    *Mike Dalessio*
+
+*   `preload_link_tag` properly inserts `as` attributes for files with `image` MIME types, such as JPG or SVG.
+
+    *Nate Berkopec*
+
+*   Add `weekday_options_for_select` and `weekday_select` helper methods. Also adds `weekday_select` to `FormBuilder`.
+
+    *Drew Bragg*, *Dana Kashubeck*, *Kasper Timm Hansen*
+
+*   Add `caching?` helper that returns whether the current code path is being cached and `uncacheable!` to denote helper methods that can't participate in fragment caching.
+
+    *Ben Toews*, *John Hawthorn*, *Kasper Timm Hansen*, *Joel Hawksley*
+
+*   Add `include_seconds` option for `time_field`.
+
+        <%= form.time_field :foo, include_seconds: false %>
+        # => <input value="16:22" type="time" />
+
+    Default includes seconds:
+
+        <%= form.time_field :foo %>
+        # => <input value="16:22:01.440" type="time" />
+
+    This allows you to take advantage of [different rendering options](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/time#time_value_format) in some browsers.
+
+    *Alex Ghiculescu*
+
 *   Improve error messages when template file does not exist at absolute filepath.
 
     *Ted Whang*
@@ -19,12 +88,14 @@
     `.css` extension appended to the stylesheet path.
 
     Before:
+
     ```ruby
     stylesheet_link_tag "style.less"
     # <link href="/stylesheets/style.less.scss" rel="stylesheet">
     ```
 
     After:
+
     ```ruby
     stylesheet_link_tag "style.less", extname: false, skip_pipeline: true, rel: "stylesheet/less"
     # <link href="/stylesheets/style.less" rel="stylesheet/less">
@@ -61,12 +132,12 @@
     the first argument or as a block.
 
         <%= button_to "Delete", post_path(@post), method: :delete %>
-        <%# => <form action="/posts/1"><input type="hidden" name="_method" value="delete"><button type="submit">Delete</button></form>
+        # => <form action="/posts/1"><input type="hidden" name="_method" value="delete"><button type="submit">Delete</button></form>
 
         <%= button_to post_path(@post), method: :delete do %>
           Delete
         <% end %>
-        <%# => <form action="/posts/1"><input type="hidden" name="_method" value="delete"><button type="submit">Delete</button></form>
+        # => <form action="/posts/1"><input type="hidden" name="_method" value="delete"><button type="submit">Delete</button></form>
 
     *Sean Doyle*, *Dusan Orlovic*
 

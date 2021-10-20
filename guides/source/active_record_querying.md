@@ -358,6 +358,8 @@ The SQL equivalent of the above is:
 SELECT * FROM customers WHERE (customers.first_name = 'Lifo') LIMIT 1
 ```
 
+Note that there is no `ORDER BY` in the above SQL.  If your `find_by` conditions can match multiple records, you should [apply an order](#ordering) to guarantee a deterministic result.
+
 The [`find_by!`][] method behaves exactly like `find_by`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found. For example:
 
 ```irb
@@ -714,40 +716,40 @@ To retrieve records from the database in a specific order, you can use the [`ord
 For example, if you're getting a set of records and want to order them in ascending order by the `created_at` field in your table:
 
 ```ruby
-Customer.order(:created_at)
+Book.order(:created_at)
 # OR
-Customer.order("created_at")
+Book.order("created_at")
 ```
 
 You could specify `ASC` or `DESC` as well:
 
 ```ruby
-Customer.order(created_at: :desc)
+Book.order(created_at: :desc)
 # OR
-Customer.order(created_at: :asc)
+Book.order(created_at: :asc)
 # OR
-Customer.order("created_at DESC")
+Book.order("created_at DESC")
 # OR
-Customer.order("created_at ASC")
+Book.order("created_at ASC")
 ```
 
 Or ordering by multiple fields:
 
 ```ruby
-Customer.order(orders_count: :asc, created_at: :desc)
+Book.order(title: :asc, created_at: :desc)
 # OR
-Customer.order(:orders_count, created_at: :desc)
+Book.order(:title, created_at: :desc)
 # OR
-Customer.order("orders_count ASC, created_at DESC")
+Book.order("title ASC, created_at DESC")
 # OR
-Customer.order("orders_count ASC", "created_at DESC")
+Book.order("title ASC", "created_at DESC")
 ```
 
 If you want to call `order` multiple times, subsequent orders will be appended to the first:
 
 ```irb
-irb> Customer.order("orders_count ASC").order("created_at DESC")
-SELECT * FROM customers ORDER BY orders_count ASC, created_at DESC
+irb> Book.order("title ASC").order("created_at DESC")
+SELECT * FROM books ORDER BY title ASC, created_at DESC
 ```
 
 WARNING: In most database systems, on selecting fields with `distinct` from a result set using methods like `select`, `pluck` and `ids`; the `order` method will raise an `ActiveRecord::StatementInvalid` exception unless the field(s) used in `order` clause are included in the select list. See the next section for selecting fields from the result set.
@@ -1028,25 +1030,25 @@ SELECT * FROM books WHERE author_id = 10 ORDER BY year_published ASC
 The [`reverse_order`][] method reverses the ordering clause if specified.
 
 ```ruby
-Customer.where("orders_count > 10").order(:last_name).reverse_order
+Book.where("author_id > 10").order(:year_published).reverse_order
 ```
 
 The SQL that would be executed:
 
 ```sql
-SELECT * FROM customers WHERE orders_count > 10 ORDER BY last_name DESC
+SELECT * FROM books WHERE author_id > 10 ORDER BY year_published DESC
 ```
 
 If no ordering clause is specified in the query, the `reverse_order` orders by the primary key in reverse order.
 
 ```ruby
-Customer.where("orders_count > 10").reverse_order
+Book.where("author_id > 10").reverse_order
 ```
 
 The SQL that would be executed:
 
 ```sql
-SELECT * FROM customers WHERE orders_count > 10 ORDER BY customers.id DESC
+SELECT * FROM books WHERE author_id > 10 ORDER BY books.id DESC
 ```
 
 The `reverse_order` method accepts **no** arguments.
@@ -1085,7 +1087,7 @@ Null Relation
 The [`none`][] method returns a chainable relation with no records. Any subsequent conditions chained to the returned relation will continue generating empty relations. This is useful in scenarios where you need a chainable response to a method or a scope that could return zero results.
 
 ```ruby
-Order.none # returns an empty Relation and fires no queries.
+Book.none # returns an empty Relation and fires no queries.
 ```
 
 ```ruby
@@ -2038,7 +2040,7 @@ SELECT DISTINCT status FROM orders
 => ["shipped", "being_packed", "cancelled"]
 
 irb> Customer.pluck(:id, :first_name)
-SELECT customers.id, customers.name FROM customers
+SELECT customers.id, customers.first_name FROM customers
 => [[1, "David"], [2, "Fran"], [3, "Jose"]]
 ```
 
@@ -2049,7 +2051,7 @@ Customer.select(:id).map { |c| c.id }
 # or
 Customer.select(:id).map(&:id)
 # or
-Customer.select(:id, :name).map { |c| [c.id, c.first_name] }
+Customer.select(:id, :first_name).map { |c| [c.id, c.first_name] }
 ```
 
 with:
@@ -2154,7 +2156,7 @@ one of those records exists.
 ```ruby
 Customer.exists?(id: [1,2,3])
 # or
-Customer.exists?(name: ['Jane', 'Sergei'])
+Customer.exists?(first_name: ['Jane', 'Sergei'])
 ```
 
 It's even possible to use `exists?` without any arguments on a model or a relation.

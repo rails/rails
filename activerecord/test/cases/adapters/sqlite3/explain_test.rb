@@ -5,7 +5,7 @@ require "models/author"
 require "models/post"
 
 class SQLite3ExplainTest < ActiveRecord::SQLite3TestCase
-  fixtures :authors
+  fixtures :authors, :author_addresses
 
   def test_explain_for_one_query
     explain = Author.where(id: 1).explain

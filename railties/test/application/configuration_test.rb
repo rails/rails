@@ -460,17 +460,6 @@ module ApplicationTests
       end
     end
 
-    test "initialize an eager loaded, cache classes app" do
-      add_to_config <<-RUBY
-        config.eager_load = true
-        config.cache_classes = true
-      RUBY
-
-      app "development"
-
-      assert_equal :require, ActiveSupport::Dependencies.mechanism
-    end
-
     test "application is always added to eager_load namespaces" do
       app "development"
       assert_includes Rails.application.config.eager_load_namespaces, AppTemplate::Application
@@ -1270,8 +1259,8 @@ module ApplicationTests
       assert_instance_of Zeitwerk::Loader, Rails.autoloaders.once
       assert_equal "rails.once", Rails.autoloaders.once.tag
       assert_equal [Rails.autoloaders.main, Rails.autoloaders.once], Rails.autoloaders.to_a
-      assert_equal ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector, Rails.autoloaders.main.inflector
-      assert_equal ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector, Rails.autoloaders.once.inflector
+      assert_equal Rails::Autoloaders::Inflector, Rails.autoloaders.main.inflector
+      assert_equal Rails::Autoloaders::Inflector, Rails.autoloaders.once.inflector
     end
 
     test "config.action_view.cache_template_loading with cache_classes default" do
@@ -1328,6 +1317,32 @@ module ApplicationTests
       app "development"
 
       assert_equal false, ActionView::Resolver.caching?
+    end
+
+    test "ActionController::Base.raise_on_open_redirects is true by default for new apps" do
+      app "development"
+
+      assert_equal true, ActionController::Base.raise_on_open_redirects
+    end
+
+    test "ActionController::Base.raise_on_open_redirects is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+      app "development"
+
+      assert_equal false, ActionController::Base.raise_on_open_redirects
+    end
+
+    test "ActionController::Base.raise_on_open_redirects can be configured in the new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_2.rb", <<-RUBY
+        Rails.application.config.action_controller.raise_on_open_redirects = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActionController::Base.raise_on_open_redirects
     end
 
     test "config.action_dispatch.show_exceptions is sent in env" do
@@ -1859,60 +1874,6 @@ module ApplicationTests
       assert_includes $LOAD_PATH, "#{app_path}/custom_eager_load_path"
     end
 
-    test "autoloading during initialization gets deprecation message and clearing if config.cache_classes is false" do
-      app_file "lib/c.rb", <<~EOS
-        class C
-          extend ActiveSupport::DescendantsTracker
-        end
-
-        class X < C
-        end
-      EOS
-
-      app_file "app/models/d.rb", <<~EOS
-        require "c"
-
-        class D < C
-        end
-      EOS
-
-      app_file "config/initializers/autoload.rb", "D.class"
-
-      app "development"
-
-      # TODO: Test deprecation message, assert_deprecated { app "development" }
-      # does not collect it.
-
-      assert_equal [X], C.descendants
-      assert_empty ActiveSupport::Dependencies.autoloaded_constants
-    end
-
-    test "autoloading during initialization triggers nothing if config.cache_classes is true" do
-      app_file "lib/c.rb", <<~EOS
-        class C
-          extend ActiveSupport::DescendantsTracker
-        end
-
-        class X < C
-        end
-      EOS
-
-      app_file "app/models/d.rb", <<~EOS
-        require "c"
-
-        class D < C
-        end
-      EOS
-
-      app_file "config/initializers/autoload.rb", "D.class"
-
-      app "production"
-
-      # TODO: Test no deprecation message is issued.
-
-      assert_equal [X, D], C.descendants
-    end
-
     test "load_database_yaml returns blank hash if configuration file is blank" do
       app_file "config/database.yml", ""
       app "development"
@@ -2303,6 +2264,32 @@ module ApplicationTests
       app "development"
 
       assert_equal true, ActiveRecord::Base.has_many_inversing
+    end
+
+    test "ActiveRecord::Base.automatic_scope_inversing is true by default for new apps" do
+      app "development"
+
+      assert_equal true, ActiveRecord::Base.automatic_scope_inversing
+    end
+
+    test "ActiveRecord::Base.automatic_scope_inversing is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal false, ActiveRecord::Base.automatic_scope_inversing
+    end
+
+    test "ActiveRecord::Base.automatic_scope_inversing can be configured via config.active_record.automatic_scope_inversing" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+        Rails.application.config.active_record.automatic_scope_inversing = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::Base.automatic_scope_inversing
     end
 
     test "ActiveRecord.verify_foreign_keys_for_fixtures is true by default for new apps" do
@@ -3121,6 +3108,20 @@ module ApplicationTests
         " -frames:v 1 -f image2"
     end
 
+    test "ActiveStorage.variant_processor uses mini_magick without Rails 7 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal :mini_magick, ActiveStorage.variant_processor
+    end
+
+    test "ActiveStorage.variant_processor uses vips by default" do
+      app "development"
+
+      assert_equal :vips, ActiveStorage.variant_processor
+    end
+
     test "hosts include .localhost in development" do
       app "development"
       assert_includes Rails.application.config.hosts, ".localhost"
@@ -3244,20 +3245,20 @@ module ApplicationTests
       assert_equal false, ActionDispatch::Request.return_only_media_type_on_content_type
     end
 
-    test "ActionDispatch::DebugExceptions.log_rescued_responses is true by default" do
+    test "action_dispatch.log_rescued_responses is true by default" do
       app "development"
 
-      assert_equal true, ActionDispatch::DebugExceptions.log_rescued_responses
+      assert_equal true, Rails.application.env_config["action_dispatch.log_rescued_responses"]
     end
 
-    test "ActionDispatch::DebugExceptions.log_rescued_responses can be configured" do
+    test "action_dispatch.log_rescued_responses can be configured" do
       add_to_config <<-RUBY
         config.action_dispatch.log_rescued_responses = false
       RUBY
 
       app "development"
 
-      assert_equal false, ActionDispatch::DebugExceptions.log_rescued_responses
+      assert_equal false, Rails.application.env_config["action_dispatch.log_rescued_responses"]
     end
 
     test "logs a warning when running SQLite3 in production" do
@@ -3400,6 +3401,72 @@ module ApplicationTests
       assert custom_middleware_one > custom_middleware_two
 
       assert_nil Rails.application.config.middleware.map(&:name).index("3rd custom middleware")
+    end
+
+    test "ActiveSupport::TimeWithZone.name uses default Ruby implementation by default" do
+      app "development"
+      assert_equal false, ActiveSupport::TimeWithZone.methods(false).include?(:name)
+    end
+
+    test "ActiveSupport::TimeWithZone.name can be configured in the new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+        Rails.application.config.active_support.remove_deprecated_time_with_zone_name = false
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveSupport::TimeWithZone.methods(false).include?(:name)
+    end
+
+    test "can entirely opt out of ActiveSupport::Deprecations" do
+      add_to_config "config.active_support.report_deprecations = false"
+
+      app "production"
+
+      assert_equal true, ActiveSupport::Deprecation.silenced
+      assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], ActiveSupport::Deprecation.behavior
+      assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], ActiveSupport::Deprecation.disallowed_behavior
+    end
+
+    test "ParamsWrapper is enabled in a new app and uses JSON as the format" do
+      app "production"
+
+      assert_equal [:json], ActionController::Base._wrapper_options.format
+    end
+
+    test "ParamsWrapper is enabled in an upgrade and uses JSON as the format" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+        Rails.application.config.action_controller.wrap_parameters_by_default = true
+      RUBY
+
+      app "production"
+
+      assert_equal [:json], ActionController::Base._wrapper_options.format
+    end
+
+    test "ParamsWrapper can be changed from the default in the initializer that was created prior to Rails 7" do
+      app_file "config/initializers/wrap_parameters.rb", <<-RUBY
+        ActiveSupport.on_load(:action_controller) do
+          wrap_parameters format: [:xml]
+        end
+      RUBY
+
+      app "production"
+
+      assert_equal [:xml], ActionController::Base._wrapper_options.format
+    end
+
+    test "ParamsWrapper can be turned off" do
+      add_to_config "Rails.application.config.action_controller.wrap_parameters_by_default = false"
+
+      app "production"
+
+      assert_equal [], ActionController::Base._wrapper_options.format
     end
 
     private

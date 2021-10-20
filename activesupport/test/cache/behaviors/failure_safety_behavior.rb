@@ -10,6 +10,18 @@ module FailureSafetyBehavior
   end
 
   def test_fetch_read_failure_does_not_attempt_to_write
+    @cache.write("foo", "bar")
+
+    emulating_unavailability do |cache|
+      val = cache.fetch("foo") { "1" }
+
+      ##
+      # Though the `write` part of fetch fails for the same reason
+      # `read` will, the block result is still executed and returned.
+      assert_equal "1", val
+    end
+
+    assert_equal "bar", @cache.read("foo")
   end
 
   def test_read_failure_returns_nil

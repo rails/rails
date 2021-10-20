@@ -1,3 +1,63 @@
+*   `ActiveSupport::Inflector::Inflections#clear(:acronyms)` is now supported,
+    and `inflector.clear` / `inflector.clear(:all)` also clears acronyms.
+
+    *Alex Ghiculescu*, *Oliver Peate*
+
+
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
+
+*   No changes.
+
+
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
+*   `ActiveSupport::Dependencies` no longer installs a `const_missing` hook. Before this, you could push to the autoload paths and have constants autoloaded. This feature, known as the `classic` autoloader, has been removed.
+
+    *Xavier Noria*
+
+*   Private internal classes of `ActiveSupport::Dependencies` have been deleted, like `ActiveSupport::Dependencies::Reference`, `ActiveSupport::Dependencies::Blamable`, and others.
+
+    *Xavier Noria*
+
+*   The private API of `ActiveSupport::Dependencies` has been deleted. That includes methods like `hook!`, `unhook!`, `depend_on`, `require_or_load`, `mechanism`, and many others.
+
+    *Xavier Noria*
+
+*   Improves the performance of `ActiveSupport::NumberHelper` formatters by avoiding the use of exceptions as flow control.
+
+    *Mike Dalessio*
+
+*   Removed rescue block from `ActiveSupport::Cache::RedisCacheStore#handle_exception`
+
+    Previously, if you provided a `error_handler` to `redis_cache_store`, any errors thrown by
+    the error handler would be rescued and logged only. Removed the `rescue` clause from `handle_exception`
+    to allow these to be thrown.
+
+    *Nicholas A. Stuart*
+
+*   Allow entirely opting out of deprecation warnings.
+
+    Previously if you did `app.config.active_support.deprecation = :silence`, some work would
+    still be done on each call to `ActiveSupport::Deprecation.warn`. In very hot paths, this could
+    cause performance issues.
+
+    Now, you can make `ActiveSupport::Deprecation.warn` a no-op:
+
+    ```ruby
+    config.active_support.report_deprecations = false
+    ```
+
+    This is the default in production for new apps. It is the equivalent to:
+
+    ```ruby
+    config.active_support.deprecation = :silence
+    config.active_support.disallowed_deprecation = :silence
+    ```
+
+    but will take a more optimised code path.
+
+    *Alex Ghiculescu*
+
 *   Faster tests by parallelizing only when overhead is justified by the number
     of them.
 
@@ -16,7 +76,7 @@
 
     ```ruby
     class ActiveSupport::TestCase
-        parallelize threshold: 100
+      parallelize threshold: 100
     end
     ```
 
@@ -37,7 +97,7 @@
 
     *Steve Laing*
 
-*   `Time#change` and methods that call it (eg. `Time#advance`) will now
+*   `Time#change` and methods that call it (e.g. `Time#advance`) will now
     return a `Time` with the timezone argument provided, if the caller was
     initialized with a timezone argument.
 
@@ -45,7 +105,7 @@
 
     *Alex Ghiculescu*
 
-*   Allow serializing any module or class to JSON by name
+*   Allow serializing any module or class to JSON by name.
 
     *Tyler Rick*, *Zachary Scott*
 
@@ -76,7 +136,7 @@
 
     *Jean Boussier*
 
-*   Allow nested access to keys on `Rails.application.credentials`
+*   Allow nested access to keys on `Rails.application.credentials`.
 
     Previously only top level keys in `credentials.yml.enc` could be accessed with method calls. Now any key can.
 
@@ -84,11 +144,12 @@
 
     ```yml
     aws:
-       access_key_id: 123
-       secret_access_key: 345
+      access_key_id: 123
+      secret_access_key: 345
     ```
 
-    `Rails.application.credentials.aws.access_key_id` will now return the same thing as `Rails.application.credentials.aws[:access_key_id]`
+    `Rails.application.credentials.aws.access_key_id` will now return the same thing as
+    `Rails.application.credentials.aws[:access_key_id]`.
 
     *Alex Ghiculescu*
 
@@ -145,7 +206,7 @@
     # instead of %w[foo bar].sum
 
     [[1, 2], [3, 4, 5]].sum([])
-    #instead of [[1, 2], [3, 4, 5]].sum
+    # instead of [[1, 2], [3, 4, 5]].sum
     ```
 
     *Alberto Mota*
@@ -213,11 +274,11 @@
 
     *Nathaniel Woodthorpe*
 
-*   consume dalli’s `cache_nils` configuration as `ActiveSupport::Cache`'s `skip_nil` when using `MemCacheStore`.
+*   Consume dalli’s `cache_nils` configuration as `ActiveSupport::Cache`'s `skip_nil` when using `MemCacheStore`.
 
     *Ritikesh G*
 
-*   add `RedisCacheStore#stats` method similar to `MemCacheStore#stats`. Calls `redis#info` internally.
+*   Add `RedisCacheStore#stats` method similar to `MemCacheStore#stats`. Calls `redis#info` internally.
 
     *Ritikesh G*
 

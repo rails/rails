@@ -8,7 +8,7 @@ require "action_view/helpers/output_safety_helper"
 
 module ActionView
   # = Action View Tag Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # Provides methods to generate HTML tags programmatically both as a modern
     # HTML5 compliant builder style and legacy XHTML compliant tags.
     module TagHelper
@@ -41,11 +41,12 @@ module ActionView
       PRE_CONTENT_STRINGS[:textarea]  = "\n"
       PRE_CONTENT_STRINGS["textarea"] = "\n"
 
-      class TagBuilder #:nodoc:
+      class TagBuilder # :nodoc:
         include CaptureHelper
         include OutputSafetyHelper
 
-        VOID_ELEMENTS = %i(area base br col embed hr img input keygen link meta param source track wbr).to_set
+        HTML_VOID_ELEMENTS = %i(area base br col circle embed hr img input keygen link meta param source track wbr).to_set
+        SVG_VOID_ELEMENTS = %i(animate animateMotion animateTransform circle ellipse line path polygon polyline rect set stop use view).to_set
 
         def initialize(view_context)
           @view_context = view_context
@@ -66,7 +67,7 @@ module ActionView
 
         def tag_string(name, content = nil, escape_attributes: true, **options, &block)
           content = @view_context.capture(self, &block) if block_given?
-          if VOID_ELEMENTS.include?(name) && content.nil?
+          if (HTML_VOID_ELEMENTS.include?(name) || SVG_VOID_ELEMENTS.include?(name)) && content.nil?
             "<#{name.to_s.dasherize}#{tag_options(options, escape_attributes)}>".html_safe
           else
             content_tag_string(name.to_s.dasherize, content || "", options, escape_attributes)

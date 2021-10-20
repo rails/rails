@@ -973,6 +973,16 @@ XML
     end
   end
 
+  def test_fixture_file_upload_fixture_path_same_as_file_fixture_path
+    TestCaseTest.stub :fixture_path, File.expand_path("../fixtures/multipart", __dir__) do
+      TestCaseTest.stub :file_fixture_path, File.expand_path("../fixtures/multipart", __dir__) do
+        assert_not_deprecated do
+          fixture_file_upload("ruby_on_rails.jpg", "image/jpg")
+        end
+      end
+    end
+  end
+
   def test_fixture_file_upload_ignores_fixture_path_given_full_path
     TestCaseTest.stub :fixture_path, __dir__ do
       uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpeg")
@@ -1156,7 +1166,7 @@ class InferringClassNameTest < ActionController::TestCase
     end
 end
 
-class CrazyNameTest < ActionController::TestCase
+class ManuallySetNameTest < ActionController::TestCase
   tests ContentController
 
   def test_controller_class_can_be_set_manually_not_just_inferred
@@ -1164,7 +1174,7 @@ class CrazyNameTest < ActionController::TestCase
   end
 end
 
-class CrazySymbolNameTest < ActionController::TestCase
+class ManuallySetSymbolNameTest < ActionController::TestCase
   tests :content
 
   def test_set_controller_class_using_symbol
@@ -1172,7 +1182,7 @@ class CrazySymbolNameTest < ActionController::TestCase
   end
 end
 
-class CrazyStringNameTest < ActionController::TestCase
+class ManuallySetStringNameTest < ActionController::TestCase
   tests "content"
 
   def test_set_controller_class_using_string

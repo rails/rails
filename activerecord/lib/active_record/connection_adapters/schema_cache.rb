@@ -86,6 +86,7 @@ module ActiveRecord
 
       # A cached lookup for table existence.
       def data_source_exists?(name)
+        return if ignored_table?(name)
         prepare_data_sources if @data_sources.empty?
         return @data_sources[name] if @data_sources.key? name
 
@@ -108,6 +109,10 @@ module ActiveRecord
 
       # Get the columns for a table
       def columns(table_name)
+        if ignored_table?(table_name)
+          raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist"
+        end
+
         @columns.fetch(table_name) do
           @columns[deep_deduplicate(table_name)] = deep_deduplicate(connection.columns(table_name))
         end
@@ -128,7 +133,11 @@ module ActiveRecord
 
       def indexes(table_name)
         @indexes.fetch(table_name) do
-          @indexes[deep_deduplicate(table_name)] = deep_deduplicate(connection.indexes(table_name))
+          if data_source_exists?(table_name)
+            @indexes[deep_deduplicate(table_name)] = deep_deduplicate(connection.indexes(table_name))
+          else
+            []
+          end
         end
       end
 
@@ -162,7 +171,7 @@ module ActiveRecord
 
       def dump_to(filename)
         clear!
-        connection.data_sources.each { |table| add(table) }
+        tables_to_cache.each { |table| add(table) }
         open(filename) { |f|
           if filename.include?(".dump")
             f.write(Marshal.dump(self))
@@ -186,6 +195,18 @@ module ActiveRecord
       end
 
       private
+        def tables_to_cache
+          connection.data_sources.reject do |table|
+            ignored_table?(table)
+          end
+        end
+
+        def ignored_table?(table_name)
+          ActiveRecord.schema_cache_ignored_tables.any? do |ignored|
+            ignored === table_name
+          end
+        end
+
         def reset_version!
           @version = connection.migration_context.current_version
         end
@@ -212,10 +233,14 @@ module ActiveRecord
         end
 
         def prepare_data_sources
-          connection.data_sources.each { |source| @data_sources[source] = true }
+          tables_to_cache.each do |source|
+            @data_sources[source] = true
+          end
         end
 
         def open(filename)
+          FileUtils.mkdir_p(File.dirname(filename))
+
           File.atomic_write(filename) do |file|
             if File.extname(filename) == ".gz"
               zipper = Zlib::GzipWriter.new file

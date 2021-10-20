@@ -4,7 +4,7 @@ module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions
     extend ActiveSupport::Concern
-    #:nodoc:
+    # :nodoc:
     ACTIONS = [:create, :destroy, :update]
 
     included do
@@ -290,19 +290,19 @@ module ActiveRecord
       self.class.transaction(**options, &block)
     end
 
-    def destroy #:nodoc:
+    def destroy # :nodoc:
       with_transaction_returning_status { super }
     end
 
-    def save(**) #:nodoc:
+    def save(**) # :nodoc:
       with_transaction_returning_status { super }
     end
 
-    def save!(**) #:nodoc:
+    def save!(**) # :nodoc:
       with_transaction_returning_status { super }
     end
 
-    def touch(*, **) #:nodoc:
+    def touch(*, **) # :nodoc:
       with_transaction_returning_status { super }
     end
 
@@ -314,7 +314,7 @@ module ActiveRecord
     #
     # Ensure that it is not called if the object was never persisted (failed create),
     # but call it after the commit of a destroyed object.
-    def committed!(should_run_callbacks: true) #:nodoc:
+    def committed!(should_run_callbacks: true) # :nodoc:
       @_start_transaction_state = nil
       if should_run_callbacks
         @_committed_already_called = true
@@ -326,7 +326,7 @@ module ActiveRecord
 
     # Call the #after_rollback callbacks. The +force_restore_state+ argument indicates if the record
     # state should be rolled back to the beginning or just to the last savepoint.
-    def rolledback!(force_restore_state: false, should_run_callbacks: true) #:nodoc:
+    def rolledback!(force_restore_state: false, should_run_callbacks: true) # :nodoc:
       if should_run_callbacks
         _run_rollback_callbacks
       end

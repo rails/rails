@@ -332,7 +332,7 @@ An example of this is `ActiveRecord::Core::ClassMethods#arel_table`:
 
 ```ruby
 module ActiveRecord::Core::ClassMethods
-  def arel_table #:nodoc:
+  def arel_table # :nodoc:
     # do some magic..
   end
 end

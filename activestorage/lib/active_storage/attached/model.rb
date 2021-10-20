@@ -217,21 +217,21 @@ module ActiveStorage
         end
     end
 
-    def attachment_changes #:nodoc:
+    def attachment_changes # :nodoc:
       @attachment_changes ||= {}
     end
 
-    def changed_for_autosave? #:nodoc:
+    def changed_for_autosave? # :nodoc:
       super || attachment_changes.any?
     end
 
-    def initialize_dup(*) #:nodoc:
+    def initialize_dup(*) # :nodoc:
       super
       @active_storage_attached = nil
       @attachment_changes = nil
     end
 
-    def reload(*) #:nodoc:
+    def reload(*) # :nodoc:
       super.tap { @attachment_changes = nil }
     end
   end

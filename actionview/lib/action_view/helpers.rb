@@ -25,8 +25,8 @@ require "action_view/helpers/number_helper"
 require "action_view/helpers/rendering_helper"
 require "action_view/helpers/translation_helper"
 
-module ActionView #:nodoc:
-  module Helpers #:nodoc:
+module ActionView # :nodoc:
+  module Helpers # :nodoc:
     extend ActiveSupport::Autoload
 
     autoload :Tags

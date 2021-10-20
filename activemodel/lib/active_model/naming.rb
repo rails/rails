@@ -239,7 +239,7 @@ module ActiveModel
   # is required to pass the \Active \Model Lint test. So either extending the
   # provided method below, or rolling your own is required.
   module Naming
-    def self.extended(base) #:nodoc:
+    def self.extended(base) # :nodoc:
       base.silence_redefinition_of_method :model_name
       base.delegate :model_name, to: :class
     end
@@ -328,7 +328,7 @@ module ActiveModel
       model_name_from_record_or_class(record_or_class).param_key
     end
 
-    def self.model_name_from_record_or_class(record_or_class) #:nodoc:
+    def self.model_name_from_record_or_class(record_or_class) # :nodoc:
       if record_or_class.respond_to?(:to_model)
         record_or_class.to_model.model_name
       else

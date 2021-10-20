@@ -4,6 +4,8 @@ require "cases/helper"
 require "models/author"
 require "models/book"
 require "models/cart"
+require "models/developer"
+require "models/ship"
 require "models/speedometer"
 require "models/subscription"
 require "models/subscriber"
@@ -364,6 +366,15 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal Time.now.year, Book.find(101).updated_on.year
   end
 
+  def test_upsert_all_respects_updated_at_precision_when_touched_implicitly
+    skip unless supports_insert_on_duplicate_update? && supports_datetime_with_precision?
+
+    Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1), updated_at: 5.years.ago, updated_on: 5.years.ago }]
+    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8) }]
+
+    assert_not_predicate Book.find(101).updated_at.usec, :zero?, "updated_at should have sub-second precision"
+  end
+
   def test_upsert_all_uses_given_updated_at_over_implicit_updated_at
     skip unless supports_insert_on_duplicate_update?
 
@@ -382,6 +393,148 @@ class InsertAllTest < ActiveRecord::TestCase
     Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8), updated_on: updated_on }]
 
     assert_equal updated_on, Book.find(101).updated_on
+  end
+
+  def test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_true
+    with_record_timestamps(Ship, true) do
+      Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }]
+
+      ship = Ship.find(101)
+      assert_equal Time.new.year, ship.created_at.year
+      assert_equal Time.new.year, ship.created_on.year
+      assert_equal Time.new.year, ship.updated_at.year
+      assert_equal Time.new.year, ship.updated_on.year
+    end
+  end
+
+  def test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_true_but_overridden
+    with_record_timestamps(Ship, true) do
+      Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }], record_timestamps: false
+
+      ship = Ship.find(101)
+      assert_nil ship.created_at
+      assert_nil ship.created_on
+      assert_nil ship.updated_at
+      assert_nil ship.updated_on
+    end
+  end
+
+  def test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_false
+    with_record_timestamps(Ship, false) do
+      Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }]
+
+      ship = Ship.find(101)
+      assert_nil ship.created_at
+      assert_nil ship.created_on
+      assert_nil ship.updated_at
+      assert_nil ship.updated_on
+    end
+  end
+
+  def test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_false_but_overridden
+    with_record_timestamps(Ship, false) do
+      Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }], record_timestamps: true
+
+      ship = Ship.find(101)
+      assert_equal Time.now.year, ship.created_at.year
+      assert_equal Time.now.year, ship.created_on.year
+      assert_equal Time.now.year, ship.updated_at.year
+      assert_equal Time.now.year, ship.updated_on.year
+    end
+  end
+
+  def test_upsert_all_respects_created_at_precision_when_touched_implicitly
+    skip unless supports_datetime_with_precision?
+
+    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8) }]
+
+    assert_not_predicate Book.find(101).created_at.usec, :zero?, "created_at should have sub-second precision"
+  end
+
+  def test_upsert_all_implicitly_sets_timestamps_on_update_when_model_record_timestamps_is_true
+    skip unless supports_insert_on_duplicate_update?
+
+    with_record_timestamps(Ship, true) do
+      travel_to(Date.new(2016, 4, 17)) { Ship.create! id: 101, name: "RSS Boaty McBoatface" }
+
+      Ship.upsert_all [{ id: 101, name: "RSS Sir David Attenborough" }]
+
+      ship = Ship.find(101)
+      assert_equal 2016, ship.created_at.year
+      assert_equal 2016, ship.created_on.year
+      assert_equal Time.now.year, ship.updated_at.year
+      assert_equal Time.now.year, ship.updated_on.year
+    end
+  end
+
+  def test_upsert_all_does_not_implicitly_set_timestamps_on_update_when_model_record_timestamps_is_true_but_overridden
+    skip unless supports_insert_on_duplicate_update?
+
+    with_record_timestamps(Ship, true) do
+      travel_to(Date.new(2016, 4, 17)) { Ship.create! id: 101, name: "RSS Boaty McBoatface" }
+
+      Ship.upsert_all [{ id: 101, name: "RSS Sir David Attenborough" }], record_timestamps: false
+
+      ship = Ship.find(101)
+      assert_equal 2016, ship.created_at.year
+      assert_equal 2016, ship.created_on.year
+      assert_equal 2016, ship.updated_at.year
+      assert_equal 2016, ship.updated_on.year
+    end
+  end
+
+  def test_upsert_all_does_not_implicitly_set_timestamps_on_update_when_model_record_timestamps_is_false
+    skip unless supports_insert_on_duplicate_update?
+
+    with_record_timestamps(Ship, false) do
+      Ship.create! id: 101, name: "RSS Boaty McBoatface"
+
+      Ship.upsert_all [{ id: 101, name: "RSS Sir David Attenborough" }]
+
+      ship = Ship.find(101)
+      assert_nil ship.created_at
+      assert_nil ship.created_on
+      assert_nil ship.updated_at
+      assert_nil ship.updated_on
+    end
+  end
+
+  def test_upsert_all_implicitly_sets_timestamps_on_update_when_model_record_timestamps_is_false_but_overridden
+    skip unless supports_insert_on_duplicate_update?
+
+    with_record_timestamps(Ship, false) do
+      Ship.create! id: 101, name: "RSS Boaty McBoatface"
+
+      Ship.upsert_all [{ id: 101, name: "RSS Sir David Attenborough" }], record_timestamps: true
+
+      ship = Ship.find(101)
+      assert_nil ship.created_at
+      assert_nil ship.created_on
+      assert_equal Time.now.year, ship.updated_at.year
+      assert_equal Time.now.year, ship.updated_on.year
+    end
+  end
+
+  def test_upsert_all_implicitly_sets_timestamps_even_when_columns_are_aliased
+    skip unless supports_insert_on_duplicate_update?
+
+    Developer.upsert_all [{ id: 101, name: "Alice" }]
+    alice = Developer.find(101)
+
+    assert_not_nil alice.created_at
+    assert_not_nil alice.created_on
+    assert_not_nil alice.updated_at
+    assert_not_nil alice.updated_on
+
+    alice.update!(created_at: nil, created_on: nil, updated_at: nil, updated_on: nil)
+
+    Developer.upsert_all [{ id: alice.id, name: alice.name, salary: alice.salary * 2 }]
+    alice.reload
+
+    assert_nil alice.created_at
+    assert_nil alice.created_on
+    assert_not_nil alice.updated_at
+    assert_not_nil alice.updated_on
   end
 
   def test_insert_all_raises_on_unknown_attribute
@@ -505,5 +658,13 @@ class InsertAllTest < ActiveRecord::TestCase
       ensure
         ActiveRecord::Base.logger = old_logger
       end
+    end
+
+    def with_record_timestamps(model, value)
+      original = model.record_timestamps
+      model.record_timestamps = value
+      yield
+    ensure
+      model.record_timestamps = original
     end
 end

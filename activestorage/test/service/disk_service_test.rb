@@ -51,7 +51,7 @@ class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
 
   test "URL generation keeps working with ActiveStorage::Current.host set" do
     ActiveStorage::Current.url_options = nil
-    ActiveStorage::Current.host = "https://example.com"
+    assert_deprecated { ActiveStorage::Current.host = "https://example.com" }
 
     original_url_options = Rails.application.routes.default_url_options.dup
     Rails.application.routes.default_url_options.merge!(protocol: "http", host: "test.example.com", port: 3001)

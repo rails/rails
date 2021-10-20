@@ -4,7 +4,7 @@ require "active_support/core_ext/string/output_safety"
 
 module ActionView
   # = Action View Capture Helper
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # CaptureHelper exposes methods to let you extract generated markup which
     # can be used in other parts of a template or layout file.
     #
@@ -198,7 +198,7 @@ module ActionView
 
       # Use an alternate output buffer for the duration of the block.
       # Defaults to a new empty string.
-      def with_output_buffer(buf = nil) #:nodoc:
+      def with_output_buffer(buf = nil) # :nodoc:
         unless buf
           buf = ActionView::OutputBuffer.new
           if output_buffer && output_buffer.respond_to?(:encoding)

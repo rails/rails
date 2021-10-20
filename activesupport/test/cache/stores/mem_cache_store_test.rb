@@ -5,26 +5,26 @@ require "active_support/cache"
 require_relative "../behaviors"
 require "dalli"
 
-# Emulates a latency on Dalli's back-end for the key latency to facilitate
-# connection pool testing.
-class SlowDalliClient < Dalli::Client
-  def get(key, options = {})
-    if /latency/.match?(key)
-      sleep 3
-      super
-    else
-      super
+class MemCacheStoreTest < ActiveSupport::TestCase
+  # Emulates a latency on Dalli's back-end for the key latency to facilitate
+  # connection pool testing.
+  class SlowDalliClient < Dalli::Client
+    def get(key, options = {})
+      if /latency/.match?(key)
+        sleep 3
+        super
+      else
+        super
+      end
     end
   end
-end
 
-class UnavailableDalliServer < Dalli::Server
-  def alive?
-    false
+  class UnavailableDalliServer < Dalli::Protocol::Binary
+    def alive?
+      false
+    end
   end
-end
 
-class MemCacheStoreTest < ActiveSupport::TestCase
   begin
     servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
     ss = Dalli::Client.new(servers).stats
@@ -288,13 +288,13 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
 
     def emulating_unavailability
-      old_server = Dalli.send(:remove_const, :Server)
-      Dalli.const_set(:Server, UnavailableDalliServer)
+      old_server = Dalli::Protocol.send(:remove_const, :Binary)
+      Dalli::Protocol.const_set(:Binary, UnavailableDalliServer)
 
       yield ActiveSupport::Cache::MemCacheStore.new
     ensure
-      Dalli.send(:remove_const, :Server)
-      Dalli.const_set(:Server, old_server)
+      Dalli::Protocol.send(:remove_const, :Binary)
+      Dalli::Protocol.const_set(:Binary, old_server)
     end
 
     def servers(cache = @cache)
@@ -325,6 +325,11 @@ class OptimizedMemCacheStoreTest < MemCacheStoreTest
     super
   end
 
+  def teardown
+    super
+    ActiveSupport::Cache.format_version = @previous_format
+  end
+
   def test_forward_compatibility
     previous_format = ActiveSupport::Cache.format_version
     ActiveSupport::Cache.format_version = 6.1
@@ -343,10 +348,5 @@ class OptimizedMemCacheStoreTest < MemCacheStoreTest
 
     @cache.write("foo", "bar")
     assert_equal "bar", @old_store.read("foo")
-  end
-
-  def teardown
-    super
-    ActiveSupport::Cache.format_version = @previous_format
   end
 end

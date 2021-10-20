@@ -114,7 +114,7 @@ Job Execution
 -------------
 
 For enqueuing and executing jobs in production you need to set up a queuing backend,
-that is to say you need to decide on a 3rd-party queuing library that Rails should use.
+that is to say, you need to decide on a 3rd-party queuing library that Rails should use.
 Rails itself only provides an in-process queuing system, which only keeps the jobs in RAM.
 If the process crashes or the machine is reset, then all outstanding jobs are lost with the
 default async backend. This may be fine for smaller apps or non-critical jobs, but most
@@ -172,6 +172,7 @@ Here is a noncomprehensive list of documentation:
 - [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
 - [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
 - [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
+- [Good Job](https://github.com/bensheldon/good_job#readme)
 
 Queues
 ------
@@ -451,11 +452,11 @@ end
 and add this serializer to the list:
 
 ```ruby
-# config/initializer/custom_serializers.rb
+# config/initializers/custom_serializers.rb
 Rails.application.config.active_job.custom_serializers << MoneySerializer
 ```
 
-Note that auto-loading reloadable code during initialization is not supported. Thus it is recommended
+Note that autoloading reloadable code during initialization is not supported. Thus it is recommended
 to set-up serializers to be loaded only once, e.g. by amending `config/application.rb` like this:
 
 ```ruby

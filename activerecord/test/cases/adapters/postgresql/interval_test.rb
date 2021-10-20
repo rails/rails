@@ -12,7 +12,7 @@ class PostgresqlIntervalTest < ActiveRecord::PostgreSQLTestCase
     attribute :default_term, :interval
     attribute :all_terms,    :interval, array: true
     attribute :legacy_term,  :string
-  end if current_adapter?(:PostgreSQLAdapter)
+  end
 
   class DeprecatedIntervalDataType < ActiveRecord::Base; end
 

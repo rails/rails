@@ -7,7 +7,7 @@ module ActiveRecord
   #
   # This class is used to dump the database schema for some connection to some
   # output format (i.e., ActiveRecord::Schema).
-  class SchemaDumper #:nodoc:
+  class SchemaDumper # :nodoc:
     private_class_method :new
 
     ##
@@ -47,6 +47,7 @@ module ActiveRecord
     def dump(stream)
       header(stream)
       extensions(stream)
+      types(stream)
       tables(stream)
       trailer(stream)
       stream
@@ -97,6 +98,10 @@ HEADER
 
       # extensions are only supported by PostgreSQL
       def extensions(stream)
+      end
+
+      # (enum) types are only supported by PostgreSQL
+      def types(stream)
       end
 
       def tables(stream)
@@ -154,6 +159,7 @@ HEADER
           columns.each do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
+
             type, colspec = column_spec(column)
             if type.is_a?(Symbol)
               tbl.print "    t.#{type} #{column.name.inspect}"
@@ -259,6 +265,7 @@ HEADER
 
             parts << "on_update: #{foreign_key.on_update.inspect}" if foreign_key.on_update
             parts << "on_delete: #{foreign_key.on_delete.inspect}" if foreign_key.on_delete
+            parts << "deferrable: #{foreign_key.deferrable.inspect}" if foreign_key.deferrable
 
             "  #{parts.join(', ')}"
           end
