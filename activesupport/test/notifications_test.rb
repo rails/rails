@@ -434,12 +434,11 @@ module Notifications
 
   class EventTest < TestCase
     def test_events_are_initialized_with_details
-      time = Time.now
+      time = Time.now.to_f
       event = event(:foo, time, time + 0.01, random_id, {})
 
       assert_equal :foo, event.name
-      assert_equal time, event.time
-      assert_in_delta 10.0, event.duration, 0.00001
+      assert_in_delta 10.0, event.duration, 0.0001
     end
 
     def test_event_cpu_time_does_not_raise_error_when_start_or_finished_not_called

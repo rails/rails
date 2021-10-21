@@ -102,12 +102,12 @@ module ActiveRecord
 
       def execute_or_wait
         if pending?
-          start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_millisecond)
           @mutex.synchronize do
             if pending?
               execute_query(@pool.connection)
             else
-              @lock_wait = (Process.clock_gettime(Process::CLOCK_MONOTONIC) - start) * 1_000
+              @lock_wait = (Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_millisecond) - start)
             end
           end
         else
