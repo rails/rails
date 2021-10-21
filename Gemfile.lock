@@ -102,7 +102,7 @@ PATH
       method_source
       rake (>= 12.2)
       thor (~> 1.0)
-      zeitwerk (~> 2.5.0)
+      zeitwerk (~> 2.5)
 
 GEM
   remote: https://rubygems.org/
