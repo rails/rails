@@ -182,7 +182,7 @@ module ApplicationTests
     end
 
     def test_code_statistics
-      assert_match "Code LOC: 61     Test LOC: 3     Code to Test Ratio: 1:0.0",
+      assert_match "Code LOC: 62     Test LOC: 3     Code to Test Ratio: 1:0.0",
         rails("stats")
     end
 
