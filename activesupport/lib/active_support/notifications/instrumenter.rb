@@ -158,13 +158,15 @@ module ActiveSupport
           end
         end
 
-        if defined?(JRUBY_VERSION)
+        begin
+          GC.stat(:total_allocated_objects)
+        rescue ArgumentError # Likely on JRuby
           def now_allocations
             0
           end
         else
           def now_allocations
-            GC.stat :total_allocated_objects
+            GC.stat(:total_allocated_objects)
           end
         end
     end
