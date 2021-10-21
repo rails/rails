@@ -88,7 +88,7 @@ module ActiveRecord
         @logger              = logger
         @config              = config
         @pool                = ActiveRecord::ConnectionAdapters::NullPool.new
-        @idle_since          = Concurrent.monotonic_time
+        @idle_since          = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @visitor = arel_visitor
         @statements = build_statement_pool
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
@@ -242,7 +242,7 @@ module ActiveRecord
               "Current thread: #{Thread.current}."
           end
 
-          @idle_since = Concurrent.monotonic_time
+          @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           @owner = nil
         else
           raise ActiveRecordError, "Cannot expire connection, it is not currently leased."
@@ -265,7 +265,7 @@ module ActiveRecord
       # Seconds since this connection was returned to the pool
       def seconds_idle # :nodoc:
         return 0 if in_use?
-        Concurrent.monotonic_time - @idle_since
+        Process.clock_gettime(Process::CLOCK_MONOTONIC) - @idle_since
       end
 
       def unprepared_statement

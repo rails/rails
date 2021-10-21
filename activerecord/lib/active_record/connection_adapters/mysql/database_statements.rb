@@ -30,9 +30,9 @@ module ActiveRecord
 
         def explain(arel, binds = [])
           sql     = "EXPLAIN #{to_sql(arel, binds)}"
-          start   = Concurrent.monotonic_time
+          start   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           result  = exec_query(sql, "EXPLAIN", binds)
-          elapsed = Concurrent.monotonic_time - start
+          elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
 
           MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
         end
