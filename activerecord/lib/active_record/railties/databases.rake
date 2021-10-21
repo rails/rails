@@ -495,7 +495,7 @@ db_namespace = namespace :db do
         task name => :load_config do
           original_db_config = ActiveRecord::Base.connection_db_config
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
-          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ActiveRecord.schema_format, ENV["SCHEMA"])
+          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config)
         ensure
           ActiveRecord::Base.establish_connection(original_db_config) if original_db_config
         end
@@ -615,8 +615,7 @@ db_namespace = namespace :db do
       should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
       ActiveRecord::Schema.verbose = false
       ActiveRecord::Base.configurations.configs_for(env_name: "test").each do |db_config|
-        filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.name)
-        ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ActiveRecord.schema_format, filename)
+        ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config)
       end
     ensure
       if should_reconnect
@@ -660,9 +659,8 @@ db_namespace = namespace :db do
         task name => "db:test:purge:#{name}" do
           should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
           ActiveRecord::Schema.verbose = false
-          filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(name)
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", name: name)
-          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ActiveRecord.schema_format, filename)
+          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config)
         ensure
           if should_reconnect
             ActiveRecord::Base.establish_connection(ActiveRecord::Tasks::DatabaseTasks.env.to_sym)
