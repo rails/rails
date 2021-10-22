@@ -154,6 +154,18 @@ module ActiveStorage
       end
     end
 
+    initializer "action_view.configuration" do
+      config.after_initialize do |app|
+        ActiveSupport.on_load(:action_view) do
+          multiple_file_field_include_hidden = app.config.active_storage.delete(:multiple_file_field_include_hidden)
+
+          unless multiple_file_field_include_hidden.nil?
+            ActionView::Helpers::FormHelper.multiple_file_field_include_hidden = multiple_file_field_include_hidden
+          end
+        end
+      end
+    end
+
     initializer "active_storage.asset" do
       if Rails.application.config.respond_to?(:assets)
         Rails.application.config.assets.precompile += %w( activestorage activestorage.esm )
