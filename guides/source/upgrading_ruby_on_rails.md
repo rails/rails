@@ -346,7 +346,7 @@ You can invalidate the cache either by touching the product, or changing the cac
 ```erb
 <% @products.each do |product| %>
   <% cache ["v2", product] do %>
-    <%= image_tag product.cover_photo.variant(resize_to_limit: [200, nill]) %>
+    <%= image_tag product.cover_photo.variant(resize_to_limit: [200, nil]) %>
   <% end %>
 <% end %>
 ```
