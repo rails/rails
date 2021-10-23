@@ -498,7 +498,7 @@ If the number of workers passed is 1 or fewer the processes will not be forked a
 be parallelized and the tests will use the original `test-database` database.
 
 Two hooks are provided, one runs when the process is forked, and one runs before the forked process is closed.
-These can be useful if your app uses multiple databases or perform other tasks that depend on the number of
+These can be useful if your app uses multiple databases or performs other tasks that depend on the number of
 workers.
 
 The `parallelize_setup` method is called right after the processes are forked. The `parallelize_teardown` method
