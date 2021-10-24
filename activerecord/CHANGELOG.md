@@ -1,3 +1,7 @@
+*   Ignore persisted in-memory records when merging target lists.
+
+    *Kevin Sjöberg*
+
 *   Add nested_attributes_for support for `delegated_type`
 
     ```ruby
