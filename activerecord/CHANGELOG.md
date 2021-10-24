@@ -1,3 +1,7 @@
+*   Update `ActiveRecord::Relation#cache_key_with_version` with custom timestamp column parameter like `cache_key` and `cache_version`.
+
+    *Austen Madden*
+
 *   Add `ActiveRecord::Base.prohibit_shard_swapping` to prevent attempts to change the shard within a block.
 
     *John Crepezzi*, *Eileen M. Uchitelle*
