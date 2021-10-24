@@ -264,6 +264,20 @@ module ActiveRecord
       end
     end
 
+    test "cache_key_with_version contains key and version calculated with custom timestamp" do
+      last_topic_timestamp = topics(:fifth).written_on.utc.to_s(:usec)
+
+      with_collection_cache_versioning(false) do
+        key_with_version_false = Topic.all.cache_key_with_version(:written_on)
+        assert_match(last_topic_timestamp, key_with_version_false)
+      end
+
+      with_collection_cache_versioning do
+        key_with_version_true = Topic.all.cache_key_with_version(:written_on)
+        assert_match(last_topic_timestamp, key_with_version_true)
+      end
+    end
+
     def with_collection_cache_versioning(value = true)
       @old_collection_cache_versioning = ActiveRecord::Base.collection_cache_versioning
       ActiveRecord::Base.collection_cache_versioning = value

@@ -323,7 +323,7 @@ module ActiveRecord
     # last updated record.
     #
     #   Product.where("name like ?", "%Game%").cache_key(:last_reviewed_at)
-    def cache_key(timestamp_column = "updated_at")
+    def cache_key(timestamp_column = :updated_at)
       @cache_keys ||= {}
       @cache_keys[timestamp_column] ||= klass.collection_cache_key(self, timestamp_column)
     end
@@ -402,11 +402,14 @@ module ActiveRecord
     private :compute_cache_version
 
     # Returns a cache key along with the version.
-    def cache_key_with_version
-      if version = cache_version
+    #
+    #  Accepts a custom timestamp column to use in calculating the key and
+    #  version if provided.
+    def cache_key_with_version(timestamp_column = :updated_at)
+      if version = cache_version(timestamp_column)
         "#{cache_key}-#{version}"
       else
-        cache_key
+        cache_key(timestamp_column)
       end
     end
 
