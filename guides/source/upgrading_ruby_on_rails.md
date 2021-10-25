@@ -412,7 +412,7 @@ format.any(:xml, :json) { render request.format.to_sym => @people }
 ### `ActiveSupport::Callbacks#halted_callback_hook` now receive a second argument
 
 Active Support allows you to override the `halted_callback_hook` whenever a callback
-halts the chain. This method now receive a second argument which is the name of the callback being halted.
+halts the chain. This method now receives a second argument which is the name of the callback being halted.
 If you have classes that override this method, make sure it accepts two arguments. Note that this is a breaking
 change without a prior deprecation cycle (for performance reasons).
 
@@ -904,7 +904,7 @@ otherwise change the `boot.rb` to not use bootsnap.
 
 To improve security, Rails now embeds the expiry information also in encrypted or signed cookies value.
 
-This new embed information make those cookies incompatible with versions of Rails older than 5.2.
+This new embedded information makes those cookies incompatible with versions of Rails older than 5.2.
 
 If you require your cookies to be read by 5.1 and older, or you are still validating your 5.2 deploy and want
 to allow you to rollback set
