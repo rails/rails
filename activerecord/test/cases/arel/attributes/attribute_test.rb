@@ -730,6 +730,14 @@ module Arel
             SELECT "users"."id" FROM "users" WHERE "users"."id" IN (1, 2, 3)
           }
         end
+
+        it "raises an error if passed an endless range" do
+          attribute = Attribute.new nil, nil
+
+          assert_raises(RangeError, "cannot convert endless range to an array") do
+            attribute.in(10..)
+          end
+        end
       end
 
       describe "#in_any" do

@@ -215,7 +215,7 @@ module Arel # :nodoc: all
     end
 
     def quoted_array(others)
-      others.map { |v| quoted_node(v) }
+      others.to_a.map { |v| quoted_node(v) }
     end
 
     private
