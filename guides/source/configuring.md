@@ -1385,6 +1385,26 @@ Configures deprecation warnings that the Application considers disallowed. This 
 
 Allows you to disable all deprecation warnings (including disallowed deprecations); it makes `ActiveSupport::Deprecation.warn` a no-op. This is enabled by default in production.
 
+#### `config.active_support.use_rfc4122_namespaced_uuids`
+
+Specifies whether generated namespaced UUIDs follow the RFC 4122 standard for namespace IDs provided as a `String` to `Digest::UUID.uuid_v3` or `Digest::UUID.uuid_v5` method calls.
+
+If set to `true`:
+
+* Only UUIDs are allowed as namespace IDs. If a namespace ID value provided is not allowed, an `ArgumentError` will be raised.
+* No deprecation warning will be generated, no matter if the namespace ID used is one of the constants defined on `Digest::UUID` or a `String`.
+* Namespace IDs are case-insensitive.
+* All generated namespaced UUIDs should be compliant to the standard.
+
+If set to `false`:
+
+* Any `String` value can be used as namespace ID (although not recommended). No `ArgumentError` will be raised in this case in order to preserve backwards-compatibility.
+* A deprecation warning will be generated if the namespace ID provided is not one of the constants defined on `Digest::UUID`.
+* Namespace IDs are case-sensitive.
+* Only namespaced UUIDs generated using one of the namespace ID constants defined on `Digest::UUID` are compliant to the standard.
+
+The default value is `true` for new apps. Upgraded apps will have that value set to `false` for backwards-compatibility.
+
 #### `ActiveSupport::Logger.silencer`
 
 Is set to `false` to disable the ability to silence logging in a block. The default is `true`.

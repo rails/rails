@@ -2422,6 +2422,20 @@ module ApplicationTests
       assert_equal 1234, ActiveSupport.test_parallelization_threshold
     end
 
+    test "ActiveSupport.use_rfc4122_namespaced_uuids is enabled by default for new apps" do
+      app "development"
+
+      assert_equal true, ActiveSupport.use_rfc4122_namespaced_uuids
+    end
+
+    test "ActiveSupport.use_rfc4122_namespaced_uuids is disabled by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal false, ActiveSupport.use_rfc4122_namespaced_uuids
+    end
+
     test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
       class ::DummySerializer < ActiveJob::Serializers::ObjectSerializer; end
 

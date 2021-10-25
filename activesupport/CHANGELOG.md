@@ -1,3 +1,16 @@
+*   Fix the `Digest::UUID.uuid_from_hash` behavior for namespace IDs that are different from the ones defined on `Digest::UUID`.
+
+    The new behavior will be enabled by setting the
+    `config.active_support.use_rfc4122_namespaced_uuids` option to `true`
+    and is the default for new apps.
+
+    The old behavior is the default for upgraded apps and will output a
+    deprecation warning every time a value that is different than one of
+    the constants defined on the `Digest::UUID` extension is used as the
+    namespace ID.
+
+    *Alex Robbin, Erich Soares Machado, Eugene Kenny*
+
 *   `ActiveSupport::Inflector::Inflections#clear(:acronyms)` is now supported,
     and `inflector.clear` / `inflector.clear(:all)` also clears acronyms.
 
