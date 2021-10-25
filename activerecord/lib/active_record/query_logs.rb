@@ -48,13 +48,13 @@ module ActiveRecord
   #
   # Temporary updates limited to the execution of a block:
   #
-  #    ActiveRecord::QueryLogs.set_context(foo: Bar.new) do
+  #    ActiveSupport::Executor.set_context(foo: Bar.new) do
   #      posts = Post.all
   #    end
   #
   # Direct updates to a context value:
   #
-  #    ActiveRecord::QueryLogs.set_context(foo: Bar.new)
+  #    ActiveSupport::Executor.set_context(foo: Bar.new)
   #
   # Tag comments can be prepended to the query:
   #
@@ -108,6 +108,10 @@ module ActiveRecord
         end.strip
       end
 
+      def clear_cache # :nodoc:
+        self.cached_comment = nil
+      end
+
       private
         # Returns an SQL comment +String+ containing the query log tags.
         # Sets and returns a cached comment if <tt>cache_query_log_tags</tt> is +true+.
@@ -126,15 +130,12 @@ module ActiveRecord
           end
         end
 
-        def context
-          Thread.current[:active_record_query_log_tags_context] ||= {}
-        end
-
         def escape_sql_comment(content)
           content.to_s.gsub(%r{ (/ (?: | \g<1>) \*) \+? \s* | \s* (\* (?: | \g<2>) /) }x, "")
         end
 
         def tag_content
+          context = ActiveSupport::Executor.context
           tags.flat_map { |i| [*i] }.filter_map do |tag|
             key, handler = tag
             handler ||= taggings[key]
@@ -156,3 +157,5 @@ module ActiveRecord
     end
   end
 end
+
+ActiveSupport::Executor.on_context_changed { ActiveRecord::QueryLogs.clear_cache }

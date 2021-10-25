@@ -116,12 +116,12 @@ class QueryLogsTest < ActiveRecord::TestCase
 
   def test_resets_cache_on_context_update
     ActiveRecord::QueryLogs.cache_query_log_tags = true
-    ActiveRecord::QueryLogs.set_context(temporary: "value")
+    ActiveSupport::Executor.set_context(temporary: "value")
     ActiveRecord::QueryLogs.tags = [ temporary_tag: ->(context) { context[:temporary] } ]
 
     assert_equal "/*temporary_tag:value*/", ActiveRecord::QueryLogs.call("")
 
-    ActiveRecord::QueryLogs.set_context(temporary: "new_value")
+    ActiveSupport::Executor.set_context(temporary: "new_value")
 
     assert_nil ActiveRecord::QueryLogs.cached_comment
     assert_equal "/*temporary_tag:new_value*/", ActiveRecord::QueryLogs.call("")
@@ -132,18 +132,18 @@ class QueryLogsTest < ActiveRecord::TestCase
 
   def test_ensure_context_has_symbol_keys
     ActiveRecord::QueryLogs.tags = [ new_key: ->(context) { context[:symbol_key] } ]
-    ActiveRecord::QueryLogs.set_context("symbol_key" => "symbolized")
+    ActiveSupport::Executor.set_context("symbol_key" => "symbolized")
 
     assert_sql(%r{/\*new_key:symbolized}) do
       Dashboard.first
     end
   ensure
-    ActiveRecord::QueryLogs.set_context(application_name: nil)
+    ActiveSupport::Executor.set_context(application_name: nil)
   end
 
   def test_default_tag_behavior
     ActiveRecord::QueryLogs.tags = [:application, :foo]
-    ActiveRecord::QueryLogs.set_context(foo: "bar") do
+    ActiveSupport::Executor.set_context(foo: "bar") do
       assert_sql(%r{/\*application:active_record,foo:bar\*/}) do
         Dashboard.first
       end
@@ -201,23 +201,23 @@ class QueryLogsTest < ActiveRecord::TestCase
 
   def test_custom_proc_context_tags
     original_tags = ActiveRecord::QueryLogs.tags
-    ActiveRecord::QueryLogs.set_context(foo: "bar")
+    ActiveSupport::Executor.set_context(foo: "bar")
     ActiveRecord::QueryLogs.tags = [ :application, { custom_context_proc: ->(context) { context[:foo] } } ]
 
     assert_sql(%r{/\*application:active_record,custom_context_proc:bar\*/$}) do
       Dashboard.first
     end
   ensure
-    ActiveRecord::QueryLogs.set_context(foo: nil)
+    ActiveSupport::Executor.set_context(foo: nil)
     ActiveRecord::QueryLogs.tags = original_tags
   end
 
   def test_set_context_restore_state
     original_tags = ActiveRecord::QueryLogs.tags
     ActiveRecord::QueryLogs.tags = [foo: ->(context) { context[:foo] }]
-    ActiveRecord::QueryLogs.set_context(foo: "bar") do
+    ActiveSupport::Executor.set_context(foo: "bar") do
       assert_sql(%r{/\*foo:bar\*/$}) { Dashboard.first }
-      ActiveRecord::QueryLogs.set_context(foo: "plop") do
+      ActiveSupport::Executor.set_context(foo: "plop") do
         assert_sql(%r{/\*foo:plop\*/$}) { Dashboard.first }
       end
       assert_sql(%r{/\*foo:bar\*/$}) { Dashboard.first }

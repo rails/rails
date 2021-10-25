@@ -54,8 +54,10 @@ module ActiveJob
 
     private
       def _perform_job
-        run_callbacks :perform do
-          perform(*arguments)
+        ActiveSupport::Executor.set_context(job: self) do
+          run_callbacks :perform do
+            perform(*arguments)
+          end
         end
       end
   end

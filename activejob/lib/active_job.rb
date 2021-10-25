@@ -37,5 +37,4 @@ module ActiveJob
   autoload :ConfiguredJob
   autoload :TestCase
   autoload :TestHelper
-  autoload :QueryTags
 end
