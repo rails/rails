@@ -54,10 +54,10 @@ module ActiveSupport
         current_tags.clear
       end
 
+      ExecutionContext.define_accessor(:tagged_logging_tags)
       def current_tags
-        # We use our object ID here to avoid conflicting with other instances
-        thread_key = @thread_key ||= "activesupport_tagged_logging_tags:#{object_id}"
-        Thread.current[thread_key] ||= []
+        registry = ExecutionContext.current.tagged_logging_tags ||= {}
+        registry[object_id] ||= []
       end
 
       def tags_text

@@ -190,13 +190,15 @@ class CurrentAttributesTest < ActiveSupport::TestCase
   end
 
   test "CurrentAttributes can use thread-local variables" do
-    ActiveSupport::CurrentAttributes._use_thread_variables = true
+    previous_level = ActiveSupport::ExecutionContext.isolation_level
+    ActiveSupport::ExecutionContext.isolation_level = :thread
+
     Session.current = 42
     enumerator = Enumerator.new do |yielder|
       yielder.yield Session.current
     end
     assert_equal 42, enumerator.next
   ensure
-    ActiveSupport::CurrentAttributes._use_thread_variables = false
+    ActiveSupport::ExecutionContext.isolation_level = previous_level
   end
 end

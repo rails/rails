@@ -90,6 +90,8 @@ module ActiveSupport
     include ActiveSupport::Callbacks
     define_callbacks :reset
 
+    ExecutionContext.define_accessor(:current_attribute_instances)
+
     class << self
       # Returns singleton instance for this class in this thread. If none exists, one is created.
       def instance
@@ -143,24 +145,13 @@ module ActiveSupport
         current_instances.clear
       end
 
-      def _use_thread_variables=(value) # :nodoc:
-        clear_all
-        @@use_thread_variables = value
-      end
-      @@use_thread_variables = false
-
       private
         def generated_attribute_methods
           @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
         end
 
         def current_instances
-          if @@use_thread_variables
-            Thread.current.thread_variable_get(:current_attributes_instances) ||
-              Thread.current.thread_variable_set(:current_attributes_instances, {})
-          else
-            Thread.current[:current_attributes_instances] ||= {}
-          end
+          ExecutionContext.current.current_attribute_instances ||= {}
         end
 
         def current_instances_key

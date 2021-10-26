@@ -27,10 +27,15 @@ module ActiveSupport
       end
     end
 
-    initializer "active_support.reset_all_current_attributes_instances" do |app|
-      app.reloader.before_class_unload { ActiveSupport::CurrentAttributes.clear_all }
+    initializer "active_support.reset_execution_context" do |app|
+      # Since CurrentAttributes has a `reset` callback, we have to explicitly
+      # reset it before the whole execution context is reset.
       app.executor.to_run              { ActiveSupport::CurrentAttributes.reset_all }
       app.executor.to_complete         { ActiveSupport::CurrentAttributes.reset_all }
+
+      app.reloader.before_class_unload { ActiveSupport::ExecutionContext.clear_all }
+      app.executor.to_run              { ActiveSupport::ExecutionContext.clear }
+      app.executor.to_complete         { ActiveSupport::ExecutionContext.clear }
 
       ActiveSupport.on_load(:active_support_test_case) do
         require "active_support/executor/test_helper"

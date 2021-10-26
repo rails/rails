@@ -17,9 +17,9 @@ module ActiveSupport
       EOT
     end
 
+    ExecutionContext.define_accessor(:logger_level)
     def local_level
-      # Note: Thread#[] is fiber-local
-      Thread.current[:logger_thread_safe_level]
+      ExecutionContext.current.logger_level
     end
 
     def local_level=(level)
@@ -31,7 +31,7 @@ module ActiveSupport
       else
         raise ArgumentError, "Invalid log level: #{level.inspect}"
       end
-      Thread.current[:logger_thread_safe_level] = level
+      ExecutionContext.current.logger_level = level
     end
 
     def level

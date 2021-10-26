@@ -26,6 +26,7 @@
 require "securerandom"
 require "active_support/dependencies/autoload"
 require "active_support/version"
+require "active_support/execution_context"
 require "active_support/logger"
 require "active_support/lazy_load_hooks"
 require "active_support/core_ext/date_and_time/compatibility"
@@ -111,10 +112,6 @@ module ActiveSupport
 
   def self.utc_to_local_returns_utc_offset_times=(value)
     DateAndTime::Compatibility.utc_to_local_returns_utc_offset_times = value
-  end
-
-  def self.current_attributes_use_thread_variables=(value)
-    CurrentAttributes._use_thread_variables = value
   end
 end
 
