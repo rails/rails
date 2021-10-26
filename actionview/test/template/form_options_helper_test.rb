@@ -1536,6 +1536,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_weekday_options_for_select_with_beginning_of_week_set_to_saturday_using_int
+    assert_dom_equal(
+      "<option value=\"Saturday\">Saturday</option>\n<option value=\"Sunday\">Sunday</option>\n<option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>",
+      weekday_options_for_select(beginning_of_week: 6)
+    )
+  end
+
   def test_weekday_options_for_select_with_beginning_of_week_set_to_saturday
     assert_dom_equal(
       "<option value=\"Saturday\">Saturday</option>\n<option value=\"Sunday\">Sunday</option>\n<option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>",

@@ -104,16 +104,22 @@ module DateAndTimeBehavior
     # 23/10 |      |   |   |   |   |   #       |   |  1/11 |   |     |   |   # wednesday in next week `next_week(:wednesday)`
     assert_equal date_time_init(2005, 2, 28, 0, 0, 0),  date_time_init(2005, 2, 22, 15, 15, 10).next_week
     assert_equal date_time_init(2005, 3, 4, 0, 0, 0),   date_time_init(2005, 2, 22, 15, 15, 10).next_week(:friday)
+    assert_equal date_time_init(2005, 3, 4, 0, 0, 0),   date_time_init(2005, 2, 22, 15, 15, 10).next_week(5)
     assert_equal date_time_init(2006, 10, 30, 0, 0, 0), date_time_init(2006, 10, 23, 0, 0, 0).next_week
     assert_equal date_time_init(2006, 11, 1, 0, 0, 0),  date_time_init(2006, 10, 23, 0, 0, 0).next_week(:wednesday)
+    assert_equal date_time_init(2006, 11, 1, 0, 0, 0),  date_time_init(2006, 10, 23, 0, 0, 0).next_week(3)
   end
 
   def test_next_week_with_default_beginning_of_week_set
     with_bw_default(:tuesday) do
       assert_equal Time.local(2012, 3, 28), Time.local(2012, 3, 21).next_week(:wednesday)
+      assert_equal Time.local(2012, 3, 28), Time.local(2012, 3, 21).next_week(3)
       assert_equal Time.local(2012, 3, 31), Time.local(2012, 3, 21).next_week(:saturday)
+      assert_equal Time.local(2012, 3, 31), Time.local(2012, 3, 21).next_week(6)
       assert_equal Time.local(2012, 3, 27), Time.local(2012, 3, 21).next_week(:tuesday)
+      assert_equal Time.local(2012, 3, 27), Time.local(2012, 3, 21).next_week(2)
       assert_equal Time.local(2012, 4, 02), Time.local(2012, 3, 21).next_week(:monday)
+      assert_equal Time.local(2012, 4, 02), Time.local(2012, 3, 21).next_week(1)
     end
   end
 
@@ -152,18 +158,33 @@ module DateAndTimeBehavior
   def test_prev_week
     assert_equal date_time_init(2005, 2, 21, 0, 0, 0),  date_time_init(2005, 3, 1, 15, 15, 10).prev_week
     assert_equal date_time_init(2005, 2, 22, 0, 0, 0),  date_time_init(2005, 3, 1, 15, 15, 10).prev_week(:tuesday)
+    assert_equal date_time_init(2005, 2, 22, 0, 0, 0),  date_time_init(2005, 3, 1, 15, 15, 10).prev_week(2)
     assert_equal date_time_init(2005, 2, 25, 0, 0, 0),  date_time_init(2005, 3, 1, 15, 15, 10).prev_week(:friday)
+    assert_equal date_time_init(2005, 2, 25, 0, 0, 0),  date_time_init(2005, 3, 1, 15, 15, 10).prev_week(5)
     assert_equal date_time_init(2006, 10, 30, 0, 0, 0), date_time_init(2006, 11, 6, 0, 0, 0).prev_week
     assert_equal date_time_init(2006, 11, 15, 0, 0, 0), date_time_init(2006, 11, 23, 0, 0, 0).prev_week(:wednesday)
+    assert_equal date_time_init(2006, 11, 15, 0, 0, 0), date_time_init(2006, 11, 23, 0, 0, 0).prev_week(3)
   end
 
   def test_prev_week_with_default_beginning_of_week
     with_bw_default(:tuesday) do
       assert_equal Time.local(2012, 3, 14), Time.local(2012, 3, 21).prev_week(:wednesday)
+      assert_equal Time.local(2012, 3, 14), Time.local(2012, 3, 21).prev_week(3)
       assert_equal Time.local(2012, 3, 17), Time.local(2012, 3, 21).prev_week(:saturday)
+      assert_equal Time.local(2012, 3, 17), Time.local(2012, 3, 21).prev_week(6)
       assert_equal Time.local(2012, 3, 13), Time.local(2012, 3, 21).prev_week(:tuesday)
+      assert_equal Time.local(2012, 3, 13), Time.local(2012, 3, 21).prev_week(2)
       assert_equal Time.local(2012, 3, 19), Time.local(2012, 3, 21).prev_week(:monday)
+      assert_equal Time.local(2012, 3, 19), Time.local(2012, 3, 21).prev_week(1)
     end
+  end
+
+  def test_symbol_and_int_args_are_equivalent
+    assert_equal Date.today.beginning_of_week(:tuesday), Date.today.beginning_of_week(2)
+  end
+
+  def test_raises_if_invalid_wday_index
+    assert_raise(KeyError) { Date.today.beginning_of_week(7) }
   end
 
   def test_prev_week_at_same_time

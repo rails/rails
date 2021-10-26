@@ -14,6 +14,7 @@ module DateAndTime
       friday: 5,
       saturday: 6
     }
+    DAYS_INTO_WEEK_BY_DAY = DAYS_INTO_WEEK.invert
     WEEKEND_DAYS = [ 6, 0 ]
 
     # Returns a new date/time representing yesterday.
@@ -246,7 +247,7 @@ module DateAndTime
     # Week is assumed to start on +start_day+, default is
     # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
     def days_to_week_start(start_day = Date.beginning_of_week)
-      start_day_number = DAYS_INTO_WEEK.fetch(start_day)
+      start_day_number = weekday_position(start_day)
       (wday - start_day_number) % 7
     end
 
@@ -328,7 +329,7 @@ module DateAndTime
     #   today.next_occurring(:monday)    # => Mon, 18 Dec 2017
     #   today.next_occurring(:thursday)  # => Thu, 21 Dec 2017
     def next_occurring(day_of_week)
-      from_now = DAYS_INTO_WEEK.fetch(day_of_week) - wday
+      from_now = weekday_position(day_of_week) - wday
       from_now += 7 unless from_now > 0
       advance(days: from_now)
     end
@@ -339,7 +340,7 @@ module DateAndTime
     #   today.prev_occurring(:monday)    # => Mon, 11 Dec 2017
     #   today.prev_occurring(:thursday)  # => Thu, 07 Dec 2017
     def prev_occurring(day_of_week)
-      ago = wday - DAYS_INTO_WEEK.fetch(day_of_week)
+      ago = wday - weekday_position(day_of_week)
       ago += 7 unless ago > 0
       advance(days: -ago)
     end
@@ -354,7 +355,11 @@ module DateAndTime
       end
 
       def days_span(day)
-        (DAYS_INTO_WEEK.fetch(day) - DAYS_INTO_WEEK.fetch(Date.beginning_of_week)) % 7
+        (weekday_position(day) - weekday_position(Date.beginning_of_week)) % 7
+      end
+
+      def weekday_position(day)
+        DAYS_INTO_WEEK_BY_DAY.key?(day) ? day : DAYS_INTO_WEEK.fetch(day)
       end
 
       def copy_time_to(other)

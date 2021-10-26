@@ -1,3 +1,12 @@
+*   `Date#next_week`, `Date#beginning_of_week`, and related methods now accept
+    an integer as an alternative to a symbol for the week start day.
+
+    ```ruby
+    Date.today.beginning_of_week(:tuesday) == Date.today.beginning_of_week(2)
+    ```
+
+    *Alex Ghiculescu*
+    
 *   Fix `NoMethodError` on custom `ActiveSupport::Deprecation` behavior.
 
     `ActiveSupport::Deprecation.behavior=` was supposed to accept any object
