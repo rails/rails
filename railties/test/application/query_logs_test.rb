@@ -123,7 +123,7 @@ module ApplicationTests
     test "query cache is cleared between requests" do
       add_to_config "config.active_record.query_log_tags_enabled = true"
       add_to_config "config.active_record.cache_query_log_tags = true"
-      add_to_config "config.active_record.query_log_tags = [ { dynamic: ->(context) { context[:controller].dynamic_content } } ]"
+      add_to_config "config.active_record.query_log_tags = [ { dynamic: ->(context) { context[:controller]&.dynamic_content } } ]"
 
       boot_app
 
@@ -141,7 +141,7 @@ module ApplicationTests
     test "query cache is cleared between job executions" do
       add_to_config "config.active_record.query_log_tags_enabled = true"
       add_to_config "config.active_record.cache_query_log_tags = true"
-      add_to_config "config.active_record.query_log_tags = [ { dynamic: ->(context) { context[:job].dynamic_content } } ]"
+      add_to_config "config.active_record.query_log_tags = [ { dynamic: ->(context) { context[:job]&.dynamic_content } } ]"
 
       boot_app
 

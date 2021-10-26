@@ -112,12 +112,12 @@ class QueryLogsTest < ActiveRecord::TestCase
 
   def test_resets_cache_on_context_update
     ActiveRecord::QueryLogs.cache_query_log_tags = true
-    ActiveRecord::QueryLogs.update_context(temporary: "value")
+    ActiveRecord::QueryLogs.set_context(temporary: "value")
     ActiveRecord::QueryLogs.tags = [ temporary_tag: ->(context) { context[:temporary] } ]
 
     assert_equal "/*temporary_tag:value*/", ActiveRecord::QueryLogs.call("")
 
-    ActiveRecord::QueryLogs.update_context(temporary: "new_value")
+    ActiveRecord::QueryLogs.set_context(temporary: "new_value")
 
     assert_nil ActiveRecord::QueryLogs.cached_comment
     assert_equal "/*temporary_tag:new_value*/", ActiveRecord::QueryLogs.call("")
@@ -128,13 +128,13 @@ class QueryLogsTest < ActiveRecord::TestCase
 
   def test_ensure_context_has_symbol_keys
     ActiveRecord::QueryLogs.tags = [ new_key: ->(context) { context[:symbol_key] } ]
-    ActiveRecord::QueryLogs.update_context("symbol_key" => "symbolized")
+    ActiveRecord::QueryLogs.set_context("symbol_key" => "symbolized")
 
     assert_sql(%r{/\*new_key:symbolized}) do
       Dashboard.first
     end
   ensure
-    ActiveRecord::QueryLogs.update_context(application_name: nil)
+    ActiveRecord::QueryLogs.set_context(application_name: nil)
   end
 
   def test_default_tag_behavior
@@ -197,14 +197,14 @@ class QueryLogsTest < ActiveRecord::TestCase
 
   def test_custom_proc_context_tags
     original_tags = ActiveRecord::QueryLogs.tags
-    ActiveRecord::QueryLogs.update_context(foo: "bar")
+    ActiveRecord::QueryLogs.set_context(foo: "bar")
     ActiveRecord::QueryLogs.tags = [ :application, { custom_context_proc: ->(context) { context[:foo] } } ]
 
     assert_sql(%r{/\*application:active_record,custom_context_proc:bar\*/$}) do
       Dashboard.first
     end
   ensure
-    ActiveRecord::QueryLogs.update_context(foo: nil)
+    ActiveRecord::QueryLogs.set_context(foo: nil)
     ActiveRecord::QueryLogs.tags = original_tags
   end
 
