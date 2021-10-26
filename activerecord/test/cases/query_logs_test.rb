@@ -100,10 +100,10 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.cache_query_log_tags = true
     ActiveRecord::QueryLogs.tags = [ :application ]
 
-    assert_equal " /*application:active_record*/", ActiveRecord::QueryLogs.call("")
+    assert_equal "/*application:active_record*/", ActiveRecord::QueryLogs.call("")
 
     ActiveRecord::QueryLogs.stub(:cached_comment, "/*cached_comment*/") do
-      assert_equal " /*cached_comment*/", ActiveRecord::QueryLogs.call("")
+      assert_equal "/*cached_comment*/", ActiveRecord::QueryLogs.call("")
     end
   ensure
     ActiveRecord::QueryLogs.cached_comment = nil
@@ -115,12 +115,12 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.update_context(temporary: "value")
     ActiveRecord::QueryLogs.tags = [ temporary_tag: ->(context) { context[:temporary] } ]
 
-    assert_equal " /*temporary_tag:value*/", ActiveRecord::QueryLogs.call("")
+    assert_equal "/*temporary_tag:value*/", ActiveRecord::QueryLogs.call("")
 
     ActiveRecord::QueryLogs.update_context(temporary: "new_value")
 
     assert_nil ActiveRecord::QueryLogs.cached_comment
-    assert_equal " /*temporary_tag:new_value*/", ActiveRecord::QueryLogs.call("")
+    assert_equal "/*temporary_tag:new_value*/", ActiveRecord::QueryLogs.call("")
   ensure
     ActiveRecord::QueryLogs.cached_comment = nil
     ActiveRecord::QueryLogs.cache_query_log_tags = false
@@ -146,58 +146,6 @@ class QueryLogsTest < ActiveRecord::TestCase
     end
     assert_sql(%r{/\*application:active_record\*/}) do
       Dashboard.first
-    end
-  end
-
-  def test_inline_tags_only_affect_block
-    # disable regular comment tags
-    ActiveRecord::QueryLogs.tags = []
-
-    # confirm single inline tag
-    assert_sql(%r{/\*foo\*/$}) do
-      ActiveRecord::QueryLogs.with_tag("foo") do
-        Dashboard.first
-      end
-    end
-
-    # confirm different inline tag
-    assert_sql(%r{/\*bar\*/$}) do
-      ActiveRecord::QueryLogs.with_tag("bar") do
-        Dashboard.first
-      end
-    end
-
-    # confirm no tags are persisted
-    ActiveRecord::QueryLogs.tags = [ :application ]
-
-    assert_sql(%r{/\*application:active_record\*/$}) do
-      Dashboard.first
-    end
-  ensure
-    ActiveRecord::QueryLogs.tags = [ :application ]
-  end
-
-  def test_nested_inline_tags
-    assert_sql(%r{/\*foobar\*/$}) do
-      ActiveRecord::QueryLogs.with_tag("foo") do
-        ActiveRecord::QueryLogs.with_tag("bar") do
-          Dashboard.first
-        end
-      end
-    end
-  end
-
-  def test_bad_inline_tags
-    assert_sql(%r{/\*; DROP TABLE USERS;\*/$}) do
-      ActiveRecord::QueryLogs.with_tag("*/; DROP TABLE USERS;/*") do
-        Dashboard.first
-      end
-    end
-
-    assert_sql(%r{/\*; DROP TABLE USERS;\*/$}) do
-      ActiveRecord::QueryLogs.with_tag("**//; DROP TABLE USERS;//**") do
-        Dashboard.first
-      end
     end
   end
 
