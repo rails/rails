@@ -574,7 +574,8 @@ module ActiveRecord
       #   end
       #
       # Note: Joining, eager loading and preloading of these associations is not possible.
-      # These operations happen before instance creation and the scope will be called with a +nil+ argument.
+      # These operations happen before instance creation, and the scope will be called with a +nil+ argument
+      # only if the scope proc's argument has a default value.
       #
       # == Association callbacks
       #
