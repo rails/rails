@@ -110,31 +110,15 @@ module ActiveRecord
         update_context(**previous_context)
       end
 
-      # Temporarily tag any query executed within `&block`. Can be nested.
-      def with_tag(tag, &block)
-        inline_tags.push(tag)
-        yield if block_given?
-      ensure
-        inline_tags.pop
-      end
-
       def call(sql) # :nodoc:
-        parts = self.comments
         if prepend_comment
-          parts << sql
+          "#{self.comment} #{sql}"
         else
-          parts.unshift(sql)
-        end
-        parts.join(" ")
+          "#{sql} #{self.comment}"
+        end.strip
       end
 
       private
-        # Returns an array of comments which need to be added to the query, comprised
-        # of configured and inline tags.
-        def comments
-          [ comment, inline_comment ].compact
-        end
-
         # Returns an SQL comment +String+ containing the query log tags.
         # Sets and returns a cached comment if <tt>cache_query_log_tags</tt> is +true+.
         def comment
@@ -149,21 +133,6 @@ module ActiveRecord
           content = tag_content
           if content.present?
             "/*#{escape_sql_comment(content)}*/"
-          end
-        end
-
-        # Returns a +String+ containing any inline comments from +with_tag+.
-        def inline_comment
-          return nil unless inline_tags.present?
-          "/*#{escape_sql_comment(inline_tag_content)}*/"
-        end
-
-        # Return the set of active inline tags from +with_tag+.
-        def inline_tags
-          if context[:inline_tags].nil?
-            context[:inline_tags] = []
-          else
-            context[:inline_tags]
           end
         end
 
@@ -193,10 +162,6 @@ module ActiveRecord
             end
             "#{key}:#{val}" unless val.nil?
           end.join(",")
-        end
-
-        def inline_tag_content
-          inline_tags.join
         end
     end
   end
