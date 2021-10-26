@@ -47,4 +47,15 @@ class AccessTest < ActiveSupport::TestCase
   def test_without
     assert_equal [1, 2, 4], [1, 2, 3, 4, 5].without(3, 5)
   end
+
+  def test_many
+    assert_equal false, [].many?
+    assert_equal false, [ 1 ].many?
+    assert_equal true,  [ 1, 2 ].many?
+
+    assert_equal false, [].many? { |x| x > 1 }
+    assert_equal false, [ 2 ].many? { |x| x > 1 }
+    assert_equal false, [ 1, 2 ].many? { |x| x > 1 }
+    assert_equal true,  [ 1, 2, 2 ].many? { |x| x > 1 }
+  end
 end

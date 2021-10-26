@@ -49,6 +49,19 @@ class Array
   end
   alias :without :excluding
 
+  # See <tt>Enumerable#many?</tt>
+  def many?
+    if block_given?
+      cnt = 0
+      any? do |element|
+        cnt += 1 if yield element
+        cnt > 1
+      end
+    else
+      length > 1
+    end
+  end
+
   # Equal to <tt>self[1]</tt>.
   #
   #   %w( a b c d e ).second # => "b"
