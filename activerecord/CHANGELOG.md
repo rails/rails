@@ -1,3 +1,22 @@
+*   Add support for setting the filename of the schema or structure dump in the database config.
+
+    Applications may now set their the filename or path of the schema / structure dump file in their database configuration.
+
+
+    ```yaml
+    production:
+      primary:
+        database: my_db
+        schema_dump: my_schema_dump_filename.rb
+      animals:
+        database: animals_db
+        schema_dump: false
+    ```
+
+    The filename set in `schema_dump` will be used by the application. If set to `false` the schema will not be dumped. The database tasks are responsible for adding the database directory to the filename. If a full path is provided, the Rails tasks will use that instead of `ActiveRecord::DatabaseTasks.db_dir`.
+
+    *Eileen M. Uchitelle*, *Ryan Kerr*
+
 *   Add `ActiveRecord::Base.prohibit_shard_swapping` to prevent attempts to change the shard within a block.
 
     *John Crepezzi*, *Eileen M. Uchitelle*
