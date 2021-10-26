@@ -3,13 +3,16 @@
 module ActionDispatch
   module SystemTesting
     class Driver # :nodoc:
-      def initialize(name, **options, &capabilities)
-        @name = name
+      attr_reader :name
+
+      def initialize(driver_type, **options, &capabilities)
+        @driver_type = driver_type
         @screen_size = options[:screen_size]
         @options = options[:options] || {}
+        @name = @options.delete(:name) || driver_type
         @capabilities = capabilities
 
-        if [:poltergeist, :webkit].include?(name)
+        if [:poltergeist, :webkit].include?(driver_type)
           ActiveSupport::Deprecation.warn <<~MSG.squish
             Poltergeist and capybara-webkit are not maintained already.
             Driver registration of :poltergeist or :webkit is deprecated and will be removed in Rails 7.1.
@@ -17,7 +20,8 @@ module ActionDispatch
           MSG
         end
 
-        if name == :selenium
+        if driver_type == :selenium
+          gem "selenium-webdriver", ">= 4.0.0"
           require "selenium/webdriver"
           @browser = Browser.new(options[:using])
           @browser.preload
@@ -34,14 +38,14 @@ module ActionDispatch
 
       private
         def registerable?
-          [:selenium, :poltergeist, :webkit, :cuprite, :rack_test].include?(@name)
+          [:selenium, :poltergeist, :webkit, :cuprite, :rack_test].include?(@driver_type)
         end
 
         def register
           @browser&.configure(&@capabilities)
 
-          Capybara.register_driver @name do |app|
-            case @name
+          Capybara.register_driver name do |app|
+            case @driver_type
             when :selenium then register_selenium(app)
             when :poltergeist then register_poltergeist(app)
             when :webkit then register_webkit(app)
@@ -52,7 +56,7 @@ module ActionDispatch
         end
 
         def browser_options
-          @options.merge(options: @browser.options).compact
+          @options.merge(capabilities: @browser.options).compact
         end
 
         def register_selenium(app)
@@ -80,7 +84,7 @@ module ActionDispatch
         end
 
         def setup
-          Capybara.current_driver = @name
+          Capybara.current_driver = name
         end
     end
   end

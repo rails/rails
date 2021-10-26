@@ -13,6 +13,7 @@ module ActiveRecord
       attr_reader :scheme, :cast_type
 
       delegate :key_provider, :downcase?, :deterministic?, :previous_schemes, :with_context, :fixed?, to: :scheme
+      delegate :accessor, to: :cast_type
 
       # === Options
       #

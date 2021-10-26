@@ -103,6 +103,24 @@ class RequestForgeryProtectionControllerUsingNullSession < ActionController::Bas
   end
 end
 
+class RequestForgeryProtectionControllerUsingCustomStrategy < ActionController::Base
+  include RequestForgeryProtectionActions
+
+  class FakeException < Exception; end
+
+  class CustomStrategy
+    def initialize(controller)
+      @controller = controller
+    end
+
+    def handle_unverified_request
+      raise FakeException, "Raised a fake exception."
+    end
+  end
+
+  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: CustomStrategy
+end
+
 class PrependProtectForgeryBaseController < ActionController::Base
   before_action :custom_action
   attr_accessor :called_callbacks
@@ -634,14 +652,12 @@ module RequestForgeryProtectionTests
     assert_response :success
   end
 
-  def assert_cross_origin_blocked
-    assert_raises(ActionController::InvalidCrossOriginRequest) do
-      yield
-    end
+  def assert_cross_origin_blocked(&block)
+    assert_raises(ActionController::InvalidCrossOriginRequest, &block)
   end
 
-  def assert_cross_origin_not_blocked
-    assert_not_blocked { yield }
+  def assert_cross_origin_not_blocked(&block)
+    assert_not_blocked(&block)
   end
 
   def forgery_protection_origin_check
@@ -701,10 +717,9 @@ end
 
 class RequestForgeryProtectionControllerUsingExceptionTest < ActionController::TestCase
   include RequestForgeryProtectionTests
-  def assert_blocked
-    assert_raises(ActionController::InvalidAuthenticityToken) do
-      yield
-    end
+
+  def assert_blocked(&block)
+    assert_raises(ActionController::InvalidAuthenticityToken, &block)
   end
 
   def test_raised_exception_message_explains_why_it_occurred
@@ -721,6 +736,14 @@ class RequestForgeryProtectionControllerUsingExceptionTest < ActionController::T
         )
       end
     end
+  end
+end
+
+class RequestForgeryProtectionControllerUsingCustomStrategyTest < ActionController::TestCase
+  include RequestForgeryProtectionTests
+
+  def assert_blocked(&block)
+    assert_raises(RequestForgeryProtectionControllerUsingCustomStrategy::FakeException, &block)
   end
 end
 
@@ -1105,10 +1128,8 @@ class SkipProtectionControllerTest < ActionController::TestCase
     assert_not_blocked { post :index }
   end
 
-  def assert_blocked
-    assert_raises(ActionController::InvalidAuthenticityToken) do
-      yield
-    end
+  def assert_blocked(&block)
+    assert_raises(ActionController::InvalidAuthenticityToken, &block)
   end
 
   def assert_not_blocked(&block)

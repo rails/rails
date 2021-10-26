@@ -63,6 +63,30 @@ module ActiveRecord
   class ConnectionTimeoutError < ConnectionNotEstablished
   end
 
+  # Raised when connection to the database could not been established because it was not
+  # able to connect to the host or when the authorization failed.
+  class DatabaseConnectionError < ConnectionNotEstablished
+    def initialize(message = nil)
+      super(message || "Database connection error")
+    end
+
+    class << self
+      def hostname_error(hostname)
+        DatabaseConnectionError.new(<<~MSG)
+          There is an issue connecting with your hostname: #{hostname}.\n
+          Please check your database configuration and ensure there is a valid connection to your database.
+        MSG
+      end
+
+      def username_error(username)
+        DatabaseConnectionError.new(<<~MSG)
+          There is an issue connecting to your database with your username/password, username: #{username}.\n
+          Please check your database configuration to ensure the username/password are valid.
+        MSG
+      end
+    end
+  end
+
   # Raised when a pool was unable to get ahold of all its connections
   # to perform a "group" action such as
   # {ActiveRecord::Base.connection_pool.disconnect!}[rdoc-ref:ConnectionAdapters::ConnectionPool#disconnect!]
@@ -238,28 +262,6 @@ module ActiveRecord
     end
   end
 
-  class DatabaseConnectionError < StatementInvalid
-    def initialize(message = nil)
-      super(message || "Database connection error")
-    end
-
-    class << self
-      def hostname_error(hostname)
-        DatabaseConnectionError.new(<<~MSG)
-          There is an issue connecting with your hostname: #{hostname}.\n
-          Please check your database configuration and ensure there is a valid connection to your database.
-        MSG
-      end
-
-      def username_error(username)
-        DatabaseConnectionError.new(<<~MSG)
-          There is an issue connecting to your database with your username/password, username: #{username}.\n
-          Please check your database configuration to ensure the username/password are valid.
-        MSG
-      end
-    end
-  end
-
   # Raised when creating a database if it exists.
   class DatabaseAlreadyExists < StatementInvalid
   end
@@ -324,7 +326,7 @@ module ActiveRecord
   #           # The system must fail on Friday so that our support department
   #           # won't be out of job. We silently rollback this transaction
   #           # without telling the user.
-  #           raise ActiveRecord::Rollback, "Call tech support!"
+  #           raise ActiveRecord::Rollback
   #         end
   #       end
   #       # ActiveRecord::Rollback is the only exception that won't be passed on

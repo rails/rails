@@ -12,7 +12,10 @@ module ActiveStorage
       def read_image
         download_blob_to_tempfile do |file|
           require "ruby-vips"
-          image = ::Vips::Image.new_from_file(file.path, access: :sequential)
+
+          image = instrument("vips") do
+            ::Vips::Image.new_from_file(file.path, access: :sequential)
+          end
 
           if valid_image?(image)
             yield image

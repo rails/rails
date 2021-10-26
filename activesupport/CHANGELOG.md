@@ -1,4 +1,54 @@
-*   Allow entirely opting out of deprecation warnings
+*   Fix the `Digest::UUID.uuid_from_hash` behavior for namespace IDs that are different from the ones defined on `Digest::UUID`.
+
+    The new behavior will be enabled by setting the
+    `config.active_support.use_rfc4122_namespaced_uuids` option to `true`
+    and is the default for new apps.
+
+    The old behavior is the default for upgraded apps and will output a
+    deprecation warning every time a value that is different than one of
+    the constants defined on the `Digest::UUID` extension is used as the
+    namespace ID.
+
+    *Alex Robbin, Erich Soares Machado, Eugene Kenny*
+
+*   `ActiveSupport::Inflector::Inflections#clear(:acronyms)` is now supported,
+    and `inflector.clear` / `inflector.clear(:all)` also clears acronyms.
+
+    *Alex Ghiculescu*, *Oliver Peate*
+
+
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
+
+*   No changes.
+
+
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
+*   `ActiveSupport::Dependencies` no longer installs a `const_missing` hook. Before this, you could push to the autoload paths and have constants autoloaded. This feature, known as the `classic` autoloader, has been removed.
+
+    *Xavier Noria*
+
+*   Private internal classes of `ActiveSupport::Dependencies` have been deleted, like `ActiveSupport::Dependencies::Reference`, `ActiveSupport::Dependencies::Blamable`, and others.
+
+    *Xavier Noria*
+
+*   The private API of `ActiveSupport::Dependencies` has been deleted. That includes methods like `hook!`, `unhook!`, `depend_on`, `require_or_load`, `mechanism`, and many others.
+
+    *Xavier Noria*
+
+*   Improves the performance of `ActiveSupport::NumberHelper` formatters by avoiding the use of exceptions as flow control.
+
+    *Mike Dalessio*
+
+*   Removed rescue block from `ActiveSupport::Cache::RedisCacheStore#handle_exception`
+
+    Previously, if you provided a `error_handler` to `redis_cache_store`, any errors thrown by
+    the error handler would be rescued and logged only. Removed the `rescue` clause from `handle_exception`
+    to allow these to be thrown.
+
+    *Nicholas A. Stuart*
+
+*   Allow entirely opting out of deprecation warnings.
 
     Previously if you did `app.config.active_support.deprecation = :silence`, some work would
     still be done on each call to `ActiveSupport::Deprecation.warn`. In very hot paths, this could

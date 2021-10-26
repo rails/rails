@@ -121,7 +121,9 @@ module ActiveSupport
           @data = addresses.first
         else
           mem_cache_options = options.dup
-          UNIVERSAL_OPTIONS.each { |name| mem_cache_options.delete(name) }
+          # The value "compress: false" prevents duplicate compression within Dalli.
+          mem_cache_options[:compress] = false
+          (UNIVERSAL_OPTIONS - %i(compress)).each { |name| mem_cache_options.delete(name) }
           @data = self.class.build_mem_cache(*(addresses + [mem_cache_options]))
         end
       end
@@ -236,8 +238,9 @@ module ActiveSupport
             expires_in += 5.minutes
           end
           rescue_error_with false do
-            # The value "compress: false" prevents duplicate compression within Dalli.
-            @data.with { |c| c.send(method, key, payload, expires_in, **options, compress: false) }
+            # Don't pass compress option to Dalli since we are already dealing with compression.
+            options.delete(:compress)
+            @data.with { |c| c.send(method, key, payload, expires_in, **options) }
           end
         end
 

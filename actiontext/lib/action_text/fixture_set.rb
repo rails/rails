@@ -10,23 +10,26 @@ module ActionText
   # === YAML
   #
   # Like other Active Record-backed models, ActionText::RichText records inherit
-  # from ActiveRecord::Base instances and therefore can be populated by
+  # from ActiveRecord::Base instances and can therefore be populated by
   # fixtures.
   #
-  # Consider a hypothetical <tt>Article</tt> model class, its related fixture
-  # data, as well as fixture data for related ActionText::RichText records:
+  # Consider an <tt>Article</tt> class:
   #
-  #   # app/models/article.rb
   #   class Article < ApplicationRecord
   #     has_rich_text :content
   #   end
   #
-  #   # tests/fixtures/articles.yml
+  # To declare fixture data for the related <tt>content</tt>, first declare fixture
+  # data for <tt>Article</tt> instances in <tt>test/fixtures/articles.yml</tt>:
+  #
   #   first:
   #     title: An Article
   #
-  #   # tests/fixtures/action_text/rich_texts.yml
-  #   first_content:
+  # Then declare the <tt>ActionText::RichText</tt> fixture data in
+  # <tt>test/fixtures/action_text/rich_texts.yml</tt>, making sure to declare
+  # each entry's <tt>record:</tt> key as a polymorphic relationship:
+  #
+  #   first:
   #     record: first (Article)
   #     name: content
   #     body: <div>Hello, world.</div>
@@ -39,18 +42,21 @@ module ActionText
     #
     # === Examples
     #
-    # For example, consider a second <tt>Article</tt> record that mentions the
-    # first as part of its <tt>content</tt> HTML:
+    # For example, consider a second <tt>Article</tt> fixture declared in
+    # <tt>test/fixtures/articles.yml</tt>:
     #
-    #   # tests/fixtures/articles.yml
     #   second:
     #     title: Another Article
     #
-    #   # tests/fixtures/action_text/rich_texts.yml
-    #   second_content:
+    # You can attach a mention of <tt>articles(:first)</tt> to <tt>second</tt>'s
+    # <tt>content</tt> by embedding a call to <tt>ActionText::FixtureSet.attachment</tt>
+    # in the <tt>body:</tt> value in <tt>test/fixtures/action_text/rich_texts.yml</tt>:
+    #
+    #   second:
     #     record: second (Article)
     #     name: content
     #     body: <div>Hello, <%= ActionText::FixtureSet.attachment("articles", :first) %></div>
+    #
     def self.attachment(fixture_set_name, label, column_type: :integer)
       signed_global_id = ActiveRecord::FixtureSet.signed_global_id fixture_set_name, label,
         column_type: column_type, for: ActionText::Attachable::LOCATOR_NAME

@@ -211,7 +211,7 @@ module ActiveRecord
 
         idle_conn.instance_variable_set(
           :@idle_since,
-          Concurrent.monotonic_time - 0.01
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.01
         )
 
         @pool.flush
@@ -219,7 +219,7 @@ module ActiveRecord
 
         idle_conn.instance_variable_set(
           :@idle_since,
-          Concurrent.monotonic_time - 0.02
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.02
         )
 
         @pool.flush
@@ -238,7 +238,7 @@ module ActiveRecord
 
         idle_conn.instance_variable_set(
           :@idle_since,
-          Concurrent.monotonic_time - 1
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 1
         )
 
         @pool.flush
@@ -257,7 +257,7 @@ module ActiveRecord
 
         idle_conn.instance_variable_set(
           :@idle_since,
-          Concurrent.monotonic_time - 1000
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 1000
         )
 
         @pool.flush(30)

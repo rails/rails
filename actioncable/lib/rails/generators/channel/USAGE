@@ -10,4 +10,4 @@ Example:
     creates a Chat channel class, test and JavaScript asset:
         Channel:    app/channels/chat_channel.rb
         Test:       test/channels/chat_channel_test.rb
-        Assets:     app/javascript/channels/chat_channel.js
+        Assets:     $JAVASCRIPT_PATH/channels/chat_channel.js

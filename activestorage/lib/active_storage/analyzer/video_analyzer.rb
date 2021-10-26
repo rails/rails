@@ -121,14 +121,16 @@ module ActiveStorage
       end
 
       def probe_from(file)
-        IO.popen([ ffprobe_path,
-          "-print_format", "json",
-          "-show_streams",
-          "-show_format",
-          "-v", "error",
-          file.path
-        ]) do |output|
-          JSON.parse(output.read)
+        instrument(File.basename(ffprobe_path)) do
+          IO.popen([ ffprobe_path,
+            "-print_format", "json",
+            "-show_streams",
+            "-show_format",
+            "-v", "error",
+            file.path
+          ]) do |output|
+            JSON.parse(output.read)
+          end
         end
       rescue Errno::ENOENT
         logger.info "Skipping video analysis because FFmpeg isn't installed"

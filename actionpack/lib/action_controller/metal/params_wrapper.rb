@@ -9,11 +9,14 @@ module ActionController
   # Wraps the parameters hash into a nested hash. This will allow clients to
   # submit requests without having to specify any root elements.
   #
-  # This functionality is enabled in +config/initializers/wrap_parameters.rb+
-  # and can be customized.
+  # This functionality is enabled by default for JSON, and can be customized by
+  # setting the format array:
   #
-  # You could also turn it on per controller by setting the format array to
-  # a non-empty array:
+  #     class ApplicationController < ActionController::Base
+  #       wrap_parameters format: [:json, :xml]
+  #     end
+  #
+  # You could also turn it on per controller:
   #
   #     class UsersController < ApplicationController
   #       wrap_parameters format: [:json, :xml, :url_encoded_form, :multipart_form]
@@ -68,6 +71,12 @@ module ActionController
   # will try to check if <tt>Admin::User</tt> or +User+ model exists, and use it to
   # determine the wrapper key respectively. If both models don't exist,
   # it will then fallback to use +user+ as the key.
+  #
+  # To disable the this functionality for a controller:
+  #
+  #     class UsersController < ApplicationController
+  #       wrap_parameters false
+  #     end
   module ParamsWrapper
     extend ActiveSupport::Concern
 

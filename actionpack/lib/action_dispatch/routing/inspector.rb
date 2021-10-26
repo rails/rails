@@ -5,7 +5,7 @@ require "io/console/size"
 
 module ActionDispatch
   module Routing
-    class RouteWrapper < SimpleDelegator
+    class RouteWrapper < SimpleDelegator # :nodoc:
       def endpoint
         app.dispatcher? ? "#{controller}##{action}" : rack_app.inspect
       end

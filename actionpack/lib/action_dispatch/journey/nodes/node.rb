@@ -5,7 +5,6 @@ require "action_dispatch/journey/visitors"
 module ActionDispatch
   module Journey # :nodoc:
     class Ast # :nodoc:
-      delegate :find_all, :left, :right, :to_s, :to_sym, :type, to: :tree
       attr_reader :names, :path_params, :tree, :wildcard_options, :terminals
       alias :root :tree
 
@@ -54,7 +53,7 @@ module ActionDispatch
               if formatted != false
                 # Add a constraint for wildcard route to make it non-greedy and
                 # match the optional format part of the route by default.
-                wildcard_options[node.name.to_sym] ||= /.+?/
+                wildcard_options[node.name.to_sym] ||= /.+?/m
               end
             end
 
@@ -167,7 +166,7 @@ module ActionDispatch
           super(left)
 
           # By default wildcard routes are non-greedy and must match something.
-          @regexp = /.+?/
+          @regexp = /.+?/m
         end
 
         def star?; true; end

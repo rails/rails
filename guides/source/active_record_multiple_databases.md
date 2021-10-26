@@ -33,7 +33,6 @@ The following features are not (yet) supported:
 
 * Automatic swapping for horizontal sharding
 * Load balancing replicas
-* Dumping schema caches for multiple databases
 
 ## Setting up your application
 
@@ -180,6 +179,9 @@ rails db:migrate:primary                 # Migrate primary database for current 
 rails db:migrate:status                  # Display status of migrations
 rails db:migrate:status:animals          # Display status of migrations for animals database
 rails db:migrate:status:primary          # Display status of migrations for primary database
+rails db:reset                           # Drops and recreates all databases from their schema for the current environment and loads the seeds
+rails db:reset:animals                   # Drops and recreates the animals database from its schema for the current environment and loads the seeds
+rails db:reset:primary                   # Drops and recreates the primary database from its schema for the current environment and loads the seeds
 rails db:rollback                        # Rolls the schema back to the previous version (specify steps w/ STEP=n)
 rails db:rollback:animals                # Rollback animals database for current environment (specify steps w/ STEP=n)
 rails db:rollback:primary                # Rollback primary database for current environment (specify steps w/ STEP=n)
@@ -189,12 +191,33 @@ rails db:schema:dump:primary             # Creates a db/schema.rb file that is p
 rails db:schema:load                     # Loads a database schema file (either db/schema.rb or db/structure.sql  ...
 rails db:schema:load:animals             # Loads a database schema file (either db/schema.rb or db/structure.sql  ...
 rails db:schema:load:primary             # Loads a database schema file (either db/schema.rb or db/structure.sql  ...
+rails db:setup                           # Creates all databases, loads all schemas, and initializes with the seed data (use db:reset to also drop all databases first)
+rails db:setup:animals                   # Creates the animals database, loads the schema, and initializes with the seed data (use db:reset:animals to also drop the database first)
+rails db:setup:primary                   # Creates the primary database, loads the schema, and initializes with the seed data (use db:reset:primary to also drop the database first)
 ```
 
 Running a command like `bin/rails db:create` will create both the primary and animals databases.
 Note that there is no command for creating the database users, and you'll need to do that manually
 to support the readonly users for your replicas. If you want to create just the animals
 database you can run `bin/rails db:create:animals`.
+
+## Connecting to Databases without Managing Schema and Migrations
+
+If you would like to connect to an external database without any database
+management tasks such as schema management, migrations, seeds, etc. you can set
+the per database config option `database_tasks: false`. By default it is
+set to true.
+
+```yaml
+production:
+  primary:
+    database: my_database
+    adapter: mysql2
+  animals:
+    database: my_animals_database
+    adapter: mysql2
+    database_tasks: false
+```
 
 ## Generators and Migrations
 
@@ -482,8 +505,17 @@ class Dog < AnimalsRecord
   has_many :treats, through: :humans, disable_joins: true
   has_many :humans
 
-  belongs_to :home
+  has_one :home
   has_one :yard, through: :home, disable_joins: true
+end
+
+class Home
+  belongs_to :dog
+  has_one :yard
+end
+
+class Yard
+  belongs_to :home
 end
 ```
 
@@ -516,6 +548,10 @@ order from one table cannot be applied to another table.
 Rails can't guess this for you because association loading is lazy, to load `treats` in `@dog.treats`
 Rails already needs to know what SQL should be generated.
 
+### Schema Caching
+
+If you want to load a schema cache for each database you must set a `schema_cache_path` in each database configuration and set `config.active_record.lazily_load_schema_cache = true` in your application configuration. Note that this will lazily load the cache when the database connections are established.
+
 ## Caveats
 
 ### Automatic swapping for horizontal sharding
@@ -530,9 +566,3 @@ Rails also doesn't support automatic load balancing of replicas. This is very
 dependent on your infrastructure. We may implement basic, primitive load balancing
 in the future, but for an application at scale this should be something your application
 handles outside of Rails.
-
-### Schema Cache
-
-If you use a schema cache and multiple databases, you'll need to write an initializer
-that loads the schema cache from your app. This wasn't an issue we could resolve in
-time for Rails 6.0 but hope to have it in a future version soon.

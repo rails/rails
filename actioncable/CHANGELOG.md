@@ -1,3 +1,22 @@
+*   The Action Cable client now ensures successful channel subscriptions:
+
+    * The client maintains a set of pending subscriptions until either
+      the server confirms the subscription or the channel is torn down.
+    * Rectifies the race condition where an unsubscribe is rapidly followed
+      by a subscribe (on the same channel identifier) and the requests are
+      handled out of order by the ActionCable server, thereby ignoring the
+      subscribe command.
+
+    *Daniel Spinosa*
+
+
+## Rails 7.0.0.alpha2 (September 15, 2021) ##
+
+*   No changes.
+
+
+## Rails 7.0.0.alpha1 (September 15, 2021) ##
+
 *   Compile ESM package that can be used directly in the browser as actioncable.esm.js.
 
     *DHH*

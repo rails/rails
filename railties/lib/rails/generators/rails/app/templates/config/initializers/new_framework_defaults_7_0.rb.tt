@@ -7,6 +7,7 @@
 # this file and set the `config.load_defaults` to `7.0`.
 #
 # Read the Guide for Upgrading Ruby on Rails for more info on each option.
+# https://guides.rubyonrails.org/upgrading_ruby_on_rails.html
 
 # Raise an error when trying to use forgery protection without a working
 # session.
@@ -53,6 +54,9 @@
 # Rails.application.config.active_storage.video_preview_arguments =
 #   "-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"
 
+# Automatically infer `inverse_of` for associations with a scope.
+# Rails.application.config.active_record.automatic_scope_inversing = true
+
 # Raise when running tests if fixtures contained foreign key violations
 # Rails.application.config.active_record.verify_foreign_keys_for_fixtures = true
 
@@ -70,3 +74,20 @@
 # operations. See the upgrading guide for detail on the changes required.
 # The `:mini_magick` option is not deprecated; it's fine to keep using it.
 # Rails.application.config.active_storage.variant_processor = :vips
+
+# If you're upgrading and haven't set `cookies_serializer` previously, your cookie serializer
+# was `:marshal`. Convert all cookies to JSON, using the `:hybrid` formatter.
+#
+# If you're confident all your cookies are JSON formatted, you can switch to the `:json` formatter.
+#
+# Continue to use `:marshal` for backward-compatibility with old cookies.
+#
+# If you have configured the serializer elsewhere, you can remove this.
+#
+# See https://guides.rubyonrails.org/action_controller_overview.html#cookies for more information.
+# Rails.application.config.action_dispatch.cookies_serializer = :hybrid
+
+# Enable parameter wrapping for JSON.
+# Previously this was set in an initializer. It's fine to keep using that initializer if you've customized it.
+# To disable parameter wrapping entirely, set this config to `false`.
+# Rails.application.config.action_controller.wrap_parameters_by_default = true

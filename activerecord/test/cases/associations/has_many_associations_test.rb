@@ -768,9 +768,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal firm.clients.count, firm.clients.update_all(description: "Great!")
   end
 
-  def test_belongs_to_sanity
+  def test_belongs_to_with_new_object
     c = Client.new
-    assert_nil c.firm, "belongs_to failed sanity check on new object"
+    assert_nil c.firm, "belongs_to failed on new object"
   end
 
   def test_find_ids
@@ -1440,7 +1440,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal original_count, topic.reload.replies_count
   end
 
-  def test_calling_update_changing_ids_doesnt_change_counter_cache
+  def test_calling_update_changing_ids_changes_the_counter_cache
     topic1 = Topic.find(1)
     topic2 = Topic.find(3)
     original_count1 = topic1.replies.to_a.size
@@ -1456,6 +1456,24 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     reply2.update(parent_id: topic1.id)
     assert_equal original_count1, topic1.reload.replies_count
     assert_equal original_count2, topic2.reload.replies_count
+  end
+
+  def test_calling_update_changing_ids_of_inversed_association_changes_the_counter_cache
+    assert_predicate Post.reflect_on_association(:comments), :has_inverse?
+
+    post1 = Post.first
+    post2 = Post.second
+
+    original_count1 = post1.comments.count
+    original_count2 = post2.comments.count
+
+    post1.comments.first.update(post_id: post2.id)
+    assert_equal original_count1 - 1, post1.reload.comments_count
+    assert_equal original_count2 + 1, post2.reload.comments_count
+
+    post2.comments.first.update(post_id: post1.id)
+    assert_equal original_count1, post1.reload.comments_count
+    assert_equal original_count2, post2.reload.comments_count
   end
 
   def test_deleting_a_collection

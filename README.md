@@ -28,6 +28,14 @@ Although most Rails models are backed by a database, models can also be ordinary
 Ruby classes, or Ruby classes that implement a set of interfaces as provided by
 the [Active Model](activemodel/README.rdoc) module.
 
+## View layer
+
+The _**View layer**_ is composed of "templates" that are responsible for providing
+appropriate representations of your application's resources. Templates can
+come in a variety of formats, but most view templates are HTML with embedded
+Ruby code (ERB files). Views are typically rendered to generate a controller response
+or to generate the body of an email. In Rails, View generation is handled by [Action View](actionview/README.rdoc).
+
 ## Controller layer
 
 The _**Controller layer**_ is responsible for handling incoming HTTP requests and
@@ -37,14 +45,6 @@ manipulate models, and render view templates in order to generate the appropriat
 In Rails, incoming requests are routed by Action Dispatch to an appropriate controller, and
 controller classes are derived from `ActionController::Base`. Action Dispatch and Action Controller
 are bundled together in [Action Pack](actionpack/README.rdoc).
-
-## View layer
-
-The _**View layer**_ is composed of "templates" that are responsible for providing
-appropriate representations of your application's resources. Templates can
-come in a variety of formats, but most view templates are HTML with embedded
-Ruby code (ERB files). Views are typically rendered to generate a controller response
-or to generate the body of an email. In Rails, View generation is handled by [Action View](actionview/README.rdoc).
 
 ## Frameworks and libraries
 

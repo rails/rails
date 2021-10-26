@@ -11,6 +11,8 @@ module ActionController
   class Railtie < Rails::Railtie # :nodoc:
     config.action_controller = ActiveSupport::OrderedOptions.new
     config.action_controller.raise_on_open_redirects = false
+    config.action_controller.log_query_tags_around_actions = true
+    config.action_controller.wrap_parameters_by_default = false
 
     config.eager_load_namespaces << ActionController
 
@@ -26,14 +28,19 @@ module ActionController
       options = app.config.action_controller
 
       ActiveSupport.on_load(:action_controller, run_once: true) do
-        ActionController::Parameters.permit_all_parameters = options.delete(:permit_all_parameters) { false }
+        ActionController::Parameters.permit_all_parameters = options.permit_all_parameters || false
         if app.config.action_controller[:always_permitted_parameters]
           ActionController::Parameters.always_permitted_parameters =
-            app.config.action_controller.delete(:always_permitted_parameters)
+            app.config.action_controller.always_permitted_parameters
         end
-        ActionController::Parameters.action_on_unpermitted_parameters = options.delete(:action_on_unpermitted_parameters) do
-          (Rails.env.test? || Rails.env.development?) ? :log : false
+
+        action_on_unpermitted_parameters = options.action_on_unpermitted_parameters
+
+        if action_on_unpermitted_parameters.nil?
+          action_on_unpermitted_parameters = (Rails.env.test? || Rails.env.development?) ? :log : false
         end
+
+        ActionController::Parameters.action_on_unpermitted_parameters = action_on_unpermitted_parameters
       end
     end
 
@@ -56,7 +63,18 @@ module ActionController
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
         extend ::ActionController::Railties::Helpers
 
-        options.each do |k, v|
+        wrap_parameters format: [:json] if options.wrap_parameters_by_default && respond_to?(:wrap_parameters)
+
+        # Configs used in other initializers
+        filtered_options = options.except(
+          :log_query_tags_around_actions,
+          :permit_all_parameters,
+          :action_on_unpermitted_parameters,
+          :always_permitted_parameters,
+          :wrap_parameters_by_default
+        )
+
+        filtered_options.each do |k, v|
           k = "#{k}="
           if respond_to?(k)
             send(k, v)
@@ -84,6 +102,28 @@ module ActionController
     initializer "action_controller.eager_load_actions" do
       ActiveSupport.on_load(:after_initialize) do
         ActionController::Metal.descendants.each(&:action_methods) if config.eager_load
+      end
+    end
+
+    initializer "action_controller.query_log_tags" do |app|
+      query_logs_tags_enabled = app.config.respond_to?(:active_record) &&
+        app.config.active_record.query_log_tags_enabled &&
+        app.config.action_controller.log_query_tags_around_actions
+
+      if query_logs_tags_enabled
+        app.config.active_record.query_log_tags += [:controller, :action]
+
+        ActiveSupport.on_load(:action_controller) do
+          include ActionController::QueryTags
+        end
+
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::QueryLogs.taggings.merge!(
+            controller:            ->(context) { context[:controller].controller_name },
+            action:                ->(context) { context[:controller].action_name },
+            namespaced_controller: ->(context) { context[:controller].class.name }
+          )
+        end
       end
     end
   end

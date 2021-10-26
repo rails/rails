@@ -19,6 +19,13 @@ module ActiveRecord
       def set_schema_cache(cache)
         self.schema_cache = cache
       end
+
+      def lazily_set_schema_cache
+        return unless ActiveRecord.lazily_load_schema_cache
+
+        cache = SchemaCache.load_from(db_config.lazy_schema_cache_path)
+        set_schema_cache(cache)
+      end
     end
 
     class NullPool # :nodoc:
@@ -146,6 +153,8 @@ module ActiveRecord
         @lock_thread = false
 
         @async_executor = build_async_executor
+
+        lazily_set_schema_cache
 
         @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run
@@ -518,13 +527,13 @@ module ActiveRecord
           end
 
           newly_checked_out = []
-          timeout_time      = Concurrent.monotonic_time + (@checkout_timeout * 2)
+          timeout_time      = Process.clock_gettime(Process::CLOCK_MONOTONIC) + (@checkout_timeout * 2)
 
           @available.with_a_bias_for(Thread.current) do
             loop do
               synchronize do
                 return if collected_conns.size == @connections.size && @now_connecting == 0
-                remaining_timeout = timeout_time - Concurrent.monotonic_time
+                remaining_timeout = timeout_time - Process.clock_gettime(Process::CLOCK_MONOTONIC)
                 remaining_timeout = 0 if remaining_timeout < 0
                 conn = checkout_for_exclusive_access(remaining_timeout)
                 collected_conns   << conn

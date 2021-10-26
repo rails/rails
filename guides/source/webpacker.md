@@ -51,7 +51,9 @@ To use Webpacker, you must install the Yarn package manager, version 1.x or up, 
 
 NOTE: Webpacker depends on NPM and Yarn. NPM, the Node package manager registry, is the primary repository for publishing and downloading open-source JavaScript projects, both for Node.js and browser runtimes. It is analogous to rubygems.org for Ruby gems. Yarn is a command-line utility that enables the installation and management of JavaScript dependencies, much like Bundler does for Ruby.
 
-Webpacker is installed by default in Rails 6.0 and up. You can install it with a new project in some older versions by adding `--webpack` to the `rails new` command. Webpacker can be added in an existing project by running `bin/rails webpacker:install`. This installation command creates the following local files:
+To include Webpacker in a new project, add `--webpack` to the `rails new` command. To add Webpacker to an existing project, add the `webpacker` gem to the project's `Gemfile`, run `bundle install`, and then run `bin/rails webpacker:install`.
+
+Installing Webpacker creates the following local files:
 
 |File                    |Location                |Explanation                                                                                         |
 |------------------------|------------------------|----------------------------------------------------------------------------------------------------|
@@ -63,28 +65,6 @@ Webpacker is installed by default in Rails 6.0 and up. You can install it with a
 
 
 The installation also calls the `yarn` package manager, creates a `package.json` file with a basic set of packages listed, and uses Yarn to install these dependencies.
-
-### Integrating Frameworks with Webpacker
-
-Webpacker also contains support for many popular JavaScript frameworks and tools. Typically, these are installed either when the application is created with something like `rails new myapp --webpack=<framework_name>` or with a separate command-line task, like `rails webpacker:install:<framework_name>`.
-
-These integrations typically install the set of NPM packages needed to get started with the framework or tool, a "hello world" page to show that it works, and any other webpack loaders or transformations needed to compile the tool. The supported frameworks and tools are:
-
-INFO. It's possible to install frameworks not included in this list. These are basic integrations of popular choices.
-
-|Framework         |Install command                         |Description                                       |
-|------------------|----------------------------------------|--------------------------------------------------|
-|Angular           |`bin/rails webpacker:install:angular`   |Sets up Angular and TypeScript                    |
-|CoffeeScript      |`bin/rails webpacker:install:coffee`    |Sets up CoffeeScript                              |
-|Elm               |`bin/rails webpacker:install:elm`       |Sets up Elm                                       |
-|ERB               |`bin/rails webpacker:install:erb`       |Sets up ERB support on your JavaScript files      |
-|React             |`bin/rails webpacker:install:react`     |Sets up ReactJS                                   |
-|Stimulus          |`bin/rails webpacker:install:stimulus`  |Sets up StimulusJS                                |
-|Svelte            |`bin/rails webpacker:install:svelte`    |Sets up Svelte JS                                 |
-|TypeScript        |`bin/rails webpacker:install:typescript`|Sets up TypeScript for your project using Babel's TypeScript support|
-|Vue               |`bin/rails webpacker:install:vue`       |Sets up VueJS                                     |
-
-For more information about the existing integrations, consult the [README](https://github.com/rails/webpacker#integrations).
 
 Usage
 -----
@@ -128,7 +108,7 @@ app/javascript:
 
 Typically, the pack file itself is largely a manifest that uses `import` or `require` to load the necessary files and may also do some initialization.
 
-If you want to change these directories, you can adjust the `source_path` (default `app/javascript`) and `source_entry_path` (default `packs`) in the `configuration/webpacker.yml` file.
+If you want to change these directories, you can adjust the `source_path` (default `app/javascript`) and `source_entry_path` (default `packs`) in the `config/webpacker.yml` file.
 
 Within source files, `import` statements are resolved relative to the file doing the import, so `import Bar from "./foo"` finds a `foo.js` file in the same directory as the current file, while `import Bar from "../src/foo"` finds a file in a sibling directory named `src`.
 
@@ -180,7 +160,7 @@ You can also access the image by directly referencing the file from a CSS file i
 
 ### Webpacker in Rails Engines
 
-As of Webpacker version 5, Webpacker is not "engine-aware," which means Webpacker does not have feature-parity with Sprockets when it comes to using within Rails engines. The [Webpacker engine guides](https://github.com/rails/webpacker/blob/master/docs/engines.md) provide some detailed workarounds to add Webpacker-support and developing locally against an engine with Webpacker.
+As of Webpacker version 6, Webpacker is not "engine-aware," which means Webpacker does not have feature-parity with Sprockets when it comes to using within Rails engines.
 
 Gem authors of Rails engines who wish to support consumers using Webpacker are encouraged to distribute frontend assets as an NPM package in addition to the gem itself and provide instructions (or an installer) to demonstrate how host apps should integrate. A good example of this approach is [Alchemy CMS](https://github.com/AlchemyCMS/alchemy_cms).
 

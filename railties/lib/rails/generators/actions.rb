@@ -18,6 +18,7 @@ module Rails
       #   gem "technoweenie-restful-authentication", lib: "restful-authentication", source: "http://gems.github.com/"
       #   gem "rails", "3.0", git: "https://github.com/rails/rails"
       #   gem "RedCloth", ">= 4.1.0", "< 4.2.0"
+      #   gem "rspec", comment: "Put this comment above the gem declaration"
       def gem(*args)
         options = args.extract_options!
         name, *versions = args
@@ -25,6 +26,9 @@ module Rails
         # Set the message to be shown in logs. Uses the git repo if one is given,
         # otherwise use name (version).
         parts, message = [ quote(name) ], name.dup
+
+        # Output a comment above the gem declaration.
+        comment = options.delete(:comment)
 
         if versions = versions.any? ? versions : options.delete(:version)
           _versions = Array(versions)
@@ -40,9 +44,17 @@ module Rails
         parts << quote(options) unless options.empty?
 
         in_root do
-          str = "gem #{parts.join(", ")}"
-          str = indentation + str
-          append_file_with_newline "Gemfile", str, verbose: false
+          str = []
+          if comment
+            comment.each_line do |comment_line|
+              str << indentation
+              str << "# #{comment_line}"
+            end
+            str << "\n"
+          end
+          str << indentation
+          str << "gem #{parts.join(", ")}"
+          append_file_with_newline "Gemfile", str.join, verbose: false
         end
       end
 

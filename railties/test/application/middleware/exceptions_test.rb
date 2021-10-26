@@ -65,6 +65,35 @@ module ApplicationTests
       assert_equal 405, last_response.status
     end
 
+    test "renders unknown http formats as 406 when routes are used as the custom exceptions app" do
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def index
+            render plain: "rendering index!"
+          end
+
+          def not_acceptable
+            render json: { error: "some error message" }, status: :not_acceptable
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get "/foo", to: "foo#index"
+          match "/406", to: "foo#not_acceptable", via: :all
+        end
+      RUBY
+
+      add_to_config "config.exceptions_app = self.routes"
+      add_to_config "config.action_dispatch.show_exceptions = true"
+      add_to_config "config.consider_all_requests_local = false"
+
+      get "/foo", {}, { "HTTP_ACCEPT" => "invalid" }
+      assert_equal 406, last_response.status
+      assert_not_equal "rendering index!", last_response.body
+    end
+
     test "uses custom exceptions app" do
       add_to_config <<-RUBY
         config.exceptions_app = lambda do |env|

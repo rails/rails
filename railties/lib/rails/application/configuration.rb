@@ -21,7 +21,7 @@ module Rails
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
-                    :rake_eager_load
+                    :rake_eager_load, :server_timing
 
       attr_reader :encoding, :api_only, :loaded_config_version
 
@@ -74,6 +74,7 @@ module Rails
         @add_autoload_paths_to_load_path         = true
         @permissions_policy                      = nil
         @rake_eager_load                         = false
+        @server_timing                           = false
       end
 
       # Loads default configurations. See {the result of the method for each version}[https://guides.rubyonrails.org/configuring.html#results-of-config-load-defaults].
@@ -199,10 +200,7 @@ module Rails
 
           if respond_to?(:action_dispatch)
             action_dispatch.return_only_request_media_type_on_content_type = false
-          end
-
-          if respond_to?(:action_controller)
-            action_controller.silence_disabled_session_errors = false
+            action_dispatch.cookies_serializer = :json
           end
 
           if respond_to?(:action_view)
@@ -215,6 +213,7 @@ module Rails
             active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
             active_support.remove_deprecated_time_with_zone_name = true
             active_support.cache_format_version = 7.0
+            active_support.use_rfc4122_namespaced_uuids = true
           end
 
           if respond_to?(:action_mailer)
@@ -232,10 +231,13 @@ module Rails
           if respond_to?(:active_record)
             active_record.verify_foreign_keys_for_fixtures = true
             active_record.partial_inserts = false
+            active_record.automatic_scope_inversing = true
           end
 
           if respond_to?(:action_controller)
             action_controller.raise_on_open_redirects = true
+
+            action_controller.wrap_parameters_by_default = true
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"

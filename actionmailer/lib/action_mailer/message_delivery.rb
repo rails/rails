@@ -171,7 +171,7 @@ module ActionMailer
         parameters.find do |key, name|
           return true if key == :keyreq && name == :args
 
-          key == :keyrest
+          key == :keyrest and name != :**
         end
       end
   end

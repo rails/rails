@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/inflector"
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveRecord
@@ -181,7 +182,7 @@ module ActiveRecord
       # It is used to find the class correspondent to the value stored in the inheritance column.
       def sti_class_for(type_name)
         if store_full_sti_class && store_full_class_name
-          ActiveSupport::Dependencies.constantize(type_name)
+          type_name.constantize
         else
           compute_type(type_name)
         end
@@ -203,7 +204,7 @@ module ActiveRecord
       # It is used to find the class correspondent to the value stored in the polymorphic type column.
       def polymorphic_class_for(name)
         if store_full_class_name
-          ActiveSupport::Dependencies.constantize(name)
+          name.constantize
         else
           compute_type(name)
         end
@@ -235,10 +236,10 @@ module ActiveRecord
           if type_name.start_with?("::")
             # If the type is prefixed with a scope operator then we assume that
             # the type_name is an absolute reference.
-            ActiveSupport::Dependencies.constantize(type_name)
+            type_name.constantize
           else
             type_candidate = @_type_candidates_cache[type_name]
-            if type_candidate && type_constant = ActiveSupport::Dependencies.safe_constantize(type_candidate)
+            if type_candidate && type_constant = type_candidate.safe_constantize
               return type_constant
             end
 
@@ -248,7 +249,7 @@ module ActiveRecord
             candidates << type_name
 
             candidates.each do |candidate|
-              constant = ActiveSupport::Dependencies.safe_constantize(candidate)
+              constant = candidate.safe_constantize
               if candidate == constant.to_s
                 @_type_candidates_cache[type_name] = candidate
                 return constant

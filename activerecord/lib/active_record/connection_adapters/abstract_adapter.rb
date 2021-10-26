@@ -88,7 +88,7 @@ module ActiveRecord
         @logger              = logger
         @config              = config
         @pool                = ActiveRecord::ConnectionAdapters::NullPool.new
-        @idle_since          = Concurrent.monotonic_time
+        @idle_since          = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @visitor = arel_visitor
         @statements = build_statement_pool
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
@@ -242,7 +242,7 @@ module ActiveRecord
               "Current thread: #{Thread.current}."
           end
 
-          @idle_since = Concurrent.monotonic_time
+          @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           @owner = nil
         else
           raise ActiveRecordError, "Cannot expire connection, it is not currently leased."
@@ -265,7 +265,7 @@ module ActiveRecord
       # Seconds since this connection was returned to the pool
       def seconds_idle # :nodoc:
         return 0 if in_use?
-        Concurrent.monotonic_time - @idle_since
+        Process.clock_gettime(Process::CLOCK_MONOTONIC) - @idle_since
       end
 
       def unprepared_statement
@@ -363,6 +363,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support creating deferrable constraints?
+      def supports_deferrable_constraints?
+        false
+      end
+
       # Does this adapter support creating check constraints?
       def supports_check_constraints?
         false
@@ -452,6 +457,10 @@ module ActiveRecord
 
       # This is meant to be implemented by the adapters that support extensions
       def enable_extension(name)
+      end
+
+      # This is meant to be implemented by the adapters that support custom enum types
+      def create_enum(*) # :nodoc:
       end
 
       def advisory_locks_enabled? # :nodoc:
@@ -723,7 +732,7 @@ module ActiveRecord
           exception
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil, async: false) # :doc:
+        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil, async: false, &block) # :doc:
           @instrumenter.instrument(
             "sql.active_record",
             sql:               sql,
@@ -733,12 +742,17 @@ module ActiveRecord
             statement_name:    statement_name,
             async:             async,
             connection:        self) do
-            @lock.synchronize do
-              yield
-            end
+            @lock.synchronize(&block)
           rescue => e
             raise translate_exception_class(e, sql, binds)
           end
+        end
+
+        def transform_query(sql)
+          ActiveRecord.query_transformers.each do |transformer|
+            sql = transformer.call(sql)
+          end
+          sql
         end
 
         def translate_exception(exception, message:, sql:, binds:)

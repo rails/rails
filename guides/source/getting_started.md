@@ -28,7 +28,7 @@ curve diving straight into Rails. There are several curated lists of online reso
 for learning Ruby:
 
 * [Official Ruby Programming Language website](https://www.ruby-lang.org/en/documentation/)
-* [List of Free Programming Books](https://github.com/EbookFoundation/free-programming-books/blob/master/books/free-programming-books.md#ruby)
+* [List of Free Programming Books](https://github.com/EbookFoundation/free-programming-books/blob/master/books/free-programming-books-langs.md#ruby)
 
 Be aware that some resources, while still excellent, cover older versions of
 Ruby, and may not include some syntax that you will see in day-to-day
@@ -182,11 +182,6 @@ This will create a Rails application called Blog in a `blog` directory and
 install the gem dependencies that are already mentioned in `Gemfile` using
 `bundle install`.
 
-NOTE: If you're using Windows Subsystem for Linux then there are currently some
-limitations on file system notifications that mean you should disable the `spring`
-and `listen` gems which you can do by running `rails new blog --skip-spring --skip-listen`
-instead.
-
 TIP: You can see all of the command line options that the Rails application
 generator accepts by running `rails new --help`.
 
@@ -211,7 +206,6 @@ of the files and folders that Rails creates by default:
 |Gemfile<br>Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see the [Bundler website](https://bundler.io).|
 |lib/|Extended modules for your application.|
 |log/|Application log files.|
-|package.json|This file allows you to specify what npm dependencies are needed for your Rails application. This file is used by Yarn. For more information about Yarn, see the [Yarn website](https://yarnpkg.com/lang/en/).|
 |public/|Contains static files and compiled assets. When your app is running, this directory will be exposed as-is.|
 |Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing `Rakefile`, you should add your own tasks by adding files to the `lib/tasks` directory of your application.|
 |README.md|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
@@ -366,6 +360,24 @@ confirming that the `root` route is also mapped to the `index` action of
 
 TIP: To learn more about routing, see [Rails Routing from the Outside In](
 routing.html).
+
+Autoloading
+-----------
+
+Rails applications **do not** use `require` to load application code.
+
+You may have noticed that `ArticlesController` inherits from `ApplicationController`, but `app/controllers/articles_controller.rb` does not have anything like
+
+```ruby
+require "application_controller" # DON'T DO THIS.
+```
+
+Application classes and modules are available everywhere, you do not need and **should not** load anything under `app` with `require`. This feature is called _autoloading_, and you can learn more about it in [_Autoloading and Reloading Constants_](https://guides.rubyonrails.org/autoloading_and_reloading_constants.html).
+
+You only need `require` calls for two use cases:
+
+* To load files under the `lib` directory.
+* To load gem dependencies that have `require: false` in the `Gemfile`.
 
 MVC and You
 -----------
@@ -1350,7 +1362,7 @@ This is very similar to the `Article` model that you saw earlier. The difference
 is the line `belongs_to :article`, which sets up an Active Record _association_.
 You'll learn a little about associations in the next section of this guide.
 
-The (`:references`) keyword used in the bash command is a special data type for models.
+The (`:references`) keyword used in the shell command is a special data type for models.
 It creates a new column on your database table with the provided model name appended with an `_id`
 that can hold integer values. To get a better understanding, analyze the
 `db/schema.rb` file after running the migration.
@@ -1720,7 +1732,41 @@ app/models/concerns
 
 A given blog article might have various statuses - for instance, it might be visible to everyone (i.e. `public`), or only visible to the author (i.e. `private`). It may also be hidden to all but still retrievable (i.e. `archived`). Comments may similarly be hidden or visible. This could be represented using a `status` column in each model.
 
-Within the `article` model, after running a migration to add a `status` column, you might add:
+First, let's run the following migrations to add `status` to `Articles` and `Comments`:
+
+```bash
+$ bin/rails generate migration AddStatusToArticles status:string
+$ bin/rails generate migration AddStatusToComments status:string
+```
+
+And next, let's update the database with the generated migrations:
+
+```bash
+$ bin/rails db:migrate
+```
+
+TIP: To learn more about migrations, see [Active Record Migrations](
+active_record_migrations.html).
+
+We also have to permit the `:status` key as part of the strong parameter, in `app/controllers/articles_controller.rb`:
+
+```ruby
+  private
+    def article_params
+      params.require(:article).permit(:title, :body, :status)
+    end
+```
+
+and in `app/controllers/comments_controller.rb`:
+
+```ruby
+  private
+    def comment_params
+      params.require(:comment).permit(:commenter, :body, :status)
+    end
+```
+
+Within the `article` model, after running a migration to add a `status` column, you would add:
 
 ```ruby
 class Article < ApplicationRecord
@@ -1889,34 +1935,6 @@ Our blog has <%= Article.public_count %> articles and counting!
 </ul>
 
 <%= link_to "New Article", new_article_path %>
-```
-
-There are a few more steps to be carried out before our application works with the addition of `status` column. First, let's run the following migrations to add `status` to `Articles` and `Comments`:
-
-```bash
-$ bin/rails generate migration AddStatusToArticles status:string
-$ bin/rails generate migration AddStatusToComments status:string
-```
-
-TIP: To learn more about migrations, see [Active Record Migrations](
-active_record_migrations.html).
-
-We also have to permit the `:status` key as part of the strong parameter, in `app/controllers/articles_controller.rb`:
-
-```ruby
-  private
-    def article_params
-      params.require(:article).permit(:title, :body, :status)
-    end
-```
-
-and in `app/controllers/comments_controller.rb`:
-
-```ruby
-  private
-    def comment_params
-      params.require(:comment).permit(:commenter, :body, :status)
-    end
 ```
 
 To finish up, we will add a select box to the forms, and let the user select the status when they create a new article or post a new comment. We can also specify the default status as `public`. In `app/views/articles/_form.html.erb`, we can add:

@@ -121,5 +121,14 @@ module ActiveSupport
         end
       end
     end
+
+    initializer "active_support.set_rfc4122_namespaced_uuids" do |app|
+      config.after_initialize do
+        if app.config.active_support.use_rfc4122_namespaced_uuids
+          require "active_support/core_ext/digest"
+          ActiveSupport.use_rfc4122_namespaced_uuids = app.config.active_support.use_rfc4122_namespaced_uuids
+        end
+      end
+    end
   end
 end

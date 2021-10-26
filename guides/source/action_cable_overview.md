@@ -585,7 +585,7 @@ consumer.subscriptions.create("AppearanceChannel", {
   },
 
   get documentIsActive() {
-    return document.visibilityState == "visible" && document.hasFocus()
+    return document.visibilityState === "visible" && document.hasFocus()
   },
 
   get appearingOn() {
@@ -653,7 +653,7 @@ import consumer from "./consumer"
 
 consumer.subscriptions.create("WebNotificationsChannel", {
   received(data) {
-    new Notification(data["title"], body: data["body"])
+    new Notification(data["title"], { body: data["body"] })
   }
 })
 ```

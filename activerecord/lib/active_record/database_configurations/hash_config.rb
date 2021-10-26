@@ -33,7 +33,7 @@ module ActiveRecord
       end
 
       def config
-        ActiveSupport::Deprecation.warn("DatabaseConfig#config will be removed in 7.0.0 in favor of DatabaseConfigurations#configuration_hash which returns a hash with symbol keys")
+        ActiveSupport::Deprecation.warn("DatabaseConfig#config will be removed in 7.0.0 in favor of DatabaseConfig#configuration_hash which returns a hash with symbol keys")
         configuration_hash.stringify_keys
       end
 
@@ -53,6 +53,10 @@ module ActiveRecord
 
       def host
         configuration_hash[:host]
+      end
+
+      def socket # :nodoc:
+        configuration_hash[:socket]
       end
 
       def database
@@ -105,9 +109,25 @@ module ActiveRecord
         configuration_hash[:schema_cache_path]
       end
 
+      def default_schema_cache_path
+        "db/schema_cache.yml"
+      end
+
+      def lazy_schema_cache_path
+        schema_cache_path || default_schema_cache_path
+      end
+
+      def primary? # :nodoc:
+        Base.configurations.primary?(name)
+      end
+
       # Determines whether to dump the schema for a database.
       def schema_dump
         configuration_hash.fetch(:schema_dump, true)
+      end
+
+      def database_tasks? # :nodoc:
+        !replica? && !!configuration_hash.fetch(:database_tasks, true)
       end
     end
   end

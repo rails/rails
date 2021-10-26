@@ -62,6 +62,21 @@ module ActionCable
       def transmit(cable_message)
         transmissions << cable_message.with_indifferent_access
       end
+
+      def connection_identifier
+        @connection_identifier ||= connection_gid(identifiers.filter_map { |id| send(id.to_sym) if id })
+      end
+
+      private
+        def connection_gid(ids)
+          ids.map do |o|
+            if o.respond_to?(:to_gid_param)
+              o.to_gid_param
+            else
+              o.to_s
+            end
+          end.sort.join(":")
+        end
     end
 
     # Superclass for Action Cable channel functional tests.
