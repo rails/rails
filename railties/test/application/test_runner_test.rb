@@ -7,6 +7,11 @@ module ApplicationTests
   class TestRunnerTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation, EnvHelpers
 
+    def run(...)
+      puts "\n--- run: #{self.name}"
+      super
+    end
+
     def setup
       build_app
       create_schema
