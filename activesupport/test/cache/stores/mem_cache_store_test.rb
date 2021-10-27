@@ -25,15 +25,19 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
-  begin
-    servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
-    ss = Dalli::Client.new(servers).stats
-    raise Dalli::DalliError unless ss[servers] || ss[servers + ":11211"]
-
+  if ENV["CI"]
     MEMCACHE_UP = true
-  rescue Dalli::DalliError
-    $stderr.puts "Skipping memcached tests. Start memcached and try again."
-    MEMCACHE_UP = false
+  else
+    begin
+      servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
+      ss = Dalli::Client.new(servers).stats
+      raise Dalli::DalliError unless ss[servers] || ss[servers + ":11211"]
+
+      MEMCACHE_UP = true
+    rescue Dalli::DalliError
+      $stderr.puts "Skipping memcached tests. Start memcached and try again."
+      MEMCACHE_UP = false
+    end
   end
 
   def lookup_store(options = {})
