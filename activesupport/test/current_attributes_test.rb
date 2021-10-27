@@ -1,17 +1,11 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
+require "active_support/current_attributes/test_helper"
 
 class CurrentAttributesTest < ActiveSupport::TestCase
-  # CurrentAttributes is automatically reset in Rails app via executor hooks set in railtie
-  # But not in Active Support's own test suite.
-  setup do
-    ActiveSupport::CurrentAttributes.reset_all
-  end
-
-  teardown do
-    ActiveSupport::CurrentAttributes.reset_all
-  end
+  # Automatically included in Rails apps via railtie but that don't run here.
+  include ActiveSupport::CurrentAttributes::TestHelper
 
   Person = Struct.new(:id, :name, :time_zone)
 
