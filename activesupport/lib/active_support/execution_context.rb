@@ -10,11 +10,12 @@ module ActiveSupport
       end
 
       def current
-        @registry[Fiber.current] ||= new
+        @registry[Fiber.current.object_id] ||= new
       end
 
       def clear
-        @registry[Fiber.current] = nil
+        @registry.delete(Fiber.current.object_id)
+        nil
       end
 
       def clear_all
@@ -28,11 +29,12 @@ module ActiveSupport
       end
 
       def current
-        @registry[Thread.current] ||= new
+        @registry[Thread.current.object_id] ||= new
       end
 
       def clear
-        @registry[Thread.current] = nil
+        @registry.delete(Thread.current.object_id)
+        nil
       end
 
       def clear_all
