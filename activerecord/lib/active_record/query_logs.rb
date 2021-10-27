@@ -96,6 +96,10 @@ module ActiveRecord
         end
       end
 
+      def clear_context # :nodoc:
+        context.clear
+      end
+
       def call(sql) # :nodoc:
         if prepend_comment
           "#{self.comment} #{sql}"
