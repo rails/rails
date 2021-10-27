@@ -1,9 +1,3 @@
-*   `Rails.application.executor` hooks are now called around every tests.
-
-    This helps to better simulate request or job local state being reset.
-
-    *Jean Boussier*
-
 *   Fix the `Digest::UUID.uuid_from_hash` behavior for namespace IDs that are different from the ones defined on `Digest::UUID`.
 
     The new behavior will be enabled by setting the

@@ -2,8 +2,12 @@
 
 require "cases/helper"
 require "models/dashboard"
+require "active_record/query_logs/test_helper"
 
 class QueryLogsTest < ActiveRecord::TestCase
+  # Automatically included in Rails apps via railtie but that don't run here.
+  include ActiveRecord::QueryLogs::TestHelper
+
   fixtures :dashboards
 
   ActiveRecord::QueryLogs.taggings[:application] = -> {
@@ -11,10 +15,6 @@ class QueryLogsTest < ActiveRecord::TestCase
   }
 
   def setup
-    # QueryLogs context is automatically reset in Rails app via an executor hooks set in railtie
-    # But not in Active Record's own test suite.
-    ActiveRecord::QueryLogs.clear_context
-
     # Enable the query tags logging
     @original_transformers = ActiveRecord.query_transformers
     @original_prepend = ActiveRecord::QueryLogs.prepend_comment
@@ -28,9 +28,6 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord.query_transformers = @original_transformers
     ActiveRecord::QueryLogs.prepend_comment = @original_prepend
     ActiveRecord::QueryLogs.tags = []
-    # QueryLogs context is automatically reset in Rails app via an executor hooks set in railtie
-    # But not in Active Record's own test suite.
-    ActiveRecord::QueryLogs.clear_context
   end
 
   def test_escaping_good_comment
