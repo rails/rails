@@ -1,3 +1,14 @@
+*   `ActiveSupport::DescendantsTracker` now mostly delegate to `Class#descendants` on Ruby 3.1
+
+    Ruby now provides a fast `Class#descendants` making `ActiveSupport::DescendantsTracker` mostly useless.
+
+    As a result the following methods are deprecated:
+
+      - `ActiveSupport::DescendantsTracker.direct_descendants`
+      - `ActiveSupport::DescendantsTracker#direct_descendants`
+
+    *Jean Boussier*
+
 *   Fix the `Digest::UUID.uuid_from_hash` behavior for namespace IDs that are different from the ones defined on `Digest::UUID`.
 
     The new behavior will be enabled by setting the

@@ -608,7 +608,7 @@ module ActiveSupport
         # This is used internally to append, prepend and skip callbacks to the
         # CallbackChain.
         def __update_callbacks(name) # :nodoc:
-          ([self] + ActiveSupport::DescendantsTracker.descendants(self)).reverse_each do |target|
+          ([self] + self.descendants).reverse_each do |target|
             chain = target.get_callbacks name
             yield target, chain.dup
           end
@@ -732,7 +732,7 @@ module ActiveSupport
         def reset_callbacks(name)
           callbacks = get_callbacks name
 
-          ActiveSupport::DescendantsTracker.descendants(self).each do |target|
+          self.descendants.each do |target|
             chain = target.get_callbacks(name).dup
             callbacks.each { |c| chain.delete(c) }
             target.set_callbacks name, chain
@@ -825,7 +825,7 @@ module ActiveSupport
           names.each do |name|
             name = name.to_sym
 
-            ([self] + ActiveSupport::DescendantsTracker.descendants(self)).each do |target|
+            ([self] + self.descendants).each do |target|
               target.set_callbacks name, CallbackChain.new(name, options)
             end
 
