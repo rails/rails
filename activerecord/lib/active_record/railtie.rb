@@ -376,6 +376,15 @@ To keep using the current cache store, you can turn off cache versioning entirel
           if app.config.active_record.cache_query_log_tags
             ActiveRecord::QueryLogs.cache_query_log_tags = true
           end
+
+          app.reloader.before_class_unload { ActiveRecord::QueryLogs.clear_context }
+          app.executor.to_run              { ActiveRecord::QueryLogs.clear_context }
+          app.executor.to_complete         { ActiveRecord::QueryLogs.clear_context }
+
+          ActiveSupport.on_load(:active_support_test_case) do
+            require "active_record/query_logs/test_helper"
+            include ActiveRecord::QueryLogs::TestHelper
+          end
         end
       end
     end

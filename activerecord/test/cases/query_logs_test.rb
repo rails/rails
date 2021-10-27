@@ -2,8 +2,12 @@
 
 require "cases/helper"
 require "models/dashboard"
+require "active_record/query_logs/test_helper"
 
 class QueryLogsTest < ActiveRecord::TestCase
+  # Automatically included in Rails apps via railtie but that don't run here.
+  include ActiveRecord::QueryLogs::TestHelper
+
   fixtures :dashboards
 
   ActiveRecord::QueryLogs.taggings[:application] = -> {
