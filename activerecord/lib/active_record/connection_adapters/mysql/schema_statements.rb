@@ -206,7 +206,7 @@ module ActiveRecord
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
 
-            sql = +"SELECT table_name FROM (SELECT * FROM information_schema.tables "
+            sql = +"SELECT table_name FROM (SELECT table_name, table_type FROM information_schema.tables "
             sql << " WHERE table_schema = #{scope[:schema]}) _subquery"
             if scope[:type] || scope[:name]
               conditions = []
