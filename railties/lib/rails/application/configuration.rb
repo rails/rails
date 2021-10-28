@@ -214,6 +214,7 @@ module Rails
             active_support.remove_deprecated_time_with_zone_name = true
             active_support.cache_format_version = 7.0
             active_support.use_rfc4122_namespaced_uuids = true
+            active_support.executor_around_test_case = true
           end
 
           if respond_to?(:action_mailer)

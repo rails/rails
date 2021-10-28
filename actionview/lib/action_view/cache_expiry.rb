@@ -4,7 +4,7 @@ module ActionView
   class CacheExpiry
     class Executor
       def initialize(watcher:)
-        @execution_lock = Concurrent::ReadWriteLock.new
+        @execution_lock = Concurrent::ReentrantReadWriteLock.new
         @cache_expiry = ViewModificationWatcher.new(watcher: watcher) do
           clear_cache
         end

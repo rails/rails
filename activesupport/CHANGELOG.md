@@ -1,3 +1,12 @@
+*   `Rails.application.executor` hooks are now called around every tests.
+
+    This helps to better simulate request or job local state being reset around tests and prevent state
+    to leak from one test to another.
+
+    However it requires the executor hooks executed in the test environment to be re-entrant.
+
+    *Jean Boussier*
+
 *   `ActiveSupport::DescendantsTracker` now mostly delegate to `Class#descendants` on Ruby 3.1
 
     Ruby now provides a fast `Class#descendants` making `ActiveSupport::DescendantsTracker` mostly useless.
@@ -6,7 +15,6 @@
 
       - `ActiveSupport::DescendantsTracker.direct_descendants`
       - `ActiveSupport::DescendantsTracker#direct_descendants`
-
     *Jean Boussier*
 
 *   Fix the `Digest::UUID.uuid_from_hash` behavior for namespace IDs that are different from the ones defined on `Digest::UUID`.
