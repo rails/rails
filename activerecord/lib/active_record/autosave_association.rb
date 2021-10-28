@@ -456,7 +456,7 @@ module ActiveRecord
                 association.set_inverse_instance(record)
               end
 
-              saved = record.save(validate: !autosave)
+              saved = record.save(validate: @_save_options.fetch(:validate, !autosave))
               raise ActiveRecord::Rollback if !saved && autosave
               saved
             end

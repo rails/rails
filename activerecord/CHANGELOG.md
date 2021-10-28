@@ -1,3 +1,10 @@
+*   Propagate `save(validate:)` option for `:has_one` associations on autosave.
+
+    `save(validate:)` option is propagated to associated records during `autosave` when `autosave` option is
+    `nil`. Affects only `:has_one` associations.
+
+    *Jacopo Beschi*
+
 *   Propagate `save(validate:)` option for `:has_many` associations on autosave.
 
     `save(validate:)` option is propagated to associated records during `autosave` when `autosave` option is
