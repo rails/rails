@@ -1,9 +1,31 @@
+*   Add Enum translation methods.
+
+        class Report < ActiveRecord::Base
+          enum :status, [ :confidential, :publicly_available ]
+        end
+
+        report = Report.new(status: "publicly_available")
+        report.human_enum_name(:status) # => "Publicly available"
+        Report.human_enum_name(:status, :confidential) # => "Confidential"
+        Report.human_enum_names_hash(:status)
+        # => { "confidential" => "Confidential", "publicly_available" => "Publicly available" }
+
+    I18n YAML can also be used to define translations.
+
+        en:
+          activerecord:
+            enums:
+              report:
+                status:
+                  confidential: "Restricted to the organization members"
+                  publicly_available: "Published for everyone in the world"
+
+    *Shunichi Ikegami*
+
 *   Add `:day_format` option to `date_select`
 
         date_select("article", "written_on", day_format: ->(day) { day.ordinalize })
         # generates day options like <option value="1">1st</option>\n<option value="2">2nd</option>...
-
-    *Shunichi Ikegami*
 
 *   Allow `link_to` helper to infer link name from `Model#to_s` when it
     is used with a single argument:

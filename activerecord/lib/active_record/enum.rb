@@ -114,6 +114,9 @@ module ActiveRecord
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums, instance_writer: false, default: {})
+      base.class_eval do
+        include Translation
+      end
     end
 
     def inherited(base) # :nodoc:
@@ -162,6 +165,60 @@ module ActiveRecord
 
       private
         attr_reader :name, :mapping
+    end
+
+    module Translation
+      extend ActiveSupport::Concern
+
+      # Transform enum values to a more human format, such as "Publicly available"
+      # instead of "publicly_available".
+      #
+      #   class Report < ActiveRecord::Base
+      #     enum :status, [ :confidential, :publicly_available ]
+      #   end
+      #
+      #   report = Report.new(status: "publicly_available")
+      #   report.human_enum_name("status") # => "Publicly available"
+      def human_enum_name(name)
+        self.class.human_enum_name(name, public_send(name))
+      end
+
+      module ClassMethods
+        # Transform enum values to a more human format, such as "Publicly available"
+        # instead of "publicly_available".
+        #
+        #   class Report < ActiveRecord::Base
+        #     enum :status, [ :confidential, :publicly_available ]
+        #   end
+        #
+        #   Report.human_enum_name("status", "publicly_available") # => "Publicly available"
+        #
+        # I18n YAML can also be used to define translations.
+        #
+        #    en:
+        #      activerecord:
+        #        enums:
+        #          report:
+        #            status:
+        #              confidential: "Restricted to the organization members"
+        #              publicly_available: "Published for everyone in the world"
+        def human_enum_name(name, value)
+          I18n.t(value, scope: "activerecord.enums.#{model_name.i18n_key}.#{name}", default: value.to_s.humanize)
+        end
+
+        # Get the translations for a enum column as a hash.
+        #
+        #   class Report < ActiveRecord::Base
+        #     enum :status, [ :confidential, :publicly_available ]
+        #   end
+        #
+        #   Report.human_enum_names_hash("status") # => { "confidential" => "Confidential", "publicly_available" => "Publicly available" }
+        def human_enum_names_hash(name)
+          defined_enums[name.to_s].map do |key, _|
+            [key, human_enum_name(name, key)]
+          end.to_h
+        end
+      end
     end
 
     def enum(name = nil, values = nil, **options)
