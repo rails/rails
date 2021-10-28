@@ -7,16 +7,6 @@ require "active_support/core_ext/object/try"
 
 module ActiveSupport
   module Notifications
-    class InstrumentationSubscriberError < RuntimeError
-      attr_reader :exceptions
-
-      def initialize(exceptions)
-        @exceptions = exceptions
-        exception_class_names = exceptions.map { |e| e.class.name }
-        super "Exception(s) occurred within instrumentation subscribers: #{exception_class_names.join(', ')}"
-      end
-    end
-
     # This is a default queue implementation that ships with Notifications.
     # It just pushes events to all registered log subscribers.
     #
@@ -69,32 +59,19 @@ module ActiveSupport
       end
 
       def start(name, id, payload)
-        iterate_guarding_exceptions(listeners_for(name)) { |s| s.start(name, id, payload) }
+        listeners_for(name).each { |s| s.start(name, id, payload) }
       end
 
       def finish(name, id, payload, listeners = listeners_for(name))
-        iterate_guarding_exceptions(listeners) { |s| s.finish(name, id, payload) }
+        listeners.each { |s| s.finish(name, id, payload) }
       end
 
       def publish(name, *args)
-        iterate_guarding_exceptions(listeners_for(name)) { |s| s.publish(name, *args) }
+        listeners_for(name).each { |s| s.publish(name, *args) }
       end
 
       def publish_event(event)
-        iterate_guarding_exceptions(listeners_for(event.name)) { |s| s.publish_event(event) }
-      end
-
-      def iterate_guarding_exceptions(listeners)
-        exceptions = nil
-
-        listeners.each do |s|
-          yield s
-        rescue Exception => e
-          exceptions ||= []
-          exceptions << e
-        end
-      ensure
-        raise InstrumentationSubscriberError.new(exceptions) unless exceptions.nil?
+        listeners_for(event.name).each { |s| s.publish_event(event) }
       end
 
       def listeners_for(name)

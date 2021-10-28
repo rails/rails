@@ -213,10 +213,9 @@ module ActiveRecord
     def test_exceptions_from_notifications_are_not_translated
       original_error = StandardError.new("This StandardError shouldn't get translated")
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") { raise original_error }
-      wrapped_error = assert_raises(ActiveSupport::Notifications::InstrumentationSubscriberError) do
+      actual_error = assert_raises(StandardError) do
         @connection.execute("SELECT * FROM posts")
       end
-      actual_error = wrapped_error.exceptions.first
 
       assert_equal original_error, actual_error
 
