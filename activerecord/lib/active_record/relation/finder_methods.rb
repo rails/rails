@@ -297,6 +297,14 @@ module ActiveRecord
       second_to_last || raise_record_not_found_exception!
     end
 
+    def shuffle
+      order("RANDOM()")
+    end
+
+    def sample(n = nil)
+      shuffle.first(n)
+    end
+
     # Returns true if a record exists in the table that matches the +id+ or
     # conditions given, or false otherwise. The argument can take six forms:
     #

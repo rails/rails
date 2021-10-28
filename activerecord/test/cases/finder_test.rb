@@ -1703,6 +1703,23 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  test "#shuffle" do
+    assert_equal Topic.count, Topic.shuffle.count
+    assert_equal [topics(:first)], Topic.where(title: "The First Topic").shuffle
+    assert_equal [], Topic.where(title: "This Topic Doesn't Exist").shuffle
+  end
+
+  test "#sample" do
+    assert Topic.sample
+    assert_equal topics(:first), Topic.where(title: "The First Topic").sample
+    assert_nil Topic.where(title: "This Topic Doesn't Exist").sample
+  end
+
+  test "#sample with a number of samples" do
+    assert_equal 3, Topic.sample(3).count
+    assert_equal 3, Topic.sample(3).length
+  end
+
   private
     def table_with_custom_primary_key
       yield(Class.new(Toy) do
