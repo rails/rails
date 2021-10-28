@@ -206,6 +206,7 @@ module ActionView
       #   you are creating new record. While editing existing record, <tt>:end_year</tt> defaults to
       #   the current selected year plus 5.
       # * <tt>:year_format</tt>       - Set format of years for year select. Lambda should be passed.
+      # * <tt>:day_format</tt>        - Set format of days for day select. Lambda should be passed.
       # * <tt>:discard_day</tt>       - Set to true if you don't want to show a day select. This includes the day
       #   as a hidden field instead of showing a select field. Also note that this implicitly sets the day to be the
       #   first of the given month in order to not create invalid dates like 31 February.
@@ -278,6 +279,9 @@ module ActionView
       #
       #   # Generates a date select with custom year format.
       #   date_select("article", "written_on", year_format: ->(year) { "Heisei #{year - 1988}" })
+      #
+      #   # Generates a date select with custom day format.
+      #   date_select("article", "written_on", day_format: ->(day) { day.ordinalize })
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       #
@@ -811,7 +815,7 @@ module ActionView
         if @options[:use_hidden] || @options[:discard_day]
           build_hidden(:day, day || 1)
         else
-          build_options_and_select(:day, day, start: 1, end: 31, leading_zeros: false, use_two_digit_numbers: @options[:use_two_digit_numbers])
+          build_select(:day, build_day_options(day))
         end
       end
 
@@ -897,6 +901,27 @@ module ActionView
         def translated_month_names
           key = @options[:use_short_month] ? :'date.abbr_month_names' : :'date.month_names'
           I18n.translate(key, locale: @options[:locale])
+        end
+
+        # Looks up day names by number.
+        #
+        #   day_name(1) # => 1
+        #
+        # If the <tt>use_two_digit_numbers: true</tt> option is passed to DateTimeSelector:
+        #
+        #   day_name(1) # => "01"
+        #
+        # If the <tt>day_format: ->(day) { day.ordinalize }</tt> option is passed to DateTimeSelector:
+        #
+        #   day_name(1) # => "1st"
+        def day_name(number)
+          if day_format_lambda = @options[:day_format]
+            day_format_lambda.call(number)
+          elsif @options[:use_two_digit_numbers]
+            "%02d" % number
+          else
+            number
+          end
         end
 
         # Looks up month names by number (1-based):
@@ -1005,6 +1030,35 @@ module ActionView
             tag_options[:selected] = "selected" if selected == i
             text = options[:use_two_digit_numbers] ? sprintf("%02d", i) : value
             text = options[:ampm] ? AMPM_TRANSLATION[i] : text
+            select_options << content_tag("option", text, tag_options)
+          end
+
+          (select_options.join("\n") + "\n").html_safe
+        end
+
+        # Build select option HTML for day.
+        #  build_day_options(2)
+        #  => "<option value="1">1</option>
+        #      <option value="2" selected="selected">2</option>
+        #      <option value="3">3</option>..."
+        #
+        # If <tt>day_format: ->(day) { day.ordinalize }</tt> option is passed to DateTimeSelector
+        #  build_day_options(2)
+        #  => "<option value="1">1st</option>
+        #      <option value="2" selected="selected">2nd</option>
+        #      <option value="3">3rd</option>..."
+        #
+        # If <tt>use_two_digit_numbers: true</tt> option is passed to DateTimeSelector
+        #  build_day_options(2)
+        #  => "<option value="1">01</option>
+        #      <option value="2" selected="selected">02</option>
+        #      <option value="3">03</option>..."
+        def build_day_options(selected)
+          select_options = []
+          (1..31).each do |value|
+            tag_options = { value: value }
+            tag_options[:selected] = "selected" if selected == value
+            text = day_name(value)
             select_options << content_tag("option", text, tag_options)
           end
 
