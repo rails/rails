@@ -28,13 +28,20 @@ module ActiveSupport
     end
 
     initializer "active_support.reset_all_current_attributes_instances" do |app|
+      executor_around_test_case = app.config.active_support.delete(:executor_around_test_case)
+
       app.reloader.before_class_unload { ActiveSupport::CurrentAttributes.clear_all }
       app.executor.to_run              { ActiveSupport::CurrentAttributes.reset_all }
       app.executor.to_complete         { ActiveSupport::CurrentAttributes.reset_all }
 
       ActiveSupport.on_load(:active_support_test_case) do
-        require "active_support/current_attributes/test_helper"
-        include ActiveSupport::CurrentAttributes::TestHelper
+        if executor_around_test_case
+          require "active_support/executor/test_helper"
+          include ActiveSupport::Executor::TestHelper
+        else
+          require "active_support/current_attributes/test_helper"
+          include ActiveSupport::CurrentAttributes::TestHelper
+        end
       end
     end
 
