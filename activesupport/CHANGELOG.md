@@ -15,6 +15,7 @@
 
       - `ActiveSupport::DescendantsTracker.direct_descendants`
       - `ActiveSupport::DescendantsTracker#direct_descendants`
+
     *Jean Boussier*
 
 *   Fix the `Digest::UUID.uuid_from_hash` behavior for namespace IDs that are different from the ones defined on `Digest::UUID`.
@@ -28,7 +29,7 @@
     the constants defined on the `Digest::UUID` extension is used as the
     namespace ID.
 
-    *Alex Robbin, Erich Soares Machado, Eugene Kenny*
+    *Alex Robbin*, *Erich Soares Machado*, *Eugene Kenny*
 
 *   `ActiveSupport::Inflector::Inflections#clear(:acronyms)` is now supported,
     and `inflector.clear` / `inflector.clear(:all)` also clears acronyms.
