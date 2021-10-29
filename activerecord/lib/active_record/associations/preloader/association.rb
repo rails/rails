@@ -248,7 +248,7 @@ module ActiveRecord
 
           def convert_key(key)
             if key_conversion_required?
-              key.to_s
+              key.kind_of?(Float) ? key.to_i.to_s : key.to_s
             else
               key
             end
