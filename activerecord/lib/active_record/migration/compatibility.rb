@@ -67,6 +67,14 @@ module ActiveRecord
           end
         end
 
+        def change_table(table_name, **options)
+          if block_given?
+            super { |t| yield compatible_table_definition(t) }
+          else
+            super
+          end
+        end
+
         module TableDefinition
           def new_column_definition(name, type, **options)
             type = PostgreSQLCompat.compatible_timestamp_type(type, @conn)
@@ -77,6 +85,10 @@ module ActiveRecord
             options[:precision] ||= nil
             super
           end
+
+          private
+            def raise_on_if_exist_options(options)
+            end
         end
 
         private

@@ -519,6 +519,20 @@ module ActiveRecord
         assert connection.column_exists?(:testings, :published_at, **precision_implicit_default)
       end
 
+      def test_change_table_allows_if_exists_option_on_6_1
+        migration = Class.new(ActiveRecord::Migration[6.1]) {
+          def migrate(x)
+            change_table(:testings) do |t|
+              t.remove :foo, if_exists: true
+            end
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+
+        assert_not connection.column_exists?(:testings, :foo)
+      end
+
       private
         def precision_implicit_default
           if current_adapter?(:Mysql2Adapter)
