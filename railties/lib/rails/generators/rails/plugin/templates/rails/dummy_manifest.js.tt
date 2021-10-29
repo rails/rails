@@ -1,7 +1,7 @@
 <% unless api? -%>
 //= link_tree ../images
 <% end -%>
-<% unless options.skip_javascript -%>
+<% unless options.skip_js -%>
 //= link_directory ../javascripts .js
 <% end -%>
 //= link_directory ../stylesheets .css

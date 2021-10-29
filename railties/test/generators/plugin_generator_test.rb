@@ -174,7 +174,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "bin/rails", /APP_PATH/
   end
 
-  def test_generating_adds_dummy_app_without_javascript_and_assets_deps
+  def test_generating_adds_dummy_app_without_js_and_assets_deps
     run_generator
 
     assert_file "test/dummy/app/assets/stylesheets/application.css"
@@ -276,8 +276,8 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "#{destination_root}/Gemfile.lock"
   end
 
-  def test_skip_javascript
-    run_generator [destination_root, "--skip-javascript", "--mountable"]
+  def test_skip_js
+    run_generator [destination_root, "--skip-js", "--mountable"]
     assert_file "app/views/layouts/bukkits/application.html.erb" do |content|
       assert_no_match "javascript_pack_tag", content
     end

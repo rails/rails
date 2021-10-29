@@ -1,5 +1,5 @@
 <% if mountable? -%>
-<% if !options.skip_javascript -%>
+<% if !options.skip_js -%>
 //= link_directory ../javascripts/<%= namespaced_name %> .js
 <% end -%>
 //= link_directory ../stylesheets/<%= namespaced_name %> .css

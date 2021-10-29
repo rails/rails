@@ -6,7 +6,7 @@
     <%%= csrf_meta_tags %>
     <%%= csp_meta_tag %>
 
-    <%- if options[:skip_hotwire] || options[:skip_javascript] -%>
+    <%- if options[:skip_hotwire] || options[:skip_js] -%>
     <%%= stylesheet_link_tag "application" %>
     <%- else -%>
     <%%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>

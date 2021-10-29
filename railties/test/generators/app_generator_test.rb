@@ -559,8 +559,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_javascript_is_skipped_if_required
-    run_generator [destination_root, "--skip-javascript"]
+  def test_js_is_skipped_if_required
+    run_generator [destination_root, "--skip-js"]
 
     assert_no_file "app/javascript"
 
@@ -742,8 +742,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_skip_javascript_option
-    generator([destination_root], skip_javascript: true)
+  def test_skip_js_option
+    generator([destination_root], skip_js: true)
 
     command_check = -> command, *_ do
       if command == "importmap:install"
@@ -767,7 +767,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_webpack_option
-    generator([destination_root], javascript: "webpack")
+    generator([destination_root], js: "webpack")
 
     webpacker_called = 0
     command_check = -> command, *_ do

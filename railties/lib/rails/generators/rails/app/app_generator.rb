@@ -265,7 +265,7 @@ module Rails
       class_option :version, type: :boolean, aliases: "-v", group: :rails, desc: "Show Rails version number and quit"
       class_option :api, type: :boolean, desc: "Preconfigure smaller stack for API only apps"
       class_option :minimal, type: :boolean, desc: "Preconfigure a minimal rails app"
-      class_option :javascript, type: :string, aliases: "-j", default: "importmap", desc: "Choose JavaScript approach [options: importmap (default), webpack, esbuild, rollup]"
+      class_option :js, type: :string, aliases: "-j", default: "importmap", desc: "Choose JavaScript approach [options: importmap (default), webpack, esbuild, rollup]"
       class_option :css, type: :string, desc: "Choose CSS processor [options: tailwind, bootstrap, bulma, postcss, sass... check https://github.com/rails/cssbundling-rails]"
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false, desc: "Don't run bundle install"
 
@@ -279,7 +279,7 @@ module Rails
         # Force sprockets and JavaScript to be skipped when generating API only apps.
         # Can't modify options hash as it's frozen by default.
         if options[:api]
-          self.options = options.merge(skip_asset_pipeline: true, skip_javascript: true).freeze
+          self.options = options.merge(skip_asset_pipeline: true, skip_js: true).freeze
         end
 
         if options[:minimal]
@@ -292,7 +292,7 @@ module Rails
             skip_active_storage: true,
             skip_bootsnap: true,
             skip_dev_gems: true,
-            skip_javascript: true,
+            skip_js: true,
             skip_jbuilder: true,
             skip_system_test: true,
             skip_hotwire: true).freeze
@@ -505,7 +505,7 @@ module Rails
 
       public_task :apply_rails_template, :run_bundle
       public_task :generate_bundler_binstub
-      public_task :run_javascript
+      public_task :run_js
       public_task :run_hotwire
       public_task :run_css
 

@@ -63,7 +63,7 @@ module Rails
         class_option :asset_pipeline,      type: :string, aliases: "-a", default: "sprockets",
                                            desc: "Choose your asset pipeline [options: sprockets (default), propshaft]"
 
-        class_option :skip_javascript,     type: :boolean, aliases: "-J", default: name == "plugin",
+        class_option :skip_js,             type: :boolean, aliases: "-J", default: name == "plugin",
                                            desc: "Skip JavaScript files"
 
         class_option :skip_hotwire,        type: :boolean, default: false,
@@ -111,7 +111,7 @@ module Rails
          asset_pipeline_gemfile_entry,
          database_gemfile_entry,
          web_server_gemfile_entry,
-         javascript_gemfile_entry,
+         js_gemfile_entry,
          hotwire_gemfile_entry,
          css_gemfile_entry,
          jbuilder_gemfile_entry,
@@ -310,10 +310,10 @@ module Rails
         GemfileEntry.new "jbuilder", "~> 2.7", comment, {}, options[:api]
       end
 
-      def javascript_gemfile_entry
-        return [] if options[:skip_javascript]
+      def js_gemfile_entry
+        return [] if options[:skip_js]
 
-        if options[:javascript] == "importmap"
+        if options[:js] == "importmap"
           GemfileEntry.version("importmap-rails", ">= 0.3.4", "Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]")
         else
           GemfileEntry.version "jsbundling-rails", "~> 0.1.0", "Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]"
@@ -321,7 +321,7 @@ module Rails
       end
 
       def hotwire_gemfile_entry
-        return [] if options[:skip_javascript] || options[:skip_hotwire]
+        return [] if options[:skip_js] || options[:skip_hotwire]
 
         turbo_rails_entry =
           GemfileEntry.version("turbo-rails", ">= 0.7.11", "Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]")
@@ -333,7 +333,7 @@ module Rails
       end
 
       def using_node?
-        options[:javascript] && options[:javascript] != "importmap"
+        options[:js] && options[:js] != "importmap"
       end
 
       def css_gemfile_entry
@@ -404,17 +404,17 @@ module Rails
         bundle_command("install", "BUNDLE_IGNORE_MESSAGES" => "1") if bundle_install?
       end
 
-      def run_javascript
-        return if options[:skip_javascript] || !bundle_install?
+      def run_js
+        return if options[:skip_js] || !bundle_install?
 
-        case options[:javascript]
+        case options[:js]
         when "importmap"                    then rails_command "importmap:install"
-        when "webpack", "esbuild", "rollup" then rails_command "javascript:install:#{options[:javascript]}"
+        when "webpack", "esbuild", "rollup" then rails_command "javascript:install:#{options[:js]}"
         end
       end
 
       def run_hotwire
-        return if options[:skip_javascript] || options[:skip_hotwire] || !bundle_install?
+        return if options[:skip_js] || options[:skip_hotwire] || !bundle_install?
 
         rails_command "turbo:install stimulus:install"
       end

@@ -33,7 +33,7 @@ module Rails
       rails: {
         actions: "-a",
         orm: "-o",
-        javascripts: "-j",
+        js: "-j",
         resource_controller: "-c",
         scaffold_controller: "-c",
         stylesheets: "-y",
