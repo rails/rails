@@ -1,3 +1,7 @@
+*   Provide means to track which attributes have been set through `ActiveRecord::AttributeMethods#assigned_fields`.
+
+    *Aaron Lipman*
+
 *   Add support for setting the filename of the schema or structure dump in the database config.
 
     Applications may now set their the filename or path of the schema / structure dump file in their database configuration.

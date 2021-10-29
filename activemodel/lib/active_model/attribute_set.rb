@@ -89,6 +89,10 @@ module ActiveModel
       attributes.each_key.select { |name| self[name].has_been_read? }
     end
 
+    def assigned
+      attributes.each_key.select { |name| self[name].assigned? }
+    end
+
     def map(&block)
       new_attributes = attributes.transform_values(&block)
       AttributeSet.new(new_attributes)

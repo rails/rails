@@ -377,6 +377,17 @@ module ActiveRecord
       @attributes.accessed
     end
 
+    # Returns the names of all attributes which have been set,
+    # regardless of whether they have changed.
+    #
+    #   @post = Post.last
+    #   @post.assigned_fields # => []
+    #   @post.title = 'hello world'
+    #   @post.assigned_fields # => ['title']
+    def assigned_fields
+      @attributes.assigned
+    end
+
     private
       def attribute_method?(attr_name)
         # We check defined? because Syck calls respond_to? before actually calling initialize.

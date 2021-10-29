@@ -266,6 +266,17 @@ module ActiveModel
       assert_equal [:foo], attributes.accessed
     end
 
+    test "#assigned_attributes returns only attributes which have been written" do
+      builder = AttributeSet::Builder.new(foo: Type::Value.new, bar: Type::Value.new)
+      attributes = builder.build_from_database(foo: "1", bar: "2")
+
+      assert_equal [], attributes.assigned
+
+      attributes.write_from_user(:foo, 1)
+
+      assert_equal [:foo], attributes.assigned
+    end
+
     test "#map returns a new attribute set with the changes applied" do
       builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Integer.new)
       attributes = builder.build_from_database(foo: "1", bar: "2")

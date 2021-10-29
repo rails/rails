@@ -109,6 +109,10 @@ module ActiveModel
       defined?(@value)
     end
 
+    def assigned?
+      original_attribute.present?
+    end
+
     def ==(other)
       self.class == other.class &&
         name == other.name &&
@@ -147,7 +151,6 @@ module ActiveModel
 
     private
       attr_reader :original_attribute
-      alias :assigned? :original_attribute
 
       def initialize_dup(other)
         if defined?(@value) && @value.duplicable?

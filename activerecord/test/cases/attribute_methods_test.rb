@@ -1107,6 +1107,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal ["title"], model.accessed_fields
   end
 
+  test "assigned_fields" do
+    model = @target.first
+    assert_equal [], model.assigned_fields
+
+    model.title = model.title
+    assert_equal ["title"], model.assigned_fields
+
+    model.save!
+    assert_equal [], model.assigned_fields
+  end
+
   test "generated attribute methods ancestors have correct module" do
     mod = Topic.send(:generated_attribute_methods)
     assert_equal "Topic::GeneratedAttributeMethods", mod.inspect
