@@ -3,7 +3,7 @@
 
     *Veerpal Brar*
 
-*   Raise an `ArgumentErrorError` if `perform_later` is invoked with arguments
+*   Raise an `ArgumentError` if `perform_later` is invoked with arguments
     not compatible with `perform`. 
 
     *Christian Schmidt*
