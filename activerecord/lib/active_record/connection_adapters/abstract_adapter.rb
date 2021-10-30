@@ -522,7 +522,7 @@ module ActiveRecord
       # REFERENTIAL INTEGRITY ====================================
 
       # Override to turn off referential integrity while executing <tt>&block</tt>.
-      def disable_referential_integrity
+      def disable_referential_integrity(_tables_to_disable = [])
         yield
       end
 

@@ -197,7 +197,7 @@ module ActiveRecord
 
       # REFERENTIAL INTEGRITY ====================================
 
-      def disable_referential_integrity # :nodoc:
+      def disable_referential_integrity(_tables_to_disable = []) # :nodoc:
         old_foreign_keys = query_value("PRAGMA foreign_keys")
         old_defer_foreign_keys = query_value("PRAGMA defer_foreign_keys")
 

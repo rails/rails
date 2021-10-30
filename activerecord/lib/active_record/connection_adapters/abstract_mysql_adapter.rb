@@ -180,7 +180,7 @@ module ActiveRecord
 
       # REFERENTIAL INTEGRITY ====================================
 
-      def disable_referential_integrity # :nodoc:
+      def disable_referential_integrity(_tables_to_disable = []) # :nodoc:
         old = query_value("SELECT @@FOREIGN_KEY_CHECKS")
 
         begin

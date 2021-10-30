@@ -4,12 +4,12 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module ReferentialIntegrity # :nodoc:
-        def disable_referential_integrity # :nodoc:
+        def disable_referential_integrity(tables_to_disable = tables) # :nodoc:
           original_exception = nil
 
           begin
             transaction(requires_new: true) do
-              execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
+              execute(tables_to_disable.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
             end
           rescue ActiveRecord::ActiveRecordError => e
             original_exception = e
@@ -32,7 +32,7 @@ Rails needs superuser privileges to disable referential integrity.
 
           begin
             transaction(requires_new: true) do
-              execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
+              execute(tables_to_disable.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
             end
           rescue ActiveRecord::ActiveRecordError
           end

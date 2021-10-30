@@ -404,7 +404,7 @@ module ActiveRecord
         statements = table_deletes + fixture_inserts
 
         with_multi_statements do
-          disable_referential_integrity do
+          disable_referential_integrity(tables_to_delete) do
             transaction(requires_new: true) do
               execute_batch(statements, "Fixtures Load")
             end
