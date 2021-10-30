@@ -390,6 +390,14 @@ def welcome_email
 end
 ```
 
+The same technique works to specify a sender name:
+
+```ruby
+class UserMailer < ApplicationMailer
+  default from: email_address_with_name('notification@example.com', 'Example Company Notifications')
+end
+```
+
 If the name is a blank string, it returns just the address.
 
 [`email_address_with_name`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-email_address_with_name
