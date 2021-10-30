@@ -10,7 +10,7 @@ class AbortBeforeEnqueueJob < ActiveJob::Base
 
   attr_accessor :flag
 
-  def perform
+  def perform(action = :raise)
     raise "This should never be called"
   end
 

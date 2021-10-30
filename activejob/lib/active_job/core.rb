@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/method"
+
 module ActiveJob
   # Provides general behavior that will be included into every Active Job
   # object that inherits from ActiveJob::Base.
@@ -58,7 +60,7 @@ module ActiveJob
     module ClassMethods
       # Creates a new job instance from a hash created with +serialize+
       def deserialize(job_data)
-        job = job_data["job_class"].constantize.new
+        job = job_data["job_class"].constantize.allocate
         job.deserialize(job_data)
         job
       end
@@ -89,6 +91,8 @@ module ActiveJob
     # Creates a new job instance. Takes the arguments that will be
     # passed to the perform method.
     def initialize(*arguments)
+      method(:perform).validate_parameters(*arguments)
+
       @arguments  = arguments
       @job_id     = SecureRandom.uuid
       @queue_name = self.class.queue_name

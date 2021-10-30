@@ -2,6 +2,7 @@
 
 require "helper"
 require "jobs/hello_job"
+require "jobs/kwargs_job"
 require "jobs/enqueue_error_job"
 require "active_support/core_ext/numeric/time"
 
@@ -52,6 +53,18 @@ class QueuingTest < ActiveSupport::TestCase
     EnqueueErrorJob.perform_later do |job|
       assert_equal false, job.successfully_enqueued?
       assert_equal ActiveJob::EnqueueError, job.enqueue_error.class
+    end
+  end
+
+  test "perform_later validates args" do
+    assert_raises ArgumentError do
+      HelloJob.perform_later "Jamie", "extra argument"
+    end
+  end
+
+  test "perform_later validates kwargs" do
+    assert_raises ArgumentError do
+      KwargsJob.perform_later "not kwarg"
     end
   end
 end
