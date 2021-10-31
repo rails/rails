@@ -12,7 +12,7 @@ module Callable
       summary = parameter_summary
       count = args.count
 
-      if kwargs.any? && summary[:key].none?
+      if kwargs.any? && summary[:key].none? && !summary[:keyrest]
         count += 1
         kwargs = {}
       end

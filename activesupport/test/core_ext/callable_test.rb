@@ -54,6 +54,16 @@ class CallableTest < ActiveSupport::TestCase
     assert_parameters_not_valid(callable)
   end
 
+  def test_req_keyrest
+    callable = ->(req, **keyrest) { }
+
+    assert_parameters_valid(callable, 1)
+    assert_parameters_valid(callable, 1, foo: 1)
+    assert_parameters_not_valid(callable)
+    assert_parameters_not_valid(callable, foo: 1)
+    assert_parameters_not_valid(callable, 1, 2)
+  end
+
   def test_key
     callable = ->(key: nil) { }
 
@@ -85,6 +95,25 @@ class CallableTest < ActiveSupport::TestCase
     assert_parameters_not_valid(callable, 1)
     assert_parameters_not_valid(callable, 1, keyreq: 1)
     assert_parameters_not_valid(callable, foo: 1)
+  end
+
+  def test_rest_key
+    callable = ->(*rest, key: nil) { }
+
+    assert_parameters_valid(callable)
+    assert_parameters_valid(callable, 1)
+    assert_parameters_valid(callable, key: 1)
+    assert_parameters_valid(callable, 1, key: 2)
+    assert_parameters_not_valid(callable, foo: 1)
+  end
+
+  def test_rest_keyrest
+    callable = ->(*rest, **keyrest) { }
+
+    assert_parameters_valid(callable)
+    assert_parameters_valid(callable, 1)
+    assert_parameters_valid(callable, key: 1)
+    assert_parameters_valid(callable, 1, key: 2)
   end
 
   def test_nokey
