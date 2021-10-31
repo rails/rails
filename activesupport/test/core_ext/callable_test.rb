@@ -112,6 +112,17 @@ class CallableTest < ActiveSupport::TestCase
   def dummy(req, opt = nil, keyreq:, key: nil)
   end
 
+  def test_incompatibility_warning
+    callable = ->() { }
+    callable.stub(:call, 1) do
+      exception = assert_raises RuntimeError do
+        callable.validate_parameters(1)
+      end
+
+      assert_equal "parameters_valid? not in sync with call - Proc has been invoked!", exception.message
+    end
+  end
+
   if RUBY_VERSION < "3"
 
     def assert_parameters_valid(callable, *args)

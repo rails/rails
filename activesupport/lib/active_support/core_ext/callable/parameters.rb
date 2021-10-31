@@ -49,6 +49,10 @@ module Callable
         # This will fail but call it anyway to make Ruby raise an ArgumentError
         # with an appropriate error message.
         call(...)
+
+        # If the above did not raise as expected, there is a bug in parameters_valid?.
+        # Raise an exception to alert the user that this callable was invoked unintentionally.
+        raise "parameters_valid? not in sync with call - #{self.class} has been invoked!"
       end
     end
 
