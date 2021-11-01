@@ -109,6 +109,8 @@ class SpacePirate < ActiveRecord::Base
   has_one :ship, foreign_key: :pirate_id
   has_one :ship_with_annotation, -> { annotate("that is a rocket") }, class_name: :Ship, foreign_key: :pirate_id
   has_many :birds, foreign_key: :pirate_id
+  has_many :birds_with_autosave, foreign_key: :pirate_id, autosave: true, class_name: :Bird
+  has_many :birds_without_autosave, foreign_key: :pirate_id, autosave: false, class_name: :Bird
   has_many :birds_with_annotation, -> { annotate("that are also parrots") }, class_name: :Bird, foreign_key: :pirate_id
   has_many :treasures, as: :looter
   has_many :treasure_estimates, through: :treasures, source: :price_estimates
