@@ -485,8 +485,9 @@ module ActiveRecord
       arel = eager_loading? ? apply_join_dependency.arel : build_arel
       arel.source.left = table
 
-      stmt = arel.compile_update(values, table[primary_key])
-
+      group_values_arel_columns = arel_columns(group_values.uniq)
+      having_clause_ast = having_clause.ast unless having_clause.empty?
+      stmt = arel.compile_update(values, table[primary_key], having_clause_ast, group_values_arel_columns)
       klass.connection.update(stmt, "#{klass} Update All").tap { reset }
     end
 
