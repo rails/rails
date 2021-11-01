@@ -1,3 +1,19 @@
+*   Propagate `save(validate:)` option for `:has_one` associations on autosave.
+
+    `save(validate:)` option is propagated to associated records during `autosave` when `autosave` option is
+    `nil`. Affects only `:has_one` associations.
+
+    *Jacopo Beschi*
+
+*   Propagate `save(validate:)` option for `:has_many` associations on autosave.
+
+    `save(validate:)` option is propagated to associated records during `autosave` when `autosave` option is
+    `nil`. Affects only `:has_many` associations.
+
+    Fixes #43400
+
+    *Jacopo Beschi*
+
 *   Add support for setting the filename of the schema or structure dump in the database config.
 
     Applications may now set their the filename or path of the schema / structure dump file in their database configuration.

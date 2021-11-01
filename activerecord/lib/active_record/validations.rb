@@ -44,13 +44,17 @@ module ActiveRecord
     # The regular {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] method is replaced
     # with this when the validations module is mixed in, which it is by default.
     def save(**options)
-      perform_validations(options) ? super : false
+      with_save_options(options) do
+        perform_validations ? super : false
+      end
     end
 
     # Attempts to save the record just like {ActiveRecord::Base#save}[rdoc-ref:Base#save] but
     # will raise an ActiveRecord::RecordInvalid exception instead of returning +false+ if the record is not valid.
     def save!(**options)
-      perform_validations(options) ? super : raise_validation_error
+      with_save_options(options) do
+        perform_validations ? super : raise_validation_error
+      end
     end
 
     # Runs all the validations within the specified context. Returns +true+ if
@@ -72,6 +76,13 @@ module ActiveRecord
     alias_method :validate, :valid?
 
   private
+    def with_save_options(options)
+      @_save_options, previous_save_options = options, @_save_options
+      yield
+    ensure
+      @_save_options = previous_save_options
+    end
+
     def default_validation_context
       new_record? ? :create : :update
     end
@@ -80,8 +91,8 @@ module ActiveRecord
       raise(RecordInvalid.new(self))
     end
 
-    def perform_validations(options = {})
-      options[:validate] == false || valid?(options[:context])
+    def perform_validations
+      @_save_options[:validate] == false || valid?(@_save_options[:context])
     end
   end
 end

@@ -409,7 +409,11 @@ module ActiveRecord
                 if autosave
                   saved = association.insert_record(record, false)
                 elsif !reflection.nested?
-                  association_saved = association.insert_record(record)
+                  association_saved = if @_save_options.key?(:validate)
+                    association.insert_record(record, @_save_options[:validate])
+                  else
+                    association.insert_record(record)
+                  end
 
                   if reflection.validate?
                     errors.add(reflection.name) unless association_saved
@@ -452,7 +456,7 @@ module ActiveRecord
                 association.set_inverse_instance(record)
               end
 
-              saved = record.save(validate: !autosave)
+              saved = record.save(validate: @_save_options.fetch(:validate, !autosave))
               raise ActiveRecord::Rollback if !saved && autosave
               saved
             end

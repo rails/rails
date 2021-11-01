@@ -1847,6 +1847,30 @@ class TestAutosaveAssociationValidationsOnAHasManyAssociation < ActiveRecord::Te
     assert pirate.valid?
     assert_not pirate.valid?(:conference)
   end
+
+  test "propagates (validate: false) option to associations when autosave is nil" do
+    pirate = SpacePirate.create!
+    pirate.birds.build
+
+    assert_equal false, pirate.save
+    assert_equal true,  pirate.save(validate: false)
+  end
+
+  test "propagates (validate: false) option to associations when autosave is true" do
+    pirate = SpacePirate.create!
+    pirate.birds_with_autosave.build
+
+    assert_equal false, pirate.save
+    assert_equal true,  pirate.save(validate: false)
+  end
+
+  test "propagates (validate: false) option to associations when autosave is false" do
+    pirate = SpacePirate.create!
+    pirate.birds_without_autosave.build
+
+    assert_equal false, pirate.save
+    assert_equal true, pirate.save(validate: false)
+  end
 end
 
 class TestAutosaveAssociationValidationsOnAHasOneAssociation < ActiveRecord::TestCase
@@ -1869,6 +1893,27 @@ class TestAutosaveAssociationValidationsOnAHasOneAssociation < ActiveRecord::Tes
     assert_predicate @pirate, :valid?
     @pirate.non_validated_ship.name = ""
     assert_predicate @pirate, :valid?
+  end
+
+  test "propagates (validate: false) option to associations when autosave is nil" do
+    @pirate.build_ship
+
+    assert_equal false, @pirate.save
+    assert_equal true,  @pirate.save(validate: false)
+  end
+
+  test "propagates (validate: false) option to associations when autosave is true" do
+    @pirate.build_ship_with_autosave
+
+    assert_equal false, @pirate.save
+    assert_equal true,  @pirate.save(validate: false)
+  end
+
+  test "propagates (validate: false) option to associations when autosave is false" do
+    @pirate.build_ship_without_autosave
+
+    assert_equal true, @pirate.save
+    assert_equal true, @pirate.save(validate: false)
   end
 end
 

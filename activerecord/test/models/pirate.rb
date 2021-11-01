@@ -27,6 +27,8 @@ class Pirate < ActiveRecord::Base
   has_many :treasure_estimates, through: :treasures, source: :price_estimates
 
   has_one :ship
+  has_one :ship_with_autosave, class_name: "Ship", autosave: true
+  has_one :ship_without_autosave, class_name: "Ship", autosave: false
   has_one :update_only_ship, class_name: "Ship"
   has_one :non_validated_ship, class_name: "Ship"
   has_many :birds, -> { order("birds.id ASC") }
@@ -109,6 +111,8 @@ class SpacePirate < ActiveRecord::Base
   has_one :ship, foreign_key: :pirate_id
   has_one :ship_with_annotation, -> { annotate("that is a rocket") }, class_name: :Ship, foreign_key: :pirate_id
   has_many :birds, foreign_key: :pirate_id
+  has_many :birds_with_autosave, foreign_key: :pirate_id, autosave: true, class_name: :Bird
+  has_many :birds_without_autosave, foreign_key: :pirate_id, autosave: false, class_name: :Bird
   has_many :birds_with_annotation, -> { annotate("that are also parrots") }, class_name: :Bird, foreign_key: :pirate_id
   has_many :treasures, as: :looter
   has_many :treasure_estimates, through: :treasures, source: :price_estimates
