@@ -463,7 +463,7 @@ Testing
 
 The task `zeitwerk:check` checks if the project tree follows the expected naming conventions and it is handy for manual checks. For example, if you're migrating from `classic` to `zeitwerk` mode, or if you're fixing something:
 
-```ruby
+```
 % bin/rails zeitwerk:check
 Hold on, I am eager loading the application.
 All is good!
