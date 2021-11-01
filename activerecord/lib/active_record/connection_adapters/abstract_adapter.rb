@@ -641,6 +641,14 @@ module ActiveRecord
       def check_version # :nodoc:
       end
 
+      # Returns the version identifier of the schema currently available in
+      # the database. This is generally equal to the number of the highest-
+      # numbered migration that has been executed, or 0 if no schema
+      # information is present / the database is empty.
+      def schema_version
+        migration_context.current_version
+      end
+
       def field_ordered_value(column, values) # :nodoc:
         node = Arel::Nodes::Case.new(column)
         values.each.with_index(1) do |value, order|
