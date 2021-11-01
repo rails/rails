@@ -306,11 +306,26 @@ Please make sure to depend on at least Bootsnap 1.4.4.
 Check Zeitwerk Compliance in the Test Suite
 -------------------------------------------
 
-The Rake task `zeitwerk:check` just eager loads, because doing so triggers built-in validations in Zeitwerk.
+The task `zeitwerk:check` is handy while migrating. Once the project is compliant, it is recommended to automate this check. In order to do so, it is enough to eager load the application, which is all the task does, indeed.
 
-You can add the equivalent of this to your test suite to make sure the application always loads correctly regardless of test coverage:
+### Continuous Integration
 
-### minitest
+If your project has continuous integration in place, it is a good idea to eager load the application when the suite runs there. If the application cannot be eager loaded for whatever reason, you want to know in CI, better than in production, right?
+
+CIs typically set some environment variable to indicate the test suite is running there. For example, it could be `CI`:
+
+```ruby
+# config/environments/test.rb
+config.eager_load = ENV["CI"].present?
+```
+
+Starting with Rails 7, newly generated applications are configured that way by default.
+
+### Bare Test Suites
+
+If your project does not have continuous integration, you can still eager load in the test suite by calling `Rails.application.eager_load!`:
+
+#### minitest
 
 ```ruby
 require "test_helper"
@@ -322,7 +337,7 @@ class ZeitwerkComplianceTest < ActiveSupport::TestCase
 end
 ```
 
-### RSpec
+#### RSpec
 
 ```ruby
 require "rails_helper"
