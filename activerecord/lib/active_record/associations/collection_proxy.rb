@@ -1091,6 +1091,52 @@ module ActiveRecord
         reset_scope
       end
 
+      # Only returns +records+ from the collection that are saved to the database.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.create(name: 'Fancy-Fancy')
+      #   # => #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>
+      #
+      #   person.pets.build([{name: 'Spook'}, {name: 'Choo-Choo'}])
+      #   # => [
+      #   #      #<Pet id: nil, name: "Spook", person_id: 1>,
+      #   #      #<Pet id: nil, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.persisted
+      #   # => [#<Pet id: 1, name: "Fancy-Fancy", person_id: 1>]
+      def persisted
+        load_target.select(&:persisted?)
+      end
+
+      # Only returns +records+ from the collection that have been instantiated
+      # but not saved to the database.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.create(name: 'Fancy-Fancy')
+      #   # => #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>
+      #
+      #   person.pets.build([{name: 'Spook'}, {name: 'Choo-Choo'}])
+      #   # => [
+      #   #      #<Pet id: nil, name: "Spook", person_id: 1>,
+      #   #      #<Pet id: nil, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.new_records
+      #   # => [
+      #   #       #<Pet id: nil, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: nil, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      def new_records
+        load_target.select(&:new_record?)
+      end
+
       def reset_scope # :nodoc:
         @offsets = @take = nil
         @scope = nil

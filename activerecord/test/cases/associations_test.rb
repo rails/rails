@@ -127,6 +127,20 @@ end
 class AssociationProxyTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :posts, :categorizations, :categories, :developers, :projects, :developers_projects
 
+  def test_persisted_only_returns_persisted_records
+    david = authors(:david)
+
+    post = david.posts.build(title: "New on Edge", body: "More cool stuff!")
+    assert_not_includes david.posts.persisted, post
+  end
+
+  def test_new_records_only_returns_new_records
+    david = authors(:david)
+
+    post = david.posts.build(title: "New on Edge", body: "More cool stuff!")
+    assert_includes david.posts.new_records, post
+  end
+
   def test_push_does_not_load_target
     david = authors(:david)
 

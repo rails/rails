@@ -1,3 +1,57 @@
+*   Add `persisted` and `new_records` methods to `ActiveRecord::Associations::CollectionProxy`.
+
+    Prior to this change there was no way to distinguish between persisted records and new records when returning a collection.
+
+    ```ruby
+    class Person < ActiveRecord::Base
+      has_many :pets
+    end
+
+    person.pets.create(name: 'Fancy-Fancy')
+    # => #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>
+
+    person.pets.build([{name: 'Spook'}, {name: 'Choo-Choo'}])
+    # => [
+    #   #<Pet id: nil, name: "Spook", person_id: 1>,
+    #   #<Pet id: nil, name: "Choo-Choo", person_id: 1>
+    # ]
+
+    person.pets
+    # => [
+    #   #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+    #   #<Pet id: nil, name: "Spook", person_id: 1>,
+    #   #<Pet id: nil, name: "Choo-Choo", person_id: 1>
+    # ]
+    ```
+
+    After this change you can call `persisted` or `new_records` on the collection.
+
+    ```ruby
+    class Person < ActiveRecord::Base
+      has_many :pets
+    end
+
+    person.pets.create(name: 'Fancy-Fancy')
+    # => #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>
+
+    person.pets.build([{name: 'Spook'}, {name: 'Choo-Choo'}])
+    # => [
+    #   #<Pet id: nil, name: "Spook", person_id: 1>,
+    #   #<Pet id: nil, name: "Choo-Choo", person_id: 1>
+    # ]
+
+    person.pets.persisted
+    # => [#<Pet id: 1, name: "Fancy-Fancy", person_id: 1>]
+
+    person.pets.new_records
+    # => [
+    #   #<Pet id: nil, name: "Spook", person_id: 1>,
+    #   #<Pet id: nil, name: "Choo-Choo", person_id: 1>
+    # ]    
+    ```    
+
+    *Steve Polito*
+
 *   Use subquery for DELETE with GROUP_BY and HAVING clauses.
 
     Prior to this change, deletes with GROUP_BY and HAVING were returning an error.
