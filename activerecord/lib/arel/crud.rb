@@ -33,13 +33,15 @@ module Arel # :nodoc: all
       um
     end
 
-    def compile_delete(key = nil)
+    def compile_delete(key = nil, having_clause = nil, group_values_columns = [])
       dm = DeleteManager.new(source)
       dm.take(limit)
       dm.offset(offset)
       dm.order(*orders)
       dm.wheres = constraints
       dm.key = key
+      dm.group(group_values_columns) unless group_values_columns.empty?
+      dm.having(having_clause) unless having_clause.nil?
       dm
     end
   end

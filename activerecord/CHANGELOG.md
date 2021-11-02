@@ -1,3 +1,17 @@
+*   Use subquery for DELETE with GROUP_BY and HAVING clauses.
+
+    Prior to this change, deletes with GROUP_BY and HAVING were returning an error.
+
+    After this change, GROUP_BY and HAVING are valid clauses in DELETE queries, generating the following query: 
+
+    ```sql
+    DELETE FROM "posts" WHERE "posts"."id" IN (
+        SELECT "posts"."id" FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id" GROUP BY "posts"."id" HAVING (count(comments.id) >= 2))
+    )  [["flagged", "t"]]
+    ```
+
+    *Ignacio Chiazzo Cardarello*
+
 *   Use subquery for UPDATE with GROUP_BY and HAVING clauses.
 
     Prior to this change, updates with GROUP_BY and HAVING were being ignored, generating a SQL like this:
