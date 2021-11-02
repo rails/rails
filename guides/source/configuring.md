@@ -1729,6 +1729,7 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.active_support.cache_format_version`: `7.0`
 - `config.active_support.remove_deprecated_time_with_zone_name`: `true`
 - `config.active_support.executor_around_test_case`: `true`
+- `config.active_support.use_rfc4122_namespaced_uuids`: `true`
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `false`
 - `config.action_controller.silence_disabled_session_errors`: `false`
 - `config.action_mailer.smtp_timeout`: `5`
@@ -1816,6 +1817,7 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA1`
 - `config.active_support.cache_format_version`: `6.1`
 - `config.active_support.executor_around_test_case`: `false`
+- ``config.active_support.use_rfc4122_namespaced_uuids``: `false`
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `true`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
 - `config.action_mailer.smtp_timeout`: `nil`

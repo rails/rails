@@ -97,3 +97,10 @@
 # Previously this was set in an initializer. It's fine to keep using that initializer if you've customized it.
 # To disable parameter wrapping entirely, set this config to `false`.
 # Rails.application.config.action_controller.wrap_parameters_by_default = true
+
+# Specifies whether generated namespaced UUIDs follow the RFC 4122 standard for namespace IDs provided as a
+# `String` to `Digest::UUID.uuid_v3` or `Digest::UUID.uuid_v5` method calls.
+#
+# See https://guides.rubyonrails.org/configuring.html#config-active-support-use-rfc4122-namespaced-uuids for
+# more information
+# Rails.application.config.active_support.use_rfc4122_namespaced_uuids = true
