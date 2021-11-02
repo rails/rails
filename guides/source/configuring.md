@@ -1385,6 +1385,33 @@ Configures deprecation warnings that the Application considers disallowed. This 
 
 Allows you to disable all deprecation warnings (including disallowed deprecations); it makes `ActiveSupport::Deprecation.warn` a no-op. This is enabled by default in production.
 
+#### `config.active_support.use_rfc4122_namespaced_uuids`
+
+Specifies whether generated namespaced UUIDs follow the RFC 4122 standard for namespace IDs provided as a `String` to `Digest::UUID.uuid_v3` or `Digest::UUID.uuid_v5` method calls.
+
+If set to `true`:
+
+* Only UUIDs are allowed as namespace IDs. If a namespace ID value provided is not allowed, an `ArgumentError` will be raised.
+* No deprecation warning will be generated, no matter if the namespace ID used is one of the constants defined on `Digest::UUID` or a `String`.
+* Namespace IDs are case-insensitive.
+* All generated namespaced UUIDs should be compliant to the standard.
+
+If set to `false`:
+
+* Any `String` value can be used as namespace ID (although not recommended). No `ArgumentError` will be raised in this case in order to preserve backwards-compatibility.
+* A deprecation warning will be generated if the namespace ID provided is not one of the constants defined on `Digest::UUID`.
+* Namespace IDs are case-sensitive.
+* Only namespaced UUIDs generated using one of the namespace ID constants defined on `Digest::UUID` are compliant to the standard.
+
+The default value is `true` for new apps. Upgraded apps will have that value set to `false` for backwards-compatibility.
+
+#### `config.active_support.executor_around_test_case`
+
+Configure the test suite to call `Rails.application.executor.wrap` around test cases.
+This makes test cases behave closer to an actual request or job.
+Several features that are normally disabled in test, such as Active Record query cache
+and asynchronous queries will then be enabled.
+
 #### `ActiveSupport::Logger.silencer`
 
 Is set to `false` to disable the ability to silence logging in a block. The default is `true`.
@@ -1701,6 +1728,8 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.active_support.hash_digest_class`: `OpenSSL::Digest::SHA256`
 - `config.active_support.cache_format_version`: `7.0`
 - `config.active_support.remove_deprecated_time_with_zone_name`: `true`
+- `config.active_support.executor_around_test_case`: `true`
+- `config.active_support.use_rfc4122_namespaced_uuids`: `true`
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `false`
 - `config.action_controller.silence_disabled_session_errors`: `false`
 - `config.action_mailer.smtp_timeout`: `5`
@@ -1787,6 +1816,8 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.active_support.hash_digest_class`: `OpenSSL::Digest::MD5`
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA1`
 - `config.active_support.cache_format_version`: `6.1`
+- `config.active_support.executor_around_test_case`: `false`
+- ``config.active_support.use_rfc4122_namespaced_uuids``: `false`
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `true`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
 - `config.action_mailer.smtp_timeout`: `nil`

@@ -390,6 +390,14 @@ def welcome_email
 end
 ```
 
+The same technique works to specify a sender name:
+
+```ruby
+class UserMailer < ApplicationMailer
+  default from: email_address_with_name('notification@example.com', 'Example Company Notifications')
+end
+```
+
 If the name is a blank string, it returns just the address.
 
 [`email_address_with_name`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-email_address_with_name
@@ -810,6 +818,8 @@ files (environment.rb, production.rb, etc...)
 |`delivery_method`|Defines a delivery method. Possible values are:<ul><li>`:smtp` (default), can be configured by using `config.action_mailer.smtp_settings`.</li><li>`:sendmail`, can be configured by using `config.action_mailer.sendmail_settings`.</li><li>`:file`: save emails to files; can be configured by using `config.action_mailer.file_settings`.</li><li>`:test`: save emails to `ActionMailer::Base.deliveries` array.</li></ul>See [API docs](https://api.rubyonrails.org/classes/ActionMailer/Base.html) for more info.|
 |`perform_deliveries`|Determines whether deliveries are actually carried out when the `deliver` method is invoked on the Mail message. By default they are, but this can be turned off to help functional testing. If this value is `false`, `deliveries` array will not be populated even if `delivery_method` is `:test`.|
 |`deliveries`|Keeps an array of all the emails sent out through the Action Mailer with delivery_method :test. Most useful for unit and functional testing.|
+|`delivery_job`|The job class used with `deliver_later`. Defaults to `ActionMailer::MailDeliveryJob`.|
+|`deliver_later_queue_name`|The name of the queue used with `deliver_later`.|
 |`default_options`|Allows you to set default values for the `mail` method options (`:from`, `:reply_to`, etc.).|
 
 For a complete writeup of possible configurations see the

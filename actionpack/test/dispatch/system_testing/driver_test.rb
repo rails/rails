@@ -79,7 +79,7 @@ class DriverTest < ActiveSupport::TestCase
       },
       "browserName" => "chrome"
     }
-    assert_equal expected, browser_options[:options].as_json
+    assert_equal expected, browser_options[:capabilities].as_json
   end
 
   test "define extra capabilities using headless_chrome" do
@@ -99,7 +99,7 @@ class DriverTest < ActiveSupport::TestCase
       },
       "browserName" => "chrome"
     }
-    assert_equal expected, browser_options[:options].as_json
+    assert_equal expected, browser_options[:capabilities].as_json
   end
 
   test "define extra capabilities using firefox" do
@@ -117,7 +117,7 @@ class DriverTest < ActiveSupport::TestCase
       },
       "browserName" => "firefox"
     }
-    assert_equal expected, browser_options[:options].as_json
+    assert_equal expected, browser_options[:capabilities].as_json
   end
 
   test "define extra capabilities using headless_firefox" do
@@ -135,7 +135,7 @@ class DriverTest < ActiveSupport::TestCase
       },
       "browserName" => "firefox"
     }
-    assert_equal expected, browser_options[:options].as_json
+    assert_equal expected, browser_options[:capabilities].as_json
   end
 
   test "does not define extra capabilities" do

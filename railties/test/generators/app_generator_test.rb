@@ -551,6 +551,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_viewport_meta_tag_is_present
+    run_generator [destination_root]
+
+    assert_file "app/views/layouts/application.html.erb" do |contents|
+      assert_match(/<meta name="viewport"/, contents)
+    end
+  end
+
   def test_javascript_is_skipped_if_required
     run_generator [destination_root, "--skip-javascript"]
 

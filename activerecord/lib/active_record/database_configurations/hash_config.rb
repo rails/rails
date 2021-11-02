@@ -121,14 +121,39 @@ module ActiveRecord
         Base.configurations.primary?(name)
       end
 
-      # Determines whether to dump the schema for a database.
-      def schema_dump
-        configuration_hash.fetch(:schema_dump, true)
+      # Determines whether to dump the schema/structure files and the
+      # filename that should be used.
+      #
+      # If +configuration_hash[:schema_dump]+ is set to +false+ or +nil+
+      # the schema will not be dumped.
+      #
+      # If the config option is set that will be used. Otherwise Rails
+      # will generate the filename from the database config name.
+      def schema_dump(format = ActiveRecord.schema_format)
+        if configuration_hash.key?(:schema_dump)
+          if config = configuration_hash[:schema_dump]
+            config
+          end
+        elsif primary?
+          schema_file_type(format)
+        else
+          "#{name}_#{schema_file_type(format)}"
+        end
       end
 
       def database_tasks? # :nodoc:
         !replica? && !!configuration_hash.fetch(:database_tasks, true)
       end
+
+      private
+        def schema_file_type(format)
+          case format
+          when :ruby
+            "schema.rb"
+          when :sql
+            "structure.sql"
+          end
+        end
     end
   end
 end

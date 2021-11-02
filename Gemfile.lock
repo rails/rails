@@ -102,7 +102,7 @@ PATH
       method_source
       rake (>= 12.2)
       thor (~> 1.0)
-      zeitwerk (~> 2.5.0.beta6)
+      zeitwerk (~> 2.5)
 
 GEM
   remote: https://rubygems.org/
@@ -359,7 +359,7 @@ GEM
       nio4r (~> 2.0)
     que (0.14.3)
     raabro (1.4.0)
-    racc (1.5.2)
+    racc (1.6.0)
     rack (2.2.3)
     rack-cache (1.12.1)
       rack (>= 0.4)
@@ -430,14 +430,14 @@ GEM
     ruby-vips (2.1.2)
       ffi (~> 1.12)
     ruby2_keywords (0.0.4)
-    rubyzip (2.3.0)
+    rubyzip (2.3.2)
     rufus-scheduler (3.7.0)
       fugit (~> 1.1, >= 1.1.6)
     sdoc (2.2.0)
       rdoc (>= 5.0)
-    selenium-webdriver (4.0.0.beta4)
+    selenium-webdriver (4.0.3)
       childprocess (>= 0.5, < 5.0)
-      rexml (~> 3.2)
+      rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2)
     sequel (5.45.0)
     serverengine (2.0.7)
@@ -505,10 +505,10 @@ GEM
       json (>= 1.8)
       nokogiri (~> 1.6)
       rexml (~> 3.2)
-    webdrivers (4.7.0)
+    webdrivers (5.0.0)
       nokogiri (~> 1.6)
       rubyzip (>= 1.3.0)
-      selenium-webdriver (> 3.141, < 5.0)
+      selenium-webdriver (~> 4.0)
     webmock (3.13.0)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
@@ -520,7 +520,7 @@ GEM
     websocket-extensions (0.1.5)
     xpath (3.2.0)
       nokogiri (~> 1.8)
-    zeitwerk (2.5.0.beta6)
+    zeitwerk (2.5.0)
 
 PLATFORMS
   ruby
@@ -584,7 +584,7 @@ DEPENDENCIES
   rubocop-performance
   rubocop-rails
   sdoc (>= 2.2.0)
-  selenium-webdriver (>= 4.0.0.alpha7)
+  selenium-webdriver (>= 4.0.0)
   sequel
   sidekiq
   sneakers

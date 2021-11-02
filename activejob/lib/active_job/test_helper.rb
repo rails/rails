@@ -417,8 +417,20 @@ module ActiveJob
         end
       end
 
+      matching_class = potential_matches.select do |enqueued_job|
+        enqueued_job["job_class"] == job.to_s
+      end
+
       message = +"No enqueued job found with #{expected}"
-      message << "\n\nPotential matches: #{potential_matches.join("\n")}" if potential_matches.present?
+      if potential_matches.empty?
+        message << "\n\nNo jobs where enqueued"
+      elsif matching_class.empty?
+        message << "\n\nNo jobs of class #{expected[:job]} where enqueued, job classes enqueued: "
+        message << potential_matches.map { |job| job["job_class"] }.join(", ")
+      else
+        message << "\n\nPotential matches: #{matching_class.join("\n")}"
+      end
+
       assert matching_job, message
       instantiate_job(matching_job)
     end
@@ -507,8 +519,20 @@ module ActiveJob
         end
       end
 
+      matching_class = potential_matches.select do |enqueued_job|
+        enqueued_job["job_class"] == job.to_s
+      end
+
       message = +"No performed job found with #{expected}"
-      message << "\n\nPotential matches: #{potential_matches.join("\n")}" if potential_matches.present?
+      if potential_matches.empty?
+        message << "\n\nNo jobs where performed"
+      elsif matching_class.empty?
+        message << "\n\nNo jobs of class #{expected[:job]} where performed, job classes performed: "
+        message << potential_matches.map { |job| job["job_class"] }.join(", ")
+      else
+        message << "\n\nPotential matches: #{matching_class.join("\n")}"
+      end
+
       assert matching_job, message
 
       instantiate_job(matching_job)

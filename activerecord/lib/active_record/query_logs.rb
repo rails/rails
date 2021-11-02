@@ -38,23 +38,23 @@ module ActiveRecord
   #    tags = [
   #      :application,
   #      {
-  #        custom_tag: ->(context) { context[:controller].controller_name },
+  #        custom_tag: ->(context) { context[:controller]&.controller_name },
   #        custom_value: -> { Custom.value },
   #      }
   #    ]
   #    ActiveRecord::QueryLogs.tags = tags
   #
-  # The QueryLogs +context+ can be manipulated via +update_context+ & +set_context+ methods.
-  #
-  # Direct updates to a context value:
-  #
-  #    ActiveRecord::QueryLogs.update_context(foo: Bar.new)
+  # The QueryLogs +context+ can be manipulated via the +set_context+ method.
   #
   # Temporary updates limited to the execution of a block:
   #
   #    ActiveRecord::QueryLogs.set_context(foo: Bar.new) do
   #      posts = Post.all
   #    end
+  #
+  # Direct updates to a context value:
+  #
+  #    ActiveRecord::QueryLogs.set_context(foo: Bar.new)
   #
   # Tag comments can be prepended to the query:
   #
@@ -75,66 +75,40 @@ module ActiveRecord
     mattr_accessor :cache_query_log_tags, instance_accessor: false, default: false
     thread_mattr_accessor :cached_comment, instance_accessor: false
 
-    class NullObject # :nodoc:
-      def method_missing(method, *args, &block)
-        NullObject.new
-      end
-
-      def nil?
-        true
-      end
-
-      private
-        def respond_to_missing?(method, include_private = false)
-          true
-        end
-    end
-
     class << self
       # Updates the context used to construct tags in the SQL comment.
-      # Resets the cached comment if <tt>cache_query_log_tags</tt> is +true+.
-      def update_context(**options)
-        context.merge!(**options.symbolize_keys)
-        self.cached_comment = nil
-      end
-
-      # Updates the context used to construct tags in the SQL comment during
-      # execution of the provided block. Resets the provided keys to their
+      # If a block is given, it resets the provided keys to their
       # previous value once the block exits.
       def set_context(**options)
+        options.symbolize_keys!
+
         keys = options.keys
         previous_context = keys.zip(context.values_at(*keys)).to_h
-        update_context(**options)
-        yield if block_given?
-      ensure
-        update_context(**previous_context)
+        context.merge!(options)
+        self.cached_comment = nil
+        if block_given?
+          begin
+            yield
+          ensure
+            context.merge!(previous_context)
+            self.cached_comment = nil
+          end
+        end
       end
 
-      # Temporarily tag any query executed within `&block`. Can be nested.
-      def with_tag(tag, &block)
-        inline_tags.push(tag)
-        yield if block_given?
-      ensure
-        inline_tags.pop
+      def clear_context # :nodoc:
+        context.clear
       end
 
       def call(sql) # :nodoc:
-        parts = self.comments
         if prepend_comment
-          parts << sql
+          "#{self.comment} #{sql}"
         else
-          parts.unshift(sql)
-        end
-        parts.join(" ")
+          "#{sql} #{self.comment}"
+        end.strip
       end
 
       private
-        # Returns an array of comments which need to be added to the query, comprised
-        # of configured and inline tags.
-        def comments
-          [ comment, inline_comment ].compact
-        end
-
         # Returns an SQL comment +String+ containing the query log tags.
         # Sets and returns a cached comment if <tt>cache_query_log_tags</tt> is +true+.
         def comment
@@ -152,23 +126,8 @@ module ActiveRecord
           end
         end
 
-        # Returns a +String+ containing any inline comments from +with_tag+.
-        def inline_comment
-          return nil unless inline_tags.present?
-          "/*#{escape_sql_comment(inline_tag_content)}*/"
-        end
-
-        # Return the set of active inline tags from +with_tag+.
-        def inline_tags
-          if context[:inline_tags].nil?
-            context[:inline_tags] = []
-          else
-            context[:inline_tags]
-          end
-        end
-
         def context
-          Thread.current[:active_record_query_log_tags_context] ||= Hash.new { NullObject.new }
+          Thread.current[:active_record_query_log_tags_context] ||= {}
         end
 
         def escape_sql_comment(content)
@@ -193,10 +152,6 @@ module ActiveRecord
             end
             "#{key}:#{val}" unless val.nil?
           end.join(",")
-        end
-
-        def inline_tag_content
-          inline_tags.join
         end
     end
   end

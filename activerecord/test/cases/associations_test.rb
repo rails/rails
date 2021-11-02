@@ -804,6 +804,23 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_with_available_records_sti
+    book = Book.create!
+    essay_special = EssaySpecial.create!
+    book.essay = essay_special
+    book.save!
+    book.reload
+
+    assert_not_predicate book.association(:essay), :loaded?
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [book], associations: :essay, available_records: [[essay_special]]).call
+    end
+
+    assert_predicate book.association(:essay), :loaded?
+    assert_same essay_special, book.essay
+  end
+
   def test_preload_with_only_some_records_available
     bob_post = posts(:misc_by_bob)
     mary_post = posts(:misc_by_mary)

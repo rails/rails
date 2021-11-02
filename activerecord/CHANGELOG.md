@@ -2,6 +2,64 @@
 
     *Oleksandr Kohulko*
 
+*   Use subquery for DELETE with GROUP_BY and HAVING clauses.
+
+    Prior to this change, deletes with GROUP_BY and HAVING were returning an error.
+
+    After this change, GROUP_BY and HAVING are valid clauses in DELETE queries, generating the following query: 
+
+    ```sql
+    DELETE FROM "posts" WHERE "posts"."id" IN (
+        SELECT "posts"."id" FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id" GROUP BY "posts"."id" HAVING (count(comments.id) >= 2))
+    )  [["flagged", "t"]]
+    ```
+
+    *Ignacio Chiazzo Cardarello*
+
+*   Use subquery for UPDATE with GROUP_BY and HAVING clauses.
+
+    Prior to this change, updates with GROUP_BY and HAVING were being ignored, generating a SQL like this:
+
+    ```sql
+    UPDATE "posts" SET "flagged" = ? WHERE "posts"."id" IN (
+        SELECT "posts"."id" FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+    )  [["flagged", "t"]]
+    ```
+
+    After this change, GROUP_BY and HAVING clauses are used as a subquery in updates, like this:
+
+    ```sql
+    UPDATE "posts" SET "flagged" = ? WHERE "posts"."id" IN (
+        SELECT "posts"."id" FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id" 
+        GROUP BY posts.id HAVING (count(comments.id) >= 2)
+    )  [["flagged", "t"]]
+    ```
+
+    *Ignacio Chiazzo Cardarello*
+
+*   Add support for setting the filename of the schema or structure dump in the database config.
+
+    Applications may now set their the filename or path of the schema / structure dump file in their database configuration.
+
+
+    ```yaml
+    production:
+      primary:
+        database: my_db
+        schema_dump: my_schema_dump_filename.rb
+      animals:
+        database: animals_db
+        schema_dump: false
+    ```
+
+    The filename set in `schema_dump` will be used by the application. If set to `false` the schema will not be dumped. The database tasks are responsible for adding the database directory to the filename. If a full path is provided, the Rails tasks will use that instead of `ActiveRecord::DatabaseTasks.db_dir`.
+
+    *Eileen M. Uchitelle*, *Ryan Kerr*
+
+*   Add `ActiveRecord::Base.prohibit_shard_swapping` to prevent attempts to change the shard within a block.
+
+    *John Crepezzi*, *Eileen M. Uchitelle*
+
 *   Filter unchanged attributes with default function from insert query when `partial_inserts` is disabled.
 
     *Akshay Birajdar*, *Jacopo Beschi*
@@ -270,10 +328,10 @@
 
     The behavior now is:
 
-    `columns`: (unchanged) raises a db error if the table does not exist
-    `columns_hash`: (unchanged) raises a db error if the table does not exist
-    `primary_keys`: (unchanged) returns `nil` if the table does not exist
-    `indexes`: (changed for mysql2) returns `[]` if the table does not exist
+    `columns`: (unchanged) raises a db error if the table does not exist.
+    `columns_hash`: (unchanged) raises a db error if the table does not exist.
+    `primary_keys`: (unchanged) returns `nil` if the table does not exist.
+    `indexes`: (changed for mysql2) returns `[]` if the table does not exist.
 
     *Eileen M. Uchitelle*
 
@@ -418,7 +476,7 @@
 *   Add option to disable schema dump per-database.
 
     Dumping the schema is on by default for all databases in an application. To turn it off for a
-    specific database use the `schema_dump` option:
+    specific database, use the `schema_dump` option:
 
     ```yaml
     # config/database.yml
@@ -617,7 +675,7 @@
 
 *   Fix compatibility with `psych >= 4`.
 
-    Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility
+    Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility,
     Active Record's schema cache loader and `YAMLColumn` now uses `YAML.unsafe_load` if available.
 
     *Jean Boussier*
@@ -1147,8 +1205,8 @@
 
     *Eileen M. Uchitelle*, *John Crepezzi*
 
-*   Support hash config for `structure_dump_flags` and `structure_load_flags` flags
-    Now that Active Record supports multiple databases configuration
+*   Support hash config for `structure_dump_flags` and `structure_load_flags` flags.
+    Now that Active Record supports multiple databases configuration,
     we need a way to pass specific flags for dump/load databases since
     the options are not the same for different adapters.
     We can use in the original way:

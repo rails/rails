@@ -1,3 +1,10 @@
+*   Add `:day_format` option to `date_select`
+
+        date_select("article", "written_on", day_format: ->(day) { day.ordinalize })
+        # generates day options like <option value="1">1st</option>\n<option value="2">2nd</option>...
+
+    *Shunichi Ikegami*
+
 *   Allow `link_to` helper to infer link name from `Model#to_s` when it
     is used with a single argument:
 

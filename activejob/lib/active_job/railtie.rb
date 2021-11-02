@@ -70,7 +70,7 @@ module ActiveJob
         end
 
         ActiveSupport.on_load(:active_record) do
-          ActiveRecord::QueryLogs.taggings[:job] = ->(context) { context[:job].class.name unless context[:job].nil? }
+          ActiveRecord::QueryLogs.taggings[:job] = ->(context) { context[:job].class.name if context[:job] }
         end
       end
     end

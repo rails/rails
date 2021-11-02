@@ -91,6 +91,16 @@ module ActiveSupport
       end
     end
 
+    def self.perform # :nodoc:
+      instance = new
+      instance.run
+      begin
+        yield
+      ensure
+        instance.complete
+      end
+    end
+
     class << self # :nodoc:
       attr_accessor :active
     end
@@ -108,6 +118,10 @@ module ActiveSupport
 
     def run! # :nodoc:
       self.class.active[Thread.current] = true
+      run
+    end
+
+    def run # :nodoc:
       run_callbacks(:run)
     end
 
@@ -116,9 +130,13 @@ module ActiveSupport
     #
     # Where possible, prefer +wrap+.
     def complete!
-      run_callbacks(:complete)
+      complete
     ensure
       self.class.active.delete Thread.current
+    end
+
+    def complete # :nodoc:
+      run_callbacks(:complete)
     end
 
     private

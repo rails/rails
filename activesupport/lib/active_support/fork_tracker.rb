@@ -2,6 +2,16 @@
 
 module ActiveSupport
   module ForkTracker # :nodoc:
+    module ModernCoreExt
+      def _fork
+        pid = super
+        if pid == 0
+          ForkTracker.check!
+        end
+        pid
+      end
+    end
+
     module CoreExt
       def fork(...)
         if block_given?
@@ -28,14 +38,17 @@ module ActiveSupport
 
     class << self
       def check!
-        if @pid != Process.pid
+        new_pid = Process.pid
+        if @pid != new_pid
           @callbacks.each(&:call)
-          @pid = Process.pid
+          @pid = new_pid
         end
       end
 
       def hook!
-        if Process.respond_to?(:fork)
+        if Process.respond_to?(:_fork) # Ruby 3.1+
+          ::Process.singleton_class.prepend(ModernCoreExt)
+        elsif Process.respond_to?(:fork)
           ::Object.prepend(CoreExtPrivate) if RUBY_VERSION < "3.0"
           ::Kernel.prepend(CoreExtPrivate)
           ::Kernel.singleton_class.prepend(CoreExt)

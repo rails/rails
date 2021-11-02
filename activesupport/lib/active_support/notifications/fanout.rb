@@ -236,13 +236,13 @@ module ActiveSupport
 
           def start(name, id, payload)
             timestack = Thread.current[:_timestack_monotonic] ||= []
-            timestack.push Concurrent.monotonic_time
+            timestack.push Process.clock_gettime(Process::CLOCK_MONOTONIC)
           end
 
           def finish(name, id, payload)
             timestack = Thread.current[:_timestack_monotonic]
             started = timestack.pop
-            @delegate.call(name, started, Concurrent.monotonic_time, id, payload)
+            @delegate.call(name, started, Process.clock_gettime(Process::CLOCK_MONOTONIC), id, payload)
           end
         end
 

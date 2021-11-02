@@ -21,6 +21,7 @@ module ActionDispatch
         end
 
         if driver_type == :selenium
+          gem "selenium-webdriver", ">= 4.0.0"
           require "selenium/webdriver"
           @browser = Browser.new(options[:using])
           @browser.preload
@@ -55,7 +56,7 @@ module ActionDispatch
         end
 
         def browser_options
-          @options.merge(options: @browser.options).compact
+          @options.merge(capabilities: @browser.options).compact
         end
 
         def register_selenium(app)
