@@ -72,4 +72,9 @@ class DelegatedTypeTest < ActiveRecord::TestCase
     assert_equal @uuid_entry_with_comment.entryable_uuid, @uuid_entry_with_comment.uuid_comment_uuid
     assert_nil @uuid_entry_with_comment.uuid_message_uuid
   end
+
+  test "builder method" do
+    assert_respond_to Entry.new, :build_entryable
+    assert_equal Message, Entry.new(entryable_type: "Message").build_entryable.class
+  end
 end
