@@ -199,7 +199,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     assert_not_predicate firm.account, :valid?
     assert_not_predicate firm, :valid?
     assert_not firm.save
-    assert_equal ["is invalid"], firm.errors["account"]
+    assert_equal ["can't be blank"], firm.errors["account.credit_limit"]
   end
 
   def test_save_succeeds_for_invalid_has_one_with_validate_false
@@ -320,7 +320,7 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert_not_predicate log.developer, :valid?
     assert_not_predicate log, :valid?
     assert_not log.save
-    assert_equal ["is invalid"], log.errors["developer"]
+    assert_equal ["is too short (minimum is 3 characters)"], log.errors["developer.name"]
   end
 
   def test_save_succeeds_for_invalid_belongs_to_with_validate_false
@@ -670,7 +670,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
         ])
 
         assert_not reply.save
-        assert_equal ["is invalid"], reply.errors[:silly_unique_replies]
+        assert_equal ["has already been taken"], reply.errors["silly_unique_replies.content"]
         assert_empty reply.silly_unique_replies.first.errors
 
         assert_equal(
@@ -1814,7 +1814,7 @@ class TestAutosaveAssociationValidationsOnAHasManyAssociation < ActiveRecord::Te
           @author.save!
         end
 
-        assert_equal("Validation failed: Published books is invalid", exception.message)
+        assert_equal("Validation failed: Published books isbn has already been taken", exception.message)
       end
     end
 

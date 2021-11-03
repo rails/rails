@@ -333,32 +333,13 @@ module ActiveRecord
         context = validation_context if custom_validation_context?
 
         unless valid = record.valid?(context)
-          if reflection.options[:autosave]
-            indexed_attribute = !index.nil? && (reflection.options[:index_errors] || ActiveRecord.index_nested_attribute_errors)
-
-            record.errors.group_by_attribute.each { |attribute, errors|
-              attribute = normalize_reflection_attribute(indexed_attribute, reflection, index, attribute)
-
-              errors.each { |error|
-                self.errors.import(
-                  error,
-                  attribute: attribute
-                )
-              }
-            }
-          else
-            errors.add(reflection.name)
-          end
+          errors.merge!(record, {
+            index: index,
+            base_attribute: reflection.name,
+            indexed: reflection.options[:index_errors] || ActiveRecord.index_nested_attribute_errors,
+          })
         end
         valid
-      end
-
-      def normalize_reflection_attribute(indexed_attribute, reflection, index, attribute)
-        if indexed_attribute
-          "#{reflection.name}[#{index}].#{attribute}"
-        else
-          "#{reflection.name}.#{attribute}"
-        end
       end
 
       # Is used as an around_save callback to check while saving a collection
@@ -398,7 +379,7 @@ module ActiveRecord
               records -= records_to_destroy
             end
 
-            records.each do |record|
+            records.each_with_index do |record, index|
               next if record.destroyed?
 
               saved = true
@@ -412,7 +393,11 @@ module ActiveRecord
                   association_saved = association.insert_record(record)
 
                   if reflection.validate?
-                    errors.add(reflection.name) unless association_saved
+                    errors.merge!(record, {
+                      index: index,
+                      base_attribute: reflection.name,
+                      indexed: reflection.options[:index_errors] || ActiveRecord.index_nested_attribute_errors,
+                    })
                     saved = association_saved
                   end
                 end

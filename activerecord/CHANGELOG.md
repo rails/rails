@@ -1,3 +1,9 @@
+*   If an associated record fails validation on auto-save, always add the error to
+    the base object using NestedError with an attribute name formatted as
+    “relation_name.attribute_name" instead of just “relation_name".
+
+    *Christian Schmidt*
+
 *   Add nested_attributes_for support for `delegated_type`
 
     ```ruby

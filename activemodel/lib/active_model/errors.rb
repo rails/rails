@@ -131,11 +131,23 @@ module ActiveModel
     #
     # Examples
     #
-    #   person.errors.merge!(other)
-    def merge!(other)
-      other.errors.each { |error|
-        import(error)
-      }
+    #   person.errors.merge!(other, options)
+    def merge!(other, options = {})
+      base_attribute = options[:base_attribute]
+      index = options[:index]
+      indexed = index && options[:indexed]
+
+      other.errors.each do |error|
+        if base_attribute
+          if indexed
+            options[:attribute] = "#{base_attribute}[#{index}].#{error.attribute}"
+          else
+            options[:attribute] = "#{base_attribute}.#{error.attribute}"
+          end
+        end
+
+        import(error, options)
+      end
     end
 
     # Removes all errors except the given keys. Returns a hash containing the removed errors.

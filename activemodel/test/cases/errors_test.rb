@@ -765,6 +765,30 @@ class ErrorsTest < ActiveModel::TestCase
     assert(person.errors.added?(:name, :blank))
   end
 
+  test "merge errors with base_attribute" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :invalid)
+
+    person = Person.new
+    person.errors.add(:name, :blank)
+    person.errors.merge!(errors, { base_attribute: :manager })
+
+    assert(person.errors.added?(:"manager.name", :invalid))
+    assert(person.errors.added?(:name, :blank))
+  end
+
+  test "merge errors with base_attribute and index" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :invalid)
+
+    person = Person.new
+    person.errors.add(:name, :blank)
+    person.errors.merge!(errors, { base_attribute: :manager, indexed: true, index: 1 })
+
+    assert(person.errors.added?(:"manager[1].name", :invalid))
+    assert(person.errors.added?(:name, :blank))
+  end
+
   test "slice! removes all errors except the given keys" do
     person = Person.new
     person.errors.add(:name, "cannot be nil")
