@@ -482,10 +482,7 @@ class RedirectTest < ActionController::TestCase
         get :unsafe_redirect
       end
 
-      assert_equal(<<~MSG.squish, error.message)
-        Unsafe redirect \"http://www.rubyonrails.org/\",
-        use :allow_other_host to redirect anyway.
-      MSG
+      assert_equal "Unsafe redirect to \"http://www.rubyonrails.org/\", pass allow_other_host: true to redirect anyway.", error.message
     end
   end
 
@@ -495,10 +492,7 @@ class RedirectTest < ActionController::TestCase
         get :unsafe_redirect_back
       end
 
-      assert_equal(<<~MSG.squish, error.message)
-        Unsafe redirect \"http://www.rubyonrails.org/\",
-        use :allow_other_host to redirect anyway.
-      MSG
+      assert_equal "Unsafe redirect to \"http://www.rubyonrails.org/\", pass allow_other_host: true to redirect anyway.", error.message
     end
   end
 
