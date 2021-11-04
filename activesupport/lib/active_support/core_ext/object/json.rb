@@ -6,6 +6,7 @@ require "bigdecimal"
 require "ipaddr"
 require "uri/generic"
 require "pathname"
+require "active_support/json"
 require "active_support/core_ext/big_decimal/conversions" # for #to_s
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/hash/slice"
