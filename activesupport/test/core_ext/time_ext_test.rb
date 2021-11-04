@@ -454,6 +454,9 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 10, Time.new(2005, 2, 22, 15, 15, 0, "-08:00").change(nsec: 10).nsec
     assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "-08:00").change(usec: 1000000) }
     assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "-08:00").change(nsec: 1000000000) }
+    with_env_tz "GB" do
+      assert_equal Time.parse("October 31st 2021 01:00:00 +0100"), Time.parse("October 31st 2021 01:00:10 +0100").change(sec: 0)
+    end
   end
 
   def test_change_offset
