@@ -63,14 +63,12 @@ module ActionController
     #
     # Passing user input directly into +redirect_to+ is considered dangerous (e.g. `redirect_to(params[:location])`).
     # Always use regular expressions or a permitted list when redirecting to a user specified location.
-    def redirect_to(options = {}, response_options = {})
-      response_options[:allow_other_host] ||= _allow_other_host unless response_options.key?(:allow_other_host)
-
+    def redirect_to(options = {}, response_options = {}, allow_other_host: _allow_other_host)
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
       raise AbstractController::DoubleRenderError if response_body
 
       self.status        = _extract_redirect_to_status(options, response_options)
-      self.location      = _compute_safe_redirect_to_location(request, options, response_options)
+      self.location      = _enforce_open_redirect_protection(_compute_redirect_to_location(request, options), allow_other_host: allow_other_host)
       self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(response.location)}\">redirected</a>.</body></html>"
     end
 
@@ -110,19 +108,6 @@ module ActionController
       redirect_to location, allow_other_host: allow_other_host, **options
     end
 
-    def _compute_safe_redirect_to_location(request, options, response_options)
-      location = _compute_redirect_to_location(request, options)
-
-      if response_options[:allow_other_host] || _url_host_allowed?(location)
-        location
-      else
-        raise(ArgumentError, <<~MSG.squish)
-          Unsafe redirect #{location.truncate(100).inspect},
-          use :allow_other_host to redirect anyway.
-        MSG
-      end
-    end
-
     def _compute_redirect_to_location(request, options) # :nodoc:
       case options
       # The scheme name consist of a letter followed by any combination of
@@ -155,6 +140,14 @@ module ActionController
           Rack::Utils.status_code(response_options[:status])
         else
           302
+        end
+      end
+
+      def _enforce_open_redirect_protection(location, allow_other_host:)
+        if allow_other_host || _url_host_allowed?(location)
+          location
+        else
+          raise ArgumentError, "Unsafe redirect to #{location.truncate(100).inspect}, pass allow_other_host: true to redirect anyway."
         end
       end
 
