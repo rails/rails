@@ -50,7 +50,7 @@
     # ]    
     ```    
 
-    *Steve Polito*
+    *Steve Polito*, *Chris Oliver*
 
 *   Use subquery for DELETE with GROUP_BY and HAVING clauses.
 
