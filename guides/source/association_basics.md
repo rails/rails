@@ -1547,7 +1547,7 @@ The `has_many` association creates a one-to-many relationship with another model
 
 #### Methods Added by `has_many`
 
-When you declare a `has_many` association, the declaring class automatically gains 17 methods related to the association:
+When you declare a `has_many` association, the declaring class automatically gains 19 methods related to the association:
 
 * `collection`
 * [`collection<<(object, ...)`][`collection<<`]
@@ -1566,6 +1566,8 @@ When you declare a `has_many` association, the declaring class automatically gai
 * [`collection.create(attributes = {})`][`collection.create`]
 * [`collection.create!(attributes = {})`][`collection.create!`]
 * [`collection.reload`][]
+* [`collection.persisted`][`collection.persisted`]
+* [`collection.new_records`][`collection.new_records`]
 
 
 In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
@@ -1596,6 +1598,8 @@ books.build(attributes = {}, ...)
 books.create(attributes = {})
 books.create!(attributes = {})
 books.reload
+books.persisted
+books.new_records
 ```
 
 [`collection<<`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-3C-3C
@@ -1611,6 +1615,8 @@ books.reload
 [`collection.reload`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-reload
 [`collection.size`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-size
 [`collection.where`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-where
+[`collection.persisted`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-persisted
+[`collection.new_records`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-new_records
 
 ##### `collection`
 
@@ -1753,6 +1759,22 @@ The [`collection.reload`][] method returns a Relation of all of the associated o
 
 ```ruby
 @books = @author.books.reload
+```
+
+##### `collection.persisted`
+
+The [`collection.persisted`][] method returns a single or array of objects from the collection that are saved in the database.
+
+```ruby
+@books = @author.books.persisted
+```
+
+##### `collection.new_records`
+
+The [`collection.new_records`][] method returns a single or array of objects from the collection that have not been saved in the database yet.
+
+```ruby
+@books = @author.books.new_records
 ```
 
 #### Options for `has_many`
@@ -2137,6 +2159,8 @@ When you declare a `has_and_belongs_to_many` association, the declaring class au
 * [`collection.create(attributes = {})`][`collection.create`]
 * [`collection.create!(attributes = {})`][`collection.create!`]
 * [`collection.reload`][]
+* [`collection.persisted`][`collection.persisted`]
+* [`collection.new_records`][`collection.new_records`]
 
 In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_and_belongs_to_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
 
@@ -2166,6 +2190,8 @@ assemblies.build(attributes = {}, ...)
 assemblies.create(attributes = {})
 assemblies.create!(attributes = {})
 assemblies.reload
+assemblies.persisted
+assemblies.new_records
 ```
 
 ##### Additional Column Methods
@@ -2293,6 +2319,22 @@ The [`collection.reload`][] method returns a Relation of all of the associated o
 
 ```ruby
 @assemblies = @part.assemblies.reload
+```
+
+##### `collection.persisted`
+
+The [`collection.persisted`][] method returns a single or array of objects from the collection that are saved in the database.
+
+```ruby
+@assemblies = @part.assemblies.persisted
+```
+
+##### `collection.new_records`
+
+The [`collection.new_records`][] method returns a single or array of objects from the collection that have not been saved in the database yet.
+
+```ruby
+@assemblies = @part.assemblies.new_records
 ```
 
 #### Options for `has_and_belongs_to_many`
