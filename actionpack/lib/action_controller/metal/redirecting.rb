@@ -103,11 +103,12 @@ module ActionController
     # All other options that can be passed to #redirect_to are accepted as
     # options and the behavior is identical.
     def redirect_back_or_to(fallback_location, allow_other_host: _allow_other_host, **options)
-      location = request.referer || fallback_location
-      location = fallback_location unless allow_other_host || _url_host_allowed?(request.referer)
-      allow_other_host = true if _allow_other_host && !allow_other_host # if the fallback is an open redirect
-
-      redirect_to location, allow_other_host: allow_other_host, **options
+      if request.referer && (allow_other_host || _url_host_allowed?(request.referer))
+        redirect_to request.referer,   allow_other_host: allow_other_host, **options
+      else
+        allow_other_host = true if _allow_other_host && !allow_other_host # if the fallback is an open redirect
+        redirect_to fallback_location, allow_other_host: allow_other_host, **options
+      end
     end
 
     def _compute_redirect_to_location(request, options) # :nodoc:
