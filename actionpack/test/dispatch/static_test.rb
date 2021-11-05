@@ -239,6 +239,22 @@ module StaticTests
     assert_nothing_raised { Rack::MockRequest.new(app).request("BAD_METHOD", "/foo/bar.html") }
   end
 
+  def test_fingerprinted_headers
+    app = ActionDispatch::Static.new(DummyApp, @root, fingerprinted_pattern: /.digest./, fingerprinted_headers: {"Cache-Control" => "public, max-age=31536000, immutable"})
+
+    with_static_file '/foo.digest.js' do
+      response = Rack::MockRequest.new(app).request("GET", "/foo.digest.js")
+
+      assert_equal "public, max-age=31536000, immutable", response.headers["Cache-Control"]
+    end
+
+    with_static_file '/foo.js' do
+      response = Rack::MockRequest.new(app).request("GET", "/foo.js")
+
+      assert_nil response.headers["Cache-Control"]
+    end
+  end
+
   # Windows doesn't allow \ / : * ? " < > | in filenames
   unless Gem.win_platform?
     def test_serves_static_file_with_colon

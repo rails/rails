@@ -1,3 +1,9 @@
+*   Add `fingerprinted_pattern` and `fingerprinted_headers` options to
+    `ActionDispatch::Static` to allow for additional headers to be set for
+    fingerprinted files.
+
+    *Lachlan Sylvester*
+
 *   Remove deprecated `Rails.config.action_view.raise_on_missing_translations`.
 
     *Rafael Mendonça França*

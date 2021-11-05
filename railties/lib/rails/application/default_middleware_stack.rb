@@ -24,8 +24,8 @@ module Rails
 
           if config.public_file_server.enabled
             headers = config.public_file_server.headers || {}
-
-            middleware.use ::ActionDispatch::Static, paths["public"].first, index: config.public_file_server.index_name, headers: headers
+            fingerprinted_headers = config.public_file_server.headers || {}
+            middleware.use ::ActionDispatch::Static, paths["public"].first, index: config.public_file_server.index_name, headers: headers, fingerprinted_pattern: config.public_file_server.fingerprint_pattern, fingerprinted_headers: fingerprinted_headers
           end
 
           if rack_cache = load_rack_cache
