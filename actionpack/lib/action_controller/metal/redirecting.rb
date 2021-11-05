@@ -61,8 +61,20 @@ module ActionController
     #
     #   redirect_to post_url(@post) and return
     #
-    # Passing user input directly into +redirect_to+ is considered dangerous (e.g. `redirect_to(params[:location])`).
-    # Always use regular expressions or a permitted list when redirecting to a user specified location.
+    # === Open Redirect protection
+    #
+    # By default, Rails protects against redirecting to external hosts for your app's safety, so called open redirects.
+    # Note: this was a new default in Rails 7.0, after upgrading opt-in by uncommenting the line with `raise_on_open_redirects` in `config/initializers/new_framework_defaults_7_0.rb`
+    #
+    # Here redirect_to automatically validates the potentially-unsafe URL:
+    #
+    #   redirect_to params[:redirect_url]
+    #
+    # To allow any external redirects pass `allow_other_host: true`, though using a user-provided param in that case is unsafe.
+    #
+    #   redirect_to "https://rubyonrails.org", allow_other_host: true
+    #
+    # See <tt>url_from</tt> for more information on what an internal and safe URL is, or how to fall back to an alternate redirect URL in the unsafe case.
     def redirect_to(options = {}, response_options = {})
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
       raise AbstractController::DoubleRenderError if response_body
