@@ -1,3 +1,7 @@
+*   Fix `has_many` inversing recursion on models with recursive associations.
+
+    *Gannon McGibbon*
+
 *   Add nested_attributes_for support for `delegated_type`
 
     ```ruby
@@ -33,7 +37,7 @@
 
     Prior to this change, deletes with GROUP_BY and HAVING were returning an error.
 
-    After this change, GROUP_BY and HAVING are valid clauses in DELETE queries, generating the following query: 
+    After this change, GROUP_BY and HAVING are valid clauses in DELETE queries, generating the following query:
 
     ```sql
     DELETE FROM "posts" WHERE "posts"."id" IN (
@@ -57,7 +61,7 @@
 
     ```sql
     UPDATE "posts" SET "flagged" = ? WHERE "posts"."id" IN (
-        SELECT "posts"."id" FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id" 
+        SELECT "posts"."id" FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
         GROUP BY posts.id HAVING (count(comments.id) >= 2)
     )  [["flagged", "t"]]
     ```
