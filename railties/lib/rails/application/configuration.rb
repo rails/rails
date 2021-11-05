@@ -40,6 +40,7 @@ module Rails
         @public_file_server.enabled              = true
         @public_file_server.index_name           = "index"
         @public_file_server.fingerprinted_headers = {"Cache-Control" => "public, max-age=31536000, immutable"}
+        @public_file_server.fingerprinted_patterns = []
         @force_ssl                               = false
         @ssl_options                             = {}
         @session_store                           = nil

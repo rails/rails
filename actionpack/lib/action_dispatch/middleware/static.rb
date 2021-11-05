@@ -14,9 +14,9 @@ module ActionDispatch
   #
   # Only files in the root directory are served; path traversal is denied.
   class Static
-    def initialize(app, path, index: "index", headers: {}, fingerprinted_pattern: nil, fingerprinted_headers: {})
+    def initialize(app, path, index: "index", headers: {}, fingerprinted_patterns: [], fingerprinted_headers: {})
       @app = app
-      @file_handler = FileHandler.new(path, index: index, headers: headers, fingerprinted_pattern: fingerprinted_pattern, fingerprinted_headers: fingerprinted_headers)
+      @file_handler = FileHandler.new(path, index: index, headers: headers, fingerprinted_patterns: fingerprinted_patterns, fingerprinted_headers: fingerprinted_headers)
     end
 
     def call(env)
@@ -46,14 +46,14 @@ module ActionDispatch
       "identity" => nil
     }
 
-    def initialize(root, index: "index", headers: {}, fingerprinted_pattern: nil, fingerprinted_headers: {}, precompressed: %i[ br gzip ], compressible_content_types: /\A(?:text\/|application\/javascript)/)
+    def initialize(root, index: "index", headers: {}, fingerprinted_patterns: [], fingerprinted_headers: {}, precompressed: %i[ br gzip ], compressible_content_types: /\A(?:text\/|application\/javascript)/)
       @root = root.chomp("/").b
       @index = index
 
       @precompressed = Array(precompressed).map(&:to_s) | %w[ identity ]
       @compressible_content_types = compressible_content_types
 
-      @fingerprinted_pattern = fingerprinted_pattern
+      @fingerprinted_pattern = Regexp.union(fingerprinted_patterns)
       @fingerprinted_headers = fingerprinted_headers
 
       @file_server = ::Rack::File.new(@root, headers)
@@ -191,7 +191,7 @@ module ActionDispatch
       end
 
       def fingerprinted?(path)
-        @fingerprinted_pattern&.match?(path)
+        @fingerprinted_pattern.match?(path)
       end
   end
 end

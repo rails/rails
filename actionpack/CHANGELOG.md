@@ -1,4 +1,4 @@
-*   Add `fingerprinted_pattern` and `fingerprinted_headers` options to
+*   Add `fingerprinted_patterns` and `fingerprinted_headers` options to
     `ActionDispatch::Static` to allow for additional headers to be set for
     fingerprinted files.
 

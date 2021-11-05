@@ -240,15 +240,15 @@ module StaticTests
   end
 
   def test_fingerprinted_headers
-    app = ActionDispatch::Static.new(DummyApp, @root, fingerprinted_pattern: /.digest./, fingerprinted_headers: {"Cache-Control" => "public, max-age=31536000, immutable"})
+    app = ActionDispatch::Static.new(DummyApp, @root, fingerprinted_patterns: [/.digest./], fingerprinted_headers: { "Cache-Control" => "public, max-age=31536000, immutable" })
 
-    with_static_file '/foo.digest.js' do
+    with_static_file "/foo.digest.js" do
       response = Rack::MockRequest.new(app).request("GET", "/foo.digest.js")
 
       assert_equal "public, max-age=31536000, immutable", response.headers["Cache-Control"]
     end
 
-    with_static_file '/foo.js' do
+    with_static_file "/foo.js" do
       response = Rack::MockRequest.new(app).request("GET", "/foo.js")
 
       assert_nil response.headers["Cache-Control"]
