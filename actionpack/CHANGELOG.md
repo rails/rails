@@ -1,3 +1,15 @@
+*   Raise `ActionController::Redirecting::UnsafeRedirectError` for unsafe `redirect_to` redirects.
+
+    This allows `rescue_from` to be used to add a default fallback route:
+
+    ```ruby
+    rescue_from ActionController::Redirecting::UnsafeRedirectError do
+      redirect_to root_url
+    end
+    ```
+
+    *Kasper Timm Hansen*, *Chris Oliver*
+
 *   Add `url_from` to verify a redirect location is internal.
 
     Takes the open redirect protection from `redirect_to` so users can wrap a

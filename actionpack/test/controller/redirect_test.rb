@@ -482,7 +482,7 @@ class RedirectTest < ActionController::TestCase
 
   def test_unsafe_redirect
     with_raise_on_open_redirects do
-      error = assert_raise(ArgumentError) do
+      error = assert_raise(ActionController::Redirecting::UnsafeRedirectError) do
         get :unsafe_redirect
       end
 
@@ -492,7 +492,7 @@ class RedirectTest < ActionController::TestCase
 
   def test_unsafe_redirect_back
     with_raise_on_open_redirects do
-      error = assert_raise(ArgumentError) do
+      error = assert_raise(ActionController::Redirecting::UnsafeRedirectError) do
         get :unsafe_redirect_back
       end
 

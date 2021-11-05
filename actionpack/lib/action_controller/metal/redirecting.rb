@@ -7,6 +7,8 @@ module ActionController
     include AbstractController::Logger
     include ActionController::UrlFor
 
+    class UnsafeRedirectError < StandardError; end
+
     included do
       mattr_accessor :raise_on_open_redirects, default: false
     end
@@ -69,6 +71,8 @@ module ActionController
     # Here redirect_to automatically validates the potentially-unsafe URL:
     #
     #   redirect_to params[:redirect_url]
+    #
+    # Raises <tt>ActionController::Redirecting::UnsafeRedirectError</tt> in the case of an unsafe redirect.
     #
     # To allow any external redirects pass `allow_other_host: true`, though using a user-provided param in that case is unsafe.
     #
@@ -186,7 +190,7 @@ module ActionController
         if allow_other_host || _url_host_allowed?(location)
           location
         else
-          raise ArgumentError, "Unsafe redirect to #{location.truncate(100).inspect}, pass allow_other_host: true to redirect anyway."
+          raise UnsafeRedirectError, "Unsafe redirect to #{location.truncate(100).inspect}, pass allow_other_host: true to redirect anyway."
         end
       end
 
