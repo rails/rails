@@ -215,6 +215,7 @@ module Rails
             active_support.cache_format_version = 7.0
             active_support.use_rfc4122_namespaced_uuids = true
             active_support.executor_around_test_case = true
+            active_support.isolation_level = :thread
           end
 
           if respond_to?(:action_mailer)

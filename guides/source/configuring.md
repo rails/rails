@@ -1384,6 +1384,11 @@ Configures deprecation warnings that the Application considers disallowed. This 
 
 Allows you to disable all deprecation warnings (including disallowed deprecations); it makes `ActiveSupport::Deprecation.warn` a no-op. This is enabled by default in production.
 
+#### `active_support.isolation_level`
+
+Configures the locality of most of Rails internal state. If you use a fiber based server or job processor (e.g. `falcon`), you should set it to `:fiber`.
+Otherwise it is best to use `:thread` locality.
+
 #### `config.active_support.use_rfc4122_namespaced_uuids`
 
 Specifies whether generated namespaced UUIDs follow the RFC 4122 standard for namespace IDs provided as a `String` to `Digest::UUID.uuid_v3` or `Digest::UUID.uuid_v5` method calls.
@@ -1816,6 +1821,7 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA1`
 - `config.active_support.cache_format_version`: `6.1`
 - `config.active_support.executor_around_test_case`: `false`
+- `active_support.isolation_level`: `:thread`
 - ``config.active_support.use_rfc4122_namespaced_uuids``: `false`
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `true`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
