@@ -66,13 +66,13 @@ module ActionController
     # === Open Redirect protection
     #
     # By default, Rails protects against redirecting to external hosts for your app's safety, so called open redirects.
-    # Note: this was a new default in Rails 7.0, after upgrading opt-in by uncommenting the line with #raise_on_open_redirects in <tt>config/initializers/new_framework_defaults_7_0.rb</tt>
+    # Note: this was a new default in Rails 7.0, after upgrading opt-in by uncommenting the line with +raise_on_open_redirects+ in <tt>config/initializers/new_framework_defaults_7_0.rb</tt>
     #
     # Here #redirect_to automatically validates the potentially-unsafe URL:
     #
     #   redirect_to params[:redirect_url]
     #
-    # Raises #UnsafeRedirectError in the case of an unsafe redirect.
+    # Raises UnsafeRedirectError in the case of an unsafe redirect.
     #
     # To allow any external redirects pass `allow_other_host: true`, though using a user-provided param in that case is unsafe.
     #
@@ -90,7 +90,7 @@ module ActionController
       self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(response.location)}\">redirected</a>.</body></html>"
     end
 
-    # Soft deprecated alias for <tt>redirect_back_or_to</tt> where the fallback_location location is supplied as a keyword argument instead
+    # Soft deprecated alias for #redirect_back_or_to where the +fallback_location+ location is supplied as a keyword argument instead
     # of the first positional argument.
     def redirect_back(fallback_location:, allow_other_host: _allow_other_host, **args)
       redirect_back_or_to fallback_location, allow_other_host: allow_other_host, **args
@@ -164,7 +164,7 @@ module ActionController
     #   # If request.host is on https://example.com or https://app.example.com, you'd get:
     #   url_from("https://dev.example.com/profile") # => nil
     #
-    # NOTE: there's a similarity with #url_for, which generates an internal URL from various options from within the app, e.g. <tt>url_for(@post)</tt>.
+    # NOTE: there's a similarity with ActionDispatch::Routing::UrlFor#url_for, which generates an internal URL from various options from within the app, e.g. <tt>url_for(@post)</tt>.
     # However, #url_from is meant to take an external parameter to verify as in <tt>url_from(params[:redirect_url])</tt>.
     def url_from(location)
       location = location.presence
