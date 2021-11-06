@@ -336,6 +336,8 @@ module ActionView
       #    # => "foo bar"
       #   token_list({ foo: true, bar: false })
       #    # => "foo"
+      #   token_list({ ["foo", "bar"] => true, ["fizz", "buzz"] => false })
+      #    # => "foo buzz"
       #   token_list(nil, false, 123, "", "foo", { bar: true })
       #    # => "123 foo bar"
       def token_list(*args)
@@ -382,7 +384,8 @@ module ActionView
             case tag_value
             when Hash
               tag_value.each do |key, val|
-                tag_values << key.to_s if val && key.present?
+                values = tag_values_from_hash(key, val)
+                tag_values << values if values.present?
               end
             when Array
               tag_values.concat build_tag_values(*tag_value)
@@ -394,6 +397,17 @@ module ActionView
           tag_values
         end
         module_function :build_tag_values
+
+        def tag_values_from_hash(key, val)
+          if key.is_a?(Array)
+            return key.first.to_s if val
+
+            key.last.to_s if !val && key.count == 2
+          else
+            key.to_s if val
+          end
+        end
+        module_function :tag_values_from_hash
 
         def tag_builder
           @tag_builder ||= TagBuilder.new(self)

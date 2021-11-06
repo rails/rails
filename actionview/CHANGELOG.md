@@ -1,3 +1,11 @@
+*   Allow `token_list` and `class_names` helpers to generate different tokens
+    according to a specific condition 
+
+        class_names(["foo", "bar"] => true, ["fizz", "buzz"] => false)
+        #=> "foo buzz"
+
+    *Lomig Enfroy*
+
 *   Add `:day_format` option to `date_select`
 
         date_select("article", "written_on", day_format: ->(day) { day.ordinalize })
