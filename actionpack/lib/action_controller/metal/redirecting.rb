@@ -83,7 +83,7 @@ module ActionController
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
       raise AbstractController::DoubleRenderError if response_body
 
-      allow_other_host = response_options.key?(:allow_other_host) ? response_options.delete(:allow_other_host) : _allow_other_host
+      allow_other_host = response_options.delete(:allow_other_host) { _allow_other_host }
 
       self.status        = _extract_redirect_to_status(options, response_options)
       self.location      = _enforce_open_redirect_protection(_compute_redirect_to_location(request, options), allow_other_host: allow_other_host)
