@@ -2,7 +2,7 @@
 
     *Gannon McGibbon*
 
-*   Add nested_attributes_for support for `delegated_type`
+*   Add `accepts_nested_attributes_for` support for `delegated_type`
 
     ```ruby
     class Entry < ApplicationRecord
