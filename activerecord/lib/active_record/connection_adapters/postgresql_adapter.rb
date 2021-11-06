@@ -647,8 +647,8 @@ module ActiveRecord
           default if has_default_function?(default_value, default)
         end
 
-        def has_default_function?(default_value, default)
-          !default_value && %r{\w+\(.*\)|\(.*\)::\w+|CURRENT_DATE|CURRENT_TIMESTAMP}.match?(default)
+        def has_default_function?(default_value, _default)
+          !default_value
         end
 
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html

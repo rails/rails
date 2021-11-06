@@ -423,7 +423,7 @@ module ActiveRecord
           end
           column = number_klass.columns_hash["number"]
           assert_nil column.default
-          assert_nil column.default_function
+          assert_equal "(((4 + 4) * 2) / 4)", column.default_function
 
           first_number = number_klass.new
           assert_nil first_number.number
