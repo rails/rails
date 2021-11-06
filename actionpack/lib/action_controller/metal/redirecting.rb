@@ -164,7 +164,7 @@ module ActionController
     #   # If request.host is on https://example.com or https://app.example.com, you'd get:
     #   url_from("https://dev.example.com/profile") # => nil
     #
-    # NOTE: there's a similarity with {url_for}[ActionView::RoutingUrlFor#url_for], which generates an internal URL from various options from within the app, e.g. <tt>url_for(@post)</tt>.
+    # NOTE: there's a similarity with {url_for}[rdoc-ref:ActionView::RoutingUrlFor#url_for], which generates an internal URL from various options from within the app, e.g. <tt>url_for(@post)</tt>.
     # However, #url_from is meant to take an external parameter to verify as in <tt>url_from(params[:redirect_url])</tt>.
     def url_from(location)
       location = location.presence
