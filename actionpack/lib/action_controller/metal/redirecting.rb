@@ -66,19 +66,19 @@ module ActionController
     # === Open Redirect protection
     #
     # By default, Rails protects against redirecting to external hosts for your app's safety, so called open redirects.
-    # Note: this was a new default in Rails 7.0, after upgrading opt-in by uncommenting the line with `raise_on_open_redirects` in `config/initializers/new_framework_defaults_7_0.rb`
+    # Note: this was a new default in Rails 7.0, after upgrading opt-in by uncommenting the line with #raise_on_open_redirects in <tt>config/initializers/new_framework_defaults_7_0.rb</tt>
     #
-    # Here redirect_to automatically validates the potentially-unsafe URL:
+    # Here #redirect_to automatically validates the potentially-unsafe URL:
     #
     #   redirect_to params[:redirect_url]
     #
-    # Raises <tt>ActionController::Redirecting::UnsafeRedirectError</tt> in the case of an unsafe redirect.
+    # Raises #UnsafeRedirectError in the case of an unsafe redirect.
     #
     # To allow any external redirects pass `allow_other_host: true`, though using a user-provided param in that case is unsafe.
     #
     #   redirect_to "https://rubyonrails.org", allow_other_host: true
     #
-    # See <tt>url_from</tt> for more information on what an internal and safe URL is, or how to fall back to an alternate redirect URL in the unsafe case.
+    # See #url_from for more information on what an internal and safe URL is, or how to fall back to an alternate redirect URL in the unsafe case.
     def redirect_to(options = {}, response_options = {})
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
       raise AbstractController::DoubleRenderError if response_body
@@ -152,7 +152,7 @@ module ActionController
     #
     #   redirect_to url_from(params[:redirect_url]) || root_url
     #
-    # The +location+ is considered internal, and safe, if it's on the same host as the <tt>request.host</tt>:
+    # The +location+ is considered internal, and safe, if it's on the same host as <tt>request.host</tt>:
     #
     #   # If request.host is example.com:
     #   url_from("https://example.com/profile") # => "https://example.com/profile"
@@ -164,8 +164,8 @@ module ActionController
     #   # If request.host is on https://example.com or https://app.example.com, you'd get:
     #   url_from("https://dev.example.com/profile") # => nil
     #
-    # NOTE: there's a similarity with <tt>url_for</tt>, which generates an internal URL from various options from within the app, e.g. `url_for(@post)`.
-    # However, <tt>url_from</tt> is meant to take an external parameter to verify as in `url_from(params[:redirect_url])`.
+    # NOTE: there's a similarity with #url_for, which generates an internal URL from various options from within the app, e.g. <tt>url_for(@post)</tt>.
+    # However, #url_from is meant to take an external parameter to verify as in <tt>url_from(params[:redirect_url])</tt>.
     def url_from(location)
       location = location.presence
       location if location && _url_host_allowed?(location)
