@@ -29,9 +29,9 @@ Starting with Rails 6, Rails ships with a new and better way to autoload, which 
 Why Switch from `classic` to `zeitwerk`?
 ----------------------------------------
 
-The `classic` autoloader has been extremely useful, but had a number of [issues](https://guides.rubyonrails.org/v6.1/autoloading_and_reloading_constants_classic_mode.html#common-gotchas) that made autoloading a bit tricky and confusing at times. Zeitwerk was developed to address them, among other [motivations](https://github.com/fxn/zeitwerk#motivation).
+The `classic` autoloader has been extremely useful, but had a number of [issues](https://guides.rubyonrails.org/v6.1/autoloading_and_reloading_constants_classic_mode.html#common-gotchas) that made autoloading a bit tricky and confusing at times. Zeitwerk was developed to address this, among other [motivations](https://github.com/fxn/zeitwerk#motivation).
 
-When upgrading to Rails 6.x, it is highly encouraged to switch to `zeitwerk` mode because `classic` mode is deprecated.
+When upgrading to Rails 6.x, it is highly encouraged to switch to `zeitwerk` mode because it is a better autoloader, `classic` mode is deprecated.
 
 Rails 7 ends the transition period and does not include `classic` mode.
 
@@ -80,7 +80,7 @@ config.autoloader = :zeitwerk
 
 In Rails 7 there is only `zeitwerk` mode, you do not need to do anything to enable it.
 
-Indeed, the setter `config.autoloader=` does not even exist. If `config/application.rb` has it, please just delete the line.
+Indeed, in Rails 7 the setter `config.autoloader=` does not even exist. If `config/application.rb` uses it, please delete the line.
 
 
 How to Verify The Application Runs in `zeitwerk` Mode?
@@ -161,6 +161,8 @@ With that in place, the check passes!
 Hold on, I am eager loading the application.
 All is good!
 ```
+
+Once all is good, it is recommended to keep validating the project in the test suite. The section [_Check Zeitwerk Compliance in the Test Suite_](#check-zeitwerk-compliance-in-the-test-suite) explains how to do this.
 
 ### Concerns
 
@@ -306,7 +308,7 @@ Please make sure to depend on at least Bootsnap 1.4.4.
 Check Zeitwerk Compliance in the Test Suite
 -------------------------------------------
 
-The task `zeitwerk:check` is handy while migrating. Once the project is compliant, it is recommended to automate this check. In order to do so, it is enough to eager load the application, which is all the task does, indeed.
+The task `zeitwerk:check` is handy while migrating. Once the project is compliant, it is recommended to automate this check. In order to do so, it is enough to eager load the application, which is all `zeitwerk:check` does, indeed.
 
 ### Continuous Integration
 
@@ -349,6 +351,21 @@ RSpec.describe "Zeitwerk compliance" do
 end
 ```
 
+Delete any `require` calls
+--------------------------
+
+In my experience, projects generally do not do this. But I've seen a couple, and have heard of a few others.
+
+In Rails application you use `require` exclusively to load code from `lib` or from 3rd party like gem dependencies or the standard library. **Never load autoloadable application code with `require`**. See why this was a bad idea already in `classic` [here](https://guides.rubyonrails.org/v6.1/autoloading_and_reloading_constants_classic_mode.html#autoloading-and-require).
+
+```ruby
+require "nokogiri" # GOOD
+require "net/http" # GOOD
+require "user"     # BAD, DELETE THIS (assuming app/models/user.rb)
+```
+
+Please delete any `require` calls of that type.
+
 New Features You Can Leverage
 -----------------------------
 
@@ -358,13 +375,12 @@ All known use cases of `require_dependency` have been eliminated with Zeitwerk. 
 
 If your application uses Single Table Inheritance, please see the [Single Table Inheritance section](autoloading_and_reloading_constants.html#single-table-inheritance) of the Autoloading and Reloading Constants (Zeitwerk Mode) guide.
 
-
 ### Qualified Names in Class and Module Definitions Are Now Possible
 
 You can now robustly use constant paths in class and module definitions:
 
 ```ruby
-# Autoloading in this class' body matches Ruby semantics now.
+# Autoloading in this class body matches Ruby semantics now.
 class Admin::UsersController < ApplicationController
   # ...
 end
@@ -398,7 +414,7 @@ end
 
 ### Thread-safety Everywhere
 
-In classic mode, constant autoloading is not thread-safe, though Rails has locks in place for example to make web requests thread-safe.
+In `classic` mode, constant autoloading is not thread-safe, though Rails has locks in place for example to make web requests thread-safe.
 
 Constant autoloading is thread-safe in `zeitwerk` mode. For example, you can now autoload in multi-threaded scripts executed by the `runner` command.
 
