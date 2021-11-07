@@ -423,9 +423,9 @@ module ActiveJob
 
       message = +"No enqueued job found with #{expected}"
       if potential_matches.empty?
-        message << "\n\nNo jobs where enqueued"
+        message << "\n\nNo jobs were enqueued"
       elsif matching_class.empty?
-        message << "\n\nNo jobs of class #{expected[:job]} where enqueued, job classes enqueued: "
+        message << "\n\nNo jobs of class #{expected[:job]} were enqueued, job classes enqueued: "
         message << potential_matches.map { |job| job["job_class"] }.join(", ")
       else
         message << "\n\nPotential matches: #{matching_class.join("\n")}"
@@ -525,9 +525,9 @@ module ActiveJob
 
       message = +"No performed job found with #{expected}"
       if potential_matches.empty?
-        message << "\n\nNo jobs where performed"
+        message << "\n\nNo jobs were performed"
       elsif matching_class.empty?
-        message << "\n\nNo jobs of class #{expected[:job]} where performed, job classes performed: "
+        message << "\n\nNo jobs of class #{expected[:job]} were performed, job classes performed: "
         message << potential_matches.map { |job| job["job_class"] }.join(", ")
       else
         message << "\n\nPotential matches: #{matching_class.join("\n")}"
