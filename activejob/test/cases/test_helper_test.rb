@@ -714,7 +714,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No enqueued job found with {:job=>MultipleKwargsJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/No jobs of class MultipleKwargsJob where enqueued, job classes enqueued: HelloJob/, error.message)
+    assert_match(/No jobs of class MultipleKwargsJob were enqueued, job classes enqueued: HelloJob/, error.message)
   end
 
   def test_shows_no_jobs_enqueued_when_there_are_no_jobs
@@ -724,7 +724,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[\]}/, error.message)
-    assert_match(/No jobs where enqueued/, error.message)
+    assert_match(/No jobs were enqueued/, error.message)
   end
 
   def test_assert_enqueued_with_failure_with_no_block_with_global_id_args
@@ -1985,7 +1985,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No performed job found with {:job=>HelloJob, :args=>\[\]}/, error.message)
-    assert_match(/No jobs where performed/, error.message)
+    assert_match(/No jobs were performed/, error.message)
   end
 
   def test_assert_performed_when_not_matching_the_class_shows_alteratives
@@ -1998,7 +1998,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No performed job found with {:job=>MultipleKwargsJob, :args=>\[#<Person.* @id=11>\]}/, error.message)
-    assert_match(/No jobs of class MultipleKwargsJob where performed, job classes performed: HelloJob/, error.message)
+    assert_match(/No jobs of class MultipleKwargsJob were performed, job classes performed: HelloJob/, error.message)
   end
 
   def test_assert_performed_with_does_not_change_jobs_count
