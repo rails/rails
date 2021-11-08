@@ -235,6 +235,20 @@ module ActionView
       #   # A void element:
       #   tag.br  # => <br>
       #
+      # === Building HTML attributes
+      #
+      # Transforms a Hash into HTML attributes, ready to be interpolated into
+      # ERB. Includes or omits boolean attributes based on their truthiness.
+      # Transforms keys nested within
+      # <tt>aria:</tt> or <tt>data:</tt> objects into `aria-` and `data-`
+      # prefixed attributes:
+      #
+      #   <input <%= tag.attributes(type: :text, aria: { label: "Search" }) %>>
+      #   # => <input type="text" aria-label="Search">
+      #
+      #   <button <%= tag.attributes id: "call-to-action", disabled: false, aria: { expanded: false } %> class="primary">Get Started!</button>
+      #   => <button id="call-to-action" aria-expanded="false" class="primary">Get Started!</button>
+      #
       # === Legacy syntax
       #
       # The following format is for legacy syntax support. It will be deprecated in future versions of Rails.
