@@ -1076,7 +1076,7 @@ module ActiveRecord
 
     def _raise_record_not_destroyed
       @_association_destroy_exception ||= nil
-      raise @_association_destroy_exception || RecordNotDestroyed.new("Failed to destroy the record", self)
+      raise @_association_destroy_exception || RecordNotDestroyed.new("Failed to destroy the #{self.class} record", self)
     ensure
       @_association_destroy_exception = nil
     end
