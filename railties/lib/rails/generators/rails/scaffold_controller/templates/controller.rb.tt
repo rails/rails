@@ -25,7 +25,7 @@ class <%= controller_class_name %>Controller < ApplicationController
     @<%= singular_table_name %> = <%= orm_class.build(class_name, "#{singular_table_name}_params") %>
 
     if @<%= orm_instance.save %>
-      redirect_to <%= redirect_resource_name %>, notice: <%= %("#{human_name} was successfully created.") %>
+      redirect_to <%= show_helper %>, notice: <%= %("#{human_name} was successfully created.") %>
     else
       render :new, status: :unprocessable_entity
     end
@@ -34,7 +34,7 @@ class <%= controller_class_name %>Controller < ApplicationController
   # PATCH/PUT <%= route_url %>/1
   def update
     if @<%= orm_instance.update("#{singular_table_name}_params") %>
-      redirect_to <%= redirect_resource_name %>, notice: <%= %("#{human_name} was successfully updated.") %>
+      redirect_to <%= show_helper %>, notice: <%= %("#{human_name} was successfully updated.") %>
     else
       render :edit, status: :unprocessable_entity
     end
