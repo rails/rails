@@ -428,6 +428,18 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_for_hmt_with_conditions
+    post = posts(:welcome)
+    _normal_category = post.categories.create!(name: "Normal")
+    special_category = post.special_categories.create!(name: "Special")
+
+    preloader = ActiveRecord::Associations::Preloader.new(records: [post], associations: :hmt_special_categories)
+    preloader.call
+
+    assert_equal 1, post.hmt_special_categories.length
+    assert_equal [special_category], post.hmt_special_categories
+  end
+
   def test_preload_groups_queries_with_same_scope
     book = books(:awdr)
     post = posts(:welcome)

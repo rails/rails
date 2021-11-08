@@ -114,6 +114,7 @@ class Post < ActiveRecord::Base
 
   has_many :category_posts, class_name: "CategoryPost"
   has_many :scategories, through: :category_posts, source: :category
+  has_many :hmt_special_categories, -> { where.not(name: nil) },  through: :category_posts, source: :category, class_name: "SpecialCategory"
   has_and_belongs_to_many :categories
   has_and_belongs_to_many :special_categories, join_table: "categories_posts", association_foreign_key: "category_id"
 
