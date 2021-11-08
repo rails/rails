@@ -1,3 +1,9 @@
+*   Fix regression bug that caused ignoring additional conditions for preloading has_many-through relations.
+
+    Fixes #43132
+
+    *Alexander Pauly*
+
 *   Fix `has_many` inversing recursion on models with recursive associations.
 
     *Gannon McGibbon*
