@@ -367,6 +367,18 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_predicate post.comments, :loaded?
     assert_equal [comments(:greetings)], post.comments
   end
+
+  def test_preload_for_hmt_with_conditions
+    post = posts(:welcome)
+    _normal_category = post.categories.create!(name: "Normal")
+    special_category = post.special_categories.create!(name: "Special")
+
+    preloader = ActiveRecord::Associations::Preloader.new
+    preloader.preload([post], :hmt_special_categories)
+
+    assert_equal 1, post.hmt_special_categories.length
+    assert_equal [special_category], post.hmt_special_categories
+  end
 end
 
 class GeneratedMethodsTest < ActiveRecord::TestCase

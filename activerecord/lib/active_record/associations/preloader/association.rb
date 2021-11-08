@@ -129,9 +129,7 @@ module ActiveRecord
           end
 
           def reflection_scope
-            @reflection_scope ||= begin
-              reflection.join_scopes(klass.arel_table, klass.predicate_builder, klass).inject(&:merge!) || klass.unscoped
-            end
+            @reflection_scope ||= reflection.join_scopes(klass.arel_table, klass.predicate_builder, klass).inject(klass.unscoped, &:merge!)
           end
 
           def build_scope
