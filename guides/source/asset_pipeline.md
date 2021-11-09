@@ -46,7 +46,7 @@ in `production.rb` - `config.assets.css_compressor` for your CSS and
 
 ```ruby
 config.assets.css_compressor = :yui
-config.assets.js_compressor = :uglifier
+config.assets.js_compressor = :terser
 ```
 
 NOTE: The `sassc-rails` gem is automatically used for CSS compression if included
@@ -1042,8 +1042,8 @@ config.assets.css_compressor = :sass
 
 ### JavaScript Compression
 
-Possible options for JavaScript compression are `:terser`, `:closure`, `:uglifier` and
-`:yui`. These require the use of the `terser`, `closure-compiler`, `uglifier` or
+Possible options for JavaScript compression are `:terser`, `:closure` and
+`:yui`. These require the use of the `terser`, `closure-compiler` or
 `yui-compressor` gems, respectively.
 
 Take the `terser` gem, for example.
