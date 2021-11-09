@@ -71,13 +71,23 @@ class SignedIdTest < ActiveRecord::TestCase
     assert_equal @account, Account.find_signed(@account.signed_id(expires_in: 1.minute))
   end
 
-  test "fail to find signed record within expiration date" do
+  test "fail to find signed record after expiration date" do
     signed_id = @account.signed_id(expires_in: 1.minute)
     travel 2.minutes
     assert_nil Account.find_signed(signed_id)
   end
 
-  test "fail to find record from that has since been destroyed" do
+  test "find signed record having fresh data" do
+    assert_equal @account, Account.find_signed(@account.signed_id(expires_with: :credit_limit))
+  end
+
+  test "fail to find signed record having stale data" do
+    signed_id = @account.signed_id(expires_with: :credit_limit)
+    @account.decrement!(:credit_limit)
+    assert_nil Account.find_signed(signed_id)
+  end
+
+  test "fail to find record that has since been destroyed" do
     signed_id = @account.signed_id(expires_in: 1.minute)
     @account.destroy
     assert_nil Account.find_signed signed_id
@@ -106,6 +116,19 @@ class SignedIdTest < ActiveRecord::TestCase
   test "finding signed record outside expiration date raises on the bang" do
     signed_id = @account.signed_id(expires_in: 1.minute)
     travel 2.minutes
+
+    assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
+      Account.find_signed!(signed_id)
+    end
+  end
+
+  test "find signed record with a bang having fresh data" do
+    assert_equal @account, Account.find_signed!(@account.signed_id(expires_with: :credit_limit))
+  end
+
+  test "finding signed record having stale data raises on the bang" do
+    signed_id = @account.signed_id(expires_with: :credit_limit)
+    @account.decrement!(:credit_limit)
 
     assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
       Account.find_signed!(signed_id)

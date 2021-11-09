@@ -42,7 +42,7 @@ module ActiveRecord
       def find_signed(signed_id, purpose: nil)
         raise UnknownPrimaryKey.new(self) if primary_key.nil?
 
-        if id = signed_id_verifier.verified(signed_id, purpose: combine_signed_id_purposes(purpose))
+        verifying_signed_id(signed_id, purpose: purpose) do |id|
           find_by primary_key => id
         end
       end
@@ -60,9 +60,9 @@ module ActiveRecord
       #   User.first.destroy
       #   User.find_signed! signed_id # => ActiveRecord::RecordNotFound
       def find_signed!(signed_id, purpose: nil)
-        if id = signed_id_verifier.verify(signed_id, purpose: combine_signed_id_purposes(purpose))
+        verifying_signed_id(signed_id, purpose: purpose) do |id|
           find(id)
-        end
+        end || (raise ActiveSupport::MessageVerifier::InvalidSignature)
       end
 
       # The verifier instance that all signed ids are generated and verified from. By default, it'll be initialized
@@ -89,6 +89,14 @@ module ActiveRecord
       end
 
       # :nodoc:
+      def verifying_signed_id(signed_id, purpose: nil)
+        purpose = combine_signed_id_purposes(purpose)
+        id, expires_with, fresh_value = signed_id_verifier.verified(signed_id, purpose: purpose) || return
+        model = yield(id) || return
+        model if expires_with.nil? || model[expires_with] == fresh_value
+      end
+
+      # :nodoc:
       def combine_signed_id_purposes(purpose)
         [ base_class.name.underscore, purpose.to_s ].compact_blank.join("/")
       end
@@ -97,9 +105,9 @@ module ActiveRecord
 
     # Returns a signed id that's generated using a preconfigured +ActiveSupport::MessageVerifier+ instance.
     # This signed id is tamper proof, so it's safe to send in an email or otherwise share with the outside world.
-    # It can further more be set to expire (the default is not to expire), and scoped down with a specific purpose.
-    # If the expiration date has been exceeded before +find_signed+ is called, the id won't find the designated
-    # record. If a purpose is set, this too must match.
+    # It can furthermore be set to expire (the default is not to expire), and scoped down with a specific purpose.
+    # If +find_signed+ is called with an expired id, or the specified purposes do not match, the designated record
+    # will not be found.
     #
     # If you accidentally let a signed id out in the wild that you wish to retract sooner than its expiration date
     # (or maybe you forgot to set an expiration date while meaning to!), you can use the purpose to essentially
@@ -109,8 +117,21 @@ module ActiveRecord
     #
     # And you then change your +find_signed+ calls to require this new purpose. Any old signed ids that were not
     # created with the purpose will no longer find the record.
-    def signed_id(expires_in: nil, purpose: nil)
-      self.class.signed_id_verifier.generate id, expires_in: expires_in, purpose: self.class.combine_signed_id_purposes(purpose)
+    #
+    # ==== Options
+    #
+    # * <tt>:expires_in</tt> - The duration of time the signed id will be valid for. After this time has elapsed,
+    #   the signed id will expire.
+    # * <tt>:expires_with</tt> - The name of an attribute to check after fetching the designated record. If the
+    #   attribute's value differs from when the signed id was generated, the signed id will be considered expired.
+    #   Note that the attribute's original value is serialized as JSON and embedded as plaintext in the signed id.
+    #   This means that (1) the value must be round-trippable to and from JSON, and (2) the value MUST NOT be
+    #   sensitive data.
+    # * <tt>:purpose</tt> - The purpose of the signed id. This purpose must match the purpose specified when
+    #   calling +find_signed+, else the designated record will not be found.
+    def signed_id(expires_in: nil, expires_with: nil, purpose: nil)
+      payload = expires_with ? [ id, expires_with, self[expires_with] ] : id
+      self.class.signed_id_verifier.generate payload, expires_in: expires_in, purpose: self.class.combine_signed_id_purposes(purpose)
     end
   end
 end
