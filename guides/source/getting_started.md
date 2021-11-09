@@ -1766,7 +1766,7 @@ and in `app/controllers/comments_controller.rb`:
     end
 ```
 
-Within the `article` model, after running a migration to add a `status` column, you would add:
+Within the `article` model, after running a migration to add a `status` column using `bin/rails db:migrate` command, you would add:
 
 ```ruby
 class Article < ApplicationRecord
