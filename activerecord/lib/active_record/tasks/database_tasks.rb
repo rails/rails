@@ -187,18 +187,21 @@ module ActiveRecord
       def raise_for_multi_db(environment = env, command:)
         db_configs = configs_for(env_name: environment)
 
-        if db_configs.count > 1
+        if db_configs.count > 1 && ENV["DATABASE_NAME"].blank?
           dbs_list = []
 
           db_configs.each do |db|
             dbs_list << "#{command}:#{db.name}"
           end
 
-          raise "You're using a multiple database application. To use `#{command}` you must run the namespaced task with a VERSION. Available tasks are #{dbs_list.to_sentence}."
+          raise "You're using a multiple database application."\
+            " To use `#{command}` you must run the namespaced task or pass the DATABASE_NAME with a VERSION."\
+            " Available tasks are #{dbs_list.to_sentence}."
         end
       end
 
       def create_current(environment = env, name = nil)
+        name ||= ENV["DATABASE_NAME"]
         each_current_configuration(environment, name) { |db_config| create(db_config) }
         ActiveRecord::Base.establish_connection(environment.to_sym)
       end
@@ -251,8 +254,9 @@ module ActiveRecord
         each_local_configuration { |db_config| drop(db_config) }
       end
 
-      def drop_current(environment = env)
-        each_current_configuration(environment) { |db_config| drop(db_config) }
+      def drop_current(environment = env, name = nil)
+        name ||= ENV["DATABASE_NAME"]
+        each_current_configuration(environment, name) { |db_config| drop(db_config) }
       end
 
       def truncate_tables(db_config)
