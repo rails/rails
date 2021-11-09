@@ -98,17 +98,17 @@ module Rails
           uncountable? ? "#{plural_route_name}_index" : plural_route_name
         end
 
-        def show_helper(local: false) # :doc:
+        def show_helper(local: false, suffix: "url") # :doc:
           instance_var  = local ? "" : "@"
-          "#{singular_route_name}_url(#{instance_var}#{singular_table_name})"
+          "#{singular_route_name}_#{suffix}(#{instance_var}#{singular_table_name})"
         end
 
         def edit_helper # :doc:
           "edit_#{show_helper}"
         end
 
-        def new_helper # :doc:
-          "new_#{singular_route_name}_url"
+        def new_helper(suffix: "url") # :doc:
+          "new_#{singular_route_name}_#{suffix}"
         end
 
         def singular_table_name # :doc:
