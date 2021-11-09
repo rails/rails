@@ -929,7 +929,7 @@ directly from the client to the cloud.
     Or, if you aren't using a `FormBuilder`, add the data attribute directly:
 
     ```erb
-    <input type=file data-direct-upload-url="<%= rails_direct_uploads_url %>" />
+    <input type="file" data-direct-upload-url="<%= rails_direct_uploads_url %>" />
     ```
 
 3. Configure CORS on third-party storage services to allow direct upload requests.
