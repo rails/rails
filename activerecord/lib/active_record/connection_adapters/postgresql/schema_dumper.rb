@@ -4,6 +4,8 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       class SchemaDumper < ConnectionAdapters::SchemaDumper # :nodoc:
+        ignore_tables << "pg_stat_statements_info"
+
         private
           def extensions(stream)
             extensions = @connection.extensions
