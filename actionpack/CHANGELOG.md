@@ -1,3 +1,12 @@
+*   `Rails.application.executor` hooks can now be called around every request in a `ActionController::TestCase`
+
+    This helps to better simulate request or job local state being reset between requests and prevent state
+    leaking from one request to another.
+
+    To enable this, set `config.active_support.executor_around_test_case = true` (this is the default in Rails 7).
+
+    *Alex Ghiculescu*
+
 *   Consider onion services secure for cookies.
 
     *Justin Tracey*
