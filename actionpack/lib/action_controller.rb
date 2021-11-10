@@ -37,7 +37,6 @@ module ActionController
     autoload :Logging
     autoload :MimeResponds
     autoload :ParamsWrapper
-    autoload :QueryTags
     autoload :Redirecting
     autoload :Renderers
     autoload :Rendering
