@@ -80,7 +80,7 @@ Rails supports six types of associations:
 * [`has_one :through`][`has_one`]
 * [`has_and_belongs_to_many`][]
 
-Associations are implemented using macro-style calls, so that you can declaratively add features to your models. For example, by declaring that one model `belongs_to` another, you instruct Rails to maintain [Primary Key](https://en.wikipedia.org/wiki/Unique_key)-[Foreign Key](https://en.wikipedia.org/wiki/Foreign_key) information between instances of the two models, and you also get a number of utility methods added to your model.
+Associations are implemented using macro-style calls, so that you can declaratively add features to your models. For example, by declaring that one model `belongs_to` another, you instruct Rails to maintain [Primary Key](https://en.wikipedia.org/wiki/Primary_key)-[Foreign Key](https://en.wikipedia.org/wiki/Foreign_key) information between instances of the two models, and you also get a number of utility methods added to your model.
 
 In the remainder of this guide, you'll learn how to declare and use the various forms of associations. But first, a quick introduction to the situations where each association type is appropriate.
 
