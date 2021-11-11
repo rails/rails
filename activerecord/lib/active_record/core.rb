@@ -77,6 +77,8 @@ module ActiveRecord
 
       class_attribute :default_shard, instance_writer: false
 
+      class_attribute :shard_selector, instance_accessor: false, default: nil
+
       def self.application_record_class? # :nodoc:
         if ActiveRecord.application_record_class
           self == ActiveRecord.application_record_class

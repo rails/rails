@@ -1,3 +1,19 @@
+*   Add middleware for automatic shard swapping.
+
+    Provides a basic middleware to perform automatic shard swapping. Applications will provide a resolver which will determine for an individual request which shard should be used. Example:
+
+    ```ruby
+    config.active_record.shard_resolver = ->(request) {
+      subdomain = request.subdomain
+      tenant = Tenant.find_by_subdomain!(subdomain)
+      tenant.shard
+    }
+    ```
+
+    See guides for more details.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 *   Remove deprecated support to pass a column to `type_cast`.
 
     *Rafael Mendonça França*
