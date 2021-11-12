@@ -497,6 +497,22 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Time.utc(2014, 10, 25, 22, 0, 0), zone.parse("2014-10-26 01:00:00")
   end
 
+  def test_parse_with_two_digit_year
+    zone = ActiveSupport::TimeZone["UTC"]
+    time = zone.parse("13-03-10 00:00:00")
+    assert_equal Time.utc(2013, 3, 10, 0, 0, 0), time
+  end
+
+  def test_parse_with_block
+    zone = ActiveSupport::TimeZone["UTC"]
+    override = 2020
+    time = zone.parse("13-03-10 00:00:00") do |year|
+      assert_equal 13, year
+      override
+    end
+    assert_equal Time.utc(override, 3, 10, 0, 0, 0), time
+  end
+
   def test_rfc3339
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
     twz = zone.rfc3339("1999-12-31T14:00:00-10:00")
