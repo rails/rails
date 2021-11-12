@@ -140,6 +140,8 @@ To send a hash, you include the key name inside the brackets:
 
 When this form is submitted, the value of `params[:client]` will be `{ "name" => "Acme", "phone" => "12345", "address" => { "postcode" => "12345", "city" => "Carrot City" } }`. Note the nested hash in `params[:client][:address]`.
 
+NOTE: for `<input type="file" multiple="true" name="files[]">` The parameter name must have an array indicator.
+
 The `params` object acts like a Hash, but lets you use symbols and strings interchangeably as keys.
 
 ### JSON parameters
