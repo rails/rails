@@ -42,7 +42,7 @@ class FormTagHelperTest < ActionView::TestCase
 
     method = method.to_s == "get" ? "get" : "post"
 
-    txt =  +%{<form accept-charset="UTF-8" action="#{action}"}
+    txt =  +%{<form accept-charset="UTF-8"} + (action ? %{ action="#{action}"} : "")
     txt << %{ enctype="multipart/form-data"} if enctype
     txt << %{ data-remote="true"} if remote
     txt << %{ class="#{html_class}"} if html_class
@@ -135,6 +135,20 @@ class FormTagHelperTest < ActionView::TestCase
     actual = form_tag({}, { remote: false })
 
     expected = whole_form
+    assert_dom_equal expected, actual
+  end
+
+  def test_form_tag_with_false_url_for_options
+    actual = form_tag(false)
+
+    expected = whole_form(false)
+    assert_dom_equal expected, actual
+  end
+
+  def test_form_tag_with_false_action
+    actual = form_tag({}, action: false)
+
+    expected = whole_form(false)
     assert_dom_equal expected, actual
   end
 

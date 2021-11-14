@@ -238,7 +238,15 @@ module ActionView
       # HTTP verb via the +:method+ option within +html_options+.
       #
       # ==== Options
-      # The +options+ hash accepts the same options as +url_for+.
+      # The +options+ hash accepts the same options as +url_for+. To generate a
+      # <tt><form></tt> element without an <tt>[action]</tt> attribute, pass
+      # <tt>false</tt>:
+      #
+      #   <%= button_to "New", false %>
+      #   # => "<form method="post" class="button_to">
+      #   #      <button type="submit">New</button>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #    </form>"
       #
       # Most values in +html_options+ are passed through to the button element,
       # but there are a few special options:
@@ -324,11 +332,15 @@ module ActionView
       #   #
       def button_to(name = nil, options = nil, html_options = nil, &block)
         html_options, options = options, name if block_given?
-        options      ||= {}
         html_options ||= {}
         html_options = html_options.stringify_keys
 
-        url    = options.is_a?(String) ? options : url_for(options)
+        url =
+          case options
+          when FalseClass then nil
+          else url_for(options)
+          end
+
         remote = html_options.delete("remote")
         params = html_options.delete("params")
 
