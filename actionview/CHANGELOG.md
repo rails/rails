@@ -1,3 +1,18 @@
+*   Add support for `button_to ..., authenticity_token: false`
+
+    ```ruby
+    button_to "Create", Post.new, authenticity_token: false
+    # => <form class="button_to" method="post" action="/posts"><button type="submit">Create</button></form>
+
+    button_to "Create", Post.new, authenticity_token: true
+    # => <form class="button_to" method="post" action="/posts"><button type="submit">Create</button><input type="hidden" name="form_token" value="abc123..." autocomplete="off" /></form>
+
+    button_to "Create", Post.new, authenticity_token: "secret"
+    # => <form class="button_to" method="post" action="/posts"><button type="submit">Create</button><input type="hidden" name="form_token" value="secret" autocomplete="off" /></form>
+    ```
+
+    *Sean Doyle*
+
 *   Support rendering `<form>` elements _without_ `[action]` attributes by:
 
     * `form_with url: false` or `form_with ..., html: { action: false }`
