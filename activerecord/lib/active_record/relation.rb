@@ -11,7 +11,7 @@ module ActiveRecord
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
 
     CLAUSE_METHODS = [:where, :having, :from]
-    INVALID_METHODS_FOR_DELETE_ALL = [:distinct, :group, :having]
+    INVALID_METHODS_FOR_DELETE_ALL = [:distinct]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 
@@ -485,8 +485,9 @@ module ActiveRecord
       arel = eager_loading? ? apply_join_dependency.arel : build_arel
       arel.source.left = table
 
-      stmt = arel.compile_update(values, table[primary_key])
-
+      group_values_arel_columns = arel_columns(group_values.uniq)
+      having_clause_ast = having_clause.ast unless having_clause.empty?
+      stmt = arel.compile_update(values, table[primary_key], having_clause_ast, group_values_arel_columns)
       klass.connection.update(stmt, "#{klass} Update All").tap { reset }
     end
 
@@ -615,7 +616,9 @@ module ActiveRecord
       arel = eager_loading? ? apply_join_dependency.arel : build_arel
       arel.source.left = table
 
-      stmt = arel.compile_delete(table[primary_key])
+      group_values_arel_columns = arel_columns(group_values.uniq)
+      having_clause_ast = having_clause.ast unless having_clause.empty?
+      stmt = arel.compile_delete(table[primary_key], having_clause_ast, group_values_arel_columns)
 
       klass.connection.delete(stmt, "#{klass} Delete All").tap { reset }
     end

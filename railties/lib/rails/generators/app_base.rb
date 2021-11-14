@@ -313,7 +313,7 @@ module Rails
       def javascript_gemfile_entry
         return [] if options[:skip_javascript]
 
-        if options[:javascript] == "importmap"
+        if adjusted_javascript_option == "importmap"
           GemfileEntry.version("importmap-rails", ">= 0.3.4", "Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]")
         else
           GemfileEntry.version "jsbundling-rails", "~> 0.1.0", "Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]"
@@ -334,6 +334,16 @@ module Rails
 
       def using_node?
         options[:javascript] && options[:javascript] != "importmap"
+      end
+
+      # CSS processors other than Tailwind require a node-based JavaScript environment. So overwrite the normal JS default
+      # if one such processor has been specified.
+      def adjusted_javascript_option
+        if options[:css] && options[:css] != "tailwind" && options[:javascript] == "importmap"
+          "esbuild"
+        else
+          options[:javascript]
+        end
       end
 
       def css_gemfile_entry
@@ -407,9 +417,9 @@ module Rails
       def run_javascript
         return if options[:skip_javascript] || !bundle_install?
 
-        case options[:javascript]
+        case adjusted_javascript_option
         when "importmap"                    then rails_command "importmap:install"
-        when "webpack", "esbuild", "rollup" then rails_command "javascript:install:#{options[:javascript]}"
+        when "webpack", "esbuild", "rollup" then rails_command "javascript:install:#{adjusted_javascript_option}"
         end
       end
 

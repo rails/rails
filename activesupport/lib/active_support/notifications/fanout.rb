@@ -93,8 +93,16 @@ module ActiveSupport
           exceptions ||= []
           exceptions << e
         end
-      ensure
-        raise InstrumentationSubscriberError.new(exceptions) unless exceptions.nil?
+
+        if exceptions
+          if exceptions.size == 1
+            raise exceptions.first
+          else
+            raise InstrumentationSubscriberError.new(exceptions), cause: exceptions.first
+          end
+        end
+
+        listeners
       end
 
       def listeners_for(name)

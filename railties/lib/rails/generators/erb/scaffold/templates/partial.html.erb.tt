@@ -1,4 +1,4 @@
-<div id="<%%= dom_id <%= singular_table_name %> %>" class="scaffold_record">
+<div id="<%%= dom_id <%= singular_table_name %> %>">
 <% attributes.reject(&:password_digest?).each do |attribute| -%>
   <p>
     <strong><%= attribute.human_name %>:</strong>

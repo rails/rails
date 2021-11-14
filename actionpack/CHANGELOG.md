@@ -1,3 +1,29 @@
+*   Raise `ActionController::Redirecting::UnsafeRedirectError` for unsafe `redirect_to` redirects.
+
+    This allows `rescue_from` to be used to add a default fallback route:
+
+    ```ruby
+    rescue_from ActionController::Redirecting::UnsafeRedirectError do
+      redirect_to root_url
+    end
+    ```
+
+    *Kasper Timm Hansen*, *Chris Oliver*
+
+*   Add `url_from` to verify a redirect location is internal.
+
+    Takes the open redirect protection from `redirect_to` so users can wrap a
+    param, and fall back to an alternate redirect URL when the param provided
+    one is unsafe.
+
+    ```ruby
+    def create
+      redirect_to url_from(params[:redirect_url]) || root_url
+    end
+    ```
+
+    *dmcge*, *Kasper Timm Hansen*
+
 *   Allow Capybara driver name overrides in `SystemTestCase::driven_by`
 
     Allow users to prevent conflicts among drivers that use the same driver

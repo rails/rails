@@ -194,6 +194,20 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
+  def test_button_to_with_false_url
+    assert_dom_equal(
+      %{<form method="post" class="button_to"><button type="submit">Hello</button></form>},
+      button_to("Hello", false)
+    )
+  end
+
+  def test_button_to_with_false_url_and_block
+    assert_dom_equal(
+      %{<form method="post" class="button_to"><button type="submit">Hello</button></form>},
+      button_to(false) { "Hello" }
+    )
+  end
+
   def test_button_to_with_straight_url_and_request_forgery
     self.request_forgery = true
 

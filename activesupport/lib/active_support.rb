@@ -34,11 +34,13 @@ module ActiveSupport
   extend ActiveSupport::Autoload
 
   autoload :Concern
+  autoload :CodeGenerator
   autoload :ActionableError
   autoload :ConfigurationFile
   autoload :CurrentAttributes
   autoload :Dependencies
   autoload :DescendantsTracker
+  autoload :ExecutionContext
   autoload :ExecutionWrapper
   autoload :Executor
   autoload :FileUpdateChecker

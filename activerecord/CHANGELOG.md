@@ -1,3 +1,79 @@
+*   Fix regression bug that caused ignoring additional conditions for preloading has_many-through relations.
+
+    Fixes #43132
+
+    *Alexander Pauly*
+
+*   Fix `has_many` inversing recursion on models with recursive associations.
+
+    *Gannon McGibbon*
+
+*   Add `accepts_nested_attributes_for` support for `delegated_type`
+
+    ```ruby
+    class Entry < ApplicationRecord
+      delegated_type :entryable, types: %w[ Message Comment ]
+      accepts_nested_attributes_for :entryable
+    end
+
+    entry = Entry.create(entryable_type: 'Message', entryable_attributes: { content: 'Hello world' })
+    # => #<Entry:0x00>
+    # id: 1
+    # entryable_id: 1,
+    # entryable_type: 'Message'
+    # ...>
+
+    entry.entryable
+    # => #<Message:0x01>
+    # id: 1
+    # content: 'Hello world'
+    # ...>
+    ```
+
+    Previously it would raise an error:
+
+    ```ruby
+    Entry.create(entryable_type: 'Message', entryable_attributes: { content: 'Hello world' })
+    # ArgumentError: Cannot build association `entryable'. Are you trying to build a polymorphic one-to-one association?
+    ```
+
+    *Sjors Baltus*
+
+*   Use subquery for DELETE with GROUP_BY and HAVING clauses.
+
+    Prior to this change, deletes with GROUP_BY and HAVING were returning an error.
+
+    After this change, GROUP_BY and HAVING are valid clauses in DELETE queries, generating the following query:
+
+    ```sql
+    DELETE FROM "posts" WHERE "posts"."id" IN (
+        SELECT "posts"."id" FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id" GROUP BY "posts"."id" HAVING (count(comments.id) >= 2))
+    )  [["flagged", "t"]]
+    ```
+
+    *Ignacio Chiazzo Cardarello*
+
+*   Use subquery for UPDATE with GROUP_BY and HAVING clauses.
+
+    Prior to this change, updates with GROUP_BY and HAVING were being ignored, generating a SQL like this:
+
+    ```sql
+    UPDATE "posts" SET "flagged" = ? WHERE "posts"."id" IN (
+        SELECT "posts"."id" FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+    )  [["flagged", "t"]]
+    ```
+
+    After this change, GROUP_BY and HAVING clauses are used as a subquery in updates, like this:
+
+    ```sql
+    UPDATE "posts" SET "flagged" = ? WHERE "posts"."id" IN (
+        SELECT "posts"."id" FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+        GROUP BY posts.id HAVING (count(comments.id) >= 2)
+    )  [["flagged", "t"]]
+    ```
+
+    *Ignacio Chiazzo Cardarello*
+
 *   Add support for setting the filename of the schema or structure dump in the database config.
 
     Applications may now set their the filename or path of the schema / structure dump file in their database configuration.

@@ -1,4 +1,4 @@
-<p id="notice"><%%= notice %></p>
+<p style="color: green"><%%= notice %></p>
 
 <%%= render @<%= singular_table_name %> %>
 

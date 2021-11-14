@@ -92,18 +92,23 @@ module ActiveSupport
         ], listener.events
       end
 
-      def test_listen_start_exception_consistency
+      def test_listen_start_multiple_exception_consistency
         notifier = Fanout.new
         listener = Listener.new
         notifier.subscribe nil, BadStartListener.new
+        notifier.subscribe nil, BadStartListener.new
         notifier.subscribe nil, listener
 
-        assert_raises InstrumentationSubscriberError do
+        error = assert_raises InstrumentationSubscriberError do
           notifier.start  "hello", 1, {}
         end
-        assert_raises InstrumentationSubscriberError do
+        assert_instance_of BadListenerException, error.cause
+
+        error = assert_raises InstrumentationSubscriberError do
           notifier.start  "world", 1, {}
         end
+        assert_instance_of BadListenerException, error.cause
+
         notifier.finish  "world", 1, {}
         notifier.finish  "hello", 1, {}
 
@@ -116,20 +121,24 @@ module ActiveSupport
         ], listener.events
       end
 
-      def test_listen_finish_exception_consistency
+      def test_listen_finish_multiple_exception_consistency
         notifier = Fanout.new
         listener = Listener.new
+        notifier.subscribe nil, BadFinishListener.new
         notifier.subscribe nil, BadFinishListener.new
         notifier.subscribe nil, listener
 
         notifier.start  "hello", 1, {}
         notifier.start  "world", 1, {}
-        assert_raises InstrumentationSubscriberError do
+        error = assert_raises InstrumentationSubscriberError do
           notifier.finish  "world", 1, {}
         end
-        assert_raises InstrumentationSubscriberError do
+        assert_instance_of BadListenerException, error.cause
+
+        error = assert_raises InstrumentationSubscriberError do
           notifier.finish  "hello", 1, {}
         end
+        assert_instance_of BadListenerException, error.cause
 
         assert_equal 4, listener.events.length
         assert_equal [

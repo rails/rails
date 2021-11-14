@@ -4,14 +4,6 @@ require_relative "../../abstract_unit"
 require "active_support/core_ext/digest"
 
 class DigestUUIDExt < ActiveSupport::TestCase
-  def with_use_rfc4122_namespaced_uuids_set
-    old_value = ActiveSupport.use_rfc4122_namespaced_uuids
-    ActiveSupport.use_rfc4122_namespaced_uuids = true
-    yield
-  ensure
-    ActiveSupport.use_rfc4122_namespaced_uuids = old_value
-  end
-
   def test_constants
     assert_equal "6ba7b810-9dad-11d1-80b4-00c04fd430c8", "%08x-%04x-%04x-%04x-%04x%08x" % Digest::UUID::DNS_NAMESPACE.unpack("NnnnnN")
     assert_equal "6ba7b811-9dad-11d1-80b4-00c04fd430c8", "%08x-%04x-%04x-%04x-%04x%08x" % Digest::UUID::URL_NAMESPACE.unpack("NnnnnN")
@@ -184,4 +176,13 @@ class DigestUUIDExt < ActiveSupport::TestCase
       Digest::UUID.uuid_from_hash(OpenSSL::Digest::SHA256, Digest::UUID::OID_NAMESPACE, "1.2.3")
     end
   end
+
+  private
+    def with_use_rfc4122_namespaced_uuids_set
+      old_value = Digest::UUID.use_rfc4122_namespaced_uuids
+      Digest::UUID.use_rfc4122_namespaced_uuids = true
+      yield
+    ensure
+      Digest::UUID.use_rfc4122_namespaced_uuids = old_value
+    end
 end

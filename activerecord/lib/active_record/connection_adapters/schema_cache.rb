@@ -208,7 +208,7 @@ module ActiveRecord
         end
 
         def reset_version!
-          @version = connection.migration_context.current_version
+          @version = connection.schema_version
         end
 
         def derive_columns_hash_and_deduplicate_values

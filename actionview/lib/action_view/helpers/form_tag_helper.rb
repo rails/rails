@@ -62,6 +62,9 @@ module ActionView
       #
       #   <%= form_tag('/posts', remote: true) %>
       #   # => <form action="/posts" method="post" data-remote="true">
+
+      #   form_tag(false, method: :get)
+      #   # => <form method="get">
       #
       #   form_tag('http://far.away.com/form', authenticity_token: false)
       #   # form without authenticity token
@@ -875,7 +878,11 @@ module ActionView
             html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
             # The following URL is unescaped, this is just a hash of options, and it is the
             # responsibility of the caller to escape all the values.
-            html_options["action"]  = url_for(url_for_options)
+            if url_for_options == false || html_options["action"] == false
+              html_options.delete("action")
+            else
+              html_options["action"] = url_for(url_for_options)
+            end
             html_options["accept-charset"] = "UTF-8"
 
             html_options["data-remote"] = true if html_options.delete("remote")

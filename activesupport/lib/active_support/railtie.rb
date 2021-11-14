@@ -27,6 +27,12 @@ module ActiveSupport
       end
     end
 
+    initializer "active_support.reset_execution_context" do |app|
+      app.reloader.before_class_unload { ActiveSupport::ExecutionContext.clear }
+      app.executor.to_run              { ActiveSupport::ExecutionContext.clear }
+      app.executor.to_complete         { ActiveSupport::ExecutionContext.clear }
+    end
+
     initializer "active_support.reset_all_current_attributes_instances" do |app|
       executor_around_test_case = app.config.active_support.delete(:executor_around_test_case)
 
@@ -41,6 +47,9 @@ module ActiveSupport
         else
           require "active_support/current_attributes/test_helper"
           include ActiveSupport::CurrentAttributes::TestHelper
+
+          require "active_support/execution_context/test_helper"
+          include ActiveSupport::ExecutionContext::TestHelper
         end
       end
     end
@@ -133,7 +142,7 @@ module ActiveSupport
       config.after_initialize do
         if app.config.active_support.use_rfc4122_namespaced_uuids
           require "active_support/core_ext/digest"
-          ActiveSupport.use_rfc4122_namespaced_uuids = app.config.active_support.use_rfc4122_namespaced_uuids
+          ::Digest::UUID.use_rfc4122_namespaced_uuids = app.config.active_support.use_rfc4122_namespaced_uuids
         end
       end
     end
