@@ -1,3 +1,7 @@
+*   Support direct uploads to multiple services.
+
+    *Dmitry Tsepelev*
+
 *   Invalid default content types are deprecated
 
     Blobs created with content_type `image/jpg`, `image/pjpeg`, `image/bmp`, `text/javascript` will now produce

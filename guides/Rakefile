@@ -26,7 +26,7 @@ namespace :guides do
 
   # Validate guides -------------------------------------------------------------------------
   desc 'Validate guides, use ONLY=foo to process just "foo.html"'
-  task validate: :encoding do
+  task :validate do
     ruby "w3c_validator.rb"
   end
 

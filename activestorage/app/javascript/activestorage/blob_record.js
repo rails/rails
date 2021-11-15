@@ -1,15 +1,18 @@
 import { getMetaValue } from "./helpers"
 
 export class BlobRecord {
-  constructor(file, checksum, url) {
+  constructor(file, checksum, url, directUploadToken, attachmentName) {
     this.file = file
 
     this.attributes = {
       filename: file.name,
       content_type: file.type || "application/octet-stream",
       byte_size: file.size,
-      checksum: checksum
+      checksum: checksum,
     }
+
+    this.directUploadToken = directUploadToken
+    this.attachmentName = attachmentName
 
     this.xhr = new XMLHttpRequest
     this.xhr.open("POST", url, true)
@@ -43,7 +46,11 @@ export class BlobRecord {
 
   create(callback) {
     this.callback = callback
-    this.xhr.send(JSON.stringify({ blob: this.attributes }))
+    this.xhr.send(JSON.stringify({
+      blob: this.attributes,
+      direct_upload_token: this.directUploadToken,
+      attachment_name: this.attachmentName
+    }))
   }
 
   requestDidLoad(event) {

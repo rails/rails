@@ -32,6 +32,14 @@ module ActionText
       options[:data][:direct_upload_url] ||= main_app.rails_direct_uploads_url
       options[:data][:blob_url_template] ||= main_app.rails_service_blob_url(":signed_id", ":filename")
 
+      class_with_attachment = "ActionText::RichText#embeds"
+      options[:data][:direct_upload_attachment_name] ||= class_with_attachment
+      options[:data][:direct_upload_token] = ActiveStorage::DirectUploadToken.generate_direct_upload_token(
+        class_with_attachment,
+        ActiveStorage::Blob.service.name,
+        session
+      )
+
       editor_tag = content_tag("trix-editor", "", options)
       input_tag = hidden_field_tag(name, value.try(:to_trix_html) || value, id: options[:input], form: form)
 
