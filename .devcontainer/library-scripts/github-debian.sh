@@ -44,7 +44,7 @@ receive_gpg_keys() {
     local keys=${!1}
     get_common_setting GPG_KEY_SERVERS true
 
-    # Use a temporary locaiton for gpg keys to avoid polluting image
+    # Use a temporary location for gpg keys to avoid polluting image
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
     chmod 700 ${GNUPGHOME}
@@ -114,7 +114,7 @@ receive_gpg_keys() {
         keyring_args="--no-default-keyring --keyring $2"
     fi
 
-    # Use a temporary locaiton for gpg keys to avoid polluting image
+    # Use a temporary location for gpg keys to avoid polluting image
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
     chmod 700 ${GNUPGHOME}
