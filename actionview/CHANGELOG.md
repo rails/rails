@@ -1,3 +1,15 @@
+*   Introduce the `field_name` view helper, along with the
+    `FormBuilder#field_name` counterpart:
+
+    ```ruby
+    form_for @post do |f|
+      f.field_tag :tag, name: f.field_name(:tag, multiple: true)
+      # => <input type="text" name="post[tag][]">
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Execute the `ActionView::Base.field_error_proc` within the context of the
     `ActionView::Base` instance:
 

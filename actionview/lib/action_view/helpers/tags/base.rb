@@ -105,15 +105,7 @@ module ActionView
           end
 
           def tag_name(multiple = false, index = nil)
-            # a little duplication to construct fewer strings
-            case
-            when @object_name.empty?
-              "#{sanitized_method_name}#{multiple ? "[]" : ""}"
-            when index
-              "#{@object_name}[#{index}][#{sanitized_method_name}]#{multiple ? "[]" : ""}"
-            else
-              "#{@object_name}[#{sanitized_method_name}]#{multiple ? "[]" : ""}"
-            end
+            @template_object.field_name(@object_name, sanitized_method_name, multiple: multiple, index: index)
           end
 
           def tag_id(index = nil)

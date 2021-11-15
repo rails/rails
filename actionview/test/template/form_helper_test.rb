@@ -1677,6 +1677,126 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_field_name_with_blank_as
+    form_for(Post.new, as: "") do |form|
+      concat form.text_field(:title, name: form.field_name(:title))
+    end
+
+    expected = whole_form("/posts", "new_", "new_") do
+      %(<input id="title" name="title" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_with_blank_as_and_multiple
+    form_for(Post.new, as: "") do |form|
+      concat form.text_field(:title, name: form.field_name(:title, multiple: true))
+    end
+
+    expected = whole_form("/posts", "new_", "new_") do
+      %(<input id="title" name="title[]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_without_method_names_or_multiple_or_index
+    form_for(Post.new) do |form|
+      concat form.text_field(:title, name: form.field_name(:title))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      %(<input id="post_title" name="post[title]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_without_method_names_and_multiple
+    form_for(Post.new) do |form|
+      concat form.text_field(:title, name: form.field_name(:title, multiple: true))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      %(<input id="post_title" name="post[title][]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_without_method_names_and_index
+    form_for(Post.new, index: 1) do |form|
+      concat form.text_field(:title, name: form.field_name(:title))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      %(<input id="post_1_title" name="post[1][title]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_without_method_names_and_index_and_multiple
+    form_for(Post.new, index: 1) do |form|
+      concat form.text_field(:title, name: form.field_name(:title, multiple: true))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      %(<input id="post_1_title" name="post[1][title][]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_with_method_names
+    form_for(Post.new) do |form|
+      concat form.text_field(:title, name: form.field_name(:title, :subtitle))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      %(<input id="post_title" name="post[title][subtitle]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_with_method_names_and_index
+    form_for(Post.new, index: 1) do |form|
+      concat form.text_field(:title, name: form.field_name(:title, :subtitle))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      %(<input id="post_1_title" name="post[1][title][subtitle]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_with_method_names_and_multiple
+    form_for(Post.new) do |form|
+      concat form.text_field(:title, name: form.field_name(:title, :subtitle, multiple: true))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      %(<input id="post_title" name="post[title][subtitle][]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_with_method_names_and_multiple_and_index
+    form_for(Post.new, index: 1) do |form|
+      concat form.text_field(:title, name: form.field_name(:title, :subtitle, multiple: true))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      %(<input id="post_1_title" name="post[1][title][subtitle][]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_with_collection_radio_buttons
     post = Post.new
     def post.active; false; end
