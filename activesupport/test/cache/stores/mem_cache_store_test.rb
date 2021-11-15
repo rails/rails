@@ -56,6 +56,8 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def after_teardown
+    return unless defined?(@_stores) # because skipped test
+
     stores, @_stores = @_stores, []
     stores.each do |store|
       # Eagerly closing Dalli connection avoid file descriptor exhaustion.
