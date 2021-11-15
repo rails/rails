@@ -381,6 +381,8 @@ module ActiveSupport
     # If the string is invalid then an +ArgumentError+ will be raised unlike +parse+
     # which usually returns +nil+ when given an invalid date string.
     def iso8601(str)
+      raise ArgumentError, "invalid date" if str.nil?
+
       parts = Date._iso8601(str)
 
       raise ArgumentError, "invalid date" if parts.empty?
