@@ -1,3 +1,22 @@
+*   Infer HTTP verb `[method]` from a model or Array with model as the first
+    argument to `button_to` when combined with a block:
+
+    ```ruby
+    button_to(Workshop.find(1)){ "Update" }
+    #=> <form method="post" action="/workshops/1" class="button_to">
+    #=>   <input type="hidden" name="_method" value="patch" autocomplete="off" />
+    #=>   <button type="submit">Update</button>
+    #=> </form>
+
+    button_to([ Workshop.find(1), Session.find(1) ]) { "Update" }
+    #=> <form method="post" action="/workshops/1/sessions/1" class="button_to">
+    #=>   <input type="hidden" name="_method" value="patch" autocomplete="off" />
+    #=>   <button type="submit">Update</button>
+    #=> </form>
+    ```
+
+    *Sean Doyle*
+
 *   Support passing a Symbol as the first argument to `FormBuilder#button`:
 
     ```ruby
