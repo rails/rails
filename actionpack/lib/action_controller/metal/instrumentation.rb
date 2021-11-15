@@ -48,6 +48,8 @@ module ActionController
 
     private
       def process_action(*)
+        ActiveSupport::ExecutionContext[:controller] = self
+
         raw_payload = {
           controller: self.class.name,
           action: action_name,

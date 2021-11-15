@@ -148,7 +148,6 @@ module AbstractController
 
       @_response_body = nil
 
-      ActiveSupport::ExecutionContext[:controller] = self
       process_action(action_name, *args)
     end
 

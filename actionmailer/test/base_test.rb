@@ -70,6 +70,13 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Welcome", email.body.encoded)
   end
 
+  test "mail() doesn't set the mailer as a controller in the execution context" do
+    ActiveSupport::ExecutionContext.clear
+    assert_nil ActiveSupport::ExecutionContext.to_h[:controller]
+    BaseMailer.welcome(from: "someone@example.com", to: "another@example.org").to
+    assert_nil ActiveSupport::ExecutionContext.to_h[:controller]
+  end
+
   test "can pass in :body to the mail method hash" do
     email = BaseMailer.welcome(body: "Hello there")
     assert_equal("text/plain", email.mime_type)
