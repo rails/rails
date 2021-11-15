@@ -25,7 +25,7 @@ if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].pr
         "library_ID": "12345"
       }
 
-      ActiveStorage::DirectUploadToken.stub(:verify_direct_upload_token, "local") do
+      ActiveStorage::DirectUploadToken.stub(:verify_direct_upload_token, "s3") do
         post rails_direct_uploads_url, params: { blob: {
           filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain", metadata: metadata } }
       end
@@ -70,7 +70,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
         "library_ID": "12345"
       }
 
-      ActiveStorage::DirectUploadToken.stub(:verify_direct_upload_token, "local") do
+      ActiveStorage::DirectUploadToken.stub(:verify_direct_upload_token, "gcs") do
         post rails_direct_uploads_url, params: { blob: {
           filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain", metadata: metadata } }
       end
@@ -114,7 +114,7 @@ if SERVICE_CONFIGURATIONS[:azure]
         "library_ID": "12345"
       }
 
-      ActiveStorage::DirectUploadToken.stub(:verify_direct_upload_token, "local") do
+      ActiveStorage::DirectUploadToken.stub(:verify_direct_upload_token, "azure") do
         post rails_direct_uploads_url, params: { blob: {
           filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain", metadata: metadata } }
       end
