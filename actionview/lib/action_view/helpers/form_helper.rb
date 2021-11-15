@@ -1295,7 +1295,7 @@ module ActionView
       # wouldn't update the flag.
       #
       # To prevent this the helper generates an auxiliary hidden field before
-      # the very check box. The hidden field has the same name and its
+      # every check box. The hidden field has the same name and its
       # attributes mimic an unchecked check box.
       #
       # This way, the client either sends only the hidden field (representing
@@ -2406,7 +2406,7 @@ module ActionView
       # wouldn't update the flag.
       #
       # To prevent this the helper generates an auxiliary hidden field before
-      # the very check box. The hidden field has the same name and its
+      # every check box. The hidden field has the same name and its
       # attributes mimic an unchecked check box.
       #
       # This way, the client either sends only the hidden field (representing
