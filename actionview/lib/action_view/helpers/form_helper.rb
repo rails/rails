@@ -495,7 +495,7 @@ module ActionView
       #   <form action="/posts" method="post">
       #     <input type="text" name="title">
       #   </form>
-
+      #
       #   # With an intentionally empty URL:
       #   <%= form_with url: false do |form| %>
       #     <%= form.text_field :title %>
