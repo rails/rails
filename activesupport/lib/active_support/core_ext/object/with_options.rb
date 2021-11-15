@@ -92,10 +92,10 @@ class Object
   def with_options(options, &block)
     option_merger = ActiveSupport::OptionMerger.new(self, options)
 
-    if block.nil?
-      option_merger
-    else
+    if block
       block.arity.zero? ? option_merger.instance_eval(&block) : block.call(option_merger)
+    else
+      option_merger
     end
   end
 end
