@@ -247,7 +247,7 @@ module ActionView
       #   # => <input type="text" aria-label="Search">
       #
       #   <button <%= tag.attributes id: "call-to-action", disabled: false, aria: { expanded: false } %> class="primary">Get Started!</button>
-      #   => <button id="call-to-action" aria-expanded="false" class="primary">Get Started!</button>
+      #   # => <button id="call-to-action" aria-expanded="false" class="primary">Get Started!</button>
       #
       # === Legacy syntax
       #
