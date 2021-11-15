@@ -1728,7 +1728,7 @@ irb> Book.all
 SELECT books.* FROM books WHERE (year_published >= 1969)
 
 irb> Book.in_print
-SELECT books.* FROM books WHERE (year_published >= 1969) AND books.out_of_print = true
+SELECT books.* FROM books WHERE (year_published >= 1969) AND books.out_of_print = false
 
 irb> Book.where('price > 50')
 SELECT books.* FROM books WHERE (year_published >= 1969) AND (price > 50)
