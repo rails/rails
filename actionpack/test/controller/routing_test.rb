@@ -1917,8 +1917,6 @@ class RouteSetTest < ActiveSupport::TestCase
 
   include ActionDispatch::RoutingVerbs
 
-  alias :routes :set
-
   def test_generate_with_optional_params_recalls_last_request
     @set = make_set false
 

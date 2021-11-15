@@ -305,7 +305,7 @@ class Time
     other.is_a?(DateTime) ? to_f - other.to_f : minus_without_coercion(other)
   end
   alias_method :minus_without_coercion, :-
-  alias_method :-, :minus_with_coercion
+  alias_method :-, :minus_with_coercion # rubocop:disable Lint/DuplicateMethods
 
   # Layers additional behavior on Time#<=> so that DateTime and ActiveSupport::TimeWithZone instances
   # can be chronologically compared with a Time
