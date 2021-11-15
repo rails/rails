@@ -1,3 +1,8 @@
+*   Support `fields model: [@nested, @model]` the same way as `form_with model:
+    [@nested, @model]`.
+
+    *Sean Doyle*
+
 *   Infer HTTP verb `[method]` from a model or Array with model as the first
     argument to `button_to` when combined with a block:
 

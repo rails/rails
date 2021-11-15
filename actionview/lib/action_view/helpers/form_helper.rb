@@ -1078,6 +1078,7 @@ module ActionView
         options[:skip_default_ids] = !form_with_generates_ids
 
         if model
+          model   = model.last if model.is_a?(Array)
           scope ||= model_name_from_record_or_class(model).param_key
         end
 

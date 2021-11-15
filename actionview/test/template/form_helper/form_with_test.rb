@@ -2065,6 +2065,16 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
+  def test_fields_with_only_object_array
+    output_buffer = fields(model: [@post, @comment]) do |f|
+      concat f.text_field(:name)
+    end
+
+    expected = %(<input type="text" value="new comment" name="comment[name]" id="comment_name" />)
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_fields_object_with_bracketed_name
     output_buffer = fields("author[post]", model: @post) do |f|
       concat f.label(:title)
