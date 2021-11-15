@@ -1239,7 +1239,7 @@ module ActionView
       #   file_field(:attachment, :file, class: 'file_input')
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
       def file_field(object_name, method, options = {})
-        Tags::FileField.new(object_name, method, self, convert_direct_upload_option_to_url(options.dup)).render
+        Tags::FileField.new(object_name, method, self, convert_direct_upload_option_to_url(method, options.dup)).render
       end
 
       # Returns a textarea opening and closing tag set tailored for accessing a specified attribute (identified by +method+)
