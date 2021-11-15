@@ -153,7 +153,7 @@ module ActiveSupport
             Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID, :float_millisecond)
           end
         rescue
-          def now_cpu
+          def now_cpu # rubocop:disable Lint/DuplicateMethods
             0.0
           end
         end
@@ -165,7 +165,7 @@ module ActiveSupport
             0
           end
         else
-          def now_allocations
+          def now_allocations  # rubocop:disable Lint/DuplicateMethods
             GC.stat(:total_allocated_objects)
           end
         end
