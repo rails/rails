@@ -49,16 +49,6 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal 2, r.errors.count
   end
 
-  def test_single_error_per_attr_iteration
-    r = Reply.new
-    r.valid?
-
-    errors = assert_deprecated { r.errors.collect { |attr, messages| [attr.to_s, messages] } }
-
-    assert_includes errors, ["title", "is Empty"]
-    assert_includes errors, ["content", "is Empty"]
-  end
-
   def test_multiple_errors_per_attr_iteration_with_full_error_composition
     r = Reply.new
     r.title   = ""

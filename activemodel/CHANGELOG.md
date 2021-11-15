@@ -1,3 +1,7 @@
+*   Remove deprecated enumeration of `ActiveModel::Errors` instances as a Hash.
+
+    *Rafael Mendonça França*
+
 *   Clear secure password cache if password is set to `nil`
 
     Before:
@@ -32,7 +36,7 @@
 
 *   Fix dirty check for Float::NaN and BigDecimal::NaN.
 
-    Float::NaN and BigDecimal::NaN in Ruby are [special values](https://bugs.ruby-lang.org/issues/1720) 
+    Float::NaN and BigDecimal::NaN in Ruby are [special values](https://bugs.ruby-lang.org/issues/1720)
     and can't be compared with `==`.
 
     *Marcelo Lauxen*

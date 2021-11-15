@@ -215,46 +215,8 @@ module ActiveModel
     #     # Will yield <#ActiveModel::Error attribute=name, type=too_short,
     #                                       options={:count=>3}>
     #   end
-    #
-    # To be backward compatible with past deprecated hash-like behavior,
-    # when block accepts two parameters instead of one, it
-    # iterates through each error key, value pair in the error messages hash.
-    # Yields the attribute and the error for that attribute. If the attribute
-    # has more than one error message, yields once for each error message.
-    #
-    #   person.errors.add(:name, :blank, message: "can't be blank")
-    #   person.errors.each do |attribute, message|
-    #     # Will yield :name and "can't be blank"
-    #   end
-    #
-    #   person.errors.add(:name, :not_specified, message: "must be specified")
-    #   person.errors.each do |attribute, message|
-    #     # Will yield :name and "can't be blank"
-    #     # then yield :name and "must be specified"
-    #   end
     def each(&block)
-      if block.arity <= 1
-        @errors.each(&block)
-      else
-        ActiveSupport::Deprecation.warn(<<~MSG)
-          Enumerating ActiveModel::Errors as a hash has been deprecated.
-          In Rails 6.1, `errors` is an array of Error objects,
-          therefore it should be accessed by a block with a single block
-          parameter like this:
-
-          person.errors.each do |error|
-            attribute = error.attribute
-            message = error.message
-          end
-
-          You are passing a block expecting two parameters,
-          so the old hash behavior is simulated. As this is deprecated,
-          this will result in an ArgumentError in Rails 7.0.
-        MSG
-        @errors.
-          sort { |a, b| a.attribute <=> b.attribute }.
-          each { |error| yield error.attribute, error.message }
-      end
+      @errors.each(&block)
     end
 
     # Returns all message values.
