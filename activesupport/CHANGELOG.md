@@ -1,3 +1,8 @@
+*   Invoking `Object#with_options` without a `&block` argument returns the
+    `ActiveSupport::OptionMerger` instance.
+
+    *Sean Doyle*
+
 *   `Rails.application.executor` hooks are now called around every tests.
 
     This helps to better simulate request or job local state being reset around tests and prevent state
