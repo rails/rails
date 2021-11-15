@@ -439,7 +439,7 @@ module ActionView
           object_name = record
           object      = nil
         else
-          object      = record.is_a?(Array) ? record.last : record
+          object      = _object_for_form_builder(record)
           raise ArgumentError, "First argument in form cannot contain nil or be empty" unless object
           object_name = options[:as] || model_name_from_record_or_class(object).param_key
           apply_form_for_options!(record, object, options)
@@ -765,7 +765,7 @@ module ActionView
             url ||= polymorphic_path(model, format: format)
           end
 
-          model   = model.last if model.is_a?(Array)
+          model   = _object_for_form_builder(model)
           scope ||= model_name_from_record_or_class(model).param_key
         end
 
@@ -1078,7 +1078,7 @@ module ActionView
         options[:skip_default_ids] = !form_with_generates_ids
 
         if model
-          model   = model.last if model.is_a?(Array)
+          model   = _object_for_form_builder(model)
           scope ||= model_name_from_record_or_class(model).param_key
         end
 
@@ -1566,6 +1566,10 @@ module ActionView
       # * Accepts same options as range_field_tag
       def range_field(object_name, method, options = {})
         Tags::RangeField.new(object_name, method, self, options).render
+      end
+
+      def _object_for_form_builder(object) # :nodoc:
+        object.is_a?(Array) ? object.last : object
       end
 
       private
@@ -2278,7 +2282,7 @@ module ActionView
             return fields_for_with_nested_attributes(record_name, record_object, fields_options, block)
           end
         else
-          record_object = record_name.is_a?(Array) ? record_name.last : record_name
+          record_object = @template._object_for_form_builder(record_name)
           record_name   = model_name_from_record_or_class(record_object).param_key
         end
 
