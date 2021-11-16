@@ -494,10 +494,6 @@ module ActiveModel
           }
         }
       end
-
-      def deprecation_rename_warning(old_method_name, new_method_name)
-        ActiveSupport::Deprecation.warn("ActiveModel::Errors##{old_method_name} is deprecated. Please call ##{new_method_name} instead.")
-      end
   end
 
   class DeprecationHandlingMessageHash < SimpleDelegator # :nodoc:
