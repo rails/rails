@@ -1,5 +1,9 @@
 ## Unreleased
 
+*   Upgrade `jsbundling-rails` to support the source maps.
+
+    *Dino Maric*
+
 *   Scaffolds now use date_field, time_field and datetime_field instead of
     date_select, time_select and datetime_select; thus providing native date/time pickers.
 
