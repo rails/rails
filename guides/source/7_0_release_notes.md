@@ -138,6 +138,8 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 *   Remove deprecated support `clear` errors from `ActiveModel::Errors#messages`.
 
+*   Remove deprecated support `delete` errors from `ActiveModel::Errors#messages`.
+
 ### Deprecations
 
 ### Notable changes

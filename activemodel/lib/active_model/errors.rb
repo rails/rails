@@ -511,12 +511,6 @@ module ActiveModel
       __setobj__ prepare_content
     end
 
-    def delete(attribute)
-      ActiveSupport::Deprecation.warn("Calling `delete` to an ActiveModel::Errors messages hash is deprecated. Please call `ActiveModel::Errors#delete` instead.")
-
-      @errors.delete(attribute)
-    end
-
     private
       def prepare_content
         content = @errors.to_hash

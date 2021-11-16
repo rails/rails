@@ -605,15 +605,6 @@ class ErrorsTest < ActiveModel::TestCase
     )
   end
 
-  test "messages delete (deprecated)" do
-    person = Person.new
-    person.validate!
-
-    assert_equal 1, person.errors.count
-    assert_deprecated { person.errors.messages.delete(:name) }
-    assert_empty person.errors
-  end
-
   test "group_by_attribute" do
     person = Person.new
     error = person.errors.add(:name, :invalid, message: "is bad")

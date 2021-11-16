@@ -1,3 +1,7 @@
+*   Remove deprecated support `delete` errors from `ActiveModel::Errors#messages`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support `clear` errors from `ActiveModel::Errors#messages`.
 
     *Rafael Mendonça França*
