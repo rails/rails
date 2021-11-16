@@ -41,12 +41,7 @@ module ActiveRecord
     #   hidden by +database_tasks: false+ in the returned list. Most of the time we're only
     #   iterating over the primary connections (i.e. migrations don't need to run for the
     #   write and read connection). Defaults to +false+.
-    def configs_for(env_name: nil, spec_name: nil, name: nil, include_replicas: false, include_hidden: false)
-      if spec_name
-        name = spec_name
-        ActiveSupport::Deprecation.warn("The kwarg `spec_name` is deprecated in favor of `name`. `spec_name` will be removed in Rails 7.0")
-      end
-
+    def configs_for(env_name: nil, name: nil, include_replicas: false, include_hidden: false)
       if include_replicas
         include_hidden = include_replicas
         ActiveSupport::Deprecation.warn("The kwarg `include_replicas` is deprecated in favor of `include_hidden`. When `include_hidden` is passed, configurations with `replica: true` or `database_tasks: false` will be returned. `include_replicas` will be removed in Rails 7.1.")

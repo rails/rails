@@ -1,3 +1,7 @@
+*   Remove deprecated option `:spec_name` in the `configs_for` method.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated  `ActiveRecord::Base.allow_unsafe_raw_sql`.
 
     *Rafael Mendonça França*

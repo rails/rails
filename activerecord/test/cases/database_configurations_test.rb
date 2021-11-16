@@ -127,14 +127,6 @@ class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_spec_name_in_configs_for_is_deprecated
-    assert_deprecated do
-      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
-
-      assert_equal "primary", db_config.name
-    end
-  end
-
   def test_spec_name_getter_is_deprecated
     db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
 

@@ -102,6 +102,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated  `ActiveRecord::Base.allow_unsafe_raw_sql`.
 
+*   Remove deprecated option `:spec_name` in the `configs_for` method.
+
 ### Deprecations
 
 ### Notable changes
