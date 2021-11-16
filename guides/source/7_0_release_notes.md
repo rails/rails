@@ -136,6 +136,8 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 *   Remove deprecated support concat errors to `ActiveModel::Errors#messages`.
 
+*   Remove deprecated support `clear` errors from `ActiveModel::Errors#messages`.
+
 ### Deprecations
 
 ### Notable changes

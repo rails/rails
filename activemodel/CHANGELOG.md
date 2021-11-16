@@ -1,3 +1,7 @@
+*   Remove deprecated support `clear` errors from `ActiveModel::Errors#messages`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support concat errors to `ActiveModel::Errors#messages`.
 
     *Rafael Mendonça França*

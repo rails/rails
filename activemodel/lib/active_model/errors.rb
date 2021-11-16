@@ -186,7 +186,7 @@ module ActiveModel
     #   person.errors[:name]  # => ["cannot be nil"]
     #   person.errors['name'] # => ["cannot be nil"]
     def [](attribute)
-      DeprecationHandlingMessageArray.new(messages_for(attribute), self, attribute)
+      messages_for(attribute)
     end
 
     # Iterates through each error object.
@@ -522,31 +522,8 @@ module ActiveModel
     private
       def prepare_content
         content = @errors.to_hash
-        content.each do |attribute, value|
-          content[attribute] = DeprecationHandlingMessageArray.new(value, @errors, attribute)
-        end
-        content.default_proc = proc do |hash, attribute|
-          hash = hash.dup
-          hash[attribute] = DeprecationHandlingMessageArray.new([], @errors, attribute)
-          __setobj__ hash.freeze
-          hash[attribute]
-        end
         content.freeze
       end
-  end
-
-  class DeprecationHandlingMessageArray < SimpleDelegator # :nodoc:
-    def initialize(content, errors, attribute)
-      @errors = errors
-      @attribute = attribute
-      super(content.freeze)
-    end
-
-    def clear
-      ActiveSupport::Deprecation.warn("Calling `clear` to an ActiveModel::Errors message array in order to delete all errors is deprecated. Please call `ActiveModel::Errors#delete` instead.")
-
-      @errors.delete(@attribute)
-    end
   end
 
   class DeprecationHandlingDetailsHash < SimpleDelegator # :nodoc:

@@ -111,15 +111,6 @@ class ErrorsTest < ActiveModel::TestCase
     assert_empty person.errors
   end
 
-  test "clear errors by key" do
-    person = Person.new
-    person.validate!
-
-    assert_equal 1, person.errors.count
-    assert_deprecated { person.errors[:name].clear }
-    assert_empty person.errors
-  end
-
   test "error access is indifferent" do
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name, "omg")
