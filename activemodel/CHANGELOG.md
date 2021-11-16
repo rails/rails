@@ -1,3 +1,7 @@
+*   Remove support to Marshal load Rails 5.x `ActiveModel::AttributeSet` format.
+
+    *Rafael Mendonça França*
+
 *   Remove support to Marshal and YAML load Rails 5.x error format.
 
     *Rafael Mendonça França*

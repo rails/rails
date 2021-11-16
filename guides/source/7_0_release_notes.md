@@ -144,6 +144,8 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 *   Remove support to Marshal and YAML load Rails 5.x error format.
 
+*   Remove support to Marshal load Rails 5.x `ActiveModel::AttributeSet` format.
+
 ### Deprecations
 
 ### Notable changes
