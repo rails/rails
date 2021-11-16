@@ -139,15 +139,17 @@ class DateHelperSelectTagsI18nTests < ActiveSupport::TestCase
 
   # date_or_time_select
 
+  # Note that :year_format and :day_format options are required to prevent I18n.translate from being called for year and day formatting.
+
   def test_date_or_time_select_given_an_order_options_does_not_translate_order
     assert_not_called(I18n, :translate) do
-      datetime_select("post", "updated_at", order: [:year, :month, :day], locale: "en", use_month_names: Date::MONTHNAMES)
+      datetime_select("post", "updated_at", order: [:year, :month, :day], locale: "en", use_month_names: Date::MONTHNAMES, year_format: ->(year) { year.to_s }, day_format: ->(day) { day.to_s })
     end
   end
 
   def test_date_or_time_select_given_no_order_options_translates_order
     assert_called_with(I18n, :translate, [ [:'date.order', locale: "en", default: []], [:"date.month_names", { locale: "en" }] ], returns: %w(year month day)) do
-      datetime_select("post", "updated_at", locale: "en")
+      datetime_select("post", "updated_at", locale: "en", year_format: ->(year) { year.to_s }, day_format: ->(day) { day.to_s })
     end
   end
 
@@ -161,7 +163,7 @@ class DateHelperSelectTagsI18nTests < ActiveSupport::TestCase
 
   def test_date_or_time_select_given_symbol_keys
     assert_called_with(I18n, :translate, [ [:'date.order', locale: "en", default: []], [:"date.month_names", { locale: "en" }] ], returns: [:year, :month, :day]) do
-      datetime_select("post", "updated_at", locale: "en")
+      datetime_select("post", "updated_at", locale: "en", year_format: ->(year) { year.to_s }, day_format: ->(day) { day.to_s })
     end
   end
 end

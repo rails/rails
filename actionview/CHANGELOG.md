@@ -1,3 +1,25 @@
+*   Add year and day translation support for `date_select`
+
+    ```ruby
+    # config/locales/en.rb
+    {
+      en: {
+        date: {
+          year_format: lambda { |_key, options| "Heisei #{options[:number] - 1988}" },
+          day_format: lambda { |_key, options| ActiveSupport::Inflector.ordinalize(options[:number]) }
+        }
+      }
+    }
+    ```
+
+    ```ruby
+    date_select("article", "written_on")
+    # generates year options like <option value="2003">Heisei 15</option>\n<option value="2004">Heisei 16</option>...
+    # and day options like <option value="1">1st</option>\n<option value="2">2nd</option>...
+    ```
+
+    *Shunichi Ikegami*
+
 *   Support `fields model: [@nested, @model]` the same way as `form_with model:
     [@nested, @model]`.
 

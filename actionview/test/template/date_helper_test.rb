@@ -251,7 +251,7 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, select_day(2, use_two_digit_numbers: true)
   end
 
-  def test_select_day_with_day_fomat
+  def test_select_day_with_day_format
     expected = +%(<select id="date_day" name="date[day]">\n)
     expected << %(<option value="1">1st</option>\n<option selected="selected" value="2">2nd</option>\n<option value="3">3rd</option>\n<option value="4">4th</option>\n<option value="5">5th</option>\n<option value="6">6th</option>\n<option value="7">7th</option>\n<option value="8">8th</option>\n<option value="9">9th</option>\n<option value="10">10th</option>\n<option value="11">11th</option>\n<option value="12">12th</option>\n<option value="13">13th</option>\n<option value="14">14th</option>\n<option value="15">15th</option>\n<option value="16">16th</option>\n<option value="17">17th</option>\n<option value="18">18th</option>\n<option value="19">19th</option>\n<option value="20">20th</option>\n<option value="21">21st</option>\n<option value="22">22nd</option>\n<option value="23">23rd</option>\n<option value="24">24th</option>\n<option value="25">25th</option>\n<option value="26">26th</option>\n<option value="27">27th</option>\n<option value="28">28th</option>\n<option value="29">29th</option>\n<option value="30">30th</option>\n<option value="31">31st</option>\n)
     expected << "</select>\n"
@@ -259,6 +259,22 @@ class DateHelperTest < ActionView::TestCase
     day_format = ->(day) { ActiveSupport::Inflector.ordinalize(day) }
     assert_dom_equal expected, select_day(Time.mktime(2011, 8, 2), day_format: day_format)
     assert_dom_equal expected, select_day(2, day_format: day_format)
+  end
+
+  def test_select_day_with_day_format_translation
+    I18n.backend.store_translations(:en, {
+      date: {
+        day_format: lambda { |_key, options| ActiveSupport::Inflector.ordinalize(options[:number]) }
+      }
+    })
+    expected = +%(<select id="date_day" name="date[day]">\n)
+    expected << %(<option value="1">1st</option>\n<option selected="selected" value="2">2nd</option>\n<option value="3">3rd</option>\n<option value="4">4th</option>\n<option value="5">5th</option>\n<option value="6">6th</option>\n<option value="7">7th</option>\n<option value="8">8th</option>\n<option value="9">9th</option>\n<option value="10">10th</option>\n<option value="11">11th</option>\n<option value="12">12th</option>\n<option value="13">13th</option>\n<option value="14">14th</option>\n<option value="15">15th</option>\n<option value="16">16th</option>\n<option value="17">17th</option>\n<option value="18">18th</option>\n<option value="19">19th</option>\n<option value="20">20th</option>\n<option value="21">21st</option>\n<option value="22">22nd</option>\n<option value="23">23rd</option>\n<option value="24">24th</option>\n<option value="25">25th</option>\n<option value="26">26th</option>\n<option value="27">27th</option>\n<option value="28">28th</option>\n<option value="29">29th</option>\n<option value="30">30th</option>\n<option value="31">31st</option>\n)
+    expected << "</select>\n"
+
+    assert_dom_equal expected, select_day(Time.mktime(2011, 8, 2))
+    assert_dom_equal expected, select_day(2)
+  ensure
+    I18n.backend.reload!
   end
 
   def test_select_day_with_html_options
@@ -600,6 +616,21 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     assert_dom_equal expected, select_year(nil, start_year: 2003, end_year: 2005, year_format: year_format_lambda)
+  end
+
+  def test_select_year_with_year_format_translation
+    I18n.backend.store_translations(:en, {
+      date: {
+        year_format: lambda { |_key, options| "Heisei #{ options[:number] - 1988 }" }
+      }
+    })
+    expected = %(<select id="date_year" name="date[year]">\n).dup
+    expected << %(<option value="2003">Heisei 15</option>\n<option value="2004">Heisei 16</option>\n<option value="2005">Heisei 17</option>\n)
+    expected << "</select>\n"
+
+    assert_dom_equal expected, select_year(nil, start_year: 2003, end_year: 2005)
+  ensure
+    I18n.backend.reload!
   end
 
   def test_select_hour

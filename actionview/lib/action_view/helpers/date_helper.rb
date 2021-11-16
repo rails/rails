@@ -920,8 +920,12 @@ module ActionView
           elsif @options[:use_two_digit_numbers]
             "%02d" % number
           else
-            number
+            translate_day(number) || number
           end
+        end
+
+        def translate_day(number)
+          I18n.translate("date.day_format", number: number, locale: @options[:locale], default: nil)
         end
 
         # Looks up month names by number (1-based):
@@ -970,8 +974,12 @@ module ActionView
           if year_format_lambda = @options[:year_format]
             year_format_lambda.call(number)
           else
-            number
+            translate_year(number) || number
           end
+        end
+
+        def translate_year(number)
+          I18n.t("date.year_format", number: number, locale: @options[:locale], default: nil)
         end
 
         def date_order
