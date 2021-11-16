@@ -104,6 +104,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated option `:spec_name` in the `configs_for` method.
 
+*   Remove deprecated support to YAML load `ActiveRecord::Base` instance in the Rails 4.2 and 4.1 formats.
+
 ### Deprecations
 
 ### Notable changes
