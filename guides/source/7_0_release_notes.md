@@ -142,6 +142,8 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 *   Remove deprecated support to use `[]=` in `ActiveModel::Errors#messages`.
 
+*   Remove support to Marshal and YAML load Rails 5.x error format.
+
 ### Deprecations
 
 ### Notable changes

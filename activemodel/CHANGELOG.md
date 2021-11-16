@@ -1,3 +1,7 @@
+*   Remove support to Marshal and YAML load Rails 5.x error format.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to use `[]=` in `ActiveModel::Errors#messages`.
 
     *Rafael Mendonça França*

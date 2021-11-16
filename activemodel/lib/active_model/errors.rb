@@ -77,9 +77,6 @@ module ActiveModel
     #   end
     def_delegators :@errors, :each, :clear, :empty?, :size, :uniq!
 
-    LEGACY_ATTRIBUTES = [:messages, :details].freeze
-    private_constant :LEGACY_ATTRIBUTES
-
     # The actual array of +Error+ objects
     # This method is aliased to <tt>objects</tt>.
     attr_reader :errors
@@ -445,27 +442,6 @@ module ActiveModel
       Error.generate_message(attribute, type, @base, options)
     end
 
-    def marshal_load(array) # :nodoc:
-      # Rails 5
-      @errors = []
-      @base = array[0]
-      add_from_legacy_details_hash(array[2])
-    end
-
-    def init_with(coder) # :nodoc:
-      data = coder.map
-
-      data.each { |k, v|
-        next if LEGACY_ATTRIBUTES.include?(k.to_sym)
-        instance_variable_set(:"@#{k}", v)
-      }
-
-      @errors ||= []
-
-      # Legacy support Rails 5.x details hash
-      add_from_legacy_details_hash(data["details"]) if data.key?("details")
-    end
-
     def inspect # :nodoc:
       inspection = @errors.inspect
 
@@ -480,15 +456,6 @@ module ActiveModel
         end
 
         [attribute.to_sym, type, options]
-      end
-
-      def add_from_legacy_details_hash(details)
-        details.each { |attribute, errors|
-          errors.each { |error|
-            type = error.delete(:error)
-            add(attribute, type, **error)
-          }
-        }
       end
   end
 
