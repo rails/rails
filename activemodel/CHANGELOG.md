@@ -1,3 +1,7 @@
+*   Remove deprecated support concat errors to `ActiveModel::Errors#messages`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveModel::Errors#to_xml`.
 
     *Rafael Mendonça França*

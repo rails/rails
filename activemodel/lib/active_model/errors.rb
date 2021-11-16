@@ -542,14 +542,6 @@ module ActiveModel
       super(content.freeze)
     end
 
-    def <<(message)
-      ActiveSupport::Deprecation.warn("Calling `<<` to an ActiveModel::Errors message array in order to add an error is deprecated. Please call `ActiveModel::Errors#add` instead.")
-
-      @errors.add(@attribute, message)
-      __setobj__ @errors.messages_for(@attribute)
-      self
-    end
-
     def clear
       ActiveSupport::Deprecation.warn("Calling `clear` to an ActiveModel::Errors message array in order to delete all errors is deprecated. Please call `ActiveModel::Errors#delete` instead.")
 

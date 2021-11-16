@@ -134,6 +134,8 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 *   Remove deprecated `ActiveModel::Errors#to_xml`.
 
+*   Remove deprecated support concat errors to `ActiveModel::Errors#messages`.
+
 ### Deprecations
 
 ### Notable changes
