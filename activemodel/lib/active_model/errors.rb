@@ -63,9 +63,19 @@ module ActiveModel
     include Enumerable
 
     extend Forwardable
-    def_delegators :@errors, :size, :clear, :blank?, :empty?, :uniq!, :any?
-    # TODO: forward all enumerable methods after `each` deprecation is removed.
-    def_delegators :@errors, :count
+
+    # :method: each
+    #
+    # :call-seq: each(&block)
+    #
+    # Iterates through each error object.
+    #
+    #   person.errors.add(:name, :too_short, count: 2)
+    #   person.errors.each do |error|
+    #     # Will yield <#ActiveModel::Error attribute=name, type=too_short,
+    #                                       options={:count=>3}>
+    #   end
+    def_delegators :@errors, :each, :clear, :empty?, :size, :uniq!
 
     LEGACY_ATTRIBUTES = [:messages, :details].freeze
     private_constant :LEGACY_ATTRIBUTES
@@ -187,17 +197,6 @@ module ActiveModel
     #   person.errors['name'] # => ["cannot be nil"]
     def [](attribute)
       messages_for(attribute)
-    end
-
-    # Iterates through each error object.
-    #
-    #   person.errors.add(:name, :too_short, count: 2)
-    #   person.errors.each do |error|
-    #     # Will yield <#ActiveModel::Error attribute=name, type=too_short,
-    #                                       options={:count=>3}>
-    #   end
-    def each(&block)
-      @errors.each(&block)
     end
 
     # Returns all error attribute names

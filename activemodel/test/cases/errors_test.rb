@@ -156,6 +156,11 @@ class ErrorsTest < ActiveModel::TestCase
     assert_empty person.errors
     assert_predicate person.errors, :blank?
     assert_not_includes person.errors, :foo
+
+    person.errors.add(:foo, "New error")
+    assert_not_empty person.errors
+    assert_not_predicate person.errors, :blank?
+    assert_includes person.errors, :foo
   end
 
   test "include? does not add a key to messages hash" do
