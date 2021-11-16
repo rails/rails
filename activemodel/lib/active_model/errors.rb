@@ -232,11 +232,9 @@ module ActiveModel
     undef :to_h
 
     # Returns a Hash of attributes with an array of their error messages.
-    #
-    # Updating this hash would still update errors state for backward
-    # compatibility, but this behavior is deprecated.
     def messages
-      DeprecationHandlingMessageHash.new(self)
+      hash = to_hash
+      hash.freeze
     end
 
     # Returns a Hash of attributes with an array of their error details.
@@ -491,30 +489,6 @@ module ActiveModel
             add(attribute, type, **error)
           }
         }
-      end
-  end
-
-  class DeprecationHandlingMessageHash < SimpleDelegator # :nodoc:
-    def initialize(errors)
-      @errors = errors
-      super(prepare_content)
-    end
-
-    def []=(attribute, value)
-      ActiveSupport::Deprecation.warn("Calling `[]=` to an ActiveModel::Errors is deprecated. Please call `ActiveModel::Errors#add` instead.")
-
-      @errors.delete(attribute)
-      Array(value).each do |message|
-        @errors.add(attribute, message)
-      end
-
-      __setobj__ prepare_content
-    end
-
-    private
-      def prepare_content
-        content = @errors.to_hash
-        content.freeze
       end
   end
 

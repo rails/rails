@@ -118,14 +118,6 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["omg"], errors["name"]
   end
 
-  test "[]= overrides values" do
-    errors = ActiveModel::Errors.new(self)
-    assert_deprecated { errors.messages[:foo] = "omg" }
-    assert_deprecated { errors.messages[:foo] = "zomg" }
-
-    assert_equal ["zomg"], errors[:foo]
-  end
-
   test "attribute_names returns the error attributes" do
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:foo, "omg")

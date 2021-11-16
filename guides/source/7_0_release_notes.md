@@ -136,9 +136,11 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 *   Remove deprecated support concat errors to `ActiveModel::Errors#messages`.
 
-*   Remove deprecated support `clear` errors from `ActiveModel::Errors#messages`.
+*   Remove deprecated support to `clear` errors from `ActiveModel::Errors#messages`.
 
-*   Remove deprecated support `delete` errors from `ActiveModel::Errors#messages`.
+*   Remove deprecated support to `delete` errors from `ActiveModel::Errors#messages`.
+
+*   Remove deprecated support to use `[]=` in `ActiveModel::Errors#messages`.
 
 ### Deprecations
 

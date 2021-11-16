@@ -1,8 +1,12 @@
-*   Remove deprecated support `delete` errors from `ActiveModel::Errors#messages`.
+*   Remove deprecated support to use `[]=` in `ActiveModel::Errors#messages`.
 
     *Rafael Mendonça França*
 
-*   Remove deprecated support `clear` errors from `ActiveModel::Errors#messages`.
+*   Remove deprecated support to `delete` errors from `ActiveModel::Errors#messages`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to `clear` errors from `ActiveModel::Errors#messages`.
 
     *Rafael Mendonça França*
 
