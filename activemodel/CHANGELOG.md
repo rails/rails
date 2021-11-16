@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveModel::Errors#values`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveModel::Errors#slice!`.
 
     *Rafael Mendonça França*

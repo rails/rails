@@ -127,32 +127,12 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["omg"], errors["name"]
   end
 
-  test "values returns an array of messages" do
-    errors = ActiveModel::Errors.new(Person.new)
-    assert_deprecated { errors.messages[:foo] = "omg" }
-    assert_deprecated { errors.messages[:baz] = "zomg" }
-
-    assert_deprecated do
-      assert_equal ["omg", "zomg"], errors.values
-    end
-  end
-
   test "[]= overrides values" do
     errors = ActiveModel::Errors.new(self)
     assert_deprecated { errors.messages[:foo] = "omg" }
     assert_deprecated { errors.messages[:foo] = "zomg" }
 
     assert_equal ["zomg"], errors[:foo]
-  end
-
-  test "values returns an empty array after try to get a message only" do
-    errors = ActiveModel::Errors.new(Person.new)
-    errors.messages[:foo]
-    errors.messages[:baz]
-
-    assert_deprecated do
-      assert_equal [], errors.values
-    end
   end
 
   test "keys returns the error keys" do

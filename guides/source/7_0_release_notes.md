@@ -128,6 +128,8 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 *   Remove deprecated `ActiveModel::Errors#slice!`.
 
+*   Remove deprecated `ActiveModel::Errors#values`.
+
 ### Deprecations
 
 ### Notable changes
