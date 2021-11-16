@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveModel::Errors#to_h`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated enumeration of `ActiveModel::Errors` instances as a Hash.
 
     *Rafael Mendonça França*

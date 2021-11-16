@@ -515,17 +515,6 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["name cannot be blank", "name cannot be nil"], person.errors.to_a
   end
 
-  test "to_h is deprecated" do
-    person = Person.new
-    person.errors.add(:name, "cannot be blank")
-    person.errors.add(:name, "too long")
-
-    expected_deprecation = "ActiveModel::Errors#to_h is deprecated"
-    assert_deprecated(expected_deprecation) do
-      assert_equal({ name: "too long" }, person.errors.to_h)
-    end
-  end
-
   test "to_hash returns the error messages hash" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")

@@ -124,6 +124,8 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 *   Remove deprecated enumeration of `ActiveModel::Errors` instances as a Hash.
 
+*   Remove deprecated `ActiveModel::Errors#to_h`.
+
 ### Deprecations
 
 ### Notable changes
