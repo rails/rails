@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveModel::Errors#to_xml`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveModel::Errors#keys`.
 
     *Rafael Mendonça França*

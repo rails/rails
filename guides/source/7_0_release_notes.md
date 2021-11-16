@@ -132,6 +132,8 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 *   Remove deprecated `ActiveModel::Errors#keys`.
 
+*   Remove deprecated `ActiveModel::Errors#to_xml`.
+
 ### Deprecations
 
 ### Notable changes

@@ -208,22 +208,6 @@ module ActiveModel
       @errors.map(&:attribute).uniq.freeze
     end
 
-    # Returns an xml formatted representation of the Errors hash.
-    #
-    #   person.errors.add(:name, :blank, message: "can't be blank")
-    #   person.errors.add(:name, :not_specified, message: "must be specified")
-    #   person.errors.to_xml
-    #   # =>
-    #   #  <?xml version=\"1.0\" encoding=\"UTF-8\"?>
-    #   #  <errors>
-    #   #    <error>name can't be blank</error>
-    #   #    <error>name must be specified</error>
-    #   #  </errors>
-    def to_xml(options = {})
-      deprecation_removal_warning(:to_xml)
-      to_a.to_xml({ root: "errors", skip_types: true }.merge!(options))
-    end
-
     # Returns a Hash that can be used as the JSON representation for this
     # object. You can pass the <tt>:full_messages</tt> option. This determines
     # if the json object should contain full messages or not (false by default).
@@ -509,15 +493,6 @@ module ActiveModel
             add(attribute, type, **error)
           }
         }
-      end
-
-      def deprecation_removal_warning(method_name, alternative_message = nil)
-        message = +"ActiveModel::Errors##{method_name} is deprecated and will be removed in Rails 7.0."
-        if alternative_message
-          message << "\n\nTo achieve the same use:\n\n  "
-          message << alternative_message
-        end
-        ActiveSupport::Deprecation.warn(message)
       end
 
       def deprecation_rename_warning(old_method_name, new_method_name)

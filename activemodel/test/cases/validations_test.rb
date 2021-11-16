@@ -207,15 +207,10 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal [:b, :a], t.call_sequence
   end
 
-  def test_errors_conversions
+  def test_errors_to_json
     Topic.validates_presence_of %w(title content)
     t = Topic.new
     assert_predicate t, :invalid?
-
-    xml = assert_deprecated { t.errors.to_xml }
-    assert_match %r{<errors>}, xml
-    assert_match %r{<error>Title can't be blank</error>}, xml
-    assert_match %r{<error>Content can't be blank</error>}, xml
 
     hash = {}
     hash[:title] = ["can't be blank"]
