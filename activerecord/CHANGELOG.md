@@ -1,3 +1,7 @@
+*   Remove deprecated  `ActiveRecord::Base.allow_unsafe_raw_sql`.
+
+    *Rafael Mendonça França*
+
 *   Fix regression bug that caused ignoring additional conditions for preloading has_many-through relations.
 
     Fixes #43132

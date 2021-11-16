@@ -100,6 +100,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `database` kwarg from `connected_to`.
 
+*   Remove deprecated  `ActiveRecord::Base.allow_unsafe_raw_sql`.
+
 ### Deprecations
 
 ### Notable changes
