@@ -135,26 +135,6 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["zomg"], errors[:foo]
   end
 
-  test "keys returns the error keys" do
-    errors = ActiveModel::Errors.new(Person.new)
-    assert_deprecated { errors.messages[:foo] << "omg" }
-    assert_deprecated { errors.messages[:baz] << "zomg" }
-
-    assert_deprecated do
-      assert_equal [:foo, :baz], errors.keys
-    end
-  end
-
-  test "keys returns an empty array after try to get a message only" do
-    errors = ActiveModel::Errors.new(Person.new)
-    errors.messages[:foo]
-    errors.messages[:baz]
-
-    assert_deprecated do
-      assert_equal [], errors.keys
-    end
-  end
-
   test "attribute_names returns the error attributes" do
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:foo, "omg")

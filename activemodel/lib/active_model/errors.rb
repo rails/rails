@@ -200,17 +200,6 @@ module ActiveModel
       @errors.each(&block)
     end
 
-    # Returns all message keys.
-    #
-    #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
-    #   person.errors.keys     # => [:name]
-    def keys
-      deprecation_removal_warning(:keys, "errors.attribute_names")
-      keys = @errors.map(&:attribute)
-      keys.uniq!
-      keys.freeze
-    end
-
     # Returns all error attribute names
     #
     #   person.errors.messages        # => {:name=>["cannot be nil", "must be specified"]}

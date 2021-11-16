@@ -130,6 +130,8 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 *   Remove deprecated `ActiveModel::Errors#values`.
 
+*   Remove deprecated `ActiveModel::Errors#keys`.
+
 ### Deprecations
 
 ### Notable changes
