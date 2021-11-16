@@ -126,6 +126,8 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 *   Remove deprecated `ActiveModel::Errors#to_h`.
 
+*   Remove deprecated `ActiveModel::Errors#slice!`.
+
 ### Deprecations
 
 ### Notable changes

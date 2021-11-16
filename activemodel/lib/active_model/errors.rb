@@ -138,25 +138,6 @@ module ActiveModel
       }
     end
 
-    # Removes all errors except the given keys. Returns a hash containing the removed errors.
-    #
-    #   person.errors.keys                  # => [:name, :age, :gender, :city]
-    #   person.errors.slice!(:age, :gender) # => { :name=>["cannot be nil"], :city=>["cannot be nil"] }
-    #   person.errors.keys                  # => [:age, :gender]
-    def slice!(*keys)
-      deprecation_removal_warning(:slice!)
-
-      keys = keys.map(&:to_sym)
-
-      results = messages.dup.slice!(*keys)
-
-      @errors.keep_if do |error|
-        keys.include?(error.attribute)
-      end
-
-      results
-    end
-
     # Search for errors matching +attribute+, +type+ or +options+.
     #
     # Only supplied params will be matched.
