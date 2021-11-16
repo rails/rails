@@ -967,6 +967,23 @@ class PreloaderTest < ActiveRecord::TestCase
       assert_nil new_post_without_author.author
     end
   end
+
+  def test_preload_wont_set_the_wrong_target
+    post = posts(:welcome)
+    post.update!(author_id: 54321)
+    some_other_record = categories(:general)
+    some_other_record.update!(id: 54321)
+
+    assert_raises do
+      some_other_record.association(:author)
+    end
+
+    assert_nothing_raised do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author, available_records: [[some_other_record]]).call
+      assert post.association(:author).loaded?
+      assert_not_equal some_other_record, post.author
+    end
+  end
 end
 
 class GeneratedMethodsTest < ActiveRecord::TestCase
