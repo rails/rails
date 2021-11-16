@@ -241,14 +241,13 @@ module ActiveModel
     end
 
     # Returns a Hash of attributes with an array of their error details.
-    #
-    # Updating this hash would still update errors state for backward
-    # compatibility, but this behavior is deprecated.
     def details
       hash = group_by_attribute.transform_values do |errors|
         errors.map(&:details)
       end
-      DeprecationHandlingDetailsHash.new(hash)
+      hash.default = []
+      hash.freeze
+      hash
     end
 
     # Returns a Hash of attributes with an array of their Error objects.
@@ -524,14 +523,6 @@ module ActiveModel
         content = @errors.to_hash
         content.freeze
       end
-  end
-
-  class DeprecationHandlingDetailsHash < SimpleDelegator # :nodoc:
-    def initialize(details)
-      details.default = []
-      details.freeze
-      super(details)
-    end
   end
 
   # Raised when a validation cannot be corrected by end users and are considered
