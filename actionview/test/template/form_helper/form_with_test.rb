@@ -1058,7 +1058,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_form_with_label_error_wrapping
+  def test_form_with_error_wrapping
     form_with(model: @post) do |f|
       concat f.label(:author_name, class: "label")
       concat f.text_field(:author_name)
@@ -1074,7 +1074,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_form_with_label_error_wrapping_without_conventional_instance_variable
+  def test_form_with_error_wrapping_without_conventional_instance_variable
     post = remove_instance_variable :@post
 
     form_with(model: post) do |f|
@@ -1092,7 +1092,43 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_form_with_label_error_wrapping_block_and_non_block_versions
+  def test_form_with_error_wrapping_with_explicitly_specified_errors
+    form_with(url: "/foo", errors: @post.errors) do |f|
+      concat f.label(:author_name)
+      concat f.text_field(:author_name)
+      concat f.label(:title)
+      concat f.text_field(:title)
+    end
+
+    expected = whole_form("/foo") do
+      "<div class='field_with_errors'><label for='author_name'>Author name</label></div>" \
+      "<div class='field_with_errors'><input name='author_name' type='text' id='author_name' /></div>" \
+      "<label for='title'>Title</label>" \
+      "<input name='title' type='text' id='title' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_error_wrapping_with_explicitly_specified_errors_and_model
+    form_with(model: @post, errors: { "title" => ["nope"] }) do |f|
+      concat f.label(:author_name)
+      concat f.text_field(:author_name)
+      concat f.label(:title)
+      concat f.text_field(:title)
+    end
+
+    expected = whole_form("/posts/123", method: "patch") do
+      "<label for='post_author_name'>Author name</label>" \
+      "<input name='post[author_name]' type='text' value='' id='post_author_name' />" \
+      "<div class='field_with_errors'><label for='post_title'>Title</label></div>" \
+      "<div class='field_with_errors'><input name='post[title]' type='text' value='Hello World' id='post_title' /></div>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_error_wrapping_label_block_and_non_block_versions
     form_with(model: @post) do |f|
       concat f.label(:author_name, "Name", class: "label")
       concat f.label(:author_name, class: "label") { "Name" }

@@ -597,14 +597,26 @@ module ActionView
       # * <tt>:namespace</tt> - A namespace for your form to ensure uniqueness of
       #   id attributes on form elements. The namespace attribute will be prefixed
       #   with underscore on the generated HTML id.
-      # * <tt>:model</tt> - A model object to infer the <tt>:url</tt> and
-      #   <tt>:scope</tt> by, plus fill out input field values.
-      #   So if a +title+ attribute is set to "Ahoy!" then a +title+ input
-      #   field's value would be "Ahoy!".
-      #   If the model is a new record a create form is generated, if an
-      #   existing record, however, an update form is generated.
-      #   Pass <tt>:scope</tt> or <tt>:url</tt> to override the defaults.
-      #   E.g. turn <tt>params[:post]</tt> into <tt>params[:article]</tt>.
+      # * <tt>:errors</tt> - An errors object that determines the error status
+      #   of each label and input field. If <tt>errors["some_field_name"].present?</tt>
+      #   is true, labels and input fields for <tt>:some_field_name</tt> will be
+      #   passed through <tt>config.action_view.field_error_proc</tt> when
+      #   rendered.
+      #   Inside the +form_with+ block, you can access the errors object via
+      #   the +errors+ attribute, e.g. <tt>form.errors</tt>.
+      # * <tt>:model</tt> - A model object to infer the <tt>:url</tt>,
+      #   <tt>:scope</tt>, and <tt>:errors</tt> options from, as well as input
+      #   field values. So, for example, if the model's +title+ attribute is set
+      #   to "Ahoy!", then a +title+ input field's pre-filled value will be
+      #   "Ahoy!".
+      #   If the model is a new record, a "create" form will be generated; if it
+      #   is an existing record, however, an "update" form will be generated.
+      #   The inferred options can be overridden by specifying <tt>:scope</tt>,
+      #   <tt>:url</tt>, or <tt>:errors</tt> separately. Inferred input field
+      #   values can be overridden by passing a <tt>:value</tt> option to most
+      #   input field builder methods.
+      #   Inside the +form_with+ block, you can access the model object via
+      #   the +object+ attribute, e.g. <tt>form.object</tt>.
       # * <tt>:authenticity_token</tt> - Authenticity token to use in the form.
       #   Override with a custom authenticity token or pass <tt>false</tt> to
       #   skip the authenticity token field altogether.
@@ -1672,7 +1684,7 @@ module ActionView
         :number_field, :range_field
       ]
 
-      attr_accessor :object_name, :object, :options
+      attr_accessor :object_name, :object, :errors, :options
 
       attr_reader :multipart, :index
       alias :multipart? :multipart
@@ -1700,6 +1712,7 @@ module ActionView
       def initialize(object_name, object, template, options)
         @nested_child_index = {}
         @object_name, @object, @template, @options = object_name, object, template, options
+        @errors = @options.fetch(:errors) { errors_from_object(@object) }
         @default_options = @options ? @options.slice(:index, :namespace, :skip_default_ids, :allow_method_names_outside_object) : {}
         @default_html_options = @default_options.except(:skip_default_ids, :allow_method_names_outside_object)
 
@@ -2640,7 +2653,12 @@ module ActionView
         def objectify_options(options)
           result = @default_options.merge(options)
           result[:object] = @object
+          result[:errors] = @errors
           result
+        end
+
+        def errors_from_object(object)
+          object.errors if object.respond_to?(:errors)
         end
 
         def submit_default_value
