@@ -250,19 +250,8 @@ module ActiveRecord
         attr_reader :owner_to_pool_manager
 
         # Returns the pool manager for an owner.
-        #
-        # Using `"primary"` to look up the pool manager for `ActiveRecord::Base` is
-        # deprecated in favor of looking it up by `"ActiveRecord::Base"`.
-        #
-        # During the deprecation period, if `"primary"` is passed, the pool manager
-        # for `ActiveRecord::Base` will still be returned.
         def get_pool_manager(owner)
-          return owner_to_pool_manager[owner] if owner_to_pool_manager.key?(owner)
-
-          if owner == "primary"
-            ActiveSupport::Deprecation.warn("Using `\"primary\"` as a `connection_specification_name` is deprecated and will be removed in Rails 7.0.0. Please use `ActiveRecord::Base`.")
-            owner_to_pool_manager[Base.name]
-          end
+          owner_to_pool_manager[owner]
         end
 
         # Returns an instance of PoolConfig for a given adapter.

@@ -103,20 +103,6 @@ module ActiveRecord
           ActiveRecord::Base.configurations = old_config
         end
 
-        def test_retrieve_connection_shows_primary_deprecation_warning_when_established_on_active_record_base
-          old_config = ActiveRecord::Base.configurations
-          config = { "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" } }
-          ActiveRecord::Base.configurations = config
-
-          ActiveRecord::Base.establish_connection(:primary)
-
-          assert_deprecated { @handler.retrieve_connection("primary") }
-          assert_deprecated { @handler.remove_connection_pool("primary") }
-        ensure
-          ActiveRecord::Base.configurations = old_config
-          ActiveRecord::Base.establish_connection(:arunit)
-        end
-
         def test_establish_connection_using_3_level_config_defaults_to_default_env_primary_db
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
 

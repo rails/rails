@@ -1,3 +1,7 @@
+*   Remove deprecacated support to resolve connection using `"primary"` as connection specification name.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecation warning when using `:interval` column is used in PostgreSQL database.
 
     Now, interval columns will return `ActiveSupport::Duration` objects instead of strings.
