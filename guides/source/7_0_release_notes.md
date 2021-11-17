@@ -118,6 +118,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecacated support to resolve connection using `"primary"` as connection specification name.
 
+*   Remove deprecated support to quote `ActiveRecord::Base` objects.
+
 ### Deprecations
 
 ### Notable changes

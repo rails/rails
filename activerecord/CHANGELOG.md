@@ -1,3 +1,7 @@
+*   Remove deprecated support to quote `ActiveRecord::Base` objects.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecacated support to resolve connection using `"primary"` as connection specification name.
 
     *Rafael Mendonça França*

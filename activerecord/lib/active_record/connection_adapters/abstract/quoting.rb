@@ -9,14 +9,6 @@ module ActiveRecord
       # Quotes the column value to help prevent
       # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
-        if value.is_a?(Base)
-          ActiveSupport::Deprecation.warn(<<~MSG)
-            Passing an Active Record object to `quote` directly is deprecated
-            and will be no longer quoted as id value in Rails 7.0.
-          MSG
-          value = value.id_for_database
-        end
-
         _quote(value)
       end
 

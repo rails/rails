@@ -264,14 +264,6 @@ module ActiveRecord
           @connection.drop_table :datetime_primary_keys, if_exists: true
         end
 
-        def test_quote_ar_object
-          value = DatetimePrimaryKey.new(id: @time)
-          expected = "'2017-02-14 12:34:56.789000'"
-          assert_deprecated do
-            assert_equal expected, @connection.quote(value)
-          end
-        end
-
         def test_type_cast_ar_object
           value = DatetimePrimaryKey.new(id: @time)
           expected = @connection.type_cast(value.id)
