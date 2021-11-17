@@ -19,21 +19,25 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
-  class UnavailableDalliServer < Dalli::Server
+  class UnavailableDalliServer < Dalli::Protocol::Binary
     def alive?
       false
     end
   end
 
-  begin
-    servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
-    ss = Dalli::Client.new(servers).stats
-    raise Dalli::DalliError unless ss[servers] || ss[servers + ":11211"]
-
+  if ENV["CI"]
     MEMCACHE_UP = true
-  rescue Dalli::DalliError
-    $stderr.puts "Skipping memcached tests. Start memcached and try again."
-    MEMCACHE_UP = false
+  else
+    begin
+      servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
+      ss = Dalli::Client.new(servers).stats
+      raise Dalli::DalliError unless ss[servers] || ss[servers + ":11211"]
+
+      MEMCACHE_UP = true
+    rescue Dalli::DalliError
+      $stderr.puts "Skipping memcached tests. Start memcached and try again."
+      MEMCACHE_UP = false
+    end
   end
 
   def lookup_store(options = {})
@@ -52,6 +56,8 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def after_teardown
+    return unless defined?(@_stores) # because skipped test
+
     stores, @_stores = @_stores, []
     stores.each do |store|
       # Eagerly closing Dalli connection avoid file descriptor exhaustion.
@@ -288,13 +294,13 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
 
     def emulating_unavailability
-      old_server = Dalli.send(:remove_const, :Server)
-      Dalli.const_set(:Server, UnavailableDalliServer)
+      old_server = Dalli::Protocol.send(:remove_const, :Binary)
+      Dalli::Protocol.const_set(:Binary, UnavailableDalliServer)
 
       yield ActiveSupport::Cache::MemCacheStore.new
     ensure
-      Dalli.send(:remove_const, :Server)
-      Dalli.const_set(:Server, old_server)
+      Dalli::Protocol.send(:remove_const, :Binary)
+      Dalli::Protocol.const_set(:Binary, old_server)
     end
 
     def servers(cache = @cache)

@@ -17,6 +17,14 @@ class OverrideSeleniumSubclassToRackTestTest < DrivenBySeleniumWithChrome
   end
 end
 
+class OverrideDriverWithExplicitName < DrivenBySeleniumWithChrome
+  driven_by :selenium, options: { name: :best_driver }
+
+  test "uses specified driver name" do
+    assert_equal :best_driver, Capybara.current_driver
+  end
+end
+
 class SetDriverToSeleniumTest < DrivenBySeleniumWithChrome
   test "uses selenium" do
     assert_equal :selenium, Capybara.current_driver

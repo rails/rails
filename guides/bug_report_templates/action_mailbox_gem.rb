@@ -15,9 +15,9 @@ gemfile(true) do
     # So we need to add them as dependencies until `mail` is fixed: https://github.com/mikel/mail/pull/1439
     gem "net-smtp", require: false
 
-    # digest gem, which is one of the default gems has bumped to 3.0.1.pre for ruby 3.1.0dev.
+    # digest gem, which is one of the default gems has bumped to 3.1.0.pre for ruby 3.1.0dev.
     # Also `net-smtp` v0.2.2 adds dependency to digest gem which attempts to install digest 3.0.0.
-    gem "digest", "~> 3.0.1.pre", require: false
+    gem "digest", "~> 3.1.0.pre", require: false
   end
 end
 

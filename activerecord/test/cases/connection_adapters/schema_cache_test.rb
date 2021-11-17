@@ -39,6 +39,14 @@ module ActiveRecord
         tempfile.unlink
       end
 
+      def test_cache_path_can_be_in_directory
+        cache = SchemaCache.new @connection
+        filename = "some_dir/schema.json"
+        assert cache.dump_to(filename)
+      ensure
+        File.delete(filename)
+      end
+
       def test_yaml_dump_and_load_with_gzip
         # Create an empty cache.
         cache = SchemaCache.new @connection

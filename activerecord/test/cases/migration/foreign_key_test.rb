@@ -692,6 +692,8 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             if current_adapter?(:Mysql2Adapter)
               if ActiveRecord::Base.connection.mariadb?
                 assert_match(/Duplicate key on write or update/, error.message)
+              elsif ActiveRecord::Base.connection.database_version < "5.6"
+                assert_match(/Can't create table/, error.message)
               else
                 assert_match(/Duplicate foreign key constraint name/, error.message)
               end

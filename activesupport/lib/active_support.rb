@@ -34,11 +34,13 @@ module ActiveSupport
   extend ActiveSupport::Autoload
 
   autoload :Concern
+  autoload :CodeGenerator
   autoload :ActionableError
   autoload :ConfigurationFile
   autoload :CurrentAttributes
   autoload :Dependencies
   autoload :DescendantsTracker
+  autoload :ExecutionContext
   autoload :ExecutionWrapper
   autoload :Executor
   autoload :FileUpdateChecker
@@ -116,6 +118,8 @@ module ActiveSupport
   def self.current_attributes_use_thread_variables=(value)
     CurrentAttributes._use_thread_variables = value
   end
+
+  @has_native_class_descendants = Class.method_defined?(:descendants) # RUBY_VERSION >= "3.1"
 end
 
 autoload :I18n, "active_support/i18n"

@@ -18,7 +18,7 @@ class Class
     ObjectSpace.each_object(singleton_class).reject do |k|
       k.singleton_class? || k == self
     end
-  end
+  end unless ActiveSupport.instance_variable_get(:@has_native_class_descendants) # RUBY_VERSION >= "3.1"
 
   # Returns an array with the direct children of +self+.
   #

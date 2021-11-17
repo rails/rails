@@ -778,7 +778,7 @@ module ActiveRecord
       #
       #   CREATE INDEX by_name_surname ON accounts(name(10), surname(15))
       #
-      # Note: SQLite doesn't support index length.
+      # Note: only supported by MySQL
       #
       # ====== Creating an index with a sort order (desc or asc, asc is the default)
       #

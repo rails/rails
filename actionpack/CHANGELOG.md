@@ -1,3 +1,61 @@
+*   Raise `ActionController::Redirecting::UnsafeRedirectError` for unsafe `redirect_to` redirects.
+
+    This allows `rescue_from` to be used to add a default fallback route:
+
+    ```ruby
+    rescue_from ActionController::Redirecting::UnsafeRedirectError do
+      redirect_to root_url
+    end
+    ```
+
+    *Kasper Timm Hansen*, *Chris Oliver*
+
+*   Add `url_from` to verify a redirect location is internal.
+
+    Takes the open redirect protection from `redirect_to` so users can wrap a
+    param, and fall back to an alternate redirect URL when the param provided
+    one is unsafe.
+
+    ```ruby
+    def create
+      redirect_to url_from(params[:redirect_url]) || root_url
+    end
+    ```
+
+    *dmcge*, *Kasper Timm Hansen*
+
+*   Allow Capybara driver name overrides in `SystemTestCase::driven_by`
+
+    Allow users to prevent conflicts among drivers that use the same driver
+    type (selenium, poltergeist, webkit, rack test).
+
+    Fixes #42502
+
+    *Chris LaRose*
+
+*   Allow multiline to be passed in routes when using wildcard segments.
+
+    Previously routes with newlines weren't detected when using wildcard segments, returning
+    a `No route matches` error.
+    After this change, routes with newlines are detected on wildcard segments. Example
+
+    ```ruby
+      draw do
+        get "/wildcard/*wildcard_segment", to: SimpleApp.new("foo#index"), as: :wildcard
+      end
+
+      # After the change, the path matches.
+      assert_equal "/wildcard/a%0Anewline", url_helpers.wildcard_path(wildcard_segment: "a\nnewline")
+    ```
+
+    Fixes #39103
+
+    *Ignacio Chiazzo*
+
+*   Treat html suffix in controller translation.
+
+    *Rui Onodera*, *Gavin Miller*
+
 *   Allow permitting numeric params.
 
     Previously it was impossible to permit different fields on numeric parameters.

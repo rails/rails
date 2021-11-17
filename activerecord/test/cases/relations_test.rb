@@ -880,7 +880,7 @@ class RelationTest < ActiveRecord::TestCase
     ids = Author.pluck(:id)
     slugs = ids.map { |id| "#{id}-as-a-slug" }
 
-    assert_equal Author.all.to_a, Author.where(id: slugs).to_a
+    assert_equal Author.where(id: ids).to_a, Author.where(id: slugs).to_a
   end
 
   def test_find_all_using_where_with_relation

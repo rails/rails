@@ -27,14 +27,30 @@ module ActiveSupport
       end
     end
 
+    initializer "active_support.reset_execution_context" do |app|
+      app.reloader.before_class_unload { ActiveSupport::ExecutionContext.clear }
+      app.executor.to_run              { ActiveSupport::ExecutionContext.clear }
+      app.executor.to_complete         { ActiveSupport::ExecutionContext.clear }
+    end
+
     initializer "active_support.reset_all_current_attributes_instances" do |app|
+      executor_around_test_case = app.config.active_support.delete(:executor_around_test_case)
+
       app.reloader.before_class_unload { ActiveSupport::CurrentAttributes.clear_all }
       app.executor.to_run              { ActiveSupport::CurrentAttributes.reset_all }
       app.executor.to_complete         { ActiveSupport::CurrentAttributes.reset_all }
 
       ActiveSupport.on_load(:active_support_test_case) do
-        require "active_support/current_attributes/test_helper"
-        include ActiveSupport::CurrentAttributes::TestHelper
+        if executor_around_test_case
+          require "active_support/executor/test_helper"
+          include ActiveSupport::Executor::TestHelper
+        else
+          require "active_support/current_attributes/test_helper"
+          include ActiveSupport::CurrentAttributes::TestHelper
+
+          require "active_support/execution_context/test_helper"
+          include ActiveSupport::ExecutionContext::TestHelper
+        end
       end
     end
 
@@ -118,6 +134,15 @@ module ActiveSupport
       config.after_initialize do
         if klass = app.config.active_support.key_generator_hash_digest_class
           ActiveSupport::KeyGenerator.hash_digest_class = klass
+        end
+      end
+    end
+
+    initializer "active_support.set_rfc4122_namespaced_uuids" do |app|
+      config.after_initialize do
+        if app.config.active_support.use_rfc4122_namespaced_uuids
+          require "active_support/core_ext/digest"
+          ::Digest::UUID.use_rfc4122_namespaced_uuids = app.config.active_support.use_rfc4122_namespaced_uuids
         end
       end
     end

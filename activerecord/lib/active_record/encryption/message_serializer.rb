@@ -33,8 +33,18 @@ module ActiveRecord
 
       private
         def parse_message(data, level)
-          raise ActiveRecord::Encryption::Errors::Decryption, "More than one level of hash nesting in headers is not supported" if level > 2
+          validate_message_data_format(data, level)
           ActiveRecord::Encryption::Message.new(payload: decode_if_needed(data["p"]), headers: parse_properties(data["h"], level))
+        end
+
+        def validate_message_data_format(data, level)
+          if level > 2
+            raise ActiveRecord::Encryption::Errors::Decryption, "More than one level of hash nesting in headers is not supported"
+          end
+
+          unless data.is_a?(Hash) && data.has_key?("p")
+            raise ActiveRecord::Encryption::Errors::Decryption, "Invalid data format: hash without payload"
+          end
         end
 
         def parse_properties(headers, level)

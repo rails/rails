@@ -38,6 +38,10 @@ module TestHelpers
       File.join RAILS_FRAMEWORK_ROOT, "tmp/templates/app_template"
     end
 
+    def bootsnap_cache_path
+      File.join RAILS_FRAMEWORK_ROOT, "tmp/templates/bootsnap"
+    end
+
     def tmp_path(*args)
       @tmp_path ||= File.realpath(Dir.mktmpdir(nil, File.join(RAILS_FRAMEWORK_ROOT, "tmp")))
       File.join(@tmp_path, *args)
@@ -368,7 +372,12 @@ module TestHelpers
         Process.waitpid pid
 
       else
-        output = `cd #{app_path}; #{command}`
+        ENV["BOOTSNAP_CACHE_DIR"] = bootsnap_cache_path
+        begin
+          output = `cd #{app_path}; #{command}`
+        ensure
+          ENV.delete("BOOTSNAP_CACHE_DIR")
+        end
       end
 
       raise "rails command failed (#{$?.exitstatus}): #{command}\n#{output}" unless allow_failure || $?.success?
@@ -513,6 +522,7 @@ Module.new do
 
   sh "#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-bundle --no-rc --quiet"
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
+    f.puts 'require "bootsnap/setup" if ENV["BOOTSNAP_CACHE_DIR"]'
     f.puts 'require "rails/all"'
   end
 

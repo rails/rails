@@ -1,9 +1,14 @@
 # frozen_string_literal: true
 
 require "helper"
+require "jobs/configuration_job"
 require "jobs/hello_job"
 
 class QueuePriorityTest < ActiveSupport::TestCase
+  setup do
+    JobBuffer.clear
+  end
+
   test "priority unset by default" do
     assert_nil HelloJob.priority
   end
@@ -42,8 +47,15 @@ class QueuePriorityTest < ActiveSupport::TestCase
     end
   end
 
-  test "uses priority passed to #set" do
-    job = HelloJob.set(priority: 123).perform_later
+  test "is assigned when perform_now" do
+    ConfigurationJob.set(priority: 123).perform_now
+    job = JobBuffer.last_value
+    assert_equal 123, job.priority
+  end
+
+  test "is assigned when perform_later" do
+    ConfigurationJob.set(priority: 123).perform_later
+    job = JobBuffer.last_value
     assert_equal 123, job.priority
   end
 end

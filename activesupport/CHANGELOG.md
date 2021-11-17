@@ -1,3 +1,41 @@
+*   Invoking `Object#with_options` without a `&block` argument returns the
+    `ActiveSupport::OptionMerger` instance.
+
+    *Sean Doyle*
+
+*   `Rails.application.executor` hooks are now called around every tests.
+
+    This helps to better simulate request or job local state being reset around tests and prevent state
+    to leak from one test to another.
+
+    However it requires the executor hooks executed in the test environment to be re-entrant.
+
+    *Jean Boussier*
+
+*   `ActiveSupport::DescendantsTracker` now mostly delegate to `Class#descendants` on Ruby 3.1
+
+    Ruby now provides a fast `Class#descendants` making `ActiveSupport::DescendantsTracker` mostly useless.
+
+    As a result the following methods are deprecated:
+
+      - `ActiveSupport::DescendantsTracker.direct_descendants`
+      - `ActiveSupport::DescendantsTracker#direct_descendants`
+
+    *Jean Boussier*
+
+*   Fix the `Digest::UUID.uuid_from_hash` behavior for namespace IDs that are different from the ones defined on `Digest::UUID`.
+
+    The new behavior will be enabled by setting the
+    `config.active_support.use_rfc4122_namespaced_uuids` option to `true`
+    and is the default for new apps.
+
+    The old behavior is the default for upgraded apps and will output a
+    deprecation warning every time a value that is different than one of
+    the constants defined on the `Digest::UUID` extension is used as the
+    namespace ID.
+
+    *Alex Robbin*, *Erich Soares Machado*, *Eugene Kenny*
+
 *   `ActiveSupport::Inflector::Inflections#clear(:acronyms)` is now supported,
     and `inflector.clear` / `inflector.clear(:all)` also clears acronyms.
 

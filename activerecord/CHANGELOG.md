@@ -19,6 +19,125 @@
 
     *Dan Ungureanu*
 
+*   Fix regression bug that caused ignoring additional conditions for preloading has_many-through relations.
+
+    Fixes #43132
+
+    *Alexander Pauly*
+
+*   Fix `has_many` inversing recursion on models with recursive associations.
+
+    *Gannon McGibbon*
+
+*   Add `accepts_nested_attributes_for` support for `delegated_type`
+
+    ```ruby
+    class Entry < ApplicationRecord
+      delegated_type :entryable, types: %w[ Message Comment ]
+      accepts_nested_attributes_for :entryable
+    end
+
+    entry = Entry.create(entryable_type: 'Message', entryable_attributes: { content: 'Hello world' })
+    # => #<Entry:0x00>
+    # id: 1
+    # entryable_id: 1,
+    # entryable_type: 'Message'
+    # ...>
+
+    entry.entryable
+    # => #<Message:0x01>
+    # id: 1
+    # content: 'Hello world'
+    # ...>
+    ```
+
+    Previously it would raise an error:
+
+    ```ruby
+    Entry.create(entryable_type: 'Message', entryable_attributes: { content: 'Hello world' })
+    # ArgumentError: Cannot build association `entryable'. Are you trying to build a polymorphic one-to-one association?
+    ```
+
+    *Sjors Baltus*
+
+*   Use subquery for DELETE with GROUP_BY and HAVING clauses.
+
+    Prior to this change, deletes with GROUP_BY and HAVING were returning an error.
+
+    After this change, GROUP_BY and HAVING are valid clauses in DELETE queries, generating the following query:
+
+    ```sql
+    DELETE FROM "posts" WHERE "posts"."id" IN (
+        SELECT "posts"."id" FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id" GROUP BY "posts"."id" HAVING (count(comments.id) >= 2))
+    )  [["flagged", "t"]]
+    ```
+
+    *Ignacio Chiazzo Cardarello*
+
+*   Use subquery for UPDATE with GROUP_BY and HAVING clauses.
+
+    Prior to this change, updates with GROUP_BY and HAVING were being ignored, generating a SQL like this:
+
+    ```sql
+    UPDATE "posts" SET "flagged" = ? WHERE "posts"."id" IN (
+        SELECT "posts"."id" FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+    )  [["flagged", "t"]]
+    ```
+
+    After this change, GROUP_BY and HAVING clauses are used as a subquery in updates, like this:
+
+    ```sql
+    UPDATE "posts" SET "flagged" = ? WHERE "posts"."id" IN (
+        SELECT "posts"."id" FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+        GROUP BY posts.id HAVING (count(comments.id) >= 2)
+    )  [["flagged", "t"]]
+    ```
+
+    *Ignacio Chiazzo Cardarello*
+
+*   Add support for setting the filename of the schema or structure dump in the database config.
+
+    Applications may now set their the filename or path of the schema / structure dump file in their database configuration.
+
+
+    ```yaml
+    production:
+      primary:
+        database: my_db
+        schema_dump: my_schema_dump_filename.rb
+      animals:
+        database: animals_db
+        schema_dump: false
+    ```
+
+    The filename set in `schema_dump` will be used by the application. If set to `false` the schema will not be dumped. The database tasks are responsible for adding the database directory to the filename. If a full path is provided, the Rails tasks will use that instead of `ActiveRecord::DatabaseTasks.db_dir`.
+
+    *Eileen M. Uchitelle*, *Ryan Kerr*
+
+*   Add `ActiveRecord::Base.prohibit_shard_swapping` to prevent attempts to change the shard within a block.
+
+    *John Crepezzi*, *Eileen M. Uchitelle*
+
+*   Filter unchanged attributes with default function from insert query when `partial_inserts` is disabled.
+
+    *Akshay Birajdar*, *Jacopo Beschi*
+
+*   Add support for FILTER clause (SQL:2003) to Arel.
+
+    Currently supported by PostgreSQL 9.4+ and SQLite 3.30+.
+
+    *Andrey Novikov*
+
+*   Automatically set timestamps on record creation during bulk insert/upsert
+
+    Prior to this change, only updates during an upsert operation (e.g. `upsert_all`) would touch timestamps (`updated_{at,on}`). Now, record creations also touch timestamp columns (`{created,updated}_{at,on}`).
+
+    This behaviour is controlled by the `<model>.record_timestamps` config, matching the behaviour of `create`, `update`, etc. It can also be overridden by using the `record_timestamps:` keyword argument.
+
+    Note that this means `upsert_all` on models with `record_timestamps = false` will no longer touch `updated_{at,on}` automatically.
+
+    *Sam Bostock*
+
 *   Don't require `role` when passing `shard` to `connected_to`.
 
     `connected_to` can now be called with a `shard` only. Note that `role` is still inherited if `connected_to` calls are nested.
@@ -267,10 +386,10 @@
 
     The behavior now is:
 
-    `columns`: (unchanged) raises a db error if the table does not exist
-    `columns_hash`: (unchanged) raises a db error if the table does not exist
-    `primary_keys`: (unchanged) returns `nil` if the table does not exist
-    `indexes`: (changed for mysql2) returns `[]` if the table does not exist
+    `columns`: (unchanged) raises a db error if the table does not exist.
+    `columns_hash`: (unchanged) raises a db error if the table does not exist.
+    `primary_keys`: (unchanged) returns `nil` if the table does not exist.
+    `indexes`: (changed for mysql2) returns `[]` if the table does not exist.
 
     *Eileen M. Uchitelle*
 
@@ -415,7 +534,7 @@
 *   Add option to disable schema dump per-database.
 
     Dumping the schema is on by default for all databases in an application. To turn it off for a
-    specific database use the `schema_dump` option:
+    specific database, use the `schema_dump` option:
 
     ```yaml
     # config/database.yml
@@ -614,7 +733,7 @@
 
 *   Fix compatibility with `psych >= 4`.
 
-    Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility
+    Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility,
     Active Record's schema cache loader and `YAMLColumn` now uses `YAML.unsafe_load` if available.
 
     *Jean Boussier*
@@ -668,7 +787,7 @@
 
     ```ruby
     class Person
-      belongs_to :dog
+      has_one :dog
       has_one :veterinarian, through: :dog, disable_joins: true
     end
     ```
@@ -1144,8 +1263,8 @@
 
     *Eileen M. Uchitelle*, *John Crepezzi*
 
-*   Support hash config for `structure_dump_flags` and `structure_load_flags` flags
-    Now that Active Record supports multiple databases configuration
+*   Support hash config for `structure_dump_flags` and `structure_load_flags` flags.
+    Now that Active Record supports multiple databases configuration,
     we need a way to pass specific flags for dump/load databases since
     the options are not the same for different adapters.
     We can use in the original way:

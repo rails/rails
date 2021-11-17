@@ -63,8 +63,8 @@ module ActiveRecord
       # go through Active Record's type casting and serialization.
       #
       # See <tt>ActiveRecord::Persistence#insert_all</tt> for documentation.
-      def insert(attributes, returning: nil, unique_by: nil)
-        insert_all([ attributes ], returning: returning, unique_by: unique_by)
+      def insert(attributes, returning: nil, unique_by: nil, record_timestamps: nil)
+        insert_all([ attributes ], returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
       end
 
       # Inserts multiple records into the database in a single SQL INSERT
@@ -110,6 +110,17 @@ module ActiveRecord
       #     unique_by: %i[ author_id name ]
       #     unique_by: :index_books_on_isbn
       #
+      # [:record_timestamps]
+      #   By default, automatic setting of timestamp columns is controlled by
+      #   the model's <tt>record_timestamps</tt> config, matching typical
+      #   behavior.
+      #
+      #   To override this and force automatic setting of timestamp columns one
+      #   way or the other, pass <tt>:record_timestamps</tt>:
+      #
+      #     record_timestamps: true  # Always set timestamps automatically
+      #     record_timestamps: false # Never set timestamps automatically
+      #
       # Because it relies on the index information from the database
       # <tt>:unique_by</tt> is recommended to be paired with
       # Active Record's schema_cache.
@@ -131,8 +142,8 @@ module ActiveRecord
       #     { id: 1, title: "Rework" },
       #     { id: 2, title: "Eloquent Ruby" }
       #   ])
-      def insert_all(attributes, returning: nil, unique_by: nil)
-        InsertAll.new(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by).execute
+      def insert_all(attributes, returning: nil, unique_by: nil, record_timestamps: nil)
+        InsertAll.new(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps).execute
       end
 
       # Inserts a single record into the database in a single SQL INSERT
@@ -141,8 +152,8 @@ module ActiveRecord
       # go through Active Record's type casting and serialization.
       #
       # See <tt>ActiveRecord::Persistence#insert_all!</tt> for more.
-      def insert!(attributes, returning: nil)
-        insert_all!([ attributes ], returning: returning)
+      def insert!(attributes, returning: nil, record_timestamps: nil)
+        insert_all!([ attributes ], returning: returning, record_timestamps: record_timestamps)
       end
 
       # Inserts multiple records into the database in a single SQL INSERT
@@ -174,6 +185,17 @@ module ActiveRecord
       #   You can also pass an SQL string if you need more control on the return values
       #   (for example, <tt>returning: "id, name as new_name"</tt>).
       #
+      # [:record_timestamps]
+      #   By default, automatic setting of timestamp columns is controlled by
+      #   the model's <tt>record_timestamps</tt> config, matching typical
+      #   behavior.
+      #
+      #   To override this and force automatic setting of timestamp columns one
+      #   way or the other, pass <tt>:record_timestamps</tt>:
+      #
+      #     record_timestamps: true  # Always set timestamps automatically
+      #     record_timestamps: false # Never set timestamps automatically
+      #
       # ==== Examples
       #
       #   # Insert multiple records
@@ -188,8 +210,8 @@ module ActiveRecord
       #     { id: 1, title: "Rework", author: "David" },
       #     { id: 1, title: "Eloquent Ruby", author: "Russ" }
       #   ])
-      def insert_all!(attributes, returning: nil)
-        InsertAll.new(self, attributes, on_duplicate: :raise, returning: returning).execute
+      def insert_all!(attributes, returning: nil, record_timestamps: nil)
+        InsertAll.new(self, attributes, on_duplicate: :raise, returning: returning, record_timestamps: record_timestamps).execute
       end
 
       # Updates or inserts (upserts) a single record into the database in a
@@ -198,8 +220,8 @@ module ActiveRecord
       # go through Active Record's type casting and serialization.
       #
       # See <tt>ActiveRecord::Persistence#upsert_all</tt> for documentation.
-      def upsert(attributes, on_duplicate: :update, returning: nil, unique_by: nil)
-        upsert_all([ attributes ], on_duplicate: on_duplicate, returning: returning, unique_by: unique_by)
+      def upsert(attributes, on_duplicate: :update, returning: nil, unique_by: nil, record_timestamps: nil)
+        upsert_all([ attributes ], on_duplicate: on_duplicate, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
       end
 
       # Updates or inserts (upserts) multiple records into the database in a
@@ -250,6 +272,17 @@ module ActiveRecord
       #
       #   NOTE: in this case you must provide all the columns you want to update by yourself.
       #
+      # [:record_timestamps]
+      #   By default, automatic setting of timestamp columns is controlled by
+      #   the model's <tt>record_timestamps</tt> config, matching typical
+      #   behavior.
+      #
+      #   To override this and force automatic setting of timestamp columns one
+      #   way or the other, pass <tt>:record_timestamps</tt>:
+      #
+      #     record_timestamps: true  # Always set timestamps automatically
+      #     record_timestamps: false # Never set timestamps automatically
+      #
       # ==== Examples
       #
       #   # Inserts multiple records, performing an upsert when records have duplicate ISBNs.
@@ -261,8 +294,8 @@ module ActiveRecord
       #   ], unique_by: :isbn)
       #
       #   Book.find_by(isbn: "1").title # => "Eloquent Ruby"
-      def upsert_all(attributes, on_duplicate: :update, returning: nil, unique_by: nil)
-        InsertAll.new(self, attributes, on_duplicate: on_duplicate, returning: returning, unique_by: unique_by).execute
+      def upsert_all(attributes, on_duplicate: :update, returning: nil, unique_by: nil, record_timestamps: nil)
+        InsertAll.new(self, attributes, on_duplicate: on_duplicate, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps).execute
       end
 
       # Given an attributes hash, +instantiate+ returns a new instance of

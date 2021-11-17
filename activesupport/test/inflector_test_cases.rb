@@ -121,6 +121,7 @@ module InflectorTestCases
     "ApplicationController" => "application_controller",
     "Area51Controller"      => "area51_controller",
     "AppCDir"               => "app_c_dir",
+    "Accountsv2N2Test"      => "accountsv2_n2_test",
   }
 
   UnderscoreToLowerCamel = {

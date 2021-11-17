@@ -1,4 +1,4 @@
-<p id="notice"><%%= notice %></p>
+<p style="color: green"><%%= notice %></p>
 
 <h1><%= human_name.pluralize %></h1>
 

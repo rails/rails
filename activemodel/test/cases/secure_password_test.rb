@@ -91,6 +91,12 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal ["doesn't match Password"], @user.errors[:password_confirmation]
   end
 
+  test "resetting password to nil clears the password cache" do
+    @user.password = "password"
+    @user.password = nil
+    assert_nil @user.password
+  end
+
   test "update an existing user with validation and no change in password" do
     assert @existing_user.valid?(:update), "user should be valid"
   end

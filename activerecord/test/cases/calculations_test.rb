@@ -1202,6 +1202,8 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def assert_minimum_and_maximum_on_time_attributes(time_class)
+    skip unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
+
     actual = Topic.minimum(:written_on)
     assert_equal Time.utc(2003, 7, 16, 14, 28, 11, 223300), actual
     assert_instance_of time_class, actual

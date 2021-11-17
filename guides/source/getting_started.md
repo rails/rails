@@ -361,6 +361,24 @@ confirming that the `root` route is also mapped to the `index` action of
 TIP: To learn more about routing, see [Rails Routing from the Outside In](
 routing.html).
 
+Autoloading
+-----------
+
+Rails applications **do not** use `require` to load application code.
+
+You may have noticed that `ArticlesController` inherits from `ApplicationController`, but `app/controllers/articles_controller.rb` does not have anything like
+
+```ruby
+require "application_controller" # DON'T DO THIS.
+```
+
+Application classes and modules are available everywhere, you do not need and **should not** load anything under `app` with `require`. This feature is called _autoloading_, and you can learn more about it in [_Autoloading and Reloading Constants_](https://guides.rubyonrails.org/autoloading_and_reloading_constants.html).
+
+You only need `require` calls for two use cases:
+
+* To load files under the `lib` directory.
+* To load gem dependencies that have `require: false` in the `Gemfile`.
+
 MVC and You
 -----------
 
@@ -1748,7 +1766,7 @@ and in `app/controllers/comments_controller.rb`:
     end
 ```
 
-Within the `article` model, after running a migration to add a `status` column, you would add:
+Within the `article` model, after running a migration to add a `status` column using `bin/rails db:migrate` command, you would add:
 
 ```ruby
 class Article < ApplicationRecord

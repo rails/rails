@@ -595,7 +595,7 @@ module ActiveRecord
           @schema_loaded = false
           @attribute_names = nil
           @yaml_encoder = nil
-          direct_descendants.each do |descendant|
+          subclasses.each do |descendant|
             descendant.send(:reload_schema_from_cache)
           end
         end

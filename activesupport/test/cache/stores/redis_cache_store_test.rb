@@ -25,6 +25,20 @@ class SlowRedis < Redis
 end
 
 module ActiveSupport::Cache::RedisCacheStoreTests
+  if ENV["CI"]
+    REDIS_UP = true
+  else
+    begin
+      redis = Redis.new(url: "redis://localhost:6379/0")
+      redis.ping
+
+      REDIS_UP = true
+    rescue Redis::BaseConnectionError
+      $stderr.puts "Skipping redis tests. Start redis and try again."
+      REDIS_UP = false
+    end
+  end
+
   DRIVER = %w[ ruby hiredis ].include?(ENV["REDIS_DRIVER"]) ? ENV["REDIS_DRIVER"] : "hiredis"
 
   class LookupTest < ActiveSupport::TestCase
@@ -110,6 +124,8 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
   class StoreTest < ActiveSupport::TestCase
     setup do
+      @cache = nil
+      skip "redis server is not up" unless REDIS_UP
       @namespace = "test-#{SecureRandom.hex}"
 
       @cache = lookup_store(expires_in: 60)

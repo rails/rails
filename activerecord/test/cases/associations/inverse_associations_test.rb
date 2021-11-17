@@ -25,6 +25,7 @@ require "models/room"
 require "models/contract"
 require "models/subscription"
 require "models/book"
+require "models/branch"
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars, :books
@@ -664,6 +665,18 @@ class InverseHasManyTests < ActiveRecord::TestCase
     comment.body = "OMG"
     assert_equal comment.body, comment.children.first.parent.body
   end
+
+  def test_changing_the_association_id_makes_the_inversed_association_target_stale
+    post1 = Post.first
+    post2 = Post.second
+    comment = post1.comments.first
+
+    assert_same post1, comment.post
+
+    comment.update!(post_id: post2.id)
+
+    assert_equal post2, comment.post
+  end
 end
 
 class InverseBelongsToTests < ActiveRecord::TestCase
@@ -763,6 +776,39 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     with_has_many_inversing(Interest) do
       human = interests(:trainspotting).human_with_callbacks
       assert_not_predicate human, :add_callback_called?
+    end
+  end
+
+  def test_with_hash_many_inversing_does_not_add_duplicate_associated_objects
+    with_has_many_inversing(Interest) do
+      human = Human.new
+      interest = Interest.new(human: human)
+      human.interests << interest
+      assert_equal 1, human.interests.size
+    end
+  end
+
+  def test_recursive_model_has_many_inversing
+    with_has_many_inversing do
+      main = Branch.create!
+      feature = main.branches.create!
+      topic = feature.branches.build
+
+      assert_equal(main, topic.branch.branch)
+    end
+  end
+
+  def test_recursive_inverse_on_recursive_model_has_many_inversing
+    with_has_many_inversing do
+      main = BrokenBranch.create!
+      feature = main.branches.create!
+      topic = feature.branches.build
+
+      error = assert_raises(ActiveRecord::InverseOfAssociationRecursiveError) do
+        topic.branch.branch
+      end
+
+      assert_equal("Inverse association branch (:branch in BrokenBranch) is recursive.", error.message)
     end
   end
 

@@ -1,3 +1,95 @@
+*   Support `fields model: [@nested, @model]` the same way as `form_with model:
+    [@nested, @model]`.
+
+    *Sean Doyle*
+
+*   Infer HTTP verb `[method]` from a model or Array with model as the first
+    argument to `button_to` when combined with a block:
+
+    ```ruby
+    button_to(Workshop.find(1)){ "Update" }
+    #=> <form method="post" action="/workshops/1" class="button_to">
+    #=>   <input type="hidden" name="_method" value="patch" autocomplete="off" />
+    #=>   <button type="submit">Update</button>
+    #=> </form>
+
+    button_to([ Workshop.find(1), Session.find(1) ]) { "Update" }
+    #=> <form method="post" action="/workshops/1/sessions/1" class="button_to">
+    #=>   <input type="hidden" name="_method" value="patch" autocomplete="off" />
+    #=>   <button type="submit">Update</button>
+    #=> </form>
+    ```
+
+    *Sean Doyle*
+
+*   Support passing a Symbol as the first argument to `FormBuilder#button`:
+
+    ```ruby
+    form.button(:draft, value: true)
+    # => <button name="post[draft]" value="true" type="submit">Create post</button>
+
+    form.button(:draft, value: true) do
+      content_tag(:strong, "Save as draft")
+    end
+    # =>  <button name="post[draft]" value="true" type="submit">
+    #       <strong>Save as draft</strong>
+    #     </button>
+    ```
+
+    *Sean Doyle*
+
+*   Introduce the `field_name` view helper, along with the
+    `FormBuilder#field_name` counterpart:
+
+    ```ruby
+    form_for @post do |f|
+      f.field_tag :tag, name: f.field_name(:tag, multiple: true)
+      # => <input type="text" name="post[tag][]">
+    end
+    ```
+
+    *Sean Doyle*
+
+*   Execute the `ActionView::Base.field_error_proc` within the context of the
+    `ActionView::Base` instance:
+
+    ```ruby
+    config.action_view.field_error_proc = proc { |html| content_tag(:div, html, class: "field_with_errors") }
+    ```
+
+    *Sean Doyle*
+
+*   Add support for `button_to ..., authenticity_token: false`
+
+    ```ruby
+    button_to "Create", Post.new, authenticity_token: false
+    # => <form class="button_to" method="post" action="/posts"><button type="submit">Create</button></form>
+
+    button_to "Create", Post.new, authenticity_token: true
+    # => <form class="button_to" method="post" action="/posts"><button type="submit">Create</button><input type="hidden" name="form_token" value="abc123..." autocomplete="off" /></form>
+
+    button_to "Create", Post.new, authenticity_token: "secret"
+    # => <form class="button_to" method="post" action="/posts"><button type="submit">Create</button><input type="hidden" name="form_token" value="secret" autocomplete="off" /></form>
+    ```
+
+    *Sean Doyle*
+
+*   Support rendering `<form>` elements _without_ `[action]` attributes by:
+
+    * `form_with url: false` or `form_with ..., html: { action: false }`
+    * `form_for ..., url: false` or `form_for ..., html: { action: false }`
+    * `form_tag false` or `form_tag ..., action: false`
+    * `button_to "...", false` or `button_to(false) { ... }`
+
+    *Sean Doyle*
+
+*   Add `:day_format` option to `date_select`
+
+        date_select("article", "written_on", day_format: ->(day) { day.ordinalize })
+        # generates day options like <option value="1">1st</option>\n<option value="2">2nd</option>...
+
+    *Shunichi Ikegami*
+
 *   Allow `link_to` helper to infer link name from `Model#to_s` when it
     is used with a single argument:
 

@@ -49,7 +49,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
 
     assert_nothing_raised { @connection.select_all "SELECT * FROM fruits" }
     assert_nothing_raised { @connection.select_all "SELECT * FROM schema_migrations" }
-    assert_equal 7, @connection.migration_context.current_version
+    assert_equal 7, @connection.schema_version
   end
 
   def test_schema_define_with_table_name_prefix

@@ -216,10 +216,9 @@ module ActiveRecord
             dump_schema(db_config, ActiveRecord.schema_format)
           end
         rescue ActiveRecord::NoDatabaseError
-          config_name = db_config.name
-          create_current(db_config.env_name, config_name)
+          create_current(db_config.env_name, db_config.name)
 
-          if File.exist?(dump_filename(config_name))
+          if File.exist?(schema_dump_path(db_config))
             load_schema(
               db_config,
               ActiveRecord.schema_format,
@@ -378,7 +377,7 @@ module ActiveRecord
       end
 
       def load_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
-        file ||= dump_filename(db_config.name, format)
+        file ||= schema_dump_path(db_config, format)
 
         verbose_was, Migration.verbose = Migration.verbose, verbose? && ENV["VERBOSE"]
         check_schema_file(file)
@@ -406,9 +405,7 @@ module ActiveRecord
           ActiveSupport::Deprecation.warn("`environment` and `name` will be removed as parameters in 7.0.0, you may now pass an ActiveRecord::DatabaseConfigurations::DatabaseConfig as `configuration` instead.")
         end
 
-        name ||= db_config.name
-
-        file ||= dump_filename(name, format)
+        file ||= schema_dump_path(db_config)
 
         return true unless File.exist?(file)
 
@@ -421,7 +418,7 @@ module ActiveRecord
       end
 
       def reconstruct_from_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
-        file ||= dump_filename(db_config.name, format)
+        file ||= schema_dump_path(db_config, format)
 
         check_schema_file(file)
 
@@ -440,7 +437,7 @@ module ActiveRecord
 
       def dump_schema(db_config, format = ActiveRecord.schema_format) # :nodoc:
         require "active_record/schema_dumper"
-        filename = dump_filename(db_config.name, format)
+        filename = schema_dump_path(db_config, format)
         connection = ActiveRecord::Base.connection
 
         FileUtils.mkdir_p(db_dir)
@@ -475,6 +472,8 @@ module ActiveRecord
       end
 
       def dump_filename(db_config_name, format = ActiveRecord.schema_format)
+        ActiveSupport::Deprecation.warn("#dump_filename is deprecated. Please call `schema_dump_path` or call `schema_dump` on the `db_config` directly.")
+
         filename = if ActiveRecord::Base.configurations.primary?(db_config_name)
           schema_file_type(format)
         else
@@ -482,6 +481,19 @@ module ActiveRecord
         end
 
         ENV["SCHEMA"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
+      end
+
+      def schema_dump_path(db_config, format = ActiveRecord.schema_format)
+        return ENV["SCHEMA"] if ENV["SCHEMA"]
+
+        filename = db_config.schema_dump(format)
+        return unless filename
+
+        if File.dirname(filename) == ActiveRecord::Tasks::DatabaseTasks.db_dir
+          filename
+        else
+          File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
+        end
       end
 
       def cache_dump_filename(db_config_name, schema_cache_path: nil)

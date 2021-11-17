@@ -180,7 +180,9 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     p1 = Person.find(1)
     assert_equal 0, p1.lock_version
 
+    sleep 1.0 unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
     p1.touch
+
     assert_equal 1, p1.lock_version
     assert_not_predicate p1, :changed?, "Changes should have been cleared"
     assert_predicate p1, :saved_changes?
@@ -297,6 +299,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, t1.lock_version
     assert_nil t1.lock_version_before_type_cast
 
+    sleep 1.0 unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
     t1.touch
 
     assert_equal 1, t1.lock_version

@@ -1,3 +1,9 @@
+*   Raise an `SerializationError` in `Serializer::ModuleSerializer`
+    if the module name is not present. 
+
+    *Veerpal Brar*
+
+
 ## Rails 7.0.0.alpha2 (September 15, 2021) ##
 
 *   No changes.

@@ -35,7 +35,7 @@ module AbstractController
                        skip_after_callbacks_if_terminated: true
     end
 
-    class ActionFilter
+    class ActionFilter # :nodoc:
       def initialize(actions)
         @actions = Array(actions).map(&:to_s).to_set
       end

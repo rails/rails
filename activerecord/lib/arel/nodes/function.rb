@@ -4,6 +4,7 @@ module Arel # :nodoc: all
   module Nodes
     class Function < Arel::Nodes::NodeExpression
       include Arel::WindowPredications
+      include Arel::FilterPredications
       attr_accessor :expressions, :alias, :distinct
 
       def initialize(expr, aliaz = nil)
