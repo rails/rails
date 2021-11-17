@@ -1,3 +1,15 @@
+*   Remove deprecation warning when using `:interval` column is used in PostgreSQL database.
+
+    Now, interval columns will return `ActiveSupport::Duration` objects instead of strings.
+
+    To keep the old behavior, you can add this line to your model:
+
+    ```ruby
+    attribute :column, :string
+    ```
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to YAML load `ActiveRecord::Base` instance in the Rails 4.2 and 4.1 formats.
 
     *Rafael Mendonça França*
