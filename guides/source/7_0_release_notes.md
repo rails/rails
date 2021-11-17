@@ -120,6 +120,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated support to quote `ActiveRecord::Base` objects.
 
+*   Remove deprecated support to type cast to database values `ActiveRecord::Base` objects.
+
 ### Deprecations
 
 ### Notable changes

@@ -1,3 +1,7 @@
+*   Remove deprecated support to type cast to database values `ActiveRecord::Base` objects.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to quote `ActiveRecord::Base` objects.
 
     *Rafael Mendonça França*

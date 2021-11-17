@@ -16,14 +16,6 @@ module ActiveRecord
       # SQLite does not understand dates, so this method will convert a Date
       # to a String.
       def type_cast(value, column = nil)
-        if value.is_a?(Base)
-          ActiveSupport::Deprecation.warn(<<~MSG)
-            Passing an Active Record object to `type_cast` directly is deprecated
-            and will be no longer type casted as id value in Rails 7.0.
-          MSG
-          value = value.id_for_database
-        end
-
         if column
           ActiveSupport::Deprecation.warn(<<~MSG)
             Passing a column to `type_cast` is deprecated and will be removed in Rails 7.0.

@@ -248,30 +248,5 @@ module ActiveRecord
         assert_predicate @connection.type_cast(false), :frozen?
       end
     end
-
-    if supports_datetime_with_precision?
-      class QuoteARBaseTest < ActiveRecord::TestCase
-        class DatetimePrimaryKey < ActiveRecord::Base
-        end
-
-        def setup
-          @time = ::Time.utc(2017, 2, 14, 12, 34, 56, 789999)
-          @connection = ActiveRecord::Base.connection
-          @connection.create_table :datetime_primary_keys, id: :datetime, precision: 3, force: true
-        end
-
-        def teardown
-          @connection.drop_table :datetime_primary_keys, if_exists: true
-        end
-
-        def test_type_cast_ar_object
-          value = DatetimePrimaryKey.new(id: @time)
-          expected = @connection.type_cast(value.id)
-          assert_deprecated do
-            assert_equal expected, @connection.type_cast(value)
-          end
-        end
-      end
-    end
   end
 end
