@@ -30,7 +30,18 @@ module ActiveRecord
       # SQLite does not understand dates, so this method will convert a Date
       # to a String.
       def type_cast(value)
-        _type_cast(value)
+        case value
+        when Symbol, ActiveSupport::Multibyte::Chars, Type::Binary::Data
+          value.to_s
+        when true       then unquoted_true
+        when false      then unquoted_false
+        # BigDecimals need to be put in a non-normalized form and quoted.
+        when BigDecimal then value.to_s("F")
+        when nil, Numeric, String then value
+        when Type::Time::Value then quoted_time(value)
+        when Date, Time then quoted_date(value)
+        else raise TypeError, "can't cast #{value.class.name}"
+        end
       end
 
       # Quote a value to be used as a bound parameter of unknown type. For example,
@@ -204,21 +215,6 @@ module ActiveRecord
 
         def lookup_cast_type(sql_type)
           type_map.lookup(sql_type)
-        end
-
-        def _type_cast(value)
-          case value
-          when Symbol, ActiveSupport::Multibyte::Chars, Type::Binary::Data
-            value.to_s
-          when true       then unquoted_true
-          when false      then unquoted_false
-          # BigDecimals need to be put in a non-normalized form and quoted.
-          when BigDecimal then value.to_s("F")
-          when nil, Numeric, String then value
-          when Type::Time::Value then quoted_time(value)
-          when Date, Time then quoted_date(value)
-          else raise TypeError, "can't cast #{value.class.name}"
-          end
         end
     end
   end

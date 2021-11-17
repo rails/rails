@@ -99,6 +99,24 @@ module ActiveRecord
           end
         end
 
+        def type_cast(value) # :nodoc:
+          case value
+          when Type::Binary::Data
+            # Return a bind param hash with format as binary.
+            # See https://deveiate.org/code/pg/PG/Connection.html#method-i-exec_prepared-doc
+            # for more information
+            { value: value.to_s, format: 1 }
+          when OID::Xml::Data, OID::Bit::Data
+            value.to_s
+          when OID::Array::Data
+            encode_array(value)
+          when Range
+            encode_range(value)
+          else
+            super
+          end
+        end
+
         def lookup_cast_type_from_column(column) # :nodoc:
           type_map.lookup(column.oid, column.fmod, column.sql_type)
         end
@@ -145,24 +163,6 @@ module ActiveRecord
             super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
           end
 
-          def _type_cast(value)
-            case value
-            when Type::Binary::Data
-              # Return a bind param hash with format as binary.
-              # See https://deveiate.org/code/pg/PG/Connection.html#method-i-exec_prepared-doc
-              # for more information
-              { value: value.to_s, format: 1 }
-            when OID::Xml::Data, OID::Bit::Data
-              value.to_s
-            when OID::Array::Data
-              encode_array(value)
-            when Range
-              encode_range(value)
-            else
-              super
-            end
-          end
-
           def encode_array(array_data)
             encoder = array_data.encoder
             values = type_cast_array(array_data.values)
@@ -188,7 +188,7 @@ module ActiveRecord
           def type_cast_array(values)
             case values
             when ::Array then values.map { |item| type_cast_array(item) }
-            else _type_cast(values)
+            else type_cast(values)
             end
           end
 
