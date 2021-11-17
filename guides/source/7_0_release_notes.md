@@ -126,6 +126,17 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `DatabaseConfig#config` method.
 
+*   Remove deprecated rake tasks:
+
+    * `db:schema:load_if_ruby`
+    * `db:structure:dump`
+    * `db:structure:load`
+    * `db:structure:load_if_sql`
+    * `db:structure:dump:#{name}`
+    * `db:structure:load:#{name}`
+    * `db:test:load_structure`
+    * `db:test:load_structure:#{name}`
+
 ### Deprecations
 
 ### Notable changes

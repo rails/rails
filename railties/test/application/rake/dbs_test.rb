@@ -471,63 +471,6 @@ module ApplicationTests
         assert_equal 2, Admin::Book.count
       end
 
-      def db_structure_dump_and_load(expected_database)
-        Dir.chdir(app_path) do
-          rails "generate", "model", "book", "title:string"
-          rails "db:migrate", "db:structure:dump"
-          structure_dump = File.read("db/structure.sql")
-          assert_match(/CREATE TABLE (?:IF NOT EXISTS )?"books"/, structure_dump)
-          rails "environment", "db:drop", "db:structure:load"
-          assert_match expected_database, ActiveRecord::Base.connection_db_config.database
-          require "#{app_path}/app/models/book"
-          # if structure is not loaded correctly, exception would be raised
-          assert_equal 0, Book.count
-        end
-      end
-
-      ["dump", "load"].each do |command|
-        test "db:structure:#{command} is deprecated" do
-          add_to_config("config.active_support.deprecation = :stderr")
-          stderr_output = capture(:stderr) { rails("db:structure:#{command}", stderr: true, allow_failure: true) }
-          assert_match(/DEPRECATION WARNING: Using `bin\/rails db:structure:#{command}` is deprecated and will be removed in Rails 7.0/, stderr_output)
-        end
-      end
-
-      test "db:structure:dump and db:structure:load without database_url" do
-        add_to_config "config.active_record.schema_format = :sql"
-        require "#{app_path}/config/environment"
-        db_config = ActiveRecord::Base.connection_db_config
-        db_structure_dump_and_load db_config.database
-      end
-
-      test "db:structure:dump and db:structure:load with database_url" do
-        add_to_config "config.active_record.schema_format = :sql"
-        require "#{app_path}/config/environment"
-        set_database_url
-        db_structure_dump_and_load database_url_db_name
-      end
-
-      test "db:structure:dump and db:structure:load set ar_internal_metadata" do
-        add_to_config "config.active_record.schema_format = :sql"
-        require "#{app_path}/config/environment"
-        db_config = ActiveRecord::Base.connection_db_config
-        db_structure_dump_and_load db_config.database
-
-        assert_equal "test", rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip
-        assert_equal "development", rails("runner", "puts ActiveRecord::InternalMetadata[:environment]").strip
-      end
-
-      test "db:structure:dump does not dump schema information when no migrations are used" do
-        add_to_config "config.active_record.schema_format = :sql"
-        # create table without migrations
-        rails "runner", "ActiveRecord::Base.connection.create_table(:posts) {|t| t.string :title }"
-
-        stderr_output = capture(:stderr) { rails("db:structure:dump", stderr: true, allow_failure: true) }
-        assert_empty stderr_output
-        structure_dump = File.read("#{app_path}/db/structure.sql")
-        assert_match(/CREATE TABLE (?:IF NOT EXISTS )?"posts"/, structure_dump)
-      end
-
       test "db:schema:load and db:structure:load do not purge the existing database" do
         rails "runner", "ActiveRecord::Base.connection.create_table(:posts) {|t| t.string :title }"
 
@@ -548,7 +491,7 @@ module ApplicationTests
           CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar(255));
         SQL
 
-        rails "db:structure:load"
+        rails "db:schema:load"
         assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata", "users"]', list_tables[]
       end
 
@@ -581,32 +524,6 @@ module ApplicationTests
       test "db:schema:load fails if schema.rb doesn't exist yet" do
         stderr_output = capture(:stderr) { rails("db:schema:load", stderr: true, allow_failure: true) }
         assert_match(/Run `bin\/rails db:migrate` to create it/, stderr_output)
-      end
-
-      def db_test_load_structure
-        Dir.chdir(app_path) do
-          rails "generate", "model", "book", "title:string"
-          rails "db:migrate", "db:structure:dump", "db:test:load_structure"
-          ActiveRecord::Base.configurations = Rails.application.config.database_configuration
-          ActiveRecord::Base.establish_connection :test
-          require "#{app_path}/app/models/book"
-          # if structure is not loaded correctly, exception would be raised
-          assert_equal 0, Book.count
-          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", name: "primary")
-          assert_match db_config.database, ActiveRecord::Base.connection_db_config.database
-        end
-      end
-
-      test "db:test:load_structure without database_url" do
-        add_to_config "config.active_record.schema_format = :sql"
-        require "#{app_path}/config/environment"
-        db_test_load_structure
-      end
-
-      test "db:test:load_structure is deprecated" do
-        add_to_config("config.active_support.deprecation = :stderr")
-        stderr_output = capture(:stderr) { rails("db:test:load_structure", stderr: true, allow_failure: true) }
-        assert_match(/DEPRECATION WARNING: Using `bin\/rails db:test:load_structure` is deprecated and will be removed in Rails 7.0/, stderr_output)
       end
 
       test "db:setup loads schema and seeds database" do

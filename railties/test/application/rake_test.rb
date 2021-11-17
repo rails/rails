@@ -272,12 +272,6 @@ module ApplicationTests
       assert_match(/Execute db:test:load_schema/, output)
     end
 
-    def test_rake_dump_structure_should_respect_db_structure_env_variable
-      # ensure we have a schema_migrations table to dump
-      rails "db:migrate", "db:structure:dump", "SCHEMA=db/my_structure.sql"
-      assert File.exist?(File.join(app_path, "db", "my_structure.sql"))
-    end
-
     def test_rake_dump_structure_should_be_called_twice_when_migrate_redo
       add_to_config "config.active_record.schema_format = :sql"
 
