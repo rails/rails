@@ -316,7 +316,7 @@ module Rails
         if adjusted_javascript_option == "importmap"
           GemfileEntry.version("importmap-rails", ">= 0.3.4", "Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]")
         else
-          GemfileEntry.version "jsbundling-rails", "~> 0.1.0", "Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]"
+          GemfileEntry.version "jsbundling-rails", ">= 0.2.0", "Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]"
         end
       end
 
