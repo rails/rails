@@ -659,19 +659,31 @@ Also, the second query renames some columns with the AS statement so that the we
 
 Ruby on Rails has a built-in filter for special SQL characters, which will escape `'` , `"` , NULL character, and line breaks. *Using `Model.find(id)` or `Model.find_by_some thing(something)` automatically applies this countermeasure*. But in SQL fragments, especially *in conditions fragments (`where("...")`), the `connection.execute()` or `Model.find_by_sql()` methods, it has to be applied manually*.
 
-Instead of passing a string to the conditions option, you can pass an array to sanitize tainted strings like this:
+Instead of passing a string, you can use positional handlers to sanitize tainted strings like this:
 
 ```ruby
-Model.where("login = ? AND password = ?", entered_user_name, entered_password).first
+Model.where("zip_code = ? AND quantity >= ?", entered_zip_code, entered_quantity).first
 ```
 
-As you can see, the first part of the array is a SQL fragment with question marks. The sanitized versions of the variables in the second part of the array replace the question marks. Or you can pass a hash for the same result:
+The first parameter is a SQL fragment with question marks. The second and third
+parameter will replace the question marks with the value of the variables.
+
+You can also use named handlers, the values will be taken from the hash used:
 
 ```ruby
-Model.where(login: entered_user_name, password: entered_password).first
+values = { zip: entered_zip_code, qty: entered_quantity }
+Model.where("zip_code = :zip AND quantity >= :qty", values).first
 ```
 
-The array or hash form is only available in model instances. You can try `sanitize_sql()` elsewhere. _Make it a habit to think about the security consequences when using an external string in SQL_.
+Aditionally, you can split and chain conditionals valid for your use case:
+
+```ruby
+Model.where(zip_code: entered_zip_code).where("quantity >= ?", entered_quantity).first
+```
+
+Note the previous mentioned countermeasures are only available in model instances. You can
+try `sanitize_sql()` elsewhere. _Make it a habit to think about the security consequences
+when using an external string in SQL_.
 
 ### Cross-Site Scripting (XSS)
 
