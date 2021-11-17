@@ -122,6 +122,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated support to type cast to database values `ActiveRecord::Base` objects.
 
+*   Remove deprecated support to pass a column to `type_cast`.
+
 ### Deprecations
 
 ### Notable changes

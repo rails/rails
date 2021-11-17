@@ -156,13 +156,6 @@ if ActiveRecord::Base.connection.prepared_statements
         assert_logs_binds(binds)
       end
 
-      def test_logs_legacy_binds_after_type_cast
-        binds = [[Topic.column_for_attribute("id"), "10"]]
-        assert_deprecated do
-          assert_logs_binds(binds)
-        end
-      end
-
       def test_bind_params_to_sql_with_prepared_statements
         assert_bind_params_to_sql
       end

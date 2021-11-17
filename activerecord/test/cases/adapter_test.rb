@@ -237,36 +237,6 @@ module ActiveRecord
     end
 
     if ActiveRecord::Base.connection.prepared_statements
-      def test_select_all_insert_update_delete_with_legacy_binds
-        binds = [[Event.column_for_attribute("id"), 1]]
-        bind_param = Arel::Nodes::BindParam.new(nil)
-
-        assert_deprecated do
-          id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
-          assert_equal 1, id
-        end
-
-        assert_deprecated do
-          updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
-          assert_equal 1, updated
-        end
-
-        assert_deprecated do
-          result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
-          assert_equal({ "id" => 1, "title" => "foo" }, result.first)
-        end
-
-        assert_deprecated do
-          deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
-          assert_equal 1, deleted
-        end
-
-        assert_deprecated do
-          result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
-          assert_nil result.first
-        end
-      end
-
       def test_select_all_insert_update_delete_with_casted_binds
         binds = [Event.type_for_attribute("id").serialize(1)]
         bind_param = Arel::Nodes::BindParam.new(nil)

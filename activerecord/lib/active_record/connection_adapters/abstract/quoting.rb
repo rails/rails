@@ -15,15 +15,7 @@ module ActiveRecord
       # Cast a +value+ to a type that the database understands. For example,
       # SQLite does not understand dates, so this method will convert a Date
       # to a String.
-      def type_cast(value, column = nil)
-        if column
-          ActiveSupport::Deprecation.warn(<<~MSG)
-            Passing a column to `type_cast` is deprecated and will be removed in Rails 7.0.
-          MSG
-          type = lookup_cast_type_from_column(column)
-          value = type.serialize(value)
-        end
-
+      def type_cast(value)
         _type_cast(value)
       end
 
@@ -187,16 +179,11 @@ module ActiveRecord
 
       private
         def type_casted_binds(binds)
-          case binds.first
-          when Array
-            binds.map { |column, value| type_cast(value, column) }
-          else
-            binds.map do |value|
-              if ActiveModel::Attribute === value
-                type_cast(value.value_for_database)
-              else
-                type_cast(value)
-              end
+          binds.map do |value|
+            if ActiveModel::Attribute === value
+              type_cast(value.value_for_database)
+            else
+              type_cast(value)
             end
           end
         end
