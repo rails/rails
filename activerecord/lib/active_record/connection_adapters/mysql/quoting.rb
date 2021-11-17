@@ -9,15 +9,15 @@ module ActiveRecord
         def quote_bound_value(value)
           case value
           when Numeric
-            _quote(value.to_s)
+            quote(value.to_s)
           when BigDecimal
-            _quote(value.to_s("F"))
+            quote(value.to_s("F"))
           when true
             "'1'"
           when false
             "'0'"
           else
-            _quote(value)
+            quote(value)
           end
         end
 

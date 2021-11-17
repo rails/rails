@@ -16,6 +16,31 @@ module ActiveRecord
           @connection.unescape_bytea(value) if value
         end
 
+        def quote(value) # :nodoc:
+          case value
+          when OID::Xml::Data
+            "xml '#{quote_string(value.to_s)}'"
+          when OID::Bit::Data
+            if value.binary?
+              "B'#{value}'"
+            elsif value.hex?
+              "X'#{value}'"
+            end
+          when Numeric
+            if value.finite?
+              super
+            else
+              "'#{value}'"
+            end
+          when OID::Array::Data
+            quote(encode_array(value))
+          when Range
+            quote(encode_range(value))
+          else
+            super
+          end
+        end
+
         # Quotes strings for use in SQL input.
         def quote_string(s) # :nodoc:
           PG::Connection.escape(s)
@@ -118,31 +143,6 @@ module ActiveRecord
         private
           def lookup_cast_type(sql_type)
             super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
-          end
-
-          def _quote(value)
-            case value
-            when OID::Xml::Data
-              "xml '#{quote_string(value.to_s)}'"
-            when OID::Bit::Data
-              if value.binary?
-                "B'#{value}'"
-              elsif value.hex?
-                "X'#{value}'"
-              end
-            when Numeric
-              if value.finite?
-                super
-              else
-                "'#{value}'"
-              end
-            when OID::Array::Data
-              _quote(encode_array(value))
-            when Range
-              _quote(encode_range(value))
-            else
-              super
-            end
           end
 
           def _type_cast(value)

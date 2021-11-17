@@ -9,7 +9,21 @@ module ActiveRecord
       # Quotes the column value to help prevent
       # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
-        _quote(value)
+        case value
+        when String, Symbol, ActiveSupport::Multibyte::Chars
+          "'#{quote_string(value.to_s)}'"
+        when true       then quoted_true
+        when false      then quoted_false
+        when nil        then "NULL"
+        # BigDecimals need to be put in a non-normalized form and quoted.
+        when BigDecimal then value.to_s("F")
+        when Numeric, ActiveSupport::Duration then value.to_s
+        when Type::Binary::Data then quoted_binary(value)
+        when Type::Time::Value then "'#{quoted_time(value)}'"
+        when Date, Time then "'#{quoted_date(value)}'"
+        when Class      then "'#{value}'"
+        else raise TypeError, "can't quote #{value.class.name}"
+        end
       end
 
       # Cast a +value+ to a type that the database understands. For example,
@@ -23,7 +37,7 @@ module ActiveRecord
       # MySQL might perform dangerous castings when comparing a string to a number,
       # so this method will cast numbers to string.
       def quote_bound_value(value)
-        _quote(value)
+        quote(value)
       end
 
       # If you are having to call this function, you are likely doing something
@@ -190,24 +204,6 @@ module ActiveRecord
 
         def lookup_cast_type(sql_type)
           type_map.lookup(sql_type)
-        end
-
-        def _quote(value)
-          case value
-          when String, Symbol, ActiveSupport::Multibyte::Chars
-            "'#{quote_string(value.to_s)}'"
-          when true       then quoted_true
-          when false      then quoted_false
-          when nil        then "NULL"
-          # BigDecimals need to be put in a non-normalized form and quoted.
-          when BigDecimal then value.to_s("F")
-          when Numeric, ActiveSupport::Duration then value.to_s
-          when Type::Binary::Data then quoted_binary(value)
-          when Type::Time::Value then "'#{quoted_time(value)}'"
-          when Date, Time then "'#{quoted_date(value)}'"
-          when Class      then "'#{value}'"
-          else raise TypeError, "can't quote #{value.class.name}"
-          end
         end
 
         def _type_cast(value)
