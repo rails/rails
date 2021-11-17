@@ -816,15 +816,6 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
-  def test_preload_with_available_records_ignores_nils
-    post = posts(:welcome)
-
-    assert_nothing_raised do
-      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author, available_records: [[nil]]).call
-      assert_predicate post.association(:author), :loaded?
-    end
-  end
-
   def test_preload_with_available_records_sti
     book = Book.create!
     essay_special = EssaySpecial.create!
