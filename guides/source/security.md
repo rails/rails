@@ -675,7 +675,7 @@ values = { zip: entered_zip_code, qty: entered_quantity }
 Model.where("zip_code = :zip AND quantity >= :qty", values).first
 ```
 
-Aditionally, you can split and chain conditionals valid for your use case:
+Additionally, you can split and chain conditionals valid for your use case:
 
 ```ruby
 Model.where(zip_code: entered_zip_code).where("quantity >= ?", entered_quantity).first
