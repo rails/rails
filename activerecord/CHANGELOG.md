@@ -1,3 +1,7 @@
+*   Remove deprecated `DatabaseConfig#config` method.
+
+    *Rafael Mendonça França*
+
 *   Rollback transactions when the block returns earlier than expected.
 
     Before this change, when a transaction block returned early, the transaction would be committed.

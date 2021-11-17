@@ -124,6 +124,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated support to pass a column to `type_cast`.
 
+*   Remove deprecated `DatabaseConfig#config` method.
+
 ### Deprecations
 
 ### Notable changes

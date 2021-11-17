@@ -115,12 +115,6 @@ class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_deprecated_config_method
-    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-
-    assert_equal db_config.configuration_hash.stringify_keys, assert_deprecated { db_config.config }
-  end
-
   def test_unsupported_method_raises
     assert_raises NoMethodError do
       ActiveRecord::Base.configurations.fetch(:foo)

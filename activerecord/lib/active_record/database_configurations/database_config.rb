@@ -20,10 +20,6 @@ module ActiveRecord
       end
       deprecate spec_name: "please use name instead"
 
-      def config
-        raise NotImplementedError
-      end
-
       def adapter_method
         "#{adapter}_connection"
       end
