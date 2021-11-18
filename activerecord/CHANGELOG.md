@@ -1,3 +1,20 @@
+*   Merging conditions on the same column no longer maintain both conditions,
+    and will be consistently replaced by the latter condition.
+
+    ```ruby
+    # Rails 6.1 (IN clause is replaced by merger side equality condition)
+    Author.where(id: [david.id, mary.id]).merge(Author.where(id: bob)) # => [bob]
+    # Rails 6.1 (both conflict conditions exists, deprecated)
+    Author.where(id: david.id..mary.id).merge(Author.where(id: bob)) # => []
+    # Rails 6.1 with rewhere to migrate to Rails 7.0's behavior
+    Author.where(id: david.id..mary.id).merge(Author.where(id: bob), rewhere: true) # => [bob]
+    # Rails 7.0 (same behavior with IN clause, mergee side condition is consistently replaced)
+    Author.where(id: [david.id, mary.id]).merge(Author.where(id: bob)) # => [bob]
+    Author.where(id: david.id..mary.id).merge(Author.where(id: bob)) # => [bob]
+
+    *Rafael Mendonça França*
+
+
 *   Remove deprecated support to `Model.reorder(nil).first` to search using non-deterministic order.
 
     *Rafael Mendonça França*

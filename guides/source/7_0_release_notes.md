@@ -150,6 +150,20 @@ Please refer to the [Changelog][active-record] for detailed changes.
     The problem is that timeouts triggered inside the transaction block was also making the incomplete transaction
     to be committed, so in order to avoid this mistake, the transaction block is rolled back.
 
+*   Merging conditions on the same column no longer maintain both conditions,
+    and will be consistently replaced by the latter condition.
+
+    ```ruby
+    # Rails 6.1 (IN clause is replaced by merger side equality condition)
+    Author.where(id: [david.id, mary.id]).merge(Author.where(id: bob)) # => [bob]
+    # Rails 6.1 (both conflict conditions exists, deprecated)
+    Author.where(id: david.id..mary.id).merge(Author.where(id: bob)) # => []
+    # Rails 6.1 with rewhere to migrate to Rails 7.0's behavior
+    Author.where(id: david.id..mary.id).merge(Author.where(id: bob), rewhere: true) # => [bob]
+    # Rails 7.0 (same behavior with IN clause, mergee side condition is consistently replaced)
+    Author.where(id: [david.id, mary.id]).merge(Author.where(id: bob)) # => [bob]
+    Author.where(id: david.id..mary.id).merge(Author.where(id: bob)) # => [bob]
+
 Active Storage
 --------------
 
