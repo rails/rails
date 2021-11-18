@@ -231,6 +231,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Deprecations
 
+*   Remove deprecated `config.active_support.use_sha1_digests`.
+
 ### Notable changes
 
 Active Job

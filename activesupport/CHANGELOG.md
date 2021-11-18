@@ -1,3 +1,7 @@
+*   Remove deprecated `config.active_support.use_sha1_digests`.
+
+    *Rafael Mendonça França*
+
 *   Invoking `Object#with_options` without a `&block` argument returns the
     `ActiveSupport::OptionMerger` instance.
 

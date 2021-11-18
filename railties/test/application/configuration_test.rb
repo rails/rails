@@ -2358,18 +2358,6 @@ module ApplicationTests
       assert_equal OpenSSL::Digest::MD5, ActiveSupport::Digest.hash_digest_class
     end
 
-    test "ActiveSupport::Digest.hash_digest_class can be configured via config.active_support.use_sha1_digests" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.active_support.use_sha1_digests = true
-      RUBY
-
-      app "development"
-
-      assert_equal OpenSSL::Digest::SHA1, ActiveSupport::Digest.hash_digest_class
-    end
-
     test "ActiveSupport::Digest.hash_digest_class can be configured via config.active_support.hash_digest_class" do
       remove_from_config '.*config\.load_defaults.*\n'
 
