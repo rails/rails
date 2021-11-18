@@ -9,6 +9,12 @@ module ActiveSupport
 
     config.eager_load_namespaces << ActiveSupport
 
+    initializer "active_support.isolation_level" do |app|
+      if level = app.config.active_support.delete(:isolation_level)
+        ActiveSupport::IsolatedExecutionState.isolation_level = level
+      end
+    end
+
     initializer "active_support.remove_deprecated_time_with_zone_name" do |app|
       config.after_initialize do
         if app.config.active_support.remove_deprecated_time_with_zone_name
