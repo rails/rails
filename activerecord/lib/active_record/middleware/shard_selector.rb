@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_record/middleware/database_selector/resolver"
-
 module ActiveRecord
   module Middleware
     # The ShardSelector Middleware provides a framework for automatically
