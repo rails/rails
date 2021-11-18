@@ -753,7 +753,7 @@ end
 
 while `Bar` could not be autoloaded, autoloading `Foo` would mark `Bar` as autoloaded too. This is not the case in `zeitwerk` mode, you need to move `Bar` to its own file `bar.rb`. One file, one constant.
 
-This affects only to constants at the same top-level as in the example above. Inner classes and modules are fine. For example, consider
+This only applies to constants at the same top-level as in the example above. Inner classes and modules are fine. For example, consider
 
 ```ruby
 # app/models/foo.rb
