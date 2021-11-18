@@ -154,8 +154,8 @@ module ActiveRecord
   module Middleware
     extend ActiveSupport::Autoload
 
-    autoload :DatabaseSelector, "active_record/middleware/database_selector"
-    autoload :ShardSelector, "active_record/middleware/shard_selector"
+    autoload :DatabaseSelector
+    autoload :ShardSelector
   end
 
   module Tasks
@@ -168,8 +168,8 @@ module ActiveRecord
       "active_record/tasks/postgresql_database_tasks"
   end
 
-  autoload :TestDatabases, "active_record/test_databases"
-  autoload :TestFixtures, "active_record/fixtures"
+  autoload :TestDatabases
+  autoload :TestFixtures
 
   # Lazily load the schema cache. This option will load the schema cache
   # when a connection is established rather than on boot. If set,
