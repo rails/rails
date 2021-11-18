@@ -448,14 +448,14 @@ module ActiveRecord
     # generates a query with 'ORDER BY id ASC, name ASC'.
     def reorder(*args)
       check_if_method_has_arguments!(__callee__, args) do
-        sanitize_order_arguments(args) unless args.all?(&:blank?)
+        sanitize_order_arguments(args)
       end
       spawn.reorder!(*args)
     end
 
     # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
-      preprocess_order_args(args) unless args.all?(&:blank?)
+      preprocess_order_args(args)
       args.uniq!
       self.reordering_value = true
       self.order_values = args

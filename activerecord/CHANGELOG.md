@@ -1,3 +1,7 @@
+*   Remove deprecated support to `Model.reorder(nil).first` to search using non-deterministic order.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated rake tasks:
 
     * `db:schema:load_if_ruby`

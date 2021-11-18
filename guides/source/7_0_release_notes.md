@@ -137,6 +137,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
     * `db:test:load_structure`
     * `db:test:load_structure:#{name}`
 
+*   Remove deprecated support to `Model.reorder(nil).first` to search using non-deterministic order.
+
 ### Deprecations
 
 ### Notable changes
