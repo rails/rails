@@ -398,12 +398,8 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def schema_up_to_date?(configuration, format = ActiveRecord.schema_format, file = nil, environment = nil, name = nil)
+      def schema_up_to_date?(configuration, format = ActiveRecord.schema_format, file = nil)
         db_config = resolve_configuration(configuration)
-
-        if environment || name
-          ActiveSupport::Deprecation.warn("`environment` and `name` will be removed as parameters in 7.0.0, you may now pass an ActiveRecord::DatabaseConfigurations::DatabaseConfig as `configuration` instead.")
-        end
 
         file ||= schema_dump_path(db_config)
 

@@ -1,3 +1,7 @@
+*   Remove deprecated `environment` and `name` arguments from `Tasks::DatabaseTasks.schema_up_to_date?`.
+
+    *Rafael Mendonça França*
+
 *   Merging conditions on the same column no longer maintain both conditions,
     and will be consistently replaced by the latter condition.
 
@@ -13,7 +17,6 @@
     Author.where(id: david.id..mary.id).merge(Author.where(id: bob)) # => [bob]
 
     *Rafael Mendonça França*
-
 
 *   Remove deprecated support to `Model.reorder(nil).first` to search using non-deterministic order.
 

@@ -139,6 +139,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated support to `Model.reorder(nil).first` to search using non-deterministic order.
 
+*   Remove deprecated `environment` and `name` arguments from `Tasks::DatabaseTasks.schema_up_to_date?`.
+
 ### Deprecations
 
 ### Notable changes
