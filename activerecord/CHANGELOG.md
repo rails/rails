@@ -1,3 +1,23 @@
+*   Remove deprecated `Tasks::DatabaseTasks.spec`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Tasks::DatabaseTasks.current_config`.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `Tasks::DatabaseTasks.schema_file_type`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Tasks::DatabaseTasks.dump_filename`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Tasks::DatabaseTasks.schema_file`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `environment` and `name` arguments from `Tasks::DatabaseTasks.schema_up_to_date?`.
 
     *Rafael Mendonça França*

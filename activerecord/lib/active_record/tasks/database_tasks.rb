@@ -55,8 +55,7 @@ module ActiveRecord
 
       extend self
 
-      attr_writer :current_config, :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
-      deprecate :current_config=
+      attr_writer :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
       attr_accessor :database_configuration
 
       LOCAL_HOSTS = ["127.0.0.1", "localhost"]
@@ -110,11 +109,6 @@ module ActiveRecord
         @env ||= Rails.env
       end
 
-      def spec
-        @spec ||= "primary"
-      end
-      deprecate spec: "please use name instead"
-
       def name
         @name ||= "primary"
       end
@@ -122,18 +116,6 @@ module ActiveRecord
       def seed_loader
         @seed_loader ||= Rails.application
       end
-
-      def current_config(options = {})
-        if options.has_key?(:config)
-          @current_config = options[:config]
-        else
-          env_name = options[:env] || env
-          name = options[:spec] || "primary"
-
-          @current_config ||= configs_for(env_name: env_name, name: name)&.configuration_hash
-        end
-      end
-      deprecate :current_config
 
       def create(configuration, *arguments)
         db_config = resolve_configuration(configuration)
@@ -453,11 +435,6 @@ module ActiveRecord
         end
       end
 
-      def schema_file(format = ActiveRecord.schema_format)
-        File.join(db_dir, schema_file_type(format))
-      end
-      deprecate :schema_file
-
       def schema_file_type(format = ActiveRecord.schema_format)
         case format
         when :ruby
@@ -466,18 +443,7 @@ module ActiveRecord
           "structure.sql"
         end
       end
-
-      def dump_filename(db_config_name, format = ActiveRecord.schema_format)
-        ActiveSupport::Deprecation.warn("#dump_filename is deprecated. Please call `schema_dump_path` or call `schema_dump` on the `db_config` directly.")
-
-        filename = if ActiveRecord::Base.configurations.primary?(db_config_name)
-          schema_file_type(format)
-        else
-          "#{db_config_name}_#{schema_file_type(format)}"
-        end
-
-        ENV["SCHEMA"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
-      end
+      deprecate :schema_file_type
 
       def schema_dump_path(db_config, format = ActiveRecord.schema_format)
         return ENV["SCHEMA"] if ENV["SCHEMA"]

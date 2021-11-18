@@ -141,7 +141,17 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `environment` and `name` arguments from `Tasks::DatabaseTasks.schema_up_to_date?`.
 
+*   Remove deprecated `Tasks::DatabaseTasks.dump_filename`.
+
+*   Remove deprecated `Tasks::DatabaseTasks.schema_file`.
+
+*   Remove deprecated `Tasks::DatabaseTasks.spec`.
+
+*   Remove deprecated `Tasks::DatabaseTasks.current_config`.
+
 ### Deprecations
+
+*   Deprecated `Tasks::DatabaseTasks.:schema_file_type`.
 
 ### Notable changes
 
