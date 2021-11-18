@@ -374,25 +374,14 @@ class RelationMergingTest < ActiveRecord::TestCase
       posts.merge(posts).uniq!(:annotate).to_a
     end
 
-    message = <<-MSG.squish
-      Duplicated query annotations are no longer shown in queries in Rails 7.0.
-      To migrate to Rails 7.0's behavior, use `uniq!(:annotate)` to deduplicate query annotations
-      (`posts.uniq!(:annotate)`).
-    MSG
-    assert_deprecated(message) do
-      assert_sql(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/ /\* foo \*/\z}) do
-        posts.merge(posts).to_a
-      end
+    assert_sql(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/\z}) do
+      posts.merge(posts).to_a
     end
-    assert_deprecated(message) do
-      assert_sql(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/ /\* bar \*/ /\* foo \*/\z}) do
-        Post.annotate("foo").merge(Post.annotate("bar")).merge(posts).to_a
-      end
+    assert_sql(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/ /\* bar \*/\z}) do
+      Post.annotate("foo").merge(Post.annotate("bar")).merge(posts).to_a
     end
-    assert_deprecated(message) do
-      assert_sql(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* bar \*/ /\* foo \*/ /\* foo \*/\z}) do
-        Post.annotate("bar").merge(Post.annotate("foo")).merge(posts).to_a
-      end
+    assert_sql(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* bar \*/ /\* foo \*/\z}) do
+      Post.annotate("bar").merge(Post.annotate("foo")).merge(posts).to_a
     end
   end
 end

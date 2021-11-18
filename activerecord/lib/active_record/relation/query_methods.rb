@@ -1339,14 +1339,6 @@ module ActiveRecord
         unless annotate_values.empty?
           annotates = annotate_values
           annotates = annotates.uniq if annotates.size > 1
-          unless annotates == annotate_values
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Duplicated query annotations are no longer shown in queries in Rails 7.0.
-              To migrate to Rails 7.0's behavior, use `uniq!(:annotate)` to deduplicate query annotations
-              (`#{klass.name&.tableize || klass.table_name}.uniq!(:annotate)`).
-            MSG
-            annotates = annotate_values
-          end
           arel.comment(*annotates)
         end
 
