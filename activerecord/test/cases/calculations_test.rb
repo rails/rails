@@ -159,36 +159,24 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal expected, accounts.merge!(accounts).uniq!(:group).sum(:credit_limit)
 
     expected = {
-      [nil, nil] => 50,
-      [1, 1] => 50,
-      [2, 2] => 60,
-      [6, 6] => 55,
-      [9, 9] => 53
+      nil => 50,
+      1 => 50,
+      2 => 60,
+      6 => 55,
+      9 => 53
     }
-    message = <<-MSG.squish
-      `maximum` with group by duplicated fields does no longer affect to result in Rails 7.0.
-      To migrate to Rails 7.0's behavior, use `uniq!(:group)` to deduplicate group fields
-      (`accounts.uniq!(:group).maximum(:credit_limit)`).
-    MSG
-    assert_deprecated(message) do
-      assert_equal expected, accounts.merge!(accounts).maximum(:credit_limit)
-    end
+
+    assert_equal expected, accounts.merge!(accounts).maximum(:credit_limit)
 
     expected = {
-      [nil, nil, nil, nil] => 50,
-      [1, 1, 1, 1] => 50,
-      [2, 2, 2, 2] => 60,
-      [6, 6, 6, 6] => 50,
-      [9, 9, 9, 9] => 53
+      nil => 50,
+      1 => 50,
+      2 => 60,
+      6 => 50,
+      9 => 53
     }
-    message = <<-MSG.squish
-      `minimum` with group by duplicated fields does no longer affect to result in Rails 7.0.
-      To migrate to Rails 7.0's behavior, use `uniq!(:group)` to deduplicate group fields
-      (`accounts.uniq!(:group).minimum(:credit_limit)`).
-    MSG
-    assert_deprecated(message) do
-      assert_equal expected, accounts.merge!(accounts).minimum(:credit_limit)
-    end
+
+    assert_equal expected, accounts.merge!(accounts).minimum(:credit_limit)
   end
 
   def test_should_generate_valid_sql_with_joins_and_group
