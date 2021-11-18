@@ -126,6 +126,10 @@ module ActiveRecord
       #   # Check a column exists of a particular type
       #   column_exists?(:suppliers, :name, :string)
       #
+      #   # The third argument argument is unreliable on some databases, and is discouraged.
+      #   # The sql_type option is more accurate:
+      #   column_exists?(:suppliers, :name, sql_type: :char)
+      #
       #   # Check a column exists with a specific definition
       #   column_exists?(:suppliers, :name, :string, limit: 100)
       #   column_exists?(:suppliers, :name, :string, default: 'default')
@@ -137,6 +141,9 @@ module ActiveRecord
         checks = []
         checks << lambda { |c| c.name == column_name }
         checks << lambda { |c| c.type == type.to_sym rescue nil } if type
+        if sql_type = options.delete(:sql_type)
+          checks << lambda { |c| c.sql_type.to_sym == sql_type.to_sym rescue nil }
+        end
         column_options_keys.each do |attr|
           checks << lambda { |c| c.send(attr) == options[attr] } if options.key?(attr)
         end

@@ -311,6 +311,35 @@ module ActiveRecord
         connection.drop_table(:my_table) rescue nil
       end
 
+      def test_column_exists_with_simple_sql_type
+        expected_sql_type = current_adapter?(:PostgreSQLAdapter) ? "character varying" : "varchar"
+
+        connection.create_table "my_table", force: true do |t|
+          t.string :name
+        end
+
+        assert connection.column_exists?("my_table", :name)
+        assert connection.column_exists?("my_table", :name, type: "string")
+        assert connection.column_exists?("my_table", :name, sql_type: expected_sql_type)
+      ensure
+        connection.drop_table(:my_table) rescue nil
+      end
+
+      def test_column_exists_with_complex_sql_type
+        type = current_adapter?(:PostgreSQLAdapter) ? :char : :blob
+        expected_sql_type = current_adapter?(:PostgreSQLAdapter) ? "character(1)" : "blob"
+
+        connection.create_table "my_table", force: true do |t|
+          t.column :name, type
+        end
+
+        assert connection.column_exists?("my_table", :name)
+        assert connection.column_exists?("my_table", :name, type: "string")
+        assert connection.column_exists?("my_table", :name, sql_type: expected_sql_type)
+      ensure
+        connection.drop_table(:my_table) rescue nil
+      end
+
       def test_add_column_without_column_name
         e = assert_raise ArgumentError do
           connection.create_table "my_table", force: true do |t|

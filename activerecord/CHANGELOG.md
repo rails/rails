@@ -1,3 +1,9 @@
+*   Add `sql_type` option to `column_exists?`
+
+    Allows you to check if a column exists using its raw SQL type, rather than the type that Rails casts to.
+
+    *Alex Ghiculescu*
+
 *   Add middleware for automatic shard swapping.
 
     Provides a basic middleware to perform automatic shard swapping. Applications will provide a resolver which will determine for an individual request which shard should be used. Example:
