@@ -74,7 +74,7 @@ module ActiveRecord
   autoload :Store
   autoload :Suppressor
   autoload :TestDatabases
-  autoload :TestFixtures
+  autoload :TestFixtures, "active_record/fixtures"
   autoload :Timestamp
   autoload :TouchLater
   autoload :Transactions
