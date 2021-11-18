@@ -211,11 +211,14 @@ module ActiveRecord
     # nested call to connected_to or connected_to_many to swap again. This
     # is useful in cases you're using sharding to provide per-request
     # database isolation.
-    def prohibit_shard_swapping
-      Thread.current.thread_variable_set(:prohibit_shard_swapping, true)
+    def prohibit_shard_swapping(enabled = true)
+      prev_value = Thread.current.thread_variable_get(:prohibit_shard_swapping)
+
+      Thread.current.thread_variable_set(:prohibit_shard_swapping, enabled)
+
       yield
     ensure
-      Thread.current.thread_variable_set(:prohibit_shard_swapping, false)
+      Thread.current.thread_variable_set(:prohibit_shard_swapping, prev_value)
     end
 
     # Determine whether or not shard swapping is currently prohibited

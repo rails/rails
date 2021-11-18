@@ -155,6 +155,7 @@ module ActiveRecord
     extend ActiveSupport::Autoload
 
     autoload :DatabaseSelector, "active_record/middleware/database_selector"
+    autoload :ShardSelector, "active_record/middleware/shard_selector"
   end
 
   module Tasks

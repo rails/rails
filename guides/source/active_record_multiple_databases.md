@@ -31,7 +31,6 @@ databases
 
 The following features are not (yet) supported:
 
-* Automatic swapping for horizontal sharding
 * Load balancing replicas
 
 ## Setting up your application
@@ -276,7 +275,7 @@ $ bin/rails generate scaffold Dog name:string --database animals --parent Animal
 This will skip generating `AnimalsRecord` since you've indicated to Rails that you want to
 use a different parent class.
 
-## Activating automatic connection switching
+## Activating automatic role switching
 
 Finally, in order to use the read-only replica in your application, you'll need to activate
 the middleware for automatic switching.
@@ -424,6 +423,40 @@ role and the shard with the `connected_to` API.
 ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
   Person.first # Lookup record from read replica of shard one
 end
+```
+
+## Activating automatic shard switching
+
+Applications are able to automatically switch shards per request using the provided
+middleware.
+
+The ShardSelector Middleware provides a framework for automatically
+swapping shards. Rails provides a basic framework to determine which
+shard to switch to and allows for applications to write custom strategies
+for swapping if needed.
+
+The ShardSelector takes a set of options (currently only `lock` is supported)
+that can be used by the middleware to alter behavior. `lock` is
+true by default and will prohibit the request from switching shards once
+inside the block. If `lock` is false, then shard swapping will be allowed.
+For tenant based sharding, `lock` should always be true to prevent application
+code from mistakenly switching between tenants.
+
+Options can be set in the config:
+
+```ruby
+config.active_record.shard_selector = { lock: true }
+```
+
+Applications must also provide the code for the resolver as it depends on application
+specific models. An example resolver would look like this:
+
+```ruby
+config.active_record.shard_resolver = ->(request) {
+  subdomain = request.subdomain
+  tenant = Tenant.find_by_subdomain!(subdomain)
+  tenant.shard
+}
 ```
 
 ## Migrate to the new connection handling
