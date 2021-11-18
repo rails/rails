@@ -1,3 +1,7 @@
+*   Remove deprecated `URI.parser`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `config.active_support.use_sha1_digests`.
 
     *Rafael Mendonça França*

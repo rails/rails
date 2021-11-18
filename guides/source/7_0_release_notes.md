@@ -229,9 +229,11 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Removals
 
-### Deprecations
-
 *   Remove deprecated `config.active_support.use_sha1_digests`.
+
+*   Remove deprecated `URI.parser`.
+
+### Deprecations
 
 ### Notable changes
 

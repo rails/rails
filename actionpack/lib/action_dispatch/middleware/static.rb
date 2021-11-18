@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "rack/utils"
-require "active_support/core_ext/uri"
 
 module ActionDispatch
   # This middleware serves static files from disk, if available.
