@@ -113,11 +113,11 @@ module ActiveSupport
     self.active = Concurrent::Hash.new
 
     def self.active? # :nodoc:
-      @active[Thread.current]
+      @active[IsolatedExecutionState.unique_id]
     end
 
     def run! # :nodoc:
-      self.class.active[Thread.current] = true
+      self.class.active[IsolatedExecutionState.unique_id] = true
       run
     end
 
@@ -132,7 +132,7 @@ module ActiveSupport
     def complete!
       complete
     ensure
-      self.class.active.delete Thread.current
+      self.class.active.delete(IsolatedExecutionState.unique_id)
     end
 
     def complete # :nodoc:

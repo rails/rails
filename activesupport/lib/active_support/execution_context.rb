@@ -46,7 +46,7 @@ module ActiveSupport
 
       private
         def store
-          Thread.current[:active_support_execution_context] ||= {}
+          IsolatedExecutionState[:active_support_execution_context] ||= {}
         end
     end
   end

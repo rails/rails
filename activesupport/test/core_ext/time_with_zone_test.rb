@@ -1205,13 +1205,11 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
 
   def test_time_zone_setter_is_thread_safe
     Time.use_zone "Paris" do
-      t1 = Thread.new { Time.zone = "Alaska" }.join
-      t2 = Thread.new { Time.zone = "Hawaii" }.join
-      assert t1.stop?, "Thread 1 did not finish running"
-      assert t2.stop?, "Thread 2 did not finish running"
+      t1 = Thread.new { Time.zone = "Alaska"; Time.zone }
+      t2 = Thread.new { Time.zone = "Hawaii"; Time.zone }
       assert_equal ActiveSupport::TimeZone["Paris"], Time.zone
-      assert_equal ActiveSupport::TimeZone["Alaska"], t1[:time_zone]
-      assert_equal ActiveSupport::TimeZone["Hawaii"], t2[:time_zone]
+      assert_equal ActiveSupport::TimeZone["Alaska"], t1.value
+      assert_equal ActiveSupport::TimeZone["Hawaii"], t2.value
     end
   end
 

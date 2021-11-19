@@ -12,7 +12,7 @@ class Time
     # Returns the TimeZone for the current request, if this has been set (via Time.zone=).
     # If <tt>Time.zone</tt> has not been set for the current request, returns the TimeZone specified in <tt>config.time_zone</tt>.
     def zone
-      Thread.current[:time_zone] || zone_default
+      ::ActiveSupport::IsolatedExecutionState[:time_zone] || zone_default
     end
 
     # Sets <tt>Time.zone</tt> to a TimeZone object for the current request/thread.
@@ -39,7 +39,7 @@ class Time
     #     end
     #   end
     def zone=(time_zone)
-      Thread.current[:time_zone] = find_zone!(time_zone)
+      ::ActiveSupport::IsolatedExecutionState[:time_zone] = find_zone!(time_zone)
     end
 
     # Allows override of <tt>Time.zone</tt> locally inside supplied block;
