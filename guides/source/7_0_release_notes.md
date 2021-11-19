@@ -264,6 +264,8 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 *   Remove deprecated `ActiveRecord::Result#map!` and `ActiveRecord::Result#collect!`.
 
+*   Remove deprecated `ActiveRecord::Base#remove_connection`.
+
 ### Deprecations
 
 *   Deprecated `Rails.config.active_job.skip_after_callbacks_if_terminated`.

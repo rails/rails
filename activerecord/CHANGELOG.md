@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::Base#remove_connection`.
+
+    *Rafael Mendonça França*
+
 *   Load STI Models in fixtures
 
     Data from Fixtures now loads based on the specific class for models with
@@ -5,7 +9,7 @@
     the value of these fields was not parsed and remained `nil`
 
     *Andres Howard*
-    
+
 *   `#authenticate` returns false when the password is blank instead of raising an error.
 
     *Muhammad Muhammad Ibrahim*
