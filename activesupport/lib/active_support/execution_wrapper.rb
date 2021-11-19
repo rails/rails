@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/error_reporter"
 require "active_support/callbacks"
 require "concurrent/hash"
 
@@ -86,6 +87,9 @@ module ActiveSupport
       instance = run!
       begin
         yield
+      rescue => error
+        error_reporter.report(error, handled: false)
+        raise
       ensure
         instance.complete!
       end
@@ -103,6 +107,10 @@ module ActiveSupport
 
     class << self # :nodoc:
       attr_accessor :active
+    end
+
+    def self.error_reporter
+      @error_reporter ||= ActiveSupport::ErrorReporter.new
     end
 
     def self.inherited(other) # :nodoc:
