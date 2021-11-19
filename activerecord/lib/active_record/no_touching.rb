@@ -39,7 +39,7 @@ module ActiveRecord
 
       private
         def klasses
-          Thread.current[:no_touching_classes] ||= []
+          ActiveSupport::IsolatedExecutionState[:active_record_no_touching_classes] ||= []
         end
     end
 

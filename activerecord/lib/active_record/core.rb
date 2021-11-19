@@ -92,11 +92,11 @@ module ActiveRecord
       self.filter_attributes = []
 
       def self.connection_handler
-        Thread.current.thread_variable_get(:ar_connection_handler) || default_connection_handler
+        ActiveSupport::IsolatedExecutionState[:active_record_connection_handler] || default_connection_handler
       end
 
       def self.connection_handler=(handler)
-        Thread.current.thread_variable_set(:ar_connection_handler, handler)
+        ActiveSupport::IsolatedExecutionState[:active_record_connection_handler] = handler
       end
 
       def self.connection_handlers
@@ -131,8 +131,8 @@ module ActiveRecord
       end
 
       def self.asynchronous_queries_tracker # :nodoc:
-        Thread.current.thread_variable_get(:ar_asynchronous_queries_tracker) ||
-          Thread.current.thread_variable_set(:ar_asynchronous_queries_tracker, AsynchronousQueriesTracker.new)
+        ActiveSupport::IsolatedExecutionState[:active_record_asynchronous_queries_tracker] ||= \
+          AsynchronousQueriesTracker.new
       end
 
       # Returns the symbol representing the current connected role.
@@ -199,11 +199,11 @@ module ActiveRecord
       end
 
       def self.connected_to_stack # :nodoc:
-        if connected_to_stack = Thread.current.thread_variable_get(:ar_connected_to_stack)
+        if connected_to_stack = ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack]
           connected_to_stack
         else
           connected_to_stack = Concurrent::Array.new
-          Thread.current.thread_variable_set(:ar_connected_to_stack, connected_to_stack)
+          ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = connected_to_stack
           connected_to_stack
         end
       end
