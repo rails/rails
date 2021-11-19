@@ -12,28 +12,6 @@ module ActiveRecord
       ])
     end
 
-    test "map! is deprecated" do
-      assert_deprecated do
-        result.map! { nil }
-      end
-      assert_equal [
-        { "col_1" => "row 1 col 1", "col_2" => "row 1 col 2" },
-        { "col_1" => "row 2 col 1", "col_2" => "row 2 col 2" },
-        { "col_1" => "row 3 col 1", "col_2" => "row 3 col 2" },
-      ], result.to_a
-    end
-
-    test "collect! is deprecated" do
-      assert_deprecated do
-        result.collect! { nil }
-      end
-      assert_equal [
-        { "col_1" => "row 1 col 1", "col_2" => "row 1 col 2" },
-        { "col_1" => "row 2 col 1", "col_2" => "row 2 col 2" },
-        { "col_1" => "row 3 col 1", "col_2" => "row 3 col 2" },
-      ], result.to_a
-    end
-
     test "includes_column?" do
       assert result.includes_column?("col_1")
       assert_not result.includes_column?("foo")

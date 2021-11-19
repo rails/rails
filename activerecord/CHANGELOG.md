@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::Result#map!` and `ActiveRecord::Result#collect!`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::Base.configurations.to_h`.
 
     *Rafael Mendonça França*
