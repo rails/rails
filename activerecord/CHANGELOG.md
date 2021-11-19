@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::Base.configurations.default_hash`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::Base.arel_attribute`.
 
     *Rafael Mendonça França*

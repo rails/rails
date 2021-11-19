@@ -258,6 +258,8 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 *   Remove deprecated `ActiveRecord::Base.arel_attribute`.
 
+*   Remove deprecated `ActiveRecord::Base.configurations.default_hash`.
+
 ### Deprecations
 
 *   Deprecated `Rails.config.active_job.skip_after_callbacks_if_terminated`.
