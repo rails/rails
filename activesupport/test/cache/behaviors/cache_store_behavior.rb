@@ -655,21 +655,24 @@ module CacheStoreBehavior
     end
 
     def assert_compression(should_compress, value, **options)
+      actual = "actual" + SecureRandom.uuid
+      uncompressed = "uncompressed" + SecureRandom.uuid
+
       freeze_time do
-        @cache.write("actual", value, options)
-        @cache.write("uncompressed", value, options.merge(compress: false))
+        @cache.write(actual, value, options)
+        @cache.write(uncompressed, value, options.merge(compress: false))
       end
 
       if value.nil?
-        assert_nil @cache.read("actual")
-        assert_nil @cache.read("uncompressed")
+        assert_nil @cache.read(actual)
+        assert_nil @cache.read(uncompressed)
       else
-        assert_equal value, @cache.read("actual")
-        assert_equal value, @cache.read("uncompressed")
+        assert_equal value, @cache.read(actual)
+        assert_equal value, @cache.read(uncompressed)
       end
 
-      actual_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "actual", {}), **{})
-      uncompressed_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "uncompressed", {}), **{})
+      actual_entry = @cache.send(:read_entry, @cache.send(:normalize_key, actual, {}), **{})
+      uncompressed_entry = @cache.send(:read_entry, @cache.send(:normalize_key, uncompressed, {}), **{})
 
       actual_payload = @cache.send(:serialize_entry, actual_entry, **@cache.send(:merged_options, options))
       uncompressed_payload = @cache.send(:serialize_entry, uncompressed_entry, compress: false)
