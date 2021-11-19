@@ -85,25 +85,9 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
     assert_equal ActiveRecord::ConnectionHandling::DEFAULT_ENV.call, config.env_name
     assert_equal ":memory:", config.database
   end
-
-  def test_to_h_turns_db_config_object_back_into_a_hash_and_is_deprecated
-    configs = ActiveRecord::Base.configurations
-    assert_equal "ActiveRecord::DatabaseConfigurations", configs.class.name
-    assert_deprecated do
-      assert_equal "Hash", configs.to_h.class.name
-      assert_equal ["arunit", "arunit2", "arunit_without_prepared_statements"], ActiveRecord::Base.configurations.to_h.keys.sort
-    end
-  end
 end
 
 class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase
-  def test_can_turn_configurations_into_a_hash_and_is_deprecated
-    assert_deprecated do
-      assert ActiveRecord::Base.configurations.to_h.is_a?(Hash), "expected to be a hash but was not."
-      assert_equal ["arunit", "arunit2", "arunit_without_prepared_statements"].sort, ActiveRecord::Base.configurations.to_h.keys.sort
-    end
-  end
-
   def test_unsupported_method_raises
     assert_raises NoMethodError do
       ActiveRecord::Base.configurations.fetch(:foo)
