@@ -51,7 +51,10 @@ module ActiveRecord
 
         binds = []
         payload[:binds].each_with_index do |attr, i|
-          binds << render_bind(attr, casted_params[i])
+          attribute_name = attr.respond_to?(:name) ? attr.name : attr[i].name
+          filtered_params = filter(attribute_name, casted_params[i])
+
+          binds << render_bind(attr, filtered_params)
         end
         binds = binds.inspect
         binds.prepend("  ")
@@ -134,6 +137,10 @@ module ActiveRecord
 
       def extract_query_source_location(locations)
         backtrace_cleaner.clean(locations.lazy).first
+      end
+
+      def filter(name, value)
+        ActiveRecord::Base.inspection_filter.filter_param(name, value)
       end
   end
 end
