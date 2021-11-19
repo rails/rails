@@ -1,3 +1,7 @@
+*   Remove deprecate `ActiveSupport::Multibyte::Unicode.default_normalization_form`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to use `Range#include?` to check the inclusion of a value in
     a date time range is deprecated.
 

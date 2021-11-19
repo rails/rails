@@ -236,6 +236,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 *   Remove deprecated support to use `Range#include?` to check the inclusion of a value in
     a date time range is deprecated.
 
+*   Remove deprecate `ActiveSupport::Multibyte::Unicode.default_normalization_form`.
+
 ### Deprecations
 
 ### Notable changes
