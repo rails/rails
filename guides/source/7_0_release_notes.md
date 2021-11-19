@@ -233,6 +233,9 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated `URI.parser`.
 
+*   Remove deprecated support to use `Range#include?` to check the inclusion of a value in
+    a date time range is deprecated.
+
 ### Deprecations
 
 ### Notable changes

@@ -1,3 +1,8 @@
+*   Remove deprecated support to use `Range#include?` to check the inclusion of a value in
+    a date time range is deprecated.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `URI.parser`.
 
     *Rafael Mendonça França*
