@@ -336,7 +336,7 @@ module ActiveRecord
             elsif Thread.current.status == "aborting" || (!completed && transaction.written)
               # The transaction is still open but the block returned earlier.
               #
-              # The block could return early because of a timeout or becase the thread is aborting,
+              # The block could return early because of a timeout or because the thread is aborting,
               # so we are rolling back to make sure the timeout didn't caused the transaction to be
               # committed incompletely.
               rollback_transaction
