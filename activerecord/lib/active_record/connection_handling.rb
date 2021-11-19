@@ -296,17 +296,6 @@ module ActiveRecord
       self == Base || application_record_class?
     end
 
-    # Returns the configuration of the associated connection as a hash:
-    #
-    #  ActiveRecord::Base.connection_config
-    #  # => {pool: 5, timeout: 5000, database: "db/development.sqlite3", adapter: "sqlite3"}
-    #
-    # Please use only for reading.
-    def connection_config
-      connection_pool.db_config.configuration_hash
-    end
-    deprecate connection_config: "Use connection_db_config instead"
-
     # Returns the db_config object from the associated connection:
     #
     #  ActiveRecord::Base.connection_db_config

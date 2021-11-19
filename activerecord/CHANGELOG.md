@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::Base.connection_config`.
+
+    *Rafael Mendonça França*
+
 *   Filter attributes in SQL logs
 
     Previously, SQL queries in logs containing `ActiveRecord::Base.filter_attributes` were not filtered.
