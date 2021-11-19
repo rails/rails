@@ -1,3 +1,7 @@
+*   Remove deprecated `:return_false_on_aborted_enqueue` option.
+
+    *Rafael Mendonça França*
+
 *   Deprecated `Rails.config.active_job.skip_after_callbacks_if_terminated`.
 
     *Rafael Mendonça França*
