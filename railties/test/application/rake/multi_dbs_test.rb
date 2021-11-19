@@ -16,6 +16,15 @@ module ApplicationTests
         teardown_app
       end
 
+      def with_database_name_env_set(name)
+        old_db_name = ENV["DATABASE_NAME"]
+        ENV["DATABASE_NAME"] = name
+
+        yield
+      ensure
+        ENV["DATABASE_NAME"] = old_db_name
+      end
+
       def db_create_and_drop(namespace, expected_database)
         Dir.chdir(app_path) do
           output = rails("db:create")
@@ -115,10 +124,13 @@ module ApplicationTests
         end
       end
 
-      def db_migrate_and_schema_dump_and_load_one_database(format, database)
+      def db_migrate_and_schema_dump_and_load_one_database(format, database, env_name = false)
         Dir.chdir(app_path) do
           generate_models_for_animals
-          rails "db:migrate:#{database}", "db:#{format}:dump:#{database}"
+          task_names = ["db:migrate", "db:#{format}:dump"]
+          task_names.map! { |task| "#{task}:#{database}" } unless env_name
+
+          rails(*task_names)
 
           if format == "schema"
             if database == "primary"
@@ -142,7 +154,10 @@ module ApplicationTests
             end
           end
 
-          rails "db:#{format}:load:#{database}"
+          task_name = +"db:#{format}:load"
+          task_name << ":#{database}" unless env_name
+
+          rails task_name
 
           ar_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
           animals_tables = lambda { rails("runner", "p AnimalsBase.connection.tables").strip }
@@ -157,7 +172,7 @@ module ApplicationTests
         end
       end
 
-      def db_migrate_name_dumps_the_schema(name, schema_format)
+      def db_migrate_name_dumps_the_schema(name, schema_format, env_name = false)
         add_to_config "config.active_record.schema_format = :#{schema_format}"
         require "#{app_path}/config/environment"
 
@@ -169,7 +184,9 @@ module ApplicationTests
           assert_not(File.exist?("db/structure.sql"))
           assert_not(File.exist?("db/animals_structure.sql"))
 
-          rails("db:migrate:#{name}")
+          task_name = +"db:migrate"
+          task_name << ":#{name}" unless env_name
+          rails(task_name)
 
           if schema_format == "ruby"
             if name == "primary"
@@ -195,17 +212,25 @@ module ApplicationTests
         end
       end
 
-      def db_test_prepare_name(name, schema_format)
+      def db_test_prepare_name(name, schema_format, env_name = false)
         add_to_config "config.active_record.schema_format = :#{schema_format}"
         require "#{app_path}/config/environment"
 
         Dir.chdir(app_path) do
           generate_models_for_animals
 
-          rails("db:migrate:#{name}", "db:schema:dump:#{name}")
+          task_names = ["db:migrate", "db:schema:dump"]
+          task_names.map! { |task| "#{task}:#{name}" } unless env_name
 
-          output = rails("db:test:prepare:#{name}", "--trace")
-          assert_match(/Execute db:test:load_schema:#{name}/, output)
+          rails(*task_names)
+
+          task_name = +"db:test:prepare"
+          task_name << ":#{name}" unless env_name
+          output = rails(task_name, "--trace")
+
+          task_name = +"db:test:load_schema"
+          task_name << ":#{name}" unless env_name
+          assert_match(/Execute #{task_name}/, output)
 
           ar_tables = lambda { rails("runner", "-e", "test", "p ActiveRecord::Base.connection.tables").strip }
           animals_tables = lambda { rails("runner",  "-e", "test", "p AnimalsBase.connection.tables").strip }
@@ -232,10 +257,34 @@ module ApplicationTests
         end
       end
 
+      def db_migrate_env(namespace)
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          output = rails("db:migrate", "DATABASE_NAME=#{namespace}")
+          if namespace == "primary"
+            assert_match(/CreateBooks: migrated/, output)
+          else
+            assert_match(/CreateDogs: migrated/, output)
+          end
+        end
+      end
+
       def db_migrate_status_namespaced(namespace)
         Dir.chdir(app_path) do
           generate_models_for_animals
           output = rails("db:migrate:status:#{namespace}")
+          if namespace == "primary"
+            assert_match(/up     \d+  Create books/, output)
+          else
+            assert_match(/up     \d+  Create dogs/, output)
+          end
+        end
+      end
+
+      def db_migrate_status_env(namespace)
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          output = rails("db:migrate:status", "DATABASE_NAME=#{namespace}")
           if namespace == "primary"
             assert_match(/up     \d+  Create books/, output)
           else
@@ -292,7 +341,7 @@ module ApplicationTests
         end
       end
 
-      def db_up_and_down(version, namespace = nil)
+      def db_up_and_down(version, namespace = nil, env = nil)
         Dir.chdir(app_path) do
           generate_models_for_animals
           rails("db:migrate")
@@ -300,6 +349,9 @@ module ApplicationTests
           if namespace
             down_output = rails("db:migrate:down:#{namespace}", "VERSION=#{version}")
             up_output = rails("db:migrate:up:#{namespace}", "VERSION=#{version}")
+          elsif env
+            down_output = rails("db:migrate:down", "DATABASE_NAME=#{env}", "VERSION=#{version}")
+            up_output = rails("db:migrate:up", "DATABASE_NAME=#{env}", "VERSION=#{version}")
           else
             assert_raises RuntimeError, /You're using a multiple database application/ do
               down_output = rails("db:migrate:down", "VERSION=#{version}")
@@ -310,7 +362,9 @@ module ApplicationTests
             end
           end
 
-          case namespace
+          db_name = namespace || env
+
+          case db_name
           when "primary"
             assert_match(/OneMigration: reverting/, down_output)
             assert_match(/OneMigration: migrated/, up_output)
@@ -322,20 +376,24 @@ module ApplicationTests
         end
       end
 
-      def db_migrate_and_rollback(namespace = nil)
+      def db_migrate_and_rollback(namespace = nil, env = nil)
         Dir.chdir(app_path) do
           generate_models_for_animals
           rails("db:migrate")
 
           if namespace
             rollback_output = rails("db:rollback:#{namespace}")
+          elsif env
+            rollback_output = rails("db:rollback", "DATABASE_NAME=#{env}")
           else
             assert_raises RuntimeError, /You're using a multiple database application/ do
               rollback_output = rails("db:rollback")
             end
           end
 
-          case namespace
+          db_name = namespace || env
+
+          case db_name
           when "primary"
             assert_no_match(/OneMigration: reverted/, rollback_output)
             assert_match(/CreateBooks: reverted/, rollback_output)
@@ -347,20 +405,24 @@ module ApplicationTests
         end
       end
 
-      def db_migrate_redo(namespace = nil)
+      def db_migrate_redo(namespace = nil, env = nil)
         Dir.chdir(app_path) do
           generate_models_for_animals
           rails("db:migrate")
 
           if namespace
             redo_output = rails("db:migrate:redo:#{namespace}")
+          elsif env
+            redo_output = rails("db:migrate:redo", "DATABASE_NAME=#{env}")
           else
             assert_raises RuntimeError, /You're using a multiple database application/ do
               redo_output = rails("db:migrate:redo")
             end
           end
 
-          case namespace
+          db_name = namespace || env
+
+          case db_name
           when "primary"
             assert_no_match(/OneMigration/, redo_output)
             assert_match(/CreateBooks: reverted/, redo_output)
@@ -439,6 +501,15 @@ module ApplicationTests
         end
       end
 
+      test "db:create and db:drop works on specified databases through DATABASE_NAME" do
+        require "#{app_path}/config/environment"
+        ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+          with_database_name_env_set(db_config.name) do
+            db_create_and_drop db_config.name, db_config.database
+          end
+        end
+      end
+
       test "db:migrate set back connection to its original state" do
         require "#{app_path}/config/environment"
         Dir.chdir(app_path) do
@@ -453,6 +524,26 @@ module ApplicationTests
 
           assert_nothing_raised do
             rails("db:migrate", "foo")
+          end
+        end
+      end
+
+      test "db:migrate with DATABASE_NAME set back connection to its original state" do
+        require "#{app_path}/config/environment"
+        Dir.chdir(app_path) do
+          dummy_task = <<~RUBY
+            task foo: :environment do
+              Book.first
+            end
+          RUBY
+          app_file("Rakefile", dummy_task, "a+")
+
+          generate_models_for_animals
+
+          rails("db:migrate", "DATABASE_NAME=primary")
+
+          assert_nothing_raised do
+            rails("db:migrate", "DATABASE_NAME=animals")
           end
         end
       end
@@ -571,16 +662,40 @@ module ApplicationTests
         db_migrate_name_dumps_the_schema("primary", "ruby")
       end
 
+      test "db:migrate with DATABASE_NAME dumps the schema for the primary database" do
+        with_database_name_env_set("primary") do
+          db_migrate_name_dumps_the_schema("primary", "ruby", true)
+        end
+      end
+
       test "db:migrate:name dumps the schema for the animals database" do
         db_migrate_name_dumps_the_schema("animals", "ruby")
+      end
+
+      test "db:migrate with DATABASE_NAME dumps the schema for the animals database" do
+        with_database_name_env_set("animals") do
+          db_migrate_name_dumps_the_schema("animals", "ruby", true)
+        end
       end
 
       test "db:migrate:name dumps the structure for the primary database" do
         db_migrate_name_dumps_the_schema("primary", "sql")
       end
 
+      test "db:migrate with DATABASE_NAME dumps the structure for the primary database" do
+        with_database_name_env_set("primary") do
+          db_migrate_name_dumps_the_schema("primary", "sql", true)
+        end
+      end
+
       test "db:migrate:name dumps the structure for the animals database" do
         db_migrate_name_dumps_the_schema("animals", "sql")
+      end
+
+      test "db:migrate with DATABASE_NAME dumps the structure for the animals database" do
+        with_database_name_env_set("animals") do
+          db_migrate_name_dumps_the_schema("animals", "sql", true)
+        end
       end
 
       test "db:migrate:name and db:schema:dump:name and db:schema:load:name works for the primary database" do
@@ -588,9 +703,23 @@ module ApplicationTests
         db_migrate_and_schema_dump_and_load_one_database("schema", "primary")
       end
 
+      test "db:migrate and db:schema:dump and db:schema:load works with DATABASE_NAME for the primary database" do
+        require "#{app_path}/config/environment"
+        with_database_name_env_set("primary") do
+          db_migrate_and_schema_dump_and_load_one_database("schema", "primary", true)
+        end
+      end
+
       test "db:migrate:name and db:schema:dump:name and db:schema:load:name works for the animals database" do
         require "#{app_path}/config/environment"
         db_migrate_and_schema_dump_and_load_one_database("schema", "animals")
+      end
+
+      test "db:migrate and db:schema:dump and db:schema:load works with DATABASE_NAME for the animals database" do
+        require "#{app_path}/config/environment"
+        with_database_name_env_set("animals") do
+          db_migrate_and_schema_dump_and_load_one_database("schema", "animals", true)
+        end
       end
 
       ["dump", "load"].each do |command|
@@ -618,26 +747,66 @@ module ApplicationTests
         db_migrate_and_schema_dump_and_load_one_database("structure", "primary")
       end
 
+      test "db:migrate:name and db:structure:dump and db:structure:load works with DATABASE_NAME for the primary database" do
+        add_to_config "config.active_record.schema_format = :sql"
+        require "#{app_path}/config/environment"
+        with_database_name_env_set("primary") do
+          db_migrate_and_schema_dump_and_load_one_database("structure", "primary", true)
+        end
+      end
+
       test "db:migrate:name and db:structure:dump:name and db:structure:load:name works for the animals database" do
         add_to_config "config.active_record.schema_format = :sql"
         require "#{app_path}/config/environment"
         db_migrate_and_schema_dump_and_load_one_database("structure", "animals")
       end
 
+      test "db:migrate and db:structure:dump and db:structure:load works with DATABASE_NAME for the animals database" do
+        add_to_config "config.active_record.schema_format = :sql"
+        require "#{app_path}/config/environment"
+        with_database_name_env_set("animals") do
+          db_migrate_and_schema_dump_and_load_one_database("structure", "animals", true)
+        end
+      end
+
       test "db:test:prepare:name works for the primary database with a ruby schema" do
         db_test_prepare_name("primary", "ruby")
+      end
+
+      test "db:test:prepare works with DATABASE_NAME for the primary database with a ruby schema" do
+        with_database_name_env_set("primary") do
+          db_test_prepare_name("primary", "ruby", true)
+        end
       end
 
       test "db:test:prepare:name works for the animals database with a ruby schema" do
         db_test_prepare_name("animals", "ruby")
       end
 
+      test "db:test:prepare works with DATABASE_NAME for the animals database with a ruby schema" do
+        with_database_name_env_set("animals") do
+          db_test_prepare_name("animals", "ruby", true)
+        end
+      end
+
       test "db:test:prepare:name works for the primary database with a sql schema" do
         db_test_prepare_name("primary", "sql")
       end
 
+      test "db:test:prepare works with DATABASE_NAME for the primary database with a sql schema" do
+        with_database_name_env_set("primary") do
+          db_test_prepare_name("primary", "sql", true)
+        end
+      end
+
       test "db:test:prepare:name works for the animals database with a sql schema" do
         db_test_prepare_name("animals", "sql")
+      end
+
+      test "db:test:prepare works with DATABASE_NAME for the animals database with a sql schema" do
+        with_database_name_env_set("animals") do
+          db_test_prepare_name("animals", "sql", true)
+        end
       end
 
       test "db:migrate:namespace works" do
@@ -647,7 +816,14 @@ module ApplicationTests
         end
       end
 
-      test "db:migrate:down and db:migrate:up without a namespace raises in a multi-db application" do
+      test "db:migrate works with DATABASE_NAME" do
+        require "#{app_path}/config/environment"
+        ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+          db_migrate_env db_config.name
+        end
+      end
+
+      test "db:migrate:down and db:migrate:up without a namespace or DATABASE_NAME raises in a multi-db application" do
         require "#{app_path}/config/environment"
 
         app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
@@ -675,7 +851,24 @@ module ApplicationTests
         db_up_and_down "02", "animals"
       end
 
-      test "db:migrate:redo raises in a multi-db application" do
+      test "db:migrate:down and db:migrate:up works with DATABASE_NAME" do
+        require "#{app_path}/config/environment"
+
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/animals_migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        db_up_and_down "01", nil, "primary"
+        db_up_and_down "02", nil, "animals"
+      end
+
+      test "db:migrate:redo without a namespace or DATABASE_NAME raises in a multi-db application" do
         require "#{app_path}/config/environment"
         db_migrate_redo
       end
@@ -697,7 +890,24 @@ module ApplicationTests
         db_migrate_redo "animals"
       end
 
-      test "db:rollback raises on a multi-db application" do
+      test "db:migrate:redo works with DATABASE_NAME" do
+        require "#{app_path}/config/environment"
+
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/animals_migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        db_migrate_redo nil, "primary"
+        db_migrate_redo nil, "animals"
+      end
+
+      test "db:rollback without a namespace or DATABASE_NAME raises on a multi-db application" do
         require "#{app_path}/config/environment"
 
         app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
@@ -725,6 +935,23 @@ module ApplicationTests
         db_migrate_and_rollback "animals"
       end
 
+      test "db:rollback works with DATABASE_NAME" do
+        require "#{app_path}/config/environment"
+
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/animals_migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        db_migrate_and_rollback nil, "primary"
+        db_migrate_and_rollback nil, "animals"
+      end
+
       test "db:migrate:status works on all databases" do
         require "#{app_path}/config/environment"
         db_migrate_and_migrate_status
@@ -735,6 +962,14 @@ module ApplicationTests
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
           db_migrate_namespaced db_config.name
           db_migrate_status_namespaced db_config.name
+        end
+      end
+
+      test "db:migrate:status works with DATABASE_NAME" do
+        require "#{app_path}/config/environment"
+        ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+          db_migrate_env db_config.name
+          db_migrate_status_env db_config.name
         end
       end
 
@@ -790,6 +1025,21 @@ module ApplicationTests
         output = rails("db:abort_if_pending_migrations:primary")
         assert_no_match(/You have \d+ pending migration/, output)
         output = rails("db:abort_if_pending_migrations:animals", allow_failure: true)
+        assert_match(/You have 1 pending migration/, output)
+      end
+
+      test "db:abort_if_pending_migrations works with DATABASE_NAME" do
+        require "#{app_path}/config/environment"
+
+        app_file "db/animals_migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        output = rails("db:abort_if_pending_migrations", "DATABASE_NAME=primary")
+        assert_no_match(/You have \d+ pending migration/, output)
+
+        output = rails("db:abort_if_pending_migrations", "DATABASE_NAME=animals", allow_failure: true)
         assert_match(/You have 1 pending migration/, output)
       end
 
