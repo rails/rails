@@ -702,6 +702,30 @@ module ActionController
       self
     end
 
+    # Returns a new <tt>ActionController::Parameters</tt> instance that includes
+    # only the given +keys+. The given +keys+ are marked as permitted, but any
+    # nested keys are not. If any of the given +keys+ don't exist, raises
+    # <tt>ActionController::ParameterMissing</tt>.
+    #
+    #   params = ActionController::Parameters.new(a: 1, b: 2, nested: { c: 3 })
+    #
+    #   sliced = params.require_slice(:a, :nested)
+    #   sliced                       # => #<ActionController::Parameters {"a"=>1, "nested"=>{"c"=>3}} permitted: true>
+    #   sliced.permitted?            # => true
+    #   sliced[:nested]              # => #<ActionController::Parameters {"c"=>3} permitted: false>
+    #   sliced[:nested].permitted?   # => false
+    #
+    #   params.require_slice(:a, :z) # => ActionController::ParameterMissing (param is missing or the value is empty: z)
+    def require_slice(*keys)
+      keys.each do |key|
+        raise ParameterMissing.new(key, @parameters.keys) unless @parameters.key?(key)
+      end
+
+      slice(*keys).tap do |sliced|
+        sliced.permitted = true
+      end
+    end
+
     # Returns a new <tt>ActionController::Parameters</tt> instance that
     # filters out the given +keys+.
     #

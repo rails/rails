@@ -7,16 +7,19 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   setup do
     ActionController::Parameters.permit_all_parameters = false
 
-    @params = ActionController::Parameters.new(
-      person: {
-        age: "32",
-        name: {
-          first: "David",
-          last: "Heinemeier Hansson"
+    @raw_params = {
+      "person" => {
+        "age" => "32",
+        "name" => {
+          "first" => "David",
+          "last" => "Heinemeier Hansson",
         },
-        addresses: [{ city: "Chicago", state: "Illinois" }]
+        "addresses" => [{ "city" => "Chicago", "state" => "Illinois" }],
+        "honeypot" => "",
       }
-    )
+    }
+
+    @params = ActionController::Parameters.new(@raw_params)
   end
 
   test "each returns self" do
@@ -49,8 +52,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "to_s returns the string representation of the parameters hash" do
-    assert_equal '{"person"=>{"age"=>"32", "name"=>{"first"=>"David", "last"=>"Heinemeier Hansson"}, ' \
-      '"addresses"=>[{"city"=>"Chicago", "state"=>"Illinois"}]}}', @params.to_s
+    assert_equal @raw_params.to_s, @params.to_s
   end
 
   test "each carries permitted status" do
@@ -203,8 +205,8 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "keys returns an array of the keys of the params" do
-    assert_equal ["person"], @params.keys
-    assert_equal ["age", "name", "addresses"], @params[:person].keys
+    assert_equal @raw_params.keys, @params.keys
+    assert_equal @raw_params["person"].keys, @params[:person].keys
   end
 
   test "reject retains permitted status" do
@@ -232,6 +234,26 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "slice retains unpermitted status" do
     assert_not_predicate @params.slice(:person), :permitted?
+  end
+
+  test "require_slice slices the given keys" do
+    keys = %w[name age honeypot]
+    assert_equal keys, @params.require(:person).require_slice(*keys).keys
+  end
+
+  test "require_slice raises ParameterMissing when key is missing" do
+    exception = assert_raises(ActionController::ParameterMissing) do
+      @params.require_slice(:foo)
+    end
+    assert_equal :foo, exception.param
+  end
+
+  test "require_slice permits the given keys" do
+    assert_predicate @params.require_slice(:person), :permitted?
+  end
+
+  test "require_slice does not permit nested keys" do
+    assert_not_predicate @params.require_slice(:person).require(:person), :permitted?
   end
 
   test "transform_keys retains permitted status" do
@@ -368,12 +390,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "inspect shows both class name, parameters and permitted flag" do
-    assert_equal(
-      '#<ActionController::Parameters {"person"=>{"age"=>"32", '\
-        '"name"=>{"first"=>"David", "last"=>"Heinemeier Hansson"}, ' \
-        '"addresses"=>[{"city"=>"Chicago", "state"=>"Illinois"}]}} permitted: false>',
-      @params.inspect
-    )
+    assert_equal "#<ActionController::Parameters #{@raw_params.inspect} permitted: false>", @params.inspect
   end
 
   test "inspect prints updated permitted flag in the output" do
