@@ -525,15 +525,17 @@ model test. To do that, provide a Hash containing at least an open IO object
 and a filename:
 
 ```ruby
-@message.images.attach(io: File.open('/path/to/file'), filename: 'file.pdf')
+@message.images.attach(io: File.open('/path/to/file'), filename: 'file.pdf').save
 ```
+
+Once you attach something to the record, you have to call `#save`.
 
 When possible, provide a content type as well. Active Storage attempts to
 determine a file’s content type from its data. It falls back to the content
 type you provide if it can’t do that.
 
 ```ruby
-@message.images.attach(io: File.open('/path/to/file'), filename: 'file.pdf', content_type: 'application/pdf')
+@message.images.attach(io: File.open('/path/to/file'), filename: 'file.pdf', content_type: 'application/pdf').save
 ```
 
 You can bypass the content type inference from the data by passing in
@@ -545,7 +547,7 @@ You can bypass the content type inference from the data by passing in
   filename: 'file.pdf',
   content_type: 'application/pdf',
   identify: false
-)
+).save
 ```
 
 If you don’t provide a content type and Active Storage can’t determine the
