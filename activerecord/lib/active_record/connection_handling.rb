@@ -212,18 +212,16 @@ module ActiveRecord
     # is useful in cases you're using sharding to provide per-request
     # database isolation.
     def prohibit_shard_swapping(enabled = true)
-      prev_value = Thread.current.thread_variable_get(:prohibit_shard_swapping)
-
-      Thread.current.thread_variable_set(:prohibit_shard_swapping, enabled)
-
+      prev_value = ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping]
+      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping] = enabled
       yield
     ensure
-      Thread.current.thread_variable_set(:prohibit_shard_swapping, prev_value)
+      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping] = prev_value
     end
 
     # Determine whether or not shard swapping is currently prohibited
     def shard_swapping_prohibited?
-      Thread.current.thread_variable_get(:prohibit_shard_swapping)
+      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping]
     end
 
     # Prevent writing to the database regardless of role.

@@ -81,11 +81,11 @@ module ActiveRecord
       end
 
       def prevent_writes # :nodoc:
-        Thread.current[:prevent_writes]
+        ActiveSupport::IsolatedExecutionState[:active_record_prevent_writes]
       end
 
       def prevent_writes=(prevent_writes) # :nodoc:
-        Thread.current[:prevent_writes] = prevent_writes
+        ActiveSupport::IsolatedExecutionState[:active_record_prevent_writes] = prevent_writes
       end
 
       # Prevent writing to the database regardless of role.

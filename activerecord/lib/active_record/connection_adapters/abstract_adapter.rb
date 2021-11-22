@@ -178,7 +178,7 @@ module ActiveRecord
       alias :prepared_statements :prepared_statements?
 
       def prepared_statements_disabled_cache # :nodoc:
-        Thread.current[:ar_prepared_statements_disabled_cache] ||= Set.new
+        ActiveSupport::IsolatedExecutionState[:active_record_prepared_statements_disabled_cache] ||= Set.new
       end
 
       class Version
