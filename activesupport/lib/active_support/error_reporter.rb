@@ -19,7 +19,7 @@ module ActiveSupport
   #
   # Both methods can be restricted to only handle a specific exception class
   #
-  #  maybe_tags = Rails.error.handle(Redis::BaseError) { redis.get("tags) }
+  #  maybe_tags = Rails.error.handle(Redis::BaseError) { redis.get("tags") }
   #
   # You can also pass some extra context information that may be used by the error subscribers:
   #
