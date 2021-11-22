@@ -124,6 +124,9 @@ module ActiveRecord
       #   column_exists?(:suppliers, :name)
       #
       #   # Check a column exists of a particular type
+      #   #
+      #   # This works for standard non-casted types (eg. string) but is unreliable
+      #   # for types that may get chasted (eg. char).
       #   column_exists?(:suppliers, :name, :string)
       #
       #   # Check a column exists with a specific definition
