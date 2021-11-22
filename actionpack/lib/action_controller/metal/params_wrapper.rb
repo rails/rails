@@ -72,7 +72,7 @@ module ActionController
   # determine the wrapper key respectively. If both models don't exist,
   # it will then fallback to use +user+ as the key.
   #
-  # To disable the this functionality for a controller:
+  # To disable this functionality for a controller:
   #
   #     class UsersController < ApplicationController
   #       wrap_parameters false
