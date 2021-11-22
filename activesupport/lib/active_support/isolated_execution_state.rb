@@ -25,6 +25,10 @@ module ActiveSupport
         end
       end
 
+      def unique_id
+        self[:__id__] ||= Object.new
+      end
+
       def [](key)
         current[key]
       end
