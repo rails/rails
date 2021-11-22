@@ -30,32 +30,28 @@ module ActiveRecord
   module Suppressor
     extend ActiveSupport::Concern
 
+    class << self
+      def registry # :nodoc:
+        ActiveSupport::IsolatedExecutionState[:active_record_suppresor_registry] ||= {}
+      end
+    end
+
     module ClassMethods
       def suppress(&block)
-        previous_state = SuppressorRegistry.suppressed[name]
-        SuppressorRegistry.suppressed[name] = true
+        previous_state = Suppressor.registry[name]
+        Suppressor.registry[name] = true
         yield
       ensure
-        SuppressorRegistry.suppressed[name] = previous_state
+        Suppressor.registry[name] = previous_state
       end
     end
 
     def save(**) # :nodoc:
-      SuppressorRegistry.suppressed[self.class.name] ? true : super
+      Suppressor.registry[self.class.name] ? true : super
     end
 
     def save!(**) # :nodoc:
-      SuppressorRegistry.suppressed[self.class.name] ? true : super
-    end
-  end
-
-  class SuppressorRegistry # :nodoc:
-    extend ActiveSupport::PerThreadRegistry
-
-    attr_reader :suppressed
-
-    def initialize
-      @suppressed = {}
+      Suppressor.registry[self.class.name] ? true : super
     end
   end
 end
