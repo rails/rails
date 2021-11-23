@@ -74,7 +74,7 @@ NOTE: The reason for the additional space are Base 64 encoding and additional me
 
 By default, Active Record Encryption uses a non-deterministic approach to encryption. This means that encrypting the same content with the same password twice will result in different ciphertexts. This is good for security, since it makes crypto-analysis of encrypted content much harder, but it makes querying the database impossible.
 
-You can use the `deterministic:`  option to generate initialization vectors in a deterministic way, effectively enabling querying encrypted data.
+You can use the `deterministic:` option to generate initialization vectors in a deterministic way, effectively enabling querying encrypted data.
 
 ```ruby
 class Author < ApplicationRecord
@@ -442,12 +442,12 @@ NOTE: Encryption contexts are a flexible but advanced configuration mechanism. M
 
 The main components of encryption contexts are:
 
-* `encryptor`: exposes the internal API for encrypting and decrypting data.  It interacts with a `key_provider` to build encrypted messages and deal with their serialization. The encryption/decryption itself is done by the `cipher` and the serialization by `message_serializer`.
+* `encryptor`: exposes the internal API for encrypting and decrypting data. It interacts with a `key_provider` to build encrypted messages and deal with their serialization. The encryption/decryption itself is done by the `cipher` and the serialization by `message_serializer`.
 * `cipher` the encryption algorithm itself (Aes 256 GCM)
 * `key_provider` serves encryption and decryption keys.
 * `message_serializer`: serializes and deserializes encrypted payloads (`Message`).
 
-NOTE: If you decide to build your own `message_serializer`, It's important to use safe mechanisms that can't deserialize arbitrary objects. A common supported scenario is encrypting existing unencrypted data. An attacker can leverage this to enter a tampered payload before encryption takes place and perform RCE attacks. This means custom serializers should avoid `Marshal`, `YAML.load` (use `YAML.safe_load`  instead) or `JSON.load` (use `JSON.parse` instead).
+NOTE: If you decide to build your own `message_serializer`, It's important to use safe mechanisms that can't deserialize arbitrary objects. A common supported scenario is encrypting existing unencrypted data. An attacker can leverage this to enter a tampered payload before encryption takes place and perform RCE attacks. This means custom serializers should avoid `Marshal`, `YAML.load` (use `YAML.safe_load` instead) or `JSON.load` (use `JSON.parse` instead).
 
 #### Global Encryption Context
 

@@ -608,7 +608,7 @@ Output:
 </select>
 ```
 
-NOTE: With `collection_select` we specify the value method first (`:id` in the example above), and the text label method second (`:name` in the example above).  This is opposite of the order used when specifying choices for the `select` helper, where the text label comes first and the value second.
+NOTE: With `collection_select` we specify the value method first (`:id` in the example above), and the text label method second (`:name` in the example above). This is opposite of the order used when specifying choices for the `select` helper, where the text label comes first and the value second.
 
 ### The `collection_radio_buttons` Helper
 
@@ -667,7 +667,7 @@ The most important thing to remember with file uploads is that the rendered form
 <% end %>
 ```
 
-Note that, in accordance with `form_with` conventions, the field names in the two forms above will also differ.  That is, the field name in the first form will be `person[picture]` (accessible via `params[:person][:picture]`), and the field name in the second form will be just `picture` (accessible via `params[:picture]`).
+Note that, in accordance with `form_with` conventions, the field names in the two forms above will also differ. That is, the field name in the first form will be `person[picture]` (accessible via `params[:person][:picture]`), and the field name in the second form will be just `picture` (accessible via `params[:picture]`).
 
 ### What Gets Uploaded
 
@@ -1051,7 +1051,7 @@ Output:
 <input type="checkbox" name="accept" id="accept" value="1" />
 ```
 
-Generally, these helpers have the same name as their form builder counterparts plus a `_tag` suffix.  For a complete list, see the [`FormTagHelper` API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html).
+Generally, these helpers have the same name as their form builder counterparts plus a `_tag` suffix. For a complete list, see the [`FormTagHelper` API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html).
 
 Using `form_tag` and `form_for`
 -------------------------------

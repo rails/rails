@@ -546,7 +546,7 @@ $ PARALLEL_WORKERS=15 bin/rails test
 ### Testing Parallel Transactions
 
 Rails automatically wraps any test case in a database transaction that is rolled
-back after the test completes.  This makes test cases independent of each other
+back after the test completes. This makes test cases independent of each other
 and changes to the database are only visible within a single test.
 
 When you want to test code that runs parallel transactions in threads,

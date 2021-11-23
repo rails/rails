@@ -343,7 +343,7 @@ The following middlewares, used for session management, are excluded from API ap
 
 The trick to adding these back in is that, by default, they are passed `session_options`
 when added (including the session key), so you can't just add a `session_store.rb` initializer, add
-`use ActionDispatch::Session::CookieStore` and have sessions functioning as usual.  (To be clear: sessions
+`use ActionDispatch::Session::CookieStore` and have sessions functioning as usual. (To be clear: sessions
 may work, but your session options will be ignored - i.e. the session key will default to `_session_id`)
 
 Instead of the initializer, you'll have to set the relevant options somewhere before your middleware is

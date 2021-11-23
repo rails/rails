@@ -180,7 +180,7 @@ More precisely, if the web server is running and application files have been mod
 
 Reloading can be enabled or disabled. The setting that controls this behavior is `config.cache_classes`, which is false by default in `development` mode (reloading enabled), and true by default in `production` mode (reloading disabled).
 
-Rails uses an evented file monitor to detect files changes by default.  It can be configured instead to detect file changes by walking the autoload paths. This is controlled by the `config.file_watcher` setting.
+Rails uses an evented file monitor to detect files changes by default. It can be configured instead to detect file changes by walking the autoload paths. This is controlled by the `config.file_watcher` setting.
 
 In a Rails console there is no file watcher active regardless of the value of `config.cache_classes`. This is because, normally, it would be confusing to have code reloaded in the middle of a console session. Similar to an individual request, you generally want a console session to be served by a consistent, non-changing set of application classes and modules.
 

@@ -1352,7 +1352,7 @@ that only exists for your engine. In this case, the host application doesn't
 need to require `admin.css` or `admin.js`. Only the gem's admin layout needs
 these assets. It doesn't make sense for the host app to include
 `"blorgh/admin.css"` in its stylesheets. In this situation, you should
-explicitly define these assets for precompilation.  This tells Sprockets to add
+explicitly define these assets for precompilation. This tells Sprockets to add
 your engine assets when `bin/rails assets:precompile` is triggered.
 
 You can define assets for precompilation in `engine.rb`:

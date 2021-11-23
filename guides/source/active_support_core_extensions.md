@@ -34,7 +34,7 @@ only the extensions required by the Active Support framework are loaded.
 
 #### Cherry-picking a Definition
 
-This example shows how to load [`Hash#with_indifferent_access`][Hash#with_indifferent_access].  This extension enables the conversion of a `Hash` into an [`ActiveSupport::HashWithIndifferentAccess`][ActiveSupport::HashWithIndifferentAccess] which permits access to the keys as either strings or symbols.
+This example shows how to load [`Hash#with_indifferent_access`][Hash#with_indifferent_access]. This extension enables the conversion of a `Hash` into an [`ActiveSupport::HashWithIndifferentAccess`][ActiveSupport::HashWithIndifferentAccess] which permits access to the keys as either strings or symbols.
 
 ```ruby
 {a: 1}.with_indifferent_access["a"] # => 1
