@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "weakref"
+require "active_support/ruby_features"
 
 module ActiveSupport
   # This module provides an internal implementation to track descendants
@@ -16,7 +17,7 @@ module ActiveSupport
       end
     end
 
-    if ActiveSupport.instance_variable_get(:@has_native_class_descendants) # RUBY_VERSION >= "3.1"
+    if RubyFeatures::CLASS_DESCENDANTS
       class << self
         def subclasses(klass)
           klass.subclasses
@@ -35,8 +36,10 @@ module ActiveSupport
         end
       end
 
-      def subclasses
-        descendants.select { |descendant| descendant.superclass == self }
+      unless RubyFeatures::CLASS_SUBCLASSES
+        def subclasses
+          descendants.select { |descendant| descendant.superclass == self }
+        end
       end
 
       def direct_descendants
