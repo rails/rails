@@ -117,8 +117,6 @@ module ActiveSupport
   def self.utc_to_local_returns_utc_offset_times=(value)
     DateAndTime::Compatibility.utc_to_local_returns_utc_offset_times = value
   end
-
-  @has_native_class_descendants = Class.method_defined?(:descendants) # RUBY_VERSION >= "3.1"
 end
 
 autoload :I18n, "active_support/i18n"
