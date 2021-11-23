@@ -126,7 +126,7 @@ module ActiveRecord
       def establish_connection(config, owner_name: Base, role: ActiveRecord::Base.current_role, shard: Base.current_shard)
         owner_name = StringConnectionOwner.new(config.to_s) if config.is_a?(Symbol)
 
-        pool_config = resolve_pool_config(config, owner_name)
+        pool_config = resolve_pool_config(config, owner_name, role, shard)
         db_config = pool_config.db_config
 
         # Protects the connection named `ActiveRecord::Base` from being removed
@@ -264,7 +264,7 @@ module ActiveRecord
         #   pool_config.db_config.configuration_hash
         #   # => { host: "localhost", database: "foo", adapter: "sqlite3" }
         #
-        def resolve_pool_config(config, owner_name)
+        def resolve_pool_config(config, owner_name, role, shard)
           db_config = Base.configurations.resolve(config)
 
           raise(AdapterNotSpecified, "database configuration does not specify adapter") unless db_config.adapter
@@ -294,7 +294,7 @@ module ActiveRecord
             raise AdapterNotFound, "database configuration specifies nonexistent #{db_config.adapter} adapter"
           end
 
-          ConnectionAdapters::PoolConfig.new(owner_name, db_config)
+          ConnectionAdapters::PoolConfig.new(owner_name, db_config, role, shard)
         end
     end
   end

@@ -13,7 +13,7 @@ module ActiveRecord
 
         # Keep a duplicate pool so we do not bother others
         @db_config = ActiveRecord::Base.connection_pool.db_config
-        @pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, @db_config)
+        @pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, @db_config, :writing, :default)
         @pool = ConnectionPool.new(@pool_config)
 
         if in_memory_db?
@@ -204,7 +204,7 @@ module ActiveRecord
         config = @db_config.configuration_hash.merge(idle_timeout: "0.02")
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
 
-        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config)
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default)
         @pool = ConnectionPool.new(pool_config)
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
@@ -231,7 +231,7 @@ module ActiveRecord
 
         config = @db_config.configuration_hash.merge(idle_timeout: -5)
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
-        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config)
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default)
         @pool = ConnectionPool.new(pool_config)
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
@@ -739,11 +739,33 @@ module ActiveRecord
         assert_not_nil found_conn
       end
 
+      def test_role_and_shard_is_returned
+        assert_equal :writing, @pool_config.role
+        assert_equal :writing, @pool.role
+        assert_equal :writing, @pool.connection.role
+
+        assert_equal :default, @pool_config.shard
+        assert_equal :default, @pool.shard
+        assert_equal :default, @pool.connection.shard
+
+        db_config = ActiveRecord::Base.connection_pool.db_config
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :reading, :shard_one)
+        pool = ConnectionPool.new(pool_config)
+
+        assert_equal :reading, pool_config.role
+        assert_equal :reading, pool.role
+        assert_equal :reading, pool.connection.role
+
+        assert_equal :shard_one, pool_config.shard
+        assert_equal :shard_one, pool.shard
+        assert_equal :shard_one, pool.connection.shard
+      end
+
       private
         def with_single_connection_pool
           config = @db_config.configuration_hash.merge(pool: 1)
           db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", config)
-          pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config)
+          pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default)
 
           yield(pool = ConnectionPool.new(pool_config))
         ensure
