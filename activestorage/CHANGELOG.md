@@ -1,3 +1,7 @@
+*   Setting custom metadata on blobs are now persisted to remote storage.
+
+    *joshuamsager*
+
 *   Support direct uploads to multiple services.
 
     *Dmitry Tsepelev*

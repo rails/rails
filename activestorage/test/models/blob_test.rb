@@ -259,10 +259,28 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   test "updating the content_type updates service metadata" do
     blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
 
-    expected_arguments = [blob.key, content_type: "image/jpeg"]
+    expected_arguments = [blob.key, content_type: "image/jpeg", custom_metadata: {}]
 
     assert_called_with(blob.service, :update_metadata, expected_arguments) do
       blob.update!(content_type: "image/jpeg")
+    end
+  end
+
+  test "updating the metadata updates service metadata" do
+    blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
+
+    expected_arguments = [
+      blob.key,
+      {
+        content_type: "application/octet-stream",
+        disposition: :attachment,
+        filename: blob.filename,
+        custom_metadatata: { "test" => true }
+      }
+    ]
+
+    assert_called_with(blob.service, :update_metadata, expected_arguments) do
+      blob.update!(metadata: { custom: { "test" => true } })
     end
   end
 
