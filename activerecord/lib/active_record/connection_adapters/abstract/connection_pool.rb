@@ -105,7 +105,7 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :db_config, :size, :reaper, :pool_config, :connection_klass, :async_executor
+      attr_reader :db_config, :size, :reaper, :pool_config, :connection_klass, :async_executor, :role, :shard
 
       delegate :schema_cache, :schema_cache=, to: :pool_config
 
@@ -121,6 +121,8 @@ module ActiveRecord
         @pool_config = pool_config
         @db_config = pool_config.db_config
         @connection_klass = pool_config.connection_klass
+        @role = pool_config.role
+        @shard = pool_config.shard
 
         @checkout_timeout = db_config.checkout_timeout
         @idle_timeout = db_config.idle_timeout
