@@ -466,7 +466,7 @@ In most cases applications will not need to make any changes except to opt-in to
 new behavior (if upgrading from 6.0 and below) by setting
 `config.active_record.legacy_connection_handling = false`. If you have a single database
 application, no other changes will be required. If you have a multiple database application
-the following changes are required if you application is using these methods:
+the following changes are required if your application is using these methods:
 
 * `connection_handlers` and `connection_handlers=` no longer works in the new connection
 handling. If you were calling a method on one of the connection handlers, for example,
