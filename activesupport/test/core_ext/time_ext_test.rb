@@ -583,7 +583,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     time = Time.utc(2005, 2, 21, 17, 44, 30.12345678901)
     assert_equal time.to_default_s,                 time.to_s
     assert_equal time.to_default_s,                 time.to_s(:doesnt_exist)
-    assert_equal "2005-02-21 17:44:30",             time.to_s(:db)
+    assert_equal "2005-02-21 17:44:30",             time.to_formatted_s(:db)
     assert_equal "21 Feb 17:44",                    time.to_s(:short)
     assert_equal "17:44",                           time.to_s(:time)
     assert_equal "20050221174430",                  time.to_s(:number)

@@ -132,6 +132,7 @@ module ActiveSupport
         super(format)
       end
     end
+    alias_method :to_formatted_s, :to_s
   end
 end
 

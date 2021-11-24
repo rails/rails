@@ -138,7 +138,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_to_s_db
-    assert_equal "2000-01-01 00:00:00", @twz.to_s(:db)
+    assert_equal "2000-01-01 00:00:00", @twz.to_formatted_s(:db)
   end
 
   def test_to_s_inspect

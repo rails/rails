@@ -216,7 +216,7 @@ One possibility is to set the expiry time-stamp of the cookie with the session I
 ```ruby
 class Session < ApplicationRecord
   def self.sweep(time = 1.hour)
-    where("updated_at < ?", time.ago.to_s(:db)).delete_all
+    where("updated_at < ?", time.ago.to_formatted_s(:db)).delete_all
   end
 end
 ```
@@ -224,7 +224,7 @@ end
 The section about session fixation introduced the problem of maintained sessions. An attacker maintaining a session every five minutes can keep the session alive forever, although you are expiring sessions. A simple solution for this would be to add a `created_at` column to the sessions table. Now you can delete sessions that were created a long time ago. Use this line in the sweep method above:
 
 ```ruby
-where("updated_at < ? OR created_at < ?", time.ago.to_s(:db), 2.days.ago.to_s(:db)).delete_all
+where("updated_at < ? OR created_at < ?", time.ago.to_formatted_s(:db), 2.days.ago.to_formatted_s(:db)).delete_all
 ```
 
 Cross-Site Request Forgery (CSRF)

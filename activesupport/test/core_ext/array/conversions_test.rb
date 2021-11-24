@@ -88,8 +88,8 @@ class ToSTest < ActiveSupport::TestCase
   def test_to_s_db
     collection = [TestDB.new, TestDB.new, TestDB.new]
 
-    assert_equal "null", [].to_s(:db)
-    assert_equal "1,2,3", collection.to_s(:db)
+    assert_equal "null", [].to_formatted_s(:db)
+    assert_equal "1,2,3", collection.to_formatted_s(:db)
   end
 end
 
