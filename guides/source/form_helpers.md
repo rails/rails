@@ -1021,7 +1021,7 @@ end
 
 ### Preventing Empty Records
 
-It is often useful to ignore sets of fields that the user has not filled in. You can control this by passing a `:reject_if` proc to `accepts_nested_attributes_for`. This proc will be called with each hash of attributes submitted by the form. If the proc returns `false` then Active Record will not build an associated object for that hash. The example below only tries to build an address if the `kind` attribute is set.
+It is often useful to ignore sets of fields that the user has not filled in. You can control this by passing a `:reject_if` proc to `accepts_nested_attributes_for`. This proc will be called with each hash of attributes submitted by the form. If the proc returns `true` then Active Record will not build an associated object for that hash. The example below only tries to build an address if the `kind` attribute is set.
 
 ```ruby
 class Person < ApplicationRecord
