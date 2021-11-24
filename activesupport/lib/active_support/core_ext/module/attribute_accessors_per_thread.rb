@@ -6,6 +6,9 @@
 #
 # So the values are scoped within the Thread.current space under the class name
 # of the module.
+#
+# Note that it can also be scoped per-fiber if Rails.application.config.active_support.isolation_level
+# is set to `:fiber`
 class Module
   # Defines a per-thread class attribute and creates class and instance reader methods.
   # The underlying per-thread class variable is set to +nil+, if it is not previously defined.
@@ -14,9 +17,9 @@ class Module
   #     thread_mattr_reader :user
   #   end
   #
-  #   Current.user # => nil
-  #   Thread.current[:attr_Current_user] = "DHH"
+  #   Current.user = "DHH"
   #   Current.user # => "DHH"
+  #   Thread.new { Current.user }.values # => nil
   #
   # The attribute name must be a valid method name in Ruby.
   #
@@ -41,7 +44,8 @@ class Module
       # to work with inheritance via polymorphism.
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{sym}
-          Thread.current["attr_" + name + "_#{sym}"]
+          @__thread_mattr_#{sym} ||= "attr_\#{name}_#{sym}"
+          ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}]
         end
       EOS
 
@@ -53,7 +57,7 @@ class Module
         EOS
       end
 
-      Thread.current["attr_" + name + "_#{sym}"] = default unless default.nil?
+      ::ActiveSupport::IsolatedExecutionState["attr_#{name}_#{sym}"] = default unless default.nil?
     end
   end
   alias :thread_cattr_reader :thread_mattr_reader
@@ -84,7 +88,8 @@ class Module
       # to work with inheritance via polymorphism.
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{sym}=(obj)
-          Thread.current["attr_" + name + "_#{sym}"] = obj
+          @__thread_mattr_#{sym} ||= "attr_\#{name}_#{sym}"
+          ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}] = obj
         end
       EOS
 

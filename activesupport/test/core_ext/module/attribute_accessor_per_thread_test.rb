@@ -20,6 +20,27 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
     @object = @class.new
   end
 
+  def test_is_shared_between_fibers
+    @class.foo = 42
+    enumerator = Enumerator.new do |yielder|
+      yielder.yield @class.foo
+    end
+    assert_equal 42, enumerator.next
+  end
+
+  def test_is_not_shared_between_fibers_if_isolation_level_is_fiber
+    previous_level = ActiveSupport::IsolatedExecutionState.isolation_level
+    ActiveSupport::IsolatedExecutionState.isolation_level = :fiber
+
+    @class.foo = 42
+    enumerator = Enumerator.new do |yielder|
+      yielder.yield @class.foo
+    end
+    assert_nil enumerator.next
+  ensure
+    ActiveSupport::IsolatedExecutionState.isolation_level = previous_level
+  end
+
   def test_can_initialize_with_default_value
     Thread.new do
       @class.thread_mattr_accessor :baz, default: "default_value"
