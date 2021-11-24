@@ -112,6 +112,10 @@ module ActiveSupport
       end
     end
 
+    initializer "active_support.set_error_reporter" do |app|
+      ActiveSupport.error_reporter = app.executor.error_reporter
+    end
+
     initializer "active_support.set_configs" do |app|
       app.config.active_support.each do |k, v|
         k = "#{k}="
