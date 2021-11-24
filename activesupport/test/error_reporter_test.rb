@@ -58,6 +58,30 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_equal [], @subscriber.events
   end
 
+  test "#handle passes through the return value" do
+    result = @reporter.handle do
+      2 + 2
+    end
+    assert_equal 4, result
+  end
+
+  test "#handle returns nil on handled raise" do
+    result = @reporter.handle do
+      raise StandardError
+      2 + 2
+    end
+    assert_nil result
+  end
+
+  test "#handle returns a fallback value on handled raise" do
+    expected = "four"
+    result = @reporter.handle(fallback: expected) do
+      raise StandardError
+      2 + 2
+    end
+    assert_equal expected, result
+  end
+
   test "#record report any unhandled error and re-raise them" do
     error = ArgumentError.new("Oops")
     assert_raises ArgumentError do
@@ -75,6 +99,13 @@ class ErrorReporterTest < ActiveSupport::TestCase
       end
     end
     assert_equal [], @subscriber.events
+  end
+
+  test "#record passes through the return value" do
+    result = @reporter.record do
+      2 + 2
+    end
+    assert_equal 4, result
   end
 
   test "can have multiple subscribers" do

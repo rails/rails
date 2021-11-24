@@ -19,17 +19,24 @@ module ActiveSupport
   #
   # Both methods can be restricted to only handle a specific exception class
   #
-  #  maybe_tags = Rails.error.handle(Redis::BaseError) { redis.get("tags") }
+  #   maybe_tags = Rails.error.handle(Redis::BaseError) { redis.get("tags") }
   #
   # You can also pass some extra context information that may be used by the error subscribers:
   #
-  #  Rails.error.handle(context: { section: "admin" }) do
-  #    # ...
-  #  end
+  #   Rails.error.handle(context: { section: "admin" }) do
+  #     # ...
+  #   end
   #
   # Additionally a +severity+ can be passed along to communicate how important the error report is.
   # +severity+ can be one of +:error+, +:warning+ or +:info+. Handled errors default to the +:warning+
   # severity, and unhandled ones to +error+.
+  #
+  # Both `handle` and `record` pass through the return value from the block. In the special case of `handle` handling an
+  # error, a fallback value can be provided that will be returned:
+  #
+  #   user = Rails.error.handle(fallback: User.anonymous) do
+  #     User.find_by(params)
+  #   end
   class ErrorReporter
     SEVERITIES = %i(error warning info)
 
@@ -42,15 +49,15 @@ module ActiveSupport
 
     # Report any unhandled exception, and swallow it.
     #
-    #  Rails.error.handle do
-    #    1 + '1'
-    #  end
+    #   Rails.error.handle do
+    #     1 + '1'
+    #   end
     #
-    def handle(error_class = StandardError, severity: :warning, context: {})
+    def handle(error_class = StandardError, severity: :warning, context: {}, fallback: nil)
       yield
     rescue error_class => error
       report(error, handled: true, severity: severity, context: context)
-      nil
+      fallback
     end
 
     def record(error_class = StandardError, severity: :error, context: {})
