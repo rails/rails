@@ -985,22 +985,40 @@ module ActionView
         end
 
         def convert_direct_upload_option_to_url(name, options)
-          if options.delete(:direct_upload) && respond_to?(:rails_direct_uploads_url)
+          if (upload_options = options.delete(:direct_upload)) && respond_to?(:rails_direct_uploads_url)
             options["data-direct-upload-url"] = rails_direct_uploads_url
 
-            if options[:object] && options[:object].class.respond_to?(:reflect_on_attachment)
-              attachment_reflection = options[:object].class.reflect_on_attachment(name)
-
-              class_with_attachment = "#{options[:object].class.name.underscore}##{name}"
-              options["data-direct-upload-attachment-name"] = class_with_attachment
-
-              service_name = attachment_reflection.options[:service_name] || ActiveStorage::Blob.service.name
-              options["data-direct-upload-token"] = ActiveStorage::DirectUploadToken.generate_direct_upload_token(
-                class_with_attachment,
-                service_name,
-                session
-              )
+            case upload_options
+            when Hash
+              if upload_options[:model] && upload_options[:attachment]
+                attachment  = upload_options[:attachment] || name
+                model_class = case upload_options[:model]
+                              when String
+                                upload_options[:model].constantize
+                              when Proc
+                                upload_options[:model].call
+                end
+              else
+                raise ArgumentError, "Invalid direct upload options. Please specify a :model and :attachment."
+              end
+            else
+              if options[:object]
+                attachment  = name
+                model_class = options[:object].class
+              else
+                raise ArgumentError, "Invalid direct upload options. Please specify a :model and :attachment."
+              end
             end
+
+            attachment_reflection = model_class.reflect_on_attachment(attachment)
+            attachment_name       = "#{model_class.name.underscore}##{attachment}"
+
+            options["data-direct-upload-attachment-name"] = attachment_name
+            options["data-direct-upload-token"] = ActiveStorage::DirectUploadToken.generate_direct_upload_token(
+              attachment_name,
+              attachment_reflection.options[:service_name] || ActiveStorage::Blob.service.name,
+              session,
+            )
           end
           options
         end

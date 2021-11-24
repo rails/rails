@@ -7,16 +7,6 @@ class FormTagHelperTest < ActionView::TestCase
 
   tests ActionView::Helpers::FormTagHelper
 
-  class WithActiveStorageRoutesControllers < ActionController::Base
-    test_routes do
-      post "/rails/active_storage/direct_uploads" => "active_storage/direct_uploads#create", as: :rails_direct_uploads
-    end
-
-    def url_options
-      { host: "testtwo.host" }
-    end
-  end
-
   def setup
     super
     @controller = BasicController.new
@@ -304,31 +294,11 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>", file_field_tag("picsplz", class: "pix")
   end
 
-  def test_file_field_tag_with_direct_upload_when_rails_direct_uploads_url_is_not_defined
+  def test_file_field_tag_with_direct_upload_when_active_storage_is_not_defined
     assert_dom_equal(
       "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>",
       file_field_tag("picsplz", class: "pix", direct_upload: true)
     )
-  end
-
-  def test_file_field_tag_with_direct_upload_when_rails_direct_uploads_url_is_defined
-    @controller = WithActiveStorageRoutesControllers.new
-
-    assert_dom_equal(
-      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\" data-direct-upload-url=\"http://testtwo.host/rails/active_storage/direct_uploads\"/>",
-      file_field_tag("picsplz", class: "pix", direct_upload: true)
-    )
-  end
-
-  def test_file_field_tag_with_direct_upload_dont_mutate_arguments
-    original_options = { class: "pix", direct_upload: true }
-
-    assert_dom_equal(
-      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>",
-      file_field_tag("picsplz", original_options)
-    )
-
-    assert_equal({ class: "pix", direct_upload: true }, original_options)
   end
 
   def test_password_field_tag
