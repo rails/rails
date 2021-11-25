@@ -30,7 +30,7 @@ module ActiveSupport
         #
         # JRuby for now doesn't have Class#descendant, but when it will, it will likely
         # have the same WeakMap semantic than Truffle so we future proof this as much as possible.
-        class WeakSet
+        class WeakSet # :nodoc:
           def initialize
             @map = ObjectSpace::WeakMap.new
           end
@@ -43,6 +43,7 @@ module ActiveSupport
             @map[object_id] = object
           end
         end
+        WeakSet.new
       end
 
       class << self
