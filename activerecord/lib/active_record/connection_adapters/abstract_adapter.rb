@@ -62,6 +62,16 @@ module ActiveRecord
         end
       end
 
+      def self.validate_default_timezone(config)
+        case config
+        when nil
+        when "utc", "local"
+          config.to_sym
+        else
+          raise ArgumentError, "default_timezone must be either 'utc' or 'local'"
+        end
+      end
+
       DEFAULT_READ_QUERY = [:begin, :commit, :explain, :release, :rollback, :savepoint, :select, :with] # :nodoc:
       private_constant :DEFAULT_READ_QUERY
 
@@ -100,6 +110,8 @@ module ActiveRecord
         @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
           config.fetch(:advisory_locks, true)
         )
+
+        @default_timezone = self.class.validate_default_timezone(config[:default_timezone])
       end
 
       EXCEPTION_NEVER = { Exception => :never }.freeze # :nodoc:
@@ -127,6 +139,10 @@ module ActiveRecord
 
       def use_metadata_table?
         @config.fetch(:use_metadata_table, true)
+      end
+
+      def default_timezone
+        @default_timezone || ActiveRecord.default_timezone
       end
 
       # Determines whether writes are currently being prevented.

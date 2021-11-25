@@ -872,7 +872,7 @@ module ActiveRecord
           # If using Active Record's time zone support configure the connection to return
           # TIMESTAMP WITH ZONE types in UTC.
           unless variables["timezone"]
-            if ActiveRecord.default_timezone == :utc
+            if default_timezone == :utc
               variables["timezone"] = "UTC"
             elsif @local_tz
               variables["timezone"] = @local_tz
@@ -972,15 +972,15 @@ module ActiveRecord
         end
 
         def update_typemap_for_default_timezone
-          if @default_timezone != ActiveRecord.default_timezone && @timestamp_decoder
-            decoder_class = ActiveRecord.default_timezone == :utc ?
+          if @mapped_default_timezone != default_timezone && @timestamp_decoder
+            decoder_class = default_timezone == :utc ?
               PG::TextDecoder::TimestampUtc :
               PG::TextDecoder::TimestampWithoutTimeZone
 
             @timestamp_decoder = decoder_class.new(@timestamp_decoder.to_h)
             @connection.type_map_for_results.add_coder(@timestamp_decoder)
 
-            @default_timezone = ActiveRecord.default_timezone
+            @mapped_default_timezone = default_timezone
 
             # if default timezone has changed, we need to reconfigure the connection
             # (specifically, the session time zone)
@@ -989,7 +989,7 @@ module ActiveRecord
         end
 
         def add_pg_decoders
-          @default_timezone = nil
+          @mapped_default_timezone = nil
           @timestamp_decoder = nil
 
           coders_by_name = {

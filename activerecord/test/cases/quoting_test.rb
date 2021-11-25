@@ -6,7 +6,13 @@ module ActiveRecord
   module ConnectionAdapters
     class QuotingTest < ActiveRecord::TestCase
       def setup
-        @quoter = Class.new { include Quoting }.new
+        @quoter = Class.new {
+          include Quoting
+
+          def default_timezone
+            ActiveRecord.default_timezone
+          end
+        }.new
       end
 
       def test_quoted_true
