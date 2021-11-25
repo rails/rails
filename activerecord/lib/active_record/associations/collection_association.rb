@@ -340,7 +340,7 @@ module ActiveRecord
             end
           end
 
-          persisted + memory
+          persisted + memory.reject(&:persisted?)
         end
 
         def _create_record(attributes, raise = false, &block)

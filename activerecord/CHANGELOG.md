@@ -1,3 +1,7 @@
+*   Ignore persisted in-memory records when merging target lists.
+
+    *Kevin Sjöberg*
+
 *   Fix regression bug that caused ignoring additional conditions for preloading has_many-through relations.
 
     Fixes #43132

@@ -282,6 +282,16 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_not_predicate david.posts, :loaded?
     assert_not_predicate david.posts, :loaded
   end
+
+  def test_target_merging_ignores_persisted_in_memory_records
+    david = authors(:david)
+    assert david.thinking_posts.include?(posts(:thinking))
+
+    david.thinking_posts.create!(title: "Something else entirely", body: "Does not matter.")
+
+    assert_equal 1, david.thinking_posts.size
+    assert_equal 1, david.thinking_posts.to_a.size
+  end
 end
 
 class OverridingAssociationsTest < ActiveRecord::TestCase
