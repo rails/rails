@@ -1,0 +1,22 @@
+# Generated with pipelinit 0.2.2
+# https://pipelinit.com/
+name: Format CSS
+on:
+  pull_request:
+    paths:
+      - '**.css'
+      - '**.scss'
+      - '**.sass'
+      - '**.less'
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          cache: 'yarn'
+      - run: yarn
+      
+      - run: npx prettier --no-error-on-unmatched-pattern --check "**.css" "**.scss" "**.sass" "**.less"
+      

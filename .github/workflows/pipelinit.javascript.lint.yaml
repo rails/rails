@@ -1,0 +1,20 @@
+# Generated with pipelinit 0.2.2
+# https://pipelinit.com/
+name: Lint JavaScript
+on:
+  pull_request:
+    paths:
+      - '**.js'
+      - '**.ts'
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          cache: 'yarn'
+      - run: yarn
+      - run: npx eslint --ext .js --ext .ts .
+      

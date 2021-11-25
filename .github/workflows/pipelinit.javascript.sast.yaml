@@ -1,0 +1,18 @@
+# Generated with pipelinit 0.2.2
+# https://pipelinit.com/
+name: SAST
+on:
+  pull_request:
+    paths:
+      - '**.js'
+      - '**.ts'
+jobs:
+  semgrep:
+    name: Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/ci

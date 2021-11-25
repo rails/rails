@@ -1,0 +1,15 @@
+# Generated with pipelinit 0.2.2
+# https://pipelinit.com/
+name: Docker file Lint
+on:
+  pull_request:
+    paths:
+      - "**Dockerfile"
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container: hadolint/hadolint:latest-debian
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Hadolint on the project
+        run: hadolint $(find . -iname "*Dockerfile*" -o -iwholename "./Dockerfile")

@@ -1,0 +1,15 @@
+# Generated with pipelinit 0.2.2
+# https://pipelinit.com/
+name: Lint Shell
+on:
+  pull_request:
+    paths:
+      - "**.sh"
+      - "**.bash"
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
