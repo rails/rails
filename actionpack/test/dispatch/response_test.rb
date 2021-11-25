@@ -576,7 +576,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
 
     assert_equal("text/csv; charset=utf-16; header=present", @response.headers["Content-Type"])
     assert_equal("text/csv; charset=utf-16; header=present", @response.content_type)
-    assert_equal("text/csv", @response.media_type)
+    assert_equal("text/csv; header=present", @response.media_type)
     assert_equal("utf-16", @response.charset)
   end
 
@@ -596,6 +596,14 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal("text/csv; header=present; charset=utf-16", @response.content_type)
     assert_equal("text/csv; header=present", @response.media_type)
     assert_equal("utf-16", @response.charset)
+  end
+
+  test "#content_type= with extra stuff after charset" do
+    @response = ActionDispatch::Response.new
+    @response.content_type = "text/csv; charset=utf-16; header=present"
+    assert(@response.content_type.include?("text/csv"))
+    assert(@response.content_type.include?("header=present"))
+    assert(@response.content_type.include?("charset=utf-16"))
   end
 
   test "response Content-Type with quoted-string" do

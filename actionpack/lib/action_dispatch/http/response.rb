@@ -410,17 +410,27 @@ module ActionDispatch # :nodoc:
     ContentTypeHeader = Struct.new :mime_type, :charset
     NullContentTypeHeader = ContentTypeHeader.new nil, nil
 
-    CONTENT_TYPE_PARSER = /
-      \A
-      (?<mime_type>[^;\s]+\s*(?:;\s*(?:(?!charset)[^;\s])+)*)?
-      (?:;\s*charset=(?<quote>"?)(?<charset>[^;\s]+)\k<quote>)?
-    /x # :nodoc:
-
     def parse_content_type(content_type)
-      if content_type && match = CONTENT_TYPE_PARSER.match(content_type)
-        ContentTypeHeader.new(match[:mime_type], match[:charset])
-      else
+      unless content_type
+        return NullContentTypeHeader
+      end
+
+      charset_segments, others = content_type.to_s.split(";").partition do |segment|
+        key, value = segment.strip.split("=", 2)
+        key == "charset" && value
+      end
+      if charset_segments.empty? && others.empty?
         NullContentTypeHeader
+      else
+        unless charset_segments.empty?
+          charset = charset_segments.last.strip.split("=", 2).last
+          if charset.length >= 3 && charset.start_with?('"') && charset.end_with?('"')
+            charset = charset[1..-2]
+          end
+        end
+        mime_type = others.join(";")
+        mime_type = nil if mime_type.empty?
+        ContentTypeHeader.new(mime_type, charset)
       end
     end
 
