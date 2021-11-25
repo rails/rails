@@ -101,7 +101,7 @@ module ActiveStorage
       end
     end
 
-    def headers_for_direct_upload(key, content_type:, checksum:, filename: nil, disposition: nil, custom_metadata:, **)
+    def headers_for_direct_upload(key, content_type:, checksum:, filename: nil, disposition: nil, custom_metadata: {}, **)
       content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
 
       { "Content-Type" => content_type, "Content-MD5" => checksum, "x-ms-blob-content-disposition" => content_disposition, "x-ms-blob-type" => "BlockBlob", **custom_metadata_headers(custom_metadata) }
