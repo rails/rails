@@ -1,3 +1,7 @@
+*   Ignore persisted in-memory records when merging target lists.
+
+    *Kevin Sjöberg*
+
 *   Add a new option `:update_only` to `upsert_all` to configure the list of columns to update in case of conflict.
 
     Before, you could only customize the update SQL sentence via `:on_duplicate`. There is now a new option `:update_only` that lets you provide a list of columns to update in case of conflict:
