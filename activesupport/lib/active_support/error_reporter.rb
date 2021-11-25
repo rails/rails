@@ -11,7 +11,7 @@ module ActiveSupport
   #
   # If an error is raised, it will be reported and swallowed.
   #
-  # Alternatively if you want to report the error but not swallow it, you can use `record`
+  # Alternatively if you want to report the error but not swallow it, you can use +record+
   #
   #   Rails.error.record do
   #     do_something!
@@ -31,10 +31,11 @@ module ActiveSupport
   # +severity+ can be one of +:error+, +:warning+ or +:info+. Handled errors default to the +:warning+
   # severity, and unhandled ones to +error+.
   #
-  # Both `handle` and `record` pass through the return value from the block. In the special case of `handle` handling an
-  # error, a fallback value can be provided that will be returned:
+  # Both +handle+ and +record+ pass through the return value from the block. In the case of +handle+
+  # rescuing an error, a fallback can be provided. The fallback must be a callable whose result will
+  # be returned when the block raises and is handled:
   #
-  #   user = Rails.error.handle(fallback: User.anonymous) do
+  #   user = Rails.error.handle(fallback: -> { User.anonymous }) do
   #     User.find_by(params)
   #   end
   class ErrorReporter
@@ -57,7 +58,7 @@ module ActiveSupport
       yield
     rescue error_class => error
       report(error, handled: true, severity: severity, context: context)
-      fallback
+      fallback.call if fallback
     end
 
     def record(error_class = StandardError, severity: :error, context: {})
@@ -90,7 +91,7 @@ module ActiveSupport
 
     # When the block based +handle+ and +record+ methods are not suitable, you can directly use +report+
     #
-    #  Rails.error.report(error, handled: true)
+    #   Rails.error.report(error, handled: true)
     def report(error, handled:, severity: handled ? :warning : :error, context: {})
       unless SEVERITIES.include?(severity)
         raise ArgumentError, "severity must be one of #{SEVERITIES.map(&:inspect).join(", ")}, got: #{severity.inspect}"

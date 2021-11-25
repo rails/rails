@@ -73,13 +73,27 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_nil result
   end
 
-  test "#handle returns a fallback value on handled raise" do
-    expected = "four"
-    result = @reporter.handle(fallback: expected) do
+  test "#handle returns the value of the fallback as a proc on handled raise" do
+    result = @reporter.handle(fallback: -> { 2 + 2 }) do
       raise StandardError
-      2 + 2
     end
-    assert_equal expected, result
+    assert_equal 4, result
+  end
+
+  test "#handle raises if the fallback is not a callable" do
+    assert_raises NoMethodError do
+      @reporter.handle(fallback: "four") do
+        raise StandardError
+      end
+    end
+  end
+
+  test "#handle raises the error up if fallback is a proc that then also raises" do
+    assert_raises ArgumentError do
+      @reporter.handle(fallback: -> { raise ArgumentError }) do
+        raise StandardError
+      end
+    end
   end
 
   test "#record report any unhandled error and re-raise them" do
