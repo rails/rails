@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# == Attribute Accessors per Thread
+#
 # Extends the module object with class/module and instance accessors for
 # class/module attributes, just like the native attr* accessors for instance
 # attributes, but does so on a per-thread basis.
@@ -116,16 +118,18 @@ class Module
   #   Account.user     # => "DHH"
   #   Account.new.user # => "DHH"
   #
+  # Unlike `mattr_accessor`, values are *not* shared with subclasses or parent classes.
   # If a subclass changes the value, the parent class' value is not changed.
-  # Similarly, if the parent class changes the value, the value of subclasses
-  # is not changed.
+  # If the parent class changes the value, the value of subclasses is not changed.
   #
   #   class Customer < Account
   #   end
   #
-  #   Customer.user = "Rafael"
-  #   Customer.user # => "Rafael"
-  #   Account.user  # => "DHH"
+  #   Account.user   # => "DHH"
+  #   Customer.user  # => nil
+  #   Customer.user  = "Rafael"
+  #   Customer.user  # => "Rafael"
+  #   Account.user   # => "DHH"
   #
   # To omit the instance writer method, pass <tt>instance_writer: false</tt>.
   # To omit the instance reader method, pass <tt>instance_reader: false</tt>.
