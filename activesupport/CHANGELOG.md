@@ -1,3 +1,11 @@
+*   Add `Pathname#existence`.
+
+    ```ruby
+    Pathname.new("file").existence&.read
+    ```
+
+    *Timo Schilling*
+
 *   Remove deprecate `ActiveSupport::Multibyte::Unicode.default_normalization_form`.
 
     *Rafael Mendonça França*

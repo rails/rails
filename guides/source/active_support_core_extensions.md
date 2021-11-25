@@ -4055,3 +4055,18 @@ end
 NOTE: Defined in `active_support/core_ext/load_error.rb`.
 
 [LoadError#is_missing?]: https://api.rubyonrails.org/classes/LoadError.html#method-i-is_missing-3F
+
+Extensions to Pathname
+-------------------------
+
+### `existence`
+
+The [`existence`][Pathname#existence] method returns the receiver if the named file exists otherwise returns +nil+. It is useful for idioms like this:
+
+```ruby
+content = Pathname.new("file").existence&.read
+```
+
+NOTE: Defined in `active_support/core_ext/pathname/existence.rb`.
+
+[Pathname#existence]: https://api.rubyonrails.org/classes/Pathname.html#method-i-existence
