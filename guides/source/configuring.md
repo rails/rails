@@ -1738,6 +1738,16 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.active_record.partial_inserts`: `false`
 - `config.active_storage.variant_processor`: `:vips`
 - `config.action_controller.wrap_parameters_by_default`: `true`
+- `config.action_dispatch.default_headers`:
+
+    {
+      "X-Frame-Options" => "SAMEORIGIN",
+      "X-XSS-Protection" => "0",
+      "X-Content-Type-Options" => "nosniff",
+      "X-Download-Options" => "noopen",
+      "X-Permitted-Cross-Domain-Policies" => "none",
+      "Referrer-Policy" => "strict-origin-when-cross-origin"
+    }
 
 #### For '6.1', defaults from previous versions below and:
 
@@ -1822,6 +1832,16 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.active_storage.video_preview_arguments`: `"-y -vframes 1 -f image2"`
 - `config.active_storage.variant_processor`: `:mini_magick`
 - `config.action_controller.wrap_parameters_by_default`: `false`
+- `config.action_dispatch.default_headers`:
+
+    {
+      "X-Frame-Options" => "SAMEORIGIN",
+      "X-XSS-Protection" => "1; mode=block",
+      "X-Content-Type-Options" => "nosniff",
+      "X-Download-Options" => "noopen",
+      "X-Permitted-Cross-Domain-Policies" => "none",
+      "Referrer-Policy" => "strict-origin-when-cross-origin"
+    }
 
 ### Configuring a Database
 

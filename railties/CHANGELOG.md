@@ -1,3 +1,18 @@
+*   Change default `X-XSS-Protection` header to disable XSS auditor
+
+    This header has been deprecated and the XSS auditor it triggered
+    has been removed from all major modern browsers (in favour of
+    Content Security Policy) that implemented this header to begin with
+    (Firefox never did).
+
+    [OWASP](https://owasp.org/www-project-secure-headers/#x-xss-protection)
+    suggests setting this header to '0' to disable the default behaviour
+    on old browsers as it can introduce additional security issues.
+
+    Added the new behaviour as a framework default from Rails 7.0.
+
+    *Christian Sutter*
+
 *   Scaffolds now use date_field, time_field and datetime_field instead of
     date_select, time_select and datetime_select; thus providing native date/time pickers.
 

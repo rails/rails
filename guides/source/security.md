@@ -1036,7 +1036,7 @@ Every HTTP response from your Rails application receives the following default s
 ```ruby
 config.action_dispatch.default_headers = {
   'X-Frame-Options' => 'SAMEORIGIN',
-  'X-XSS-Protection' => '1; mode=block',
+  'X-XSS-Protection' => '0',
   'X-Content-Type-Options' => 'nosniff',
   'X-Download-Options' => 'noopen',
   'X-Permitted-Cross-Domain-Policies' => 'none',
@@ -1062,7 +1062,7 @@ config.action_dispatch.default_headers.clear
 Here is a list of common headers:
 
 * **X-Frame-Options:** _`SAMEORIGIN` in Rails by default_ - allow framing on same domain. Set it to 'DENY' to deny framing at all or remove this header completely if you want to allow framing on all websites.
-* **X-XSS-Protection:** _`1; mode=block` in Rails by default_ - use XSS Auditor and block page if XSS attack is detected. Set it to '0;' if you want to switch XSS Auditor off(useful if response contents scripts from request parameters)
+* **X-XSS-Protection:** _`0` in Rails by default_ - [deprecated legacy header](https://owasp.org/www-project-secure-headers/#x-xss-protection), set to '0' to disable problematic legacy XSS auditors.
 * **X-Content-Type-Options:** _`nosniff` in Rails by default_ - stops the browser from guessing the MIME type of a file.
 * **X-Content-Security-Policy:** [A powerful mechanism for controlling which sites certain content types can be loaded from](https://w3c.github.io/webappsec-csp/)
 * **Access-Control-Allow-Origin:** Used to control which sites are allowed to bypass same origin policies and send cross-origin requests.
