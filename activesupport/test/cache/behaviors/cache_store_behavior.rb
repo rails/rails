@@ -480,6 +480,27 @@ module CacheStoreBehavior
     end
   end
 
+  def test_expires_in_zero_means_infinite_expiry
+    time = Time.local(2008, 4, 24)
+
+    Time.stub(:now, time) do
+      @cache.write("foo", "bar", expires_in: 0)
+      assert_equal "bar", @cache.read("foo")
+    end
+
+    Time.stub(:now, time + 30) do
+      assert_equal "bar", @cache.read("foo")
+    end
+
+    Time.stub(:now, time + 61) do
+      assert_equal "bar", @cache.read("foo")
+    end
+
+    Time.stub(:now, time + 121) do
+      assert_equal "bar", @cache.read("foo")
+    end
+  end
+
   def test_expires_at
     time = Time.local(2008, 4, 24)
 

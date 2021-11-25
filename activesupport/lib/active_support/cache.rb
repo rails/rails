@@ -270,10 +270,12 @@ module ActiveSupport
       # (in which case all entries will be affected), or it can be supplied to
       # the +fetch+ or +write+ method to affect just one entry.
       # <tt>:expire_in</tt> and <tt>:expired_in</tt> are aliases for
-      # <tt>:expires_in</tt>.
+      # <tt>:expires_in</tt>. If <tt>:expires_in</tt> is zero or negative,
+      # it will be ignored and the entry won't expire.
       #
       #   cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 5.minutes)
       #   cache.write(key, value, expires_in: 1.minute) # Set a lower value for one entry
+      #   cache.write(key, value, expires_in: 0) # `expires_in: 0` will not expire.
       #
       # Setting <tt>:expires_at</tt> will set an absolute expiration time on the cache.
       # All caches support auto-expiring content after a specified number of
@@ -920,7 +922,7 @@ module ActiveSupport
         @value      = value
         @version    = version
         @created_at = 0.0
-        @expires_in = expires_at&.to_f || expires_in && (expires_in.to_f + Time.now.to_f)
+        @expires_in = expires_at&.to_f || expires_in && expires_in > 0 && (expires_in.to_f + Time.now.to_f)
         @compressed = true if compressed
       end
 

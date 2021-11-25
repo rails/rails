@@ -1,3 +1,9 @@
+*   `Rails.cache.write(key, expires_in: 0)` now writes entries that will never expire.
+
+    Previously it wrote an entry that would expire immediately.
+
+    *Alex Ghiculescu*
+
 *   Remove deprecate `ActiveSupport::Multibyte::Unicode.default_normalization_form`.
 
     *Rafael Mendonça França*
