@@ -1312,9 +1312,28 @@ en:
       get("/assets/bar.js")
       assert_match "// App's bar js", last_response.body.strip
 
-      # ensure that railties are not added twice
-      railties = Rails.application.send(:ordered_railties).map(&:class)
-      assert_equal railties, railties.uniq
+      assert_equal <<~EXPECTED, Rails.application.send(:ordered_railties).flatten.map(&:class).map(&:name).join("\n") << "\n"
+        I18n::Railtie
+        ActiveSupport::Railtie
+        ActionDispatch::Railtie
+        ActiveModel::Railtie
+        ActionController::Railtie
+        ActiveRecord::Railtie
+        GlobalID::Railtie
+        ActiveJob::Railtie
+        ActionMailer::Railtie
+        Rails::TestUnitRailtie
+        Sprockets::Railtie
+        ActionView::Railtie
+        ActiveStorage::Engine
+        ActionCable::Engine
+        ActionMailbox::Engine
+        ActionText::Engine
+        Bukkits::Engine
+        Importmap::Engine
+        AppTemplate::Application
+        Blog::Engine
+      EXPECTED
     end
 
     test "railties_order adds :all with lowest priority if not given" do

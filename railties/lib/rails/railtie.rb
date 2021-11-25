@@ -146,7 +146,7 @@ module Rails
       delegate :config, to: :instance
 
       def subclasses
-        super.reject(&:abstract_railtie?)
+        super.reject(&:abstract_railtie?).sort
       end
 
       def rake_tasks(&blk)
@@ -190,6 +190,23 @@ module Rails
       def configure(&block)
         instance.configure(&block)
       end
+
+      def <=>(other) # :nodoc:
+        load_index <=> other.load_index
+      end
+
+      def inherited(subclass)
+        subclass.increment_load_index
+        super
+      end
+
+      protected
+        attr_reader :load_index
+
+        def increment_load_index
+          @@load_counter ||= 0
+          @load_index = (@@load_counter += 1)
+        end
 
       private
         def generate_railtie_name(string)
