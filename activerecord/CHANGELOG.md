@@ -1,3 +1,19 @@
+*   Fix `ActiveRecord::QueryMethods#in_order_of` behavior for integer enums.
+
+    `ActiveRecord::QueryMethods#in_order_of` didn't work as expected for enums stored as integers in the database when passing an array of strings or symbols as the order argument. This unexpected behavior occurred because the string or symbol values were not casted to match the integers in the database.
+
+    The following example now works as expected:
+
+    ```ruby
+    class Book < ApplicationRecord
+      enum status: [:proposed, :written, :published]
+    end
+
+    Book.in_order_of(:status, %w[written published proposed])
+    ```
+
+    *Alexandre Ruban*
+
 *   Ignore persisted in-memory records when merging target lists.
 
     *Kevin Sjöberg*
