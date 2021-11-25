@@ -228,10 +228,14 @@ module ActiveModel
 
     undef :to_h
 
+    EMPTY_ARRAY = [].freeze # :nodoc:
+
     # Returns a Hash of attributes with an array of their error messages.
     def messages
       hash = to_hash
+      hash.default = EMPTY_ARRAY
       hash.freeze
+      hash
     end
 
     # Returns a Hash of attributes with an array of their error details.
@@ -239,7 +243,7 @@ module ActiveModel
       hash = group_by_attribute.transform_values do |errors|
         errors.map(&:details)
       end
-      hash.default = []
+      hash.default = EMPTY_ARRAY
       hash.freeze
       hash
     end

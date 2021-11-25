@@ -455,6 +455,14 @@ class ErrorsTest < ActiveModel::TestCase
     assert_nil person.errors.as_json.default_proc
   end
 
+  test "messages returns empty frozen array when when accessed with non-existent attribute" do
+    errors = ActiveModel::Errors.new(Person.new)
+
+    assert_equal [], errors.messages[:foo]
+    assert_raises(FrozenError) { errors.messages[:foo] << "foo" }
+    assert_raises(FrozenError) { errors.messages[:foo].clear }
+  end
+
   test "full_messages doesn't require the base object to respond to `:errors" do
     model = Class.new do
       def initialize
@@ -621,6 +629,8 @@ class ErrorsTest < ActiveModel::TestCase
     errors = ActiveModel::Errors.new(Person.new)
 
     assert_equal [], errors.details[:foo]
+    assert_raises(FrozenError) { errors.details[:foo] << "foo" }
+    assert_raises(FrozenError) { errors.details[:foo].clear }
   end
 
   test "copy errors" do
