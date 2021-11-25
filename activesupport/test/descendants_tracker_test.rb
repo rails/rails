@@ -11,7 +11,6 @@ class DescendantsTrackerTest < ActiveSupport::TestCase
       @original_state.each { |k, v| @original_state[k] = v.dup }
     end
 
-    ActiveSupport::DescendantsTracker.clear
     eval <<~RUBY
       class Parent
         extend ActiveSupport::DescendantsTracker
@@ -90,17 +89,8 @@ class DescendantsTrackerTest < ActiveSupport::TestCase
     end
   end
 
-  test ".clear deletes all state" do
-    ActiveSupport::DescendantsTracker.clear
-    if ActiveSupport::DescendantsTracker.class_variable_defined?(:@@direct_descendants)
-      assert_empty ActiveSupport::DescendantsTracker.class_variable_get(:@@direct_descendants)
-    end
-  end
-
-  test ".clear(only) deletes the given classes only" do
-    skip "Irrelevant for native Class#descendants" if ActiveSupport::DescendantsTracker.native?
-
-    ActiveSupport::DescendantsTracker.clear(only: Set[Child2, Grandchild1])
+  test ".clear(classes) deletes the given classes only" do
+    ActiveSupport::DescendantsTracker.clear(Set[Child2, Grandchild1])
 
     assert_equal_sets [Child1, Grandchild2], Parent.descendants
     assert_equal_sets [Grandchild2], Child1.descendants

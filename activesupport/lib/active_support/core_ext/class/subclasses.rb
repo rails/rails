@@ -20,7 +20,7 @@ class Class
     ObjectSpace.each_object(singleton_class).reject do |k|
       k.singleton_class? || k == self
     end
-  end unless ActiveSupport::RubyFeatures::CLASS_DESCENDANTS
+  end unless ActiveSupport::RubyFeatures::CLASS_SUBCLASSES
 
   # Returns an array with the direct children of +self+.
   #
