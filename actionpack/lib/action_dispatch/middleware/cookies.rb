@@ -439,7 +439,7 @@ module ActionDispatch
         end
 
         def write_cookie?(cookie)
-          request.ssl? || !cookie[:secure] || always_write_cookie
+          request.ssl? || request.host.end_with?(".onion") || !cookie[:secure] || always_write_cookie
         end
 
         def handle_options(options)
