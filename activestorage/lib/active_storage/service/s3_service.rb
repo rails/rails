@@ -79,7 +79,8 @@ module ActiveStorage
 
     def move(source_key, target_key)
       instrument :move, source_key: source_key, target_key: target_key do
-        bucket.object(source_key).copy_to(bucket.object(target_key))
+        object_for(source_key).copy_to(bucket.object(target_key))
+        object_for(source_key).delete
       end
     end
 
