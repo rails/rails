@@ -79,9 +79,15 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   # Overrides test from LocalCacheBehavior in order to stub out the cache clear
   # and replace it with a delete.
   def test_clear_also_clears_local_cache
-    key = "#{@namespace}:foo"
+    key = SecureRandom.uuid
+    cache = lookup_store(raw: true)
     client.stub(:flush_all, -> { client.delete(key) }) do
-      super
+      cache.with_local_cache do
+        cache.write(key, SecureRandom.alphanumeric)
+        cache.clear
+        assert_nil cache.read(key)
+      end
+      assert_nil cache.read(key)
     end
   end
 

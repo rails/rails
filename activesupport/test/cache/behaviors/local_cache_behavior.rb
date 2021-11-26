@@ -30,8 +30,6 @@ module LocalCacheBehavior
   end
 
   def test_clear_also_clears_local_cache
-    skip "MemCached Store is failing on this test..."
-
     key = SecureRandom.uuid
     @cache.with_local_cache do
       @cache.write(key, SecureRandom.alphanumeric)
