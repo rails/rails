@@ -146,7 +146,7 @@ class ErrorTest < ActiveModel::TestCase
   test "message renders lazily using current locale" do
     error = nil
 
-    I18n.backend.store_translations(:pl, errors: { messages: { invalid: "jest nieprawidłowe" } })
+    I18n.backend.store_translations(:pl, errors: { messages: { invalid: { message: "jest nieprawidłowe" } } })
 
     I18n.with_locale(:en) { error = ActiveModel::Error.new(Person.new, :name, :invalid) }
     I18n.with_locale(:pl) {
@@ -156,7 +156,7 @@ class ErrorTest < ActiveModel::TestCase
 
   test "message with type as a symbol and indexed attribute can lookup without index in attribute key" do
     I18n.backend.store_translations(:en, activemodel: { errors: { models: { 'error_test/manager': {
-      attributes: { reports: { name: { presence: "must be present" } } } } } } })
+      attributes: { reports: { name: { presence: { message: "must be present" } } } } } } } })
 
     error = ActiveModel::Error.new(Manager.new, :'reports[123].name', :presence)
 
@@ -164,9 +164,118 @@ class ErrorTest < ActiveModel::TestCase
   end
 
   test "message uses current locale" do
-    I18n.backend.store_translations(:en, errors: { messages: { inadequate: "Inadequate %{attribute} found!" } })
+    I18n.backend.store_translations(:en, errors: { messages: { inadequate: { message: "Inadequate %{attribute} found!" } } })
     error = ActiveModel::Error.new(Person.new, :name, :inadequate)
     assert_equal "Inadequate name found!", error.message
+  end
+
+  # custom_message
+
+  test "custom_message with type as a symbol" do
+    I18n.backend.store_translations(:en, activemodel: { errors: { models: { 'error_test/manager': {
+      attributes: { name: { presence: { custom_message: "Whoops! Seems you didn't type anything" } } } } } } })
+
+    error = ActiveModel::Error.new(Manager.new, :name, :presence)
+    assert_equal "Whoops! Seems you didn't type anything", error.custom_message
+  end
+
+  test "custom_message with custom interpolation" do
+    I18n.backend.store_translations(:en, activemodel: { errors: { models: { 'error_test/manager': {
+      attributes: { name: { presence: { custom_message: "Whoops! Seems you didn't type anything %{value}" } } } } } } })
+
+    subject = ActiveModel::Error.new(Manager.new, :name, :presence,  value: "mate!")
+    assert_equal "Whoops! Seems you didn't type anything mate!", subject.custom_message
+  end
+
+  test "custom_message returns singular interpolation" do
+    I18n.backend.store_translations(:en, activemodel: { errors: { models: { 'error_test/manager': {
+      attributes: { name: { too_long: { custom_message: { one: "Cat on the keyboard? Maximum is %{count} character" } } } } } } } })
+
+    subject = ActiveModel::Error.new(Manager.new, :name, :too_long,  count: 1)
+    assert_equal "Cat on the keyboard? Maximum is 1 character", subject.custom_message
+  end
+
+  test "custom_message returns plural interpolation" do
+    I18n.backend.store_translations(:en, activemodel: { errors: { models: { 'error_test/manager': {
+      attributes: { name: { too_long: { custom_message: { other: "Cat on the keyboard? Maximum is %{count} characters" } } } } } } } })
+
+    subject = ActiveModel::Error.new(Manager.new, :name, :too_long,  count: 10)
+    assert_equal "Cat on the keyboard? Maximum is 10 characters", subject.custom_message
+  end
+
+  test "custom_message count interpolation" do
+    I18n.backend.store_translations(:en, activemodel: { errors: { models: { 'error_test/manager': {
+      attributes: { name: { too_long: { custom_message: "custom message count interpolation: %{count}" } } } } } } })
+
+    subject = ActiveModel::Error.new(Manager.new, :name, :too_long,  count: 99)
+    assert_equal "custom message count interpolation: 99", subject.custom_message
+  end
+
+  test "custom_message handles lambda in messages and option values, and i18n interpolation" do
+    subject = ActiveModel::Error.new(Manager.new, :name, :invalid,
+                                     foo: "foo",
+                                     bar: "bar",
+                                     baz: Proc.new { "baz" },
+                                     custom_message: Proc.new { |model, options|
+                                       "%{attribute} %{foo} #{options[:bar]} %{baz}"
+                                     }
+    )
+    assert_equal "name foo bar baz", subject.custom_message
+  end
+
+  test "custom_message with type as custom message" do
+    error = ActiveModel::Error.new(Manager.new, :name, custom_message: "It's not correct")
+    assert_equal "It's not correct", error.custom_message
+  end
+
+  test "custom_message with options[:message] as custom message" do
+    error = ActiveModel::Error.new(Manager.new, :name, :blank, custom_message: "cannot be blank")
+    assert_equal "cannot be blank", error.custom_message
+  end
+
+  test "custom_message renders lazily using current locale" do
+    error = nil
+
+    I18n.backend.store_translations(:es, errors: { custom_messages: { invalid: "Es inválido" } })
+
+    I18n.with_locale(:en) { error = ActiveModel::Error.new(Person.new, :name, :invalid) }
+    I18n.with_locale(:es) {
+      assert_equal "Es inválido", error.custom_message
+    }
+  end
+
+  test "custom_message with type as a symbol and indexed attribute can lookup without index in attribute key" do
+    I18n.backend.store_translations(:en, activemodel: { errors: { models: { 'error_test/manager': {
+      attributes: { reports: { name: { presence: { custom_message: "must be present" } } } } } } } })
+
+    error = ActiveModel::Error.new(Manager.new, :'reports[123].name', :presence)
+
+    assert_equal "must be present", error.custom_message
+  end
+
+  test "custom_message uses current locale" do
+    I18n.backend.store_translations(:en, errors: { custom_messages: { inadequate: "Inadequate %{attribute} found!" } })
+    error = ActiveModel::Error.new(Person.new, :name, :inadequate)
+    assert_equal "Inadequate name found!", error.custom_message
+  end
+
+  # Custom Message & Message
+  test "responds to both message and custom_message" do
+    I18n.backend.store_translations(:en, activemodel: { errors: { models: { 'error_test/manager': {
+      attributes: { name: { custom_blank: { custom_message: "Whoops! You need to type something", message: "can't be blank" } } } } } } })
+
+    error = ActiveModel::Error.new(Manager.new, :name, :custom_blank)
+    assert_equal "Whoops! You need to type something", error.custom_message
+    assert_equal "can't be blank", error.message
+  end
+
+  # Supports previous yaml nesting
+  test "supports previous yaml nesting" do
+    I18n.backend.store_translations(:en, activemodel: { errors: { models: { 'error_test/manager': {
+      attributes: { name: { custom_blank: "custom can't be blank" } } } } } })
+
+    error = ActiveModel::Error.new(Manager.new, :name, :custom_blank)
+    assert_equal "custom can't be blank", error.message
   end
 
   # full_message

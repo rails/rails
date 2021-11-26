@@ -214,22 +214,54 @@ module ActiveModel
     end
 
     # Returns a Hash that can be used as the JSON representation for this
-    # object. You can pass the <tt>:full_messages</tt> option. This determines
-    # if the json object should contain full messages or not (false by default).
+    # object. Use the <tt>message_method: <method_mame></tt> argument
+    # with the values <tt>:message</tt>, <tt>:custom_message</tt> and <tt>:full_message</tt>
+    # to format the message with the desired method. By default it'll be <tt>:message</tt>.
+    # See `error.rb` for the definition of each method.
     #
-    #   person.errors.as_json                      # => {:name=>["cannot be nil"]}
-    #   person.errors.as_json(full_messages: true) # => {:name=>["name cannot be nil"]}
-    def as_json(options = nil)
-      to_hash(options && options[:full_messages])
+    #   person.errors.as_json                                 # => {:name=>["cannot be nil"]}
+    #   person.errors.as_json(message_method: :full_message)  # => {:name=>["name cannot be nil"]}
+    #   person.errors.as_json(message_method: message)        # => { :name => ["cannot be nil"] }
+    #   person.errors.as_json(message_method: full_message)   # => { :name => ["Name cannot be nil"] }
+    #   person.errors.as_json(message_method: custom_message) # => { :name => ["Whoops! You need to provide a value"]}
+    def as_json(**options)
+      return to_hash if options.nil?
+
+      if options.keys.include?(:full_messages)
+        ActiveSupport::Deprecation.warn(
+          "using the full_messages boolean positional argument is deprecated" \
+          "and will be unsupported in a future version of Rails." \
+          "Use the method_type keyword argument with either :message, :full_message, or :custom_message"
+        )
+        to_hash(options && options[:full_messages])
+      else
+        to_hash(**options)
+      end
     end
 
-    # Returns a Hash of attributes with their error messages. If +full_messages+
-    # is +true+, it will contain full messages (see +full_message+).
+    def to_json(**options)
+      as_json(**options).to_json
+    end
+
+    # Returns a Hash of attributes with their error messages.
+    # Use the <tt>message_method: <method_mame></tt> argument
+    # with the values <tt>:message</tt>, <tt>:custom_message</tt> and <tt>:full_message</tt>
+    # to format the message with the desired method. By default it'll be <tt>:message</tt>.
+    # See `error.rb` for the definition of each method.
     #
     #   person.errors.to_hash       # => {:name=>["cannot be nil"]}
     #   person.errors.to_hash(true) # => {:name=>["name cannot be nil"]}
-    def to_hash(full_messages = false)
-      message_method = full_messages ? :full_message : :message
+    def to_hash(full_messages = false, message_method: nil)
+      if message_method.nil?
+        ActiveSupport::Deprecation.warn(
+          "using the full_messages boolean positional argument is deprecated. " \
+          "Use the method_type keyword argument with :message, :full_message, or :custom_message"
+        )
+        message_method = full_messages ? :full_message : :message
+      else
+        message_method = message_method.presence || :message
+      end
+
       group_by_attribute.transform_values do |errors|
         errors.map(&message_method)
       end
@@ -242,6 +274,14 @@ module ActiveModel
     # Returns a Hash of attributes with an array of their error messages.
     def messages
       hash = to_hash
+      hash.default = EMPTY_ARRAY
+      hash.freeze
+      hash
+    end
+
+    # Returns a Hash of attributes with an array of their custom error messages.
+    def custom_messages
+      hash = to_hash(message_method: :custom_message)
       hash.default = EMPTY_ARRAY
       hash.freeze
       hash
@@ -406,6 +446,20 @@ module ActiveModel
       where(attribute).map(&:full_message).freeze
     end
 
+    # Returns all the custom error messages for a given attribute in an array.
+    #
+    #   class Person
+    #     validates_presence_of :name, :email
+    #     validates_length_of :name, in: 5..30
+    #   end
+    #
+    #   person = Person.create()
+    #   person.errors.custom_messages_for(:name)
+    #   # => ["Give me at least 5 characters", "I don't think your name should be blank..."]
+    def custom_messages_for(attribute)
+      where(attribute).map(&:custom_message).freeze
+    end
+
     # Returns all the error messages for a given attribute in an array.
     #
     #   class Person
@@ -430,11 +484,30 @@ module ActiveModel
     # Translates an error message in its default scope
     # (<tt>activemodel.errors.messages</tt>).
     #
-    # Error messages are first looked up in <tt>activemodel.errors.models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>,
-    # if it's not there, it's looked up in <tt>activemodel.errors.models.MODEL.MESSAGE</tt> and if
-    # that is not there also, it returns the translation of the default message
-    # (e.g. <tt>activemodel.errors.messages.MESSAGE</tt>). The translated model
-    # name, translated attribute name, and the value are available for
+    # Note: Since Rails 7.0 the lookup chain changed to allow
+    # custom_messages alongside messages. For this reason, the
+    # key `message` was added to the lookup chain.
+    # Even though the lookup chain handles the previous behaviour,
+    # it's prefered to use the more specific version of the chain defining
+    # explicit a message: key and value.
+    #
+    # Error messages are looked up in the following order:
+    # <tt>activemodel.errors.models.MODEL.attributes.ATTRIBUTE.TYPE.message</tt>
+    # <tt>activemodel.errors.models.MODEL.TYPE.message</tt>
+    # <tt>activemodel.errors.models.MODEL.attributes.ATTRIBUTE.TYPE</tt> * kept for compatibility with previous lookup chain
+    # <tt>activemodel.errors.models.MODEL.TYPE</tt> * kept for compatibility with previous lookup chain
+    #
+    # If it's not there, next it's looked up in:
+    # <tt>activemodel.errors.message.TYPE.message</tt>
+    # <tt>activemodel.errors.message.TYPE</tt> * kept for compatibility with previous lookup chain
+    #
+    # Then, it'll be looked up without the i18n_scope prefix (activemodel)
+    # <tt>errors.attributes.ATTRIBUTE.TYPE.message</tt>
+    # <tt>errors.attributes.ATTRIBUTE.TYPE</tt> * kept for compatibility with previous lookup chain
+    # <tt>errors.messages.TYPE.message</tt>
+    # <tt>errors.messages.TYPE</tt> * kept for compatibility with previous lookup chain
+    #
+    # The translated model name, translated attribute name, and the value are available for
     # interpolation.
     #
     # When using inheritance in your models, it will check all the inherited
@@ -443,16 +516,59 @@ module ActiveModel
     # the <tt>:blank</tt> error message for the <tt>title</tt> attribute,
     # it looks for these translations:
     #
-    # * <tt>activemodel.errors.models.admin.attributes.title.blank</tt>
-    # * <tt>activemodel.errors.models.admin.blank</tt>
-    # * <tt>activemodel.errors.models.user.attributes.title.blank</tt>
-    # * <tt>activemodel.errors.models.user.blank</tt>
-    # * any default you provided through the +options+ hash (in the <tt>activemodel.errors</tt> scope)
-    # * <tt>activemodel.errors.messages.blank</tt>
-    # * <tt>errors.attributes.title.blank</tt>
-    # * <tt>errors.messages.blank</tt>
+    # Admin
+    # * <tt>activemodel.errors.models.admin.attributes.title.blank.message</tt>
+    # * <tt>activemodel.errors.models.admin.blank.message</tt>
+    # * <tt>activemodel.errors.models.admin.attributes.title.blank</tt> * kept for compatibility with previous lookup chain
+    # * <tt>activemodel.errors.models.admin.blank</tt> * kept for compatibility with previous lookup chain
+    # User
+    # * <tt>activemodel.errors.models.user.attributes.title.blank.message</tt>
+    # * <tt>activemodel.errors.models.user.blank.message</tt>
+    # * <tt>activemodel.errors.models.user.attributes.title.blank</tt> * kept for compatibility with previous lookup chain
+    # * <tt>activemodel.errors.models.user.blank</tt> * kept for compatibility with previous lookup chain
+    # Default
+    # <tt>errors.attributes.title.blank.message</tt>
+    # <tt>errors.attributes.title.blank</tt> * kept for compatibility with previous lookup chain
+    # <tt>errors.messages.blank.message</tt>
+    # <tt>errors.messages.blank</tt> * kept for compatibility with previous lookup chain
     def generate_message(attribute, type = :invalid, options = {})
       Error.generate_message(attribute, type, @base, options)
+    end
+
+    # Translates an error custom_message in its default scope
+    # (<tt>activemodel.errors.custom_messages</tt>).
+    #
+    # Error messages are looked up in the following order:
+    # <tt>activemodel.errors.models.MODEL.attributes.ATTRIBUTE.TYPE.custom_message</tt>
+    # <tt>activemodel.errors.models.MODEL.TYPE.custom_message</tt>
+    #
+    # If it's not there, next it's looked up in:
+    # <tt>activemodel.errors.message.TYPE.custom_message</tt>
+    #
+    # Then, it'll be looked up without the i18n_scope prefix (activemodel)
+    # <tt>errors.attributes.ATTRIBUTE.TYPE.custom_message</tt>
+    # <tt>errors.messages.TYPE.custom_message</tt>
+    #
+    # The translated model name, translated attribute name and the value are available for
+    # interpolation.
+    #
+    # When using inheritance in your models, it will check all the inherited
+    # models too, but only if the model itself hasn't been found. Say you have
+    # <tt>class Admin < User; end</tt> and you wanted the translation for
+    # the <tt>:blank</tt> error message for the <tt>title</tt> attribute,
+    # it looks for these translations:
+    #
+    # Admin
+    # * <tt>activemodel.errors.models.admin.attributes.title.blank.custom_message</tt>
+    # * <tt>activemodel.errors.models.admin.blank.custom_message</tt>
+    # User
+    # * <tt>activemodel.errors.models.user.attributes.title.blank.custom_message</tt>
+    # * <tt>activemodel.errors.models.user.blank.custom_message</tt>
+    # Default
+    # <tt>errors.attributes.title.blank.custom_message</tt>
+    # <tt>errors.messages.blank.custom_message</tt>
+    def generate_custom_message(attribute, type = :invalid, options = {})
+      Error.generate_custom_message(attribute, type, @base, options)
     end
 
     def inspect # :nodoc:

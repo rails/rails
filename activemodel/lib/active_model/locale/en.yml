@@ -6,32 +6,53 @@ en:
     # The values :model, :attribute and :value are always available for interpolation
     # The value :count is available when applicable. Can be used for pluralization.
     messages:
-      model_invalid: "Validation failed: %{errors}"
-      inclusion: "is not included in the list"
-      exclusion: "is reserved"
-      invalid: "is invalid"
-      confirmation: "doesn't match %{attribute}"
-      accepted: "must be accepted"
-      empty: "can't be empty"
-      blank: "can't be blank"
-      present: "must be blank"
+      model_invalid:
+        message: "Validation failed: %{errors}"
+      inclusion:
+        message: "is not included in the list"
+      exclusion:
+        message: "is reserved"
+      invalid:
+        message: "is invalid"
+      confirmation:
+        message: "doesn't match %{attribute}"
+      accepted:
+        message: "must be accepted"
+      empty:
+        message: "can't be empty"
+      blank:
+        message: "can't be blank"
+      present:
+        message: "must be blank"
       too_long:
-        one: "is too long (maximum is 1 character)"
-        other: "is too long (maximum is %{count} characters)"
+        message:
+          one: "is too long (maximum is 1 character)"
+          other: "is too long (maximum is %{count} characters)"
       too_short:
         one: "is too short (minimum is 1 character)"
         other: "is too short (minimum is %{count} characters)"
       wrong_length:
         one: "is the wrong length (should be 1 character)"
         other: "is the wrong length (should be %{count} characters)"
-      not_a_number: "is not a number"
-      not_an_integer: "must be an integer"
-      greater_than: "must be greater than %{count}"
-      greater_than_or_equal_to: "must be greater than or equal to %{count}"
-      equal_to: "must be equal to %{count}"
-      less_than: "must be less than %{count}"
-      less_than_or_equal_to: "must be less than or equal to %{count}"
-      other_than: "must be other than %{count}"
-      in: "must be in %{count}"
-      odd: "must be odd"
-      even: "must be even"
+      not_a_number:
+        message: "is not a number"
+      not_an_integer:
+        message: "must be an integer"
+      greater_than:
+        message: "must be greater than %{count}"
+      greater_than_or_equal_to:
+        message: "must be greater than or equal to %{count}"
+      equal_to:
+        message: "must be equal to %{count}"
+      less_than:
+        message: "must be less than %{count}"
+      less_than_or_equal_to:
+        message: "must be less than or equal to %{count}"
+      other_than:
+        message: "must be other than %{count}"
+      in:
+        message: "must be in %{count}"
+      odd:
+        message: "must be odd"
+      even:
+        message: "must be even"

@@ -77,9 +77,12 @@ module ActiveModel
         attribute = attribute.to_s.remove(/\[\d+\]/)
 
         defaults = base.class.lookup_ancestors.flat_map do |klass|
-          [ :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
-            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}" ]
+          [ :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}.message",
+            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}.message",
+            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
+            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}"]
         end
+        defaults << :"#{i18n_scope}.errors.messages.#{type}.message"
         defaults << :"#{i18n_scope}.errors.messages.#{type}"
 
         catch(:exception) do
@@ -90,11 +93,52 @@ module ActiveModel
         defaults = []
       end
 
+      defaults << :"errors.attributes.#{attribute}.#{type}.message"
       defaults << :"errors.attributes.#{attribute}.#{type}"
+      defaults << :"errors.messages.#{type}.message"
       defaults << :"errors.messages.#{type}"
 
       key = defaults.shift
       defaults = options.delete(:message) if options[:message]
+      options[:default] = defaults
+
+      I18n.translate(key, **options)
+    end
+
+    def self.generate_custom_message(attribute, type, base, options) # :nodoc:
+      type = options.delete(:custom_message) if options[:custom_message].is_a?(Symbol)
+      value = (attribute != :base ? base.read_attribute_for_validation(attribute) : nil)
+
+      options = {
+        model: base.model_name.human,
+        attribute: base.class.human_attribute_name(attribute, { base: base }),
+        value: value,
+        object: base
+      }.merge!(options)
+
+      if base.class.respond_to?(:i18n_scope)
+        i18n_scope = base.class.i18n_scope.to_s
+        attribute = attribute.to_s.remove(/\[\d+\]/)
+
+        defaults = base.class.lookup_ancestors.flat_map do |klass|
+          [ :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}.custom_message",
+            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}.custom_message" ]
+        end
+        defaults << :"#{i18n_scope}.errors.messages.#{type}.custom_message"
+
+        catch(:exception) do
+          translation = I18n.translate(defaults.first, **options.merge(default: defaults.drop(1), throw: true))
+          return translation unless translation.nil?
+        end unless options[:custom_message]
+      else
+        defaults = []
+      end
+
+      defaults << :"errors.attributes.#{attribute}.#{type}.custom_message"
+      defaults << :"errors.custom_messages.#{type}"
+
+      key = defaults.shift
+      defaults = options.delete(:custom_message) if options[:custom_message]
       options[:default] = defaults
 
       I18n.translate(key, **options)
@@ -135,6 +179,20 @@ module ActiveModel
       case raw_type
       when Symbol
         self.class.generate_message(attribute, raw_type, @base, options.except(*CALLBACKS_OPTIONS))
+      else
+        raw_type
+      end
+    end
+
+    # Returns the error custom_message.
+    #
+    #   error = ActiveModel::Error.new(person, :name, :blank, custom_message: "Whoops! Missed it!")
+    #   error.custom_message
+    #   # => "Whoops! Missed it!"
+    def custom_message
+      case raw_type
+      when Symbol
+        self.class.generate_custom_message(attribute, raw_type, @base, options.except(*CALLBACKS_OPTIONS))
       else
         raw_type
       end

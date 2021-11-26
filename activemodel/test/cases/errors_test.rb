@@ -14,7 +14,13 @@ class ErrorsTest < ActiveModel::TestCase
     attr_reader   :errors
 
     def validate!
-      errors.add(:name, :blank, message: "cannot be nil") if name == nil
+      return unless name.nil?
+
+      errors.add(:name,
+                 :blank,
+                 message: "cannot be nil",
+                 custom_message: "Whoops! You need to provide a value"
+      )
     end
 
     def read_attribute_for_validation(attr)
@@ -463,6 +469,14 @@ class ErrorsTest < ActiveModel::TestCase
     assert_raises(FrozenError) { errors.messages[:foo].clear }
   end
 
+  test "custom_messages returns empty frozen array when when accessed with non-existent attribute" do
+    errors = ActiveModel::Errors.new(Person.new)
+
+    assert_equal [], errors.custom_messages[:foo]
+    assert_raises(FrozenError) { errors.custom_messages[:foo] << "foo" }
+    assert_raises(FrozenError) { errors.custom_messages[:foo].clear }
+  end
+
   test "full_messages doesn't require the base object to respond to `:errors" do
     model = Class.new do
       def initialize
@@ -523,6 +537,28 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal "name_test cannot be blank", person.errors.full_message(:name_test, "cannot be blank")
   end
 
+  test "custom_messages_for contains all the custom error messages for the given attribute" do
+    person = Person.new
+    person.errors.add(:name, custom_message: "Seems like you missed something...")
+    person.errors.add(:name, custom_message: "Should this have at least 2 letters? Like Al, or Jo?")
+    assert_equal ["Seems like you missed something...", "Should this have at least 2 letters? Like Al, or Jo?"], person.errors.custom_messages_for(:name)
+    assert_equal ["Seems like you missed something...", "Should this have at least 2 letters? Like Al, or Jo?"], person.errors.custom_messages_for("name")
+  end
+
+  test "custom_messages_for does not contain error messages from other attributes" do
+    person = Person.new
+    person.errors.add(:name, custom_message: "Seems like you missed something...")
+    person.errors.add(:email, custom_message: "I really really need your email please!")
+    assert_equal ["Seems like you missed something..."], person.errors.custom_messages_for(:name)
+    assert_equal ["Seems like you missed something..."], person.errors.custom_messages_for("name")
+  end
+
+  test "custom_messages_for returns an empty list in case there are no errors for the given attribute" do
+    person = Person.new
+    person.errors.add(:name, custom_message: "cannot be blank")
+    assert_equal [], person.errors.custom_messages_for(:email)
+  end
+
   test "as_json creates a json formatted representation of the errors hash" do
     person = Person.new
     person.validate!
@@ -530,11 +566,25 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal({ name: ["cannot be nil"] }, person.errors.as_json)
   end
 
-  test "as_json with :full_messages option creates a json formatted representation of the errors containing complete messages" do
+  test "as_json with message_method: :messages option creates a json formatted representation of the errors containing messages" do
+    person = Person.new
+    person.validate!
+
+    assert_equal({ name: ["cannot be nil"] }, person.errors.as_json(message_method: :message))
+  end
+
+  test "as_json with message_method: :full_messages option creates a json formatted representation of the errors containing full messages" do
     person = Person.new
     person.validate!
 
     assert_equal({ name: ["name cannot be nil"] }, person.errors.as_json(full_messages: true))
+  end
+
+  test "as_json with message_method: :custom_messages option creates a json formatted representation of the errors containing custom messages" do
+    person = Person.new
+    person.validate!
+
+    assert_equal({ name: ["Whoops! You need to provide a value"] }, person.errors.as_json(message_method: :custom_message))
   end
 
   test "generate_message works without i18n_scope" do
@@ -542,6 +592,14 @@ class ErrorsTest < ActiveModel::TestCase
     assert_not_respond_to Person, :i18n_scope
     assert_nothing_raised {
       person.errors.generate_message(:name, :blank)
+    }
+  end
+
+  test "generate_custom_message works without i18n_scope" do
+    person = Person.new
+    assert_not_respond_to Person, :i18n_scope
+    assert_nothing_raised {
+      person.errors.generate_custom_message(:name, :blank)
     }
   end
 
