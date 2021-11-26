@@ -1,3 +1,7 @@
+*   `Add ActiveStorage::Blob.compose` to concatenate multiple blobs.
+
+    *Gannon McGibbon*
+
 *   Setting custom metadata on blobs are now persisted to remote storage.
 
     *joshuamsager*
