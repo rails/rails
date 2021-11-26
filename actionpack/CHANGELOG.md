@@ -1,3 +1,7 @@
+*   Consider onion services secure for cookies.
+
+    *Justin Tracey*
+
 *   Remove deprecated `Rails.config.action_view.raise_on_missing_translations`.
 
     *Rafael Mendonça França*
