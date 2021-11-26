@@ -73,7 +73,7 @@ module ActiveStorage
     end
 
     def move(source_key, target_key)
-      File.rename path_for(source_key), path_for(target_key)
+      FileUtils.mv(path_for(source_key), path_for(target_key), force: true)
     end
 
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:, custom_metadata: {})
