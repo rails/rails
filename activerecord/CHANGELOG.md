@@ -1,3 +1,9 @@
+*   Introduce `**options` argument in the `DestroyAssociationAsyncJob#perform`
+    method. It allows extending the job with additional options without breaking
+    people's applications.
+
+    *Maciej Małecki*
+
 *   Reduce the memory footprint of fixtures accessors.
 
     Until now fixtures accessors were eagerly defined using `define_method`.
