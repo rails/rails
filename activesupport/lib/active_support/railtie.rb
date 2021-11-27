@@ -40,7 +40,7 @@ module ActiveSupport
     end
 
     initializer "active_support.reset_all_current_attributes_instances" do |app|
-      executor_around_test_case = app.config.active_support.delete(:executor_around_test_case)
+      executor_around_test_case = app.config.active_support.executor_around_test_case
 
       app.reloader.before_class_unload { ActiveSupport::CurrentAttributes.clear_all }
       app.executor.to_run              { ActiveSupport::CurrentAttributes.reset_all }

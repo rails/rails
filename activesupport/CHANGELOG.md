@@ -28,12 +28,14 @@
 
     *Sean Doyle*
 
-*   `Rails.application.executor` hooks are now called around every tests.
+*   `Rails.application.executor` hooks can now be called around every test
 
-    This helps to better simulate request or job local state being reset around tests and prevent state
-    to leak from one test to another.
+    This helps to better simulate request or job local state being reset around tests and prevents state
+    leaking from one test to another.
 
     However it requires the executor hooks executed in the test environment to be re-entrant.
+
+    To enable this, set `config.active_support.executor_around_test_case = true` (this is the default in Rails 7).
 
     *Jean Boussier*
 

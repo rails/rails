@@ -333,6 +333,8 @@ module ActionController
   #
   #  assert_redirected_to page_url(title: 'foo')
   class TestCase < ActiveSupport::TestCase
+    class_attribute :executor_around_each_request, default: false
+
     module Behavior
       extend ActiveSupport::Concern
       include ActionDispatch::TestProcess
@@ -578,10 +580,19 @@ module ActionController
           end
         end
 
+        def wrap_execution(&block)
+          if executor_around_each_request && defined?(Rails.application) && Rails.application
+            Rails.application.executor.wrap(&block)
+          else
+            yield
+          end
+        end
+
         def process_controller_response(action, cookies, xhr)
           begin
             @controller.recycle!
-            @controller.dispatch(action, @request, @response)
+
+            wrap_execution { @controller.dispatch(action, @request, @response) }
           ensure
             @request = @controller.request
             @response = @controller.response
