@@ -1065,6 +1065,9 @@ module ActiveRecord
       return false if destroyed?
       result = new_record? ? _create_record(&block) : _update_record(&block)
       result != false
+    rescue ActiveRecord::StatementInvalid
+      @_trigger_rollback_callback = true
+      raise
     end
 
     # Updates the associated record with values matching those of the instance attributes.

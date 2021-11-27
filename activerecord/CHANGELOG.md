@@ -1,3 +1,14 @@
+*   Trigger `after_rollback` callbacks on `ActiveRecord::StatementInvalid` errors
+
+    When an `ActiveRecord::StatementInvalid` error was raised, it would
+    (rightly) prevent `trigger_update_callback` from getting set to `true`.
+    But in addition to preventing update callbacks that would also prevent
+    `after_rollback` callbacks.
+
+    Fixes #43721
+
+    *Kyle Stevens*
+
 *   Load STI Models in fixtures
 
     Data from Fixtures now loads based on the specific class for models with

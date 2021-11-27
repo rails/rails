@@ -333,6 +333,7 @@ module ActiveRecord
     ensure
       restore_transaction_record_state(force_restore_state)
       clear_transaction_record_state
+      @_trigger_rollback_callback = false
       @_trigger_update_callback = @_trigger_destroy_callback = false if force_restore_state
     end
 
@@ -359,11 +360,12 @@ module ActiveRecord
 
     def trigger_transactional_callbacks? # :nodoc:
       (@_new_record_before_last_commit || _trigger_update_callback) && persisted? ||
-        _trigger_destroy_callback && destroyed?
+        _trigger_destroy_callback && destroyed? ||
+          _trigger_rollback_callback
     end
 
     private
-      attr_reader :_committed_already_called, :_trigger_update_callback, :_trigger_destroy_callback
+      attr_reader :_committed_already_called, :_trigger_update_callback, :_trigger_destroy_callback, :_trigger_rollback_callback
 
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
       def remember_transaction_record_state

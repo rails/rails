@@ -118,6 +118,31 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal [:after_commit], @first.history
   end
 
+  def test_rollback_callback_on_statement_invalid_during_create
+    second = @first.dup
+    second.id = @first.id
+    second.after_rollback_block { |r| r.history << :after_rollback }
+
+    assert_raises ActiveRecord::RecordNotUnique do
+      second.save!
+    end
+
+    assert_equal [:after_rollback], second.history
+  end
+
+  def test_rollback_callback_on_statement_invalid_during_update
+    second = @first.dup
+    second.save!
+    second.id = @first.id
+    second.after_rollback_block { |r| r.history << :after_rollback }
+
+    assert_raises ActiveRecord::RecordNotUnique do
+      second.save!
+    end
+
+    assert_equal [:after_rollback], second.history
+  end
+
   def test_dont_call_any_callbacks_after_transaction_commits_for_invalid_record
     @first.after_commit_block { |r| r.history << :after_commit }
     @first.after_rollback_block { |r| r.history << :after_rollback }
@@ -162,6 +187,24 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     @first.transaction { @first.destroy }
 
     assert_empty @first.history
+  end
+
+  def test_dont_call_after_rollback_based_on_previous_transaction
+    second = @first.dup
+    second.id = @first.id
+
+    assert_raises ActiveRecord::RecordNotUnique do
+      second.save!
+    end
+
+    second.after_rollback_block { |r| r.history << :after_rollback }
+
+    def second.valid?(*)
+      false
+    end
+
+    assert_not second.save
+    assert_empty second.history
   end
 
   def test_only_call_after_commit_on_save_after_transaction_commits_for_saving_record
