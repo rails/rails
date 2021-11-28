@@ -140,6 +140,8 @@ module ActiveModel
     #
     #   person.errors.merge!(other)
     def merge!(other)
+      return errors if equal?(other)
+
       other.errors.each { |error|
         import(error)
       }
