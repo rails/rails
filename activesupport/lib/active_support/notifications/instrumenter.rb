@@ -20,15 +20,14 @@ module ActiveSupport
       def instrument(name, payload = {})
         # some of the listeners might have state
         listeners_state = start name, payload
-        begin
-          yield payload if block_given?
-        rescue Exception => e
-          payload[:exception] = [e.class.name, e.message]
-          payload[:exception_object] = e
-          raise e
-        ensure
-          finish_with_state listeners_state, name, payload
-        end
+
+        yield payload if block_given?
+      rescue Exception => e
+        payload[:exception] = [e.class.name, e.message]
+        payload[:exception_object] = e
+        raise e
+      ensure
+        finish_with_state listeners_state, name, payload
       end
 
       def new_event(name, payload = {}) # :nodoc:
