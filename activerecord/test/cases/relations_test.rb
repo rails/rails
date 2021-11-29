@@ -1174,10 +1174,14 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_many_with_limits
-    posts = Post.all
+    posts_with_limit = Post.limit(5)
+    posts_with_limit_one = Post.limit(1)
 
-    assert_predicate posts, :many?
-    assert_not_predicate posts.limit(1), :many?
+    assert_predicate posts_with_limit, :many?
+    assert_not_predicate posts_with_limit, :loaded?
+
+    assert_not_predicate posts_with_limit_one, :many?
+    assert_not_predicate posts_with_limit_one, :loaded?
   end
 
   def test_none?
