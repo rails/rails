@@ -33,7 +33,7 @@ module ActiveRecord
 
       attr_accessor :schema_cache
 
-      def connection_klass; end
+      def connection_class; end
       def checkin(_); end
       def remove(_); end
       def async_executor; end
@@ -105,8 +105,10 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :db_config, :size, :reaper, :pool_config, :connection_klass, :async_executor, :role, :shard
+      attr_reader :db_config, :size, :reaper, :pool_config, :connection_class, :async_executor, :role, :shard
 
+      alias_method :connection_klass, :connection_class
+      deprecate :connection_klass
       delegate :schema_cache, :schema_cache=, to: :pool_config
 
       # Creates a new ConnectionPool object. +pool_config+ is a PoolConfig
@@ -120,7 +122,7 @@ module ActiveRecord
 
         @pool_config = pool_config
         @db_config = pool_config.db_config
-        @connection_klass = pool_config.connection_klass
+        @connection_class = pool_config.connection_class
         @role = pool_config.role
         @shard = pool_config.shard
 

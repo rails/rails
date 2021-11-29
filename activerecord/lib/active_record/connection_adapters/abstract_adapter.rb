@@ -141,9 +141,9 @@ module ActiveRecord
       def preventing_writes?
         return true if replica?
         return ActiveRecord::Base.connection_handler.prevent_writes if ActiveRecord.legacy_connection_handling
-        return false if connection_klass.nil?
+        return false if connection_class.nil?
 
-        connection_klass.current_preventing_writes
+        connection_class.current_preventing_writes
       end
 
       def migrations_paths # :nodoc:
@@ -220,8 +220,8 @@ module ActiveRecord
         @owner = Thread.current
       end
 
-      def connection_klass # :nodoc:
-        @pool.connection_klass
+      def connection_class # :nodoc:
+        @pool.connection_class
       end
 
       # The role (ie :writing) for the current connection. In a
