@@ -290,14 +290,14 @@ module ActiveRecord
     # Returns true if there is exactly one record.
     def one?
       return super if block_given?
-      return records.one? if limit_value || loaded?
+      return records.one? if loaded?
       limited_count == 1
     end
 
     # Returns true if there is more than one record.
     def many?
       return super if block_given?
-      return records.many? if limit_value || loaded?
+      return records.many? if loaded?
       limited_count > 1
     end
 
@@ -974,7 +974,7 @@ module ActiveRecord
       end
 
       def limited_count
-        @limited_count ||= limit(2).count
+        @limited_count ||= limit_value ? count : limit(2).count
       end
   end
 end
