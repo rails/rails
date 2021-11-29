@@ -59,6 +59,13 @@ module ActionController
       self.class.new controller, @env, self.defaults.merge(defaults)
     end
 
+    # Update the defaults and env for this renderer, allowing usage of
+    # the render method to work with the updated env.
+    def update_defaults(new_defaults)
+      defaults.merge!(new_defaults)
+      @env = normalize_keys defaults, @env, true
+    end
+
     # Accepts a custom Rack environment to render templates in.
     # It will be merged with the default Rack environment defined by
     # +ActionController::Renderer::DEFAULTS+.
@@ -102,13 +109,13 @@ module ActionController
     alias_method :render_to_string, :render # :nodoc:
 
     private
-      def normalize_keys(defaults, env)
+      def normalize_keys(defaults, env, refresh_keys = false)
         new_env = {}
         env.each_pair { |k, v| new_env[rack_key_for(k)] = rack_value_for(k, v) }
 
         defaults.each_pair do |k, v|
           key = rack_key_for(k)
-          new_env[key] = rack_value_for(k, v) unless new_env.key?(key)
+          new_env[key] = rack_value_for(k, v) if !new_env.key?(key) || refresh_keys
         end
 
         new_env["rack.url_scheme"] = new_env["HTTPS"] == "on" ? "https" : "http"

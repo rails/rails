@@ -1,3 +1,11 @@
+*   Add an `ActionController::Renderer#update_defaults` method to allow updating the defaults on
+    the current renderer object.  This helps cases such as `view_component`, `turbo-rails`, `ActionText`
+    and others that use the default `ApplicationController` instance which creates an instance of
+    `ActionDispatch::Request` and passes the `@env` variable that is not updated by the call to
+    `ApplicationController.renderer.defaults.merge!`
+
+    *Eric Musgrove*
+
 *   `Rails.application.executor` hooks can now be called around every request in a `ActionController::TestCase`
 
     This helps to better simulate request or job local state being reset between requests and prevent state
