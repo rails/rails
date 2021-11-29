@@ -664,7 +664,7 @@ class ErrorsTest < ActiveModel::TestCase
 
     errors.merge!(errors)
 
-    assert(errors.errors.eql?(errors_before_merge.errors))
+    assert_equal errors.errors, errors_before_merge.errors
   end
 
   test "errors are marshalable" do
