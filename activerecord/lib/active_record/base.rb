@@ -315,7 +315,7 @@ module ActiveRecord # :nodoc:
     include Callbacks
     include Timestamp
     include Associations
-    include ActiveModel::SecurePassword
+    include SecurePassword
     include AutosaveAssociation
     include NestedAttributes
     include Transactions
