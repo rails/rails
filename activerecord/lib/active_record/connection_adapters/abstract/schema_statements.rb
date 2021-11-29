@@ -656,7 +656,8 @@ module ActiveRecord
       # The +type+ and +options+ parameters will be ignored if present. It can be helpful
       # to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +type+ and +options+ will be used by #add_column.
-      # Indexes on the column are automatically removed.
+      # Depending on the database you're using, indexes using this column may be 
+      # automatically removed or modified to remove this column from the index.
       #
       # If the options provided include an +if_exists+ key, it will be used to check if the
       # column does not exist. This will silently ignore the migration rather than raising
