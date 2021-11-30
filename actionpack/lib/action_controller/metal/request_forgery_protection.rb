@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "rack/session/abstract/id"
 require "action_controller/metal/exceptions"
 require "active_support/security_utils"
 
@@ -183,38 +182,8 @@ module ActionController # :nodoc:
 
         # This is the method that defines the application behavior when a request is found to be unverified.
         def handle_unverified_request
-          request = @controller.request
-          request.session = NullSessionHash.new(request)
-          request.flash = nil
-          request.session_options = { skip: true }
-          request.cookie_jar = NullCookieJar.build(request, {})
+          @controller.request.nullify_state
         end
-
-        private
-          class NullSessionHash < Rack::Session::Abstract::SessionHash # :nodoc:
-            def initialize(req)
-              super(nil, req)
-              @data = {}
-              @loaded = true
-            end
-
-            # no-op
-            def destroy; end
-
-            def exists?
-              true
-            end
-
-            def enabled?
-              false
-            end
-          end
-
-          class NullCookieJar < ActionDispatch::Cookies::CookieJar # :nodoc:
-            def write(*)
-              # nothing
-            end
-          end
       end
 
       class ResetSession

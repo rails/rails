@@ -6,6 +6,7 @@ require "active_support/inflector"
 require "action_dispatch/http/headers"
 require "action_controller/metal/exceptions"
 require "rack/request"
+require "rack/session/abstract/id"
 require "action_dispatch/http/cache"
 require "action_dispatch/http/mime_negotiation"
 require "action_dispatch/http/parameters"
@@ -360,6 +361,13 @@ module ActionDispatch
       session.destroy
     end
 
+    def nullify_state
+      self.session = NullSessionHash.new(self)
+      self.flash = nil
+      self.session_options = { skip: true }
+      self.cookie_jar = NullCookieJar.build(self, {})
+    end
+
     def session=(session) # :nodoc:
       Session.set self, session
     end
@@ -437,6 +445,31 @@ module ActionDispatch
 
       def default_session
         Session.disabled(self)
+      end
+
+      class NullSessionHash < Rack::Session::Abstract::SessionHash #:nodoc:
+        def initialize(req)
+          super(nil, req)
+          @data = {}
+          @loaded = true
+        end
+
+        # no-op
+        def destroy; end
+
+        def exists?
+          true
+        end
+
+        def enabled?
+          false
+        end
+      end
+
+      class NullCookieJar < ActionDispatch::Cookies::CookieJar #:nodoc:
+        def write(*)
+          # nothing
+        end
       end
   end
 end
