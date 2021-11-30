@@ -212,7 +212,7 @@ If your application uses `Concerns` as namespace, you have two options:
 
 Some projects want something like `app/api/base.rb` to define `API::Base`, and add `app` to the autoload paths to accomplish that.
 
-Since Rails adds all subdirectories of `app` to the autoload paths automatically (with a few exceptions like directories for assets), we have another situation in which there are nested root directories, similar to what happens with `app/models/concerns`. That setup no longer works as is.
+Since Rails adds all subdirectories of `app` to the autoload paths automatically (with a few exceptions), we have another situation in which there are nested root directories, similar to what happens with `app/models/concerns`. That setup no longer works as is.
 
 However, you can keep that structure, just delete `app/api` from the autoload paths in an initializer:
 
@@ -222,6 +222,22 @@ ActiveSupport::Dependencies.
   autoload_paths.
   delete("#{Rails.root}/app/api")
 ```
+
+Beware of subdirectories that do not have files to be autoloaded/eager loaded. For example, if the application has `app/admin` with resources for [ActiveAdmin](https://activeadmin.info/), you need to ignore them. Same for `assets` and friends:
+
+```ruby
+# config/initializers/zeitwerk.rb
+Rails.autoloaders.main.ignore(
+  "app/admin",
+  "app/assets",
+  "app/javascripts",
+  "app/views"
+)
+```
+
+Without that configuration, the application would eager load those trees. Would err on `app/admin` because its files do not define constants, and would define a `Views` module, for example, as an unwanted side-effect.
+
+As you see, having `app` in the autoload paths is technically possible, but a bit tricky.
 
 ### Autoloaded Constants and Explicit Namespaces
 
