@@ -98,7 +98,26 @@ If that prints `true`, `zeitwerk` mode is enabled.
 Does my Application Comply with Zeitwerk Conventions?
 -----------------------------------------------------
 
-Once `zeitwerk` mode is enabled, please run:
+### config.eager_load_paths
+
+Compliance test runs only for eager loaded files. Therefore, in order to verify Zeitwerk compliance, it is recommended to have all autoload paths in the eager load paths.
+
+This is already the case by default, but if the project has custom autoload paths configured just like this:
+
+```ruby
+config.autoload_paths << "#{Rails.root}/extras"
+```
+
+those are not eager loaded and won't be verified. Adding them to the eager load paths is easy:
+
+```ruby
+config.autoload_paths << "#{Rails.root}/extras"
+config.eager_load_paths << "#{Rails.root}/extras"
+```
+
+### zeitwerk:check
+
+Once `zeitwerk` mode is enabled and the configuration of eager load paths double-checked, please run:
 
 ```
 bin/rails zeitwerk:check
@@ -114,7 +133,9 @@ All is good!
 
 There can be additional output depending on the application configuration, but the last "All is good!" is what you are looking for.
 
-If there's any file that does not define the expected constant, the task will tell you. It does so one file at a time, because if it moved on, the failure loading one file could cascade into other failures unrelated to the check we want to run and the error report would be confusing.
+If the double-check explained in the previous section determined actually there have to be some custom autoload paths outside the eager load paths, the task will detect and warn about them. However, if the test suite loads those files successfully, you're good.
+
+Now, if there's any file that does not define the expected constant, the task will tell you. It does so one file at a time, because if it moved on, the failure loading one file could cascade into other failures unrelated to the check we want to run and the error report would be confusing.
 
 If there's one constant reported, fix that particular one and run the task again. Repeat until you get "All is good!".
 
@@ -145,14 +166,14 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
 end
 ```
 
-Doing so affects how Active Support inflects globally. That may be fine, but if you prefer you can also pass overrides to the inflector used by the autoloader:
+Doing so affects how Active Support inflects globally. That may be fine, but if you prefer you can also pass overrides to the inflectors used by the autoloaders:
 
 ```ruby
 # config/initializers/zeitwerk.rb
-Rails.autoloaders.each do |autoloader|
-  autoloader.inflector.inflect("vat" => "VAT")
-end
+Rails.autoloaders.main.inflector.inflect("vat" => "VAT")
 ```
+
+With this option you have more control, because only files called exactly `vat.rb` or directories exactly called `vat` will be inflected as `VAT`. A file called `vat_rules.rb` is not affected by that and can define `VatRules` just fine. This may be handy if the project has this kind of naming inconsistencies.
 
 With that in place, the check passes!
 
