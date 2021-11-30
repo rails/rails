@@ -310,7 +310,7 @@ if ActiveRecord::Base.connection.prepared_statements
           }.new
 
           logger.sql(event)
-          assert_match %r([[auth_token, [FILTERED]]]), logger.debugs.first
+          assert_match %r/#{Regexp.escape '[["auth_token", "[FILTERED]"]]'}/, logger.debugs.first
         end
     end
   end
