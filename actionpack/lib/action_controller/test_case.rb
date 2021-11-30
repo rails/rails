@@ -333,7 +333,7 @@ module ActionController
   #
   #  assert_redirected_to page_url(title: 'foo')
   class TestCase < ActiveSupport::TestCase
-    class_attribute :executor_around_each_request, default: false
+    singleton_class.attr_accessor :executor_around_each_request
 
     module Behavior
       extend ActiveSupport::Concern
@@ -581,7 +581,7 @@ module ActionController
         end
 
         def wrap_execution(&block)
-          if executor_around_each_request && defined?(Rails.application) && Rails.application
+          if ActionController::TestCase.executor_around_each_request && defined?(Rails.application) && Rails.application
             Rails.application.executor.wrap(&block)
           else
             yield
