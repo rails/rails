@@ -38,7 +38,7 @@ module ActionText
 
         unless destination.join("app/assets/application.css").exist?
           if (stylesheets = Dir.glob "#{destination_root}/app/assets/stylesheets/application.*.{scss,css}").length > 0
-            insert_into_file stylesheets.first.to_s, %(@import 'actiontext.css';)
+            prepend_to_file stylesheets.first.to_s, %(@import 'actiontext.css';\n)
           else
             say <<~INSTRUCTIONS, :green
               To use the Trix editor, you must require 'app/assets/stylesheets/actiontext.css' in your base stylesheet.
