@@ -363,7 +363,6 @@ module ActionDispatch
 
     def nullify_state
       self.session = NullSessionHash.new(self)
-      self.flash = nil
       self.session_options = { skip: true }
       self.cookie_jar = NullCookieJar.build(self, {})
     end

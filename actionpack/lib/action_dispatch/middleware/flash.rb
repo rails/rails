@@ -76,6 +76,11 @@ module ActionDispatch
         super
         self.flash = nil
       end
+
+      def nullify_state # :nodoc:
+        super
+        self.flash = nil
+      end
     end
 
     class FlashNow # :nodoc:
