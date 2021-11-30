@@ -4,7 +4,7 @@ class Pathname
   # Returns the receiver if the named file exists otherwise returns +nil+.
   # <tt>pathname.existence</tt> is equivalent to
   #
-  #    pathname.exists? ? object : nil
+  #    pathname.exists? ? pathname : nil
   #
   # For example, something like
   #
