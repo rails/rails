@@ -398,7 +398,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
       if forcibly_serve_as_binary?
         { content_type: ActiveStorage.binary_content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
       elsif !allowed_inline?
-        { content_type: content_type, disposition: :attachment, filename: filename, custom_metadatata: custom_metadata }
+        { content_type: content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
       else
         { content_type: content_type, custom_metadata: custom_metadata }
       end

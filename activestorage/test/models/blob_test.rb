@@ -295,7 +295,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
         content_type: "application/octet-stream",
         disposition: :attachment,
         filename: blob.filename,
-        custom_metadatata: { "test" => true }
+        custom_metadata: { "test" => true }
       }
     ]
 
