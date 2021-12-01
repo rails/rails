@@ -1105,6 +1105,10 @@ Accepts a logger conforming to the interface of Log4r or the default Ruby Logger
 
 Gives the trim mode to be used by ERB. It defaults to `'-'`, which turns on trimming of tail spaces and newline when using `<%= -%>` or `<%= =%>`. See the [Erubis documentation](http://www.kuwata-lab.com/erubis/users-guide.06.html#topics-trimspaces) for more information.
 
+#### `config.action_view.frozen_string_literal`
+
+Compiles the ERB template with the `# frozen_string_literal: true` magic comment, making all string literals frozen and saving allocations. Set to `true` to enable it for all views.
+
 #### `config.action_view.embed_authenticity_token_in_remote_forms`
 
 Allows you to set the default behavior for `authenticity_token` in forms with
