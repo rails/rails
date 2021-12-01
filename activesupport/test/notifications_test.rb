@@ -438,7 +438,7 @@ module Notifications
       event = event(:foo, time, time + 0.01, random_id, {})
 
       assert_equal :foo, event.name
-      assert_in_delta 10.0, event.duration, 0.0001
+      assert_in_epsilon 10.0, event.duration, 0.01
     end
 
     def test_event_cpu_time_does_not_raise_error_when_start_or_finished_not_called
