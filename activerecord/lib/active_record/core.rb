@@ -150,7 +150,7 @@ module ActiveRecord
         else
           connected_to_stack.reverse_each do |hash|
             return hash[:role] if hash[:role] && hash[:klasses].include?(Base)
-            return hash[:role] if hash[:role] && hash[:klasses].include?(connection_classes)
+            return hash[:role] if hash[:role] && hash[:klasses].include?(connection_class_for_self)
           end
 
           default_role
@@ -169,7 +169,7 @@ module ActiveRecord
       def self.current_shard
         connected_to_stack.reverse_each do |hash|
           return hash[:shard] if hash[:shard] && hash[:klasses].include?(Base)
-          return hash[:shard] if hash[:shard] && hash[:klasses].include?(connection_classes)
+          return hash[:shard] if hash[:shard] && hash[:klasses].include?(connection_class_for_self)
         end
 
         default_shard
@@ -191,7 +191,7 @@ module ActiveRecord
         else
           connected_to_stack.reverse_each do |hash|
             return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(Base)
-            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(connection_classes)
+            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(connection_class_for_self)
           end
 
           false
@@ -220,7 +220,7 @@ module ActiveRecord
         self.connection_class
       end
 
-      def self.connection_classes # :nodoc:
+      def self.connection_class_for_self # :nodoc:
         klass = self
 
         until klass == Base
