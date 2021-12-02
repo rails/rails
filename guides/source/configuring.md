@@ -82,7 +82,7 @@ Says whether autoload paths have to be added to `$LOAD_PATH`. This flag is `true
 
 #### `config.cache_classes`
 
-Controls whether or not application classes and modules should be reloaded if they change. Defaults to `false` in the development environment, and `true` in production. In the test environment, the default is `false` if Spring is installed, `true` otherwise.
+Controls whether or not application classes and modules should be reloaded if they change. When the cache is enabled (`true`), reloading will not occur. Defaults to `false` in the development environment, and `true` in production. In the test environment, the default is `false` if Spring is installed, `true` otherwise.
 
 #### `config.beginning_of_week`
 
