@@ -1,3 +1,13 @@
+*   Add `ActiveRecord::Batches::BatchEnumerator#size` method to efficiently calculate number of batches
+    for a given batch size
+
+    ```ruby
+    Post.count # => 15
+    Post.in_batches(of: 6).size # => 3
+    ```
+
+    *Nikita Vasilevsky*
+
 *   Load STI Models in fixtures
 
     Data from Fixtures now loads based on the specific class for models with

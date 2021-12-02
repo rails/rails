@@ -94,6 +94,14 @@ module ActiveRecord
         return enum.each(&block) if block_given?
         enum
       end
+
+
+      # Returns the total number of batches for a given batch size
+      #
+      #   Person.in_batches(of: 3).size
+      def size
+        (@relation.count + @of - 1) / @of
+      end
     end
   end
 end

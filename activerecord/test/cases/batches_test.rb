@@ -700,4 +700,18 @@ class EachTest < ActiveRecord::TestCase
       end
     end
   end
+
+  test ".in_batches.size efficiently calculates number of batches" do
+    assert_queries(1) do
+      assert_equal(@total, Post.in_batches(of: 1).size)
+    end
+
+    Post.stub(:count, 12) do
+      assert_equal(4, Post.in_batches(of: 3).size)
+    end
+
+    Post.stub(:count, 11) do
+      assert_equal(3, Post.in_batches(of: 5).size)
+    end
+  end
 end
