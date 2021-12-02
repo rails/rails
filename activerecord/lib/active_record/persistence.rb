@@ -303,7 +303,7 @@ module ActiveRecord
       #         { id: 4, name: "Gold", price: 1380.87 },
       #         { id: 6, name: "Aluminium", price: 0.35 }
       #       ],
-      #       on_duplicate: [:price] # Only prices will be updated
+      #       update_only: [:price] # Only prices will be updated
       #     )
       #
       #   See the related +:on_duplicate+ option. Both options can't be used at the same time.
