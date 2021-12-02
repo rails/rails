@@ -754,7 +754,11 @@ module ActionView
 
         if model
           if url != false
-            url ||= polymorphic_path(model, format: format)
+            url ||= if format.nil?
+              polymorphic_path(model, {})
+            else
+              polymorphic_path(model, format: format)
+            end
           end
 
           model   = _object_for_form_builder(model)
