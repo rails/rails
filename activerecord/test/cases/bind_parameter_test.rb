@@ -283,18 +283,18 @@ if ActiveRecord::Base.connection.prepared_statements
 
         def assert_filtered_log_binds(binds)
           payload = {
-              name: "SQL",
-              sql: "select * from users where auth_token = ?",
-              binds: binds,
-              type_casted_binds: @connection.send(:type_casted_binds, binds)
+            name: "SQL",
+            sql: "select * from users where auth_token = ?",
+            binds: binds,
+            type_casted_binds: @connection.send(:type_casted_binds, binds)
           }
 
           event = ActiveSupport::Notifications::Event.new(
-              "foo",
-              Time.now,
-              Time.now,
-              123,
-              payload)
+            "foo",
+            Time.now,
+            Time.now,
+            123,
+            payload)
 
           logger = Class.new(ActiveRecord::LogSubscriber) {
             attr_reader :debugs

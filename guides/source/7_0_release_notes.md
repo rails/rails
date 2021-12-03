@@ -30,6 +30,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `config` in `dbconsole`.
+
 ### Deprecations
 
 ### Notable changes
@@ -149,9 +151,15 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `Tasks::DatabaseTasks.current_config`.
 
+*   Remove deprecated `ActiveRecord::Connection#allowed_index_name_length`.
+
+*   Remove deprecated `ActiveRecord::Connection#in_clause_length`.
+
+*   Remove deprecated `ActiveRecord::DatabaseConfigurations::DatabaseConfig#spec_name`.
+
 ### Deprecations
 
-*   Deprecated `Tasks::DatabaseTasks.:schema_file_type`.
+*   Deprecated `Tasks::DatabaseTasks.schema_file_type`.
 
 ### Notable changes
 
@@ -263,6 +271,8 @@ Please refer to the [Changelog][active-job] for detailed changes.
 *   Remove deprecated `ActiveRecord::Base.configurations.to_h`.
 
 *   Remove deprecated `ActiveRecord::Result#map!` and `ActiveRecord::Result#collect!`.
+
+*   Remove deprecated `ActiveRecord::Base#remove_connection`.
 
 ### Deprecations
 

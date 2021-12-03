@@ -148,18 +148,6 @@ module ActiveRecord
           ENV["RAILS_ENV"] = previous_env
           ActiveRecord::Base.establish_connection(:arunit)
         end
-
-        def test_remove_connection_is_deprecated
-          expected = @handler.retrieve_connection_pool(@owner_name).db_config.configuration_hash
-
-          config_hash = assert_deprecated do
-            @handler.remove_connection(@owner_name)
-          end
-
-          assert_equal expected, config_hash
-        ensure
-          ActiveRecord::Base.establish_connection(:arunit)
-        end
       end
 
       def test_establish_connection_using_two_level_configurations
