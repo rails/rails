@@ -27,7 +27,7 @@ class Date
   #   date = Date.new(2007, 11, 10)       # => Sat, 10 Nov 2007
   #
   #   date.to_formatted_s(:db)            # => "2007-11-10"
-  #   date.to_formatted_s(:db)                      # => "2007-11-10"
+  #   date.to_formatted_s(:db)            # => "2007-11-10"
   #
   #   date.to_formatted_s(:short)         # => "10 Nov"
   #   date.to_formatted_s(:number)        # => "20071110"
@@ -56,7 +56,27 @@ class Date
     end
   end
   alias_method :to_default_s, :to_s
-  alias_method :to_s, :to_formatted_s
+
+  NOT_SET = Object.new # :nodoc:
+  def to_s(format = NOT_SET) # :nodoc:
+    if formatter = DATE_FORMATS[format]
+      ActiveSupport::Deprecation.warn(
+        "Date#to_s(#{format.inspect}) is deprecated. Please use Date#to_formatted_s(#{format.inspect}) instead."
+      )
+      if formatter.respond_to?(:call)
+        formatter.call(self).to_s
+      else
+        strftime(formatter)
+      end
+    elsif format == NOT_SET
+      to_default_s
+    else
+      ActiveSupport::Deprecation.warn(
+        "Date#to_s(#{format.inspect}) is deprecated. Please use Date#to_formatted_s(#{format.inspect}) instead."
+      )
+      to_default_s
+    end
+  end
 
   # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005"
   def readable_inspect

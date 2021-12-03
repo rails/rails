@@ -27,12 +27,10 @@ class Time
 
   # Converts to a formatted string. See DATE_FORMATS for built-in formats.
   #
-  # This method is aliased to <tt>to_s</tt>.
-  #
   #   time = Time.now                    # => 2007-01-18 06:10:17 -06:00
   #
   #   time.to_formatted_s(:time)         # => "06:10"
-  #   time.to_s(:time)                   # => "06:10"
+  #   time.to_formatted_s(:time)         # => "06:10"
   #
   #   time.to_formatted_s(:db)           # => "2007-01-18 06:10:17"
   #   time.to_formatted_s(:number)       # => "20070118061017"
@@ -54,11 +52,28 @@ class Time
     if formatter = DATE_FORMATS[format]
       formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
     else
+      # Change to `to_s` when deprecation is gone. Also deprecate `to_default_s`.
       to_default_s
     end
   end
   alias_method :to_default_s, :to_s
-  alias_method :to_s, :to_formatted_s
+
+  NOT_SET = Object.new # :nodoc:
+  def to_s(format = NOT_SET) # :nodoc:
+    if formatter = DATE_FORMATS[format]
+      ActiveSupport::Deprecation.warn(
+        "Time#to_s(#{format.inspect}) is deprecated. Please use Time#to_formatted_s(#{format.inspect}) instead."
+      )
+      formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
+    elsif format == NOT_SET
+      to_default_s
+    else
+      ActiveSupport::Deprecation.warn(
+        "Time#to_s(#{format.inspect}) is deprecated. Please use Time#to_formatted_s(#{format.inspect}) instead."
+      )
+      to_default_s
+    end
+  end
 
   # Returns a formatted string of the offset from UTC, or an alternative
   # string if the time zone is already UTC.

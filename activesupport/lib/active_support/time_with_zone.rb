@@ -33,7 +33,7 @@ module ActiveSupport
   #   t.dst?                                # => true
   #   t.utc_offset                          # => -14400
   #   t.zone                                # => "EDT"
-  #   t.to_s(:rfc822)                       # => "Sun, 18 May 2008 13:27:25 -0400"
+  #   t.to_formatted_s(:rfc822)             # => "Sun, 18 May 2008 13:27:25 -0400"
   #   t + 1.day                             # => Mon, 19 May 2008 13:27:25.031505668 EDT -04:00
   #   t.beginning_of_year                   # => Tue, 01 Jan 2008 00:00:00.000000000 EST -05:00
   #   t > Time.utc(1999)                    # => true
@@ -202,25 +202,49 @@ module ActiveSupport
     #
     #   Time.zone.now.rfc2822  # => "Tue, 01 Jan 2013 04:51:39 +0000"
     def rfc2822
-      to_s(:rfc822)
+      to_formatted_s(:rfc822)
     end
     alias_method :rfc822, :rfc2822
+
+    NOT_SET = Object.new # :nodoc:
+
+    # Returns a string of the object's date and time.
+    def to_s(format = NOT_SET)
+      if format == :db
+        ActiveSupport::Deprecation.warn(
+          "TimeWithZone#to_s(:db) is deprecated. Please use TimeWithZone#to_formatted_s(:db) instead."
+        )
+        utc.to_formatted_s(format)
+      elsif formatter = ::Time::DATE_FORMATS[format]
+        ActiveSupport::Deprecation.warn(
+          "TimeWithZone#to_s(#{format.inspect}) is deprecated. Please use TimeWithZone#to_formatted_s(#{format.inspect}) instead."
+        )
+        formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
+      elsif format == NOT_SET
+        "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format
+      else
+        ActiveSupport::Deprecation.warn(
+          "TimeWithZone#to_s(#{format.inspect}) is deprecated. Please use TimeWithZone#to_formatted_s(#{format.inspect}) instead."
+        )
+        "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format
+      end
+    end
 
     # Returns a string of the object's date and time.
     # Accepts an optional <tt>format</tt>:
     # * <tt>:default</tt> - default value, mimics Ruby Time#to_s format.
     # * <tt>:db</tt> - format outputs time in UTC :db time. See Time#to_formatted_s(:db).
     # * Any key in <tt>Time::DATE_FORMATS</tt> can be used. See active_support/core_ext/time/conversions.rb.
-    def to_s(format = :default)
+    def to_formatted_s(format = :default)
       if format == :db
-        utc.to_s(format)
+        utc.to_formatted_s(format)
       elsif formatter = ::Time::DATE_FORMATS[format]
         formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
       else
-        "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format
+        # Change to to_s when deprecation is gone.
+        "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}"
       end
     end
-    alias_method :to_formatted_s, :to_s
 
     # Replaces <tt>%Z</tt> directive with +zone before passing to Time#strftime,
     # so that zone information is correct.

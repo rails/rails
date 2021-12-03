@@ -103,7 +103,28 @@ class Array
     end
   end
   alias_method :to_default_s, :to_s
-  alias_method :to_s, :to_formatted_s
+
+  NOT_SET = Object.new # :nodoc:
+  def to_s(format = NOT_SET)
+    case format
+    when :db
+      ActiveSupport::Deprecation.warn(
+        "Array#to_s(#{format.inspect}) is deprecated. Please use Array#to_formatted_s(#{format.inspect}) instead."
+      )
+      if empty?
+        "null"
+      else
+        collect(&:id).join(",")
+      end
+    when NOT_SET
+      to_default_s
+    else
+      ActiveSupport::Deprecation.warn(
+        "Array#to_s(#{format.inspect}) is deprecated. Please use Array#to_formatted_s(#{format.inspect}) instead."
+      )
+      to_default_s
+    end
+  end
 
   # Returns a string that represents the array in XML by invoking +to_xml+
   # on each element. Active Record collections delegate their representation
