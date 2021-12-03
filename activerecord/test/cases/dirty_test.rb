@@ -948,10 +948,11 @@ class DirtyTest < ActiveRecord::TestCase
         assert_equal "Boeing", aircraft.name
 
         aircraft.save!
+        expected_manufactured_at = Time.now
         aircraft.reload
 
         assert_equal "Boeing", aircraft.name
-        assert_equal Time.now.utc.strftime("%Y-%m-%d %H:%M:%S"), aircraft.manufactured_at.strftime("%Y-%m-%d %H:%M:%S")
+        assert_in_delta expected_manufactured_at, aircraft.manufactured_at, 1
       end
     end
 
