@@ -1,3 +1,7 @@
+*   Document `ActiveSupport::Testing::Deprecation`.
+
+    *Sam Bostock & Sam Jordan*
+
 *   Add `Pathname#existence`.
 
     ```ruby
