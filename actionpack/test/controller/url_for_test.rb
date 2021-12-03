@@ -325,19 +325,19 @@ module AbstractController
         with_routing do |set|
           set.draw do
             scope ":account_id" do
-              get 'dashboard' => 'pages#dashboard', as: :dashboard
-              get 'search/:term' => 'search#search', as: :search
+              get "dashboard" => "pages#dashboard", as: :dashboard
+              get "search/:term" => "search#search", as: :search
             end
-            delete 'signout' => 'sessions#destroy', as: :signout
+            delete "signout" => "sessions#destroy", as: :signout
           end
 
           # We need to create a new class in order to install the new named route.
           kls = Class.new do
             include set.url_helpers
-              def default_url_options
-                { bind_params: { account_id: "foo" } }
-              end
+            def default_url_options
+              { bind_params: { account_id: "foo" } }
             end
+          end
 
           controller = kls.new
 
