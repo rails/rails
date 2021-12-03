@@ -2057,6 +2057,18 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_new_form_for_without_format
+    form_for(@post, html: { id: "edit_post_123", class: "edit_post" }) do |f|
+      concat f.label(:title)
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      "<label for='post_title'>Title</label>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_with_model_using_relative_model_naming
     blog_post = Blog::Post.new("And his name will be forty and four.", 44)
 
