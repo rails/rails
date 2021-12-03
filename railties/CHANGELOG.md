@@ -1,3 +1,7 @@
+*   Remove deprecated `config` in `dbconsole`.
+
+    *Rafael Mendonça França*
+
 *   Change default `X-XSS-Protection` header to disable XSS auditor
 
     This header has been deprecated and the XSS auditor it triggered

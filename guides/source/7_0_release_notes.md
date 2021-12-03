@@ -30,6 +30,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `config` in `dbconsole`.
+
 ### Deprecations
 
 ### Notable changes
