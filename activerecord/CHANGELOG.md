@@ -8,10 +8,10 @@
     ```
 
     Such code is vulnerable to timing-based enumeration attacks, wherein an
-    attacker can determine if a user account with a given email exists.  After
+    attacker can determine if a user account with a given email exists. After
     confirming that an account exists, the attacker can try passwords associated
     with that email address from other leaked databases, in case the user
-    re-used a password across multiple sites (a common practice).  Additionally,
+    re-used a password across multiple sites (a common practice). Additionally,
     knowing an account email address allows the attacker to attempt a targeted
     phishing ("spear phishing") attack.
 
