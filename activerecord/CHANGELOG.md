@@ -1,4 +1,8 @@
-*   Remove deprecated `ActiveRecord::Connection#:in_clause_length`.
+*   Remove deprecated `ActiveRecord::DatabaseConfigurations::DatabaseConfig#spec_name`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::Connection#in_clause_length`.
 
     *Rafael Mendonça França*
 

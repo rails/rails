@@ -151,7 +151,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `ActiveRecord::Connection#allowed_index_name_length`.
 
-*   Remove deprecated `ActiveRecord::Connection#:in_clause_length`.
+*   Remove deprecated `ActiveRecord::Connection#in_clause_length`.
+
+*   Remove deprecated `ActiveRecord::DatabaseConfigurations::DatabaseConfig#spec_name`.
 
 ### Deprecations
 
