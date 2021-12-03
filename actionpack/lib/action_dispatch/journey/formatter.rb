@@ -57,6 +57,9 @@ module ActionDispatch
       end
 
       def generate(name, options, path_parameters)
+        bind_params = options.delete(:bind_params) || {}
+        original_options = options.dup
+        options = options.reverse_merge(bind_params)
         constraints = path_parameters.merge(options)
         missing_keys = nil
 
@@ -71,6 +74,9 @@ module ActionDispatch
           missing_keys = missing_keys(route, parameterized_parts)
           next if missing_keys && !missing_keys.empty?
           params = options.dup.delete_if do |key, _|
+            # top-level params' normal behavior of generating query_params
+            # should be preserved even if the same key is also a bind_param
+            (bind_params.key?(key) && !original_options.key?(key)) ||
             parameterized_parts.key?(key) || route.defaults.key?(key)
           end
 
