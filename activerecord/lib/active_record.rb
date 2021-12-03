@@ -68,6 +68,7 @@ module ActiveRecord
   autoload :SchemaDumper
   autoload :SchemaMigration
   autoload :Scoping
+  autoload :SecurePassword
   autoload :SecureToken
   autoload :Serialization
   autoload :SignedId
