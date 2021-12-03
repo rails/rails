@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::Connection#allowed_index_name_length`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::Base#remove_connection`.
 
     *Rafael Mendonça França*

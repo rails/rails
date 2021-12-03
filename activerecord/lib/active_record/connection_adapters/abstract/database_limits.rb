@@ -12,16 +12,6 @@ module ActiveRecord
         max_identifier_length
       end
 
-      # Returns the maximum allowed length for an index name. This
-      # limit is enforced by \Rails and is less than or equal to
-      # #index_name_length. The gap between
-      # #index_name_length is to allow internal \Rails
-      # operations to use prefixes in temporary operations.
-      def allowed_index_name_length
-        index_name_length
-      end
-      deprecate :allowed_index_name_length
-
       # Returns the maximum length of an index name.
       def index_name_length
         max_identifier_length

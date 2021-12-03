@@ -301,10 +301,6 @@ module ActiveRecord
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
     end
 
-    def test_allowed_index_name_length_is_deprecated
-      assert_deprecated { @connection.allowed_index_name_length }
-    end
-
     unless current_adapter?(:OracleAdapter)
       def test_in_clause_length_is_deprecated
         assert_deprecated { @connection.in_clause_length }
