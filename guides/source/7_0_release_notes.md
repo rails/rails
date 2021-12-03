@@ -151,6 +151,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `ActiveRecord::Connection#allowed_index_name_length`.
 
+*   Remove deprecated `ActiveRecord::Connection#:in_clause_length`.
+
 ### Deprecations
 
 *   Deprecated `Tasks::DatabaseTasks.schema_file_type`.

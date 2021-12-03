@@ -17,13 +17,6 @@ module ActiveRecord
         max_identifier_length
       end
 
-      # Returns the maximum number of elements in an IN (x,y,z) clause.
-      # +nil+ means no limit.
-      def in_clause_length
-        nil
-      end
-      deprecate :in_clause_length
-
       private
         def bind_params_length
           65535

@@ -300,12 +300,6 @@ module ActiveRecord
     test "type_to_sql returns a String for unmapped types" do
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
     end
-
-    unless current_adapter?(:OracleAdapter)
-      def test_in_clause_length_is_deprecated
-        assert_deprecated { @connection.in_clause_length }
-      end
-    end
   end
 
   class AdapterForeignKeyTest < ActiveRecord::TestCase
