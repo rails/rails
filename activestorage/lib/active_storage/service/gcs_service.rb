@@ -134,7 +134,7 @@ module ActiveStorage
       headers
     end
 
-    def compose(*source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
+    def compose(source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
       bucket.compose(source_keys, destination_key).update do |file|
         file.content_type = content_type
         file.content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename

@@ -153,7 +153,7 @@ module ActiveStorage::Service::SharedServiceTests
         )
       end
       destination_key = SecureRandom.base58(24)
-      @service.compose(*keys, destination_key)
+      @service.compose(keys, destination_key)
 
       assert_equal "Together", @service.download(destination_key)
     end
