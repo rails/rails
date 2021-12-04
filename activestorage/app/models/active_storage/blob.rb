@@ -149,9 +149,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
     # Concatenate multiple blobs into a single "composed" blob.
     def compose(filename:, blobs:, content_type: nil, metadata: nil)
-      unless blobs.all?(&:persisted?)
-        raise(ActiveRecord::RecordNotSaved, "All blobs must be persisted.")
-      end
+      raise ActiveRecord::RecordNotSaved, "All blobs must be persisted." if blobs.any?(&:new_record?)
 
       content_type ||= blobs.pluck(:content_type).compact.first
 
