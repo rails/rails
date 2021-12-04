@@ -9,6 +9,8 @@ module ActiveSupport
     # Options are provided for phone numbers, currency, percentage,
     # precision, positional notation, file size and pretty printing.
     #
+    # This method is aliased to <tt>to_fs</tt>.
+    #
     # ==== Options
     #
     # For details on which formats use which options, see ActiveSupport::NumberHelper
@@ -132,6 +134,7 @@ module ActiveSupport
         to_s(format)
       end
     end
+    alias_method :to_fs, :to_formatted_s
 
     def to_s(format = nil, options = nil) # :nodoc:
       return super() if format.nil?

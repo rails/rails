@@ -22,7 +22,7 @@ class Date
 
   # Convert to a formatted string. See DATE_FORMATS for predefined formats.
   #
-  # This method is aliased to <tt>to_s</tt>.
+  # This method is aliased to <tt>to_fs</tt>.
   #
   #   date = Date.new(2007, 11, 10)       # => Sat, 10 Nov 2007
   #
@@ -55,6 +55,7 @@ class Date
       to_default_s
     end
   end
+  alias_method :to_fs, :to_formatted_s
   alias_method :to_default_s, :to_s
 
   NOT_SET = Object.new # :nodoc:

@@ -9,6 +9,7 @@ class RangeTest < ActiveSupport::TestCase
   def test_to_formatted_s_from_dates
     date_range = Date.new(2005, 12, 10)..Date.new(2005, 12, 12)
     assert_equal "BETWEEN '2005-12-10' AND '2005-12-12'", date_range.to_formatted_s(:db)
+    assert_equal "BETWEEN '2005-12-10' AND '2005-12-12'", date_range.to_fs(:db)
   end
 
   def test_to_formatted_s_from_times

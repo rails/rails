@@ -27,6 +27,8 @@ class Time
 
   # Converts to a formatted string. See DATE_FORMATS for built-in formats.
   #
+  # This method is aliased to <tt>to_fs</tt>.
+  #
   #   time = Time.now                    # => 2007-01-18 06:10:17 -06:00
   #
   #   time.to_formatted_s(:time)         # => "06:10"
@@ -56,6 +58,7 @@ class Time
       to_default_s
     end
   end
+  alias_method :to_fs, :to_formatted_s
   alias_method :to_default_s, :to_s
 
   NOT_SET = Object.new # :nodoc:

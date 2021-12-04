@@ -33,6 +33,8 @@ module ActiveSupport
 
     # Convert range to a formatted string. See RANGE_FORMATS for predefined formats.
     #
+    # This method is aliased to <tt>to_fs</tt>.
+    #
     #   range = (1..100)           # => 1..100
     #
     #   range.to_s                 # => "1..100"
@@ -51,6 +53,7 @@ module ActiveSupport
         to_s
       end
     end
+    alias_method :to_fs, :to_formatted_s
   end
 end
 

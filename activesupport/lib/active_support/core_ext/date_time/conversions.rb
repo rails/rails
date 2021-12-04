@@ -9,6 +9,8 @@ require "active_support/values/time_zone"
 class DateTime
   # Convert to a formatted string. See Time::DATE_FORMATS for predefined formats.
   #
+  # This method is aliased to <tt>to_fs</tt>.
+  #
   # === Examples
   #   datetime = DateTime.civil(2007, 12, 4, 0, 0, 0, 0)   # => Tue, 04 Dec 2007 00:00:00 +0000
   #
@@ -37,6 +39,7 @@ class DateTime
       to_default_s
     end
   end
+  alias_method :to_fs, :to_formatted_s
   alias_method :to_default_s, :to_s if instance_methods(false).include?(:to_s)
 
   NOT_SET = Object.new # :nodoc:

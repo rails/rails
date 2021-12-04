@@ -162,6 +162,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
       assert_equal("555-1234", 5551234.to_s(:phone))
     end
     assert_equal("555-1234", 5551234.to_formatted_s(:phone))
+    assert_equal("555-1234", 5551234.to_fs(:phone))
     assert_equal("800-555-1212", 8005551212.to_formatted_s(:phone))
     assert_equal("(800) 555-1212", 8005551212.to_formatted_s(:phone, area_code: true))
     assert_equal("800 555 1212", 8005551212.to_formatted_s(:phone, delimiter: " "))
@@ -179,6 +180,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
       assert_equal("$1,234,567,890.50", 1234567890.50.to_s(:currency))
     end
     assert_equal("$1,234,567,890.50", 1234567890.50.to_formatted_s(:currency))
+    assert_equal("$1,234,567,890.50", 1234567890.50.to_fs(:currency))
     assert_equal("$1,234,567,890.51", 1234567890.506.to_formatted_s(:currency))
     assert_equal("-$1,234,567,890.50", -1234567890.50.to_formatted_s(:currency))
     assert_equal("-$ 1,234,567,890.50", -1234567890.50.to_formatted_s(:currency, format: "%u %n"))
@@ -194,6 +196,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
       assert_equal("-111.235", -111.2346.to_s(:rounded))
     end
     assert_equal("-111.235", -111.2346.to_formatted_s(:rounded))
+    assert_equal("-111.235", -111.2346.to_fs(:rounded))
     assert_equal("111.235", 111.2346.to_formatted_s(:rounded))
     assert_equal("31.83", 31.825.to_formatted_s(:rounded, precision: 2))
     assert_equal("31.82", 31.825.to_formatted_s(:rounded, precision: 2, round_mode: :down))
@@ -256,6 +259,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
       assert_equal("100.000%", 100.to_s(:percentage))
     end
     assert_equal("100.000%", 100.to_formatted_s(:percentage))
+    assert_equal("100.000%", 100.to_fs(:percentage))
     assert_equal("100%", 100.to_formatted_s(:percentage, precision: 0))
     assert_equal("302.06%", 302.0574.to_formatted_s(:percentage, precision: 2))
     assert_equal("302.05%", 302.0574.to_formatted_s(:percentage, precision: 2, round_mode: :down))
@@ -269,6 +273,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
       assert_equal("12,345,678", 12345678.to_s(:delimited))
     end
     assert_equal("12,345,678", 12345678.to_formatted_s(:delimited))
+    assert_equal("12,345,678", 12345678.to_fs(:delimited))
     assert_equal("0", 0.to_formatted_s(:delimited))
     assert_equal("123", 123.to_formatted_s(:delimited))
     assert_equal("123,456", 123456.to_formatted_s(:delimited))
@@ -343,6 +348,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
       assert_equal "-123", -123.to_s(:human)
     end
     assert_equal "-123", -123.to_formatted_s(:human)
+    assert_equal "-123", -123.to_fs(:human)
     assert_equal "-0.5", -0.5.to_formatted_s(:human)
     assert_equal "0",   0.to_formatted_s(:human)
     assert_equal "0.5", 0.5.to_formatted_s(:human)
@@ -414,6 +420,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
       assert_equal "123", 123.to_s(:invalid)
     end
     assert_equal "123", 123.to_formatted_s(:invalid)
+    assert_equal "123", 123.to_fs(:invalid)
     assert_equal "2.5", 2.5.to_formatted_s(:invalid)
     assert_equal "100000000000000000000", (100**10).to_formatted_s(:invalid)
     assert_equal "1000010.0", BigDecimal("1000010").to_formatted_s(:invalid)
@@ -422,6 +429,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   def test_default_to_formatted_s
     assert_equal "123", 123.to_s
     assert_equal "123", 123.to_formatted_s
+    assert_equal "123", 123.to_fs
     assert_equal "1111011", 123.to_s(2)
     assert_equal "1111011", 123.to_formatted_s(2)
 

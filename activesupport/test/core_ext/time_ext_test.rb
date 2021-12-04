@@ -666,6 +666,8 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
       assert_equal "2009-02-05 14:30:05.000000000 -0600", Time.local(2009, 2, 5, 14, 30, 5).to_formatted_s(:inspect)
       assert_equal "2008-06-09 04:05:01.000000000 -0500", Time.local(2008, 6, 9, 4, 5, 1).to_formatted_s(:inspect)
     end
+
+    assert_equal "2005-02-21 17:44:30",             time.to_fs(:db)
   end
 
   def test_to_s_custom_date_format

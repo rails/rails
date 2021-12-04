@@ -231,6 +231,9 @@ module ActiveSupport
     end
 
     # Returns a string of the object's date and time.
+    #
+    # This method is aliased to <tt>to_fs</tt>.
+    #
     # Accepts an optional <tt>format</tt>:
     # * <tt>:default</tt> - default value, mimics Ruby Time#to_s format.
     # * <tt>:db</tt> - format outputs time in UTC :db time. See Time#to_formatted_s(:db).
@@ -245,6 +248,7 @@ module ActiveSupport
         "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}"
       end
     end
+    alias_method :to_fs, :to_formatted_s
 
     # Replaces <tt>%Z</tt> directive with +zone before passing to Time#strftime,
     # so that zone information is correct.
