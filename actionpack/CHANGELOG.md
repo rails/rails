@@ -1,14 +1,14 @@
-*   THe url_for helpers now support a new option called `bind_params`.
+*   The url_for helpers now support a new option called `path_params`.
     This is very useful in situations where you only want to add a required param that is part of the route's URL but for other route not append an extraneous query param.
 
     Given the following router...
     ```ruby
     Rails.application.routes.draw do
       scope ":account_id" do
-        get 'dashboard' => 'pages#dashboard', as: :dashboard
-        get 'search/:term' => 'search#search', as: :search
+        get "dashboard" => "pages#dashboard", as: :dashboard
+        get "search/:term" => "search#search", as: :search
       end
-      delete 'signout' => 'sessions#destroy', as: :signout
+      delete "signout" => "sessions#destroy", as: :signout
     end
     ```
 
@@ -16,18 +16,20 @@
     ```ruby
       class ApplicationController < ActionController::Base
         def default_url_options
-          { bind_params: { account_id: "foo" } }
+          { path_params: { account_id: "foo" } }
         end
       end
     ```
 
-    The standard URLHelpers will now behave as follows:
+    The standard url_for helper and friends will now behave as follows:
 
     ```ruby
     dashboard_path # => /foo/dashboard
     dashboard_path(account_id: "bar") # => /bar/dashboard
+
     signout_path # => /signout
     signout_path(account_id: "bar") # => /signout?account_id=bar
+    signout_path(account_id: "bar", path_params: { account_id: "baz" }) # => /signout?account_id=bar
     search_path("quin") # => /foo/search/quin
     ```
 

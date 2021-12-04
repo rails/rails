@@ -321,21 +321,20 @@ module AbstractController
         end
       end
 
-      def test_bind_params
+      def test_path_params_with_default_url_options
         with_routing do |set|
           set.draw do
             scope ":account_id" do
               get "dashboard" => "pages#dashboard", as: :dashboard
-              get "search/:term" => "search#search", as: :search
+              get "search(/:term)" => "search#search", as: :search
             end
             delete "signout" => "sessions#destroy", as: :signout
           end
 
-          # We need to create a new class in order to install the new named route.
           kls = Class.new do
             include set.url_helpers
             def default_url_options
-              { bind_params: { account_id: "foo" } }
+              { path_params: { account_id: "foo" } }
             end
           end
 
@@ -345,7 +344,32 @@ module AbstractController
           assert_equal("/bar/dashboard", controller.dashboard_path(account_id: "bar"))
           assert_equal("/signout", controller.signout_path)
           assert_equal("/signout?account_id=bar", controller.signout_path(account_id: "bar"))
+          assert_equal("/signout?account_id=bar", controller.signout_path(account_id: "bar", path_params: { account_id: "baz" }))
           assert_equal("/foo/search/quin", controller.search_path("quin"))
+        end
+      end
+
+      def test_path_params_without_default_url_options
+        with_routing do |set|
+          set.draw do
+            scope ":account_id" do
+              get "dashboard" => "pages#dashboard", as: :dashboard
+              get "search(/:term)" => "search#search", as: :search
+            end
+            delete "signout" => "sessions#destroy", as: :signout
+          end
+
+          kls = Class.new { include set.url_helpers }
+          controller = kls.new
+
+          assert_raise(ActionController::UrlGenerationError) do
+            controller.dashboard_path # missing required keys :account_id
+          end
+
+          assert_equal("/bar/dashboard", controller.dashboard_path(path_params: { account_id: "bar" }))
+          assert_equal("/signout", controller.signout_path(path_params: { account_id: "bar" }))
+          assert_equal("/signout?account_id=bar", controller.signout_path(account_id: "bar", path_params: { account_id: "baz" }))
+          assert_equal("/foo/search/quin", controller.search_path("foo", "quin"))
         end
       end
 
