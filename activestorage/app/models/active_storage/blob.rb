@@ -154,7 +154,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
       content_type ||= blobs.pluck(:content_type).compact.first
 
       new(filename: filename, content_type: content_type, metadata: metadata, byte_size: blobs.sum(&:byte_size)).tap do |combined_blob|
-        combined_blob.compose(*blobs.pluck(:key))
+        combined_blob.compose(blobs.pluck(:key))
         combined_blob.save!
       end
     end
@@ -268,9 +268,9 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.upload key, io, checksum: checksum, **service_metadata
   end
 
-  def compose(*keys) # :nodoc:
+  def compose(keys) # :nodoc:
     self.composed = true
-    service.compose(*keys, key, **service_metadata)
+    service.compose(keys, key, **service_metadata)
   end
 
   # Downloads the file associated with this blob. If no block is given, the entire file is read into memory and returned.

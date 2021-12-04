@@ -100,7 +100,7 @@ module ActiveStorage
       File.join root, folder_for(key), key
     end
 
-    def compose(*source_keys, destination_key, **)
+    def compose(source_keys, destination_key, **)
       File.open(make_path_for(destination_key), "w") do |destination_file|
         source_keys.each do |source_key|
           File.open(path_for(source_key), "rb") do |source_file|
