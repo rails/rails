@@ -447,7 +447,9 @@ module Rails
         if skip_sprockets?
           remove_file "config/initializers/assets.rb"
           remove_file "app/assets/config/manifest.js"
+          remove_dir  "app/assets/config"
           remove_file "app/assets/stylesheets/application.css"
+          create_file "app/assets/stylesheets/application.css", "/* Application styles */\n" unless options[:api]
         end
       end
 

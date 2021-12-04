@@ -295,7 +295,6 @@ module SharedGeneratorTests
 
     assert_no_file "#{application_path}/config/initializers/assets.rb"
     assert_no_file "#{application_path}/app/assets/config/manifest.js"
-    assert_no_file "#{application_path}/app/assets/stylesheets/application.css"
 
     assert_file "Gemfile" do |content|
       assert_no_match(/sass-rails/, content)
