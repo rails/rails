@@ -137,7 +137,7 @@ module ActionDispatch
       # * <tt>:anchor</tt> - An anchor name to be appended to the path.
       # * <tt>:params</tt> - The query parameters to be appended to the path.
       # * <tt>:path_params</tt> - The query parameters that will only be used
-      #   for the named dynamic segments of path. If unsued, they will be discarded.
+      #   for the named dynamic segments of path. If unused, they will be discarded.
       # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in <tt>"/archive/2009/"</tt>.
       # * <tt>:script_name</tt> - Specifies application path relative to domain root. If provided, prepends application path.
       #
