@@ -44,7 +44,13 @@ gem "bootsnap", ">= 1.4.4", require: false
 <% if RUBY_ENGINE == "ruby" -%>
 
 group :development, :test do
-  # Start debugger with binding.b [https://github.com/ruby/debug]
+  # Writing `binding.irb` in a spot to debug gives you a console. If the project
+  # depends on Pry, `binding.pry` is also available. For them to work, you don't
+  # need to depend on the `debug` gem.
+  #
+  # To get a proper debugger, depend on the `debug` gem and execute `binding.b`.
+  # However, better eager load the application, because `debug` and autoloading
+  # are not fully compatible. See https://github.com/ruby/debug/issues/408.
   gem "debug", ">= 1.0.0", platforms: %i[ mri mingw x64_mingw ]
 end
 <% end -%>
