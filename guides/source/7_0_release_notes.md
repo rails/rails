@@ -248,6 +248,16 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate passing a format to `#to_s` in favor of `#to_formatted_s` in `Array`, `Range`, `Date`, `DateTime`, `Time`,
+    `BigDecimal`, `Float` and, `Integer`.
+
+    This deprecation is to allow Rails application to take advantage of a Ruby 3.1
+    [optimization][https://github.com/ruby/ruby/commit/b08dacfea39ad8da3f1fd7fdd0e4538cc892ec44] that makes
+    interpolation of some types of objects faster.
+
+    New applications will not have the `#to_s` method overriden on those classes, existing applications can use
+    `config.active_support.disable_to_s_conversion`.
+
 ### Notable changes
 
 Active Job
