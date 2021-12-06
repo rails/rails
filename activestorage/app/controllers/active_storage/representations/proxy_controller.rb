@@ -9,7 +9,7 @@
 class ActiveStorage::Representations::ProxyController < ActiveStorage::Representations::BaseController
   def show
     http_cache_forever public: true do
-      send_blob_stream @representation.image
+      send_blob_stream @representation.image, disposition: params[:disposition]
     end
   end
 end
