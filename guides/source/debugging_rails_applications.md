@@ -496,7 +496,8 @@ will raise a `NameError`. In some cases, Ruby will be able to resolve an uninten
 
 If you hit this, please restart your debugging session with eager loading enabled (`config.eager_load = true`).
 
-Stepping commands line `next`, `continue`, etc., do not present this issue. Namespaces defined implictly only by subdirectories are not subject to this issue either.
+Stepping commands line `next`, `continue`, etc., do not present this issue. Namespaces defined implicitly only by
+subdirectories are not subject to this issue either.
 
 See [ruby/debug#408](https://github.com/ruby/debug/issues/408) for details.
 
