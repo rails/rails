@@ -23,7 +23,6 @@ class ActiveStorage::Representations::ProxyControllerWithVariantsTest < ActionDi
     assert_equal 67, image.height
   end
 
-
   test "showing variant inline" do
     get rails_blob_representation_proxy_url(
       filename: @blob.filename,
