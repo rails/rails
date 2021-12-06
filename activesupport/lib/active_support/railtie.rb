@@ -6,6 +6,7 @@ require "active_support/i18n_railtie"
 module ActiveSupport
   class Railtie < Rails::Railtie # :nodoc:
     config.active_support = ActiveSupport::OrderedOptions.new
+    config.active_support.disable_to_s_conversion = false
 
     config.eager_load_namespaces << ActiveSupport
 

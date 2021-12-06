@@ -123,8 +123,8 @@ module Rails
                      when :integer                     then 1
                      when :float                       then 1.5
                      when :decimal                     then "9.99"
-                     when :datetime, :timestamp, :time then Time.now.to_s(:db)
-                     when :date                        then Date.today.to_s(:db)
+                     when :datetime, :timestamp, :time then Time.now.to_formatted_s(:db)
+                     when :date                        then Date.today.to_formatted_s(:db)
                      when :string                      then name == "type" ? "" : "MyString"
                      when :text                        then "MyText"
                      when :boolean                     then false

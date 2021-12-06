@@ -43,20 +43,20 @@ module ActiveRecord
 
       def test_quoted_date
         t = Date.today
-        assert_equal t.to_s(:db), @quoter.quoted_date(t)
+        assert_equal t.to_formatted_s(:db), @quoter.quoted_date(t)
       end
 
       def test_quoted_timestamp_utc
         with_timezone_config default: :utc do
           t = Time.now.change(usec: 0)
-          assert_equal t.getutc.to_s(:db), @quoter.quoted_date(t)
+          assert_equal t.getutc.to_formatted_s(:db), @quoter.quoted_date(t)
         end
       end
 
       def test_quoted_timestamp_local
         with_timezone_config default: :local do
           t = Time.now.change(usec: 0)
-          assert_equal t.getlocal.to_s(:db), @quoter.quoted_date(t)
+          assert_equal t.getlocal.to_formatted_s(:db), @quoter.quoted_date(t)
         end
       end
 
@@ -65,7 +65,7 @@ module ActiveRecord
           t = Time.now.change(usec: 0)
 
           expected = t.change(year: 2000, month: 1, day: 1)
-          expected = expected.getutc.to_s(:db).slice(11..-1)
+          expected = expected.getutc.to_formatted_s(:db).slice(11..-1)
 
           assert_equal expected, @quoter.quoted_time(t)
         end
@@ -76,7 +76,7 @@ module ActiveRecord
           t = Time.now.change(usec: 0)
 
           expected = t.change(year: 2000, month: 1, day: 1)
-          expected = expected.getlocal.to_s(:db).sub("2000-01-01 ", "")
+          expected = expected.getlocal.to_formatted_s(:db).sub("2000-01-01 ", "")
 
           assert_equal expected, @quoter.quoted_time(t)
         end
@@ -88,7 +88,7 @@ module ActiveRecord
             t = Time.new(2000, 7, 1, 0, 0, 0, "+04:30")
 
             expected = t.change(year: 2000, month: 1, day: 1)
-            expected = expected.getutc.to_s(:db).slice(11..-1)
+            expected = expected.getutc.to_formatted_s(:db).slice(11..-1)
 
             assert_equal expected, @quoter.quoted_time(t)
           end
@@ -101,7 +101,7 @@ module ActiveRecord
             t = Time.new(2000, 7, 1, 0, 0, 0, "+04:30")
 
             expected = t.change(year: 2000, month: 1, day: 1)
-            expected = expected.getlocal.to_s(:db).slice(11..-1)
+            expected = expected.getlocal.to_formatted_s(:db).slice(11..-1)
 
             assert_equal expected, @quoter.quoted_time(t)
           end
@@ -111,7 +111,7 @@ module ActiveRecord
       def test_quoted_datetime_utc
         with_timezone_config default: :utc do
           t = Time.now.change(usec: 0).to_datetime
-          assert_equal t.getutc.to_s(:db), @quoter.quoted_date(t)
+          assert_equal t.getutc.to_formatted_s(:db), @quoter.quoted_date(t)
         end
       end
 
@@ -120,7 +120,7 @@ module ActiveRecord
       def test_quoted_datetime_local
         with_timezone_config default: :local do
           t = Time.now.change(usec: 0).to_datetime
-          assert_equal t.to_s(:db), @quoter.quoted_date(t)
+          assert_equal t.to_formatted_s(:db), @quoter.quoted_date(t)
         end
       end
 
