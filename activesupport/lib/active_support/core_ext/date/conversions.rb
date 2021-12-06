@@ -22,12 +22,12 @@ class Date
 
   # Convert to a formatted string. See DATE_FORMATS for predefined formats.
   #
-  # This method is aliased to <tt>to_s</tt>.
+  # This method is aliased to <tt>to_fs</tt>.
   #
   #   date = Date.new(2007, 11, 10)       # => Sat, 10 Nov 2007
   #
   #   date.to_formatted_s(:db)            # => "2007-11-10"
-  #   date.to_s(:db)                      # => "2007-11-10"
+  #   date.to_formatted_s(:db)            # => "2007-11-10"
   #
   #   date.to_formatted_s(:short)         # => "10 Nov"
   #   date.to_formatted_s(:number)        # => "20071110"
@@ -55,8 +55,8 @@ class Date
       to_default_s
     end
   end
+  alias_method :to_fs, :to_formatted_s
   alias_method :to_default_s, :to_s
-  alias_method :to_s, :to_formatted_s
 
   # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005"
   def readable_inspect

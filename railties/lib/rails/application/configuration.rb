@@ -223,6 +223,7 @@ module Rails
             active_support.use_rfc4122_namespaced_uuids = true
             active_support.executor_around_test_case = true
             active_support.isolation_level = :thread
+            active_support.disable_to_s_conversion = true
           end
 
           if respond_to?(:action_mailer)
