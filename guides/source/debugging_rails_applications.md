@@ -470,6 +470,35 @@ class variables: @@raise_on_missing_translations  @@raise_on_open_redirects
 
 You can find more commands and configuration options from its [documentation](https://github.com/ruby/debug).
 
+#### Autoloading Caveat
+
+Debugging with `debug` works fine most of the time, but there's an edge case: If you evaluate an expression in the console that autoloads a namespace defined in a file, constants in that namespace won't be found.
+
+For example, if the application has these two files:
+
+```ruby
+# hotel.rb
+class Hotel
+end
+
+# hotel/pricing.rb
+module Hotel::Pricing
+end
+```
+
+and `Hotel` is not yet loaded, then
+
+```
+(rdbg) p Hotel::Pricing
+```
+
+will raise a `NameError`. In some cases, Ruby will be able to resolve an unintended constant in a different scope.
+
+If you hit this, please restart your debugging session with eager loading enabled (`config.eager_load = true`).
+
+Stepping commands line `next`, `continue`, etc., do not present this issue. Namespaces defined implictly only by subdirectories are not subject to this issue either.
+
+See [ruby/debug#408](https://github.com/ruby/debug/issues/408) for details.
 
 Debugging with the `web-console` gem
 ------------------------------------
