@@ -58,27 +58,6 @@ class Date
   alias_method :to_fs, :to_formatted_s
   alias_method :to_default_s, :to_s
 
-  NOT_SET = Object.new # :nodoc:
-  def to_s(format = NOT_SET) # :nodoc:
-    if formatter = DATE_FORMATS[format]
-      ActiveSupport::Deprecation.warn(
-        "Date#to_s(#{format.inspect}) is deprecated. Please use Date#to_formatted_s(#{format.inspect}) instead."
-      )
-      if formatter.respond_to?(:call)
-        formatter.call(self).to_s
-      else
-        strftime(formatter)
-      end
-    elsif format == NOT_SET
-      to_default_s
-    else
-      ActiveSupport::Deprecation.warn(
-        "Date#to_s(#{format.inspect}) is deprecated. Please use Date#to_formatted_s(#{format.inspect}) instead."
-      )
-      to_default_s
-    end
-  end
-
   # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005"
   def readable_inspect
     strftime("%a, %d %b %Y")

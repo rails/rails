@@ -3435,6 +3435,76 @@ module ApplicationTests
       assert_equal [], ActionController::Base._wrapper_options.format
     end
 
+    test "deprecated #to_s with format works with the Rails 6.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "production"
+
+      assert_deprecated do
+        assert_equal "21 Feb", Date.new(2005, 2, 21).to_s(:short)
+      end
+      assert_deprecated do
+        assert_equal "2005-02-21 14:30:00", DateTime.new(2005, 2, 21, 14, 30, 0, 0).to_s(:db)
+      end
+      assert_deprecated do
+        assert_equal "555-1234", 5551234.to_s(:phone)
+      end
+      assert_deprecated do
+        assert_equal "BETWEEN 'a' AND 'z'", ("a".."z").to_s(:db)
+      end
+      assert_deprecated do
+        assert_equal "2005-02-21 17:44:30", Time.utc(2005, 2, 21, 17, 44, 30.12345678901).to_s(:db)
+      end
+    end
+
+    test "deprecated #to_s with format does not work with the Rails 6.1 defaults and the config set" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      add_to_config <<-RUBY
+        config.active_support.disable_to_s_conversion = true
+      RUBY
+
+      app "production"
+
+      assert_raises(ArgumentError) do
+        Date.new(2005, 2, 21).to_s(:short)
+      end
+      assert_raises(ArgumentError) do
+        DateTime.new(2005, 2, 21, 14, 30, 0, 0).to_s(:db)
+      end
+      assert_raises(TypeError) do
+        5551234.to_s(:phone)
+      end
+      assert_raises(ArgumentError) do
+        ("a".."z").to_s(:db)
+      end
+      assert_raises(ArgumentError) do
+        Time.utc(2005, 2, 21, 17, 44, 30.12345678901).to_s(:db)
+      end
+    end
+
+    test "deprecated #to_s with format does not work with the Rails 7.0 defaults" do
+      app "production"
+
+      assert_raises(ArgumentError) do
+        Date.new(2005, 2, 21).to_s(:short)
+      end
+      assert_raises(ArgumentError) do
+        DateTime.new(2005, 2, 21, 14, 30, 0, 0).to_s(:db)
+      end
+      assert_raises(TypeError) do
+        5551234.to_s(:phone)
+      end
+      assert_raises(ArgumentError) do
+        ("a".."z").to_s(:db)
+      end
+      assert_raises(ArgumentError) do
+        Time.utc(2005, 2, 21, 17, 44, 30.12345678901).to_s(:db)
+      end
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents

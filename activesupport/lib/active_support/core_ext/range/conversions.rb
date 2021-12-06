@@ -12,25 +12,6 @@ module ActiveSupport
       end
     }
 
-    NOT_SET = Object.new # :nodoc:
-    def to_s(format = NOT_SET) # :nodoc:
-      if formatter = RANGE_FORMATS[format]
-        ActiveSupport::Deprecation.warn(
-          "Range#to_s(#{format.inspect}) is deprecated. Please use Range#to_formatted_s(#{format.inspect}) instead."
-        )
-        formatter.call(first, last)
-      elsif format == NOT_SET
-        super()
-      else
-        ActiveSupport::Deprecation.warn(
-          "Range#to_s(#{format.inspect}) is deprecated. Please use Range#to_formatted_s(#{format.inspect}) instead."
-        )
-        super()
-      end
-    end
-    alias_method :to_default_s, :to_s
-    deprecate :to_default_s
-
     # Convert range to a formatted string. See RANGE_FORMATS for predefined formats.
     #
     # This method is aliased to <tt>to_fs</tt>.

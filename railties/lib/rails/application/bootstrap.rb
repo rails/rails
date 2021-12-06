@@ -14,6 +14,7 @@ module Rails
       initializer :load_environment_hook, group: :all do end
 
       initializer :load_active_support, group: :all do
+        ENV["RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION"] = "true" if config.active_support.disable_to_s_conversion
         require "active_support/all" unless config.active_support.bare
       end
 

@@ -1388,7 +1388,7 @@ Configures deprecation warnings that the Application considers disallowed. This 
 
 Allows you to disable all deprecation warnings (including disallowed deprecations); it makes `ActiveSupport::Deprecation.warn` a no-op. This is enabled by default in production.
 
-#### `active_support.isolation_level`
+#### `config.active_support.isolation_level`
 
 Configures the locality of most of Rails internal state. If you use a fiber based server or job processor (e.g. `falcon`), you should set it to `:fiber`.
 Otherwise it is best to use `:thread` locality.
@@ -1419,6 +1419,13 @@ Configure the test suite to call `Rails.application.executor.wrap` around test c
 This makes test cases behave closer to an actual request or job.
 Several features that are normally disabled in test, such as Active Record query cache
 and asynchronous queries will then be enabled.
+
+#### `config.active_support.disable_to_s_conversion`
+
+Disables the override of the `#to_s` methods in some Ruby core classes. This config is for applications that want to
+take advantage early of a [Ruby 3.1 optimization](https://github.com/ruby/ruby/commit/b08dacfea39ad8da3f1fd7fdd0e4538cc892ec44).
+This configuration needs to be set in `config/application.rb` inside the application class, otherwise it will not take
+effect.
 
 #### `ActiveSupport::Logger.silencer`
 
@@ -1733,6 +1740,7 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.active_support.remove_deprecated_time_with_zone_name`: `true`
 - `config.active_support.executor_around_test_case`: `true`
 - `config.active_support.use_rfc4122_namespaced_uuids`: `true`
+- `config.active_support.disable_to_s_conversion`: `true`
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `false`
 - `config.action_controller.silence_disabled_session_errors`: `false`
 - `config.action_mailer.smtp_timeout`: `5`
@@ -1828,8 +1836,9 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA1`
 - `config.active_support.cache_format_version`: `6.1`
 - `config.active_support.executor_around_test_case`: `false`
-- `active_support.isolation_level`: `:thread`
-- ``config.active_support.use_rfc4122_namespaced_uuids``: `false`
+- `config.active_support.isolation_level`: `:thread`
+- `config.active_support.use_rfc4122_namespaced_uuids`: `false`
+- `config.active_support.disable_to_s_conversion`: `false`
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `true`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
 - `config.action_mailer.smtp_timeout`: `nil`

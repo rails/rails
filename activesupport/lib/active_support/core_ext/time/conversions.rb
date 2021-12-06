@@ -61,23 +61,6 @@ class Time
   alias_method :to_fs, :to_formatted_s
   alias_method :to_default_s, :to_s
 
-  NOT_SET = Object.new # :nodoc:
-  def to_s(format = NOT_SET) # :nodoc:
-    if formatter = DATE_FORMATS[format]
-      ActiveSupport::Deprecation.warn(
-        "Time#to_s(#{format.inspect}) is deprecated. Please use Time#to_formatted_s(#{format.inspect}) instead."
-      )
-      formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
-    elsif format == NOT_SET
-      to_default_s
-    else
-      ActiveSupport::Deprecation.warn(
-        "Time#to_s(#{format.inspect}) is deprecated. Please use Time#to_formatted_s(#{format.inspect}) instead."
-      )
-      to_default_s
-    end
-  end
-
   # Returns a formatted string of the offset from UTC, or an alternative
   # string if the time zone is already UTC.
   #
