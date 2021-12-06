@@ -2,7 +2,25 @@
 
 module ActiveModel
   module Type
-    class Date < Value # :nodoc:
+    # Attribute type for date representation. It is registered under the
+    # +:date+ key.
+    #
+    #   class Person
+    #     include ActiveModel::Attributes
+    #
+    #     attribute :birthday, :date
+    #   end
+    #
+    #   person = Person.new(birthday: "1989-07-13")
+    #
+    #   person.birthday.class # => Date
+    #   person.birthday.year  # => 1989
+    #   person.birthday.month # => 7
+    #   person.birthday.day   # => 13
+    #
+    # String values are parsed using the ISO 8601 date format. Any other values
+    # are cast using their +to_date+ method, if it exists.
+    class Date < Value
       include Helpers::Timezone
       include Helpers::AcceptsMultiparameterTime.new
 
