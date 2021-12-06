@@ -1,3 +1,5 @@
+## Rails 7.0.0.rc1 (December 06, 2021) ##
+
 *   `Rails.application.executor` hooks can now be called around every request in a `ActionController::TestCase`
 
     This helps to better simulate request or job local state being reset between requests and prevent state

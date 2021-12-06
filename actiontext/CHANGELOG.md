@@ -1,3 +1,5 @@
+## Rails 7.0.0.rc1 (December 06, 2021) ##
+
 *   Fix an issue with how nested lists were displayed when converting to plain text
 
     *Matt Swanson*

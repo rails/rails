@@ -1,3 +1,5 @@
+## Rails 7.0.0.rc1 (December 06, 2021) ##
+
 *   Remove deprecated `:return_false_on_aborted_enqueue` option.
 
     *Rafael Mendonça França*

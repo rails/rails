@@ -1,3 +1,5 @@
+## Rails 7.0.0.rc1 (December 06, 2021) ##
+
 *   The Action Cable client now ensures successful channel subscriptions:
 
     * The client maintains a set of pending subscriptions until either

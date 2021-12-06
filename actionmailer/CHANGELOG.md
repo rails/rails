@@ -1,3 +1,5 @@
+## Rails 7.0.0.rc1 (December 06, 2021) ##
+
 *   Remove deprecated `ActionMailer::DeliveryJob` and `ActionMailer::Parameterized::DeliveryJob`
     in favor of `ActionMailer::MailDeliveryJob`.
 

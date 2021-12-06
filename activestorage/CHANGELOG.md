@@ -1,3 +1,5 @@
+## Rails 7.0.0.rc1 (December 06, 2021) ##
+
 *   `Add ActiveStorage::Blob.compose` to concatenate multiple blobs.
 
     *Gannon McGibbon*
