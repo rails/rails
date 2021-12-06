@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/except"
-
 module ActiveRecord
   module SecurePassword
     extend ActiveSupport::Concern
@@ -37,15 +35,17 @@ module ActiveRecord
       #   User.authenticate_by(email: "jdoe@example.com") # => ArgumentError
       #   User.authenticate_by(password: "abc123")        # => ArgumentError
       def authenticate_by(attributes)
-        passwords = attributes.select { |name, value| !has_attribute?(name) && has_attribute?("#{name}_digest") }
+        passwords, identifiers = attributes.to_h.partition do |name, value|
+          !has_attribute?(name) && has_attribute?("#{name}_digest")
+        end.map(&:to_h)
 
         raise ArgumentError, "One or more password arguments are required" if passwords.empty?
-        raise ArgumentError, "One or more finder arguments are required" if passwords.size == attributes.size
+        raise ArgumentError, "One or more finder arguments are required" if identifiers.empty?
 
-        if record = find_by(attributes.except(*passwords.keys))
+        if record = find_by(identifiers)
           record if passwords.count { |name, value| record.public_send(:"authenticate_#{name}", value) } == passwords.size
         else
-          self.new(passwords)
+          new(passwords)
           nil
         end
       end

@@ -64,4 +64,16 @@ class SecurePasswordTest < ActiveRecord::TestCase
       User.authenticate_by(password: @user.password)
     end
   end
+
+  test "authenticate_by accepts any object that implements to_h" do
+    params = Enumerator.new { raise "must access via to_h" }
+
+    assert_called_with(params, :to_h, [[]], returns: { token: @user.token, password: @user.password }) do
+      assert_equal @user, User.authenticate_by(params)
+    end
+
+    assert_called_with(params, :to_h, [[]], returns: { token: "wrong", password: @user.password }) do
+      assert_nil User.authenticate_by(params)
+    end
+  end
 end
