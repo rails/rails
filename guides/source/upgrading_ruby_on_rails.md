@@ -531,7 +531,7 @@ activestorage → @rails/activestorage
 rails-ujs     → @rails/ujs
 ```
 
-### Sprockets is not an opinional dependency
+### Sprockets is now an optional dependency
 
 The gem `rails` doesn't depend on `sprockets-rails` anymore. If your application still needs to use Sprockets,
 make sure to add `sprockets-rails` to your Gemfile.
