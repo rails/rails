@@ -249,6 +249,8 @@ module Rails
 
             action_controller.wrap_parameters_by_default = true
           end
+        when "7.1"
+          load_defaults "7.0"
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

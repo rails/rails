@@ -44,7 +44,7 @@ from.
 In special situations, where someone from the Core Team agrees to support more series,
 they are included in the list of supported series.
 
-**Currently included series:** `7.0.Z`.
+**Currently included series:** `7.1.Z`.
 
 Security Issues
 ---------------
@@ -64,7 +64,7 @@ non-security related bugs resulting from a security patch may be published on a
 release's x-y-stable branch, and will only be released as a new gem in
 accordance with the Bug Fixes policy.
 
-**Currently included series:** `7.0.Z`, `6.1.Z`, `5.2.Z`.
+**Currently included series:** `7.1.Z`, `7.0.Z`, `6.1.Z`.
 
 Severe Security Issues
 ----------------------
@@ -73,7 +73,7 @@ For severe security issues all releases in the current major series, and also th
 last release in the previous major series will receive patches and new versions. The
 classification of the security issue is judged by the core team.
 
-**Currently included series:** `7.0.Z`, `6.1.Z`, `6.0.Z`, `5.2.Z`.
+**Currently included series:** `7.1.Z`, `7.0.Z`, `6.1.Z`.
 
 Unsupported Release Series
 --------------------------

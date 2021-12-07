@@ -1729,6 +1729,9 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 
 `config.load_defaults` sets new defaults up to and including the version passed. Such that passing, say, `6.0` also gets the new defaults from every version before it.
 
+#### For '7.1', defaults from previous versions below and:
+
+
 #### For '7.0', defaults from previous versions below and:
 
 - `config.action_controller.raise_on_open_redirects`: `true`
