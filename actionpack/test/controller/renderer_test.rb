@@ -97,6 +97,22 @@ class RendererTest < ActiveSupport::TestCase
     assert_equal "true", content
   end
 
+  test "rendering with updated defaults" do
+    renderer = ApplicationController.renderer
+
+    prior_content = renderer.render(inline: "<%= request.host %>")
+
+    new_defaults = { http_host: "example.com" }
+    renderer.update_defaults(new_defaults)
+
+    content = renderer.render(inline: "<%= request.host %>")
+
+    assert_equal ActionController::Renderer::DEFAULTS[:http_host], prior_content
+    assert_equal "example.com", content
+
+    renderer.update_defaults(ActionController::Renderer::DEFAULTS)
+  end
+
   test "same defaults from the same controller" do
     renderer_defaults = ->(controller) { controller.renderer.defaults }
 
