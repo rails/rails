@@ -479,6 +479,16 @@ module ActionDispatch
         ], output
       end
 
+      def test_route_with_proc_handler
+        output = draw do
+          get "/health", to: proc { [200, {}, ["OK"]] }
+        end
+        assert_equal [
+          "Prefix Verb URI Pattern       Controller#Action",
+          "health GET  /health(.:format) Inline handler (Proc/Lambda)"
+        ], output
+      end
+
       private
         def draw(formatter: ActionDispatch::Routing::ConsoleFormatter::Sheet.new, **options, &block)
           @set.draw(&block)
