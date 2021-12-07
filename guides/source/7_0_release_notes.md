@@ -118,7 +118,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     attribute :column, :string
     ```
 
-*   Remove deprecacated support to resolve connection using `"primary"` as connection specification name.
+*   Remove deprecated support to resolve connection using `"primary"` as connection specification name.
 
 *   Remove deprecated support to quote `ActiveRecord::Base` objects.
 
