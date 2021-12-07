@@ -227,7 +227,7 @@ processes have been updated you can set `config.active_support.cache_format_vers
 Rails 7.0 is able to read both formats so the cache won't be invalidated during the
 upgrade.
 
-### ActiveStorage video preview image generation
+### Active Storage video preview image generation
 
 Video preview image generation now uses FFmpeg's scene change detection to generate
 more meaningful preview images. Previously the first frame of the video would be used
@@ -532,6 +532,15 @@ dependencies before you can upgrade them to `6.0.0`:
 actioncable   → @rails/actioncable
 activestorage → @rails/activestorage
 rails-ujs     → @rails/ujs
+```
+
+### Sprockets is not an opinional dependency
+
+The gem `rails` doesn't depend on `sprockets-rails` anymore. If your application still needs to use Sprockets,
+make sure to add `sprockets-rails` to your Gemfile.
+
+```
+gem "sprockets-rails"
 ```
 
 ### Action Cable JavaScript API Changes

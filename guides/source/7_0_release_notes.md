@@ -36,6 +36,15 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Notable changes
 
+*   Sprockets is not an opinional dependency
+
+    The gem `rails` doesn't depend on `sprockets-rails` anymore. If your application still needs to use Sprockets,
+    make sure to add `sprockets-rails` to your Gemfile.
+
+    ```
+    gem "sprockets-rails"
+    ```
+
 Action Cable
 ------------
 
