@@ -150,13 +150,11 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_migration_next_migration_number_consistent_across_year_boundary
     last_year = Time.now.year - 1
-    this_year = Time.now.year
     not_a_month = 14
     day_of_month = Time.now.day
     time = Time.now.utc.strftime("%H%M%S")
     last_year_number = "#{last_year}#{not_a_month}#{day_of_month}#{time}01"
-    this_year_number = "#{this_year}#{not_a_month}#{day_of_month}#{time}01"
-    assert_equal ActiveRecord::Migration.new.next_migration_number(last_year_number).to_s, last_year_number
+    assert_equal last_year_number, ActiveRecord::Migration.new.next_migration_number(last_year_number).to_s
   end
 
   def test_create_table_raises_if_already_exists
