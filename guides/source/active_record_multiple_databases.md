@@ -587,12 +587,6 @@ If you want to load a schema cache for each database you must set a `schema_cach
 
 ## Caveats
 
-### Automatic swapping for horizontal sharding
-
-While Rails now supports an API for connecting to and swapping connections of shards, it does
-not yet support an automatic swapping strategy. Any shard swapping will need to be done manually
-in your app via a middleware or `around_action`.
-
 ### Load Balancing Replicas
 
 Rails also doesn't support automatic load balancing of replicas. This is very
