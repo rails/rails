@@ -1247,11 +1247,11 @@ en:
       controller "main", <<-RUBY
         class MainController < ActionController::Base
           def foo
-            render inline: '<%= render :partial => "shared/foo" %>'
+            render inline: '<%= render partial: "shared/foo" %>'
           end
 
           def bar
-            render inline: '<%= render :partial => "shared/bar" %>'
+            render inline: '<%= render partial: "shared/bar" %>'
           end
         end
       RUBY
@@ -1347,7 +1347,7 @@ en:
       controller "main", <<-RUBY
         class MainController < ActionController::Base
           def foo
-            render inline: '<%= render :partial => "shared/foo" %>'
+            render inline: '<%= render partial: "shared/foo" %>'
           end
         end
       RUBY
