@@ -548,15 +548,22 @@ While it's not required you might want to add foreign key constraints to
 add_foreign_key :articles, :authors
 ```
 
-This adds a new foreign key to the `author_id` column of the `articles`
-table. The key references the `id` column of the `authors` table. If the
-column names cannot be derived from the table names, you can use the
-`:column` and `:primary_key` options.
+This `add_foreign_key` call adds a new constraint to the `articles` table.
+The constraint guarantees that a row in the `authors` table exists where
+the `id` column matches the `articles.author_id`.
 
-Rails will generate a name for every foreign key starting with
-`fk_rails_` followed by 10 characters which are deterministically
-generated from the `from_table` and `column`.
-There is a `:name` option to specify a different name if needed.
+If the `from_table` column name cannot be derived from the `to_table` name,
+you can use the `:column` option. Use the `:primary_key` option if the
+referenced primary key is not `:id`.
+
+For example add a foreign key on `articles.reviewer` referencing `authors.email`:
+
+```ruby
+add_foreign_key :articles, :authors, column: :reviewer, primary_key: :email
+```
+
+Options such as `name`, `on_delete`, `if_not_exists`, `validate` and `deferrable`
+are described in the [`add_foreign_key`][] API.
 
 NOTE: Active Record only supports single column foreign keys. `execute` and
 `structure.sql` are required to use composite foreign keys. See
@@ -570,10 +577,9 @@ remove_foreign_key :accounts, :branches
 
 # remove foreign key for a specific column
 remove_foreign_key :accounts, column: :owner_id
-
-# remove foreign key by name
-remove_foreign_key :accounts, name: :special_fk_name
 ```
+
+[`add_foreign_key`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_foreign_key
 
 ### When Helpers aren't Enough
 
