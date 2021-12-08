@@ -180,7 +180,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_new_application_doesnt_need_defaults
     run_generator
-    assert_no_file "config/initializers/new_framework_defaults_7_0.rb"
+    assert_empty Dir.glob("config/initializers/new_framework_defaults_*.rb", base: destination_root)
   end
 
   def test_new_application_load_defaults
@@ -190,17 +190,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_app_update_create_new_framework_defaults
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root]
+    run_generator
+    defaults_path = "config/initializers/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
 
-    assert_no_file "#{app_root}/config/initializers/new_framework_defaults_7_0.rb"
+    assert_no_file defaults_path
 
-    stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, { destination_root: app_root, shell: @shell }
+    stub_rails_application do
+      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, { destination_root: destination_root, shell: @shell }
       generator.send(:app_const)
       quietly { generator.update_config_files }
 
-      assert_file "#{app_root}/config/initializers/new_framework_defaults_7_1.rb"
+      assert_file defaults_path
     end
   end
 
@@ -1019,7 +1019,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   private
-    def stub_rails_application(root, &block)
+    def stub_rails_application(root = destination_root, &block)
       Rails.application.config.root = root
       Rails.application.class.stub(:name, "Myapp", &block)
     end
