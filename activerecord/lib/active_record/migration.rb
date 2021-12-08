@@ -1080,7 +1080,7 @@ module ActiveRecord
     # 0 then an empty array will be returned and no migrations
     # will be run.
     #
-    # If the +current_version+ in the schema is less than
+    # If the +current_version+ in the schema is greater than
     # the +target_version+, then +down+ will be run.
     #
     # If none of the conditions are met, +up+ will be run with
