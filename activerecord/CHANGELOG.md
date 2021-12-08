@@ -1,5 +1,11 @@
 ## Rails 7.0.0.rc1 (December 06, 2021) ##
 
+*   Move database and shard selection config options to a generator.
+
+    Rather than generating the config options in the production.rb when applications are created, applications can now run a generator to create an initializer and uncomment / update options as needed. All multi-db configuration can be imlpemented in this initializer.
+
+    *Eileen M. Uchitelle*
+
 *   Remove deprecated `ActiveRecord::DatabaseConfigurations::DatabaseConfig#spec_name`.
 
     *Rafael Mendonça França*
@@ -306,7 +312,6 @@
 *   Add support for setting the filename of the schema or structure dump in the database config.
 
     Applications may now set their the filename or path of the schema / structure dump file in their database configuration.
-
 
     ```yaml
     production:
