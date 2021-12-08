@@ -68,7 +68,7 @@ module ActiveSupport
     def initialize(constructor = nil)
       if constructor.respond_to?(:to_hash)
         super()
-        update(constructor)
+        update_with_single_argument(constructor)
 
         hash = constructor.is_a?(Hash) ? constructor : constructor.to_hash
         self.default = hash.default if hash.default
