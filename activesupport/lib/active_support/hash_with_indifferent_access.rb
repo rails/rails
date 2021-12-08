@@ -410,8 +410,8 @@ module ActiveSupport
           regular_update(other_hash, &block)
         else
           other_hash.to_hash.each_pair do |key, value|
-            if block && key?(key)
-              value = block.call(convert_key(key), self[key], value)
+            if block_given? && key?(key)
+              value = yield(convert_key(key), self[key], value)
             end
             regular_writer(convert_key(key), convert_value(value))
           end
