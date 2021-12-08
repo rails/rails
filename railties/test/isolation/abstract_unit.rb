@@ -95,7 +95,7 @@ module TestHelpers
       assert_equal 200, resp[0]
       assert_match "text/html", resp[1]["Content-Type"]
       assert_match "charset=utf-8", resp[1]["Content-Type"]
-      assert extract_body(resp).match(/Yay! You.*re on Rails!/)
+      assert extract_body(resp).match(/Rails version:/)
     end
   end
 
