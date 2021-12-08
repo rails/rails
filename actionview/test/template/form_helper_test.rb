@@ -2058,6 +2058,13 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_new_form_for_without_format
+    # if the path is to be overridden in an application, make sure
+    # {format:nil} will not be passed in which will break the app
+    def post_path(id, car = nil)
+      assert_not_equal car, { format: nil }
+      super
+    end
+
     form_for(@post, html: { id: "edit_post_123", class: "edit_post" }) do |f|
       concat f.label(:title)
     end
