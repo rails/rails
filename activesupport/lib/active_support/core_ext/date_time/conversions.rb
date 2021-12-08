@@ -15,7 +15,7 @@ class DateTime
   #   datetime = DateTime.civil(2007, 12, 4, 0, 0, 0, 0)   # => Tue, 04 Dec 2007 00:00:00 +0000
   #
   #   datetime.to_formatted_s(:db)            # => "2007-12-04 00:00:00"
-  #   datetime.to_formatted_s(:db)            # => "2007-12-04 00:00:00"
+  #   datetime.to_fs(:db)                     # => "2007-12-04 00:00:00"
   #   datetime.to_formatted_s(:number)        # => "20071204000000"
   #   datetime.to_formatted_s(:short)         # => "04 Dec 00:00"
   #   datetime.to_formatted_s(:long)          # => "December 04, 2007 00:00"
