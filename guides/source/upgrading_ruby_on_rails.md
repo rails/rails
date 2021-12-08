@@ -88,6 +88,15 @@ undefined method `mechanism=' for ActiveSupport::Dependencies:Module
 
 Also, make sure `config.cache_classes` is set to `false` in `config/environments/test.rb`.
 
+### Sprockets is now an optional dependency
+
+The gem `rails` doesn't depend on `sprockets-rails` anymore. If your application still needs to use Sprockets,
+make sure to add `sprockets-rails` to your Gemfile.
+
+```
+gem "sprockets-rails"
+```
+
 ### Applications need to run in `zeitwerk` mode
 
 Applications still running in `classic` mode have to switch to `zeitwerk` mode. Please check the [Classic to Zeitwerk HOWTO](https://guides.rubyonrails.org/classic_to_zeitwerk_howto.html) guide for details.
@@ -529,15 +538,6 @@ dependencies before you can upgrade them to `6.0.0`:
 actioncable   → @rails/actioncable
 activestorage → @rails/activestorage
 rails-ujs     → @rails/ujs
-```
-
-### Sprockets is now an optional dependency
-
-The gem `rails` doesn't depend on `sprockets-rails` anymore. If your application still needs to use Sprockets,
-make sure to add `sprockets-rails` to your Gemfile.
-
-```
-gem "sprockets-rails"
 ```
 
 ### Action Cable JavaScript API Changes
