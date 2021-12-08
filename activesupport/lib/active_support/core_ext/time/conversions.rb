@@ -32,7 +32,7 @@ class Time
   #   time = Time.now                    # => 2007-01-18 06:10:17 -06:00
   #
   #   time.to_formatted_s(:time)         # => "06:10"
-  #   time.to_formatted_s(:time)         # => "06:10"
+  #   time.to_fs(:time)                  # => "06:10"
   #
   #   time.to_formatted_s(:db)           # => "2007-01-18 06:10:17"
   #   time.to_formatted_s(:number)       # => "20070118061017"
