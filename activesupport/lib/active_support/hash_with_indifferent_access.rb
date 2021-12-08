@@ -129,10 +129,10 @@ module ActiveSupport
     #   hash_1.update(hash_2) { |key, old, new| old + new } # => {"key"=>22}
     def update(*other_hashes, &block)
       if other_hashes.size == 1
-        update_with_single_argument(other_hashes.first, block)
+        update_with_single_argument(other_hashes.first, &block)
       else
         other_hashes.each do |other_hash|
-          update_with_single_argument(other_hash, block)
+          update_with_single_argument(other_hash, &block)
         end
       end
       self
@@ -405,7 +405,7 @@ module ActiveSupport
         end
       end
 
-      def update_with_single_argument(other_hash, block)
+      def update_with_single_argument(other_hash, &block)
         if other_hash.is_a? HashWithIndifferentAccess
           regular_update(other_hash, &block)
         else
