@@ -200,7 +200,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       generator.send(:app_const)
       quietly { generator.update_config_files }
 
-      assert_file "#{app_root}/config/initializers/new_framework_defaults_7_0.rb"
+      assert_file "#{app_root}/config/initializers/new_framework_defaults_7_1.rb"
     end
   end
 
