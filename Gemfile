@@ -184,8 +184,4 @@ if RUBY_VERSION >= "3.1"
 
   # digest gem, which is one of the default gems has bumped to 3.1.0.pre for ruby 3.1.0dev.
   gem "digest", "~> 3.1.0.pre", require: false
-
-  # matrix was removed from default gems in Ruby 3.1, but is used by the `capybara` gem.
-  # So we need to add it as a dependency until `capybara` is fixed: https://github.com/teamcapybara/capybara/pull/2468
-  gem "matrix", require: false
 end
