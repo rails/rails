@@ -84,6 +84,7 @@ module Rails
           if respond_to?(:action_controller)
             action_controller.per_form_csrf_tokens = true
             action_controller.forgery_protection_origin_check = true
+            action_controller.urlsafe_csrf_tokens = false
           end
 
           ActiveSupport.to_time_preserves_timezone = true
@@ -169,7 +170,7 @@ module Rails
           end
 
           if respond_to?(:action_controller)
-            action_controller.urlsafe_csrf_tokens = true
+            action_controller.delete(:urlsafe_csrf_tokens)
           end
 
           if respond_to?(:action_view)
