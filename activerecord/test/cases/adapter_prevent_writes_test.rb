@@ -63,6 +63,25 @@ module ActiveRecord
       end
     end
 
+    if current_adapter?(:PostgreSQLAdapter)
+      def test_doesnt_error_when_a_select_query_has_encoding_errors
+        ActiveRecord::Base.while_preventing_writes do
+          # Contrary to other adapters, Postgres will eagerly fail on encoding errors.
+          # But at least we can assert it fails in the client and not before when trying to
+          # match the query.
+          assert_raises ActiveRecord::StatementInvalid do
+            @connection.select_all("SELECT '\xC8'")
+          end
+        end
+      end
+    else
+      def test_doesnt_error_when_a_select_query_has_encoding_errors
+        ActiveRecord::Base.while_preventing_writes do
+          @connection.select_all("SELECT '\xC8'")
+        end
+      end
+    end
+
     def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
       @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
 
