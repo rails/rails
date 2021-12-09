@@ -117,7 +117,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated support to YAML load `ActiveRecord::Base` instance in the Rails 4.2 and 4.1 formats.
 
-*   Remove deprecation warning when using `:interval` column is used in PostgreSQL database.
+*   Remove deprecation warning when `:interval` column is used in PostgreSQL database.
 
     Now, interval columns will return `ActiveSupport::Duration` objects instead of strings.
 
