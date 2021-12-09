@@ -94,10 +94,6 @@ module Rails
     def test
       template "test/test_helper.rb"
       template "test/%namespaced_name%_test.rb"
-      append_file "Rakefile", <<~EOF
-        #{rakefile_test_tasks}
-        task default: :test
-      EOF
 
       if engine?
         empty_directory_with_keep_file "test/fixtures/files"
@@ -398,6 +394,10 @@ module Rails
         end
       end
 
+      def rails_version_specifier(gem_version = Rails.gem_version)
+        [">= #{gem_version}"]
+      end
+
       def valid_const?
         if /-\d/.match?(original_name)
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not contain a namespace starting with numeric characters."
@@ -416,18 +416,6 @@ module Rails
 
       def get_builder_class
         defined?(::PluginBuilder) ? ::PluginBuilder : Rails::PluginBuilder
-      end
-
-      def rakefile_test_tasks
-        <<-RUBY
-require "rake/testtask"
-
-Rake::TestTask.new(:test) do |t|
-  t.libs << "test"
-  t.pattern = "test/**/*_test.rb"
-  t.verbose = false
-end
-        RUBY
       end
 
       def dummy_path(path = nil)

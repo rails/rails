@@ -71,7 +71,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |content|
       assert_match(/require_relative.+test\/dummy\/config\/environment/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+test\/dummy\/db\/migrate/, content)
-      assert_match(/Rails::TestUnitReporter\.executable = "bin\/test"/, content)
     end
     assert_file "lib/bukkits/railtie.rb", /module Bukkits\n  class Railtie < ::Rails::Railtie\n  end\nend/
     assert_file "lib/bukkits.rb" do |content|
@@ -317,7 +316,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--full", "--skip_active_record"]
     FileUtils.cd destination_root
     quietly { system "bundle install" }
-    assert_match(/1 runs, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test 2>&1`)
+    assert_match(/1 runs, 1 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
   end
 
   def test_ensure_that_migration_tasks_work_with_mountable_option
@@ -536,6 +535,16 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "bukkits.gemspec", /spec\.name\s+= "bukkits"/
     assert_file "bukkits.gemspec", /spec\.files = Dir.chdir\(File\.expand_path\(__dir__\)\)\s+do\s+Dir\["\{app,config,db,lib\}\/\*\*\/\*", "MIT-LICENSE", "Rakefile", "README\.md"\]\s+end/
     assert_file "bukkits.gemspec", /spec\.version\s+ = Bukkits::VERSION/
+  end
+
+  def test_gemspec_uses_optimistic_rails_version_constraint
+    rails_version = "1.2.3.4.pre5"
+
+    Rails.stub(:gem_version, Gem::Version.new(rails_version)) do
+      run_generator
+    end
+
+    assert_file "bukkits.gemspec", /add_dependency "rails", ">= #{Regexp.escape rails_version}"/
   end
 
   def test_usage_of_engine_commands
