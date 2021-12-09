@@ -288,13 +288,21 @@ automatically write to the writer database. For the specified time after the wri
 application will read from the primary. For a GET or HEAD request the application will read
 from the replica unless there was a recent write.
 
-To activate the automatic connection switching middleware, add or uncomment the following
-lines in your application config.
+To activate the automatic connection switching middleware you can run the automatic swapping
+generator:
+
+```
+$ bin/rails g active_record:multi_db
+```
+
+And then uncomment the following lines:
 
 ```ruby
-config.active_record.database_selector = { delay: 2.seconds }
-config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
-config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+Rails.application.configure do
+  config.active_record.database_selector = { delay: 2.seconds }
+  config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+  config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+end
 ```
 
 Rails guarantees "read your own write" and will send your GET or HEAD request to the
@@ -442,13 +450,23 @@ inside the block. If `lock` is false, then shard swapping will be allowed.
 For tenant based sharding, `lock` should always be true to prevent application
 code from mistakenly switching between tenants.
 
-Options can be set in the config:
+The same generator as the database selector can be used to generate the file for
+automatic shard swapping:
 
-```ruby
-config.active_record.shard_selector = { lock: true }
+```
+$ bin/rails g active_record:multi_db
 ```
 
-Applications must also provide the code for the resolver as it depends on application
+Then in the file uncomment the following:
+
+```ruby
+Rails.application.configure do
+  config.active_record.shard_selector = { lock: true }
+  config.active_record.shard_resolver = ->(request) { Tenant.find_by!(host: request.host).shard }
+end
+```
+
+Applications must provide the code for the resolver as it depends on application
 specific models. An example resolver would look like this:
 
 ```ruby
