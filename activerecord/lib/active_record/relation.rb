@@ -33,7 +33,6 @@ module ActiveRecord
       @delegate_to_klass = false
       @future_result = nil
       @records = nil
-      @limited_count = nil
     end
 
     def initialize_copy(other)
@@ -699,7 +698,6 @@ module ActiveRecord
       @offsets = @take = nil
       @cache_keys = nil
       @records = nil
-      @limited_count = nil
       self
     end
 
@@ -974,7 +972,7 @@ module ActiveRecord
       end
 
       def limited_count
-        @limited_count ||= limit_value ? count : limit(2).count
+        limit_value ? count : limit(2).count
       end
   end
 end
