@@ -40,7 +40,7 @@ module ActiveSupport
           end
 
           def []=(object, _present)
-            @map[object_id] = object
+            @map[object.object_id] = object
           end
         end
         WeakSet.new
