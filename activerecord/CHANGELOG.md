@@ -1,3 +1,17 @@
+* Better handle SQL queries with invalid encoding.
+
+  ```ruby
+  Post.create(name: "broken \xC8 UTF-8")
+  ```
+
+  Would cause all adapters to fail in a non controlled way in the code
+  responsible to detect write queries.
+
+  The query is now properly passed to the database connection, which might or might
+  not be able to handle it, but will either succeed or failed in a more correct way.
+
+  *Jean Boussier*
+
 ## Rails 7.0.0.rc1 (December 06, 2021) ##
 
 *   Move database and shard selection config options to a generator.
