@@ -1,3 +1,13 @@
+*   Fix `ActiveSupport::Duration.build` to support negative values.
+
+    The algorithm to collect the `parts` of the `ActiveSupport::Duration`
+    ignored the sign of the `value` and accumulated incorrect part values. This
+    impacted `ActiveSupport::Duration#sum` (which is dependent on `parts`) but
+    not `ActiveSupport::Duration#eql?` (which is dependent on `value`).
+
+    *Caleb Buxton*, *Braden Staudacher*
+
+
 ## Rails 7.0.0.rc1 (December 06, 2021) ##
 
 *   Deprecate passing a format to `#to_s` in favor of `#to_formatted_s` in `Array`, `Range`, `Date`, `DateTime`, `Time`,
