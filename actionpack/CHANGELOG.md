@@ -1,3 +1,11 @@
+*   Instance variables set in requests in a `ActionController::TestCase` are now cleared before the next request
+
+    This means if you make multiple requests in the same test, instance variables set in the first request will
+    not persist into the second one. (It's not recommended to make multiple requests in the same test.)
+
+    *Alex Ghiculescu*
+
+
 ## Rails 7.0.0.rc1 (December 06, 2021) ##
 
 *   `Rails.application.executor` hooks can now be called around every request in a `ActionController::TestCase`

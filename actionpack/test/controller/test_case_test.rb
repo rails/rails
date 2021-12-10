@@ -165,6 +165,12 @@ XML
       raise "boom!"
     end
 
+    def increment_count
+      @counter ||= 0
+      @counter += 1
+      render plain: @counter
+    end
+
     private
       def generate_url(opts)
         url_for(opts.merge(action: "test_uri"))
@@ -987,6 +993,54 @@ XML
   def test_parsed_body_with_as_option
     post :render_json, body: { foo: "heyo" }.to_json, as: :json
     assert_equal({ "foo" => "heyo" }, response.parsed_body)
+  end
+
+  def test_reset_instance_variables_after_each_request
+    get :increment_count
+    assert_equal "1", response.body
+
+    get :increment_count
+    assert_equal "1", response.body
+  end
+
+  def test_can_read_instance_variables_before_or_after_request
+    assert_nil @controller.instance_variable_get(:@counter)
+
+    get :increment_count
+    assert_equal "1", response.body
+    assert_equal 1, @controller.instance_variable_get(:@counter)
+
+    get :increment_count
+    assert_equal "1", response.body
+    assert_equal 1, @controller.instance_variable_get(:@counter)
+  end
+
+  def test_ivars_are_not_reset_if_they_are_given_a_value_before_any_requests
+    @controller.instance_variable_set(:@counter, 3)
+
+    get :increment_count
+    assert_equal "4", response.body
+    assert_equal 4, @controller.instance_variable_get(:@counter)
+
+    get :increment_count
+    assert_equal "5", response.body
+    assert_equal 5, @controller.instance_variable_get(:@counter)
+
+    get :increment_count
+    assert_equal "6", response.body
+    assert_equal 6, @controller.instance_variable_get(:@counter)
+  end
+
+  def test_ivars_are_reset_if_they_are_given_a_value_after_some_requests
+    get :increment_count
+    assert_equal "1", response.body
+    assert_equal 1, @controller.instance_variable_get(:@counter)
+
+    @controller.instance_variable_set(:@counter, 3)
+
+    get :increment_count
+    assert_equal "1", response.body
+    assert_equal 1, @controller.instance_variable_get(:@counter)
   end
 end
 

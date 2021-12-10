@@ -465,9 +465,15 @@ module ActionController
       # prefer using #get, #post, #patch, #put, #delete and #head methods
       # respectively which will make tests more expressive.
       #
+      # It's not recommended to make more than one request in the same test. Instance
+      # variables that are set in one request will not persist to the next request,
+      # but it's not guaranteed that all Rails internal state will be reset. Prefer
+      # ActionDispatch::IntegrationTest for making multiple requests in the same test.
+      #
       # Note that the request method is not verified.
       def process(action, method: "GET", params: nil, session: nil, body: nil, flash: {}, format: nil, xhr: false, as: nil)
         check_required_ivars
+        @controller.clear_instance_variables_between_requests
 
         action = +action.to_s
         http_method = method.to_s.upcase
