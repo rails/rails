@@ -1,24 +1,24 @@
-* Better handle SQL queries with invalid encoding.
+*   Better handle SQL queries with invalid encoding.
 
-  ```ruby
-  Post.create(name: "broken \xC8 UTF-8")
-  ```
+    ```ruby
+    Post.create(name: "broken \xC8 UTF-8")
+    ```
 
-  Would cause all adapters to fail in a non controlled way in the code
-  responsible to detect write queries.
+    Would cause all adapters to fail in a non controlled way in the code
+    responsible to detect write queries.
 
-  The query is now properly passed to the database connection, which might or might
-  not be able to handle it, but will either succeed or failed in a more correct way.
+    The query is now properly passed to the database connection, which might or might
+    not be able to handle it, but will either succeed or failed in a more correct way.
 
-  *Jean Boussier*
-
-## Rails 7.0.0.rc1 (December 06, 2021) ##
+    *Jean Boussier*
 
 *   Move database and shard selection config options to a generator.
 
-    Rather than generating the config options in the production.rb when applications are created, applications can now run a generator to create an initializer and uncomment / update options as needed. All multi-db configuration can be imlpemented in this initializer.
+    Rather than generating the config options in `production.rb` when applications are created, applications can now run a generator to create an initializer and uncomment / update options as needed. All multi-db configuration can be implemented in this initializer.
 
     *Eileen M. Uchitelle*
+
+## Rails 7.0.0.rc1 (December 06, 2021) ##
 
 *   Remove deprecated `ActiveRecord::DatabaseConfigurations::DatabaseConfig#spec_name`.
 
@@ -489,7 +489,7 @@
 
     *Alex Ghiculescu*
 
-* Avoid COMMENT statements in PostgreSQL structure dumps
+*   Avoid COMMENT statements in PostgreSQL structure dumps
 
     COMMENT statements are now omitted from the output of `db:structure:dump` when using PostgreSQL >= 11.
     This allows loading the dump without a pgsql superuser account.
@@ -542,7 +542,7 @@
 
     *Sam Bostock*
 
-* Add ssl support for postgresql database tasks
+*   Add ssl support for postgresql database tasks
 
     Add `PGSSLMODE`, `PGSSLCERT`, `PGSSLKEY` and `PGSSLROOTCERT` to pg_env from database config
     when running postgresql database tasks.
