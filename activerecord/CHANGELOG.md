@@ -1,3 +1,18 @@
+* Better handle SQL queries with invalid encoding.
+
+    ```ruby
+    Post.create(name: "broken \xC8 UTF-8")
+    ```
+
+    Would cause all adapters to fail in a non controlled way in the code
+    responsible to detect write queries.
+
+    The query is now properly passed to the database connection, which might or might
+    not be able to handle it, but will either succeed or failed in a more correct way.
+
+    *Jean Boussier*
+
+
 *   Ignore persisted in-memory records when merging target lists.
 
     *Kevin Sjöberg*
