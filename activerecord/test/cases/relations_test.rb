@@ -1216,6 +1216,18 @@ class RelationTest < ActiveRecord::TestCase
     assert_predicate posts, :loaded?
   end
 
+  def test_one_with_destroy
+    posts = Post.all
+    assert_queries(1) do
+      assert_not posts.one?
+    end
+
+    posts.where.not(id: Post.first).destroy_all
+
+    assert_equal 1, posts.size
+    assert posts.one?
+  end
+
   def test_to_a_should_dup_target
     posts = Post.all
 
