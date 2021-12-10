@@ -687,6 +687,21 @@ module ActiveRecord
       end
 
       class << self
+        def register_class_with_precision(mapping, key, klass, **kwargs) # :nodoc:
+          mapping.register_type(key) do |*args|
+            precision = extract_precision(args.last)
+            klass.new(precision: precision, **kwargs)
+          end
+        end
+
+        def extended_type_map(default_timezone:) # :nodoc:
+          Type::TypeMap.new(self::TYPE_MAP).tap do |m|
+            register_class_with_precision m, %r(time)i, Type::Time, timezone: default_timezone
+            register_class_with_precision m, %r(datetime)i, Type::DateTime, timezone: default_timezone
+            m.alias_type %r(timestamp)i, "datetime"
+          end
+        end
+
         private
           def initialize_type_map(m)
             register_class_with_limit m, %r(boolean)i,       Type::Boolean
@@ -728,13 +743,6 @@ module ActiveRecord
             end
           end
 
-          def register_class_with_precision(mapping, key, klass)
-            mapping.register_type(key) do |*args|
-              precision = extract_precision(args.last)
-              klass.new(precision: precision)
-            end
-          end
-
           def extract_scale(sql_type)
             case sql_type
             when /\((\d+)\)/ then 0
@@ -752,10 +760,23 @@ module ActiveRecord
       end
 
       TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
+      EXTENDED_TYPE_MAPS = Concurrent::Map.new
 
       private
+        def extended_type_map_key
+          if @default_timezone
+            { default_timezone: @default_timezone }
+          end
+        end
+
         def type_map
-          TYPE_MAP
+          if key = extended_type_map_key
+            self.class::EXTENDED_TYPE_MAPS.compute_if_absent(key) do
+              self.class.extended_type_map(**key)
+            end
+          else
+            self.class::TYPE_MAP
+          end
         end
 
         def translate_exception_class(e, sql, binds)

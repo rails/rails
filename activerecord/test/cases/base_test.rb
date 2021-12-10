@@ -982,6 +982,48 @@ class BasicsTest < ActiveRecord::TestCase
         end
       end
     end
+
+    unless in_memory_db?
+      def test_connection_in_local_time
+        with_timezone_config default: :utc do
+          new_config = ActiveRecord::Base.connection_db_config.configuration_hash.merge(default_timezone: "local")
+          ActiveRecord::Base.establish_connection(new_config)
+          Default.reset_column_information
+
+          default = Default.new
+
+          assert_equal Date.new(2004, 1, 1), default.fixed_date
+          assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), default.fixed_time
+
+          if current_adapter?(:PostgreSQLAdapter)
+            assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time_with_time_zone
+          end
+        end
+      ensure
+        ActiveRecord::Base.establish_connection :arunit
+        Default.reset_column_information
+      end
+
+      def test_connection_in_utc_time
+        with_timezone_config default: :local do
+          new_config = ActiveRecord::Base.connection_db_config.configuration_hash.merge(default_timezone: "utc")
+          ActiveRecord::Base.establish_connection(new_config)
+          Default.reset_column_information
+
+          default = Default.new
+
+          assert_equal Date.new(2004, 1, 1), default.fixed_date
+          assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time
+
+          if current_adapter?(:PostgreSQLAdapter)
+            assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time_with_time_zone
+          end
+        end
+      ensure
+        ActiveRecord::Base.establish_connection :arunit
+        Default.reset_column_information
+      end
+    end
   end
 
   def test_auto_id
