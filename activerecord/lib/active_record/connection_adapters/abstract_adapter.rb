@@ -696,9 +696,9 @@ module ActiveRecord
 
         def extended_type_map(default_timezone:) # :nodoc:
           Type::TypeMap.new(self::TYPE_MAP).tap do |m|
-            register_class_with_precision m, %r(time)i, Type::Time, timezone: default_timezone
-            register_class_with_precision m, %r(datetime)i, Type::DateTime, timezone: default_timezone
-            m.alias_type %r(timestamp)i, "datetime"
+            register_class_with_precision m, %r(\A[^\(]*time)i, Type::Time, timezone: default_timezone
+            register_class_with_precision m, %r(\A[^\(]*datetime)i, Type::DateTime, timezone: default_timezone
+            m.alias_type %r(\A[^\(]*timestamp)i, "datetime"
           end
         end
 
