@@ -1,3 +1,12 @@
+*   Fix `ActiveSupport::Duration.build` to support negative values.
+
+    The algorithm to collect the `parts` of the `ActiveSupport::Duration`
+    ignored the sign of the `value` and accumulated incorrect part values. This
+    impacted `ActiveSupport::Duration#sum` (which is dependent on `parts`) but
+    not `ActiveSupport::Duration#eql?` (which is dependent on `value`).
+
+    *Caleb Buxton*, *Braden Staudacher*
+
 *   `Time#change` and methods that call it (eg. `Time#advance`) will now
     return a `Time` with the timezone argument provided, if the caller was
     initialized with a timezone argument.

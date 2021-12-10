@@ -186,17 +186,18 @@ module ActiveSupport
         end
 
         parts = {}
-        remainder = value.round(9)
+        remainder_sign = value <=> 0
+        remainder = value.round(9).abs
 
         PARTS.each do |part|
           unless part == :seconds
             part_in_seconds = PARTS_IN_SECONDS[part]
-            parts[part] = remainder.div(part_in_seconds)
+            parts[part] = remainder.div(part_in_seconds) * remainder_sign
             remainder %= part_in_seconds
           end
         end unless value == 0
 
-        parts[:seconds] = remainder
+        parts[:seconds] = remainder * remainder_sign
 
         new(value, parts)
       end
