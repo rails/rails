@@ -35,38 +35,29 @@ class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
 
   test "URL generation with default_url_options" do
     ActiveStorage::Current.url_options = nil
-    original_url_options = Rails.application.routes.default_url_options.dup
-    Rails.application.routes.default_url_options.merge!(protocol: "http", host: "test.example.com", port: 3001)
+    ActiveStorage.default_url_options = { protocol: "http", host: "test.example.com", port: 3001 }
 
-    begin
-      assert_match(/^http:\/\/test.example.com:3001\/rails\/active_storage\/disk\/.*\/avatar\.png$/,
-        @service.url(@key, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png"))
-    ensure
-      Rails.application.routes.default_url_options = original_url_options
-    end
+    assert_match(/^http:\/\/test.example.com:3001\/rails\/active_storage\/disk\/.*\/avatar\.png$/,
+      @service.url(@key, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png"))
   end
 
   test "URL generate having ActiveStorage::Current.url_options precedence over default_url_options" do
     ActiveStorage::Current.url_options = { protocol: "https", host: "current.example.com", port: 3002 }
-    original_url_options = Rails.application.routes.default_url_options.dup
-    Rails.application.routes.default_url_options.merge!(protocol: "http", host: "default.example.com", port: 3001)
+    ActiveStorage.default_url_options = { protocol: "http", host: "default.example.com", port: 3001 }
 
-    begin
-      assert_match(/^https:\/\/current.example.com:3002\/rails\/active_storage\/disk\/.*\/avatar\.png$/,
-        @service.url(@key, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png"))
-    ensure
-      Rails.application.routes.default_url_options = original_url_options
-    end
+    assert_match(/^https:\/\/current.example.com:3002\/rails\/active_storage\/disk\/.*\/avatar\.png$/,
+      @service.url(@key, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png"))
   end
 
-  test "URL generation without ActiveStorage::Current.url_options set" do
+  test "URL generation without ActiveStorage::Current.url_options or ActiveStorage.default_url_options set" do
     ActiveStorage::Current.url_options = nil
+    ActiveStorage.default_url_options = nil
 
     error = assert_raises ArgumentError do
       @service.url(@key, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")
     end
 
-    assert_equal("Cannot generate URL for avatar.png using Disk service, please set ActiveStorage::Current.url_options or Rails.application.routes.default_url_options.", error.message)
+    assert_equal("Cannot generate URL for avatar.png using Disk service, please set ActiveStorage::Current.url_options or ActiveStorage.default_url_options.", error.message)
   end
 
   test "URL generation keeps working with ActiveStorage::Current.host set" do
