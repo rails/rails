@@ -550,6 +550,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_html_lang_attribute_is_present
+    run_generator [destination_root]
+
+    assert_file "app/views/layouts/application.html.erb" do |contents|
+      assert_includes contents, %(<html lang="<%= I18n.locale %>">)
+    end
+  end
+
   def test_viewport_meta_tag_is_present
     run_generator [destination_root]
 
