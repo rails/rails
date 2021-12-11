@@ -56,11 +56,7 @@ module ActiveRecord
       end
 
       def call(_registry, *args, adapter: nil, **kwargs)
-        if kwargs.any? # https://bugs.ruby-lang.org/issues/10856
-          block.call(*args, **kwargs)
-        else
-          block.call(*args)
-        end
+        block.call(*args)
       end
 
       def matches?(type_name, *args, **kwargs)
