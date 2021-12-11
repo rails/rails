@@ -25,7 +25,7 @@ class <%= controller_class_name %>ControllerTest < ActionDispatch::IntegrationTe
       post <%= index_helper %>_url, params: { <%= "#{singular_table_name}: { #{attributes_string} }" %> }
     end
 
-    assert_redirected_to <%= show_helper(entity: "#{class_name}.last") %>
+    assert_redirected_to <%= show_helper(arg: "#{class_name}.last") %>
   end
 
   test "should show <%= singular_table_name %>" do

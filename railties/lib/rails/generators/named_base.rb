@@ -99,9 +99,7 @@ module Rails
         end
 
         def show_helper(route_suffix: "url", arg_prefix: "@", arg: "#{arg_prefix}#{singular_table_name}") # :doc:
-          instance_var = local ? "" : "@"
-          entity ||= "#{instance_var}#{singular_table_name}"
-          "#{singular_route_name}_#{suffix}(#{entity})"
+          "#{singular_route_name}_#{route_suffix}(#{arg})"
         end
 
         def edit_helper(...) # :doc:
