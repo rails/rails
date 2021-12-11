@@ -172,6 +172,13 @@ module ApplicationTests
       assert File.exist?(File.join(rails_root, "app/views/notifier_mailer/foo.html.erb"))
     end
 
+    test "controller generator with namespace" do
+      rails("generate", "scaffold", "Admin::Post", "title:string")
+      rails("db:migrate")
+      output = rails("test", "test/controllers/admin/posts_controller_test.rb")
+      assert_match(/0 failures, 0 errors/, output)
+    end
+
     test "scaffold_controller generator with namespace and model" do
       rails("generate", "model", "post", "title:string")
       rails("db:migrate")

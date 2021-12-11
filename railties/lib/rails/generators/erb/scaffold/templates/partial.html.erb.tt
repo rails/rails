@@ -15,6 +15,6 @@
 
 <% end -%>
   <p>
-    <%%= link_to "Show this <%= human_name.downcase %>", <%= show_helper(arg_prefix: "") %> %>
+    <%%= link_to "Show this <%= human_name.downcase %>", <%= show_helper(arg: singular_name) %> %>
   </p>
 </div>
