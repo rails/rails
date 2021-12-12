@@ -569,7 +569,7 @@ module ActiveRecord
               else raise ArgumentError, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead."
               end
             when "enum"
-              raise ArgumentError "enum_type is required for enums" if enum_type.nil?
+              raise ArgumentError, "enum_type is required for enums" if enum_type.nil?
 
               enum_type
             else
