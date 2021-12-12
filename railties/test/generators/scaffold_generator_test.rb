@@ -274,7 +274,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/admin/roles/_role.html.erb" do |content|
-      assert_match(%("Show this role", role), content)
       assert_match "role", content
       assert_no_match "admin_role", content
     end
@@ -414,7 +413,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/accounts/index.html.erb" do |content|
-      assert_match(/^\W{2}<%= render @accounts %>/, content)
+      assert_match(/^\W{2}<%= @accounts.each do |account| %>/, content)
+      assert_match(/^\W{4}<%= render account %>/, content)
+      assert_match(/<%= link_to "Show this account", account %>/, content)
     end
 
     assert_file "app/views/accounts/show.html.erb" do |content|
