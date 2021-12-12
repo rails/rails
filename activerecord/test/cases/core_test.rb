@@ -133,4 +133,17 @@ class CoreTest < ActiveRecord::TestCase
     PP.pp(topic, StringIO.new(actual))
     assert_match(/id: 1/, actual)
   end
+
+  def test_find_by_cache_does_not_duplicate_entries
+    Topic.initialize_find_by_cache
+    using_prepared_statements = Topic.connection.prepared_statements
+    topic_find_by_cache = Topic.instance_variable_get("@find_by_statement_cache")[using_prepared_statements]
+
+    assert_difference -> { topic_find_by_cache.size }, +1 do
+      Topic.find(1)
+    end
+    assert_no_difference -> { topic_find_by_cache.size } do
+      Topic.find_by(id: 1)
+    end
+  end
 end

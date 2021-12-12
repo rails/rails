@@ -63,10 +63,10 @@ if ActiveRecord::Base.connection.prepared_statements
         assert_equal 1, Topic.find(1).id
         assert_raises(RecordNotFound) { SillyReply.find(2) }
 
-        topic_sql = cached_statement(Topic, Topic.primary_key)
+        topic_sql = cached_statement(Topic, [Topic.primary_key])
         assert_includes statement_cache, to_sql_key(topic_sql)
 
-        reply_sql = cached_statement(SillyReply, SillyReply.primary_key)
+        reply_sql = cached_statement(SillyReply, [SillyReply.primary_key])
         assert_includes statement_cache, to_sql_key(reply_sql)
 
         replies = SillyReply.where(id: 2).limit(1)
