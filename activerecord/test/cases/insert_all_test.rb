@@ -336,7 +336,7 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal "1974522598", book.isbn, "Should have updated the isbn"
   end
 
-  def test_passing_both_on_update_and_update_only_will_raise_an_error
+  def test_upsert_all_passing_both_on_duplicate_and_update_only_will_raise_an_error
     assert_raises ArgumentError do
       Book.upsert_all [{ id: 101, name: "Perelandra", author_id: 7, isbn: "1974522598" }], on_duplicate: "NAME=values(name)", update_only: :name
     end
