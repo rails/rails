@@ -561,6 +561,14 @@ module ActiveRecord
       end
 
       class << self
+        def extended_type_map(default_timezone: nil, emulate_booleans:) # :nodoc:
+          super(default_timezone: default_timezone).tap do |m|
+            if emulate_booleans
+              m.register_type %r(^tinyint\(1\))i, Type::Boolean.new
+            end
+          end
+        end
+
         private
           def initialize_type_map(m)
             super
@@ -614,13 +622,16 @@ module ActiveRecord
       end
 
       TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
-      TYPE_MAP_WITH_BOOLEAN = Type::TypeMap.new(TYPE_MAP).tap do |m|
-        m.register_type %r(^tinyint\(1\))i, Type::Boolean.new
-      end
+      EXTENDED_TYPE_MAPS = Concurrent::Map.new
+      EMULATE_BOOLEANS_TRUE = { emulate_booleans: true }.freeze
 
       private
-        def type_map
-          emulate_booleans ? TYPE_MAP_WITH_BOOLEAN : TYPE_MAP
+        def extended_type_map_key
+          if @default_timezone
+            { default_timezone: @default_timezone, emulate_booleans: emulate_booleans }
+          elsif emulate_booleans
+            EMULATE_BOOLEANS_TRUE
+          end
         end
 
         def raw_execute(sql, name, async: false)

@@ -91,7 +91,7 @@ module ActiveRecord
           def raw_execute(sql, name, async: false)
             # make sure we carry over any changes to ActiveRecord.default_timezone that have been
             # made since we established the connection
-            @connection.query_options[:database_timezone] = ActiveRecord.default_timezone
+            @connection.query_options[:database_timezone] = default_timezone
 
             super
           end
@@ -172,7 +172,7 @@ module ActiveRecord
 
             # make sure we carry over any changes to ActiveRecord.default_timezone that have been
             # made since we established the connection
-            @connection.query_options[:database_timezone] = ActiveRecord.default_timezone
+            @connection.query_options[:database_timezone] = default_timezone
 
             type_casted_binds = type_casted_binds(binds)
 
