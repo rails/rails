@@ -20,7 +20,11 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   class UnavailableDalliServer < Dalli::Protocol::Binary
-    def alive?
+    def alive? # before https://github.com/petergoldstein/dalli/pull/863
+      false
+    end
+
+    def ensure_connected! # after https://github.com/petergoldstein/dalli/pull/863
       false
     end
   end
