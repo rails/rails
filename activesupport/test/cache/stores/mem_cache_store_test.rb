@@ -5,25 +5,29 @@ require "active_support/cache"
 require_relative "../behaviors"
 require "dalli"
 
-# Emulates a latency on Dalli's back-end for the key latency to facilitate
-# connection pool testing.
-class SlowDalliClient < Dalli::Client
-  def get(key, options = {})
-    if /latency/.match?(key)
-      sleep 3
-    else
-      super
+class MemCacheStoreTest < ActiveSupport::TestCase
+  # Emulates a latency on Dalli's back-end for the key latency to facilitate
+  # connection pool testing.
+  class SlowDalliClient < Dalli::Client
+    def get(key, options = {})
+      if /latency/.match?(key)
+        sleep 3
+      else
+        super
+      end
     end
   end
-end
 
-class UnavailableDalliServer < Dalli::Protocol::Binary
-  def alive?
-    false
+  class UnavailableDalliServer < Dalli::Protocol::Binary
+    def alive? # before https://github.com/petergoldstein/dalli/pull/863
+      false
+    end
+
+    def ensure_connected! # after https://github.com/petergoldstein/dalli/pull/863
+      false
+    end
   end
-end
 
-class MemCacheStoreTest < ActiveSupport::TestCase
   begin
     servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
     ss = Dalli::Client.new(servers).stats

@@ -197,7 +197,7 @@ GEM
     crass (1.0.6)
     curses (1.4.0)
     daemons (1.4.0)
-    dalli (2.7.11)
+    dalli (3.2.1)
     dante (0.2.0)
     declarative (0.0.20)
     delayed_job (4.1.9)
