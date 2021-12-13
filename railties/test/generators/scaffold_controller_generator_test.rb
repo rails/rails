@@ -228,9 +228,27 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match("\"Back to users\", admin_users_path", content)
     end
 
+    assert_file "app/views/admin/users/edit.html.erb" do |content|
+      assert_match("\"Show this user\", admin_user_url(@user)", content)
+      assert_match("\"Back to users\", admin_users_path", content)
+    end
+
+    assert_file "app/views/admin/users/show.html.erb" do |content|
+      assert_match("\"Edit this user\", edit_admin_user_url(@user)", content)
+      assert_match("\"Back to users\", admin_users_path", content)
+      assert_match("\"Destroy this user\", admin_user_url(@user)", content)
+    end
+
     assert_file "app/views/admin/users/_form.html.erb" do |content|
       assert_match("model: [:admin, user]", content)
     end
+
+    assert_file "app/views/admin/users/_user.html.erb" do |content|
+      assert_match("\"Show this user\", admin_user_url(user)", content)
+    end
+
+    assert_file "test/controllers/admin/users_controller_test.rb"
+    assert_file "test/system/users_test.rb"
   end
 
   def test_controller_tests_pass_by_default_inside_mountable_engine
