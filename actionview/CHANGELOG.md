@@ -1,3 +1,7 @@
+*   Fix `number_with_precision(raise: true)` always raising even on valid numbers.
+
+    *Pedro Moreira*
+
 ## Rails 7.0.0.rc1 (December 06, 2021) ##
 
 *   Support `fields model: [@nested, @model]` the same way as `form_with model:
