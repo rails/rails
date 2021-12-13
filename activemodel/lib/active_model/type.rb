@@ -7,6 +7,7 @@ require "active_model/type/value"
 require "active_model/type/big_integer"
 require "active_model/type/binary"
 require "active_model/type/boolean"
+require "active_model/type/collection"
 require "active_model/type/date"
 require "active_model/type/date_time"
 require "active_model/type/decimal"
@@ -43,6 +44,7 @@ module ActiveModel
     register(:big_integer, Type::BigInteger)
     register(:binary, Type::Binary)
     register(:boolean, Type::Boolean)
+    register(:collection, Type::Collection)
     register(:date, Type::Date)
     register(:datetime, Type::DateTime)
     register(:decimal, Type::Decimal)
