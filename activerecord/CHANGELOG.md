@@ -413,6 +413,8 @@
     `#with_lock` now accepts transaction options like `requires_new:`,
     `isolation:`, and `joinable:`
 
+    *John Mileham*
+
 *   Adds support for deferrable foreign key constraints in PostgreSQL.
 
     By default, foreign key constraints in PostgreSQL are checked after each statement. This works for most use cases,
