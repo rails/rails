@@ -18,6 +18,8 @@ module ActionDispatch
   # responds with <tt>403 Forbidden</tt>. The body of the response contains debug info
   # if +config.consider_all_requests_local+ is set to true, otherwise the body is empty.
   class HostAuthorization
+    ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", /\A([a-z0-9-]+\.)?localhost:\d+\z/, IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")]
+
     class Permissions # :nodoc:
       def initialize(hosts)
         @hosts = sanitize_hosts(hosts)

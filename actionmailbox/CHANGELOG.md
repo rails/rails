@@ -11,6 +11,11 @@
     *David Jones*, *Dana Henke*
 
 
+## Rails 6.1.4.3 (December 14, 2021) ##
+
+*   No changes.
+
+
 ## Rails 6.1.4.2 (December 14, 2021) ##
 
 *   No changes.

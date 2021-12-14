@@ -154,6 +154,18 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_equal "Custom", body
   end
 
+  test "localhost works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "localhost:3000",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
   test "blocks requests with spoofed X-FORWARDED-HOST" do
     @app = ActionDispatch::HostAuthorization.new(App, [IPAddr.new("127.0.0.1")])
 
