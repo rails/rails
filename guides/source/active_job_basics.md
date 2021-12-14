@@ -73,6 +73,7 @@ class GuestsCleanupJob < ApplicationJob
 
   def perform(*guests)
     # Do something later
+    "#{guests.count} guests cleaned up."
   end
 end
 ```
@@ -100,7 +101,18 @@ GuestsCleanupJob.set(wait: 1.week).perform_later(guest)
 ```
 
 ```ruby
-# `perform_now` and `perform_later` will call `perform` under the hood so
+# Run a job inline without enqueing them, returns the result of `perform`.
+GuestsCleanupJob.perform_now(guest1, guest2) # => "2 guests cleaned up."
+```
+
+```ruby
+# Run a job inline without enqueing them, returns the result of `perform` and raises exceptions of the job.
+GuestsCleanupJob.perform_now!(guest1, guest2) # => "2 guests cleaned up."
+GuestsCleanupJob.perform_now!(nil) # => ArgumentError: no guests given.
+```
+
+```ruby
+# `perform_now`, `perform_now!` and `perform_later` will call `perform` under the hood so
 # you can pass as many arguments as defined in the latter.
 GuestsCleanupJob.perform_later(guest1, guest2, filter: 'some_filter')
 ```

@@ -22,6 +22,13 @@ class RescueTest < ActiveSupport::TestCase
     end
   end
 
+  test "let through perform exception" do
+    job = RescueJob.new("david")
+    assert_raises(ArgumentError) do
+      job.perform_now!
+    end
+  end
+
   test "rescue from deserialization errors" do
     RescueJob.perform_later Person.new(404)
     assert_includes JobBuffer.values, "rescued from DeserializationError"

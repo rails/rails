@@ -18,6 +18,14 @@ module ActiveJob
         job_or_instantiate(...).perform_now
       end
 
+      # Performs the job immediately and raises job exception.
+      #
+      #   MyJob.perform_now!("mike")
+      #
+      def perform_now!(...)
+        job_or_instantiate(...).perform_now!
+      end
+
       def execute(job_data) # :nodoc:
         ActiveJob::Callbacks.run_callbacks(:execute) do
           job = deserialize(job_data)
@@ -38,14 +46,32 @@ module ActiveJob
     #
     #   puts MyJob.new(*args).perform_now # => "Hello World!"
     def perform_now
+      perform_now!
+    rescue Exception => exception
+      rescue_with_handler(exception) || raise
+    end
+
+    # Performs the job immediately, without using the exception handler. The job is not sent to the queuing adapter
+    # but directly executed by blocking the execution of others until it's finished.
+    # +perform_now!+ returns the value of your job's +perform+ method or raises job exception.
+    #
+    #   class MyJob < ActiveJob::Base
+    #     def perform(name:)
+    #       raise ArgumentError unless name.is_a?(String)
+    #
+    #       "Hello #{name}!"
+    #     end
+    #   end
+    #
+    #   puts MyJob.new(name: "David").perform_now # => "Hello David!"
+    #   MyJob.new(name: 123).perform_now # => ArgumentError
+    def perform_now!
       # Guard against jobs that were persisted before we started counting executions by zeroing out nil counters
       self.executions = (executions || 0) + 1
 
       deserialize_arguments_if_needed
 
       _perform_job
-    rescue Exception => exception
-      rescue_with_handler(exception) || raise
     end
 
     def perform(*)
