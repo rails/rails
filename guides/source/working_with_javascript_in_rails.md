@@ -79,7 +79,7 @@ happens when we have lots of JavaScript we want to execute on a click?
 ```
 
 Awkward, right? We could pull the function definition out of the click handler,
-and turn it a function:
+and turn it into a function:
 
 ```js
 window.paintIt = function(event, backgroundColor, textColor) {
