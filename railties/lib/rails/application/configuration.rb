@@ -245,8 +245,8 @@ module Rails
           end
 
           if respond_to?(:action_controller)
+            action_controller.raise_on_missing_callback_actions = false
             action_controller.raise_on_open_redirects = true
-
             action_controller.wrap_parameters_by_default = true
           end
         when "7.1"
