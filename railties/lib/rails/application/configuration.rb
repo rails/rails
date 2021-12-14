@@ -34,7 +34,7 @@ module Rails
         @filter_parameters                       = []
         @filter_redirect                         = []
         @helpers_paths                           = []
-        @hosts                                   = Array(([".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")] if Rails.env.development?))
+        @hosts                                   = Rails.env.development? ? ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT : []
         @host_authorization                      = {}
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true

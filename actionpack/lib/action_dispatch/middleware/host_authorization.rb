@@ -15,6 +15,8 @@ module ActionDispatch
   # application will be executed and rendered. If no +response_app+ is given, a
   # default one will run, which responds with <tt>403 Forbidden</tt>.
   class HostAuthorization
+    ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", /\A([a-z0-9-]+\.)?localhost:\d+\z/, IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")]
+
     class Permissions # :nodoc:
       def initialize(hosts)
         @hosts = sanitize_hosts(hosts)
