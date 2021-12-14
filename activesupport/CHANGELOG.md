@@ -1,3 +1,5 @@
+## Rails 7.0.0.rc2 (December 14, 2021) ##
+
 *   Deprecate passing a format to `#to_s` in favor of `#to_formatted_s` in `Array`, `Range`, `Date`, `DateTime`, `Time`,
     `BigDecimal`, `Float` and, `Integer`.
 

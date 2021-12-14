@@ -1,3 +1,5 @@
+## Rails 7.0.0.rc2 (December 14, 2021) ##
+
 *   Remove deprecated `config` in `dbconsole`.
 
     *Rafael Mendonça França*

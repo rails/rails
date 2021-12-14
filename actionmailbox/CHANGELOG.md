@@ -1,3 +1,5 @@
+## Rails 7.0.0.rc2 (December 14, 2021) ##
+
 *   Removed deprecated environment variable `MAILGUN_INGRESS_API_KEY`.
 
     *Rafael Mendonça França*
