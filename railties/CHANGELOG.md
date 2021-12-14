@@ -1,3 +1,9 @@
+## Rails 7.0.0.rc3 (December 14, 2021) ##
+
+*   Allow localhost with a port by default in development
+
+    [Fixes: #43864]
+
 ## Rails 7.0.0.rc2 (December 14, 2021) ##
 
 *   No changes

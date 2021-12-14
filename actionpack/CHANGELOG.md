@@ -5,6 +5,11 @@
 
     *Alex Ghiculescu*
 
+## Rails 7.0.0.rc3 (December 14, 2021) ##
+
+*   No changes.
+
+
 ## Rails 7.0.0.rc2 (December 14, 2021) ##
 
 *   Fix X_FORWARDED_HOST protection.  [CVE-2021-44528]
