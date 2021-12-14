@@ -1,4 +1,6 @@
-## Rails 6.0.4.1 (August 19, 2021) ##
+*   Fix X_FORWARDED_HOST protection.  [CVE-2021-44528]
+
+## Rails 6.1.4.1 (August 19, 2021) ##
 
 *   [CVE-2021-22942] Fix possible open redirect in Host Authorization middleware.
 
