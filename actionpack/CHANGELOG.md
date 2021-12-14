@@ -1,3 +1,5 @@
+*   Fix X_FORWARDED_HOST protection.  [CVE-2021-44528]
+
 *   `Rails.application.executor` hooks can now be called around every request in a `ActionController::TestCase`
 
     This helps to better simulate request or job local state being reset between requests and prevent state
