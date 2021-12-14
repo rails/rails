@@ -274,8 +274,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/admin/roles/_role.html.erb" do |content|
-      assert_match(%("Show this role", admin_role_url(role)), content)
+      assert_match(%("Show this role", role), content)
       assert_match "role", content
+      assert_no_match "admin_role", content
     end
 
     %w(edit new show _form).each do |view|

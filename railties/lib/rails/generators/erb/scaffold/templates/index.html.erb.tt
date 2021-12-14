@@ -6,4 +6,4 @@
   <%%= render @<%= plural_table_name %> %>
 </div>
 
-<%%= link_to "New <%= human_name.downcase %>", <%= new_helper(route_suffix: "path") %> %>
+<%%= link_to "New <%= human_name.downcase %>", <%= new_helper(type: :path) %> %>

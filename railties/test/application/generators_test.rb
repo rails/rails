@@ -172,21 +172,6 @@ module ApplicationTests
       assert File.exist?(File.join(rails_root, "app/views/notifier_mailer/foo.html.erb"))
     end
 
-    test "controller generator with namespace" do
-      rails("generate", "scaffold", "Admin::Post", "title:string")
-      rails("db:migrate")
-      output = rails("test", "test/controllers/admin/posts_controller_test.rb")
-      assert_match(/7 runs, 9 assertions, 0 failures, 0 errors/, output)
-    end
-
-    test "scaffold_controller generator with namespace and model" do
-      rails("generate", "model", "post", "title:string")
-      rails("db:migrate")
-      rails("generate", "scaffold_controller", "Admin::Post", "title:string", "--model-name=Post")
-      output = rails("test", "test/controllers/admin/posts_controller_test.rb")
-      assert_match(/7 runs, 9 assertions, 0 failures, 0 errors/, output)
-    end
-
     test "ARGV is populated" do
       require "#{app_path}/config/environment"
       Rails.application.load_generators

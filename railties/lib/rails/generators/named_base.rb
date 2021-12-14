@@ -94,20 +94,20 @@ module Rails
           singular_name == plural_name
         end
 
-        def index_helper # :doc:
-          uncountable? ? "#{plural_route_name}_index" : plural_route_name
+        def index_helper(type: nil) # :doc:
+          [plural_route_name, ("index" if uncountable?), type].compact.join("_")
         end
 
-        def show_helper(route_suffix: "url", arg_prefix: "@", arg: "#{arg_prefix}#{singular_table_name}") # :doc:
-          "#{singular_route_name}_#{route_suffix}(#{arg})"
+        def show_helper(arg = "@#{singular_table_name}", type: :url) # :doc:
+          "#{singular_route_name}_#{type}(#{arg})"
         end
 
         def edit_helper(...) # :doc:
           "edit_#{show_helper(...)}"
         end
 
-        def new_helper(route_suffix: "url") # :doc:
-          "new_#{singular_route_name}_#{route_suffix}"
+        def new_helper(type: :url) # :doc:
+          "new_#{singular_route_name}_#{type}"
         end
 
         def singular_table_name # :doc:
@@ -147,8 +147,8 @@ module Rails
           model_resource_name(prefix: "@")
         end
 
-        def model_resource_name(prefix: "") # :doc:
-          resource_name = "#{prefix}#{singular_table_name}"
+        def model_resource_name(model = singular_table_name, prefix: "") # :doc:
+          resource_name = "#{prefix}#{model}"
           if options[:model_name]
             "[#{controller_class_path.map { |name| ":" + name }.join(", ")}, #{resource_name}]"
           else
