@@ -101,12 +101,12 @@ GuestsCleanupJob.set(wait: 1.week).perform_later(guest)
 ```
 
 ```ruby
-# Run a job inline without enqueing them, returns the result of `perform`.
+# Run a job inline without enqueuing them, returns the result of `perform`.
 GuestsCleanupJob.perform_now(guest1, guest2) # => "2 guests cleaned up."
 ```
 
 ```ruby
-# Run a job inline without enqueing them, returns the result of `perform` and raises exceptions of the job.
+# Run a job inline without enqueuing them, returns the result of `perform` and raises exceptions of the job.
 GuestsCleanupJob.perform_now!(guest1, guest2) # => "2 guests cleaned up."
 GuestsCleanupJob.perform_now!(nil) # => ArgumentError: no guests given.
 ```
