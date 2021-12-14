@@ -1744,8 +1744,8 @@ module ActionView
       # <tt>aria-describedby</tt> attribute referencing the <tt><span></tt>
       # element, sharing a common <tt>id</tt> root (<tt>post_title</tt>, in this
       # case).
-      def field_id(method, *suffixes, index: @index)
-        @template.field_id(@object_name, method, *suffixes, index: index)
+      def field_id(method, *suffixes, namespace: @options[:namespace], index: @index)
+        @template.field_id(@object_name, method, *suffixes, namespace: namespace, index: index)
       end
 
       # Generate an HTML <tt>name</tt> attribute value for the given name and
