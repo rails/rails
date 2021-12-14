@@ -10,6 +10,11 @@
     *Jean Boussier*
 
 
+## Rails 6.1.4.2 (December 14, 2021) ##
+
+*   No changes.
+
+
 ## Rails 6.1.4.1 (August 19, 2021) ##
 
 *   No changes.
