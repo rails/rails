@@ -96,7 +96,7 @@ module ActionView
       # <tt>aria-describedby</tt> attribute referencing the <tt><span></tt>
       # element, sharing a common <tt>id</tt> root (<tt>post_title</tt>, in this
       # case).
-      def field_id(object_name, method_name, *suffixes, index: nil)
+      def field_id(object_name, method_name, *suffixes, index: nil, namespace: nil)
         if object_name.respond_to?(:model_name)
           object_name = object_name.model_name.singular
         end
@@ -105,16 +105,13 @@ module ActionView
 
         sanitized_method_name = method_name.to_s.delete_suffix("?")
 
-        # a little duplication to construct fewer strings
-        if sanitized_object_name.empty?
-          sanitized_method_name
-        elsif suffixes.any?
-          [sanitized_object_name, index, sanitized_method_name, *suffixes].compact.join("_")
-        elsif index
-          "#{sanitized_object_name}_#{index}_#{sanitized_method_name}"
-        else
-          "#{sanitized_object_name}_#{sanitized_method_name}"
-        end
+        [
+          namespace,
+          sanitized_object_name.presence,
+          (index unless sanitized_object_name.empty?),
+          sanitized_method_name,
+          *suffixes,
+        ].tap(&:compact!).join("_")
       end
 
       # Generate an HTML <tt>name</tt> attribute value for the given name and
