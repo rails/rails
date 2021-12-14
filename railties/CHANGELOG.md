@@ -1,3 +1,7 @@
+*   Allow localhost with a port by default in development
+
+    [Fixes: #43864]
+
 ## Rails 6.0.4.2 (December 14, 2021) ##
 
 *   No changes.
