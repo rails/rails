@@ -7,6 +7,7 @@ require "bigdecimal/util"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/date_time/calculations"
+require "active_support/isolated_execution_state"
 
 module ActiveSupport
   # = XmlMini
