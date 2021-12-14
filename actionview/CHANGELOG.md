@@ -2,6 +2,11 @@
 
     *Pedro Moreira*
 
+
+## Rails 7.0.0.rc2 (December 14, 2021) ##
+
+*   No changes.
+
 ## Rails 7.0.0.rc1 (December 06, 2021) ##
 
 *   Support `fields model: [@nested, @model]` the same way as `form_with model:
