@@ -9,6 +9,11 @@
 
     *Jonathan Hefner*
 
+## Rails 6.0.4.3 (December 14, 2021) ##
+
+*   No changes.
+
+
 ## Rails 6.0.4.2 (December 14, 2021) ##
 
 *   No changes.
