@@ -940,7 +940,7 @@ module ActionController
         when Array
           return value if converted_arrays.member?(value)
           converted = value.map { |_| convert_value_to_parameters(_) }
-          converted_arrays << converted
+          converted_arrays << converted.dup
           converted
         when Hash
           self.class.new(value)
