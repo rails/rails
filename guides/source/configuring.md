@@ -1719,6 +1719,13 @@ config.active_storage.video_preview_arguments = "-vf 'select=eq(n\\,0)+eq(key\\,
 1. `select=eq(n\,0)+eq(key\,1)+gt(scene\,0.015)`: Select the first video frame, plus keyframes, plus frames that meet the scene change threshold.
 2. `loop=loop=-1:size=2,trim=start_frame=1`: To use the first video frame as a fallback when no other frames meet the criteria, loop the first (one or) two selected frames, then drop the first looped frame.
 
+#### `config.active_storage.multiple_file_field_include_hidden`
+
+In Rails 7.1 and beyond, Active Storage `has_many_attached` relationships will
+default to _replacing_ the current collection instead of _appending_ to it. To
+support submitting an _empty_ collection, render an auxiliary hidden field
+similar to how Action View Form Builder render checkbox elements.
+
 ### Configuring Action Text
 
 #### `config.action_text.attachment_tag_name`
@@ -1747,6 +1754,7 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `false`
 - `config.action_mailer.smtp_timeout`: `5`
 - `config.active_storage.video_preview_arguments`: `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
+- `config.active_storage.multiple_file_field_include_hidden`: `true`
 - `config.active_record.automatic_scope_inversing`: `true`
 - `config.active_record.verify_foreign_keys_for_fixtures`: `true`
 - `config.active_record.partial_inserts`: `false`
@@ -1845,6 +1853,7 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
 - `config.action_mailer.smtp_timeout`: `nil`
 - `config.active_storage.video_preview_arguments`: `"-y -vframes 1 -f image2"`
+- `config.active_storage.multiple_file_field_include_hidden`: `false`
 - `config.active_storage.variant_processor`: `:mini_magick`
 - `config.action_controller.wrap_parameters_by_default`: `false`
 - `config.action_dispatch.default_headers`:
