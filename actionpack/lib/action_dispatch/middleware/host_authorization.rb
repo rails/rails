@@ -16,7 +16,8 @@ module ActionDispatch
   # responds with <tt>403 Forbidden</tt>. The body of the response contains debug info
   # if +config.consider_all_requests_local+ is set to true, otherwise the body is empty.
   class HostAuthorization
-    ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", /\A([a-z0-9-]+\.)?localhost:\d+\z/, IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")]
+    ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")]
+    PORT_REGEX = /(?::\d+)?/.freeze
 
     class Permissions # :nodoc:
       def initialize(hosts)
@@ -49,14 +50,14 @@ module ActionDispatch
         end
 
         def sanitize_regexp(host)
-          /\A#{host}\z/
+          /\A#{host}#{PORT_REGEX}\z/
         end
 
         def sanitize_string(host)
           if host.start_with?(".")
-            /\A([a-z0-9-]+\.)?#{Regexp.escape(host[1..-1])}\z/i
+            /\A([a-z0-9-]+\.)?#{Regexp.escape(host[1..-1])}#{PORT_REGEX}\z/i
           else
-            /\A#{Regexp.escape host}\z/i
+            /\A#{Regexp.escape host}#{PORT_REGEX}\z/i
           end
         end
     end

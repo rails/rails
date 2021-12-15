@@ -33,8 +33,12 @@ module Rails
         @filter_parameters                       = []
         @filter_redirect                         = []
         @helpers_paths                           = []
-        @hosts                                   = Rails.env.development? ? ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT : []
-        @hosts.concat(ENV["RAILS_DEVELOPMENT_HOSTS"].to_s.split(",").map(&:strip)) if Rails.env.development?
+        if Rails.env.development?
+          @hosts = ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT +
+            ENV["RAILS_DEVELOPMENT_HOSTS"].to_s.split(",").map(&:strip)
+        else
+          @hosts = []
+        end
         @host_authorization                      = {}
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
