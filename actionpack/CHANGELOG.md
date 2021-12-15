@@ -1,3 +1,7 @@
+*   Deprecate `Rails.application.config.action_controller.urlsafe_csrf_tokens`. This config is now always enabled.
+
+    *Étienne Barrié*
+
 *   Instance variables set in requests in a `ActionController::TestCase` are now cleared before the next request
 
     This means if you make multiple requests in the same test, instance variables set in the first request will
