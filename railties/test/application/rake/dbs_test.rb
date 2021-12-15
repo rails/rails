@@ -701,6 +701,28 @@ module ApplicationTests
           assert_equal("Not touched", File.read("db/schema.rb").strip)
         end
       end
+
+      test "lazily loaded schema cache isn't read when reading the schema migrations table" do
+        Dir.chdir(app_path) do
+          app_file "config/initializers/lazy_load_schema_cache.rb", <<-RUBY
+            Rails.application.config.active_record.lazily_load_schema_cache = true
+          RUBY
+
+          rails "generate", "model", "recipe", "title:string"
+          rails "db:migrate"
+          rails "db:schema:cache:dump"
+
+          file = File.read("db/schema_cache.yml")
+          assert_match(/schema_migrations: true/, file)
+          assert_match(/recipes: true/, file)
+
+          output = rails "db:drop"
+          assert_match(/Dropped database/, output)
+
+          repeat_output = rails "db:drop"
+          assert_match(/Dropped database/, repeat_output)
+        end
+      end
     end
   end
 end
