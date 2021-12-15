@@ -221,27 +221,37 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/admin/users/index.html.erb" do |content|
-      assert_match(%{"New user", new_admin_user_path}, content)
-      assert_match(%{"Show this user", [:admin, user]}, content)
-    end
-
-    assert_file "app/views/admin/users/new.html.erb" do |content|
-      assert_match(%{"Back to users", admin_users_path}, content)
-    end
-
-    assert_file "app/views/admin/users/edit.html.erb" do |content|
-      assert_match(%{"Show this user", [:admin, @user]}, content)
-      assert_match(%{"Back to users", admin_users_path}, content)
+      assert_match %{@users.each do |user|}, content
+      assert_match %{render user}, content
+      assert_match %{"Show this user", [:admin, user]}, content
+      assert_match %{"New user", new_admin_user_path}, content
     end
 
     assert_file "app/views/admin/users/show.html.erb" do |content|
-      assert_match(%{"Edit this user", edit_admin_user_path(@user)}, content)
-      assert_match(%{"Back to users", admin_users_path}, content)
-      assert_match(%{"Destroy this user", admin_user_path(@user)}, content)
+      assert_match %{render @user}, content
+      assert_match %{"Edit this user", edit_admin_user_path(@user)}, content
+      assert_match %{"Back to users", admin_users_path}, content
+      assert_match %{"Destroy this user", [:admin, @user]}, content
+    end
+
+    assert_file "app/views/admin/users/_user.html.erb" do |content|
+      assert_match "user", content
+      assert_no_match "admin_user", content
+    end
+
+    assert_file "app/views/admin/users/new.html.erb" do |content|
+      assert_match %{render "form", user: @user}, content
+      assert_match %{"Back to users", admin_users_path}, content
+    end
+
+    assert_file "app/views/admin/users/edit.html.erb" do |content|
+      assert_match %{render "form", user: @user}, content
+      assert_match %{"Show this user", [:admin, @user]}, content
+      assert_match %{"Back to users", admin_users_path}, content
     end
 
     assert_file "app/views/admin/users/_form.html.erb" do |content|
-      assert_match("model: [:admin, user]", content)
+      assert_match %{model: [:admin, user]}, content
     end
 
     assert_file "test/controllers/admin/users_controller_test.rb" do |content|

@@ -147,8 +147,8 @@ module Rails
           model_resource_name(prefix: "@")
         end
 
-        def model_resource_name(model = singular_table_name, prefix: "") # :doc:
-          resource_name = "#{prefix}#{model}"
+        def model_resource_name(base_name = singular_table_name, prefix: "") # :doc:
+          resource_name = "#{prefix}#{base_name}"
           if options[:model_name]
             "[#{controller_class_path.map { |name| ":" + name }.join(", ")}, #{resource_name}]"
           else
