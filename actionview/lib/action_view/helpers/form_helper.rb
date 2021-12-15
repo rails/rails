@@ -2587,7 +2587,7 @@ module ActionView
       #   # => <button name='button' type='submit'>Create post</button>
       #
       #   button(:draft, value: true)
-      #   # => <button name="post[draft]" value="true" type="submit">Create post</button>
+      #   # => <button id="post_draft" name="post[draft]" value="true" type="submit">Create post</button>
       #
       #   button do
       #     content_tag(:strong, 'Ask me!')
@@ -2606,7 +2606,7 @@ module ActionView
       #   button(:draft, value: true) do
       #     content_tag(:strong, "Save as draft")
       #   end
-      #   # =>  <button name="post[draft]" value="true" type="submit">
+      #   # =>  <button id="post_draft" name="post[draft]" value="true" type="submit">
       #   #       <strong>Save as draft</strong>
       #   #     </button>
       #
@@ -2615,7 +2615,7 @@ module ActionView
         when Hash
           value, options = nil, value
         when Symbol
-          value, options[:name] = nil, field_name(value)
+          value, options = nil, { name: field_name(value), id: field_id(value) }.merge!(options.to_h)
         end
         value ||= submit_default_value
 

@@ -2607,7 +2607,19 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
-      %(<button type="submit" name="post[secret]" value="true">Update Post</button>)
+      %(<button type="submit" id="post_secret" name="post[secret]" value="true">Update Post</button>)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_button_with_method_name_and_attributes
+    form_for(@post) do |f|
+      concat f.button(:secret, value: true, id: "not_generated", name: "post[not_generated]")
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      %(<button type="submit" id="not_generated" name="post[not_generated]" value="true">Update Post</button>)
     end
 
     assert_dom_equal expected, output_buffer
@@ -2619,7 +2631,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
-      %(<button type="submit" name="post[secret]" value="true">Update secret Post</button>)
+      %(<button type="submit" id="post_secret" name="post[secret]" value="true">Update secret Post</button>)
     end
 
     assert_dom_equal expected, output_buffer
