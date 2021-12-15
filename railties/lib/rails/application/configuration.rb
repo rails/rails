@@ -236,6 +236,7 @@ module Rails
               " -frames:v 1 -f image2"
 
             active_storage.variant_processor = :vips
+            active_storage.multiple_file_field_include_hidden = true
           end
 
           if respond_to?(:active_record)

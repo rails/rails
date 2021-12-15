@@ -1,3 +1,13 @@
+*   Support transforming empty-ish `has_many_attached` value into `[]` (e.g. `[""]`).
+
+    ```ruby
+    @user.highlights = [""]
+    @user.highlights # => []
+    ```
+
+    *Sean Doyle*
+
+
 ## Rails 7.0.0.rc3 (December 14, 2021) ##
 
 *   No changes.

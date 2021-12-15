@@ -1,3 +1,18 @@
+*   Support `include_hidden:` option in calls to
+    `ActionView::Helper::FormBuilder#file_field` with `multiple: true` to
+    support submitting an empty collection of files.
+
+    ```ruby
+    form.file_field :attachments, multiple: true
+    # => <input type="hidden" autocomplete="off" name="post[attachments][]" value="">
+         <input type="file" multiple="multiple" id="post_attachments" name="post[attachments][]">
+
+    form.file_field :attachments, multiple: true, include_hidden: false
+    # => <input type="file" multiple="multiple" id="post_attachments" name="post[attachments][]">
+    ```
+
+    *Sean Doyle*
+
 *   Fix `number_with_precision(raise: true)` always raising even on valid numbers.
 
     *Pedro Moreira*
