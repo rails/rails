@@ -42,7 +42,7 @@ module ActionDispatch
         #
         # +take_failed_screenshot+ is called during system test teardown.
         def take_failed_screenshot
-          take_screenshot if failed? && supports_screenshot?
+          take_screenshot if failed? && supports_screenshot? && Capybara::Session.instance_created?
         end
 
         private
