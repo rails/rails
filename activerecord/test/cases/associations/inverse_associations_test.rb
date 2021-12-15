@@ -722,7 +722,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_with_hash_many_inversing_does_not_add_duplicate_associated_objects
-    with_has_many_inversing(Interest) do
+    with_has_many_inversing do
       human = Human.new
       interest = Interest.new(human: human)
       human.interests << interest
