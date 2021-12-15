@@ -92,7 +92,16 @@ module ActionController # :nodoc:
 
       # Controls whether URL-safe CSRF tokens are generated.
       config_accessor :urlsafe_csrf_tokens, instance_writer: false
-      self.urlsafe_csrf_tokens = false
+      self.urlsafe_csrf_tokens = true
+
+      singleton_class.redefine_method(:urlsafe_csrf_tokens=) do |urlsafe_csrf_tokens|
+        if urlsafe_csrf_tokens
+          ActiveSupport::Deprecation.warn("URL-safe CSRF tokens are now the default. Use 6.1 defaults or above.")
+        else
+          ActiveSupport::Deprecation.warn("Non-URL-safe CSRF tokens are deprecated. Use 6.1 defaults or above.")
+        end
+        config.urlsafe_csrf_tokens = urlsafe_csrf_tokens
+      end
 
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
