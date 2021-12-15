@@ -81,6 +81,23 @@ Upgrading from Rails 7.0 to Rails 7.1
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 
+### `ActionView::Helpers::UrlHelper#button_to` changed behavior
+
+Starting from Rails 7.0 `button_to` renders a `form` tag with `patch` HTTP verb if a persisted Active Record object is used to build button URL.
+To keep current behavior consider explicitly passing `method:` option:
+
+```diff
+-button_to("Do a POST", [:my_custom_post_action_on_workshop, Workshop.find(1)])
++button_to("Do a POST", [:my_custom_post_action_on_workshop, Workshop.find(1)], method: :post)
+```
+
+or using helper to build the URL:
+
+```diff
+-button_to("Do a POST", [:my_custom_post_action_on_workshop, Workshop.find(1)])
++button_to("Do a POST", my_custom_post_action_on_workshop_workshop_path(Workshop.find(1)))
+```
+
 ### Spring
 
 If your application uses Spring, it needs to be upgraded to at least version 3.0.0. Otherwise you'll get
