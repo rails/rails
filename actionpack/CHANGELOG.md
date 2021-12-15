@@ -1,3 +1,5 @@
+## Rails 7.0.0 (December 15, 2021) ##
+
 *   Deprecate `Rails.application.config.action_controller.urlsafe_csrf_tokens`. This config is now always enabled.
 
     *Étienne Barrié*

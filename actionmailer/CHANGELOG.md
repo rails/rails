@@ -1,3 +1,8 @@
+## Rails 7.0.0 (December 15, 2021) ##
+
+*   No changes.
+
+
 ## Rails 7.0.0.rc3 (December 14, 2021) ##
 
 *   No changes.

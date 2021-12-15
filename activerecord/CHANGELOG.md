@@ -1,3 +1,5 @@
+## Rails 7.0.0 (December 15, 2021) ##
+
 *   Better handle SQL queries with invalid encoding.
 
     ```ruby

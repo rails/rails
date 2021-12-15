@@ -1,3 +1,5 @@
+## Rails 7.0.0 (December 15, 2021) ##
+
 *   Support `include_hidden:` option in calls to
     `ActionView::Helper::FormBuilder#file_field` with `multiple: true` to
     support submitting an empty collection of files.
