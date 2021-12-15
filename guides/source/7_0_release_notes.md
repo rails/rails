@@ -88,6 +88,15 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Notable changes
 
+*  `button_to` infers HTTP verb [method] from an Active Record object if object is used to build URL
+
+    ```ruby
+    button_to("Do a POST", [:do_post_action, Workshop.find(1)])
+    # Before
+    #=>   <input type="hidden" name="_method" value="post" autocomplete="off" />
+    # After
+    #=>   <input type="hidden" name="_method" value="patch" autocomplete="off" />
+
 Action Mailer
 -------------
 
