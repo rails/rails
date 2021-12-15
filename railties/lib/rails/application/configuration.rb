@@ -31,7 +31,11 @@ module Rails
         @filter_parameters                       = []
         @filter_redirect                         = []
         @helpers_paths                           = []
-        @hosts                                   = Rails.env.development? ? ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT : []
+        if Rails.env.development?
+          @hosts = ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT.dup
+        else
+          @hosts = []
+        end
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
         @public_file_server.index_name           = "index"
