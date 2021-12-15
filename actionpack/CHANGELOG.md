@@ -1,6 +1,11 @@
+## Rails 6.1.4.4 (December 15, 2021) ##
+
+*   Fix issue with host protection not allowing host with port in development.
+
+
 ## Rails 6.1.4.3 (December 14, 2021) ##
 
-*   No changes.
+*    Fix issue with host protection not allowing localhost in development.
 
 
 ## Rails 6.1.4.2 (December 14, 2021) ##
