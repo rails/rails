@@ -166,6 +166,114 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_match "Success", response.body
   end
 
+  test "localhost using IPV4 works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "127.0.0.1",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "localhost using IPV4 with port works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "127.0.0.1:3000",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "localhost using IPV4 binding in all addresses works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "0.0.0.0",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "localhost using IPV4 with port binding in all addresses works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "0.0.0.0:3000",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "localhost using IPV6 works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "::1",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "localhost using IPV6 with port works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "[::1]:3000",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "localhost using IPV6 binding in all addresses works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "::",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "localhost using IPV6 with port binding in all addresses works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "[::]:3000",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "hosts with port works" do
+    @app = ActionDispatch::HostAuthorization.new(App, ["host.test"])
+
+    get "/", env: {
+      "HOST" => "host.test:3000",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
   test "blocks requests with spoofed X-FORWARDED-HOST" do
     @app = ActionDispatch::HostAuthorization.new(App, [IPAddr.new("127.0.0.1")])
 
