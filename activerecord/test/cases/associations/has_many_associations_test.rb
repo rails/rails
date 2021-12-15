@@ -2301,9 +2301,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_no_queries { assert firm.clients.many? }
   end
 
-  def test_subsequent_calls_to_many_should_not_use_query
+  def test_subsequent_calls_to_many_should_use_query
     firm = companies(:first_firm)
-    assert_queries(1) do
+    assert_queries(2) do
       firm.clients.many?
       firm.clients.many?
     end
@@ -2385,9 +2385,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_no_queries { assert_not firm.clients.one? }
   end
 
-  def test_subsequent_calls_to_one_should_not_use_query
+  def test_subsequent_calls_to_one_should_use_query
     firm = companies(:first_firm)
-    assert_queries(1) do
+    assert_queries(2) do
       firm.clients.one?
       firm.clients.one?
     end
