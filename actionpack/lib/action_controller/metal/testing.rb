@@ -5,7 +5,7 @@ module ActionController
     # Behavior specific to functional tests
     module Functional # :nodoc:
       def clear_instance_variables_between_requests
-        if @_ivars
+        if defined?(@_ivars)
           new_ivars = instance_variables - @_ivars
           new_ivars.each { |ivar| remove_instance_variable(ivar) }
         end
