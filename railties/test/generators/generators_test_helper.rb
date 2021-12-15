@@ -20,12 +20,6 @@ module GeneratorsTestHelper
   include ActiveSupport::Testing::Stream
   include ActiveSupport::Testing::MethodCallAssertions
 
-  GemfileEntry = Struct.new(:name, :version, :comment, :options, :commented_out) do
-    def initialize(name, version, comment, options = {}, commented_out = false)
-      super
-    end
-  end
-
   def self.included(base)
     base.class_eval do
       destination File.expand_path("../fixtures/tmp", __dir__)
@@ -92,6 +86,7 @@ module GeneratorsTestHelper
   private
     def gemfile_locals
       {
+        rails_prerelease: false,
         skip_active_storage: true,
         depend_on_bootsnap: false,
         depends_on_system_test: false,
