@@ -258,14 +258,14 @@ module ActionView
       #
       # The helper gets the name of the favicon file as first argument, which
       # defaults to "favicon.ico", and also supports +:rel+ and +:type+ options
-      # to override their defaults, "shortcut icon" and "image/x-icon"
+      # to override their defaults, "icon" and "image/x-icon"
       # respectively:
       #
       #   favicon_link_tag
-      #   # => <link href="/assets/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+      #   # => <link href="/assets/favicon.ico" rel="icon" type="image/x-icon" />
       #
       #   favicon_link_tag 'myicon.ico'
-      #   # => <link href="/assets/myicon.ico" rel="shortcut icon" type="image/x-icon" />
+      #   # => <link href="/assets/myicon.ico" rel="icon" type="image/x-icon" />
       #
       # Mobile Safari looks for a different link tag, pointing to an image that
       # will be used if you add the page to the home screen of an iOS device.
@@ -275,7 +275,7 @@ module ActionView
       #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png" />
       def favicon_link_tag(source = "favicon.ico", options = {})
         tag("link", {
-          rel: "shortcut icon",
+          rel: "icon",
           type: "image/x-icon",
           href: path_to_image(source, skip_pipeline: options.delete(:skip_pipeline))
         }.merge!(options.symbolize_keys))
