@@ -144,7 +144,7 @@ module ActiveRecord
         def check_prepared_statements_deprecation(config)
           if !config.key?(:prepared_statements)
             ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              The default value of `prepared_statements` for the mysql2 adapter will be changed from +false+ to +true+ in Rails 7.1.
+              The default value of `prepared_statements` for the mysql2 adapter will be changed from +false+ to +true+ in Rails 7.2.
             MSG
           end
         end
