@@ -764,6 +764,29 @@ regular expressions.
 
 Specifies if source locations of methods that call database queries should be logged below relevant queries. By default, the flag is `true` in development and `false` in all other environments.
 
+#### `config.active_record.async_query_executor`
+
+Specifies how asynchronous queries are pooled.
+
+It defaults to `nil`, which means `load_async` is disabled and instead directly executes queries in the foreground.
+For queries to actually be performed asynchronously, it must be set to either `:global_thread_pool` or `:multi_thread_pool`.
+
+`:global_thread_pool` will use a single pool for all databases the application connects to. This is the preferred configuration
+for applications with only a single database, or applications which only ever query one database shard at a time.
+
+`:multi_thread_pool` will use one pool per database, and each pool size can be configured individually in `database.yml` through the
+`max_threads` and `min_thread` properties. This can be useful to applications regularly querying multiple databases at a time, and that need to more precisely define the max concurrency.
+
+#### `config.active_record.global_executor_concurrency`
+
+Used in conjunction with `config.active_record.async_query_executor = :global_thread_pool`, defines how many asynchronous
+queries can be executed concurrently.
+
+Defaults to `4`.
+
+This number must be considered in accordance with the database pool size configured in `database.yml`. The connection pool
+should be large enough to accommodate both the foreground threads (.e.g web server or job worker threads) and background threads.
+
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans`
 
 Controls whether the Active Record MySQL adapter will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
