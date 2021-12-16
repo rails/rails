@@ -520,7 +520,7 @@ module ActiveRecord
       end
 
       def test_change_table_allows_if_exists_option_on_6_1
-        migration = Class.new(ActiveRecord::Migration[6.1]) {
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
           def migrate(x)
             change_table(:testings) do |t|
               t.remove :foo, if_exists: true
