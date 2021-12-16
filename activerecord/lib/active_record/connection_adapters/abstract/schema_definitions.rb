@@ -622,6 +622,7 @@ module ActiveRecord
       #
       # See TableDefinition#column for details of the options you can use.
       def column(column_name, type, index: nil, **options)
+        raise_on_if_exist_options(options)
         @base.add_column(name, column_name, type, **options)
         if index
           index_options = index.is_a?(Hash) ? index : {}
@@ -647,6 +648,7 @@ module ActiveRecord
       #
       # See {connection.add_index}[rdoc-ref:SchemaStatements#add_index] for details of the options you can use.
       def index(column_name, **options)
+        raise_on_if_exist_options(options)
         @base.add_index(name, column_name, **options)
       end
 
@@ -657,8 +659,8 @@ module ActiveRecord
       #  end
       #
       # See {connection.index_exists?}[rdoc-ref:SchemaStatements#index_exists?]
-      def index_exists?(column_name, options = {})
-        @base.index_exists?(name, column_name, options)
+      def index_exists?(column_name, **options)
+        @base.index_exists?(name, column_name, **options)
       end
 
       # Renames the given index on the table.
@@ -676,6 +678,7 @@ module ActiveRecord
       #
       # See {connection.add_timestamps}[rdoc-ref:SchemaStatements#add_timestamps]
       def timestamps(**options)
+        raise_on_if_exist_options(options)
         @base.add_timestamps(name, **options)
       end
 
@@ -686,6 +689,7 @@ module ActiveRecord
       #
       # See TableDefinition#column for details of the options you can use.
       def change(column_name, type, **options)
+        raise_on_if_exist_options(options)
         @base.change_column(name, column_name, type, **options)
       end
 
@@ -717,6 +721,7 @@ module ActiveRecord
       #
       # See {connection.remove_columns}[rdoc-ref:SchemaStatements#remove_columns]
       def remove(*column_names, **options)
+        raise_on_if_exist_options(options)
         @base.remove_columns(name, *column_names, **options)
       end
 
@@ -729,6 +734,7 @@ module ActiveRecord
       #
       # See {connection.remove_index}[rdoc-ref:SchemaStatements#remove_index]
       def remove_index(column_name = nil, **options)
+        raise_on_if_exist_options(options)
         @base.remove_index(name, column_name, **options)
       end
 
@@ -757,6 +763,7 @@ module ActiveRecord
       #
       # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference] for details of the options you can use.
       def references(*args, **options)
+        raise_on_if_exist_options(options)
         args.each do |ref_name|
           @base.add_reference(name, ref_name, **options)
         end
@@ -770,6 +777,7 @@ module ActiveRecord
       #
       # See {connection.remove_reference}[rdoc-ref:SchemaStatements#remove_reference]
       def remove_references(*args, **options)
+        raise_on_if_exist_options(options)
         args.each do |ref_name|
           @base.remove_reference(name, ref_name, **options)
         end
@@ -783,6 +791,7 @@ module ActiveRecord
       #
       # See {connection.add_foreign_key}[rdoc-ref:SchemaStatements#add_foreign_key]
       def foreign_key(*args, **options)
+        raise_on_if_exist_options(options)
         @base.add_foreign_key(name, *args, **options)
       end
 
@@ -793,6 +802,7 @@ module ActiveRecord
       #
       # See {connection.remove_foreign_key}[rdoc-ref:SchemaStatements#remove_foreign_key]
       def remove_foreign_key(*args, **options)
+        raise_on_if_exist_options(options)
         @base.remove_foreign_key(name, *args, **options)
       end
 
@@ -822,6 +832,22 @@ module ActiveRecord
       def remove_check_constraint(*args)
         @base.remove_check_constraint(name, *args)
       end
+
+      private
+        def raise_on_if_exist_options(options)
+          unrecognized_option = options.keys.find do |key|
+            key == :if_exists || key == :if_not_exists
+          end
+          if unrecognized_option
+            conditional = unrecognized_option == :if_exists ? "if" : "unless"
+            message = <<~TXT
+              Option #{unrecognized_option} will be ignored. If you are calling an expression like
+              `t.column(.., #{unrecognized_option}: true)` from inside a change_table block, try a
+              conditional clause instead, as in `t.column(..) #{conditional} t.column_exists?(..)`
+            TXT
+            raise ArgumentError.new(message)
+          end
+        end
     end
   end
 end
