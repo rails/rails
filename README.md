@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://rubyonrails.org/" target="_blank" rel="noopener noreferrer">
-    <img src="https://rubyonrails.org/images/rails-logo.svg" width="400">
+    <img src="https://rubyonrails.org/assets/images/logo.svg" width="400" style="filter: invert(15%) sepia(95%) saturate(3482%) hue-rotate(354deg) brightness(82%) contrast(124%)">
   </a>
 </p>
 
