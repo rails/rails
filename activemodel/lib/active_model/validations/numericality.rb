@@ -11,7 +11,7 @@ module ActiveModel
       RANGE_CHECKS = { in: :in? }
       NUMBER_CHECKS = { odd: :odd?, even: :even? }
 
-      RESERVED_OPTIONS = COMPARE_CHECKS.keys + NUMBER_CHECKS.keys + RANGE_CHECKS.keys + [:only_integer]
+      RESERVED_OPTIONS = COMPARE_CHECKS.keys + NUMBER_CHECKS.keys + RANGE_CHECKS.keys + [:only_integer, :only_numeric]
 
       INTEGER_REGEX = /\A[+-]?\d+\z/
 
@@ -90,6 +90,10 @@ module ActiveModel
       end
 
       def is_number?(raw_value, precision, scale)
+        if options[:only_numeric] && !raw_value.is_a?(Numeric)
+          return false
+        end
+
         !parse_as_number(raw_value, precision, scale).nil?
       rescue ArgumentError, TypeError
         false
@@ -162,6 +166,9 @@ module ActiveModel
       # * <tt>:message</tt> - A custom error message (default is: "is not a number").
       # * <tt>:only_integer</tt> - Specifies whether the value has to be an
       #   integer (default is +false+).
+      # * <tt>:only_numeric</tt> - Specifies whether the value has to be an
+      #   instance of Numeric (default is +false+). The default behavior is to
+      #   attempt parsing the value if it is a String.
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is
       #   +false+). Notice that for Integer and Float columns empty strings are
       #   converted to +nil+.
