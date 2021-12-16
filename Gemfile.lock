@@ -81,7 +81,7 @@ PATH
       activejob (= 6.1.4.4)
       activerecord (= 6.1.4.4)
       activesupport (= 6.1.4.4)
-      marcel (~> 1.0.0)
+      marcel (~> 1.0)
       mini_mime (>= 1.1.0)
     activesupport (6.1.4.4)
       concurrent-ruby (~> 1.0, >= 1.0.2)
@@ -108,7 +108,7 @@ PATH
       actionpack (= 6.1.4.4)
       activesupport (= 6.1.4.4)
       method_source
-      rake (>= 0.13)
+      rake (>= 12.2)
       thor (~> 1.0)
 
 GEM
@@ -340,15 +340,12 @@ GEM
     nokogiri (1.11.3)
       mini_portile2 (~> 2.5.0)
       racc (~> 1.4)
-    nokogiri (1.11.3-x86_64-darwin)
-      racc (~> 1.4)
     os (1.1.1)
     parallel (1.20.1)
     parser (3.0.1.1)
       ast (~> 2.4.1)
     path_expander (1.1.0)
     pg (1.2.3)
-    psych (3.3.2)
     public_suffix (4.0.6)
     puma (5.2.2)
       nio4r (~> 2.0)
