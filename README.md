@@ -1,9 +1,3 @@
-<p align="center">
-  <a href="https://rubyonrails.org/" target="_blank" rel="noopener noreferrer">
-    <img src="https://rubyonrails.org/images/rails-logo.svg" width="400">
-  </a>
-</p>
-
 # Welcome to Rails
 
 ## What's Rails?
