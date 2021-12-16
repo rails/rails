@@ -247,14 +247,14 @@ This will start up Puma, a web server distributed with Rails by default. To see
 your application in action, open a browser window and navigate to
 <http://localhost:3000>. You should see the Rails default information page:
 
-![Yay! You're on Rails! screenshot](images/getting_started/rails_welcome.png)
+![Rails startup page screenshot](images/getting_started/rails_welcome.png)
 
 When you want to stop the web server, hit Ctrl+C in the terminal window where
 it's running. In the development environment, Rails does not generally
 require you to restart the server; changes you make in files will be
 automatically picked up by the server.
 
-The "Yay! You're on Rails!" page is the _smoke test_ for a new Rails
+The Rails startup page is the _smoke test_ for a new Rails
 application: it makes sure that you have your software configured correctly
 enough to serve a page.
 
