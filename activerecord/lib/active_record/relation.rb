@@ -646,6 +646,21 @@ module ActiveRecord
     # Schedule the query to be performed from a background thread pool.
     #
     #   Post.where(published: true).load_async # => #<ActiveRecord::Relation>
+    #
+    # When the +Relation+ is iterated, if the background query wasn't executed yet,
+    # it will be performed by the foreground thread.
+    #
+    # Note that {config.active_record.async_query_executor}[https://guides.rubyonrails.org/configuring.html#config-active-record-async-query-executor] must be configured
+    # for queries to actually be executed concurrently. Otherwise it defaults to
+    # executing them in the foreground.
+    #
+    # +load_async+ will also fallback to executing in the foreground in the test environment when transactional
+    # fixtures are enabled.
+    #
+    # If the query was actually executed in the background, the Active Record logs will show
+    # it by prefixing the log line with <tt>ASYNC</tt>:
+    #
+    #   ASYNC Post Load (0.0ms) (db time 2ms)  SELECT "posts".* FROM "posts" LIMIT 100
     def load_async
       return load if !connection.async_enabled?
 
