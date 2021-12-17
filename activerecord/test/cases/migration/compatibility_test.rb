@@ -519,7 +519,7 @@ module ActiveRecord
         assert connection.column_exists?(:testings, :published_at, **precision_implicit_default)
       end
 
-      def test_change_table_allows_if_exists_option_on_6_1
+      def test_change_table_allows_if_exists_option_on_7_0
         migration = Class.new(ActiveRecord::Migration[7.0]) {
           def migrate(x)
             change_table(:testings) do |t|
@@ -531,6 +531,18 @@ module ActiveRecord
         ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
 
         assert_not connection.column_exists?(:testings, :foo)
+      end
+
+      def test_add_reference_allows_if_exists_option_on_7_0
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          def migrate(x)
+            add_reference :testings, :widget, if_not_exists: true
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+
+        assert connection.column_exists?(:testings, :widget_id)
       end
 
       private

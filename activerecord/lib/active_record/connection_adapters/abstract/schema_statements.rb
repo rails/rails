@@ -986,7 +986,7 @@ module ActiveRecord
       #   add_reference(:products, :supplier, foreign_key: { to_table: :firms })
       #
       def add_reference(table_name, ref_name, **options)
-        ReferenceDefinition.new(ref_name, **options).add_to(update_table_definition(table_name, self))
+        ReferenceDefinition.new(ref_name, **options).add(table_name, self)
       end
       alias :add_belongs_to :add_reference
 
@@ -1006,19 +1006,21 @@ module ActiveRecord
       #   remove_reference(:products, :user, foreign_key: true)
       #
       def remove_reference(table_name, ref_name, foreign_key: false, polymorphic: false, **options)
+        conditional_options = options.slice(:if_exists, :if_not_exists)
+
         if foreign_key
           reference_name = Base.pluralize_table_names ? ref_name.to_s.pluralize : ref_name
           if foreign_key.is_a?(Hash)
-            foreign_key_options = foreign_key
+            foreign_key_options = foreign_key.merge(conditional_options)
           else
-            foreign_key_options = { to_table: reference_name }
+            foreign_key_options = { to_table: reference_name, **conditional_options }
           end
           foreign_key_options[:column] ||= "#{ref_name}_id"
           remove_foreign_key(table_name, **foreign_key_options)
         end
 
-        remove_column(table_name, "#{ref_name}_id")
-        remove_column(table_name, "#{ref_name}_type") if polymorphic
+        remove_column(table_name, "#{ref_name}_id", **conditional_options)
+        remove_column(table_name, "#{ref_name}_type", **conditional_options) if polymorphic
       end
       alias :remove_belongs_to :remove_reference
 

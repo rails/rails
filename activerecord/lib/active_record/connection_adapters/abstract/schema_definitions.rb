@@ -171,6 +171,20 @@ module ActiveRecord
         end
       end
 
+      def add(table_name, connection)
+        columns.each do |name, type, options|
+          connection.add_column(table_name, name, type, **options)
+        end
+
+        if index
+          connection.add_index(table_name, column_names, **index_options(table_name))
+        end
+
+        if foreign_key
+          connection.add_foreign_key(table_name, foreign_table_name, **foreign_key_options)
+        end
+      end
+
       def add_to(table)
         columns.each do |name, type, options|
           table.column(name, type, **options)
@@ -192,8 +206,12 @@ module ActiveRecord
           value.is_a?(Hash) ? value : {}
         end
 
+        def conditional_options
+          options.slice(:if_exists, :if_not_exists)
+        end
+
         def polymorphic_options
-          as_options(polymorphic).merge(options.slice(:null, :first, :after))
+          as_options(polymorphic).merge(conditional_options).merge(options.slice(:null, :first, :after))
         end
 
         def polymorphic_index_name(table_name)
@@ -201,13 +219,13 @@ module ActiveRecord
         end
 
         def index_options(table_name)
-          index_options = as_options(index)
+          index_options = as_options(index).merge(conditional_options)
           index_options[:name] ||= polymorphic_index_name(table_name) if polymorphic
           index_options
         end
 
         def foreign_key_options
-          as_options(foreign_key).merge(column: column_name)
+          as_options(foreign_key).merge(column: column_name, **conditional_options)
         end
 
         def columns
