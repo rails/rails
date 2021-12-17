@@ -250,18 +250,6 @@ class TimestampTest < ActiveRecord::TestCase
     assert_not_equal previously_owner_updated_at, pet.owner.updated_at
   end
 
-  def test_saving_a_new_record_belonging_to_invalid_parent_with_touch_should_not_raise_exception
-    klass = Class.new(Owner) do
-      def self.name; "Owner"; end
-      validate { errors.add(:base, :invalid) }
-    end
-
-    pet = Pet.new(owner: klass.new)
-    pet.save!
-
-    assert_predicate pet.owner, :new_record?
-  end
-
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_a_specific_attribute_the_parent_should_update_that_attribute
     klass = Class.new(ActiveRecord::Base) do
       def self.name; "Pet"; end

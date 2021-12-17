@@ -409,7 +409,7 @@ module ActiveRecord
                 if autosave
                   saved = association.insert_record(record, false)
                 elsif !reflection.nested?
-                  association_saved = association.insert_record(record)
+                  association_saved = association.insert_record(record, reflection.validate?)
 
                   if reflection.validate?
                     errors.add(reflection.name) unless association_saved
@@ -452,7 +452,7 @@ module ActiveRecord
                 association.set_inverse_instance(record)
               end
 
-              saved = record.save(validate: !autosave)
+              saved = record.save(validate: !autosave && reflection.validate?)
               raise ActiveRecord::Rollback if !saved && autosave
               saved
             end
@@ -488,7 +488,7 @@ module ActiveRecord
             self[reflection.foreign_key] = nil
             record.destroy
           elsif autosave != false
-            saved = record.save(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
+            saved = record.save(validate: !autosave && reflection.validate?) if record.new_record? || (autosave && record.changed_for_autosave?)
 
             if association.updated?
               association_id = record.public_send(reflection.options[:primary_key] || :id)
