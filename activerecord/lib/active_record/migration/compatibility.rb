@@ -33,6 +33,35 @@ module ActiveRecord
       V7_1 = Current
 
       class V7_0 < V7_1
+        module TableDefinition
+          private
+            def raise_on_if_exist_options(options)
+            end
+        end
+
+        def create_table(table_name, **options)
+          if block_given?
+            super { |t| yield compatible_table_definition(t) }
+          else
+            super
+          end
+        end
+
+        def change_table(table_name, **options)
+          if block_given?
+            super { |t| yield compatible_table_definition(t) }
+          else
+            super
+          end
+        end
+
+        private
+          def compatible_table_definition(t)
+            class << t
+              prepend TableDefinition
+            end
+            t
+          end
       end
 
       class V6_1 < V7_0
@@ -119,6 +148,10 @@ module ActiveRecord
             options[:precision] ||= nil
             super
           end
+
+          private
+            def raise_on_if_exist_options(options)
+            end
         end
 
         def create_table(table_name, **options)
@@ -171,6 +204,10 @@ module ActiveRecord
             options[:precision] ||= nil
             super
           end
+
+          private
+            def raise_on_if_exist_options(options)
+            end
         end
 
         module CommandRecorder
@@ -265,6 +302,10 @@ module ActiveRecord
             super(*args, type: :integer, **options)
           end
           alias :belongs_to :references
+
+          private
+            def raise_on_if_exist_options(options)
+            end
         end
 
         def create_table(table_name, **options)
@@ -331,6 +372,10 @@ module ActiveRecord
             options[:null] = true if options[:null].nil?
             super
           end
+
+          private
+            def raise_on_if_exist_options(options)
+            end
         end
 
         def add_reference(table_name, ref_name, **options)
