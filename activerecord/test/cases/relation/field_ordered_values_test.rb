@@ -14,6 +14,18 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
     assert_equal(order, posts.map(&:id))
   end
 
+  def test_unspecified_order
+    order = [3, 4, 1]
+    post_ids = Post.in_order_of(:id, order).map(&:id)
+    expected_order = order + (post_ids - order).sort
+    assert_equal(expected_order, post_ids)
+  end
+
+  def test_in_order_of_empty
+    posts = Post.in_order_of(:id, [])
+    assert_equal(posts.map(&:id).sort, posts.map(&:id))
+  end
+
   def test_in_order_of_with_enums_values
     Book.destroy_all
     Book.create!(status: :proposed)
