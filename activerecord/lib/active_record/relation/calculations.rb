@@ -345,12 +345,13 @@ module ActiveRecord
         column = aggregate_column(column_name)
         column_alias = column_alias_for("#{operation} #{column_name.to_s.downcase}")
         select_value = operation_over_aggregate_column(column, operation, distinct)
-        select_value.as(column_alias)
+        select_value.as(connection.quote_column_name(column_alias))
 
         select_values = [select_value]
         select_values += self.select_values unless having_clause.empty?
 
         select_values.concat group_columns.map { |aliaz, field|
+          aliaz = connection.quote_column_name(aliaz)
           if field.respond_to?(:as)
             field.as(aliaz)
           else
