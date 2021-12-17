@@ -908,21 +908,21 @@ system("/bin/echo","hello; rm *")
 `Kernel#open` executes OS command if the argument starts with a vertical bar (`|`).
 
 ```ruby
-open('| ls') { |f| f.read }
+open('| ls') { |file| file.read }
 # returns file list as a String via `ls` command
 ```
 
 Countermeasures are to use `File.open`, `IO.open` or `URI#open` instead. They don't execute an OS command.
 
 ```ruby
-File.open('| ls') { |f| f.read }
+File.open('| ls') { |file| file.read }
 # doesn't execute `ls` command, just opens `| ls` file if it exists
 
-IO.open(0) { |f| f.read }
+IO.open(0) { |file| file.read }
 # opens stdin. doesn't accept a String as the argument
 
 require 'open-uri'
-URI('https://example.com').open { |f| f.read }
+URI('https://example.com').open { |file| file.read }
 # opens the URI. `URI()` doesn't accept `| ls`
 ```
 
@@ -1098,22 +1098,22 @@ Example controller overrides:
 ```ruby
 # Override policy inline
 class PostsController < ApplicationController
-  content_security_policy do |p|
-    p.upgrade_insecure_requests true
+  content_security_policy do |policy|
+    policy.upgrade_insecure_requests true
   end
 end
 
 # Using literal values
 class PostsController < ApplicationController
-  content_security_policy do |p|
-    p.base_uri "https://www.example.com"
+  content_security_policy do |policy|
+    policy.base_uri "https://www.example.com"
   end
 end
 
 # Using mixed static and dynamic values
 class PostsController < ApplicationController
-  content_security_policy do |p|
-    p.base_uri :self, -> { "https://#{current_user.domain}.example.com" }
+  content_security_policy do |policy|
+    policy.base_uri :self, -> { "https://#{current_user.domain}.example.com" }
   end
 end
 
