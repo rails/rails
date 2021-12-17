@@ -98,15 +98,18 @@ module Rails
     def db_config
       return @db_config if defined?(@db_config)
 
-      # We need to check whether the user passed the database the
-      # first time around to show a consistent error message to people
-      # relying on 2-level database configuration.
-
-      @db_config = configurations.configs_for(env_name: environment, name: database, include_replicas: true)
+      # If the user provided a database, use that. Otherwise find
+      # the first config in the database.yml
+      if database
+        @db_config = configurations.configs_for(env_name: environment, name: database, include_replicas: true)
+      else
+        @db_config = configurations.find_db_config(environment)
+      end
 
       unless @db_config
+        missing_db = database ? "'#{database}' database is not" : "No databases are"
         raise ActiveRecord::AdapterNotSpecified,
-          "'#{database}' database is not configured for '#{environment}'. Available configuration: #{configurations.inspect}"
+          "#{missing_db} configured for '#{environment}'. Available configuration: #{configurations.inspect}"
       end
 
       @db_config
@@ -117,7 +120,7 @@ module Rails
     end
 
     def database
-      @options.fetch(:database, "primary")
+      @options[:database]
     end
 
     private
