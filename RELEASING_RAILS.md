@@ -158,7 +158,7 @@ break existing applications.
 If you used Markdown format for your email, you can just paste it into the
 blog.
 
-* https://weblog.rubyonrails.org
+* https://rubyonrails.org/blog
 
 ### Post the announcement to the Rails Twitter account.
 
