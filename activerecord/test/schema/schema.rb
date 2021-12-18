@@ -8,6 +8,10 @@ ActiveRecord::Schema.define do
   #                                                                     #
   # ------------------------------------------------------------------- #
 
+  create_table :"1_need_quoting", force: true do |t|
+    t.string :name
+  end
+
   create_table :accounts, force: true do |t|
     t.references :firm, index: false
     t.string  :firm_name
