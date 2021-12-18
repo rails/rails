@@ -1093,6 +1093,8 @@ Rails.application.config.content_security_policy do |policy|
 end
 ```
 
+WARNING: _If you're using import maps you should add `:blob` to `policy.default_src`_
+
 Example controller overrides:
 
 ```ruby
