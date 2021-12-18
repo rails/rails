@@ -399,7 +399,7 @@ irb> user.settings
 => "01010011"
 irb> user.settings = "0xAF"
 irb> user.settings
-=> 10101111
+=> "10101111"
 irb> user.save!
 ```
 
