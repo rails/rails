@@ -244,6 +244,25 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
     assert_empty @bundle_commands
     assert_no_file "#{destination_root}/Gemfile.lock"
+    assert_file "Gemfile" do |contents|
+      assert_match(/gem "sprockets-rails"/, contents)
+    end
+  end
+
+  def test_skip_asset_pipeline
+    run_generator [destination_root, "--skip-asset-pipeline", "--mountable"]
+
+    assert_file "Gemfile" do |contents|
+      assert_no_match(/gem "sprockets-rails"/, contents)
+    end
+  end
+
+  def test_asset_pipeline_no_sprockets
+    run_generator [destination_root, "--asset-pipeline=no-sprockets", "--mountable"]
+
+    assert_file "Gemfile" do |contents|
+      assert_no_match(/gem "sprockets-rails"/, contents)
+    end
   end
 
   def test_skip_javascript

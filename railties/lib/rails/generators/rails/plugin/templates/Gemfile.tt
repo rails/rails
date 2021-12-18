@@ -7,6 +7,11 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 # Specify your gem's dependencies in <%= name %>.gemspec.
 gemspec
 <% end -%>
+
+<%- unless skip_sprockets? %>
+gem "sprockets-rails"
+<%- end %>
+
 <% unless options[:skip_active_record] -%>
 
 group :development do
