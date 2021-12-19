@@ -427,6 +427,16 @@ end
 
 You can configure specific variants per attachment by calling the `variant` method on yielded attachable object:
 
+If you are using **ruby-vips** (Rails 7+ default):
+```ruby
+class User < ApplicationRecord
+  has_one_attached :avatar do |attachable|
+    attachable.variant :thumb, resize_to_limit: [100, nil]
+  end
+end
+```
+
+If you are using **imagemajick**:
 ```ruby
 class User < ApplicationRecord
   has_one_attached :avatar do |attachable|
