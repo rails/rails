@@ -90,8 +90,18 @@ module ActiveSupport
 
         def write_serialized_entry(key, payload, **options)
           return false if options[:unless_exist] && File.exist?(key)
-          ensure_cache_path(File.dirname(key))
-          File.atomic_write(key, cache_path) { |f| f.write(payload) }
+          dirname = File.dirname(key)
+          loop do
+            ensure_cache_path(dirname)
+            begin
+              File.atomic_write(key, cache_path) { |f| f.write(payload) }
+              break
+            rescue => e
+              # if dirname does not exist, it is likely another process just deleted it, so retry.
+              # throw catched error otherwise
+              raise e if File.exist?(dirname)
+            end
+          end
           true
         end
 
