@@ -264,7 +264,7 @@ FFmpeg v3.4+.
 
 For new apps, image transformation will use libvips instead of ImageMagick. This will reduce
 the time taken to generate variants as well as CPU and memory usage, improving response
-times in apps that rely on active storage to serve their images.
+times in apps that rely on Active Storage to serve their images.
 
 The `:mini_magick` option is not being deprecated, so it is fine to keep using it.
 
