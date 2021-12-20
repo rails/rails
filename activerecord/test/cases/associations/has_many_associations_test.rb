@@ -116,7 +116,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :author_addresses, :comments,
            :posts, :readers, :taggings, :cars, :tags,
-           :categorizations, :zines, :interests
+           :categorizations, :zines, :interests, :humans
 
   def setup
     Client.destroyed_client_ids.clear
@@ -2553,6 +2553,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [image], post.images
     assert_equal post, image.imageable
+  end
+
+  def test_joining_through_a_polymorphic_association_with_a_where_clause
+    writer   = humans(:gordon)
+    category = categories(:general)
+    TypedEssay.create! category: category, writer: writer
+
+    assert_equal 1, Category.joins(:human_writers_of_typed_essays).count
   end
 
   def test_build_with_polymorphic_has_many_does_not_allow_to_override_type_and_id
