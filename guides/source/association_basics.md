@@ -774,14 +774,20 @@ irb> a.first_name == b.author.first_name
 ```
 
 Active Record supports automatic identification for most associations with
-standard names. However, Active Record will not automatically identify
-bi-directional associations that contain the `:through` or `:foreign_key`
-options. Custom scopes on the opposite association also prevent automatic
-identification, as do custom scopes on the association itself unless
-`config.active_record.automatic_scope_inversing` is set to true (the default for
-new applications).
+standard names. However, there are some cases where Active Record will not
+automatically identify bi-directional associations:
 
-For example, consider the following model declarations:
+* When the `:through` option is set
+* When the `:foreign_key` option is set unless
+  `config.active_record.automatic_foreign_key_inversing` is set to true (the
+  default for new applications).
+* When the association has a custom scope unless
+  `config.active_record.automatic_scope_inversing` is set to true (the default
+  for new applications).
+* When the inverse association has a custom scope
+
+For example, consider the following model declarations with a custom scope on
+the `belongs_to` association:
 
 ```ruby
 class Author < ApplicationRecord
@@ -789,7 +795,7 @@ class Author < ApplicationRecord
 end
 
 class Book < ApplicationRecord
-  belongs_to :writer, class_name: 'Author', foreign_key: 'author_id'
+  belongs_to :author, -> { readonly }
 end
 ```
 
@@ -798,10 +804,10 @@ Active Record will no longer automatically recognize the bi-directional associat
 ```irb
 irb> a = Author.first
 irb> b = a.books.first
-irb> a.first_name == b.writer.first_name
+irb> a.first_name == b.author.first_name
 => true
 irb> a.first_name = 'David'
-irb> a.first_name == b.writer.first_name
+irb> a.first_name == b.author.first_name
 => false
 ```
 
@@ -809,11 +815,11 @@ Active Record provides the `:inverse_of` option so you can explicitly declare bi
 
 ```ruby
 class Author < ApplicationRecord
-  has_many :books, inverse_of: 'writer'
+  has_many :books, inverse_of: :author
 end
 
 class Book < ApplicationRecord
-  belongs_to :writer, class_name: 'Author', foreign_key: 'author_id'
+  belongs_to :author, -> { readonly }
 end
 ```
 
@@ -822,10 +828,10 @@ By including the `:inverse_of` option in the `has_many` association declaration,
 ```irb
 irb> a = Author.first
 irb> b = a.books.first
-irb> a.first_name == b.writer.first_name
+irb> a.first_name == b.author.first_name
 => true
 irb> a.first_name = 'David'
-irb> a.first_name == b.writer.first_name
+irb> a.first_name == b.author.first_name
 => true
 ```
 

@@ -151,6 +151,11 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal [mustache], member.nested_sponsors
     end
+
+    sponsor_club_reflection = Sponsor.reflect_on_association(:sponsor_club)
+    with_automatic_foreign_key_inversing(sponsor_club_reflection) do
+      member = assert_queries(3) { Member.includes(:nested_sponsors).first }
+    end
   end
 
   def test_has_many_through_has_one_through_with_has_one_source_reflection_preload_via_joins

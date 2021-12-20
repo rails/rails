@@ -90,27 +90,73 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     assert_equal post_reflection, author_child_reflection.inverse_of, "The Author reflection's inverse should be the Post reflection"
   end
 
-  def test_has_one_and_belongs_to_with_non_default_foreign_key_should_not_find_inverse_automatically
+  def test_has_one_and_belongs_to_with_non_default_foreign_key
+    owner_reflection = Room.reflect_on_association(:owner)
+    owned_room_reflection = User.reflect_on_association(:owned_room)
+
+    assert_not_predicate owner_reflection, :has_inverse?
+    assert_not_predicate owned_room_reflection, :has_inverse?
+
     user = User.create!
     owned_room = Room.create!(owner: user)
 
     assert_nil user.room
     assert_nil owned_room.user
 
-    assert_equal user, owned_room.owner
+    assert_same user, owned_room.owner
     assert_equal owned_room, user.owned_room
+    assert_not_same owned_room, user.owned_room
+
+    with_automatic_foreign_key_inversing(owner_reflection, owned_room_reflection) do
+      assert_predicate owner_reflection, :has_inverse?
+      assert_predicate owned_room_reflection, :has_inverse?
+      assert_equal owned_room_reflection, owner_reflection.inverse_of
+      assert_equal owner_reflection, owned_room_reflection.inverse_of
+
+      user = User.create!
+      owned_room = Room.create!(owner: user)
+
+      assert_nil user.room
+      assert_nil owned_room.user
+
+      assert_same user, owned_room.owner
+      assert_same owned_room, user.owned_room
+    end
+  end
+
+  def test_has_many_and_belongs_to_with_non_default_foreign_key
+    contracts_reflection = SpecialDeveloper.reflect_on_association(:special_contracts)
+    developer_reflection = SpecialContract.reflect_on_association(:special_developer)
+
+    assert_not_predicate contracts_reflection, :has_inverse?
+    assert_not_predicate developer_reflection, :has_inverse?
+
+    with_automatic_foreign_key_inversing(contracts_reflection, developer_reflection) do
+      assert_predicate contracts_reflection, :has_inverse?
+      assert_not_predicate developer_reflection, :has_inverse?
+      assert_equal developer_reflection, contracts_reflection.inverse_of
+    end
   end
 
   def test_has_one_and_belongs_to_with_custom_association_name_should_not_find_wrong_inverse_automatically
     user_reflection = Room.reflect_on_association(:user)
     owner_reflection = Room.reflect_on_association(:owner)
     room_reflection = User.reflect_on_association(:room)
+    owned_room_reflection = User.reflect_on_association(:owned_room)
 
     assert_predicate user_reflection, :has_inverse?
     assert_equal room_reflection, user_reflection.inverse_of
 
     assert_not_predicate owner_reflection, :has_inverse?
     assert_not_equal room_reflection, owner_reflection.inverse_of
+
+    with_automatic_foreign_key_inversing(user_reflection, owner_reflection) do
+      assert_predicate user_reflection, :has_inverse?
+      assert_equal room_reflection, user_reflection.inverse_of
+
+      assert_predicate owner_reflection, :has_inverse?
+      assert_equal owned_room_reflection, owner_reflection.inverse_of
+    end
   end
 
   def test_has_many_and_belongs_to_with_a_scope_and_automatic_scope_inversing_should_find_inverse_automatically
@@ -248,6 +294,11 @@ class InverseAssociationTests < ActiveRecord::TestCase
 
     belongs_to_without_inverse_ref = Sponsor.reflect_on_association(:sponsor_club)
     assert_not_predicate belongs_to_without_inverse_ref, :has_inverse?
+
+    with_automatic_foreign_key_inversing(belongs_to_without_inverse_ref, has_one_without_inverse_ref) do
+      assert_predicate has_one_without_inverse_ref, :has_inverse?
+      assert_predicate belongs_to_without_inverse_ref, :has_inverse?
+    end
   end
 
   def test_inverse_of_method_should_supply_the_actual_reflection_instance_it_is_the_inverse_of

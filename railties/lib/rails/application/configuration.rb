@@ -257,6 +257,10 @@ module Rails
           end
         when "7.1"
           load_defaults "7.0"
+
+          if respond_to?(:active_record)
+            active_record.automatic_foreign_key_inversing = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

@@ -715,6 +715,11 @@ associations.
 
 Enables automatically inferring the `inverse_of` for associations with a scope.
 
+#### `config.active_record.automatic_foreign_key_inversing`
+
+Enables automatically inferring the `inverse_of` for associations with a custom
+`foreign_key`.
+
 #### `config.active_record.legacy_connection_handling`
 
 Allows to enable new connection handling API. For applications using multiple

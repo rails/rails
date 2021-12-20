@@ -96,17 +96,36 @@ module ActiveRecord
 
       reflections.each do |reflection|
         reflection.klass.automatic_scope_inversing = true
-        reflection.remove_instance_variable(:@inverse_name) if reflection.instance_variable_defined?(:@inverse_name)
-        reflection.remove_instance_variable(:@inverse_of) if reflection.instance_variable_defined?(:@inverse_of)
+        reset_inverse_of(reflection)
       end
 
       yield
     ensure
       reflections.each_with_index do |reflection, i|
         reflection.klass.automatic_scope_inversing = old[i]
-        reflection.remove_instance_variable(:@inverse_name) if reflection.instance_variable_defined?(:@inverse_name)
-        reflection.remove_instance_variable(:@inverse_of) if reflection.instance_variable_defined?(:@inverse_of)
+        reset_inverse_of(reflection)
       end
+    end
+
+    def with_automatic_foreign_key_inversing(*reflections)
+      old = reflections.map { |reflection| reflection.klass.automatic_foreign_key_inversing }
+
+      reflections.each do |reflection|
+        reflection.klass.automatic_foreign_key_inversing = true
+        reset_inverse_of(reflection)
+      end
+
+      yield
+    ensure
+      reflections.each_with_index do |reflection, i|
+        reflection.klass.automatic_foreign_key_inversing = old[i]
+        reset_inverse_of(reflection)
+      end
+    end
+
+    def reset_inverse_of(reflection)
+      reflection.remove_instance_variable(:@inverse_name) if reflection.instance_variable_defined?(:@inverse_name)
+      reflection.remove_instance_variable(:@inverse_of) if reflection.instance_variable_defined?(:@inverse_of)
     end
 
     def reset_callbacks(klass, kind)

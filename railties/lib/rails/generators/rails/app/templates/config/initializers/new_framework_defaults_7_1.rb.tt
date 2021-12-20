@@ -8,3 +8,6 @@
 #
 # Read the Guide for Upgrading Ruby on Rails for more info on each option.
 # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html
+
+# Automatically infer `inverse_of` for associations with custom foreign keys.
+# Rails.application.config.active_record.automatic_foreign_key_inversing = true

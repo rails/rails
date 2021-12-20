@@ -11,6 +11,7 @@ module ActiveRecord
       class_attribute :_reflections, instance_writer: false, default: {}
       class_attribute :aggregate_reflections, instance_writer: false, default: {}
       class_attribute :automatic_scope_inversing, instance_writer: false, default: false
+      class_attribute :automatic_foreign_key_inversing, instance_writer: false, default: false
     end
 
     class << self
@@ -613,19 +614,58 @@ module ActiveRecord
         # returns either +nil+ or the inverse association name that it finds.
         def automatic_inverse_of
           if can_find_inverse_of_automatically?(self)
-            inverse_name = ActiveSupport::Inflector.underscore(options[:as] || active_record.name.demodulize).to_sym
+            find_inverse_by_name || find_inverse_by_scan
+          end
+        end
 
-            begin
-              reflection = klass._reflect_on_association(inverse_name)
-            rescue NameError
-              # Give up: we couldn't compute the klass type so we won't be able
-              # to find any associations either.
-              reflection = false
-            end
+        def find_inverse_by_name
+          inverse_name = ActiveSupport::Inflector.underscore(options[:as] || active_record.name&.demodulize).to_sym
 
-            if valid_inverse_reflection?(reflection)
-              inverse_name
-            end
+          begin
+            reflection = klass._reflect_on_association(inverse_name)
+          rescue NameError
+            # Give up: we couldn't compute the klass type so we won't be able
+            # to find any associations either.
+            reflection = false
+          end
+
+          if valid_inverse_reflection?(reflection)
+            inverse_name
+          end
+        end
+
+        def find_inverse_by_scan
+          return unless klass.automatic_foreign_key_inversing
+
+          inverse_name, _ = klass.reflections.find do |_, reflection|
+            valid_inverse_reflection?(reflection) &&
+              matching_macro?(reflection) &&
+              matching_primary_key?(reflection) &&
+              matching_klass_or_polymorphic_options?(reflection)
+          end
+
+          inverse_name
+        end
+
+        # To ensure we don't find nonsense inverses, like a has_many inversing
+        # to a has_one. We also don't currently handle automatic
+        # inverse_of when the potential reflection is a collection.
+        def matching_macro?(reflection)
+          (collection? && reflection.belongs_to?) ||
+            (has_one? && reflection.belongs_to?) ||
+            (belongs_to? && reflection.has_one?)
+        end
+
+        def matching_primary_key?(reflection)
+          options[:primary_key] == reflection.options[:primary_key]
+        end
+
+        def matching_klass_or_polymorphic_options?(reflection)
+          if reflection.polymorphic?
+            options[:foreign_type] == reflection.options[:foreign_type] &&
+              options[:as] == reflection.name
+          else
+            active_record == reflection.klass
           end
         end
 
@@ -636,22 +676,22 @@ module ActiveRecord
         def valid_inverse_reflection?(reflection)
           reflection &&
             reflection != self &&
+            can_find_inverse_of_automatically?(reflection, true) &&
             foreign_key == reflection.foreign_key &&
-            klass <= reflection.active_record &&
-            can_find_inverse_of_automatically?(reflection, true)
+            klass <= reflection.active_record
         end
 
         # Checks to see if the reflection doesn't have any options that prevent
-        # us from being able to guess the inverse automatically. First, the
-        # <tt>inverse_of</tt> option cannot be set to false. Second, we must
-        # have <tt>has_many</tt>, <tt>has_one</tt>, <tt>belongs_to</tt> associations.
-        # Third, we must not have options such as <tt>:foreign_key</tt>
-        # which prevent us from correctly guessing the inverse association.
+        # us from being able to guess the inverse automatically.
         def can_find_inverse_of_automatically?(reflection, inverse_reflection = false)
           reflection.options[:inverse_of] != false &&
             !reflection.options[:through] &&
-            !reflection.options[:foreign_key] &&
+            foreign_key_allows_automatic_inverse_of?(reflection) &&
             scope_allows_automatic_inverse_of?(reflection, inverse_reflection)
+        end
+
+        def foreign_key_allows_automatic_inverse_of?(reflection)
+          !reflection.options[:foreign_key] || klass.automatic_foreign_key_inversing
         end
 
         # Scopes on the potential inverse reflection prevent automatic
