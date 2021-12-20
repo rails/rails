@@ -291,6 +291,39 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert $?.success?, "Command failed: #{output}"
   end
 
+  def test_ensure_that_sprokets_is_required_when_mountable
+    run_generator [destination_root, "--mountable"]
+    assert_file "Gemfile", /^gem "sprockets-rails"/
+  end
+
+  def test_ensure_that_sprokets_is_required_when_full
+    run_generator [destination_root, "--full"]
+    assert_file "Gemfile", /^gem "sprockets-rails"/
+  end
+
+  def test_ensure_that_sprokets_is_not_required_when_not_mountable_or_full
+    run_generator
+    assert_file "Gemfile" do |content|
+      assert_no_match(/sprockets-rails/, content)
+    end
+  end
+
+  def test_ensure_that_sprokets_is_not_required_when_assets_pipeline_is_skipped
+    run_generator [destination_root, "--skip-asset-pipeline", "--mountable"]
+
+    assert_file "Gemfile" do |contents|
+      assert_no_match(/sprockets-rails/, contents)
+    end
+  end
+
+  def test_ensure_that_sprokets_is_not_required_when_assets_pipeline_is_not_sprockets
+    run_generator [destination_root, "--asset-pipeline=propshaft", "--mountable"]
+
+    assert_file "Gemfile" do |contents|
+      assert_no_match(/sprockets-rails/, contents)
+    end
+  end
+
   def test_creating_engine_in_full_mode
     run_generator [destination_root, "--full"]
     assert_file "app/assets/stylesheets/bukkits"
