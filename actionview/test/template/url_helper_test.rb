@@ -383,6 +383,13 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
+  def test_button_to_with_block_and_hash_url
+    assert_dom_equal(
+      %{<form action="/other" class="button_to" method="post"><button class="button" type="submit">Hello</button></form>},
+      button_to({ controller: "foo", action: "other" }, class: "button") { "Hello" }
+    )
+  end
+
   def test_button_to_generates_input_when_button_to_generates_button_tag_false
     old_value = ActionView::Helpers::UrlHelper.button_to_generates_button_tag
     ActionView::Helpers::UrlHelper.button_to_generates_button_tag = false
