@@ -141,33 +141,36 @@ To keep using the current cache store, you can turn off cache versioning entirel
       if config.active_record.use_schema_cache_dump && !config.active_record.lazily_load_schema_cache
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
-            db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).first
+            ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+              db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).first
 
-            filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
-              db_config.name,
-              schema_cache_path: db_config&.schema_cache_path
-            )
+              filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
+                db_config.name,
+                schema_cache_path: db_config&.schema_cache_path
+              )
 
-            cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(filename)
-            next if cache.nil?
+              cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(filename)
+              next if cache.nil?
 
-            if check_schema_cache_dump_version
-              current_version = begin
-                ActiveRecord::Migrator.current_version
-              rescue ActiveRecordError => error
-                warn "Failed to validate the schema cache because of #{error.class}: #{error.message}"
-                nil
+              if check_schema_cache_dump_version
+                current_version = begin
+                  MigrationContext.new(db_config.migrations_paths, SchemaMigration).current_version
+                rescue ActiveRecordError => error
+                  warn "Failed to validate the schema cache of #{db_config.name} because of #{error.class}: #{error.message}"
+                  nil
+                end
+                next if current_version.nil?
+
+                if cache.version != current_version
+                  warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{cache.version}."
+                  next
+                end
               end
-              next if current_version.nil?
 
-              if cache.version != current_version
-                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{cache.version}."
-                next
-              end
+              Rails.logger.info("Using schema cache file #{filename}")
+              connection_pool.set_schema_cache(cache)
             end
-
-            Rails.logger.info("Using schema cache file #{filename}")
-            connection_pool.set_schema_cache(cache)
+            
           end
         end
       end
