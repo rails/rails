@@ -51,9 +51,15 @@ class ActiveStorage::Variation
 
   # Accepts a File object, performs the +transformations+ against it, and
   # saves the transformed image into a temporary file.
-  def transform(file, &block)
+  def transform(file)
     ActiveSupport::Notifications.instrument("transform.active_storage") do
-      transformer.transform(file, format: format, &block)
+      output = process(file)
+
+      begin
+        yield output
+      ensure
+        output.close!
+      end
     end
   end
 
@@ -79,7 +85,29 @@ class ActiveStorage::Variation
   end
 
   private
-    def transformer
-      ActiveStorage::Transformers::ImageProcessingTransformer.new(transformations.except(:format))
+    def process(file)
+      processor.
+        source(file).
+        loader(page: 0).
+        convert(format).
+        apply(operations).
+        call
+    end
+
+    def processor
+      begin
+        require "image_processing"
+      rescue LoadError
+        raise LoadError, <<~ERROR.squish
+          Generating image variants require the image_processing gem.
+          Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.
+        ERROR
+      end
+
+      ImageProcessing.const_get(ActiveStorage.variant_processor.to_s.camelize)
+    end
+
+    def operations
+      transformations.except(:format).select { |_name, argument| argument.present? }.to_a
     end
 end
