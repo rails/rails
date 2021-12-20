@@ -14,6 +14,10 @@ group :development do
 end
 <% end -%>
 
+<% if engine? && !skip_sprockets? -%>
+<%= asset_pipeline_gemfile_entry %>
+
+<% end -%>
 <% if rails_prerelease? -%>
 # Your gem is dependent on a prerelease version of Rails. Once you can lock this
 # dependency down to a specific version, move it to your gemspec.

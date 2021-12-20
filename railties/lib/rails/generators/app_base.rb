@@ -170,15 +170,13 @@ module Rails
       end
 
       def asset_pipeline_gemfile_entry
-        return [] if options[:skip_asset_pipeline]
+        return if options[:skip_asset_pipeline]
 
         if options[:asset_pipeline] == "sprockets"
           GemfileEntry.floats "sprockets-rails",
             "The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]"
         elsif options[:asset_pipeline] == "propshaft"
           GemfileEntry.floats "propshaft", "The modern asset pipeline for Rails [https://github.com/rails/propshaft]"
-        else
-          []
         end
       end
 
