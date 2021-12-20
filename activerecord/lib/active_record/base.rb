@@ -329,6 +329,7 @@ module ActiveRecord # :nodoc:
     include TokenFor
     include SignedId
     include Suppressor
+    include Normalization
   end
 
   ActiveSupport.run_load_hooks(:active_record, Base)
