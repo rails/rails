@@ -246,13 +246,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "#{destination_root}/Gemfile.lock"
   end
 
-  def test_skip_javascript
-    run_generator [destination_root, "--skip-javascript", "--mountable"]
-    assert_file "app/views/layouts/bukkits/application.html.erb" do |content|
-      assert_no_match "javascript_pack_tag", content
-    end
-  end
-
   def test_skip_action_mailer_and_skip_active_job_with_mountable
     run_generator [destination_root, "--mountable", "--skip-action-mailer", "--skip-active-job"]
     assert_no_directory "app/mailers"
