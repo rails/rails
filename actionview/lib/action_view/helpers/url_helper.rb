@@ -208,7 +208,6 @@ module ActionView
       #
       def link_to(name = nil, options = nil, html_options = nil, &block)
         html_options, options, name = options, name, block if block_given?
-        options ||= {}
 
         html_options = convert_options_to_data_attributes(options, html_options)
 
@@ -743,7 +742,7 @@ module ActionView
         end
 
         def url_target(name, options)
-          if name.respond_to?(:model_name) && options.empty?
+          if name.respond_to?(:model_name) && options.is_a?(Hash) && options.empty?
             url_for(name)
           else
             url_for(options)

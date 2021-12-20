@@ -16,7 +16,7 @@ class Workshop
   end
 
   def to_s
-    id.to_s
+    "Workshop #{id}"
   end
 end
 
@@ -621,7 +621,13 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_link_tag_using_active_record_model
     @workshop = Workshop.new(1.to_s)
     link = link_to(@workshop)
-    assert_dom_equal %{<a href="/workshops/1">1</a>}, link
+    assert_dom_equal %{<a href="/workshops/1">Workshop 1</a>}, link
+  end
+
+  def test_link_tag_using_active_record_model_twice
+    @workshop = Workshop.new(1.to_s)
+    link = link_to(@workshop, @workshop)
+    assert_dom_equal %{<a href="/workshops/1">Workshop 1</a>}, link
   end
 
   def test_link_to_unless
