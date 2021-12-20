@@ -1306,17 +1306,16 @@ we can delete an article from its own page:
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
   <li><%= link_to "Destroy", article_path(@article),
-                  method: :delete,
-                  data: { confirm: "Are you sure?" } %></li>
+                  data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %></li>
 </ul>
 ```
 
-In the above code, we're passing a few additional options to `link_to`. The
-`method: :delete` option causes the link to make a `DELETE` request instead of a
-`GET` request. The `data: { confirm: "Are you sure?" }` option causes a
+In the above code, we're passing the `data` attribute with some options to `link_to`.
+The `turbo_method: :delete` option causes the link to make a `DELETE` request instead
+of a `GET` request. The `turbo_confirm: { confirm: "Are you sure?" }` option causes a
 confirmation dialog to appear when the link is clicked. If the user cancels the
-dialog, the request is aborted. Both of these options are powered by a feature
-of Rails called *Unobtrusive JavaScript* (UJS). The JavaScript file that
+dialog, the request is aborted. Both of these options are powered by (Turbo)[https://turbo.hotwired.dev/]
+called *Performing Visits*. The JavaScript file that
 implements these behaviors is included by default in fresh Rails applications.
 
 TIP: To learn more about Unobtrusive JavaScript, see [Working With JavaScript in
@@ -1500,8 +1499,7 @@ So first, we'll wire up the Article show template
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
   <li><%= link_to "Destroy", article_path(@article),
-                  method: :delete,
-                  data: { confirm: "Are you sure?" } %></li>
+                  data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %></li>
 </ul>
 
 <h2>Add a comment:</h2>
@@ -1566,8 +1564,7 @@ add that to the `app/views/articles/show.html.erb`.
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
   <li><%= link_to "Destroy", article_path(@article),
-                  method: :delete,
-                  data: { confirm: "Are you sure?" } %></li>
+                  data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %></li>
 </ul>
 
 <h2>Comments</h2>
@@ -1640,8 +1637,7 @@ following:
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
   <li><%= link_to "Destroy", article_path(@article),
-                  method: :delete,
-                  data: { confirm: "Are you sure?" } %></li>
+                  data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %></li>
 </ul>
 
 <h2>Comments</h2>
@@ -1700,8 +1696,7 @@ Then you make the `app/views/articles/show.html.erb` look like the following:
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
   <li><%= link_to "Destroy", article_path(@article),
-                  method: :delete,
-                  data: { confirm: "Are you sure?" } %></li>
+                  data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %></li>
 </ul>
 
 <h2>Comments</h2>
