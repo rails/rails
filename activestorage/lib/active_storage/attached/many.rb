@@ -36,7 +36,7 @@ module ActiveStorage
       change.present? ? change.blobs : record.public_send("#{name}_blobs")
     end
 
-    # Attaches one or more +attachables+ to the record.
+    # Attaches one or more +attachables+ to the record and returns all the associated attachment records.
     #
     # If the record is persisted and unchanged, the attachments are saved to
     # the database immediately. Otherwise, they'll be saved to the DB when the

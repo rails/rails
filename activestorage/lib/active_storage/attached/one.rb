@@ -43,7 +43,7 @@ module ActiveStorage
       !attached?
     end
 
-    # Attaches an +attachable+ to the record.
+    # Attaches an +attachable+ to the record and returns the associated attachment record.
     #
     # If the record is persisted and unchanged, the attachment is saved to
     # the database immediately. Otherwise, it'll be saved to the DB when the
