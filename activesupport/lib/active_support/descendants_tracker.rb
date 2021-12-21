@@ -94,7 +94,7 @@ module ActiveSupport
         end
       else
         def descendants
-          children.concat(children.flat_map(&:descendants))
+          subclasses.concat(subclasses.flat_map(&:descendants))
         end
       end
 
