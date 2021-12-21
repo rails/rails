@@ -59,6 +59,18 @@ module ActiveRecord
     end
   end
 
+  class InverseOfAssociationRecursiveError < ActiveRecordError # :nodoc:
+    attr_reader :reflection
+    def initialize(reflection = nil)
+      if reflection
+        @reflection = reflection
+        super("Inverse association #{reflection.name} (#{reflection.options[:inverse_of].inspect} in #{reflection.class_name}) is recursive.")
+      else
+        super("Inverse association is recursive.")
+      end
+    end
+  end
+
   class HasManyThroughAssociationNotFoundError < ActiveRecordError # :nodoc:
     attr_reader :owner_class, :reflection
 
@@ -748,9 +760,10 @@ module ActiveRecord
       # inverse detection only works on #has_many, #has_one, and
       # #belongs_to associations.
       #
-      # <tt>:foreign_key</tt> and <tt>:through</tt> options on the associations,
-      # or a custom scope, will also prevent the association's inverse
-      # from being found automatically.
+      # <tt>:foreign_key</tt> and <tt>:through</tt> options on the associations
+      # will also prevent the association's inverse from being found automatically,
+      # as will a custom scopes in some cases. See further details in the
+      # {Active Record Associations guide}[https://guides.rubyonrails.org/association_basics.html#bi-directional-associations].
       #
       # The automatic guessing of the inverse association uses a heuristic based
       # on the name of the class, so it may not work for all associations,
@@ -1775,7 +1788,7 @@ module ActiveRecord
         # The join table should not have a primary key or a model associated with it. You must manually generate the
         # join table with a migration such as this:
         #
-        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[7.0]
+        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[7.1]
         #     def change
         #       create_join_table :developers, :projects
         #     end

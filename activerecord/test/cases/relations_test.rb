@@ -880,7 +880,7 @@ class RelationTest < ActiveRecord::TestCase
     ids = Author.pluck(:id)
     slugs = ids.map { |id| "#{id}-as-a-slug" }
 
-    assert_equal Author.all.to_a, Author.where(id: slugs).to_a
+    assert_equal Author.where(id: ids).to_a, Author.where(id: slugs).to_a
   end
 
   def test_find_all_using_where_with_relation
@@ -1174,10 +1174,14 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_many_with_limits
-    posts = Post.all
+    posts_with_limit = Post.limit(5)
+    posts_with_limit_one = Post.limit(1)
 
-    assert_predicate posts, :many?
-    assert_not_predicate posts.limit(1), :many?
+    assert_predicate posts_with_limit, :many?
+    assert_not_predicate posts_with_limit, :loaded?
+
+    assert_not_predicate posts_with_limit_one, :many?
+    assert_not_predicate posts_with_limit_one, :loaded?
   end
 
   def test_none?
@@ -1210,6 +1214,18 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert_predicate posts, :loaded?
+  end
+
+  def test_one_with_destroy
+    posts = Post.all
+    assert_queries(1) do
+      assert_not posts.one?
+    end
+
+    posts.where.not(id: Post.first).destroy_all
+
+    assert_equal 1, posts.size
+    assert posts.one?
   end
 
   def test_to_a_should_dup_target
@@ -1821,17 +1837,14 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_reorder_with_first
+    post = nil
+
     sql_log = capture_sql do
-      message = <<~MSG.squish
-        `.reorder(nil)` with `.first` / `.first!` no longer
-        takes non-deterministic result in Rails 7.0.
-        To continue taking non-deterministic result, use `.take` / `.take!` instead.
-      MSG
-      assert_deprecated(message) do
-        assert Post.order(:title).reorder(nil).first
-      end
+      post = Post.order(:title).reorder(nil).first
     end
-    assert sql_log.all? { |sql| !/order by/i.match?(sql) }, "ORDER BY was used in the query: #{sql_log}"
+
+    assert_equal posts(:welcome), post
+    assert sql_log.any? { |sql| /order by/i.match?(sql) }, "ORDER BY was not used in the query: #{sql_log}"
   end
 
   def test_reorder_with_take

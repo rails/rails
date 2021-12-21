@@ -90,6 +90,11 @@ module ActiveStorage
       ActiveStorage::Downloader.new(self).open(*args, **options, &block)
     end
 
+    # Concatenate multiple files into a single "composed" file.
+    def compose(source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
+      raise NotImplementedError
+    end
+
     # Delete the file at the +key+.
     def delete(key)
       raise NotImplementedError
@@ -128,12 +133,12 @@ module ActiveStorage
     # The URL will be valid for the amount of seconds specified in +expires_in+.
     # You must also provide the +content_type+, +content_length+, and +checksum+ of the file
     # that will be uploaded. All these attributes will be validated by the service upon upload.
-    def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
+    def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:, custom_metadata: {})
       raise NotImplementedError
     end
 
     # Returns a Hash of headers for +url_for_direct_upload+ requests.
-    def headers_for_direct_upload(key, filename:, content_type:, content_length:, checksum:)
+    def headers_for_direct_upload(key, filename:, content_type:, content_length:, checksum:, custom_metadata: {})
       {}
     end
 
@@ -150,6 +155,9 @@ module ActiveStorage
         raise NotImplementedError
       end
 
+      def custom_metadata_headers(metadata)
+        raise NotImplementedError
+      end
 
       def instrument(operation, payload = {}, &block)
         ActiveSupport::Notifications.instrument(

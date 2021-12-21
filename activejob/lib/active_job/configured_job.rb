@@ -8,7 +8,7 @@ module ActiveJob
     end
 
     def perform_now(...)
-      @job_class.new(...).perform_now
+      @job_class.new(...).set(@options).perform_now
     end
 
     def perform_later(...)

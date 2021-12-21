@@ -407,7 +407,7 @@ module ActiveRecord
   # defaults:
   #
   #   DEFAULTS: &DEFAULTS
-  #     created_on: <%= 3.weeks.ago.to_s(:db) %>
+  #     created_on: <%= 3.weeks.ago.to_formatted_s(:db) %>
   #
   #   first:
   #     name: Smurf
@@ -583,14 +583,6 @@ module ActiveRecord
         else
           Zlib.crc32(label.to_s) % MAX_ID
         end
-      end
-
-      def signed_global_id(fixture_set_name, label, column_type: :integer, **options)
-        identifier = identify(label, column_type)
-        model_name = default_fixture_model_name(fixture_set_name)
-        uri = URI::GID.build([GlobalID.app, model_name, identifier, {}])
-
-        SignedGlobalID.new(uri, **options)
       end
 
       # Superclass for the evaluation contexts used by ERB fixtures.

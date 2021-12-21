@@ -232,7 +232,7 @@ module ActiveModel
       assert_equal({ foo: "1" }, attributes.to_hash)
     end
 
-    test "marshalling dump/load legacy materialized attribute hash" do
+    test "marshalling dump/load materialized attribute hash" do
       builder = AttributeSet::Builder.new(foo: Type::String.new)
 
       def builder.build_from_database(values = {}, additional_types = {})
@@ -242,16 +242,8 @@ module ActiveModel
 
       attributes = builder.build_from_database(foo: "1")
 
-      attributes.instance_variable_get(:@attributes).instance_eval do
-        class << self
-          def marshal_dump
-            materialize # legacy marshal format before Rails 5.1
-          end
-        end
-      end
-
       data = Marshal.dump(attributes)
-      attributes = assert_deprecated { Marshal.load(data) }
+      attributes = Marshal.load(data)
       assert_equal({ foo: "1" }, attributes.to_hash)
     end
 

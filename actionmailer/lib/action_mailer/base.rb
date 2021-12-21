@@ -435,6 +435,9 @@ module ActionMailer
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   #
+  # * <tt>delivery_job</tt> - The job class used with <tt>deliver_later</tt>. Defaults to
+  #   +ActionMailer::MailDeliveryJob+.
+  #
   # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>.
   class Base < AbstractController::Base
     include DeliveryMethods
@@ -459,7 +462,7 @@ module ActionMailer
 
     helper ActionMailer::MailHelper
 
-    class_attribute :delivery_job, default: ::ActionMailer::DeliveryJob
+    class_attribute :delivery_job, default: ::ActionMailer::MailDeliveryJob
     class_attribute :default_params, default: {
       mime_version: "1.0",
       charset:      "UTF-8",
@@ -563,10 +566,12 @@ module ActionMailer
       end
 
       # Returns an email in the format "Name <email@example.com>".
+      #
+      # If the name is a blank string, it returns just the address.
       def email_address_with_name(address, name)
         Mail::Address.new.tap do |builder|
           builder.address = address
-          builder.display_name = name
+          builder.display_name = name.presence
         end.to_s
       end
 
@@ -638,6 +643,8 @@ module ActionMailer
     end
 
     # Returns an email in the format "Name <email@example.com>".
+    #
+    # If the name is a blank string, it returns just the address.
     def email_address_with_name(address, name)
       self.class.email_address_with_name(address, name)
     end

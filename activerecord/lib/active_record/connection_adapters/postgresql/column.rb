@@ -32,6 +32,10 @@ module ActiveRecord
         end
         alias :array? :array
 
+        def enum?
+          type == :enum
+        end
+
         def sql_type
           super.delete_suffix("[]")
         end

@@ -1170,7 +1170,7 @@ module ApplicationTests
       assert_equal [::MyMailObserver, ::MyOtherMailObserver], ::Mail.class_variable_get(:@@delivery_notification_observers)
     end
 
-    test "allows setting the queue name for the ActionMailer::DeliveryJob" do
+    test "allows setting the queue name for the ActionMailer::MailDeliveryJob" do
       add_to_config <<-RUBY
         config.action_mailer.deliver_later_queue_name = 'test_default'
       RUBY
@@ -2266,6 +2266,32 @@ module ApplicationTests
       assert_equal true, ActiveRecord::Base.has_many_inversing
     end
 
+    test "ActiveRecord::Base.automatic_scope_inversing is true by default for new apps" do
+      app "development"
+
+      assert_equal true, ActiveRecord::Base.automatic_scope_inversing
+    end
+
+    test "ActiveRecord::Base.automatic_scope_inversing is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal false, ActiveRecord::Base.automatic_scope_inversing
+    end
+
+    test "ActiveRecord::Base.automatic_scope_inversing can be configured via config.active_record.automatic_scope_inversing" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+        Rails.application.config.active_record.automatic_scope_inversing = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::Base.automatic_scope_inversing
+    end
+
     test "ActiveRecord.verify_foreign_keys_for_fixtures is true by default for new apps" do
       app "development"
 
@@ -2332,18 +2358,6 @@ module ApplicationTests
       assert_equal OpenSSL::Digest::MD5, ActiveSupport::Digest.hash_digest_class
     end
 
-    test "ActiveSupport::Digest.hash_digest_class can be configured via config.active_support.use_sha1_digests" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.active_support.use_sha1_digests = true
-      RUBY
-
-      app "development"
-
-      assert_equal OpenSSL::Digest::SHA1, ActiveSupport::Digest.hash_digest_class
-    end
-
     test "ActiveSupport::Digest.hash_digest_class can be configured via config.active_support.hash_digest_class" do
       remove_from_config '.*config\.load_defaults.*\n'
 
@@ -2394,6 +2408,20 @@ module ApplicationTests
       app "test"
 
       assert_equal 1234, ActiveSupport.test_parallelization_threshold
+    end
+
+    test "Digest::UUID.use_rfc4122_namespaced_uuids is enabled by default for new apps" do
+      app "development"
+
+      assert_equal true, Digest::UUID.use_rfc4122_namespaced_uuids
+    end
+
+    test "Digest::UUID.use_rfc4122_namespaced_uuids is disabled by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal false, Digest::UUID.use_rfc4122_namespaced_uuids
     end
 
     test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
@@ -2664,21 +2692,6 @@ module ApplicationTests
       Rails.application.config.active_job.retry_jitter = 0.22
 
       assert_equal 0.22, ActiveJob::Base.retry_jitter
-    end
-
-    test "ActiveJob::Base.skip_after_callbacks_if_terminated is true by default" do
-      app "development"
-
-      assert_equal true, ActiveJob::Base.skip_after_callbacks_if_terminated
-    end
-
-    test "ActiveJob::Base.skip_after_callbacks_if_terminated is false in the 6.0 defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "6.0"'
-
-      app "development"
-
-      assert_equal false, ActiveJob::Base.skip_after_callbacks_if_terminated
     end
 
     test "Rails.application.config.action_dispatch.cookies_same_site_protection is :lax by default" do
@@ -2993,27 +3006,6 @@ module ApplicationTests
     end
 
     test "ActionMailer::Base.delivery_job is ActionMailer::MailDeliveryJob by default" do
-      app "development"
-
-      assert_equal ActionMailer::MailDeliveryJob, ActionMailer::Base.delivery_job
-    end
-
-    test "ActionMailer::Base.delivery_job is ActionMailer::DeliveryJob in the 5.x defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "5.2"'
-
-      app "development"
-
-      assert_equal ActionMailer::DeliveryJob, ActionMailer::Base.delivery_job
-    end
-
-    test "ActionMailer::Base.delivery_job can be configured in the new framework defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.action_mailer.delivery_job = "ActionMailer::MailDeliveryJob"
-      RUBY
-
       app "development"
 
       assert_equal ActionMailer::MailDeliveryJob, ActionMailer::Base.delivery_job
@@ -3402,6 +3394,141 @@ module ApplicationTests
       assert_equal true, ActiveSupport::Deprecation.silenced
       assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], ActiveSupport::Deprecation.behavior
       assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], ActiveSupport::Deprecation.disallowed_behavior
+    end
+
+    test "ParamsWrapper is enabled in a new app and uses JSON as the format" do
+      app "production"
+
+      assert_equal [:json], ActionController::Base._wrapper_options.format
+    end
+
+    test "ParamsWrapper is enabled in an upgrade and uses JSON as the format" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+        Rails.application.config.action_controller.wrap_parameters_by_default = true
+      RUBY
+
+      app "production"
+
+      assert_equal [:json], ActionController::Base._wrapper_options.format
+    end
+
+    test "ParamsWrapper can be changed from the default in the initializer that was created prior to Rails 7" do
+      app_file "config/initializers/wrap_parameters.rb", <<-RUBY
+        ActiveSupport.on_load(:action_controller) do
+          wrap_parameters format: [:xml]
+        end
+      RUBY
+
+      app "production"
+
+      assert_equal [:xml], ActionController::Base._wrapper_options.format
+    end
+
+    test "ParamsWrapper can be turned off" do
+      add_to_config "Rails.application.config.action_controller.wrap_parameters_by_default = false"
+
+      app "production"
+
+      assert_equal [], ActionController::Base._wrapper_options.format
+    end
+
+    test "deprecated #to_s with format works with the Rails 6.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "production"
+
+      assert_deprecated do
+        assert_equal "21 Feb", Date.new(2005, 2, 21).to_s(:short)
+      end
+      assert_deprecated do
+        assert_equal "2005-02-21 14:30:00", DateTime.new(2005, 2, 21, 14, 30, 0, 0).to_s(:db)
+      end
+      assert_deprecated do
+        assert_equal "555-1234", 5551234.to_s(:phone)
+      end
+      assert_deprecated do
+        assert_equal "BETWEEN 'a' AND 'z'", ("a".."z").to_s(:db)
+      end
+      assert_deprecated do
+        assert_equal "2005-02-21 17:44:30", Time.utc(2005, 2, 21, 17, 44, 30.12345678901).to_s(:db)
+      end
+    end
+
+    test "deprecated #to_s with format does not work with the Rails 6.1 defaults and the config set" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      add_to_config <<-RUBY
+        config.active_support.disable_to_s_conversion = true
+      RUBY
+
+      app "production"
+
+      assert_raises(ArgumentError) do
+        Date.new(2005, 2, 21).to_s(:short)
+      end
+      assert_raises(ArgumentError) do
+        DateTime.new(2005, 2, 21, 14, 30, 0, 0).to_s(:db)
+      end
+      assert_raises(TypeError) do
+        5551234.to_s(:phone)
+      end
+      assert_raises(ArgumentError) do
+        ("a".."z").to_s(:db)
+      end
+      assert_raises(ArgumentError) do
+        Time.utc(2005, 2, 21, 17, 44, 30.12345678901).to_s(:db)
+      end
+    end
+
+    test "deprecated #to_s with format does not work with the Rails 7.0 defaults" do
+      app "production"
+
+      assert_raises(ArgumentError) do
+        Date.new(2005, 2, 21).to_s(:short)
+      end
+      assert_raises(ArgumentError) do
+        DateTime.new(2005, 2, 21, 14, 30, 0, 0).to_s(:db)
+      end
+      assert_raises(TypeError) do
+        5551234.to_s(:phone)
+      end
+      assert_raises(ArgumentError) do
+        ("a".."z").to_s(:db)
+      end
+      assert_raises(ArgumentError) do
+        Time.utc(2005, 2, 21, 17, 44, 30.12345678901).to_s(:db)
+      end
+    end
+
+    test "ActionController::Base.raise_on_missing_callback_actions is false by default for production" do
+      app "production"
+
+      assert_equal false, ActionController::Base.raise_on_missing_callback_actions
+    end
+
+    test "ActionController::Base.raise_on_missing_callback_actions is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal false, ActionController::Base.raise_on_missing_callback_actions
+    end
+
+    test "ActionController::Base.raise_on_missing_callback_actions can be configured in the new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_2.rb", <<-RUBY
+        Rails.application.config.action_controller.raise_on_missing_callback_actions = true
+      RUBY
+
+      app "production"
+
+      assert_equal true, ActionController::Base.raise_on_missing_callback_actions
     end
 
     private

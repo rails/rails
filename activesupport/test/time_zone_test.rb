@@ -306,6 +306,16 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal "invalid date", exception.message
   end
 
+  def test_iso8601_with_nil
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+
+    exception = assert_raises(ArgumentError) do
+      zone.iso8601(nil)
+    end
+
+    assert_equal "invalid date", exception.message
+  end
+
   def test_iso8601_with_missing_time_components
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
     twz = zone.iso8601("1999-12-31")

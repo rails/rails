@@ -26,13 +26,15 @@ module ActiveRecord
 
         def write_query?(sql) # :nodoc:
           !READ_QUERY.match?(sql)
+        rescue ArgumentError # Invalid encoding
+          !READ_QUERY.match?(sql.b)
         end
 
         def explain(arel, binds = [])
           sql     = "EXPLAIN #{to_sql(arel, binds)}"
-          start   = Concurrent.monotonic_time
+          start   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           result  = exec_query(sql, "EXPLAIN", binds)
-          elapsed = Concurrent.monotonic_time - start
+          elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
 
           MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
         end
@@ -89,7 +91,7 @@ module ActiveRecord
           def raw_execute(sql, name, async: false)
             # make sure we carry over any changes to ActiveRecord.default_timezone that have been
             # made since we established the connection
-            @connection.query_options[:database_timezone] = ActiveRecord.default_timezone
+            @connection.query_options[:database_timezone] = default_timezone
 
             super
           end
@@ -170,7 +172,7 @@ module ActiveRecord
 
             # make sure we carry over any changes to ActiveRecord.default_timezone that have been
             # made since we established the connection
-            @connection.query_options[:database_timezone] = ActiveRecord.default_timezone
+            @connection.query_options[:database_timezone] = default_timezone
 
             type_casted_binds = type_casted_binds(binds)
 

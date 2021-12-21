@@ -34,19 +34,24 @@ module ActiveSupport
   extend ActiveSupport::Autoload
 
   autoload :Concern
+  autoload :CodeGenerator
   autoload :ActionableError
   autoload :ConfigurationFile
   autoload :CurrentAttributes
   autoload :Dependencies
   autoload :DescendantsTracker
+  autoload :ExecutionContext
   autoload :ExecutionWrapper
   autoload :Executor
+  autoload :ErrorReporter
   autoload :FileUpdateChecker
   autoload :EventedFileUpdateChecker
   autoload :ForkTracker
   autoload :LogSubscriber
+  autoload :IsolatedExecutionState
   autoload :Notifications
   autoload :Reloader
+  autoload :PerThreadRegistry
   autoload :SecureCompareRotator
 
   eager_autoload do
@@ -89,6 +94,8 @@ module ActiveSupport
   cattr_accessor :test_order # :nodoc:
   cattr_accessor :test_parallelization_threshold, default: 50 # :nodoc:
 
+  singleton_class.attr_accessor :error_reporter # :nodoc:
+
   def self.cache_format_version
     Cache.format_version
   end
@@ -111,10 +118,6 @@ module ActiveSupport
 
   def self.utc_to_local_returns_utc_offset_times=(value)
     DateAndTime::Compatibility.utc_to_local_returns_utc_offset_times = value
-  end
-
-  def self.current_attributes_use_thread_variables=(value)
-    CurrentAttributes._use_thread_variables = value
   end
 end
 

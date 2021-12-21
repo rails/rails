@@ -95,11 +95,11 @@ class FixturesTest < ActiveRecord::TestCase
       subscriber = InsertQuerySubscriber.new
       subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
 
-      create_fixtures("bulbs", "authors", "computers")
+      create_fixtures("bulbs", "movies", "computers")
 
       expected_sql = <<~EOS.chop
         INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("bulbs")} .*
-        INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("authors")} .*
+        INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("movies")} .*
         INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("computers")} .*
       EOS
       assert_equal 1, subscriber.events.size
@@ -473,7 +473,7 @@ class FixturesTest < ActiveRecord::TestCase
   def test_nonexistent_fixture_file
     nonexistent_fixture_path = FIXTURES_ROOT + "/imnothere"
 
-    # sanity check to make sure that this file never exists
+    # Ensure that this file never exists
     assert_empty Dir[nonexistent_fixture_path + "*"]
 
     assert_raise(Errno::ENOENT) do
@@ -1329,6 +1329,12 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     assert_kind_of LiveParrot, live_parrots(:dusty)
     assert_kind_of DeadParrot, dead_parrots(:deadbird)
     assert_equal pirates(:blackbeard), dead_parrots(:deadbird).killer
+  end
+
+  def test_resolves_enums_in_sti_subclasses
+    assert_predicate parrots(:george), :australian?
+    assert_predicate parrots(:louis), :african?
+    assert_predicate parrots(:frederick), :african?
   end
 
   def test_namespaced_models

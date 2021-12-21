@@ -332,7 +332,7 @@ db_namespace = namespace :db do
 
   desc "Retrieves the current schema version number"
   task version: :load_config do
-    puts "Current version: #{ActiveRecord::Base.connection.migration_context.current_version}"
+    puts "Current version: #{ActiveRecord::Base.connection.schema_version}"
   end
 
   # desc "Raises an error if there are pending migrations"
@@ -469,14 +469,6 @@ db_namespace = namespace :db do
       ActiveRecord::Tasks::DatabaseTasks.load_schema_current(ActiveRecord.schema_format, ENV["SCHEMA"])
     end
 
-    task load_if_ruby: ["db:create", :environment] do
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        Using `bin/rails db:schema:load_if_ruby` is deprecated and will be removed in Rails 7.0.
-        Configure the format using `config.active_record.schema_format = :ruby` to use `schema.rb` and run `bin/rails db:schema:load` instead.
-      MSG
-      db_namespace["schema:load"].invoke if ActiveRecord.schema_format == :ruby
-    end
-
     namespace :dump do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
         desc "Creates a database schema file (either db/schema.rb or db/structure.sql, depending on `config.active_record.schema_format`) for #{name} database"
@@ -495,7 +487,7 @@ db_namespace = namespace :db do
         task name => :load_config do
           original_db_config = ActiveRecord::Base.connection_db_config
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
-          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ActiveRecord.schema_format, ENV["SCHEMA"])
+          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config)
         ensure
           ActiveRecord::Base.establish_connection(original_db_config) if original_db_config
         end
@@ -533,63 +525,6 @@ db_namespace = namespace :db do
     end
   end
 
-  namespace :structure do
-    desc "Dumps the database structure to db/structure.sql. Specify another file with SCHEMA=db/my_structure.sql"
-    task dump: :load_config do
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        Using `bin/rails db:structure:dump` is deprecated and will be removed in Rails 7.0.
-        Configure the format using `config.active_record.schema_format = :sql` to use `structure.sql` and run `bin/rails db:schema:dump` instead.
-      MSG
-
-      db_namespace["schema:dump"].invoke
-      db_namespace["structure:dump"].reenable
-    end
-
-    desc "Recreates the databases from the structure.sql file"
-    task load: [:load_config, :check_protected_environments] do
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        Using `bin/rails db:structure:load` is deprecated and will be removed in Rails 7.0.
-        Configure the format using `config.active_record.schema_format = :sql` to use `structure.sql` and run `bin/rails db:schema:load` instead.
-      MSG
-      db_namespace["schema:load"].invoke
-    end
-
-    task load_if_sql: ["db:create", :environment] do
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        Using `bin/rails db:structure:load_if_sql` is deprecated and will be removed in Rails 7.0.
-        Configure the format using `config.active_record.schema_format = :sql` to use `structure.sql` and run `bin/rails db:schema:load` instead.
-      MSG
-      db_namespace["schema:load"].invoke if ActiveRecord.schema_format == :sql
-    end
-
-    namespace :dump do
-      ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
-        desc "Dumps the #{name} database structure to db/structure.sql. Specify another file with SCHEMA=db/my_structure.sql"
-        task name => :load_config do
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Using `bin/rails db:structure:dump:#{name}` is deprecated and will be removed in Rails 7.0.
-            Configure the format using `config.active_record.schema_format = :sql` to use `structure.sql` and run `bin/rails db:schema:dump:#{name}` instead.
-          MSG
-          db_namespace["schema:dump:#{name}"].invoke
-          db_namespace["structure:dump:#{name}"].reenable
-        end
-      end
-    end
-
-    namespace :load do
-      ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
-        desc "Recreates the #{name} database from the structure.sql file"
-        task name => :load_config do
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Using `bin/rails db:structure:load:#{name}` is deprecated and will be removed in Rails 7.0.
-            Configure the format using `config.active_record.schema_format = :sql` to use `structure.sql` and run `bin/rails db:schema:load:#{name}` instead.
-          MSG
-          db_namespace["schema:load:#{name}"].invoke
-        end
-      end
-    end
-  end
-
   namespace :encryption do
     desc "Generate a set of keys for configuring Active Record encryption in a given environment"
     task :init do
@@ -615,22 +550,12 @@ db_namespace = namespace :db do
       should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
       ActiveRecord::Schema.verbose = false
       ActiveRecord::Base.configurations.configs_for(env_name: "test").each do |db_config|
-        filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.name)
-        ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ActiveRecord.schema_format, filename)
+        ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config)
       end
     ensure
       if should_reconnect
         ActiveRecord::Base.establish_connection(ActiveRecord::Tasks::DatabaseTasks.env.to_sym)
       end
-    end
-
-    # desc "Recreate the test database from an existent structure.sql file"
-    task load_structure: %w(db:test:purge) do
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        Using `bin/rails db:test:load_structure` is deprecated and will be removed in Rails 7.0.
-        Configure the format using `config.active_record.schema_format = :sql` to use `structure.sql` and run `bin/rails db:test:load_schema` instead.
-      MSG
-      db_namespace["test:load_schema"].invoke
     end
 
     # desc "Empty the test database"
@@ -660,24 +585,12 @@ db_namespace = namespace :db do
         task name => "db:test:purge:#{name}" do
           should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
           ActiveRecord::Schema.verbose = false
-          filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(name)
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", name: name)
-          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ActiveRecord.schema_format, filename)
+          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config)
         ensure
           if should_reconnect
             ActiveRecord::Base.establish_connection(ActiveRecord::Tasks::DatabaseTasks.env.to_sym)
           end
-        end
-      end
-
-      # desc "Recreate the #{name} test database from an existent structure.sql file"
-      namespace :load_structure do
-        task name => "db:test:purge:#{name}" do
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Using `bin/rails db:test:load_structure:#{name}` is deprecated and will be removed in Rails 7.0.
-            Configure the format using `config.active_record.schema_format = :sql` to use `structure.sql` and run `bin/rails db:test:load_structure:#{name}` instead.
-          MSG
-          db_namespace["test:load_schema:#{name}"].invoke
         end
       end
 

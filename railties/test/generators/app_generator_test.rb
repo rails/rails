@@ -47,12 +47,9 @@ DEFAULT_APP_FILES = %w(
   config/environments/test.rb
   config/initializers
   config/initializers/assets.rb
-  config/initializers/backtrace_silencers.rb
   config/initializers/content_security_policy.rb
   config/initializers/filter_parameter_logging.rb
   config/initializers/inflections.rb
-  config/initializers/mime_types.rb
-  config/initializers/wrap_parameters.rb
   config/locales
   config/locales/en.yml
   config/puma.rb
@@ -183,7 +180,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_new_application_doesnt_need_defaults
     run_generator
-    assert_no_file "config/initializers/new_framework_defaults_7_0.rb"
+    assert_empty Dir.glob("config/initializers/new_framework_defaults_*.rb", base: destination_root)
   end
 
   def test_new_application_load_defaults
@@ -193,17 +190,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_app_update_create_new_framework_defaults
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root]
+    run_generator
+    defaults_path = "config/initializers/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
 
-    assert_no_file "#{app_root}/config/initializers/new_framework_defaults_7_0.rb"
+    assert_no_file defaults_path
 
-    stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, { destination_root: app_root, shell: @shell }
+    stub_rails_application do
+      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, { destination_root: destination_root, shell: @shell }
       generator.send(:app_const)
       quietly { generator.update_config_files }
 
-      assert_file "#{app_root}/config/initializers/new_framework_defaults_7_0.rb"
+      assert_file defaults_path
     end
   end
 
@@ -233,18 +230,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_app_update_does_not_generate_assets_initializer_when_skip_sprockets_is_given
+  def test_app_update_does_not_generate_assets_initializer_when_sprockets_is_not_used
     app_root = File.join(destination_root, "myapp")
-    run_generator [app_root, "--skip-sprockets"]
+    run_generator [app_root, "-a", "none"]
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true, skip_sprockets: true }, { destination_root: app_root, shell: @shell }
+      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true, asset_pipeline: "none" }, { destination_root: app_root, shell: @shell }
       generator.send(:app_const)
       quietly { generator.update_config_files }
 
       assert_no_file "#{app_root}/config/initializers/assets.rb"
       assert_no_file "#{app_root}/app/assets/config/manifest.js"
-      assert_no_file "#{app_root}/app/assets/stylesheets/application.css"
     end
   end
 
@@ -554,6 +550,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_viewport_meta_tag_is_present
+    run_generator [destination_root]
+
+    assert_file "app/views/layouts/application.html.erb" do |contents|
+      assert_match(/<meta name="viewport"/, contents)
+    end
+  end
+
   def test_javascript_is_skipped_if_required
     run_generator [destination_root, "--skip-javascript"]
 
@@ -581,6 +585,25 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
     assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
+  end
+
+  def test_template_from_url
+    url = "https://raw.githubusercontent.com/rails/rails/f95c0b7e96/railties/test/fixtures/lib/template.rb"
+    FileUtils.cd(Rails.root)
+    assert_match(/It works from file!/, run_generator([destination_root, "-m", url]))
+  end
+
+  def test_template_from_abs_path
+    absolute_path = File.expand_path(Rails.root, "fixtures")
+    FileUtils.cd(Rails.root)
+    assert_match(/It works from file!/, run_generator([destination_root, "-m", "#{absolute_path}/lib/template.rb"]))
+  end
+
+  def test_template_from_env_var_path
+    ENV["FIXTURES_HOME"] = File.expand_path(Rails.root, "fixtures")
+    FileUtils.cd(Rails.root)
+    assert_match(/It works from file!/, run_generator([destination_root, "-m", "$FIXTURES_HOME/lib/template.rb"]))
+    ENV.delete("FIXTURES_HOME")
   end
 
   def test_usage_read_from_file
@@ -661,48 +684,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_dev_option
-    generator([destination_root], dev: true)
-    run_generator_instance
-
-    assert_equal 1, @bundle_commands.count("install")
-    rails_path = File.expand_path("../../..", Rails.root)
-    assert_file "Gemfile", /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
-  end
-
-  def test_edge_option
-    Rails.stub(:gem_version, Gem::Version.new("2.1.0")) do
-      generator([destination_root], edge: true)
-      run_generator_instance
-    end
-
-    assert_equal 1, @bundle_commands.count("install")
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']2-1-stable["']$}
-  end
-
-  def test_edge_option_during_alpha
-    Rails.stub(:gem_version, Gem::Version.new("2.1.0.alpha")) do
-      generator([destination_root], edge: true)
-      run_generator_instance
-    end
-
-    assert_equal 1, @bundle_commands.count("install")
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
-  end
-
-  def test_master_option
-    run_generator [destination_root, "--master"]
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
-  end
-
-  def test_main_option
-    generator([destination_root], main: true)
-    run_generator_instance
-
-    assert_equal 1, @bundle_commands.count("install")
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
-  end
-
   def test_bundler_binstub
     generator([destination_root])
     run_generator_instance
@@ -762,7 +743,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_hotwire
-    run_generator [destination_root, "--dev"]
+    run_generator [destination_root, "--no-skip-bundle"]
     assert_gem "turbo-rails"
     assert_gem "stimulus-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
@@ -785,7 +766,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_asset_pipeline_tailwind
-    run_generator [destination_root, "--dev", "--css", "tailwind"]
+    run_generator [destination_root, "--css", "tailwind", "--no-skip-bundle"]
     assert_gem "tailwindcss-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_match(/tailwind/, content)
@@ -793,7 +774,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_cssbundling_gem
-    run_generator [destination_root, "--dev", "--css", "postcss"]
+    run_generator [destination_root, "--css", "postcss", "--no-skip-bundle"]
     assert_gem "cssbundling-rails"
     assert_file "app/assets/stylesheets/application.postcss.css"
   end
@@ -824,7 +805,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_bootsnap_with_dev_option
-    run_generator [destination_root, "--dev", "--skip-bundle"]
+    run_generator_using_prerelease [destination_root, "--dev"]
 
     assert_no_gem "bootsnap"
     assert_file "config/boot.rb" do |content|
@@ -989,7 +970,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/#\s+require\s+["']action_mailbox\/engine["']/, content)
       assert_match(/#\s+require\s+["']action_text\/engine["']/, content)
       assert_match(/#\s+require\s+["']action_cable\/engine["']/, content)
-      assert_match(/\s+require\s+["']sprockets\/railtie["']/, content)
     end
 
     assert_no_gem "jbuilder", app_root
@@ -997,7 +977,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   private
-    def stub_rails_application(root, &block)
+    def stub_rails_application(root = destination_root, &block)
       Rails.application.config.root = root
       Rails.application.class.stub(:name, "Myapp", &block)
     end

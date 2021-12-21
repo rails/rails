@@ -218,6 +218,22 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal "wherever.mp4", @user.vlogs.second.filename.to_s
   end
 
+  test "replacing attachments with an empty list" do
+    @user.highlights = []
+    assert_empty @user.highlights
+  end
+
+  test "replacing attachments with a list containing empty items" do
+    @user.highlights = [""]
+    assert_empty @user.highlights
+  end
+
+  test "replacing attachments with a list containing a mixture of empty and present items" do
+    @user.highlights = [ "", fixture_file_upload("racecar.jpg") ]
+    assert_equal 1, @user.highlights.size
+    assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
+  end
+
   test "successfully updating an existing record to replace existing, dependent attachments" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |old_blobs|
       @user.highlights.attach old_blobs

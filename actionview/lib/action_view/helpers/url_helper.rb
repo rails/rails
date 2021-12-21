@@ -85,6 +85,8 @@ module ActionView
       #     # name
       #   end
       #
+      #   link_to(active_record_model)
+      #
       # ==== Options
       # * <tt>:data</tt> - This option can be used to add custom data attributes.
       # * <tt>method: symbol of HTTP verb</tt> - This modifier will dynamically
@@ -136,6 +138,12 @@ module ActionView
       #
       #   link_to nil, "http://example.com"
       #   # => <a href="http://www.example.com">http://www.example.com</a>
+      #
+      # More concise yet, when +name+ is an Active Record model that defines a
+      # +to_s+ method returning a default value or a model instance attribute
+      #
+      #   link_to @profile
+      #   # => <a href="http://www.example.com/profiles/1">Eileen</a>
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
       #
@@ -204,7 +212,7 @@ module ActionView
 
         html_options = convert_options_to_data_attributes(options, html_options)
 
-        url = url_for(options)
+        url = url_target(name, options)
         html_options["href"] ||= url
 
         content_tag("a", name || url, html_options, &block)
@@ -230,7 +238,15 @@ module ActionView
       # HTTP verb via the +:method+ option within +html_options+.
       #
       # ==== Options
-      # The +options+ hash accepts the same options as +url_for+.
+      # The +options+ hash accepts the same options as +url_for+. To generate a
+      # <tt><form></tt> element without an <tt>[action]</tt> attribute, pass
+      # <tt>false</tt>:
+      #
+      #   <%= button_to "New", false %>
+      #   # => "<form method="post" class="button_to">
+      #   #      <button type="submit">New</button>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #    </form>"
       #
       # Most values in +html_options+ are passed through to the button element,
       # but there are a few special options:
@@ -316,15 +332,21 @@ module ActionView
       #   #
       def button_to(name = nil, options = nil, html_options = nil, &block)
         html_options, options = options, name if block_given?
-        options      ||= {}
         html_options ||= {}
         html_options = html_options.stringify_keys
 
-        url    = options.is_a?(String) ? options : url_for(options)
+        url =
+          case options
+          when FalseClass then nil
+          else url_for(options)
+          end
+
         remote = html_options.delete("remote")
         params = html_options.delete("params")
 
-        method     = html_options.delete("method").to_s
+        authenticity_token = html_options.delete("authenticity_token")
+
+        method     = (html_options.delete("method").presence || method_for_options(options)).to_s
         method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : "".html_safe
 
         form_method  = method == "get" ? "get" : "post"
@@ -336,7 +358,7 @@ module ActionView
 
         request_token_tag = if form_method == "post"
           request_method = method.empty? ? "post" : method
-          token_tag(nil, form_options: { action: url, method: request_method })
+          token_tag(authenticity_token, form_options: { action: url, method: request_method })
         else
           ""
         end
@@ -344,7 +366,9 @@ module ActionView
         html_options = convert_options_to_data_attributes(options, html_options)
         html_options["type"] = "submit"
 
-        button = if block_given? || button_to_generates_button_tag
+        button = if block_given?
+          content_tag("button", html_options, &block)
+        elsif button_to_generates_button_tag
           content_tag("button", name || url, html_options, &block)
         else
           html_options["value"] = name || url
@@ -354,7 +378,8 @@ module ActionView
         inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
         if params
           to_form_params(params).each do |param|
-            inner_tags.safe_concat tag(:input, type: "hidden", name: param[:name], value: param[:value])
+            inner_tags.safe_concat tag(:input, type: "hidden", name: param[:name], value: param[:value],
+                                       autocomplete: "off")
           end
         end
         content_tag("form", inner_tags, form_options)
@@ -719,6 +744,14 @@ module ActionView
           end
         end
 
+        def url_target(name, options)
+          if name.respond_to?(:model_name) && options.is_a?(Hash) && options.empty?
+            url_for(name)
+          else
+            url_for(options)
+          end
+        end
+
         def link_to_remote_options?(options)
           if options.is_a?(Hash)
             options.delete("remote") || options.delete(:remote)
@@ -736,6 +769,16 @@ module ActionView
           html_options["data-method"] = method
         end
 
+        def method_for_options(options)
+          if options.is_a?(Array)
+            method_for_options(options.last)
+          elsif options.respond_to?(:persisted?)
+            options.persisted? ? :patch : :post
+          elsif options.respond_to?(:to_model)
+            method_for_options(options.to_model)
+          end
+        end
+
         STRINGIFIED_COMMON_METHODS = {
           get:    "get",
           delete: "delete",
@@ -751,15 +794,20 @@ module ActionView
 
         def token_tag(token = nil, form_options: {})
           if token != false && defined?(protect_against_forgery?) && protect_against_forgery?
-            token ||= form_authenticity_token(form_options: form_options)
-            tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token)
+            token =
+              if token == true || token.nil?
+                form_authenticity_token(form_options: form_options.merge(authenticity_token: token))
+              else
+                token
+              end
+            tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token, autocomplete: "off")
           else
             ""
           end
         end
 
         def method_tag(method)
-          tag("input", type: "hidden", name: "_method", value: method.to_s)
+          tag("input", type: "hidden", name: "_method", value: method.to_s, autocomplete: "off")
         end
 
         # Returns an array of hashes each containing :name and :value keys

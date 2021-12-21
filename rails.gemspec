@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
     "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
     "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
     "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}",
+    "rubygems_mfa_required" => "true",
   }
 
   s.add_dependency "activesupport", version
@@ -41,6 +42,5 @@ Gem::Specification.new do |s|
   s.add_dependency "actiontext",    version
   s.add_dependency "railties",      version
 
-  s.add_dependency "bundler",         ">= 1.15.0"
-  s.add_dependency "sprockets-rails", ">= 2.0.0"
+  s.add_dependency "bundler", ">= 1.15.0"
 end

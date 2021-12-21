@@ -156,13 +156,6 @@ if ActiveRecord::Base.connection.prepared_statements
         assert_logs_binds(binds)
       end
 
-      def test_logs_legacy_binds_after_type_cast
-        binds = [[Topic.column_for_attribute("id"), "10"]]
-        assert_deprecated do
-          assert_logs_binds(binds)
-        end
-      end
-
       def test_bind_params_to_sql_with_prepared_statements
         assert_bind_params_to_sql
       end
@@ -187,6 +180,16 @@ if ActiveRecord::Base.connection.prepared_statements
         end
 
         assert_predicate @connection, :prepared_statements?
+      end
+
+      def test_binds_with_filtered_attributes
+        ActiveRecord::Base.filter_attributes = [:auth]
+
+        binds = [Relation::QueryAttribute.new("auth_token", "abcd", Type::String.new)]
+
+        assert_filtered_log_binds(binds)
+
+        ActiveRecord::Base.filter_attributes = []
       end
 
       private
@@ -276,6 +279,38 @@ if ActiveRecord::Base.connection.prepared_statements
 
           logger.sql(event)
           assert_match %r(\[\["id", 10\]\]\z), logger.debugs.first
+        end
+
+        def assert_filtered_log_binds(binds)
+          payload = {
+            name: "SQL",
+            sql: "select * from users where auth_token = ?",
+            binds: binds,
+            type_casted_binds: @connection.send(:type_casted_binds, binds)
+          }
+
+          event = ActiveSupport::Notifications::Event.new(
+            "foo",
+            Time.now,
+            Time.now,
+            123,
+            payload)
+
+          logger = Class.new(ActiveRecord::LogSubscriber) {
+            attr_reader :debugs
+
+            def initialize
+              super
+              @debugs = []
+            end
+
+            def debug(str)
+              @debugs << str
+            end
+          }.new
+
+          logger.sql(event)
+          assert_match %r/#{Regexp.escape '[["auth_token", "[FILTERED]"]]'}/, logger.debugs.first
         end
     end
   end

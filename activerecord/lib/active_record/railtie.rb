@@ -102,6 +102,14 @@ module ActiveRecord
       end
     end
 
+    initializer "active_record.shard_selector" do
+      if resolver = config.active_record.shard_resolver
+        options = config.active_record.shard_selector || {}
+
+        config.app_middleware.use ActiveRecord::Middleware::ShardSelector, resolver, options
+      end
+    end
+
     initializer "Check for cache versioning support" do
       config.after_initialize do |app|
         ActiveSupport.on_load(:active_record) do
@@ -130,7 +138,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record.check_schema_cache_dump" do
       check_schema_cache_dump_version = config.active_record.check_schema_cache_dump_version
 
-      if config.active_record.use_schema_cache_dump
+      if config.active_record.use_schema_cache_dump && !config.active_record.lazily_load_schema_cache
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
             db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).first
@@ -232,6 +240,8 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :database_selector,
           :database_resolver,
           :database_resolver_context,
+          :shard_selector,
+          :shard_resolver,
           :query_log_tags_enabled,
           :query_log_tags,
           :cache_query_log_tags,

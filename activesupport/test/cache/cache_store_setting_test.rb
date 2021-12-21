@@ -28,7 +28,7 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
   end
 
   def test_mem_cache_fragment_cache_store
-    assert_called_with(Dalli::Client, :new, [%w[localhost], {}]) do
+    assert_called_with(Dalli::Client, :new, [%w[localhost], { compress: false }]) do
       store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost"
       assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
     end
@@ -52,14 +52,14 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
   end
 
   def test_mem_cache_fragment_cache_store_with_multiple_servers
-    assert_called_with(Dalli::Client, :new, [%w[localhost 192.168.1.1], {}]) do
+    assert_called_with(Dalli::Client, :new, [%w[localhost 192.168.1.1], { compress: false }]) do
       store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", "192.168.1.1"
       assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
     end
   end
 
   def test_mem_cache_fragment_cache_store_with_options
-    assert_called_with(Dalli::Client, :new, [%w[localhost 192.168.1.1], { timeout: 10 }]) do
+    assert_called_with(Dalli::Client, :new, [%w[localhost 192.168.1.1], { timeout: 10, compress: false }]) do
       store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", "192.168.1.1", namespace: "foo", timeout: 10
       assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
       assert_equal "foo", store.options[:namespace]

@@ -93,25 +93,21 @@ module ActiveRecord
       # associations before querying the database. This can save database
       # queries by reusing in-memory objects. The optimization is only applied
       # to single associations (i.e. :belongs_to, :has_one) with no scopes.
-      def initialize(associate_by_default: true, **kwargs)
-        if kwargs.empty?
-          ActiveSupport::Deprecation.warn("Calling `Preloader#initialize` without arguments is deprecated and will be removed in Rails 7.0.")
-        else
-          @records = kwargs[:records]
-          @associations = kwargs[:associations]
-          @scope = kwargs[:scope]
-          @available_records = kwargs[:available_records] || []
-          @associate_by_default = associate_by_default
+      def initialize(records:, associations:, scope: nil, available_records: [], associate_by_default: true)
+        @records = records
+        @associations = associations
+        @scope = scope
+        @available_records = available_records || []
+        @associate_by_default = associate_by_default
 
-          @tree = Branch.new(
-            parent: nil,
-            association: nil,
-            children: associations,
-            associate_by_default: @associate_by_default,
-            scope: @scope
-          )
-          @tree.preloaded_records = records
-        end
+        @tree = Branch.new(
+          parent: nil,
+          association: nil,
+          children: @associations,
+          associate_by_default: @associate_by_default,
+          scope: @scope
+        )
+        @tree.preloaded_records = @records
       end
 
       def empty?
@@ -122,12 +118,6 @@ module ActiveRecord
         Batch.new([self], available_records: @available_records).call
 
         loaders
-      end
-
-      def preload(records, associations, preload_scope = nil)
-        ActiveSupport::Deprecation.warn("`preload` is deprecated and will be removed in Rails 7.0. Call `Preloader.new(kwargs).call` instead.")
-
-        Preloader.new(records: records, associations: associations, scope: preload_scope).call
       end
 
       def branches

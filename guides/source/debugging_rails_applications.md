@@ -304,6 +304,203 @@ Rails 7 includes the `debug` gem in the `Gemfile` of new applications generated
 by CRuby. By default, it is ready in the `development` and `test` environments.
 Please check its [documentation](https://github.com/ruby/debug) for usage.
 
+### Entering a Debugging Session
+
+By default, a debugging session will start after the `debug` library is required, which happens when your app boots. But don't worry, the session won't interfere your program.
+
+ To enter the debugging session, you can use `binding.break` and its aliases: `binding.b` and `debugger`. The following examples will use `debugger`:
+
+```rb
+class PostsController < ApplicationController
+  before_action :set_post, only: %i[ show edit update destroy ]
+
+  # GET /posts or /posts.json
+  def index
+    @posts = Post.all
+    debugger
+  end
+  # ...
+end
+```
+
+Once your app evaluates the debugging statement, it'll enter the debugging session:
+
+```rb
+Processing by PostsController#index as HTML
+[2, 11] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+     2|   before_action :set_post, only: %i[ show edit update destroy ]
+     3|
+     4|   # GET /posts or /posts.json
+     5|   def index
+     6|     @posts = Post.all
+=>   7|     debugger
+     8|   end
+     9|
+    10|   # GET /posts/1 or /posts/1.json
+    11|   def show
+=>#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7
+  #1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg)
+```
+
+### The Context
+
+After entering the debugging session, you can type in Ruby code as you're in a Rails console or IRB.
+
+```rb
+(rdbg) @posts    # ruby
+[]
+(rdbg) self
+#<PostsController:0x0000000000aeb0>
+(rdbg)
+```
+
+You can also use `p` or `pp` command to evaluate Ruby expressions (e.g. when a variable name conflicts with a debugger command).
+
+```rb
+(rdbg) p headers    # command
+=> {"X-Frame-Options"=>"SAMEORIGIN", "X-XSS-Protection"=>"1; mode=block", "X-Content-Type-Options"=>"nosniff", "X-Download-Options"=>"noopen", "X-Permitted-Cross-Domain-Policies"=>"none", "Referrer-Policy"=>"strict-origin-when-cross-origin"}
+(rdbg) pp headers    # command
+{"X-Frame-Options"=>"SAMEORIGIN",
+ "X-XSS-Protection"=>"1; mode=block",
+ "X-Content-Type-Options"=>"nosniff",
+ "X-Download-Options"=>"noopen",
+ "X-Permitted-Cross-Domain-Policies"=>"none",
+ "Referrer-Policy"=>"strict-origin-when-cross-origin"}
+(rdbg)
+```
+
+Besides direct evaluation, debugger also helps you collect rich amount of information through different commands. Just to name a few here:
+
+- `info` (or `i`) - Information about current frame.
+- `backtrace` (or `bt`) - Backtrace (with additional information).
+- `outline` (or `o`, `ls`) - Available methods, constants, local variables, and instance variables in the current scope.
+
+#### The info command
+
+It'll give you an overview of the values of local and instance variables that are visible from the current frame.
+
+```rb
+(rdbg) info    # command
+%self = #<PostsController:0x0000000000af78>
+@_action_has_layout = true
+@_action_name = "index"
+@_config = {}
+@_lookup_context = #<ActionView::LookupContext:0x00007fd91a037e38 @details_key=nil, @digest_cache=...
+@_request = #<ActionDispatch::Request GET "http://localhost:3000/posts" for 127.0.0.1>
+@_response = #<ActionDispatch::Response:0x00007fd91a03ea08 @mon_data=#<Monitor:0x00007fd91a03e8c8>...
+@_response_body = nil
+@_routes = nil
+@marked_for_same_origin_verification = true
+@posts = []
+@rendered_format = nil
+```
+
+#### The backtrace command
+
+When used without any options, it lists all the frames on the stack:
+
+```rb
+=>#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7
+  #1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/action_controller/metal/basic_implicit_render.rb:6
+  #2    AbstractController::Base#process_action(method_name="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/abstract_controller/base.rb:214
+  #3    ActionController::Rendering#process_action(#arg_rest=nil) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/action_controller/metal/rendering.rb:53
+  #4    block in process_action at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/abstract_controller/callbacks.rb:221
+  #5    block in run_callbacks at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-7.1.0.alpha/lib/active_support/callbacks.rb:118
+  #6    ActionText::Rendering::ClassMethods#with_renderer(renderer=#<PostsController:0x0000000000af78>) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-7.1.0.alpha/lib/action_text/rendering.rb:20
+  #7    block {|controller=#<PostsController:0x0000000000af78>, action=#<Proc:0x00007fd91985f1c0 /Users/st0012/...|} in <class:Engine> (4 levels) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-7.1.0.alpha/lib/action_text/engine.rb:69
+  #8    [C] BasicObject#instance_exec at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-7.1.0.alpha/lib/active_support/callbacks.rb:127
+  ..... and more
+```
+
+Every frame comes with:
+
+- Frame identifier
+- Call location
+- Additional information (e.g. block or method arguments)
+
+This will give you a great sense about what's happening in your app. However, you probably will notice that:
+
+- There are too many frames (usually 50+ in a Rails app).
+- Most of the frames are from Rails or other libraries you use.
+
+Don't worry, the `backtrace` command provides 2 options to help you filter frames:
+
+- `backtrace [num]` - only show `num` numbers of frames, e.g. `backtrace 10` .
+- `backtrace /pattern/` - only show frames with identifier or location that matches the pattern, e.g. `backtrace /MyModel/`.
+
+It's also possible to use these options together: `backtrace [num] /pattern/`.
+
+#### The outline command
+
+This command is similar to `pry` and `irb`'s `ls` command. It will show you what's accessible from you current scope, including:
+
+- Local variables
+- Instance variables
+- Class variables
+- Methods & their sources
+- ...etc.
+
+```rb
+ActiveSupport::Configurable#methods: config
+AbstractController::Base#methods:
+  action_methods  action_name  action_name=  available_action?  controller_path  inspect
+  response_body
+ActionController::Metal#methods:
+  content_type       content_type=  controller_name  dispatch          headers
+  location           location=      media_type       middleware_stack  middleware_stack=
+  middleware_stack?  performed?     request          request=          reset_session
+  response           response=      response_body=   response_code     session
+  set_request!       set_response!  status           status=           to_a
+ActionView::ViewPaths#methods:
+  _prefixes  any_templates?  append_view_path   details_for_lookup  formats     formats=  locale
+  locale=    lookup_context  prepend_view_path  template_exists?    view_paths
+AbstractController::Rendering#methods: view_assigns
+
+# .....
+
+PostsController#methods: create  destroy  edit  index  new  show  update
+instance variables:
+  @_action_has_layout  @_action_name    @_config  @_lookup_context                      @_request
+  @_response           @_response_body  @_routes  @marked_for_same_origin_verification  @posts
+  @rendered_format
+class variables: @@raise_on_missing_translations  @@raise_on_open_redirects
+```
+
+You can find more commands and configuration options from its [documentation](https://github.com/ruby/debug).
+
+#### Autoloading Caveat
+
+Debugging with `debug` works fine most of the time, but there's an edge case: If you evaluate an expression in the console that autoloads a namespace defined in a file, constants in that namespace won't be found.
+
+For example, if the application has these two files:
+
+```ruby
+# hotel.rb
+class Hotel
+end
+
+# hotel/pricing.rb
+module Hotel::Pricing
+end
+```
+
+and `Hotel` is not yet loaded, then
+
+```
+(rdbg) p Hotel::Pricing
+```
+
+will raise a `NameError`. In some cases, Ruby will be able to resolve an unintended constant in a different scope.
+
+If you hit this, please restart your debugging session with eager loading enabled (`config.eager_load = true`).
+
+Stepping commands line `next`, `continue`, etc., do not present this issue. Namespaces defined implicitly only by
+subdirectories are not subject to this issue either.
+
+See [ruby/debug#408](https://github.com/ruby/debug/issues/408) for details.
+
 Debugging with the `web-console` gem
 ------------------------------------
 
@@ -414,3 +611,4 @@ References
 ----------
 
 * [web-console Homepage](https://github.com/rails/web-console)
+* [debug homepage](https://github.com/ruby/debug)

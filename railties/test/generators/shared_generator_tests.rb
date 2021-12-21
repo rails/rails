@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "shellwords"
+
 #
 # Tests, setup, and teardown common to the application and plugin generator suites.
 #
@@ -119,8 +121,7 @@ module SharedGeneratorTests
       "--skip-action-mailer",
       "--skip-action-mailbox",
       "--skip-action-text",
-      "--skip-action-cable",
-      "--skip-sprockets"
+      "--skip-action-cable"
     ]
 
     assert_file "#{application_path}/config/application.rb", /^require\s+["']rails["']/
@@ -136,7 +137,6 @@ module SharedGeneratorTests
     end
     assert_file "#{application_path}/config/application.rb", /^require\s+["']action_view\/railtie["']/
     assert_file "#{application_path}/config/application.rb", /^# require\s+["']action_cable\/engine["']/
-    assert_file "#{application_path}/config/application.rb", /^# require\s+["']sprockets\/railtie["']/
     assert_file "#{application_path}/config/application.rb", /^require\s+["']rails\/test_unit\/railtie["']/
   end
 
@@ -288,18 +288,15 @@ module SharedGeneratorTests
     assert_no_directory "#{application_path}/app/javascript/channels"
     assert_no_directory "#{application_path}/app/channels"
     assert_file "Gemfile" do |content|
-      assert_no_match(/redis/, content)
+      assert_no_match(/"redis"/, content)
     end
   end
 
-  def test_generator_if_skip_sprockets_is_given
-    run_generator [destination_root, "--skip-sprockets"]
+  def test_generator_when_sprockets_is_not_used
+    run_generator [destination_root, "-a", "none"]
 
     assert_no_file "#{application_path}/config/initializers/assets.rb"
     assert_no_file "#{application_path}/app/assets/config/manifest.js"
-    assert_no_file "#{application_path}/app/assets/stylesheets/application.css"
-
-    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']sprockets\/railtie["']/
 
     assert_file "Gemfile" do |content|
       assert_no_match(/sass-rails/, content)
@@ -316,13 +313,78 @@ module SharedGeneratorTests
     end
   end
 
+  def test_dev_option
+    run_generator_using_prerelease [destination_root, "--dev"]
+    rails_path = File.expand_path("../../..", Rails.root)
+    assert_file "Gemfile", %r{^gem ["']rails["'], path: ["']#{Regexp.escape rails_path}["']$}
+  end
+
+  def test_edge_option
+    Rails.stub(:gem_version, Gem::Version.new("2.1.0")) do
+      run_generator_using_prerelease [destination_root, "--edge"]
+    end
+    assert_file "Gemfile", %r{^gem ["']rails["'], github: ["']rails/rails["'], branch: ["']2-1-stable["']$}
+  end
+
+  def test_edge_option_during_alpha
+    Rails.stub(:gem_version, Gem::Version.new("2.1.0.alpha")) do
+      run_generator_using_prerelease [destination_root, "--edge"]
+    end
+    assert_file "Gemfile", %r{^gem ["']rails["'], github: ["']rails/rails["'], branch: ["']main["']$}
+  end
+
+  def test_main_option
+    run_generator_using_prerelease [destination_root, "--main"]
+    assert_file "Gemfile", %r{^gem ["']rails["'], github: ["']rails/rails["'], branch: ["']main["']$}
+  end
+
+  def test_master_option
+    run_generator_using_prerelease [destination_root, "--master"]
+    assert_file "Gemfile", %r{^gem ["']rails["'], github: ["']rails/rails["'], branch: ["']main["']$}
+  end
+
+  def test_target_rails_prerelease_with_relative_app_path
+    run_generator_using_prerelease ["myproject", "--main"]
+    assert_file "myproject/Gemfile", %r{^gem ["']rails["'], github: ["']rails/rails["'], branch: ["']main["']$}
+  end
+
   private
     def run_generator_instance
       @bundle_commands = []
-      bundle_command_stub = -> (command, *) { @bundle_commands << command }
+      @bundle_command_stub ||= -> (command, *) { @bundle_commands << command }
 
-      generator.stub(:bundle_command, bundle_command_stub) do
+      generator.stub(:bundle_command, @bundle_command_stub) do
         super
+      end
+    end
+
+    def run_generator_using_prerelease(args)
+      option_args, positional_args = args.partition { |arg| arg.start_with?("--") }
+      project_path = File.expand_path(positional_args.first, destination_root)
+      expected_args = [project_path, *positional_args.drop(1), *option_args]
+
+      generator(positional_args, option_args)
+
+      rails_gem_pattern = /^gem ["']rails["'], .+/
+      bundle_command_rails_gems = []
+      @bundle_command_stub = -> (command, *) do
+        @bundle_commands << command
+        assert_file File.expand_path("Gemfile", project_path) do |gemfile|
+          bundle_command_rails_gems << gemfile[rails_gem_pattern]
+        end
+      end
+
+      # run target_rails_prerelease on exit to mimic re-running generator
+      generator.stub :exit, generator.method(:target_rails_prerelease) do
+        run_generator_instance
+      end
+
+      assert_file File.expand_path("Gemfile", project_path) do |gemfile|
+        assert_equal "install", @bundle_commands[0]
+        assert_equal gemfile[rails_gem_pattern], bundle_command_rails_gems[0]
+
+        assert_match %r"^exec rails (?:plugin )?new #{Regexp.escape Shellwords.join(expected_args)}", @bundle_commands[1]
+        assert_equal gemfile[rails_gem_pattern], bundle_command_rails_gems[1]
       end
     end
 end

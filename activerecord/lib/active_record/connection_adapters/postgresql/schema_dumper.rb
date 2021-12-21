@@ -16,6 +16,18 @@ module ActiveRecord
             end
           end
 
+          def types(stream)
+            types = @connection.enum_types
+            if types.any?
+              stream.puts "  # Custom types defined in this database."
+              stream.puts "  # Note that some types may not work with other database engines. Be careful if changing database."
+              types.sort.each do |name, values|
+                stream.puts "  create_enum #{name.inspect}, #{values.split(",").inspect}"
+              end
+              stream.puts
+            end
+          end
+
           def prepare_column_options(column)
             spec = super
             spec[:array] = "true" if column.array?
@@ -25,6 +37,8 @@ module ActiveRecord
               spec[:stored] = true
               spec = { type: schema_type(column).inspect }.merge!(spec)
             end
+
+            spec[:enum_type] = "\"#{column.sql_type}\"" if column.enum?
 
             spec
           end

@@ -254,6 +254,7 @@ Connection.prototype.events = {
       return this.monitor.recordPing();
 
      case message_types.confirmation:
+      this.subscriptions.confirmSubscription(identifier);
       return this.subscriptions.notify(identifier, "connected");
 
      case message_types.rejection:
@@ -321,9 +322,47 @@ class Subscription {
   }
 }
 
+class SubscriptionGuarantor {
+  constructor(subscriptions) {
+    this.subscriptions = subscriptions;
+    this.pendingSubscriptions = [];
+  }
+  guarantee(subscription) {
+    if (this.pendingSubscriptions.indexOf(subscription) == -1) {
+      logger.log(`SubscriptionGuarantor guaranteeing ${subscription.identifier}`);
+      this.pendingSubscriptions.push(subscription);
+    } else {
+      logger.log(`SubscriptionGuarantor already guaranteeing ${subscription.identifier}`);
+    }
+    this.startGuaranteeing();
+  }
+  forget(subscription) {
+    logger.log(`SubscriptionGuarantor forgetting ${subscription.identifier}`);
+    this.pendingSubscriptions = this.pendingSubscriptions.filter((s => s !== subscription));
+  }
+  startGuaranteeing() {
+    this.stopGuaranteeing();
+    this.retrySubscribing();
+  }
+  stopGuaranteeing() {
+    clearTimeout(this.retryTimeout);
+  }
+  retrySubscribing() {
+    this.retryTimeout = setTimeout((() => {
+      if (this.subscriptions && typeof this.subscriptions.subscribe === "function") {
+        this.pendingSubscriptions.map((subscription => {
+          logger.log(`SubscriptionGuarantor resubscribing ${subscription.identifier}`);
+          this.subscriptions.subscribe(subscription);
+        }));
+      }
+    }), 500);
+  }
+}
+
 class Subscriptions {
   constructor(consumer) {
     this.consumer = consumer;
+    this.guarantor = new SubscriptionGuarantor(this);
     this.subscriptions = [];
   }
   create(channelName, mixin) {
@@ -338,7 +377,7 @@ class Subscriptions {
     this.subscriptions.push(subscription);
     this.consumer.ensureActiveConnection();
     this.notify(subscription, "initialized");
-    this.sendCommand(subscription, "subscribe");
+    this.subscribe(subscription);
     return subscription;
   }
   remove(subscription) {
@@ -356,6 +395,7 @@ class Subscriptions {
     }));
   }
   forget(subscription) {
+    this.guarantor.forget(subscription);
     this.subscriptions = this.subscriptions.filter((s => s !== subscription));
     return subscription;
   }
@@ -363,7 +403,7 @@ class Subscriptions {
     return this.subscriptions.filter((s => s.identifier === identifier));
   }
   reload() {
-    return this.subscriptions.map((subscription => this.sendCommand(subscription, "subscribe")));
+    return this.subscriptions.map((subscription => this.subscribe(subscription)));
   }
   notifyAll(callbackName, ...args) {
     return this.subscriptions.map((subscription => this.notify(subscription, callbackName, ...args)));
@@ -376,6 +416,15 @@ class Subscriptions {
       subscriptions = [ subscription ];
     }
     return subscriptions.map((subscription => typeof subscription[callbackName] === "function" ? subscription[callbackName](...args) : undefined));
+  }
+  subscribe(subscription) {
+    if (this.sendCommand(subscription, "subscribe")) {
+      this.guarantor.guarantee(subscription);
+    }
+  }
+  confirmSubscription(identifier) {
+    logger.log(`Subscription confirmed ${identifier}`);
+    this.findAll(identifier).map((subscription => this.guarantor.forget(subscription)));
   }
   sendCommand(subscription, command) {
     const {identifier: identifier} = subscription;
@@ -439,4 +488,4 @@ function getConfig(name) {
   }
 }
 
-export { Connection, ConnectionMonitor, Consumer, INTERNAL, Subscription, Subscriptions, adapters, createConsumer, createWebSocketURL, getConfig, logger };
+export { Connection, ConnectionMonitor, Consumer, INTERNAL, Subscription, SubscriptionGuarantor, Subscriptions, adapters, createConsumer, createWebSocketURL, getConfig, logger };

@@ -292,19 +292,20 @@ module ActionView
         controller.write_fragment(name, fragment, options)
       end
 
-      class CachingRegistry
-        extend ActiveSupport::PerThreadRegistry
+      module CachingRegistry # :nodoc:
+        extend self
 
-        attr_accessor :caching
-        alias caching? caching
+        def caching?
+          ActiveSupport::IsolatedExecutionState[:action_view_caching] ||= false
+        end
 
-        def self.track_caching
-          caching_was = self.caching
-          self.caching = true
+        def track_caching
+          caching_was = ActiveSupport::IsolatedExecutionState[:action_view_caching]
+          ActiveSupport::IsolatedExecutionState[:action_view_caching] = true
 
           yield
         ensure
-          self.caching = caching_was
+          ActiveSupport::IsolatedExecutionState[:action_view_caching] = caching_was
         end
       end
     end

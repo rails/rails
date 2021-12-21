@@ -180,7 +180,9 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     p1 = Person.find(1)
     assert_equal 0, p1.lock_version
 
+    sleep 1.0 unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
     p1.touch
+
     assert_equal 1, p1.lock_version
     assert_not_predicate p1, :changed?, "Changes should have been cleared"
     assert_predicate p1, :saved_changes?
@@ -297,6 +299,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, t1.lock_version
     assert_nil t1.lock_version_before_type_cast
 
+    sleep 1.0 unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
     t1.touch
 
     assert_equal 1, t1.lock_version
@@ -673,7 +676,7 @@ unless in_memory_db?
     end
 
     # Test typical find.
-    def test_sane_find_with_lock
+    def test_typical_find_with_lock
       assert_nothing_raised do
         Person.transaction do
           Person.lock.find(1)
@@ -738,12 +741,41 @@ unless in_memory_db?
       assert_equal old, person.reload.first_name
     end
 
+    def test_with_lock_configures_transaction
+      person = Person.find 1
+      Person.transaction do
+        outer_transaction = Person.connection.transaction_manager.current_transaction
+        assert_equal true, outer_transaction.joinable?
+        person.with_lock(requires_new: true, joinable: false) do
+          current_transaction = Person.connection.transaction_manager.current_transaction
+          assert_not_equal outer_transaction, current_transaction
+          assert_equal false, current_transaction.joinable?
+        end
+      end
+    end
+
     if current_adapter?(:PostgreSQLAdapter)
       def test_lock_sending_custom_lock_statement
         Person.transaction do
           person = Person.find(1)
           assert_sql(/LIMIT \$?\d FOR SHARE NOWAIT/) do
             person.lock!("FOR SHARE NOWAIT")
+          end
+        end
+      end
+
+      def test_with_lock_sets_isolation
+        person = Person.find 1
+        person.with_lock(isolation: :read_uncommitted) do
+          current_transaction = Person.connection.transaction_manager.current_transaction
+          assert_equal :read_uncommitted, current_transaction.isolation_level
+        end
+      end
+
+      def test_with_lock_locks_with_no_args
+        person = Person.find 1
+        assert_sql(/LIMIT \$?\d FOR UPDATE/i) do
+          person.with_lock do
           end
         end
       end

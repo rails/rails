@@ -13,6 +13,8 @@ module ActionText
     # ==== Options
     # * <tt>:class</tt> - Defaults to "trix-content" so that default styles will be applied.
     #   Setting this to a different value will prevent default styles from being applied.
+    # * <tt>[:data][:direct_upload_url]</tt> - Defaults to +rails_direct_uploads_url+.
+    # * <tt>[:data][:blob_url_template]</tt> - Defaults to <tt>rails_service_blob_url(":signed_id", ":filename")</tt>.
     #
     # ==== Example
     #
@@ -27,8 +29,16 @@ module ActionText
       options[:class] ||= "trix-content"
 
       options[:data] ||= {}
-      options[:data][:direct_upload_url] = main_app.rails_direct_uploads_url
-      options[:data][:blob_url_template] = main_app.rails_service_blob_url(":signed_id", ":filename")
+      options[:data][:direct_upload_url] ||= main_app.rails_direct_uploads_url
+      options[:data][:blob_url_template] ||= main_app.rails_service_blob_url(":signed_id", ":filename")
+
+      class_with_attachment = "ActionText::RichText#embeds"
+      options[:data][:direct_upload_attachment_name] ||= class_with_attachment
+      options[:data][:direct_upload_token] = ActiveStorage::DirectUploadToken.generate_direct_upload_token(
+        class_with_attachment,
+        ActiveStorage::Blob.service.name,
+        session
+      )
 
       editor_tag = content_tag("trix-editor", "", options)
       input_tag = hidden_field_tag(name, value.try(:to_trix_html) || value, id: options[:input], form: form)
@@ -59,6 +69,8 @@ module ActionView::Helpers
     # ==== Options
     # * <tt>:class</tt> - Defaults to "trix-content" which ensures default styling is applied.
     # * <tt>:value</tt> - Adds a default value to the HTML input tag.
+    # * <tt>[:data][:direct_upload_url]</tt> - Defaults to +rails_direct_uploads_url+.
+    # * <tt>[:data][:blob_url_template]</tt> - Defaults to +rails_service_blob_url(":signed_id", ":filename")+.
     #
     # ==== Example
     #   form_with(model: @message) do |form|

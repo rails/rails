@@ -97,7 +97,7 @@ module ActiveSupport
       return camel_cased_word.to_s unless /[A-Z-]|::/.match?(camel_cased_word)
       word = camel_cased_word.to_s.gsub("::", "/")
       word.gsub!(inflections.acronyms_underscore_regex) { "#{$1 && '_' }#{$2.downcase}" }
-      word.gsub!(/([A-Z\d]+)(?=[A-Z][a-z])|([a-z\d])(?=[A-Z])/) { ($1 || $2) << "_" }
+      word.gsub!(/([A-Z]+)(?=[A-Z][a-z])|([a-z\d])(?=[A-Z])/) { ($1 || $2) << "_" }
       word.tr!("-", "_")
       word.downcase!
       word
@@ -109,7 +109,7 @@ module ActiveSupport
     #
     # * Applies human inflection rules to the argument.
     # * Deletes leading underscores, if any.
-    # * Removes a "_id" suffix if present.
+    # * Removes an "_id" suffix if present.
     # * Replaces underscores with spaces, if any.
     # * Downcases all words except acronyms.
     # * Capitalizes the first word.

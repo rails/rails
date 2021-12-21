@@ -82,7 +82,7 @@ Says whether autoload paths have to be added to `$LOAD_PATH`. This flag is `true
 
 #### `config.cache_classes`
 
-Controls whether or not application classes and modules should be reloaded if they change. Defaults to `false` in the development environment, and `true` in production. In the test environment, the default is `false` if Spring is installed, `true` otherwise.
+Controls whether or not application classes and modules should be reloaded if they change. When the cache is enabled (`true`), reloading will not occur. Defaults to `false` in the development environment, and `true` in production. In the test environment, the default is `false` if Spring is installed, `true` otherwise.
 
 #### `config.beginning_of_week`
 
@@ -711,6 +711,10 @@ support recycling cache key.
 Enables setting the inverse record when traversing `belongs_to` to `has_many`
 associations.
 
+#### `config.active_record.automatic_scope_inversing`
+
+Enables automatically inferring the `inverse_of` for associations with a scope.
+
 #### `config.active_record.legacy_connection_handling`
 
 Allows to enable new connection handling API. For applications using multiple
@@ -727,12 +731,6 @@ Allows specifying the Active Job queue to use for destroy jobs. When this option
 #### `config.active_record.enumerate_columns_in_select_statements`
 
 When true, will always include column names in `SELECT` statements, and avoid wildcard `SELECT * FROM ...` queries. This avoids prepared statement cache errors when adding columns to a PostgreSQL database for example. Defaults to `false`.
-
-#### `config.active_record.destroy_all_in_batches`
-
-Ensures `ActiveRecord::Relation#destroy_all` performs the record's deletion in
-batches. `ActiveRecord::Relation#destroy_all` will no longer return the collection
-of the deleted records after enabling this option.
 
 #### `config.active_record.verify_foreign_keys_for_fixtures`
 
@@ -761,6 +759,33 @@ request or job execution. Defaults to `false`.
 Define the list of table that should be ignored when generating the schema
 cache. It accepts an `Array` of strings, representing the table names, or
 regular expressions.
+
+#### `config.active_record.verbose_query_logs`
+
+Specifies if source locations of methods that call database queries should be logged below relevant queries. By default, the flag is `true` in development and `false` in all other environments.
+
+#### `config.active_record.async_query_executor`
+
+Specifies how asynchronous queries are pooled.
+
+It defaults to `nil`, which means `load_async` is disabled and instead directly executes queries in the foreground.
+For queries to actually be performed asynchronously, it must be set to either `:global_thread_pool` or `:multi_thread_pool`.
+
+`:global_thread_pool` will use a single pool for all databases the application connects to. This is the preferred configuration
+for applications with only a single database, or applications which only ever query one database shard at a time.
+
+`:multi_thread_pool` will use one pool per database, and each pool size can be configured individually in `database.yml` through the
+`max_threads` and `min_thread` properties. This can be useful to applications regularly querying multiple databases at a time, and that need to more precisely define the max concurrency.
+
+#### `config.active_record.global_executor_concurrency`
+
+Used in conjunction with `config.active_record.async_query_executor = :global_thread_pool`, defines how many asynchronous
+queries can be executed concurrently.
+
+Defaults to `4`.
+
+This number must be considered in accordance with the database pool size configured in `database.yml`. The connection pool
+should be large enough to accommodate both the foreground threads (.e.g web server or job worker threads) and background threads.
 
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans`
 
@@ -888,6 +913,16 @@ Raises an `ArgumentError` when an unpermitted open redirect occurs. The default 
 
 Determines whether controller context for query tags will be automatically
 updated via an `around_filter`. The default value is `true`.
+
+#### `config.action_controller.wrap_parameters_by_default`
+
+Configures the [`ParamsWrapper`](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html) to wrap json
+request by default.
+
+#### `ActionController::Base.wrap_parameters`
+
+Configures the [`ParamsWrapper`](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html). This can be called at
+the top level, or on individual controllers.
 
 ### Configuring Action Dispatch
 
@@ -1071,12 +1106,11 @@ Controls whether or not templates should be reloaded on each request. Defaults t
 
 #### `config.action_view.field_error_proc`
 
-Provides an HTML generator for displaying errors that come from Active Model. The default is
+Provides an HTML generator for displaying errors that come from Active Model. The block is evaluated within
+the context of an Action View template. The default is
 
 ```ruby
-Proc.new do |html_tag, instance|
-  %Q(<div class="field_with_errors">#{html_tag}</div>).html_safe
-end
+Proc.new { |html_tag, instance| content_tag :div, html_tag, class: "field_with_errors" }
 ```
 
 #### `config.action_view.default_form_builder`
@@ -1093,6 +1127,10 @@ Accepts a logger conforming to the interface of Log4r or the default Ruby Logger
 #### `config.action_view.erb_trim_mode`
 
 Gives the trim mode to be used by ERB. It defaults to `'-'`, which turns on trimming of tail spaces and newline when using `<%= -%>` or `<%= =%>`. See the [Erubis documentation](http://www.kuwata-lab.com/erubis/users-guide.06.html#topics-trimspaces) for more information.
+
+#### `config.action_view.frozen_string_literal`
+
+Compiles the ERB template with the `# frozen_string_literal: true` magic comment, making all string literals frozen and saving allocations. Set to `true` to enable it for all views.
 
 #### `config.action_view.embed_authenticity_token_in_remote_forms`
 
@@ -1219,6 +1257,8 @@ Allows detailed configuration for the `:smtp` delivery method. It accepts a hash
 * `:ssl/:tls` - Enables the SMTP connection to use SMTP/TLS (SMTPS: SMTP over direct TLS connection).
 * `:open_timeout` - Number of seconds to wait while attempting to open a connection.
 * `:read_timeout` - Number of seconds to wait until timing-out a read(2) call.
+
+Additionally, it is possible to pass any [configuration option `Mail::SMTP` respects](https://github.com/mikel/mail/blob/master/lib/mail/network/delivery_methods/smtp.rb).
 
 #### `config.action_mailer.smtp_timeout`
 
@@ -1371,6 +1411,45 @@ Configures deprecation warnings that the Application considers disallowed. This 
 
 Allows you to disable all deprecation warnings (including disallowed deprecations); it makes `ActiveSupport::Deprecation.warn` a no-op. This is enabled by default in production.
 
+#### `config.active_support.isolation_level`
+
+Configures the locality of most of Rails internal state. If you use a fiber based server or job processor (e.g. `falcon`), you should set it to `:fiber`.
+Otherwise it is best to use `:thread` locality.
+
+#### `config.active_support.use_rfc4122_namespaced_uuids`
+
+Specifies whether generated namespaced UUIDs follow the RFC 4122 standard for namespace IDs provided as a `String` to `Digest::UUID.uuid_v3` or `Digest::UUID.uuid_v5` method calls.
+
+If set to `true`:
+
+* Only UUIDs are allowed as namespace IDs. If a namespace ID value provided is not allowed, an `ArgumentError` will be raised.
+* No deprecation warning will be generated, no matter if the namespace ID used is one of the constants defined on `Digest::UUID` or a `String`.
+* Namespace IDs are case-insensitive.
+* All generated namespaced UUIDs should be compliant to the standard.
+
+If set to `false`:
+
+* Any `String` value can be used as namespace ID (although not recommended). No `ArgumentError` will be raised in this case in order to preserve backwards-compatibility.
+* A deprecation warning will be generated if the namespace ID provided is not one of the constants defined on `Digest::UUID`.
+* Namespace IDs are case-sensitive.
+* Only namespaced UUIDs generated using one of the namespace ID constants defined on `Digest::UUID` are compliant to the standard.
+
+The default value is `true` for new apps. Upgraded apps will have that value set to `false` for backwards-compatibility.
+
+#### `config.active_support.executor_around_test_case`
+
+Configure the test suite to call `Rails.application.executor.wrap` around test cases.
+This makes test cases behave closer to an actual request or job.
+Several features that are normally disabled in test, such as Active Record query cache
+and asynchronous queries will then be enabled.
+
+#### `config.active_support.disable_to_s_conversion`
+
+Disables the override of the `#to_s` methods in some Ruby core classes. This config is for applications that want to
+take advantage early of a [Ruby 3.1 optimization](https://github.com/ruby/ruby/commit/b08dacfea39ad8da3f1fd7fdd0e4538cc892ec44).
+This configuration needs to be set in `config/application.rb` inside the application class, otherwise it will not take
+effect.
+
 #### `ActiveSupport::Logger.silencer`
 
 Is set to `false` to disable the ability to silence logging in a block. The default is `true`.
@@ -1459,11 +1538,6 @@ Controls if the arguments of a job are logged. Defaults to `true`.
 
 Controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs.
 
-#### `config.active_job.skip_after_callbacks_if_terminated`
-
-Controls whether `after_enqueue` / `after_perform` callbacks run when a
-`before_enqueue` / `before_perform` callback halts with `throw :abort`.
-
 #### `config.active_job.log_query_tags_around_perform`
 
 Determines whether job context for query tags will be automatically updated via
@@ -1535,7 +1609,7 @@ can transform through ImageMagick.
 By default, this is defined as:
 
 ```ruby
-config.active_storage.variable_content_types = %w(image/png image/gif image/jpg image/jpeg image/pjpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon image/webp image/avif image/heic image/heif)
+config.active_storage.variable_content_types = %w(image/png image/gif image/jpeg image/tiff image/vnd.adobe.photoshop image/vnd.microsoft.icon image/webp image/avif image/heic image/heif)
 ```
 
 #### `config.active_storage.web_image_content_types`
@@ -1547,7 +1621,7 @@ If you want to use `WebP` or `AVIF` variants in your application you can add
 By default, this is defined as:
 
 ```ruby
-config.active_storage.web_image_content_types = %w(image/png image/jpeg image/jpg image/gif)
+config.active_storage.web_image_content_types = %w(image/png image/jpeg image/gif)
 ```
 
 #### `config.active_storage.content_types_to_serve_as_binary`
@@ -1556,7 +1630,7 @@ Accepts an array of strings indicating the content types that Active Storage wil
 By default, this is defined as:
 
 ```ruby
-config.active_storage.content_types_to_serve_as_binary = %w(text/html text/javascript image/svg+xml application/postscript application/x-shockwave-flash text/xml application/xml application/xhtml+xml application/mathml+xml text/cache-manifest)
+config.active_storage.content_types_to_serve_as_binary = %w(text/html image/svg+xml application/postscript application/x-shockwave-flash text/xml application/xml application/xhtml+xml application/mathml+xml text/cache-manifest)
 ```
 
 #### `config.active_storage.content_types_allowed_inline`
@@ -1565,7 +1639,15 @@ Accepts an array of strings indicating the content types that Active Storage all
 By default, this is defined as:
 
 ```ruby
-config.active_storage.content_types_allowed_inline` = %w(image/png image/gif image/jpg image/jpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)
+config.active_storage.content_types_allowed_inline` = %w(image/png image/gif image/jpeg image/tiff image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)
+```
+
+#### `config.active_storage.silence_invalid_content_types_warning`
+
+Since Rails 7, Active Storage will warn if you use an invalid content type that was incorrectly supported in Rails 6. You can use this config to turn the warning off.
+
+```ruby
+config.active_storage.silence_invalid_content_types_warning = false
 ```
 
 #### `config.active_storage.queues.analysis`
@@ -1660,6 +1742,13 @@ config.active_storage.video_preview_arguments = "-vf 'select=eq(n\\,0)+eq(key\\,
 1. `select=eq(n\,0)+eq(key\,1)+gt(scene\,0.015)`: Select the first video frame, plus keyframes, plus frames that meet the scene change threshold.
 2. `loop=loop=-1:size=2,trim=start_frame=1`: To use the first video frame as a fallback when no other frames meet the criteria, loop the first (one or) two selected frames, then drop the first looped frame.
 
+#### `config.active_storage.multiple_file_field_include_hidden`
+
+In Rails 7.1 and beyond, Active Storage `has_many_attached` relationships will
+default to _replacing_ the current collection instead of _appending_ to it. To
+support submitting an _empty_ collection, render an auxiliary hidden field
+similar to how Action View Form Builder render checkbox elements.
+
 ### Configuring Action Text
 
 #### `config.action_text.attachment_tag_name`
@@ -1670,6 +1759,9 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 
 `config.load_defaults` sets new defaults up to and including the version passed. Such that passing, say, `6.0` also gets the new defaults from every version before it.
 
+#### For '7.1', defaults from previous versions below and:
+
+
 #### For '7.0', defaults from previous versions below and:
 
 - `config.action_controller.raise_on_open_redirects`: `true`
@@ -1679,12 +1771,28 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.active_support.hash_digest_class`: `OpenSSL::Digest::SHA256`
 - `config.active_support.cache_format_version`: `7.0`
 - `config.active_support.remove_deprecated_time_with_zone_name`: `true`
+- `config.active_support.executor_around_test_case`: `true`
+- `config.active_support.use_rfc4122_namespaced_uuids`: `true`
+- `config.active_support.disable_to_s_conversion`: `true`
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `false`
-- `config.action_controller.silence_disabled_session_errors`: `false`
 - `config.action_mailer.smtp_timeout`: `5`
 - `config.active_storage.video_preview_arguments`: `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
+- `config.active_storage.multiple_file_field_include_hidden`: `true`
+- `config.active_record.automatic_scope_inversing`: `true`
 - `config.active_record.verify_foreign_keys_for_fixtures`: `true`
+- `config.active_record.partial_inserts`: `false`
 - `config.active_storage.variant_processor`: `:vips`
+- `config.action_controller.wrap_parameters_by_default`: `true`
+- `config.action_dispatch.default_headers`:
+
+    {
+      "X-Frame-Options" => "SAMEORIGIN",
+      "X-XSS-Protection" => "0",
+      "X-Content-Type-Options" => "nosniff",
+      "X-Download-Options" => "noopen",
+      "X-Permitted-Cross-Domain-Policies" => "none",
+      "Referrer-Policy" => "strict-origin-when-cross-origin"
+    }
 
 #### For '6.1', defaults from previous versions below and:
 
@@ -1697,7 +1805,6 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.action_mailbox.queues.routing`: `nil`
 - `config.action_mailer.deliver_later_queue_name`: `nil`
 - `config.active_job.retry_jitter`: `0.15`
-- `config.active_job.skip_after_callbacks_if_terminated`: `true`
 - `config.action_dispatch.cookies_same_site_protection`: `:lax`
 - `config.action_dispatch.ssl_default_redirect_status` = `308`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `true`
@@ -1744,13 +1851,12 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.action_controller.raise_on_open_redirects`: `false`
 - `config.action_controller.urlsafe_csrf_tokens`: `false`
 - `config.action_dispatch.cookies_same_site_protection`: `nil`
-- `config.action_mailer.delivery_job`: `ActionMailer::DeliveryJob`
+- `config.action_mailer.delivery_job`: `ActionMailer::MailDeliveryJob`
 - `config.action_view.form_with_generates_ids`: `false`
 - `config.action_view.preload_links_header`: `nil`
 - `config.action_view.button_to_generates_button_tag`: `false`
 - `config.action_view.apply_stylesheet_media_default`: `true`
 - `config.active_job.retry_jitter`: `0.0`
-- `config.active_job.skip_after_callbacks_if_terminated`: `false`
 - `config.action_mailbox.queues.incineration`: `:action_mailbox_incineration`
 - `config.action_mailbox.queues.routing`: `:action_mailbox_routing`
 - `config.action_mailer.deliver_later_queue_name`: `:mailers`
@@ -1762,11 +1868,27 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.active_support.hash_digest_class`: `OpenSSL::Digest::MD5`
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA1`
 - `config.active_support.cache_format_version`: `6.1`
+- `config.active_support.executor_around_test_case`: `false`
+- `config.active_support.isolation_level`: `:thread`
+- `config.active_support.use_rfc4122_namespaced_uuids`: `false`
+- `config.active_support.disable_to_s_conversion`: `false`
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `true`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
 - `config.action_mailer.smtp_timeout`: `nil`
 - `config.active_storage.video_preview_arguments`: `"-y -vframes 1 -f image2"`
+- `config.active_storage.multiple_file_field_include_hidden`: `false`
 - `config.active_storage.variant_processor`: `:mini_magick`
+- `config.action_controller.wrap_parameters_by_default`: `false`
+- `config.action_dispatch.default_headers`:
+
+    {
+      "X-Frame-Options" => "SAMEORIGIN",
+      "X-XSS-Protection" => "1; mode=block",
+      "X-Content-Type-Options" => "nosniff",
+      "X-Download-Options" => "noopen",
+      "X-Permitted-Cross-Domain-Policies" => "none",
+      "Referrer-Policy" => "strict-origin-when-cross-origin"
+    }
 
 ### Configuring a Database
 

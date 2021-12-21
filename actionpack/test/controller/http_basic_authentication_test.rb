@@ -112,6 +112,11 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     assert_no_match(/\n/, result)
   end
 
+  test "has_basic_credentials? should fail with credentials without colon" do
+    @request.env["HTTP_AUTHORIZATION"] = "Basic #{::Base64.encode64("David Goliath")}"
+    assert_not ActionController::HttpAuthentication::Basic.has_basic_credentials?(@request)
+  end
+
   test "successful authentication with uppercase authorization scheme" do
     @request.env["HTTP_AUTHORIZATION"] = "BASIC #{::Base64.encode64("lifo:world")}"
     get :index

@@ -31,7 +31,7 @@ module ActiveRecord
     #
     #   Article.group(:status, :category).count
     #   # =>  {["draft", "business"]=>10, ["draft", "technology"]=>4,
-    #          ["published", "business"]=>0, ["published", "technology"]=>2}
+    #   #      ["published", "business"]=>0, ["published", "technology"]=>2}
     #
     # If #count is used with {Relation#select}[rdoc-ref:QueryMethods#select], it will count the selected columns:
     #
@@ -329,15 +329,6 @@ module ActiveRecord
         group_fields = group_values
         group_fields = group_fields.uniq if group_fields.size > 1
 
-        unless group_fields == group_values
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            `#{operation}` with group by duplicated fields does no longer affect to result in Rails 7.0.
-            To migrate to Rails 7.0's behavior, use `uniq!(:group)` to deduplicate group fields
-            (`#{klass.name&.tableize || klass.table_name}.uniq!(:group).#{operation}(#{column_name.inspect})`).
-          MSG
-          group_fields = group_values
-        end
-
         if group_fields.size == 1 && group_fields.first.respond_to?(:to_sym)
           association  = klass._reflect_on_association(group_fields.first)
           associated   = association && association.belongs_to? # only count belongs_to associations
@@ -354,12 +345,13 @@ module ActiveRecord
         column = aggregate_column(column_name)
         column_alias = column_alias_for("#{operation} #{column_name.to_s.downcase}")
         select_value = operation_over_aggregate_column(column, operation, distinct)
-        select_value.as(column_alias)
+        select_value.as(connection.quote_column_name(column_alias))
 
         select_values = [select_value]
         select_values += self.select_values unless having_clause.empty?
 
         select_values.concat group_columns.map { |aliaz, field|
+          aliaz = connection.quote_column_name(aliaz)
           if field.respond_to?(:as)
             field.as(aliaz)
           else

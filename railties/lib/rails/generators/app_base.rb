@@ -58,8 +58,10 @@ module Rails
         class_option :skip_action_cable,   type: :boolean, aliases: "-C", default: false,
                                            desc: "Skip Action Cable files"
 
-        class_option :skip_sprockets,      type: :boolean, aliases: "-S", default: false,
-                                           desc: "Skip Sprockets files"
+        class_option :skip_asset_pipeline, type: :boolean, aliases: "-A", default: false
+
+        class_option :asset_pipeline,      type: :string, aliases: "-a", default: "sprockets",
+                                           desc: "Choose your asset pipeline [options: sprockets (default), propshaft]"
 
         class_option :skip_javascript,     type: :boolean, aliases: "-J", default: name == "plugin",
                                            desc: "Skip JavaScript files"
@@ -98,7 +100,8 @@ module Rails
                                            desc: "Show this help message and quit"
       end
 
-      def initialize(*)
+      def initialize(positional_argv, option_argv, *)
+        @argv = [*positional_argv, *option_argv]
         @gem_filter = lambda { |gem| true }
         super
       end
@@ -106,6 +109,7 @@ module Rails
     private
       def gemfile_entries # :doc:
         [rails_gemfile_entry,
+         asset_pipeline_gemfile_entry,
          database_gemfile_entry,
          web_server_gemfile_entry,
          javascript_gemfile_entry,
@@ -148,7 +152,7 @@ module Rails
           when /^https?:\/\//
             options[:template]
           when String
-            File.expand_path(options[:template], Dir.pwd)
+            File.expand_path(`echo #{options[:template]}`.strip)
           else
             options[:template]
           end
@@ -165,13 +169,23 @@ module Rails
         GemfileEntry.new "puma", "~> 5.0", "Use the Puma web server [https://github.com/puma/puma]"
       end
 
+      def asset_pipeline_gemfile_entry
+        return if options[:skip_asset_pipeline]
+
+        if options[:asset_pipeline] == "sprockets"
+          GemfileEntry.floats "sprockets-rails",
+            "The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]"
+        elsif options[:asset_pipeline] == "propshaft"
+          GemfileEntry.floats "propshaft", "The modern asset pipeline for Rails [https://github.com/rails/propshaft]"
+        end
+      end
+
       def include_all_railties? # :doc:
         [
           options.values_at(
             :skip_active_record,
             :skip_action_mailer,
             :skip_test,
-            :skip_sprockets,
             :skip_action_cable,
             :skip_active_job
           ),
@@ -218,6 +232,11 @@ module Rails
         options[:skip_dev_gems]
       end
 
+      def skip_sprockets?
+        options[:skip_asset_pipeline] || options[:asset_pipeline] != "sprockets"
+      end
+
+
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
         def initialize(name, version, comment, options = {}, commented_out = false)
           super
@@ -235,6 +254,10 @@ module Rails
           new(name, version, comment)
         end
 
+        def self.floats(name, comment = nil)
+          new(name, nil, comment)
+        end
+
         def self.path(name, path, comment = nil)
           new(name, nil, comment, path: path)
         end
@@ -248,26 +271,30 @@ module Rails
             version
           end
         end
+
+        def to_s
+          [ ("# #{comment}\n" if comment),
+            ("# " if commented_out), "gem \"#{name}\"", (", \"#{version}\"" if version),
+            *options.map { |key, val| ", #{key}: #{val.inspect}" }
+          ].compact.join
+        end
+      end
+
+      def rails_prerelease?
+        options.dev? || options.edge? || options.main?
       end
 
       def rails_gemfile_entry
         if options.dev?
-          [
-            GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH, "Use local checkout of Rails")
-          ]
+          GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH, "Use local checkout of Rails")
         elsif options.edge?
           edge_branch = Rails.gem_version.prerelease? ? "main" : [*Rails.gem_version.segments.first(2), "stable"].join("-")
-          [
-            GemfileEntry.github("rails", "rails/rails", edge_branch, "Use specific branch of Rails")
-          ]
+          GemfileEntry.github("rails", "rails/rails", edge_branch, "Use specific branch of Rails")
         elsif options.main?
-          [
-            GemfileEntry.github("rails", "rails/rails", "main", "Use main development branch of Rails")
-          ]
+          GemfileEntry.github("rails", "rails/rails", "main", "Use main development branch of Rails")
         else
-          [GemfileEntry.version("rails",
-                            rails_version_specifier,
-                            %(Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"))]
+          GemfileEntry.version("rails", rails_version_specifier,
+            %(Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"))
         end
       end
 
@@ -286,17 +313,16 @@ module Rails
 
       def jbuilder_gemfile_entry
         return [] if options[:skip_jbuilder]
-        comment = "Build JSON APIs with ease [https://github.com/rails/jbuilder]"
-        GemfileEntry.new "jbuilder", "~> 2.7", comment, {}, options[:api]
+        GemfileEntry.new "jbuilder", nil, "Build JSON APIs with ease [https://github.com/rails/jbuilder]", {}, options[:api]
       end
 
       def javascript_gemfile_entry
         return [] if options[:skip_javascript]
 
-        if options[:javascript] == "importmap"
-          GemfileEntry.version("importmap-rails", ">= 0.3.4", "Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]")
+        if adjusted_javascript_option == "importmap"
+          GemfileEntry.floats "importmap-rails", "Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]"
         else
-          GemfileEntry.version "jsbundling-rails", "~> 0.1.0", "Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]"
+          GemfileEntry.floats "jsbundling-rails", "Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]"
         end
       end
 
@@ -304,10 +330,10 @@ module Rails
         return [] if options[:skip_javascript] || options[:skip_hotwire]
 
         turbo_rails_entry =
-          GemfileEntry.version("turbo-rails", ">= 0.7.11", "Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]")
+          GemfileEntry.floats "turbo-rails", "Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]"
 
         stimulus_rails_entry =
-          GemfileEntry.version("stimulus-rails", ">= 0.4.0", "Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]")
+          GemfileEntry.floats "stimulus-rails", "Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]"
 
         [ turbo_rails_entry, stimulus_rails_entry ]
       end
@@ -316,13 +342,23 @@ module Rails
         options[:javascript] && options[:javascript] != "importmap"
       end
 
+      # CSS processors other than Tailwind require a node-based JavaScript environment. So overwrite the normal JS default
+      # if one such processor has been specified.
+      def adjusted_javascript_option
+        if options[:css] && options[:css] != "tailwind" && options[:javascript] == "importmap"
+          "esbuild"
+        else
+          options[:javascript]
+        end
+      end
+
       def css_gemfile_entry
         return [] unless options[:css]
 
         if !using_node? && options[:css] == "tailwind"
-          GemfileEntry.version("tailwindcss-rails", ">= 0.4.3", "Use Tailwind CSS [https://github.com/rails/tailwindcss-rails]")
+          GemfileEntry.floats "tailwindcss-rails", "Use Tailwind CSS [https://github.com/rails/tailwindcss-rails]"
         else
-          GemfileEntry.version("cssbundling-rails", ">= 0.1.0", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]")
+          GemfileEntry.floats "cssbundling-rails", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]"
         end
       end
 
@@ -380,6 +416,28 @@ module Rails
         !options[:skip_bootsnap] && !options[:dev] && !defined?(JRUBY_VERSION)
       end
 
+      def target_rails_prerelease(self_command = "new")
+        return unless rails_prerelease? && bundle_install?
+
+        if !File.exist?(File.expand_path("Gemfile", destination_root))
+          create_file("Gemfile", <<~GEMFILE)
+            source "https://rubygems.org"
+            git_source(:github) { |repo| "https://github.com/\#{repo}.git" }
+            #{rails_gemfile_entry}
+          GEMFILE
+
+          run_bundle
+
+          @argv[0] = destination_root
+          require "shellwords"
+          bundle_command("exec rails #{self_command} #{Shellwords.join(@argv)}")
+          exit
+        else
+          remove_file("Gemfile")
+          remove_file("Gemfile.lock")
+        end
+      end
+
       def run_bundle
         bundle_command("install", "BUNDLE_IGNORE_MESSAGES" => "1") if bundle_install?
       end
@@ -387,9 +445,9 @@ module Rails
       def run_javascript
         return if options[:skip_javascript] || !bundle_install?
 
-        case options[:javascript]
+        case adjusted_javascript_option
         when "importmap"                    then rails_command "importmap:install"
-        when "webpack", "esbuild", "rollup" then rails_command "javascript:install:#{options[:javascript]}"
+        when "webpack", "esbuild", "rollup" then rails_command "javascript:install:#{adjusted_javascript_option}"
         end
       end
 

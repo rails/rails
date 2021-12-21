@@ -820,6 +820,11 @@ module ActionDispatch
 
         route_with_params = generate(route_name, path_options, recall)
         path = route_with_params.path(method_name)
+
+        if options[:trailing_slash] && !options[:format] && !path.end_with?("/")
+          path += "/"
+        end
+
         params = route_with_params.params
 
         if options.key? :params

@@ -129,8 +129,8 @@ module ActionView
         lookup_context.formats = [format.to_sym] if format.to_sym
       end
 
-      # Normalize args by converting render "foo" to render :action => "foo" and
-      # render "foo/bar" to render :template => "foo/bar".
+      # Normalize args by converting render "foo" to render action: "foo" and
+      # render "foo/bar" to render template: "foo/bar".
       def _normalize_args(action = nil, options = {})
         options = super(action, options)
         case action

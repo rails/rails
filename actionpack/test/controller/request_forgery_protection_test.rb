@@ -103,6 +103,24 @@ class RequestForgeryProtectionControllerUsingNullSession < ActionController::Bas
   end
 end
 
+class RequestForgeryProtectionControllerUsingCustomStrategy < ActionController::Base
+  include RequestForgeryProtectionActions
+
+  class FakeException < Exception; end
+
+  class CustomStrategy
+    def initialize(controller)
+      @controller = controller
+    end
+
+    def handle_unverified_request
+      raise FakeException, "Raised a fake exception."
+    end
+  end
+
+  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: CustomStrategy
+end
+
 class PrependProtectForgeryBaseController < ActionController::Base
   before_action :custom_action
   attr_accessor :called_callbacks
@@ -175,15 +193,12 @@ end
 # common test methods
 module RequestForgeryProtectionTests
   def setup
-    @old_urlsafe_csrf_tokens = ActionController::Base.urlsafe_csrf_tokens
-    ActionController::Base.urlsafe_csrf_tokens = true
     @token = Base64.urlsafe_encode64("railstestrailstestrailstestrails")
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
 
   def teardown
-    ActionController::Base.urlsafe_csrf_tokens = @old_urlsafe_csrf_tokens
     ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
   end
 
@@ -390,8 +405,9 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_allow_post_with_urlsafe_token_when_migrating
-    config_before = ActionController::Base.urlsafe_csrf_tokens
-    ActionController::Base.urlsafe_csrf_tokens = false
+    ActiveSupport::Deprecation.silence do
+      ActionController::Base.urlsafe_csrf_tokens = false
+    end
     token_length = (ActionController::RequestForgeryProtection::AUTHENTICITY_TOKEN_LENGTH * 4.0 / 3).ceil
     token_including_url_safe_chars = "-_".ljust(token_length, "A")
     session[:_csrf_token] = token_including_url_safe_chars
@@ -399,7 +415,18 @@ module RequestForgeryProtectionTests
       assert_not_blocked { post :index, params: { custom_authenticity_token: token_including_url_safe_chars } }
     end
   ensure
-    ActionController::Base.urlsafe_csrf_tokens = config_before
+    ActiveSupport::Deprecation.silence do
+      ActionController::Base.urlsafe_csrf_tokens = true
+    end
+  end
+
+  def test_should_warn_about_deprecation_for_urlsafe_config
+    assert_deprecated do
+      ActionController::Base.urlsafe_csrf_tokens = false
+    end
+    assert_deprecated do
+      ActionController::Base.urlsafe_csrf_tokens = true
+    end
   end
 
   def test_should_allow_patch_with_token
@@ -699,6 +726,7 @@ end
 
 class RequestForgeryProtectionControllerUsingExceptionTest < ActionController::TestCase
   include RequestForgeryProtectionTests
+
   def assert_blocked(&block)
     assert_raises(ActionController::InvalidAuthenticityToken, &block)
   end
@@ -717,6 +745,14 @@ class RequestForgeryProtectionControllerUsingExceptionTest < ActionController::T
         )
       end
     end
+  end
+end
+
+class RequestForgeryProtectionControllerUsingCustomStrategyTest < ActionController::TestCase
+  include RequestForgeryProtectionTests
+
+  def assert_blocked(&block)
+    assert_raises(RequestForgeryProtectionControllerUsingCustomStrategy::FakeException, &block)
   end
 end
 

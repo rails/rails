@@ -125,6 +125,7 @@ module ActiveRecord
         string:      { name: "character varying" },
         text:        { name: "text" },
         integer:     { name: "integer", limit: 4 },
+        bigint:      { name: "bigint" },
         float:       { name: "float" },
         decimal:     { name: "decimal" },
         datetime:    {}, # set dynamically based on datetime_type
@@ -163,6 +164,7 @@ module ActiveRecord
         money:       { name: "money" },
         interval:    { name: "interval" },
         oid:         { name: "oid" },
+        enum:        {} # special type https://www.postgresql.org/docs/current/datatype-enum.html
       }
 
       OID = PostgreSQL::OID # :nodoc:
@@ -205,6 +207,10 @@ module ActiveRecord
       end
 
       def supports_validate_constraints?
+        true
+      end
+
+      def supports_deferrable_constraints?
         true
       end
 
@@ -448,6 +454,38 @@ module ActiveRecord
         exec_query("SELECT extname FROM pg_extension", "SCHEMA").cast_values
       end
 
+      # Returns a list of defined enum types, and their values.
+      def enum_types
+        query = <<~SQL
+          SELECT
+            type.typname AS name,
+            string_agg(enum.enumlabel, ',' ORDER BY enum.enumsortorder) AS value
+          FROM pg_enum AS enum
+          JOIN pg_type AS type
+            ON (type.oid = enum.enumtypid)
+          GROUP BY type.typname;
+        SQL
+        exec_query(query, "SCHEMA").cast_values
+      end
+
+      # Given a name and an array of values, creates an enum type.
+      def create_enum(name, values)
+        sql_values = values.map { |s| "'#{s}'" }.join(", ")
+        query = <<~SQL
+          DO $$
+          BEGIN
+              IF NOT EXISTS (
+                SELECT 1 FROM pg_type t
+                WHERE t.typname = '#{name}'
+              ) THEN
+                  CREATE TYPE \"#{name}\" AS ENUM (#{sql_values});
+              END IF;
+          END
+          $$;
+        SQL
+        exec_query(query)
+      end
+
       # Returns the configured supported identifier length supported by PostgreSQL
       def max_identifier_length
         @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
@@ -537,10 +575,6 @@ module ActiveRecord
           m.register_type "polygon", OID::SpecializedString.new(:polygon)
           m.register_type "circle", OID::SpecializedString.new(:circle)
 
-          register_class_with_precision m, "time", Type::Time
-          register_class_with_precision m, "timestamp", OID::Timestamp
-          register_class_with_precision m, "timestamptz", OID::TimestampWithTimeZone
-
           m.register_type "numeric" do |_, fmod, sql_type|
             precision = extract_precision(sql_type)
             scale = extract_scale(sql_type)
@@ -575,6 +609,11 @@ module ActiveRecord
 
         def initialize_type_map(m = type_map)
           self.class.initialize_type_map(m)
+
+          self.class.register_class_with_precision m, "time", Type::Time, timezone: @default_timezone
+          self.class.register_class_with_precision m, "timestamp", OID::Timestamp, timezone: @default_timezone
+          self.class.register_class_with_precision m, "timestamptz", OID::TimestampWithTimeZone
+
           load_additional_types
         end
 
@@ -834,7 +873,7 @@ module ActiveRecord
           # If using Active Record's time zone support configure the connection to return
           # TIMESTAMP WITH ZONE types in UTC.
           unless variables["timezone"]
-            if ActiveRecord.default_timezone == :utc
+            if default_timezone == :utc
               variables["timezone"] = "UTC"
             elsif @local_tz
               variables["timezone"] = @local_tz
@@ -934,15 +973,15 @@ module ActiveRecord
         end
 
         def update_typemap_for_default_timezone
-          if @default_timezone != ActiveRecord.default_timezone && @timestamp_decoder
-            decoder_class = ActiveRecord.default_timezone == :utc ?
+          if @mapped_default_timezone != default_timezone && @timestamp_decoder
+            decoder_class = default_timezone == :utc ?
               PG::TextDecoder::TimestampUtc :
               PG::TextDecoder::TimestampWithoutTimeZone
 
             @timestamp_decoder = decoder_class.new(@timestamp_decoder.to_h)
             @connection.type_map_for_results.add_coder(@timestamp_decoder)
 
-            @default_timezone = ActiveRecord.default_timezone
+            @mapped_default_timezone = default_timezone
 
             # if default timezone has changed, we need to reconfigure the connection
             # (specifically, the session time zone)
@@ -951,7 +990,7 @@ module ActiveRecord
         end
 
         def add_pg_decoders
-          @default_timezone = nil
+          @mapped_default_timezone = nil
           @timestamp_decoder = nil
 
           coders_by_name = {

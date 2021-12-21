@@ -358,6 +358,8 @@ The SQL equivalent of the above is:
 SELECT * FROM customers WHERE (customers.first_name = 'Lifo') LIMIT 1
 ```
 
+Note that there is no `ORDER BY` in the above SQL.  If your `find_by` conditions can match multiple records, you should [apply an order](#ordering) to guarantee a deterministic result.
+
 The [`find_by!`][] method behaves exactly like `find_by`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found. For example:
 
 ```irb
@@ -1726,7 +1728,7 @@ irb> Book.all
 SELECT books.* FROM books WHERE (year_published >= 1969)
 
 irb> Book.in_print
-SELECT books.* FROM books WHERE (year_published >= 1969) AND books.out_of_print = true
+SELECT books.* FROM books WHERE (year_published >= 1969) AND books.out_of_print = false
 
 irb> Book.where('price > 50')
 SELECT books.* FROM books WHERE (year_published >= 1969) AND (price > 50)
@@ -2176,12 +2178,16 @@ You can also use `any?` and `many?` to check for existence on a model or relatio
 
 ```ruby
 # via a model
-Order.any?   # => SELECT 1 AS one FROM orders
-Order.many?  # => SELECT COUNT(*) FROM orders
+Order.any?
+# => SELECT 1 FROM orders LIMIT 1
+Order.many?
+# => SELECT COUNT(*) FROM (SELECT 1 FROM orders LIMIT 2)
 
 # via a named scope
-Order.shipped.any?   # => SELECT 1 AS one FROM orders WHERE orders.status = 0
-Order.shipped.many?  # => SELECT COUNT(*) FROM orders WHERE orders.status = 0
+Order.shipped.any?
+# => SELECT 1 FROM orders WHERE orders.status = 0 LIMIT 1
+Order.shipped.many?
+# => SELECT COUNT(*) FROM (SELECT 1 FROM orders WHERE orders.status = 0 LIMIT 2)
 
 # via a relation
 Book.where(out_of_print: true).any?

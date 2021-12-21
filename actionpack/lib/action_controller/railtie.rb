@@ -12,6 +12,7 @@ module ActionController
     config.action_controller = ActiveSupport::OrderedOptions.new
     config.action_controller.raise_on_open_redirects = false
     config.action_controller.log_query_tags_around_actions = true
+    config.action_controller.wrap_parameters_by_default = false
 
     config.eager_load_namespaces << ActionController
 
@@ -62,15 +63,18 @@ module ActionController
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
         extend ::ActionController::Railties::Helpers
 
+        wrap_parameters format: [:json] if options.wrap_parameters_by_default && respond_to?(:wrap_parameters)
+
         # Configs used in other initializers
-        options = options.except(
+        filtered_options = options.except(
           :log_query_tags_around_actions,
           :permit_all_parameters,
           :action_on_unpermitted_parameters,
-          :always_permitted_parameters
+          :always_permitted_parameters,
+          :wrap_parameters_by_default
         )
 
-        options.each do |k, v|
+        filtered_options.each do |k, v|
           k = "#{k}="
           if respond_to?(k)
             send(k, v)
@@ -109,17 +113,19 @@ module ActionController
       if query_logs_tags_enabled
         app.config.active_record.query_log_tags += [:controller, :action]
 
-        ActiveSupport.on_load(:action_controller) do
-          include ActionController::QueryTags
-        end
-
         ActiveSupport.on_load(:active_record) do
           ActiveRecord::QueryLogs.taggings.merge!(
-            controller:            ->(context) { context[:controller].controller_name },
-            action:                ->(context) { context[:controller].action_name },
-            namespaced_controller: ->(context) { context[:controller].class.name }
+            controller:            ->(context) { context[:controller]&.controller_name },
+            action:                ->(context) { context[:controller]&.action_name },
+            namespaced_controller: ->(context) { context[:controller].class.name if context[:controller] }
           )
         end
+      end
+    end
+
+    initializer "action_controller.test_case" do |app|
+      ActiveSupport.on_load(:action_controller_test_case) do
+        ActionController::TestCase.executor_around_each_request = app.config.active_support.executor_around_test_case
       end
     end
   end

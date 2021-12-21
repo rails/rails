@@ -425,21 +425,21 @@ module ApplicationTests
         assert_match(/up\s+002\s+Two migration/, output)
       end
 
-      test "schema generation when dump_schema_after_migration and schema_dump are true" do
+      test "schema generation when dump_schema_after_migration and schema_dump are set" do
         add_to_config("config.active_record.dump_schema_after_migration = true")
 
         app_file "config/database.yml", <<~EOS
           development:
             adapter: sqlite3
             database: 'dev_db'
-            schema_dump: true
+            schema_dump: "schema_file.rb"
         EOS
 
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
           rails "db:migrate"
 
-          assert File.exist?("db/schema.rb"), "should dump schema when configured to"
+          assert File.exist?("db/schema_file.rb"), "should dump schema when configured to"
         end
       end
 

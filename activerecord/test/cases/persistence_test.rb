@@ -305,7 +305,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_predicate company, :valid?
     original_errors = company.errors
     client = company.becomes(Client)
-    assert_equal assert_deprecated { original_errors.keys }, assert_deprecated { client.errors.keys }
+    assert_equal original_errors.attribute_names, client.errors.attribute_names
   end
 
   def test_becomes_errors_base
@@ -319,7 +319,7 @@ class PersistenceTest < ActiveRecord::TestCase
     admin.errors.add :token, :invalid
     child = admin.becomes(child_class)
 
-    assert_equal [:token], assert_deprecated { child.errors.keys }
+    assert_equal [:token], child.errors.attribute_names
     assert_nothing_raised do
       child.errors.add :foo, :invalid
     end

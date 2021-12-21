@@ -370,12 +370,9 @@ module ActiveRecord
       end
 
       TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
+      EXTENDED_TYPE_MAPS = Concurrent::Map.new
 
       private
-        def type_map
-          TYPE_MAP
-        end
-
         # See https://www.sqlite.org/limits.html,
         # the default value is 999 when not configured.
         def bind_params_length

@@ -387,20 +387,22 @@ module ActiveRecord
         attribute_names.index_with { |name| @attributes[name] }
       end
 
-      # Filters the primary keys and readonly attributes from the attribute names.
+      # Filters the primary keys, readonly attributes and virtual columns from the attribute names.
       def attributes_for_update(attribute_names)
         attribute_names &= self.class.column_names
         attribute_names.delete_if do |name|
-          self.class.readonly_attribute?(name)
+          self.class.readonly_attribute?(name) ||
+            column_for_attribute(name).virtual?
         end
       end
 
-      # Filters out the primary keys, from the attribute names, when the primary
+      # Filters out the virtual columns and also primary keys, from the attribute names, when the primary
       # key is to be generated (e.g. the id attribute has no value).
       def attributes_for_create(attribute_names)
         attribute_names &= self.class.column_names
         attribute_names.delete_if do |name|
-          pk_attribute?(name) && id.nil?
+          (pk_attribute?(name) && id.nil?) ||
+            column_for_attribute(name).virtual?
         end
       end
 
@@ -411,7 +413,7 @@ module ActiveRecord
           inspected_value = if value.is_a?(String) && value.length > 50
             "#{value[0, 50]}...".inspect
           elsif value.is_a?(Date) || value.is_a?(Time)
-            %("#{value.to_s(:inspect)}")
+            %("#{value.to_formatted_s(:inspect)}")
           else
             value.inspect
           end

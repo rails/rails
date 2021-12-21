@@ -432,9 +432,14 @@ module ActiveRecord
       references = column_references([column])
       self.references_values |= references unless references.empty?
 
-      column = order_column(column.to_s) if column.is_a?(Symbol)
+      if values.empty?
+        spawn.order!(column)
+      else
+        values = values.map { |value| type_caster.type_cast_for_database(column, value) }
 
-      spawn.order!(connection.field_ordered_value(column, values))
+        arel_column = column.is_a?(Symbol) ? order_column(column.to_s) : column
+        spawn.order!(connection.field_ordered_value(arel_column, values), column)
+      end
     end
 
     # Replaces any existing order defined on the relation with the specified order.
@@ -448,14 +453,14 @@ module ActiveRecord
     # generates a query with 'ORDER BY id ASC, name ASC'.
     def reorder(*args)
       check_if_method_has_arguments!(__callee__, args) do
-        sanitize_order_arguments(args) unless args.all?(&:blank?)
+        sanitize_order_arguments(args)
       end
       spawn.reorder!(*args)
     end
 
     # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
-      preprocess_order_args(args) unless args.all?(&:blank?)
+      preprocess_order_args(args)
       args.uniq!
       self.reordering_value = true
       self.order_values = args
@@ -1339,14 +1344,6 @@ module ActiveRecord
         unless annotate_values.empty?
           annotates = annotate_values
           annotates = annotates.uniq if annotates.size > 1
-          unless annotates == annotate_values
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Duplicated query annotations are no longer shown in queries in Rails 7.0.
-              To migrate to Rails 7.0's behavior, use `uniq!(:annotate)` to deduplicate query annotations
-              (`#{klass.name&.tableize || klass.table_name}.uniq!(:annotate)`).
-            MSG
-            annotates = annotate_values
-          end
           arel.comment(*annotates)
         end
 
@@ -1606,8 +1603,6 @@ module ActiveRecord
         order_args.map! do |arg|
           klass.sanitize_sql_for_order(arg)
         end
-        order_args.flatten!
-        order_args.compact_blank!
       end
 
       def column_references(order_args)
@@ -1676,9 +1671,9 @@ module ActiveRecord
       def check_if_method_has_arguments!(method_name, args, message = nil)
         if args.blank?
           raise ArgumentError, message || "The method .#{method_name}() must contain arguments."
-        elsif block_given?
-          yield args
         else
+          yield args if block_given?
+
           args.flatten!
           args.compact_blank!
         end

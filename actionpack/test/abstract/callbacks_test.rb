@@ -308,5 +308,190 @@ module AbstractController
         assert_equal "Hello world Howdy!", controller.response_body
       end
     end
+
+    class TestCallbacksWithMissingConditions < ActiveSupport::TestCase
+      class CallbacksWithMissingOnly < ControllerWithCallbacks
+        before_action :callback, only: :showw
+
+        def index
+        end
+
+        def show
+        end
+
+        private
+          def callback
+          end
+      end
+
+      test "callbacks raise exception when their 'only' condition is a missing action" do
+        with_raise_on_missing_callback_actions do
+          controller = CallbacksWithMissingOnly.new
+          assert_raises(AbstractController::ActionNotFound) do
+            controller.process(:index)
+          end
+        end
+      end
+
+      class CallbacksWithMissingOnlyInArray < ControllerWithCallbacks
+        before_action :callback, only: [:index, :showw]
+
+        def index
+        end
+
+        def show
+        end
+
+        private
+          def callback
+          end
+      end
+
+      test "callbacks raise exception when their 'only' array condition contains a missing action" do
+        with_raise_on_missing_callback_actions do
+          controller = CallbacksWithMissingOnlyInArray.new
+          assert_raises(AbstractController::ActionNotFound) do
+            controller.process(:index)
+          end
+        end
+      end
+
+      class CallbacksWithMissingExcept < ControllerWithCallbacks
+        before_action :callback, except: :showw
+
+        def index
+        end
+
+        def show
+        end
+
+        private
+          def callback
+          end
+      end
+
+      test "callbacks raise exception when their 'except' condition is a missing action" do
+        with_raise_on_missing_callback_actions do
+          controller = CallbacksWithMissingExcept.new
+          assert_raises(AbstractController::ActionNotFound) do
+            controller.process(:index)
+          end
+        end
+      end
+
+      class CallbacksWithMissingExceptInArray < ControllerWithCallbacks
+        before_action :callback, except: [:index, :showw]
+
+        def index
+        end
+
+        def show
+        end
+
+        private
+          def callback
+          end
+      end
+
+      test "callbacks raise exception when their 'except' array condition contains a missing action" do
+        with_raise_on_missing_callback_actions do
+          controller = CallbacksWithMissingExceptInArray.new
+          assert_raises(AbstractController::ActionNotFound) do
+            controller.process(:index)
+          end
+        end
+      end
+
+      class MultipleCallbacksWithMissingOnly < ControllerWithCallbacks
+        before_action :callback1, :callback2, ->() { }, only: :showw
+
+        def index
+        end
+
+        def show
+        end
+
+        private
+          def callback1
+          end
+
+          def callback2
+          end
+      end
+
+      test "raised exception message includes the names of callback actions and missing conditional action" do
+        with_raise_on_missing_callback_actions do
+          controller = MultipleCallbacksWithMissingOnly.new
+          error = assert_raises(AbstractController::ActionNotFound) do
+            controller.process(:index)
+          end
+
+          assert_includes error.message, ":callback1"
+          assert_includes error.message, ":callback2"
+          assert_includes error.message, "#<Proc:"
+          assert_includes error.message, "only"
+          assert_includes error.message, "showw"
+        end
+      end
+
+      class BlockCallbackWithMissingOnly < ControllerWithCallbacks
+        before_action only: :showw do
+          # Callback body
+        end
+
+        def index
+        end
+
+        def show
+        end
+      end
+
+      test "raised exception message includes a block callback" do
+        with_raise_on_missing_callback_actions do
+          controller = BlockCallbackWithMissingOnly.new
+          error = assert_raises(AbstractController::ActionNotFound) do
+            controller.process(:index)
+          end
+
+          assert_includes error.message, "#<Proc:"
+        end
+      end
+
+      class CallbacksWithBothOnlyAndExcept < ControllerWithCallbacks
+        before_action :callback, only: [:index, :show], except: :showw
+
+        def index
+        end
+
+        def show
+        end
+
+        private
+          def callback
+          end
+      end
+
+      test "callbacks with both :only and :except options raise an exception with the correct message" do
+        with_raise_on_missing_callback_actions do
+          controller = CallbacksWithBothOnlyAndExcept.new
+          error = assert_raises(AbstractController::ActionNotFound) do
+            controller.process(:index)
+          end
+
+          assert_includes error.message, ":callback"
+          assert_includes error.message, "except"
+          assert_includes error.message, "showw"
+        end
+      end
+
+      private
+        def with_raise_on_missing_callback_actions
+          old_raise_on_missing_callback_actions = ControllerWithCallbacks.raise_on_missing_callback_actions
+          ControllerWithCallbacks.raise_on_missing_callback_actions = true
+          yield
+        ensure
+          ControllerWithCallbacks.raise_on_missing_callback_actions = old_raise_on_missing_callback_actions
+        end
+    end
   end
 end

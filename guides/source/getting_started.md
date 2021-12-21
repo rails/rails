@@ -28,7 +28,7 @@ curve diving straight into Rails. There are several curated lists of online reso
 for learning Ruby:
 
 * [Official Ruby Programming Language website](https://www.ruby-lang.org/en/documentation/)
-* [List of Free Programming Books](https://github.com/EbookFoundation/free-programming-books/blob/master/books/free-programming-books.md#ruby)
+* [List of Free Programming Books](https://github.com/EbookFoundation/free-programming-books/blob/master/books/free-programming-books-langs.md#ruby)
 
 Be aware that some resources, while still excellent, cover older versions of
 Ruby, and may not include some syntax that you will see in day-to-day
@@ -247,14 +247,14 @@ This will start up Puma, a web server distributed with Rails by default. To see
 your application in action, open a browser window and navigate to
 <http://localhost:3000>. You should see the Rails default information page:
 
-![Yay! You're on Rails! screenshot](images/getting_started/rails_welcome.png)
+![Rails startup page screenshot](images/getting_started/rails_welcome.png)
 
 When you want to stop the web server, hit Ctrl+C in the terminal window where
 it's running. In the development environment, Rails does not generally
 require you to restart the server; changes you make in files will be
 automatically picked up by the server.
 
-The "Yay! You're on Rails!" page is the _smoke test_ for a new Rails
+The Rails startup page is the _smoke test_ for a new Rails
 application: it makes sure that you have your software configured correctly
 enough to serve a page.
 
@@ -360,6 +360,24 @@ confirming that the `root` route is also mapped to the `index` action of
 
 TIP: To learn more about routing, see [Rails Routing from the Outside In](
 routing.html).
+
+Autoloading
+-----------
+
+Rails applications **do not** use `require` to load application code.
+
+You may have noticed that `ArticlesController` inherits from `ApplicationController`, but `app/controllers/articles_controller.rb` does not have anything like
+
+```ruby
+require "application_controller" # DON'T DO THIS.
+```
+
+Application classes and modules are available everywhere, you do not need and **should not** load anything under `app` with `require`. This feature is called _autoloading_, and you can learn more about it in [_Autoloading and Reloading Constants_](https://guides.rubyonrails.org/autoloading_and_reloading_constants.html).
+
+You only need `require` calls for two use cases:
+
+* To load files under the `lib` directory.
+* To load gem dependencies that have `require: false` in the `Gemfile`.
 
 MVC and You
 -----------
@@ -1288,17 +1306,16 @@ we can delete an article from its own page:
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
   <li><%= link_to "Destroy", article_path(@article),
-                  method: :delete,
-                  data: { confirm: "Are you sure?" } %></li>
+                  data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %></li>
 </ul>
 ```
 
-In the above code, we're passing a few additional options to `link_to`. The
-`method: :delete` option causes the link to make a `DELETE` request instead of a
-`GET` request. The `data: { confirm: "Are you sure?" }` option causes a
+In the above code, we're passing the `data` attribute with some options to `link_to`.
+The `turbo_method: :delete` option causes the link to make a `DELETE` request instead
+of a `GET` request. The `turbo_confirm: { confirm: "Are you sure?" }` option causes a
 confirmation dialog to appear when the link is clicked. If the user cancels the
-dialog, the request is aborted. Both of these options are powered by a feature
-of Rails called *Unobtrusive JavaScript* (UJS). The JavaScript file that
+dialog, the request is aborted. Both of these options are powered by (Turbo)[https://turbo.hotwired.dev/]
+called *Performing Visits*. The JavaScript file that
 implements these behaviors is included by default in fresh Rails applications.
 
 TIP: To learn more about Unobtrusive JavaScript, see [Working With JavaScript in
@@ -1344,7 +1361,7 @@ This is very similar to the `Article` model that you saw earlier. The difference
 is the line `belongs_to :article`, which sets up an Active Record _association_.
 You'll learn a little about associations in the next section of this guide.
 
-The (`:references`) keyword used in the bash command is a special data type for models.
+The (`:references`) keyword used in the shell command is a special data type for models.
 It creates a new column on your database table with the provided model name appended with an `_id`
 that can hold integer values. To get a better understanding, analyze the
 `db/schema.rb` file after running the migration.
@@ -1482,8 +1499,7 @@ So first, we'll wire up the Article show template
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
   <li><%= link_to "Destroy", article_path(@article),
-                  method: :delete,
-                  data: { confirm: "Are you sure?" } %></li>
+                  data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %></li>
 </ul>
 
 <h2>Add a comment:</h2>
@@ -1548,8 +1564,7 @@ add that to the `app/views/articles/show.html.erb`.
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
   <li><%= link_to "Destroy", article_path(@article),
-                  method: :delete,
-                  data: { confirm: "Are you sure?" } %></li>
+                  data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %></li>
 </ul>
 
 <h2>Comments</h2>
@@ -1622,8 +1637,7 @@ following:
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
   <li><%= link_to "Destroy", article_path(@article),
-                  method: :delete,
-                  data: { confirm: "Are you sure?" } %></li>
+                  data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %></li>
 </ul>
 
 <h2>Comments</h2>
@@ -1682,8 +1696,7 @@ Then you make the `app/views/articles/show.html.erb` look like the following:
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
   <li><%= link_to "Destroy", article_path(@article),
-                  method: :delete,
-                  data: { confirm: "Are you sure?" } %></li>
+                  data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %></li>
 </ul>
 
 <h2>Comments</h2>
@@ -1714,7 +1727,41 @@ app/models/concerns
 
 A given blog article might have various statuses - for instance, it might be visible to everyone (i.e. `public`), or only visible to the author (i.e. `private`). It may also be hidden to all but still retrievable (i.e. `archived`). Comments may similarly be hidden or visible. This could be represented using a `status` column in each model.
 
-Within the `article` model, after running a migration to add a `status` column, you might add:
+First, let's run the following migrations to add `status` to `Articles` and `Comments`:
+
+```bash
+$ bin/rails generate migration AddStatusToArticles status:string
+$ bin/rails generate migration AddStatusToComments status:string
+```
+
+And next, let's update the database with the generated migrations:
+
+```bash
+$ bin/rails db:migrate
+```
+
+TIP: To learn more about migrations, see [Active Record Migrations](
+active_record_migrations.html).
+
+We also have to permit the `:status` key as part of the strong parameter, in `app/controllers/articles_controller.rb`:
+
+```ruby
+  private
+    def article_params
+      params.require(:article).permit(:title, :body, :status)
+    end
+```
+
+and in `app/controllers/comments_controller.rb`:
+
+```ruby
+  private
+    def comment_params
+      params.require(:comment).permit(:commenter, :body, :status)
+    end
+```
+
+Within the `article` model, after running a migration to add a `status` column using `bin/rails db:migrate` command, you would add:
 
 ```ruby
 class Article < ApplicationRecord
@@ -1883,34 +1930,6 @@ Our blog has <%= Article.public_count %> articles and counting!
 </ul>
 
 <%= link_to "New Article", new_article_path %>
-```
-
-There are a few more steps to be carried out before our application works with the addition of `status` column. First, let's run the following migrations to add `status` to `Articles` and `Comments`:
-
-```bash
-$ bin/rails generate migration AddStatusToArticles status:string
-$ bin/rails generate migration AddStatusToComments status:string
-```
-
-TIP: To learn more about migrations, see [Active Record Migrations](
-active_record_migrations.html).
-
-We also have to permit the `:status` key as part of the strong parameter, in `app/controllers/articles_controller.rb`:
-
-```ruby
-  private
-    def article_params
-      params.require(:article).permit(:title, :body, :status)
-    end
-```
-
-and in `app/controllers/comments_controller.rb`:
-
-```ruby
-  private
-    def comment_params
-      params.require(:comment).permit(:commenter, :body, :status)
-    end
 ```
 
 To finish up, we will add a select box to the forms, and let the user select the status when they create a new article or post a new comment. We can also specify the default status as `public`. In `app/views/articles/_form.html.erb`, we can add:

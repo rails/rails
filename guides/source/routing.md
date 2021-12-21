@@ -142,6 +142,8 @@ Creating a resourceful route will also expose a number of helpers to the control
 
 Each of these helpers has a corresponding `_url` helper (such as `photos_url`) which returns the same path prefixed with the current host, port, and path prefix.
 
+TIP: To find the route helper names for your routes, see [Listing existing routes](#listing-existing-routes) below.
+
 ### Defining Multiple Resources at the Same Time
 
 If you need to create routes for more than one resource, you can save a bit of typing by defining them all with a single call to `resources`:

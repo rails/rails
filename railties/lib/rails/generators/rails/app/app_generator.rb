@@ -138,15 +138,15 @@ module Rails
         template "config/storage.yml"
       end
 
-      if options[:skip_sprockets] && !assets_config_exist
+      if skip_sprockets? && !assets_config_exist
         remove_file "config/initializers/assets.rb"
       end
 
-      if options[:skip_sprockets] && !asset_manifest_exist
+      if skip_sprockets? && !asset_manifest_exist
         remove_file "app/assets/config/manifest.js"
       end
 
-      if options[:skip_sprockets] && !asset_app_stylesheet_exist
+      if skip_sprockets? && !asset_app_stylesheet_exist
         remove_file "app/assets/stylesheets/application.css"
       end
 
@@ -162,6 +162,10 @@ module Rails
         unless permissions_policy_config_exist
           remove_file "config/initializers/permissions_policy.rb"
         end
+      end
+
+      if !skip_sprockets?
+        insert_into_file "config/application.rb", %(require "sprockets/railtie"), after: /require\(["']rails\/all["']\)\n/
       end
     end
 
@@ -262,7 +266,7 @@ module Rails
       class_option :api, type: :boolean, desc: "Preconfigure smaller stack for API only apps"
       class_option :minimal, type: :boolean, desc: "Preconfigure a minimal rails app"
       class_option :javascript, type: :string, aliases: "-j", default: "importmap", desc: "Choose JavaScript approach [options: importmap (default), webpack, esbuild, rollup]"
-      class_option :css, type: :string, desc: "Choose CSS processor [options: tailwind, postcss, sass]"
+      class_option :css, type: :string, aliases: "-c", desc: "Choose CSS processor [options: tailwind, bootstrap, bulma, postcss, sass... check https://github.com/rails/cssbundling-rails]"
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false, desc: "Don't run bundle install"
 
       def initialize(*args)
@@ -275,7 +279,7 @@ module Rails
         # Force sprockets and JavaScript to be skipped when generating API only apps.
         # Can't modify options hash as it's frozen by default.
         if options[:api]
-          self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze
+          self.options = options.merge(skip_asset_pipeline: true, skip_javascript: true).freeze
         end
 
         if options[:minimal]
@@ -299,6 +303,7 @@ module Rails
 
       public_task :set_default_accessors!
       public_task :create_root
+      public_task :target_rails_prerelease
 
       def create_root_files
         build(:readme)
@@ -440,10 +445,12 @@ module Rails
       end
 
       def delete_assets_initializer_skipping_sprockets
-        if options[:skip_sprockets]
+        if skip_sprockets?
           remove_file "config/initializers/assets.rb"
           remove_file "app/assets/config/manifest.js"
+          remove_dir  "app/assets/config"
           remove_file "app/assets/stylesheets/application.css"
+          create_file "app/assets/stylesheets/application.css", "/* Application styles */\n" unless options[:api]
         end
       end
 
@@ -491,7 +498,7 @@ module Rails
 
       def delete_new_framework_defaults
         unless options[:update]
-          remove_file "config/initializers/new_framework_defaults_7_0.rb"
+          remove_file "config/initializers/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
         end
       end
 

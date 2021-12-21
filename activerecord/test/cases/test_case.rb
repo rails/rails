@@ -91,6 +91,24 @@ module ActiveRecord
       end
     end
 
+    def with_automatic_scope_inversing(*reflections)
+      old = reflections.map { |reflection| reflection.klass.automatic_scope_inversing }
+
+      reflections.each do |reflection|
+        reflection.klass.automatic_scope_inversing = true
+        reflection.remove_instance_variable(:@inverse_name) if reflection.instance_variable_defined?(:@inverse_name)
+        reflection.remove_instance_variable(:@inverse_of) if reflection.instance_variable_defined?(:@inverse_of)
+      end
+
+      yield
+    ensure
+      reflections.each_with_index do |reflection, i|
+        reflection.klass.automatic_scope_inversing = old[i]
+        reflection.remove_instance_variable(:@inverse_name) if reflection.instance_variable_defined?(:@inverse_name)
+        reflection.remove_instance_variable(:@inverse_of) if reflection.instance_variable_defined?(:@inverse_of)
+      end
+    end
+
     def reset_callbacks(klass, kind)
       old_callbacks = {}
       old_callbacks[klass] = klass.send("_#{kind}_callbacks").dup

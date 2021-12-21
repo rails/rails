@@ -8,12 +8,12 @@ class <%= class_name.pluralize %>Test < ApplicationSystemTestCase
 
   test "visiting the index" do
     visit <%= plural_table_name %>_url
-    assert_selector "h1", text: "<%= class_name.pluralize.titleize %>"
+    assert_selector "h1", text: "<%= human_name.pluralize %>"
   end
 
-  test "should create <%= human_name %>" do
+  test "should create <%= human_name.downcase %>" do
     visit <%= plural_table_name %>_url
-    click_on "New <%= class_name.titleize %>"
+    click_on "New <%= human_name.downcase %>"
 
     <%- attributes_hash.each do |attr, value| -%>
     <%- if boolean?(attr) -%>
@@ -29,8 +29,8 @@ class <%= class_name.pluralize %>Test < ApplicationSystemTestCase
   end
 
   test "should update <%= human_name %>" do
-    visit <%= plural_table_name %>_url
-    click_on "Edit", match: :first
+    visit <%= singular_table_name %>_url(@<%= singular_table_name %>)
+    click_on "Edit this <%= human_name.downcase %>", match: :first
 
     <%- attributes_hash.each do |attr, value| -%>
     <%- if boolean?(attr) -%>
@@ -46,10 +46,8 @@ class <%= class_name.pluralize %>Test < ApplicationSystemTestCase
   end
 
   test "should destroy <%= human_name %>" do
-    visit <%= plural_table_name %>_url
-    page.accept_confirm do
-      click_on "Destroy", match: :first
-    end
+    visit <%= singular_table_name %>_url(@<%= singular_table_name %>)
+    click_on "Destroy this <%= human_name.downcase %>", match: :first
 
     assert_text "<%= human_name %> was successfully destroyed"
   end

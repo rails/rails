@@ -146,7 +146,7 @@ module ActionDispatch
           end
 
           requirements, conditions = split_constraints ast.path_params, constraints
-          verify_regexp_requirements requirements.map(&:last).grep(Regexp)
+          verify_regexp_requirements requirements, ast.wildcard_options
 
           formats = normalize_format(formatted)
 
@@ -246,14 +246,18 @@ module ActionDispatch
             end
           end
 
-          def verify_regexp_requirements(requirements)
-            requirements.each do |requirement|
-              if ANCHOR_CHARACTERS_REGEX.match?(requirement.source)
+          def verify_regexp_requirements(requirements, wildcard_options)
+            requirements.each do |requirement, regex|
+              next unless regex.is_a? Regexp
+
+              if ANCHOR_CHARACTERS_REGEX.match?(regex.source)
                 raise ArgumentError, "Regexp anchor characters are not allowed in routing requirements: #{requirement.inspect}"
               end
 
-              if requirement.multiline?
-                raise ArgumentError, "Regexp multiline option is not allowed in routing requirements: #{requirement.inspect}"
+              if regex.multiline?
+                next if wildcard_options.key?(requirement)
+
+                raise ArgumentError, "Regexp multiline option is not allowed in routing requirements: #{regex.inspect}"
               end
             end
           end
