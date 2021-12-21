@@ -1,3 +1,10 @@
+*   Fix migration compatibility to create SQLite references/belongs_to column as integer when migration version is 6.0.
+
+    Reference/belongs_to in migrations with version 6.0 were creating columns as
+    bigint instead of integer for the SQLite Adapter.
+
+    *Marcelo Lauxen*
+
 *   Fix `QueryMethods#in_order_of` to handle empty order list.
 
     ```ruby
