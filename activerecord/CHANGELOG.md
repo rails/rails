@@ -1,3 +1,8 @@
+*   Add a deprecation warning when `prepared_statements` configuration is not
+    set for the mysql2 adapter.
+
+    *Thiago Araujo and Stefanni Brasil*
+
 *   Fix `QueryMethods#in_order_of` to handle empty order list.
 
     ```ruby
