@@ -1,3 +1,10 @@
+*   Fix migration compatibility to create SQLite references/belongs_to column as integer when migration version is 6.0.
+
+    Reference/belongs_to in migrations with version 6.0 were creating columns as
+    bigint instead of integer for the SQLite Adapter.
+
+    *Marcelo Lauxen*
+
 * Better handle SQL queries with invalid encoding.
 
     ```ruby

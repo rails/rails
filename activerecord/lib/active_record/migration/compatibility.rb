@@ -22,6 +22,22 @@ module ActiveRecord
           end
         end
 
+        module SQLite3
+          module TableDefinition
+            def references(*args, **options)
+              args.each do |ref_name|
+                ReferenceDefinition.new(ref_name, type: :integer, **options).add_to(self)
+              end
+            end
+            alias :belongs_to :references
+
+            def column(name, type, index: nil, **options)
+              options[:precision] ||= nil
+              super
+            end
+          end
+        end
+
         module TableDefinition
           def references(*args, **options)
             args.each do |ref_name|
@@ -56,8 +72,13 @@ module ActiveRecord
         end
 
         def add_reference(table_name, ref_name, **options)
-          ReferenceDefinition.new(ref_name, **options)
-            .add_to(connection.update_table_definition(table_name, self))
+          if connection.adapter_name == "SQLite"
+            reference_definition = ReferenceDefinition.new(ref_name, type: :integer, **options)
+          else
+            reference_definition = ReferenceDefinition.new(ref_name, **options)
+          end
+
+          reference_definition.add_to(connection.update_table_definition(table_name, self))
         end
         alias :add_belongs_to :add_reference
 
@@ -65,6 +86,7 @@ module ActiveRecord
           def compatible_table_definition(t)
             class << t
               prepend TableDefinition
+              prepend SQLite3::TableDefinition
             end
             t
           end
