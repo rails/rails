@@ -84,7 +84,7 @@ module Rails
 
       empty_directory_with_keep_file "app/assets/images"
 
-      keep_file  "app/controllers/concerns"
+      keep_file  "app/controllers/concerns" unless options[:skip_action_controller]
       keep_file  "app/models/concerns"
     end
 
@@ -214,7 +214,7 @@ module Rails
 
     def test
       empty_directory_with_keep_file "test/fixtures/files"
-      empty_directory_with_keep_file "test/controllers"
+      empty_directory_with_keep_file "test/controllers" unless options[:skip_action_controller]
       empty_directory_with_keep_file "test/mailers"
       empty_directory_with_keep_file "test/models"
       empty_directory_with_keep_file "test/helpers"

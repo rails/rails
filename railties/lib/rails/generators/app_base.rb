@@ -24,80 +24,83 @@ module Rails
       end
 
       def self.add_shared_options_for(name)
-        class_option :template,            type: :string, aliases: "-m",
-                                           desc: "Path to some #{name} template (can be a filesystem path or URL)"
+        class_option :template,               type: :string, aliases: "-m",
+                                              desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
-        class_option :database,            type: :string, aliases: "-d", default: "sqlite3",
-                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
+        class_option :database,               type: :string, aliases: "-d", default: "sqlite3",
+                                              desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-        class_option :skip_git,            type: :boolean, aliases: "-G", default: false,
-                                           desc: "Skip .gitignore file"
+        class_option :skip_git,               type: :boolean, aliases: "-G", default: false,
+                                              desc: "Skip .gitignore file"
 
-        class_option :skip_keeps,          type: :boolean, default: false,
-                                           desc: "Skip source control .keep files"
+        class_option :skip_keeps,             type: :boolean, default: false,
+                                              desc: "Skip source control .keep files"
 
-        class_option :skip_action_mailer,  type: :boolean, aliases: "-M",
-                                           default: false,
-                                           desc: "Skip Action Mailer files"
+        class_option :skip_action_controller, type: :boolean, default: false,
+                                              desc: "Skip Action Controller files"
 
-        class_option :skip_action_mailbox, type: :boolean, default: false,
-                                           desc: "Skip Action Mailbox gem"
+        class_option :skip_action_mailer,     type: :boolean, aliases: "-M",
+                                              default: false,
+                                              desc: "Skip Action Mailer files"
 
-        class_option :skip_action_text,    type: :boolean, default: false,
-                                           desc: "Skip Action Text gem"
+        class_option :skip_action_mailbox,    type: :boolean, default: false,
+                                              desc: "Skip Action Mailbox gem"
 
-        class_option :skip_active_record,  type: :boolean, aliases: "-O", default: false,
-                                           desc: "Skip Active Record files"
+        class_option :skip_action_text,       type: :boolean, default: false,
+                                              desc: "Skip Action Text gem"
 
-        class_option :skip_active_job,     type: :boolean, default: false,
-                                           desc: "Skip Active Job"
+        class_option :skip_active_record,     type: :boolean, aliases: "-O", default: false,
+                                              desc: "Skip Active Record files"
 
-        class_option :skip_active_storage, type: :boolean, default: false,
-                                           desc: "Skip Active Storage files"
+        class_option :skip_active_job,        type: :boolean, default: false,
+                                              desc: "Skip Active Job"
 
-        class_option :skip_action_cable,   type: :boolean, aliases: "-C", default: false,
-                                           desc: "Skip Action Cable files"
+        class_option :skip_active_storage,    type: :boolean, default: false,
+                                              desc: "Skip Active Storage files"
 
-        class_option :skip_asset_pipeline, type: :boolean, aliases: "-A", default: false
+        class_option :skip_action_cable,      type: :boolean, aliases: "-C", default: false,
+                                              desc: "Skip Action Cable files"
 
-        class_option :asset_pipeline,      type: :string, aliases: "-a", default: "sprockets",
-                                           desc: "Choose your asset pipeline [options: sprockets (default), propshaft]"
+        class_option :skip_asset_pipeline,    type: :boolean, aliases: "-A", default: false
 
-        class_option :skip_javascript,     type: :boolean, aliases: "-J", default: name == "plugin",
-                                           desc: "Skip JavaScript files"
+        class_option :asset_pipeline,         type: :string, aliases: "-a", default: "sprockets",
+                                              desc: "Choose your asset pipeline [options: sprockets (default), propshaft]"
 
-        class_option :skip_hotwire,        type: :boolean, default: false,
-                                           desc: "Skip Hotwire integration"
+        class_option :skip_javascript,        type: :boolean, aliases: "-J", default: name == "plugin",
+                                              desc: "Skip JavaScript files"
 
-        class_option :skip_jbuilder,       type: :boolean, default: false,
-                                           desc: "Skip jbuilder gem"
+        class_option :skip_hotwire,           type: :boolean, default: false,
+                                              desc: "Skip Hotwire integration"
 
-        class_option :skip_test,           type: :boolean, aliases: "-T", default: false,
-                                           desc: "Skip test files"
+        class_option :skip_jbuilder,          type: :boolean, default: false,
+                                              desc: "Skip jbuilder gem"
 
-        class_option :skip_system_test,    type: :boolean, default: false,
-                                           desc: "Skip system test files"
+        class_option :skip_test,              type: :boolean, aliases: "-T", default: false,
+                                              desc: "Skip test files"
 
-        class_option :skip_bootsnap,       type: :boolean, default: false,
-                                           desc: "Skip bootsnap gem"
+        class_option :skip_system_test,       type: :boolean, default: false,
+                                              desc: "Skip system test files"
 
-        class_option :dev,                 type: :boolean, default: false,
-                                           desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
+        class_option :skip_bootsnap,          type: :boolean, default: false,
+                                              desc: "Skip bootsnap gem"
 
-        class_option :edge,                type: :boolean, default: false,
-                                           desc: "Set up the #{name} with Gemfile pointing to Rails repository"
+        class_option :dev,                    type: :boolean, default: false,
+                                              desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
-        class_option :main,                type: :boolean, default: false, aliases: "--master",
-                                           desc: "Set up the #{name} with Gemfile pointing to Rails repository main branch"
+        class_option :edge,                   type: :boolean, default: false,
+                                              desc: "Set up the #{name} with Gemfile pointing to Rails repository"
 
-        class_option :rc,                  type: :string, default: nil,
-                                           desc: "Path to file containing extra configuration options for rails command"
+        class_option :main,                   type: :boolean, default: false, aliases: "--master",
+                                              desc: "Set up the #{name} with Gemfile pointing to Rails repository main branch"
 
-        class_option :no_rc,               type: :boolean, default: false,
-                                           desc: "Skip loading of extra configuration options from .railsrc file"
+        class_option :rc,                     type: :string, default: nil,
+                                              desc: "Path to file containing extra configuration options for rails command"
 
-        class_option :help,                type: :boolean, aliases: "-h", group: :rails,
-                                           desc: "Show this help message and quit"
+        class_option :no_rc,                  type: :boolean, default: false,
+                                              desc: "Skip loading of extra configuration options from .railsrc file"
+
+        class_option :help,                   type: :boolean, aliases: "-h", group: :rails,
+                                              desc: "Show this help message and quit"
       end
 
       def initialize(positional_argv, option_argv, *)
@@ -184,6 +187,7 @@ module Rails
         [
           options.values_at(
             :skip_active_record,
+            :skip_action_controller,
             :skip_action_mailer,
             :skip_test,
             :skip_action_cable,

@@ -27,14 +27,14 @@ module Rails
         end
 
         empty_directory_with_keep_file "app/models/concerns"
-        empty_directory_with_keep_file "app/controllers/concerns"
+        empty_directory_with_keep_file "app/controllers/concerns" unless options[:skip_action_controller]
         remove_dir "app/mailers" if options[:skip_action_mailer]
         remove_dir "app/jobs" if options[:skip_active_job]
       elsif full?
         empty_directory_with_keep_file "app/models"
-        empty_directory_with_keep_file "app/controllers"
+        empty_directory_with_keep_file "app/controllers" unless options[:skip_action_controller]
         empty_directory_with_keep_file "app/models/concerns"
-        empty_directory_with_keep_file "app/controllers/concerns"
+        empty_directory_with_keep_file "app/controllers/concerns" unless options[:skip_action_controller]
         empty_directory_with_keep_file "app/mailers" unless options[:skip_action_mailer]
         empty_directory_with_keep_file "app/jobs" unless options[:skip_active_job]
 
@@ -97,7 +97,7 @@ module Rails
 
       if engine?
         empty_directory_with_keep_file "test/fixtures/files"
-        empty_directory_with_keep_file "test/controllers"
+        empty_directory_with_keep_file "test/controllers" unless options[:skip_action_controller]
         empty_directory_with_keep_file "test/mailers"
         empty_directory_with_keep_file "test/models"
         empty_directory_with_keep_file "test/integration"
