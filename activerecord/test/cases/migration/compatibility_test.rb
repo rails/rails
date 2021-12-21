@@ -533,6 +533,50 @@ module ActiveRecord
         assert_not connection.column_exists?(:testings, :foo)
       end
 
+      if current_adapter?(:SQLite3Adapter)
+        def test_references_stays_as_integer_column_on_create_table_with_reference_6_0
+          migration = Class.new(ActiveRecord::Migration[6.0]) {
+            def migrate(x)
+              create_table :more_testings do |t|
+                t.references :testings
+              end
+            end
+          }.new
+
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+
+          testings_id_column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
+          assert_equal "integer", testings_id_column.sql_type
+        ensure
+          connection.drop_table :more_testings rescue nil
+        end
+
+        def test_references_stays_as_integer_column_on_add_reference_6_0
+          create_migration = Class.new(ActiveRecord::Migration[6.0]) {
+            def version; 100 end
+            def migrate(x)
+              create_table :more_testings do |t|
+                t.string :test
+              end
+            end
+          }.new
+
+          migration = Class.new(ActiveRecord::Migration[6.0]) {
+            def version; 101 end
+            def migrate(x)
+              add_reference :more_testings, :testings
+            end
+          }.new
+
+          ActiveRecord::Migrator.new(:up, [create_migration, migration], @schema_migration).migrate
+
+          testings_id_column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
+          assert_equal "integer", testings_id_column.sql_type
+        ensure
+          connection.drop_table :more_testings rescue nil
+        end
+      end
+
       private
         def precision_implicit_default
           if current_adapter?(:Mysql2Adapter)
