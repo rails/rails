@@ -1,3 +1,10 @@
+*   Fix `Class#descendants` and `DescendantsTracker#descendants` compatibility with Ruby 3.1.
+
+    [The native `Class#descendants` was reverted prior to Ruby 3.1 release](https://bugs.ruby-lang.org/issues/14394#note-33),
+    but `Class#subclasses` was kept, breaking the feature detection.
+
+    *Jean Boussier*
+
 ## Rails 7.0.0 (December 15, 2021) ##
 
 *   Fix `ActiveSupport::Duration.build` to support negative values.
