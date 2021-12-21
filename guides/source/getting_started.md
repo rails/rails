@@ -83,8 +83,6 @@ proper prerequisites installed. These include:
 
 * Ruby
 * SQLite3
-* Node.js
-* Yarn
 
 #### Installing Ruby
 
@@ -120,31 +118,6 @@ $ sqlite3 --version
 ```
 
 The program should report its version.
-
-#### Installing Node.js and Yarn
-
-Finally, you'll need Node.js and Yarn installed to manage your application's JavaScript.
-
-Find the installation instructions at the [Node.js website](https://nodejs.org/en/download/) and
-verify it's installed correctly with the following command:
-
-```bash
-$ node --version
-```
-
-The version of your Node.js runtime should be printed out. Make sure it's greater
-than 8.16.0.
-
-To install Yarn, follow the installation
-instructions at the [Yarn website](https://classic.yarnpkg.com/en/docs/install).
-
-Running this command should print out Yarn version:
-
-```bash
-$ yarn --version
-```
-
-If it says something like "1.22.0", Yarn has been installed correctly.
 
 #### Installing Rails
 
