@@ -51,7 +51,6 @@ module ActiveSupport
           unless @clear_disabled
             @clear_disabled = true
             remove_method(:subclasses)
-            remove_method(:descendants) if RubyFeatures::CLASS_DESCENDANTS
             @@excluded_descendants = nil
           end
         end
@@ -86,16 +85,8 @@ module ActiveSupport
         subclasses
       end
 
-      if RubyFeatures::CLASS_DESCENDANTS
-        def descendants
-          descendants = super
-          descendants.reject! { |d| @@excluded_descendants[d] }
-          descendants
-        end
-      else
-        def descendants
-          subclasses.concat(subclasses.flat_map(&:descendants))
-        end
+      def descendants
+        subclasses.concat(subclasses.flat_map(&:descendants))
       end
 
       def direct_descendants
