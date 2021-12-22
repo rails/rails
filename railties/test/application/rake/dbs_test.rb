@@ -471,7 +471,7 @@ module ApplicationTests
         assert_equal 2, Admin::Book.count
       end
 
-      test "db:schema:load and db:structure:load do not purge the existing database" do
+      test "db:schema:load does not purge the existing database" do
         rails "runner", "ActiveRecord::Base.connection.create_table(:posts) {|t| t.string :title }"
 
         app_file "db/schema.rb", <<-RUBY

@@ -586,19 +586,19 @@ module ApplicationTests
         db_migrate_name_dumps_the_schema("animals", "sql")
       end
 
-      test "db:migrate:name and db:schema:dump:name and db:schema:load:name works for the primary database" do
+      test "db:migrate:name and db:schema:dump:name and db:schema:load:name works for the primary database with a ruby schema" do
         db_migrate_and_schema_dump_and_load_one_database("primary", "ruby")
       end
 
-      test "db:migrate:name and db:schema:dump:name and db:schema:load:name works for the animals database" do
+      test "db:migrate:name and db:schema:dump:name and db:schema:load:name works for the animals database with a ruby schema" do
         db_migrate_and_schema_dump_and_load_one_database("animals", "ruby")
       end
 
-      test "db:migrate:name and db:structure:dump:name and db:structure:load:name works for the primary database" do
+      test "db:migrate:name and db:schema:dump:name and db:schema:load:name works for the primary database with a sql schema" do
         db_migrate_and_schema_dump_and_load_one_database("primary", "sql")
       end
 
-      test "db:migrate:name and db:structure:dump:name and db:structure:load:name works for the animals database" do
+      test "db:migrate:name and db:schema:dump:name and db:schema:load:name works for the animals database with a sql schema" do
         db_migrate_and_schema_dump_and_load_one_database("animals", "sql")
       end
 
