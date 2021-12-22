@@ -3,29 +3,27 @@
 require "active_support/ruby_features"
 
 class Class
-  unless ActiveSupport::RubyFeatures::CLASS_DESCENDANTS
-    if ActiveSupport::RubyFeatures::CLASS_SUBCLASSES
-      def descendants
-        subclasses.concat(subclasses.flat_map(&:descendants))
-      end
-    else
-      # Returns an array with all classes that are < than its receiver.
-      #
-      #   class C; end
-      #   C.descendants # => []
-      #
-      #   class B < C; end
-      #   C.descendants # => [B]
-      #
-      #   class A < B; end
-      #   C.descendants # => [B, A]
-      #
-      #   class D < C; end
-      #   C.descendants # => [B, A, D]
-      def descendants
-        ObjectSpace.each_object(singleton_class).reject do |k|
-          k.singleton_class? || k == self
-        end
+  if ActiveSupport::RubyFeatures::CLASS_SUBCLASSES
+    def descendants
+      subclasses.concat(subclasses.flat_map(&:descendants))
+    end
+  else
+    # Returns an array with all classes that are < than its receiver.
+    #
+    #   class C; end
+    #   C.descendants # => []
+    #
+    #   class B < C; end
+    #   C.descendants # => [B]
+    #
+    #   class A < B; end
+    #   C.descendants # => [B, A]
+    #
+    #   class D < C; end
+    #   C.descendants # => [B, A, D]
+    def descendants
+      ObjectSpace.each_object(singleton_class).reject do |k|
+        k.singleton_class? || k == self
       end
     end
   end
