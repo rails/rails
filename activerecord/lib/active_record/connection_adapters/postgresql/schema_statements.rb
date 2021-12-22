@@ -525,7 +525,7 @@ module ActiveRecord
           scope = quoted_scope(table_name)
 
           check_info = exec_query(<<-SQL, "SCHEMA")
-            SELECT conname, pg_get_constraintdef(c.oid) AS constraintdef, c.convalidated AS valid
+            SELECT conname, pg_get_constraintdef(c.oid, true) AS constraintdef, c.convalidated AS valid
             FROM pg_constraint c
             JOIN pg_class t ON c.conrelid = t.oid
             WHERE c.contype = 'c'
@@ -537,7 +537,7 @@ module ActiveRecord
               name: row["conname"],
               validate: row["valid"]
             }
-            expression = row["constraintdef"][/CHECK \({2}(.+)\){2}/, 1]
+            expression = row["constraintdef"][/CHECK \((.+)\)/m, 1]
 
             CheckConstraintDefinition.new(table_name, expression, options)
           end
