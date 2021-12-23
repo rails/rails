@@ -274,14 +274,8 @@ module ActiveRecord
 
         return super if StatementCache.unsupported_value?(id)
 
-        key = primary_key
-
-        statement = cached_find_by_statement(key) { |params|
-          where(key => params.bind).limit(1)
-        }
-
-        statement.execute([id], connection).first ||
-          raise(RecordNotFound.new("Couldn't find #{name} with '#{key}'=#{id}", name, key, id))
+        cached_find_by([primary_key], [id]) ||
+          raise(RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id}", name, primary_key, id))
       end
 
       def find_by(*args) # :nodoc:
@@ -313,17 +307,7 @@ module ActiveRecord
           h[key] = value
         end
 
-        keys = hash.keys
-        statement = cached_find_by_statement(keys) { |params|
-          wheres = keys.index_with { params.bind }
-          where(wheres).limit(1)
-        }
-
-        begin
-          statement.execute(hash.values, connection).first
-        rescue TypeError
-          raise ActiveRecord::StatementInvalid
-        end
+        cached_find_by(hash.keys, hash.values)
       end
 
       def find_by!(*args) # :nodoc:
@@ -447,6 +431,19 @@ module ActiveRecord
 
         def table_metadata
           TableMetadata.new(self, arel_table)
+        end
+
+        def cached_find_by(keys, values)
+          statement = cached_find_by_statement(keys) { |params|
+            wheres = keys.index_with { params.bind }
+            where(wheres).limit(1)
+          }
+
+          begin
+            statement.execute(values, connection).first
+          rescue TypeError
+            raise ActiveRecord::StatementInvalid
+          end
         end
     end
 
