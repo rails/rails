@@ -1,3 +1,9 @@
+*   Migrations with a custom context and fixtures utilizing a `#connected_to` block now use the shard specified in the method call.
+
+    Fixes #43978.
+
+    * Sammy Larbi *
+
 *   Fix `config.active_record.destroy_association_async_job` configuration
 
     `config.active_record.destroy_association_async_job` should allow
