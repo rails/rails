@@ -610,7 +610,7 @@ module ActiveRecord
         end
 
         def connection
-          ActiveRecord::Base.connection
+          (ActiveRecord.application_record_class || ActiveRecord::Base).connection
         end
     end
 
@@ -911,7 +911,7 @@ module ActiveRecord
     end
 
     def connection
-      @connection || ActiveRecord::Base.connection
+      @connection || (ActiveRecord.application_record_class || ActiveRecord::Base).connection
     end
 
     def method_missing(method, *arguments, &block)
