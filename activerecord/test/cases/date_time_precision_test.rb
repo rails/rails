@@ -171,15 +171,6 @@ if supports_datetime_with_precision?
       end
     end
 
-    def test_writing_a_blank_attribute
-      @connection.create_table(:foos, force: true) do |t|
-        t.datetime :happened_at
-      end
-
-      assert_nil Foo.create!(happened_at: nil).happened_at
-      assert_nil Foo.create!(happened_at: "").happened_at
-    end
-
     if current_adapter?(:PostgreSQLAdapter)
       def test_writing_a_blank_attribute
         with_postgresql_datetime_type(:timestamptz) do
@@ -190,6 +181,15 @@ if supports_datetime_with_precision?
           assert_nil Foo.create!(happened_at: nil).happened_at
           assert_nil Foo.create!(happened_at: "").happened_at
         end
+      end
+    else
+      def test_writing_a_blank_attribute
+        @connection.create_table(:foos, force: true) do |t|
+          t.datetime :happened_at
+        end
+
+        assert_nil Foo.create!(happened_at: nil).happened_at
+        assert_nil Foo.create!(happened_at: "").happened_at
       end
     end
 
