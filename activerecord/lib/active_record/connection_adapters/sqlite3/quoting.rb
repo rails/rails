@@ -45,6 +45,19 @@ module ActiveRecord
           0
         end
 
+        def quote_default_expression(value, column) # :nodoc:
+          if value.is_a?(Proc)
+            value = value.call
+            if value.match?(/\A\w+\(.*\)\z/)
+              "(#{value})"
+            else
+              value
+            end
+          else
+            super
+          end
+        end
+
         def type_cast(value) # :nodoc:
           case value
           when BigDecimal

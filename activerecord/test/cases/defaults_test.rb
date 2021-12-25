@@ -168,6 +168,19 @@ if current_adapter?(:Mysql2Adapter)
     end
   end
 
+  if current_adapter?(:SQLite3Adapter)
+    class Sqlite3DefaultExpressionTest < ActiveRecord::TestCase
+      include SchemaDumpingHelper
+
+      test "schema dump includes default expression" do
+        output = dump_table_schema("defaults")
+        assert_match %r/t\.date\s+"modified_date",\s+default: -> { "CURRENT_DATE" }/, output
+        assert_match %r/t\.datetime\s+"modified_time",\s+precision: 6,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+        assert_match %r/t\.integer\s+"random_number",\s+default: -> { "random()" }/, output
+      end
+    end
+  end
+
   class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
     # ActiveRecord::Base#create! (and #save and other related methods) will
     # open a new transaction. When in transactional tests mode, this will
