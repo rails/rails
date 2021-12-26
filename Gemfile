@@ -183,7 +183,4 @@ if RUBY_VERSION >= "3.1"
   gem "net-smtp", require: false
   gem "net-imap", require: false
   gem "net-pop", require: false
-
-  # digest gem, which is one of the default gems has bumped to 3.1.0.pre for ruby 3.1.0dev.
-  gem "digest", "~> 3.1.0.pre", require: false
 end
