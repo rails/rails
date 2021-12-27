@@ -1277,7 +1277,7 @@ class ArticlesController < ApplicationController
     @article = Article.find(params[:id])
     @article.destroy
 
-    redirect_to root_path
+    redirect_to root_path, status: 303
   end
 
   private
@@ -1293,7 +1293,8 @@ on it. Then, it redirects the browser to the root path.
 
 We have chosen to redirect to the root path because that is our main access
 point for articles. But, in other circumstances, you might choose to redirect to
-e.g. `articles_path`.
+e.g. `articles_path`. Additionally we return an `303` status code, which lets the
+browser know, the deletion worked.
 
 Now let's add a link at the bottom of `app/views/articles/show.html.erb` so that
 we can delete an article from its own page:
@@ -1973,8 +1974,7 @@ So first, let's add the delete link in the
 
 <p>
   <%= link_to 'Destroy Comment', [comment.article, comment],
-              method: :delete,
-              data: { confirm: "Are you sure?" } %>
+              data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
 </p>
 ```
 
@@ -1995,7 +1995,7 @@ class CommentsController < ApplicationController
     @article = Article.find(params[:article_id])
     @comment = @article.comments.find(params[:id])
     @comment.destroy
-    redirect_to article_path(@article)
+    redirect_to article_path(@article), status: 303
   end
 
   private
