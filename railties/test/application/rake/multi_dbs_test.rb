@@ -551,7 +551,7 @@ module ApplicationTests
 
         Dir.chdir(app_path) do
           rails "db:migrate:up:primary", "VERSION=01_one_migration.rb"
-          rails "db:migrate:up:primary", "VERSION=03_one_migration.rb"
+          rails "db:migrate:up:primary", "VERSION=03_three_migration.rb"
           output = rails "db:migrate"
           entries = output.scan(/^== (\d+).+migrated/).map(&:first).map(&:to_i)
           assert_equal [2], entries
