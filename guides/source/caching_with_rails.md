@@ -292,7 +292,32 @@ class Product < ApplicationRecord
 end
 ```
 
-NOTE: Notice that in this example we used the `cache_key_with_version` method, so the resulting cache key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key_with_version` generates a string based on the model's class name, `id`, and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching for instance level information, you need to generate a cache key.
+NOTE: Notice that in this example we used the `cache_key_with_version` method, so the resulting cache key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key_with_version` generates a string based on the model's class name, `id`, and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching, you need to generate a cache key.
+
+#### Avoid caching instances of Active Record objects
+
+Consider this example, which stores a list of Active Record objects representing superusers in the cache:
+
+```ruby
+ # super_admins is an expensive SQL query, so don't run it too often
+Rails.cache.fetch("super_admin_users", expires_in: 12.hours) do
+  User.super_admins.to_a
+end
+```
+
+You should __avoid__ this pattern. Why? Because the instance could change. In production, attributes
+on it could differ, or the record could be deleted. And in development, it works unreliably with
+cache stores that reload code when you make changes.
+
+Instead, cache the ID or some other primitive data type. For example:
+
+```ruby
+ # super_admins is an expensive SQL query, so don't run it too often
+ids = Rails.cache.fetch("super_admin_user_ids", expires_in: 12.hours) do
+  User.super_admins.pluck(:id)
+end
+User.where(id: id).to_a
+```
 
 ### SQL Caching
 
@@ -324,7 +349,7 @@ The second time the same query is run against the database, it's not actually go
 However, it's important to note that query caches are created at the start of
 an action and destroyed at the end of that action and thus persist only for the
 duration of the action. If you'd like to store query results in a more
-persistent fashion, you can with low level caching.
+persistent fashion, you can with low-level caching.
 
 Cache Stores
 ------------
