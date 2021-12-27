@@ -149,6 +149,7 @@ module ActiveRecord
               # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
               ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
             )
+            (?:\s+COLLATE\s+\w+)?
             (?:\s+ASC|\s+DESC)?
             (?:\s+NULLS\s+(?:FIRST|LAST))?
           )
