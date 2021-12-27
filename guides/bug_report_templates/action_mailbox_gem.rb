@@ -8,7 +8,7 @@ gemfile(true) do
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
   # Activate the gem you are reporting the issue against.
-  gem "rails", "~> 6.1.0"
+  gem "rails", "~> 7.0.0"
   gem "sqlite3"
   if RUBY_VERSION >= "3.1"
     # net-smtp, net-imap and net-pop were removed from default gems in Ruby 3.1, but is used by the `mail` gem.
