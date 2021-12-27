@@ -14,7 +14,8 @@ class Rails::Conductor::ActionMailbox::InboundEmailsControllerTest < ActionDispa
             bcc: "Bcc <bcc@example.com>",
             in_reply_to: "<4e6e35f5a38b4_479f13bb90078178@small-app-01.mail>",
             subject: "Hey there",
-            body: "How's it going?"
+            body: "How's it going?",
+            attachments: [ "" ]
           }
         }
       end
@@ -27,6 +28,7 @@ class Rails::Conductor::ActionMailbox::InboundEmailsControllerTest < ActionDispa
       assert_equal "4e6e35f5a38b4_479f13bb90078178@small-app-01.mail", mail.in_reply_to
       assert_equal "Hey there", mail.subject
       assert_equal "How's it going?", mail.body.decoded
+      assert_equal [], mail.attachments
     end
   end
 
