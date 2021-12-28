@@ -316,7 +316,7 @@ Instead, cache the ID or some other primitive data type. For example:
 ids = Rails.cache.fetch("super_admin_user_ids", expires_in: 12.hours) do
   User.super_admins.pluck(:id)
 end
-User.where(id: id).to_a
+User.where(id: ids).to_a
 ```
 
 ### SQL Caching
