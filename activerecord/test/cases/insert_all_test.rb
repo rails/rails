@@ -673,6 +673,15 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_match "#{ActiveRecord::Base.connection.class} does not support :unique_by", error.message
   end
 
+  def test_upsert_with_arel_nodes_as_attributes
+    lower_name = Arel::Nodes::NamedFunction.new("lower", [
+      Arel::Nodes.build_quoted("Reworking")
+    ])
+
+    Book.upsert_all([{ id: 101, name: lower_name, author_id: 1 }])
+    assert_equal "reworking", Book.find(101).name
+  end
+
   private
     def capture_log_output
       output = StringIO.new

@@ -200,6 +200,7 @@ module ActiveRecord
 
           values_list = insert_all.map_key_with_value do |key, value|
             next value if Arel::Nodes::SqlLiteral === value
+            next Arel.sql(value.to_sql(model)) if Arel::Nodes::Node === value
             connection.with_yaml_fallback(types[key].serialize(value))
           end
 
