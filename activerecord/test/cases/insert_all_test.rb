@@ -399,9 +399,14 @@ class InsertAllTest < ActiveRecord::TestCase
     skip unless supports_insert_on_duplicate_update? && supports_datetime_with_precision?
 
     Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1), updated_at: 5.years.ago, updated_on: 5.years.ago }]
-    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8) }]
 
-    assert_not_predicate Book.find(101).updated_at.usec, :zero?, "updated_at should have sub-second precision"
+    # A single upsert can occur exactly at the seconds boundary (when usec is naturally zero), so try multiple times.
+    has_subsecond_precision = (1..100).any? do |i|
+      Book.upsert_all [{ id: 101, name: "Out of the Silent Planet (Edition #{i})" }]
+      Book.find(101).updated_at.usec > 0
+    end
+
+    assert has_subsecond_precision, "updated_at should have sub-second precision"
   end
 
   def test_upsert_all_uses_given_updated_at_over_implicit_updated_at
@@ -483,9 +488,13 @@ class InsertAllTest < ActiveRecord::TestCase
   def test_upsert_all_respects_created_at_precision_when_touched_implicitly
     skip unless supports_insert_on_duplicate_update? && supports_datetime_with_precision?
 
-    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8) }]
+    # A single upsert can occur exactly at the seconds boundary (when usec is naturally zero), so try multiple times.
+    has_subsecond_precision = (1..100).any? do |i|
+      Book.upsert_all [{ id: 101 + i, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1) }]
+      Book.find(101 + i).created_at.usec > 0
+    end
 
-    assert_not_predicate Book.find(101).created_at.usec, :zero?, "created_at should have sub-second precision"
+    assert has_subsecond_precision, "created_at should have sub-second precision"
   end
 
   def test_upsert_all_implicitly_sets_timestamps_on_update_when_model_record_timestamps_is_true
