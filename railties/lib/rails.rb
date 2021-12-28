@@ -15,7 +15,12 @@ require "rails/version"
 require "rails/autoloaders"
 
 require "active_support/railtie"
-require "action_dispatch/railtie"
+
+begin
+  require "action_dispatch/railtie"
+rescue LoadError => e
+  raise unless e.path == "action_dispatch/railtie"
+end
 
 # UTF-8 is the default internal and external encoding.
 silence_warnings do

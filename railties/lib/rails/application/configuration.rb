@@ -33,7 +33,7 @@ module Rails
         @filter_parameters                       = []
         @filter_redirect                         = []
         @helpers_paths                           = []
-        if Rails.env.development?
+        if Rails.env.development? && defined?(ActionDispatch)
           @hosts = ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT +
             ENV["RAILS_DEVELOPMENT_HOSTS"].to_s.split(",").map(&:strip)
         else

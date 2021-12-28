@@ -45,20 +45,22 @@ module Rails
         autoloader.setup
       end
 
-      # Setup default session store if not already set in config/application.rb
-      initializer :setup_default_session_store, before: :build_middleware_stack do |app|
-        unless app.config.session_store?
-          app_name = app.class.name ? app.railtie_name.chomp("_application") : ""
-          app.config.session_store :cookie_store, key: "_#{app_name}_session"
+      if defined?(ActionDispatch)
+        # Setup default session store if not already set in config/application.rb
+        initializer :setup_default_session_store, before: :build_middleware_stack do |app|
+          unless app.config.session_store?
+            app_name = app.class.name ? app.railtie_name.chomp("_application") : ""
+            app.config.session_store :cookie_store, key: "_#{app_name}_session"
+          end
         end
-      end
 
-      initializer :build_middleware_stack do
-        build_middleware_stack
-      end
+        initializer :build_middleware_stack do
+          build_middleware_stack
+        end
 
-      initializer :define_main_app_helper do |app|
-        app.routes.define_mounted_helper(:main_app)
+        initializer :define_main_app_helper do |app|
+          app.routes.define_mounted_helper(:main_app)
+        end
       end
 
       initializer :add_to_prepare_blocks do |app|
@@ -133,41 +135,43 @@ module Rails
         end
       end
 
-      initializer :add_internal_routes do |app|
-        if Rails.env.development?
-          app.routes.prepend do
-            get "/rails/info/properties" => "rails/info#properties", internal: true
-            get "/rails/info/routes"     => "rails/info#routes",     internal: true
-            get "/rails/info"            => "rails/info#index",      internal: true
-          end
+      if defined?(::ActionDispatch)
+        initializer :add_internal_routes do |app|
+          if Rails.env.development?
+            app.routes.prepend do
+              get "/rails/info/properties" => "rails/info#properties", internal: true
+              get "/rails/info/routes"     => "rails/info#routes",     internal: true
+              get "/rails/info"            => "rails/info#index",      internal: true
+            end
 
-          routes_reloader.run_after_load_paths = -> do
-            app.routes.append do
-              get "/" => "rails/welcome#index", internal: true
+            routes_reloader.run_after_load_paths = -> do
+              app.routes.append do
+                get "/" => "rails/welcome#index", internal: true
+              end
             end
           end
         end
-      end
 
-      # Set routes reload after the finisher hook to ensure routes added in
-      # the hook are taken into account.
-      initializer :set_routes_reloader_hook do |app|
-        reloader = routes_reloader
-        reloader.eager_load = app.config.eager_load
-        reloader.execute
-        reloaders << reloader
-        app.reloader.to_run do
-          # We configure #execute rather than #execute_if_updated because if
-          # autoloaded constants are cleared we need to reload routes also in
-          # case any was used there, as in
-          #
-          #   mount MailPreview => 'mail_view'
-          #
-          # This means routes are also reloaded if i18n is updated, which
-          # might not be necessary, but in order to be more precise we need
-          # some sort of reloaders dependency support, to be added.
-          require_unload_lock!
+        # Set routes reload after the finisher hook to ensure routes added in
+        # the hook are taken into account.
+        initializer :set_routes_reloader_hook do |app|
+          reloader = routes_reloader
+          reloader.eager_load = app.config.eager_load
           reloader.execute
+          reloaders << reloader
+          app.reloader.to_run do
+            # We configure #execute rather than #execute_if_updated because if
+            # autoloaded constants are cleared we need to reload routes also in
+            # case any was used there, as in
+            #
+            #   mount MailPreview => 'mail_view'
+            #
+            # This means routes are also reloaded if i18n is updated, which
+            # might not be necessary, but in order to be more precise we need
+            # some sort of reloaders dependency support, to be added.
+            require_unload_lock!
+            reloader.execute
+          end
         end
       end
 

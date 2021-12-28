@@ -583,15 +583,17 @@ module Rails
       config.eager_load_paths.freeze
     end
 
-    initializer :add_routing_paths do |app|
-      routing_paths = paths["config/routes.rb"].existent
-      external_paths = self.paths["config/routes"].paths
-      routes.draw_paths.concat(external_paths)
+    if defined?(::ActionDispatch)
+      initializer :add_routing_paths do |app|
+        routing_paths = paths["config/routes.rb"].existent
+        external_paths = self.paths["config/routes"].paths
+        routes.draw_paths.concat(external_paths)
 
-      if routes? || routing_paths.any?
-        app.routes_reloader.paths.unshift(*routing_paths)
-        app.routes_reloader.route_sets << routes
-        app.routes_reloader.external_routes.unshift(*external_paths)
+        if routes? || routing_paths.any?
+          app.routes_reloader.paths.unshift(*routing_paths)
+          app.routes_reloader.route_sets << routes
+          app.routes_reloader.external_routes.unshift(*external_paths)
+        end
       end
     end
 

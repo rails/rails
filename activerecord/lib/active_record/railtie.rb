@@ -5,11 +5,14 @@ require "rails"
 require "active_support/core_ext/object/try"
 require "active_model/railtie"
 
-# For now, action_controller must always be present with
+# If used, action_controller must always be present with
 # Rails, so let's make sure that it gets required before
 # here. This is needed for correctly setting up the middleware.
-# In the future, this might become an optional require.
-require "action_controller/railtie"
+begin
+  require "action_controller/railtie"
+rescue LoadError => e
+  raise unless e.path == "action_controller/railtie"
+end
 
 module ActiveRecord
   # = Active Record Railtie
@@ -25,7 +28,7 @@ module ActiveRecord
       "ActiveRecord::StaleObjectError" => :conflict,
       "ActiveRecord::RecordInvalid"    => :unprocessable_entity,
       "ActiveRecord::RecordNotSaved"   => :unprocessable_entity
-    )
+    ) if config.respond_to?(:action_dispatch)
 
     config.active_record.use_schema_cache_dump = true
     config.active_record.check_schema_cache_dump_version = true
@@ -86,11 +89,13 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner }
     end
 
-    initializer "active_record.migration_error" do |app|
-      if config.active_record.migration_error == :page_load
-        config.app_middleware.insert_after ::ActionDispatch::Callbacks,
-          ActiveRecord::Migration::CheckPending,
-          file_watcher: app.config.file_watcher
+    if config.respond_to?(:action_dispatch)
+      initializer "active_record.migration_error" do |app|
+        if config.active_record.migration_error == :page_load
+          config.app_middleware.insert_after ::ActionDispatch::Callbacks,
+            ActiveRecord::Migration::CheckPending,
+            file_watcher: app.config.file_watcher
+        end
       end
     end
 
@@ -280,10 +285,12 @@ To keep using the current cache store, you can turn off cache versioning entirel
     end
 
     # Expose database runtime to controller for logging.
-    initializer "active_record.log_runtime" do
-      require "active_record/railties/controller_runtime"
-      ActiveSupport.on_load(:action_controller) do
-        include ActiveRecord::Railties::ControllerRuntime
+    if config.respond_to?(:action_controller)
+      initializer "active_record.log_runtime" do
+        require "active_record/railties/controller_runtime"
+        ActiveSupport.on_load(:action_controller) do
+          include ActiveRecord::Railties::ControllerRuntime
+        end
       end
     end
 
@@ -360,9 +367,11 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
 
       # Filtered params
-      ActiveSupport.on_load(:action_controller) do
-        if ActiveRecord::Encryption.config.add_to_filter_parameters
-          ActiveRecord::Encryption.install_auto_filtered_parameters(app)
+      if config.respond_to?(:action_controller)
+        ActiveSupport.on_load(:action_controller) do
+          if ActiveRecord::Encryption.config.add_to_filter_parameters
+            ActiveRecord::Encryption.install_auto_filtered_parameters(app)
+          end
         end
       end
     end

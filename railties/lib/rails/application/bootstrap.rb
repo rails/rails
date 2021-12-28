@@ -62,7 +62,7 @@ module Rails
         unless Rails.cache
           Rails.cache = ActiveSupport::Cache.lookup_store(*config.cache_store)
 
-          if Rails.cache.respond_to?(:middleware)
+          if Rails.cache.respond_to?(:middleware) && config.respond_to?(:action_dispatch)
             config.middleware.insert_before(::Rack::Runtime, Rails.cache.middleware)
           end
         end

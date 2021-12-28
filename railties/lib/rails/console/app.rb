@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
 require "active_support/all"
-require "action_controller"
+begin
+  require "action_controller"
+rescue LoadError => e
+  raise unless e.path == "action_controller"
+end
 
 module Rails
   module ConsoleMethods
@@ -17,6 +21,11 @@ module Rails
     # create a new session. If a block is given, the new session will be yielded
     # to the block before being returned.
     def new_session
+      unless defined?(::ActionDispatch)
+        warn "Missing actionpack in your Gemfile, testing session not available."
+        return
+      end
+
       app = Rails.application
       session = ActionDispatch::Integration::Session.new(app)
       yield session if block_given?
