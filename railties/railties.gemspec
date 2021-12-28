@@ -38,7 +38,6 @@ Gem::Specification.new do |s|
   # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
   s.add_dependency "activesupport", version
-  s.add_dependency "actionpack",    version
 
   s.add_dependency "rake", ">= 12.2"
   s.add_dependency "thor", "~> 1.0"
