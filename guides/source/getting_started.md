@@ -305,9 +305,6 @@ create    test/controllers/articles_controller_test.rb
 invoke  helper
 create    app/helpers/articles_helper.rb
 invoke    test_unit
-invoke  assets
-invoke    scss
-create      app/assets/stylesheets/articles.scss
 ```
 
 The most important of these is the controller file,
