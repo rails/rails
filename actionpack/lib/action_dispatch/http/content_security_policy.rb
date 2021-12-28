@@ -150,8 +150,9 @@ module ActionDispatch # :nodoc:
     }.freeze
 
     DEFAULT_NONCE_DIRECTIVES = %w[script-src style-src].freeze
+    NO_OPTION = Object.new
 
-    private_constant :MAPPINGS, :DIRECTIVES, :DEFAULT_NONCE_DIRECTIVES
+    private_constant :MAPPINGS, :DIRECTIVES, :DEFAULT_NONCE_DIRECTIVES, :NO_OPTION
 
     attr_reader :directives
 
@@ -165,55 +166,64 @@ module ActionDispatch # :nodoc:
     end
 
     DIRECTIVES.each do |name, directive|
-      define_method(name) do |*sources|
-        if sources.first
-          @directives[directive] = apply_mappings(sources)
-        else
+      define_method(name) do |*sources, clear: false|
+        if sources.count >= 1 && !sources.first
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Using a falsy to unset the directive is deprecated and
+            Will be removed in Rails 7.1.
+            use 'clear: true' instad.
+          MSG
           @directives.delete(directive)
+          return nil
         end
+        if sources.empty? && clear == false
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Calling directive without values to unset is deprecated and
+            will be removed in Rails 7.1.
+          MSG
+        end
+
+        set_directive_list(directive, apply_mappings(sources), clear: clear)
+        @directives[directive]
       end
     end
 
-    def block_all_mixed_content(enabled = true)
-      if enabled
+    def plugin_types(*types, clear: false)
+      set_directive_list("plugin-types", types, clear: clear)
+      @directives["plugin-types"]
+    end
+
+    def report_uri(uri = nil, clear: false)
+      set_directive_list("report-uri", [uri], clear: clear)
+      @directives["report-uri"]
+    end
+
+    def require_sri_for(*types, clear: false)
+      set_directive_list("require-sri-for", types, clear: clear)
+      @directives["require-sri-for"]
+    end
+
+    def sandbox(*values, clear: false)
+      # Sandbox can be enable without any options
+      @directives["sandbox"] = Set.new if values.any? { |value| value == true }
+      set_directive_list("sandbox", values.reject { |value| value == true }, clear: clear)
+      @directives["sandbox"]
+    end
+
+    def block_all_mixed_content(enabled = NO_OPTION)
+      if enabled == NO_OPTION
+        @directives["block-all-mixed-content"]
+      elsif enabled
         @directives["block-all-mixed-content"] = true
       else
         @directives.delete("block-all-mixed-content")
       end
     end
 
-    def plugin_types(*types)
-      if types.first
-        @directives["plugin-types"] = types
-      else
-        @directives.delete("plugin-types")
-      end
-    end
-
-    def report_uri(uri)
-      @directives["report-uri"] = [uri]
-    end
-
-    def require_sri_for(*types)
-      if types.first
-        @directives["require-sri-for"] = types
-      else
-        @directives.delete("require-sri-for")
-      end
-    end
-
-    def sandbox(*values)
-      if values.empty?
-        @directives["sandbox"] = true
-      elsif values.first
-        @directives["sandbox"] = values
-      else
-        @directives.delete("sandbox")
-      end
-    end
-
-    def upgrade_insecure_requests(enabled = true)
-      if enabled
+    def upgrade_insecure_requests(enabled = NO_OPTION)
+      if enabled == NO_OPTION
+        @directives["upgrade-insecure-requests"]
+      elsif enabled
         @directives["upgrade-insecure-requests"] = true
       else
         @directives.delete("upgrade-insecure-requests")
@@ -226,6 +236,17 @@ module ActionDispatch # :nodoc:
     end
 
     private
+      def set_directive_list(directive, values, clear:)
+        @directives.delete(directive) if clear
+
+        if values.compact.size >= 1
+          @directives[directive] ||= Set.new
+          @directives[directive].merge(values)
+        end
+
+        true
+      end
+
       def apply_mappings(sources)
         sources.map do |source|
           case source
@@ -247,7 +268,7 @@ module ActionDispatch # :nodoc:
 
       def build_directives(context, nonce, nonce_directives)
         @directives.map do |directive, sources|
-          if sources.is_a?(Array)
+          if sources.is_a?(Array) || sources.is_a?(Set)
             if nonce && nonce_directive?(directive, nonce_directives)
               "#{directive} #{build_directive(sources, context).join(' ')} 'nonce-#{nonce}'"
             else
