@@ -172,6 +172,11 @@ module ActiveRecord
     # will work correctly:
     #
     #   User.includes(:posts).where(posts: { name: 'example' })
+    #
+    # Conditions affect both sides of an association.  For example, the above
+    # code will return only users that have a post named "example", <em>and will
+    # only include posts named "example"</em>, even when a matching user has
+    # other additional posts.
     def includes(*args)
       check_if_method_has_arguments!(__callee__, args)
       spawn.includes!(*args)
