@@ -4,7 +4,7 @@
 # These variants are used to create thumbnails, fixed-size avatars, or any other derivative image from the
 # original.
 #
-# Variants rely on {ImageProcessing}[https://github.com/janko-m/image_processing] gem for the actual transformations
+# Variants rely on {ImageProcessing}[https://github.com/janko/image_processing] gem for the actual transformations
 # of the file, so you must add <tt>gem "image_processing"</tt> to your Gemfile if you wish to use variants. By
 # default, images will be processed with {ImageMagick}[http://imagemagick.org] using the
 # {MiniMagick}[https://github.com/minimagick/minimagick] gem, but you can also switch to the
@@ -46,9 +46,9 @@
 #
 # Visit the following links for a list of available ImageProcessing commands and ImageMagick/libvips operations:
 #
-# * {ImageProcessing::MiniMagick}[https://github.com/janko-m/image_processing/blob/master/doc/minimagick.md#methods]
+# * {ImageProcessing::MiniMagick}[https://github.com/janko/image_processing/blob/master/doc/minimagick.md#methods]
 # * {ImageMagick reference}[https://www.imagemagick.org/script/mogrify.php]
-# * {ImageProcessing::Vips}[https://github.com/janko-m/image_processing/blob/master/doc/vips.md#methods]
+# * {ImageProcessing::Vips}[https://github.com/janko/image_processing/blob/master/doc/vips.md#methods]
 # * {ruby-vips reference}[http://www.rubydoc.info/gems/ruby-vips/Vips/Image]
 class ActiveStorage::Variant
   attr_reader :blob, :variation
