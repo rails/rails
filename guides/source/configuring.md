@@ -907,7 +907,7 @@ Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
 
 #### `config.action_controller.raise_on_open_redirects`
 
-Raises an `ArgumentError` when an unpermitted open redirect occurs. The default value is `false`.
+Raises an `ArgumentError` when an unpermitted open redirect occurs. The default value is `true`.
 
 #### `config.action_controller.log_query_tags_around_actions`
 
