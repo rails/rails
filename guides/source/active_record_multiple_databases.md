@@ -433,6 +433,8 @@ ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
 end
 ```
 
+Note: Do not use the same database in different shard definitions. Doing so can cause `LockWaitTimeout` errors to appear sporadically.
+
 ## Activating automatic shard switching
 
 Applications are able to automatically switch shards per request using the provided
@@ -546,7 +548,7 @@ connections globally.
 ### Handling associations with joins across databases
 
 As of Rails 7.0+, Active Record has an option for handling associations that would perform
-a join across multiple databases. If you have a has many through or a has one through association 
+a join across multiple databases. If you have a has many through or a has one through association
 that you want to disable joining and perform 2 or more queries, pass the `disable_joins: true` option.
 
 For example:
@@ -570,8 +572,8 @@ class Yard
 end
 ```
 
-Previously calling `@dog.treats` without `disable_joins` or `@dog.yard` without `disable_joins` 
-would raise an error because databases are unable to handle joins across clusters. With the 
+Previously calling `@dog.treats` without `disable_joins` or `@dog.yard` without `disable_joins`
+would raise an error because databases are unable to handle joins across clusters. With the
 `disable_joins` option, Rails will generate multiple select queries
 to avoid attempting joining across clusters. For the above association, `@dog.treats` would generate the
 following SQL:
