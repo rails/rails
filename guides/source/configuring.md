@@ -637,7 +637,7 @@ Is a boolean value which controls whether or not timestamping of `create` and `u
 
 #### `config.active_record.partial_inserts`
 
-Is a boolean value and controls whether or not partial writes are used when creating new records (i.e. whether inserts only set attributes that are different from the default). The default value is `true`.
+Is a boolean value and controls whether or not partial writes are used when creating new records (i.e. whether inserts only set attributes that are different from the default).
 
 #### `config.active_record.partial_updates`
 
@@ -1864,6 +1864,7 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 - `config.active_record.cache_versioning`: `false`
 - `config.active_record.has_many_inversing`: `false`
 - `config.active_record.legacy_connection_handling`: `true`
+- `config.active_record.partial_inserts`: `true`
 - `config.active_support.use_authenticated_message_encryption`: `false`
 - `config.active_support.hash_digest_class`: `OpenSSL::Digest::MD5`
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA1`
