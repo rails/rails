@@ -1407,7 +1407,7 @@ module ActiveRecord
       # Wrap the migration in a transaction only if supported by the adapter.
       def ddl_transaction(migration, &block)
         if use_transaction?(migration)
-          @schema_migration.class.transaction(&block)
+          @schema_migration.transaction(&block)
         else
           yield
         end
