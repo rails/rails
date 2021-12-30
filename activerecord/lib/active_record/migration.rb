@@ -138,7 +138,7 @@ module ActiveRecord
 
       if ActiveRecord.dump_schema_after_migration
         ActiveRecord::Tasks::DatabaseTasks.dump_schema(
-          ActiveRecord::Base.connection_db_config
+          (ActiveRecord.application_record_class || ActiveRecord::Base).connection_db_config
         )
       end
     end
@@ -153,7 +153,7 @@ module ActiveRecord
         message += " RAILS_ENV=#{::Rails.env}" if defined?(Rails.env)
         message += "\n\n"
 
-        pending_migrations = ActiveRecord::Base.connection.migration_context.open.pending_migrations
+        pending_migrations = (ActiveRecord.application_record_class || ActiveRecord::Base).connection.migration_context.open.pending_migrations
 
         message += "You have #{pending_migrations.size} pending #{pending_migrations.size > 1 ? 'migrations:' : 'migration:'}\n\n"
 
@@ -623,12 +623,12 @@ module ActiveRecord
       end
 
       # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
-      def check_pending!(connection = Base.connection)
+      def check_pending!(connection = (ActiveRecord.application_record_class || Base).connection)
         raise ActiveRecord::PendingMigrationError if connection.migration_context.needs_migration?
       end
 
       def load_schema_if_pending!
-        current_db_config = Base.connection_db_config
+        current_db_config = (ActiveRecord.application_record_class || Base).connection_db_config
         all_configs = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env)
 
         needs_update = !all_configs.all? do |db_config|
@@ -848,7 +848,7 @@ module ActiveRecord
       end
 
       time = nil
-      ActiveRecord::Base.connection_pool.with_connection do |conn|
+      (ActiveRecord.application_record_class || ActiveRecord::Base).connection_pool.with_connection do |conn|
         time = Benchmark.measure do
           exec_migration(conn, direction)
         end
@@ -1337,7 +1337,7 @@ module ActiveRecord
       # Stores the current environment in the database.
       def record_environment
         return if down?
-        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Base.connection.migration_context.current_environment
+        ActiveRecord::InternalMetadata[:environment] = @schema_migration.connection.migration_context.current_environment
       end
 
       def ran?(migration)
@@ -1407,18 +1407,18 @@ module ActiveRecord
       # Wrap the migration in a transaction only if supported by the adapter.
       def ddl_transaction(migration, &block)
         if use_transaction?(migration)
-          Base.transaction(&block)
+          @schema_migration.class.transaction(&block)
         else
           yield
         end
       end
 
       def use_transaction?(migration)
-        !migration.disable_ddl_transaction && Base.connection.supports_ddl_transactions?
+        !migration.disable_ddl_transaction && @schema_migration.connection.supports_ddl_transactions?
       end
 
       def use_advisory_lock?
-        Base.connection.advisory_locks_enabled?
+        @schema_migration.connection.advisory_locks_enabled?
       end
 
       def with_advisory_lock
@@ -1440,7 +1440,7 @@ module ActiveRecord
 
       def with_advisory_lock_connection(&block)
         pool = ActiveRecord::ConnectionAdapters::ConnectionHandler.new.establish_connection(
-          ActiveRecord::Base.connection_db_config
+          @schema_migration.connection_db_config
         )
 
         pool.with_connection(&block)
@@ -1450,7 +1450,7 @@ module ActiveRecord
 
       MIGRATOR_SALT = 2053462845
       def generate_migrator_advisory_lock_id
-        db_name_hash = Zlib.crc32(Base.connection.current_database)
+        db_name_hash = Zlib.crc32(@schema_migration.connection.current_database)
         MIGRATOR_SALT * db_name_hash
       end
   end
