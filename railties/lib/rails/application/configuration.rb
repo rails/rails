@@ -81,7 +81,10 @@ module Rails
         @server_timing                           = false
       end
 
-      # Loads default configurations. See {the result of the method for each version}[https://guides.rubyonrails.org/configuring.html#results-of-config-load-defaults].
+      # Loads default configuration values for a target version. This includes
+      # defaults for versions prior to the target version. See the
+      # {configuration guide}[https://guides.rubyonrails.org/configuring.html]
+      # for the default values associated with a particular version.
       def load_defaults(target_version)
         case target_version.to_s
         when "5.0"

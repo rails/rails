@@ -50,6 +50,12 @@ WARNING: Use the public configuration methods over calling directly to the assoc
 
 NOTE: If you need to apply configuration directly to a class, use a [lazy load hook](https://api.rubyonrails.org/classes/ActiveSupport/LazyLoadHooks.html) in an initializer to avoid autoloading the class before initialization has completed. This will break because autoloading during initialization cannot be safely repeated when the app reloads.
 
+### Versioned Default Values
+
+[`config.load_defaults`] loads default configuration values for a target version and all versions prior. For example, `config.load_defaults 6.1` will load defaults for all versions up to and including version 6.1.
+
+[`config.load_defaults`]: https://api.rubyonrails.org/classes/Rails/Application/Configuration.html#method-i-load_defaults
+
 ### Rails General Configuration
 
 The following configuration methods are to be called on a `Rails::Railtie` object, such as a subclass of `Rails::Engine` or `Rails::Application`.
@@ -157,7 +163,7 @@ numbers. It also filters out sensitive values of database columns when calling `
 
 #### `config.force_ssl`
 
-Forces all requests to be served over HTTPS, and sets "https://" as the default protocol when generating URLs. Enforcement of HTTPS is handled by the `ActionDispatch::SSL` middleware, which can be configured via `config.ssl_options` - see its [documentation](https://api.rubyonrails.org/classes/ActionDispatch/SSL.html) for details.
+Forces all requests to be served over HTTPS, and sets "https://" as the default protocol when generating URLs. Enforcement of HTTPS is handled by the `ActionDispatch::SSL` middleware, which can be configured via `config.ssl_options`.
 
 #### `config.javascript_path`
 
@@ -235,6 +241,17 @@ config.session_store :my_custom_store
 
 This custom store must be defined as `ActionDispatch::Session::MyCustomStore`.
 
+#### `config.ssl_options`
+
+Configuration options for the [`ActionDispatch::SSL`](https://api.rubyonrails.org/classes/ActionDispatch/SSL.html) middleware.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `{}`                 |
+| 5.0                   | `{ hsts: { subdomains: true } }` |
+
 #### `config.time_zone`
 
 Sets the default time zone for the application and enables time zone awareness for Active Record.
@@ -268,7 +285,14 @@ Allows you to specify additional assets (other than `application.css` and `appli
 
 #### `config.assets.unknown_asset_fallback`
 
-Allows you to modify the behavior of the asset pipeline when an asset is not in the pipeline, if you use sprockets-rails 3.2.0 or newer. Defaults to `false`.
+Allows you to modify the behavior of the asset pipeline when an asset is not in the pipeline, if you use sprockets-rails 3.2.0 or newer.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 5.1                   | `false`              |
 
 #### `config.assets.prefix`
 
@@ -639,6 +663,13 @@ Is a boolean value which controls whether or not timestamping of `create` and `u
 
 Is a boolean value and controls whether or not partial writes are used when creating new records (i.e. whether inserts only set attributes that are different from the default).
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 7.0                   | `false`              |
+
 #### `config.active_record.partial_updates`
 
 Is a boolean value and controls whether or not partial writes are used when updating existing records (i.e. whether updates only set attributes that are dirty). Note that when using partial updates, you should also use optimistic locking `config.active_record.lock_optimistically` since concurrent updates may write attributes based on a possibly stale read state. The default value is `true`.
@@ -665,6 +696,13 @@ or a string of comma separated schemas.
 
 Is a boolean value and controls whether a record fails validation if
 `belongs_to` association is not present.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `nil`                |
+| 5.0                   | `true`               |
 
 #### `config.active_record.action_on_strict_loading_violation`
 
@@ -699,6 +737,13 @@ query to the database to get this information. Defaults to `true`.
 Indicates whether to use a stable `#cache_key` method that is accompanied by a
 changing version in the `#cache_version` method.
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 5.2                   | `true`               |
+
 #### `config.active_record.collection_cache_versioning`
 
 Enables the same cache key to be reused when the object being cached of type
@@ -706,19 +751,47 @@ Enables the same cache key to be reused when the object being cached of type
 updated at and count) of the relation's cache key into the cache version to
 support recycling cache key.
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 6.0                   | `true`               |
+
 #### `config.active_record.has_many_inversing`
 
 Enables setting the inverse record when traversing `belongs_to` to `has_many`
 associations.
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 6.1                   | `true`               |
+
 #### `config.active_record.automatic_scope_inversing`
 
 Enables automatically inferring the `inverse_of` for associations with a scope.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.0                   | `true`               |
 
 #### `config.active_record.legacy_connection_handling`
 
 Allows to enable new connection handling API. For applications using multiple
 databases, this new API provides support for granular connection swapping.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 6.1                   | `false`              |
 
 #### `config.active_record.destroy_association_async_job`
 
@@ -734,7 +807,14 @@ When true, will always include column names in `SELECT` statements, and avoid wi
 
 #### `config.active_record.verify_foreign_keys_for_fixtures`
 
-Ensures all foreign key constraints are valid after fixtures are loaded in tests. Supported by PostgreSQL and SQLite only. Defaults to `false`.
+Ensures all foreign key constraints are valid after fixtures are loaded in tests. Supported by PostgreSQL and SQLite only.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.0                   | `true`               |
 
 #### `config.active_record.query_log_tags_enabled`
 
@@ -855,17 +935,45 @@ Enables or disables CSRF protection. By default this is `false` in the test envi
 
 Configures whether the HTTP `Origin` header should be checked against the site's origin as an additional CSRF defense.
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 5.0                   | `true`               |
+
 #### `config.action_controller.per_form_csrf_tokens`
 
 Configures whether CSRF tokens are only valid for the method/action they were generated for.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 5.0                   | `true`               |
 
 #### `config.action_controller.default_protect_from_forgery`
 
 Determines whether forgery protection is added on `ActionController::Base`.
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 5.2                   | `true`               |
+
 #### `config.action_controller.urlsafe_csrf_tokens`
 
 Configures whether generated CSRF tokens are URL-safe.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 6.1                   | `true`               |
 
 #### `config.action_controller.relative_url_root`
 
@@ -907,7 +1015,14 @@ Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
 
 #### `config.action_controller.raise_on_open_redirects`
 
-Raises an `ArgumentError` when an unpermitted open redirect occurs. The default value is `false`.
+Raises an `ArgumentError` when an unpermitted open redirect occurs.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.0                   | `true`               |
 
 #### `config.action_controller.log_query_tags_around_actions`
 
@@ -918,6 +1033,13 @@ updated via an `around_filter`. The default value is `true`.
 
 Configures the [`ParamsWrapper`](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html) to wrap json
 request by default.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.0                   | `true`               |
 
 #### `ActionController::Base.wrap_parameters`
 
@@ -930,20 +1052,27 @@ the top level, or on individual controllers.
 
 Sets the name of the store for session data. The default is `:cookie_store`; other valid options include `:active_record_store`, `:mem_cache_store` or the name of your own custom class.
 
+#### `config.action_dispatch.cookies_serializer`
+
+Specifies which serializer to use for cookies. For more information, see [Action Controller Cookies](action_controller_overview.html#cookies).
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:marshal`           |
+| 7.0                   | `:json`              |
+
 #### `config.action_dispatch.default_headers`
 
-Is a hash with HTTP headers that are set by default in each response. By default, this is defined as:
+Is a hash with HTTP headers that are set by default in each response.
 
-```ruby
-config.action_dispatch.default_headers = {
-  'X-Frame-Options' => 'SAMEORIGIN',
-  'X-XSS-Protection' => '1; mode=block',
-  'X-Content-Type-Options' => 'nosniff',
-  'X-Download-Options' => 'noopen',
-  'X-Permitted-Cross-Domain-Policies' => 'none',
-  'Referrer-Policy' => 'strict-origin-when-cross-origin'
-}
-```
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | <pre><code>{<br>  "X-Frame-Options" => "SAMEORIGIN",<br>  "X-XSS-Protection" => "1; mode=block",<br>  "X-Content-Type-Options" => "nosniff",<br>  "X-Download-Options" => "noopen",<br>  "X-Permitted-Cross-Domain-Policies" => "none",<br>  "Referrer-Policy" => "strict-origin-when-cross-origin"<br>}</code></pre> |
+| 7.0                   | <pre><code>{<br>  "X-Frame-Options" => "SAMEORIGIN",<br>  "X-XSS-Protection" => "0",<br>  "X-Content-Type-Options" => "nosniff",<br>  "X-Download-Options" => "noopen",<br>  "X-Permitted-Cross-Domain-Policies" => "none",<br>  "Referrer-Policy" => "strict-origin-when-cross-origin"<br>}</code></pre> |
 
 #### `config.action_dispatch.default_charset`
 
@@ -1001,12 +1130,25 @@ Allows rotating secrets, ciphers, and digests for encrypted and signed cookies.
 #### `config.action_dispatch.use_authenticated_cookie_encryption`
 
 Controls whether signed and encrypted cookies use the AES-256-GCM cipher or the
-older AES-256-CBC cipher. It defaults to `true`.
+older AES-256-CBC cipher.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 5.2                   | `true`               |
 
 #### `config.action_dispatch.use_cookies_with_metadata`
 
-Enables writing cookies with the purpose metadata embedded. It defaults to
-`true`.
+Enables writing cookies with the purpose metadata embedded.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 6.0                   | `true`               |
 
 #### `config.action_dispatch.perform_deep_munge`
 
@@ -1064,6 +1206,13 @@ Any exceptions that are not configured will be mapped to 500 Internal Server Err
 Change the return value of `ActionDispatch::Request#content_type` to the
 Content-Type header without modification.
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 7.0                   | `false`              |
+
 #### `config.action_dispatch.cookies_same_site_protection`
 
 Configures the default value of the `SameSite` attribute when setting cookies.
@@ -1077,11 +1226,24 @@ config.action_dispatch.cookies_same_site_protection = ->(request) do
 end
 ```
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `nil`                |
+| 6.1                   | `:lax`               |
+
 #### `config.action_dispatch.ssl_default_redirect_status`
 
 Configures the default HTTP status code used when redirecting non-GET/HEAD
-requests from HTTP to HTTPS in the `ActionDispatch::SSL` middleware. Defaults
-to `308` as defined in https://tools.ietf.org/html/rfc7538.
+requests from HTTP to HTTPS in the `ActionDispatch::SSL` middleware.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `307`                |
+| 6.1                   | `308`                |
 
 #### `config.action_dispatch.log_rescued_responses`
 
@@ -1165,13 +1327,34 @@ Determines whether to wrap the missing translations key in a `<span>` tag or not
 
 Determines whether `form_with` generates remote forms or not.
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| 5.1                   | `true`               |
+| 6.1                   | `false`              |
+
 #### `config.action_view.form_with_generates_ids`
 
 Determines whether `form_with` generates ids on inputs.
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 5.2                   | `true`               |
+
 #### `config.action_view.default_enforce_utf8`
 
-Determines whether forms are generated with a hidden tag that forces older versions of Internet Explorer to submit forms encoded in UTF-8. This defaults to `false`.
+Determines whether forms are generated with a hidden tag that forces older versions of Internet Explorer to submit forms encoded in UTF-8.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 6.0                   | `false`              |
 
 #### `config.action_view.image_loading`
 
@@ -1189,13 +1372,34 @@ Determines whether to annotate rendered view with template file names. This defa
 
 Determines whether `javascript_include_tag` and `stylesheet_link_tag` will generate a `Link` header that preload assets.
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `nil`                |
+| 6.1                   | `true`               |
+
 #### `config.action_view.button_to_generates_button_tag`
 
 Determines whether `button_to` will render `<button>` element, regardless of whether or not the content is passed as the first argument or as a block.
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.0                   | `true`               |
+
 #### `config.action_view.apply_stylesheet_media_default`
 
 Determines whether `stylesheet_link_tag` will render `screen` as the default value for the attribute `media` when it's not provided.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 7.0                   | `false`              |
 
 ### Configuring Action Mailbox
 
@@ -1222,9 +1426,23 @@ config.action_mailbox.incinerate_after = 14.days
 
 Accepts a symbol indicating the Active Job queue to use for incineration jobs. When this option is `nil`, incineration jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:action_mailbox_incineration` |
+| 6.1                   | `nil`                |
+
 #### `config.action_mailbox.queues.routing`
 
 Accepts a symbol indicating the Active Job queue to use for routing jobs. When this option is `nil`, routing jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:action_mailbox_routing` |
+| 6.1                   | `nil`                |
 
 #### `config.action_mailbox.storage_service`
 
@@ -1265,6 +1483,13 @@ Additionally, it is possible to pass any [configuration option `Mail::SMTP` resp
 
 Allows to configure both the `:open_timeout` and `:read_timeout`
 values for `:smtp` delivery method.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `nil`                |
+| 7.0                   | `5`                  |
 
 #### `config.action_mailer.sendmail_settings`
 
@@ -1348,6 +1573,13 @@ config.action_mailer.show_previews = false
 
 Specifies the Active Job queue to use for delivery jobs. When this option is set to `nil`, delivery jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). Make sure that your Active Job adapter is also configured to process the specified queue, otherwise delivery jobs may be silently ignored.
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:mailers`           |
+| 6.1                   | `nil`                |
+
 #### `config.action_mailer.perform_caching`
 
 Specifies whether the mailer templates should perform fragment caching or not. If it's not specified, the default will be `true`.
@@ -1355,6 +1587,13 @@ Specifies whether the mailer templates should perform fragment caching or not. I
 #### `config.action_mailer.delivery_job`
 
 Specifies delivery job for mail.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `ActionMailer::MailDeliveryJob` |
+| 6.0                   | `"ActionMailer::MailDeliveryJob"` |
 
 ### Configuring Active Support
 
@@ -1384,17 +1623,46 @@ Sets the precision of JSON encoded time values. Defaults to `3`.
 
 Allows configuring the digest class to use to generate non-sensitive digests, such as the ETag header.
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `OpenSSL::Digest::MD5` |
+| 5.2                   | `OpenSSL::Digest::SHA1` |
+| 7.0                   | `OpenSSL::Digest::SHA256` |
+
 #### `config.active_support.key_generator_hash_digest_class`
 
 Allows configuring the digest class to use to derive secrets from the configured secret base, such as for encrypted cookies.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `OpenSSL::Digest::SHA1` |
+| 7.0                   | `OpenSSL::Digest::SHA256` |
 
 #### `config.active_support.use_authenticated_message_encryption`
 
 Specifies whether to use AES-256-GCM authenticated encryption as the default cipher for encrypting messages instead of AES-256-CBC.
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 5.2                   | `true`               |
+
 #### `config.active_support.cache_format_version`
 
 Specifies which version of the cache serializer to use. Possible values are `6.1` and `7.0`.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `6.1`                |
+| 7.0                   | `7.0`                |
 
 #### `config.active_support.deprecation`
 
@@ -1412,10 +1680,20 @@ Configures deprecation warnings that the Application considers disallowed. This 
 
 Allows you to disable all deprecation warnings (including disallowed deprecations); it makes `ActiveSupport::Deprecation.warn` a no-op. This is enabled by default in production.
 
+#### `config.active_support.remove_deprecated_time_with_zone_name`
+
+Specifies whether to remove the deprecated override of the [`ActiveSupport::TimeWithZone.name`](https://api.rubyonrails.org/classes/ActiveSupport/TimeWithZone.html#method-c-name) method, to avoid triggering its deprecation warning.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `nil`                |
+| 7.0                   | `true`               |
+
 #### `config.active_support.isolation_level`
 
-Configures the locality of most of Rails internal state. If you use a fiber based server or job processor (e.g. `falcon`), you should set it to `:fiber`.
-Otherwise it is best to use `:thread` locality.
+Configures the locality of most of Rails internal state. If you use a fiber based server or job processor (e.g. `falcon`), you should set it to `:fiber`. Otherwise it is best to use `:thread` locality. Defaults to `:thread`.
 
 #### `config.active_support.use_rfc4122_namespaced_uuids`
 
@@ -1435,7 +1713,12 @@ If set to `false`:
 * Namespace IDs are case-sensitive.
 * Only namespaced UUIDs generated using one of the namespace ID constants defined on `Digest::UUID` are compliant to the standard.
 
-The default value is `true` for new apps. Upgraded apps will have that value set to `false` for backwards-compatibility.
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.0                   | `true`               |
 
 #### `config.active_support.executor_around_test_case`
 
@@ -1444,12 +1727,26 @@ This makes test cases behave closer to an actual request or job.
 Several features that are normally disabled in test, such as Active Record query cache
 and asynchronous queries will then be enabled.
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.0                   | `true`               |
+
 #### `config.active_support.disable_to_s_conversion`
 
 Disables the override of the `#to_s` methods in some Ruby core classes. This config is for applications that want to
 take advantage early of a [Ruby 3.1 optimization](https://github.com/ruby/ruby/commit/b08dacfea39ad8da3f1fd7fdd0e4538cc892ec44).
 This configuration needs to be set in `config/application.rb` inside the application class, otherwise it will not take
 effect.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.0                   | `true`               |
 
 #### `ActiveSupport::Logger.silencer`
 
@@ -1459,10 +1756,28 @@ Is set to `false` to disable the ability to silence logging in a block. The defa
 
 Specifies the logger to use within cache store operations.
 
+#### `ActiveSupport.to_time_preserves_timezone`
+
+Specifies whether `to_time` methods preserve the UTC offset of their receivers. If `false`, `to_time` methods will convert to the local system UTC offset instead.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 5.0                   | `true`               |
+
 #### `ActiveSupport.utc_to_local_returns_utc_offset_times`
 
 Configures `ActiveSupport::TimeZone.utc_to_local` to return a time with a UTC
 offset instead of a UTC time incorporating that offset.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 6.1                   | `true`               |
 
 ### Configuring Active Job
 
@@ -1539,6 +1854,13 @@ Controls if the arguments of a job are logged. Defaults to `true`.
 
 Controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs.
 
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `0.0`                |
+| 6.1                   | `0.15`               |
+
 #### `config.active_job.log_query_tags_around_perform`
 
 Determines whether job context for query tags will be automatically updated via
@@ -1567,7 +1889,14 @@ You can find more detailed configuration options in the
 
 #### `config.active_storage.variant_processor`
 
-Accepts a symbol `:mini_magick` or `:vips`, specifying whether variant transformations and blob analysis will be performed with MiniMagick or ruby-vips. The default is `:mini_magick`.
+Accepts a symbol `:mini_magick` or `:vips`, specifying whether variant transformations and blob analysis will be performed with MiniMagick or ruby-vips.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:mini_magick`       |
+| 7.0                   | `:vips`              |
 
 #### `config.active_storage.analyzers`
 
@@ -1655,25 +1984,27 @@ config.active_storage.silence_invalid_content_types_warning = false
 
 Accepts a symbol indicating the Active Job queue to use for analysis jobs. When this option is `nil`, analysis jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
 
-```ruby
-config.active_storage.queues.analysis = :low_priority
-```
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| 6.0                   | `:active_storage_analysis` |
+| 6.1                   | `nil`                |
 
 #### `config.active_storage.queues.purge`
 
 Accepts a symbol indicating the Active Job queue to use for purge jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
 
-```ruby
-config.active_storage.queues.purge = :low_priority
-```
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| 6.0                   | `:active_storage_purge` |
+| 6.1                   | `nil`                |
 
 #### `config.active_storage.queues.mirror`
 
 Accepts a symbol indicating the Active Job queue to use for direct upload mirroring jobs. When this option is `nil`, mirroring jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). The default is `nil`.
-
-```ruby
-config.active_storage.queues.mirror = :low_priority
-```
 
 #### `config.active_storage.logger`
 
@@ -1709,11 +2040,25 @@ The default is `/rails/active_storage`.
 
 #### `config.active_storage.replace_on_assign_to_many`
 
-Determines whether assigning to a collection of attachments declared with `has_many_attached` replaces any existing attachments or appends to them. The default is `true`.
+Determines whether assigning to a collection of attachments declared with `has_many_attached` replaces any existing attachments or appends to them.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 6.0                   | `true`               |
 
 #### `config.active_storage.track_variants`
 
-Determines whether variants are recorded in the database. The default is `true`.
+Determines whether variants are recorded in the database.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 6.1                   | `true`               |
 
 #### `config.active_storage.draw_routes`
 
@@ -1734,163 +2079,35 @@ The default is `:rails_storage_redirect`.
 
 Can be used to alter the way ffmpeg generates video preview images.
 
-With `config.load_defaults 7.0`, the default is:
+The default value depends on the `config.load_defaults` target version:
 
-```ruby
-config.active_storage.video_preview_arguments = "-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"
-```
-
-Which has the following behavior:
-
-1. `select=eq(n\,0)+eq(key\,1)+gt(scene\,0.015)`: Select the first video frame, plus keyframes, plus frames that meet the scene change threshold.
-2. `loop=loop=-1:size=2,trim=start_frame=1`: Use the first video frame as a fallback when no other frames meet the criteria by looping the first (one or) two selected frames, then dropping the first looped frame.
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `"-y -vframes 1 -f image2"` |
+| 7.0                   | `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015)"`<sup><mark><strong><em>1</em></strong></mark></sup> <br> `+ ",loop=loop=-1:size=2,trim=start_frame=1'"`<sup><mark><strong><em>2</em></strong></mark></sup><br> `+ " -frames:v 1 -f image2"` <br><br> <ol><li>Select the first video frame, plus keyframes, plus frames that meet the scene change threshold.</li> <li>Use the first video frame as a fallback when no other frames meet the criteria by looping the first (one or) two selected frames, then dropping the first looped frame.</li></ol> |
 
 #### `config.active_storage.multiple_file_field_include_hidden`
 
 In Rails 7.1 and beyond, Active Storage `has_many_attached` relationships will
-default to _replacing_ the current collection instead of _appending_ to it. To
-support submitting an _empty_ collection, render an auxiliary hidden field
-similar to how Action View Form Builder render checkbox elements.
+default to _replacing_ the current collection instead of _appending_ to it. Thus
+to support submitting an _empty_ collection, when `multiple_file_field_include_hidden`
+is `true`, the [`file_field`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-file_field)
+helper will render an auxiliary hidden field, similar to the auxiliary field
+rendered by the [`check_box`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-check_box)
+helper.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.0                   | `true`               |
 
 ### Configuring Action Text
 
 #### `config.action_text.attachment_tag_name`
 
 Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action-text-attachment"`.
-
-### Results of `config.load_defaults`
-
-`config.load_defaults` sets new defaults up to and including the version passed. Such that passing, say, `6.0` also gets the new defaults from every version before it.
-
-#### For '7.0', defaults from previous versions below and:
-
-- `config.action_controller.raise_on_open_redirects`: `true`
-- `config.action_view.button_to_generates_button_tag`: `true`
-- `config.action_view.apply_stylesheet_media_default`: `false`
-- `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA256`
-- `config.active_support.hash_digest_class`: `OpenSSL::Digest::SHA256`
-- `config.active_support.cache_format_version`: `7.0`
-- `config.active_support.remove_deprecated_time_with_zone_name`: `true`
-- `config.active_support.executor_around_test_case`: `true`
-- `config.active_support.use_rfc4122_namespaced_uuids`: `true`
-- `config.active_support.disable_to_s_conversion`: `true`
-- `config.action_dispatch.return_only_request_media_type_on_content_type`: `false`
-- `config.action_dispatch.cookies_serializer`: `:json`
-- `config.action_mailer.smtp_timeout`: `5`
-- `config.active_storage.video_preview_arguments`: `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
-- `config.active_storage.multiple_file_field_include_hidden`: `true`
-- `config.active_record.automatic_scope_inversing`: `true`
-- `config.active_record.verify_foreign_keys_for_fixtures`: `true`
-- `config.active_record.partial_inserts`: `false`
-- `config.active_storage.variant_processor`: `:vips`
-- `config.action_controller.wrap_parameters_by_default`: `true`
-- `config.action_dispatch.default_headers`:
-
-    {
-      "X-Frame-Options" => "SAMEORIGIN",
-      "X-XSS-Protection" => "0",
-      "X-Content-Type-Options" => "nosniff",
-      "X-Download-Options" => "noopen",
-      "X-Permitted-Cross-Domain-Policies" => "none",
-      "Referrer-Policy" => "strict-origin-when-cross-origin"
-    }
-
-#### For '6.1', defaults from previous versions below and:
-
-- `config.active_record.has_many_inversing`: `true`
-- `config.active_record.legacy_connection_handling`: `false`
-- `config.active_storage.track_variants`: `true`
-- `config.active_storage.queues.analysis`: `nil`
-- `config.active_storage.queues.purge`: `nil`
-- `config.action_mailbox.queues.incineration`: `nil`
-- `config.action_mailbox.queues.routing`: `nil`
-- `config.action_mailer.deliver_later_queue_name`: `nil`
-- `config.active_job.retry_jitter`: `0.15`
-- `config.action_dispatch.cookies_same_site_protection`: `:lax`
-- `config.action_dispatch.ssl_default_redirect_status` = `308`
-- `ActiveSupport.utc_to_local_returns_utc_offset_times`: `true`
-- `config.action_controller.urlsafe_csrf_tokens`: `true`
-- `config.action_view.form_with_generates_remote_forms`: `false`
-- `config.action_view.preload_links_header`: `true`
-
-#### For '6.0', defaults from previous versions below and:
-
-- `config.autoloader`: `:zeitwerk`
-- `config.action_view.default_enforce_utf8`: `false`
-- `config.action_dispatch.use_cookies_with_metadata`: `true`
-- `config.action_mailer.delivery_job`: `"ActionMailer::MailDeliveryJob"`
-- `config.active_storage.queues.analysis`: `:active_storage_analysis`
-- `config.active_storage.queues.purge`: `:active_storage_purge`
-- `config.active_storage.replace_on_assign_to_many`: `true`
-- `config.active_record.collection_cache_versioning`: `true`
-
-#### For '5.2', defaults from previous versions below and:
-
-- `config.active_record.cache_versioning`: `true`
-- `config.action_dispatch.use_authenticated_cookie_encryption`: `true`
-- `config.active_support.use_authenticated_message_encryption`: `true`
-- `config.active_support.hash_digest_class`: `OpenSSL::Digest::SHA1`
-- `config.action_controller.default_protect_from_forgery`: `true`
-- `config.action_view.form_with_generates_ids`: `true`
-
-#### For '5.1', defaults from previous versions below and:
-
-- `config.assets.unknown_asset_fallback`: `false`
-- `config.action_view.form_with_generates_remote_forms`: `true`
-
-#### For '5.0', baseline defaults from below and:
-
-- `config.action_controller.per_form_csrf_tokens`: `true`
-- `config.action_controller.forgery_protection_origin_check`: `true`
-- `ActiveSupport.to_time_preserves_timezone`: `true`
-- `config.active_record.belongs_to_required_by_default`: `true`
-- `config.ssl_options`: `{ hsts: { subdomains: true } }`
-
-#### Baseline defaults:
-
-- `config.action_controller.default_protect_from_forgery`: `false`
-- `config.action_controller.raise_on_open_redirects`: `false`
-- `config.action_controller.urlsafe_csrf_tokens`: `false`
-- `config.action_dispatch.cookies_same_site_protection`: `nil`
-- `config.action_mailer.delivery_job`: `ActionMailer::MailDeliveryJob`
-- `config.action_view.form_with_generates_ids`: `false`
-- `config.action_view.preload_links_header`: `nil`
-- `config.action_view.button_to_generates_button_tag`: `false`
-- `config.action_view.apply_stylesheet_media_default`: `true`
-- `config.active_job.retry_jitter`: `0.0`
-- `config.action_mailbox.queues.incineration`: `:action_mailbox_incineration`
-- `config.action_mailbox.queues.routing`: `:action_mailbox_routing`
-- `config.action_mailer.deliver_later_queue_name`: `:mailers`
-- `config.active_record.collection_cache_versioning`: `false`
-- `config.active_record.cache_versioning`: `false`
-- `config.active_record.has_many_inversing`: `false`
-- `config.active_record.legacy_connection_handling`: `true`
-- `config.active_record.partial_inserts`: `true`
-- `config.active_support.use_authenticated_message_encryption`: `false`
-- `config.active_support.hash_digest_class`: `OpenSSL::Digest::MD5`
-- `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA1`
-- `config.active_support.cache_format_version`: `6.1`
-- `config.active_support.executor_around_test_case`: `false`
-- `config.active_support.isolation_level`: `:thread`
-- `config.active_support.use_rfc4122_namespaced_uuids`: `false`
-- `config.active_support.disable_to_s_conversion`: `false`
-- `config.action_dispatch.return_only_request_media_type_on_content_type`: `true`
-- `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
-- `config.action_mailer.smtp_timeout`: `nil`
-- `config.active_storage.video_preview_arguments`: `"-y -vframes 1 -f image2"`
-- `config.active_storage.multiple_file_field_include_hidden`: `false`
-- `config.active_storage.variant_processor`: `:mini_magick`
-- `config.action_controller.wrap_parameters_by_default`: `false`
-- `config.action_dispatch.default_headers`:
-
-    {
-      "X-Frame-Options" => "SAMEORIGIN",
-      "X-XSS-Protection" => "1; mode=block",
-      "X-Content-Type-Options" => "nosniff",
-      "X-Download-Options" => "noopen",
-      "X-Permitted-Cross-Domain-Policies" => "none",
-      "Referrer-Policy" => "strict-origin-when-cross-origin"
-    }
 
 ### Configuring a Database
 
