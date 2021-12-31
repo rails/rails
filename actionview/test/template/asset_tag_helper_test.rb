@@ -238,8 +238,8 @@ class AssetTagHelperTest < ActionView::TestCase
   }
 
   FaviconLinkToTag = {
-    %(favicon_link_tag) => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/x-icon" />),
-    %(favicon_link_tag 'favicon.ico') => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/x-icon" />),
+    %(favicon_link_tag) => %(<link href="/images/favicon.ico" rel="icon" type="image/x-icon" />),
+    %(favicon_link_tag 'favicon.ico') => %(<link href="/images/favicon.ico" rel="icon" type="image/x-icon" />),
     %(favicon_link_tag 'favicon.ico', :rel => 'foo') => %(<link href="/images/favicon.ico" rel="foo" type="image/x-icon" />),
     %(favicon_link_tag 'favicon.ico', :rel => 'foo', :type => 'bar') => %(<link href="/images/favicon.ico" rel="foo" type="bar" />),
     %(favicon_link_tag 'mb-icon.png', :rel => 'apple-touch-icon', :type => 'image/png') => %(<link href="/images/mb-icon.png" rel="apple-touch-icon" type="image/png" />)
@@ -255,6 +255,8 @@ class AssetTagHelperTest < ActionView::TestCase
     %(preload_link_tag '//example.com/font.woff2', crossorigin: 'use-credentials') => %(<link rel="preload" href="//example.com/font.woff2" as="font" type="font/woff2" crossorigin="use-credentials" />),
     %(preload_link_tag '/media/audio.ogg', nopush: true) => %(<link rel="preload" href="/media/audio.ogg" as="audio" type="audio/ogg" />),
     %(preload_link_tag '/style.css', integrity: 'sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs') => %(<link rel="preload" href="/style.css" as="style" type="text/css" integrity="sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs">),
+    %(preload_link_tag '/sprite.svg') => %(<link rel="preload" href="/sprite.svg" as="image" type="image/svg+xml">),
+    %(preload_link_tag '/mb-icon.png') => %(<link rel="preload" href="/mb-icon.png" as="image" type="image/png">)
   }
 
   VideoPathToTag = {

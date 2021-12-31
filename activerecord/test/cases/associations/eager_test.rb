@@ -679,7 +679,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_queries(1) do
       posts = Post.references(:authors, :comments).
         merge(includes: [ :author, :comments ], limit: 2, offset: 10,
-          where: [ "authors.name = ? and comments.body = ?", "David", "go crazy" ]).to_a
+          where: [ "authors.name = ? and comments.body = ?", "David", "go wild" ]).to_a
       assert_equal 0, posts.size
     end
   end
@@ -687,7 +687,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_with_has_many_and_limit_and_high_offset_and_multiple_hash_conditions
     assert_queries(1) do
       posts = Post.all.merge!(includes: [ :author, :comments ], limit: 2, offset: 10,
-        where: { "authors.name" => "David", "comments.body" => "go crazy" }).to_a
+        where: { "authors.name" => "David", "comments.body" => "go wild" }).to_a
       assert_equal 0, posts.size
     end
   end
@@ -848,13 +848,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_match(/Association named 'monkeys' was not found on Post; perhaps you misspelled it\?/, e.message)
   end
 
-  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-    test "exceptions have suggestions for fix" do
-      error = assert_raise(ActiveRecord::AssociationNotFoundError) {
-        Post.all.merge!(includes: :monkeys).find(6)
-      }
-      assert_match "Did you mean?", error.message
-    end
+  test "exceptions have suggestions for fix" do
+    error = assert_raise(ActiveRecord::AssociationNotFoundError) {
+      Post.all.merge!(includes: :taggingz).find(6)
+    }
+    assert_match "Did you mean?  tagging\n", error.message
   end
 
   def test_eager_has_many_through_with_order

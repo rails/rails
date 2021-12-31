@@ -15,7 +15,7 @@ Bundler.require(*Rails.groups)
 
 module Dummy
   class Application < Rails::Application
-    config.load_defaults 7.0
+    config.load_defaults Rails::VERSION::STRING.to_f
 
     config.active_storage.service = :local
   end

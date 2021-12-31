@@ -92,10 +92,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Helpers
     assert_file "app/helpers/product_lines_helper.rb"
-
-    # Assets
-    assert_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/stylesheets/product_lines.css"
   end
 
   def test_api_scaffold_on_invoke
@@ -164,10 +160,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Helpers
     assert_no_file "app/helpers/product_lines_helper.rb"
-
-    # Assets
-    assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/stylesheets/product_lines.css"
   end
 
   def test_functional_tests_without_attributes
@@ -219,10 +211,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Helpers
     assert_no_file "app/helpers/product_lines_helper.rb"
-
-    # Assets
-    assert_file "app/assets/stylesheets/scaffold.css", /.scaffold_record/
-    assert_no_file "app/assets/stylesheets/product_lines.css"
   end
 
   def test_scaffold_with_namespace_on_invoke
@@ -282,20 +270,43 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Views
     assert_file "app/views/admin/roles/index.html.erb" do |content|
-      assert_match(%("New role", new_admin_role_path), content)
+      assert_match %{@admin_roles.each do |admin_role|}, content
+      assert_match %{render admin_role}, content
+      assert_match %{"Show this role", admin_role}, content
+      assert_match %{"New role", new_admin_role_path}, content
     end
 
-    %w(edit new show _form).each do |view|
-      assert_file "app/views/admin/roles/#{view}.html.erb"
+    assert_file "app/views/admin/roles/show.html.erb" do |content|
+      assert_match %{render @admin_role}, content
+      assert_match %{"Edit this role", edit_admin_role_path(@admin_role)}, content
+      assert_match %{"Back to roles", admin_roles_path}, content
+      assert_match %{"Destroy this role", @admin_role}, content
     end
+
+    assert_file "app/views/admin/roles/_role.html.erb" do |content|
+      assert_match "role", content
+      assert_no_match "admin_role", content
+    end
+
+    assert_file "app/views/admin/roles/new.html.erb"  do |content|
+      assert_match %{render "form", admin_role: @admin_role}, content
+      assert_match %{"Back to roles", admin_roles_path}, content
+    end
+
+    assert_file "app/views/admin/roles/edit.html.erb" do |content|
+      assert_match %{render "form", admin_role: @admin_role}, content
+      assert_match %{"Show this role", @admin_role}, content
+      assert_match %{"Back to roles", admin_roles_path}, content
+    end
+
+    assert_file "app/views/admin/roles/_form.html.erb"  do |content|
+      assert_match %{model: admin_role}, content
+    end
+
     assert_no_file "app/views/layouts/admin/roles.html.erb"
 
     # Helpers
     assert_file "app/helpers/admin/roles_helper.rb"
-
-    # Assets
-    assert_file "app/assets/stylesheets/scaffold.css", /.scaffold_record/
-    assert_file "app/assets/stylesheets/admin/roles.css"
   end
 
   def test_scaffold_with_namespace_on_revoke
@@ -327,10 +338,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Helpers
     assert_no_file "app/helpers/admin/roles_helper.rb"
-
-    # Assets
-    assert_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/stylesheets/admin/roles.css"
   end
 
   def test_scaffold_generator_on_revoke_does_not_mutilate_legacy_map_parameter
@@ -371,30 +378,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "config/routes.rb", /\.routes\.draw do\n  resources :products\n/
   end
 
-  def test_scaffold_generator_no_assets_with_switch_no_assets
-    run_generator [ "posts", "--no-assets" ]
-    assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/stylesheets/posts.css"
-  end
-
-  def test_scaffold_generator_no_assets_with_switch_assets_false
-    run_generator [ "posts", "--assets=false" ]
-    assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/stylesheets/posts.css"
-  end
-
-  def test_scaffold_generator_no_scaffold_stylesheet_with_switch_no_scaffold_stylesheet
-    run_generator [ "posts", "--no-scaffold-stylesheet" ]
-    assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/stylesheets/posts.css"
-  end
-
-  def test_scaffold_generator_no_scaffold_stylesheet_with_switch_scaffold_stylesheet_false
-    run_generator [ "posts", "--scaffold-stylesheet=false" ]
-    assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/stylesheets/posts.css"
-  end
-
   def test_scaffold_generator_with_switch_resource_route_false
     run_generator [ "posts", "--resource-route=false" ]
     assert_file "config/routes.rb" do |route|
@@ -414,12 +397,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_no_match(/error/, output)
     assert_no_file "app/helpers/posts_helper.rb"
-  end
-
-  def test_scaffold_generator_no_stylesheets
-    run_generator [ "posts", "--no-stylesheets" ]
-    assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/stylesheets/posts.css"
   end
 
   def test_scaffold_generator_outputs_error_message_on_missing_attribute_type
@@ -458,7 +435,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/accounts/index.html.erb" do |content|
-      assert_match(/^\W{2}<%= render @accounts %>/, content)
+      assert_match(/^\W{2}<%= @accounts.each do |account| %>/, content)
+      assert_match(/^\W{4}<%= render account %>/, content)
+      assert_match(/<%= link_to "Show this account", account %>/, content)
     end
 
     assert_file "app/views/accounts/show.html.erb" do |content|
@@ -683,8 +662,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert File.exist?("app/views/bukkits/users/_form.html.erb")
 
       assert File.exist?("app/helpers/bukkits/users_helper.rb")
-
-      assert File.exist?("app/assets/stylesheets/bukkits/users.css")
     end
   end
 
@@ -712,8 +689,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_not File.exist?("app/views/bukkits/users/_form.html.erb")
 
       assert_not File.exist?("app/helpers/bukkits/users_helper.rb")
-
-      assert_not File.exist?("app/assets/stylesheets/bukkits/users.css")
     end
   end
 end

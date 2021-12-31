@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module ActionController #:nodoc:
+module ActionController # :nodoc:
   # HTTP Permissions Policy is a web standard for defining a mechanism to
   # allow and deny the use of browser permissions in its own context, and
   # in content within any <iframe> elements in the document.

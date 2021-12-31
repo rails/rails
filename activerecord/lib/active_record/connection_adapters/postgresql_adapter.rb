@@ -78,7 +78,11 @@ module ActiveRecord
           PG.connect(conn_params)
         rescue ::PG::Error => error
           if conn_params && conn_params[:dbname] && error.message.include?(conn_params[:dbname])
-            raise ActiveRecord::NoDatabaseError
+            raise ActiveRecord::NoDatabaseError.db_error(conn_params[:dbname])
+          elsif conn_params && conn_params[:user] && error.message.include?(conn_params[:user])
+            raise ActiveRecord::DatabaseConnectionError.username_error(conn_params[:user])
+          elsif conn_params && conn_params[:hostname] && error.message.include?(conn_params[:hostname])
+            raise ActiveRecord::DatabaseConnectionError.hostname_error(conn_params[:hostname])
           else
             raise ActiveRecord::ConnectionNotEstablished, error.message
           end
@@ -121,6 +125,7 @@ module ActiveRecord
         string:      { name: "character varying" },
         text:        { name: "text" },
         integer:     { name: "integer", limit: 4 },
+        bigint:      { name: "bigint" },
         float:       { name: "float" },
         decimal:     { name: "decimal" },
         datetime:    {}, # set dynamically based on datetime_type
@@ -159,9 +164,10 @@ module ActiveRecord
         money:       { name: "money" },
         interval:    { name: "interval" },
         oid:         { name: "oid" },
+        enum:        {} # special type https://www.postgresql.org/docs/current/datatype-enum.html
       }
 
-      OID = PostgreSQL::OID #:nodoc:
+      OID = PostgreSQL::OID # :nodoc:
 
       include PostgreSQL::Quoting
       include PostgreSQL::ReferentialIntegrity
@@ -177,7 +183,7 @@ module ActiveRecord
       end
 
       def supports_partitioned_indexes?
-        database_version >= 110_000
+        database_version >= 110_000 # >= 11.0
       end
 
       def supports_partial_index?
@@ -201,6 +207,10 @@ module ActiveRecord
       end
 
       def supports_validate_constraints?
+        true
+      end
+
+      def supports_deferrable_constraints?
         true
       end
 
@@ -229,11 +239,15 @@ module ActiveRecord
       end
 
       def supports_insert_on_conflict?
-        database_version >= 90500
+        database_version >= 90500 # >= 9.5
       end
       alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
       alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
       alias supports_insert_conflict_target? supports_insert_on_conflict?
+
+      def supports_virtual_columns?
+        database_version >= 120_000 # >= 12.0
+      end
 
       def index_algorithms
         { concurrently: "CONCURRENTLY" }
@@ -299,12 +313,18 @@ module ActiveRecord
         false
       end
 
+      def reload_type_map # :nodoc:
+        type_map.clear
+        initialize_type_map
+      end
+
       # Close then reopen the connection.
       def reconnect!
         @lock.synchronize do
           super
           @connection.reset
           configure_connection
+          reload_type_map
         rescue PG::ConnectionBad
           connect
         end
@@ -337,11 +357,11 @@ module ActiveRecord
         @connection = nil
       end
 
-      def native_database_types #:nodoc:
+      def native_database_types # :nodoc:
         self.class.native_database_types
       end
 
-      def self.native_database_types #:nodoc:
+      def self.native_database_types # :nodoc:
         @native_database_types ||= begin
           types = NATIVE_DATABASE_TYPES.dup
           types[:datetime] = types[datetime_type]
@@ -378,7 +398,7 @@ module ActiveRecord
       end
 
       def supports_pgcrypto_uuid?
-        database_version >= 90400
+        database_version >= 90400 # >= 9.4
       end
 
       def supports_optimizer_hints?
@@ -434,6 +454,38 @@ module ActiveRecord
         exec_query("SELECT extname FROM pg_extension", "SCHEMA").cast_values
       end
 
+      # Returns a list of defined enum types, and their values.
+      def enum_types
+        query = <<~SQL
+          SELECT
+            type.typname AS name,
+            string_agg(enum.enumlabel, ',' ORDER BY enum.enumsortorder) AS value
+          FROM pg_enum AS enum
+          JOIN pg_type AS type
+            ON (type.oid = enum.enumtypid)
+          GROUP BY type.typname;
+        SQL
+        exec_query(query, "SCHEMA").cast_values
+      end
+
+      # Given a name and an array of values, creates an enum type.
+      def create_enum(name, values)
+        sql_values = values.map { |s| "'#{s}'" }.join(", ")
+        query = <<~SQL
+          DO $$
+          BEGIN
+              IF NOT EXISTS (
+                SELECT 1 FROM pg_type t
+                WHERE t.typname = '#{name}'
+              ) THEN
+                  CREATE TYPE \"#{name}\" AS ENUM (#{sql_values});
+              END IF;
+          END
+          $$;
+        SQL
+        exec_query(query)
+      end
+
       # Returns the configured supported identifier length supported by PostgreSQL
       def max_identifier_length
         @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
@@ -479,12 +531,127 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < 90300
+        if database_version < 90300 # < 9.3
           raise "Your version of PostgreSQL (#{database_version}) is too old. Active Record supports PostgreSQL >= 9.3."
         end
       end
 
+      class << self
+        def initialize_type_map(m) # :nodoc:
+          m.register_type "int2", Type::Integer.new(limit: 2)
+          m.register_type "int4", Type::Integer.new(limit: 4)
+          m.register_type "int8", Type::Integer.new(limit: 8)
+          m.register_type "oid", OID::Oid.new
+          m.register_type "float4", Type::Float.new
+          m.alias_type "float8", "float4"
+          m.register_type "text", Type::Text.new
+          register_class_with_limit m, "varchar", Type::String
+          m.alias_type "char", "varchar"
+          m.alias_type "name", "varchar"
+          m.alias_type "bpchar", "varchar"
+          m.register_type "bool", Type::Boolean.new
+          register_class_with_limit m, "bit", OID::Bit
+          register_class_with_limit m, "varbit", OID::BitVarying
+          m.register_type "date", OID::Date.new
+
+          m.register_type "money", OID::Money.new
+          m.register_type "bytea", OID::Bytea.new
+          m.register_type "point", OID::Point.new
+          m.register_type "hstore", OID::Hstore.new
+          m.register_type "json", Type::Json.new
+          m.register_type "jsonb", OID::Jsonb.new
+          m.register_type "cidr", OID::Cidr.new
+          m.register_type "inet", OID::Inet.new
+          m.register_type "uuid", OID::Uuid.new
+          m.register_type "xml", OID::Xml.new
+          m.register_type "tsvector", OID::SpecializedString.new(:tsvector)
+          m.register_type "macaddr", OID::Macaddr.new
+          m.register_type "citext", OID::SpecializedString.new(:citext)
+          m.register_type "ltree", OID::SpecializedString.new(:ltree)
+          m.register_type "line", OID::SpecializedString.new(:line)
+          m.register_type "lseg", OID::SpecializedString.new(:lseg)
+          m.register_type "box", OID::SpecializedString.new(:box)
+          m.register_type "path", OID::SpecializedString.new(:path)
+          m.register_type "polygon", OID::SpecializedString.new(:polygon)
+          m.register_type "circle", OID::SpecializedString.new(:circle)
+
+          m.register_type "numeric" do |_, fmod, sql_type|
+            precision = extract_precision(sql_type)
+            scale = extract_scale(sql_type)
+
+            # The type for the numeric depends on the width of the field,
+            # so we'll do something special here.
+            #
+            # When dealing with decimal columns:
+            #
+            # places after decimal  = fmod - 4 & 0xffff
+            # places before decimal = (fmod - 4) >> 16 & 0xffff
+            if fmod && (fmod - 4 & 0xffff).zero?
+              # FIXME: Remove this class, and the second argument to
+              # lookups on PG
+              Type::DecimalWithoutScale.new(precision: precision)
+            else
+              OID::Decimal.new(precision: precision, scale: scale)
+            end
+          end
+
+          m.register_type "interval" do |*args, sql_type|
+            precision = extract_precision(sql_type)
+            OID::Interval.new(precision: precision)
+          end
+        end
+      end
+
       private
+        def type_map
+          @type_map ||= Type::HashLookupTypeMap.new
+        end
+
+        def initialize_type_map(m = type_map)
+          self.class.initialize_type_map(m)
+
+          self.class.register_class_with_precision m, "time", Type::Time, timezone: @default_timezone
+          self.class.register_class_with_precision m, "timestamp", OID::Timestamp, timezone: @default_timezone
+          self.class.register_class_with_precision m, "timestamptz", OID::TimestampWithTimeZone
+
+          load_additional_types
+        end
+
+        # Extracts the value from a PostgreSQL column default definition.
+        def extract_value_from_default(default)
+          case default
+            # Quoted types
+          when /\A[(B]?'(.*)'.*::"?([\w. ]+)"?(?:\[\])?\z/m
+            # The default 'now'::date is CURRENT_DATE
+            if $1 == "now" && $2 == "date"
+              nil
+            else
+              $1.gsub("''", "'")
+            end
+            # Boolean types
+          when "true", "false"
+            default
+            # Numeric types
+          when /\A\(?(-?\d+(\.\d*)?)\)?(::bigint)?\z/
+            $1
+            # Object identifier types
+          when /\A-?\d+\z/
+            $1
+          else
+            # Anything else is blank, some user type, or some function
+            # and we can't know the value of that, so return nil.
+            nil
+          end
+        end
+
+        def extract_default_function(default_value, default)
+          default if has_default_function?(default_value, default)
+        end
+
+        def has_default_function?(default_value, default)
+          !default_value && %r{\w+\(.*\)|\(.*\)::\w+|CURRENT_DATE|CURRENT_TIMESTAMP}.match?(default)
+        end
+
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"
         NUMERIC_VALUE_OUT_OF_RANGE = "22003"
@@ -545,111 +712,6 @@ module ActiveRecord
           }
         end
 
-        def initialize_type_map(m = type_map)
-          m.register_type "int2", Type::Integer.new(limit: 2)
-          m.register_type "int4", Type::Integer.new(limit: 4)
-          m.register_type "int8", Type::Integer.new(limit: 8)
-          m.register_type "oid", OID::Oid.new
-          m.register_type "float4", Type::Float.new
-          m.alias_type "float8", "float4"
-          m.register_type "text", Type::Text.new
-          register_class_with_limit m, "varchar", Type::String
-          m.alias_type "char", "varchar"
-          m.alias_type "name", "varchar"
-          m.alias_type "bpchar", "varchar"
-          m.register_type "bool", Type::Boolean.new
-          register_class_with_limit m, "bit", OID::Bit
-          register_class_with_limit m, "varbit", OID::BitVarying
-          m.register_type "date", OID::Date.new
-
-          m.register_type "money", OID::Money.new
-          m.register_type "bytea", OID::Bytea.new
-          m.register_type "point", OID::Point.new
-          m.register_type "hstore", OID::Hstore.new
-          m.register_type "json", Type::Json.new
-          m.register_type "jsonb", OID::Jsonb.new
-          m.register_type "cidr", OID::Cidr.new
-          m.register_type "inet", OID::Inet.new
-          m.register_type "uuid", OID::Uuid.new
-          m.register_type "xml", OID::Xml.new
-          m.register_type "tsvector", OID::SpecializedString.new(:tsvector)
-          m.register_type "macaddr", OID::Macaddr.new
-          m.register_type "citext", OID::SpecializedString.new(:citext)
-          m.register_type "ltree", OID::SpecializedString.new(:ltree)
-          m.register_type "line", OID::SpecializedString.new(:line)
-          m.register_type "lseg", OID::SpecializedString.new(:lseg)
-          m.register_type "box", OID::SpecializedString.new(:box)
-          m.register_type "path", OID::SpecializedString.new(:path)
-          m.register_type "polygon", OID::SpecializedString.new(:polygon)
-          m.register_type "circle", OID::SpecializedString.new(:circle)
-
-          register_class_with_precision m, "time", Type::Time
-          register_class_with_precision m, "timestamp", OID::Timestamp
-          register_class_with_precision m, "timestamptz", OID::TimestampWithTimeZone
-
-          m.register_type "numeric" do |_, fmod, sql_type|
-            precision = extract_precision(sql_type)
-            scale = extract_scale(sql_type)
-
-            # The type for the numeric depends on the width of the field,
-            # so we'll do something special here.
-            #
-            # When dealing with decimal columns:
-            #
-            # places after decimal  = fmod - 4 & 0xffff
-            # places before decimal = (fmod - 4) >> 16 & 0xffff
-            if fmod && (fmod - 4 & 0xffff).zero?
-              # FIXME: Remove this class, and the second argument to
-              # lookups on PG
-              Type::DecimalWithoutScale.new(precision: precision)
-            else
-              OID::Decimal.new(precision: precision, scale: scale)
-            end
-          end
-
-          m.register_type "interval" do |*args, sql_type|
-            precision = extract_precision(sql_type)
-            OID::Interval.new(precision: precision)
-          end
-
-          load_additional_types
-        end
-
-        # Extracts the value from a PostgreSQL column default definition.
-        def extract_value_from_default(default)
-          case default
-            # Quoted types
-          when /\A[(B]?'(.*)'.*::"?([\w. ]+)"?(?:\[\])?\z/m
-            # The default 'now'::date is CURRENT_DATE
-            if $1 == "now" && $2 == "date"
-              nil
-            else
-              $1.gsub("''", "'")
-            end
-            # Boolean types
-          when "true", "false"
-            default
-            # Numeric types
-          when /\A\(?(-?\d+(\.\d*)?)\)?(::bigint)?\z/
-            $1
-            # Object identifier types
-          when /\A-?\d+\z/
-            $1
-          else
-            # Anything else is blank, some user type, or some function
-            # and we can't know the value of that, so return nil.
-            nil
-          end
-        end
-
-        def extract_default_function(default_value, default)
-          default if has_default_function?(default_value, default)
-        end
-
-        def has_default_function?(default_value, default)
-          !default_value && %r{\w+\(.*\)|\(.*\)::\w+|CURRENT_DATE|CURRENT_TIMESTAMP}.match?(default)
-        end
-
         def load_additional_types(oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
           load_types_queries(initializer, oids) do |query|
@@ -674,9 +736,10 @@ module ActiveRecord
           end
         end
 
-        FEATURE_NOT_SUPPORTED = "0A000" #:nodoc:
+        FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
 
         def execute_and_clear(sql, name, binds, prepare: false, async: false)
+          sql = transform_query(sql)
           check_if_write_query(sql)
 
           if !prepare || without_prepared_statement?(binds)
@@ -810,7 +873,7 @@ module ActiveRecord
           # If using Active Record's time zone support configure the connection to return
           # TIMESTAMP WITH ZONE types in UTC.
           unless variables["timezone"]
-            if ActiveRecord.default_timezone == :utc
+            if default_timezone == :utc
               variables["timezone"] = "UTC"
             elsif @local_tz
               variables["timezone"] = @local_tz
@@ -854,7 +917,8 @@ module ActiveRecord
           query(<<~SQL, "SCHEMA")
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
-                     c.collname, col_description(a.attrelid, a.attnum) AS comment
+                     c.collname, col_description(a.attrelid, a.attnum) AS comment,
+                     #{supports_virtual_columns? ? 'attgenerated' : quote('')} as attgenerated
                 FROM pg_attribute a
                 LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
                 LEFT JOIN pg_type t ON a.atttypid = t.oid
@@ -909,15 +973,15 @@ module ActiveRecord
         end
 
         def update_typemap_for_default_timezone
-          if @default_timezone != ActiveRecord.default_timezone && @timestamp_decoder
-            decoder_class = ActiveRecord.default_timezone == :utc ?
+          if @mapped_default_timezone != default_timezone && @timestamp_decoder
+            decoder_class = default_timezone == :utc ?
               PG::TextDecoder::TimestampUtc :
               PG::TextDecoder::TimestampWithoutTimeZone
 
             @timestamp_decoder = decoder_class.new(@timestamp_decoder.to_h)
             @connection.type_map_for_results.add_coder(@timestamp_decoder)
 
-            @default_timezone = ActiveRecord.default_timezone
+            @mapped_default_timezone = default_timezone
 
             # if default timezone has changed, we need to reconfigure the connection
             # (specifically, the session time zone)
@@ -926,7 +990,7 @@ module ActiveRecord
         end
 
         def add_pg_decoders
-          @default_timezone = nil
+          @mapped_default_timezone = nil
           @timestamp_decoder = nil
 
           coders_by_name = {

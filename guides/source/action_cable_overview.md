@@ -585,7 +585,7 @@ consumer.subscriptions.create("AppearanceChannel", {
   },
 
   get documentIsActive() {
-    return document.visibilityState == "visible" && document.hasFocus()
+    return document.visibilityState === "visible" && document.hasFocus()
   },
 
   get appearingOn() {
@@ -595,7 +595,7 @@ consumer.subscriptions.create("AppearanceChannel", {
 })
 ```
 
-##### Client-Server Interaction
+#### Client-Server Interaction
 
 1. **Client** connects to the **Server** via `App.cable =
 ActionCable.createConsumer("ws://cable.example.com")`. (`cable.js`). The
@@ -653,7 +653,7 @@ import consumer from "./consumer"
 
 consumer.subscriptions.create("WebNotificationsChannel", {
   received(data) {
-    new Notification(data["title"], body: data["body"])
+    new Notification(data["title"], { body: data["body"] })
   }
 })
 ```

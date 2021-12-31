@@ -18,7 +18,7 @@ module ActiveJob
         job_or_instantiate(...).perform_now
       end
 
-      def execute(job_data) #:nodoc:
+      def execute(job_data) # :nodoc:
         ActiveJob::Callbacks.run_callbacks(:execute) do
           job = deserialize(job_data)
           job.perform_now
@@ -54,6 +54,7 @@ module ActiveJob
 
     private
       def _perform_job
+        ActiveSupport::ExecutionContext[:job] = self
         run_callbacks :perform do
           perform(*arguments)
         end

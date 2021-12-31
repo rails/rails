@@ -44,6 +44,20 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_equal "Empty list of attributes to change", error.message
   end
 
+  def test_update_all_with_group_by
+    minimum_comments_count = 2
+
+    Post.most_commented(minimum_comments_count).update_all(title: "ig")
+    posts = Post.most_commented(minimum_comments_count).all.to_a
+
+    assert_operator posts.length, :>, 0
+    assert posts.all? { |post| post.comments.length >= minimum_comments_count }
+    assert posts.all? { |post| "ig" == post.title }
+
+    post = Post.joins(:comments).group("posts.id").having("count(comments.id) < #{minimum_comments_count}").first
+    assert_not_equal "ig", post.title
+  end
+
   def test_update_all_with_joins
     pets = Pet.joins(:toys).where(toys: { name: "Bone" })
 
@@ -171,6 +185,24 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_raises(ArgumentError) do
       Topic.where(id: topic.id).update(topic, title: "Bar")
     end
+  end
+
+  def test_update_bang_on_relation
+    topic1 = TopicWithCallbacks.create! title: "arel", author_name: nil
+    topic2 = TopicWithCallbacks.create! title: "activerecord", author_name: nil
+    topic3 = TopicWithCallbacks.create! title: "ar", author_name: nil
+    topics = TopicWithCallbacks.where(id: [topic1.id, topic2.id])
+    topics.update!(title: "adequaterecord")
+
+    assert_equal TopicWithCallbacks.count, TopicWithCallbacks.topic_count
+
+    assert_equal "adequaterecord", topic1.reload.title
+    assert_equal "adequaterecord", topic2.reload.title
+    assert_equal "ar", topic3.reload.title
+    # Testing that the before_update callbacks have run
+    assert_equal "David", topic1.reload.author_name
+    assert_equal "David", topic2.reload.author_name
+    assert_nil topic3.reload.author_name
   end
 
   def test_update_all_cares_about_optimistic_locking

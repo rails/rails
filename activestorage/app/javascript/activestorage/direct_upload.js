@@ -5,10 +5,12 @@ import { BlobUpload } from "./blob_upload"
 let id = 0
 
 export class DirectUpload {
-  constructor(file, url, delegate) {
+  constructor(file, url, serviceName, attachmentName, delegate) {
     this.id = ++id
     this.file = file
     this.url = url
+    this.serviceName = serviceName
+    this.attachmentName = attachmentName
     this.delegate = delegate
   }
 
@@ -19,7 +21,7 @@ export class DirectUpload {
         return
       }
 
-      const blob = new BlobRecord(this.file, checksum, this.url)
+      const blob = new BlobRecord(this.file, checksum, this.url, this.serviceName, this.attachmentName)
       notify(this.delegate, "directUploadWillCreateBlobWithXHR", blob.xhr)
 
       blob.create(error => {

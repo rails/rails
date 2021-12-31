@@ -606,7 +606,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       Task.find(1)
 
       # Preload the type cache again (so we don't have those queries issued during our assertions)
-      Task.connection.send(:reload_type_map)
+      Task.connection.send(:reload_type_map) if Task.connection.respond_to?(:reload_type_map, true)
 
       # Clear places where type information is cached
       Task.reset_column_information
@@ -621,7 +621,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_query_cache_does_not_establish_connection_if_unconnected
     ActiveRecord::Base.clear_active_connections!
-    assert_not ActiveRecord::Base.connection_handler.active_connections? # sanity check
+    assert_not ActiveRecord::Base.connection_handler.active_connections? # Double check they are cleared
 
     middleware {
       assert_not ActiveRecord::Base.connection_handler.active_connections?, "QueryCache forced ActiveRecord::Base to establish a connection in setup"
@@ -632,7 +632,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_query_cache_is_enabled_on_connections_established_after_middleware_runs
     ActiveRecord::Base.clear_active_connections!
-    assert_not ActiveRecord::Base.connection_handler.active_connections? # sanity check
+    assert_not ActiveRecord::Base.connection_handler.active_connections? # Double check they are cleared
 
     middleware {
       assert_predicate ActiveRecord::Base.connection, :query_cache_enabled
@@ -688,15 +688,15 @@ class QueryCacheTest < ActiveRecord::TestCase
       assert @topic
 
       ActiveRecord::Base.connected_to(role: :writing) do
-        @topic.title = "It doesn't have to be crazy at work"
+        @topic.title = "Topic title"
         @topic.save!
       end
 
-      assert_equal "It doesn't have to be crazy at work", @topic.title
+      assert_equal "Topic title", @topic.title
 
       ActiveRecord::Base.connected_to(role: :reading) do
         @topic = Topic.first
-        assert_equal "It doesn't have to be crazy at work", @topic.title
+        assert_equal "Topic title", @topic.title
       end
     }
 
@@ -724,15 +724,15 @@ class QueryCacheTest < ActiveRecord::TestCase
       assert @topic
 
       ActiveRecord::Base.connected_to(role: :writing) do
-        @topic.title = "It doesn't have to be crazy at work"
+        @topic.title = "Topic title"
         @topic.save!
       end
 
-      assert_equal "It doesn't have to be crazy at work", @topic.title
+      assert_equal "Topic title", @topic.title
 
       ActiveRecord::Base.connected_to(role: :reading) do
         @topic = Topic.first
-        assert_equal "It doesn't have to be crazy at work", @topic.title
+        assert_equal "Topic title", @topic.title
       end
     }
 
@@ -759,13 +759,11 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   private
-    def with_temporary_connection_pool
+    def with_temporary_connection_pool(&block)
       pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("ActiveRecord::Base").get_pool_config(ActiveRecord.writing_role, :default)
       new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
 
-      pool_config.stub(:pool, new_pool) do
-        yield
-      end
+      pool_config.stub(:pool, new_pool, &block)
     end
 
     def middleware(&app)

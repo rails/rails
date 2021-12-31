@@ -17,8 +17,8 @@ module ActionDispatch
       # Raised when raw data from the request cannot be parsed by the parser
       # defined for request's content MIME type.
       class ParseError < StandardError
-        def initialize
-          super($!.message)
+        def initialize(message = $!.message)
+          super(message)
         end
       end
 
@@ -62,7 +62,7 @@ module ActionDispatch
       end
       alias :params :parameters
 
-      def path_parameters=(parameters) #:nodoc:
+      def path_parameters=(parameters) # :nodoc:
         delete_header("action_dispatch.request.parameters")
 
         parameters = Request::Utils.set_binary_encoding(self, parameters, parameters[:controller], parameters[:action])
@@ -76,9 +76,9 @@ module ActionDispatch
       end
 
       # Returns a hash with the \parameters used to form the \path of the request.
-      # Returned hash keys are strings:
+      # Returned hash keys are symbols:
       #
-      #   {'action' => 'my_action', 'controller' => 'my_controller'}
+      #   { action: "my_action", controller: "my_controller" }
       def path_parameters
         get_header(PARAMETERS_KEY) || set_header(PARAMETERS_KEY, {})
       end
@@ -93,7 +93,7 @@ module ActionDispatch
             strategy.call(raw_post)
           rescue # JSON or Ruby code block errors.
             log_parse_error_once
-            raise ParseError
+            raise ParseError, "Error occurred while parsing request parameters"
           end
         end
 

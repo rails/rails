@@ -3,6 +3,7 @@
 require "helper"
 require "active_support/core_ext/time"
 require "active_support/core_ext/date"
+require "zeitwerk"
 require "jobs/hello_job"
 require "jobs/logging_job"
 require "jobs/nested_job"
@@ -196,6 +197,18 @@ class EnqueuedJobsTest < ActiveJob::TestCase
         LoggingJob.perform_later
         HelloJob.set(queue: :other_queue).perform_later
         LoggingJob.set(queue: :other_queue).perform_later
+      end
+    end
+  end
+
+  def test_assert_enqueued_job_with_priority_option
+    assert_enqueued_with(job: HelloJob, priority: 10) do
+      HelloJob.set(priority: 10).perform_later
+    end
+
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_enqueued_with(job: HelloJob, priority: 10) do
+        HelloJob.set(priority: 5).perform_later
       end
     end
   end
@@ -685,8 +698,33 @@ class EnqueuedJobsTest < ActiveJob::TestCase
         HelloJob.perform_later(ricardo)
       end
     end
+
     assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default".*?}/, error.message)
+  end
+
+  def test_show_jobs_that_are_enqueued_when_job_is_not_queued_at_all
+    ricardo = Person.new(9)
+    wilma = Person.new(11)
+
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_enqueued_with(job: MultipleKwargsJob, args: [wilma]) do
+        HelloJob.perform_later(ricardo)
+      end
+    end
+
+    assert_match(/No enqueued job found with {:job=>MultipleKwargsJob, :args=>\[#{wilma.inspect}\]}/, error.message)
+    assert_match(/No jobs of class MultipleKwargsJob were enqueued, job classes enqueued: HelloJob/, error.message)
+  end
+
+  def test_shows_no_jobs_enqueued_when_there_are_no_jobs
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_enqueued_with(job: HelloJob, args: []) do
+      end
+    end
+
+    assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[\]}/, error.message)
+    assert_match(/No jobs were enqueued/, error.message)
   end
 
   def test_assert_enqueued_with_failure_with_no_block_with_global_id_args
@@ -698,7 +736,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default".*?}/, error.message)
   end
 
   def test_assert_enqueued_with_does_not_change_jobs_count
@@ -1794,6 +1832,18 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_performed_job_with_priority_option
+    assert_performed_with(job: HelloJob, priority: 10) do
+      HelloJob.set(priority: 10).perform_later
+    end
+
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_with(job: HelloJob, priority: 10) do
+        HelloJob.set(priority: 5).perform_later
+      end
+    end
+  end
+
   def test_assert_performed_with_with_at_option
     assert_performed_with(job: HelloJob, at: Date.tomorrow.noon) do
       HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
@@ -1913,7 +1963,7 @@ class PerformedJobsTest < ActiveJob::TestCase
       end
     end
     assert_match(/No performed job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default".*?}/, error.message)
   end
 
   def test_assert_performed_with_without_block_failure_with_global_id_args
@@ -1926,7 +1976,29 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No performed job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default".*?}/, error.message)
+  end
+
+  def test_assert_performed_says_no_jobs_performed
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_with(job: HelloJob, args: [])
+    end
+
+    assert_match(/No performed job found with {:job=>HelloJob, :args=>\[\]}/, error.message)
+    assert_match(/No jobs were performed/, error.message)
+  end
+
+  def test_assert_performed_when_not_matching_the_class_shows_alteratives
+    ricardo = Person.new(9)
+    wilma = Person.new(11)
+    HelloJob.perform_later(ricardo)
+    perform_enqueued_jobs
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_with(job: MultipleKwargsJob, args: [wilma])
+    end
+
+    assert_match(/No performed job found with {:job=>MultipleKwargsJob, :args=>\[#<Person.* @id=11>\]}/, error.message)
+    assert_match(/No jobs of class MultipleKwargsJob were performed, job classes performed: HelloJob/, error.message)
   end
 
   def test_assert_performed_with_does_not_change_jobs_count
@@ -1985,18 +2057,13 @@ class InheritedJobTest < ActiveJob::TestCase
 end
 
 class QueueAdapterJobTest < ActiveJob::TestCase
-  def before_setup
-    @original_autoload_paths = ActiveSupport::Dependencies.autoload_paths
-    ActiveSupport::Dependencies.autoload_paths = %w(test/jobs)
-    super
-  end
-
-  def after_teardown
-    ActiveSupport::Dependencies.autoload_paths = @original_autoload_paths
-    super
-  end
-
   def test_queue_adapter_is_test_adapter
-    assert_instance_of ActiveJob::QueueAdapters::TestAdapter, QueueAdapterJob.queue_adapter
+    Zeitwerk.with_loader do |loader|
+      loader.push_dir("test/jobs")
+      loader.setup
+      assert_instance_of ActiveJob::QueueAdapters::TestAdapter, QueueAdapterJob.queue_adapter
+    ensure
+      loader.unload
+    end
   end
 end

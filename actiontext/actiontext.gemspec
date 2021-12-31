@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
     "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
     "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
     "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/actiontext",
+    "rubygems_mfa_required" => "true",
   }
 
   # NOTE: Please read our dependency guidelines before updating versions:
@@ -37,4 +38,5 @@ Gem::Specification.new do |s|
   s.add_dependency "actionpack",    version
 
   s.add_dependency "nokogiri", ">= 1.8.5"
+  s.add_dependency "globalid", ">= 0.6.0"
 end

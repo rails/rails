@@ -49,12 +49,12 @@ give them a heads up that Rails will be released soonish.
 This is only required for major and minor releases, bugfix releases aren't a
 big enough deal, and are supposed to be backward compatible.
 
-Send an email just giving a heads up about the upcoming release to these
+Send a message just giving a heads up about the upcoming release to these
 lists:
 
 * team@jruby.org
 * community@rubini.us
-* rubyonrails-core@googlegroups.com
+* [rubyonrails-core](https://discuss.rubyonrails.org/c/rubyonrails-core)
 
 Implementors will love you and help you.
 
@@ -135,8 +135,8 @@ Write a release announcement that includes the version, changes, and links to
 GitHub where people can find the specific commit list. Here are the mailing
 lists where you should announce:
 
-* rubyonrails-core@googlegroups.com
-* rubyonrails-talk@googlegroups.com
+* [rubyonrails-core](https://discuss.rubyonrails.org/c/rubyonrails-core)
+* [rubyonrails-talk](https://discuss.rubyonrails.org/c/rubyonrails-talk)
 * ruby-talk@ruby-lang.org
 
 Use Markdown format for your announcement. Remember to ask people to report
@@ -158,7 +158,7 @@ break existing applications.
 If you used Markdown format for your email, you can just paste it into the
 blog.
 
-* https://weblog.rubyonrails.org
+* https://rubyonrails.org/blog
 
 ### Post the announcement to the Rails Twitter account.
 

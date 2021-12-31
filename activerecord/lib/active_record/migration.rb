@@ -9,7 +9,7 @@ require "active_support/core_ext/module/attribute_accessors"
 require "active_support/actionable_error"
 
 module ActiveRecord
-  class MigrationError < ActiveRecordError #:nodoc:
+  class MigrationError < ActiveRecordError # :nodoc:
     def initialize(message = nil)
       message = "\n\n#{message}\n\n" if message
       super
@@ -20,7 +20,7 @@ module ActiveRecord
   # For example the following migration is not reversible.
   # Rolling back this migration will raise an ActiveRecord::IrreversibleMigration error.
   #
-  #   class IrreversibleMigrationExample < ActiveRecord::Migration[7.0]
+  #   class IrreversibleMigrationExample < ActiveRecord::Migration[7.1]
   #     def change
   #       create_table :distributors do |t|
   #         t.string :zipcode
@@ -38,7 +38,7 @@ module ActiveRecord
   #
   # 1. Define <tt>#up</tt> and <tt>#down</tt> methods instead of <tt>#change</tt>:
   #
-  #  class ReversibleMigrationExample < ActiveRecord::Migration[7.0]
+  #  class ReversibleMigrationExample < ActiveRecord::Migration[7.1]
   #    def up
   #      create_table :distributors do |t|
   #        t.string :zipcode
@@ -63,7 +63,7 @@ module ActiveRecord
   #
   # 2. Use the #reversible method in <tt>#change</tt> method:
   #
-  #   class ReversibleMigrationExample < ActiveRecord::Migration[7.0]
+  #   class ReversibleMigrationExample < ActiveRecord::Migration[7.1]
   #     def change
   #       create_table :distributors do |t|
   #         t.string :zipcode
@@ -90,7 +90,7 @@ module ActiveRecord
   class IrreversibleMigration < MigrationError
   end
 
-  class DuplicateMigrationVersionError < MigrationError #:nodoc:
+  class DuplicateMigrationVersionError < MigrationError # :nodoc:
     def initialize(version = nil)
       if version
         super("Multiple migrations have the version number #{version}.")
@@ -100,7 +100,7 @@ module ActiveRecord
     end
   end
 
-  class DuplicateMigrationNameError < MigrationError #:nodoc:
+  class DuplicateMigrationNameError < MigrationError # :nodoc:
     def initialize(name = nil)
       if name
         super("Multiple migrations have the name #{name}.")
@@ -110,7 +110,7 @@ module ActiveRecord
     end
   end
 
-  class UnknownMigrationVersionError < MigrationError #:nodoc:
+  class UnknownMigrationVersionError < MigrationError # :nodoc:
     def initialize(version = nil)
       if version
         super("No migration with version number #{version}.")
@@ -120,7 +120,7 @@ module ActiveRecord
     end
   end
 
-  class IllegalMigrationNameError < MigrationError #:nodoc:
+  class IllegalMigrationNameError < MigrationError # :nodoc:
     def initialize(name = nil)
       if name
         super("Illegal name for migration file: #{name}\n\t(only lower case letters, numbers, and '_' allowed).")
@@ -130,7 +130,7 @@ module ActiveRecord
     end
   end
 
-  class PendingMigrationError < MigrationError #:nodoc:
+  class PendingMigrationError < MigrationError # :nodoc:
     include ActiveSupport::ActionableError
 
     action "Run pending migrations" do
@@ -165,7 +165,7 @@ module ActiveRecord
       end
   end
 
-  class ConcurrentMigrationError < MigrationError #:nodoc:
+  class ConcurrentMigrationError < MigrationError # :nodoc:
     DEFAULT_MESSAGE = "Cannot run migrations because another migration process is currently running."
     RELEASE_LOCK_FAILED_MESSAGE = "Failed to release advisory lock"
 
@@ -174,7 +174,7 @@ module ActiveRecord
     end
   end
 
-  class NoEnvironmentInSchemaError < MigrationError #:nodoc:
+  class NoEnvironmentInSchemaError < MigrationError # :nodoc:
     def initialize
       msg = "Environment data not found in the schema. To resolve this issue, run: \n\n        bin/rails db:environment:set"
       if defined?(Rails.env)
@@ -185,7 +185,7 @@ module ActiveRecord
     end
   end
 
-  class ProtectedEnvironmentError < ActiveRecordError #:nodoc:
+  class ProtectedEnvironmentError < ActiveRecordError # :nodoc:
     def initialize(env = "production")
       msg = +"You are attempting to run a destructive action against your '#{env}' database.\n"
       msg << "If you are sure you want to continue, run the same command with the environment variable:\n"
@@ -228,7 +228,7 @@ module ActiveRecord
   #
   # Example of a simple migration:
   #
-  #   class AddSsl < ActiveRecord::Migration[7.0]
+  #   class AddSsl < ActiveRecord::Migration[7.1]
   #     def up
   #       add_column :accounts, :ssl_enabled, :boolean, default: true
   #     end
@@ -248,7 +248,7 @@ module ActiveRecord
   #
   # Example of a more complex migration that also needs to initialize data:
   #
-  #   class AddSystemSettings < ActiveRecord::Migration[7.0]
+  #   class AddSystemSettings < ActiveRecord::Migration[7.1]
   #     def up
   #       create_table :system_settings do |t|
   #         t.string  :name
@@ -376,7 +376,7 @@ module ActiveRecord
   #   bin/rails generate migration add_fieldname_to_tablename fieldname:string
   #
   # This will generate the file <tt>timestamp_add_fieldname_to_tablename.rb</tt>, which will look like this:
-  #   class AddFieldnameToTablename < ActiveRecord::Migration[7.0]
+  #   class AddFieldnameToTablename < ActiveRecord::Migration[7.1]
   #     def change
   #       add_column :tablenames, :fieldname, :string
   #     end
@@ -402,7 +402,7 @@ module ActiveRecord
   #
   # Not all migrations change the schema. Some just fix the data:
   #
-  #   class RemoveEmptyTags < ActiveRecord::Migration[7.0]
+  #   class RemoveEmptyTags < ActiveRecord::Migration[7.1]
   #     def up
   #       Tag.all.each { |tag| tag.destroy if tag.pages.empty? }
   #     end
@@ -415,7 +415,7 @@ module ActiveRecord
   #
   # Others remove columns when they migrate up instead of down:
   #
-  #   class RemoveUnnecessaryItemAttributes < ActiveRecord::Migration[7.0]
+  #   class RemoveUnnecessaryItemAttributes < ActiveRecord::Migration[7.1]
   #     def up
   #       remove_column :items, :incomplete_items_count
   #       remove_column :items, :completed_items_count
@@ -429,7 +429,7 @@ module ActiveRecord
   #
   # And sometimes you need to do something in SQL not abstracted directly by migrations:
   #
-  #   class MakeJoinUnique < ActiveRecord::Migration[7.0]
+  #   class MakeJoinUnique < ActiveRecord::Migration[7.1]
   #     def up
   #       execute "ALTER TABLE `pages_linked_pages` ADD UNIQUE `page_id_linked_page_id` (`page_id`,`linked_page_id`)"
   #     end
@@ -446,7 +446,7 @@ module ActiveRecord
   # <tt>Base#reset_column_information</tt> in order to ensure that the model has the
   # latest column data from after the new column was added. Example:
   #
-  #   class AddPeopleSalary < ActiveRecord::Migration[7.0]
+  #   class AddPeopleSalary < ActiveRecord::Migration[7.1]
   #     def up
   #       add_column :people, :salary, :integer
   #       Person.reset_column_information
@@ -504,7 +504,7 @@ module ActiveRecord
   # To define a reversible migration, define the +change+ method in your
   # migration like this:
   #
-  #   class TenderloveMigration < ActiveRecord::Migration[7.0]
+  #   class TenderloveMigration < ActiveRecord::Migration[7.1]
   #     def change
   #       create_table(:horses) do |t|
   #         t.column :content, :text
@@ -534,7 +534,7 @@ module ActiveRecord
   # can't execute inside a transaction though, and for these situations
   # you can turn the automatic transactions off.
   #
-  #   class ChangeEnum < ActiveRecord::Migration[7.0]
+  #   class ChangeEnum < ActiveRecord::Migration[7.1]
   #     disable_ddl_transaction!
   #
   #     def up
@@ -550,10 +550,10 @@ module ActiveRecord
     autoload :JoinTable, "active_record/migration/join_table"
 
     # This must be defined before the inherited hook, below
-    class Current < Migration #:nodoc:
+    class Current < Migration # :nodoc:
     end
 
-    def self.inherited(subclass) #:nodoc:
+    def self.inherited(subclass) # :nodoc:
       super
       if subclass.superclass == Migration
         major = ActiveRecord::VERSION::MAJOR
@@ -573,7 +573,7 @@ module ActiveRecord
       ActiveRecord::VERSION::STRING.to_f
     end
 
-    MigrationFilenameRegexp = /\A([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/ #:nodoc:
+    MigrationFilenameRegexp = /\A([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/ # :nodoc:
 
     # This class is used to verify that all migrations have been run before
     # loading a web page if <tt>config.active_record.migration_error</tt> is set to :page_load
@@ -615,10 +615,10 @@ module ActiveRecord
     end
 
     class << self
-      attr_accessor :delegate #:nodoc:
-      attr_accessor :disable_ddl_transaction #:nodoc:
+      attr_accessor :delegate # :nodoc:
+      attr_accessor :disable_ddl_transaction # :nodoc:
 
-      def nearest_delegate #:nodoc:
+      def nearest_delegate # :nodoc:
         delegate || superclass.nearest_delegate
       end
 
@@ -650,13 +650,13 @@ module ActiveRecord
         check_pending!
       end
 
-      def maintain_test_schema! #:nodoc:
+      def maintain_test_schema! # :nodoc:
         if ActiveRecord.maintain_test_schema
           suppress_messages { load_schema_if_pending! }
         end
       end
 
-      def method_missing(name, *args, &block) #:nodoc:
+      def method_missing(name, *args, &block) # :nodoc:
         nearest_delegate.send(name, *args, &block)
       end
       ruby2_keywords(:method_missing)
@@ -674,7 +674,7 @@ module ActiveRecord
       end
     end
 
-    def disable_ddl_transaction #:nodoc:
+    def disable_ddl_transaction # :nodoc:
       self.class.disable_ddl_transaction
     end
 
@@ -698,7 +698,7 @@ module ActiveRecord
     # and create the table 'apples' on the way up, and the reverse
     # on the way down.
     #
-    #   class FixTLMigration < ActiveRecord::Migration[7.0]
+    #   class FixTLMigration < ActiveRecord::Migration[7.1]
     #     def change
     #       revert do
     #         create_table(:horses) do |t|
@@ -717,7 +717,7 @@ module ActiveRecord
     #
     #   require_relative "20121212123456_tenderlove_migration"
     #
-    #   class FixupTLMigration < ActiveRecord::Migration[7.0]
+    #   class FixupTLMigration < ActiveRecord::Migration[7.1]
     #     def change
     #       revert TenderloveMigration
     #
@@ -728,16 +728,16 @@ module ActiveRecord
     #   end
     #
     # This command can be nested.
-    def revert(*migration_classes)
+    def revert(*migration_classes, &block)
       run(*migration_classes.reverse, revert: true) unless migration_classes.empty?
       if block_given?
         if connection.respond_to? :revert
-          connection.revert { yield }
+          connection.revert(&block)
         else
           recorder = command_recorder
           @connection = recorder
           suppress_messages do
-            connection.revert { yield }
+            connection.revert(&block)
           end
           @connection = recorder.delegate
           recorder.replay(self)
@@ -749,7 +749,7 @@ module ActiveRecord
       connection.respond_to?(:reverting) && connection.reverting
     end
 
-    ReversibleBlockHelper = Struct.new(:reverting) do #:nodoc:
+    ReversibleBlockHelper = Struct.new(:reverting) do # :nodoc:
       def up
         yield unless reverting
       end
@@ -768,7 +768,7 @@ module ActiveRecord
     # when the three columns 'first_name', 'last_name' and 'full_name' exist,
     # even when migrating down:
     #
-    #    class SplitNameMigration < ActiveRecord::Migration[7.0]
+    #    class SplitNameMigration < ActiveRecord::Migration[7.1]
     #      def change
     #        add_column :users, :first_name, :string
     #        add_column :users, :last_name, :string
@@ -796,7 +796,7 @@ module ActiveRecord
     # In the following example, the new column +published+ will be given
     # the value +true+ for all existing records.
     #
-    #    class AddPublishedToPosts < ActiveRecord::Migration[7.0]
+    #    class AddPublishedToPosts < ActiveRecord::Migration[7.1]
     #      def change
     #        add_column :posts, :published, :boolean, default: false
     #        up_only do
@@ -804,8 +804,8 @@ module ActiveRecord
     #        end
     #      end
     #    end
-    def up_only
-      execute_block { yield } unless reverting?
+    def up_only(&block)
+      execute_block(&block) unless reverting?
     end
 
     # Runs the given migration classes.
@@ -957,6 +957,12 @@ module ActiveRecord
               magic_comments << magic_comment; ""
             end || break
           end
+
+          if !magic_comments.empty? && source.start_with?("\n")
+            magic_comments << "\n"
+            source = source[1..-1]
+          end
+
           source = "#{magic_comments}#{inserted_comment}#{source}"
 
           if duplicate = destination_migrations.detect { |m| m.name == migration.name }
@@ -1003,7 +1009,7 @@ module ActiveRecord
 
     # Builds a hash for use in ActiveRecord::Migration#proper_table_name using
     # the Active Record object's table_name prefix and suffix
-    def table_name_options(config = ActiveRecord::Base) #:nodoc:
+    def table_name_options(config = ActiveRecord::Base) # :nodoc:
       {
         table_name_prefix: config.table_name_prefix,
         table_name_suffix: config.table_name_suffix
@@ -1074,7 +1080,7 @@ module ActiveRecord
     # 0 then an empty array will be returned and no migrations
     # will be run.
     #
-    # If the +current_version+ in the schema is less than
+    # If the +current_version+ in the schema is greater than
     # the +target_version+, then +down+ will be run.
     #
     # If none of the conditions are met, +up+ will be run with
@@ -1100,9 +1106,9 @@ module ActiveRecord
       move(:up, steps)
     end
 
-    def up(target_version = nil) # :nodoc:
+    def up(target_version = nil, &block) # :nodoc:
       selected_migrations = if block_given?
-        migrations.select { |m| yield m }
+        migrations.select(&block)
       else
         migrations
       end
@@ -1110,9 +1116,9 @@ module ActiveRecord
       Migrator.new(:up, selected_migrations, schema_migration, target_version).migrate
     end
 
-    def down(target_version = nil) # :nodoc:
+    def down(target_version = nil, &block) # :nodoc:
       selected_migrations = if block_given?
-        migrations.select { |m| yield m }
+        migrations.select(&block)
       else
         migrations
       end
@@ -1177,7 +1183,7 @@ module ActiveRecord
         ["up", version, "********** NO FILE **********"]
       end
 
-      (db_list + file_list).sort_by { |_, version, _| version }
+      (db_list + file_list).sort_by { |_, version, _| version.to_i }
     end
 
     def current_environment # :nodoc:
@@ -1399,9 +1405,9 @@ module ActiveRecord
       end
 
       # Wrap the migration in a transaction only if supported by the adapter.
-      def ddl_transaction(migration)
+      def ddl_transaction(migration, &block)
         if use_transaction?(migration)
-          Base.transaction { yield }
+          Base.transaction(&block)
         else
           yield
         end
@@ -1432,12 +1438,12 @@ module ActiveRecord
         end
       end
 
-      def with_advisory_lock_connection
+      def with_advisory_lock_connection(&block)
         pool = ActiveRecord::ConnectionAdapters::ConnectionHandler.new.establish_connection(
           ActiveRecord::Base.connection_db_config
         )
 
-        pool.with_connection { |connection| yield(connection) }
+        pool.with_connection(&block)
       ensure
         pool&.disconnect!
       end

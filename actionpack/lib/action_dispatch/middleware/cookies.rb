@@ -284,7 +284,7 @@ module ActionDispatch
         end
     end
 
-    class CookieJar #:nodoc:
+    class CookieJar # :nodoc:
       include Enumerable, ChainedCookieJars
 
       # This regular expression is used to split the levels of a domain.
@@ -439,7 +439,7 @@ module ActionDispatch
         end
 
         def write_cookie?(cookie)
-          request.ssl? || !cookie[:secure] || always_write_cookie
+          request.ssl? || !cookie[:secure] || always_write_cookie || request.host.end_with?(".onion")
         end
 
         def handle_options(options)

@@ -14,6 +14,7 @@ module Rails
       initializer :load_environment_hook, group: :all do end
 
       initializer :load_active_support, group: :all do
+        ENV["RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION"] = "true" if config.active_support.disable_to_s_conversion
         require "active_support/all" unless config.active_support.bare
       end
 
@@ -44,13 +45,16 @@ module Rails
           logger.level = ActiveSupport::Logger::WARN
           logger.warn(
             "Rails Error: Unable to access log file. Please ensure that #{path} exists and is writable " \
-            "(ie, make it writable for user and group: chmod 0664 #{path}). " \
+            "(i.e. make it writable for user and group: chmod 0664 #{path}). " \
             "The log level has been raised to WARN and the output directed to STDERR until the problem is fixed."
           )
           logger
         end
-
         Rails.logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
+
+        unless config.consider_all_requests_local
+          Rails.error.logger = Rails.logger
+        end
       end
 
       # Initialize cache early in the stack so railties can make use of it.
@@ -59,14 +63,26 @@ module Rails
           Rails.cache = ActiveSupport::Cache.lookup_store(*config.cache_store)
 
           if Rails.cache.respond_to?(:middleware)
-            config.middleware.insert_after(ActionDispatch::Executor, Rails.cache.middleware)
+            config.middleware.insert_before(::Rack::Runtime, Rails.cache.middleware)
           end
         end
       end
 
-      # Sets the dependency loading mechanism.
-      initializer :initialize_dependency_mechanism, group: :all do
-        ActiveSupport::Dependencies.mechanism = config.cache_classes ? :require : :load
+      # We setup the once autoloader this early so that engines and applications
+      # are able to autoload from these paths during initialization.
+      initializer :setup_once_autoloader, after: :set_eager_load_paths, before: :bootstrap_hook do
+        autoloader = Rails.autoloaders.once
+
+        ActiveSupport::Dependencies.autoload_once_paths.freeze
+        ActiveSupport::Dependencies.autoload_once_paths.uniq.each do |path|
+          # Zeitwerk only accepts existing directories in `push_dir`.
+          next unless File.directory?(path)
+
+          autoloader.push_dir(path)
+          autoloader.do_not_eager_load(path) unless ActiveSupport::Dependencies.eager_load?(path)
+        end
+
+        autoloader.setup
       end
 
       initializer :bootstrap_hook, group: :all do |app|

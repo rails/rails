@@ -127,7 +127,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
         assert_match(/remove_reference :books, :author,.*\sforeign_key: true/, change)
-        assert_match(/remove_reference :books, :distributor/, change) # sanity check
+        assert_match(/remove_reference :books, :distributor/, change) # Ensure the line isn't gone completely
         assert_no_match(/remove_reference :books, :distributor,.*\sforeign_key: true/, change)
       end
     end
@@ -156,21 +156,6 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
         assert_match(/add_index :posts, :title/, change)
         assert_match(/add_index :posts, :user_id, unique: true/, change)
       end
-    end
-  end
-
-  def test_add_migration_with_attributes_and_wrong_index_declaration
-    migration = "add_title_and_content_to_books"
-    run_generator [migration, "title:string:inex", "content:text", "user_id:integer:unik"]
-
-    assert_migration "db/migrate/#{migration}.rb" do |content|
-      assert_method :change, content do |change|
-        assert_match(/add_column :books, :title, :string/, change)
-        assert_match(/add_column :books, :content, :text/, change)
-        assert_match(/add_column :books, :user_id, :integer/, change)
-      end
-      assert_no_match(/add_index :books, :title/, content)
-      assert_no_match(/add_index :books, :user_id/, content)
     end
   end
 
@@ -252,7 +237,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
         assert_match(/add_reference :books, :author,.*\sforeign_key: true/, change)
-        assert_match(/add_reference :books, :distributor/, change) # sanity check
+        assert_match(/add_reference :books, :distributor/, change) # Ensure the line isn't gone completely
         assert_no_match(/add_reference :books, :distributor,.*\sforeign_key: true/, change)
       end
     end

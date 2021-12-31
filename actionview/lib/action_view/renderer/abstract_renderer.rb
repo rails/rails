@@ -18,7 +18,7 @@ module ActionView
   # renderer object of the correct type is created, and the +render+ method on
   # that new object is called in turn. This abstracts the set up and rendering
   # into a separate classes for partials and templates.
-  class AbstractRenderer #:nodoc:
+  class AbstractRenderer # :nodoc:
     delegate :template_exists?, :any_templates?, :formats, to: :@lookup_context
 
     def initialize(lookup_context)

@@ -22,18 +22,18 @@ module ActiveJob
         @monitor = Monitor.new
       end
 
-      def enqueue(job) #:nodoc:
+      def enqueue(job) # :nodoc:
         @monitor.synchronize do
           JobWrapper.from_queue job.queue_name
           JobWrapper.enqueue ActiveSupport::JSON.encode(job.serialize)
         end
       end
 
-      def enqueue_at(job, timestamp) #:nodoc:
+      def enqueue_at(job, timestamp) # :nodoc:
         raise NotImplementedError, "This queueing backend does not support scheduling jobs. To see what features are supported go to http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html"
       end
 
-      class JobWrapper #:nodoc:
+      class JobWrapper # :nodoc:
         include Sneakers::Worker
         from_queue "default"
 

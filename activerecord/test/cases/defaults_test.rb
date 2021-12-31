@@ -83,6 +83,33 @@ class DefaultStringsTest < ActiveRecord::TestCase
   end
 end
 
+if supports_text_column_with_default?
+  class DefaultTextTest < ActiveRecord::TestCase
+    class DefaultText < ActiveRecord::Base; end
+
+    setup do
+      @connection = ActiveRecord::Base.connection
+      @connection.create_table :default_texts do |t|
+        t.text :text_col, default: "Smith"
+        t.text :text_col_with_quotes, default: "O'Connor"
+      end
+      DefaultText.reset_column_information
+    end
+
+    def test_default_texts
+      assert_equal "Smith", DefaultText.new.text_col
+    end
+
+    def test_default_texts_containing_single_quotes
+      assert_equal "O'Connor", DefaultText.new.text_col_with_quotes
+    end
+
+    teardown do
+      @connection.drop_table :default_texts
+    end
+  end
+end
+
 if current_adapter?(:PostgreSQLAdapter)
   class PostgresqlDefaultExpressionTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
@@ -137,6 +164,19 @@ if current_adapter?(:Mysql2Adapter)
       test "schema dump timestamp without default expression" do
         output = dump_table_schema("timestamp_defaults")
         assert_match %r/t\.timestamp\s+"nullable_timestamp"$/, output
+      end
+    end
+  end
+
+  if current_adapter?(:SQLite3Adapter)
+    class Sqlite3DefaultExpressionTest < ActiveRecord::TestCase
+      include SchemaDumpingHelper
+
+      test "schema dump includes default expression" do
+        output = dump_table_schema("defaults")
+        assert_match %r/t\.date\s+"modified_date",\s+default: -> { "CURRENT_DATE" }/, output
+        assert_match %r/t\.datetime\s+"modified_time",\s+precision: 6,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+        assert_match %r/t\.integer\s+"random_number",\s+default: -> { "random()" }/, output
       end
     end
   end

@@ -10,7 +10,7 @@ require "models/categorization"
 
 module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
-    fixtures :posts, :comments, :authors, :humans, :essays
+    fixtures :posts, :comments, :authors, :humans, :essays, :author_addresses
 
     def test_associated_with_association
       Post.where.associated(:author).tap do |relation|

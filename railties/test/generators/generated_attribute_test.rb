@@ -29,16 +29,16 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
 
   def test_field_type_returns_datetime_select
     %w(datetime timestamp).each do |attribute_type|
-      assert_field_type attribute_type, :datetime_select
+      assert_field_type attribute_type, :datetime_field
     end
   end
 
   def test_field_type_returns_time_select
-    assert_field_type :time, :time_select
+    assert_field_type :time, :time_field
   end
 
   def test_field_type_returns_date_select
-    assert_field_type :date, :date_select
+    assert_field_type :date, :date_field
   end
 
   def test_field_type_returns_text_area
@@ -68,6 +68,15 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_match message, e.message
   end
 
+  def test_field_type_with_unknown_index_type_raises_error
+    index_type = :unknown
+    e = assert_raise Rails::Generators::Error do
+      create_generated_attribute "string", "name", index_type
+    end
+    message = "Could not generate field 'name' with unknown index 'unknown'"
+    assert_match message, e.message
+  end
+
   def test_default_value_is_integer
     assert_field_default_value :integer, 1
   end
@@ -82,12 +91,12 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
 
   def test_default_value_is_datetime
     %w(datetime timestamp time).each do |attribute_type|
-      assert_field_default_value attribute_type, Time.now.to_s(:db)
+      assert_field_default_value attribute_type, Time.now.to_formatted_s(:db)
     end
   end
 
   def test_default_value_is_date
-    assert_field_default_value :date, Date.today.to_s(:db)
+    assert_field_default_value :date, Date.today.to_formatted_s(:db)
   end
 
   def test_default_value_is_string

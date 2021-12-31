@@ -119,9 +119,9 @@
       name: Active Support Core Extensions
       url: active_support_core_extensions.html
       description: >
-        Active Support provides Ruby language extensions, utilities, and other
-        transversal stuff. It enriches the Ruby language for the development of
-        Rails applications, and for the development of Ruby on Rails itself.
+        Active Support provides Ruby language extensions and utilities.
+        It enriches the Ruby language for the development of Rails
+        applications, and for the development of Ruby on Rails itself.
     -
       name: Action Mailer Basics
       url: action_mailer_basics.html
@@ -221,13 +221,13 @@
         Rails. It is an extremely in-depth guide and recommended for advanced
         Rails developers.
     -
-      name: Autoloading and Reloading Constants (Zeitwerk Mode)
+      name: Autoloading and Reloading Constants
       url: autoloading_and_reloading_constants.html
       description: This guide documents how autoloading and reloading constants work (Zeitwerk mode).
     -
-      name: Autoloading and Reloading Constants (Classic Mode)
-      url: autoloading_and_reloading_constants_classic_mode.html
-      description: This guide documents how autoloading and reloading constants work (Classic mode).
+      name: "Classic to Zeitwerk HOWTO"
+      url: "classic_to_zeitwerk_howto.html"
+      description: "This guide documents how to migrate Rails applications from `classic` to `zeitwerk` mode."
     -
       name: "Caching with Rails: An Overview"
       url: caching_with_rails.html
@@ -318,6 +318,11 @@
       description: >
         This guide provides steps to be followed when you upgrade your
         applications to a newer version of Ruby on Rails.
+    -
+      name: Version 7.1 - ?
+      url: 7_1_release_notes.html
+      description: Release notes for Rails 7.1.
+      work_in_progress: true
     -
       name: Version 7.0 - ?
       url: 7_0_release_notes.html

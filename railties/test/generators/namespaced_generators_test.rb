@@ -227,9 +227,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_file "app/helpers/test_app/product_lines_helper.rb"
-
-    # Stylesheets
-    assert_file "app/assets/stylesheets/scaffold.css"
   end
 
   def test_scaffold_on_revoke
@@ -257,9 +254,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_no_file "app/helpers/test_app/product_lines_helper.rb"
-
-    # Stylesheets (should not be removed)
-    assert_file "app/assets/stylesheets/scaffold.css"
   end
 
   def test_scaffold_with_namespace_on_invoke
@@ -293,9 +287,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_file "app/helpers/test_app/admin/roles_helper.rb"
-
-    # Stylesheets
-    assert_file "app/assets/stylesheets/scaffold.css"
   end
 
   def test_scaffold_with_namespace_on_revoke
@@ -324,9 +315,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_no_file "app/helpers/test_app/admin/roles_helper.rb"
-
-    # Stylesheets (should not be removed)
-    assert_file "app/assets/stylesheets/scaffold.css"
   end
 
   def test_scaffold_with_nested_namespace_on_invoke
@@ -360,9 +348,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_file "app/helpers/test_app/admin/user/special/roles_helper.rb"
-
-    # Stylesheets
-    assert_file "app/assets/stylesheets/scaffold.css"
   end
 
   def test_scaffold_with_nested_namespace_on_revoke
@@ -390,9 +375,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_no_file "app/helpers/test_app/admin/user/special/roles_helper.rb"
-
-    # Stylesheets (should not be removed)
-    assert_file "app/assets/stylesheets/scaffold.css"
   end
 
   def test_api_scaffold_with_namespace_on_invoke

@@ -435,6 +435,9 @@ module ActionMailer
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   #
+  # * <tt>delivery_job</tt> - The job class used with <tt>deliver_later</tt>. Defaults to
+  #   +ActionMailer::MailDeliveryJob+.
+  #
   # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>.
   class Base < AbstractController::Base
     include DeliveryMethods
@@ -459,7 +462,7 @@ module ActionMailer
 
     helper ActionMailer::MailHelper
 
-    class_attribute :delivery_job, default: ::ActionMailer::DeliveryJob
+    class_attribute :delivery_job, default: ::ActionMailer::MailDeliveryJob
     class_attribute :default_params, default: {
       mime_version: "1.0",
       charset:      "UTF-8",
@@ -555,7 +558,7 @@ module ActionMailer
       # through a callback when you call <tt>:deliver</tt> on the <tt>Mail::Message</tt>,
       # calling +deliver_mail+ directly and passing a <tt>Mail::Message</tt> will do
       # nothing except tell the logger you sent the email.
-      def deliver_mail(mail) #:nodoc:
+      def deliver_mail(mail) # :nodoc:
         ActiveSupport::Notifications.instrument("deliver.action_mailer") do |payload|
           set_payload_for_mail(payload, mail)
           yield # Let Mail do the delivery actions
@@ -563,10 +566,12 @@ module ActionMailer
       end
 
       # Returns an email in the format "Name <email@example.com>".
+      #
+      # If the name is a blank string, it returns just the address.
       def email_address_with_name(address, name)
         Mail::Address.new.tap do |builder|
           builder.address = address
-          builder.display_name = name
+          builder.display_name = name.presence
         end.to_s
       end
 
@@ -606,7 +611,7 @@ module ActionMailer
       @_message = Mail.new
     end
 
-    def process(method_name, *args) #:nodoc:
+    def process(method_name, *args) # :nodoc:
       payload = {
         mailer: self.class.name,
         action: method_name,
@@ -619,7 +624,7 @@ module ActionMailer
       end
     end
 
-    class NullMail #:nodoc:
+    class NullMail # :nodoc:
       def body; "" end
       def header; {} end
 
@@ -638,6 +643,8 @@ module ActionMailer
     end
 
     # Returns an email in the format "Name <email@example.com>".
+    #
+    # If the name is a blank string, it returns just the address.
     def email_address_with_name(address, name)
       self.class.email_address_with_name(address, name)
     end

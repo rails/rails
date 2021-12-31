@@ -7,7 +7,7 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
 
   def setup
     @destination_root = Dir.mktmpdir("bukkits")
-    Dir.chdir(@destination_root) { `bundle exec rails plugin new bukkits --skip-bundle` }
+    Dir.chdir(@destination_root) { `bundle exec rails plugin new bukkits --skip-bundle --webpack` }
     plugin_file "test/dummy/db/schema.rb", ""
   end
 
@@ -103,12 +103,6 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
     RUBY
     assert_match(/warning: assigned but unused variable/,
       capture(:stderr) { run_test_command("test/models/warnings_test.rb -w") })
-  end
-
-  def test_run_rake_test
-    create_test_file "foo"
-    result = Dir.chdir(plugin_path) { `rake test TEST=test/foo_test.rb` }
-    assert_match "1 runs, 1 assertions, 0 failures", result
   end
 
   private

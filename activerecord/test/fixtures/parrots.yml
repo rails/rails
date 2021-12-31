@@ -8,15 +8,18 @@ george:
   name: "Curious George"
   treasures: diamond, sapphire
   parrot_sti_class: LiveParrot
+  breed: australian
 
 louis:
   name: "King Louis"
   treasures: [diamond, sapphire]
   parrot_sti_class: LiveParrot
+  breed: african
 
 frederick:
   name: $LABEL
   parrot_sti_class: LiveParrot
+  breed: african
 
 polly:
   id: 4
@@ -28,6 +31,7 @@ polly:
 DEFAULTS: &DEFAULTS
   treasures: sapphire, ruby
   parrot_sti_class: LiveParrot
+  breed: australian
 
 davey:
   *DEFAULTS

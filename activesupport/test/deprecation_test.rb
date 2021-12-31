@@ -298,8 +298,12 @@ class DeprecationTest < ActiveSupport::TestCase
     end
 
     ActiveSupport::Deprecation.silenced = true
+    assert ActiveSupport::Deprecation.silenced
+
     assert_not_deprecated { @dtc.partially }
+
     ActiveSupport::Deprecation.silenced = false
+    assert_not ActiveSupport::Deprecation.silenced
   end
 
   def test_silence_threaded

@@ -2,7 +2,7 @@
 
 require "active_support/core_ext/object/deep_dup"
 
-module ActionDispatch #:nodoc:
+module ActionDispatch # :nodoc:
   class PermissionsPolicy
     class Middleware
       CONTENT_TYPE = "Content-Type"

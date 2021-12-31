@@ -3,7 +3,7 @@
 module ActiveRecord
   module Associations
     # = Active Record Has One Association
-    class HasOneAssociation < SingularAssociation #:nodoc:
+    class HasOneAssociation < SingularAssociation # :nodoc:
       include ForeignAssociation
 
       def handle_dependency
@@ -115,9 +115,9 @@ module ActiveRecord
           record[reflection.foreign_key] = nil
         end
 
-        def transaction_if(value)
+        def transaction_if(value, &block)
           if value
-            reflection.klass.transaction { yield }
+            reflection.klass.transaction(&block)
           else
             yield
           end

@@ -3,7 +3,8 @@
   "rules": {
     "semi": ["error", "never"],
     "quotes": ["error", "double"],
-    "no-unused-vars": ["error", { "vars": "all", "args": "none" }]
+    "no-unused-vars": ["error", { "vars": "all", "args": "none" }],
+    "no-console": "off"
   },
   "plugins": [
     "import"

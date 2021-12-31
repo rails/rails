@@ -41,6 +41,15 @@ module ApplicationTests
       assert_match(/^Rails version/, rails("invoke_about"))
     end
 
+    test "help arguments describe rake tasks" do
+      task_description = <<~DESC
+          rails db:migrate
+              Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog).
+      DESC
+
+      assert_match task_description, rails("db:migrate", "-h")
+    end
+
     test "task backtrace is silenced" do
       add_to_config <<-RUBY
         rake_tasks do
@@ -172,8 +181,8 @@ module ApplicationTests
       assert_equal "Answer: 42\n", output
     end
 
-    def test_code_statistics_sanity
-      assert_match "Code LOC: 73     Test LOC: 3     Code to Test Ratio: 1:0.0",
+    def test_code_statistics
+      assert_match "Code LOC: 62     Test LOC: 3     Code to Test Ratio: 1:0.0",
         rails("stats")
     end
 
@@ -263,12 +272,6 @@ module ApplicationTests
       assert_match(/Execute db:test:load_schema/, output)
     end
 
-    def test_rake_dump_structure_should_respect_db_structure_env_variable
-      # ensure we have a schema_migrations table to dump
-      rails "db:migrate", "db:structure:dump", "SCHEMA=db/my_structure.sql"
-      assert File.exist?(File.join(app_path, "db", "my_structure.sql"))
-    end
-
     def test_rake_dump_structure_should_be_called_twice_when_migrate_redo
       add_to_config "config.active_record.schema_format = :sql"
 
@@ -296,25 +299,9 @@ module ApplicationTests
       %w(controller mailer scaffold).each do |dir|
         assert File.exist?(File.join(app_path, "lib", "templates", "erb", dir))
       end
-      %w(controller helper scaffold_controller assets).each do |dir|
+      %w(controller helper scaffold_controller).each do |dir|
         assert File.exist?(File.join(app_path, "lib", "templates", "rails", dir))
       end
-    end
-
-    test "app:binstub:yarn generates bin/yarn" do
-      yarn_binstub = File.join(app_path, "bin/yarn")
-      rails "app:binstub:yarn"
-
-      assert_path_exists yarn_binstub
-      assert_match %r/\A#!/, File.read(yarn_binstub)
-    end
-
-    test "app:binstub:yarn overwrites existing bin/yarn" do
-      yarn_binstub = File.join(app_path, "bin/yarn")
-      File.write(yarn_binstub, "existing")
-      rails "app:binstub:yarn"
-
-      assert_match %r/\A#!/, File.read(yarn_binstub)
     end
 
     def test_template_load_initializers

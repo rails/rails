@@ -5,44 +5,26 @@ require "models/author"
 require "models/post"
 require "models/pet"
 require "models/toy"
+require "models/comment"
 
 class DeleteAllTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :posts, :pets, :toys
+  fixtures :authors, :author_addresses, :comments, :posts, :pets, :toys
 
   def test_destroy_all
-    davids = Author.where(name: "David")
-
-    assert_difference("Author.count", -1) do
-      davids.destroy_all
-    end
-  end
-
-  def test_destroy_all_no_longer_returns_a_collection
-    davids = Author.where(name: "David")
-
-    assert_nil davids.destroy_all
-  end
-
-  def test_destroy_all_deprecated_returns_collection
-    ActiveRecord::Base.destroy_all_in_batches = false
     davids = Author.where(name: "David")
 
     # Force load
     assert_equal [authors(:david)], davids.to_a
     assert_predicate davids, :loaded?
 
-    assert_deprecated do
-      assert_difference("Author.count", -1) do
-        destroyed = davids.destroy_all
-        assert_equal [authors(:david)], destroyed
-        assert_predicate destroyed.first, :frozen?
-      end
+    assert_difference("Author.count", -1) do
+      destroyed = davids.destroy_all
+      assert_equal [authors(:david)], destroyed
+      assert_predicate destroyed.first, :frozen?
     end
 
     assert_equal [], davids.to_a
     assert_predicate davids, :loaded?
-  ensure
-    ActiveRecord::Base.destroy_all_in_batches = true
   end
 
   def test_delete_all
@@ -72,10 +54,22 @@ class DeleteAllTest < ActiveRecord::TestCase
     assert_predicate davids, :loaded?
   end
 
+  def test_delete_all_with_group_by_and_having
+    minimum_comments_count = 2
+    posts_to_be_deleted = Post.most_commented(minimum_comments_count).all.to_a
+    assert_operator posts_to_be_deleted.length, :>, 0
+
+    assert_difference("Post.count", -posts_to_be_deleted.length) do
+      Post.most_commented(minimum_comments_count).delete_all
+    end
+
+    posts_to_be_deleted.each do |deleted_post|
+      assert_raise(ActiveRecord::RecordNotFound) { deleted_post.reload }
+    end
+  end
+
   def test_delete_all_with_unpermitted_relation_raises_error
     assert_raises(ActiveRecord::ActiveRecordError) { Author.distinct.delete_all }
-    assert_raises(ActiveRecord::ActiveRecordError) { Author.group(:name).delete_all }
-    assert_raises(ActiveRecord::ActiveRecordError) { Author.having("SUM(id) < 3").delete_all }
   end
 
   def test_delete_all_with_joins_and_where_part_is_hash

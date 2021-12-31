@@ -5,21 +5,19 @@ require "active_support/core_ext/enumerable"
 module ActiveRecord
   class InsertAll # :nodoc:
     attr_reader :model, :connection, :inserts, :keys
-    attr_reader :on_duplicate, :returning, :unique_by, :update_sql
+    attr_reader :on_duplicate, :update_only, :returning, :unique_by, :update_sql
 
-    def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil)
+    def initialize(model, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
       @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s)
-      @on_duplicate, @returning, @unique_by = on_duplicate, returning, unique_by
+      @on_duplicate, @update_only, @returning, @unique_by = on_duplicate, update_only, returning, unique_by
+      @record_timestamps = record_timestamps.nil? ? model.record_timestamps : record_timestamps
 
-      disallow_raw_sql!(returning)
       disallow_raw_sql!(on_duplicate)
+      disallow_raw_sql!(returning)
 
-      if Arel.arel_node?(on_duplicate)
-        @update_sql = on_duplicate
-        @on_duplicate = :update
-      end
+      configure_on_duplicate_update_logic
 
       if model.scope_attributes?
         @scope_attributes = model.scope_attributes
@@ -44,7 +42,7 @@ module ActiveRecord
     end
 
     def updatable_columns
-      keys - readonly_columns - unique_by_columns
+      @updatable_columns ||= keys - readonly_columns - unique_by_columns
     end
 
     def primary_keys
@@ -64,17 +62,49 @@ module ActiveRecord
       inserts.map do |attributes|
         attributes = attributes.stringify_keys
         attributes.merge!(scope_attributes) if scope_attributes
+        attributes.reverse_merge!(timestamps_for_create) if record_timestamps?
 
         verify_attributes(attributes)
 
-        keys.map do |key|
+        keys_including_timestamps.map do |key|
           yield key, attributes[key]
         end
       end
     end
 
+    def record_timestamps?
+      @record_timestamps
+    end
+
+    # TODO: Consider remaining this method, as it only conditionally extends keys, not always
+    def keys_including_timestamps
+      @keys_including_timestamps ||= if record_timestamps?
+        keys + model.all_timestamp_attributes_in_model
+      else
+        keys
+      end
+    end
+
     private
       attr_reader :scope_attributes
+
+      def configure_on_duplicate_update_logic
+        if custom_update_sql_provided? && update_only.present?
+          raise ArgumentError, "You can't set :update_only and provide custom update SQL via :on_duplicate at the same time"
+        end
+
+        if update_only.present?
+          @updatable_columns = Array(update_only)
+          @on_duplicate = :update
+        elsif custom_update_sql_provided?
+          @update_sql = on_duplicate
+          @on_duplicate = :update
+        end
+      end
+
+      def custom_update_sql_provided?
+        @custom_update_sql_provided ||= Arel.arel_node?(on_duplicate)
+      end
 
       def find_unique_index_for(unique_by)
         if !connection.supports_insert_conflict_target?
@@ -134,7 +164,7 @@ module ActiveRecord
 
 
       def verify_attributes(attributes)
-        if keys != attributes.keys.to_set
+        if keys_including_timestamps != attributes.keys.to_set
           raise ArgumentError, "All objects being inserted must have the same keys"
         end
       end
@@ -148,10 +178,14 @@ module ActiveRecord
                              "by wrapping them in Arel.sql()."
       end
 
+      def timestamps_for_create
+        model.all_timestamp_attributes_in_model.index_with(connection.high_precision_current_timestamp)
+      end
+
       class Builder # :nodoc:
         attr_reader :model
 
-        delegate :skip_duplicates?, :update_duplicates?, :keys, to: :insert_all
+        delegate :skip_duplicates?, :update_duplicates?, :keys, :keys_including_timestamps, :record_timestamps?, to: :insert_all
 
         def initialize(insert_all)
           @insert_all, @model, @connection = insert_all, insert_all.model, insert_all.connection
@@ -162,9 +196,10 @@ module ActiveRecord
         end
 
         def values_list
-          types = extract_types_from_columns_on(model.table_name, keys: keys)
+          types = extract_types_from_columns_on(model.table_name, keys: keys_including_timestamps)
 
           values_list = insert_all.map_key_with_value do |key, value|
+            next value if Arel::Nodes::SqlLiteral === value
             connection.with_yaml_fallback(types[key].serialize(value))
           end
 
@@ -196,9 +231,11 @@ module ActiveRecord
         end
 
         def touch_model_timestamps_unless(&block)
+          return "" unless update_duplicates? && record_timestamps?
+
           model.timestamp_attributes_for_update_in_model.filter_map do |column_name|
             if touch_timestamp_attribute?(column_name)
-              "#{column_name}=(CASE WHEN (#{updatable_columns.map(&block).join(" AND ")}) THEN #{model.quoted_table_name}.#{column_name} ELSE CURRENT_TIMESTAMP END),"
+              "#{column_name}=(CASE WHEN (#{updatable_columns.map(&block).join(" AND ")}) THEN #{model.quoted_table_name}.#{column_name} ELSE #{connection.high_precision_current_timestamp} END),"
             end
           end.join
         end
@@ -213,11 +250,11 @@ module ActiveRecord
           attr_reader :connection, :insert_all
 
           def touch_timestamp_attribute?(column_name)
-            update_duplicates? && !insert_all.updatable_columns.include?(column_name)
+            insert_all.updatable_columns.exclude?(column_name)
           end
 
           def columns_list
-            format_columns(insert_all.keys)
+            format_columns(insert_all.keys_including_timestamps)
           end
 
           def extract_types_from_columns_on(table_name, keys:)

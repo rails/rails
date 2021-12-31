@@ -33,24 +33,11 @@ passing the `--skip-sprockets` option.
 $ rails new appname --skip-sprockets
 ```
 
-Rails automatically adds the [`sass-rails`](https://github.com/rails/sass-rails)
-gem to your `Gemfile`, which is used by Sprockets for
-[Sass](https://sass-lang.com) compilation:
+Rails can easily work with Sass by adding the [`sassc-rails`](https://github.com/sass/sassc-rails)
+gem to your `Gemfile`, which is used by Sprockets for [Sass](https://sass-lang.com) compilation:
 
 ```ruby
-gem 'sass-rails'
-```
-
-Using the `--skip-sprockets` option will prevent Rails from adding
-this gem, so if you later want to enable the asset pipeline
-you will have to add it to your `Gemfile` manually. Also,
-creating an application with the `--skip-sprockets` option will generate
-a slightly different `config/application.rb` file, with a require statement
-for the sprockets railtie that is commented-out. You will have to remove
-the comment operator on that line to later enable the asset pipeline:
-
-```ruby
-# require "sprockets/railtie"
+gem 'sassc-rails'
 ```
 
 To set asset compression methods, set the appropriate configuration options
@@ -59,10 +46,10 @@ in `production.rb` - `config.assets.css_compressor` for your CSS and
 
 ```ruby
 config.assets.css_compressor = :yui
-config.assets.js_compressor = :uglifier
+config.assets.js_compressor = :terser
 ```
 
-NOTE: The `sass-rails` gem is automatically used for CSS compression if included
+NOTE: The `sassc-rails` gem is automatically used for CSS compression if included
 in the `Gemfile` and no `config.assets.css_compressor` option is set.
 
 ### Main Features
@@ -205,15 +192,6 @@ NOTE: You must have an ExecJS supported runtime in order to use CoffeeScript.
 If you are using macOS or Windows, you have a JavaScript runtime installed in
 your operating system. Check [ExecJS](https://github.com/rails/execjs#readme) documentation to know all supported JavaScript runtimes.
 
-You can also disable generation of controller specific asset files by adding the
-following to your `config/application.rb` configuration:
-
-```ruby
-  config.generators do |g|
-    g.assets false
-  end
-```
-
 ### Asset Organization
 
 Pipeline assets can be placed inside an application in one of three locations:
@@ -317,12 +295,12 @@ familiar `javascript_include_tag` and `stylesheet_link_tag`:
 ```
 
 If using the turbolinks gem, which is included by default in Rails, then
-include the 'data-turbolinks-track' option which causes turbolinks to check if
+include the 'data-turbo-track' option which causes Turbo to check if
 an asset has been updated and if so loads it into the page:
 
 ```erb
-<%= stylesheet_link_tag "application", media: "all", "data-turbolinks-track" => "reload" %>
-<%= javascript_include_tag "application", "data-turbolinks-track" => "reload" %>
+<%= stylesheet_link_tag "application", media: "all", "data-turbo-track" => "reload" %>
+<%= javascript_include_tag "application", "data-turbo-track" => "reload" %>
 ```
 
 In regular views you can access images in the `app/assets/images` directory
@@ -530,8 +508,7 @@ wouldn't understand ERB and therefore you would run into problems.
 In Development
 --------------
 
-In development mode, assets are served as separate files in the order they are
-specified in the manifest file.
+In development mode, assets are served as a concatenated file.
 
 This manifest `app/assets/javascripts/application.js`:
 
@@ -544,12 +521,8 @@ This manifest `app/assets/javascripts/application.js`:
 would generate this HTML:
 
 ```html
-<script src="/assets/core.js?body=1"></script>
-<script src="/assets/projects.js?body=1"></script>
-<script src="/assets/tickets.js?body=1"></script>
+<script src="/assets/application-728742f3b9daa182fe7c831f6a3b8fa87609b4007fdc2f87c134a07b19ad93fb.js"></script>
 ```
-
-The `body` param is required by Sprockets.
 
 ### Raise an Error When an Asset is Not Found
 
@@ -575,42 +548,25 @@ config.assets.digest = false
 
 When this option is true, digests will be generated for asset URLs.
 
-### Turning Debugging Off
+### Turning Source Maps On
 
-You can turn off debug mode by updating `config/environments/development.rb` to
+You can turn on source maps by updating `config/environments/development.rb` to
 include:
 
 ```ruby
-config.assets.debug = false
+config.assets.debug = true
 ```
 
-When debug mode is off, Sprockets concatenates and runs the necessary
-preprocessors on all files. With debug mode turned off the manifest above would
-generate instead:
-
-```html
-<script src="/assets/application.js"></script>
-```
+When debug mode is on, Sprockets will generate a Source Map for each asset. This
+allows you to debug each file individually in your browser's developer tools.
 
 Assets are compiled and cached on the first request after the server is started.
 Sprockets sets a `must-revalidate` Cache-Control HTTP header to reduce request
 overhead on subsequent requests - on these the browser gets a 304 (Not Modified)
 response.
 
-If any of the files in the manifest have changed between requests, the server
+If any of the files in the manifest change between requests, the server
 responds with a new compiled file.
-
-Debug mode can also be enabled in Rails helper methods:
-
-```erb
-<%= stylesheet_link_tag "application", debug: true %>
-<%= javascript_include_tag "application", debug: true %>
-```
-
-The `:debug` option is redundant if debug mode is already on.
-
-You can also enable compression in development mode as a sanity check, and
-disable it on-demand as required for debugging.
 
 In Production
 -------------
@@ -1064,8 +1020,8 @@ config.assets.css_compressor = :sass
 
 ### JavaScript Compression
 
-Possible options for JavaScript compression are `:terser`, `:closure`, `:uglifier` and
-`:yui`. These require the use of the `terser`, `closure-compiler`, `uglifier` or
+Possible options for JavaScript compression are `:terser`, `:closure` and
+`:yui`. These require the use of the `terser`, `closure-compiler` or
 `yui-compressor` gems, respectively.
 
 Take the `terser` gem, for example.

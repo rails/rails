@@ -260,7 +260,7 @@ module ActiveSupport
         @country_zones[code] ||= load_country_zones(code)
       end
 
-      def clear #:nodoc:
+      def clear # :nodoc:
         @lazy_zones_map = Concurrent::Map.new
         @country_zones  = Concurrent::Map.new
         @zones = nil
@@ -385,6 +385,11 @@ module ActiveSupport
     # If the string is invalid then an +ArgumentError+ will be raised unlike +parse+
     # which usually returns +nil+ when given an invalid date string.
     def iso8601(str)
+      # Historically `Date._iso8601(nil)` returns `{}`, but in the `date` gem versions `3.2.1`, `3.1.2`, `3.0.2`,
+      # and `2.0.1`, `Date._iso8601(nil)` raises `TypeError` https://github.com/ruby/date/issues/39
+      # Future `date` releases are expected to revert back to the original behavior.
+      raise ArgumentError, "invalid date" if str.nil?
+
       parts = Date._iso8601(str)
 
       year = parts.fetch(:year)
@@ -550,15 +555,15 @@ module ActiveSupport
       tzinfo.period_for_local(time, dst) { |periods| periods.last }
     end
 
-    def periods_for_local(time) #:nodoc:
+    def periods_for_local(time) # :nodoc:
       tzinfo.periods_for_local(time)
     end
 
-    def init_with(coder) #:nodoc:
+    def init_with(coder) # :nodoc:
       initialize(coder["name"])
     end
 
-    def encode_with(coder) #:nodoc:
+    def encode_with(coder) # :nodoc:
       coder.tag = "!ruby/object:#{self.class}"
       coder.map = { "name" => tzinfo.name }
     end

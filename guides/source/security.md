@@ -216,7 +216,7 @@ One possibility is to set the expiry time-stamp of the cookie with the session I
 ```ruby
 class Session < ApplicationRecord
   def self.sweep(time = 1.hour)
-    where("updated_at < ?", time.ago.to_s(:db)).delete_all
+    where("updated_at < ?", time.ago.to_formatted_s(:db)).delete_all
   end
 end
 ```
@@ -224,7 +224,7 @@ end
 The section about session fixation introduced the problem of maintained sessions. An attacker maintaining a session every five minutes can keep the session alive forever, although you are expiring sessions. A simple solution for this would be to add a `created_at` column to the sessions table. Now you can delete sessions that were created a long time ago. Use this line in the sweep method above:
 
 ```ruby
-where("updated_at < ? OR created_at < ?", time.ago.to_s(:db), 2.days.ago.to_s(:db)).delete_all
+where("updated_at < ? OR created_at < ?", time.ago.to_formatted_s(:db), 2.days.ago.to_formatted_s(:db)).delete_all
 ```
 
 Cross-Site Request Forgery (CSRF)
@@ -441,7 +441,7 @@ User Management
 
 NOTE: _Almost every web application has to deal with authorization and authentication. Instead of rolling your own, it is advisable to use common plug-ins. But keep them up-to-date, too. A few additional precautions can make your application even more secure._
 
-There are a number of authentication plug-ins for Rails available. Good ones, such as the popular [devise](https://github.com/heartcombo/devise) and [authlogic](https://github.com/binarylogic/authlogic), store only encrypted passwords, not plain-text passwords. Since Rails 3.1 you can also use the built-in [`has_secure_password`](https://api.rubyonrails.org/classes/ActiveModel/SecurePassword/ClassMethods.html#method-i-has_secure_password) method which supports password encryption, confirmation, and recovery mechanisms.
+There are a number of authentication plug-ins for Rails available. Good ones, such as the popular [devise](https://github.com/heartcombo/devise) and [authlogic](https://github.com/binarylogic/authlogic), store only cryptographically hashed passwords, not plain-text passwords. Since Rails 3.1 you can also use the built-in [`has_secure_password`](https://api.rubyonrails.org/classes/ActiveModel/SecurePassword/ClassMethods.html#method-i-has_secure_password) method which supports secure password hashing, confirmation, and recovery mechanisms.
 
 ### Brute-Forcing Accounts
 
@@ -480,9 +480,9 @@ A popular positive CAPTCHA API is [reCAPTCHA](https://developers.google.com/reca
 You will get two keys from the API, a public and a private key, which you have to put into your Rails environment. After that you can use the recaptcha_tags method in the view, and the verify_recaptcha method in the controller. Verify_recaptcha will return false if the validation fails.
 The problem with CAPTCHAs is that they have a negative impact on the user experience. Additionally, some visually impaired users have found certain kinds of distorted CAPTCHAs difficult to read. Still, positive CAPTCHAs are one of the best methods to prevent all kinds of bots from submitting forms.
 
-Most bots are really dumb. They crawl the web and put their spam into every form's field they can find. Negative CAPTCHAs take advantage of that and include a "honeypot" field in the form which will be hidden from the human user by CSS or JavaScript.
+Most bots are really naive. They crawl the web and put their spam into every form's field they can find. Negative CAPTCHAs take advantage of that and include a "honeypot" field in the form which will be hidden from the human user by CSS or JavaScript.
 
-Note that negative CAPTCHAs are only effective against dumb bots and won't suffice to protect critical applications from targeted bots. Still, the negative and positive CAPTCHAs can be combined to increase the performance, e.g., if the "honeypot" field is not empty (bot detected), you won't need to verify the positive CAPTCHA, which would require an HTTPS request to Google ReCaptcha before computing the response.
+Note that negative CAPTCHAs are only effective against naive bots and won't suffice to protect critical applications from targeted bots. Still, the negative and positive CAPTCHAs can be combined to increase the performance, e.g., if the "honeypot" field is not empty (bot detected), you won't need to verify the positive CAPTCHA, which would require an HTTPS request to Google ReCaptcha before computing the response.
 
 Here are some ideas how to hide honeypot fields by JavaScript and/or CSS:
 
@@ -651,7 +651,7 @@ SELECT * FROM projects WHERE (name = '') UNION
   SELECT id,login AS name,password AS description,1,1,1 FROM users --'
 ```
 
-The result won't be a list of projects (because there is no project with an empty name), but a list of usernames and their password. So hopefully you encrypted the passwords in the database! The only problem for the attacker is, that the number of columns has to be the same in both queries. That's why the second query includes a list of ones (1), which will be always the value 1, in order to match the number of columns in the first query.
+The result won't be a list of projects (because there is no project with an empty name), but a list of usernames and their password. So hopefully you [securely hashed the passwords](#user-management) in the database! The only problem for the attacker is, that the number of columns has to be the same in both queries. That's why the second query includes a list of ones (1), which will be always the value 1, in order to match the number of columns in the first query.
 
 Also, the second query renames some columns with the AS statement so that the web application displays the values from the user table. Be sure to update your Rails [to at least 2.1.1](https://rorsecurity.info/journal/2008/09/08/sql-injection-issue-in-limit-and-offset-parameter.html).
 
@@ -659,19 +659,31 @@ Also, the second query renames some columns with the AS statement so that the we
 
 Ruby on Rails has a built-in filter for special SQL characters, which will escape `'` , `"` , NULL character, and line breaks. *Using `Model.find(id)` or `Model.find_by_some thing(something)` automatically applies this countermeasure*. But in SQL fragments, especially *in conditions fragments (`where("...")`), the `connection.execute()` or `Model.find_by_sql()` methods, it has to be applied manually*.
 
-Instead of passing a string to the conditions option, you can pass an array to sanitize tainted strings like this:
+Instead of passing a string, you can use positional handlers to sanitize tainted strings like this:
 
 ```ruby
-Model.where("login = ? AND password = ?", entered_user_name, entered_password).first
+Model.where("zip_code = ? AND quantity >= ?", entered_zip_code, entered_quantity).first
 ```
 
-As you can see, the first part of the array is a SQL fragment with question marks. The sanitized versions of the variables in the second part of the array replace the question marks. Or you can pass a hash for the same result:
+The first parameter is a SQL fragment with question marks. The second and third
+parameter will replace the question marks with the value of the variables.
+
+You can also use named handlers, the values will be taken from the hash used:
 
 ```ruby
-Model.where(login: entered_user_name, password: entered_password).first
+values = { zip: entered_zip_code, qty: entered_quantity }
+Model.where("zip_code = :zip AND quantity >= :qty", values).first
 ```
 
-The array or hash form is only available in model instances. You can try `sanitize_sql()` elsewhere. _Make it a habit to think about the security consequences when using an external string in SQL_.
+Additionally, you can split and chain conditionals valid for your use case:
+
+```ruby
+Model.where(zip_code: entered_zip_code).where("quantity >= ?", entered_quantity).first
+```
+
+Note the previous mentioned countermeasures are only available in model instances. You can
+try `sanitize_sql()` elsewhere. _Make it a habit to think about the security consequences
+when using an external string in SQL_.
 
 ### Cross-Site Scripting (XSS)
 
@@ -896,21 +908,21 @@ system("/bin/echo","hello; rm *")
 `Kernel#open` executes OS command if the argument starts with a vertical bar (`|`).
 
 ```ruby
-open('| ls') { |f| f.read }
+open('| ls') { |file| file.read }
 # returns file list as a String via `ls` command
 ```
 
 Countermeasures are to use `File.open`, `IO.open` or `URI#open` instead. They don't execute an OS command.
 
 ```ruby
-File.open('| ls') { |f| f.read }
+File.open('| ls') { |file| file.read }
 # doesn't execute `ls` command, just opens `| ls` file if it exists
 
-IO.open(0) { |f| f.read }
+IO.open(0) { |file| file.read }
 # opens stdin. doesn't accept a String as the argument
 
 require 'open-uri'
-URI('https://example.com').open { |f| f.read }
+URI('https://example.com').open { |file| file.read }
 # opens the URI. `URI()` doesn't accept `| ls`
 ```
 
@@ -1024,7 +1036,7 @@ Every HTTP response from your Rails application receives the following default s
 ```ruby
 config.action_dispatch.default_headers = {
   'X-Frame-Options' => 'SAMEORIGIN',
-  'X-XSS-Protection' => '1; mode=block',
+  'X-XSS-Protection' => '0',
   'X-Content-Type-Options' => 'nosniff',
   'X-Download-Options' => 'noopen',
   'X-Permitted-Cross-Domain-Policies' => 'none',
@@ -1050,7 +1062,7 @@ config.action_dispatch.default_headers.clear
 Here is a list of common headers:
 
 * **X-Frame-Options:** _`SAMEORIGIN` in Rails by default_ - allow framing on same domain. Set it to 'DENY' to deny framing at all or remove this header completely if you want to allow framing on all websites.
-* **X-XSS-Protection:** _`1; mode=block` in Rails by default_ - use XSS Auditor and block page if XSS attack is detected. Set it to '0;' if you want to switch XSS Auditor off(useful if response contents scripts from request parameters)
+* **X-XSS-Protection:** _`0` in Rails by default_ - [deprecated legacy header](https://owasp.org/www-project-secure-headers/#x-xss-protection), set to '0' to disable problematic legacy XSS auditors.
 * **X-Content-Type-Options:** _`nosniff` in Rails by default_ - stops the browser from guessing the MIME type of a file.
 * **X-Content-Security-Policy:** [A powerful mechanism for controlling which sites certain content types can be loaded from](https://w3c.github.io/webappsec-csp/)
 * **Access-Control-Allow-Origin:** Used to control which sites are allowed to bypass same origin policies and send cross-origin requests.
@@ -1086,22 +1098,22 @@ Example controller overrides:
 ```ruby
 # Override policy inline
 class PostsController < ApplicationController
-  content_security_policy do |p|
-    p.upgrade_insecure_requests true
+  content_security_policy do |policy|
+    policy.upgrade_insecure_requests true
   end
 end
 
 # Using literal values
 class PostsController < ApplicationController
-  content_security_policy do |p|
-    p.base_uri "https://www.example.com"
+  content_security_policy do |policy|
+    policy.base_uri "https://www.example.com"
   end
 end
 
 # Using mixed static and dynamic values
 class PostsController < ApplicationController
-  content_security_policy do |p|
-    p.base_uri :self, -> { "https://#{current_user.domain}.example.com" }
+  content_security_policy do |policy|
+    policy.base_uri :self, -> { "https://#{current_user.domain}.example.com" }
   end
 end
 

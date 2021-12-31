@@ -95,18 +95,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Post.arel_table["body"], Post.arel_table[:text]
   end
 
-  def test_deprecated_arel_attribute
-    assert_deprecated do
-      assert_equal Post.arel_table["body"], Post.arel_attribute(:body)
-    end
-  end
-
-  def test_deprecated_arel_attribute_on_relation
-    assert_deprecated do
-      assert_equal Post.arel_table["body"], Post.all.arel_attribute(:body)
-    end
-  end
-
   def test_incomplete_schema_loading
     topic = Topic.first
     payload = { foo: 42 }
@@ -994,6 +982,48 @@ class BasicsTest < ActiveRecord::TestCase
         end
       end
     end
+
+    unless in_memory_db?
+      def test_connection_in_local_time
+        with_timezone_config default: :utc do
+          new_config = ActiveRecord::Base.connection_db_config.configuration_hash.merge(default_timezone: "local")
+          ActiveRecord::Base.establish_connection(new_config)
+          Default.reset_column_information
+
+          default = Default.new
+
+          assert_equal Date.new(2004, 1, 1), default.fixed_date
+          assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), default.fixed_time
+
+          if current_adapter?(:PostgreSQLAdapter)
+            assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time_with_time_zone
+          end
+        end
+      ensure
+        ActiveRecord::Base.establish_connection :arunit
+        Default.reset_column_information
+      end
+
+      def test_connection_in_utc_time
+        with_timezone_config default: :local do
+          new_config = ActiveRecord::Base.connection_db_config.configuration_hash.merge(default_timezone: "utc")
+          ActiveRecord::Base.establish_connection(new_config)
+          Default.reset_column_information
+
+          default = Default.new
+
+          assert_equal Date.new(2004, 1, 1), default.fixed_date
+          assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time
+
+          if current_adapter?(:PostgreSQLAdapter)
+            assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time_with_time_zone
+          end
+        end
+      ensure
+        ActiveRecord::Base.establish_connection :arunit
+        Default.reset_column_information
+      end
+    end
   end
 
   def test_auto_id
@@ -1266,17 +1296,18 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal c1, c2
   end
 
-  def test_current_scope_is_reset
-    Object.const_set :UnloadablePost, Class.new(ActiveRecord::Base)
-    UnloadablePost.current_scope = UnloadablePost.all
+  def test_before_remove_const_resets_the_current_scope
+    # Done this way because a class cannot be defined in a method using the
+    # class keyword.
+    Object.const_set(:ReloadableModel, Class.new(ActiveRecord::Base))
+    ReloadableModel.current_scope = ReloadableModel.all
+    assert_not_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(ReloadableModel) # precondition
 
-    UnloadablePost.unloadable
-    klass = UnloadablePost
-    assert_not_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(klass)
-    ActiveSupport::Dependencies.remove_unloadable_constants!
-    assert_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(klass)
+    ReloadableModel.before_remove_const
+
+    assert_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(ReloadableModel)
   ensure
-    Object.class_eval { remove_const :UnloadablePost } if defined?(UnloadablePost)
+    Object.send(:remove_const, :ReloadableModel)
   end
 
   def test_marshal_round_trip

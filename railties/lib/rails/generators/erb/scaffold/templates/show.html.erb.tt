@@ -1,10 +1,10 @@
-<p id="notice"><%%= notice %></p>
+<p style="color: green"><%%= notice %></p>
 
 <%%= render @<%= singular_table_name %> %>
 
 <div>
-  <%%= link_to "Edit this <%= human_name.downcase %>", edit_<%= singular_table_name %>_path(@<%= singular_table_name %>) %> |
-  <%%= link_to "Back to <%= human_name.pluralize.downcase %>", <%= index_helper %>_path %>
+  <%%= link_to "Edit this <%= human_name.downcase %>", <%= edit_helper(type: :path) %> %> |
+  <%%= link_to "Back to <%= human_name.pluralize.downcase %>", <%= index_helper(type: :path) %> %>
 
-  <%%= button_to "Destroy this <%= human_name.downcase %>", <%= singular_table_name %>_path(@<%= singular_table_name %>), method: :delete %>
+  <%%= button_to "Destroy this <%= human_name.downcase %>", <%= model_resource_name(prefix: "@") %>, method: :delete %>
 </div>

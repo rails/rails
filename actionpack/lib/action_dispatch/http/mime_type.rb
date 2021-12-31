@@ -13,8 +13,8 @@ module Mime
       @symbols = []
     end
 
-    def each
-      @mimes.each { |x| yield x }
+    def each(&block)
+      @mimes.each(&block)
     end
 
     def <<(type)
@@ -42,9 +42,9 @@ module Mime
       Type.lookup_by_extension(type)
     end
 
-    def fetch(type)
+    def fetch(type, &block)
       return type if type.is_a?(Type)
-      EXTENSION_LOOKUP.fetch(type.to_s) { |k| yield k }
+      EXTENSION_LOOKUP.fetch(type.to_s, &block)
     end
   end
 
@@ -67,7 +67,7 @@ module Mime
     @register_callbacks = []
 
     # A simple helper class used in parsing the accept header.
-    class AcceptItem #:nodoc:
+    class AcceptItem # :nodoc:
       attr_accessor :index, :name, :q
       alias :to_s :name
 
@@ -85,7 +85,7 @@ module Mime
       end
     end
 
-    class AcceptList #:nodoc:
+    class AcceptList # :nodoc:
       def self.sort!(list)
         list.sort!
 

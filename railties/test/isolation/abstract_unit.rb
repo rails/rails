@@ -38,6 +38,10 @@ module TestHelpers
       File.join RAILS_FRAMEWORK_ROOT, "tmp/templates/app_template"
     end
 
+    def bootsnap_cache_path
+      File.join RAILS_FRAMEWORK_ROOT, "tmp/templates/bootsnap"
+    end
+
     def tmp_path(*args)
       @tmp_path ||= File.realpath(Dir.mktmpdir(nil, File.join(RAILS_FRAMEWORK_ROOT, "tmp")))
       File.join(@tmp_path, *args)
@@ -91,7 +95,7 @@ module TestHelpers
       assert_equal 200, resp[0]
       assert_match "text/html", resp[1]["Content-Type"]
       assert_match "charset=utf-8", resp[1]["Content-Type"]
-      assert extract_body(resp).match(/Yay! You.*re on Rails!/)
+      assert extract_body(resp).match(/Rails version:/)
     end
   end
 
@@ -204,6 +208,7 @@ module TestHelpers
         config.hosts << proc { true }
         config.eager_load = false
         config.session_store :cookie_store, key: "_myapp_session"
+        config.cache_store = :mem_cache_store
         config.active_support.deprecation = :log
         config.action_controller.allow_forgery_protection = false
       RUBY
@@ -367,7 +372,12 @@ module TestHelpers
         Process.waitpid pid
 
       else
-        output = `cd #{app_path}; #{command}`
+        ENV["BOOTSNAP_CACHE_DIR"] = bootsnap_cache_path
+        begin
+          output = `cd #{app_path}; #{command}`
+        ensure
+          ENV.delete("BOOTSNAP_CACHE_DIR")
+        end
       end
 
       raise "rails command failed (#{$?.exitstatus}): #{command}\n#{output}" unless allow_failure || $?.success?
@@ -510,8 +520,9 @@ Module.new do
   FileUtils.rm_rf(app_template_path)
   FileUtils.mkdir_p(app_template_path)
 
-  sh "#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-bundle --skip-spring --skip-listen --no-rc --skip-webpack-install --quiet"
+  sh "#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-bundle --no-rc --quiet"
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
+    f.puts 'require "bootsnap/setup" if ENV["BOOTSNAP_CACHE_DIR"]'
     f.puts 'require "rails/all"'
   end
 
@@ -528,26 +539,13 @@ Module.new do
     end
   end
 
-  # Fix relative file paths
-  package_json = File.read("#{assets_path}/package.json")
-  package_json.gsub!(%r{"file:(\.\./[^"]+)"}) do
-    path = Pathname.new($1).expand_path(assets_path).relative_path_from(Pathname.new(app_template_path))
-    "\"file:#{path}\""
-  end
-  File.write("#{app_template_path}/package.json", package_json)
-
-  FileUtils.cp("#{assets_path}/config/webpacker.yml", "#{app_template_path}/config/webpacker.yml")
-  FileUtils.cp_r("#{assets_path}/config/webpack", "#{app_template_path}/config/webpack")
-  FileUtils.ln_s("#{assets_path}/node_modules", "#{app_template_path}/node_modules")
-  FileUtils.chdir(app_template_path) do
-    sh "yarn install"
-    sh "bin/rails webpacker:binstubs"
-  end
+  FileUtils.mkdir_p "#{app_template_path}/app/javascript"
+  File.write("#{app_template_path}/app/javascript/application.js", "\n")
 
   # Fake 'Bundler.require' -- we run using the repo's Gemfile, not an
   # app-specific one: we don't want to require every gem that lists.
   contents = File.read("#{app_template_path}/config/application.rb")
-  contents.sub!(/^Bundler\.require.*/, "%w(turbolinks webpacker).each { |r| require r }")
+  contents.sub!(/^Bundler\.require.*/, "%w(sprockets/railtie importmap-rails).each { |r| require r }")
   File.write("#{app_template_path}/config/application.rb", contents)
 
   require "rails"

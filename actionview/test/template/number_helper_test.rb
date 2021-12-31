@@ -201,4 +201,34 @@ class NumberHelperTest < ActionView::TestCase
     end
     assert_equal "x", exception.number
   end
+
+  def test_number_helpers_should_not_raise_error_if_valid_when_specified
+    assert_nothing_raised do
+      number_to_human("3.33", raise: true)
+    end
+
+    assert_nothing_raised do
+      number_to_human_size("3.33", raise: true)
+    end
+
+    assert_nothing_raised do
+      number_with_precision("3.33", raise: true)
+    end
+
+    assert_nothing_raised do
+      number_to_currency("3.33", raise: true)
+    end
+
+    assert_nothing_raised do
+      number_to_percentage("3.33", raise: true)
+    end
+
+    assert_nothing_raised do
+      number_with_delimiter("3.33", raise: true)
+    end
+
+    assert_nothing_raised do
+      number_to_phone("3.33", raise: true)
+    end
+  end
 end

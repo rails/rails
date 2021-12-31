@@ -3,7 +3,8 @@
 Active Support Core Extensions
 ==============================
 
-Active Support is the Ruby on Rails component responsible for providing Ruby language extensions, utilities, and other transversal stuff.
+Active Support is the Ruby on Rails component responsible for providing Ruby
+language extensions and utilities.
 
 It offers a richer bottom-line at the language level, targeted both at the development of Rails applications, and at the development of Ruby on Rails itself.
 
@@ -219,7 +220,7 @@ NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
 
 ### `try`
 
-When you want to call a method on an object only if it is not `nil`, the simplest way to achieve it is with conditional statements, adding unnecessary clutter. The alternative is to use [`try`][Object#try]. `try` is like `Object#send` except that it returns `nil` if sent to `nil`.
+When you want to call a method on an object only if it is not `nil`, the simplest way to achieve it is with conditional statements, adding unnecessary clutter. The alternative is to use [`try`][Object#try]. `try` is like `Object#public_send` except that it returns `nil` if sent to `nil`.
 
 Here is an example:
 
@@ -1570,17 +1571,16 @@ and understands strings that start with lowercase:
 
 `underscore` accepts no argument though.
 
-Rails class and module autoloading uses `underscore` to infer the relative path without extension of a file that would define a given missing constant:
+Rails uses `underscore` to get a lowercased name for controller classes:
 
 ```ruby
-# active_support/dependencies.rb
-def load_missing_constant(from_mod, const_name)
-  # ...
-  qualified_name = qualified_name_for from_mod, const_name
-  path_suffix = qualified_name.underscore
-  # ...
+# actionpack/lib/abstract_controller/base.rb
+def controller_path
+  @controller_path ||= name.delete_suffix("Controller").underscore
 end
 ```
+
+For example, that value is the one you get in `params[:controller]`.
 
 INFO: As a rule of thumb you can think of `underscore` as the inverse of `camelize`, though there are cases where that does not hold. For example, `"SSLError".underscore.camelize` gives back `"SslError"`.
 
@@ -1988,84 +1988,84 @@ Enables the formatting of numbers in a variety of ways.
 Produce a string representation of a number as a telephone number:
 
 ```ruby
-5551234.to_s(:phone)
+5551234.to_formatted_s(:phone)
 # => 555-1234
-1235551234.to_s(:phone)
+1235551234.to_formatted_s(:phone)
 # => 123-555-1234
-1235551234.to_s(:phone, area_code: true)
+1235551234.to_formatted_s(:phone, area_code: true)
 # => (123) 555-1234
-1235551234.to_s(:phone, delimiter: " ")
+1235551234.to_formatted_s(:phone, delimiter: " ")
 # => 123 555 1234
-1235551234.to_s(:phone, area_code: true, extension: 555)
+1235551234.to_formatted_s(:phone, area_code: true, extension: 555)
 # => (123) 555-1234 x 555
-1235551234.to_s(:phone, country_code: 1)
+1235551234.to_formatted_s(:phone, country_code: 1)
 # => +1-123-555-1234
 ```
 
 Produce a string representation of a number as currency:
 
 ```ruby
-1234567890.50.to_s(:currency)                 # => $1,234,567,890.50
-1234567890.506.to_s(:currency)                # => $1,234,567,890.51
-1234567890.506.to_s(:currency, precision: 3)  # => $1,234,567,890.506
+1234567890.50.to_formatted_s(:currency)                 # => $1,234,567,890.50
+1234567890.506.to_formatted_s(:currency)                # => $1,234,567,890.51
+1234567890.506.to_formatted_s(:currency, precision: 3)  # => $1,234,567,890.506
 ```
 
 Produce a string representation of a number as a percentage:
 
 ```ruby
-100.to_s(:percentage)
+100.to_formatted_s(:percentage)
 # => 100.000%
-100.to_s(:percentage, precision: 0)
+100.to_formatted_s(:percentage, precision: 0)
 # => 100%
-1000.to_s(:percentage, delimiter: '.', separator: ',')
+1000.to_formatted_s(:percentage, delimiter: '.', separator: ',')
 # => 1.000,000%
-302.24398923423.to_s(:percentage, precision: 5)
+302.24398923423.to_formatted_s(:percentage, precision: 5)
 # => 302.24399%
 ```
 
 Produce a string representation of a number in delimited form:
 
 ```ruby
-12345678.to_s(:delimited)                     # => 12,345,678
-12345678.05.to_s(:delimited)                  # => 12,345,678.05
-12345678.to_s(:delimited, delimiter: ".")     # => 12.345.678
-12345678.to_s(:delimited, delimiter: ",")     # => 12,345,678
-12345678.05.to_s(:delimited, separator: " ")  # => 12,345,678 05
+12345678.to_formatted_s(:delimited)                     # => 12,345,678
+12345678.05.to_formatted_s(:delimited)                  # => 12,345,678.05
+12345678.to_formatted_s(:delimited, delimiter: ".")     # => 12.345.678
+12345678.to_formatted_s(:delimited, delimiter: ",")     # => 12,345,678
+12345678.05.to_formatted_s(:delimited, separator: " ")  # => 12,345,678 05
 ```
 
 Produce a string representation of a number rounded to a precision:
 
 ```ruby
-111.2345.to_s(:rounded)                     # => 111.235
-111.2345.to_s(:rounded, precision: 2)       # => 111.23
-13.to_s(:rounded, precision: 5)             # => 13.00000
-389.32314.to_s(:rounded, precision: 0)      # => 389
-111.2345.to_s(:rounded, significant: true)  # => 111
+111.2345.to_formatted_s(:rounded)                     # => 111.235
+111.2345.to_formatted_s(:rounded, precision: 2)       # => 111.23
+13.to_formatted_s(:rounded, precision: 5)             # => 13.00000
+389.32314.to_formatted_s(:rounded, precision: 0)      # => 389
+111.2345.to_formatted_s(:rounded, significant: true)  # => 111
 ```
 
 Produce a string representation of a number as a human-readable number of bytes:
 
 ```ruby
-123.to_s(:human_size)                  # => 123 Bytes
-1234.to_s(:human_size)                 # => 1.21 KB
-12345.to_s(:human_size)                # => 12.1 KB
-1234567.to_s(:human_size)              # => 1.18 MB
-1234567890.to_s(:human_size)           # => 1.15 GB
-1234567890123.to_s(:human_size)        # => 1.12 TB
-1234567890123456.to_s(:human_size)     # => 1.1 PB
-1234567890123456789.to_s(:human_size)  # => 1.07 EB
+123.to_formatted_s(:human_size)                  # => 123 Bytes
+1234.to_formatted_s(:human_size)                 # => 1.21 KB
+12345.to_formatted_s(:human_size)                # => 12.1 KB
+1234567.to_formatted_s(:human_size)              # => 1.18 MB
+1234567890.to_formatted_s(:human_size)           # => 1.15 GB
+1234567890123.to_formatted_s(:human_size)        # => 1.12 TB
+1234567890123456.to_formatted_s(:human_size)     # => 1.1 PB
+1234567890123456789.to_formatted_s(:human_size)  # => 1.07 EB
 ```
 
 Produce a string representation of a number in human-readable words:
 
 ```ruby
-123.to_s(:human)               # => "123"
-1234.to_s(:human)              # => "1.23 Thousand"
-12345.to_s(:human)             # => "12.3 Thousand"
-1234567.to_s(:human)           # => "1.23 Million"
-1234567890.to_s(:human)        # => "1.23 Billion"
-1234567890123.to_s(:human)     # => "1.23 Trillion"
-1234567890123456.to_s(:human)  # => "1.23 Quadrillion"
+123.to_formatted_s(:human)               # => "123"
+1234.to_formatted_s(:human)              # => "1.23 Thousand"
+12345.to_formatted_s(:human)             # => "12.3 Thousand"
+1234567.to_formatted_s(:human)           # => "1.23 Million"
+1234567890.to_formatted_s(:human)        # => "1.23 Billion"
+1234567890123.to_formatted_s(:human)     # => "1.23 Trillion"
+1234567890123456.to_formatted_s(:human)  # => "1.23 Quadrillion"
 ```
 
 NOTE: Defined in `active_support/core_ext/numeric/conversions.rb`.
@@ -2158,12 +2158,6 @@ The method `to_s` provides a default specifier of "F". This means that a simple 
 
 ```ruby
 BigDecimal(5.00, 6).to_s       # => "5.0"
-```
-
-and that symbol specifiers are also supported:
-
-```ruby
-BigDecimal(5.00, 6).to_s(:db)  # => "5.0"
 ```
 
 Engineering notation is still supported:
@@ -4055,3 +4049,18 @@ end
 NOTE: Defined in `active_support/core_ext/load_error.rb`.
 
 [LoadError#is_missing?]: https://api.rubyonrails.org/classes/LoadError.html#method-i-is_missing-3F
+
+Extensions to Pathname
+-------------------------
+
+### `existence`
+
+The [`existence`][Pathname#existence] method returns the receiver if the named file exists otherwise returns +nil+. It is useful for idioms like this:
+
+```ruby
+content = Pathname.new("file").existence&.read
+```
+
+NOTE: Defined in `active_support/core_ext/pathname/existence.rb`.
+
+[Pathname#existence]: https://api.rubyonrails.org/classes/Pathname.html#method-i-existence

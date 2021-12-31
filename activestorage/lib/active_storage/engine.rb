@@ -42,6 +42,9 @@ module ActiveStorage
       image/vnd.adobe.photoshop
       image/vnd.microsoft.icon
       image/webp
+      image/avif
+      image/heic
+      image/heif
     )
 
     config.active_storage.web_image_content_types = %w(
@@ -98,6 +101,8 @@ module ActiveStorage
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
         ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
 
+        ActiveStorage.silence_invalid_content_types_warning = app.config.active_storage.silence_invalid_content_types_warning || false
+
         ActiveStorage.replace_on_assign_to_many = app.config.active_storage.replace_on_assign_to_many || false
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
       end
@@ -146,6 +151,24 @@ module ActiveStorage
       ActiveSupport.on_load(:active_record) do
         include Reflection::ActiveRecordExtensions
         ActiveRecord::Reflection.singleton_class.prepend(Reflection::ReflectionExtension)
+      end
+    end
+
+    initializer "action_view.configuration" do
+      config.after_initialize do |app|
+        ActiveSupport.on_load(:action_view) do
+          multiple_file_field_include_hidden = app.config.active_storage.delete(:multiple_file_field_include_hidden)
+
+          unless multiple_file_field_include_hidden.nil?
+            ActionView::Helpers::FormHelper.multiple_file_field_include_hidden = multiple_file_field_include_hidden
+          end
+        end
+      end
+    end
+
+    initializer "active_storage.asset" do
+      if Rails.application.config.respond_to?(:assets)
+        Rails.application.config.assets.precompile += %w( activestorage activestorage.esm )
       end
     end
 

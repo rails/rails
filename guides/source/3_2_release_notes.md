@@ -162,7 +162,7 @@ Railties
 
 * Remove old `config.paths.app.controller` API in favor of `config.paths["app/controller"]`.
 
-#### Deprecations
+### Deprecations
 
 * `Rails::Plugin` is deprecated and will be removed in Rails 4.0. Instead of adding plugins to `vendor/plugins` use gems or bundler with path or git dependencies.
 

@@ -34,19 +34,24 @@ module ActiveSupport
   extend ActiveSupport::Autoload
 
   autoload :Concern
+  autoload :CodeGenerator
   autoload :ActionableError
   autoload :ConfigurationFile
   autoload :CurrentAttributes
   autoload :Dependencies
   autoload :DescendantsTracker
+  autoload :ExecutionContext
   autoload :ExecutionWrapper
   autoload :Executor
+  autoload :ErrorReporter
   autoload :FileUpdateChecker
   autoload :EventedFileUpdateChecker
   autoload :ForkTracker
   autoload :LogSubscriber
+  autoload :IsolatedExecutionState
   autoload :Notifications
   autoload :Reloader
+  autoload :PerThreadRegistry
   autoload :SecureCompareRotator
 
   eager_autoload do
@@ -87,11 +92,9 @@ module ActiveSupport
   end
 
   cattr_accessor :test_order # :nodoc:
-  cattr_accessor :test_parallelization_disabled, default: false # :nodoc:
+  cattr_accessor :test_parallelization_threshold, default: 50 # :nodoc:
 
-  def self.disable_test_parallelization!
-    self.test_parallelization_disabled = true unless ENV["PARALLEL_WORKERS"]
-  end
+  singleton_class.attr_accessor :error_reporter # :nodoc:
 
   def self.cache_format_version
     Cache.format_version

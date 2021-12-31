@@ -91,6 +91,12 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal ["doesn't match Password"], @user.errors[:password_confirmation]
   end
 
+  test "resetting password to nil clears the password cache" do
+    @user.password = "password"
+    @user.password = nil
+    assert_nil @user.password
+  end
+
   test "update an existing user with validation and no change in password" do
     assert @existing_user.valid?(:update), "user should be valid"
   end
@@ -210,6 +216,11 @@ class SecurePasswordTest < ActiveModel::TestCase
 
     assert_equal false, @user.authenticate_recovery_password("wrong")
     assert_equal @user, @user.authenticate_recovery_password("42password")
+  end
+
+  test "authenticate should return false and not raise when password digest is blank" do
+    @user.password_digest = " "
+    assert_equal false, @user.authenticate(" ")
   end
 
   test "Password digest cost defaults to bcrypt default cost when min_cost is false" do

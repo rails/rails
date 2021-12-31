@@ -3,7 +3,7 @@
 module ActiveRecord
   module Associations
     class Preloader
-      class Branch #:nodoc:
+      class Branch # :nodoc:
         attr_reader :association, :children, :parent
         attr_reader :scope, :associate_by_default
         attr_writer :preloaded_records

@@ -21,17 +21,18 @@ module ApplicationTests
 
     test "default middleware stack" do
       add_to_config "config.active_record.migration_error = :page_load"
+      add_to_config "config.server_timing = true"
 
       boot!
 
       assert_equal [
-        "Webpacker::DevServerProxy",
         "ActionDispatch::HostAuthorization",
         "Rack::Sendfile",
         "ActionDispatch::Static",
         "ActionDispatch::Executor",
+        "ActionDispatch::ServerTiming",
         "ActiveSupport::Cache::Strategy::LocalCache",
-        "ActionDispatch::MiddlewareStack::FakeRuntime",
+        "Rack::Runtime",
         "Rack::MethodOverride",
         "ActionDispatch::RequestId",
         "ActionDispatch::RemoteIp",
@@ -56,17 +57,18 @@ module ApplicationTests
     test "default middleware stack when requests are local" do
       add_to_config "config.consider_all_requests_local = true"
       add_to_config "config.active_record.migration_error = :page_load"
+      add_to_config "config.server_timing = true"
 
       boot!
 
       assert_equal [
-        "Webpacker::DevServerProxy",
         "ActionDispatch::HostAuthorization",
         "Rack::Sendfile",
         "ActionDispatch::Static",
         "ActionDispatch::Executor",
+        "ActionDispatch::ServerTiming",
         "ActiveSupport::Cache::Strategy::LocalCache",
-        "ActionDispatch::MiddlewareStack::FakeRuntime",
+        "Rack::Runtime",
         "Rack::MethodOverride",
         "ActionDispatch::RequestId",
         "ActionDispatch::RemoteIp",
@@ -95,13 +97,12 @@ module ApplicationTests
       boot!
 
       assert_equal [
-        "Webpacker::DevServerProxy",
         "ActionDispatch::HostAuthorization",
         "Rack::Sendfile",
         "ActionDispatch::Static",
         "ActionDispatch::Executor",
         "ActiveSupport::Cache::Strategy::LocalCache",
-        "ActionDispatch::MiddlewareStack::FakeRuntime",
+        "Rack::Runtime",
         "ActionDispatch::RequestId",
         "ActionDispatch::RemoteIp",
         "Rails::Rack::Logger",
@@ -179,7 +180,7 @@ module ApplicationTests
       add_to_config "config.ssl_options = { redirect: { host: 'example.com' } }"
       boot!
 
-      assert_equal [{ redirect: { host: "example.com" }, ssl_default_redirect_status: 308 }], Rails.application.middleware[2].args
+      assert_equal [{ redirect: { host: "example.com" }, ssl_default_redirect_status: 308 }], Rails.application.middleware[1].args
     end
 
     test "removing Active Record omits its middleware" do
@@ -225,19 +226,19 @@ module ApplicationTests
     end
 
     test "can delete a middleware from the stack even if insert_before is added after delete" do
-      add_to_config "config.middleware.delete Rack::Head"
-      add_to_config "config.middleware.insert_before(Rack::Head, Rack::Config)"
+      add_to_config "config.middleware.delete Rack::Runtime"
+      add_to_config "config.middleware.insert_before(Rack::Runtime, Rack::Config)"
       boot!
       assert_includes middleware, "Rack::Config"
-      assert_not middleware.include?("Rack::Head")
+      assert_not middleware.include?("Rack::Runtime")
     end
 
     test "can delete a middleware from the stack even if insert_after is added after delete" do
-      add_to_config "config.middleware.delete Rack::Head"
-      add_to_config "config.middleware.insert_after(Rack::Head, Rack::Config)"
+      add_to_config "config.middleware.delete Rack::Runtime"
+      add_to_config "config.middleware.insert_after(Rack::Runtime, Rack::Config)"
       boot!
       assert_includes middleware, "Rack::Config"
-      assert_not middleware.include?("Rack::Head")
+      assert_not middleware.include?("Rack::Runtime")
     end
 
     test "includes exceptions middlewares even if action_dispatch.show_exceptions is disabled" do
@@ -263,32 +264,32 @@ module ApplicationTests
     test "insert middleware after" do
       add_to_config "config.middleware.insert_after Rack::Sendfile, Rack::Config"
       boot!
-      assert_equal "Rack::Config", middleware.fourth
+      assert_equal "Rack::Config", middleware.third
     end
 
     test "unshift middleware" do
       add_to_config "config.middleware.unshift Rack::Config"
       boot!
-      assert_equal "Rack::Config", middleware.second
+      assert_equal "Rack::Config", middleware.first
     end
 
     test "Rails.cache does not respond to middleware" do
       add_to_config "config.cache_store = :memory_store, { timeout: 10 }"
       boot!
-      assert_equal "ActionDispatch::MiddlewareStack::FakeRuntime", middleware[5]
+      assert_equal "Rack::Runtime", middleware[4]
       assert_instance_of ActiveSupport::Cache::MemoryStore, Rails.cache
     end
 
     test "Rails.cache does respond to middleware" do
       boot!
-      assert_equal "ActiveSupport::Cache::Strategy::LocalCache", middleware[5]
-      assert_equal "ActionDispatch::MiddlewareStack::FakeRuntime", middleware[6]
+      assert_equal "ActiveSupport::Cache::Strategy::LocalCache", middleware[4]
+      assert_equal "Rack::Runtime", middleware[5]
     end
 
     test "insert middleware before" do
       add_to_config "config.middleware.insert_before Rack::Sendfile, Rack::Config"
       boot!
-      assert_equal "Rack::Config", middleware.third
+      assert_equal "Rack::Config", middleware.second
     end
 
     test "can't change middleware after it's built" do
@@ -342,6 +343,14 @@ module ApplicationTests
       Rails.application.call(env)
 
       assert_equal "/foo/?something", env["ORIGINAL_FULLPATH"]
+    end
+
+    test "shard selector middleware is installed by config option" do
+      add_to_config "config.active_record.shard_resolver = ->(*) { }"
+
+      boot!
+
+      assert_includes middleware, "ActiveRecord::Middleware::ShardSelector"
     end
 
     private

@@ -11,12 +11,13 @@ require "models/member_type"
 
 require "models/pirate"
 require "models/treasure"
+require "models/parrot"
 
 require "models/hotel"
 require "models/department"
 
 class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
-  fixtures :posts, :authors, :comments, :pirates
+  fixtures :posts, :authors, :comments, :pirates, :author_addresses
 
   def setup
     @author = authors(:mary)

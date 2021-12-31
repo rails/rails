@@ -498,7 +498,7 @@ If the number of workers passed is 1 or fewer the processes will not be forked a
 be parallelized and the tests will use the original `test-database` database.
 
 Two hooks are provided, one runs when the process is forked, and one runs before the forked process is closed.
-These can be useful if your app uses multiple databases or perform other tasks that depend on the number of
+These can be useful if your app uses multiple databases or performs other tasks that depend on the number of
 workers.
 
 The `parallelize_setup` method is called right after the processes are forked. The `parallelize_teardown` method
@@ -569,6 +569,26 @@ end
 NOTE: With disabled transactional tests, you have to clean up any data tests
 create as changes are not automatically rolled back after the test completes.
 
+### Threshold to parallelize tests
+
+Running tests in parallel adds an overhead in terms of database setup and
+fixture loading. Because of this, Rails won't parallelize executions that involve
+fewer than 50 tests.
+
+You can configure this threshold in your `test.rb`:
+
+```ruby
+config.active_support.test_parallelization_threshold = 100
+```
+
+And also when setting up parallelization at the test case level:
+
+```ruby
+class ActiveSupport::TestCase
+  parallelize threshold: 100
+end
+```
+
 The Test Database
 -----------------
 
@@ -631,20 +651,20 @@ define a reference node between two different fixtures. Here's an example with
 a `belongs_to`/`has_many` association:
 
 ```yaml
-# fixtures/categories.yml
+# test/fixtures/categories.yml
 about:
   name: About
 ```
 
 ```yaml
-# fixtures/articles.yml
+# test/fixtures/articles.yml
 first:
   title: Welcome to Rails!
   category: about
 ```
 
 ```yaml
-# fixtures/action_text/rich_texts.yml
+# test/fixtures/action_text/rich_texts.yml
 first_content:
   record: first (Article)
   name: content
@@ -671,7 +691,7 @@ end
 ```
 
 ```yaml
-# fixtures/articles.yml
+# test/fixtures/articles.yml
 first:
   title: An Article
 ```
@@ -682,14 +702,12 @@ generate the related `ActiveStorage::Blob` and `ActiveStorage::Attachment`
 records:
 
 ```yaml
-# fixtures/active_storage/blobs.yml
-first_thumbnail_blob: <%= ActiveStorage::FixtureSet.blob(
-  filename: "first.png",
-) %>
+# test/fixtures/active_storage/blobs.yml
+first_thumbnail_blob: <%= ActiveStorage::FixtureSet.blob filename: "first.png" %>
 ```
 
 ```yaml
-# fixtures/active_storage/attachments.yml
+# test/fixtures/active_storage/attachments.yml
 first_thumbnail_attachment:
   name: thumbnail
   record: first (Article)
@@ -805,15 +823,15 @@ system tests should live.
 
 If you want to change the default settings you can change what the system
 tests are "driven by". Say you want to change the driver from Selenium to
-Poltergeist. First add the `poltergeist` gem to your `Gemfile`. Then in your
+Cuprite. First add the `cuprite` gem to your `Gemfile`. Then in your
 `application_system_test_case.rb` file do the following:
 
 ```ruby
 require "test_helper"
-require "capybara/poltergeist"
+require "capybara/cuprite"
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  driven_by :poltergeist
+  driven_by :cuprite
 end
 ```
 
@@ -1588,7 +1606,7 @@ end
 
 This assertion is quite powerful. For more advanced usage, refer to its [documentation](https://github.com/rails/rails-dom-testing/blob/master/lib/rails/dom/testing/assertions/selector_assertions.rb).
 
-#### Additional View-Based Assertions
+### Additional View-Based Assertions
 
 There are more assertions that are primarily used in testing views:
 
@@ -1950,6 +1968,54 @@ class ChatRelayJobTest < ActiveJob::TestCase
     assert_broadcast_on(ChatChannel.broadcasting_for(room), text: "Hi!") do
       ChatRelayJob.perform_now(room, "Hi!")
     end
+  end
+end
+```
+
+Testing Eager Loading
+---------------------
+
+Normally, applications do not eager load in the `development` or `test` environments to speed things up. But they do in the `production` environment.
+
+If some file in the project cannot be loaded for whatever reason, you better detect it before deploying to production, right?
+
+### Continuous Integration
+
+If your project has CI in place, eager loading in CI is an easy way to ensure the application eager loads.
+
+CIs typically set some environment variable to indicate the test suite is running there. For example, it could be `CI`:
+
+```ruby
+# config/environments/test.rb
+config.eager_load = ENV["CI"].present?
+```
+
+Starting with Rails 7, newly generated applications are configured that way by default.
+
+### Bare Test Suites
+
+If your project does not have continuous integration, you can still eager load in the test suite by calling `Rails.application.eager_load!`:
+
+#### minitest
+
+```ruby
+require "test_helper"
+
+class ZeitwerkComplianceTest < ActiveSupport::TestCase
+  test "eager loads all files without errors" do
+    assert_nothing_raised { Rails.application.eager_load! }
+  end
+end
+```
+
+#### RSpec
+
+```ruby
+require "rails_helper"
+
+RSpec.describe "Zeitwerk compliance" do
+  it "eager loads all files without errors" do
+    expect { Rails.application.eager_load! }.not_to raise_error
   end
 end
 ```

@@ -13,10 +13,11 @@ module ActiveRecord
       attr_reader :scheme, :cast_type
 
       delegate :key_provider, :downcase?, :deterministic?, :previous_schemes, :with_context, :fixed?, to: :scheme
+      delegate :accessor, to: :cast_type
 
       # === Options
       #
-      # * <tt>:scheme</tt> - An +Scheme+ with the encryption properties for this attribute.
+      # * <tt>:scheme</tt> - A +Scheme+ with the encryption properties for this attribute.
       # * <tt>:cast_type</tt> - A type that will be used to serialize (before encrypting) and deserialize
       #   (after decrypting). +ActiveModel::Type::String+ by default.
       def initialize(scheme:, cast_type: ActiveModel::Type::String.new, previous_type: false)
@@ -31,8 +32,6 @@ module ActiveRecord
       end
 
       def serialize(value)
-        value = force_encoding_if_needed(value)
-
         if serialize_with_oldest?
           serialize_with_oldest(value)
         else
@@ -51,18 +50,6 @@ module ActiveRecord
       end
 
       private
-        def force_encoding_if_needed(value)
-          if deterministic? && forced_encoding_for_deterministic_encryption && value && value.encoding != forced_encoding_for_deterministic_encryption
-            value.encode(forced_encoding_for_deterministic_encryption, invalid: :replace, undef: :replace)
-          else
-            value
-          end
-        end
-
-        def forced_encoding_for_deterministic_encryption
-          ActiveRecord::Encryption.config.forced_encoding_for_deterministic_encryption
-        end
-
         def previous_schemes_including_clean_text
           previous_schemes.including((clean_text_scheme if support_unencrypted_data?)).compact
         end

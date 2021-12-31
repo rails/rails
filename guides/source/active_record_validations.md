@@ -518,10 +518,10 @@ custom message or call `presence` prior to `length`.
 ### `numericality`
 
 This helper validates that your attributes have only numeric values. By
-default, it will match an optional sign followed by an integral or floating
+default, it will match an optional sign followed by an integer or floating
 point number.
 
-To specify that only integral numbers are allowed,
+To specify that only integer numbers are allowed,
 set `:only_integer` to true. Then it will use the
 
 ```ruby
@@ -689,9 +689,7 @@ end
 
 Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](https://dev.mysql.com/doc/refman/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](https://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
 
-There is also a `:case_sensitive` option that you can use to define whether the
-uniqueness constraint will be case sensitive or not. This option defaults to
-true.
+There is also a `:case_sensitive` option that you can use to define whether the uniqueness constraint will be case sensitive, case insensitive, or respects default database collation. This option defaults to respects default database collation.
 
 ```ruby
 class Person < ApplicationRecord
@@ -1087,7 +1085,7 @@ end
 ```
 
 The easiest way to add custom validators for validating individual attributes
-is with the convenient `ActiveModel::EachValidator`. In this case, the custom
+is with the convenient [`ActiveModel::EachValidator`][]. In this case, the custom
 validator class must implement a `validate_each` method which takes three
 arguments: record, attribute, and value. These correspond to the instance, the
 attribute to be validated, and the value of the attribute in the passed
@@ -1096,7 +1094,7 @@ instance.
 ```ruby
 class EmailValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
-    unless value =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
+    unless value =~ URI::MailTo::EMAIL_REGEXP
       record.errors.add attribute, (options[:message] || "is not an email")
     end
   end
@@ -1110,6 +1108,7 @@ end
 As shown in the example, you can also combine standard validations with your
 own custom validators.
 
+[`ActiveModel::EachValidator`]: https://api.rubyonrails.org/classes/ActiveModel/EachValidator.html
 [`ActiveModel::Validator`]: https://api.rubyonrails.org/classes/ActiveModel/Validator.html
 
 ### Custom Methods

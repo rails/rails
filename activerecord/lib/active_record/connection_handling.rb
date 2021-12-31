@@ -153,10 +153,6 @@ module ActiveRecord
         raise ArgumentError, "must provide a `shard` and/or `role`."
       end
 
-      unless role
-        raise ArgumentError, "`connected_to` cannot accept a `shard` argument without a `role`."
-      end
-
       with_role_and_shard(role, shard, prevent_writes, &blk)
     end
 
@@ -186,7 +182,7 @@ module ActiveRecord
 
       prevent_writes = true if role == ActiveRecord.reading_role
 
-      connected_to_stack << { role: role, shard: shard, prevent_writes: prevent_writes, klasses: classes }
+      append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: classes)
       yield
     ensure
       connected_to_stack.pop
@@ -206,7 +202,26 @@ module ActiveRecord
 
       prevent_writes = true if role == ActiveRecord.reading_role
 
-      self.connected_to_stack << { role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self] }
+      append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self])
+    end
+
+    # Prohibit swapping shards while inside of the passed block.
+    #
+    # In some cases you may want to be able to swap shards but not allow a
+    # nested call to connected_to or connected_to_many to swap again. This
+    # is useful in cases you're using sharding to provide per-request
+    # database isolation.
+    def prohibit_shard_swapping(enabled = true)
+      prev_value = ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping]
+      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping] = enabled
+      yield
+    ensure
+      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping] = prev_value
+    end
+
+    # Determine whether or not shard swapping is currently prohibited
+    def shard_swapping_prohibited?
+      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping]
     end
 
     # Prevent writing to the database regardless of role.
@@ -279,17 +294,6 @@ module ActiveRecord
       self == Base || application_record_class?
     end
 
-    # Returns the configuration of the associated connection as a hash:
-    #
-    #  ActiveRecord::Base.connection_config
-    #  # => {pool: 5, timeout: 5000, database: "db/development.sqlite3", adapter: "sqlite3"}
-    #
-    # Please use only for reading.
-    def connection_config
-      connection_pool.db_config.configuration_hash
-    end
-    deprecate connection_config: "Use connection_db_config instead"
-
     # Returns the db_config object from the associated connection:
     #
     #  ActiveRecord::Base.connection_db_config
@@ -361,18 +365,26 @@ module ActiveRecord
         if ActiveRecord.legacy_connection_handling
           with_handler(role.to_sym) do
             connection_handler.while_preventing_writes(prevent_writes) do
-              self.connected_to_stack << { shard: shard, klasses: [self] }
+              append_to_connected_to_stack(shard: shard, klasses: [self])
               yield
             end
           end
         else
-          self.connected_to_stack << { role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self] }
+          append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self])
           return_value = yield
           return_value.load if return_value.is_a? ActiveRecord::Relation
           return_value
         end
       ensure
         self.connected_to_stack.pop
+      end
+
+      def append_to_connected_to_stack(entry)
+        if shard_swapping_prohibited? && entry[:shard].present?
+          raise ArgumentError, "cannot swap `shard` while shard swapping is prohibited."
+        end
+
+        connected_to_stack << entry
       end
 
       def swap_connection_handler(handler, &blk) # :nodoc:

@@ -167,6 +167,44 @@ class MigratorTest < ActiveRecord::TestCase
     ], ActiveRecord::MigrationContext.new(path, schema_migration).migrations_status
   end
 
+  def test_migrations_status_order_new_and_old_version
+    path = MIGRATIONS_ROOT + "/old_and_new_versions"
+    schema_migration = ActiveRecord::Base.connection.schema_migration
+
+    @schema_migration.create(version: 230)
+    @schema_migration.create(version: 231)
+    @schema_migration.create(version: 20210716122844)
+    @schema_migration.create(version: 20210716123013)
+
+    assert_equal [
+      ["up", "230", "Add people hobby"],
+      ["up", "231", "Add people last name"],
+      ["up", "20210716122844", "Add people description"],
+      ["up", "20210716123013", "Add people number of legs"],
+    ], ActiveRecord::MigrationContext.new(path, schema_migration).migrations_status
+  end
+
+  def test_migrations_status_order_new_and_old_version_applied_out_of_order
+    path = MIGRATIONS_ROOT + "/old_and_new_versions"
+    schema_migration = ActiveRecord::Base.connection.schema_migration
+
+    @schema_migration.create(version: 230)
+    @schema_migration.create(version: 231)
+
+    # "Apply" a newer migration and not an older to simulate out-of-order
+    # migration application which should not affect ordering in status and is
+    # possible if a branch is merged which contains a migration which has an
+    # earlier version but is judged to be compatible with existing migrations.
+    @schema_migration.create(version: 20210716123013)
+
+    assert_equal [
+      ["up", "230", "Add people hobby"],
+      ["up", "231", "Add people last name"],
+      ["down", "20210716122844", "Add people description"],
+      ["up", "20210716123013", "Add people number of legs"],
+    ], ActiveRecord::MigrationContext.new(path, schema_migration).migrations_status
+  end
+
   def test_migrations_status_in_subdirectories
     path = MIGRATIONS_ROOT + "/valid_with_subdirectories"
     schema_migration = ActiveRecord::Base.connection.schema_migration

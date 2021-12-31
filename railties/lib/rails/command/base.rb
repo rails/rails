@@ -16,6 +16,7 @@ module Rails
 
       class CorrectableError < Error # :nodoc:
         attr_reader :key, :options
+
         def initialize(message, key, options)
           @key     = key
           @options = options
@@ -26,7 +27,7 @@ module Rails
           include DidYouMean::Correctable
 
           def corrections
-            DidYouMean::SpellChecker.new(dictionary: options).correct(key)
+            @corrections ||= DidYouMean::SpellChecker.new(dictionary: options).correct(key)
           end
         end
       end
@@ -70,7 +71,7 @@ module Rails
           Rails::Command.hidden_commands << self
         end
 
-        def inherited(base) #:nodoc:
+        def inherited(base) # :nodoc:
           super
 
           if base.name && !base.name.end_with?("Base")

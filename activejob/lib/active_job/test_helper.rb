@@ -109,7 +109,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # +:only+ and +:except+ options accepts Class, Array of Class or Proc. When passed a Proc,
+    # +:only+ and +:except+ options accept Class, Array of Class or Proc. When passed a Proc,
     # a hash containing the job's class and it's argument are passed as argument.
     #
     # Asserts the number of times a job is enqueued to a specific queue by passing +:queue+ option.
@@ -124,7 +124,7 @@ module ActiveJob
       if block_given?
         original_jobs = enqueued_jobs_with(only: only, except: except, queue: queue)
 
-        assert_nothing_raised(&block)
+        _assert_nothing_raised_or_warn("assert_enqueued_jobs", &block)
 
         new_jobs = enqueued_jobs_with(only: only, except: except, queue: queue)
 
@@ -168,7 +168,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # +:only+ and +:except+ options accepts Class, Array of Class or Proc. When passed a Proc,
+    # +:only+ and +:except+ options accept Class, Array of Class or Proc. When passed a Proc,
     # a hash containing the job's class and it's argument are passed as argument.
     #
     # Asserts that no jobs are enqueued to a specific queue by passing +:queue+ option
@@ -325,7 +325,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # +:only+ and +:except+ options accepts Class, Array of Class or Proc. When passed a Proc,
+    # +:only+ and +:except+ options accept Class, Array of Class or Proc. When passed a Proc,
     # an instance of the job will be passed as argument.
     #
     # If the +:queue+ option is specified,
@@ -389,15 +389,15 @@ module ActiveJob
     #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
     #     end
     #   end
-    def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil, &block)
-      expected = { job: job, args: args, at: at, queue: queue }.compact
+    def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil, priority: nil, &block)
+      expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       expected_args = prepare_args_for_assertion(expected)
       potential_matches = []
 
       if block_given?
         original_enqueued_jobs = enqueued_jobs.dup
 
-        assert_nothing_raised(&block)
+        _assert_nothing_raised_or_warn("assert_enqueued_with", &block)
 
         jobs = enqueued_jobs - original_enqueued_jobs
       else
@@ -417,8 +417,20 @@ module ActiveJob
         end
       end
 
+      matching_class = potential_matches.select do |enqueued_job|
+        enqueued_job["job_class"] == job.to_s
+      end
+
       message = +"No enqueued job found with #{expected}"
-      message << "\n\nPotential matches: #{potential_matches.join("\n")}" if potential_matches.present?
+      if potential_matches.empty?
+        message << "\n\nNo jobs were enqueued"
+      elsif matching_class.empty?
+        message << "\n\nNo jobs of class #{expected[:job]} were enqueued, job classes enqueued: "
+        message << potential_matches.map { |job| job["job_class"] }.join(", ")
+      else
+        message << "\n\nPotential matches: #{matching_class.join("\n")}"
+      end
+
       assert matching_job, message
       instantiate_job(matching_job)
     end
@@ -479,8 +491,8 @@ module ActiveJob
     #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
     #     end
     #   end
-    def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, &block)
-      expected = { job: job, args: args, at: at, queue: queue }.compact
+    def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, priority: nil, &block)
+      expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       expected_args = prepare_args_for_assertion(expected)
       potential_matches = []
 
@@ -507,8 +519,20 @@ module ActiveJob
         end
       end
 
+      matching_class = potential_matches.select do |enqueued_job|
+        enqueued_job["job_class"] == job.to_s
+      end
+
       message = +"No performed job found with #{expected}"
-      message << "\n\nPotential matches: #{potential_matches.join("\n")}" if potential_matches.present?
+      if potential_matches.empty?
+        message << "\n\nNo jobs were performed"
+      elsif matching_class.empty?
+        message << "\n\nNo jobs of class #{expected[:job]} were performed, job classes performed: "
+        message << potential_matches.map { |job| job["job_class"] }.join(", ")
+      else
+        message << "\n\nPotential matches: #{matching_class.join("\n")}"
+      end
+
       assert matching_job, message
 
       instantiate_job(matching_job)
@@ -555,7 +579,7 @@ module ActiveJob
     #     assert_performed_jobs 1
     #   end
     #
-    # +:only+ and +:except+ options accepts Class, Array of Class or Proc. When passed a Proc,
+    # +:only+ and +:except+ options accept Class, Array of Class or Proc. When passed a Proc,
     # an instance of the job will be passed as argument.
     #
     # If the +:queue+ option is specified,
@@ -591,7 +615,7 @@ module ActiveJob
         queue_adapter.queue = queue
         queue_adapter.at = at
 
-        assert_nothing_raised(&block)
+        _assert_nothing_raised_or_warn("perform_enqueued_jobs", &block)
       ensure
         queue_adapter.perform_enqueued_jobs = old_perform_enqueued_jobs
         queue_adapter.perform_enqueued_at_jobs = old_perform_enqueued_at_jobs

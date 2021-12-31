@@ -41,7 +41,7 @@ module ActiveRecord
     #
     # This could result in many rows that contain redundant data and it performs poorly at scale
     # and is therefore only used when necessary.
-    class Preloader #:nodoc:
+    class Preloader # :nodoc:
       extend ActiveSupport::Autoload
 
       eager_autoload do
@@ -87,24 +87,27 @@ module ActiveRecord
       #   [ :books, :author ]
       #   { author: :avatar }
       #   [ :books, { author: :avatar } ]
-      def initialize(associate_by_default: true, **kwargs)
-        if kwargs.empty?
-          ActiveSupport::Deprecation.warn("Calling `Preloader#initialize` without arguments is deprecated and will be removed in Rails 7.0.")
-        else
-          @records = kwargs[:records]
-          @associations = kwargs[:associations]
-          @scope = kwargs[:scope]
-          @associate_by_default = associate_by_default
+      #
+      # +available_records+ is an array of ActiveRecord::Base. The Preloader
+      # will try to use the objects in this array to preload the requested
+      # associations before querying the database. This can save database
+      # queries by reusing in-memory objects. The optimization is only applied
+      # to single associations (i.e. :belongs_to, :has_one) with no scopes.
+      def initialize(records:, associations:, scope: nil, available_records: [], associate_by_default: true)
+        @records = records
+        @associations = associations
+        @scope = scope
+        @available_records = available_records || []
+        @associate_by_default = associate_by_default
 
-          @tree = Branch.new(
-            parent: nil,
-            association: nil,
-            children: associations,
-            associate_by_default: @associate_by_default,
-            scope: @scope
-          )
-          @tree.preloaded_records = records
-        end
+        @tree = Branch.new(
+          parent: nil,
+          association: nil,
+          children: @associations,
+          associate_by_default: @associate_by_default,
+          scope: @scope
+        )
+        @tree.preloaded_records = @records
       end
 
       def empty?
@@ -112,15 +115,9 @@ module ActiveRecord
       end
 
       def call
-        Batch.new([self]).call
+        Batch.new([self], available_records: @available_records).call
 
         loaders
-      end
-
-      def preload(records, associations, preload_scope = nil)
-        ActiveSupport::Deprecation.warn("`preload` is deprecated and will be removed in Rails 7.0. Call `Preloader.new(kwargs).call` instead.")
-
-        Preloader.new(records: records, associations: associations, scope: preload_scope).call
       end
 
       def branches

@@ -11,7 +11,7 @@ module ActiveSupport
   #
   #   1.month.ago       # equivalent to Time.now.advance(months: -1)
   class Duration
-    class Scalar < Numeric #:nodoc:
+    class Scalar < Numeric # :nodoc:
       attr_reader :value
       delegate :to_i, :to_f, :to_s, to: :value
 
@@ -89,7 +89,7 @@ module ActiveSupport
         end
       end
 
-      def variable? #:nodoc:
+      def variable? # :nodoc:
         false
       end
 
@@ -145,37 +145,37 @@ module ActiveSupport
         new(calculate_total_seconds(parts), parts)
       end
 
-      def ===(other) #:nodoc:
+      def ===(other) # :nodoc:
         other.is_a?(Duration)
       rescue ::NoMethodError
         false
       end
 
-      def seconds(value) #:nodoc:
+      def seconds(value) # :nodoc:
         new(value, { seconds: value }, false)
       end
 
-      def minutes(value) #:nodoc:
+      def minutes(value) # :nodoc:
         new(value * SECONDS_PER_MINUTE, { minutes: value }, false)
       end
 
-      def hours(value) #:nodoc:
+      def hours(value) # :nodoc:
         new(value * SECONDS_PER_HOUR, { hours: value }, false)
       end
 
-      def days(value) #:nodoc:
+      def days(value) # :nodoc:
         new(value * SECONDS_PER_DAY, { days: value }, true)
       end
 
-      def weeks(value) #:nodoc:
+      def weeks(value) # :nodoc:
         new(value * SECONDS_PER_WEEK, { weeks: value }, true)
       end
 
-      def months(value) #:nodoc:
+      def months(value) # :nodoc:
         new(value * SECONDS_PER_MONTH, { months: value }, true)
       end
 
-      def years(value) #:nodoc:
+      def years(value) # :nodoc:
         new(value * SECONDS_PER_YEAR, { years: value }, true)
       end
 
@@ -191,13 +191,14 @@ module ActiveSupport
         end
 
         parts = {}
-        remainder = value.round(9)
+        remainder_sign = value <=> 0
+        remainder = value.round(9).abs
         variable = false
 
         PARTS.each do |part|
           unless part == :seconds
             part_in_seconds = PARTS_IN_SECONDS[part]
-            parts[part] = remainder.div(part_in_seconds)
+            parts[part] = remainder.div(part_in_seconds) * remainder_sign
             remainder %= part_in_seconds
 
             unless parts[part].zero?
@@ -206,7 +207,7 @@ module ActiveSupport
           end
         end unless value == 0
 
-        parts[:seconds] = remainder
+        parts[:seconds] = remainder * remainder_sign
 
         new(value, parts, variable)
       end
@@ -219,7 +220,7 @@ module ActiveSupport
         end
     end
 
-    def initialize(value, parts, variable = nil) #:nodoc:
+    def initialize(value, parts, variable = nil) # :nodoc:
       @value, @parts = value, parts
       @parts.reject! { |k, v| v.zero? } unless value == 0
       @parts.freeze
@@ -235,7 +236,7 @@ module ActiveSupport
       @parts.dup
     end
 
-    def coerce(other) #:nodoc:
+    def coerce(other) # :nodoc:
       case other
       when Scalar
         [other, self]
@@ -312,15 +313,15 @@ module ActiveSupport
       end
     end
 
-    def -@ #:nodoc:
+    def -@ # :nodoc:
       Duration.new(-value, @parts.transform_values(&:-@), @variable)
     end
 
-    def +@ #:nodoc:
+    def +@ # :nodoc:
       self
     end
 
-    def is_a?(klass) #:nodoc:
+    def is_a?(klass) # :nodoc:
       Duration == klass || value.is_a?(klass)
     end
     alias :kind_of? :is_a?
@@ -440,7 +441,7 @@ module ActiveSupport
     alias :until :ago
     alias :before :ago
 
-    def inspect #:nodoc:
+    def inspect # :nodoc:
       return "#{value} seconds" if @parts.empty?
 
       @parts.
@@ -449,15 +450,15 @@ module ActiveSupport
         to_sentence(locale: false)
     end
 
-    def as_json(options = nil) #:nodoc:
+    def as_json(options = nil) # :nodoc:
       to_i
     end
 
-    def init_with(coder) #:nodoc:
+    def init_with(coder) # :nodoc:
       initialize(coder["value"], coder["parts"])
     end
 
-    def encode_with(coder) #:nodoc:
+    def encode_with(coder) # :nodoc:
       coder.map = { "value" => @value, "parts" => @parts }
     end
 
@@ -467,11 +468,11 @@ module ActiveSupport
       ISO8601Serializer.new(self, precision: precision).serialize
     end
 
-    def variable? #:nodoc:
+    def variable? # :nodoc:
       @variable
     end
 
-    def _parts #:nodoc:
+    def _parts # :nodoc:
       @parts
     end
 

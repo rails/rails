@@ -19,6 +19,13 @@ module ActiveRecord
       def set_schema_cache(cache)
         self.schema_cache = cache
       end
+
+      def lazily_set_schema_cache
+        return unless ActiveRecord.lazily_load_schema_cache
+
+        cache = SchemaCache.load_from(db_config.lazy_schema_cache_path)
+        set_schema_cache(cache)
+      end
     end
 
     class NullPool # :nodoc:
@@ -26,7 +33,7 @@ module ActiveRecord
 
       attr_accessor :schema_cache
 
-      def connection_klass; end
+      def connection_class; end
       def checkin(_); end
       def remove(_); end
       def async_executor; end
@@ -98,8 +105,10 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :db_config, :size, :reaper, :pool_config, :connection_klass, :async_executor
+      attr_reader :db_config, :size, :reaper, :pool_config, :connection_class, :async_executor, :role, :shard
 
+      alias_method :connection_klass, :connection_class
+      deprecate :connection_klass
       delegate :schema_cache, :schema_cache=, to: :pool_config
 
       # Creates a new ConnectionPool object. +pool_config+ is a PoolConfig
@@ -113,7 +122,9 @@ module ActiveRecord
 
         @pool_config = pool_config
         @db_config = pool_config.db_config
-        @connection_klass = pool_config.connection_klass
+        @connection_class = pool_config.connection_class
+        @role = pool_config.role
+        @shard = pool_config.shard
 
         @checkout_timeout = db_config.checkout_timeout
         @idle_timeout = db_config.idle_timeout
@@ -146,6 +157,8 @@ module ActiveRecord
         @lock_thread = false
 
         @async_executor = build_async_executor
+
+        lazily_set_schema_cache
 
         @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run
@@ -518,13 +531,13 @@ module ActiveRecord
           end
 
           newly_checked_out = []
-          timeout_time      = Concurrent.monotonic_time + (@checkout_timeout * 2)
+          timeout_time      = Process.clock_gettime(Process::CLOCK_MONOTONIC) + (@checkout_timeout * 2)
 
           @available.with_a_bias_for(Thread.current) do
             loop do
               synchronize do
                 return if collected_conns.size == @connections.size && @now_connecting == 0
-                remaining_timeout = timeout_time - Concurrent.monotonic_time
+                remaining_timeout = timeout_time - Process.clock_gettime(Process::CLOCK_MONOTONIC)
                 remaining_timeout = 0 if remaining_timeout < 0
                 conn = checkout_for_exclusive_access(remaining_timeout)
                 collected_conns   << conn

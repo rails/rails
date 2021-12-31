@@ -624,6 +624,34 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
         url_for(rs, controller: "content", action: "show_file", path: %w(pages boo))
   end
 
+  def test_escapes_newline_character_for_dynamic_path
+    rs.draw do
+      get "/dynamic/:dynamic_segment" => "subpath_books#show", as: :dynamic
+
+      ActiveSupport::Deprecation.silence do
+        get ":controller/:action/:id"
+      end
+    end
+
+    results = rs.recognize_path("/dynamic/a%0Anewline")
+    assert(results, "Recognition should have succeeded")
+    assert_equal("a\nnewline", results[:dynamic_segment])
+  end
+
+  def test_escapes_newline_character_for_wildcard_path
+    rs.draw do
+      get "/wildcard/*wildcard_segment" => "subpath_books#show", as: :wildcard
+
+      ActiveSupport::Deprecation.silence do
+        get ":controller/:action/:id"
+      end
+    end
+
+    results = rs.recognize_path("/wildcard/a%0Anewline")
+    assert(results, "Recognition should have succeeded")
+    assert_equal("a\nnewline", results[:wildcard_segment])
+  end
+
   def test_dynamic_recall_paths_allowed
     rs.draw do
       get "*path" => "content#show_file"
@@ -922,6 +950,39 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
     assert_not_nil hash
     assert_equal %w(cc ac), [hash[:controller], hash[:action]]
+  end
+
+  def test_drawing_more_routes_after_eager_loading
+    rs = ::ActionDispatch::Routing::RouteSet.new
+    rs.disable_clear_and_finalize = true
+
+    rs.draw do
+      get "/plain" => "c#plain"
+      get "/:symbol" => "c#symbol"
+      get "/glob/*" => "c#glob"
+      get "/with#anchor" => "c#with_anchor"
+    end
+
+    hash = rs.recognize_path "/symbol"
+    assert_not_nil hash
+    assert_equal %w(c symbol), [hash[:controller], hash[:action]]
+
+    rs.eager_load!
+
+    rs.draw do
+      get "/more/plain" => "c#plain"
+      get "/more/:symbol" => "c#symbol"
+      get "/more/glob/*" => "c#glob"
+      get "/more/with#anchor" => "c#with_anchor"
+    end
+
+    hash = rs.recognize_path "/symbol"
+    assert_not_nil hash
+    assert_equal %w(c symbol), [hash[:controller], hash[:action]]
+
+    hash = rs.recognize_path "/more/symbol"
+    assert_not_nil hash
+    assert_equal %w(c symbol), [hash[:controller], hash[:action]]
   end
 end
 
@@ -1855,8 +1916,6 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   include ActionDispatch::RoutingVerbs
-
-  alias :routes :set
 
   def test_generate_with_optional_params_recalls_last_request
     @set = make_set false

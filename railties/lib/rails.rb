@@ -81,6 +81,10 @@ module Rails
       @_env = ActiveSupport::EnvironmentInquirer.new(environment)
     end
 
+    def error
+      application && application.executor.error_reporter
+    end
+
     # Returns all Rails groups for loading based on:
     #
     # * The Rails environment;

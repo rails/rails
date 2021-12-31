@@ -8,7 +8,7 @@ module Rails
     class NamedBase < Base
       argument :name, type: :string
 
-      def initialize(args, *options) #:nodoc:
+      def initialize(args, *options) # :nodoc:
         @inside_template = nil
         # Unfreeze name in case it's given as a frozen string
         args[0] = args[0].dup if args[0].is_a?(String) && args[0].frozen?
@@ -94,20 +94,20 @@ module Rails
           singular_name == plural_name
         end
 
-        def index_helper # :doc:
-          uncountable? ? "#{plural_route_name}_index" : plural_route_name
+        def index_helper(type: nil) # :doc:
+          [plural_route_name, ("index" if uncountable?), type].compact.join("_")
         end
 
-        def show_helper # :doc:
-          "#{singular_route_name}_url(@#{singular_table_name})"
+        def show_helper(arg = "@#{singular_table_name}", type: :url) # :doc:
+          "#{singular_route_name}_#{type}(#{arg})"
         end
 
-        def edit_helper # :doc:
-          "edit_#{show_helper}"
+        def edit_helper(...) # :doc:
+          "edit_#{show_helper(...)}"
         end
 
-        def new_helper # :doc:
-          "new_#{singular_route_name}_url"
+        def new_helper(type: :url) # :doc:
+          "new_#{singular_route_name}_#{type}"
         end
 
         def singular_table_name # :doc:
@@ -147,8 +147,8 @@ module Rails
           model_resource_name(prefix: "@")
         end
 
-        def model_resource_name(prefix: "") # :doc:
-          resource_name = "#{prefix}#{singular_table_name}"
+        def model_resource_name(base_name = singular_table_name, prefix: "") # :doc:
+          resource_name = "#{prefix}#{base_name}"
           if options[:model_name]
             "[#{controller_class_path.map { |name| ":" + name }.join(", ")}, #{resource_name}]"
           else

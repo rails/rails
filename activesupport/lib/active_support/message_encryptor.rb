@@ -22,6 +22,11 @@ module ActiveSupport
   #   crypt = ActiveSupport::MessageEncryptor.new(key)                            # => #<ActiveSupport::MessageEncryptor ...>
   #   encrypted_data = crypt.encrypt_and_sign('my secret data')                   # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
   #   crypt.decrypt_and_verify(encrypted_data)                                    # => "my secret data"
+  # The +decrypt_and_verify+ method will raise an
+  # <tt>ActiveSupport::MessageEncryptor::InvalidMessage</tt> exception if the data
+  # provided cannot be decrypted or verified.
+  #
+  #   crypt.decrypt_and_verify('not encrypted data') # => ActiveSupport::MessageEncryptor::InvalidMessage
   #
   # === Confining messages to a specific purpose
   #
@@ -84,7 +89,7 @@ module ActiveSupport
     cattr_accessor :use_authenticated_message_encryption, instance_accessor: false, default: false
 
     class << self
-      def default_cipher #:nodoc:
+      def default_cipher # :nodoc:
         if use_authenticated_message_encryption
           "aes-256-gcm"
         else
@@ -93,7 +98,7 @@ module ActiveSupport
       end
     end
 
-    module NullSerializer #:nodoc:
+    module NullSerializer # :nodoc:
       def self.load(value)
         value
       end
@@ -103,7 +108,7 @@ module ActiveSupport
       end
     end
 
-    module NullVerifier #:nodoc:
+    module NullVerifier # :nodoc:
       def self.verify(value)
         value
       end

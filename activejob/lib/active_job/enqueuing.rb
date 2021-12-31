@@ -57,10 +57,7 @@ module ActiveJob
     #    my_job_instance.enqueue wait_until: Date.tomorrow.midnight
     #    my_job_instance.enqueue priority: 10
     def enqueue(options = {})
-      self.scheduled_at = options[:wait].seconds.from_now.to_f if options[:wait]
-      self.scheduled_at = options[:wait_until].to_f if options[:wait_until]
-      self.queue_name   = self.class.queue_name_from_part(options[:queue]) if options[:queue]
-      self.priority     = options[:priority].to_i if options[:priority]
+      set(options)
       self.successfully_enqueued = false
 
       run_callbacks :enqueue do

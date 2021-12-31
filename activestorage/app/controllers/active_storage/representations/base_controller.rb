@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class ActiveStorage::Representations::BaseController < ActiveStorage::BaseController #:nodoc:
+class ActiveStorage::Representations::BaseController < ActiveStorage::BaseController # :nodoc:
   include ActiveStorage::SetBlob
 
   before_action :set_representation

@@ -84,6 +84,26 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_match(/^[a-z0-9]{28}$/, build_blob_after_unfurling.key)
   end
 
+  test "compose" do
+    blobs = 3.times.map { create_blob(data: "123", filename: "numbers.txt", content_type: "text/plain", identify: false) }
+    blob = ActiveStorage::Blob.compose(blobs, filename: "all_numbers.txt")
+
+    assert_equal "123123123", blob.download
+    assert_equal "text/plain", blob.content_type
+    assert_equal blobs.first.byte_size * blobs.count, blob.byte_size
+    assert_predicate(blob, :composed)
+    assert_nil blob.checksum
+  end
+
+  test "compose with unpersisted blobs" do
+    blobs = 3.times.map { create_blob(data: "123", filename: "numbers.txt", content_type: "text/plain", identify: false).dup }
+
+    error = assert_raises(ActiveRecord::RecordNotSaved) do
+      ActiveStorage::Blob.compose(blobs, filename: "all_numbers.txt")
+    end
+    assert_equal "All blobs must be persisted.", error.message
+  end
+
   test "image?" do
     blob = create_file_blob filename: "racecar.jpg"
     assert_predicate blob, :image?
@@ -212,7 +232,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
   test "purge deletes variants from external service with the purge_later" do
     blob = create_file_blob
-    variant = blob.variant(resize: "100>").processed
+    variant = blob.variant(resize_to_limit: [100, nil]).processed
 
     blob.purge
     assert_enqueued_with(job: ActiveStorage::PurgeJob, args: [variant.image.blob])
@@ -259,10 +279,28 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   test "updating the content_type updates service metadata" do
     blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
 
-    expected_arguments = [blob.key, content_type: "image/jpeg"]
+    expected_arguments = [blob.key, content_type: "image/jpeg", custom_metadata: {}]
 
     assert_called_with(blob.service, :update_metadata, expected_arguments) do
       blob.update!(content_type: "image/jpeg")
+    end
+  end
+
+  test "updating the metadata updates service metadata" do
+    blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
+
+    expected_arguments = [
+      blob.key,
+      {
+        content_type: "application/octet-stream",
+        disposition: :attachment,
+        filename: blob.filename,
+        custom_metadata: { "test" => true }
+      }
+    ]
+
+    assert_called_with(blob.service, :update_metadata, expected_arguments) do
+      blob.update!(metadata: { custom: { "test" => true } })
     end
   end
 
@@ -291,6 +329,32 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
         )
       end
     end
+  end
+
+  test "warning if blob is created with invalid mime type" do
+    assert_deprecated do
+      create_blob(filename: "funky.jpg", content_type: "image/jpg")
+    end
+
+    assert_not_deprecated do
+      create_blob(filename: "funky.jpg", content_type: "image/jpeg")
+    end
+  end
+
+  test "warning if blob is created with invalid mime type can be disabled" do
+    warning_was = ActiveStorage.silence_invalid_content_types_warning
+    ActiveStorage.silence_invalid_content_types_warning = true
+
+    assert_not_deprecated do
+      create_blob(filename: "funky.jpg", content_type: "image/jpg")
+    end
+
+    assert_not_deprecated do
+      create_blob(filename: "funky.jpg", content_type: "image/jpeg")
+    end
+
+  ensure
+    ActiveStorage.silence_invalid_content_types_warning = warning_was
   end
 
   private

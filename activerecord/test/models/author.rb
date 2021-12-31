@@ -53,13 +53,13 @@ class Author < ActiveRecord::Base
 
   has_many :ratings, through: :comments
   has_many :good_ratings,
-    -> { where("ratings.value > 5") },
+    -> { where("ratings.value > 5").order(:id) },
     through: :comments,
     source: :ratings
 
   has_many :no_joins_ratings, through: :no_joins_comments, disable_joins: :true, source: :ratings
   has_many :no_joins_good_ratings,
-    -> { where("ratings.value > 5") },
+    -> { where("ratings.value > 5").order(:id) },
     through: :comments,
     source: :ratings,
     disable_joins: true
@@ -149,7 +149,7 @@ class Author < ActiveRecord::Base
   has_many :categorized_posts, through: :categorizations, source: :post
   has_many :unique_categorized_posts, -> { distinct }, through: :categorizations, source: :post
 
-  has_many :nothings, through: :kateggorisatons, class_name: "Category"
+  has_many :nothings, through: :kateggorizatons, class_name: "Category"
 
   has_many :author_favorites
   has_many :favorite_authors, -> { order("name") }, through: :author_favorites

@@ -27,27 +27,12 @@ module ActionController
       super("param is missing or the value is empty: #{param}")
     end
 
-    class Correction
-      def initialize(error)
-        @error = error
+    if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
+      include DidYouMean::Correctable # :nodoc:
+
+      def corrections # :nodoc:
+        @corrections ||= DidYouMean::SpellChecker.new(dictionary: keys).correct(param.to_s)
       end
-
-      def corrections
-        if @error.param && @error.keys
-          maybe_these = @error.keys
-
-          maybe_these.sort_by { |n|
-            DidYouMean::Jaro.distance(@error.param.to_s, n)
-          }.reverse.first(4)
-        else
-          []
-        end
-      end
-    end
-
-    # We may not have DYM, and DYM might not let us register error handlers
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
     end
   end
 
@@ -96,7 +81,7 @@ module ActionController
   #   })
   #
   #   permitted = params.require(:person).permit(:name, :age)
-  #   permitted            # => <ActionController::Parameters {"name"=>"Francesco", "age"=>22} permitted: true>
+  #   permitted            # => #<ActionController::Parameters {"name"=>"Francesco", "age"=>22} permitted: true>
   #   permitted.permitted? # => true
   #
   #   Person.first.update!(permitted)
@@ -126,7 +111,7 @@ module ActionController
   #
   #   params = ActionController::Parameters.new(a: "123", b: "456")
   #   params.permit(:c)
-  #   # => <ActionController::Parameters {} permitted: true>
+  #   # => #<ActionController::Parameters {} permitted: true>
   #
   #   ActionController::Parameters.action_on_unpermitted_parameters = :raise
   #
@@ -457,7 +442,7 @@ module ActionController
     # either present or the singleton +false+, returns said value:
     #
     #   ActionController::Parameters.new(person: { name: "Francesco" }).require(:person)
-    #   # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
+    #   # => #<ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #
     # Otherwise raises <tt>ActionController::ParameterMissing</tt>:
     #
@@ -585,13 +570,48 @@ module ActionController
     #   })
     #
     #   params.require(:person).permit(:contact)
-    #   # => <ActionController::Parameters {} permitted: true>
+    #   # => #<ActionController::Parameters {} permitted: true>
     #
     #   params.require(:person).permit(contact: :phone)
-    #   # => <ActionController::Parameters {"contact"=><ActionController::Parameters {"phone"=>"555-1234"} permitted: true>} permitted: true>
+    #   # => #<ActionController::Parameters {"contact"=>#<ActionController::Parameters {"phone"=>"555-1234"} permitted: true>} permitted: true>
     #
     #   params.require(:person).permit(contact: [ :email, :phone ])
-    #   # => <ActionController::Parameters {"contact"=><ActionController::Parameters {"email"=>"none@test.com", "phone"=>"555-1234"} permitted: true>} permitted: true>
+    #   # => #<ActionController::Parameters {"contact"=>#<ActionController::Parameters {"email"=>"none@test.com", "phone"=>"555-1234"} permitted: true>} permitted: true>
+    #
+    # If your parameters specify multiple parameters indexed by a number,
+    # you can permit each set of parameters under the numeric key to be the same using the same syntax as permitting a single item.
+    #
+    #   params = ActionController::Parameters.new({
+    #     person: {
+    #       '0': {
+    #         email: "none@test.com",
+    #         phone: "555-1234"
+    #       },
+    #       '1': {
+    #         email: "nothing@test.com",
+    #         phone: "555-6789"
+    #       },
+    #     }
+    #   })
+    #   params.permit(person: [:email]).to_h
+    #   # => {"person"=>{"0"=>{"email"=>"none@test.com"}, "1"=>{"email"=>"nothing@test.com"}}}
+    #
+    # If you want to specify what keys you want from each numeric key, you can instead specify each one individually
+    #
+    #   params = ActionController::Parameters.new({
+    #     person: {
+    #       '0': {
+    #         email: "none@test.com",
+    #         phone: "555-1234"
+    #       },
+    #       '1': {
+    #         email: "nothing@test.com",
+    #         phone: "555-6789"
+    #       },
+    #     }
+    #   })
+    #   params.permit(person: { '0': [:email], '1': [:phone]}).to_h
+    #   # => {"person"=>{"0"=>{"email"=>"none@test.com"}, "1"=>{"phone"=>"555-6789"}}}
     def permit(*filters)
       params = self.class.new
 
@@ -613,7 +633,7 @@ module ActionController
     # returns +nil+.
     #
     #   params = ActionController::Parameters.new(person: { name: "Francesco" })
-    #   params[:person] # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
+    #   params[:person] # => #<ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #   params[:none]   # => nil
     def [](key)
       convert_hashes_to_parameters(key, @parameters[key])
@@ -633,9 +653,9 @@ module ActionController
     # is given, then that will be run and its result returned.
     #
     #   params = ActionController::Parameters.new(person: { name: "Francesco" })
-    #   params.fetch(:person)               # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
+    #   params.fetch(:person)               # => #<ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #   params.fetch(:none)                 # => ActionController::ParameterMissing: param is missing or the value is empty: none
-    #   params.fetch(:none, {})             # => <ActionController::Parameters {} permitted: false>
+    #   params.fetch(:none, {})             # => #<ActionController::Parameters {} permitted: false>
     #   params.fetch(:none, "Francesco")    # => "Francesco"
     #   params.fetch(:none) { "Francesco" } # => "Francesco"
     def fetch(key, *args)
@@ -669,8 +689,8 @@ module ActionController
     # don't exist, returns an empty hash.
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
-    #   params.slice(:a, :b) # => <ActionController::Parameters {"a"=>1, "b"=>2} permitted: false>
-    #   params.slice(:d)     # => <ActionController::Parameters {} permitted: false>
+    #   params.slice(:a, :b) # => #<ActionController::Parameters {"a"=>1, "b"=>2} permitted: false>
+    #   params.slice(:d)     # => #<ActionController::Parameters {} permitted: false>
     def slice(*keys)
       new_instance_with_inherited_permitted_status(@parameters.slice(*keys))
     end
@@ -686,8 +706,8 @@ module ActionController
     # filters out the given +keys+.
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
-    #   params.except(:a, :b) # => <ActionController::Parameters {"c"=>3} permitted: false>
-    #   params.except(:d)     # => <ActionController::Parameters {"a"=>1, "b"=>2, "c"=>3} permitted: false>
+    #   params.except(:a, :b) # => #<ActionController::Parameters {"c"=>3} permitted: false>
+    #   params.except(:d)     # => #<ActionController::Parameters {"a"=>1, "b"=>2, "c"=>3} permitted: false>
     def except(*keys)
       new_instance_with_inherited_permitted_status(@parameters.except(*keys))
     end
@@ -695,8 +715,8 @@ module ActionController
     # Removes and returns the key/value pairs matching the given keys.
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
-    #   params.extract!(:a, :b) # => <ActionController::Parameters {"a"=>1, "b"=>2} permitted: false>
-    #   params                  # => <ActionController::Parameters {"c"=>3} permitted: false>
+    #   params.extract!(:a, :b) # => #<ActionController::Parameters {"a"=>1, "b"=>2} permitted: false>
+    #   params                  # => #<ActionController::Parameters {"c"=>3} permitted: false>
     def extract!(*keys)
       new_instance_with_inherited_permitted_status(@parameters.extract!(*keys))
     end
@@ -706,7 +726,7 @@ module ActionController
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
     #   params.transform_values { |x| x * 2 }
-    #   # => <ActionController::Parameters {"a"=>2, "b"=>4, "c"=>6} permitted: false>
+    #   # => #<ActionController::Parameters {"a"=>2, "b"=>4, "c"=>6} permitted: false>
     def transform_values
       return to_enum(:transform_values) unless block_given?
       new_instance_with_inherited_permitted_status(
@@ -890,7 +910,7 @@ module ActionController
 
     # Returns duplicate of object including all parameters.
     def deep_dup
-      self.class.new(@parameters.deep_dup).tap do |duplicate|
+      self.class.new(@parameters.deep_dup, @logging_context).tap do |duplicate|
         duplicate.permitted = @permitted
       end
     end
@@ -912,7 +932,7 @@ module ActionController
 
     private
       def new_instance_with_inherited_permitted_status(hash)
-        self.class.new(hash).tap do |new_instance|
+        self.class.new(hash, @logging_context).tap do |new_instance|
           new_instance.permitted = @permitted
         end
       end
@@ -943,21 +963,27 @@ module ActionController
         when Array
           return value if converted_arrays.member?(value)
           converted = value.map { |_| convert_value_to_parameters(_) }
-          converted_arrays << converted
+          converted_arrays << converted.dup
           converted
         when Hash
-          self.class.new(value)
+          self.class.new(value, @logging_context)
         else
           value
         end
       end
 
-      def each_element(object, &block)
+      def specify_numeric_keys?(filter)
+        if filter.respond_to?(:keys)
+          filter.keys.any? { |key| /\A-?\d+\z/.match?(key) }
+        end
+      end
+
+      def each_element(object, filter, &block)
         case object
         when Array
-          object.grep(Parameters).filter_map { |el| yield el }
+          object.grep(Parameters).filter_map(&block)
         when Parameters
-          if object.nested_attributes?
+          if object.nested_attributes? && !specify_numeric_keys?(filter)
             object.each_nested_attribute(&block)
           else
             yield object
@@ -1070,7 +1096,7 @@ module ActionController
             end
           elsif non_scalar?(value)
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
-            params[key] = each_element(value) do |element|
+            params[key] = each_element(value, filter[key]) do |element|
               element.permit(*Array.wrap(filter[key]))
             end
           end

@@ -35,8 +35,8 @@ module ActiveStorage
   # can configure the service to use like this:
   #
   #   ActiveStorage::Blob.service = ActiveStorage::Service.configure(
-  #     :Disk,
-  #     root: Pathname("/foo/bar/storage")
+  #     :local,
+  #     { local: {service: "Disk",  root: Pathname("/tmp/foo/storage") } }
   #   )
   class Service
     extend ActiveSupport::Autoload
@@ -57,7 +57,7 @@ module ActiveStorage
       # Passes the configurator and all of the service's config as keyword args.
       #
       # See MirrorService for an example.
-      def build(configurator:, name:, service: nil, **service_config) #:nodoc:
+      def build(configurator:, name:, service: nil, **service_config) # :nodoc:
         new(**service_config).tap do |service_instance|
           service_instance.name = name
         end
@@ -88,6 +88,11 @@ module ActiveStorage
 
     def open(*args, **options, &block)
       ActiveStorage::Downloader.new(self).open(*args, **options, &block)
+    end
+
+    # Concatenate multiple files into a single "composed" file.
+    def compose(source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
+      raise NotImplementedError
     end
 
     # Delete the file at the +key+.
@@ -128,12 +133,12 @@ module ActiveStorage
     # The URL will be valid for the amount of seconds specified in +expires_in+.
     # You must also provide the +content_type+, +content_length+, and +checksum+ of the file
     # that will be uploaded. All these attributes will be validated by the service upon upload.
-    def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
+    def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:, custom_metadata: {})
       raise NotImplementedError
     end
 
     # Returns a Hash of headers for +url_for_direct_upload+ requests.
-    def headers_for_direct_upload(key, filename:, content_type:, content_length:, checksum:)
+    def headers_for_direct_upload(key, filename:, content_type:, content_length:, checksum:, custom_metadata: {})
       {}
     end
 
@@ -150,6 +155,9 @@ module ActiveStorage
         raise NotImplementedError
       end
 
+      def custom_metadata_headers(metadata)
+        raise NotImplementedError
+      end
 
       def instrument(operation, payload = {}, &block)
         ActiveSupport::Notifications.instrument(

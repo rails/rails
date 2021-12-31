@@ -30,7 +30,11 @@ module ActiveRecord
 
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
-      ER_BAD_DB_ERROR = 1049
+      ER_BAD_DB_ERROR        = 1049
+      ER_ACCESS_DENIED_ERROR = 1045
+      ER_CONN_HOST_ERROR     = 2003
+      ER_UNKNOWN_HOST_ERROR  = 2005
+
       ADAPTER_NAME = "Mysql2"
 
       include MySQL::DatabaseStatements
@@ -40,7 +44,11 @@ module ActiveRecord
           Mysql2::Client.new(config)
         rescue Mysql2::Error => error
           if error.error_number == ConnectionAdapters::Mysql2Adapter::ER_BAD_DB_ERROR
-            raise ActiveRecord::NoDatabaseError
+            raise ActiveRecord::NoDatabaseError.db_error(config[:database])
+          elsif error.error_number == ConnectionAdapters::Mysql2Adapter::ER_ACCESS_DENIED_ERROR
+            raise ActiveRecord::DatabaseConnectionError.username_error(config[:username])
+          elsif [ConnectionAdapters::Mysql2Adapter::ER_CONN_HOST_ERROR, ConnectionAdapters::Mysql2Adapter::ER_UNKNOWN_HOST_ERROR].include?(error.error_number)
+            raise ActiveRecord::DatabaseConnectionError.hostname_error(config[:host])
           else
             raise ActiveRecord::ConnectionNotEstablished, error.message
           end
@@ -48,6 +56,7 @@ module ActiveRecord
       end
 
       def initialize(connection, logger, connection_options, config)
+        check_prepared_statements_deprecation(config)
         superclass_config = config.reverse_merge(prepared_statements: false)
         super(connection, logger, connection_options, superclass_config)
         configure_connection
@@ -81,11 +90,9 @@ module ActiveRecord
 
       # HELPER METHODS ===========================================
 
-      def each_hash(result) # :nodoc:
+      def each_hash(result, &block) # :nodoc:
         if block_given?
-          result.each(as: :hash, symbolize_keys: true) do |row|
-            yield row
-          end
+          result.each(as: :hash, symbolize_keys: true, &block)
         else
           to_enum(:each_hash, result)
         end
@@ -134,6 +141,14 @@ module ActiveRecord
       end
 
       private
+        def check_prepared_statements_deprecation(config)
+          if !config.key?(:prepared_statements)
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              The default value of `prepared_statements` for the mysql2 adapter will be changed from +false+ to +true+ in Rails 7.2.
+            MSG
+          end
+        end
+
         def connect
           @connection = self.class.new_client(@config)
           configure_connection

@@ -75,6 +75,11 @@ class ActiveStorage::Preview
     end
   end
 
+  # Downloads the file associated with this preview's variant. If no block is
+  # given, the entire file is read into memory and returned. That'll use a lot
+  # of RAM for very large files. If a block is given, then the download is
+  # streamed and yielded in chunks. Raises ActiveStorage::Preview::UnprocessedError
+  # if the preview has not been processed yet.
   def download(&block)
     if processed?
       variant.download(&block)

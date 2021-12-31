@@ -77,7 +77,7 @@ module ActiveRecord
 
       class_attribute :default_shard, instance_writer: false
 
-      class_attribute :destroy_all_in_batches, instance_accessor: false, default: false
+      class_attribute :shard_selector, instance_accessor: false, default: nil
 
       def self.application_record_class? # :nodoc:
         if ActiveRecord.application_record_class
@@ -92,11 +92,11 @@ module ActiveRecord
       self.filter_attributes = []
 
       def self.connection_handler
-        Thread.current.thread_variable_get(:ar_connection_handler) || default_connection_handler
+        ActiveSupport::IsolatedExecutionState[:active_record_connection_handler] || default_connection_handler
       end
 
       def self.connection_handler=(handler)
-        Thread.current.thread_variable_set(:ar_connection_handler, handler)
+        ActiveSupport::IsolatedExecutionState[:active_record_connection_handler] = handler
       end
 
       def self.connection_handlers
@@ -131,8 +131,8 @@ module ActiveRecord
       end
 
       def self.asynchronous_queries_tracker # :nodoc:
-        Thread.current.thread_variable_get(:ar_asynchronous_queries_tracker) ||
-          Thread.current.thread_variable_set(:ar_asynchronous_queries_tracker, AsynchronousQueriesTracker.new)
+        ActiveSupport::IsolatedExecutionState[:active_record_asynchronous_queries_tracker] ||= \
+          AsynchronousQueriesTracker.new
       end
 
       # Returns the symbol representing the current connected role.
@@ -150,7 +150,7 @@ module ActiveRecord
         else
           connected_to_stack.reverse_each do |hash|
             return hash[:role] if hash[:role] && hash[:klasses].include?(Base)
-            return hash[:role] if hash[:role] && hash[:klasses].include?(connection_classes)
+            return hash[:role] if hash[:role] && hash[:klasses].include?(connection_class_for_self)
           end
 
           default_role
@@ -169,7 +169,7 @@ module ActiveRecord
       def self.current_shard
         connected_to_stack.reverse_each do |hash|
           return hash[:shard] if hash[:shard] && hash[:klasses].include?(Base)
-          return hash[:shard] if hash[:shard] && hash[:klasses].include?(connection_classes)
+          return hash[:shard] if hash[:shard] && hash[:klasses].include?(connection_class_for_self)
         end
 
         default_shard
@@ -191,7 +191,7 @@ module ActiveRecord
         else
           connected_to_stack.reverse_each do |hash|
             return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(Base)
-            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(connection_classes)
+            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(connection_class_for_self)
           end
 
           false
@@ -199,11 +199,11 @@ module ActiveRecord
       end
 
       def self.connected_to_stack # :nodoc:
-        if connected_to_stack = Thread.current.thread_variable_get(:ar_connected_to_stack)
+        if connected_to_stack = ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack]
           connected_to_stack
         else
           connected_to_stack = Concurrent::Array.new
-          Thread.current.thread_variable_set(:ar_connected_to_stack, connected_to_stack)
+          ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = connected_to_stack
           connected_to_stack
         end
       end
@@ -212,7 +212,7 @@ module ActiveRecord
         @connection_class = b
       end
 
-      def self.connection_class # :nodoc
+      def self.connection_class # :nodoc:
         @connection_class ||= false
       end
 
@@ -220,7 +220,7 @@ module ActiveRecord
         self.connection_class
       end
 
-      def self.connection_classes # :nodoc:
+      def self.connection_class_for_self # :nodoc:
         klass = self
 
         until klass == Base
@@ -229,14 +229,6 @@ module ActiveRecord
         end
 
         klass
-      end
-
-      def self.allow_unsafe_raw_sql # :nodoc:
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.allow_unsafe_raw_sql is deprecated and will be removed in Rails 7.0")
-      end
-
-      def self.allow_unsafe_raw_sql=(value) # :nodoc:
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.allow_unsafe_raw_sql= is deprecated and will be removed in Rails 7.0")
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
@@ -282,14 +274,8 @@ module ActiveRecord
 
         return super if StatementCache.unsupported_value?(id)
 
-        key = primary_key
-
-        statement = cached_find_by_statement(key) { |params|
-          where(key => params.bind).limit(1)
-        }
-
-        statement.execute([id], connection).first ||
-          raise(RecordNotFound.new("Couldn't find #{name} with '#{key}'=#{id}", name, key, id))
+        cached_find_by([primary_key], [id]) ||
+          raise(RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id}", name, primary_key, id))
       end
 
       def find_by(*args) # :nodoc:
@@ -321,17 +307,7 @@ module ActiveRecord
           h[key] = value
         end
 
-        keys = hash.keys
-        statement = cached_find_by_statement(keys) { |params|
-          wheres = keys.index_with { params.bind }
-          where(wheres).limit(1)
-        }
-
-        begin
-          statement.execute(hash.values, connection).first
-        rescue TypeError
-          raise ActiveRecord::StatementInvalid
-        end
+        cached_find_by(hash.keys, hash.values)
       end
 
       def find_by!(*args) # :nodoc:
@@ -429,11 +405,6 @@ module ActiveRecord
         @arel_table ||= Arel::Table.new(table_name, klass: self)
       end
 
-      def arel_attribute(name, table = arel_table) # :nodoc:
-        table[name]
-      end
-      deprecate :arel_attribute
-
       def predicate_builder # :nodoc:
         @predicate_builder ||= PredicateBuilder.new(table_metadata)
       end
@@ -460,6 +431,19 @@ module ActiveRecord
 
         def table_metadata
           TableMetadata.new(self, arel_table)
+        end
+
+        def cached_find_by(keys, values)
+          statement = cached_find_by_statement(keys) { |params|
+            wheres = keys.index_with { params.bind }
+            where(wheres).limit(1)
+          }
+
+          begin
+            statement.execute(values, connection).first
+          rescue TypeError
+            raise ActiveRecord::StatementInvalid
+          end
         end
     end
 
@@ -499,7 +483,7 @@ module ActiveRecord
     #   post.init_with(coder)
     #   post.title # => 'hello world'
     def init_with(coder, &block)
-      coder = LegacyYamlAdapter.convert(self.class, coder)
+      coder = LegacyYamlAdapter.convert(coder)
       attributes = self.class.yaml_encoder.decode(coder)
       init_with_attributes(attributes, coder["new_record"], &block)
     end
@@ -601,6 +585,8 @@ module ActiveRecord
     # Delegates to id in order to allow two records of the same type and id to work with something like:
     #   [ Person.find(1), Person.find(2), Person.find(3) ] & [ Person.find(1), Person.find(4) ] # => [ Person.find(1) ]
     def hash
+      id = self.id
+
       if id
         self.class.hash ^ id.hash
       else

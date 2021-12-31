@@ -41,6 +41,7 @@ module ActiveStorage
   autoload :Service
   autoload :Previewer
   autoload :Analyzer
+  autoload :DirectUploadToken
 
   mattr_accessor :logger
   mattr_accessor :verifier
@@ -70,6 +71,8 @@ module ActiveStorage
   mattr_accessor :track_variants, default: false
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
+
+  mattr_accessor :silence_invalid_content_types_warning, default: false
 
   module Transformers
     extend ActiveSupport::Autoload

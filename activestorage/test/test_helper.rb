@@ -12,11 +12,6 @@ require "active_support/configuration_file"
 require "active_storage/service/mirror_service"
 require "image_processing/mini_magick"
 
-begin
-  require "byebug"
-rescue LoadError
-end
-
 require "active_job"
 ActiveJob::Base.queue_adapter = :test
 ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
@@ -26,6 +21,12 @@ SERVICE_CONFIGURATIONS = begin
 rescue Errno::ENOENT
   puts "Missing service configuration file in test/service/configurations.yml"
   {}
+end
+# Azure service tests are currently failing on the main branch.
+# We temporarily disable them while we get things working again.
+if ENV["CI"]
+  SERVICE_CONFIGURATIONS.delete(:azure)
+  SERVICE_CONFIGURATIONS.delete(:azure_public)
 end
 
 require "tmpdir"
@@ -53,7 +54,7 @@ class ActiveSupport::TestCase
   self.fixture_path = File.expand_path("fixtures", __dir__)
 
   setup do
-    ActiveStorage::Current.host = "https://example.com"
+    ActiveStorage::Current.url_options = { protocol: "https://", host: "example.com", port: nil }
   end
 
   teardown do
@@ -139,6 +140,26 @@ class ActiveSupport::TestCase
       yield
       ActiveStorage.track_variants = variant_tracking_was
     end
+
+    def with_raise_on_open_redirects(service)
+      old_raise_on_open_redirects = ActionController::Base.raise_on_open_redirects
+      old_service = ActiveStorage::Blob.service
+
+      ActionController::Base.raise_on_open_redirects = true
+      ActiveStorage::Blob.service = ActiveStorage::Service.configure(service, SERVICE_CONFIGURATIONS)
+      yield
+    ensure
+      ActionController::Base.raise_on_open_redirects = old_raise_on_open_redirects
+      ActiveStorage::Blob.service = old_service
+    end
+
+    def subscribe_events_from(name)
+      events = []
+      ActiveSupport::Notifications.subscribe(name) do |*args|
+        events << ActiveSupport::Notifications::Event.new(*args)
+      end
+      events
+    end
 end
 
 require "global_id"
@@ -151,13 +172,13 @@ class User < ActiveRecord::Base
   has_one_attached :avatar
   has_one_attached :cover_photo, dependent: false, service: :local
   has_one_attached :avatar_with_variants do |attachable|
-    attachable.variant :thumb, resize: "100x100"
+    attachable.variant :thumb, resize_to_limit: [100, 100]
   end
 
   has_many_attached :highlights
   has_many_attached :vlogs, dependent: false, service: :local
   has_many_attached :highlights_with_variants do |attachable|
-    attachable.variant :thumb, resize: "100x100"
+    attachable.variant :thumb, resize_to_limit: [100, 100]
   end
 
   accepts_nested_attributes_for :highlights_attachments, allow_destroy: true

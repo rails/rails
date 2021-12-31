@@ -8,7 +8,7 @@
 #### **Did you find a bug?**
 
 * **Do not open up a GitHub issue if the bug is a security vulnerability
-  in Rails**, and instead to refer to our [security policy](https://rubyonrails.org/security/).
+  in Rails**, and instead to refer to our [security policy](https://rubyonrails.org/security).
 
 * **Ensure the bug was not already reported** by searching on GitHub under [Issues](https://github.com/rails/rails/issues).
 

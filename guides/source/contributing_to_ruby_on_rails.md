@@ -16,7 +16,7 @@ After reading this guide, you will know:
 Ruby on Rails is not "someone else's framework". Over the years, thousands of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all to make Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are various other ways that you can contribute, from reporting issues to testing patches.
 
 As mentioned in [Rails'
-README](https://github.com/rails/rails/blob/main/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://rubyonrails.org/conduct/).
+README](https://github.com/rails/rails/blob/main/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://rubyonrails.org/conduct).
 
 --------------------------------------------------------------------------------
 
@@ -187,6 +187,10 @@ Contributing to the Rails Code
 
 To move on from submitting bugs to helping resolve existing issues or contributing your own code to Ruby on Rails, you _must_ be able to run its test suite. In this section of the guide, you'll learn how to set up the tests on your computer.
 
+#### The Easiest Way
+
+Start a Github Codespace from the repository and start developing right away from the browser IDE or in your local VScode. The Codespace is initialized with all required dependencies and allows you to run all tests.
+
 #### The Easy Way
 
 The easiest and recommended way to get a development environment ready to hack is to use the [rails-dev-box](https://github.com/rails/rails-dev-box).
@@ -232,6 +236,15 @@ $ bundle exec rails new ~/my-test-app --dev
 The application generated in `~/my-test-app` runs against your local branch
 and, in particular, sees any modifications upon server reboot.
 
+For JavaScript packages, you can use [`yarn link`](https://yarnpkg.com/cli/link) to source your local branch in a generated application:
+
+```bash
+$ cd rails/activestorage
+$ yarn link
+$ cd ~/my-test-app
+$ yarn link "@rails/activestorage"
+```
+
 ### Write Your Code
 
 Now get busy and add/edit code. You're on your branch now, so you can write whatever you want (make sure you're on the right branch with `git branch -a`). But if you're planning to submit your change back for inclusion in Rails, keep a few things in mind:
@@ -264,7 +277,7 @@ The above are guidelines - please use your best judgment in using them.
 Additionally, we have [RuboCop](https://www.rubocop.org/) rules defined to codify some of our coding conventions. You can run RuboCop locally against the file that you have modified before submitting a pull request:
 
 ```bash
-$ rubocop actionpack/lib/action_controller/metal/strong_parameters.rb
+$ bundle exec rubocop actionpack/lib/action_controller/metal/strong_parameters.rb
 Inspecting 1 file
 .
 
@@ -467,6 +480,14 @@ You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` als
 
 The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue no warnings, but there may be a few, as well as some from third-party libraries. Please ignore (or fix!) them, if any, and submit patches that do not issue new warnings.
 
+### Updating the Documentation
+
+The Ruby on Rails [guides](https://guides.rubyonrails.org/) provide a high-level overview of Rails' features, while the [API documentation](https://api.rubyonrails.org/) delves into specifics.
+
+If your PR adds a new feature, or changes how an existing feature behaves, check the relevant documentation, and update it or add to it as necessary.
+
+For example, if you modify Active Storage's image analyzer to add a new metadata field, you should update the [Analyzing Files](https://edgeguides.rubyonrails.org/active_storage_overview.html#analyzing-files) section of the Active Storage guide to reflect that.
+
 ### Updating the CHANGELOG
 
 The CHANGELOG is an important part of every release. It keeps the list of changes for every Rails version.
@@ -494,6 +515,10 @@ A CHANGELOG entry should summarize what was changed and should end with the auth
 
 Your name can be added directly after the last word if there are no code
 examples or multiple paragraphs. Otherwise, it's best to make a new paragraph.
+
+### Ignoring Files Created by Your Editor / IDE
+
+Some editors and IDEs will create hidden files or folders inside the `rails` folder. Instead of manually excluding those from each commit or adding them to Rails' `.gitignore`, you should add them to your own [global gitignore file](https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files#configuring-ignored-files-for-all-repositories-on-your-computer).
 
 ### Updating the Gemfile.lock
 

@@ -10,6 +10,7 @@ module ActiveRecord
     included do
       class_attribute :_reflections, instance_writer: false, default: {}
       class_attribute :aggregate_reflections, instance_writer: false, default: {}
+      class_attribute :automatic_scope_inversing, instance_writer: false, default: false
     end
 
     class << self
@@ -115,7 +116,7 @@ module ActiveRecord
         reflections[association.to_s]
       end
 
-      def _reflect_on_association(association) #:nodoc:
+      def _reflect_on_association(association) # :nodoc:
         _reflections[association.to_s]
       end
 
@@ -234,10 +235,13 @@ module ActiveRecord
           if has_inverse? && inverse_of.nil?
             raise InverseOfAssociationNotFoundError.new(self)
           end
+          if has_inverse? && inverse_of == self
+            raise InverseOfAssociationRecursiveError.new(self)
+          end
         end
       end
 
-      # This shit is nasty. We need to avoid the following situation:
+      # We need to avoid the following situation:
       #
       #   * An associated record is deleted via record.destroy
       #   * Hence the callbacks run, and they find a belongs_to on the record with a
@@ -398,7 +402,7 @@ module ActiveRecord
 
     # Holds all the metadata about an aggregation as it was specified in the
     # Active Record class.
-    class AggregateReflection < MacroReflection #:nodoc:
+    class AggregateReflection < MacroReflection # :nodoc:
       def mapping
         mapping = options[:mapping] || [name, name]
         mapping.first.is_a?(Array) ? mapping : [mapping]
@@ -407,7 +411,7 @@ module ActiveRecord
 
     # Holds all the metadata about an association as it was specified in the
     # Active Record class.
-    class AssociationReflection < MacroReflection #:nodoc:
+    class AssociationReflection < MacroReflection # :nodoc:
       def compute_class(name)
         if polymorphic?
           raise ArgumentError, "Polymorphic associations do not support computing the class."
@@ -416,7 +420,7 @@ module ActiveRecord
         msg = <<-MSG.squish
           Rails couldn't find a valid model for #{name} association.
           Please provide the :class_name option on the association declaration.
-          If :class_name is already provided make sure is an ActiveRecord::Base subclass.
+          If :class_name is already provided, make sure it's an ActiveRecord::Base subclass.
         MSG
 
         begin
@@ -631,9 +635,10 @@ module ActiveRecord
         # with the current reflection's klass name.
         def valid_inverse_reflection?(reflection)
           reflection &&
+            reflection != self &&
             foreign_key == reflection.foreign_key &&
             klass <= reflection.active_record &&
-            can_find_inverse_of_automatically?(reflection)
+            can_find_inverse_of_automatically?(reflection, true)
         end
 
         # Checks to see if the reflection doesn't have any options that prevent
@@ -642,14 +647,25 @@ module ActiveRecord
         # have <tt>has_many</tt>, <tt>has_one</tt>, <tt>belongs_to</tt> associations.
         # Third, we must not have options such as <tt>:foreign_key</tt>
         # which prevent us from correctly guessing the inverse association.
-        #
-        # Anything with a scope can additionally ruin our attempt at finding an
-        # inverse, so we exclude reflections with scopes.
-        def can_find_inverse_of_automatically?(reflection)
+        def can_find_inverse_of_automatically?(reflection, inverse_reflection = false)
           reflection.options[:inverse_of] != false &&
             !reflection.options[:through] &&
             !reflection.options[:foreign_key] &&
+            scope_allows_automatic_inverse_of?(reflection, inverse_reflection)
+        end
+
+        # Scopes on the potential inverse reflection prevent automatic
+        # <tt>inverse_of</tt>, since the scope could exclude the owner record
+        # we would inverse from. Scopes on the reflection itself allow for
+        # automatic <tt>inverse_of</tt> as long as
+        # <tt>config.active_record.automatic_scope_inversing<tt> is set to
+        # +true+ (the default for new applications).
+        def scope_allows_automatic_inverse_of?(reflection, inverse_reflection)
+          if inverse_reflection
             !reflection.scope
+          else
+            !reflection.scope || reflection.klass.automatic_scope_inversing
+          end
         end
 
         def derive_class_name
@@ -736,7 +752,7 @@ module ActiveRecord
       end
 
       private
-        def can_find_inverse_of_automatically?(_)
+        def can_find_inverse_of_automatically?(*)
           !polymorphic? && super
         end
     end
@@ -751,7 +767,7 @@ module ActiveRecord
 
     # Holds all the metadata about a :through association as it was specified
     # in the Active Record class.
-    class ThroughReflection < AbstractReflection #:nodoc:
+    class ThroughReflection < AbstractReflection # :nodoc:
       delegate :foreign_key, :foreign_type, :association_foreign_key, :join_id_for, :type,
                :active_record_primary_key, :join_foreign_key, to: :source_reflection
 
@@ -1015,7 +1031,7 @@ module ActiveRecord
       end
 
       def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
-        scopes = @previous_reflection.join_scopes(table, predicate_builder, record) + super
+        scopes = @previous_reflection.join_scopes(table, predicate_builder, klass, record) + super
         scopes << build_scope(table, predicate_builder, klass).instance_exec(record, &source_type_scope)
       end
 

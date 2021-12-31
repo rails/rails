@@ -15,7 +15,7 @@ java_import org.xml.sax.Attributes unless defined? Attributes
 java_import org.w3c.dom.Node unless defined? Node
 
 module ActiveSupport
-  module XmlMini_JDOM #:nodoc:
+  module XmlMini_JDOM # :nodoc:
     extend self
 
     CONTENT_KEY = "__content__"

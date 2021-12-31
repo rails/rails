@@ -73,7 +73,7 @@ module ActiveRecord
       end
     end
 
-    class NullTransaction #:nodoc:
+    class NullTransaction # :nodoc:
       def initialize; end
       def state; end
       def closed?; true; end
@@ -82,7 +82,7 @@ module ActiveRecord
       def add_record(record, _ = true); end
     end
 
-    class Transaction #:nodoc:
+    class Transaction # :nodoc:
       attr_reader :connection, :state, :savepoint_name, :isolation_level
       attr_accessor :written
 
@@ -221,7 +221,7 @@ module ActiveRecord
       end
     end
 
-    class TransactionManager #:nodoc:
+    class TransactionManager # :nodoc:
       def initialize(connection)
         @stack = []
         @connection = connection
@@ -333,26 +333,19 @@ module ActiveRecord
               # @connection still holds an open or invalid transaction, so we must not
               # put it back in the pool for reuse.
               @connection.throw_away! unless transaction.state.rolledback?
+            elsif Thread.current.status == "aborting" || (!completed && transaction.written)
+              # The transaction is still open but the block returned earlier.
+              #
+              # The block could return early because of a timeout or because the thread is aborting,
+              # so we are rolling back to make sure the timeout didn't caused the transaction to be
+              # committed incompletely.
+              rollback_transaction
             else
-              if Thread.current.status == "aborting"
-                rollback_transaction
-              else
-                if !completed && transaction.written
-                  ActiveSupport::Deprecation.warn(<<~EOW)
-                    Using `return`, `break` or `throw` to exit a transaction block is
-                    deprecated without replacement. If the `throw` came from
-                    `Timeout.timeout(duration)`, pass an exception class as a second
-                    argument so it doesn't use `throw` to abort its block. This results
-                    in the transaction being committed, but in the next release of Rails
-                    it will rollback.
-                  EOW
-                end
-                begin
-                  commit_transaction
-                rescue Exception
-                  rollback_transaction(transaction) unless transaction.state.completed?
-                  raise
-                end
+              begin
+                commit_transaction
+              rescue Exception
+                rollback_transaction(transaction) unless transaction.state.completed?
+                raise
               end
             end
           end

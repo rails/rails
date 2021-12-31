@@ -11,7 +11,7 @@ module ActiveRecord
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
 
     CLAUSE_METHODS = [:where, :having, :from]
-    INVALID_METHODS_FOR_DELETE_ALL = [:distinct, :group, :having]
+    INVALID_METHODS_FOR_DELETE_ALL = [:distinct]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 
@@ -33,18 +33,12 @@ module ActiveRecord
       @delegate_to_klass = false
       @future_result = nil
       @records = nil
-      @limited_count = nil
     end
 
     def initialize_copy(other)
       @values = @values.dup
       reset
     end
-
-    def arel_attribute(name) # :nodoc:
-      table[name]
-    end
-    deprecate :arel_attribute
 
     def bind_attribute(name, value) # :nodoc:
       if reflection = klass._reflect_on_association(name)
@@ -295,14 +289,14 @@ module ActiveRecord
     # Returns true if there is exactly one record.
     def one?
       return super if block_given?
-      return records.one? if limit_value || loaded?
+      return records.one? if loaded?
       limited_count == 1
     end
 
     # Returns true if there is more than one record.
     def many?
       return super if block_given?
-      return records.many? if limit_value || loaded?
+      return records.many? if loaded?
       limited_count > 1
     end
 
@@ -394,7 +388,7 @@ module ActiveRecord
       end
 
       if timestamp
-        "#{size}-#{timestamp.utc.to_s(cache_timestamp_format)}"
+        "#{size}-#{timestamp.utc.to_formatted_s(cache_timestamp_format)}"
       else
         "#{size}"
       end
@@ -424,14 +418,14 @@ module ActiveRecord
     #
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
-    def scoping(all_queries: nil)
+    def scoping(all_queries: nil, &block)
       registry = klass.scope_registry
       if global_scope?(registry) && all_queries == false
         raise ArgumentError, "Scoping is set to apply to all queries and cannot be unset in a nested block."
       elsif already_in_scope?(registry)
         yield
       else
-        _scoping(self, registry, all_queries) { yield }
+        _scoping(self, registry, all_queries, &block)
       end
     end
 
@@ -485,8 +479,9 @@ module ActiveRecord
       arel = eager_loading? ? apply_join_dependency.arel : build_arel
       arel.source.left = table
 
-      stmt = arel.compile_update(values, table[primary_key])
-
+      group_values_arel_columns = arel_columns(group_values.uniq)
+      having_clause_ast = having_clause.ast unless having_clause.empty?
+      stmt = arel.compile_update(values, table[primary_key], having_clause_ast, group_values_arel_columns)
       klass.connection.update(stmt, "#{klass} Update All").tap { reset }
     end
 
@@ -495,6 +490,14 @@ module ActiveRecord
         each { |record| record.update(attributes) }
       else
         klass.update(id, attributes)
+      end
+    end
+
+    def update!(id = :all, attributes) # :nodoc:
+      if id == :all
+        each { |record| record.update!(attributes) }
+      else
+        klass.update!(id, attributes)
       end
     end
 
@@ -560,9 +563,8 @@ module ActiveRecord
     # Destroys the records by instantiating each
     # record and calling its {#destroy}[rdoc-ref:Persistence#destroy] method.
     # Each object's callbacks are executed (including <tt>:dependent</tt> association options).
-    # Returns the collection of objects that were destroyed if
-    # +config.active_record.destroy_all_in_batches+ is set to +false+. Each
-    # will be frozen, to reflect that no changes should be made (since they can't be persisted).
+    # Returns the collection of objects that were destroyed; each will be frozen, to
+    # reflect that no changes should be made (since they can't be persisted).
     #
     # Note: Instantiation, callback execution, and deletion of each
     # record can be time consuming when you're removing many records at
@@ -574,40 +576,8 @@ module ActiveRecord
     # ==== Examples
     #
     #   Person.where(age: 0..18).destroy_all
-    #
-    # If +config.active_record.destroy_all_in_batches+ is set to +true+, it will ensure
-    # to perform the record's deletion in batches
-    # and destroy_all won't longer return the collection of the deleted records
-    #
-    # ==== Options
-    # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
-    # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
-    # * <tt>:batch_size</tt> - Specifies the size of the batch. Defaults to 1000.
-    # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
-    #   an order is present in the relation.
-    # * <tt>:order</tt> - Specifies the primary key order (can be :asc or :desc). Defaults to :asc.
-    #
-    # NOTE: These arguments are honoured only if +config.active_record.destroy_all_in_batches+ is set to +true+.
-    #
-    # ==== Examples
-    #
-    #   # Let's process from record 10_000 on, in batches of 2000.
-    #   Person.destroy_all(start: 10_000, batch_size: 2000)
-    #
-    def destroy_all(start: nil, finish: nil, batch_size: 1000, error_on_ignore: nil, order: :asc)
-      if ActiveRecord::Base.destroy_all_in_batches
-        batch_options = { of: batch_size, start: start, finish: finish, error_on_ignore: error_on_ignore, order: order }
-        in_batches(**batch_options).each_record(&:destroy).tap { reset }
-      else
-        ActiveSupport::Deprecation.warn(<<~MSG.squish)
-          As of Rails 7.1, destroy_all will no longer return the collection
-          of objects that were destroyed.
-          To transition to the new behaviour set the following in an
-          initializer:
-          Rails.application.config.active_record.destroy_all_in_batches = true
-        MSG
-        records.each(&:destroy).tap { reset }
-      end
+    def destroy_all
+      records.each(&:destroy).tap { reset }
     end
 
     # Deletes the records without instantiating the records
@@ -640,7 +610,9 @@ module ActiveRecord
       arel = eager_loading? ? apply_join_dependency.arel : build_arel
       arel.source.left = table
 
-      stmt = arel.compile_delete(table[primary_key])
+      group_values_arel_columns = arel_columns(group_values.uniq)
+      having_clause_ast = having_clause.ast unless having_clause.empty?
+      stmt = arel.compile_delete(table[primary_key], having_clause_ast, group_values_arel_columns)
 
       klass.connection.delete(stmt, "#{klass} Delete All").tap { reset }
     end
@@ -674,6 +646,21 @@ module ActiveRecord
     # Schedule the query to be performed from a background thread pool.
     #
     #   Post.where(published: true).load_async # => #<ActiveRecord::Relation>
+    #
+    # When the +Relation+ is iterated, if the background query wasn't executed yet,
+    # it will be performed by the foreground thread.
+    #
+    # Note that {config.active_record.async_query_executor}[https://guides.rubyonrails.org/configuring.html#config-active-record-async-query-executor] must be configured
+    # for queries to actually be executed concurrently. Otherwise it defaults to
+    # executing them in the foreground.
+    #
+    # +load_async+ will also fallback to executing in the foreground in the test environment when transactional
+    # fixtures are enabled.
+    #
+    # If the query was actually executed in the background, the Active Record logs will show
+    # it by prefixing the log line with <tt>ASYNC</tt>:
+    #
+    #   ASYNC Post Load (0.0ms) (db time 2ms)  SELECT "posts".* FROM "posts" LIMIT 100
     def load_async
       return load if !connection.async_enabled?
 
@@ -726,7 +713,6 @@ module ActiveRecord
       @offsets = @take = nil
       @cache_keys = nil
       @records = nil
-      @limited_count = nil
       self
     end
 
@@ -968,11 +954,9 @@ module ActiveRecord
         end
       end
 
-      def skip_query_cache_if_necessary
+      def skip_query_cache_if_necessary(&block)
         if skip_query_cache_value
-          uncached do
-            yield
-          end
+          uncached(&block)
         else
           yield
         end
@@ -1003,7 +987,7 @@ module ActiveRecord
       end
 
       def limited_count
-        @limited_count ||= limit(2).count
+        limit_value ? count : limit(2).count
       end
   end
 end

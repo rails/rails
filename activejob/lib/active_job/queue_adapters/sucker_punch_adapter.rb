@@ -18,7 +18,7 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :sucker_punch
     class SuckerPunchAdapter
-      def enqueue(job) #:nodoc:
+      def enqueue(job) # :nodoc:
         if JobWrapper.respond_to?(:perform_async)
           # sucker_punch 2.0 API
           JobWrapper.perform_async job.serialize
@@ -28,7 +28,7 @@ module ActiveJob
         end
       end
 
-      def enqueue_at(job, timestamp) #:nodoc:
+      def enqueue_at(job, timestamp) # :nodoc:
         if JobWrapper.respond_to?(:perform_in)
           delay = timestamp - Time.current.to_f
           JobWrapper.perform_in delay, job.serialize
@@ -37,7 +37,7 @@ module ActiveJob
         end
       end
 
-      class JobWrapper #:nodoc:
+      class JobWrapper # :nodoc:
         include SuckerPunch::Job
 
         def perform(job_data)

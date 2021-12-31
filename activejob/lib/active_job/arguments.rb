@@ -7,7 +7,7 @@ module ActiveJob
   #
   # Wraps the original exception raised as +cause+.
   class DeserializationError < StandardError
-    def initialize #:nodoc:
+    def initialize # :nodoc:
       super("Error while trying to deserialize arguments: #{$!.message}")
       set_backtrace $!.backtrace
     end

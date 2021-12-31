@@ -5,8 +5,8 @@ require "active_support/core_ext/string/access"
 require "active_support/core_ext/string/behavior"
 require "active_support/core_ext/module/delegation"
 
-module ActiveSupport #:nodoc:
-  module Multibyte #:nodoc:
+module ActiveSupport # :nodoc:
+  module Multibyte # :nodoc:
     # Chars enables you to work transparently with UTF-8 encoding in the Ruby
     # String class without having extensive knowledge about the encoding. A
     # Chars object accepts a string upon initialization and proxies String
@@ -156,7 +156,7 @@ module ActiveSupport #:nodoc:
         chars(Unicode.tidy_bytes(@wrapped_string, force))
       end
 
-      def as_json(options = nil) #:nodoc:
+      def as_json(options = nil) # :nodoc:
         to_s.as_json(options)
       end
 

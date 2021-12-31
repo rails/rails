@@ -5,7 +5,7 @@ require "action_view/helpers/tags/checkable"
 module ActionView
   module Helpers
     module Tags # :nodoc:
-      class CheckBox < Base #:nodoc:
+      class CheckBox < Base # :nodoc:
         include Checkable
 
         def initialize(object_name, method_name, template_object, checked_value, unchecked_value, options)
@@ -57,7 +57,7 @@ module ActionView
           end
 
           def hidden_field_for_checkbox(options)
-            @unchecked_value ? tag("input", options.slice("name", "disabled", "form").merge!("type" => "hidden", "value" => @unchecked_value)) : "".html_safe
+            @unchecked_value ? tag("input", options.slice("name", "disabled", "form").merge!("type" => "hidden", "value" => @unchecked_value, "autocomplete" => "off")) : "".html_safe
           end
       end
     end

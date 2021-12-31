@@ -94,18 +94,14 @@ If you wish to skip some files or components from being generated, you can appen
 
 | Argument                | Description                                                 |
 | ----------------------- | ----------------------------------------------------------- |
-| `--skip-gemfile`        | Don't create a Gemfile                                      |
 | `--skip-git`            | Skip .gitignore file                                        |
 | `--skip-keeps`          | Skip source control .keep files                             |
 | `--skip-action-mailer`  | Skip Action Mailer files                                    |
 | `--skip-action-text`    | Skip Action Text gem                                        |
 | `--skip-active-record`  | Skip Active Record files                                    |
 | `--skip-active-storage` | Skip Active Storage files                                   |
-| `--skip-puma`           | Skip Puma related files                                     |
 | `--skip-action-cable`   | Skip Action Cable files                                     |
 | `--skip-sprockets`      | Skip Sprockets files                                        |
-| `--skip-spring`         | Don't install Spring application preloader                  |
-| `--skip-listen`         | Don't generate configuration that depends on the listen gem |
 | `--skip-javascript`     | Skip JavaScript files                                       |
 | `--skip-turbolinks`     | Skip turbolinks gem                                         |
 | `--skip-test`           | Skip test files                                             |
@@ -214,9 +210,6 @@ $ bin/rails generate controller Greetings hello
      invoke  helper
      create    app/helpers/greetings_helper.rb
      invoke    test_unit
-     invoke  assets
-     invoke    scss
-     create      app/assets/stylesheets/greetings.scss
 ```
 
 What all did this generate? It made sure a bunch of directories were in our application, and created a controller file, a view file, a functional test file, a helper for the view, a JavaScript file, and a stylesheet file.
@@ -306,11 +299,6 @@ $ bin/rails generate scaffold HighScore game:string score:integer
     create      app/views/high_scores/index.json.jbuilder
     create      app/views/high_scores/show.json.jbuilder
     create      app/views/high_scores/_high_score.json.jbuilder
-    invoke  assets
-    invoke    scss
-    create      app/assets/stylesheets/high_scores.scss
-    invoke  scss
-    create    app/assets/stylesheets/scaffolds.scss
 ```
 
 The generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the `high_scores` table and fields), takes care of the route for the **resource**, and new tests for everything.
@@ -357,7 +345,7 @@ If you wish to test out some code without changing any data, you can do that by 
 
 ```bash
 $ bin/rails console --sandbox
-Loading development environment in sandbox (Rails 7.0.0)
+Loading development environment in sandbox (Rails 7.1.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
@@ -458,7 +446,7 @@ Ruby version              2.7.0 (x86_64-linux)
 RubyGems version          2.7.3
 Rack version              2.0.4
 JavaScript Runtime        Node.js (V8)
-Middleware:               Rack::Sendfile, ActionDispatch::Static, ActionDispatch::Executor, ActiveSupport::Cache::Strategy::LocalCache::Middleware, Rack::MethodOverride, ActionDispatch::RequestId, ActionDispatch::RemoteIp, Sprockets::Rails::QuietAssets, Rails::Rack::Logger, ActionDispatch::ShowExceptions, WebConsole::Middleware, ActionDispatch::DebugExceptions, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, Rack::Head, Rack::ConditionalGet, Rack::ETag
+Middleware:               Rack::Sendfile, ActionDispatch::Static, ActionDispatch::Executor, ActiveSupport::Cache::Strategy::LocalCache::Middleware, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, ActionDispatch::RemoteIp, Sprockets::Rails::QuietAssets, Rails::Rack::Logger, ActionDispatch::ShowExceptions, WebConsole::Middleware, ActionDispatch::DebugExceptions, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, Rack::Head, Rack::ConditionalGet, Rack::ETag
 Application root          /home/foobar/commandsapp
 Environment               development
 Database adapter          sqlite3

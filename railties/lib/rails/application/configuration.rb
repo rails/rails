@@ -21,7 +21,7 @@ module Rails
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
-                    :rake_eager_load
+                    :rake_eager_load, :server_timing
 
       attr_reader :encoding, :api_only, :loaded_config_version
 
@@ -33,8 +33,12 @@ module Rails
         @filter_parameters                       = []
         @filter_redirect                         = []
         @helpers_paths                           = []
-        @hosts                                   = Array(([".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")] if Rails.env.development?))
-        @hosts.concat(ENV["RAILS_DEVELOPMENT_HOSTS"].to_s.split(",").map(&:strip)) if Rails.env.development?
+        if Rails.env.development?
+          @hosts = ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT +
+            ENV["RAILS_DEVELOPMENT_HOSTS"].to_s.split(",").map(&:strip)
+        else
+          @hosts = []
+        end
         @host_authorization                      = {}
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
@@ -74,6 +78,7 @@ module Rails
         @add_autoload_paths_to_load_path         = true
         @permissions_policy                      = nil
         @rake_eager_load                         = false
+        @server_timing                           = false
       end
 
       # Loads default configurations. See {the result of the method for each version}[https://guides.rubyonrails.org/configuring.html#results-of-config-load-defaults].
@@ -83,6 +88,7 @@ module Rails
           if respond_to?(:action_controller)
             action_controller.per_form_csrf_tokens = true
             action_controller.forgery_protection_origin_check = true
+            action_controller.urlsafe_csrf_tokens = false
           end
 
           ActiveSupport.to_time_preserves_timezone = true
@@ -160,7 +166,6 @@ module Rails
 
           if respond_to?(:active_job)
             active_job.retry_jitter = 0.15
-            active_job.skip_after_callbacks_if_terminated = true
           end
 
           if respond_to?(:action_dispatch)
@@ -169,7 +174,7 @@ module Rails
           end
 
           if respond_to?(:action_controller)
-            action_controller.urlsafe_csrf_tokens = true
+            action_controller.delete(:urlsafe_csrf_tokens)
           end
 
           if respond_to?(:action_view)
@@ -198,11 +203,16 @@ module Rails
           load_defaults "6.1"
 
           if respond_to?(:action_dispatch)
+            action_dispatch.default_headers = {
+              "X-Frame-Options" => "SAMEORIGIN",
+              "X-XSS-Protection" => "0",
+              "X-Content-Type-Options" => "nosniff",
+              "X-Download-Options" => "noopen",
+              "X-Permitted-Cross-Domain-Policies" => "none",
+              "Referrer-Policy" => "strict-origin-when-cross-origin"
+            }
             action_dispatch.return_only_request_media_type_on_content_type = false
-          end
-
-          if respond_to?(:action_controller)
-            action_controller.silence_disabled_session_errors = false
+            action_dispatch.cookies_serializer = :json
           end
 
           if respond_to?(:action_view)
@@ -215,6 +225,10 @@ module Rails
             active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
             active_support.remove_deprecated_time_with_zone_name = true
             active_support.cache_format_version = 7.0
+            active_support.use_rfc4122_namespaced_uuids = true
+            active_support.executor_around_test_case = true
+            active_support.isolation_level = :thread
+            active_support.disable_to_s_conversion = true
           end
 
           if respond_to?(:action_mailer)
@@ -225,7 +239,24 @@ module Rails
             active_storage.video_preview_arguments =
               "-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1'" \
               " -frames:v 1 -f image2"
+
+            active_storage.variant_processor = :vips
+            active_storage.multiple_file_field_include_hidden = true
           end
+
+          if respond_to?(:active_record)
+            active_record.verify_foreign_keys_for_fixtures = true
+            active_record.partial_inserts = false
+            active_record.automatic_scope_inversing = true
+          end
+
+          if respond_to?(:action_controller)
+            action_controller.raise_on_missing_callback_actions = false
+            action_controller.raise_on_open_redirects = true
+            action_controller.wrap_parameters_by_default = true
+          end
+        when "7.1"
+          load_defaults "7.0"
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -356,7 +387,7 @@ module Rails
         end
       end
 
-      def session_store? #:nodoc:
+      def session_store? # :nodoc:
         @session_store
       end
 
@@ -392,7 +423,7 @@ module Rails
         f
       end
 
-      class Custom #:nodoc:
+      class Custom # :nodoc:
         def initialize
           @configurations = Hash.new
         end

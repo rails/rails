@@ -30,12 +30,10 @@ module ActiveRecord
       $stdout, $stderr = @original_stdout, @original_stderr
     end
 
-    def with_stubbed_new
+    def with_stubbed_new(&block)
       ActiveRecord::Tasks::MySQLDatabaseTasks.stub(:new, @mysql_tasks) do
         ActiveRecord::Tasks::PostgreSQLDatabaseTasks.stub(:new, @postgresql_tasks) do
-          ActiveRecord::Tasks::SQLiteDatabaseTasks.stub(:new, @sqlite_tasks) do
-            yield
-          end
+          ActiveRecord::Tasks::SQLiteDatabaseTasks.stub(:new, @sqlite_tasks, &block)
         end
       end
     end
@@ -112,61 +110,6 @@ module ActiveRecord
         end
       end
     end
-  end
-
-  class DatabaseTasksCurrentConfigTask < ActiveRecord::TestCase
-    def test_current_config_set
-      hash = {}
-
-      with_stubbed_configurations do
-        ActiveRecord::Tasks::DatabaseTasks.current_config(config: hash, env: "production")
-
-        assert_equal hash, ActiveRecord::Tasks::DatabaseTasks.current_config(env: "production")
-      end
-    end
-
-    def test_current_config_read_none_found
-      with_stubbed_configurations do
-        config = ActiveRecord::Tasks::DatabaseTasks.current_config(env: "production", spec: "empty")
-
-        assert_nil config
-      end
-    end
-
-    def test_current_config_read_found
-      with_stubbed_configurations do
-        config = ActiveRecord::Tasks::DatabaseTasks.current_config(env: "production", spec: "exists")
-
-        assert_equal({ database: "my-db" }, config)
-      end
-    end
-
-    def test_current_config_read_after_set
-      hash = {}
-
-      with_stubbed_configurations do
-        ActiveRecord::Tasks::DatabaseTasks.current_config(config: hash, env: "production")
-
-        config = ActiveRecord::Tasks::DatabaseTasks.current_config(env: "production", spec: "exists")
-
-        assert_equal hash, config
-      end
-    end
-
-    private
-      def with_stubbed_configurations
-        old_configurations = ActiveRecord::Base.configurations
-        ActiveRecord::Base.configurations = { "production" => { "exists" => { "database" => "my-db" } } }
-
-        assert_deprecated do
-          yield
-        end
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
-        assert_deprecated do
-          ActiveRecord::Tasks::DatabaseTasks.current_config = nil
-        end
-      end
   end
 
   class DatabaseTasksRegisterTask < ActiveRecord::TestCase
@@ -302,7 +245,27 @@ module ActiveRecord
     def test_ensure_db_dir
       Dir.mktmpdir do |dir|
         ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
-          db_config = OpenStruct.new(name: "fake_db_config")
+          updated_hash = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash.merge(schema_dump: "fake_db_config_schema.rb")
+          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", updated_hash)
+          path = "#{dir}/fake_db_config_schema.rb"
+
+          FileUtils.rm_rf(dir)
+          assert_not File.file?(path)
+
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+
+          assert File.file?(path)
+        end
+      end
+    ensure
+      ActiveRecord::Base.clear_cache!
+    end
+
+    def test_db_dir_ignored_if_included_in_schema_dump
+      Dir.mktmpdir do |dir|
+        ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
+          updated_hash = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash.merge(schema_dump: "#{dir}/fake_db_config_schema.rb")
+          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", updated_hash)
           path = "#{dir}/fake_db_config_schema.rb"
 
           FileUtils.rm_rf(dir)
@@ -392,15 +355,13 @@ module ActiveRecord
     end
 
     private
-      def with_stubbed_configurations_establish_connection
+      def with_stubbed_configurations_establish_connection(&block)
         old_configurations = ActiveRecord::Base.configurations
         ActiveRecord::Base.configurations = @configurations
 
         # To refrain from connecting to a newly created empty DB in
         # sqlite3_mem tests
-        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
-          yield
-        end
+        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil, &block)
       ensure
         ActiveRecord::Base.configurations = old_configurations
       end
@@ -520,13 +481,11 @@ module ActiveRecord
         ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
       end
 
-      def with_stubbed_configurations_establish_connection
+      def with_stubbed_configurations_establish_connection(&block)
         old_configurations = ActiveRecord::Base.configurations
         ActiveRecord::Base.configurations = @configurations
 
-        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
-          yield
-        end
+        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil, &block)
       ensure
         ActiveRecord::Base.configurations = old_configurations
       end
@@ -637,13 +596,11 @@ module ActiveRecord
         ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
       end
 
-      def with_stubbed_configurations_establish_connection
+      def with_stubbed_configurations_establish_connection(&block)
         old_configurations = ActiveRecord::Base.configurations
         ActiveRecord::Base.configurations = @configurations
 
-        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
-          yield
-        end
+        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil, &block)
       ensure
         ActiveRecord::Base.configurations = old_configurations
       end
@@ -1587,28 +1544,10 @@ module ActiveRecord
       @configurations = { "development" => { "database" => "my-db" } }
     end
 
-    def test_check_schema_file_defaults
-      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
-        assert_deprecated do
-          assert_equal "/tmp/schema.rb", ActiveRecord::Tasks::DatabaseTasks.schema_file
-        end
-      end
-    end
-
-    { ruby: "schema.rb", sql: "structure.sql" }.each_pair do |fmt, filename|
-      define_method("test_check_schema_file_for_#{fmt}_format") do
-        ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
-          assert_deprecated do
-            assert_equal "/tmp/#{filename}", ActiveRecord::Tasks::DatabaseTasks.schema_file(fmt)
-          end
-        end
-      end
-    end
-
     def test_check_dump_filename_defaults
       ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
         with_stubbed_configurations do
-          assert_equal "/tmp/schema.rb", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "primary").name)
+          assert_equal "/tmp/schema.rb", ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(config_for("development", "primary"))
         end
       end
     end
@@ -1618,7 +1557,7 @@ module ActiveRecord
       ENV["SCHEMA"] = "schema_path"
       ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
         with_stubbed_configurations do
-          assert_equal "schema_path", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "primary").name)
+          assert_equal "schema_path", ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(config_for("development", "primary"))
         end
       end
     ensure
@@ -1629,7 +1568,7 @@ module ActiveRecord
       define_method("test_check_dump_filename_for_#{fmt}_format") do
         ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
           with_stubbed_configurations do
-            assert_equal "/tmp/#{filename}", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "primary").name, fmt)
+            assert_equal "/tmp/#{filename}", ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(config_for("development", "primary"), fmt)
           end
         end
       end
@@ -1641,7 +1580,18 @@ module ActiveRecord
           "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
         }
         with_stubbed_configurations(configurations) do
-          assert_equal "/tmp/secondary_schema.rb", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "secondary").name)
+          assert_equal "/tmp/secondary_schema.rb", ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(config_for("development", "secondary"))
+        end
+      end
+    end
+
+    def test_setting_schema_dump_to_nil
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
+        configurations = {
+          "development" => { "primary" => { "database" => "dev-db", "schema_dump" => false } },
+        }
+        with_stubbed_configurations(configurations) do
+          assert_nil ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(config_for("development", "primary"))
         end
       end
     end
@@ -1654,7 +1604,7 @@ module ActiveRecord
           "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
         }
         with_stubbed_configurations(configurations) do
-          assert_equal "schema_path", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "secondary").name)
+          assert_equal "schema_path", ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(config_for("development", "secondary"))
         end
       end
     ensure
@@ -1668,7 +1618,7 @@ module ActiveRecord
             "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
           }
           with_stubbed_configurations(configurations) do
-            assert_equal "/tmp/secondary_#{filename}", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "secondary").name, fmt)
+            assert_equal "/tmp/secondary_#{filename}", ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(config_for("development", "secondary"), fmt)
           end
         end
       end

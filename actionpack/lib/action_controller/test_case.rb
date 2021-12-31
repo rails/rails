@@ -31,7 +31,7 @@ module ActionController
 
   # ActionController::TestCase will be deprecated and moved to a gem in the future.
   # Please use ActionDispatch::IntegrationTest going forward.
-  class TestRequest < ActionDispatch::TestRequest #:nodoc:
+  class TestRequest < ActionDispatch::TestRequest # :nodoc:
     DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
     DEFAULT_ENV.delete "PATH_INFO"
 
@@ -179,7 +179,7 @@ module ActionController
 
   # Methods #destroy and #load! are overridden to avoid calling methods on the
   # @store object, which does not exist for the TestSession class.
-  class TestSession < Rack::Session::Abstract::PersistedSecure::SecureSessionHash #:nodoc:
+  class TestSession < Rack::Session::Abstract::PersistedSecure::SecureSessionHash # :nodoc:
     DEFAULT_OPTIONS = Rack::Session::Abstract::Persisted::DEFAULT_OPTIONS
 
     def initialize(session = {})
@@ -333,6 +333,8 @@ module ActionController
   #
   #  assert_redirected_to page_url(title: 'foo')
   class TestCase < ActiveSupport::TestCase
+    singleton_class.attr_accessor :executor_around_each_request
+
     module Behavior
       extend ActiveSupport::Concern
       include ActionDispatch::TestProcess
@@ -463,9 +465,15 @@ module ActionController
       # prefer using #get, #post, #patch, #put, #delete and #head methods
       # respectively which will make tests more expressive.
       #
+      # It's not recommended to make more than one request in the same test. Instance
+      # variables that are set in one request will not persist to the next request,
+      # but it's not guaranteed that all Rails internal state will be reset. Prefer
+      # ActionDispatch::IntegrationTest for making multiple requests in the same test.
+      #
       # Note that the request method is not verified.
       def process(action, method: "GET", params: nil, session: nil, body: nil, flash: {}, format: nil, xhr: false, as: nil)
         check_required_ivars
+        @controller.clear_instance_variables_between_requests
 
         action = +action.to_s
         http_method = method.to_s.upcase
@@ -578,10 +586,19 @@ module ActionController
           end
         end
 
+        def wrap_execution(&block)
+          if ActionController::TestCase.executor_around_each_request && defined?(Rails.application) && Rails.application
+            Rails.application.executor.wrap(&block)
+          else
+            yield
+          end
+        end
+
         def process_controller_response(action, cookies, xhr)
           begin
             @controller.recycle!
-            @controller.dispatch(action, @request, @response)
+
+            wrap_execution { @controller.dispatch(action, @request, @response) }
           ensure
             @request = @controller.request
             @response = @controller.response
@@ -627,7 +644,7 @@ module ActionController
         end
 
         def check_required_ivars
-          # Sanity check for required instance variables so we can give an
+          # Check for required instance variables so we can give an
           # understandable error message.
           [:@routes, :@controller, :@request, :@response].each do |iv_name|
             if !instance_variable_defined?(iv_name) || instance_variable_get(iv_name).nil?

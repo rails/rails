@@ -8,7 +8,7 @@ module Rails
 
   module VERSION
     MAJOR = 7
-    MINOR = 0
+    MINOR = 1
     TINY  = 0
     PRE   = "alpha"
 

@@ -3,7 +3,7 @@
 module ActiveRecord
   module Associations
     # = Active Record Has Many Through Association
-    class HasManyThroughAssociation < HasManyAssociation #:nodoc:
+    class HasManyThroughAssociation < HasManyAssociation # :nodoc:
       include ThroughAssociation
 
       def initialize(owner, reflection)
@@ -137,7 +137,7 @@ module ActiveRecord
           case method
           when :destroy
             if scope.klass.primary_key
-              count = scope.each(&:destroy).count(&:destroyed?)
+              count = scope.destroy_all.count(&:destroyed?)
             else
               scope.each(&:_run_destroy_callbacks)
               count = scope.delete_all

@@ -131,8 +131,8 @@ module ActionDispatch
         alias []    get
         alias clear clear!
 
-        def each
-          routes.each { |name, route| yield name, route }
+        def each(&block)
+          routes.each(&block)
           self
         end
 
@@ -596,14 +596,14 @@ module ActionDispatch
         if route.segment_keys.include?(:controller)
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             Using a dynamic :controller segment in a route is deprecated and
-            will be removed in Rails 7.0.
+            will be removed in Rails 7.1.
           MSG
         end
 
         if route.segment_keys.include?(:action)
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             Using a dynamic :action segment in a route is deprecated and
-            will be removed in Rails 7.0.
+            will be removed in Rails 7.1.
           MSG
         end
 
@@ -820,6 +820,11 @@ module ActionDispatch
 
         route_with_params = generate(route_name, path_options, recall)
         path = route_with_params.path(method_name)
+
+        if options[:trailing_slash] && !options[:format] && !path.end_with?("/")
+          path += "/"
+        end
+
         params = route_with_params.params
 
         if options.key? :params

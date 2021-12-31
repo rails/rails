@@ -33,15 +33,14 @@ class ExceptionsTest < ActiveSupport::TestCase
 
     assert_raises SecondRetryableErrorOfTwo do
       RetryJob.perform_later(exceptions_to_raise, 5)
-
-      assert_equal [
-        "Raised FirstRetryableErrorOfTwo for the 1st time",
-        "Raised FirstRetryableErrorOfTwo for the 2nd time",
-        "Raised FirstRetryableErrorOfTwo for the 3rd time",
-        "Raised SecondRetryableErrorOfTwo for the 4th time",
-        "Raised SecondRetryableErrorOfTwo for the 5th time",
-      ], JobBuffer.values
     end
+
+    assert_equal [
+      "Raised FirstRetryableErrorOfTwo for the 1st time",
+      "Raised FirstRetryableErrorOfTwo for the 2nd time",
+      "Raised FirstRetryableErrorOfTwo for the 3rd time",
+      "Raised SecondRetryableErrorOfTwo for the 4th time"
+    ], JobBuffer.values
   end
 
   test "keeps a separate attempts counter for each individual retry_on declaration" do
@@ -298,6 +297,14 @@ class ExceptionsTest < ActiveSupport::TestCase
   test "successfully retry job throwing DeserializationError" do
     RetryJob.perform_later Person.new(404), 5
     assert_equal ["Raised ActiveJob::DeserializationError for the 5 time"], JobBuffer.values
+  end
+
+  test "successfully retry job throwing UnlimitedRetryError a few times" do
+    RetryJob.perform_later "UnlimitedRetryError", 10
+
+    assert_equal 10, JobBuffer.values.size
+    assert_equal "Raised UnlimitedRetryError for the 9th time", JobBuffer.values[8]
+    assert_equal "Successfully completed job", JobBuffer.values[9]
   end
 
   test "running a job enqueued by AJ 5.2" do

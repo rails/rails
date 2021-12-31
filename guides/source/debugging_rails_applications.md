@@ -286,8 +286,8 @@ noticeable with large amounts of logging, but it's a good practice to employ.
 INFO: This section was written by [Jon Cairns at a StackOverflow answer](https://stackoverflow.com/questions/16546730/logging-in-rails-is-there-any-performance-hit/16546935#16546935)
 and it is licensed under [cc by-sa 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
-Debugging with the `byebug` gem
----------------------------------
+Debugging with the `debug` gem
+------------------------------
 
 When your code is behaving in unexpected ways, you can try printing to logs or
 the console to diagnose the problem. Unfortunately, there are times when this
@@ -300,591 +300,492 @@ but don't know where to start. Just debug any request to your application and
 use this guide to learn how to move from the code you have written into the
 underlying Rails code.
 
-### Setup
+Rails 7 includes the `debug` gem in the `Gemfile` of new applications generated
+by CRuby. By default, it is ready in the `development` and `test` environments.
+Please check its [documentation](https://github.com/ruby/debug) for usage.
 
-You can use the `byebug` gem to set breakpoints and step through live code in
-Rails. To install it, just run:
+### Entering a Debugging Session
 
-```bash
-$ gem install byebug
-```
+By default, a debugging session will start after the `debug` library is required, which happens when your app boots. But don't worry, the session won't interfere your program.
 
-Inside any Rails application you can then invoke the debugger by calling the
-`byebug` method.
+ To enter the debugging session, you can use `binding.break` and its aliases: `binding.b` and `debugger`. The following examples will use `debugger`:
 
-Here's an example:
+```rb
+class PostsController < ApplicationController
+  before_action :set_post, only: %i[ show edit update destroy ]
 
-```ruby
-class PeopleController < ApplicationController
-  def new
-    byebug
-    @person = Person.new
+  # GET /posts or /posts.json
+  def index
+    @posts = Post.all
+    debugger
   end
+  # ...
 end
 ```
 
-### The Shell
+Once your app evaluates the debugging statement, it'll enter the debugging session:
 
-As soon as your application calls the `byebug` method, the debugger will be
-started in a debugger shell inside the terminal window where you launched your
-application server, and you will be placed at the debugger's prompt `(byebug)`.
-Before the prompt, the code around the line that is about to be run will be
-displayed and the current line will be marked by '=>', like this:
-
-```ruby
-[1, 10] in /PathTo/project/app/controllers/articles_controller.rb
-    3:
-    4:   # GET /articles
-    5:   # GET /articles.json
-    6:   def index
-    7:     byebug
-=>  8:     @articles = Article.find_recent
-    9:
-   10:     respond_to do |format|
-   11:       format.html # index.html.erb
-   12:       format.json { render json: @articles }
-
-(byebug)
-```
-
-If you got there by a browser request, the browser tab containing the request
-will be hung until the debugger has finished and the trace has finished
-processing the entire request.
-
-For example:
-
-```
-=> Booting Puma
-=> Rails 6.0.0 application starting in development
-=> Run `bin/rails server --help` for more startup options
-Puma starting in single mode...
-* Version 3.12.1 (ruby 2.5.7-p206), codename: Llamas in Pajamas
-* Min threads: 5, max threads: 5
-* Environment: development
-* Listening on tcp://localhost:3000
-Use Ctrl-C to stop
-Started GET "/" for 127.0.0.1 at 2014-04-11 13:11:48 +0200
-  ActiveRecord::SchemaMigration Load (0.2ms)  SELECT "schema_migrations".* FROM "schema_migrations"
-Processing by ArticlesController#index as HTML
-
-[3, 12] in /PathTo/project/app/controllers/articles_controller.rb
-    3:
-    4:   # GET /articles
-    5:   # GET /articles.json
-    6:   def index
-    7:     byebug
-=>  8:     @articles = Article.find_recent
-    9:
-   10:     respond_to do |format|
-   11:       format.html # index.html.erb
-   12:       format.json { render json: @articles }
-(byebug)
-```
-
-Now it's time to explore your application. A good place to start is
-by asking the debugger for help. Type: `help`
-
-```
-(byebug) help
-
-  break      -- Sets breakpoints in the source code
-  catch      -- Handles exception catchpoints
-  condition  -- Sets conditions on breakpoints
-  continue   -- Runs until program ends, hits a breakpoint or reaches a line
-  debug      -- Spawns a subdebugger
-  delete     -- Deletes breakpoints
-  disable    -- Disables breakpoints or displays
-  display    -- Evaluates expressions every time the debugger stops
-  down       -- Moves to a lower frame in the stack trace
-  edit       -- Edits source files
-  enable     -- Enables breakpoints or displays
-  finish     -- Runs the program until frame returns
-  frame      -- Moves to a frame in the call stack
-  help       -- Helps you using byebug
-  history    -- Shows byebug's history of commands
-  info       -- Shows several information about the program being debugged
-  interrupt  -- Interrupts the program
-  irb        -- Starts an IRB session
-  kill       -- Sends a signal to the current process
-  list       -- Lists lines of source code
-  method     -- Shows methods of an object, class or module
-  next       -- Runs one or more lines of code
-  pry        -- Starts a Pry session
-  quit       -- Exits byebug
-  restart    -- Restarts the debugged program
-  save       -- Saves current byebug session to a file
-  set        -- Modifies byebug settings
-  show       -- Shows byebug settings
-  source     -- Restores a previously saved byebug session
-  step       -- Steps into blocks or methods one or more times
-  thread     -- Commands to manipulate threads
-  tracevar   -- Enables tracing of a global variable
-  undisplay  -- Stops displaying all or some expressions when program stops
-  untracevar -- Stops tracing a global variable
-  up         -- Moves to a higher frame in the stack trace
-  var        -- Shows variables and its values
-  where      -- Displays the backtrace
-
-(byebug)
-```
-
-To see the previous ten lines you should type `list-` (or `l-`).
-
-```
-(byebug) l-
-
-[1, 10] in /PathTo/project/app/controllers/articles_controller.rb
-   1  class ArticlesController < ApplicationController
-   2    before_action :set_article, only: [:show, :edit, :update, :destroy]
-   3
-   4    # GET /articles
-   5    # GET /articles.json
-   6    def index
-   7      byebug
-   8      @articles = Article.find_recent
-   9
-   10     respond_to do |format|
-```
-
-This way you can move inside the file and see the code above the line where you
-added the `byebug` call. Finally, to see where you are in the code again you can
-type `list=`
-
-```
-(byebug) list=
-
-[3, 12] in /PathTo/project/app/controllers/articles_controller.rb
-    3:
-    4:   # GET /articles
-    5:   # GET /articles.json
-    6:   def index
-    7:     byebug
-=>  8:     @articles = Article.find_recent
-    9:
-   10:     respond_to do |format|
-   11:       format.html # index.html.erb
-   12:       format.json { render json: @articles }
-(byebug)
+```rb
+Processing by PostsController#index as HTML
+[2, 11] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+     2|   before_action :set_post, only: %i[ show edit update destroy ]
+     3|
+     4|   # GET /posts or /posts.json
+     5|   def index
+     6|     @posts = Post.all
+=>   7|     debugger
+     8|   end
+     9|
+    10|   # GET /posts/1 or /posts/1.json
+    11|   def show
+=>#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7
+  #1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg)
 ```
 
 ### The Context
 
-When you start debugging your application, you will be placed in different
-contexts as you go through the different parts of the stack.
+After entering the debugging session, you can type in Ruby code as you're in a Rails console or IRB.
 
-The debugger creates a context when a stopping point or an event is reached. The
-context has information about the suspended program which enables the debugger
-to inspect the frame stack, evaluate variables from the perspective of the
-debugged program, and know the place where the debugged program is stopped.
-
-At any time you can call the `backtrace` command (or its alias `where`) to print
-the backtrace of the application. This can be very helpful to know how you got
-where you are. If you ever wondered about how you got somewhere in your code,
-then `backtrace` will supply the answer.
-
-```
-(byebug) where
---> #0  ArticlesController.index
-      at /PathToProject/app/controllers/articles_controller.rb:8
-    #1  ActionController::BasicImplicitRender.send_action(method#String, *args#Array)
-      at /PathToGems/actionpack-5.1.0/lib/action_controller/metal/basic_implicit_render.rb:4
-    #2  AbstractController::Base.process_action(action#NilClass, *args#Array)
-      at /PathToGems/actionpack-5.1.0/lib/abstract_controller/base.rb:181
-    #3  ActionController::Rendering.process_action(action, *args)
-      at /PathToGems/actionpack-5.1.0/lib/action_controller/metal/rendering.rb:30
-...
+```rb
+(rdbg) @posts    # ruby
+[]
+(rdbg) self
+#<PostsController:0x0000000000aeb0>
+(rdbg)
 ```
 
-The current frame is marked with `-->`. You can move anywhere you want in this
-trace (thus changing the context) by using the `frame n` command, where _n_ is
-the specified frame number. If you do that, `byebug` will display your new
-context.
+You can also use `p` or `pp` command to evaluate Ruby expressions (e.g. when a variable name conflicts with a debugger command).
 
-```
-(byebug) frame 2
-
-[176, 185] in /PathToGems/actionpack-5.1.0/lib/abstract_controller/base.rb
-   176:       # is the intended way to override action dispatching.
-   177:       #
-   178:       # Notice that the first argument is the method to be dispatched
-   179:       # which is *not* necessarily the same as the action name.
-   180:       def process_action(method_name, *args)
-=> 181:         send_action(method_name, *args)
-   182:       end
-   183:
-   184:       # Actually call the method associated with the action. Override
-   185:       # this method if you wish to change how action methods are called,
-(byebug)
+```rb
+(rdbg) p headers    # command
+=> {"X-Frame-Options"=>"SAMEORIGIN", "X-XSS-Protection"=>"1; mode=block", "X-Content-Type-Options"=>"nosniff", "X-Download-Options"=>"noopen", "X-Permitted-Cross-Domain-Policies"=>"none", "Referrer-Policy"=>"strict-origin-when-cross-origin"}
+(rdbg) pp headers    # command
+{"X-Frame-Options"=>"SAMEORIGIN",
+ "X-XSS-Protection"=>"1; mode=block",
+ "X-Content-Type-Options"=>"nosniff",
+ "X-Download-Options"=>"noopen",
+ "X-Permitted-Cross-Domain-Policies"=>"none",
+ "Referrer-Policy"=>"strict-origin-when-cross-origin"}
+(rdbg)
 ```
 
-The available variables are the same as if you were running the code line by
-line. After all, that's what debugging is.
+Besides direct evaluation, debugger also helps you collect rich amount of information through different commands. Just to name a few here:
 
-You can also use `up [n]` and `down [n]` commands in order to change the context
-_n_ frames up or down the stack respectively. _n_ defaults to one. Up in this
-case is towards higher-numbered stack frames, and down is towards lower-numbered
-stack frames.
+- `info` (or `i`) - Information about current frame.
+- `backtrace` (or `bt`) - Backtrace (with additional information).
+- `outline` (or `o`, `ls`) - Available methods, constants, local variables, and instance variables in the current scope.
 
-### Threads
+#### The info command
 
-The debugger can list, stop, resume, and switch between running threads by using
-the `thread` command (or the abbreviated `th`). This command has a handful of
-options:
+It'll give you an overview of the values of local and instance variables that are visible from the current frame.
 
-* `thread`: shows the current thread.
-* `thread list`: is used to list all threads and their statuses. The current
-thread is marked with a plus (+) sign.
-* `thread stop n`: stops thread _n_.
-* `thread resume n`: resumes thread _n_.
-* `thread switch n`: switches the current thread context to _n_.
-
-This command is very helpful when you are debugging concurrent threads and need
-to verify that there are no race conditions in your code.
-
-### Inspecting Variables
-
-Any expression can be evaluated in the current context. To evaluate an
-expression, just type it!
-
-This example shows how you can print the instance variables defined within the
-current context:
-
-```
-[3, 12] in /PathTo/project/app/controllers/articles_controller.rb
-    3:
-    4:   # GET /articles
-    5:   # GET /articles.json
-    6:   def index
-    7:     byebug
-=>  8:     @articles = Article.find_recent
-    9:
-   10:     respond_to do |format|
-   11:       format.html # index.html.erb
-   12:       format.json { render json: @articles }
-
-(byebug) instance_variables
-[:@_action_has_layout, :@_routes, :@_request, :@_response, :@_lookup_context,
- :@_action_name, :@_response_body, :@marked_for_same_origin_verification,
- :@_config]
+```rb
+(rdbg) info    # command
+%self = #<PostsController:0x0000000000af78>
+@_action_has_layout = true
+@_action_name = "index"
+@_config = {}
+@_lookup_context = #<ActionView::LookupContext:0x00007fd91a037e38 @details_key=nil, @digest_cache=...
+@_request = #<ActionDispatch::Request GET "http://localhost:3000/posts" for 127.0.0.1>
+@_response = #<ActionDispatch::Response:0x00007fd91a03ea08 @mon_data=#<Monitor:0x00007fd91a03e8c8>...
+@_response_body = nil
+@_routes = nil
+@marked_for_same_origin_verification = true
+@posts = []
+@rendered_format = nil
 ```
 
-As you may have figured out, all of the variables that you can access from a
-controller are displayed. This list is dynamically updated as you execute code.
-For example, run the next line using `next` (you'll learn more about this
-command later in this guide).
+#### The backtrace command
 
-```
-(byebug) next
+When used without any options, it lists all the frames on the stack:
 
-[5, 14] in /PathTo/project/app/controllers/articles_controller.rb
-   5     # GET /articles.json
-   6     def index
-   7       byebug
-   8       @articles = Article.find_recent
-   9
-=> 10      respond_to do |format|
-   11        format.html # index.html.erb
-   12        format.json { render json: @articles }
-   13      end
-   14    end
-   15
-(byebug)
+```rb
+=>#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7
+  #1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/action_controller/metal/basic_implicit_render.rb:6
+  #2    AbstractController::Base#process_action(method_name="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/abstract_controller/base.rb:214
+  #3    ActionController::Rendering#process_action(#arg_rest=nil) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/action_controller/metal/rendering.rb:53
+  #4    block in process_action at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/abstract_controller/callbacks.rb:221
+  #5    block in run_callbacks at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-7.1.0.alpha/lib/active_support/callbacks.rb:118
+  #6    ActionText::Rendering::ClassMethods#with_renderer(renderer=#<PostsController:0x0000000000af78>) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-7.1.0.alpha/lib/action_text/rendering.rb:20
+  #7    block {|controller=#<PostsController:0x0000000000af78>, action=#<Proc:0x00007fd91985f1c0 /Users/st0012/...|} in <class:Engine> (4 levels) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-7.1.0.alpha/lib/action_text/engine.rb:69
+  #8    [C] BasicObject#instance_exec at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-7.1.0.alpha/lib/active_support/callbacks.rb:127
+  ..... and more
 ```
 
-And then ask again for the instance_variables:
+Every frame comes with:
 
+- Frame identifier
+- Call location
+- Additional information (e.g. block or method arguments)
+
+This will give you a great sense about what's happening in your app. However, you probably will notice that:
+
+- There are too many frames (usually 50+ in a Rails app).
+- Most of the frames are from Rails or other libraries you use.
+
+Don't worry, the `backtrace` command provides 2 options to help you filter frames:
+
+- `backtrace [num]` - only show `num` numbers of frames, e.g. `backtrace 10` .
+- `backtrace /pattern/` - only show frames with identifier or location that matches the pattern, e.g. `backtrace /MyModel/`.
+
+It's also possible to use these options together: `backtrace [num] /pattern/`.
+
+#### The outline command
+
+This command is similar to `pry` and `irb`'s `ls` command. It will show you what's accessible from you current scope, including:
+
+- Local variables
+- Instance variables
+- Class variables
+- Methods & their sources
+- ...etc.
+
+```rb
+ActiveSupport::Configurable#methods: config
+AbstractController::Base#methods:
+  action_methods  action_name  action_name=  available_action?  controller_path  inspect
+  response_body
+ActionController::Metal#methods:
+  content_type       content_type=  controller_name  dispatch          headers
+  location           location=      media_type       middleware_stack  middleware_stack=
+  middleware_stack?  performed?     request          request=          reset_session
+  response           response=      response_body=   response_code     session
+  set_request!       set_response!  status           status=           to_a
+ActionView::ViewPaths#methods:
+  _prefixes  any_templates?  append_view_path   details_for_lookup  formats     formats=  locale
+  locale=    lookup_context  prepend_view_path  template_exists?    view_paths
+AbstractController::Rendering#methods: view_assigns
+
+# .....
+
+PostsController#methods: create  destroy  edit  index  new  show  update
+instance variables:
+  @_action_has_layout  @_action_name    @_config  @_lookup_context                      @_request
+  @_response           @_response_body  @_routes  @marked_for_same_origin_verification  @posts
+  @rendered_format
+class variables: @@raise_on_missing_translations  @@raise_on_open_redirects
 ```
-(byebug) instance_variables
-[:@_action_has_layout, :@_routes, :@_request, :@_response, :@_lookup_context,
- :@_action_name, :@_response_body, :@marked_for_same_origin_verification,
- :@_config, :@articles]
-```
-
-Now `@articles` is included in the instance variables, because the line defining
-it was executed.
-
-TIP: You can also step into **irb** mode with the command `irb` (of course!).
-This will start an irb session within the context you invoked it.
-
-The `var` method is the most convenient way to show variables and their values.
-Let's have `byebug` help us with it.
-
-```
-(byebug) help var
-
-  [v]ar <subcommand>
-
-  Shows variables and its values
-
-
-  var all      -- Shows local, global and instance variables of self.
-  var args     -- Information about arguments of the current scope
-  var const    -- Shows constants of an object.
-  var global   -- Shows global variables.
-  var instance -- Shows instance variables of self or a specific object.
-  var local    -- Shows local variables in current scope.
-
-```
-
-This is a great way to inspect the values of the current context variables. For
-example, to check that we have no local variables currently defined:
-
-```
-(byebug) var local
-(byebug)
-```
-
-You can also inspect for an object method this way:
-
-```
-(byebug) var instance Article.new
-@_start_transaction_state = nil
-@aggregation_cache = {}
-@association_cache = {}
-@attributes = #<ActiveRecord::AttributeSet:0x007fd0682a9b18 @attributes={"id"=>#<ActiveRecord::Attribute::FromDatabase:0x007fd0682a9a00 @name="id", @value_be...
-@destroyed = false
-@destroyed_by_association = nil
-@marked_for_destruction = false
-@new_record = true
-@readonly = false
-@transaction_state = nil
-```
-
-You can also use `display` to start watching variables. This is a good way of
-tracking the values of a variable while the execution goes on.
-
-```
-(byebug) display @articles
-1: @articles = nil
-```
-
-The variables inside the displayed list will be printed with their values after
-you move in the stack. To stop displaying a variable use `undisplay n` where
-_n_ is the variable number (1 in the last example).
-
-### Step by Step
-
-Now you should know where you are in the running trace and be able to print the
-available variables. But let's continue and move on with the application
-execution.
-
-Use `step` (abbreviated `s`) to continue running your program until the next
-logical stopping point and return control to the debugger. `next` is similar to
-`step`, but while `step` stops at the next line of code executed, doing just a
-single step, `next` moves to the next line without descending inside methods.
-
-For example, consider the following situation:
-
-```
-Started GET "/" for 127.0.0.1 at 2014-04-11 13:39:23 +0200
-Processing by ArticlesController#index as HTML
-
-[1, 6] in /PathToProject/app/models/article.rb
-   1: class Article < ApplicationRecord
-   2:   def self.find_recent(limit = 10)
-   3:     byebug
-=> 4:     where('created_at > ?', 1.week.ago).limit(limit)
-   5:   end
-   6: end
-
-(byebug)
-```
-
-If we use `next`, we won't go deep inside method calls. Instead, `byebug` will
-go to the next line within the same context. In this case, it is the last line
-of the current method, so `byebug` will return to the next line of the caller
-method.
-
-```
-(byebug) next
-[4, 13] in /PathToProject/app/controllers/articles_controller.rb
-    4:   # GET /articles
-    5:   # GET /articles.json
-    6:   def index
-    7:     @articles = Article.find_recent
-    8:
-=>  9:     respond_to do |format|
-   10:       format.html # index.html.erb
-   11:       format.json { render json: @articles }
-   12:     end
-   13:   end
-
-(byebug)
-```
-
-If we use `step` in the same situation, `byebug` will literally go to the next
-Ruby instruction to be executed -- in this case, Active Support's `week` method.
-
-```
-(byebug) step
-
-[49, 58] in /PathToGems/activesupport-5.1.0/lib/active_support/core_ext/numeric/time.rb
-   49:
-   50:   # Returns a Duration instance matching the number of weeks provided.
-   51:   #
-   52:   #   2.weeks # => 2 weeks
-   53:   def weeks
-=> 54:     ActiveSupport::Duration.weeks(self)
-   55:   end
-   56:   alias :week :weeks
-   57:
-   58:   # Returns a Duration instance matching the number of fortnights provided.
-(byebug)
-```
-
-This is one of the best ways to find bugs in your code.
-
-TIP: You can also use `step n` or `next n` to move forward `n` steps at once.
 
 ### Breakpoints
 
-A breakpoint makes your application stop whenever a certain point in the program
-is reached. The debugger shell is invoked in that line.
+There are many ways to insert and trigger a breakpoint in the debugger. In additional to adding debugging statements (e.g. `debugger`) directly in your code, you can also insert breakpoints with commands:
 
-You can add breakpoints dynamically with the command `break` (or just `b`).
-There are 3 possible ways of adding breakpoints manually:
+- `break` (or `b`)
+  - `break` - list all breakpoints
+  - `break <num>` - set a breakpoint on the `num` line of the current file
+  - `break <file:num>` - set a breakpoint on the `num` line of `file`
+  - `break <Class#method>` or `break <Class.method>` - set a breakpoint on `Class#method` or `Class.method`
+  - `break <expr>.<method>` - sets a breakpoint on `<expr>` result's `<method>` method.
+- `catch <Exception>` - set a breakpoint that'll stop when `Exception` is raised
+- `watch <@ivar>` - set a breakpoint that'll stop when the result of current object's `@ivar` is changed (this is slow)
 
-* `break n`: set breakpoint in line number _n_ in the current source file.
-* `break file:n [if expression]`: set breakpoint in line number _n_ inside
-file named _file_. If an _expression_ is given it must evaluated to _true_ to
-fire up the debugger.
-* `break class(.|\#)method [if expression]`: set breakpoint in _method_ (. and
-\# for class and instance method respectively) defined in _class_. The
-_expression_ works the same way as with file:n.
+And to remove them, you can use:
 
-For example, in the previous situation
+- `delete` (or `del`)
+  - `delete` - delete all breakpoints
+  - `delete <num>` - delete the breakpoint with id `num`
 
-```
-[4, 13] in /PathToProject/app/controllers/articles_controller.rb
-    4:   # GET /articles
-    5:   # GET /articles.json
-    6:   def index
-    7:     @articles = Article.find_recent
-    8:
-=>  9:     respond_to do |format|
-   10:       format.html # index.html.erb
-   11:       format.json { render json: @articles }
-   12:     end
-   13:   end
+#### The break command
 
-(byebug) break 11
-Successfully created breakpoint with id 1
+**Set a breakpoint with specified line number - e.g. `b 28`**
 
-```
-
-Use `info breakpoints` to list breakpoints. If you supply a number, it lists
-that breakpoint. Otherwise it lists all breakpoints.
-
-```
-(byebug) info breakpoints
-Num Enb What
-1   y   at /PathToProject/app/controllers/articles_controller.rb:11
+```rb
+[20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+    20|   end
+    21|
+    22|   # POST /posts or /posts.json
+    23|   def create
+    24|     @post = Post.new(post_params)
+=>  25|     debugger
+    26|
+    27|     respond_to do |format|
+    28|       if @post.save
+    29|         format.html { redirect_to @post, notice: "Post was successfully created." }
+=>#0    PostsController#create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:25
+  #1    ActionController::BasicImplicitRender#send_action(method="create", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg) b 28    # break command
+#0  BP - Line  /Users/st0012/projects/rails-guide-example/app/controllers/posts_controller.rb:28 (line)
 ```
 
-To delete breakpoints: use the command `delete n` to remove the breakpoint
-number _n_. If no number is specified, it deletes all breakpoints that are
-currently active.
+```rb
+(rdbg) c    # continue command
+[23, 32] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+    23|   def create
+    24|     @post = Post.new(post_params)
+    25|     debugger
+    26|
+    27|     respond_to do |format|
+=>  28|       if @post.save
+    29|         format.html { redirect_to @post, notice: "Post was successfully created." }
+    30|         format.json { render :show, status: :created, location: @post }
+    31|       else
+    32|         format.html { render :new, status: :unprocessable_entity }
+=>#0    block {|format=#<ActionController::MimeResponds::Collec...|} in create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:28
+  #1    ActionController::MimeResponds#respond_to(mimes=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/mime_responds.rb:205
+  # and 74 frames (use `bt' command for all frames)
 
-```
-(byebug) delete 1
-(byebug) info breakpoints
-No breakpoints.
-```
-
-You can also enable or disable breakpoints:
-
-* `enable breakpoints [n [m [...]]]`: allows a specific breakpoint list or all
-breakpoints to stop your program. This is the default state when you create a
-breakpoint.
-* `disable breakpoints [n [m [...]]]`: make certain (or all) breakpoints have
-no effect on your program.
-
-### Catching Exceptions
-
-The command `catch exception-name` (or just `cat exception-name`) can be used to
-intercept an exception of type _exception-name_ when there would otherwise be no
-handler for it.
-
-To list all active catchpoints use `catch`.
-
-### Resuming Execution
-
-There are two ways to resume execution of an application that is stopped in the
-debugger:
-
-* `continue [n]`: resumes program execution at the address where your script last
-stopped; any breakpoints set at that address are bypassed. The optional argument
-`n` allows you to specify a line number to set a one-time breakpoint which is
-deleted when that breakpoint is reached.
-* `finish [n]`: execute until the selected stack frame returns. If no frame
-number is given, the application will run until the currently selected frame
-returns. The currently selected frame starts out the most-recent frame or 0 if
-no frame positioning (e.g. up, down, or frame) has been performed. If a frame
-number is given it will run until the specified frame returns.
-
-### Editing
-
-Two commands allow you to open code from the debugger into an editor:
-
-* `edit [file:n]`: edit file named _file_ using the editor specified by the
-EDITOR environment variable. A specific line _n_ can also be given.
-
-### Quitting
-
-To exit the debugger, use the `quit` command (abbreviated to `q`). Or, type `q!`
-to bypass the `Really quit? (y/n)` prompt and exit unconditionally.
-
-A simple quit tries to terminate all threads in effect. Therefore your server
-will be stopped and you will have to start it again.
-
-### Settings
-
-`byebug` has a few available options to tweak its behavior:
-
-```
-(byebug) help set
-
-  set <setting> <value>
-
-  Modifies byebug settings
-
-  Boolean values take "on", "off", "true", "false", "1" or "0". If you
-  don't specify a value, the boolean setting will be enabled. Conversely,
-  you can use "set no<setting>" to disable them.
-
-  You can see these environment settings with the "show" command.
-
-  List of supported settings:
-
-  autosave       -- Automatically save command history record on exit
-  autolist       -- Invoke list command on every stop
-  width          -- Number of characters per line in byebug's output
-  autoirb        -- Invoke IRB on every stop
-  basename       -- <file>:<line> information after every stop uses short paths
-  linetrace      -- Enable line execution tracing
-  autopry        -- Invoke Pry on every stop
-  stack_on_error -- Display stack trace when `eval` raises an exception
-  fullpath       -- Display full file names in backtraces
-  histfile       -- File where cmd history is saved to. Default: ./.byebug_history
-  listsize       -- Set number of source lines to list by default
-  post_mortem    -- Enable/disable post-mortem mode
-  callstyle      -- Set how you want method call parameters to be displayed
-  histsize       -- Maximum number of commands that can be stored in byebug history
-  savefile       -- File where settings are saved to. Default: ~/.byebug_save
+Stop by #0  BP - Line  /Users/st0012/projects/rails-guide-example/app/controllers/posts_controller.rb:28 (line)
 ```
 
-TIP: You can save these settings in an `.byebugrc` file in your home directory.
-The debugger reads these global settings when it starts. For example:
+**Set a breakpoint on a given method call - e.g. `b @post.save`**
+
+```rb
+[20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+    20|   end
+    21|
+    22|   # POST /posts or /posts.json
+    23|   def create
+    24|     @post = Post.new(post_params)
+=>  25|     debugger
+    26|
+    27|     respond_to do |format|
+    28|       if @post.save
+    29|         format.html { redirect_to @post, notice: "Post was successfully created." }
+=>#0    PostsController#create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:25
+  #1    ActionController::BasicImplicitRender#send_action(method="create", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg) b @post.save    # break command
+#0  BP - Method  @post.save at /Users/st0012/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/suppressor.rb:43
 
 ```
-set callstyle short
-set listsize 25
+
+```rb
+(rdbg) c    # continue command
+[39, 48] in ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/suppressor.rb
+    39|         SuppressorRegistry.suppressed[name] = previous_state
+    40|       end
+    41|     end
+    42|
+    43|     def save(**) # :nodoc:
+=>  44|       SuppressorRegistry.suppressed[self.class.name] ? true : super
+    45|     end
+    46|
+    47|     def save!(**) # :nodoc:
+    48|       SuppressorRegistry.suppressed[self.class.name] ? true : super
+=>#0    ActiveRecord::Suppressor#save(#arg_rest=nil) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/suppressor.rb:44
+  #1    block {|format=#<ActionController::MimeResponds::Collec...|} in create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:28
+  # and 75 frames (use `bt' command for all frames)
+
+Stop by #0  BP - Method  @post.save at /Users/st0012/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/suppressor.rb:43
 ```
+
+#### The catch command
+
+**Stop when an exception is raised - e.g. `catch ActiveRecord::RecordInvalid`**
+
+```rb
+[20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+    20|   end
+    21|
+    22|   # POST /posts or /posts.json
+    23|   def create
+    24|     @post = Post.new(post_params)
+=>  25|     debugger
+    26|
+    27|     respond_to do |format|
+    28|       if @post.save!
+    29|         format.html { redirect_to @post, notice: "Post was successfully created." }
+=>#0    PostsController#create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:25
+  #1    ActionController::BasicImplicitRender#send_action(method="create", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg) catch ActiveRecord::RecordInvalid    # command
+#1  BP - Catch  "ActiveRecord::RecordInvalid"
+```
+
+```rb
+(rdbg) c    # continue command
+[75, 84] in ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb
+    75|     def default_validation_context
+    76|       new_record? ? :create : :update
+    77|     end
+    78|
+    79|     def raise_validation_error
+=>  80|       raise(RecordInvalid.new(self))
+    81|     end
+    82|
+    83|     def perform_validations(options = {})
+    84|       options[:validate] == false || valid?(options[:context])
+=>#0    ActiveRecord::Validations#raise_validation_error at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:80
+  #1    ActiveRecord::Validations#save!(options={}) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:53
+  # and 88 frames (use `bt' command for all frames)
+
+Stop by #1  BP - Catch  "ActiveRecord::RecordInvalid"
+```
+
+#### The watch command
+
+**Stop when the instance variable is changed - e.g. `watch @_response_body`**
+
+```rb
+[20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+    20|   end
+    21|
+    22|   # POST /posts or /posts.json
+    23|   def create
+    24|     @post = Post.new(post_params)
+=>  25|     debugger
+    26|
+    27|     respond_to do |format|
+    28|       if @post.save!
+    29|         format.html { redirect_to @post, notice: "Post was successfully created." }
+=>#0    PostsController#create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:25
+  #1    ActionController::BasicImplicitRender#send_action(method="create", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg) watch @_response_body    # command
+#0  BP - Watch  #<PostsController:0x00007fce69ca5320> @_response_body =
+```
+
+```rb
+(rdbg) c    # continue command
+[173, 182] in ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal.rb
+   173|       body = [body] unless body.nil? || body.respond_to?(:each)
+   174|       response.reset_body!
+   175|       return unless body
+   176|       response.body = body
+   177|       super
+=> 178|     end
+   179|
+   180|     # Tests if render or redirect has already happened.
+   181|     def performed?
+   182|       response_body || response.committed?
+=>#0    ActionController::Metal#response_body=(body=["<html><body>You are being <a href=\"ht...) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal.rb:178 #=> ["<html><body>You are being <a href=\"ht...
+  #1    ActionController::Redirecting#redirect_to(options=#<Post id: 13, title: "qweqwe", content:..., response_options={:allow_other_host=>false}) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/redirecting.rb:74
+  # and 82 frames (use `bt' command for all frames)
+
+Stop by #0  BP - Watch  #<PostsController:0x00007fce69ca5320> @_response_body =  -> ["<html><body>You are being <a href=\"http://localhost:3000/posts/13\">redirected</a>.</body></html>"]
+(rdbg)
+```
+
+#### Breakpoint options
+
+In addition to different types of breakpoints, you can also specify options to achieve more advanced debugging workflow. Currently, the debugger supports 4 options:
+
+- `do: <cmd or expr>` - when the breakpoint is triggered, execute the given command/expression and continue the program:
+  - `break Foo#bar do: bt` - when `Foo#bar` is called, print the stack frames
+- `pre: <cmd or expr>` - when the breakpoint is triggered, execute the given command/expression before stopping:
+  - `break Foo#bar pre: info` - when `Foo#bar` is called, print its surrounding variables before stopping.
+- `if: <expr>` - the breakpoint only stops if the result of `<expr`> is true:
+  - `break Post#save if: params[:debug]` - stops at `Post#save` if `params[:debug]` is also true
+- `path: <path_regexp>` - the breakpoint only stops if the event that triggers it (e.g. a method call) happens from the given path:
+  - `break Post#save if: app/services/a_service` - stops at `Post#save` if the method call happens at a method matches Ruby regexp `/app\/services\/a_service/`.
+
+Please also note that the first 3 options: `do:`, `pre:` and `if:` are also available for the debug statements we mentioned earlier. For example:
+
+```rb
+[2, 11] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+     2|   before_action :set_post, only: %i[ show edit update destroy ]
+     3|
+     4|   # GET /posts or /posts.json
+     5|   def index
+     6|     @posts = Post.all
+=>   7|     debugger(do: "info")
+     8|   end
+     9|
+    10|   # GET /posts/1 or /posts/1.json
+    11|   def show
+=>#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7
+  #1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg:binding.break) info
+%self = #<PostsController:0x00000000017480>
+@_action_has_layout = true
+@_action_name = "index"
+@_config = {}
+@_lookup_context = #<ActionView::LookupContext:0x00007fce3ad336b8 @details_key=nil, @digest_cache=...
+@_request = #<ActionDispatch::Request GET "http://localhost:3000/posts" for 127.0.0.1>
+@_response = #<ActionDispatch::Response:0x00007fce3ad397e8 @mon_data=#<Monitor:0x00007fce3ad396a8>...
+@_response_body = nil
+@_routes = nil
+@marked_for_same_origin_verification = true
+@posts = #<ActiveRecord::Relation [#<Post id: 2, title: "qweqwe", content: "qweqwe", created_at: "...
+@rendered_format = nil
+```
+
+#### Program your debugging workflow
+
+With those options, you can script your debugging workflow in one line like:
+
+```rb
+def create
+  debugger(do: "catch ActiveRecord::RecordInvalid do: bt 10")
+  # ...
+end
+```
+
+And then the debugger will run the scripted command and insert the catch breakpoint
+
+```rb
+(rdbg:binding.break) catch ActiveRecord::RecordInvalid do: bt 10
+#0  BP - Catch  "ActiveRecord::RecordInvalid"
+[75, 84] in ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb
+    75|     def default_validation_context
+    76|       new_record? ? :create : :update
+    77|     end
+    78|
+    79|     def raise_validation_error
+=>  80|       raise(RecordInvalid.new(self))
+    81|     end
+    82|
+    83|     def perform_validations(options = {})
+    84|       options[:validate] == false || valid?(options[:context])
+=>#0    ActiveRecord::Validations#raise_validation_error at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:80
+  #1    ActiveRecord::Validations#save!(options={}) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:53
+  # and 88 frames (use `bt' command for all frames)
+```
+
+Once the catch breakpoint is triggered, it'll print the stack frames
+
+```rb
+Stop by #0  BP - Catch  "ActiveRecord::RecordInvalid"
+
+(rdbg:catch) bt 10
+=>#0    ActiveRecord::Validations#raise_validation_error at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:80
+  #1    ActiveRecord::Validations#save!(options={}) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:53
+  #2    block in save! at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/transactions.rb:302
+```
+
+This technique can save you from repeated manual input and make the debugging experience smoother.
+
+You can find more commands and configuration options from its [documentation](https://github.com/ruby/debug).
+
+#### Autoloading Caveat
+
+Debugging with `debug` works fine most of the time, but there's an edge case: If you evaluate an expression in the console that autoloads a namespace defined in a file, constants in that namespace won't be found.
+
+For example, if the application has these two files:
+
+```ruby
+# hotel.rb
+class Hotel
+end
+
+# hotel/pricing.rb
+module Hotel::Pricing
+end
+```
+
+and `Hotel` is not yet loaded, then
+
+```
+(rdbg) p Hotel::Pricing
+```
+
+will raise a `NameError`. In some cases, Ruby will be able to resolve an unintended constant in a different scope.
+
+If you hit this, please restart your debugging session with eager loading enabled (`config.eager_load = true`).
+
+Stepping commands line `next`, `continue`, etc., do not present this issue. Namespaces defined implicitly only by
+subdirectories are not subject to this issue either.
+
+See [ruby/debug#408](https://github.com/ruby/debug/issues/408) for details.
 
 Debugging with the `web-console` gem
 ------------------------------------
 
-Web Console is a bit like `byebug`, but it runs in the browser. In any page you
+Web Console is a bit like `debug`, but it runs in the browser. In any page you
 are developing, you can request a console in the context of a view or a
 controller. The console would be rendered next to your HTML content.
 
@@ -990,5 +891,5 @@ more.
 References
 ----------
 
-* [byebug Homepage](https://github.com/deivid-rodriguez/byebug)
 * [web-console Homepage](https://github.com/rails/web-console)
+* [debug homepage](https://github.com/ruby/debug)

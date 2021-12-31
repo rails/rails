@@ -42,9 +42,14 @@ connections:
       collation: utf8mb4_unicode_ci
 <% if ENV['MYSQL_PREPARED_STATEMENTS'] %>
       prepared_statements: true
+<% else %>
+      prepared_statements: false
 <% end %>
 <% if ENV['MYSQL_HOST'] %>
       host: <%= ENV['MYSQL_HOST'] %>
+<% end %>
+<% if ENV['MYSQL_SOCK'] %>
+      socket: "<%= ENV['MYSQL_SOCK'] %>"
 <% end %>
     arunit2:
       username: rails
@@ -52,9 +57,14 @@ connections:
       collation: utf8mb4_general_ci
 <% if ENV['MYSQL_PREPARED_STATEMENTS'] %>
       prepared_statements: true
+<% else %>
+      prepared_statements: false
 <% end %>
 <% if ENV['MYSQL_HOST'] %>
       host: <%= ENV['MYSQL_HOST'] %>
+<% end %>
+<% if ENV['MYSQL_SOCK'] %>
+      socket: "<%= ENV['MYSQL_SOCK'] %>"
 <% end %>
 
   oracle:

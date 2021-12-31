@@ -29,9 +29,6 @@ ARTest.connect
 # Quote "type" if it's a reserved word for the current connection.
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name("type")
 
-# FIXME: Remove this in Rails 7.1 when it's no longer needed.
-ActiveRecord::Base.destroy_all_in_batches = true
-
 def current_adapter?(*types)
   types.any? do |type|
     ActiveRecord::ConnectionAdapters.const_defined?(type) &&
@@ -63,6 +60,15 @@ def supports_non_unique_constraint_name?
     conn.mariadb?
   else
     false
+  end
+end
+
+def supports_text_column_with_default?
+  if current_adapter?(:Mysql2Adapter)
+    conn = ActiveRecord::Base.connection
+    conn.mariadb? && conn.database_version >= "10.2.1"
+  else
+    true
   end
 end
 

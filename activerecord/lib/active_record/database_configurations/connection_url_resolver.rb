@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "uri"
 require "active_support/core_ext/enumerable"
 
 module ActiveRecord
@@ -67,7 +68,7 @@ module ActiveRecord
               database: uri.opaque
             )
           else
-            query_hash.merge(
+            query_hash.reverse_merge(
               adapter: @adapter,
               username: uri.user,
               password: uri.password,
