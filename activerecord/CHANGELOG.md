@@ -1,3 +1,9 @@
+*   Fix incorrect argument in PostgreSQL structure dump tasks.
+
+    Updating the `--no-comment` argument added in Rails 7 to the correct `--no-comments` argument.
+
+    *Alex Dent*
+
 *   Fix migration compatibility to create SQLite references/belongs_to column as integer when migration version is 6.0.
 
     Reference/belongs_to in migrations with version 6.0 were creating columns as
