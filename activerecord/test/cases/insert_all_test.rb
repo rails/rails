@@ -343,6 +343,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_only_updates_the_column_provided_via_update_only
+    skip unless supports_insert_on_duplicate_update?
+
     Book.upsert_all [{ id: 101, name: "Perelandra", author_id: 7, isbn: "1974522598" }]
     Book.upsert_all [{ id: 101, name: "Perelandra 2", author_id: 7, isbn: "111111" }], update_only: :name
 
@@ -352,6 +354,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_only_updates_the_list_of_columns_provided_via_update_only
+    skip unless supports_insert_on_duplicate_update?
+
     Book.upsert_all [{ id: 101, name: "Perelandra", author_id: 7, isbn: "1974522598" }]
     Book.upsert_all [{ id: 101, name: "Perelandra 2", author_id: 6, isbn: "111111" }], update_only: %i[ name isbn ]
 
@@ -421,6 +425,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_true
+    skip unless supports_insert_on_duplicate_update?
+
     with_record_timestamps(Ship, true) do
       Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }]
 
@@ -433,6 +439,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_true_but_overridden
+    skip unless supports_insert_on_duplicate_update?
+
     with_record_timestamps(Ship, true) do
       Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }], record_timestamps: false
 
@@ -445,6 +453,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_false
+    skip unless supports_insert_on_duplicate_update?
+
     with_record_timestamps(Ship, false) do
       Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }]
 
@@ -457,6 +467,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_false_but_overridden
+    skip unless supports_insert_on_duplicate_update?
+
     with_record_timestamps(Ship, false) do
       Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }], record_timestamps: true
 
@@ -469,7 +481,7 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_respects_created_at_precision_when_touched_implicitly
-    skip unless supports_datetime_with_precision?
+    skip unless supports_insert_on_duplicate_update? && supports_datetime_with_precision?
 
     Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8) }]
 
