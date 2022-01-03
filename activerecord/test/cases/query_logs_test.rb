@@ -151,7 +151,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   def test_custom_basic_tags
     ActiveRecord::QueryLogs.tags = [ :application, { custom_string: "test content" } ]
 
-    assert_sql(%r{/\*application:active_record,custom_string:test content\*/$}) do
+    assert_sql(%r{/\*application:active_record,custom_string:test content\*/}) do
       Dashboard.first
     end
   end
@@ -159,7 +159,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   def test_custom_proc_tags
     ActiveRecord::QueryLogs.tags = [ :application, { custom_proc: -> { "test content" } } ]
 
-    assert_sql(%r{/\*application:active_record,custom_proc:test content\*/$}) do
+    assert_sql(%r{/\*application:active_record,custom_proc:test content\*/}) do
       Dashboard.first
     end
   end
@@ -170,7 +170,7 @@ class QueryLogsTest < ActiveRecord::TestCase
       { custom_proc: -> { "test content" }, another_proc: -> { "more test content" } },
     ]
 
-    assert_sql(%r{/\*application:active_record,custom_proc:test content,another_proc:more test content\*/$}) do
+    assert_sql(%r{/\*application:active_record,custom_proc:test content,another_proc:more test content\*/}) do
       Dashboard.first
     end
   end
@@ -179,7 +179,7 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveSupport::ExecutionContext[:foo] = "bar"
     ActiveRecord::QueryLogs.tags = [ :application, { custom_context_proc: ->(context) { context[:foo] } } ]
 
-    assert_sql(%r{/\*application:active_record,custom_context_proc:bar\*/$}) do
+    assert_sql(%r{/\*application:active_record,custom_context_proc:bar\*/}) do
       Dashboard.first
     end
   end
