@@ -319,10 +319,9 @@
         This guide provides steps to be followed when you upgrade your
         applications to a newer version of Ruby on Rails.
     -
-      name: Version 7.0 - ?
+      name: Version 7.0 - December 2021
       url: 7_0_release_notes.html
       description: Release notes for Rails 7.0.
-      work_in_progress: true
     -
       name: Version 6.1 - December 2020
       url: 6_1_release_notes.html
