@@ -1,3 +1,15 @@
+*   Allow named expression indexes to be revertible.
+
+    Previously, the following code would raise an error in a reversible migration executed while rolling back, due to the index name not being used in the index removal.
+
+    ```ruby
+    add_index(:settings, "(data->'property')", using: :gin, name: :index_settings_data_property)
+    ```
+
+    Fixes #43331.
+
+    *Oliver Günther*
+
 *   Fix incorrect argument in PostgreSQL structure dump tasks.
 
     Updating the `--no-comment` argument added in Rails 7 to the correct `--no-comments` argument.
