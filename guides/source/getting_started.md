@@ -828,7 +828,7 @@ The `create` action instantiates a new article with values for the title and
 body, and attempts to save it. If the article is saved successfully, the action
 redirects the browser to the article's page at `"http://localhost:3000/articles/#{@article.id}"`.
 Else, the action redisplays the form by rendering `app/views/articles/new.html.erb`
-with a status code 4XX for the app to work fine with [Turbo](https://github.com/hotwired/turbo-rails).
+with status code [422 Unprocessable Entity](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422).
 The title and body here are dummy values. After we create the form, we will come
 back and change these.
 
@@ -1044,8 +1044,8 @@ messages.
 When we submit the form, the `POST /articles` request is mapped to the `create`
 action. The `create` action *does* attempt to save `@article`. Therefore,
 validations *are* checked. If any validation fails, `@article` will not be
-saved, `app/views/articles/new.html.erb` will be rendered with error
-messages with a status code 4XX for the app to work fine with [Turbo](https://github.com/hotwired/turbo-rails).
+saved, and `app/views/articles/new.html.erb` will be rendered with error
+messages.
 
 TIP: To learn more about validations, see [Active Record Validations](
 active_record_validations.html). To learn more about validation error messages,
@@ -1139,9 +1139,8 @@ action will render `app/views/articles/edit.html.erb`.
 The `update` action (re-)fetches the article from the database, and attempts
 to update it with the submitted form data filtered by `article_params`. If no
 validations fail and the update is successful, the action redirects the browser
-to the article's page. Else, the action redisplays the form with error
-messages, by rendering `app/views/articles/edit.html.erb` with a status code 4XX
-for the app to work fine with [Turbo](https://github.com/hotwired/turbo-rails).
+to the article's page. Else, the action redisplays the form — with error
+messages — by rendering `app/views/articles/edit.html.erb`.
 
 #### Using Partials to Share View Code
 
@@ -1277,7 +1276,7 @@ class ArticlesController < ApplicationController
     @article = Article.find(params[:id])
     @article.destroy
 
-    redirect_to root_path, status: 303
+    redirect_to root_path, status: :see_other
   end
 
   private
@@ -1289,12 +1288,12 @@ end
 
 The `destroy` action fetches the article from the database, and calls [`destroy`](
 https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-destroy)
-on it. Then, it redirects the browser to the root path.
+on it. Then, it redirects the browser to the root path with status code
+[303 See Other](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/303).
 
 We have chosen to redirect to the root path because that is our main access
 point for articles. But, in other circumstances, you might choose to redirect to
-e.g. `articles_path`. Additionally we return an `303` status code, which lets the
-browser know, the deletion worked.
+e.g. `articles_path`.
 
 Now let's add a link at the bottom of `app/views/articles/show.html.erb` so that
 we can delete an article from its own page:
@@ -1306,21 +1305,21 @@ we can delete an article from its own page:
 
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
-  <li><%= link_to "Destroy", article_path(@article),
-                  data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %></li>
+  <li><%= link_to "Destroy", article_path(@article), data: {
+                    turbo_method: :delete,
+                    turbo_confirm: "Are you sure?"
+                  } %></li>
 </ul>
 ```
 
-In the above code, we're passing the `data` attribute with some options to `link_to`.
-The `turbo_method: :delete` option causes the link to make a `DELETE` request instead
-of a `GET` request. The `turbo_confirm: { confirm: "Are you sure?" }` option causes a
-confirmation dialog to appear when the link is clicked. If the user cancels the
-dialog, the request is aborted. Both of these options are powered by [Turbo](https://turbo.hotwired.dev/)
-called *Performing Visits*. The JavaScript file that
-implements these behaviors is included by default in fresh Rails applications.
-
-TIP: To learn more about Unobtrusive JavaScript, see [Working With JavaScript in
-Rails](working_with_javascript_in_rails.html).
+In the above code, we use the `data` option to set the `data-turbo-method` and
+`data-turbo-confirm` HTML attributes of the "Destroy" link. Both of these
+attributes hook into [Turbo](https://turbo.hotwired.dev/), which is included by
+default in fresh Rails applications. `data-turbo-method="delete"` will cause the
+link to make a `DELETE` request instead of a `GET` request.
+`data-turbo-confirm="Are you sure?"` will cause a confirmation dialog to appear
+when the link is clicked. If the user cancels the dialog, the request will be
+aborted.
 
 And that's it! We can now list, show, create, update, and delete articles!
 InCRUDable!
@@ -1499,8 +1498,10 @@ So first, we'll wire up the Article show template
 
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
-  <li><%= link_to "Destroy", article_path(@article),
-                  data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %></li>
+  <li><%= link_to "Destroy", article_path(@article), data: {
+                    turbo_method: :delete,
+                    turbo_confirm: "Are you sure?"
+                  } %></li>
 </ul>
 
 <h2>Add a comment:</h2>
@@ -1564,8 +1565,10 @@ add that to the `app/views/articles/show.html.erb`.
 
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
-  <li><%= link_to "Destroy", article_path(@article),
-                  data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %></li>
+  <li><%= link_to "Destroy", article_path(@article), data: {
+                    turbo_method: :delete,
+                    turbo_confirm: "Are you sure?"
+                  } %></li>
 </ul>
 
 <h2>Comments</h2>
@@ -1637,8 +1640,10 @@ following:
 
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
-  <li><%= link_to "Destroy", article_path(@article),
-                  data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %></li>
+  <li><%= link_to "Destroy", article_path(@article), data: {
+                    turbo_method: :delete,
+                    turbo_confirm: "Are you sure?"
+                  } %></li>
 </ul>
 
 <h2>Comments</h2>
@@ -1696,8 +1701,10 @@ Then you make the `app/views/articles/show.html.erb` look like the following:
 
 <ul>
   <li><%= link_to "Edit", edit_article_path(@article) %></li>
-  <li><%= link_to "Destroy", article_path(@article),
-                  data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %></li>
+  <li><%= link_to "Destroy", article_path(@article), data: {
+                    turbo_method: :delete,
+                    turbo_confirm: "Are you sure?"
+                  } %></li>
 </ul>
 
 <h2>Comments</h2>
@@ -1973,8 +1980,10 @@ So first, let's add the delete link in the
 </p>
 
 <p>
-  <%= link_to 'Destroy Comment', [comment.article, comment],
-              data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
+  <%= link_to "Destroy Comment", [comment.article, comment], data: {
+                turbo_method: :delete,
+                turbo_confirm: "Are you sure?"
+              } %>
 </p>
 ```
 
