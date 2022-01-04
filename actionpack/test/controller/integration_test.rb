@@ -27,6 +27,11 @@ class SessionTest < ActiveSupport::TestCase
     assert_equal "rubyonrails.com", @session.host
   end
 
+  def test_default_host_matches_action_controller_renderer
+    expected_host = ActionController::Base.renderer.defaults[:http_host]
+    assert_equal expected_host, @session.host
+  end
+
   def test_follow_redirect_raises_when_no_redirect
     @session.stub :redirect?, false do
       assert_raise(RuntimeError) { @session.follow_redirect! }

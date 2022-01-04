@@ -128,17 +128,21 @@ class RendererTest < ActiveSupport::TestCase
     renderer = ApplicationController.renderer
     content  = renderer.render inline: "<%= asset_url 'asset.jpg' %>"
 
-    assert_equal "http://example.org/asset.jpg", content
+    assert_equal "http://#{default_host}/asset.jpg", content
   end
 
   test "return valid asset URL when https is true" do
     renderer = ApplicationController.renderer.new https: true
     content  = renderer.render inline: "<%= asset_url 'asset.jpg' %>"
 
-    assert_equal "https://example.org/asset.jpg", content
+    assert_equal "https://#{default_host}/asset.jpg", content
   end
 
   private
+    def default_host
+      @default_host ||= ActionController::Renderer::DEFAULTS[:http_host]
+    end
+
     def render
       @render ||= ApplicationController.renderer.method(:render)
     end
