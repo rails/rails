@@ -2745,21 +2745,31 @@ module ApplicationTests
 
     test "Rails.application.config.action_mailer.smtp_settings have open_timeout and read_timeout defined as 5 in 7.0 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "7.0"'
+      add_to_config <<-RUBY
+        config.action_mailer.smtp_settings = { domain: "example.com" }
+        config.load_defaults "7.0"
+      RUBY
 
       app "development"
 
-      assert_equal 5, ActionMailer::Base.smtp_settings[:open_timeout]
-      assert_equal 5, ActionMailer::Base.smtp_settings[:read_timeout]
+      smtp_settings = { domain: "example.com", open_timeout: 5, read_timeout: 5 }
+
+      assert_equal smtp_settings, ActionMailer::Base.smtp_settings
+      assert_equal smtp_settings, Rails.configuration.action_mailer.smtp_settings
     end
 
     test "Rails.application.config.action_mailer.smtp_settings does not have open_timeout and read_timeout configured on other versions" do
       remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config <<-RUBY
+        config.action_mailer.smtp_settings = { domain: "example.com" }
+      RUBY
 
       app "development"
 
-      assert_nil ActionMailer::Base.smtp_settings[:open_timeout]
-      assert_nil ActionMailer::Base.smtp_settings[:read_timeout]
+      smtp_settings = { domain: "example.com" }
+
+      assert_equal smtp_settings, ActionMailer::Base.smtp_settings
+      assert_equal smtp_settings, ActionMailer::Base.smtp_settings
     end
 
     test "ActiveSupport.utc_to_local_returns_utc_offset_times is true in 6.1 defaults" do
