@@ -33,7 +33,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       fake_connection,
       ActiveRecord::Base.logger,
       nil,
-      { socket: File::NULL }
+      { socket: File::NULL, prepared_statements: false }
     )
     assert_raises ActiveRecord::ConnectionNotEstablished do
       @conn.reconnect!
