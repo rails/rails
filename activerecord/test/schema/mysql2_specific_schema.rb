@@ -5,12 +5,14 @@ ActiveRecord::Schema.define do
     create_table :datetime_defaults, force: true do |t|
       t.datetime :modified_datetime, precision: nil, default: -> { "CURRENT_TIMESTAMP" }
       t.datetime :precise_datetime, default: -> { "CURRENT_TIMESTAMP(6)" }
+      t.datetime :updated_datetime, default: -> { "CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)" }
     end
 
     create_table :timestamp_defaults, force: true do |t|
       t.timestamp :nullable_timestamp
       t.timestamp :modified_timestamp, precision: nil, default: -> { "CURRENT_TIMESTAMP" }
       t.timestamp :precise_timestamp, precision: 6, default: -> { "CURRENT_TIMESTAMP(6)" }
+      t.timestamp :updated_timestamp, precision: 6, default: -> { "CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)" }
     end
   end
 

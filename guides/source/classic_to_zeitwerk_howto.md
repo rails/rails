@@ -38,7 +38,7 @@ Rails 7 ends the transition period and does not include `classic` mode.
 I am Scared
 -----------
 
-Don't :).
+Don't be :).
 
 Zeitwerk was designed to be as compatible with the classic autoloader as possible. If you have a working application autoloading correctly today, chances are the switch will be easy. Many projects, big and small, have reported really smooth switches.
 

@@ -910,7 +910,7 @@ module ActionController
 
     # Returns duplicate of object including all parameters.
     def deep_dup
-      self.class.new(@parameters.deep_dup).tap do |duplicate|
+      self.class.new(@parameters.deep_dup, @logging_context).tap do |duplicate|
         duplicate.permitted = @permitted
       end
     end
@@ -932,7 +932,7 @@ module ActionController
 
     private
       def new_instance_with_inherited_permitted_status(hash)
-        self.class.new(hash).tap do |new_instance|
+        self.class.new(hash, @logging_context).tap do |new_instance|
           new_instance.permitted = @permitted
         end
       end
@@ -966,7 +966,7 @@ module ActionController
           converted_arrays << converted.dup
           converted
         when Hash
-          self.class.new(value)
+          self.class.new(value, @logging_context)
         else
           value
         end

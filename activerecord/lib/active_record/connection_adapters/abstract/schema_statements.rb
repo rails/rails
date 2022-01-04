@@ -1440,7 +1440,7 @@ module ActiveRecord
 
           checks = []
 
-          if !options.key?(:name) && column_name.is_a?(String) && /\W/.match?(column_name)
+          if !options.key?(:name) && expression_column_name?(column_name)
             options[:name] = index_name(table_name, column_name)
             column_names = []
           else
@@ -1449,7 +1449,7 @@ module ActiveRecord
 
           checks << lambda { |i| i.name == options[:name].to_s } if options.key?(:name)
 
-          if column_names.present?
+          if column_names.present? && !(options.key?(:name) && expression_column_name?(column_names))
             checks << lambda { |i| index_name(table_name, i.columns) == index_name(table_name, column_names) }
           end
 
@@ -1517,7 +1517,7 @@ module ActiveRecord
         end
 
         def index_column_names(column_names)
-          if column_names.is_a?(String) && /\W/.match?(column_names)
+          if expression_column_name?(column_names)
             column_names
           else
             Array(column_names)
@@ -1525,11 +1525,16 @@ module ActiveRecord
         end
 
         def index_name_options(column_names)
-          if column_names.is_a?(String) && /\W/.match?(column_names)
+          if expression_column_name?(column_names)
             column_names = column_names.scan(/\w+/).join("_")
           end
 
           { column: column_names }
+        end
+
+        # Try to identify whether the given column name is an expression
+        def expression_column_name?(column_name)
+          column_name.is_a?(String) && /\W/.match?(column_name)
         end
 
         def strip_table_name_prefix_and_suffix(table_name)

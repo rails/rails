@@ -155,7 +155,7 @@ module ActiveRecord
     end
 
     # Use #pluck as a shortcut to select one or more attributes without
-    # loading a bunch of records just to grab the attributes you want.
+    # loading an entire record object per row.
     #
     #   Person.pluck(:name)
     #

@@ -276,20 +276,20 @@ module ActionView
       #   <%= button_to "New", action: "new" %>
       #   # => "<form method="post" action="/controller/new" class="button_to">
       #   #      <button type="submit">New</button>
-      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6" autocomplete="off"/>
       #   #    </form>"
       #
       #   <%= button_to "New", new_article_path %>
       #   # => "<form method="post" action="/articles/new" class="button_to">
       #   #      <button type="submit">New</button>
-      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6" autocomplete="off"/>
       #   #    </form>"
       #
       #   <%= button_to "New", new_article_path, params: { time: Time.now  } %>
       #   # => "<form method="post" action="/articles/new" class="button_to">
       #   #      <button type="submit">New</button>
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
-      #   #      <input type="hidden" name="time" value="2021-04-08 14:06:09 -0500">
+      #   #      <input type="hidden" name="time" value="2021-04-08 14:06:09 -0500" autocomplete="off">
       #   #    </form>"
       #
       #   <%= button_to [:make_happy, @user] do %>
@@ -299,19 +299,19 @@ module ActionView
       #   #      <button type="submit">
       #   #        Make happy <strong><%= @user.name %></strong>
       #   #      </button>
-      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"  autocomplete="off"/>
       #   #    </form>"
       #
       #   <%= button_to "New", { action: "new" }, form_class: "new-thing" %>
       #   # => "<form method="post" action="/controller/new" class="new-thing">
       #   #      <button type="submit">New</button>
-      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"  autocomplete="off"/>
       #   #    </form>"
       #
       #   <%= button_to "Create", { action: "create" }, remote: true, form: { "data-type" => "json" } %>
       #   # => "<form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
       #   #      <button type="submit">Create</button>
-      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"  autocomplete="off"/>
       #   #    </form>"
       #
       #   <%= button_to "Delete Image", { action: "delete", id: @image.id },
@@ -319,7 +319,7 @@ module ActionView
       #   # => "<form method="post" action="/images/delete/1" class="button_to">
       #   #      <input type="hidden" name="_method" value="delete" />
       #   #      <button data-confirm='Are you sure?' type="submit">Delete Image</button>
-      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6" autocomplete="off"/>
       #   #    </form>"
       #
       #   <%= button_to('Destroy', 'http://www.example.com',
@@ -327,7 +327,7 @@ module ActionView
       #   # => "<form class='button_to' method='post' action='http://www.example.com' data-remote='true'>
       #   #       <input name='_method' value='delete' type='hidden' />
       #   #       <button type='submit' data-disable-with='loading...' data-confirm='Are you sure?'>Destroy</button>
-      #   #       <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #       <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6" autocomplete="off"/>
       #   #     </form>"
       #   #
       def button_to(name = nil, options = nil, html_options = nil, &block)
@@ -366,7 +366,9 @@ module ActionView
         html_options = convert_options_to_data_attributes(options, html_options)
         html_options["type"] = "submit"
 
-        button = if block_given? || button_to_generates_button_tag
+        button = if block_given?
+          content_tag("button", html_options, &block)
+        elsif button_to_generates_button_tag
           content_tag("button", name || url, html_options, &block)
         else
           html_options["value"] = name || url
@@ -743,7 +745,7 @@ module ActionView
         end
 
         def url_target(name, options)
-          if name.respond_to?(:model_name) && options.empty?
+          if name.respond_to?(:model_name) && options.is_a?(Hash) && options.empty?
             url_for(name)
           else
             url_for(options)

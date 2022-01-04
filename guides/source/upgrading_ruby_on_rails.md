@@ -264,7 +264,7 @@ FFmpeg v3.4+.
 
 For new apps, image transformation will use libvips instead of ImageMagick. This will reduce
 the time taken to generate variants as well as CPU and memory usage, improving response
-times in apps that rely on active storage to serve their images.
+times in apps that rely on Active Storage to serve their images.
 
 The `:mini_magick` option is not being deprecated, so it is fine to keep using it.
 
@@ -491,7 +491,7 @@ The default HTTP status code used in `ActionDispatch::SSL` when redirecting non-
 
 ### Active Storage now requires Image Processing
 
-When processing variants in Active Storage, it's now required to have the [image_processing gem](https://github.com/janko-m/image_processing) bundled instead of directly using `mini_magick`. Image Processing is configured by default to use `mini_magick` behind the scenes, so the easiest way to upgrade is by replacing the `mini_magick` gem for the `image_processing` gem and making sure to remove the explicit usage of `combine_options` since it's no longer needed.
+When processing variants in Active Storage, it's now required to have the [image_processing gem](https://github.com/janko/image_processing) bundled instead of directly using `mini_magick`. Image Processing is configured by default to use `mini_magick` behind the scenes, so the easiest way to upgrade is by replacing the `mini_magick` gem for the `image_processing` gem and making sure to remove the explicit usage of `combine_options` since it's no longer needed.
 
 For readability, you may wish to change raw `resize` calls to `image_processing` macros. For example, instead of:
 

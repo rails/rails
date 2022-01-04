@@ -386,6 +386,34 @@ module ActiveRecord
         end
         alias column_definitions table_structure
 
+        def extract_value_from_default(default)
+          case default
+          when /^null$/i
+            nil
+          # Quoted types
+          when /^'(.*)'$/m
+            $1.gsub("''", "'")
+          # Quoted types
+          when /^"(.*)"$/m
+            $1.gsub('""', '"')
+          # Numeric types
+          when /\A-?\d+(\.\d*)?\z/
+            $&
+          else
+            # Anything else is blank or some function
+            # and we can't know the value of that, so return nil.
+            nil
+          end
+        end
+
+        def extract_default_function(default_value, default)
+          default if has_default_function?(default_value, default)
+        end
+
+        def has_default_function?(default_value, default)
+          !default_value && %r{\w+\(.*\)|CURRENT_TIME|CURRENT_DATE|CURRENT_TIMESTAMP}.match?(default)
+        end
+
         # See: https://www.sqlite.org/lang_altertable.html
         # SQLite has an additional restriction on the ALTER TABLE statement
         def invalid_alter_table_type?(type, options)

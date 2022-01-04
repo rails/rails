@@ -172,6 +172,11 @@ module ActiveRecord
     # will work correctly:
     #
     #   User.includes(:posts).where(posts: { name: 'example' })
+    #
+    # Conditions affect both sides of an association.  For example, the above
+    # code will return only users that have a post named "example", <em>and will
+    # only include posts named "example"</em>, even when a matching user has
+    # other additional posts.
     def includes(*args)
       check_if_method_has_arguments!(__callee__, args)
       spawn.includes!(*args)
@@ -432,10 +437,14 @@ module ActiveRecord
       references = column_references([column])
       self.references_values |= references unless references.empty?
 
-      values = values.map { |value| type_caster.type_cast_for_database(column, value) }
-      column = order_column(column.to_s) if column.is_a?(Symbol)
+      if values.empty?
+        spawn.order!(column)
+      else
+        values = values.map { |value| type_caster.type_cast_for_database(column, value) }
 
-      spawn.order!(connection.field_ordered_value(column, values))
+        arel_column = column.is_a?(Symbol) ? order_column(column.to_s) : column
+        spawn.order!(connection.field_ordered_value(arel_column, values), column)
+      end
     end
 
     # Replaces any existing order defined on the relation with the specified order.

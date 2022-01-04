@@ -10,7 +10,6 @@ module ActiveRecord
 
       def initialize_copy(other)
         @registrations = @registrations.dup
-        super
       end
 
       def add_modifier(options, klass, **args)

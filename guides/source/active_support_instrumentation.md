@@ -315,6 +315,19 @@ INFO. Additional keys may be added by the caller.
 }
 ```
 
+#### render_layout.action_view
+
+| Key           | Value                 |
+| ------------- | --------------------- |
+| `:identifier` | Full path to template |
+
+
+```ruby
+{
+  identifier: "/Users/adam/projects/notifications/app/views/layouts/application.html.erb"
+}
+```
+
 ### Active Record
 
 #### sql.active_record
