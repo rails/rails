@@ -351,15 +351,17 @@ if current_adapter?(:PostgreSQLAdapter)
         FileUtils.rm_f(@filename)
       end
 
+      # This test actually runs a dump so we can ensure all the arguments are parsed correctly.
+      # All other tests in this class just mock the call (using assert_called_with) to make the tests quicker.
       def test_structure_dump
-        assert_called_with(
-          Kernel,
-          :system,
-          [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comments", "--file", @filename, "my-app-db"],
-          returns: true
-        ) do
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
-        end
+        assert_equal "", File.read(@filename)
+
+        config = @configuration.dup
+        config["database"] = ARTest.config["connections"]["postgresql"]["arunit"]["database"]
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(config, @filename)
+
+        assert File.read(@filename).include?("PostgreSQL database dump complete")
       end
 
       def test_structure_dump_header_comments_removed
