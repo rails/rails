@@ -72,8 +72,7 @@ and may also be used independently outside Rails.
 
    Run with `--help` or `-h` for options.
 
-4. Go to `http://localhost:3000` and you'll see:
-"Yay! You’re on Rails!"
+4. Go to `http://localhost:3000` and you'll see the Rails bootscreen with your Rails and Ruby versions.
 
 5. Follow the guidelines to start developing your application. You may find
    the following resources handy:
