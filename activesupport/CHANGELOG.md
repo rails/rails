@@ -1,3 +1,7 @@
+*   Fix `ActiveSupport::EncryptedConfiguration` to be compatible with Psych 4
+
+    *Stephen Sugden*
+
 *   Improve `File.atomic_write` error handling
 
 *   Fix `Class#descendants` and `DescendantsTracker#descendants` compatibility with Ruby 3.1.
