@@ -24,7 +24,7 @@ Rails application. It allows for real-time features to be written in Ruby in the
 same style and form as the rest of your Rails application, while still being
 performant and scalable. It's a full-stack offering that provides both a
 client-side JavaScript framework and a server-side Ruby framework. You have
-access to your full domain model written with Active Record or your ORM of
+access to your entire domain model written with Active Record or your ORM of
 choice.
 
 Terminology
@@ -42,16 +42,16 @@ WebSockets open to your application if they use multiple browser tabs or devices
 
 ### Consumers
 
-The client of a WebSocket connection is called the *consumer*. In Action Cable
+The client of a WebSocket connection is called the *consumer*. In Action Cable,
 the consumer is created by the client-side JavaScript framework.
 
 ### Channels
 
-Each consumer can in turn subscribe to multiple *channels*. Each channel
+Each consumer can, in turn, subscribe to multiple *channels*. Each channel
 encapsulates a logical unit of work, similar to what a controller does in
-a regular MVC setup. For example, you could have a `ChatChannel` and
+a typical MVC setup. For example, you could have a `ChatChannel` and
 an `AppearancesChannel`, and a consumer could be subscribed to either
-or to both of these channels. At the very least, a consumer should be subscribed
+or both of these channels. At the very least, a consumer should be subscribed
 to one channel.
 
 ### Subscribers
@@ -168,7 +168,7 @@ end
 ### Channels
 
 A *channel* encapsulates a logical unit of work, similar to what a controller does in a
-regular MVC setup. By default, Rails creates a parent `ApplicationCable::Channel` class
+typical MVC setup. By default, Rails creates a parent `ApplicationCable::Channel` class
 (which extends [`ActionCable::Channel::Base`][]) for encapsulating shared logic between your channels.
 
 #### Parent Channel Setup
@@ -609,7 +609,7 @@ appearance channel and runs its `subscribed` callback, calling the `appear`
 method on `current_user`. (`appearance_channel.rb`)
 
 4. **Client** recognizes that a subscription has been established and calls
-`connected` (`appearance_channel.js`) which in turn calls `install` and `appear`.
+`connected` (`appearance_channel.js`), which in turn calls `install` and `appear`.
 `appear` calls `AppearanceChannel#appear(data)` on the server, and supplies a
 data hash of `{ appearing_on: this.appearingOn }`. This is
 possible because the server-side channel instance automatically exposes all
@@ -626,11 +626,11 @@ key being passed to `current_user.appear`.
 
 The appearance example was all about exposing server functionality to
 client-side invocation over the WebSocket connection. But the great thing
-about WebSockets is that it's a two-way street. So now let's show an example
+about WebSockets is that it's a two-way street. So, now, let's show an example
 where the server invokes an action on the client.
 
 This is a web notification channel that allows you to trigger client-side
-web notifications when you broadcast to the right streams:
+web notifications when you broadcast to the relevant streams:
 
 Create the server-side web notifications channel:
 
@@ -677,7 +677,7 @@ user. For a user with an ID of 1, the broadcasting name would be
 
 The channel has been instructed to stream everything that arrives at
 `web_notifications:1` directly to the client by invoking the `received`
-callback. The data passed as argument is the hash sent as the second parameter
+callback. The data passed as an argument is the hash sent as the second parameter
 to the server-side broadcast call, JSON encoded for the trip across the wire
 and unpacked for the data argument arriving as `received`.
 
@@ -883,11 +883,11 @@ The Ruby side of things is built on top of [websocket-driver](https://github.com
 
 Action Cable is powered by a combination of WebSockets and threads. Both the
 framework plumbing and user-specified channel work are handled internally by
-utilizing Ruby's native thread support. This means you can use all your regular
+utilizing Ruby's native thread support. This means you can use all your existing
 Rails models with no problem, as long as you haven't committed any thread-safety sins.
 
 The Action Cable server implements the Rack socket hijacking API,
-thereby allowing the use of a multithreaded pattern for managing connections
+thereby allowing the use of a multi-threaded pattern for managing connections
 internally, irrespective of whether the application server is multi-threaded or not.
 
 Accordingly, Action Cable works with popular servers like Unicorn, Puma, and
