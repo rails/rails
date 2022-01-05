@@ -1,3 +1,12 @@
+*   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
+
+    Escape dangerous characters in names of tags and names of attributes in the
+    tag helpers, following the XML specification. Rename the option
+    `:escape_attributes` to `:escape`, to simplify by applying the option to the
+    whole tag.
+
+    *Álvaro Martín Fraguas*
+
 ## Rails 6.1.5 (March 09, 2022) ##
 
 *   `preload_link_tag` properly inserts `as` attributes for files with `image` MIME
