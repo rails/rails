@@ -387,4 +387,15 @@ module SharedGeneratorTests
         assert_equal gemfile[rails_gem_pattern], bundle_command_rails_gems[1]
       end
     end
+
+    def assert_gem(name, constraint = nil)
+      constraint_pattern = /, #{Regexp.escape constraint}/ if constraint
+      assert_file "Gemfile", %r/^\s*gem ["']#{name}["']#{constraint_pattern}/
+    end
+
+    def assert_no_gem(name)
+      assert_file "Gemfile" do |content|
+        assert_no_match %r/gem ["']#{name}["']/, content
+      end
+    end
 end
