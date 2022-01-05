@@ -71,9 +71,12 @@ module ActionView
     #
     #   dom_class(post, :edit)   # => "edit_post"
     #   dom_class(Person, :edit) # => "edit_person"
-    def dom_class(record_or_class, prefix = nil)
+    #   dom_class(post, :edit, :special)   # => "edit_special_post"
+    #   dom_class(Person, :edit, :special) # => "edit_special_person"
+    def dom_class(record_or_class, *prefixes)
       singular = model_name_from_record_or_class(record_or_class).param_key
-      prefix ? "#{prefix}#{JOIN}#{singular}" : singular
+      prefixes << singular
+      prefixes.join(JOIN)
     end
 
     # The DOM id convention is to use the singular form of an object or class with the id following an underscore.
@@ -86,11 +89,14 @@ module ActionView
     #
     #   dom_id(Post.find(45), :edit) # => "edit_post_45"
     #   dom_id(Post.new, :custom)    # => "custom_post"
-    def dom_id(record, prefix = nil)
+    #   dom_id(Post.find(45), :edit, :special) # => "edit_special_post_45"
+    #   dom_id(Post.new, :custom, :special)    # => "custom_special_post"
+    def dom_id(record, *prefixes)
       if record_id = record_key_for_dom_id(record)
-        "#{dom_class(record, prefix)}#{JOIN}#{record_id}"
+        "#{dom_class(record, *prefixes)}#{JOIN}#{record_id}"
+
       else
-        dom_class(record, prefix || NEW)
+        dom_class(record, *prefixes.presence || NEW)
       end
     end
 

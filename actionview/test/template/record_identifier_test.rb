@@ -19,6 +19,8 @@ class RecordIdentifierTest < ActiveSupport::TestCase
 
   def test_dom_id_with_new_record_and_prefix
     assert_equal "custom_prefix_#{@singular}", dom_id(@record, :custom_prefix)
+    assert_equal "custom_prefix_second_prefix_#{@singular}", dom_id(@record, :custom_prefix, :second_prefix)
+    assert_equal "custom_prefix_second_prefix_#{@singular}", dom_id(@record, [:custom_prefix, :second_prefix])
   end
 
   def test_dom_id_with_saved_record
@@ -37,6 +39,8 @@ class RecordIdentifierTest < ActiveSupport::TestCase
 
   def test_dom_class_with_prefix
     assert_equal "custom_prefix_#{@singular}", dom_class(@record, :custom_prefix)
+    assert_equal "custom_prefix_second_prefix_#{@singular}", dom_class(@record, :custom_prefix, :second_prefix)
+    assert_equal "custom_prefix_second_prefix_#{@singular}", dom_class(@record, [:custom_prefix, :second_prefix])
   end
 
   def test_dom_id_as_singleton_method
