@@ -31,14 +31,14 @@ BUNDLER =
   case RAILS_VERSION
   when Gem::Requirement.new("< 5.0")
     "< 2"
-  else
+  when Gem::Requirement.new("< 6.1")
     "< 2.2.10"
   end
 RUBYGEMS =
   case RAILS_VERSION
   when Gem::Requirement.new("< 5.0")
     "2.6.13"
-  else
+  when Gem::Requirement.new("< 6.1")
     "3.2.9"
   end
 
