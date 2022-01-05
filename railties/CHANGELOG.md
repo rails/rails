@@ -1,3 +1,11 @@
+*   Addresses an issue in which Sidekiq jobs could not reload certain
+    namespaces.
+
+    See [fxn/zeitwerk#198](https://github.com/fxn/zeitwerk/issues/198) for
+    details.
+
+    *Xavier Noria*
+
 ## Rails 7.0.0 (December 15, 2021) ##
 
 *   No changes.
