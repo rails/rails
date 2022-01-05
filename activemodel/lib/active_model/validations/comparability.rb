@@ -3,6 +3,7 @@
 module ActiveModel
   module Validations
     module Comparability # :nodoc:
+      include ActiveSupport::NumberHelper
       COMPARE_CHECKS = { greater_than: :>, greater_than_or_equal_to: :>=,
         equal_to: :==, less_than: :<, less_than_or_equal_to: :<=,
         other_than: :!= }.freeze
@@ -19,6 +20,7 @@ module ActiveModel
       end
 
       def error_options(value, option_value)
+        option_value = number_to_delimited(option_value) if option_value.is_a?(Numeric)
         options.except(*COMPARE_CHECKS.keys).merge!(
           count: option_value,
           value: value

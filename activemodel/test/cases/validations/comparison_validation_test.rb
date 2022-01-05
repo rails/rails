@@ -5,6 +5,7 @@ require "cases/helper"
 require "models/topic"
 require "models/person"
 
+
 class ComparisonValidationTest < ActiveModel::TestCase
   def teardown
     Topic.clear_validators!
@@ -15,6 +16,12 @@ class ComparisonValidationTest < ActiveModel::TestCase
 
     assert_invalid_values([-12, 10], "must be greater than 10")
     assert_valid_values([11])
+  end
+
+  def test_validates_comparison_with_greater_than_using_numeric_formats_the_message
+    Topic.validates_comparison_of :approved, greater_than: 10000
+    assert_invalid_values([-12, 10], "must be greater than 10,000")
+    assert_valid_values([11000])
   end
 
   def test_validates_comparison_with_greater_than_using_date
