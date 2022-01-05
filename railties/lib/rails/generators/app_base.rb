@@ -108,16 +108,18 @@ module Rails
 
     private
       def gemfile_entries # :doc:
-        [rails_gemfile_entry,
-         asset_pipeline_gemfile_entry,
-         database_gemfile_entry,
-         web_server_gemfile_entry,
-         javascript_gemfile_entry,
-         hotwire_gemfile_entry,
-         css_gemfile_entry,
-         jbuilder_gemfile_entry,
-         psych_gemfile_entry,
-         cable_gemfile_entry].flatten.find_all(&@gem_filter)
+        [
+          rails_gemfile_entry,
+          asset_pipeline_gemfile_entry,
+          database_gemfile_entry,
+          web_server_gemfile_entry,
+          javascript_gemfile_entry,
+          hotwire_gemfile_entry,
+          css_gemfile_entry,
+          jbuilder_gemfile_entry,
+          psych_gemfile_entry,
+          cable_gemfile_entry,
+        ].flatten.compact.select(&@gem_filter)
       end
 
       def builder # :doc:
@@ -159,7 +161,8 @@ module Rails
       end
 
       def database_gemfile_entry # :doc:
-        return [] if options[:skip_active_record]
+        return if options[:skip_active_record]
+
         gem_name, gem_version = gem_for_database
         GemfileEntry.version gem_name, gem_version,
           "Use #{options[:database]} as the database for Active Record"
@@ -262,20 +265,13 @@ module Rails
           new(name, nil, comment, path: path)
         end
 
-        def version
-          version = super
-
-          if version.is_a?(Array)
-            version.join('", "')
-          else
-            version
-          end
-        end
-
         def to_s
-          [ ("# #{comment}\n" if comment),
-            ("# " if commented_out), "gem \"#{name}\"", (", \"#{version}\"" if version),
-            *options.map { |key, val| ", #{key}: #{val.inspect}" }
+          [
+            (comment.gsub(/^/, "# ").chomp + "\n" if comment),
+            ("# " if commented_out),
+            "gem \"#{name}\"",
+            *Array(version).map { |constraint| ", \"#{constraint}\"" },
+            *options.map { |key, value| ", #{key}: #{value.inspect}" },
           ].compact.join
         end
       end
@@ -312,12 +308,12 @@ module Rails
       end
 
       def jbuilder_gemfile_entry
-        return [] if options[:skip_jbuilder]
+        return if options[:skip_jbuilder]
         GemfileEntry.new "jbuilder", nil, "Build JSON APIs with ease [https://github.com/rails/jbuilder]", {}, options[:api]
       end
 
       def javascript_gemfile_entry
-        return [] if options[:skip_javascript]
+        return if options[:skip_javascript]
 
         if adjusted_javascript_option == "importmap"
           GemfileEntry.floats "importmap-rails", "Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]"
@@ -327,7 +323,7 @@ module Rails
       end
 
       def hotwire_gemfile_entry
-        return [] if options[:skip_javascript] || options[:skip_hotwire]
+        return if options[:skip_javascript] || options[:skip_hotwire]
 
         turbo_rails_entry =
           GemfileEntry.floats "turbo-rails", "Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]"
@@ -353,7 +349,7 @@ module Rails
       end
 
       def css_gemfile_entry
-        return [] unless options[:css]
+        return unless options[:css]
 
         if !using_node? && options[:css] == "tailwind"
           GemfileEntry.floats "tailwindcss-rails", "Use Tailwind CSS [https://github.com/rails/tailwindcss-rails]"
@@ -363,7 +359,7 @@ module Rails
       end
 
       def psych_gemfile_entry
-        return [] unless defined?(Rubinius)
+        return unless defined?(Rubinius)
 
         comment = "Use Psych as the YAML engine, instead of Syck, so serialized " \
                   "data can be read safely from different rubies (see http://git.io/uuLVag)"
@@ -371,11 +367,10 @@ module Rails
       end
 
       def cable_gemfile_entry
-        return [] if options[:skip_action_cable]
+        return if options[:skip_action_cable]
+
         comment = "Use Redis adapter to run Action Cable in production"
-        gems = []
-        gems << GemfileEntry.new("redis", "~> 4.0", comment, {}, true)
-        gems
+        GemfileEntry.new("redis", "~> 4.0", comment, {}, true)
       end
 
       def bundle_command(command, env = {})
