@@ -248,7 +248,6 @@
       description: This guide covers PostgreSQL specific usage of Active Record.
     -
       name: Multiple Databases with Active Record
-      work_in_progress: true
       url: active_record_multiple_databases.html
       description: This guide covers using multiple databases in your application.
     -
