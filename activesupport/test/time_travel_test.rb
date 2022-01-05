@@ -186,6 +186,41 @@ class TimeTravelTest < ActiveSupport::TestCase
     end
   end
 
+  def test_time_helper_travel_to_with_usec
+    Time.stub(:now, Time.now) do
+      duration_usec = 0.1.seconds
+      traveled_time = Time.new(2004, 11, 24, 1, 4, 44) + duration_usec
+      expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+
+      assert_nothing_raised do
+        travel_to traveled_time
+
+        assert_equal expected_time, Time.now
+
+        travel_back
+      end
+    ensure
+      travel_back
+    end
+  end
+
+  def test_time_helper_travel_to_with_usec_true
+    Time.stub(:now, Time.now) do
+      duration_usec = 0.1.seconds
+      expected_time = Time.new(2004, 11, 24, 1, 4, 44) + duration_usec
+
+      assert_nothing_raised do
+        travel_to expected_time, with_usec: true
+
+        assert_equal expected_time.to_f, Time.now.to_f
+
+        travel_back
+      end
+    ensure
+      travel_back
+    end
+  end
+
   def test_time_helper_travel_with_subsequent_block
     Time.stub(:now, Time.now) do
       outer_expected_time = Time.new(2004, 11, 24, 1, 4, 44)
