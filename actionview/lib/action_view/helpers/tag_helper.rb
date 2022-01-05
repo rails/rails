@@ -65,18 +65,25 @@ module ActionView
           tag_string(:p, *arguments, **options, &block)
         end
 
-        def tag_string(name, content = nil, escape_attributes: true, **options, &block)
+        def tag_string(name, content = nil, **options, &block)
+          escape = handle_deprecated_escape_options(options)
+
           content = @view_context.capture(self, &block) if block_given?
           if (HTML_VOID_ELEMENTS.include?(name) || SVG_VOID_ELEMENTS.include?(name)) && content.nil?
-            "<#{name.to_s.dasherize}#{tag_options(options, escape_attributes)}>".html_safe
+            "<#{name.to_s.dasherize}#{tag_options(options, escape)}>".html_safe
           else
-            content_tag_string(name.to_s.dasherize, content || "", options, escape_attributes)
+            content_tag_string(name.to_s.dasherize, content || "", options, escape)
           end
         end
 
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
-          content     = ERB::Util.unwrapped_html_escape(content) if escape
+
+          if escape
+            name = ERB::Util.xml_name_escape(name)
+            content = ERB::Util.unwrapped_html_escape(content)
+          end
+
           "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".html_safe
         end
 
@@ -127,6 +134,8 @@ module ActionView
         end
 
         def tag_option(key, value, escape)
+          key = ERB::Util.xml_name_escape(key) if escape
+
           case value
           when Array, Hash
             value = TagHelper.build_tag_values(value) if key.to_s == "class"
@@ -137,6 +146,7 @@ module ActionView
             value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
           end
           value = value.gsub('"', "&quot;") if value.include?('"')
+
           %(#{key}="#{value}")
         end
 
@@ -151,6 +161,27 @@ module ActionView
 
           def respond_to_missing?(*args)
             true
+          end
+
+          def handle_deprecated_escape_options(options)
+            # The option :escape_attributes has been merged into the options hash to be
+            # able to warn when it is used, so we need to handle default values here.
+            escape_option_provided = options.has_key?(:escape)
+            escape_attributes_option_provided = options.has_key?(:escape_attributes)
+
+            if escape_attributes_option_provided
+              ActiveSupport::Deprecation.warn(<<~MSG)
+                Use of the option :escape_attributes is deprecated. It currently \
+                escapes both names and values of tags and attributes and it is \
+                equivalent to :escape. If any of them are enabled, the escaping \
+                is fully enabled.
+              MSG
+            end
+
+            return true unless escape_option_provided || escape_attributes_option_provided
+            escape_option = options.delete(:escape)
+            escape_attributes_option = options.delete(:escape_attributes)
+            escape_option || escape_attributes_option
           end
 
           def method_missing(called, *args, **options, &block)
@@ -216,13 +247,13 @@ module ActionView
       #   tag.div data: { city_state: %w( Chicago IL ) }
       #   # => <div data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]"></div>
       #
-      # The generated attributes are escaped by default. This can be disabled using
-      # +escape_attributes+.
+      # The generated tag names and attributes are escaped by default. This can be disabled using
+      # +escape+.
       #
       #   tag.img src: 'open & shut.png'
       #   # => <img src="open &amp; shut.png">
       #
-      #   tag.img src: 'open & shut.png', escape_attributes: false
+      #   tag.img src: 'open & shut.png', escape: false
       #   # => <img src="open & shut.png">
       #
       # The tag builder respects
@@ -300,6 +331,7 @@ module ActionView
         if name.nil?
           tag_builder
         else
+          name = ERB::Util.xml_name_escape(name) if escape
           "<#{name}#{tag_builder.tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
         end
       end
@@ -308,7 +340,7 @@ module ActionView
       # HTML attributes by passing an attributes hash to +options+.
       # Instead of passing the content as an argument, you can also use a block
       # in which case, you pass your +options+ as the second parameter.
-      # Set escape to false to disable attribute value escaping.
+      # Set escape to false to disable escaping.
       # Note: this is legacy syntax, see +tag+ method description for details.
       #
       # ==== Options
