@@ -97,6 +97,9 @@ module ActiveRecord
       def missing(*associations)
         associations.each do |association|
           reflection = @scope.klass._reflect_on_association(association)
+          unless reflection
+            raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{@scope.name}`.")
+          end
           @scope.left_outer_joins!(association)
           @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
         end

@@ -33,6 +33,14 @@ module ActiveRecord
       assert_equal [posts(:authorless)], Post.where.missing(:author).to_a
     end
 
+    def test_missing_with_invalid_association_name
+      e = assert_raises(ArgumentError) do
+        Post.where.missing(:cars).to_a
+      end
+
+      assert_match(/An association named `:cars` does not exist on the model `Post`\./, e.message)
+    end
+
     def test_missing_with_multiple_association
       assert posts(:authorless).comments.empty?
       assert_equal [posts(:authorless)], Post.where.missing(:author, :comments).to_a
