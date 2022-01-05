@@ -944,26 +944,25 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_minimal_rails_app
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root, "--minimal"]
+    run_generator [destination_root, "--minimal"]
 
-    assert_no_file "#{app_root}/config/storage.yml"
-    assert_no_file "#{app_root}/config/cable.yml"
-    assert_no_file "#{app_root}/views/layouts/mailer.html.erb"
-    assert_no_file "#{app_root}/app/jobs/application.rb"
-    assert_file "#{app_root}/app/views/layouts/application.html.erb" do |content|
+    assert_no_file "config/storage.yml"
+    assert_no_file "config/cable.yml"
+    assert_no_file "views/layouts/mailer.html.erb"
+    assert_no_file "app/jobs/application.rb"
+    assert_file "app/views/layouts/application.html.erb" do |content|
       assert_no_match(/data-turbo-track/, content)
     end
-    assert_file "#{app_root}/config/environments/development.rb" do |content|
+    assert_file "config/environments/development.rb" do |content|
       assert_no_match(/config\.active_storage/, content)
     end
-    assert_file "#{app_root}/config/environments/production.rb" do |content|
+    assert_file "config/environments/production.rb" do |content|
       assert_no_match(/config\.active_job/, content)
     end
-    assert_file "#{app_root}/config/boot.rb" do |content|
+    assert_file "config/boot.rb" do |content|
       assert_no_match(/require "bootsnap\/setup"/, content)
     end
-    assert_file "#{app_root}/config/application.rb" do |content|
+    assert_file "config/application.rb" do |content|
       assert_match(/#\s+require\s+["']active_job\/railtie["']/, content)
       assert_match(/#\s+require\s+["']active_storage\/engine["']/, content)
       assert_match(/#\s+require\s+["']action_mailer\/railtie["']/, content)
@@ -972,8 +971,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/#\s+require\s+["']action_cable\/engine["']/, content)
     end
 
-    assert_no_gem "jbuilder", app_root
-    assert_no_gem "web-console", app_root
+    assert_no_gem "jbuilder"
+    assert_no_gem "web-console"
   end
 
   private
@@ -984,19 +983,5 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     def action(*args, &block)
       capture(:stdout) { generator.send(*args, &block) }
-    end
-
-    def assert_gem(gem, constraint = nil, app_path = ".")
-      if constraint
-        assert_file File.join(app_path, "Gemfile"), /^\s*gem\s+["']#{gem}["'], #{constraint}$*/
-      else
-        assert_file File.join(app_path, "Gemfile"), /^\s*gem\s+["']#{gem}["']$*/
-      end
-    end
-
-    def assert_no_gem(gem, app_path = ".")
-      assert_file File.join(app_path, "Gemfile") do |content|
-        assert_no_match(gem, content)
-      end
     end
 end

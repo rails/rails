@@ -226,6 +226,10 @@ module Rails
       def initialize(*args)
         @dummy_path = nil
         super
+
+        if !engine? || !with_dummy_app?
+          self.options = options.merge(skip_asset_pipeline: true).freeze
+        end
       end
 
       public_task :set_default_accessors!
