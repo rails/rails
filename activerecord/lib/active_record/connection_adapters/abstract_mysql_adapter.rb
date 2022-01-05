@@ -197,7 +197,7 @@ module ActiveRecord
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil, async: false)
-        raw_execute(sql, name, async)
+        raw_execute(sql, name, async: async)
       end
 
       # Mysql2Adapter doesn't have to free a result after using it, but we use this method
