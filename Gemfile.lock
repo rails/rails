@@ -36,12 +36,18 @@ PATH
       activestorage (= 7.0.0)
       activesupport (= 7.0.0)
       mail (>= 2.7.1)
+      net-imap
+      net-pop
+      net-smtp
     actionmailer (7.0.0)
       actionpack (= 7.0.0)
       actionview (= 7.0.0)
       activejob (= 7.0.0)
       activesupport (= 7.0.0)
       mail (~> 2.5, >= 2.5.4)
+      net-imap
+      net-pop
+      net-smtp
       rails-dom-testing (~> 2.0)
     actionpack (7.0.0)
       actionview (= 7.0.0)
@@ -200,6 +206,7 @@ GEM
     delayed_job_active_record (4.1.6)
       activerecord (>= 3.0, < 6.2)
       delayed_job (>= 3.0, < 5)
+    digest (3.1.0)
     digest-crc (0.6.4)
       rake (>= 12.0.0, < 14.0.0)
     em-http-request (1.1.7)
@@ -301,6 +308,7 @@ GEM
       actionpack (>= 6.0.0)
       railties (>= 6.0.0)
     io-console (0.5.9)
+    io-wait (0.2.1)
     irb (1.3.7)
       reline (>= 0.2.7)
     jmespath (1.4.0)
@@ -346,6 +354,21 @@ GEM
       ruby2_keywords (~> 0.0.1)
     net-http-persistent (4.0.1)
       connection_pool (~> 2.2)
+    net-imap (0.2.2)
+      digest
+      net-protocol
+      strscan
+    net-pop (0.1.1)
+      digest
+      net-protocol
+      timeout
+    net-protocol (0.1.2)
+      io-wait
+      timeout
+    net-smtp (0.3.1)
+      digest
+      net-protocol
+      timeout
     nio4r (2.5.8)
     nokogiri (1.12.5)
       mini_portile2 (~> 2.6.1)
@@ -491,6 +514,7 @@ GEM
     stackprof (0.2.17)
     stimulus-rails (1.0.0)
       railties (>= 6.0.0)
+    strscan (3.0.1)
     sucker_punch (3.0.1)
       concurrent-ruby (~> 1.0)
     tailwindcss-rails (1.0.0)
@@ -503,6 +527,7 @@ GEM
       rack (>= 1, < 3)
     thor (1.1.0)
     tilt (2.0.10)
+    timeout (0.2.0)
     trailblazer-option (0.1.2)
     turbo-rails (1.0.0)
       actionpack (>= 6.0.0)
