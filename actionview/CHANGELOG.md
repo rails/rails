@@ -1,3 +1,12 @@
+*   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
+
+    Escape dangerous characters in names of tags and names of attributes in the
+    tag helpers, following the XML specification. Rename the option
+    `:escape_attributes` to `:escape`, to simplify by applying the option to the
+    whole tag.
+
+    *Álvaro Martín Fraguas*
+
 *   Extend audio_tag and video_tag to accept Active Storage attachments.
 
     Now it's possible to write

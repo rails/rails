@@ -1,3 +1,10 @@
+*   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
+
+    Add the method `ERB::Util.xml_name_escape` to escape dangerous characters
+    in names of tags and names of attributes, following the specification of XML.
+
+    *Álvaro Martín Fraguas*
+
 *   Respect `ActiveSupport::Logger.new`'s `:formatter` keyword argument
 
     The stdlib `Logger::new` allows passing a `:formatter` keyword argument to

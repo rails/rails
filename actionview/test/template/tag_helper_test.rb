@@ -7,6 +7,8 @@ class TagHelperTest < ActionView::TestCase
 
   tests ActionView::Helpers::TagHelper
 
+  COMMON_DANGEROUS_CHARS = "&<>\"' %*+,/;=^|"
+
   def test_tag
     assert_equal "<br />", tag("br")
     assert_equal "<br clear=\"left\" />", tag(:br, clear: "left")
@@ -119,6 +121,77 @@ class TagHelperTest < ActionView::TestCase
     assert html_safe_str.html_safe?
   end
 
+  def test_tag_with_dangerous_name
+    assert_equal "<#{"_" * COMMON_DANGEROUS_CHARS.size} />",
+                 tag(COMMON_DANGEROUS_CHARS)
+
+    assert_equal "<#{COMMON_DANGEROUS_CHARS} />",
+                 tag(COMMON_DANGEROUS_CHARS, nil, false, false)
+  end
+
+  def test_tag_builder_with_dangerous_name
+    escaped_dangerous_chars = "_" * COMMON_DANGEROUS_CHARS.size
+    assert_equal "<#{escaped_dangerous_chars}></#{escaped_dangerous_chars}>",
+                 tag.public_send(COMMON_DANGEROUS_CHARS.to_sym)
+
+    assert_equal "<#{COMMON_DANGEROUS_CHARS}></#{COMMON_DANGEROUS_CHARS}>",
+                 tag.public_send(COMMON_DANGEROUS_CHARS.to_sym, nil, escape: false)
+  end
+
+  def test_tag_with_dangerous_aria_attribute_name
+    escaped_dangerous_chars = "_" * COMMON_DANGEROUS_CHARS.size
+    assert_equal "<the-name aria-#{escaped_dangerous_chars}=\"the value\" />",
+                 tag("the-name", aria: { COMMON_DANGEROUS_CHARS => "the value" })
+
+    assert_equal "<the-name aria-#{COMMON_DANGEROUS_CHARS}=\"the value\" />",
+                 tag("the-name", { aria: { COMMON_DANGEROUS_CHARS => "the value" } }, false, false)
+  end
+
+  def test_tag_builder_with_dangerous_aria_attribute_name
+    escaped_dangerous_chars = "_" * COMMON_DANGEROUS_CHARS.size
+    assert_equal "<the-name aria-#{escaped_dangerous_chars}=\"the value\"></the-name>",
+                 tag.public_send(:"the-name", aria: { COMMON_DANGEROUS_CHARS => "the value" })
+
+    assert_equal "<the-name aria-#{COMMON_DANGEROUS_CHARS}=\"the value\"></the-name>",
+                 tag.public_send(:"the-name", aria: { COMMON_DANGEROUS_CHARS => "the value" }, escape: false)
+  end
+
+  def test_tag_with_dangerous_data_attribute_name
+    escaped_dangerous_chars = "_" * COMMON_DANGEROUS_CHARS.size
+    assert_equal "<the-name data-#{escaped_dangerous_chars}=\"the value\" />",
+                 tag("the-name", data: { COMMON_DANGEROUS_CHARS => "the value" })
+
+    assert_equal "<the-name data-#{COMMON_DANGEROUS_CHARS}=\"the value\" />",
+                 tag("the-name", { data: { COMMON_DANGEROUS_CHARS => "the value" } }, false, false)
+  end
+
+  def test_tag_builder_with_dangerous_data_attribute_name
+    escaped_dangerous_chars = "_" * COMMON_DANGEROUS_CHARS.size
+    assert_equal "<the-name data-#{escaped_dangerous_chars}=\"the value\"></the-name>",
+                 tag.public_send(:"the-name", data: { COMMON_DANGEROUS_CHARS => "the value" })
+
+    assert_equal "<the-name data-#{COMMON_DANGEROUS_CHARS}=\"the value\"></the-name>",
+                 tag.public_send(:"the-name", data: { COMMON_DANGEROUS_CHARS => "the value" }, escape: false)
+  end
+
+  def test_tag_with_dangerous_unknown_attribute_name
+    escaped_dangerous_chars = "_" * COMMON_DANGEROUS_CHARS.size
+    assert_equal "<the-name #{escaped_dangerous_chars}=\"the value\" />",
+                 tag("the-name", COMMON_DANGEROUS_CHARS => "the value")
+
+    assert_equal "<the-name #{COMMON_DANGEROUS_CHARS}=\"the value\" />",
+                 tag("the-name", { COMMON_DANGEROUS_CHARS => "the value" }, false, false)
+  end
+
+  def test_tag_builder_with_dangerous_unknown_attribute_name
+    escaped_dangerous_chars = "_" * COMMON_DANGEROUS_CHARS.size
+    assert_equal "<the-name #{escaped_dangerous_chars}=\"the value\"></the-name>",
+                 tag.public_send(:"the-name", COMMON_DANGEROUS_CHARS => "the value")
+
+    assert_equal "<the-name #{COMMON_DANGEROUS_CHARS}=\"the value\"></the-name>",
+                 tag.public_send(:"the-name", COMMON_DANGEROUS_CHARS => "the value", escape: false)
+  end
+
   def test_content_tag
     assert_equal "<a href=\"create\">Create</a>", content_tag("a", "Create", "href" => "create")
     assert_predicate content_tag("a", "Create", "href" => "create"), :html_safe?
@@ -138,7 +211,7 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p>&lt;script&gt;evil_js&lt;/script&gt;</p>",
                  tag.p("<script>evil_js</script>")
     assert_equal "<p><script>evil_js</script></p>",
-                 tag.p("<script>evil_js</script>", escape_attributes: false)
+                 tag.p("<script>evil_js</script>", escape: false)
     assert_equal '<input pattern="\w+">', tag.input(pattern: /\w+/)
   end
 
@@ -254,10 +327,10 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_builder_with_unescaped_array_class
-    str = tag.p "limelight", class: ["song", "play>"], escape_attributes: false
+    str = tag.p "limelight", class: ["song", "play>"], escape: false
     assert_equal "<p class=\"song play>\">limelight</p>", str
 
-    str = tag.p "limelight", class: ["song", ["play>"]], escape_attributes: false
+    str = tag.p "limelight", class: ["song", ["play>"]], escape: false
     assert_equal "<p class=\"song play>\">limelight</p>", str
   end
 
@@ -276,7 +349,7 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_builder_with_unescaped_empty_array_class
-    str = tag.p "limelight", class: [], escape_attributes: false
+    str = tag.p "limelight", class: [], escape: false
     assert_equal '<p class="">limelight</p>', str
   end
 
@@ -347,10 +420,10 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_builder_with_unescaped_conditional_hash_classes
-    str = tag.p "limelight", class: { "song": true, "play>": true }, escape_attributes: false
+    str = tag.p "limelight", class: { "song": true, "play>": true }, escape: false
     assert_equal "<p class=\"song play>\">limelight</p>", str
 
-    str = tag.p "limelight", class: ["song", { "play>": true }], escape_attributes: false
+    str = tag.p "limelight", class: ["song", { "play>": true }], escape: false
     assert_equal "<p class=\"song play>\">limelight</p>", str
   end
 
@@ -468,11 +541,11 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_builder_disable_escaping
-    assert_equal '<a href="&amp;"></a>', tag.a(href: "&amp;", escape_attributes: false)
-    assert_equal '<a href="&amp;">cnt</a>', tag.a(href: "&amp;", escape_attributes: false) { "cnt" }
-    assert_equal '<br data-hidden="&amp;">', tag.br("data-hidden": "&amp;", escape_attributes: false)
-    assert_equal '<a href="&amp;">content</a>', tag.a("content", href: "&amp;", escape_attributes: false)
-    assert_equal '<a href="&amp;">content</a>', tag.a(href: "&amp;", escape_attributes: false) { "content" }
+    assert_equal '<a href="&amp;"></a>', tag.a(href: "&amp;", escape: false)
+    assert_equal '<a href="&amp;">cnt</a>', tag.a(href: "&amp;", escape: false) { "cnt" }
+    assert_equal '<br data-hidden="&amp;">', tag.br("data-hidden": "&amp;", escape: false)
+    assert_equal '<a href="&amp;">content</a>', tag.a("content", href: "&amp;", escape: false)
+    assert_equal '<a href="&amp;">content</a>', tag.a(href: "&amp;", escape: false) { "content" }
   end
 
   def test_data_attributes
