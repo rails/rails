@@ -37,11 +37,11 @@ in point releases.
 Bug Fixes
 ---------
 
-Bug fixes are typically added to the main branch, and backported to the
-x-y-stable branch of the latest release series if there is sufficient need. When
-enough bugs fixes have been added to an x-y-stable branch, a new patch release
-is built from it. For example, a theoretical 1.2.2 patch release would be built
-from the 1-2-stable branch.
+Only the latest release series will receive bug fixes. Bug fixes are typically
+added to the main branch, and backported to the x-y-stable branch of the latest
+release series if there is sufficient need. When enough bugs fixes have been added
+to an x-y-stable branch, a new patch release is built from it. For example, a
+theoretical 1.2.2 patch release would be built from the 1-2-stable branch.
 
 In special situations, where someone from the Core Team agrees to support more series,
 they are included in the list of supported series.
