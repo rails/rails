@@ -294,14 +294,14 @@ module ActionView
       #
       # ==== Examples
       #   hidden_field_tag 'tags_list'
-      #   # => <input type=\"hidden\" name=\"tags_list\" id=\"tags_list\" autocomplete=\"off\" />
+      #   # => <input type="hidden" name="tags_list" id="tags_list" autocomplete="off" />
       #
       #   hidden_field_tag 'token', 'VUBJKB23UIVI1UU1VOBVI@'
-      #   # => <input type=\"hidden\" name=\"token\" id=\"token\" value=\"VUBJKB23UIVI1UU1VOBVI@\" autocomplete=\"off\" />
+      #   # => <input type="hidden" name="token" id="token" value="VUBJKB23UIVI1UU1VOBVI@" autocomplete="off" />
       #
       #   hidden_field_tag 'collected_input', '', onchange: "alert('Input collected!')"
-      #   # => <input type=\"hidden\" name=\"collected_input\" id=\"collected_input\"
-      #        value=\"\" onchange=\"alert(&#39;Input collected!&#39;)\" autocomplete=\"off\" />
+      #   # => <input type="hidden" name="collected_input" id="collected_input"
+      #        value="" onchange="alert(&#39;Input collected!&#39;)" autocomplete="off" />
       def hidden_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :hidden, autocomplete: "off"))
       end
