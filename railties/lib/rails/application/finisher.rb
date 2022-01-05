@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "zeitwerk"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/array/conversions"
 require "active_support/descendants_tracker"
