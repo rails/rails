@@ -36,12 +36,18 @@ PATH
       activestorage (= 7.1.0.alpha)
       activesupport (= 7.1.0.alpha)
       mail (>= 2.7.1)
+      net-imap
+      net-pop
+      net-smtp
     actionmailer (7.1.0.alpha)
       actionpack (= 7.1.0.alpha)
       actionview (= 7.1.0.alpha)
       activejob (= 7.1.0.alpha)
       activesupport (= 7.1.0.alpha)
       mail (~> 2.5, >= 2.5.4)
+      net-imap
+      net-pop
+      net-smtp
       rails-dom-testing (~> 2.0)
     actionpack (7.1.0.alpha)
       actionview (= 7.1.0.alpha)
@@ -367,6 +373,10 @@ GEM
     nokogiri (1.12.5)
       mini_portile2 (~> 2.6.1)
       racc (~> 1.4)
+    nokogiri (1.12.5-x86_64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.12.5-x86_64-linux)
+      racc (~> 1.4)
     os (1.1.4)
     parallel (1.21.0)
     parser (3.1.0.0)
@@ -594,9 +604,6 @@ DEPENDENCIES
   minitest-ci
   minitest-retry
   mysql2 (~> 0.5)!
-  net-imap
-  net-pop
-  net-smtp
   nokogiri (>= 1.8.1, != 1.11.0)
   pg (~> 1.1)
   propshaft (>= 0.1.7)
