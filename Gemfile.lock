@@ -445,8 +445,8 @@ GEM
     rubyzip (2.3.2)
     rufus-scheduler (3.6.0)
       fugit (~> 1.1, >= 1.1.6)
-    sdoc (2.2.0)
-      rdoc (>= 5.0)
+    sdoc (2.3.0)
+      rdoc (>= 5.0, < 6.4.0)
     selenium-webdriver (4.1.0)
       childprocess (>= 0.5, < 5.0)
       rexml (~> 3.2, >= 3.2.5)
@@ -597,7 +597,7 @@ DEPENDENCIES
   rubocop-packaging
   rubocop-performance
   rubocop-rails
-  sdoc (>= 2.2.0)
+  sdoc (>= 2.3.0)
   selenium-webdriver (>= 4.0.0)
   sequel
   sidekiq
