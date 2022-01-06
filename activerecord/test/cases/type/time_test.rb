@@ -23,6 +23,38 @@ module ActiveRecord
         assert_equal expected_time, topic.bonus_time
         assert_instance_of ::Time, topic.bonus_time
       end
+
+    end
+
+    class TimeSerializationTest < ActiveRecord::TestCase
+
+      def setup
+        @old_tz = ::Time.zone
+        ::Time.zone = "America/Chicago"
+      end
+
+      def test_preserves_wrapped_value_class_of_ruby_time
+
+        inner_time = ActiveRecord::Type::Time::Value.new(::Time.new(2000, 1, 1, 10, 30, 0))
+        inner_twz  = ActiveRecord::Type::Time::Value.new(::Time.zone.local(2000, 1, 1, 10, 30, 0))
+        materialized = ::YAML.load(::YAML.dump(inner_time))
+
+        assert_instance_of ::Time, materialized.__getobj__
+      end
+
+      ##
+      #  The semantics are different between ::Time and TimeWithZone but there
+      #  it is probably important to preserve them because of existing data that
+      #  has already been stored
+      def test_preserves_wrapped_value_class_of_time_with_zone
+        inner_twz  = ActiveRecord::Type::Time::Value.new(::Time.zone.local(2000, 1, 1, 10, 30, 0))
+        materialized = ::YAML.load(::YAML.dump(inner_twz))
+        assert_instance_of ::ActiveSupport::TimeWithZone, materialized
+      end
+
+      def teardown
+        ::Time.zone = @old_tz
+      end
     end
   end
 end
