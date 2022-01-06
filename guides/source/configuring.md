@@ -939,7 +939,6 @@ config.action_dispatch.default_headers = {
   'X-Frame-Options' => 'SAMEORIGIN',
   'X-XSS-Protection' => '1; mode=block',
   'X-Content-Type-Options' => 'nosniff',
-  'X-Download-Options' => 'noopen',
   'X-Permitted-Cross-Domain-Policies' => 'none',
   'Referrer-Policy' => 'strict-origin-when-cross-origin'
 }
@@ -1762,6 +1761,16 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 `config.load_defaults` sets new defaults up to and including the version passed. Such that passing, say, `6.0` also gets the new defaults from every version before it.
 
 #### For '7.1', defaults from previous versions below and:
+
+- `config.action_dispatch.default_headers`:
+
+    {
+      "X-Frame-Options" => "SAMEORIGIN",
+      "X-XSS-Protection" => "0",
+      "X-Content-Type-Options" => "nosniff",
+      "X-Permitted-Cross-Domain-Policies" => "none",
+      "Referrer-Policy" => "strict-origin-when-cross-origin"
+    }
 
 
 #### For '7.0', defaults from previous versions below and:
