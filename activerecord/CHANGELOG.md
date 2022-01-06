@@ -1,3 +1,9 @@
+*   Change `QueryMethods#in_order_of` to drop records not listed in values.
+
+    `in_order_of` now filters down to the values provided, to match the behavior of the `Enumerable` version.
+
+    *Kevin Newton*
+
 *   Allow named expression indexes to be revertible.
 
     Previously, the following code would raise an error in a reversible migration executed while rolling back, due to the index name not being used in the index removal.
