@@ -52,6 +52,20 @@ module ActiveRecord
         assert_instance_of ::ActiveSupport::TimeWithZone, materialized
       end
 
+      def test_loads_legacy_data_into_new_memory_representation
+        legacy_serialized_data = <<-YAML
+--- !ruby/object:ActiveSupport::TimeWithZone
+utc: 2000-01-01 16:30:00.000000000 Z
+zone: !ruby/object:ActiveSupport::TimeZone
+  name: America/Chicago
+time: 2000-01-01 10:30:00.000000000 Z
+YAML
+
+        materialized = ::YAML.load(legacy_serialized_data)
+        assert_respond_to materialized, :__getobj__, "If materialized object is properly created it will be a DelegateClass"
+        assert_instance_of ::Time, materialized.__getobj__
+      end
+
       def teardown
         ::Time.zone = @old_tz
       end
