@@ -1,3 +1,5 @@
+## Rails 7.0.1 (January 06, 2022) ##
+
 *   Allow testing `discard_on/retry_on ActiveJob::DeserializationError`
 
     Previously in `perform_enqueued_jobs`, `deserialize_arguments_if_needed`

@@ -1,3 +1,11 @@
+## Rails 7.0.1 (January 06, 2022) ##
+
+*   Fix `ActionController::Parameters` methods to keep the original logger context when creating a new copy
+    of the original object.
+
+    *Yutaka Kamei*
+
+
 ## Rails 7.0.0 (December 15, 2021) ##
 
 *   Deprecate `Rails.application.config.action_controller.urlsafe_csrf_tokens`. This config is now always enabled.
@@ -11,6 +19,7 @@
 
     *Alex Ghiculescu*
 
+
 ## Rails 7.0.0.rc3 (December 14, 2021) ##
 
 *   No changes.
@@ -19,6 +28,7 @@
 ## Rails 7.0.0.rc2 (December 14, 2021) ##
 
 *   Fix X_FORWARDED_HOST protection.  [CVE-2021-44528]
+
 
 ## Rails 7.0.0.rc1 (December 06, 2021) ##
 

@@ -1,3 +1,8 @@
+## Rails 7.0.1 (January 06, 2022) ##
+
+*   No changes.
+
+
 ## Rails 7.0.0 (December 15, 2021) ##
 
 *   Support transforming empty-ish `has_many_attached` value into `[]` (e.g. `[""]`).

@@ -1,3 +1,17 @@
+## Rails 7.0.1 (January 06, 2022) ##
+
+*   Prevent duplicate entries in plugin Gemfile.
+
+    *Jonathan Hefner*
+
+*   Fix asset pipeline errors for plugin dummy apps.
+
+    *Jonathan Hefner*
+
+*   Fix generated route revocation.
+
+    *Jonathan Hefner*
+
 *   Addresses an issue in which Sidekiq jobs could not reload certain
     namespaces.
 
@@ -5,6 +19,11 @@
     details.
 
     *Xavier Noria*
+
+*   Fix plugin generator to a plugin that pass all the tests.
+
+    *Rafael Mendonça França*
+
 
 ## Rails 7.0.0 (December 15, 2021) ##
 

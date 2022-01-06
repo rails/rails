@@ -1,3 +1,14 @@
+## Rails 7.0.1 (January 06, 2022) ##
+
+*   Fix `button_to` to work with a hash parameter as URL.
+
+    *MingyuanQin*
+
+*   Fix `link_to` with a model passed as an argument twice.
+
+    *Alex Ghiculescu*
+
+
 ## Rails 7.0.0 (December 15, 2021) ##
 
 *   Support `include_hidden:` option in calls to
