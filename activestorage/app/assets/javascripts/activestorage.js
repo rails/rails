@@ -828,6 +828,8 @@
   }
   setTimeout(autostart, 1);
   exports.DirectUpload = DirectUpload;
+  exports.DirectUploadController = DirectUploadController;
+  exports.DirectUploadsController = DirectUploadsController;
   exports.start = start;
   Object.defineProperty(exports, "__esModule", {
     value: true
