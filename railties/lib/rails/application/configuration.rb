@@ -257,6 +257,16 @@ module Rails
           end
         when "7.1"
           load_defaults "7.0"
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.default_headers = {
+              "X-Frame-Options" => "SAMEORIGIN",
+              "X-XSS-Protection" => "0",
+              "X-Content-Type-Options" => "nosniff",
+              "X-Permitted-Cross-Domain-Policies" => "none",
+              "Referrer-Policy" => "strict-origin-when-cross-origin"
+            }
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
