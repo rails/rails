@@ -9,6 +9,7 @@
 # It is also good to know what is the bare minimum to get
 # Rails booted up.
 require "fileutils"
+require "shellwords"
 
 require "bundler/setup" unless defined?(Bundler)
 require "active_support"
