@@ -48,7 +48,18 @@ module ActionView
       def _helpers
       end
 
+      def inherit_view_context_class?
+        superclass.respond_to?(:view_context_class) &&
+          supports_path? == superclass.supports_path? &&
+          _routes.equal?(superclass._routes) &&
+          _helpers.equal?(superclass._helpers)
+      end
+
       def build_view_context_class(klass, supports_path, routes, helpers)
+        if inherit_view_context_class?
+          return superclass.view_context_class
+        end
+
         Class.new(klass) do
           if routes
             include routes.url_helpers(supports_path)
