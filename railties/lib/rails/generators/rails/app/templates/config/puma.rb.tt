@@ -4,6 +4,15 @@
 # the maximum value specified for Puma. Default is set to 5 threads for minimum
 # and maximum; this matches the default thread size of Active Record.
 #
+
+if ENV['RAILS_ENV'] == 'development'
+  # Set up Puma for debugging, with low default concurrency values
+  # Multiple threads ruin debugging sessions
+  ENV['WEB_CONCURRENCY'] = ENV['WEB_CONCURRENCY'].presence || '1'
+  ENV['RAILS_MAX_THREADS'] = ENV['RAILS_MAX_THREADS'].presence || '1'
+  worker_timeout 36000
+end
+
 max_threads_count = ENV.fetch("RAILS_MAX_THREADS") { 5 }
 min_threads_count = ENV.fetch("RAILS_MIN_THREADS") { max_threads_count }
 threads min_threads_count, max_threads_count
@@ -17,9 +26,8 @@ worker_timeout 3600 if ENV.fetch("RAILS_ENV", "development") == "development"
 #
 port ENV.fetch("PORT") { 3000 }
 
-# Specifies the `environment` that Puma will run in.
-#
-environment ENV.fetch("RAILS_ENV") { "development" }
+# Specifies the Rack `environment` that Puma will run in.
+environment ENV.fetch('RACK_ENV') { 'development' }
 
 # Specifies the `pidfile` that Puma will use.
 pidfile ENV.fetch("PIDFILE") { "tmp/pids/server.pid" }
