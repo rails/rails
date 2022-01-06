@@ -75,7 +75,11 @@ HELP
 end
 
 task :test do
-  templates = Dir.glob("bug_report_templates/*.rb")
+  templates = if RUBY_VERSION < "3.1.0"
+    Dir.glob("bug_report_templates/*.rb")
+  else
+    Dir.glob("bug_report_templates/*_main.rb")
+  end
   counter = templates.count do |file|
     puts "--- Running #{file}"
     Bundler.unbundled_system(Gem.ruby, "-w", file) ||
