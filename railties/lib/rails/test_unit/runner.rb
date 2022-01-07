@@ -9,6 +9,7 @@ require "active_support/core_ext/module/attribute_accessors"
 module Rails
   module TestUnit
     class Runner
+      TEST_FOLDERS = [:models, :helpers, :channels, :controllers, :mailers, :integration, :jobs, :mailboxes]
       mattr_reader :filters, default: []
 
       class << self

@@ -1,3 +1,11 @@
+*   Avoid booting in development then test for test tasks.
+
+    Running one of the rails test subtasks (e.g. test:system, test:models) would
+    go through Rake and cause the app to be booted twice. Now all the test:*
+    subtasks are defined as Thor tasks and directly load the test environment.
+
+    *Étienne Barrié*
+
 *   Deprecate `Rails::Generators::Testing::Behaviour` in favor of `Rails::Generators::Testing::Behavior`.
 
     *Gannon McGibbon*
