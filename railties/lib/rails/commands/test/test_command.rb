@@ -42,6 +42,7 @@ module Rails
         end
       end
 
+      desc "test:all", "Runs all tests, including system tests", hide: true
       def all
         self.args = ["test/**/*_test.rb"]
         perform
