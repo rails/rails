@@ -798,6 +798,7 @@ module ActiveRecord
             type_casted_binds: type_casted_binds,
             statement_name:    statement_name,
             async:             async,
+            type:              write_query?(sql) ? :write : :read,
             connection:        self) do
             @lock.synchronize(&block)
           rescue => e

@@ -149,7 +149,8 @@ module ActiveRecord
             type_casted_binds: -> { type_casted_binds(binds) },
             name: name,
             connection: self,
-            cached: true
+            cached: true,
+            type: :read
           }
         end
 

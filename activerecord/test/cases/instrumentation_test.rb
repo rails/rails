@@ -15,6 +15,7 @@ module ActiveRecord
         event = ActiveSupport::Notifications::Event.new(*args)
         if event.payload[:sql].match?("SELECT")
           assert_equal "Book Load", event.payload[:name]
+          assert_equal :read, event.payload[:type]
         end
       end
       Book.first
@@ -27,6 +28,7 @@ module ActiveRecord
         event = ActiveSupport::Notifications::Event.new(*args)
         if event.payload[:sql].match?("INSERT")
           assert_equal "Book Create", event.payload[:name]
+          assert_equal :write, event.payload[:type]
         end
       end
       Book.create(name: "test book")
@@ -39,6 +41,7 @@ module ActiveRecord
         event = ActiveSupport::Notifications::Event.new(*args)
         if event.payload[:sql].match?("UPDATE")
           assert_equal "Book Update", event.payload[:name]
+          assert_equal :write, event.payload[:type]
         end
       end
       book = Book.create(name: "test book", format: "paperback")
@@ -52,6 +55,7 @@ module ActiveRecord
         event = ActiveSupport::Notifications::Event.new(*args)
         if event.payload[:sql].match?("UPDATE")
           assert_equal "Book Update All", event.payload[:name]
+          assert_equal :write, event.payload[:type]
         end
       end
       Book.update_all(format: "ebook")
@@ -64,6 +68,7 @@ module ActiveRecord
         event = ActiveSupport::Notifications::Event.new(*args)
         if event.payload[:sql].match?("DELETE")
           assert_equal "Book Destroy", event.payload[:name]
+          assert_equal :write, event.payload[:type]
         end
       end
       book = Book.create(name: "test book")
@@ -77,6 +82,7 @@ module ActiveRecord
         event = ActiveSupport::Notifications::Event.new(*args)
         if event.payload[:sql].match?("DELETE")
           assert_equal "Book Delete All", event.payload[:name]
+          assert_equal :write, event.payload[:type]
         end
       end
       Book.delete_all
@@ -89,6 +95,7 @@ module ActiveRecord
         event = ActiveSupport::Notifications::Event.new(*args)
         if event.payload[:sql].match?("SELECT")
           assert_equal "Book Pluck", event.payload[:name]
+          assert_equal :read, event.payload[:type]
         end
       end
       Book.pluck(:name)
@@ -101,6 +108,7 @@ module ActiveRecord
         event = ActiveSupport::Notifications::Event.new(*args)
         if event.payload[:sql].match?("SELECT")
           assert_equal "Book Count", event.payload[:name]
+          assert_equal :read, event.payload[:type]
         end
       end
       Book.count
@@ -113,6 +121,7 @@ module ActiveRecord
         event = ActiveSupport::Notifications::Event.new(*args)
         if event.payload[:sql].match?("SELECT")
           assert_equal "Book Count", event.payload[:name]
+          assert_equal :read, event.payload[:type]
         end
       end
       Book.group(:status).count
@@ -125,6 +134,7 @@ module ActiveRecord
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*args|
         event = ActiveSupport::Notifications::Event.new(*args)
         assert_equal connection, event.payload[:connection]
+        assert_equal :read, event.payload[:type]
       end
       Book.first
     ensure
@@ -136,6 +146,7 @@ module ActiveRecord
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*args|
         event = ActiveSupport::Notifications::Event.new(*args)
         assert_equal connection, event.payload[:connection]
+        assert_equal :read, event.payload[:type]
       end
       Book.cache do
         Book.first
