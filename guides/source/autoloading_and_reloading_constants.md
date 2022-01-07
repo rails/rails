@@ -245,7 +245,7 @@ ApiGateway.endpoint = "https://example.com" # DO NOT DO THIS
 
 a reloaded `ApiGateway` would have a `nil` endpoint, because the code above does not run again.
 
-You can still set things up during boot, but you need to wrap them in a `to_prepare` block, which is runs on boot, and after each reload:
+You can still set things up during boot, but you need to wrap them in a `to_prepare` block, which runs on boot, and after each reload:
 
 ```ruby
 # config/initializers/api_gateway_setup.rb
