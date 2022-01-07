@@ -13,6 +13,15 @@ class Rails::Command::BaseTest < ActiveSupport::TestCase
     assert_equal %w(db:system:change), Rails::Command::Db::System::ChangeCommand.printing_commands
   end
 
+  test "printing commands hides hidden commands" do
+    class Rails::Command::HiddenCommand < Rails::Command::Base
+      desc "command", "Hidden command", hide: true
+      def command
+      end
+    end
+    assert_equal [], Rails::Command::HiddenCommand.printing_commands
+  end
+
   test "ARGV is populated" do
     class Rails::Command::ArgvCommand < Rails::Command::Base
       def check_populated(*args)
