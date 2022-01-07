@@ -953,7 +953,7 @@ So _attack vectors for Header Injection are based on the injection of CRLF chara
 
 DNS rebinding is a method of manipulating resolution of domain names that is commonly used as a form of computer attack. DNS rebinding circumvents the same-origin policy by abusing the Domain Name System (DNS) instead. It rebinds a domain to a different IP address and than compromises the system by executing random code against your Rails app from the changed IP address.
 
-It is recommended to use the ActionDispatch::HostAuthorization middleware to guard against DNS rebinding and other Host header attacks. It is enabled by default in the development environment, you have to activate it in production and other environments by setting the list of allowed hosts. You can also configure exceptions and set your own response app.
+It is recommended to use the `ActionDispatch::HostAuthorization` middleware to guard against DNS rebinding and other Host header attacks. It is enabled by default in the development environment, you have to activate it in production and other environments by setting the list of allowed hosts. You can also configure exceptions and set your own response app.
 
 ```ruby
 Rails.application.config.hosts << "product.com"
@@ -968,7 +968,7 @@ Rails.application.config.host_authorization = {
 }
 ```
 
-You can read more about it in the [ActionDispatch::HostAuthorization middleware documentation](/configuring.html#actiondispatch-hostauthorization)
+You can read more about it in the [`ActionDispatch::HostAuthorization` middleware documentation](/configuring.html#actiondispatch-hostauthorization)
 
 #### Response Splitting
 
