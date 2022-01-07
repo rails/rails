@@ -22,16 +22,16 @@ module Enumerable
 
   # Calculates the minimum from the extracted elements.
   #
-  # payments = [Payment.new(5), Payment.new(15), Payment.new(10)]
-  # payments.minimum(:price) # => 5
+  #   payments = [Payment.new(5), Payment.new(15), Payment.new(10)]
+  #   payments.minimum(:price) # => 5
   def minimum(key)
     map(&key).min
   end
 
   # Calculates the maximum from the extracted elements.
   #
-  # payments = [Payment.new(5), Payment.new(15), Payment.new(10)]
-  # payments.maximum(:price) # => 15
+  #   payments = [Payment.new(5), Payment.new(15), Payment.new(10)]
+  #   payments.maximum(:price) # => 15
   def maximum(key)
     map(&key).max
   end
@@ -47,13 +47,13 @@ module Enumerable
   #
   # It can also calculate the sum without the use of a block.
   #
-  #  [5, 15, 10].sum # => 30
-  #  ['foo', 'bar'].sum('') # => "foobar"
-  #  [[1, 2], [3, 1, 5]].sum([]) # => [1, 2, 3, 1, 5]
+  #   [5, 15, 10].sum # => 30
+  #   ['foo', 'bar'].sum('') # => "foobar"
+  #   [[1, 2], [3, 1, 5]].sum([]) # => [1, 2, 3, 1, 5]
   #
   # The default sum of an empty list is zero. You can override this default:
   #
-  #  [].sum(Payment.new(0)) { |i| i.amount } # => Payment.new(0)
+  #   [].sum(Payment.new(0)) { |i| i.amount } # => Payment.new(0)
   def sum(identity = nil, &block)
     if identity
       _original_sum_with_required_identity(identity, &block)
@@ -205,16 +205,16 @@ module Enumerable
   # Returns a new +Array+ without the blank items.
   # Uses Object#blank? for determining if an item is blank.
   #
-  #    [1, "", nil, 2, " ", [], {}, false, true].compact_blank
-  #    # =>  [1, 2, true]
+  #   [1, "", nil, 2, " ", [], {}, false, true].compact_blank
+  #   # =>  [1, 2, true]
   #
-  #    Set.new([nil, "", 1, 2])
-  #    # => [2, 1] (or [1, 2])
+  #   Set.new([nil, "", 1, 2])
+  #   # => [2, 1] (or [1, 2])
   #
   # When called on a +Hash+, returns a new +Hash+ without the blank values.
   #
-  #    { a: "", b: 1, c: nil, d: [], e: false, f: true }.compact_blank
-  #    #=> { b: 1, f: true }
+  #   { a: "", b: 1, c: nil, d: [], e: false, f: true }.compact_blank
+  #   # => { b: 1, f: true }
   def compact_blank
     reject(&:blank?)
   end
@@ -223,7 +223,7 @@ module Enumerable
   # objects in the original enumerable.
   #
   #   [ Person.find(5), Person.find(3), Person.find(1) ].in_order_of(:id, [ 1, 5, 3 ])
-  #   => [ Person.find(1), Person.find(5), Person.find(3) ]
+  #   # => [ Person.find(1), Person.find(5), Person.find(3) ]
   #
   # If the +series+ include keys that have no corresponding element in the Enumerable, these are ignored.
   # If the Enumerable has additional elements that aren't named in the +series+, these are not included in the result.
@@ -234,9 +234,9 @@ module Enumerable
   # Returns the sole item in the enumerable. If there are no items, or more
   # than one item, raises +Enumerable::SoleItemExpectedError+.
   #
-  #    ["x"].sole          # => "x"
-  #    Set.new.sole        # => Enumerable::SoleItemExpectedError: no item found
-  #    { a: 1, b: 2 }.sole # => Enumerable::SoleItemExpectedError: multiple items found
+  #   ["x"].sole          # => "x"
+  #   Set.new.sole        # => Enumerable::SoleItemExpectedError: no item found
+  #   { a: 1, b: 2 }.sole # => Enumerable::SoleItemExpectedError: multiple items found
   def sole
     case count
     when 1   then return first # rubocop:disable Style/RedundantReturn
@@ -255,9 +255,9 @@ class Hash
   # Removes all blank values from the +Hash+ in place and returns self.
   # Uses Object#blank? for determining if a value is blank.
   #
-  #    h = { a: "", b: 1, c: nil, d: [], e: false, f: true }
-  #    h.compact_blank!
-  #    # => { b: 1, f: true }
+  #   h = { a: "", b: 1, c: nil, d: [], e: false, f: true }
+  #   h.compact_blank!
+  #   # => { b: 1, f: true }
   def compact_blank!
     # use delete_if rather than reject! because it always returns self even if nothing changed
     delete_if { |_k, v| v.blank? }
@@ -302,9 +302,9 @@ class Array # :nodoc:
   # Removes all blank elements from the +Array+ in place and returns self.
   # Uses Object#blank? for determining if an item is blank.
   #
-  #    a = [1, "", nil, 2, " ", [], {}, false, true]
-  #    a.compact_blank!
-  #    # =>  [1, 2, true]
+  #   a = [1, "", nil, 2, " ", [], {}, false, true]
+  #   a.compact_blank!
+  #   # =>  [1, 2, true]
   def compact_blank!
     # use delete_if rather than reject! because it always returns self even if nothing changed
     delete_if(&:blank?)
