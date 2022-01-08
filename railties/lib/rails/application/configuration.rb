@@ -91,7 +91,6 @@ module Rails
           if respond_to?(:action_controller)
             action_controller.per_form_csrf_tokens = true
             action_controller.forgery_protection_origin_check = true
-            action_controller.urlsafe_csrf_tokens = false
           end
 
           ActiveSupport.to_time_preserves_timezone = true
@@ -176,10 +175,6 @@ module Rails
             action_dispatch.ssl_default_redirect_status = 308
           end
 
-          if respond_to?(:action_controller)
-            action_controller.delete(:urlsafe_csrf_tokens)
-          end
-
           if respond_to?(:action_view)
             action_view.form_with_generates_remote_forms = false
             action_view.preload_links_header = true
@@ -261,6 +256,8 @@ module Rails
         when "7.1"
           load_defaults "7.0"
 
+          self.add_autoload_paths_to_load_path = false
+
           if respond_to?(:action_dispatch)
             action_dispatch.default_headers = {
               "X-Frame-Options" => "SAMEORIGIN",
@@ -269,6 +266,10 @@ module Rails
               "X-Permitted-Cross-Domain-Policies" => "none",
               "Referrer-Policy" => "strict-origin-when-cross-origin"
             }
+          end
+
+          if respond_to?(:active_support)
+            active_support.default_message_encryptor_serializer = :json
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
@@ -373,6 +374,20 @@ module Rails
         generators.colorize_logging = val
       end
 
+      # Specifies what class to use to store the session. Possible values
+      # are +:cookie_store+, +:mem_cache_store+, a custom store, or
+      # +:disabled+. +:disabled+ tells Rails not to deal with sessions.
+      #
+      # Additional options will be set as +session_options+:
+      #
+      #   config.session_store :cookie_store, key: "_your_app_session"
+      #   config.session_options # => {key: "_your_app_session"}
+      #
+      # If a custom store is specified as a symbol, it will be resolved to
+      # the +ActionDispatch::Session+ namespace:
+      #
+      #   # use ActionDispatch::Session::MyCustomStore as the session store
+      #   config.session_store :my_custom_store
       def session_store(new_session_store = nil, **options)
         if new_session_store
           if new_session_store == :active_record_store
@@ -408,6 +423,7 @@ module Rails
         Rails::SourceAnnotationExtractor::Annotation
       end
 
+      # Configures the ActionDispatch::ContentSecurityPolicy.
       def content_security_policy(&block)
         if block_given?
           @content_security_policy = ActionDispatch::ContentSecurityPolicy.new(&block)
@@ -416,6 +432,7 @@ module Rails
         end
       end
 
+      # Configures the ActionDispatch::PermissionsPolicy.
       def permissions_policy(&block)
         if block_given?
           @permissions_policy = ActionDispatch::PermissionsPolicy.new(&block)

@@ -526,3 +526,29 @@ class TestOrderTest < ActiveSupport::TestCase
     assert_equal :random, Class.new(ActiveSupport::TestCase).test_order
   end
 end
+
+
+class ConstStubbable
+  CONSTANT = 1
+end
+
+class TestConstStubbing < ActiveSupport::TestCase
+  test "stubbing a constant temporarily replaces it with a new value" do
+    stub_const(ConstStubbable, :CONSTANT, 2) do
+      assert_equal 2, ConstStubbable::CONSTANT
+    end
+
+    assert_equal 1, ConstStubbable::CONSTANT
+  end
+
+  test "stubbed constant still reset even if exception is raised" do
+    assert_raises(RuntimeError) do
+      stub_const(ConstStubbable, :CONSTANT, 2) do
+        assert_equal 2, ConstStubbable::CONSTANT
+        raise "Exception"
+      end
+    end
+
+    assert_equal 1, ConstStubbable::CONSTANT
+  end
+end

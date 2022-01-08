@@ -84,7 +84,6 @@ module ActiveRecord
 
     class Transaction # :nodoc:
       attr_reader :connection, :state, :savepoint_name, :isolation_level
-      attr_accessor :written
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         @connection = connection
@@ -187,7 +186,9 @@ module ActiveRecord
       end
 
       def rollback
-        connection.rollback_to_savepoint(savepoint_name) if materialized?
+        unless @state.invalidated?
+          connection.rollback_to_savepoint(savepoint_name) if materialized?
+        end
         @state.rollback!
       end
 
@@ -308,7 +309,7 @@ module ActiveRecord
       def rollback_transaction(transaction = nil)
         @connection.lock.synchronize do
           transaction ||= @stack.pop
-          transaction.rollback unless transaction.state.invalidated?
+          transaction.rollback
           transaction.rollback_records
         end
       end
@@ -321,7 +322,10 @@ module ActiveRecord
           ret
         rescue Exception => error
           if transaction
-            transaction.state.invalidate! if error.is_a? ActiveRecord::TransactionRollbackError
+            if error.is_a?(ActiveRecord::TransactionRollbackError) &&
+                @connection.savepoint_errors_invalidate_transactions?
+              transaction.state.invalidate!
+            end
             rollback_transaction
             after_failure_actions(transaction, error)
           end
@@ -333,7 +337,7 @@ module ActiveRecord
               # @connection still holds an open or invalid transaction, so we must not
               # put it back in the pool for reuse.
               @connection.throw_away! unless transaction.state.rolledback?
-            elsif Thread.current.status == "aborting" || (!completed && transaction.written)
+            elsif Thread.current.status == "aborting" || !completed
               # The transaction is still open but the block returned earlier.
               #
               # The block could return early because of a timeout or because the thread is aborting,

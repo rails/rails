@@ -28,7 +28,7 @@ module ActiveSupport
 
           object.stub(method_name, mock, &block)
 
-          mock.verify
+          assert_mock(mock)
         end
 
         def assert_not_called(object, method_name, message = nil, &block)

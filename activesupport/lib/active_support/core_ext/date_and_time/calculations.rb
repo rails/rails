@@ -201,7 +201,7 @@ module DateAndTime
       end
     end
 
-    # Short-hand for months_since(3)
+    # Short-hand for <tt>months_since(3)</tt>.
     def next_quarter
       months_since(3)
     end
@@ -226,18 +226,18 @@ module DateAndTime
     end
     alias_method :last_weekday, :prev_weekday
 
-    # Short-hand for months_ago(1).
+    # Short-hand for <tt>months_ago(1)</tt>.
     def last_month
       months_ago(1)
     end
 
-    # Short-hand for months_ago(3).
+    # Short-hand for <tt>months_ago(3)</tt>.
     def prev_quarter
       months_ago(3)
     end
     alias_method :last_quarter, :prev_quarter
 
-    # Short-hand for years_ago(1).
+    # Short-hand for <tt>years_ago(1)</tt>.
     def last_year
       years_ago(1)
     end

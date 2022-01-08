@@ -336,6 +336,11 @@ module ActiveRecord
       assert_equal 0, count
     end
 
+    def test_where_with_rational_for_string_column
+      count = Post.where(title: Rational(0)).count
+      assert_equal 0, count
+    end
+
     def test_where_with_duration_for_string_column
       count = Post.where(title: 0.seconds).count
       assert_equal 0, count

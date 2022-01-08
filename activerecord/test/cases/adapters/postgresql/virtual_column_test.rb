@@ -19,6 +19,8 @@ if ActiveRecord::Base.connection.supports_virtual_columns?
         t.virtual :upper_name,  type: :string,  as: "UPPER(name)", stored: true
         t.virtual :name_length, type: :integer, as: "LENGTH(name)", stored: true
         t.virtual :name_octet_length, type: :integer, as: "OCTET_LENGTH(name)", stored: true
+        t.integer :column1
+        t.virtual :column2, type: :integer, as: "column1 + 1", stored: true
       end
       VirtualColumn.create(name: "Rails")
     end
@@ -78,6 +80,7 @@ if ActiveRecord::Base.connection.supports_virtual_columns?
       assert_match(/t\.virtual\s+"upper_name",\s+type: :string,\s+as: "upper\(\(name\)::text\)", stored: true$/i, output)
       assert_match(/t\.virtual\s+"name_length",\s+type: :integer,\s+as: "length\(\(name\)::text\)", stored: true$/i, output)
       assert_match(/t\.virtual\s+"name_octet_length",\s+type: :integer,\s+as: "octet_length\(\(name\)::text\)", stored: true$/i, output)
+      assert_match(/t\.virtual\s+"column2",\s+type: :integer,\s+as: "\(column1 \+ 1\)", stored: true$/i, output)
     end
 
     def test_build_fixture_sql

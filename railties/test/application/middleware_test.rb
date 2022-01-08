@@ -27,7 +27,7 @@ module ApplicationTests
 
       assert_equal [
         "ActionDispatch::HostAuthorization",
-        "Rack::Sendfile",
+        "ActionDispatch::MiddlewareStack::FakeSendfile",
         "ActionDispatch::Static",
         "ActionDispatch::Executor",
         "ActionDispatch::ServerTiming",
@@ -63,7 +63,7 @@ module ApplicationTests
 
       assert_equal [
         "ActionDispatch::HostAuthorization",
-        "Rack::Sendfile",
+        "ActionDispatch::MiddlewareStack::FakeSendfile",
         "ActionDispatch::Static",
         "ActionDispatch::Executor",
         "ActionDispatch::ServerTiming",
@@ -98,7 +98,7 @@ module ApplicationTests
 
       assert_equal [
         "ActionDispatch::HostAuthorization",
-        "Rack::Sendfile",
+        "ActionDispatch::MiddlewareStack::FakeSendfile",
         "ActionDispatch::Static",
         "ActionDispatch::Executor",
         "ActiveSupport::Cache::Strategy::LocalCache",
@@ -136,7 +136,6 @@ module ApplicationTests
         %w(ActionDispatch::Reloader ActionDispatch::ShowExceptions ActionDispatch::DebugExceptions),
 
         # Outright dependencies
-        %w(ActionDispatch::Static Rack::Sendfile),
         %w(ActionDispatch::Flash ActionDispatch::Session::CookieStore),
         %w(ActionDispatch::Session::CookieStore ActionDispatch::Cookies),
       ]
@@ -262,9 +261,9 @@ module ApplicationTests
     end
 
     test "insert middleware after" do
-      add_to_config "config.middleware.insert_after Rack::Sendfile, Rack::Config"
+      add_to_config "config.middleware.insert_after ActionDispatch::Static, Rack::Config"
       boot!
-      assert_equal "Rack::Config", middleware.third
+      assert_equal "Rack::Config", middleware.fourth
     end
 
     test "unshift middleware" do
@@ -287,9 +286,9 @@ module ApplicationTests
     end
 
     test "insert middleware before" do
-      add_to_config "config.middleware.insert_before Rack::Sendfile, Rack::Config"
+      add_to_config "config.middleware.insert_before ActionDispatch::Static, Rack::Config"
       boot!
-      assert_equal "Rack::Config", middleware.second
+      assert_equal "Rack::Config", middleware.third
     end
 
     test "can't change middleware after it's built" do

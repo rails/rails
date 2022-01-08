@@ -712,6 +712,8 @@ class FrozenStringLiteralEnabledViewRenderTest < ActiveSupport::TestCase
   include RenderTestCases
 
   def setup
+    ActionView::LookupContext::DetailsKey.clear
+
     @previous_frozen_literal = ActionView::Template.frozen_string_literal
     ActionView::Template.frozen_string_literal = true
     view_paths = ActionController::Base.view_paths

@@ -63,7 +63,7 @@ module ActionMailer
     # * <tt>:priority</tt> - Enqueues the email with the specified priority
     #
     # By default, the email will be enqueued using <tt>ActionMailer::MailDeliveryJob</tt>. Each
-    # <tt>ActionMailer::Base</tt> class can specify the job to use by setting the class variable
+    # ActionMailer::Base class can specify the job to use by setting the class variable
     # +delivery_job+.
     #
     #   class AccountRegistrationMailer < ApplicationMailer
@@ -89,7 +89,7 @@ module ActionMailer
     # * <tt>:priority</tt> - Enqueues the email with the specified priority
     #
     # By default, the email will be enqueued using <tt>ActionMailer::MailDeliveryJob</tt>. Each
-    # <tt>ActionMailer::Base</tt> class can specify the job to use by setting the class variable
+    # ActionMailer::Base class can specify the job to use by setting the class variable
     # +delivery_job+.
     #
     #   class AccountRegistrationMailer < ApplicationMailer

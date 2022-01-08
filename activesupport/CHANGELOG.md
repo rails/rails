@@ -1,3 +1,30 @@
+*   `Pathname.blank?` only returns true for `Pathname.new("")`
+
+    Previously it would end up calling `Pathname#empty?` which returned true
+    if the path existed and was an empty directory or file.
+
+    That behavior was unlikely to be expected.
+
+    *Jean Boussier*
+
+*   Deprecate `Notification::Event`'s `#children` and `#parent_of?`
+
+*   Change default serialization format of `MessageEncryptor` from `Marshal` to `JSON` for Rails 7.1.
+
+    Existing apps are provided with an upgrade path to migrate to `JSON` as described in `guides/source/upgrading_ruby_on_rails.md`
+
+    *Zack Deveau* and *Martin Gingras*
+
+*   Add `ActiveSupport::TestCase#stub_const` to stub a constant for the duration of a yield.
+
+    *DHH*
+
+*   Fix `ActiveSupport::EncryptedConfiguration` to be compatible with Psych 4
+
+    *Stephen Sugden*
+
+*   Improve `File.atomic_write` error handling
+
 *   Fix `Class#descendants` and `DescendantsTracker#descendants` compatibility with Ruby 3.1.
 
     [The native `Class#descendants` was reverted prior to Ruby 3.1 release](https://bugs.ruby-lang.org/issues/14394#note-33),

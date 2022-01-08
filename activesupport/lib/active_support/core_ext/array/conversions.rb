@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/xml_mini"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/object/to_param"
@@ -87,12 +86,12 @@ class Array
   # Extends <tt>Array#to_s</tt> to convert a collection of elements into a
   # comma separated id list if <tt>:db</tt> argument is given as the format.
   #
-  # This method is aliased to <tt>to_fs</tt>.
+  # This method is aliased to <tt>to_formatted_s</tt>.
   #
-  #   Blog.all.to_formatted_s(:db)  # => "1,2,3"
-  #   Blog.none.to_formatted_s(:db) # => "null"
-  #   [1,2].to_formatted_s          # => "[1, 2]"
-  def to_formatted_s(format = :default)
+  #   Blog.all.to_fs(:db)  # => "1,2,3"
+  #   Blog.none.to_fs(:db) # => "null"
+  #   [1,2].to_fs          # => "[1, 2]"
+  def to_fs(format = :default)
     case format
     when :db
       if empty?
@@ -104,7 +103,7 @@ class Array
       to_default_s
     end
   end
-  alias_method :to_fs, :to_formatted_s
+  alias_method :to_formatted_s, :to_fs
   alias_method :to_default_s, :to_s
 
   # Returns a string that represents the array in XML by invoking +to_xml+

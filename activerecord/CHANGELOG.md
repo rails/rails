@@ -1,3 +1,113 @@
+*   Reduce the memory footprint of fixtures accessors.
+
+    Until now fixtures accessors were eagerly defined using `define_method`.
+    So the memory usage was directly dependent of the number of fixtures and
+    test suites.
+
+    Instead fixtures accessors are now implemented with `method_missing`,
+    so they incur much less memory and CPU overhead.
+
+    *Jean Boussier*
+
+*   Fix `config.active_record.destroy_association_async_job` configuration
+
+    `config.active_record.destroy_association_async_job` should allow
+    applications to specify the job that will be used to destroy associated
+    records in the background for `has_many` associations with the
+    `dependent: :destroy_async` option. Previously, that was ignored, which
+    meant the default `ActiveRecord::DestroyAssociationAsyncJob` always
+    destroyed records in the background.
+
+    *Nick Holden*
+
+* Fix `change_column_comment` to preserve column's AUTO_INCREMENT in the MySQL adapter
+
+    *fatkodima*
+
+*   Fix quoting of `ActiveSupport::Duration` and `Rational` numbers in the MySQL adapter.
+
+    *Kevin McPhillips*
+
+*   Allow column name with COLLATE (e.g., title COLLATE "C") as safe SQL string
+
+    *Shugo Maeda*
+
+*   Permit underscores in the VERSION argument to database rake tasks.
+
+    *Eddie Lebow*
+
+*   Reversed the order of `INSERT` statements in `structure.sql` dumps
+
+    This should decrease the likelihood of merge conflicts. New migrations
+    will now be added at the top of the list.
+
+    For existing apps, there will be a large diff the next time `structure.sql`
+    is generated.
+
+    *Alex Ghiculescu*, *Matt Larraz*
+
+*   Fix PG.connect keyword arguments deprecation warning on ruby 2.7
+
+    Fixes #44307.
+
+    *Nikita Vasilevsky*
+
+*   Fix dropping DB connections after serialization failures and deadlocks.
+
+    Prior to 6.1.4, serialization failures and deadlocks caused rollbacks to be
+    issued for both real transactions and savepoints. This breaks MySQL which
+    disallows rollbacks of savepoints following a deadlock.
+
+    6.1.4 removed these rollbacks, for both transactions and savepoints, causing
+    the DB connection to be left in an unknown state and thus discarded.
+
+    These rollbacks are now restored, except for savepoints on MySQL.
+
+    *Thomas Morgan*
+
+*   Make `ActiveRecord::ConnectionPool` Fiber-safe
+
+    When `ActiveSupport::IsolatedExecutionState.isolation_level` is set to `:fiber`,
+    the connection pool now supports multiple Fibers from the same Thread checking
+    out connections from the pool.
+
+    *Alex Matchneer*
+
+*   Add `update_attribute!` to `ActiveRecord::Persistence`
+
+    Similar to `update_attribute`, but raises `ActiveRecord::RecordNotSaved` when a `before_*` callback throws `:abort`.
+
+    ```ruby
+    class Topic < ActiveRecord::Base
+      before_save :check_title
+
+      def check_title
+        throw(:abort) if title == "abort"
+      end
+    end
+
+    topic = Topic.create(title: "Test Title")
+    # #=> #<Topic title: "Test Title">
+    topic.update_attribute!(:title, "Another Title")
+    # #=> #<Topic title: "Another Title">
+    topic.update_attribute!(:title, "abort")
+    # raises ActiveRecord::RecordNotSaved
+    ```
+
+    *Drew Tempelmeyer*
+
+*   Avoid loading every record in `ActiveRecord::Relation#pretty_print`
+
+    ```ruby
+    # Before
+    pp Foo.all # Loads the whole table.
+
+    # After
+    pp Foo.all # Shows 10 items and an ellipsis.
+    ```
+
+    *Ulysse Buonomo*
+
 *   Change `QueryMethods#in_order_of` to drop records not listed in values.
 
     `in_order_of` now filters down to the values provided, to match the behavior of the `Enumerable` version.

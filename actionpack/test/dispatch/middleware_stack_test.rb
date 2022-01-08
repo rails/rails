@@ -213,4 +213,28 @@ class MiddlewareStackTest < ActiveSupport::TestCase
   test "includes a middleware" do
     assert_equal true, @stack.include?(ActionDispatch::MiddlewareStack::Middleware.new(BarMiddleware, nil, nil))
   end
+
+  test "referencing Rack::Sendfile is deprecated but still valid" do
+    @stack.use ActionDispatch::MiddlewareStack::FakeSendfile
+
+    assert_deprecated(/Rack::Sendfile is removed from the default middleware stack in Rails/) do
+      @stack.insert_after(Rack::Sendfile, BazMiddleware)
+    end
+    assert_equal BazMiddleware, @stack[3].klass
+  end
+
+  test "referencing Rack::Sendfile is not deprecated when added explicitly" do
+    assert_not_deprecated do
+      @stack.use Rack::Sendfile
+      @stack.insert_before(Rack::Sendfile, BazMiddleware)
+    end
+  end
+
+  test "referencing FakeSendfile throws an error" do
+    @stack.use ActionDispatch::MiddlewareStack::FakeSendfile
+
+    assert_raises RuntimeError do
+      @stack.insert_after ActionDispatch::MiddlewareStack::FakeSendfile, BazMiddleware
+    end
+  end
 end

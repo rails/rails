@@ -32,7 +32,7 @@ module ActionController # :nodoc:
   # response may be extracted. To prevent this, only XmlHttpRequest (known as XHR or
   # Ajax) requests are allowed to make requests for JavaScript responses.
   #
-  # Subclasses of <tt>ActionController::Base</tt> are protected by default with the
+  # Subclasses of ActionController::Base are protected by default with the
   # <tt>:exception</tt> strategy, which raises an
   # <tt>ActionController::InvalidAuthenticityToken</tt> error on unverified requests.
   #
@@ -90,19 +90,6 @@ module ActionController # :nodoc:
       config_accessor :default_protect_from_forgery
       self.default_protect_from_forgery = false
 
-      # Controls whether URL-safe CSRF tokens are generated.
-      config_accessor :urlsafe_csrf_tokens, instance_writer: false
-      self.urlsafe_csrf_tokens = true
-
-      singleton_class.redefine_method(:urlsafe_csrf_tokens=) do |urlsafe_csrf_tokens|
-        if urlsafe_csrf_tokens
-          ActiveSupport::Deprecation.warn("URL-safe CSRF tokens are now the default. Use 6.1 defaults or above.")
-        else
-          ActiveSupport::Deprecation.warn("Non-URL-safe CSRF tokens are deprecated. Use 6.1 defaults or above.")
-        end
-        config.urlsafe_csrf_tokens = urlsafe_csrf_tokens
-      end
-
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
     end
@@ -124,8 +111,8 @@ module ActionController # :nodoc:
       #
       # Valid Options:
       #
-      # * <tt>:only/:except</tt> - Only apply forgery protection to a subset of actions. For example <tt>only: [ :create, :create_all ]</tt>.
-      # * <tt>:if/:unless</tt> - Turn off the forgery protection entirely depending on the passed Proc or method reference.
+      # * <tt>:only</tt> / <tt>:except</tt> - Only apply forgery protection to a subset of actions. For example <tt>only: [ :create, :create_all ]</tt>.
+      # * <tt>:if</tt> / <tt>:unless</tt> - Turn off the forgery protection entirely depending on the passed Proc or method reference.
       # * <tt>:prepend</tt> - By default, the verification of the authentication token will be added at the position of the
       #   protect_from_forgery call in your application. This means any callbacks added before are run first. This is useful
       #   when you want your forgery protection to depend on other callbacks, like authentication methods (Oauth vs Cookie auth).
@@ -517,31 +504,15 @@ module ActionController # :nodoc:
       end
 
       def generate_csrf_token # :nodoc:
-        if urlsafe_csrf_tokens
-          SecureRandom.urlsafe_base64(AUTHENTICITY_TOKEN_LENGTH)
-        else
-          SecureRandom.base64(AUTHENTICITY_TOKEN_LENGTH)
-        end
+        SecureRandom.urlsafe_base64(AUTHENTICITY_TOKEN_LENGTH)
       end
 
       def encode_csrf_token(csrf_token) # :nodoc:
-        if urlsafe_csrf_tokens
-          Base64.urlsafe_encode64(csrf_token, padding: false)
-        else
-          Base64.strict_encode64(csrf_token)
-        end
+        Base64.urlsafe_encode64(csrf_token, padding: false)
       end
 
       def decode_csrf_token(encoded_csrf_token) # :nodoc:
-        if urlsafe_csrf_tokens
-          Base64.urlsafe_decode64(encoded_csrf_token)
-        else
-          begin
-            Base64.strict_decode64(encoded_csrf_token)
-          rescue ArgumentError
-            Base64.urlsafe_decode64(encoded_csrf_token)
-          end
-        end
+        Base64.urlsafe_decode64(encoded_csrf_token)
       end
   end
 end

@@ -438,7 +438,7 @@ module ActionView
           model       = nil
           object_name = record
         else
-          model       = record
+          model       = convert_to_model(record)
           object      = _object_for_form_builder(record)
           raise ArgumentError, "First argument in form cannot contain nil or be empty" unless object
           object_name = options[:as] || model_name_from_record_or_class(object).param_key
@@ -1018,9 +1018,10 @@ module ActionView
       #   <% end %>
       #
       # Note that fields_for will automatically generate a hidden field
-      # to store the ID of the record. There are circumstances where this
-      # hidden field is not needed and you can pass <tt>include_id: false</tt>
-      # to prevent fields_for from rendering it automatically.
+      # to store the ID of the record if it responds to <tt>persisted?</tt>.
+      # There are circumstances where this hidden field is not needed and you
+      # can pass <tt>include_id: false</tt> to prevent fields_for from
+      # rendering it automatically.
       def fields_for(record_name, record_object = nil, options = {}, &block)
         options = { model: record_object, allow_method_names_outside_object: false, skip_default_ids: false }.merge!(options)
 
@@ -1086,7 +1087,7 @@ module ActionView
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). The text of label will default to the attribute name unless a translation
-      # is found in the current I18n locale (through helpers.label.<modelname>.<attribute>) or you specify it explicitly.
+      # is found in the current I18n locale (through <tt>helpers.label.<modelname>.<attribute></tt>) or you specify it explicitly.
       # Additional options on the label tag can be passed as a hash with +options+. These options will be tagged
       # onto the HTML as an HTML element attribute as in the example shown, except for the <tt>:value</tt> option, which is designed to
       # target labels for radio_button tags (where the value is used in the ID of the input tag).
@@ -1241,7 +1242,7 @@ module ActionView
       def file_field(object_name, method, options = {})
         options = { include_hidden: multiple_file_field_include_hidden }.merge!(options)
 
-        Tags::FileField.new(object_name, method, self, convert_direct_upload_option_to_url(method, options)).render
+        Tags::FileField.new(object_name, method, self, convert_direct_upload_option_to_url(options.dup)).render
       end
 
       # Returns a textarea opening and closing tag set tailored for accessing a specified attribute (identified by +method+)
@@ -2289,7 +2290,7 @@ module ActionView
         @template.fields_for(record_name, record_object, fields_options, &block)
       end
 
-      # See the docs for the <tt>ActionView::FormHelper.fields</tt> helper method.
+      # See the docs for the ActionView::Helpers::FormHelper#fields helper method.
       def fields(scope = nil, model: nil, **options, &block)
         options[:allow_method_names_outside_object] = true
         options[:skip_default_ids] = !FormHelper.form_with_generates_ids
@@ -2301,7 +2302,7 @@ module ActionView
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). The text of label will default to the attribute name unless a translation
-      # is found in the current I18n locale (through helpers.label.<modelname>.<attribute>) or you specify it explicitly.
+      # is found in the current I18n locale (through <tt>helpers.label.<modelname>.<attribute></tt>) or you specify it explicitly.
       # Additional options on the label tag can be passed as a hash with +options+. These options will be tagged
       # onto the HTML as an HTML element attribute as in the example shown, except for the <tt>:value</tt> option, which is designed to
       # target labels for radio_button tags (where the value is used in the ID of the input tag).

@@ -170,6 +170,26 @@ if ActiveRecord::Base.connection.supports_check_constraints?
             @connection.remove_check_constraint :trades, name: "nonexistent"
           end
         end
+
+        def test_add_constraint_from_change_table_with_options
+          @connection.change_table :trades do |t|
+            t.check_constraint "price > 0", name: "price_check"
+          end
+
+          constraint = @connection.check_constraints("trades").first
+          assert_equal "trades", constraint.table_name
+          assert_equal "price_check", constraint.name
+        end
+
+        def test_remove_constraint_from_change_table_with_options
+          @connection.add_check_constraint :trades, "price > 0", name: "price_check"
+
+          @connection.change_table :trades do |t|
+            t.remove_check_constraint "price > 0", name: "price_check"
+          end
+
+          assert_equal 0, @connection.check_constraints("trades").size
+        end
       end
     end
   end

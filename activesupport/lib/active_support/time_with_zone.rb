@@ -13,7 +13,7 @@ module ActiveSupport
   # system's <tt>ENV['TZ']</tt> zone.
   #
   # You shouldn't ever need to create a TimeWithZone instance directly via +new+.
-  # Instead use methods +local+, +parse+, +at+ and +now+ on TimeZone instances,
+  # Instead use methods +local+, +parse+, +at+, and +now+ on TimeZone instances,
   # and +in_time_zone+ on Time and DateTime instances.
   #
   #   Time.zone = 'Eastern Time (US & Canada)'        # => 'Eastern Time (US & Canada)'
@@ -33,7 +33,7 @@ module ActiveSupport
   #   t.dst?                                # => true
   #   t.utc_offset                          # => -14400
   #   t.zone                                # => "EDT"
-  #   t.to_formatted_s(:rfc822)             # => "Sun, 18 May 2008 13:27:25 -0400"
+  #   t.to_fs(:rfc822)                      # => "Sun, 18 May 2008 13:27:25 -0400"
   #   t + 1.day                             # => Mon, 19 May 2008 13:27:25.031505668 EDT -04:00
   #   t.beginning_of_year                   # => Tue, 01 Jan 2008 00:00:00.000000000 EST -05:00
   #   t > Time.utc(1999)                    # => true
@@ -202,7 +202,7 @@ module ActiveSupport
     #
     #   Time.zone.now.rfc2822  # => "Tue, 01 Jan 2013 04:51:39 +0000"
     def rfc2822
-      to_formatted_s(:rfc822)
+      to_fs(:rfc822)
     end
     alias_method :rfc822, :rfc2822
 
@@ -212,19 +212,19 @@ module ActiveSupport
     def to_s(format = NOT_SET)
       if format == :db
         ActiveSupport::Deprecation.warn(
-          "TimeWithZone#to_s(:db) is deprecated. Please use TimeWithZone#to_formatted_s(:db) instead."
+          "TimeWithZone#to_s(:db) is deprecated. Please use TimeWithZone#to_fs(:db) instead."
         )
-        utc.to_formatted_s(format)
+        utc.to_fs(format)
       elsif formatter = ::Time::DATE_FORMATS[format]
         ActiveSupport::Deprecation.warn(
-          "TimeWithZone#to_s(#{format.inspect}) is deprecated. Please use TimeWithZone#to_formatted_s(#{format.inspect}) instead."
+          "TimeWithZone#to_s(#{format.inspect}) is deprecated. Please use TimeWithZone#to_fs(#{format.inspect}) instead."
         )
         formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
       elsif format == NOT_SET
         "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format
       else
         ActiveSupport::Deprecation.warn(
-          "TimeWithZone#to_s(#{format.inspect}) is deprecated. Please use TimeWithZone#to_formatted_s(#{format.inspect}) instead."
+          "TimeWithZone#to_s(#{format.inspect}) is deprecated. Please use TimeWithZone#to_fs(#{format.inspect}) instead."
         )
         "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format
       end
@@ -232,15 +232,15 @@ module ActiveSupport
 
     # Returns a string of the object's date and time.
     #
-    # This method is aliased to <tt>to_fs</tt>.
+    # This method is aliased to <tt>to_formatted_s</tt>.
     #
     # Accepts an optional <tt>format</tt>:
     # * <tt>:default</tt> - default value, mimics Ruby Time#to_s format.
-    # * <tt>:db</tt> - format outputs time in UTC :db time. See Time#to_formatted_s(:db).
+    # * <tt>:db</tt> - format outputs time in UTC :db time. See Time#to_fs(:db).
     # * Any key in <tt>Time::DATE_FORMATS</tt> can be used. See active_support/core_ext/time/conversions.rb.
-    def to_formatted_s(format = :default)
+    def to_fs(format = :default)
       if format == :db
-        utc.to_formatted_s(format)
+        utc.to_fs(format)
       elsif formatter = ::Time::DATE_FORMATS[format]
         formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
       else
@@ -248,7 +248,7 @@ module ActiveSupport
         "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}"
       end
     end
-    alias_method :to_fs, :to_formatted_s
+    alias_method :to_formatted_s, :to_fs
 
     # Replaces <tt>%Z</tt> directive with +zone before passing to Time#strftime,
     # so that zone information is correct.
@@ -395,8 +395,8 @@ module ActiveSupport
     # Returns a new +ActiveSupport::TimeWithZone+ where one or more of the elements have
     # been changed according to the +options+ parameter. The time options (<tt>:hour</tt>,
     # <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>) reset cascadingly,
-    # so if only the hour is passed, then minute, sec, usec and nsec is set to 0. If the
-    # hour and minute is passed, then sec, usec and nsec is set to 0. The +options+
+    # so if only the hour is passed, then minute, sec, usec, and nsec is set to 0. If the
+    # hour and minute is passed, then sec, usec, and nsec is set to 0. The +options+
     # parameter takes a hash with any of these keys: <tt>:year</tt>, <tt>:month</tt>,
     # <tt>:day</tt>, <tt>:hour</tt>, <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>,
     # <tt>:nsec</tt>, <tt>:offset</tt>, <tt>:zone</tt>. Pass either <tt>:usec</tt>

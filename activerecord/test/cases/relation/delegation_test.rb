@@ -13,7 +13,7 @@ module ActiveRecord
       :map, :none?, :one?, :partition, :reject, :reverse, :rotate,
       :sample, :second, :sort, :sort_by, :slice, :third, :index, :rindex,
       :to_ary, :to_set, :to_xml, :to_yaml, :join,
-      :in_groups, :in_groups_of, :to_sentence, :to_formatted_s, :as_json
+      :in_groups, :in_groups_of, :to_sentence, :to_formatted_s, :to_fs, :as_json
     ]
 
     ARRAY_DELEGATES.each do |method|

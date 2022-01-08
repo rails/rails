@@ -132,8 +132,8 @@ module ActionDispatch
       # Sets the \formats by string extensions. This differs from #format= by allowing you
       # to set multiple, ordered formats, which is useful when you want to have a fallback.
       #
-      # In this example, the :iphone format will be used if it's available, otherwise it'll fallback
-      # to the :html format.
+      # In this example, the +:iphone+ format will be used if it's available, otherwise it'll fallback
+      # to the +:html+ format.
       #
       #   class ApplicationController < ActionController::Base
       #     before_action :adjust_format_for_iphone_with_html_fallback

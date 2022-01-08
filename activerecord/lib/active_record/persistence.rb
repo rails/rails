@@ -62,7 +62,7 @@ module ActiveRecord
       # Active Record callbacks or validations. Though passed values
       # go through Active Record's type casting and serialization.
       #
-      # See <tt>ActiveRecord::Persistence#insert_all</tt> for documentation.
+      # See #insert_all for documentation.
       def insert(attributes, returning: nil, unique_by: nil, record_timestamps: nil)
         insert_all([ attributes ], returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
       end
@@ -79,7 +79,7 @@ module ActiveRecord
       # duplicate rows are skipped.
       # Override with <tt>:unique_by</tt> (see below).
       #
-      # Returns an <tt>ActiveRecord::Result</tt> with its contents based on
+      # Returns an ActiveRecord::Result with its contents based on
       # <tt>:returning</tt> (see below).
       #
       # ==== Options
@@ -151,7 +151,7 @@ module ActiveRecord
       # Active Record callbacks or validations. Though passed values
       # go through Active Record's type casting and serialization.
       #
-      # See <tt>ActiveRecord::Persistence#insert_all!</tt> for more.
+      # See #insert_all! for more.
       def insert!(attributes, returning: nil, record_timestamps: nil)
         insert_all!([ attributes ], returning: returning, record_timestamps: record_timestamps)
       end
@@ -167,10 +167,9 @@ module ActiveRecord
       # Raises <tt>ActiveRecord::RecordNotUnique</tt> if any rows violate a
       # unique index on the table. In that case, no rows are inserted.
       #
-      # To skip duplicate rows, see <tt>ActiveRecord::Persistence#insert_all</tt>.
-      # To replace them, see <tt>ActiveRecord::Persistence#upsert_all</tt>.
+      # To skip duplicate rows, see #insert_all. To replace them, see #upsert_all.
       #
-      # Returns an <tt>ActiveRecord::Result</tt> with its contents based on
+      # Returns an ActiveRecord::Result with its contents based on
       # <tt>:returning</tt> (see below).
       #
       # ==== Options
@@ -219,7 +218,7 @@ module ActiveRecord
       # it trigger Active Record callbacks or validations. Though passed values
       # go through Active Record's type casting and serialization.
       #
-      # See <tt>ActiveRecord::Persistence#upsert_all</tt> for documentation.
+      # See #upsert_all for documentation.
       def upsert(attributes, on_duplicate: :update, returning: nil, unique_by: nil, record_timestamps: nil)
         upsert_all([ attributes ], on_duplicate: on_duplicate, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
       end
@@ -232,7 +231,7 @@ module ActiveRecord
       # The +attributes+ parameter is an Array of Hashes. Every Hash determines
       # the attributes for a single row and must have the same keys.
       #
-      # Returns an <tt>ActiveRecord::Result</tt> with its contents based on
+      # Returns an ActiveRecord::Result with its contents based on
       # <tt>:returning</tt> (see below).
       #
       # By default, +upsert_all+ will update all the columns that can be updated when
@@ -747,7 +746,7 @@ module ActiveRecord
     # * updated_at/updated_on column is updated if that column is available.
     # * Updates all the attributes that are dirty in this object.
     #
-    # This method raises an ActiveRecord::ActiveRecordError  if the
+    # This method raises an ActiveRecord::ActiveRecordError if the
     # attribute is marked as readonly.
     #
     # Also see #update_column.
@@ -757,6 +756,28 @@ module ActiveRecord
       public_send("#{name}=", value)
 
       save(validate: false)
+    end
+
+    # Updates a single attribute and saves the record.
+    # This is especially useful for boolean flags on existing records. Also note that
+    #
+    # * Validation is skipped.
+    # * \Callbacks are invoked.
+    # * updated_at/updated_on column is updated if that column is available.
+    # * Updates all the attributes that are dirty in this object.
+    #
+    # This method raises an ActiveRecord::ActiveRecordError if the
+    # attribute is marked as readonly.
+    #
+    # If any of the <tt>before_*</tt> callbacks throws +:abort+ the action is cancelled
+    # and #update_attribute! raises ActiveRecord::RecordNotSaved. See
+    # ActiveRecord::Callbacks for further details.
+    def update_attribute!(name, value)
+      name = name.to_s
+      verify_readonly_attribute(name)
+      public_send("#{name}=", value)
+
+      save!(validate: false)
     end
 
     # Updates the attributes of the model from the passed-in hash and saves the

@@ -419,11 +419,12 @@ as long as they have no ordering, since the method needs to force an order
 internally to iterate.
 
 If an order is present in the receiver the behaviour depends on the flag
-`config.active_record.error_on_ignored_order`. If true, `ArgumentError` is
+[`config.active_record.error_on_ignored_order`][]. If true, `ArgumentError` is
 raised, otherwise the order is ignored and a warning issued, which is the
 default. This can be overridden with the option `:error_on_ignore`, explained
 below.
 
+[`config.active_record.error_on_ignored_order`]: configuring.html#config-active-record-error-on-ignored-order
 [`find_each`]: https://api.rubyonrails.org/classes/ActiveRecord/Batches.html#method-i-find_each
 
 ##### Options for `find_each`
@@ -1291,7 +1292,7 @@ Or, in English: "return all books that have a review by a customer."
 ##### Joining Nested Associations (Multiple Level)
 
 ```ruby
-Author.joins(books: [{reviews: { customer: :orders} }, :supplier] )
+Author.joins(books: [{ reviews: { customer: :orders } }, :supplier] )
 ```
 
 This produces:
@@ -1325,7 +1326,7 @@ time_range = (Time.now.midnight - 1.day)..Time.now.midnight
 Customer.joins(:orders).where(orders: { created_at: time_range }).distinct
 ```
 
-For more advanced conditions or to reuse an existing named scope, `Relation#merge` may be used. First, let's add a new named scope to the Order model:
+For more advanced conditions or to reuse an existing named scope, [`merge`][] may be used. First, let's add a new named scope to the `Order` model:
 
 ```ruby
 class Order < ApplicationRecord
@@ -1337,7 +1338,7 @@ class Order < ApplicationRecord
 end
 ```
 
-Now we can use `Relation#merge` to merge in the `created_in_time_range` scope:
+Now we can use `merge` to merge in the `created_in_time_range` scope:
 
 ```ruby
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight
@@ -1409,10 +1410,10 @@ books.each do |book|
 end
 ```
 
-The above code will execute just **2** queries, as opposed to **11** queries in the previous case:
+The above code will execute just **2** queries, as opposed to the **11** queries from the original case:
 
 ```sql
-SELECT `books`* FROM `books` LIMIT 10
+SELECT `books`.* FROM `books` LIMIT 10
 SELECT `authors`.* FROM `authors`
   WHERE `authors`.`book_id` IN (1,2,3,4,5,6,7,8,9,10)
 ```
@@ -1473,9 +1474,9 @@ This is because it is ambiguous whether they should appear on the parent record,
 
 ### preload
 
-With `preload`, Active record ensures that loaded using a query for every specified association.
+With `preload`, Active Record loads each specified association using one query per association.
 
-Revisiting the case where N + 1 was occurred using the `preload` method, we could rewrite `Book.limit(10)` to authors:
+Revisiting the N + 1 queries problem, we could rewrite `Book.limit(10)` to preload authors:
 
 
 ```ruby
@@ -1486,19 +1487,19 @@ books.each do |book|
 end
 ```
 
-The above code will execute just **2** queries, as opposed to **11** queries in the previous case:
+The above code will execute just **2** queries, as opposed to the **11** queries from the original case:
 
 ```sql
-SELECT `books`* FROM `books` LIMIT 10
+SELECT `books`.* FROM `books` LIMIT 10
 SELECT `authors`.* FROM `authors`
   WHERE `authors`.`book_id` IN (1,2,3,4,5,6,7,8,9,10)
 ```
 
-NOTE: The `preload` method using an array, hash, or a nested hash of array/hash in the same way as the includes method to load any number of associations with a single `Model.find` call. However, unlike the `includes` method, it is not possible to specify conditions for eager loaded associations.
+NOTE: The `preload` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. However, unlike the `includes` method, it is not possible to specify conditions for preloaded associations.
 
 ### eager_load
 
-With `eager_load`, Active record ensures that force eager loading by using　`LEFT OUTER JOIN` for all specified associations.
+With `eager_load`, Active Record loads all specified associations using a `LEFT OUTER JOIN`.
 
 Revisiting the case where N + 1 was occurred using the `eager_load` method, we could rewrite `Book.limit(10)` to authors:
 
@@ -1510,7 +1511,7 @@ books.each do |book|
 end
 ```
 
-The above code will execute just **2** queries, as opposed to **11** queries in the previous case:
+The above code will execute just **2** queries, as opposed to the **11** queries from the original case:
 
 ```sql
 SELECT DISTINCT `books`.`id` FROM `books` LEFT OUTER JOIN `authors` ON `authors`.`book_id` = `books`.`id` LIMIT 10
@@ -1519,7 +1520,7 @@ SELECT `books`.`id` AS t0_r0, `books`.`last_name` AS t0_r1, ...
   WHERE `books`.`id` IN (1,2,3,4,5,6,7,8,9,10)
 ```
 
-NOTE: The `eager_load` method using an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. Also, like the `includes` method, you can specify the conditions of the eager loaded association.
+NOTE: The `eager_load` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. Also, like the `includes` method, you can specify conditions for eager loaded associations.
 
 Scopes
 ------

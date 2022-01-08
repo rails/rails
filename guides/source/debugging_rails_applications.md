@@ -308,7 +308,7 @@ Please check its [documentation](https://github.com/ruby/debug) for usage.
 
 By default, a debugging session will start after the `debug` library is required, which happens when your app boots. But don't worry, the session won't interfere your program.
 
- To enter the debugging session, you can use `binding.break` and its aliases: `binding.b` and `debugger`. The following examples will use `debugger`:
+To enter the debugging session, you can use `binding.break` and its aliases: `binding.b` and `debugger`. The following examples will use `debugger`:
 
 ```rb
 class PostsController < ApplicationController

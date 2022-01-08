@@ -106,7 +106,7 @@ module ActionMailer
   #   You got a new note!
   #   <%= truncate(@note.body, length: 25) %>
   #
-  # If you need to access the subject, from or the recipients in the view, you can do that through message object:
+  # If you need to access the subject, from, or the recipients in the view, you can do that through message object:
   #
   #   You got a new note from <%= message.from %>!
   #   <%= truncate(@note.body, length: 25) %>
@@ -149,9 +149,9 @@ module ActionMailer
   #   mail = NotifierMailer.welcome(User.first)      # => an ActionMailer::MessageDelivery object
   #   mail.deliver_now                               # generates and sends the email now
   #
-  # The <tt>ActionMailer::MessageDelivery</tt> class is a wrapper around a delegate that will call
+  # The ActionMailer::MessageDelivery class is a wrapper around a delegate that will call
   # your method to generate the mail. If you want direct access to the delegator, or <tt>Mail::Message</tt>,
-  # you can call the <tt>message</tt> method on the <tt>ActionMailer::MessageDelivery</tt> object.
+  # you can call the <tt>message</tt> method on the ActionMailer::MessageDelivery object.
   #
   #   NotifierMailer.welcome(User.first).message     # => a Mail::Message object
   #
@@ -334,9 +334,9 @@ module ActionMailer
   #   end
   #
   # Callbacks in Action Mailer are implemented using
-  # <tt>AbstractController::Callbacks</tt>, so you can define and configure
+  # AbstractController::Callbacks, so you can define and configure
   # callbacks in the same manner that you would use callbacks in classes that
-  # inherit from <tt>ActionController::Base</tt>.
+  # inherit from ActionController::Base.
   #
   # Note that unless you have a specific reason to do so, you should prefer
   # using <tt>before_action</tt> rather than <tt>after_action</tt> in your
@@ -493,28 +493,28 @@ module ActionMailer
       end
 
       # Register an Observer which will be notified when mail is delivered.
-      # Either a class, string or symbol can be passed in as the Observer.
+      # Either a class, string, or symbol can be passed in as the Observer.
       # If a string or symbol is passed in it will be camelized and constantized.
       def register_observer(observer)
         Mail.register_observer(observer_class_for(observer))
       end
 
       # Unregister a previously registered Observer.
-      # Either a class, string or symbol can be passed in as the Observer.
+      # Either a class, string, or symbol can be passed in as the Observer.
       # If a string or symbol is passed in it will be camelized and constantized.
       def unregister_observer(observer)
         Mail.unregister_observer(observer_class_for(observer))
       end
 
       # Register an Interceptor which will be called before mail is sent.
-      # Either a class, string or symbol can be passed in as the Interceptor.
+      # Either a class, string, or symbol can be passed in as the Interceptor.
       # If a string or symbol is passed in it will be camelized and constantized.
       def register_interceptor(interceptor)
         Mail.register_interceptor(observer_class_for(interceptor))
       end
 
       # Unregister a previously registered Interceptor.
-      # Either a class, string or symbol can be passed in as the Interceptor.
+      # Either a class, string, or symbol can be passed in as the Interceptor.
       # If a string or symbol is passed in it will be camelized and constantized.
       def unregister_interceptor(interceptor)
         Mail.unregister_interceptor(observer_class_for(interceptor))

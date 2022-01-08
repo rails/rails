@@ -6,7 +6,6 @@ require "active_support/messages/rotation_configuration"
 module ActionDispatch
   class Railtie < Rails::Railtie # :nodoc:
     config.action_dispatch = ActiveSupport::OrderedOptions.new
-    config.action_dispatch.x_sendfile_header = nil
     config.action_dispatch.ip_spoofing_check = true
     config.action_dispatch.show_exceptions = true
     config.action_dispatch.tld_length = 1

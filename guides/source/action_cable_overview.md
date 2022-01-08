@@ -770,9 +770,10 @@ in the development environment.
 ### Consumer Configuration
 
 To configure the URL, add a call to [`action_cable_meta_tag`][] in your HTML layout
-HEAD. This uses a URL or path typically set via `config.action_cable.url` in the
+HEAD. This uses a URL or path typically set via [`config.action_cable.url`][] in the
 environment configuration files.
 
+[`config.action_cable.url`]: configuring.html#config-action-cable-url
 [`action_cable_meta_tag`]: https://api.rubyonrails.org/classes/ActionCable/Helpers/ActionCableHelper.html#method-i-action_cable_meta_tag
 
 ### Worker Pool Configuration
@@ -823,7 +824,7 @@ For a full list of all configuration options, see the
 
 Action Cable can run alongside your Rails application. For example, to
 listen for WebSocket requests on `/websocket`, specify that path to
-`config.action_cable.mount_path`:
+[`config.action_cable.mount_path`][]:
 
 ```ruby
 # config/application.rb
@@ -836,9 +837,11 @@ You can use `ActionCable.createConsumer()` to connect to the cable
 server if `action_cable_meta_tag` is invoked in the layout. Otherwise, A path is
 specified as first argument to `createConsumer` (e.g. `ActionCable.createConsumer("/websocket")`).
 
-For every instance of your server, you create and for every worker your server
+For every instance of your server you create, and for every worker your server
 spawns, you will also have a new instance of Action Cable, but the Redis or
 PostgreSQL adapter keeps messages synced across connections.
+
+[`config.action_cable.mount_path`]: configuring.html#config-action-cable-mount-path
 
 ### Standalone
 

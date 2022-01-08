@@ -20,10 +20,11 @@ module ActionDispatch
   #     end
   #   end
   #
-  #   show.html.erb
-  #     <% if flash[:notice] %>
-  #       <div class="notice"><%= flash[:notice] %></div>
-  #     <% end %>
+  # Then in +show.html.erb+:
+  #
+  #   <% if flash[:notice] %>
+  #     <div class="notice"><%= flash[:notice] %></div>
+  #   <% end %>
   #
   # Since the +notice+ and +alert+ keys are a common idiom, convenience accessors are available:
   #
@@ -41,9 +42,9 @@ module ActionDispatch
     KEY = "action_dispatch.request.flash_hash"
 
     module RequestMethods
-      # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
-      # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
-      # to put a new one.
+      # Access the contents of the flash. Returns a ActionDispatch::Flash::FlashHash.
+      #
+      # See ActionDispatch::Flash for example usage.
       def flash
         flash = flash_hash
         return flash if flash

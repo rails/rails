@@ -305,7 +305,7 @@ module ActiveRecord
       end
 
       def check_target_version
-        if target_version && !(Migration::MigrationFilenameRegexp.match?(ENV["VERSION"]) || /\A\d+\z/.match?(ENV["VERSION"]))
+        if target_version && !Migration.valid_version_format?(ENV["VERSION"])
           raise "Invalid format of target version: `VERSION=#{ENV['VERSION']}`"
         end
       end

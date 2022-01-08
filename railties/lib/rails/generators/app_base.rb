@@ -476,6 +476,22 @@ module Rails
       def keep_file(destination)
         create_file("#{destination}/.keep") if keeps?
       end
+
+      def user_default_branch
+        @user_default_branch ||= `git config init.defaultbranch`
+      end
+
+      def git_init_command
+        return "git init" if user_default_branch.strip.present?
+
+        git_version = `git --version`[/\d+\.\d+\.\d+/]
+
+        if Gem::Version.new(git_version) >= Gem::Version.new("2.28.0")
+          "git init -b main"
+        else
+          "git init && git symbolic-ref HEAD refs/heads/main"
+        end
+      end
     end
   end
 end

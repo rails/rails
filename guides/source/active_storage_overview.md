@@ -28,17 +28,17 @@ files to Active Record objects. It comes with a local disk-based service for
 development and testing and supports mirroring files to subordinate services for
 backups and migrations.
 
-Using Active Storage, an application can transform image uploads or generate image 
-representations of non-image uploads like PDFs and videos, and extract metadata from 
+Using Active Storage, an application can transform image uploads or generate image
+representations of non-image uploads like PDFs and videos, and extract metadata from
 arbitrary files.
 
 ### Requirements
 
-Various features of Active Storage depend on third-party software which Rails 
+Various features of Active Storage depend on third-party software which Rails
 will not install, and must be installed separately:
 
 * [libvips](https://github.com/libvips/libvips) v8.6+ or [ImageMagick](https://imagemagick.org/index.php) for image analysis and transformations
-* [ffmpeg](http://ffmpeg.org/) v3.4+ for video/audio analysis and video previews
+* [ffmpeg](http://ffmpeg.org/) v3.4+ for video previews and ffprobe for video/audio analysis
 * [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) for PDF previews
 
 Image analysis and transformations also require the `image_processing` gem. Uncomment it in your `Gemfile`, or add it if necessary:
@@ -47,7 +47,7 @@ Image analysis and transformations also require the `image_processing` gem. Unco
 gem "image_processing", ">= 1.2"
 ```
 
-TIP: Compared to libvips, ImageMagick is better known and more widely available. However, libvips can be [up to 10x faster and consume 1/10 the memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use). For JPEG files, this can be further improved by replacing `libjpeg-dev` with `libjpeg-turbo-dev`, which is [2-7x faster](https://libjpeg-turbo.org/About/Performance). 
+TIP: Compared to libvips, ImageMagick is better known and more widely available. However, libvips can be [up to 10x faster and consume 1/10 the memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use). For JPEG files, this can be further improved by replacing `libjpeg-dev` with `libjpeg-turbo-dev`, which is [2-7x faster](https://libjpeg-turbo.org/About/Performance).
 
 WARNING: Before you install and use third-party software, make sure you understand the licensing implications of doing so. MuPDF, in particular, is licensed under AGPL and requires a commercial license for some use.
 
@@ -821,7 +821,7 @@ The Active Storage variant tracker improves performance of this, by storing a
 record in the database if the requested representation has been processed before.
 Thus, the above code will only make an API call to the remote service (e.g. S3)
 once, and once a variant is stored, will use that. The variant tracker runs
-automatically, but can be disabled through `config.active_storage.track_variants`.
+automatically, but can be disabled through [`config.active_storage.track_variants`][].
 
 If you're rendering lots of images on a page, the above example could result
 in N+1 queries loading all the variant records. To avoid these N+1 queries,
@@ -833,12 +833,13 @@ message.images.with_all_variant_records.each do |file|
 end
 ```
 
+[`config.active_storage.track_variants`]: configuring.html#config-active-storage-track-variants
 [`ActiveStorage::Representations::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/RedirectController.html
 [`ActiveStorage::Attachment`]: https://api.rubyonrails.org/classes/ActiveStorage/Attachment.html
 
 ### Transforming Images
 
-Transforming images allows you to display the image at your choice of dimensions. 
+Transforming images allows you to display the image at your choice of dimensions.
 To create a variation of an image, call [`variant`][] on the attachment. You
 can pass any transformation supported by the variant processor to the method.
 When the browser hits the variant URL, Active Storage will lazily transform
@@ -852,21 +853,18 @@ location.
 If a variant is requested, Active Storage will automatically apply
 transformations depending on the image's format:
 
-1. Content types that are variable (as dictated by `config.active_storage.variable_content_types`)
-  and not considered web images (as dictated by `config.active_storage.web_image_content_types`),
+1. Content types that are variable (as dictated by [`config.active_storage.variable_content_types`][])
+  and not considered web images (as dictated by [`config.active_storage.web_image_content_types`][]),
   will be converted to PNG.
 
 2. If `quality` is not specified, the variant processor's default quality for the format will be used.
 
-The default processor for Active Storage is MiniMagick, but you can also use
-[Vips][]. To switch to Vips, add the following to `config/application.rb`:
+Active Storage can use either [Vips][] or MiniMagick as the variant processor.
+The default depends on your `config.load_defaults` target version, and the
+processor can be changed by setting [`config.active_storage.variant_processor`][].
 
-```ruby
-config.active_storage.variant_processor = :vips
-```
-
-The two processors are not fully compatible, so when migrating an existing application 
-using MiniMagick to Vips, some changes have to be made if using options that are format
+The two processors are not fully compatible, so when migrating an existing application
+between MiniMagick and Vips, some changes have to be made if using options that are format
 specific:
 
 ```rhtml
@@ -877,6 +875,9 @@ specific:
 <%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 80 }) %>
 ```
 
+[`config.active_storage.variable_content_types`]: configuring.html#config-active-storage-variable-content-types
+[`config.active_storage.variant_processor`]: configuring.html#config-active-storage-variant-processor
+[`config.active_storage.web_image_content_types`]: configuring.html#config-active-storage-web-image-content-types
 [`variant`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-variant
 [Vips]: https://www.rubydoc.info/gems/ruby-vips/Vips/Image
 
@@ -1148,12 +1149,9 @@ input.addEventListener('change', (event) => {
 
 const uploadFile = (file) => {
   // your form needs the file_field direct_upload: true, which
-  //  provides data-direct-upload-url, data-direct-upload-token
-  // and data-direct-upload-attachment-name
+  //  provides data-direct-upload-url
   const url = input.dataset.directUploadUrl
-  const token = input.dataset.directUploadToken
-  const attachmentName = input.dataset.directUploadAttachmentName
-  const upload = new DirectUpload(file, url, token, attachmentName)
+  const upload = new DirectUpload(file, url)
 
   upload.create((error, blob) => {
     if (error) {
@@ -1172,7 +1170,7 @@ const uploadFile = (file) => {
 }
 ```
 
-If you need to track the progress of the file upload, you can pass a fifth
+If you need to track the progress of the file upload, you can pass a third
 parameter to the `DirectUpload` constructor. During the upload, DirectUpload
 will call the object's `directUploadWillStoreFileWithXHR` method. You can then
 bind your own progress handler on the XHR.
@@ -1181,8 +1179,8 @@ bind your own progress handler on the XHR.
 import { DirectUpload } from "@rails/activestorage"
 
 class Uploader {
-  constructor(file, url, token, attachmentName) {
-    this.upload = new DirectUpload(file, url, token, attachmentName, this)
+  constructor(file, url) {
+    this.upload = new DirectUpload(this.file, this.url, this)
   }
 
   upload(file) {

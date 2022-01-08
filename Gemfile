@@ -36,7 +36,7 @@ gem "terser", ">= 1.1.4", require: false
 gem "json", ">= 2.0.0"
 
 group :rubocop do
-  gem "rubocop", ">= 0.90", require: false
+  gem "rubocop", ">= 1.25.1", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
@@ -44,7 +44,7 @@ group :rubocop do
 end
 
 group :doc do
-  gem "sdoc", ">= 2.3.0"
+  gem "sdoc", ">= 2.3.1"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "kindlerb", "~> 1.2.0"
@@ -108,7 +108,7 @@ end
 
 # Action View
 group :view do
-  gem "blade", require: false, platforms: [:ruby]
+  gem "blade", github: "javan/blade", require: false, platforms: [:ruby]
   gem "sprockets-export", require: false
 end
 
@@ -139,7 +139,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
   gem "sqlite3", "~> 1.4"
 
   group :db do
-    gem "pg", ">= 1.3.0.rc1"
+    gem "pg", "~> 1.3"
     gem "mysql2", "~> 0.5", github: "brianmario/mysql2"
   end
 end

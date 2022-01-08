@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Encryption
-    # A +KeyProvider+ that derives keys from passwords.
+    # A KeyProvider that derives keys from passwords.
     class DeterministicKeyProvider < DerivedSecretKeyProvider
       def initialize(password)
         passwords = Array(password)

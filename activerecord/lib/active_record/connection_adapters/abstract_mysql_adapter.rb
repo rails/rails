@@ -636,11 +636,10 @@ module ActiveRecord
 
         def raw_execute(sql, name, async: false)
           materialize_transactions
-          mark_transaction_written_if_write(sql)
 
           log(sql, name, async: async) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @connection.query(sql)
+              @raw_connection.query(sql)
             end
           end
         end
@@ -720,6 +719,10 @@ module ActiveRecord
 
           unless options.key?(:comment)
             options[:comment] = column.comment
+          end
+
+          unless options.key?(:auto_increment)
+            options[:auto_increment] = column.auto_increment?
           end
 
           td = create_table_definition(table_name)

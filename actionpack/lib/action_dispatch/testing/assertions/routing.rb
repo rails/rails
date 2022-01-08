@@ -18,8 +18,8 @@ module ActionDispatch
       # match +path+. Basically, it asserts that \Rails recognizes the route given by +expected_options+.
       #
       # Pass a hash in the second argument (+path+) to specify the request method. This is useful for routes
-      # requiring a specific HTTP method. The hash should contain a :path with the incoming request path
-      # and a :method containing the required HTTP verb.
+      # requiring a specific HTTP method. The hash should contain a +:path+ with the incoming request path
+      # and a +:method+ containing the required HTTP verb.
       #
       #   # Asserts that POSTing to /items will call the create action on ItemsController
       #   assert_recognizes({controller: 'items', action: 'create'}, {path: 'items', method: :post})
@@ -187,6 +187,7 @@ module ActionDispatch
           super
         end
       end
+      ruby2_keywords(:method_missing)
 
       private
         # Recognizes the route for a given path.

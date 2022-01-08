@@ -290,6 +290,7 @@ module ActiveRecord
     def self.eager_load!
       super
       Preloader.eager_load!
+      JoinDependency.eager_load!
     end
 
     # Returns the association instance for the given name, instantiating it if it doesn't already exist
@@ -431,7 +432,7 @@ module ActiveRecord
       #
       # == Cardinality and associations
       #
-      # Active Record associations can be used to describe one-to-one, one-to-many and many-to-many
+      # Active Record associations can be used to describe one-to-one, one-to-many, and many-to-many
       # relationships between models. Each model uses an association to describe its role in
       # the relation. The #belongs_to association is always used in the model that has
       # the foreign key.
@@ -585,7 +586,7 @@ module ActiveRecord
       #     has_many :birthday_events, ->(user) { where(starts_on: user.birthday) }, class_name: 'Event'
       #   end
       #
-      # Note: Joining, eager loading and preloading of these associations is not possible.
+      # Note: Joining, eager loading, and preloading of these associations is not possible.
       # These operations happen before instance creation and the scope will be called with a +nil+ argument.
       #
       # == Association callbacks
@@ -617,7 +618,7 @@ module ActiveRecord
       #              after_remove: :log_after_remove
       #   end
       #
-      # Possible callbacks are: +before_add+, +after_add+, +before_remove+ and +after_remove+.
+      # Possible callbacks are: +before_add+, +after_add+, +before_remove+, and +after_remove+.
       #
       # If any of the +before_add+ callbacks throw an exception, the object will not be
       # added to the collection.
@@ -1140,7 +1141,8 @@ module ActiveRecord
       #      belongs_to :dungeon, inverse_of: :evil_wizard
       #    end
       #
-      # For more information, see the documentation for the +:inverse_of+ option.
+      # For more information, see the documentation for the +:inverse_of+ option and the
+      # {Active Record Associations guide}[https://guides.rubyonrails.org/association_basics.html#bi-directional-associations].
       #
       # == Deleting from associations
       #
@@ -1331,7 +1333,7 @@ module ActiveRecord
         # === Extensions
         #
         # The +extension+ argument allows you to pass a block into a has_many
-        # association. This is useful for adding new finders, creators and other
+        # association. This is useful for adding new finders, creators, and other
         # factory-type methods to be used as part of the association.
         #
         # Extension examples:
@@ -1353,8 +1355,8 @@ module ActiveRecord
         #   of this class in lower-case and "_id" suffixed. So a Person class that makes a #has_many
         #   association will use "person_id" as the default <tt>:foreign_key</tt>.
         #
-        #   If you are going to modify the association (rather than just read from it), then it is
-        #   a good idea to set the <tt>:inverse_of</tt> option.
+        #   Setting the <tt>:foreign_key</tt> option prevents automatic detection of the association's
+        #   inverse, so it is generally a good idea to set the <tt>:inverse_of</tt> option as well.
         # [:foreign_type]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the polymorphic association
@@ -1410,12 +1412,12 @@ module ActiveRecord
         #   a good idea to set the <tt>:inverse_of</tt> option on the source association on the
         #   join model. This allows associated records to be built which will automatically create
         #   the appropriate join model records when they are saved. (See the 'Association Join Models'
-        #   section above.)
+        #   and 'Setting Inverses' sections above.)
         # [:disable_joins]
         #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
         #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
-        #   due to database limitations. This option is only applicable on `has_many :through` associations as
-        #   `has_many` alone do not perform a join.
+        #   due to database limitations. This option is only applicable on <tt>has_many :through</tt> associations as
+        #   +has_many+ alone do not perform a join.
         # [:source]
         #   Specifies the source association name used by #has_many <tt>:through</tt> queries.
         #   Only use it if the name cannot be inferred from the association.
@@ -1548,8 +1550,8 @@ module ActiveRecord
         #   of this class in lower-case and "_id" suffixed. So a Person class that makes a #has_one association
         #   will use "person_id" as the default <tt>:foreign_key</tt>.
         #
-        #   If you are going to modify the association (rather than just read from it), then it is
-        #   a good idea to set the <tt>:inverse_of</tt> option.
+        #   Setting the <tt>:foreign_key</tt> option prevents automatic detection of the association's
+        #   inverse, so it is generally a good idea to set the <tt>:inverse_of</tt> option as well.
         # [:foreign_type]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the polymorphic association
@@ -1575,12 +1577,12 @@ module ActiveRecord
         #   a good idea to set the <tt>:inverse_of</tt> option on the source association on the
         #   join model. This allows associated records to be built which will automatically create
         #   the appropriate join model records when they are saved. (See the 'Association Join Models'
-        #   section above.)
+        #   and 'Setting Inverses' sections above.)
         # [:disable_joins]
         #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
         #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
-        #   due to database limitations. This option is only applicable on `has_one :through` associations as
-        #   `has_one` alone does not perform a join.
+        #   due to database limitations. This option is only applicable on <tt>has_one :through</tt> associations as
+        #   +has_one+ alone does not perform a join.
         # [:source]
         #   Specifies the source association name used by #has_one <tt>:through</tt> queries.
         #   Only use it if the name cannot be inferred from the association.
@@ -1701,8 +1703,8 @@ module ActiveRecord
         #   <tt>belongs_to :favorite_person, class_name: "Person"</tt> will use a foreign key
         #   of "favorite_person_id".
         #
-        #   If you are going to modify the association (rather than just read from it), then it is
-        #   a good idea to set the <tt>:inverse_of</tt> option.
+        #   Setting the <tt>:foreign_key</tt> option prevents automatic detection of the association's
+        #   inverse, so it is generally a good idea to set the <tt>:inverse_of</tt> option as well.
         # [:foreign_type]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the association with a "_type"
@@ -1903,7 +1905,7 @@ module ActiveRecord
         #
         # The +extension+ argument allows you to pass a block into a
         # has_and_belongs_to_many association. This is useful for adding new
-        # finders, creators and other factory-type methods to be used as part of
+        # finders, creators, and other factory-type methods to be used as part of
         # the association.
         #
         # Extension examples:
@@ -1930,8 +1932,8 @@ module ActiveRecord
         #   a #has_and_belongs_to_many association to Project will use "person_id" as the
         #   default <tt>:foreign_key</tt>.
         #
-        #   If you are going to modify the association (rather than just read from it), then it is
-        #   a good idea to set the <tt>:inverse_of</tt> option.
+        #   Setting the <tt>:foreign_key</tt> option prevents automatic detection of the association's
+        #   inverse, so it is generally a good idea to set the <tt>:inverse_of</tt> option as well.
         # [:association_foreign_key]
         #   Specify the foreign key used for the association on the receiving side of the association.
         #   By default this is guessed to be the name of the associated class in lower-case and "_id" suffixed.

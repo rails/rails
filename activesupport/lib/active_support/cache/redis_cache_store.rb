@@ -15,6 +15,7 @@ begin
 rescue LoadError
 end
 
+require "active_support/core_ext/numeric/time"
 require "active_support/digest"
 
 module ActiveSupport
@@ -139,7 +140,7 @@ module ActiveSupport
       #
       # Race condition TTL is not set by default. This can be used to avoid
       # "thundering herd" cache writes when hot cache entries are expired.
-      # See <tt>ActiveSupport::Cache::Store#fetch</tt> for more.
+      # See ActiveSupport::Cache::Store#fetch for more.
       def initialize(namespace: nil, compress: true, compress_threshold: 1.kilobyte, coder: default_coder, expires_in: nil, race_condition_ttl: nil, error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
         @redis_options = redis_options
 
@@ -225,8 +226,8 @@ module ActiveSupport
       # Cache Store API implementation.
       #
       # Increment a cached value. This method uses the Redis incr atomic
-      # operator and can only be used on values written with the :raw option.
-      # Calling it on a value not stored with :raw will initialize that value
+      # operator and can only be used on values written with the +:raw+ option.
+      # Calling it on a value not stored with +:raw+ will initialize that value
       # to zero.
       #
       # Failsafe: Raises errors.
@@ -248,8 +249,8 @@ module ActiveSupport
       # Cache Store API implementation.
       #
       # Decrement a cached value. This method uses the Redis decr atomic
-      # operator and can only be used on values written with the :raw option.
-      # Calling it on a value not stored with :raw will initialize that value
+      # operator and can only be used on values written with the +:raw+ option.
+      # Calling it on a value not stored with +:raw+ will initialize that value
       # to zero.
       #
       # Failsafe: Raises errors.

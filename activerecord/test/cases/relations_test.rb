@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "pp"
 require "cases/helper"
 require "models/tag"
 require "models/tagging"
@@ -2021,6 +2022,35 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  test "relations limit the records in #pretty_print at 10" do
+    relation = Post.limit(11)
+    out = StringIO.new
+    PP.pp(relation, out)
+    assert_equal 10, out.string.scan(/#<\w*Post:/).size
+    assert out.string.end_with?("\"...\"]\n"), "Did not end with an ellipsis."
+  end
+
+  test "relations don't load all records in #pretty_print" do
+    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+      PP.pp Post.all, StringIO.new # avoid outputting.
+    end
+  end
+
+  test "loading query is annotated in #pretty_print" do
+    assert_sql(%r(/\* loading for pp \*/)) do
+      PP.pp Post.all, StringIO.new # avoid outputting.
+    end
+  end
+
+  test "already-loaded relations don't perform a new query in #pretty_print" do
+    relation = Post.limit(2)
+    relation.to_a
+
+    assert_no_queries do
+      PP.pp relation, StringIO.new # avoid outputting.
+    end
+  end
+
   test "using a custom table affects the wheres" do
     post = posts(:welcome)
 
@@ -2078,6 +2108,8 @@ class RelationTest < ActiveRecord::TestCase
   test "joins with order by custom attribute" do
     companies = Company.create!([{ name: "test1" }, { name: "test2" }])
     companies.each { |company| company.contracts.create! }
+    # In ordering by Contract#metadata, we rely on that JSON string to
+    # be consistent
     assert_equal companies, Company.joins(:contracts).order(:metadata, :count)
     assert_equal companies.reverse, Company.joins(:contracts).order(metadata: :desc, count: :desc)
   end

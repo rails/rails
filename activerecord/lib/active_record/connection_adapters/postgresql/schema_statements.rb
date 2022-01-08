@@ -74,7 +74,7 @@ module ActiveRecord
             FROM pg_class t
             INNER JOIN pg_index d ON t.oid = d.indrelid
             INNER JOIN pg_class i ON d.indexrelid = i.oid
-            LEFT JOIN pg_namespace n ON n.oid = i.relnamespace
+            LEFT JOIN pg_namespace n ON n.oid = t.relnamespace
             WHERE i.relkind IN ('i', 'I')
               AND i.relname = #{index[:name]}
               AND t.relname = #{table[:name]}
@@ -92,7 +92,7 @@ module ActiveRecord
             FROM pg_class t
             INNER JOIN pg_index d ON t.oid = d.indrelid
             INNER JOIN pg_class i ON d.indexrelid = i.oid
-            LEFT JOIN pg_namespace n ON n.oid = i.relnamespace
+            LEFT JOIN pg_namespace n ON n.oid = t.relnamespace
             WHERE i.relkind IN ('i', 'I')
               AND d.indisprimary = 'f'
               AND t.relname = #{scope[:name]}
@@ -663,7 +663,12 @@ module ActiveRecord
             column_name, type, default, notnull, oid, fmod, collation, comment, attgenerated = field
             type_metadata = fetch_type_metadata(column_name, type, oid.to_i, fmod.to_i)
             default_value = extract_value_from_default(default)
-            default_function = extract_default_function(default_value, default)
+
+            if attgenerated.present?
+              default_function = default
+            else
+              default_function = extract_default_function(default_value, default)
+            end
 
             if match = default_function&.match(/\Anextval\('"?(?<sequence_name>.+_(?<suffix>seq\d*))"?'::regclass\)\z/)
               serial = sequence_name_from_parts(table_name, column_name, match[:suffix]) == match[:sequence_name]

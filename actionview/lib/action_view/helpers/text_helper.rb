@@ -268,7 +268,7 @@ module ActionView
       end
 
       # Returns +text+ transformed into HTML using simple formatting rules.
-      # Two or more consecutive newlines(<tt>\n\n</tt> or <tt>\r\n\r\n</tt>) are
+      # Two or more consecutive newlines (<tt>\n\n</tt> or <tt>\r\n\r\n</tt>) are
       # considered a paragraph and wrapped in <tt><p></tt> tags. One newline
       # (<tt>\n</tt> or <tt>\r\n</tt>) is considered a linebreak and a
       # <tt><br /></tt> tag is appended. This method does not remove the

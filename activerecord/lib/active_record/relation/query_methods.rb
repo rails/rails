@@ -68,7 +68,7 @@ module ActiveRecord
       #    # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
       def associated(*associations)
         associations.each do |association|
-          reflection = @scope.klass._reflect_on_association(association)
+          reflection = scope_association_reflection(association)
           @scope.joins!(association)
           self.not(reflection.table_name => { reflection.association_primary_key => nil })
         end
@@ -96,16 +96,22 @@ module ActiveRecord
       #    # WHERE "authors"."id" IS NULL AND "comments"."id" IS NULL
       def missing(*associations)
         associations.each do |association|
-          reflection = @scope.klass._reflect_on_association(association)
-          unless reflection
-            raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{@scope.name}`.")
-          end
+          reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
           @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
         end
 
         @scope
       end
+
+      private
+        def scope_association_reflection(association)
+          reflection = @scope.klass._reflect_on_association(association)
+          unless reflection
+            raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{@scope.name}`.")
+          end
+          reflection
+        end
     end
 
     FROZEN_EMPTY_ARRAY = [].freeze
@@ -156,7 +162,7 @@ module ActiveRecord
     #
     #   users = User.includes(:address, friends: [:address, :followers])
     #
-    # === conditions
+    # === Conditions
     #
     # If you want to add string conditions to your included models, you'll have
     # to explicitly reference them. For example:
@@ -1596,7 +1602,7 @@ module ActiveRecord
           when Hash
             arg.map { |field, dir|
               case field
-              when Arel::Nodes::SqlLiteral
+              when Arel::Nodes::SqlLiteral, Arel::Nodes::Node, Arel::Attribute
                 field.public_send(dir.downcase)
               else
                 order_column(field.to_s).public_send(dir.downcase)
@@ -1620,7 +1626,9 @@ module ActiveRecord
           when String, Symbol
             arg
           when Hash
-            arg.keys
+            arg.keys.map do |key|
+              key if key.is_a?(String) || key.is_a?(Symbol)
+            end
           end
         end
         references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!

@@ -268,7 +268,7 @@ module ActionController
     #   expires_in 3.hours, public: true, stale_while_revalidate: 60.seconds, stale_if_error: 5.minutes
     #
     # HTTP Cache-Control Extensions other values: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
-    # Any additional key-value pairs are concatenated onto the `Cache-Control` header in the response:
+    # Any additional key-value pairs are concatenated onto the Cache-Control header in the response:
     #
     #   expires_in 3.hours, public: true, "s-maxage": 3.hours, "no-transform": true
     #

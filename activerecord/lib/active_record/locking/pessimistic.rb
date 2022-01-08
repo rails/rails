@@ -5,7 +5,7 @@ module ActiveRecord
     # Locking::Pessimistic provides support for row-level locking using
     # SELECT ... FOR UPDATE and other lock types.
     #
-    # Chain <tt>ActiveRecord::Base#find</tt> to <tt>ActiveRecord::QueryMethods#lock</tt> to obtain an exclusive
+    # Chain <tt>ActiveRecord::Base#find</tt> to ActiveRecord::QueryMethods#lock to obtain an exclusive
     # lock on the selected rows:
     #   # select * from accounts where id=1 for update
     #   Account.lock.find(1)
@@ -71,6 +71,7 @@ module ActiveRecord
               Locking a record with unpersisted changes is not supported. Use
               `save` to persist the changes, or `reload` to discard them
               explicitly.
+              Changed attributes: #{changed.map(&:inspect).join(', ')}.
             MSG
           end
 
@@ -81,11 +82,11 @@ module ActiveRecord
 
       # Wraps the passed block in a transaction, locking the object
       # before yielding. You can pass the SQL locking clause
-      # as an optional argument (see <tt>#lock!</tt>).
+      # as an optional argument (see #lock!).
       #
       # You can also pass options like <tt>requires_new:</tt>, <tt>isolation:</tt>,
       # and <tt>joinable:</tt> to the wrapping transaction (see
-      # <tt>ActiveRecord::ConnectionAdapters::DatabaseStatements#transaction</tt>).
+      # ActiveRecord::ConnectionAdapters::DatabaseStatements#transaction).
       def with_lock(*args)
         transaction_opts = args.extract_options!
         lock = args.present? ? args.first : true

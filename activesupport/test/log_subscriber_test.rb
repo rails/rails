@@ -77,7 +77,9 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
 
   def test_event_attributes
     ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
-    instrument "some_event.my_log_subscriber"
+    instrument "some_event.my_log_subscriber" do
+      [] # Make an allocation
+    end
     wait
     event = @log_subscriber.event
     if defined?(JRUBY_VERSION)
@@ -92,10 +94,11 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_does_not_send_the_event_if_it_doesnt_match_the_class
-    ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
-    instrument "unknown_event.my_log_subscriber"
-    wait
-    # If we get here, it means that NoMethodError was not raised.
+    assert_nothing_raised do
+      ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
+      instrument "unknown_event.my_log_subscriber"
+      wait
+    end
   end
 
   def test_does_not_send_the_event_if_logger_is_nil
@@ -108,9 +111,11 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_does_not_fail_with_non_namespaced_events
-    ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
-    instrument "whatever"
-    wait
+    assert_nothing_raised do
+      ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
+      instrument "whatever"
+      wait
+    end
   end
 
   def test_flushes_loggers

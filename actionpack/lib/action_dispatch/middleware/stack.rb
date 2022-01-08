@@ -5,6 +5,16 @@ require "active_support/dependencies"
 
 module ActionDispatch
   class MiddlewareStack
+    class FakeSendfile # :nodoc:
+      def initialize(app)
+        @app = app
+      end
+
+      def call(env)
+        @app.call(env)
+      end
+    end
+
     class Middleware
       attr_reader :args, :block, :klass
 
@@ -69,6 +79,7 @@ module ActionDispatch
 
     def initialize(*args)
       @middlewares = []
+      @rack_sendfile_deprecated = true
       yield(self) if block_given?
     end
 
@@ -176,12 +187,24 @@ module ActionDispatch
       end
 
       def build_middleware(klass, args, block)
+        @rack_sendfile_deprecated = false if klass == Rack::Sendfile
+
         Middleware.new(klass, args, block)
       end
 
       def index_of(klass)
+        raise "ActionDispatch::MiddlewareStack::FakeSendfile can not be referenced in middleware operations" if klass == FakeSendfile
+
+        if klass == Rack::Sendfile && @rack_sendfile_deprecated
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Rack::Sendfile is removed from the default middleware stack in Rails
+            and referencing it in middleware operations without adding it back
+            is deprecated and will throw an error in future versions of Rails.
+          MSG
+        end
+
         middlewares.index do |m|
-          m.name == klass.name
+          m.name == klass.name || (@rack_sendfile_deprecated && m.klass == FakeSendfile && klass == Rack::Sendfile)
         end
       end
   end

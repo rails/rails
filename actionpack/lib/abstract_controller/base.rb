@@ -151,12 +151,12 @@ module AbstractController
       process_action(action_name, *args)
     end
 
-    # Delegates to the class' ::controller_path
+    # Delegates to the class's ::controller_path.
     def controller_path
       self.class.controller_path
     end
 
-    # Delegates to the class' ::action_methods
+    # Delegates to the class's ::action_methods.
     def action_methods
       self.class.action_methods
     end
@@ -177,7 +177,7 @@ module AbstractController
 
     # Tests if a response body is set. Used to determine if the
     # +process_action+ callback needs to be terminated in
-    # +AbstractController::Callbacks+.
+    # AbstractController::Callbacks.
     def performed?
       response_body
     end

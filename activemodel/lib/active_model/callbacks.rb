@@ -32,7 +32,7 @@ module ActiveModel
   #     end
   #   end
   #
-  # Then in your class, you can use the +before_create+, +after_create+ and
+  # Then in your class, you can use the +before_create+, +after_create+, and
   # +around_create+ methods, just as you would in an Active Record model.
   #
   #   before_create :action_before_create
@@ -84,7 +84,7 @@ module ActiveModel
     #   define_model_callbacks :update,  only: :before
     #   define_model_callbacks :destroy, only: :around
     #
-    # Would create +after_create+, +before_update+ and +around_destroy+ methods
+    # Would create +after_create+, +before_update+, and +around_destroy+ methods
     # only.
     #
     # You can pass in a class to before_<type>, after_<type> and around_<type>,

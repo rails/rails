@@ -38,8 +38,12 @@ module ActiveRecord
             {}
           end
 
+          def escape(query)
+            PG::Connection.escape(query)
+          end
+
           def reset
-            raise PG::ConnectionBad
+            raise PG::ConnectionBad, "I'll be rescued by the reconnect method"
           end
 
           def close
@@ -53,8 +57,13 @@ module ActiveRecord
           { host: File::NULL }
         )
 
-        assert_raises ActiveRecord::ConnectionNotEstablished do
-          @conn.reconnect!
+        connect_raises_error = proc { |**_conn_params| raise(PG::ConnectionBad, "actual bad connection error") }
+        PG.stub(:connect, connect_raises_error) do
+          error = assert_raises ActiveRecord::ConnectionNotEstablished do
+            @conn.reconnect!
+          end
+
+          assert_equal("actual bad connection error", error.message)
         end
       end
 

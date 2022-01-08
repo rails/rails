@@ -143,6 +143,7 @@ class FormHelperTest < ActionView::TestCase
     @controller.singleton_class.include Routes.url_helpers
   end
 
+  RecordForm = Struct.new(:to_model, keyword_init: true)
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
     resources :posts do
@@ -2072,6 +2073,26 @@ class FormHelperTest < ActionView::TestCase
       "<input checked='checked' id='post_1_tag_ids_1' name='post[1][tag_ids][]' type='checkbox' value='1' />" \
       "<label for='post_1_tag_ids_1'>Tag 1</label>"
     end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_persisted_to_model
+    post_form = RecordForm.new(to_model: @post)
+
+    form_for(post_form) { }
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: :patch) { "" }
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_new_record_to_model
+    post_form = RecordForm.new(to_model: Post.new)
+
+    form_for(post_form) { }
+
+    expected = whole_form("/posts", "new_post", "new_post", method: :post) { "" }
 
     assert_dom_equal expected, output_buffer
   end

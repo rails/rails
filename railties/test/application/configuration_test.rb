@@ -1822,7 +1822,8 @@ module ApplicationTests
       end
     end
 
-    test "autoload paths are added to $LOAD_PATH by default" do
+    test "autoload paths are not added to $LOAD_PATH if opted-in" do
+      add_to_config "config.add_autoload_paths_to_load_path = true"
       app "development"
 
       # Action Mailer modifies AS::Dependencies.autoload_paths in-place.
@@ -1838,8 +1839,7 @@ module ApplicationTests
       assert_empty Rails.configuration.paths.load_paths - $LOAD_PATH
     end
 
-    test "autoload paths are not added to $LOAD_PATH if opted-out" do
-      add_to_config "config.add_autoload_paths_to_load_path = false"
+    test "autoload paths are not added to $LOAD_PATH by default" do
       app "development"
 
       assert_empty ActiveSupport::Dependencies.autoload_paths & $LOAD_PATH
@@ -1868,10 +1868,6 @@ module ApplicationTests
         assert_includes config.autoload_once_paths, "#{app_path}/custom_autoload_once_path"
         assert_includes config.eager_load_paths, "#{app_path}/custom_eager_load_path"
       end
-
-      assert_includes $LOAD_PATH, "#{app_path}/custom_autoload_path"
-      assert_includes $LOAD_PATH, "#{app_path}/custom_autoload_once_path"
-      assert_includes $LOAD_PATH, "#{app_path}/custom_eager_load_path"
     end
 
     test "load_database_yaml returns blank hash if configuration file is blank" do
@@ -2446,6 +2442,20 @@ module ApplicationTests
       app "development"
 
       assert_equal ActiveRecord::DestroyAssociationAsyncJob, ActiveRecord::Base.destroy_association_async_job
+    end
+
+    test "ActiveRecord::Base.destroy_association_async_job can be configured via config.active_record.destroy_association_job" do
+      class ::DummyDestroyAssociationAsyncJob; end
+
+      app_file "config/environments/test.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_record.destroy_association_async_job = DummyDestroyAssociationAsyncJob
+        end
+      RUBY
+
+      app "test"
+
+      assert_equal DummyDestroyAssociationAsyncJob, ActiveRecord::Base.destroy_association_async_job
     end
 
     test "ActionView::Helpers::FormTagHelper.default_enforce_utf8 is false by default" do
@@ -3171,6 +3181,69 @@ module ApplicationTests
       app "development"
 
       assert_equal true, Rails.application.config.rake_eager_load
+    end
+
+    test "ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization is true by default" do
+      app "development"
+
+      assert_equal true, ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization
+    end
+
+    test "ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization can be configured via config.active_support.fallback_to_marshal_deserialization" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/fallback_to_marshal_deserialization.rb", <<-RUBY
+        Rails.application.config.active_support.fallback_to_marshal_deserialization = false
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization
+    end
+
+    test "ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization is true by default" do
+      app "development"
+
+      assert_equal true, ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization
+    end
+
+    test "ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization can be configured via config.active_support.use_marshal_serialization" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/use_marshal_serialization.rb", <<-RUBY
+        Rails.application.config.active_support.use_marshal_serialization = false
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization
+    end
+
+    test "ActiveSupport::MessageEncryptor.default_message_encryptor_serializer is :json by default" do
+      app "development"
+
+      assert_equal :json, ActiveSupport::MessageEncryptor.default_message_encryptor_serializer
+    end
+
+    test "ActiveSupport::MessageEncryptor.default_message_encryptor_serializer is :marshal by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "development"
+
+      assert_equal :marshal, ActiveSupport::MessageEncryptor.default_message_encryptor_serializer
+    end
+
+    test "ActiveSupport::MessageEncryptor.default_message_encryptor_serializer can be configured via config.active_support.default_message_encryptor_serializer" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/default_message_encryptor_serializer.rb", <<-RUBY
+        Rails.application.config.active_support.default_message_encryptor_serializer = :hybrid
+      RUBY
+
+      app "development"
+
+      assert_equal :hybrid, ActiveSupport::MessageEncryptor.default_message_encryptor_serializer
     end
 
     test "unknown_asset_fallback is false by default" do
