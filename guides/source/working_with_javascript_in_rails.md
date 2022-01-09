@@ -433,7 +433,7 @@ The index view (`app/views/users/index.html.erb`) contains:
 
 <br>
 
-<%= form_with model: @user do |form| %>
+<%= form_with model: @user, local: false do |form| %>
   <%= form.label :name %><br>
   <%= form.text_field :name %>
   <%= form.submit %>
