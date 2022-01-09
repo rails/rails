@@ -34,6 +34,7 @@ module ActiveRecord
     end
 
     test "deadlock correctly raises Deadlocked inside nested SavepointTransaction" do
+      connection = Sample.connection
       assert_raises(ActiveRecord::Deadlocked) do
         barrier = Concurrent::CyclicBarrier.new(2)
 
@@ -70,6 +71,49 @@ module ActiveRecord
           end
         end
       end
+      assert_predicate connection, :active?
+    end
+
+    test "deadlock inside nested SavepointTransaction is recoverable" do
+      barrier = Concurrent::CyclicBarrier.new(2)
+      deadlocks = 0
+
+      s1 = Sample.create value: 1
+      s2 = Sample.create value: 2
+
+      thread = Thread.new do
+        Sample.transaction(requires_new: false) do
+          begin
+            Sample.transaction(requires_new: true) do
+              s1.lock!
+              barrier.wait
+              s2.update value: 4
+            end
+          rescue ActiveRecord::Deadlocked
+            deadlocks += 1
+          end
+          s2.update value: 10
+        end
+      end
+
+      begin
+        Sample.transaction(requires_new: false) do
+          begin
+            Sample.transaction(requires_new: true) do
+              s2.lock!
+              barrier.wait
+              s1.update value: 3
+            end
+          rescue ActiveRecord::Deadlocked
+            deadlocks += 1
+          end
+          s1.update value: 10
+        end
+      ensure
+        thread.join
+      end
+      assert_equal 1, deadlocks
+      assert_equal [10, 10], Sample.pluck(:value)
     end
   end
 end
