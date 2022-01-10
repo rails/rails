@@ -1,4 +1,4 @@
-*   Avoid loading every records in `ActiveRecord::Relation#pretty_print`
+*   Avoid loading every record in `ActiveRecord::Relation#pretty_print`
 
     ```ruby
     # Before
