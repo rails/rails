@@ -773,8 +773,13 @@ module ActiveRecord
       end
     end
 
-    def pretty_print(q)
-      q.pp(records)
+    def pretty_print(pp)
+      subject = loaded? ? records : annotate("loading for pp")
+      entries = subject.take([limit_value, 11].compact.min)
+
+      entries[10] = "..." if entries.size == 11
+
+      pp.pp(entries)
     end
 
     # Returns true if relation is blank.
