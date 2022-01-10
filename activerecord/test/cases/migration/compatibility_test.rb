@@ -558,7 +558,7 @@ module ActiveRecord
           ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
 
           testings_id_column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
-          assert_equal "integer", testings_id_column.sql_type
+          assert_match(/integer/i, testings_id_column.sql_type)
         ensure
           connection.drop_table :more_testings rescue nil
         end
@@ -583,7 +583,7 @@ module ActiveRecord
           ActiveRecord::Migrator.new(:up, [create_migration, migration], @schema_migration).migrate
 
           testings_id_column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
-          assert_equal "integer", testings_id_column.sql_type
+          assert_match(/integer/i, testings_id_column.sql_type)
         ensure
           connection.drop_table :more_testings rescue nil
         end
