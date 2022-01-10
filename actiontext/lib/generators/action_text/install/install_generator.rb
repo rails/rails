@@ -21,8 +21,8 @@ module ActionText
         if (application_javascript_path = destination.join("app/javascript/application.js")).exist?
           insert_into_file application_javascript_path.to_s, %(import "trix"\nimport "@rails/actiontext"\n)
         else
-          say <<~INSTRUCTIONS, :green
-            You must import the @rails/actiontext and trix JavaScript modules in your application entrypoint.
+          say <<~INSTRUCTIONS, :yellow
+            You must import the @rails/actiontext and Trix JavaScript modules in your application entrypoint.
           INSTRUCTIONS
         end
 
@@ -40,7 +40,7 @@ module ActionText
           if (stylesheets = Dir.glob "#{destination_root}/app/assets/stylesheets/application.*.{scss,css}").length > 0
             insert_into_file stylesheets.first.to_s, %(@import 'actiontext.css';)
           else
-            say <<~INSTRUCTIONS, :green
+            say <<~INSTRUCTIONS, :yellow
               To use the Trix editor, you must require 'app/assets/stylesheets/actiontext.css' in your base stylesheet.
             INSTRUCTIONS
           end
@@ -57,7 +57,7 @@ module ActionText
 
       def enable_image_processing_gem
         if (gemfile_path = Pathname(destination_root).join("Gemfile")).exist?
-          say "Ensure image_processing gem has been enabled so image uploads will work (remember to bundle!)"
+          say "Ensure image_processing gem has been enabled so image uploads will work (remember to bundle!)", :green
           uncomment_lines gemfile_path, /gem "image_processing"/
         end
       end

@@ -32,7 +32,7 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
 
   test "throws warning for missing entry point" do
     FileUtils.rm("#{destination_root}/app/javascript/application.js")
-    assert_match "You must import the @rails/actiontext and trix JavaScript modules", run_generator_instance
+    assert_match "You must import the @rails/actiontext and Trix JavaScript modules", run_generator_instance
   end
 
   test "imports JavaScript dependencies in application.js" do
