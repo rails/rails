@@ -747,7 +747,7 @@ module ActiveRecord
     # * updated_at/updated_on column is updated if that column is available.
     # * Updates all the attributes that are dirty in this object.
     #
-    # This method raises an ActiveRecord::ActiveRecordError  if the
+    # This method raises an ActiveRecord::ActiveRecordError if the
     # attribute is marked as readonly.
     #
     # Also see #update_column.
@@ -757,6 +757,28 @@ module ActiveRecord
       public_send("#{name}=", value)
 
       save(validate: false)
+    end
+
+    # Updates a single attribute and saves the record.
+    # This is especially useful for boolean flags on existing records. Also note that
+    #
+    # * Validation is skipped.
+    # * \Callbacks are invoked.
+    # * updated_at/updated_on column is updated if that column is available.
+    # * Updates all the attributes that are dirty in this object.
+    #
+    # This method raises an ActiveRecord::ActiveRecordError if the
+    # attribute is marked as readonly.
+    #
+    # If any of the <tt>before_*</tt> callbacks throws +:abort+ the action is cancelled
+    # and #update_attribute! raises ActiveRecord::RecordNotSaved. See
+    # ActiveRecord::Callbacks for further details.
+    def update_attribute!(name, value)
+      name = name.to_s
+      verify_readonly_attribute(name)
+      public_send("#{name}=", value)
+
+      save!(validate: false)
     end
 
     # Updates the attributes of the model from the passed-in hash and saves the

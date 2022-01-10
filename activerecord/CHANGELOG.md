@@ -1,3 +1,26 @@
+*   Add `update_attribute!` to `ActiveRecord::Persistence`
+
+    Similar to `update_attribute`, but raises `ActiveRecord::RecordNotSaved` when a `before_*` callback throws `:abort`.
+
+    ```ruby
+    class Topic < ActiveRecord::Base
+      before_save :check_title
+
+      def check_title
+        throw(:abort) if title == "abort"
+      end
+    end
+
+    topic = Topic.create(title: "Test Title")
+    # #=> #<Topic title: "Test Title">
+    topic.update_attribute!(:title, "Another Title")
+    # #=> #<Topic title: "Another Title">
+    topic.update_attribute!(:title, "abort")
+    # raises ActiveRecord::RecordNotSaved
+    ```
+
+    *Drew Tempelmeyer*
+
 *   Avoid loading every record in `ActiveRecord::Relation#pretty_print`
 
     ```ruby
