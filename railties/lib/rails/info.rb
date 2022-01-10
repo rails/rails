@@ -31,8 +31,21 @@ module Rails
       def to_s
         column_width = properties.names.map(&:length).max
         info = properties.map do |name, value|
-          value = value.join(", ") if value.is_a?(Array)
-          "%-#{column_width}s   %s" % [name, value]
+          case value
+          when Array
+            "%-#{column_width}s   %s" % [name, value.join(", ")]
+          when Hash
+            option_column_width = value.keys.map(&:length).max
+            value.map.with_index do |(config, config_value), index|
+              if index == 0
+                "%-#{column_width}s   %-#{option_column_width}s   %s" % [name, config, config_value.truncate(200)]
+              else
+                "%-#{column_width}s   %-#{option_column_width}s   %s" % ["", config, config_value.truncate(200)]
+              end
+            end
+          else
+            "%-#{column_width}s   %s" % [name, value]
+          end
         end
         info.unshift "About your application's environment"
         info * "\n"
@@ -44,10 +57,16 @@ module Rails
         (+"<table>").tap do |table|
           properties.each do |(name, value)|
             table << %(<tr><td class="name">#{CGI.escapeHTML(name.to_s)}</td>)
-            formatted_value = if value.kind_of?(Array)
-              "<ul>" + value.map { |v| "<li>#{CGI.escapeHTML(v.to_s)}</li>" }.join + "</ul>"
+            case value
+            when Array
+              formatted_value = "<ul>" + value.map { |v| "<li>#{CGI.escapeHTML(v.to_s)}</li>" }.join + "</ul>"
+            when Hash
+              formatted_value = "<table>" +
+              value.map do |config, config_value|
+                "<tr><td>#{CGI.escapeHTML(config)}</td><td>#{CGI.escapeHTML(config_value.truncate(200))}</td></tr>"
+              end.join + "</table>"
             else
-              CGI.escapeHTML(value.to_s)
+              formatted_value = CGI.escapeHTML(value.to_s)
             end
             table << %(<td class="value">#{formatted_value}</td></tr>)
           end
@@ -100,6 +119,28 @@ module Rails
 
     property "Database schema version" do
       ActiveRecord::Base.connection.migration_context.current_version rescue nil
+    end
+
+    property "Configuration" do
+      configurations = {}
+      %i[
+        action_controller
+        action_dispatch
+        action_mailbox
+        action_mailer
+        action_text
+        action_view
+        active_job
+        active_record
+        active_storage
+        active_support
+        assets
+      ].each do |framework|
+        Rails.configuration.send(framework).to_h.each do |config, value|
+          configurations[[framework.to_s, config].join(".")] = value.inspect
+        end
+      end
+      configurations.sort.to_h
     end
   end
 end
