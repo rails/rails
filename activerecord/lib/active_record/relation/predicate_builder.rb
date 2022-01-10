@@ -55,7 +55,7 @@ module ActiveRecord
     end
 
     def build(attribute, value, operator = nil)
-      value = value.id if value.respond_to?(:id)
+      value = value.id if value.respond_to?(:id) && !table.type(attribute.name).is_a?(Type::Serialized)
       if operator ||= table.type(attribute.name).force_equality?(value) && :eq
         bind = build_bind_attribute(attribute.name, value)
         attribute.public_send(operator, bind)

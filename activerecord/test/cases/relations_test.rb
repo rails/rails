@@ -836,6 +836,34 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal author, Author.find_by(id: [decorator.new(author)])
   end
 
+  class ObjectWithId
+    attr_reader :id, :value
+    def initialize(id, value); @id = id; @value = value end
+    def to_s; "#{@value}:#{@id}" end
+  end
+
+  class ObjectWithIdSerializer
+    def self.load(serialized_value)
+      return unless serialized_value.is_a? String
+
+      value, id = serialized_value.split(":")
+      ObjectWithId.new(id, value)
+    end
+    def self.dump(value_with_id); value_with_id.to_s end
+  end
+
+  def test_where_attribute_serialization
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Author.table_name
+      serialize :name, ObjectWithIdSerializer
+    end
+
+    assert_equal(
+      Author.where(name: "David:12").to_sql,
+      klass.where(name: ObjectWithId.new(12, "David")).to_sql
+    )
+  end
+
   def test_find_with_list_of_ar
     author = Author.first
     authors = Author.find([author.id])
