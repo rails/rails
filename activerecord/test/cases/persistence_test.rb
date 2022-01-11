@@ -813,6 +813,69 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_equal prev_month, developer.updated_at
   end
 
+  def test_update_attribute!
+    assert_not_predicate Topic.find(1), :approved?
+    Topic.find(1).update_attribute!("approved", true)
+    assert_predicate Topic.find(1), :approved?
+
+    Topic.find(1).update_attribute!(:approved, false)
+    assert_not_predicate Topic.find(1), :approved?
+
+    Topic.find(1).update_attribute!(:change_approved_before_save, true)
+    assert_predicate Topic.find(1), :approved?
+  end
+
+  def test_update_attribute_for_readonly_attribute!
+    minivan = Minivan.find("m1")
+    assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_attribute!(:color, "black") }
+  end
+
+  def test_update_attribute_with_one_updated!
+    t = Topic.first
+    t.update_attribute!(:title, "super_title")
+    assert_equal "super_title", t.title
+    assert_not t.changed?, "topic should not have changed"
+    assert_not t.title_changed?, "title should not have changed"
+    assert_nil t.title_change, "title change should be nil"
+
+    t.reload
+    assert_equal "super_title", t.title
+  end
+
+  def test_update_attribute_for_updated_at_on!
+    developer = Developer.find(1)
+    prev_month = Time.now.prev_month.change(usec: 0)
+
+    developer.update_attribute!(:updated_at, prev_month)
+    assert_equal prev_month, developer.updated_at
+
+    developer.update_attribute!(:salary, 80001)
+    assert_not_equal prev_month, developer.updated_at
+
+    developer.reload
+    assert_not_equal prev_month, developer.updated_at
+  end
+
+  def test_update_attribute_for_aborted_callback!
+    klass = Class.new(Topic) do
+      def self.name; "Topic"; end
+
+      before_update :throw_abort
+
+      def throw_abort
+        throw(:abort)
+      end
+    end
+
+    t = klass.create(title: "New Topic", author_name: "Not David")
+
+    assert_raises(ActiveRecord::RecordNotSaved) { t.update_attribute!(:title, "super_title") }
+
+    t_reloaded = Topic.find(t.id)
+
+    assert_equal "New Topic", t_reloaded.title
+  end
+
   def test_update_column
     topic = Topic.find(1)
     topic.update_column("approved", true)
