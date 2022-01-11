@@ -62,7 +62,7 @@ module ActionView
       #
       #   <%= form_tag('/posts', remote: true) %>
       #   # => <form action="/posts" method="post" data-remote="true">
-
+      #
       #   form_tag(false, method: :get)
       #   # => <form method="get">
       #
