@@ -71,6 +71,26 @@ class Rails::Conductor::ActionMailbox::InboundEmailsControllerTest < ActionDispa
       assert_equal %w[ avatar1.jpeg avatar2.jpeg ], mail.attachments.collect(&:filename)
     end
   end
+  
+  test "create inbound email with no attachments" do
+    with_rails_env("development") do
+      assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
+        post rails_conductor_inbound_emails_path, params: {
+          mail: {
+            from: "Jason Fried <jason@37signals.com>",
+            to: "Replies <replies@example.com>",
+            subject: "Let's debate some attachments",
+            body: "I forgot my attachments",
+            attachments: [ "" ]
+          }
+        }
+      end
+
+      mail = ActionMailbox::InboundEmail.last.mail
+      assert_equal "I forgot my attachments", mail.body.decoded
+      assert_equal 0, mail.attachments.count
+    end
+  end
 
   private
     def with_rails_env(env)
