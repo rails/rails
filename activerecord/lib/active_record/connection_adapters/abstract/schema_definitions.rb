@@ -838,8 +838,8 @@ module ActiveRecord
       #  t.check_constraint("price > 0", name: "price_check")
       #
       # See {connection.add_check_constraint}[rdoc-ref:SchemaStatements#add_check_constraint]
-      def check_constraint(*args)
-        @base.add_check_constraint(name, *args)
+      def check_constraint(*args, **options)
+        @base.add_check_constraint(name, *args, **options)
       end
 
       # Removes the given check constraint from the table.
@@ -847,8 +847,8 @@ module ActiveRecord
       #  t.remove_check_constraint(name: "price_check")
       #
       # See {connection.remove_check_constraint}[rdoc-ref:SchemaStatements#remove_check_constraint]
-      def remove_check_constraint(*args)
-        @base.remove_check_constraint(name, *args)
+      def remove_check_constraint(*args, **options)
+        @base.remove_check_constraint(name, *args, **options)
       end
 
       private
