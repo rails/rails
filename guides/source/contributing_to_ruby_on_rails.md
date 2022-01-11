@@ -191,6 +191,17 @@ To move on from submitting bugs to helping resolve existing issues or contributi
 
 Start a Github Codespace from the repository and start developing right away from the browser IDE or in your local VScode. The Codespace is initialized with all required dependencies and allows you to run all tests.
 
+NOTE: The following warning should not impact the setup and better be ignored. 
+```bash
+ Your lockfile doesn't include a valid resolution.
+ You can fix this by regenerating your lockfile or trying to manually editing the bad locked gems to a version that satisfies all dependencies.
+    The unmet dependencies are:
+    * activesupport (>= 3.0, < 6.2), depended upon delayed_job-4.1.9, unsatisfied by activesupport-7.1.0.alpha
+    * activerecord (>= 3.0, < 6.2), depended upon delayed_job_active_record-4.1.6, unsatisfied by activerecord-7.1.0.alpha
+
+```
+
+
 #### The Easy Way
 
 The easiest and recommended way to get a development environment ready to hack is to use the [rails-dev-box](https://github.com/rails/rails-dev-box).
