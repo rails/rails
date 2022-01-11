@@ -261,6 +261,8 @@ module Rails
         when "7.1"
           load_defaults "7.0"
 
+          self.add_autoload_paths_to_load_path = false
+
           if respond_to?(:action_dispatch)
             action_dispatch.default_headers = {
               "X-Frame-Options" => "SAMEORIGIN",

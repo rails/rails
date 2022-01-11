@@ -78,6 +78,14 @@ To allow you to upgrade to new defaults one by one, the update task has created 
 Upgrading from Rails 7.0 to Rails 7.1
 -------------------------------------
 
+### Autoloaded paths are no longer in load path
+
+Starting from Rails 7.1, all paths managed by the autoloader will no longer be added to `$LOAD_PATH`.
+This means it won't be possible to load them with a manual `require` call, the class or module can be referenced instead.
+
+Reducing the size of `$LOAD_PATH` speed-up `require` calls for apps not using `bootsnap`, and reduce the
+size of the `bootsnap` cache for the others.
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 

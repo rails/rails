@@ -1,3 +1,12 @@
+*   No longer add autoloaded paths to `$LOAD_PATH`.
+
+    This means it won't be possible to load them with a manual `require` call, the class or module can be referenced instead.
+
+    Reducing the size of `$LOAD_PATH` speed-up `require` calls for apps not using `bootsnap`, and reduce the
+    size of the `bootsnap` cache for the others.
+
+    *Jean Boussier*
+
 *   Remove default `X-Download-Options` header
 
     This header is currently only used by Internet Explorer which
