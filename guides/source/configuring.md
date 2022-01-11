@@ -56,6 +56,86 @@ NOTE: If you need to apply configuration directly to a class, use a [lazy load h
 
 [`config.load_defaults`]: https://api.rubyonrails.org/classes/Rails/Application/Configuration.html#method-i-load_defaults
 
+Below are the default values associated with each target version. In cases of conflicting values, newer versions take precedence over older versions.
+
+#### Default Values for Target Version 7.1
+
+- [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
+
+#### Default Values for Target Version 7.0
+
+- [`config.action_controller.raise_on_open_redirects`](#config-action-controller-raise-on-open-redirects): `true`
+- [`config.action_view.button_to_generates_button_tag`](#config-action-view-button-to-generates-button-tag): `true`
+- [`config.action_view.apply_stylesheet_media_default`](#config-action-view-apply-stylesheet-media-default): `false`
+- [`config.active_support.key_generator_hash_digest_class`](#config-active-support-key-generator-hash-digest-class): `OpenSSL::Digest::SHA256`
+- [`config.active_support.hash_digest_class`](#config-active-support-hash-digest-class): `OpenSSL::Digest::SHA256`
+- [`config.active_support.cache_format_version`](#config-active-support-cache-format-version): `7.0`
+- [`config.active_support.remove_deprecated_time_with_zone_name`](#config-active-support-remove-deprecated-time-with-zone-name): `true`
+- [`config.active_support.executor_around_test_case`](#config-active-support-executor-around-test-case): `true`
+- [`config.active_support.use_rfc4122_namespaced_uuids`](#config-active-support-use-rfc4122-namespaced-uuids): `true`
+- [`config.active_support.disable_to_s_conversion`](#config-active-support-disable-to-s-conversion): `true`
+- [`config.action_dispatch.return_only_request_media_type_on_content_type`](#config-action-dispatch-return-only-request-media-type-on-content-type): `false`
+- [`config.action_dispatch.cookies_serializer`](#config-action-dispatch-cookies-serializer): `:json`
+- [`config.action_mailer.smtp_timeout`](#config-action-mailer-smtp-timeout): `5`
+- [`config.active_storage.video_preview_arguments`](#config-active-storage-video-preview-arguments): `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
+- [`config.active_storage.multiple_file_field_include_hidden`](#config-active-storage-multiple-file-field-include-hidden): `true`
+- [`config.active_record.automatic_scope_inversing`](#config-active-record-automatic-scope-inversing): `true`
+- [`config.active_record.verify_foreign_keys_for_fixtures`](#config-active-record-verify-foreign-keys-for-fixtures): `true`
+- [`config.active_record.partial_inserts`](#config-active-record-partial-inserts): `false`
+- [`config.active_storage.variant_processor`](#config-active-storage-variant-processor): `:vips`
+- [`config.action_controller.wrap_parameters_by_default`](#config-action-controller-wrap-parameters-by-default): `true`
+- [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Download-Options" => "noopen", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
+
+#### Default Values for Target Version 6.1
+
+- [`config.active_record.has_many_inversing`](#config-active-record-has-many-inversing): `true`
+- [`config.active_record.legacy_connection_handling`](#config-active-record-legacy-connection-handling): `false`
+- [`config.active_storage.track_variants`](#config-active-storage-track-variants): `true`
+- [`config.active_storage.queues.analysis`](#config-active-storage-queues-analysis): `nil`
+- [`config.active_storage.queues.purge`](#config-active-storage-queues-purge): `nil`
+- [`config.action_mailbox.queues.incineration`](#config-action-mailbox-queues-incineration): `nil`
+- [`config.action_mailbox.queues.routing`](#config-action-mailbox-queues-routing): `nil`
+- [`config.action_mailer.deliver_later_queue_name`](#config-action-mailer-deliver-later-queue-name): `nil`
+- [`config.active_job.retry_jitter`](#config-active-job-retry-jitter): `0.15`
+- [`config.action_dispatch.cookies_same_site_protection`](#config-action-dispatch-cookies-same-site-protection): `:lax`
+- [`config.action_dispatch.ssl_default_redirect_status`](`config.action_dispatch.ssl_default_redirect_status`) = `308`
+- [`ActiveSupport.utc_to_local_returns_utc_offset_times`](#activesupport-utc-to-local-returns-utc-offset-times): `true`
+- [`config.action_controller.urlsafe_csrf_tokens`](#config-action-controller-urlsafe-csrf-tokens): `true`
+- [`config.action_view.form_with_generates_remote_forms`](#config-action-view-form-with-generates-remote-forms): `false`
+- [`config.action_view.preload_links_header`](#config-action-view-preload-links-header): `true`
+
+#### Default Values for Target Version 6.0
+
+- [`config.action_view.default_enforce_utf8`](#config-action-view-default-enforce-utf8): `false`
+- [`config.action_dispatch.use_cookies_with_metadata`](#config-action-dispatch-use-cookies-with-metadata): `true`
+- [`config.action_mailer.delivery_job`](#config-action-mailer-delivery-job): `"ActionMailer::MailDeliveryJob"`
+- [`config.active_storage.queues.analysis`](#config-active-storage-queues-analysis): `:active_storage_analysis`
+- [`config.active_storage.queues.purge`](#config-active-storage-queues-purge): `:active_storage_purge`
+- [`config.active_storage.replace_on_assign_to_many`](#config-active-storage-replace-on-assign-to-many): `true`
+- [`config.active_record.collection_cache_versioning`](#config-active-record-collection-cache-versioning): `true`
+
+#### Default Values for Target Version 5.2
+
+- [`config.active_record.cache_versioning`](#config-active-record-cache-versioning): `true`
+- [`config.action_dispatch.use_authenticated_cookie_encryption`](#config-action-dispatch-use-authenticated-cookie-encryption): `true`
+- [`config.active_support.use_authenticated_message_encryption`](#config-active-support-use-authenticated-message-encryption): `true`
+- [`config.active_support.hash_digest_class`](#config-active-support-hash-digest-class): `OpenSSL::Digest::SHA1`
+- [`config.action_controller.default_protect_from_forgery`](#config-action-controller-default-protect-from-forgery): `true`
+- [`config.action_view.form_with_generates_ids`](#config-action-view-form-with-generates-ids): `true`
+
+#### Default Values for Target Version 5.1
+
+- [`config.assets.unknown_asset_fallback`](#config-assets-unknown-asset-fallback): `false`
+- [`config.action_view.form_with_generates_remote_forms`](#config-action-view-form-with-generates-remote-forms): `true`
+
+#### Default Values for Target Version 5.0
+
+- [`config.action_controller.per_form_csrf_tokens`](#config-action-controller-per-form-csrf-tokens): `true`
+- [`config.action_controller.forgery_protection_origin_check`](#config-action-controller-forgery-protection-origin-check): `true`
+- [`ActiveSupport.to_time_preserves_timezone`](#activesupport-to-time-preserves-timezone): `true`
+- [`config.active_record.belongs_to_required_by_default`](#config-active-record-belongs-to-required-by-default): `true`
+- [`config.ssl_options`](#config-ssl-options): `{ hsts: { subdomains: true } }`
+
 ### Rails General Configuration
 
 The following configuration methods are to be called on a `Rails::Railtie` object, such as a subclass of `Rails::Engine` or `Rails::Application`.
