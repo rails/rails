@@ -15,13 +15,13 @@ module ApplicationTests
       teardown_app
     end
 
-    test "initializing an application adds the application paths to the load path" do
+    test "initializing an application doesn't add the application paths to the load path" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"
       RUBY
 
       require "#{app_path}/config/environment"
-      assert_includes $:, "#{app_path}/app/models"
+      assert_not_includes $:, "#{app_path}/app/models"
     end
 
     test "initializing an application allows to load code on lib path inside application class definition" do
