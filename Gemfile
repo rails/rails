@@ -6,6 +6,8 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 gemspec
 
+gem "rbtree", github: "zzak/rbtree" # Ruby 3.2 compatibility
+
 gem "minitest", ">= 5.15.0"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
@@ -108,7 +110,7 @@ end
 
 # Action View
 group :view do
-  gem "blade", require: false, platforms: [:ruby]
+  gem "blade", github: "casperisfine/blade", branch: "ruby-3.2-compat", require: false, platforms: [:ruby]
   gem "sprockets-export", require: false
 end
 
