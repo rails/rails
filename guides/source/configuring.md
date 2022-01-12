@@ -61,7 +61,7 @@ Below are the default values associated with each target version. In cases of co
 #### Default Values for Target Version 7.1
 
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
-- [`add_autoload_paths_to_load_path`](#config-add-autoload-paths-to-load-path): `false`
+- [`config.add_autoload_paths_to_load_path`](#config-add-autoload-paths-to-load-path): `false`
 
 #### Default Values for Target Version 7.0
 
