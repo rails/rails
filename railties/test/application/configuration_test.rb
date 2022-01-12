@@ -2799,7 +2799,36 @@ module ApplicationTests
       smtp_settings = { domain: "example.com" }
 
       assert_equal smtp_settings, ActionMailer::Base.smtp_settings
+    end
+
+    test "Rails.application.config.action_mailer.smtp_settings = nil fallback to ActionMailer::Base.smtp_settings" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config <<-RUBY
+        ActionMailer::Base.smtp_settings = { domain: "example.com" }
+        config.load_defaults "7.0"
+      RUBY
+
+      app "development"
+
+      smtp_settings = { domain: "example.com", open_timeout: 5, read_timeout: 5 }
+
       assert_equal smtp_settings, ActionMailer::Base.smtp_settings
+      assert_nil Rails.configuration.action_mailer.smtp_settings
+    end
+
+    test "Rails.application.config.action_mailer.smtp_settings = nil and ActionMailer::Base.smtp_settings = nil do not configure smtp_timeout" do
+      ActionMailer::Base.smtp_settings = nil
+
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config <<-RUBY
+        config.action_mailer.smtp_settings = nil
+        config.load_defaults "7.0"
+      RUBY
+
+      app "development"
+
+      assert_nil Rails.configuration.action_mailer.smtp_settings
+      assert_nil ActionMailer::Base.smtp_settings
     end
 
     test "ActiveSupport.utc_to_local_returns_utc_offset_times is true in 6.1 defaults" do
