@@ -5,6 +5,24 @@ GIT
     mysql2 (0.5.3)
 
 GIT
+  remote: https://github.com/casperisfine/blade.git
+  revision: cae7c6294ba9b99d6e494867fd3d8f3a1e1a0b7c
+  branch: ruby-3.2-compat
+  specs:
+    blade (0.7.2)
+      activesupport (>= 3.0.0)
+      blade-qunit_adapter (>= 2.0.1)
+      coffee-script
+      coffee-script-source
+      curses (>= 1.4.0)
+      eventmachine
+      faye
+      sprockets (>= 3.0)
+      thin (>= 1.6.0)
+      thor (>= 0.19.1)
+      useragent (>= 0.16.7)
+
+GIT
   remote: https://github.com/jhawthorn/queue_classic.git
   revision: dbfee9bda71020b8f11ae8d9b85932462b7fbee0
   branch: fix-connection-pg-14
@@ -20,6 +38,12 @@ GIT
     websocket-client-simple (0.3.0)
       event_emitter
       websocket
+
+GIT
+  remote: https://github.com/zzak/rbtree.git
+  revision: 6f678e50f543c43d25c018ae108c7e3de88b703a
+  specs:
+    rbtree (0.4.4)
 
 PATH
   remote: .
@@ -152,18 +176,6 @@ GEM
     bcrypt (3.1.16)
     beaneater (1.1.1)
     benchmark-ips (2.9.2)
-    blade (0.7.2)
-      activesupport (>= 3.0.0)
-      blade-qunit_adapter (>= 2.0.1)
-      coffee-script
-      coffee-script-source
-      curses (>= 1.4.0)
-      eventmachine
-      faye
-      sprockets (>= 3.0)
-      thin (>= 1.6.0)
-      thor (>= 0.19.1)
-      useragent (>= 0.16.7)
     blade-qunit_adapter (2.0.1)
     bootsnap (1.9.3)
       msgpack (~> 1.0)
@@ -193,7 +205,7 @@ GEM
     crass (1.0.6)
     cssbundling-rails (1.0.0)
       railties (>= 6.0.0)
-    curses (1.4.2)
+    curses (1.4.3)
     daemons (1.4.1)
     dalli (3.2.0)
     dante (0.2.0)
@@ -412,7 +424,6 @@ GEM
     rb-fsevent (0.11.0)
     rb-inotify (0.10.1)
       ffi (~> 1.0)
-    rbtree (0.4.4)
     rdoc (6.3.3)
     redcarpet (3.2.3)
     redis (4.5.1)
@@ -581,7 +592,7 @@ DEPENDENCIES
   backburner
   bcrypt (~> 3.1.11)
   benchmark-ips
-  blade
+  blade!
   bootsnap (>= 1.4.4)
   capybara (>= 3.26)
   connection_pool
@@ -615,6 +626,7 @@ DEPENDENCIES
   rack-cache (~> 1.2)
   rails!
   rake (>= 11.1)
+  rbtree!
   redcarpet (~> 3.2.3)
   redis (~> 4.0)
   redis-namespace
