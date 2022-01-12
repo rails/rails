@@ -110,7 +110,7 @@ end
 
 # Action View
 group :view do
-  gem "blade", github: "casperisfine/blade", branch: "ruby-3.2-compat", require: false, platforms: [:ruby]
+  gem "blade", github: "javan/blade", require: false, platforms: [:ruby]
   gem "sprockets-export", require: false
 end
 

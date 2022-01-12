@@ -5,9 +5,8 @@ GIT
     mysql2 (0.5.3)
 
 GIT
-  remote: https://github.com/casperisfine/blade.git
-  revision: cae7c6294ba9b99d6e494867fd3d8f3a1e1a0b7c
-  branch: ruby-3.2-compat
+  remote: https://github.com/javan/blade.git
+  revision: 685be36e36b8c0b1638d6bca9021a079c930ff29
   specs:
     blade (0.7.2)
       activesupport (>= 3.0.0)
