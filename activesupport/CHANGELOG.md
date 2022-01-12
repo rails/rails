@@ -1,3 +1,7 @@
+*   Improve `File.atomic_write` error handling.
+
+    *Daniel Pepper*
+
 ## Rails 7.0.1 (January 06, 2022) ##
 
 *   Fix `Class#descendants` and `DescendantsTracker#descendants` compatibility with Ruby 3.1.
