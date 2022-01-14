@@ -840,7 +840,7 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
     assert_match %r{t\.date\s+"date_with_default",\s+default: "2014-06-05"}, output
 
     if supports_datetime_with_precision?
-      assert_match %r{t\.datetime\s+"datetime_with_default",\s+precision: 6,\s+default: "2014-06-05 07:17:04"}, output
+      assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: "2014-06-05 07:17:04"}, output
     else
       assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: "2014-06-05 07:17:04"}, output
     end

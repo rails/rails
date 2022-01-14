@@ -53,7 +53,9 @@ module ActiveRecord
           end
 
           def schema_precision(column)
-            super unless /\A(?:date)?time(?:stamp)?\b/.match?(column.sql_type) && column.precision == 0
+            return if /\Adatetime\b/.match(column.sql_type) && column.precision == 6
+            return if /\Atime(?:stamp)?\b/.match?(column.sql_type) && column.precision == 0
+            super
           end
 
           def schema_collation(column)
