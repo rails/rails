@@ -59,6 +59,7 @@ PATH
       activestorage (= 7.1.0.alpha)
       activesupport (= 7.1.0.alpha)
       mail (>= 2.7.1)
+      net-http
       net-imap
       net-pop
       net-smtp
@@ -68,6 +69,7 @@ PATH
       activejob (= 7.1.0.alpha)
       activesupport (= 7.1.0.alpha)
       mail (~> 2.5, >= 2.5.4)
+      net-http
       net-imap
       net-pop
       net-smtp
@@ -363,6 +365,9 @@ GEM
     mustache (1.1.1)
     mustermann (1.1.1)
       ruby2_keywords (~> 0.0.1)
+    net-http (0.2.0)
+      net-protocol
+      uri
     net-http-persistent (4.0.1)
       connection_pool (~> 2.2)
     net-imap (0.2.2)
@@ -550,6 +555,7 @@ GEM
       concurrent-ruby (~> 1.0)
     uber (0.1.0)
     unicode-display_width (2.1.0)
+    uri (0.11.0)
     useragent (0.16.10)
     vegas (0.1.11)
       rack (>= 1.0.0)

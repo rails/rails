@@ -42,5 +42,6 @@ Gem::Specification.new do |s|
   s.add_dependency "net-imap"
   s.add_dependency "net-pop"
   s.add_dependency "net-smtp"
+  s.add_dependency "net-http"
   s.add_dependency "rails-dom-testing", "~> 2.0"
 end
