@@ -193,15 +193,13 @@ if supports_datetime_with_precision?
       end
     end
 
-    def test_schema_dump_includes_non_default_datetime_precision
+    def test_schema_dump_includes_datetime_precision
       @connection.create_table(:foos, force: true) do |t|
-        t.datetime :datetime_zero, precision: 0
         t.timestamps precision: 6
       end
       output = dump_table_schema("foos")
-      assert_match %r{t\.datetime\s+"datetime_zero",\s+precision: 0$}, output
-      assert_match %r{t\.datetime\s+"created_at",\s+null: false$}, output
-      assert_match %r{t\.datetime\s+"updated_at",\s+null: false$}, output
+      assert_match %r{t\.datetime\s+"created_at",\s+precision: 6,\s+null: false$}, output
+      assert_match %r{t\.datetime\s+"updated_at",\s+precision: 6,\s+null: false$}, output
     end
 
     if current_adapter?(:PostgreSQLAdapter, :SQLServerAdapter)
