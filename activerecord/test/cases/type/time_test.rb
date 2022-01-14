@@ -47,7 +47,6 @@ module ActiveRecord
       #  it is probably important to preserve them because of existing data that
       #  has already been stored
       def test_preserves_wrapped_value_class_of_time_with_zone
-        skip("This behaviour will change / go away")
         inner_twz  = ActiveRecord::Type::Time::Value.new(::Time.zone.local(2000, 1, 1, 10, 30, 0))
         materialized = ::YAML.load(::YAML.dump(inner_twz))
         assert_instance_of ::ActiveSupport::TimeWithZone, materialized
