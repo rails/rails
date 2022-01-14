@@ -36,10 +36,9 @@ module ActiveRecord
       def test_preserves_wrapped_value_class_of_ruby_time
 
         inner_time = ActiveRecord::Type::Time::Value.new(::Time.new(2000, 1, 1, 10, 30, 0))
-        inner_twz  = ActiveRecord::Type::Time::Value.new(::Time.zone.local(2000, 1, 1, 10, 30, 0))
         materialized = ::YAML.load(::YAML.dump(inner_time))
 
-        assert_instance_of ::Time, materialized.__getobj__
+        assert_instance_of ::ActiveSupport::TimeWithZone, materialized
       end
 
       ##
@@ -62,8 +61,20 @@ time: 2000-01-01 10:30:00.000000000 Z
 YAML
 
         materialized = ::YAML.load(legacy_serialized_data)
-        assert_respond_to materialized, :__getobj__, "If materialized object is properly created it will be a DelegateClass"
-        assert_instance_of ::Time, materialized.__getobj__
+        assert_instance_of ::ActiveSupport::TimeWithZone, materialized
+      end
+
+      def test_handles_yaml_stored_immediately_after_seven_oh_release
+        legacy_serialized_data = <<-YAML
+--- !ruby/object:ActiveRecord::Type::Time::Value
+utc: 2000-01-01 16:30:00.000000000 Z
+zone: !ruby/object:ActiveSupport::TimeZone
+  name: America/Chicago
+  time: 2000-01-01 10:30:00.000000000 Z
+YAML
+
+        materialized = ::YAML.load(legacy_serialized_data)
+        assert_instance_of ::ActiveSupport::TimeWithZone, materialized
       end
 
       def teardown
