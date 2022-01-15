@@ -230,6 +230,7 @@ module ApplicationTests
     test "Rails.application responds to all instance methods" do
       app "development"
       assert_equal Rails.application.routes_reloader, AppTemplate::Application.routes_reloader
+      assert_kind_of ActiveSupport::MessageVerifiers, Rails.application.message_verifiers
     end
 
     test "Rails::Application responds to paths" do
@@ -729,6 +730,16 @@ module ApplicationTests
       end
     end
 
+    test "Rails.application.key_generator supports specifying a secret base" do
+      app "production"
+
+      key = app.key_generator.generate_key("salt")
+      other_key = app.key_generator("other secret base").generate_key("salt")
+
+      assert_not_equal key, other_key
+      assert_equal key.length, other_key.length
+    end
+
     test "application verifier can build different verifiers" do
       make_basic_app do |application|
         application.config.session_store :disabled
@@ -746,6 +757,23 @@ module ApplicationTests
 
       assert_equal default_verifier.object_id, app.message_verifier(:sensitive_value).object_id
       assert_not_equal default_verifier.object_id, text_verifier.object_id
+    end
+
+    test "Rails.application.message_verifiers.rotate supports :secret_key_base option" do
+      old_secret_key_base = "old secret_key_base"
+
+      add_to_config <<~RUBY
+        config.before_initialize do |app|
+          app.message_verifiers.rotate(secret_key_base: #{old_secret_key_base.inspect})
+        end
+      RUBY
+
+      app "production"
+
+      old_secret = app.key_generator(old_secret_key_base).generate_key("salt")
+      old_message = ActiveSupport::MessageVerifier.new(old_secret).generate("old message")
+
+      assert_equal "old message", app.message_verifiers["salt"].verify(old_message)
     end
 
     test "secrets.secret_key_base is used when config/secrets.yml is present" do
