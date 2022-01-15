@@ -153,6 +153,16 @@ To install Rails, use the `gem install` command provided by RubyGems:
 ```bash
 $ gem install rails
 ```
+TIP: If you are using an Arch/Arch based Linux system and have installed Ruby using pacman,
+gems like `rails` won't automatically be added to your path and will not be accessible from the command line.
+To fix this, add the lines:
+
+```bash
+export GEM_HOME="$(ruby -e 'puts Gem.user_dir')"
+export PATH="$PATH:$GEM_HOME/bin"
+```
+TIP: to your `.bashrc` file and run `source $HOME/.bashrc` inside your terminal. The `rails` command should
+now work correctly.
 
 To verify that you have everything installed correctly, you should be able to
 run the following in a new terminal:
