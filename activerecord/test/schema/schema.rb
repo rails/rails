@@ -1280,6 +1280,7 @@ ActiveRecord::Schema.define do
     t.string :auth_token
     t.string :password_digest
     t.string :recovery_password_digest
+    t.timestamps null: true
   end
 
   create_table :test_with_keyword_column_name, force: true do |t|

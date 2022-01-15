@@ -337,6 +337,14 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    initializer "active_record.generated_token_verifier" do
+      config.after_initialize do |app|
+        ActiveSupport.on_load(:active_record) do
+          self.generated_token_verifier ||= app.message_verifier("active_record/token_for")
+        end
+      end
+    end
+
     initializer "active_record_encryption.configuration" do |app|
       ActiveRecord::Encryption.configure \
          primary_key: app.credentials.dig(:active_record_encryption, :primary_key),
