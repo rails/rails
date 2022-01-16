@@ -44,11 +44,11 @@ code while accomplishing more than many other languages and frameworks.
 Experienced Rails developers also report that it makes web application
 development more fun.
 
-Rails is opinionated software. It makes the assumption that there is a "best"
+Rails is an opinionated software. It makes the assumption that there is a "best"
 way to do things, and it's designed to encourage that way - and in some cases to
 discourage alternatives. If you learn "The Rails Way" you'll probably discover a
 tremendous increase in productivity. If you persist in bringing old habits from
-other languages to your Rails development, and trying to use patterns you
+other languages to your Rails development, and keep on trying to use patterns you
 learned elsewhere, you may have a less happy experience.
 
 The Rails philosophy includes two major guiding principles:
@@ -70,7 +70,7 @@ needed.
 
 By following along with this guide, you'll create a Rails project called
 `blog`, a (very) simple weblog. Before you can start building the application,
-you need to make sure that you have Rails itself installed.
+you need to make sure that you have Rails installed.
 
 NOTE: The examples below use `$` to represent your terminal prompt in a UNIX-like OS,
 though it may have been customized to appear differently. If you are using Windows,
@@ -89,7 +89,7 @@ proper prerequisites installed. These include:
 #### Installing Ruby
 
 Open up a command line prompt. On macOS open Terminal.app; on Windows choose
-"Run" from your Start menu and type `cmd.exe`. Any commands prefaced with a
+"Run" from your Start menu and type `cmd.exe`. Any command prefaced with a
 dollar sign `$` should be run in the command line. Verify that you have a
 current version of Ruby installed:
 
@@ -98,7 +98,7 @@ $ ruby --version
 ruby 2.7.0
 ```
 
-Rails requires Ruby version 2.7.0 or later. It is preferred to use latest Ruby version.
+Rails requires Ruby version 2.7.0 or newer. It is preferred to use latest Ruby version.
 If the version number returned is less than that number (such as 2.3.7, or 1.8.7),
 you'll need to install a fresh copy of Ruby.
 
@@ -154,8 +154,8 @@ To install Rails, use the `gem install` command provided by RubyGems:
 $ gem install rails
 ```
 
-To verify that you have everything installed correctly, you should be able to
-run the following in a new terminal:
+To verify that you have everything installed correctly,
+run the following command in a new terminal:
 
 ```bash
 $ rails --version
