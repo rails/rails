@@ -542,7 +542,7 @@ module ActionView
         MAX_HEADER_SIZE = 8_000 # Some HTTP client and proxies have a 8kiB header limit
         def send_preload_links_header(preload_links, max_header_size: MAX_HEADER_SIZE)
           return if preload_links.empty?
-          return if respond_to?(:response) && response.sending?
+          return if respond_to?(:response) && response&.sending?
 
           if respond_to?(:request) && request
             request.send_early_hints("Link" => preload_links.join("\n"))
