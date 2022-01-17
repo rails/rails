@@ -107,14 +107,10 @@ module ActiveSupport
       LogSubscriber.logger
     end
 
-    def start(name, id, payload)
-      super if logger
-    end
-
-    def finish(name, id, payload)
+    def call(event)
       super if logger
     rescue => e
-      log_exception(name, e)
+      log_exception(event.name, e)
     end
 
     def publish_event(event)
