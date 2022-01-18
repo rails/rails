@@ -1972,6 +1972,11 @@ Cable as part of your normal Rails server.
 You can find more detailed configuration options in the
 [Action Cable Overview](action_cable_overview.html#configuration).
 
+#### `config.action_cable.precompile_assets`
+
+Determines whether the Action Cable assets should be added to the asset pipeline precompilation. It
+has no effect if Sprockets is not used. The default value is `true`.
+
 ### Configuring Active Storage
 
 `config.active_storage` provides the following configuration options:
@@ -2191,6 +2196,11 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.0                   | `true`               |
+
+#### `config.active_storage.precompile_assets`
+
+Determines whether the Active Storage assets should be added to the asset pipeline precompilation. It
+has no effect if Sprockets is not used. The default value is `true`.
 
 ### Configuring Action Text
 
