@@ -1,3 +1,5 @@
+* Add America/Punta_Arenas Rails timezone (Bruno Prieto)
+
 *   Improve `File.atomic_write` error handling
 
 *   Fix `Class#descendants` and `DescendantsTracker#descendants` compatibility with Ruby 3.1.

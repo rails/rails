@@ -56,6 +56,7 @@ module ActiveSupport
       "La Paz"                       => "America/La_Paz",
       "Santiago"                     => "America/Santiago",
       "Newfoundland"                 => "America/St_Johns",
+      "Punta Arenas" => "America/Punta_Arenas",
       "Brasilia"                     => "America/Sao_Paulo",
       "Buenos Aires"                 => "America/Argentina/Buenos_Aires",
       "Montevideo"                   => "America/Montevideo",
