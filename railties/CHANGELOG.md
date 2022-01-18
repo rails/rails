@@ -1,3 +1,9 @@
+*   Add JavaScript dependencies installation on bin/setup
+
+    Add  `yarn install` to bin/setup when using esbuild, webpack, or rollout.
+
+    *Carlos Ribeiro*
+
 *   Use `controller_class_path` in `Rails::Generators::NamedBase#route_url`
 
     The `route_url` method now returns the correct path when generating
