@@ -325,16 +325,17 @@ module ActionView
         crossorigin = "anonymous" if crossorigin == true || (crossorigin.blank? && as_type == "font")
         integrity = options[:integrity]
         nopush = options.delete(:nopush) || false
+        rel = mime_type == "module" ? "modulepreload" : "preload"
 
         link_tag = tag.link(**{
-          rel: "preload",
+          rel: rel,
           href: href,
           as: as_type,
           type: mime_type,
           crossorigin: crossorigin
         }.merge!(options.symbolize_keys))
 
-        preload_link = "<#{href}>; rel=preload; as=#{as_type}"
+        preload_link = "<#{href}>; rel=#{rel}; as=#{as_type}"
         preload_link += "; type=#{mime_type}" if mime_type
         preload_link += "; crossorigin=#{crossorigin}" if crossorigin
         preload_link += "; integrity=#{integrity}" if integrity
