@@ -92,8 +92,8 @@ module ActionController
   # * +permit_all_parameters+ - If it's +true+, all the parameters will be
   #   permitted by default. The default is +false+.
   # * +action_on_unpermitted_parameters+ - Controls behavior when parameters that are not explicitly
-  #    permitted are found. The default value is <tt>:log</tt> in test and development environments,
-  #    +false+ otherwise. The values can be:
+  #   permitted are found. The default value is <tt>:log</tt> in test and development environments,
+  #   +false+ otherwise. The values can be:
   #   * +false+ to take no action.
   #   * <tt>:log</tt> to emit an <tt>ActiveSupport::Notifications.instrument</tt> event on the
   #     <tt>unpermitted_parameters.action_controller</tt> topic and log at the DEBUG level.
