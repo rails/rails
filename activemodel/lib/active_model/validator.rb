@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/module/anonymous"
 
 module ActiveModel
@@ -183,6 +184,83 @@ module ActiveModel
     private
       def validate_each(record, attribute, value)
         @block.call(record, attribute, value)
+      end
+  end
+
+  # A base class that can be used to compose existing validators. Subclasses
+  # must define a #compose method that calls <tt>validates*</tt> methods in the
+  # same way that a model class would. The #compose method can access the list
+  # of target attributes via +attributes+, and can access custom options via
+  # +options+. Standard options (+:on+, +:if+, +:unless+, +:strict+) will
+  # automatically be forwarded to the composed validators.
+  #
+  # ==== Examples
+  #
+  #   class MoneyValidator < ActiveModel::CompositeValidator
+  #     def compose
+  #       currencies = options[:in]
+  #
+  #       validates *attributes, numericality: { only_integer: true }
+  #       validates *attributes.map { |attribute| "#{attribute}_currency" }, inclusion: currencies
+  #     end
+  #   end
+  #
+  #   class Account
+  #     include ActiveModel::Validations
+  #
+  #     attr_accessor :balance, :balance_currency
+  #
+  #     validates :balance, money: ["JPY"], strict: true
+  #
+  #     def initialize(*args)
+  #       @balance, @balance_currency = args
+  #     end
+  #   end
+  #
+  #   Account.new(100, "JPY").valid?
+  #   # => true
+  #
+  #   Account.new(100.1, "JPY").valid?
+  #   # => ActiveModel::StrictValidationFailed: Balance must be an integer
+  #
+  #   Account.new(100, "USD").valid?
+  #   # => ActiveModel::StrictValidationFailed: Balance currency is not included in the list
+  class CompositeValidator < Validator
+    attr_reader :model_class, :attributes, :standard_options
+
+    def initialize(options)
+      @model_class = options[:class]
+      @attributes = Array(options[:attributes])
+      @standard_options = options.extract!(:on, :if, :unless, :strict)
+      super
+      compose
+    end
+
+    # Subclasses must override this method.
+    def compose
+      raise NotImplementedError, "Subclasses must implement a compose() method."
+    end
+
+    def validate(record) # :nodoc:
+      # Rely on validators configured by #compose.
+    end
+
+    private
+      def validator_method?(method)
+        method.start_with?("validates") && model_class.respond_to?(method)
+      end
+
+      def respond_to_missing?(method, include_private = false)
+        validator_method?(method) || super
+      end
+
+      def method_missing(method, *args, &block)
+        if validator_method?(method)
+          options = standard_options.merge(args.extract_options!)
+          model_class.send(method, *args, options, &block)
+        else
+          super
+        end
       end
   end
 end
