@@ -21,6 +21,24 @@ module ActiveRecord
     ].freeze # :nodoc:
     delegate(*QUERYING_METHODS, to: :all)
 
+    class FindBySqlAsyncResult # :nodoc:
+      def initialize(future_result, loader)
+        @loader = loader
+        @future_result = future_result
+        @records = nil
+      end
+
+      attr_reader :future_result
+
+      (Array.public_instance_methods - FindBySqlAsyncResult.instance_methods).each do |method_name|
+        define_method(method_name) do |*args, &block|
+          @records = @loader.call(@future_result.result) unless @records
+          @records.send(method_name, *args, &block)
+        end
+      end
+    end
+    private_constant :FindBySqlAsyncResult
+
     # Executes a custom SQL query against your database and returns all the results. The results will
     # be returned as an array, with the requested columns encapsulated as attributes of the model you call
     # this method from. For example, if you call <tt>Product.find_by_sql</tt>, then the results will be returned in
@@ -44,9 +62,16 @@ module ActiveRecord
     #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
     #   Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]
     #
+    # If the +async+ parameter is set to true, the +sql+ will be executed in the background thread pool.
+    # More details about the async behavior and the configuration please check {load_async}[rdoc-ref:ActiveRecord::Relation#load_async].
+    #
     # Note that building your own SQL query string from user input may expose your application to
     # injection attacks (https://guides.rubyonrails.org/security.html#sql-injection).
-    def find_by_sql(sql, binds = [], preparable: nil, &block)
+    def find_by_sql(sql, binds = [], preparable: nil, async: false, &block)
+      if connection.async_enabled? && async
+        future_result = _query_by_sql(sql, binds, preparable: preparable, async: true)
+        return FindBySqlAsyncResult.new(future_result, ->(result) { _load_from_sql(result) })
+      end
       _load_from_sql(_query_by_sql(sql, binds, preparable: preparable), &block)
     end
 

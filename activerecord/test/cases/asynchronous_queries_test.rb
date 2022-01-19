@@ -94,6 +94,8 @@ module AsynchronousQueriesSharedTests
 end
 
 class AsynchronousQueriesTest < ActiveRecord::TestCase
+  fixtures :posts
+
   self.use_transactional_tests = false
 
   include AsynchronousQueriesSharedTests
@@ -106,12 +108,7 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
     ActiveRecord::Base.asynchronous_queries_tracker.start_session
     status = {}
 
-    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-      if event.payload[:sql] == "SELECT * FROM posts"
-        status[:executed] = true
-        status[:async] = event.payload[:async]
-      end
-    end
+    subscriber = subscriber(status, "SELECT * FROM posts")
 
     future_result = @connection.select_all "SELECT * FROM posts", async: true
 
@@ -128,6 +125,47 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
     ActiveRecord::Base.asynchronous_queries_tracker.finalize_session
     ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
   end
+
+  def test_async_find_by_sql
+    ActiveRecord::Base.asynchronous_queries_tracker.start_session
+    status = {}
+
+    sql = "SELECT * FROM posts ORDER BY id"
+
+    sync_result = Post.find_by_sql(sql, async: false)
+
+    subscriber = subscriber(status, sql)
+
+    async_result = Post.find_by_sql(sql, async: true)
+
+    if in_memory_db?
+      assert_kind_of Array, async_result
+    else
+      assert_kind_of ActiveRecord::Querying.const_get(:FindBySqlAsyncResult), async_result
+
+      wait_for_future_result(async_result.future_result)
+
+      assert_equal sync_result.size, async_result.size
+      async_result.each_with_index do |record, index|
+        assert_equal sync_result[index], record
+      end
+    end
+
+    assert_equal @connection.supports_concurrent_connections?, status[:async]
+  ensure
+    ActiveRecord::Base.asynchronous_queries_tracker.finalize_session
+    ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+  end
+
+  private
+    def subscriber(status, sql)
+      ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+        if event.payload[:sql] == sql
+          status[:executed] = true
+          status[:async] = event.payload[:async]
+        end
+      end
+    end
 end
 
 class AsynchronousQueriesWithTransactionalTest < ActiveRecord::TestCase

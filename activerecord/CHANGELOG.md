@@ -1,3 +1,19 @@
+*   Let `ActiveRecord::Querying#find_by_sql` supports async.
+
+    The behavior of async supported `find_by_sql` is similar to `load_async`.
+
+    ```ruby
+    result = Post.find_by_sql("select * from posts", async: true)
+    result.each { |record| puts record } # It acts like an array
+    result.class
+    # #=> ActiveRecord::Querying::FindBySqlAsyncResult
+    # FindBySqlAsyncResult is an array like object, most methods of it
+    # will be forwarded to the array that contains the records except
+    # the methods that make confusion(#class, #__id__, etc.).
+    ```
+
+    *vy0b0x*
+
 *   Add `update_attribute!` to `ActiveRecord::Persistence`
 
     Similar to `update_attribute`, but raises `ActiveRecord::RecordNotSaved` when a `before_*` callback throws `:abort`.
