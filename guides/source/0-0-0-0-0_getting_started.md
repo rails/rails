@@ -90,7 +90,7 @@ proper prerequisites installed. These include:
 
 Open up a command line prompt. On macOS open Terminal.app; on Windows choose
 "Run" from your Start menu and type `cmd.exe`. Any commands prefaced with a
-dollar sign `$` should be run in the command line. Verify that you have a
+dollar sign `$` (the convention for MacOS) should be run in the command line. Verify that you have a
 current version of Ruby installed:
 
 ```bash
@@ -98,13 +98,13 @@ $ ruby --version
 ruby 2.7.0
 ```
 
-Rails requires Ruby version 2.7.0 or later. It is preferred to use latest Ruby version.
-If the version number returned is less than that number (such as 2.3.7, or 1.8.7),
+Rails requires Ruby version 2.7.0 or later. It is preferable that you use the latest Ruby version (currently v 3.1.0).
+If the version number returned (see the example above) is less than that number (such as 2.3.7, or 1.8.7),
 you'll need to install a fresh copy of Ruby.
 
-To install Rails on Windows, you'll first need to install [Ruby Installer](https://rubyinstaller.org/).
+To install Rails on Windows, you'll first need to install the [Ruby Installer](https://rubyinstaller.org/).
 
-For more installation methods for most Operating Systems take a look at
+More installation methods for other Operating Systems can be found at
 [ruby-lang.org](https://www.ruby-lang.org/en/documentation/installation/).
 
 #### Installing SQLite3
@@ -216,6 +216,7 @@ of the files and folders that Rails creates by default:
 |.gitignore|This file tells git which files (or patterns) it should ignore. See [GitHub - Ignoring files](https://help.github.com/articles/ignoring-files) for more info about ignoring files.|
 |.ruby-version|This file contains the default Ruby version.|
 
+
 Hello, Rails!
 -------------
 
@@ -261,7 +262,7 @@ enough to serve a page.
 ### Say "Hello", Rails
 
 To get Rails saying "Hello", you need to create at minimum a *route*, a
-*controller* with an *action*, and a *view*. A route maps a request to a
+*controller* - with an *action*, and a *view*. A route maps a request to a
 controller action. A controller action performs the necessary work to handle the
 request, and prepares any data for the view. A view displays data in a desired
 format.
