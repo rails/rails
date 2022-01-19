@@ -448,6 +448,12 @@ module Notifications
       assert_equal 0, event.cpu_time
     end
 
+    def test_event_with_nil_time_and_nil_ending
+      event = event(:foo, nil, nil, random_id, {})
+
+      assert_equal 0.0, event.duration
+    end
+
     def test_events_consumes_information_given_as_payload
       event = event(:foo, Process.clock_gettime(Process::CLOCK_MONOTONIC), Process.clock_gettime(Process::CLOCK_MONOTONIC) + 1, random_id, payload: :bar)
       assert_equal Hash[payload: :bar], event.payload
