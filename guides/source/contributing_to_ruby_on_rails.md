@@ -191,7 +191,7 @@ To move on from submitting bugs to helping resolve existing issues or contributi
 
 Start a Github Codespace from the repository and start developing right away from the browser IDE or in your local VScode. The Codespace is initialized with all required dependencies and allows you to run all tests.
 
-NOTE: The following warning should not impact the setup and better be ignored. 
+NOTE: When running `bundle install` you might encounter the following warning:
 ```bash
  Your lockfile doesn't include a valid resolution.
  You can fix this by regenerating your lockfile or trying to manually editing the bad locked gems to a version that satisfies all dependencies.
@@ -200,8 +200,16 @@ NOTE: The following warning should not impact the setup and better be ignored.
     * activerecord (>= 3.0, < 6.2), depended upon delayed_job_active_record-4.1.6, unsatisfied by activerecord-7.1.0.alpha
 
 ```
+The warning should not impact the setup.
 
+In order to omit it, you need to update [`delayed_job`](https://github.com/collectiveidea/delayed_job/commit/8b6fd4b55d021acf263bbafeefb3ee8f44017f51)  
+ and `[delayed_job_active_record`](https://github.com/collectiveidea/delayed_job_active_record/commit/7bd1abbe3c437777cfdb2e95a46336902398ed03)
+ gems to support Rails 7.
 
+```bundle update delayed_job delayed_job_active_record --conservative
+  bundle install
+
+```
 #### The Easy Way
 
 The easiest and recommended way to get a development environment ready to hack is to use the [rails-dev-box](https://github.com/rails/rails-dev-box).
