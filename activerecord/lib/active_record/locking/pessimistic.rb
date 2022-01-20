@@ -71,6 +71,7 @@ module ActiveRecord
               Locking a record with unpersisted changes is not supported. Use
               `save` to persist the changes, or `reload` to discard them
               explicitly.
+              Changed attributes: #{changed.map(&:inspect).join(', ')}.
             MSG
           end
 
