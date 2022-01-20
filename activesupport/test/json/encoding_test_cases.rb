@@ -19,6 +19,24 @@ module JSONTest
     end
   end
 
+  class Arraylike
+    def to_ary
+      [:foo, [:bar]]
+    end
+  end
+
+  class Stringlike
+    def to_str
+      "foo"
+    end
+  end
+
+  class Integerlike
+    def to_int
+      999
+    end
+  end
+
   class Custom
     def initialize(serialized)
       @serialized = serialized
@@ -74,6 +92,9 @@ module JSONTest
                      [ ActiveSupport::MessageEncryptor, %("ActiveSupport::MessageEncryptor") ]]
     ObjectTests   = [[ Foo.new(1, 2), %({\"a\":1,\"b\":2}) ]]
     HashlikeTests = [[ Hashlike.new, %({\"bar\":\"world\",\"foo\":\"hello\"}) ]]
+    ArraylikeTests = [[ Arraylike.new, %([\"foo\",[\"bar\"]]) ]]
+    StringlikeTests = [[ Stringlike.new, %(\"foo\") ]]
+    IntegerlikeTests = [[ Integerlike.new, %(999) ]]
     StructTests   = [[ MyStruct.new(:foo, "bar"), %({\"name\":\"foo\",\"value\":\"bar\"}) ],
                      [ MyStruct.new(nil, nil), %({\"name\":null,\"value\":null}) ]]
     CustomTests   = [[ Custom.new("custom"), '"custom"' ],
