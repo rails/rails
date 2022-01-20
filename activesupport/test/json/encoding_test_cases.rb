@@ -25,6 +25,16 @@ module JSONTest
     end
   end
 
+  class EnumerableHashlike < Hashlike
+    include Enumerable
+    # note: #each is unused so not defined
+  end
+
+  class EnumerableArraylike < Arraylike
+    include Enumerable
+    # note: #each is unused so not defined
+  end
+
   class Stringlike
     def to_str
       "foo"
@@ -93,6 +103,8 @@ module JSONTest
     ObjectTests   = [[ Foo.new(1, 2), %({\"a\":1,\"b\":2}) ]]
     HashlikeTests = [[ Hashlike.new, %({\"bar\":\"world\",\"foo\":\"hello\"}) ]]
     ArraylikeTests = [[ Arraylike.new, %([\"foo\",[\"bar\"]]) ]]
+    EnumerableHashlikeTests = [[ EnumerableHashlike.new, %({\"bar\":\"world\",\"foo\":\"hello\"}) ]]
+    EnumerableArraylikeTests = [[ EnumerableArraylike.new, %([\"foo\",[\"bar\"]]) ]]
     StringlikeTests = [[ Stringlike.new, %(\"foo\") ]]
     IntegerlikeTests = [[ Integerlike.new, %(999) ]]
     StructTests   = [[ MyStruct.new(:foo, "bar"), %({\"name\":\"foo\",\"value\":\"bar\"}) ],

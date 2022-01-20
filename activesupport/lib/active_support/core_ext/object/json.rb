@@ -144,7 +144,13 @@ end
 
 module Enumerable
   def as_json(options = nil) # :nodoc:
-    to_a.as_json(options)
+    if respond_to?(:to_hash)
+      to_hash.as_json(options)
+    elsif respond_to?(:to_ary)
+      to_ary.as_json(options)
+    else
+      to_a.as_json(options)
+    end
   end
 end
 
