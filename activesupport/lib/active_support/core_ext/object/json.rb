@@ -142,11 +142,13 @@ class Regexp
   end
 end
 
+ActiveSupport::KERNEL_RESPOND_TO = Kernel.instance_method(:respond_to?)
+
 module Enumerable
   def as_json(options = nil) # :nodoc:
-    if respond_to?(:to_hash)
+    if ActiveSupport::KERNEL_RESPOND_TO.bind_call(self, :to_hash)
       to_hash.as_json(options)
-    elsif respond_to?(:to_ary)
+    elsif ActiveSupport::KERNEL_RESPOND_TO.bind_call(self, :to_ary)
       to_ary.as_json(options)
     else
       to_a.as_json(options)
