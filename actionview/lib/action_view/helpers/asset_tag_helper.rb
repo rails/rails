@@ -325,16 +325,17 @@ module ActionView
         crossorigin = "anonymous" if crossorigin == true || (crossorigin.blank? && as_type == "font")
         integrity = options[:integrity]
         nopush = options.delete(:nopush) || false
+        rel = mime_type == "module" ? "modulepreload" : "preload"
 
         link_tag = tag.link(**{
-          rel: "preload",
+          rel: rel,
           href: href,
           as: as_type,
           type: mime_type,
           crossorigin: crossorigin
         }.merge!(options.symbolize_keys))
 
-        preload_link = "<#{href}>; rel=preload; as=#{as_type}"
+        preload_link = "<#{href}>; rel=#{rel}; as=#{as_type}"
         preload_link += "; type=#{mime_type}" if mime_type
         preload_link += "; crossorigin=#{crossorigin}" if crossorigin
         preload_link += "; integrity=#{integrity}" if integrity
@@ -542,13 +543,14 @@ module ActionView
         MAX_HEADER_SIZE = 8_000 # Some HTTP client and proxies have a 8kiB header limit
         def send_preload_links_header(preload_links, max_header_size: MAX_HEADER_SIZE)
           return if preload_links.empty?
-          return if respond_to?(:response) && response.sending?
+          response_present = respond_to?(:response) && response
+          return if response_present && response.sending?
 
           if respond_to?(:request) && request
             request.send_early_hints("Link" => preload_links.join("\n"))
           end
 
-          if respond_to?(:response) && response
+          if response_present
             header = response.headers["Link"]
             header = header ? header.dup : +""
 

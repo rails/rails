@@ -103,9 +103,11 @@ $ bin/rails middleware
 For a freshly generated Rails application, this might produce something like:
 
 ```ruby
+use ActionDispatch::HostAuthorization
 use Rack::Sendfile
 use ActionDispatch::Static
 use ActionDispatch::Executor
+use ActionDispatch::ServerTiming
 use ActiveSupport::Cache::Strategy::LocalCache::Middleware
 use Rack::Runtime
 use Rack::MethodOverride
@@ -217,6 +219,10 @@ config.middleware.delete! ActionDispatch::Executor
 
 Much of Action Controller's functionality is implemented as Middlewares. The following list explains the purpose of each of them:
 
+**`ActionDispatch::HostAuthorization`**
+
+* Guards from DNS rebinding attacks by explicitly permitting the hosts a request can be sent to. See the [configuration guide](configuring.html#actiondispatch-hostauthorization) for configuration instructions.
+
 **`Rack::Sendfile`**
 
 * Sets server specific X-Sendfile header. Configure this via `config.action_dispatch.x_sendfile_header` option.
@@ -232,6 +238,10 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 **`ActionDispatch::Executor`**
 
 * Used for thread safe code reloading during development.
+
+**`ActionDispatch::ServerTiming`**
+
+* Sets a [`Server-Timing`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing) header containing performance metrics for the request.
 
 **`ActiveSupport::Cache::Strategy::LocalCache::Middleware`**
 

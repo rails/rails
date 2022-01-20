@@ -1822,7 +1822,8 @@ module ApplicationTests
       end
     end
 
-    test "autoload paths are added to $LOAD_PATH by default" do
+    test "autoload paths are not added to $LOAD_PATH if opted-in" do
+      add_to_config "config.add_autoload_paths_to_load_path = true"
       app "development"
 
       # Action Mailer modifies AS::Dependencies.autoload_paths in-place.
@@ -1838,8 +1839,7 @@ module ApplicationTests
       assert_empty Rails.configuration.paths.load_paths - $LOAD_PATH
     end
 
-    test "autoload paths are not added to $LOAD_PATH if opted-out" do
-      add_to_config "config.add_autoload_paths_to_load_path = false"
+    test "autoload paths are not added to $LOAD_PATH by default" do
       app "development"
 
       assert_empty ActiveSupport::Dependencies.autoload_paths & $LOAD_PATH
@@ -1868,10 +1868,6 @@ module ApplicationTests
         assert_includes config.autoload_once_paths, "#{app_path}/custom_autoload_once_path"
         assert_includes config.eager_load_paths, "#{app_path}/custom_eager_load_path"
       end
-
-      assert_includes $LOAD_PATH, "#{app_path}/custom_autoload_path"
-      assert_includes $LOAD_PATH, "#{app_path}/custom_autoload_once_path"
-      assert_includes $LOAD_PATH, "#{app_path}/custom_eager_load_path"
     end
 
     test "load_database_yaml returns blank hash if configuration file is blank" do
