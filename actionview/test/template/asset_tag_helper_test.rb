@@ -246,6 +246,7 @@ class AssetTagHelperTest < ActionView::TestCase
   }
 
   PreloadLinkToTag = {
+    %(preload_link_tag '/application.js', type: 'module') => %(<link rel="modulepreload" href="/application.js" as="script" type="module" >),
     %(preload_link_tag '/styles/custom_theme.css') => %(<link rel="preload" href="/styles/custom_theme.css" as="style" type="text/css" />),
     %(preload_link_tag '/videos/video.webm') => %(<link rel="preload" href="/videos/video.webm" as="video" type="video/webm" />),
     %(preload_link_tag '/posts.json', as: 'fetch') => %(<link rel="preload" href="/posts.json" as="fetch" type="application/json" />),
@@ -601,6 +602,14 @@ class AssetTagHelperTest < ActionView::TestCase
     with_preload_links_header do
       javascript_include_tag("http://example.com/all.js", type: "module")
       expected = "<http://example.com/all.js>; rel=modulepreload; as=script; nopush"
+      assert_equal expected, @response.headers["Link"]
+    end
+  end
+
+  def test_should_set_preload_early_hints_with_rel_modulepreload
+    with_preload_links_header do
+      preload_link_tag("http://example.com/all.js", type: "module")
+      expected = "<http://example.com/all.js>; rel=modulepreload; as=script; type=module"
       assert_equal expected, @response.headers["Link"]
     end
   end
