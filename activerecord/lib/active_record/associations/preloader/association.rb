@@ -205,7 +205,7 @@ module ActiveRecord
           return if preload_scope && !preload_scope.empty_scope?
           return if reflection.collection?
 
-          unscoped_records.each do |record|
+          unscoped_records.select { |r| r[association_key_name].present? }.each do |record|
             owners = owners_by_key[convert_key(record[association_key_name])]
             owners&.each_with_index do |owner, i|
               association = owner.association(reflection.name)
@@ -263,7 +263,7 @@ module ActiveRecord
           end
 
           def reflection_scope
-            @reflection_scope ||= reflection.join_scopes(klass.arel_table, klass.predicate_builder, klass).inject(&:merge!) || klass.unscoped
+            @reflection_scope ||= reflection.join_scopes(klass.arel_table, klass.predicate_builder, klass).inject(klass.unscoped, &:merge!)
           end
 
           def build_scope

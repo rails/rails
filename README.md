@@ -1,9 +1,3 @@
-<p align="center">
-  <a href="https://rubyonrails.org/" target="_blank" rel="noopener noreferrer">
-    <img src="https://rubyonrails.org/images/rails-logo.svg" width="400">
-  </a>
-</p>
-
 # Welcome to Rails
 
 ## What's Rails?
@@ -28,6 +22,14 @@ Although most Rails models are backed by a database, models can also be ordinary
 Ruby classes, or Ruby classes that implement a set of interfaces as provided by
 the [Active Model](activemodel/README.rdoc) module.
 
+## View layer
+
+The _**View layer**_ is composed of "templates" that are responsible for providing
+appropriate representations of your application's resources. Templates can
+come in a variety of formats, but most view templates are HTML with embedded
+Ruby code (ERB files). Views are typically rendered to generate a controller response
+or to generate the body of an email. In Rails, View generation is handled by [Action View](actionview/README.rdoc).
+
 ## Controller layer
 
 The _**Controller layer**_ is responsible for handling incoming HTTP requests and
@@ -37,14 +39,6 @@ manipulate models, and render view templates in order to generate the appropriat
 In Rails, incoming requests are routed by Action Dispatch to an appropriate controller, and
 controller classes are derived from `ActionController::Base`. Action Dispatch and Action Controller
 are bundled together in [Action Pack](actionpack/README.rdoc).
-
-## View layer
-
-The _**View layer**_ is composed of "templates" that are responsible for providing
-appropriate representations of your application's resources. Templates can
-come in a variety of formats, but most view templates are HTML with embedded
-Ruby code (ERB files). Views are typically rendered to generate a controller response
-or to generate the body of an email. In Rails, View generation is handled by [Action View](actionview/README.rdoc).
 
 ## Frameworks and libraries
 
@@ -78,8 +72,7 @@ and may also be used independently outside Rails.
 
    Run with `--help` or `-h` for options.
 
-4. Go to `http://localhost:3000` and you'll see:
-"Yay! You’re on Rails!"
+4. Go to `http://localhost:3000` and you'll see the Rails bootscreen with your Rails and Ruby versions.
 
 5. Follow the guidelines to start developing your application. You may find
    the following resources handy:
@@ -93,10 +86,10 @@ We encourage you to contribute to Ruby on Rails! Please check out the
 [Contributing to Ruby on Rails guide](https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) for guidelines about how to proceed. [Join us!](https://contributors.rubyonrails.org)
 
 Trying to report a possible security vulnerability in Rails? Please
-check out our [security policy](https://rubyonrails.org/security/) for
+check out our [security policy](https://rubyonrails.org/security) for
 guidelines about how to proceed.
 
-Everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://rubyonrails.org/conduct/).
+Everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://rubyonrails.org/conduct).
 
 ## License
 

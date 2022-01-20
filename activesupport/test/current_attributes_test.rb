@@ -4,7 +4,8 @@ require_relative "abstract_unit"
 require "active_support/current_attributes/test_helper"
 
 class CurrentAttributesTest < ActiveSupport::TestCase
-  # Automatically included in Rails apps via railtie but that don't run here.
+  # CurrentAttributes is automatically reset in Rails app via executor hooks set in railtie
+  # But not in Active Support's own test suite.
   include ActiveSupport::CurrentAttributes::TestHelper
 
   Person = Struct.new(:id, :name, :time_zone)
@@ -176,21 +177,28 @@ class CurrentAttributesTest < ActiveSupport::TestCase
   end
 
   test "CurrentAttributes use fiber-local variables" do
+    previous_level = ActiveSupport::IsolatedExecutionState.isolation_level
+    ActiveSupport::IsolatedExecutionState.isolation_level = :fiber
+
     Session.current = 42
     enumerator = Enumerator.new do |yielder|
       yielder.yield Session.current
     end
     assert_nil enumerator.next
+  ensure
+    ActiveSupport::IsolatedExecutionState.isolation_level = previous_level
   end
 
   test "CurrentAttributes can use thread-local variables" do
-    ActiveSupport::CurrentAttributes._use_thread_variables = true
+    previous_level = ActiveSupport::IsolatedExecutionState.isolation_level
+    ActiveSupport::IsolatedExecutionState.isolation_level = :thread
+
     Session.current = 42
     enumerator = Enumerator.new do |yielder|
       yielder.yield Session.current
     end
     assert_equal 42, enumerator.next
   ensure
-    ActiveSupport::CurrentAttributes._use_thread_variables = false
+    ActiveSupport::IsolatedExecutionState.isolation_level = previous_level
   end
 end

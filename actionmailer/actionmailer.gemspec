@@ -27,6 +27,7 @@ Gem::Specification.new do |s|
     "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
     "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
     "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/actionmailer",
+    "rubygems_mfa_required" => "true",
   }
 
   # NOTE: Please read our dependency guidelines before updating versions:
@@ -38,5 +39,8 @@ Gem::Specification.new do |s|
   s.add_dependency "activejob", version
 
   s.add_dependency "mail", ["~> 2.5", ">= 2.5.4"]
+  s.add_dependency "net-imap"
+  s.add_dependency "net-pop"
+  s.add_dependency "net-smtp"
   s.add_dependency "rails-dom-testing", "~> 2.0"
 end

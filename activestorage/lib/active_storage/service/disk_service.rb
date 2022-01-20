@@ -72,7 +72,7 @@ module ActiveStorage
       end
     end
 
-    def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
+    def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:, custom_metadata: {})
       instrument :url, key: key do |payload|
         verified_token_with_expiration = ActiveStorage.verifier.generate(
           {
@@ -98,6 +98,16 @@ module ActiveStorage
 
     def path_for(key) # :nodoc:
       File.join root, folder_for(key), key
+    end
+
+    def compose(source_keys, destination_key, **)
+      File.open(make_path_for(destination_key), "w") do |destination_file|
+        source_keys.each do |source_key|
+          File.open(path_for(source_key), "rb") do |source_file|
+            IO.copy_stream(source_file, destination_file)
+          end
+        end
+      end
     end
 
     private

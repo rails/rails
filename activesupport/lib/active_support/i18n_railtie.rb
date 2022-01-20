@@ -77,7 +77,7 @@ module I18n
 
     def self.forward_raise_on_missing_translations_config(app)
       ActiveSupport.on_load(:action_view) do
-        self.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations
+        ActionView::Helpers::TranslationHelper.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations
       end
 
       ActiveSupport.on_load(:action_controller) do

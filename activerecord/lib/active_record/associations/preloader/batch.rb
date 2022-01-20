@@ -6,7 +6,7 @@ module ActiveRecord
       class Batch # :nodoc:
         def initialize(preloaders, available_records:)
           @preloaders = preloaders.reject(&:empty?)
-          @available_records = available_records.flatten.group_by(&:class)
+          @available_records = available_records.flatten.group_by { |r| r.class.base_class }
         end
 
         def call
@@ -14,7 +14,7 @@ module ActiveRecord
           until branches.empty?
             loaders = branches.flat_map(&:runnable_loaders)
 
-            loaders.each { |loader| loader.associate_records_from_unscoped(@available_records[loader.klass]) }
+            loaders.each { |loader| loader.associate_records_from_unscoped(@available_records[loader.klass.base_class]) }
 
             if loaders.any?
               future_tables = branches.flat_map do |branch|

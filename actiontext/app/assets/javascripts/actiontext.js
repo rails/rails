@@ -506,14 +506,16 @@ var activestorage = {exports: {}};
     }
   }
   class BlobRecord {
-    constructor(file, checksum, url) {
+    constructor(file, checksum, url, directUploadToken, attachmentName) {
       this.file = file;
       this.attributes = {
         filename: file.name,
         content_type: file.type || "application/octet-stream",
         byte_size: file.size,
-        checksum: checksum
+        checksum: checksum,
       };
+      this.directUploadToken = directUploadToken;
+      this.attachmentName = attachmentName;
       this.xhr = new XMLHttpRequest;
       this.xhr.open("POST", url, true);
       this.xhr.responseType = "json";
@@ -541,7 +543,9 @@ var activestorage = {exports: {}};
     create(callback) {
       this.callback = callback;
       this.xhr.send(JSON.stringify({
-        blob: this.attributes
+        blob: this.attributes,
+        direct_upload_token: this.directUploadToken,
+        attachment_name: this.attachmentName
       }));
     }
     requestDidLoad(event) {
@@ -599,10 +603,12 @@ var activestorage = {exports: {}};
   }
   let id = 0;
   class DirectUpload {
-    constructor(file, url, delegate) {
+    constructor(file, url, directUploadToken, attachmentName, delegate) {
       this.id = ++id;
       this.file = file;
       this.url = url;
+      this.directUploadToken = directUploadToken;
+      this.attachmentName = attachmentName;
       this.delegate = delegate;
     }
     create(callback) {
@@ -611,7 +617,7 @@ var activestorage = {exports: {}};
           callback(error);
           return;
         }
-        const blob = new BlobRecord(this.file, checksum, this.url);
+        const blob = new BlobRecord(this.file, checksum, this.url, this.directUploadToken, this.attachmentName);
         notify(this.delegate, "directUploadWillCreateBlobWithXHR", blob.xhr);
         blob.create((error => {
           if (error) {
@@ -640,7 +646,7 @@ var activestorage = {exports: {}};
     constructor(input, file) {
       this.input = input;
       this.file = file;
-      this.directUpload = new DirectUpload(this.file, this.url, this);
+      this.directUpload = new DirectUpload(this.file, this.url, this.directUploadToken, this.attachmentName, this);
       this.dispatch("initialize");
     }
     start(callback) {
@@ -670,6 +676,12 @@ var activestorage = {exports: {}};
     }
     get url() {
       return this.input.getAttribute("data-direct-upload-url");
+    }
+    get directUploadToken() {
+      return this.input.getAttribute("data-direct-upload-token");
+    }
+    get attachmentName() {
+      return this.input.getAttribute("data-direct-upload-attachment-name");
     }
     dispatch(name, detail = {}) {
       detail.file = this.file;
@@ -830,7 +842,7 @@ class AttachmentUpload {
   constructor(attachment, element) {
     this.attachment = attachment;
     this.element = element;
-    this.directUpload = new activestorage.exports.DirectUpload(attachment.file, this.directUploadUrl, this);
+    this.directUpload = new activestorage.exports.DirectUpload(attachment.file, this.directUploadUrl, this.directUploadToken, this.directUploadAttachmentName, this);
   }
 
   start() {
@@ -863,6 +875,14 @@ class AttachmentUpload {
 
   get directUploadUrl() {
     return this.element.dataset.directUploadUrl
+  }
+
+  get directUploadToken() {
+    return this.element.dataset.directUploadToken
+  }
+
+  get directUploadAttachmentName() {
+    return this.element.dataset.directUploadAttachmentName
   }
 
   get blobUrlTemplate() {

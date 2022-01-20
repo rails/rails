@@ -245,7 +245,7 @@ ApiGateway.endpoint = "https://example.com" # DO NOT DO THIS
 
 a reloaded `ApiGateway` would have a `nil` endpoint, because the code above does not run again.
 
-You can still set things up during boot, but you need to wrap them in a `to_prepare` block, which is runs on boot, and after each reload:
+You can still set things up during boot, but you need to wrap them in a `to_prepare` block, which runs on boot, and after each reload:
 
 ```ruby
 # config/initializers/api_gateway_setup.rb
@@ -455,6 +455,27 @@ However, if an engine supports Rails 6 or Rails 6.1 and does not control its par
 2. `classic` mode underscores constant names ("User" -> "user.rb"), and `zeitwerk` mode camelizes file names ("user.rb" -> "User"). They coincide in most cases, but they don't if there are series of consecutive uppercase letters as in "HTMLParser". The easiest way to be compatible is to avoid such names. In this case, pick "HtmlParser".
 
 3. In `classic` mode, a file `app/model/concerns/foo.rb` is allowed to define both `Foo` and `Concerns::Foo`. In `zeitwerk` mode, there's only one option: it has to define `Foo`. In order to be compatible, define `Foo`.
+
+Testing
+-------
+
+### Manual Testing
+
+The task `zeitwerk:check` checks if the project tree follows the expected naming conventions and it is handy for manual checks. For example, if you're migrating from `classic` to `zeitwerk` mode, or if you're fixing something:
+
+```
+% bin/rails zeitwerk:check
+Hold on, I am eager loading the application.
+All is good!
+```
+
+There can be additional output depending on the application configuration, but the last "All is good!" is what you are looking for.
+
+### Automated Testing
+
+It is a good practice to verify in the test suite that the project eager loads correctly.
+
+That covers Zeitwerk naming compliance and other possible error conditions. Please check the [section about testing eager loading](testing.html#testing-eager-loading) in the [_Testing Rails Applications_](testing.html) guide.
 
 Troubleshooting
 ---------------

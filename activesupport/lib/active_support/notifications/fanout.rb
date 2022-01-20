@@ -93,8 +93,16 @@ module ActiveSupport
           exceptions ||= []
           exceptions << e
         end
-      ensure
-        raise InstrumentationSubscriberError.new(exceptions) unless exceptions.nil?
+
+        if exceptions
+          if exceptions.size == 1
+            raise exceptions.first
+          else
+            raise InstrumentationSubscriberError.new(exceptions), cause: exceptions.first
+          end
+        end
+
+        listeners
       end
 
       def listeners_for(name)
@@ -218,12 +226,12 @@ module ActiveSupport
           end
 
           def start(name, id, payload)
-            timestack = Thread.current[:_timestack] ||= []
+            timestack = IsolatedExecutionState[:_timestack] ||= []
             timestack.push Time.now
           end
 
           def finish(name, id, payload)
-            timestack = Thread.current[:_timestack]
+            timestack = IsolatedExecutionState[:_timestack]
             started = timestack.pop
             @delegate.call(name, started, Time.now, id, payload)
           end
@@ -235,27 +243,27 @@ module ActiveSupport
           end
 
           def start(name, id, payload)
-            timestack = Thread.current[:_timestack_monotonic] ||= []
-            timestack.push Concurrent.monotonic_time
+            timestack = IsolatedExecutionState[:_timestack_monotonic] ||= []
+            timestack.push Process.clock_gettime(Process::CLOCK_MONOTONIC)
           end
 
           def finish(name, id, payload)
-            timestack = Thread.current[:_timestack_monotonic]
+            timestack = IsolatedExecutionState[:_timestack_monotonic]
             started = timestack.pop
-            @delegate.call(name, started, Concurrent.monotonic_time, id, payload)
+            @delegate.call(name, started, Process.clock_gettime(Process::CLOCK_MONOTONIC), id, payload)
           end
         end
 
         class EventObject < Evented
           def start(name, id, payload)
-            stack = Thread.current[:_event_stack] ||= []
+            stack = IsolatedExecutionState[:_event_stack] ||= []
             event = build_event name, id, payload
             event.start!
             stack.push event
           end
 
           def finish(name, id, payload)
-            stack = Thread.current[:_event_stack]
+            stack = IsolatedExecutionState[:_event_stack]
             event = stack.pop
             event.payload = payload
             event.finish!

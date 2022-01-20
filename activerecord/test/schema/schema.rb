@@ -8,6 +8,10 @@ ActiveRecord::Schema.define do
   #                                                                     #
   # ------------------------------------------------------------------- #
 
+  create_table :"1_need_quoting", force: true do |t|
+    t.string :name
+  end
+
   create_table :accounts, force: true do |t|
     t.references :firm, index: false
     t.string  :firm_name
@@ -143,6 +147,10 @@ ActiveRecord::Schema.define do
   create_table :booleans, force: true do |t|
     t.boolean :value
     t.boolean :has_fun, null: false, default: false
+  end
+
+  create_table :branches, force: true do |t|
+    t.references :branch
   end
 
   create_table :bulbs, primary_key: "ID", force: true do |t|
@@ -730,6 +738,7 @@ ActiveRecord::Schema.define do
   disable_referential_integrity do
     create_table :parrots, force: :cascade do |t|
       t.string :name
+      t.integer :breed, default: 0
       t.string :color
       t.string :parrot_sti_class
       t.integer :killer_id
@@ -1269,6 +1278,8 @@ ActiveRecord::Schema.define do
   create_table :users, force: true do |t|
     t.string :token
     t.string :auth_token
+    t.string :password_digest
+    t.string :recovery_password_digest
   end
 
   create_table :test_with_keyword_column_name, force: true do |t|

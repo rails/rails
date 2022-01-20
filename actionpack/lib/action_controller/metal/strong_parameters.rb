@@ -81,7 +81,7 @@ module ActionController
   #   })
   #
   #   permitted = params.require(:person).permit(:name, :age)
-  #   permitted            # => <ActionController::Parameters {"name"=>"Francesco", "age"=>22} permitted: true>
+  #   permitted            # => #<ActionController::Parameters {"name"=>"Francesco", "age"=>22} permitted: true>
   #   permitted.permitted? # => true
   #
   #   Person.first.update!(permitted)
@@ -92,8 +92,8 @@ module ActionController
   # * +permit_all_parameters+ - If it's +true+, all the parameters will be
   #   permitted by default. The default is +false+.
   # * +action_on_unpermitted_parameters+ - Controls behavior when parameters that are not explicitly
-  #    permitted are found. The default value is <tt>:log</tt> in test and development environments,
-  #    +false+ otherwise. The values can be:
+  #   permitted are found. The default value is <tt>:log</tt> in test and development environments,
+  #   +false+ otherwise. The values can be:
   #   * +false+ to take no action.
   #   * <tt>:log</tt> to emit an <tt>ActiveSupport::Notifications.instrument</tt> event on the
   #     <tt>unpermitted_parameters.action_controller</tt> topic and log at the DEBUG level.
@@ -111,7 +111,7 @@ module ActionController
   #
   #   params = ActionController::Parameters.new(a: "123", b: "456")
   #   params.permit(:c)
-  #   # => <ActionController::Parameters {} permitted: true>
+  #   # => #<ActionController::Parameters {} permitted: true>
   #
   #   ActionController::Parameters.action_on_unpermitted_parameters = :raise
   #
@@ -442,7 +442,7 @@ module ActionController
     # either present or the singleton +false+, returns said value:
     #
     #   ActionController::Parameters.new(person: { name: "Francesco" }).require(:person)
-    #   # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
+    #   # => #<ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #
     # Otherwise raises <tt>ActionController::ParameterMissing</tt>:
     #
@@ -570,13 +570,13 @@ module ActionController
     #   })
     #
     #   params.require(:person).permit(:contact)
-    #   # => <ActionController::Parameters {} permitted: true>
+    #   # => #<ActionController::Parameters {} permitted: true>
     #
     #   params.require(:person).permit(contact: :phone)
-    #   # => <ActionController::Parameters {"contact"=><ActionController::Parameters {"phone"=>"555-1234"} permitted: true>} permitted: true>
+    #   # => #<ActionController::Parameters {"contact"=>#<ActionController::Parameters {"phone"=>"555-1234"} permitted: true>} permitted: true>
     #
     #   params.require(:person).permit(contact: [ :email, :phone ])
-    #   # => <ActionController::Parameters {"contact"=><ActionController::Parameters {"email"=>"none@test.com", "phone"=>"555-1234"} permitted: true>} permitted: true>
+    #   # => #<ActionController::Parameters {"contact"=>#<ActionController::Parameters {"email"=>"none@test.com", "phone"=>"555-1234"} permitted: true>} permitted: true>
     #
     # If your parameters specify multiple parameters indexed by a number,
     # you can permit each set of parameters under the numeric key to be the same using the same syntax as permitting a single item.
@@ -633,7 +633,7 @@ module ActionController
     # returns +nil+.
     #
     #   params = ActionController::Parameters.new(person: { name: "Francesco" })
-    #   params[:person] # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
+    #   params[:person] # => #<ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #   params[:none]   # => nil
     def [](key)
       convert_hashes_to_parameters(key, @parameters[key])
@@ -653,9 +653,9 @@ module ActionController
     # is given, then that will be run and its result returned.
     #
     #   params = ActionController::Parameters.new(person: { name: "Francesco" })
-    #   params.fetch(:person)               # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
+    #   params.fetch(:person)               # => #<ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #   params.fetch(:none)                 # => ActionController::ParameterMissing: param is missing or the value is empty: none
-    #   params.fetch(:none, {})             # => <ActionController::Parameters {} permitted: false>
+    #   params.fetch(:none, {})             # => #<ActionController::Parameters {} permitted: false>
     #   params.fetch(:none, "Francesco")    # => "Francesco"
     #   params.fetch(:none) { "Francesco" } # => "Francesco"
     def fetch(key, *args)
@@ -689,8 +689,8 @@ module ActionController
     # don't exist, returns an empty hash.
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
-    #   params.slice(:a, :b) # => <ActionController::Parameters {"a"=>1, "b"=>2} permitted: false>
-    #   params.slice(:d)     # => <ActionController::Parameters {} permitted: false>
+    #   params.slice(:a, :b) # => #<ActionController::Parameters {"a"=>1, "b"=>2} permitted: false>
+    #   params.slice(:d)     # => #<ActionController::Parameters {} permitted: false>
     def slice(*keys)
       new_instance_with_inherited_permitted_status(@parameters.slice(*keys))
     end
@@ -706,8 +706,8 @@ module ActionController
     # filters out the given +keys+.
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
-    #   params.except(:a, :b) # => <ActionController::Parameters {"c"=>3} permitted: false>
-    #   params.except(:d)     # => <ActionController::Parameters {"a"=>1, "b"=>2, "c"=>3} permitted: false>
+    #   params.except(:a, :b) # => #<ActionController::Parameters {"c"=>3} permitted: false>
+    #   params.except(:d)     # => #<ActionController::Parameters {"a"=>1, "b"=>2, "c"=>3} permitted: false>
     def except(*keys)
       new_instance_with_inherited_permitted_status(@parameters.except(*keys))
     end
@@ -715,8 +715,8 @@ module ActionController
     # Removes and returns the key/value pairs matching the given keys.
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
-    #   params.extract!(:a, :b) # => <ActionController::Parameters {"a"=>1, "b"=>2} permitted: false>
-    #   params                  # => <ActionController::Parameters {"c"=>3} permitted: false>
+    #   params.extract!(:a, :b) # => #<ActionController::Parameters {"a"=>1, "b"=>2} permitted: false>
+    #   params                  # => #<ActionController::Parameters {"c"=>3} permitted: false>
     def extract!(*keys)
       new_instance_with_inherited_permitted_status(@parameters.extract!(*keys))
     end
@@ -726,7 +726,7 @@ module ActionController
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
     #   params.transform_values { |x| x * 2 }
-    #   # => <ActionController::Parameters {"a"=>2, "b"=>4, "c"=>6} permitted: false>
+    #   # => #<ActionController::Parameters {"a"=>2, "b"=>4, "c"=>6} permitted: false>
     def transform_values
       return to_enum(:transform_values) unless block_given?
       new_instance_with_inherited_permitted_status(
@@ -910,7 +910,7 @@ module ActionController
 
     # Returns duplicate of object including all parameters.
     def deep_dup
-      self.class.new(@parameters.deep_dup).tap do |duplicate|
+      self.class.new(@parameters.deep_dup, @logging_context).tap do |duplicate|
         duplicate.permitted = @permitted
       end
     end
@@ -932,7 +932,7 @@ module ActionController
 
     private
       def new_instance_with_inherited_permitted_status(hash)
-        self.class.new(hash).tap do |new_instance|
+        self.class.new(hash, @logging_context).tap do |new_instance|
           new_instance.permitted = @permitted
         end
       end
@@ -963,10 +963,10 @@ module ActionController
         when Array
           return value if converted_arrays.member?(value)
           converted = value.map { |_| convert_value_to_parameters(_) }
-          converted_arrays << converted
+          converted_arrays << converted.dup
           converted
         when Hash
-          self.class.new(value)
+          self.class.new(value, @logging_context)
         else
           value
         end

@@ -289,6 +289,16 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_not_predicate david.posts, :loaded?
     assert_not_predicate david.posts, :loaded
   end
+
+  def test_target_merging_ignores_persisted_in_memory_records
+    david = authors(:david)
+    assert david.thinking_posts.include?(posts(:thinking))
+
+    david.thinking_posts.create!(title: "Something else entirely", body: "Does not matter.")
+
+    assert_equal 1, david.thinking_posts.size
+    assert_equal 1, david.thinking_posts.to_a.size
+  end
 end
 
 class OverridingAssociationsTest < ActiveRecord::TestCase
@@ -385,25 +395,13 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
 end
 
 class PreloaderTest < ActiveRecord::TestCase
-  fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories
+  fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories, :author_addresses
 
   def test_preload_with_scope
     post = posts(:welcome)
 
     preloader = ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments, scope: Comment.where(body: "Thank you for the welcome"))
     preloader.call
-
-    assert_predicate post.comments, :loaded?
-    assert_equal [comments(:greetings)], post.comments
-  end
-
-  def test_legacy_preload_with_scope
-    post = posts(:welcome)
-
-    assert_deprecated do
-      preloader = ActiveRecord::Associations::Preloader.new
-      preloader.preload([post], :comments, Comment.where(body: "Thank you for the welcome"))
-    end
 
     assert_predicate post.comments, :loaded?
     assert_equal [comments(:greetings)], post.comments
@@ -426,6 +424,18 @@ class PreloaderTest < ActiveRecord::TestCase
       preloader = ActiveRecord::Associations::Preloader.new(records: relation, associations: :comments)
       preloader.call
     end
+  end
+
+  def test_preload_for_hmt_with_conditions
+    post = posts(:welcome)
+    _normal_category = post.categories.create!(name: "Normal")
+    special_category = post.special_categories.create!(name: "Special")
+
+    preloader = ActiveRecord::Associations::Preloader.new(records: [post], associations: :hmt_special_categories)
+    preloader.call
+
+    assert_equal 1, post.hmt_special_categories.length
+    assert_equal [special_category], post.hmt_special_categories
   end
 
   def test_preload_groups_queries_with_same_scope
@@ -804,6 +814,23 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_with_available_records_sti
+    book = Book.create!
+    essay_special = EssaySpecial.create!
+    book.essay = essay_special
+    book.save!
+    book.reload
+
+    assert_not_predicate book.association(:essay), :loaded?
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [book], associations: :essay, available_records: [[essay_special]]).call
+    end
+
+    assert_predicate book.association(:essay), :loaded?
+    assert_same essay_special, book.essay
+  end
+
   def test_preload_with_only_some_records_available
     bob_post = posts(:misc_by_bob)
     mary_post = posts(:misc_by_mary)
@@ -936,6 +963,23 @@ class PreloaderTest < ActiveRecord::TestCase
 
       assert_same author, new_post_with_author.author
       assert_nil new_post_without_author.author
+    end
+  end
+
+  def test_preload_wont_set_the_wrong_target
+    post = posts(:welcome)
+    post.update!(author_id: 54321)
+    some_other_record = categories(:general)
+    some_other_record.update!(id: 54321)
+
+    assert_raises do
+      some_other_record.association(:author)
+    end
+
+    assert_nothing_raised do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author, available_records: [[some_other_record]]).call
+      assert post.association(:author).loaded?
+      assert_not_equal some_other_record, post.author
     end
   end
 end

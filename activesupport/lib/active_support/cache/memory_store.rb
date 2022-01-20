@@ -89,13 +89,13 @@ module ActiveSupport
         return if pruning?
         @pruning = true
         begin
-          start_time = Concurrent.monotonic_time
+          start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           cleanup
           instrument(:prune, target_size, from: @cache_size) do
             keys = synchronize { @data.keys }
             keys.each do |key|
               delete_entry(key, **options)
-              return if @cache_size <= target_size || (max_time && Concurrent.monotonic_time - start_time > max_time)
+              return if @cache_size <= target_size || (max_time && Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time > max_time)
             end
           end
         ensure

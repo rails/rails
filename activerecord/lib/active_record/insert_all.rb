@@ -5,22 +5,19 @@ require "active_support/core_ext/enumerable"
 module ActiveRecord
   class InsertAll # :nodoc:
     attr_reader :model, :connection, :inserts, :keys
-    attr_reader :on_duplicate, :returning, :unique_by, :update_sql
+    attr_reader :on_duplicate, :update_only, :returning, :unique_by, :update_sql
 
-    def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil, record_timestamps: nil)
+    def initialize(model, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
       @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s)
-      @on_duplicate, @returning, @unique_by = on_duplicate, returning, unique_by
+      @on_duplicate, @update_only, @returning, @unique_by = on_duplicate, update_only, returning, unique_by
       @record_timestamps = record_timestamps.nil? ? model.record_timestamps : record_timestamps
 
-      disallow_raw_sql!(returning)
       disallow_raw_sql!(on_duplicate)
+      disallow_raw_sql!(returning)
 
-      if Arel.arel_node?(on_duplicate)
-        @update_sql = on_duplicate
-        @on_duplicate = :update
-      end
+      configure_on_duplicate_update_logic
 
       if model.scope_attributes?
         @scope_attributes = model.scope_attributes
@@ -45,7 +42,7 @@ module ActiveRecord
     end
 
     def updatable_columns
-      keys - readonly_columns - unique_by_columns
+      @updatable_columns ||= keys - readonly_columns - unique_by_columns
     end
 
     def primary_keys
@@ -90,6 +87,24 @@ module ActiveRecord
 
     private
       attr_reader :scope_attributes
+
+      def configure_on_duplicate_update_logic
+        if custom_update_sql_provided? && update_only.present?
+          raise ArgumentError, "You can't set :update_only and provide custom update SQL via :on_duplicate at the same time"
+        end
+
+        if update_only.present?
+          @updatable_columns = Array(update_only)
+          @on_duplicate = :update
+        elsif custom_update_sql_provided?
+          @update_sql = on_duplicate
+          @on_duplicate = :update
+        end
+      end
+
+      def custom_update_sql_provided?
+        @custom_update_sql_provided ||= Arel.arel_node?(on_duplicate)
+      end
 
       def find_unique_index_for(unique_by)
         if !connection.supports_insert_conflict_target?

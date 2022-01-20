@@ -10,6 +10,8 @@ module ActiveRecord
           end
 
           def cast_value(value)
+            return if value.blank?
+
             time = super
             return time if time.is_a?(ActiveSupport::TimeWithZone)
 

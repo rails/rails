@@ -151,6 +151,11 @@ if current_adapter?(:Mysql2Adapter)
         assert_match %r/t\.datetime\s+"precise_datetime",.+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
       end
 
+      test "schema dump datetime includes precise default expression with on update" do
+        output = dump_table_schema("datetime_defaults")
+        assert_match %r/t\.datetime\s+"updated_datetime",.+default: -> { "CURRENT_TIMESTAMP\(6\) ON UPDATE CURRENT_TIMESTAMP\(6\)" }/i, output
+      end
+
       test "schema dump timestamp includes default expression" do
         output = dump_table_schema("timestamp_defaults")
         assert_match %r/t\.timestamp\s+"modified_timestamp",\s+default: -> { "CURRENT_TIMESTAMP(?:\(\))?" }/i, output
@@ -161,9 +166,27 @@ if current_adapter?(:Mysql2Adapter)
         assert_match %r/t\.timestamp\s+"precise_timestamp",.+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
       end
 
+      test "schema dump timestamp includes precise default expression with on update" do
+        output = dump_table_schema("timestamp_defaults")
+        assert_match %r/t\.timestamp\s+"updated_timestamp",.+default: -> { "CURRENT_TIMESTAMP\(6\) ON UPDATE CURRENT_TIMESTAMP\(6\)" }/i, output
+      end
+
       test "schema dump timestamp without default expression" do
         output = dump_table_schema("timestamp_defaults")
         assert_match %r/t\.timestamp\s+"nullable_timestamp"$/, output
+      end
+    end
+  end
+
+  if current_adapter?(:SQLite3Adapter)
+    class Sqlite3DefaultExpressionTest < ActiveRecord::TestCase
+      include SchemaDumpingHelper
+
+      test "schema dump includes default expression" do
+        output = dump_table_schema("defaults")
+        assert_match %r/t\.date\s+"modified_date",\s+default: -> { "CURRENT_DATE" }/, output
+        assert_match %r/t\.datetime\s+"modified_time",\s+precision: 6,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+        assert_match %r/t\.integer\s+"random_number",\s+default: -> { "random()" }/, output
       end
     end
   end

@@ -25,6 +25,20 @@ class SlowRedis < Redis
 end
 
 module ActiveSupport::Cache::RedisCacheStoreTests
+  if ENV["CI"]
+    REDIS_UP = true
+  else
+    begin
+      redis = Redis.new(url: "redis://localhost:6379/0")
+      redis.ping
+
+      REDIS_UP = true
+    rescue Redis::BaseConnectionError
+      $stderr.puts "Skipping redis tests. Start redis and try again."
+      REDIS_UP = false
+    end
+  end
+
   DRIVER = %w[ ruby hiredis ].include?(ENV["REDIS_DRIVER"]) ? ENV["REDIS_DRIVER"] : "hiredis"
 
   class LookupTest < ActiveSupport::TestCase
@@ -110,6 +124,8 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
   class StoreTest < ActiveSupport::TestCase
     setup do
+      @cache = nil
+      skip "redis server is not up" unless REDIS_UP
       @namespace = "test-#{SecureRandom.hex}"
 
       @cache = lookup_store(expires_in: 60)
@@ -222,8 +238,10 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       @old_store = lookup_store
       ActiveSupport::Cache.format_version = previous_format
 
-      @old_store.write("foo", "bar")
-      assert_equal "bar", @cache.read("foo")
+      key = SecureRandom.uuid
+      value = SecureRandom.alphanumeric
+      @old_store.write(key, value)
+      assert_equal value, @cache.read(key)
     end
 
     def test_backward_compatibility
@@ -232,8 +250,10 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       @old_store = lookup_store
       ActiveSupport::Cache.format_version = previous_format
 
-      @cache.write("foo", "bar")
-      assert_equal "bar", @old_store.read("foo")
+      key = SecureRandom.uuid
+      value = SecureRandom.alphanumeric
+      @cache.write(key, value)
+      assert_equal value, @old_store.read(key)
     end
 
     def after_teardown
@@ -347,11 +367,15 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
   class DeleteMatchedTest < StoreTest
     test "deletes keys matching glob" do
-      @cache.write("foo", "bar")
-      @cache.write("fu", "baz")
-      @cache.delete_matched("foo*")
-      assert_not @cache.exist?("foo")
-      assert @cache.exist?("fu")
+      prefix = SecureRandom.alphanumeric
+      key = "#{prefix}#{SecureRandom.uuid}"
+      @cache.write(key, "bar")
+
+      other_key = SecureRandom.uuid
+      @cache.write(other_key, SecureRandom.alphanumeric)
+      @cache.delete_matched("#{prefix}*")
+      assert_not @cache.exist?(key)
+      assert @cache.exist?(other_key)
     end
 
     test "fails with regexp matchers" do
@@ -363,19 +387,26 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
   class ClearTest < StoreTest
     test "clear all cache key" do
-      @cache.write("foo", "bar")
-      @cache.write("fu", "baz")
+      key = SecureRandom.uuid
+      other_key = SecureRandom.uuid
+      @cache.write(key, SecureRandom.uuid)
+      @cache.write(other_key, SecureRandom.uuid)
       @cache.clear
-      assert_not @cache.exist?("foo")
-      assert_not @cache.exist?("fu")
+      assert_not @cache.exist?(key)
+      assert_not @cache.exist?(other_key)
     end
 
     test "only clear namespace cache key" do
-      @cache.write("foo", "bar")
-      @cache.redis.set("fu", "baz")
+      key = SecureRandom.uuid
+      other_key = SecureRandom.uuid
+
+      @cache.write(key, SecureRandom.alphanumeric)
+      @cache.redis.set(other_key, SecureRandom.alphanumeric)
       @cache.clear
-      assert_not @cache.exist?("foo")
-      assert @cache.redis.exists?("fu")
+
+      assert_not @cache.exist?(key)
+      assert @cache.redis.exists?(other_key)
+      @cache.redis.del(other_key)
     end
 
     test "clear all cache key with Redis::Distributed" do

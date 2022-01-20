@@ -79,7 +79,7 @@ happens when we have lots of JavaScript we want to execute on a click?
 ```
 
 Awkward, right? We could pull the function definition out of the click handler,
-and turn it a function:
+and turn it into a function:
 
 ```js
 window.paintIt = function(event, backgroundColor, textColor) {
@@ -433,7 +433,7 @@ The index view (`app/views/users/index.html.erb`) contains:
 
 <br>
 
-<%= form_with model: @user do |form| %>
+<%= form_with model: @user, local: false do |form| %>
   <%= form.label :name %><br>
   <%= form.text_field :name %>
   <%= form.submit %>

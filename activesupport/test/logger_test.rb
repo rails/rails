@@ -272,6 +272,9 @@ class LoggerTest < ActiveSupport::TestCase
   end
 
   def test_logger_level_main_fiber_safety
+    previous_isolation_level = ActiveSupport::IsolatedExecutionState.isolation_level
+    ActiveSupport::IsolatedExecutionState.isolation_level = :fiber
+
     @logger.level = Logger::INFO
     assert_level(Logger::INFO)
 
@@ -283,9 +286,14 @@ class LoggerTest < ActiveSupport::TestCase
       assert_level(Logger::ERROR)
       fiber.resume
     end
+  ensure
+    ActiveSupport::IsolatedExecutionState.isolation_level = previous_isolation_level
   end
 
   def test_logger_level_local_fiber_safety
+    previous_isolation_level = ActiveSupport::IsolatedExecutionState.isolation_level
+    ActiveSupport::IsolatedExecutionState.isolation_level = :fiber
+
     @logger.level = Logger::INFO
     assert_level(Logger::INFO)
 
@@ -313,6 +321,25 @@ class LoggerTest < ActiveSupport::TestCase
     end.resume
 
     assert_level(Logger::INFO)
+  ensure
+    ActiveSupport::IsolatedExecutionState.isolation_level = previous_isolation_level
+  end
+
+  def test_logger_level_thread_safety
+    previous_isolation_level = ActiveSupport::IsolatedExecutionState.isolation_level
+    ActiveSupport::IsolatedExecutionState.isolation_level = :thread
+
+    @logger.level = Logger::INFO
+    assert_level(Logger::INFO)
+
+    enumerator = Enumerator.new do |yielder|
+      @logger.level = Logger::DEBUG
+      yielder.yield @logger.level
+    end
+    assert_equal Logger::DEBUG, enumerator.next
+    assert_level(Logger::DEBUG)
+  ensure
+    ActiveSupport::IsolatedExecutionState.isolation_level = previous_isolation_level
   end
 
   def test_temporarily_logging_at_a_noisier_level

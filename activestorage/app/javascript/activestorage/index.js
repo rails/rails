@@ -1,6 +1,8 @@
 import { start } from "./ujs"
 import { DirectUpload } from "./direct_upload"
-export { start, DirectUpload }
+import { DirectUploadController } from "./direct_upload_controller"
+import { DirectUploadsController } from "./direct_uploads_controller"
+export { start, DirectUpload, DirectUploadController, DirectUploadsController }
 
 function autostart() {
   if (window.ActiveStorage) {

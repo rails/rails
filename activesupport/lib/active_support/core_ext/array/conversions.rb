@@ -87,6 +87,8 @@ class Array
   # Extends <tt>Array#to_s</tt> to convert a collection of elements into a
   # comma separated id list if <tt>:db</tt> argument is given as the format.
   #
+  # This method is aliased to <tt>to_fs</tt>.
+  #
   #   Blog.all.to_formatted_s(:db)  # => "1,2,3"
   #   Blog.none.to_formatted_s(:db) # => "null"
   #   [1,2].to_formatted_s          # => "[1, 2]"
@@ -102,8 +104,8 @@ class Array
       to_default_s
     end
   end
+  alias_method :to_fs, :to_formatted_s
   alias_method :to_default_s, :to_s
-  alias_method :to_s, :to_formatted_s
 
   # Returns a string that represents the array in XML by invoking +to_xml+
   # on each element. Active Record collections delegate their representation

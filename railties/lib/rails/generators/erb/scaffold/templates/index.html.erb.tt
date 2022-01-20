@@ -1,9 +1,14 @@
-<p id="notice"><%%= notice %></p>
+<p style="color: green"><%%= notice %></p>
 
 <h1><%= human_name.pluralize %></h1>
 
 <div id="<%= plural_table_name %>">
-  <%%= render @<%= plural_table_name %> %>
+  <%% @<%= plural_table_name %>.each do |<%= singular_table_name %>| %>
+    <%%= render <%= singular_table_name %> %>
+    <p>
+      <%%= link_to "Show this <%= human_name.downcase %>", <%= model_resource_name(singular_table_name) %> %>
+    </p>
+  <%% end %>
 </div>
 
-<%%= link_to "New <%= human_name.downcase %>", new_<%= singular_route_name %>_path %>
+<%%= link_to "New <%= human_name.downcase %>", <%= new_helper(type: :path) %> %>

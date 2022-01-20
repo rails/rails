@@ -498,7 +498,7 @@ If the number of workers passed is 1 or fewer the processes will not be forked a
 be parallelized and the tests will use the original `test-database` database.
 
 Two hooks are provided, one runs when the process is forked, and one runs before the forked process is closed.
-These can be useful if your app uses multiple databases or perform other tasks that depend on the number of
+These can be useful if your app uses multiple databases or performs other tasks that depend on the number of
 workers.
 
 The `parallelize_setup` method is called right after the processes are forked. The `parallelize_teardown` method
@@ -1968,6 +1968,54 @@ class ChatRelayJobTest < ActiveJob::TestCase
     assert_broadcast_on(ChatChannel.broadcasting_for(room), text: "Hi!") do
       ChatRelayJob.perform_now(room, "Hi!")
     end
+  end
+end
+```
+
+Testing Eager Loading
+---------------------
+
+Normally, applications do not eager load in the `development` or `test` environments to speed things up. But they do in the `production` environment.
+
+If some file in the project cannot be loaded for whatever reason, you better detect it before deploying to production, right?
+
+### Continuous Integration
+
+If your project has CI in place, eager loading in CI is an easy way to ensure the application eager loads.
+
+CIs typically set some environment variable to indicate the test suite is running there. For example, it could be `CI`:
+
+```ruby
+# config/environments/test.rb
+config.eager_load = ENV["CI"].present?
+```
+
+Starting with Rails 7, newly generated applications are configured that way by default.
+
+### Bare Test Suites
+
+If your project does not have continuous integration, you can still eager load in the test suite by calling `Rails.application.eager_load!`:
+
+#### minitest
+
+```ruby
+require "test_helper"
+
+class ZeitwerkComplianceTest < ActiveSupport::TestCase
+  test "eager loads all files without errors" do
+    assert_nothing_raised { Rails.application.eager_load! }
+  end
+end
+```
+
+#### RSpec
+
+```ruby
+require "rails_helper"
+
+RSpec.describe "Zeitwerk compliance" do
+  it "eager loads all files without errors" do
+    expect { Rails.application.eager_load! }.not_to raise_error
   end
 end
 ```

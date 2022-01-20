@@ -20,20 +20,28 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   class UnavailableDalliServer < Dalli::Protocol::Binary
-    def alive?
+    def alive? # before https://github.com/petergoldstein/dalli/pull/863
+      false
+    end
+
+    def ensure_connected! # after https://github.com/petergoldstein/dalli/pull/863
       false
     end
   end
 
-  begin
-    servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
-    ss = Dalli::Client.new(servers).stats
-    raise Dalli::DalliError unless ss[servers] || ss[servers + ":11211"]
-
+  if ENV["CI"]
     MEMCACHE_UP = true
-  rescue Dalli::DalliError
-    $stderr.puts "Skipping memcached tests. Start memcached and try again."
-    MEMCACHE_UP = false
+  else
+    begin
+      servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
+      ss = Dalli::Client.new(servers).stats
+      raise Dalli::DalliError unless ss[servers] || ss[servers + ":11211"]
+
+      MEMCACHE_UP = true
+    rescue Dalli::DalliError
+      $stderr.puts "Skipping memcached tests. Start memcached and try again."
+      MEMCACHE_UP = false
+    end
   end
 
   def lookup_store(options = {})
@@ -52,6 +60,8 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def after_teardown
+    return unless defined?(@_stores) # because skipped test
+
     stores, @_stores = @_stores, []
     stores.each do |store|
       # Eagerly closing Dalli connection avoid file descriptor exhaustion.
@@ -73,9 +83,15 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   # Overrides test from LocalCacheBehavior in order to stub out the cache clear
   # and replace it with a delete.
   def test_clear_also_clears_local_cache
-    key = "#{@namespace}:foo"
+    key = SecureRandom.uuid
+    cache = lookup_store(raw: true)
     client.stub(:flush_all, -> { client.delete(key) }) do
-      super
+      cache.with_local_cache do
+        cache.write(key, SecureRandom.alphanumeric)
+        cache.clear
+        assert_nil cache.read(key)
+      end
+      assert_nil cache.read(key)
     end
   end
 

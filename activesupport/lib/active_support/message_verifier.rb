@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "openssl"
 require "base64"
 require "active_support/core_ext/object/blank"
 require "active_support/security_utils"
@@ -103,10 +104,13 @@ module ActiveSupport
 
     class InvalidSignature < StandardError; end
 
+    SEPARATOR = "--" # :nodoc:
+    SEPARATOR_LENGTH = SEPARATOR.length # :nodoc:
+
     def initialize(secret, digest: nil, serializer: nil)
       raise ArgumentError, "Secret should not be nil." unless secret
       @secret = secret
-      @digest = digest || "SHA1"
+      @digest = digest&.to_s || "SHA1"
       @serializer = serializer || Marshal
     end
 
@@ -120,10 +124,8 @@ module ActiveSupport
     #   tampered_message = signed_message.chop # editing the message invalidates the signature
     #   verifier.valid_message?(tampered_message) # => false
     def valid_message?(signed_message)
-      return if signed_message.nil? || !signed_message.valid_encoding? || signed_message.blank?
-
-      data, digest = signed_message.split("--")
-      data.present? && digest.present? && ActiveSupport::SecurityUtils.secure_compare(digest, generate_digest(data))
+      data, digest = get_data_and_digest_from(signed_message)
+      digest_matches_data?(digest, data)
     end
 
     # Decodes the signed message using the +MessageVerifier+'s secret.
@@ -148,9 +150,9 @@ module ActiveSupport
     #   incompatible_message = "test--dad7b06c94abba8d46a15fafaef56c327665d5ff"
     #   verifier.verified(incompatible_message) # => TypeError: incompatible marshal file format
     def verified(signed_message, purpose: nil, **)
-      if valid_message?(signed_message)
+      data, digest = get_data_and_digest_from(signed_message)
+      if digest_matches_data?(digest, data)
         begin
-          data = signed_message.split("--")[0]
           message = Messages::Metadata.verify(decode(data), purpose)
           @serializer.load(message) if message
         rescue ArgumentError => argument_error
@@ -185,7 +187,7 @@ module ActiveSupport
     #   verifier.generate 'a private message' # => "BAhJIhRwcml2YXRlLW1lc3NhZ2UGOgZFVA==--e2d724331ebdee96a10fb99b089508d1c72bd772"
     def generate(value, expires_at: nil, expires_in: nil, purpose: nil)
       data = encode(Messages::Metadata.wrap(@serializer.dump(value), expires_at: expires_at, expires_in: expires_in, purpose: purpose))
-      "#{data}--#{generate_digest(data)}"
+      "#{data}#{SEPARATOR}#{generate_digest(data)}"
     end
 
     private
@@ -198,8 +200,42 @@ module ActiveSupport
       end
 
       def generate_digest(data)
-        require "openssl" unless defined?(OpenSSL)
-        OpenSSL::HMAC.hexdigest(OpenSSL::Digest.const_get(@digest).new, @secret, data)
+        OpenSSL::HMAC.hexdigest(@digest, @secret, data)
+      end
+
+      def digest_length_in_hex
+        # In hexadecimal (AKA base16) it takes 4 bits to represent a character,
+        # hence we multiply the digest's length (in bytes) by 8 to get it in
+        # bits and divide by 4 to get its number of characters it hex. Well, 8
+        # divided by 4 is 2.
+        @digest_length_in_hex ||= OpenSSL::Digest.new(@digest).digest_length * 2
+      end
+
+      def separator_at?(signed_message, index)
+        signed_message[index, SEPARATOR_LENGTH] == SEPARATOR
+      end
+
+      def separator_index_for(signed_message)
+        index = signed_message.length - digest_length_in_hex - SEPARATOR_LENGTH
+        return if index.negative? || !separator_at?(signed_message, index)
+
+        index
+      end
+
+      def get_data_and_digest_from(signed_message)
+        return if signed_message.nil? || !signed_message.valid_encoding? || signed_message.empty?
+
+        separator_index = separator_index_for(signed_message)
+        return if separator_index.nil?
+
+        data = signed_message[0, separator_index]
+        digest = signed_message[separator_index + SEPARATOR_LENGTH, digest_length_in_hex]
+
+        [data, digest]
+      end
+
+      def digest_matches_data?(digest, data)
+        data.present? && digest.present? && ActiveSupport::SecurityUtils.secure_compare(digest, generate_digest(data))
       end
   end
 end

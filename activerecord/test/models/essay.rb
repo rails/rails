@@ -6,3 +6,8 @@ class Essay < ActiveRecord::Base
   belongs_to :category, primary_key: :name
   has_one :owner, primary_key: :name
 end
+
+class EssaySpecial < Essay
+end
+class TypedEssay < Essay
+end

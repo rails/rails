@@ -270,12 +270,39 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Views
     assert_file "app/views/admin/roles/index.html.erb" do |content|
-      assert_match(%("New role", new_admin_role_path), content)
+      assert_match %{@admin_roles.each do |admin_role|}, content
+      assert_match %{render admin_role}, content
+      assert_match %{"Show this role", admin_role}, content
+      assert_match %{"New role", new_admin_role_path}, content
     end
 
-    %w(edit new show _form).each do |view|
-      assert_file "app/views/admin/roles/#{view}.html.erb"
+    assert_file "app/views/admin/roles/show.html.erb" do |content|
+      assert_match %{render @admin_role}, content
+      assert_match %{"Edit this role", edit_admin_role_path(@admin_role)}, content
+      assert_match %{"Back to roles", admin_roles_path}, content
+      assert_match %{"Destroy this role", @admin_role}, content
     end
+
+    assert_file "app/views/admin/roles/_role.html.erb" do |content|
+      assert_match "role", content
+      assert_no_match "admin_role", content
+    end
+
+    assert_file "app/views/admin/roles/new.html.erb"  do |content|
+      assert_match %{render "form", admin_role: @admin_role}, content
+      assert_match %{"Back to roles", admin_roles_path}, content
+    end
+
+    assert_file "app/views/admin/roles/edit.html.erb" do |content|
+      assert_match %{render "form", admin_role: @admin_role}, content
+      assert_match %{"Show this role", @admin_role}, content
+      assert_match %{"Back to roles", admin_roles_path}, content
+    end
+
+    assert_file "app/views/admin/roles/_form.html.erb"  do |content|
+      assert_match %{model: admin_role}, content
+    end
+
     assert_no_file "app/views/layouts/admin/roles.html.erb"
 
     # Helpers
@@ -408,7 +435,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/accounts/index.html.erb" do |content|
-      assert_match(/^\W{2}<%= render @accounts %>/, content)
+      assert_match(/^\W{2}<%= @accounts.each do |account| %>/, content)
+      assert_match(/^\W{4}<%= render account %>/, content)
+      assert_match(/<%= link_to "Show this account", account %>/, content)
     end
 
     assert_file "app/views/accounts/show.html.erb" do |content|

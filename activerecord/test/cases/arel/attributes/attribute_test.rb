@@ -668,6 +668,20 @@ module Arel
           )
         end
 
+        it "can be constructed with an endless range starting from Infinity" do
+          attribute = Attribute.new nil, nil
+          node = attribute.between(::Float::INFINITY..)
+
+          _(node).must_equal Nodes::In.new(attribute, [])
+        end
+
+        it "can be constructed with a beginless range ending in -Infinity" do
+          attribute = Attribute.new nil, nil
+          node = attribute.between(..-::Float::INFINITY)
+
+          _(node).must_equal Nodes::In.new(attribute, [])
+        end
+
         it "can be constructed with an exclusive range" do
           attribute = Attribute.new nil, nil
           node = attribute.between(0...3)
@@ -875,6 +889,20 @@ module Arel
             attribute,
             Nodes::Quoted.new(0)
           )
+        end
+
+        it "can be constructed with an endless range starting from Infinity" do
+          attribute = Attribute.new nil, nil
+          node = attribute.not_between(::Float::INFINITY..)
+
+          _(node).must_equal Nodes::NotIn.new(attribute, [])
+        end
+
+        it "can be constructed with a beginless range ending in -Infinity" do
+          attribute = Attribute.new nil, nil
+          node = attribute.not_between(..-::Float::INFINITY)
+
+          _(node).must_equal Nodes::NotIn.new(attribute, [])
         end
 
         it "can be constructed with an exclusive range" do

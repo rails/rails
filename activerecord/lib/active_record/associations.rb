@@ -59,6 +59,18 @@ module ActiveRecord
     end
   end
 
+  class InverseOfAssociationRecursiveError < ActiveRecordError # :nodoc:
+    attr_reader :reflection
+    def initialize(reflection = nil)
+      if reflection
+        @reflection = reflection
+        super("Inverse association #{reflection.name} (#{reflection.options[:inverse_of].inspect} in #{reflection.class_name}) is recursive.")
+      else
+        super("Inverse association is recursive.")
+      end
+    end
+  end
+
   class HasManyThroughAssociationNotFoundError < ActiveRecordError # :nodoc:
     attr_reader :owner_class, :reflection
 
@@ -582,19 +594,27 @@ module ActiveRecord
       # you can also define callbacks that get triggered when you add an object to or remove an
       # object from an association collection.
       #
-      #   class Project
-      #     has_and_belongs_to_many :developers, after_add: :evaluate_velocity
+      #   class Firm < ActiveRecord::Base
+      #     has_many :clients,
+      #              dependent: :destroy,
+      #              after_add: :congratulate_client,
+      #              after_remove: :log_after_remove
       #
-      #     def evaluate_velocity(developer)
-      #       ...
+      #     def congratulate_client(record)
+      #       # ...
       #     end
-      #   end
+      #
+      #     def log_after_remove(record)
+      #       # ...
+      #     end
       #
       # It's possible to stack callbacks by passing them as an array. Example:
       #
-      #   class Project
-      #     has_and_belongs_to_many :developers,
-      #                             after_add: [:evaluate_velocity, Proc.new { |p, d| p.shipping_date = Time.now}]
+      #   class Firm < ActiveRecord::Base
+      #     has_many :clients,
+      #              dependent: :destroy,
+      #              after_add: [:congratulate_client, -> (firm, record) { firm.log << "after_adding#{record.id}" }],
+      #              after_remove: :log_after_remove
       #   end
       #
       # Possible callbacks are: +before_add+, +after_add+, +before_remove+ and +after_remove+.
@@ -604,6 +624,18 @@ module ActiveRecord
       #
       # Similarly, if any of the +before_remove+ callbacks throw an exception, the object
       # will not be removed from the collection.
+      #
+      # Note: To trigger remove callbacks, you must use +destroy+ / +destroy_all+ methods. For example:
+      #
+      #   * <tt>firm.clients.destroy(client)</tt>
+      #   * <tt>firm.clients.destroy(*clients)</tt>
+      #   * <tt>firm.clients.destroy_all</tt>
+      #
+      # +delete+ / +delete_all+ methods like the following do *not* trigger remove callbacks:
+      #
+      #   * <tt>firm.clients.delete(client)</tt>
+      #   * <tt>firm.clients.delete(*clients)</tt>
+      #   * <tt>firm.clients.delete_all</tt>
       #
       # == Association extensions
       #
@@ -1776,7 +1808,7 @@ module ActiveRecord
         # The join table should not have a primary key or a model associated with it. You must manually generate the
         # join table with a migration such as this:
         #
-        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[7.0]
+        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[7.1]
         #     def change
         #       create_join_table :developers, :projects
         #     end

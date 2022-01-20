@@ -248,7 +248,6 @@
       description: This guide covers PostgreSQL specific usage of Active Record.
     -
       name: Multiple Databases with Active Record
-      work_in_progress: true
       url: active_record_multiple_databases.html
       description: This guide covers using multiple databases in your application.
     -
@@ -319,10 +318,14 @@
         This guide provides steps to be followed when you upgrade your
         applications to a newer version of Ruby on Rails.
     -
-      name: Version 7.0 - ?
+      name: Version 7.1 - ?
+      url: 7_1_release_notes.html
+      description: Release notes for Rails 7.1.
+      work_in_progress: true
+    -
+      name: Version 7.0 - December 2021
       url: 7_0_release_notes.html
       description: Release notes for Rails 7.0.
-      work_in_progress: true
     -
       name: Version 6.1 - December 2020
       url: 6_1_release_notes.html

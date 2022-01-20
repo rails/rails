@@ -182,7 +182,7 @@ module ApplicationTests
     end
 
     def test_code_statistics
-      assert_match "Code LOC: 61     Test LOC: 3     Code to Test Ratio: 1:0.0",
+      assert_match "Code LOC: 62     Test LOC: 3     Code to Test Ratio: 1:0.0",
         rails("stats")
     end
 
@@ -270,12 +270,6 @@ module ApplicationTests
       rails "db:migrate"
       output = rails("db:test:prepare", "--trace")
       assert_match(/Execute db:test:load_schema/, output)
-    end
-
-    def test_rake_dump_structure_should_respect_db_structure_env_variable
-      # ensure we have a schema_migrations table to dump
-      rails "db:migrate", "db:structure:dump", "SCHEMA=db/my_structure.sql"
-      assert File.exist?(File.join(app_path, "db", "my_structure.sql"))
     end
 
     def test_rake_dump_structure_should_be_called_twice_when_migrate_redo

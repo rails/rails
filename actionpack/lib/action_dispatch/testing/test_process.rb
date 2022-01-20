@@ -17,33 +17,7 @@ module ActionDispatch
       #
       #   post :change_avatar, params: { avatar: fixture_file_upload('david.png', 'image/png', :binary) }
       def fixture_file_upload(path, mime_type = nil, binary = false)
-        if self.class.respond_to?(:fixture_path) && self.class.fixture_path &&
-            !File.exist?(path)
-          original_path = path
-          path = Pathname.new(self.class.fixture_path).join(path)
-
-          if !self.class.file_fixture_path
-            ActiveSupport::Deprecation.warn(<<~EOM)
-              Passing a path to `fixture_file_upload` relative to `fixture_path` is deprecated.
-              In Rails 7.0, the path needs to be relative to `file_fixture_path` which you
-              haven't set yet. Set `file_fixture_path` to discard this warning.
-            EOM
-          elsif path.exist?
-            non_deprecated_path = Pathname(File.absolute_path(path)).relative_path_from(Pathname(File.absolute_path(self.class.file_fixture_path)))
-
-            if Pathname(original_path) != non_deprecated_path
-              ActiveSupport::Deprecation.warn(<<~EOM)
-                Passing a path to `fixture_file_upload` relative to `fixture_path` is deprecated.
-                In Rails 7.0, the path needs to be relative to `file_fixture_path`.
-
-                Please modify the call from
-                `fixture_file_upload("#{original_path}")` to `fixture_file_upload("#{non_deprecated_path}")`.
-              EOM
-            end
-          else
-            path = file_fixture(original_path)
-          end
-        elsif self.class.file_fixture_path && !File.exist?(path)
+        if self.class.file_fixture_path && !File.exist?(path)
           path = file_fixture(path)
         end
 

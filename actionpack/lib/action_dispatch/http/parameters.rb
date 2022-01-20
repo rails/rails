@@ -76,9 +76,9 @@ module ActionDispatch
       end
 
       # Returns a hash with the \parameters used to form the \path of the request.
-      # Returned hash keys are strings:
+      # Returned hash keys are symbols:
       #
-      #   {'action' => 'my_action', 'controller' => 'my_controller'}
+      #   { action: "my_action", controller: "my_controller" }
       def path_parameters
         get_header(PARAMETERS_KEY) || set_header(PARAMETERS_KEY, {})
       end

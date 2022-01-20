@@ -1409,10 +1409,10 @@ books.each do |book|
 end
 ```
 
-The above code will execute just **2** queries, as opposed to **11** queries in the previous case:
+The above code will execute just **2** queries, as opposed to the **11** queries from the original case:
 
 ```sql
-SELECT `books`* FROM `books` LIMIT 10
+SELECT `books`.* FROM `books` LIMIT 10
 SELECT `authors`.* FROM `authors`
   WHERE `authors`.`book_id` IN (1,2,3,4,5,6,7,8,9,10)
 ```
@@ -1473,9 +1473,9 @@ This is because it is ambiguous whether they should appear on the parent record,
 
 ### preload
 
-With `preload`, Active record ensures that loaded using a query for every specified association.
+With `preload`, Active Record loads each specified association using one query per association.
 
-Revisiting the case where N + 1 was occurred using the `preload` method, we could rewrite `Book.limit(10)` to authors:
+Revisiting the N + 1 queries problem, we could rewrite `Book.limit(10)` to preload authors:
 
 
 ```ruby
@@ -1486,19 +1486,19 @@ books.each do |book|
 end
 ```
 
-The above code will execute just **2** queries, as opposed to **11** queries in the previous case:
+The above code will execute just **2** queries, as opposed to the **11** queries from the original case:
 
 ```sql
-SELECT `books`* FROM `books` LIMIT 10
+SELECT `books`.* FROM `books` LIMIT 10
 SELECT `authors`.* FROM `authors`
   WHERE `authors`.`book_id` IN (1,2,3,4,5,6,7,8,9,10)
 ```
 
-NOTE: The `preload` method using an array, hash, or a nested hash of array/hash in the same way as the includes method to load any number of associations with a single `Model.find` call. However, unlike the `includes` method, it is not possible to specify conditions for eager loaded associations.
+NOTE: The `preload` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. However, unlike the `includes` method, it is not possible to specify conditions for preloaded associations.
 
 ### eager_load
 
-With `eager_load`, Active record ensures that force eager loading by using　`LEFT OUTER JOIN` for all specified associations.
+With `eager_load`, Active Record loads all specified associations using a `LEFT OUTER JOIN`.
 
 Revisiting the case where N + 1 was occurred using the `eager_load` method, we could rewrite `Book.limit(10)` to authors:
 
@@ -1510,7 +1510,7 @@ books.each do |book|
 end
 ```
 
-The above code will execute just **2** queries, as opposed to **11** queries in the previous case:
+The above code will execute just **2** queries, as opposed to the **11** queries from the original case:
 
 ```sql
 SELECT DISTINCT `books`.`id` FROM `books` LEFT OUTER JOIN `authors` ON `authors`.`book_id` = `books`.`id` LIMIT 10
@@ -1519,7 +1519,7 @@ SELECT `books`.`id` AS t0_r0, `books`.`last_name` AS t0_r1, ...
   WHERE `books`.`id` IN (1,2,3,4,5,6,7,8,9,10)
 ```
 
-NOTE: The `eager_load` method using an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. Also, like the `includes` method, you can specify the conditions of the eager loaded association.
+NOTE: The `eager_load` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. Also, like the `includes` method, you can specify conditions for eager loaded associations.
 
 Scopes
 ------
@@ -1728,7 +1728,7 @@ irb> Book.all
 SELECT books.* FROM books WHERE (year_published >= 1969)
 
 irb> Book.in_print
-SELECT books.* FROM books WHERE (year_published >= 1969) AND books.out_of_print = true
+SELECT books.* FROM books WHERE (year_published >= 1969) AND books.out_of_print = false
 
 irb> Book.where('price > 50')
 SELECT books.* FROM books WHERE (year_published >= 1969) AND (price > 50)
@@ -2178,12 +2178,16 @@ You can also use `any?` and `many?` to check for existence on a model or relatio
 
 ```ruby
 # via a model
-Order.any?   # => SELECT 1 AS one FROM orders
-Order.many?  # => SELECT COUNT(*) FROM orders
+Order.any?
+# => SELECT 1 FROM orders LIMIT 1
+Order.many?
+# => SELECT COUNT(*) FROM (SELECT 1 FROM orders LIMIT 2)
 
 # via a named scope
-Order.shipped.any?   # => SELECT 1 AS one FROM orders WHERE orders.status = 0
-Order.shipped.many?  # => SELECT COUNT(*) FROM orders WHERE orders.status = 0
+Order.shipped.any?
+# => SELECT 1 FROM orders WHERE orders.status = 0 LIMIT 1
+Order.shipped.many?
+# => SELECT COUNT(*) FROM (SELECT 1 FROM orders WHERE orders.status = 0 LIMIT 2)
 
 # via a relation
 Book.where(out_of_print: true).any?

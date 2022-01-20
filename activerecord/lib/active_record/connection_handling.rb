@@ -211,16 +211,17 @@ module ActiveRecord
     # nested call to connected_to or connected_to_many to swap again. This
     # is useful in cases you're using sharding to provide per-request
     # database isolation.
-    def prohibit_shard_swapping
-      Thread.current.thread_variable_set(:prohibit_shard_swapping, true)
+    def prohibit_shard_swapping(enabled = true)
+      prev_value = ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping]
+      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping] = enabled
       yield
     ensure
-      Thread.current.thread_variable_set(:prohibit_shard_swapping, false)
+      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping] = prev_value
     end
 
     # Determine whether or not shard swapping is currently prohibited
     def shard_swapping_prohibited?
-      Thread.current.thread_variable_get(:prohibit_shard_swapping)
+      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping]
     end
 
     # Prevent writing to the database regardless of role.
@@ -292,17 +293,6 @@ module ActiveRecord
     def primary_class? # :nodoc:
       self == Base || application_record_class?
     end
-
-    # Returns the configuration of the associated connection as a hash:
-    #
-    #  ActiveRecord::Base.connection_config
-    #  # => {pool: 5, timeout: 5000, database: "db/development.sqlite3", adapter: "sqlite3"}
-    #
-    # Please use only for reading.
-    def connection_config
-      connection_pool.db_config.configuration_hash
-    end
-    deprecate connection_config: "Use connection_db_config instead"
 
     # Returns the db_config object from the associated connection:
     #

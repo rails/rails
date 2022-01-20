@@ -8,6 +8,21 @@ class ActiveStorage::Representations::ProxyControllerWithVariantsTest < ActionDi
     @blob = create_file_blob filename: "racecar.jpg"
   end
 
+  test "showing variant attachment" do
+    get rails_blob_representation_proxy_url(
+      disposition: :attachment,
+      filename: @blob.filename,
+      signed_blob_id: @blob.signed_id,
+      variation_key: ActiveStorage::Variation.encode(resize_to_limit: [100, 100]))
+
+    assert_response :ok
+    assert_match(/^attachment/, response.headers["Content-Disposition"])
+
+    image = read_image(@blob.variant(resize_to_limit: [100, 100]))
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+  end
+
   test "showing variant inline" do
     get rails_blob_representation_proxy_url(
       filename: @blob.filename,

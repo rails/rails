@@ -105,12 +105,12 @@ module ActiveRecord
 
       def test_default_schema_dump_value
         config = HashConfig.new("default_env", "primary", {})
-        assert_equal true, config.schema_dump
+        assert_equal "schema.rb", config.schema_dump
       end
 
-      def test_schema_dump_value_set_to_true
-        config = HashConfig.new("default_env", "primary", { schema_dump: true })
-        assert_equal true, config.schema_dump
+      def test_schema_dump_value_set_to_filename
+        config = HashConfig.new("default_env", "primary", { schema_dump: "my_schema.rb" })
+        assert_equal "my_schema.rb", config.schema_dump
       end
 
       def test_schema_dump_value_set_to_nil
@@ -120,7 +120,7 @@ module ActiveRecord
 
       def test_schema_dump_value_set_to_false
         config = HashConfig.new("default_env", "primary", { schema_dump: false })
-        assert_equal false, config.schema_dump
+        assert_nil config.schema_dump
       end
 
       def test_database_tasks_defaults_to_true

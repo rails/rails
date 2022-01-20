@@ -163,6 +163,7 @@ module ActiveRecord
             default, default_function = field[:Default], nil
 
             if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(default)
+              default = "#{default} ON UPDATE #{default}" if /on update CURRENT_TIMESTAMP/i.match?(field[:Extra])
               default, default_function = nil, default
             elsif type_metadata.extra == "DEFAULT_GENERATED"
               default = +"(#{default})" unless default.start_with?("(")
@@ -206,7 +207,7 @@ module ActiveRecord
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
 
-            sql = +"SELECT table_name FROM (SELECT * FROM information_schema.tables "
+            sql = +"SELECT table_name FROM (SELECT table_name, table_type FROM information_schema.tables "
             sql << " WHERE table_schema = #{scope[:schema]}) _subquery"
             if scope[:type] || scope[:name]
               conditions = []

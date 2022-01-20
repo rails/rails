@@ -671,7 +671,7 @@ module ApplicationTests
 
       output = run_test_command(file)
 
-      assert_match "DRb::DRbRemoteError: FailTest::BadError", output
+      assert_match "RuntimeError: Wrapped undumpable exception for: FailTest::BadError", output
       assert_match "1 runs, 0 assertions, 0 failures, 1 errors", output
     end
 

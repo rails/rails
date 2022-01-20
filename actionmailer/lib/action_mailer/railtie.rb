@@ -23,6 +23,7 @@ module ActionMailer
       options.stylesheets_dir ||= paths["public/stylesheets"].first
       options.show_previews = Rails.env.development? if options.show_previews.nil?
       options.cache_store ||= Rails.cache
+      options.smtp_settings ||= {}
 
       if options.show_previews
         options.preview_path ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
@@ -45,13 +46,9 @@ module ActionMailer
           self.delivery_job = delivery_job.constantize
         end
 
-        if smtp_settings = options.delete(:smtp_settings)
-          self.smtp_settings = smtp_settings
-        end
-
         if smtp_timeout = options.delete(:smtp_timeout)
-          self.smtp_settings[:open_timeout] ||= smtp_timeout
-          self.smtp_settings[:read_timeout] ||= smtp_timeout
+          options.smtp_settings[:open_timeout] ||= smtp_timeout
+          options.smtp_settings[:read_timeout] ||= smtp_timeout
         end
 
         options.each { |k, v| send("#{k}=", v) }

@@ -38,7 +38,7 @@ Various features of Active Storage depend on third-party software which Rails
 will not install, and must be installed separately:
 
 * [libvips](https://github.com/libvips/libvips) v8.6+ or [ImageMagick](https://imagemagick.org/index.php) for image analysis and transformations
-* [ffmpeg](http://ffmpeg.org/) v3.4+ for video/audio analysis and video previews
+* [ffmpeg](http://ffmpeg.org/) v3.4+ for video previews and ffprobe for video/audio analysis
 * [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) for PDF previews
 
 Image analysis and transformations also require the `image_processing` gem. Uncomment it in your `Gemfile`, or add it if necessary:
@@ -430,7 +430,7 @@ You can configure specific variants per attachment by calling the `variant` meth
 ```ruby
 class User < ApplicationRecord
   has_one_attached :avatar do |attachable|
-    attachable.variant :thumb, resize: "100x100"
+    attachable.variant :thumb, resize_to_limit: [100, 100]
   end
 end
 ```
@@ -506,7 +506,7 @@ Configuring specific variants is done the same way as `has_one_attached`, by cal
 ```ruby
 class Message < ApplicationRecord
   has_many_attached :images do |attachable|
-    attachable.variant :thumb, resize: "100x100"
+    attachable.variant :thumb, resize_to_limit: [100, 100]
   end
 end
 ```
@@ -1148,9 +1148,12 @@ input.addEventListener('change', (event) => {
 
 const uploadFile = (file) => {
   // your form needs the file_field direct_upload: true, which
-  //  provides data-direct-upload-url
+  //  provides data-direct-upload-url, data-direct-upload-token
+  // and data-direct-upload-attachment-name
   const url = input.dataset.directUploadUrl
-  const upload = new DirectUpload(file, url)
+  const token = input.dataset.directUploadToken
+  const attachmentName = input.dataset.directUploadAttachmentName
+  const upload = new DirectUpload(file, url, token, attachmentName)
 
   upload.create((error, blob) => {
     if (error) {
@@ -1169,7 +1172,7 @@ const uploadFile = (file) => {
 }
 ```
 
-If you need to track the progress of the file upload, you can pass a third
+If you need to track the progress of the file upload, you can pass a fifth
 parameter to the `DirectUpload` constructor. During the upload, DirectUpload
 will call the object's `directUploadWillStoreFileWithXHR` method. You can then
 bind your own progress handler on the XHR.
@@ -1178,8 +1181,8 @@ bind your own progress handler on the XHR.
 import { DirectUpload } from "@rails/activestorage"
 
 class Uploader {
-  constructor(file, url) {
-    this.upload = new DirectUpload(this.file, this.url, this)
+  constructor(file, url, token, attachmentName) {
+    this.upload = new DirectUpload(file, url, token, attachmentName, this)
   }
 
   upload(file) {

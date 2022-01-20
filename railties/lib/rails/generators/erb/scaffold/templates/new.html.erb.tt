@@ -5,5 +5,5 @@
 <br>
 
 <div>
-  <%%= link_to "Back to <%= human_name.pluralize.downcase %>", <%= index_helper %>_path %>
+  <%%= link_to "Back to <%= human_name.pluralize.downcase %>", <%= index_helper(type: :path) %> %>
 </div>
