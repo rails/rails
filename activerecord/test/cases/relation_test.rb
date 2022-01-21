@@ -293,7 +293,7 @@ module ActiveRecord
       skip_if_sqlite3_version_includes_quoting_bug
       quoted_join = ActiveRecord::Base.connection.quote_table_name("join")
       selected = Post.select(:join).from(Post.select("id as #{quoted_join}")).map(&:join)
-      assert_equal Post.pluck(:id), selected
+      assert_equal Post.pluck(:id).sort, selected.sort
     end
 
     def test_selecting_aliased_attribute_quotes_column_name_when_from_is_used
