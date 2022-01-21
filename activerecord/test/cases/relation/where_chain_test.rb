@@ -121,8 +121,8 @@ module ActiveRecord
     end
 
     def test_rewhere_with_nested_condition
-      relation = Post.where.missing(:comments).rewhere("comments.id": comments(:does_it_hurt))
-      expected = Post.left_joins(:comments).where("comments.id": comments(:does_it_hurt))
+      relation = Post.where.missing(:comments).rewhere("comments.post_id": posts(:thinking))
+      expected = Post.left_joins(:comments).where("comments.post_id": posts(:thinking))
 
       assert_equal expected.to_a, relation.to_a
     end

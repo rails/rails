@@ -65,12 +65,12 @@ module ActiveRecord
       #    # SELECT "posts".* FROM "posts"
       #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
-      #    # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
+      #    # WHERE "authors"."id" IS NOT NULL AND "comments"."post_id" IS NOT NULL
       def associated(*associations)
         associations.each do |association|
           reflection = @scope.klass._reflect_on_association(association)
           @scope.joins!(association)
-          self.not(reflection.table_name => { reflection.association_primary_key => nil })
+          self.not(reflection.table_name => { reflection.join_primary_key => nil })
         end
 
         @scope
@@ -93,7 +93,7 @@ module ActiveRecord
       #    # SELECT "posts".* FROM "posts"
       #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
-      #    # WHERE "authors"."id" IS NULL AND "comments"."id" IS NULL
+      #    # WHERE "authors"."id" IS NULL AND "comments"."post_id" IS NULL
       def missing(*associations)
         associations.each do |association|
           reflection = @scope.klass._reflect_on_association(association)
@@ -101,7 +101,7 @@ module ActiveRecord
             raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{@scope.name}`.")
           end
           @scope.left_outer_joins!(association)
-          @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
+          @scope.where!(reflection.table_name => { reflection.join_primary_key => nil })
         end
 
         @scope
