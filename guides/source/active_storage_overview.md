@@ -28,13 +28,13 @@ files to Active Record objects. It comes with a local disk-based service for
 development and testing and supports mirroring files to subordinate services for
 backups and migrations.
 
-Using Active Storage, an application can transform image uploads or generate image 
-representations of non-image uploads like PDFs and videos, and extract metadata from 
+Using Active Storage, an application can transform image uploads or generate image
+representations of non-image uploads like PDFs and videos, and extract metadata from
 arbitrary files.
 
 ### Requirements
 
-Various features of Active Storage depend on third-party software which Rails 
+Various features of Active Storage depend on third-party software which Rails
 will not install, and must be installed separately:
 
 * [libvips](https://github.com/libvips/libvips) v8.6+ or [ImageMagick](https://imagemagick.org/index.php) for image analysis and transformations
@@ -47,7 +47,7 @@ Image analysis and transformations also require the `image_processing` gem. Unco
 gem "image_processing", ">= 1.2"
 ```
 
-TIP: Compared to libvips, ImageMagick is better known and more widely available. However, libvips can be [up to 10x faster and consume 1/10 the memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use). For JPEG files, this can be further improved by replacing `libjpeg-dev` with `libjpeg-turbo-dev`, which is [2-7x faster](https://libjpeg-turbo.org/About/Performance). 
+TIP: Compared to libvips, ImageMagick is better known and more widely available. However, libvips can be [up to 10x faster and consume 1/10 the memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use). For JPEG files, this can be further improved by replacing `libjpeg-dev` with `libjpeg-turbo-dev`, which is [2-7x faster](https://libjpeg-turbo.org/About/Performance).
 
 WARNING: Before you install and use third-party software, make sure you understand the licensing implications of doing so. MuPDF, in particular, is licensed under AGPL and requires a commercial license for some use.
 
@@ -838,7 +838,7 @@ end
 
 ### Transforming Images
 
-Transforming images allows you to display the image at your choice of dimensions. 
+Transforming images allows you to display the image at your choice of dimensions.
 To create a variation of an image, call [`variant`][] on the attachment. You
 can pass any transformation supported by the variant processor to the method.
 When the browser hits the variant URL, Active Storage will lazily transform
@@ -858,15 +858,13 @@ transformations depending on the image's format:
 
 2. If `quality` is not specified, the variant processor's default quality for the format will be used.
 
-The default processor for Active Storage is MiniMagick, but you can also use
-[Vips][]. To switch to Vips, add the following to `config/application.rb`:
+Active Storage can use either [Vips][] or MiniMagick as the variant processor.
+The default depends on your `config.load_defaults` target version, and the
+processor can be changed by setting [`config.active_storage.variant_processor`](
+configuring.html#config-active-storage-variant-processor).
 
-```ruby
-config.active_storage.variant_processor = :vips
-```
-
-The two processors are not fully compatible, so when migrating an existing application 
-using MiniMagick to Vips, some changes have to be made if using options that are format
+The two processors are not fully compatible, so when migrating an existing application
+between MiniMagick and Vips, some changes have to be made if using options that are format
 specific:
 
 ```rhtml
