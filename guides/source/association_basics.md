@@ -761,17 +761,60 @@ class Book < ApplicationRecord
 end
 ```
 
-Active Record will attempt to automatically identify that these two models share a bi-directional association based on the association name. In this way, Active Record will only load one copy of the `Author` object, making your application more efficient and preventing inconsistent data:
+Active Record will attempt to automatically identify that these two models share
+a bi-directional association based on the association name. This information
+allows Active Record to:
 
-```irb
-irb> a = Author.first
-irb> b = a.books.first
-irb> a.first_name == b.author.first_name
-=> true
-irb> a.first_name = 'David'
-irb> a.first_name == b.author.first_name
-=> true
-```
+* Prevent needless queries for already-loaded data
+
+    ```irb
+    irb> author = Author.first
+    irb> author.books.all? do |book|
+    irb>   book.author.equal?(author) # No additional queries executed here
+    irb> end
+    => true
+    ```
+
+* Prevent inconsistent data (since there is only one copy of the `Author` object
+  loaded)
+
+    ```irb
+    irb> author = Author.first
+    irb> book = author.books.first
+    irb> author.name == book.author.name
+    => true
+    irb> author.name = "Changed Name"
+    irb> author.name == book.author.name
+    => true
+    ```
+
+* Autosave associations in more cases
+
+    ```irb
+    irb> author = Author.new
+    irb> book = author.books.new
+    irb> book.save!
+    irb> book.persisted?
+    => true
+    irb> author.persisted?
+    => true
+    ```
+
+* Validate the [presence](active_record_validations.html#presence) and
+  [absence](active_record_validations.html#absence) of associations in more
+  cases
+
+    ```irb
+    irb> book = Book.new
+    irb> book.valid?
+    => false
+    irb> book.errors.full_messages
+    => ["Author must exist"]
+    irb> author = Author.new
+    irb> book = author.books.new
+    irb> book.valid?
+    => true
+    ```
 
 Active Record supports automatic identification for most associations with
 standard names. However, Active Record will not automatically identify
@@ -793,17 +836,53 @@ class Book < ApplicationRecord
 end
 ```
 
-Active Record will no longer automatically recognize the bi-directional association:
+Because of the `:foreign_key` option, Active Record will no longer automatically
+recognize the bi-directional association. This can cause your application to:
 
-```irb
-irb> a = Author.first
-irb> b = a.books.first
-irb> a.first_name == b.writer.first_name
-=> true
-irb> a.first_name = 'David'
-irb> a.first_name == b.writer.first_name
-=> false
-```
+* Execute needless queries for the same data (in this example causing N+1 queries)
+
+    ```irb
+    irb> author = Author.first
+    irb> author.books.any? do |book|
+    irb>   book.author.equal?(author) # This executes an author query for every book
+    irb> end
+    => false
+    ```
+
+* Reference multiple copies of a model with inconsistent data
+
+    ```irb
+    irb> author = Author.first
+    irb> book = author.books.first
+    irb> author.name == book.author.name
+    => true
+    irb> author.name = "Changed Name"
+    irb> author.name == book.author.name
+    => false
+    ```
+
+* Fail to autosave associations
+
+    ```irb
+    irb> author = Author.new
+    irb> book = author.books.new
+    irb> book.save!
+    irb> book.persisted?
+    => true
+    irb> author.persisted?
+    => false
+    ```
+
+* Fail to validate presence or absence
+
+    ```irb
+    irb> author = Author.new
+    irb> book = author.books.new
+    irb> book.valid?
+    => false
+    irb> book.errors.full_messages
+    => ["Author must exist"]
+    ```
 
 Active Record provides the `:inverse_of` option so you can explicitly declare bi-directional associations:
 
@@ -817,17 +896,9 @@ class Book < ApplicationRecord
 end
 ```
 
-By including the `:inverse_of` option in the `has_many` association declaration, Active Record will now recognize the bi-directional association:
-
-```irb
-irb> a = Author.first
-irb> b = a.books.first
-irb> a.first_name == b.writer.first_name
-=> true
-irb> a.first_name = 'David'
-irb> a.first_name == b.writer.first_name
-=> true
-```
+By including the `:inverse_of` option in the `has_many` association declaration,
+Active Record will now recognize the bi-directional association and behave as in
+the initial examples above.
 
 Detailed Association Reference
 ------------------------------
@@ -1089,6 +1160,7 @@ When we execute `@user.todos.create` then the `@todo` record will have its
 ##### `:inverse_of`
 
 The `:inverse_of` option specifies the name of the `has_many` or `has_one` association that is the inverse of this association.
+See the [bi-directional association](#bi-directional-associations) section for more details.
 
 ```ruby
 class Author < ApplicationRecord
@@ -1377,6 +1449,7 @@ TIP: In any case, Rails will not create foreign key columns for you. You need to
 ##### `:inverse_of`
 
 The `:inverse_of` option specifies the name of the `belongs_to` association that is the inverse of this association.
+See the [bi-directional association](#bi-directional-associations) section for more details.
 
 ```ruby
 class Supplier < ApplicationRecord
@@ -1830,6 +1903,7 @@ TIP: In any case, Rails will not create foreign key columns for you. You need to
 ##### `:inverse_of`
 
 The `:inverse_of` option specifies the name of the `belongs_to` association that is the inverse of this association.
+See the [bi-directional association](#bi-directional-associations) section for more details.
 
 ```ruby
 class Author < ApplicationRecord
