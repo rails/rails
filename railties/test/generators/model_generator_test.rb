@@ -464,6 +464,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   private
     def assert_generated_fixture(path, parsed_contents)
       fixture_file = File.new File.expand_path(path, destination_root)
-      assert_equal(parsed_contents, YAML.load(fixture_file))
+      result = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(fixture_file) : YAML.load(fixture_file)
+      assert_equal(parsed_contents, result)
     end
 end

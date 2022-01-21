@@ -91,8 +91,9 @@ module ActiveStorage
 
             require "yaml"
             require "erb"
+            result = ERB.new(config_file.read).result
 
-            YAML.load(ERB.new(config_file.read).result) || {}
+            YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(result) : YAML.load(result) || {}
           rescue Psych::SyntaxError => e
             raise "YAML syntax error occurred while parsing #{config_file}. " \
                   "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \

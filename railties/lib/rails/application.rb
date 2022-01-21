@@ -232,7 +232,8 @@ module Rails
 
       if yaml.exist?
         require "erb"
-        (YAML.load(ERB.new(yaml.read).result) || {})[env] || {}
+        result = ERB.new(yaml.read).result
+        (YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(result) : YAML.load(result) || {})[env] || {}
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end

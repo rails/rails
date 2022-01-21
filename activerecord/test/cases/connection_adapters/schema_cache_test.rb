@@ -20,7 +20,8 @@ module ActiveRecord
         @cache.data_sources("posts")
         @cache.primary_keys("posts")
 
-        new_cache = YAML.load(YAML.dump(@cache))
+        new_cache = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(YAML.dump(@cache)) : YAML.load(YAML.dump(@cache))
+
         assert_no_queries do
           assert_equal 12, new_cache.columns("posts").size
           assert_equal 12, new_cache.columns_hash("posts").size
@@ -31,7 +32,7 @@ module ActiveRecord
 
       def test_yaml_loads_5_1_dump
         body = File.open(schema_dump_path).read
-        cache = YAML.load(body)
+        cache = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(body) : YAML.load(body)
 
         assert_no_queries do
           assert_equal 11, cache.columns("posts").size

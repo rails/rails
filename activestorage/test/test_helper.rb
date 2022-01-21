@@ -25,7 +25,7 @@ Minitest.backtrace_filter = Minitest::BacktraceFilter.new
 require "yaml"
 SERVICE_CONFIGURATIONS = begin
   erb = ERB.new(Pathname.new(File.expand_path("service/configurations.yml", __dir__)).read)
-  configuration = YAML.load(erb.result) || {}
+  configuration = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(erb.result) : YAML.load(erb.result) || {}
   configuration.deep_symbolize_keys
 rescue Errno::ENOENT
   puts "Missing service configuration file in test/service/configurations.yml"

@@ -229,7 +229,8 @@ db_namespace = namespace :db do
       base_dir = ActiveRecord::Tasks::DatabaseTasks.fixtures_path
 
       Dir["#{base_dir}/**/*.yml"].each do |file|
-        if data = YAML.load(ERB.new(IO.read(file)).result)
+        result = ERB.new(IO.read(file)).result
+        if data = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(result) : YAML.load(result)
           data.each_key do |key|
             key_id = ActiveRecord::FixtureSet.identify(key)
 

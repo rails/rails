@@ -431,7 +431,7 @@ class ErrorsTest < ActiveModel::TestCase
     messages: {}
     CODE
 
-    errors = YAML.load(yaml)
+    errors = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(yaml) : YAML.load(yaml)
     errors.add(:name, :invalid)
     assert_equal({ name: ["is invalid"] }, errors.messages)
     assert_equal({ name: [{ error: :invalid }] }, errors.details)

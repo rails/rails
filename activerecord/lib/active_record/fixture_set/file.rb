@@ -47,7 +47,8 @@ module ActiveRecord
 
         def raw_rows
           @raw_rows ||= begin
-            data = YAML.load(render(IO.read(@file)))
+            rendered = render(IO.read(@file))
+            data = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(rendered) : YAML.load(rendered)
             data ? validate(data).to_a : []
           rescue ArgumentError, Psych::SyntaxError => error
             raise Fixture::FormatError, "a YAML error occurred parsing #{@file}. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Please have a look at http://www.yaml.org/faq.html\nThe exact error was:\n  #{error.class}: #{error}", error.backtrace
