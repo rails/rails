@@ -28,6 +28,14 @@ module ActiveRecord
       end
     end
 
+    def test_associated_with_invalid_association_name
+      e = assert_raises(ArgumentError) do
+        Post.where.associated(:cars).to_a
+      end
+
+      assert_match(/An association named `:cars` does not exist on the model `Post`\./, e.message)
+    end
+
     def test_missing_with_association
       assert posts(:authorless).author.blank?
       assert_equal [posts(:authorless)], Post.where.missing(:author).to_a
