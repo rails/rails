@@ -1108,7 +1108,15 @@ end
 NOTE: You only need to specify the `:counter_cache` option on the `belongs_to`
 side of the association.
 
-Counter cache columns are added to the containing model's list of read-only attributes through `attr_readonly`.
+Counter cache columns are added to the owner model's list of read-only
+attributes through `attr_readonly`.
+
+If for some reason you change the value of an owner model's primary key, and do
+not also update the foreign keys of the counted models, then the counter cache
+may have stale data. In other words, any orphaned models will still count
+towards the counter. To fix a stale counter cache, use [`reset_counters`][].
+
+[`reset_counters`]: https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-reset_counters
 
 ##### `:dependent`
 
