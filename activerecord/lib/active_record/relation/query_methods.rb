@@ -68,7 +68,7 @@ module ActiveRecord
       #    # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
       def associated(*associations)
         associations.each do |association|
-          reflection = @scope.klass._reflect_on_association(association)
+          reflection = scope_association_reflection(association)
           @scope.joins!(association)
           self.not(reflection.table_name => { reflection.association_primary_key => nil })
         end
@@ -96,16 +96,22 @@ module ActiveRecord
       #    # WHERE "authors"."id" IS NULL AND "comments"."id" IS NULL
       def missing(*associations)
         associations.each do |association|
-          reflection = @scope.klass._reflect_on_association(association)
-          unless reflection
-            raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{@scope.name}`.")
-          end
+          reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
           @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
         end
 
         @scope
       end
+
+      private
+        def scope_association_reflection(association)
+          reflection = @scope.klass._reflect_on_association(association)
+          unless reflection
+            raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{@scope.name}`.")
+          end
+          reflection
+        end
     end
 
     FROZEN_EMPTY_ARRAY = [].freeze
