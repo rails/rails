@@ -1140,7 +1140,8 @@ module ActiveRecord
       #      belongs_to :dungeon, inverse_of: :evil_wizard
       #    end
       #
-      # For more information, see the documentation for the +:inverse_of+ option.
+      # For more information, see the documentation for the +:inverse_of+ option and the
+      # {Active Record Associations guide}[https://guides.rubyonrails.org/association_basics.html#bi-directional-associations].
       #
       # == Deleting from associations
       #
