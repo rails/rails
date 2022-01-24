@@ -213,4 +213,90 @@ class RangeTest < ActiveSupport::TestCase
     datetime = DateTime.now
     assert(((datetime - 1.hour)..datetime).step(1) { })
   end
+
+  def test_intersection_expectations
+    expectations = [
+      # L for left range, R for right range, & for intersection
+      # L.intersection(R) => &
+      #
+      # LLL   RRR
+      [(1..3), (7..9), nil],
+      # LLL&&&RRR
+      [(1..6), (4..9), (4..6)],
+      # LLL&&&LLL (i.e. R is wholly within L)
+      [(1..9), (4..6), (4..6)],
+      # RRR&&&RRR (i.e. L is wholly within R)
+      [(4..6), (1..9), (4..6)],
+      # RRR&&&LLL
+      [(4..9), (1..6), (4..6)],
+      # RRR   LLL
+      [(7..9), (1..3), nil],
+      # &&& (i.e. L and R match exactly)
+      [(1..3), (1..3), (1..3)],
+      # &&& (L and R match exactly, but one has exclusive end-point)
+      [(1...3), (1..3), (1...3)],
+      # R&R (L and intersection are single element ranges)
+      [(2..2), (1..3), (2..2)],
+      # R&R (L and intersection are single element ranges with exclusive end-points)
+      [(2...2), (1..3), (2...2)],
+      # Test some alternate data types
+      [(1.5..6.5), (4.2..9.3), (4.2..6.5)],
+      [(1..6), (4.2..9), (4.2..6)],
+      [
+        (Date.new(2022, 1, 1)..Date.new(2022, 1, 5)),
+        (Date.new(2022, 1, 3)..Date.new(2022, 1, 7)),
+        (Date.new(2022, 1, 3)..Date.new(2022, 1, 5))
+      ],
+      [
+        (Time.utc(2022, 1, 1)..Time.utc(2022, 1, 5)),
+        (Time.utc(2022, 1, 3)..Time.utc(2022, 1, 7)),
+        (Time.utc(2022, 1, 3)..Time.utc(2022, 1, 5))
+      ],
+      [
+        (Time.utc(2021, 12, 31, 23, 59)..Time.utc(2022, 1, 1, 0, 1)),
+        (Time.utc(2022, 1, 1)..Time.utc(2022, 1, 1)),
+        (Time.utc(2022, 1, 1)..Time.utc(2022, 1, 1))
+      ],
+    ]
+
+    expectations.each do |left, right, intersection|
+      assert(left.intersection(right) == intersection)
+    end
+  end
+
+  def test_intersection_exceptions
+    exceptions = [
+      # type is not a range
+      [(1..3), 5, TypeError],
+      # inverted range
+      [(1..-1), (1..1), ArgumentError],
+      # inverted time range
+      [(Time.utc(2022, 1, 1)..Time.utc(2021, 1, 5)),
+       (Time.utc(2022, 1, 3)..Time.utc(2022, 1, 7)),
+       ArgumentError]
+    ]
+
+    exceptions.each do |left, right, exception|
+      assert_raises exception do
+        left.intersection(right)
+      end
+    end
+  end
+
+  def test_inverted_expectations
+    expectations = [
+      [(1..3), false],
+      [(1..-1), true],
+      [(1..1), false],
+      # single element ranges with exclusive end-points are NOT considered inverted
+      [(1...1), false],
+      # nil as positive/negative infinity tests
+      [(..1), false],
+      [(1..), false],
+    ]
+
+    expectations.each do |range, value|
+      assert range.inverted? == value
+    end
+  end
 end

@@ -5,3 +5,5 @@ require "active_support/core_ext/range/deprecated_conversions" unless ENV["RAILS
 require "active_support/core_ext/range/compare_range"
 require "active_support/core_ext/range/overlaps"
 require "active_support/core_ext/range/each"
+require "active_support/core_ext/range/inverted"
+require "active_support/core_ext/range/intersection"
