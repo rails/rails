@@ -28,7 +28,7 @@ module ActiveRecord
       end
     end
 
-    def test_associated__with_invalid_association_name
+    def test_associated_with_invalid_association_name
       e = assert_raises(ArgumentError) do
         Post.where.associated(:cars).to_a
       end
