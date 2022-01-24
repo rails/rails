@@ -34,6 +34,8 @@ require "models/organization"
 require "models/guitar"
 require "models/tuning_peg"
 require "models/reply"
+require "models/attachment"
+require "models/translation"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_works_even_when_other_callbacks_update_the_parent_model
@@ -2006,5 +2008,16 @@ class TestAutosaveAssociationOnAHasManyAssociationDefinedInSubclassWithAcceptsNe
     valid_project.reload
 
     assert_equal "Updated", valid_project.name
+  end
+end
+
+class TestAutosaveAssociationOnABelongsToAssociationDefinedAsRecord < ActiveRecord::TestCase
+  def test_should_not_raise_error
+    translation = Translation.create(locale: "fr", key: "bread", value: "Baguette 🥖")
+    author = Author.create(name: "Dorian Marié")
+    translation.build_attachment(record: author)
+    assert_nothing_raised do
+      translation.save!
+    end
   end
 end

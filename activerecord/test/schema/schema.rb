@@ -58,6 +58,10 @@ ActiveRecord::Schema.define do
     t.references :tag
   end
 
+  create_table :attachments, force: true do |t|
+    t.references :record, polymorphic: true, null: false
+  end
+
   create_table :audit_logs, force: true do |t|
     t.column :message, :string, null: false
     t.column :developer_id, :integer, null: false
@@ -1105,6 +1109,13 @@ ActiveRecord::Schema.define do
     t.text     :long_state, null: false
     t.datetime :created_at
     t.datetime :updated_at
+  end
+
+  create_table :translations, force: true do |t|
+    t.string :locale, null: false
+    t.string :key, null: false
+    t.string :value, null: false
+    t.references :attachment
   end
 
   create_table :tuning_pegs, force: true do |t|
