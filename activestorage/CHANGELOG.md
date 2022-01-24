@@ -1,7 +1,17 @@
+*   Don't stream responses in redirect mode
+
+    Previously, both redirect mode and proxy mode streamed their
+    responses which caused a new thread to be created, and could end
+    up leaking connections in the connection pool. But since redirect
+    mode doesn't actually send any data, it doesn't need to be
+    streamed.
+
+    *Luke Lau*
+
+
 ## Rails 7.0.2.2 (February 11, 2022) ##
 
 *   No changes.
-
 
 ## Rails 7.0.2.1 (February 11, 2022) ##
 
