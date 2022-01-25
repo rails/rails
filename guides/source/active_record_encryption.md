@@ -129,7 +129,7 @@ class Article < ApplicationRecord
   encrypts :title
 end
 
-# INCORRECT 
+# INCORRECT
 class Article < ApplicationRecord
   encrypts :title
   serialize :title, Title
@@ -248,7 +248,7 @@ In case you want exclude specific columns from this automatic filtering, add the
 
 ### Encoding
 
-The library will preserve the encoding for string values encrypted non-deterministically. 
+The library will preserve the encoding for string values encrypted non-deterministically.
 
 Because encoding is stored along with the encrypted payload, values encrypted deterministically will force UTF-8 encoding by default. Therefore the same value with a different encoding will result in a different ciphertext when encrypted. You usually want to avoid this to keep queries and uniqueness constraints working, so the library will perform the conversion automatically on your behalf.
 
@@ -453,7 +453,7 @@ The global encryption context is the one used by default and is configured as ot
 
 ```ruby
 config.active_record.encryption.key_provider = ActiveRecord::Encryption::EnvelopeEncryptionKeyProvider.new
-config.active_record_encryption.encryptor = MyEncryptor.new
+config.active_record.encryption.encryptor = MyEncryptor.new
 ```
 
 #### Per-attribute Encryption Contexts
