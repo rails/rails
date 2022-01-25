@@ -9,7 +9,7 @@ module ActiveRecord
       # them into a valid SQL fragment for a WHERE clause.
       #
       #   sanitize_sql_for_conditions(["name=? and group_id=?", "foo'bar", 4])
-      #   # => "name='foo''bar' and group_id=4"
+      #   # => "name='foo''bar' and group_id='4'"
       #
       #   sanitize_sql_for_conditions(["name=:name and group_id=:group_id", name: "foo'bar", group_id: 4])
       #   # => "name='foo''bar' and group_id='4'"
@@ -33,10 +33,10 @@ module ActiveRecord
       # them into a valid SQL fragment for a SET clause.
       #
       #   sanitize_sql_for_assignment(["name=? and group_id=?", nil, 4])
-      #   # => "name=NULL and group_id=4"
+      #   # => "name=NULL and group_id='4'"
       #
       #   sanitize_sql_for_assignment(["name=:name and group_id=:group_id", name: nil, group_id: 4])
-      #   # => "name=NULL and group_id=4"
+      #   # => "name=NULL and group_id='4'"
       #
       #   Post.sanitize_sql_for_assignment({ name: nil, group_id: 4 })
       #   # => "`posts`.`name` = NULL, `posts`.`group_id` = 4"
@@ -114,10 +114,10 @@ module ActiveRecord
       # sanitized and interpolated into the SQL statement.
       #
       #   sanitize_sql_array(["name=? and group_id=?", "foo'bar", 4])
-      #   # => "name='foo''bar' and group_id=4"
+      #   # => "name='foo''bar' and group_id='4'"
       #
       #   sanitize_sql_array(["name=:name and group_id=:group_id", name: "foo'bar", group_id: 4])
-      #   # => "name='foo''bar' and group_id=4"
+      #   # => "name='foo''bar' and group_id='4'"
       #
       #   sanitize_sql_array(["name='%s' and group_id='%s'", "foo'bar", 4])
       #   # => "name='foo''bar' and group_id='4'"
