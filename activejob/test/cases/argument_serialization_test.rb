@@ -5,6 +5,8 @@ require "helper"
 require "active_job/arguments"
 require "models/person"
 require "active_support/core_ext/hash/indifferent_access"
+require "active_support/core_ext/integer/time"
+require "active_support/duration"
 require "jobs/kwargs_job"
 require "jobs/arguments_round_trip_job"
 require "support/stubs/strong_parameters"
@@ -186,6 +188,12 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
       assert_instance_of ActiveSupport::TimeWithZone, perform_round_trip([time_with_zone]).first
       assert_arguments_unchanged time_with_zone
     end
+  end
+
+  test "should maintain a functional duration" do
+    duration = perform_round_trip([1.year]).first
+    assert_kind_of Hash, duration.parts
+    assert_equal 2.years, duration + 1.year
   end
 
   test "should disallow non-string/symbol hash keys" do
