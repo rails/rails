@@ -27,12 +27,17 @@ module ActiveJob
       end
 
       def enqueue_at(job, timestamp) # :nodoc:
-        job.provider_job_id = Sidekiq::Client.push \
-          "class"   => JobWrapper,
-          "wrapped" => job.class,
-          "queue"   => job.queue_name,
-          "args"    => [ job.serialize ],
-          "at"      => timestamp
+        delay = timestamp - Time.current.to_f
+        if delay > 0
+          job.provider_job_id = Sidekiq::Client.push \
+            "class"   => JobWrapper,
+            "wrapped" => job.class,
+            "queue"   => job.queue_name,
+            "args"    => [ job.serialize ],
+            "at"      => timestamp
+        else
+          enqueue(job)
+        end
       end
 
       class JobWrapper # :nodoc:
