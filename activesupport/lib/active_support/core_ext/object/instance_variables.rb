@@ -12,7 +12,9 @@ class Object
   #
   #   C.new(0, 1).instance_values # => {"x" => 0, "y" => 1}
   def instance_values
-    Hash[instance_variables.map { |name| [name[1..-1], instance_variable_get(name)] }]
+    instance_variables.to_h do |ivar|
+      [ivar[1..-1].freeze, instance_variable_get(ivar)]
+    end
   end
 
   if Symbol.method_defined?(:name) # RUBY_VERSION >= "3.0"
