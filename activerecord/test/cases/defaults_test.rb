@@ -148,12 +148,12 @@ if current_adapter?(:Mysql2Adapter)
 
       test "schema dump datetime includes precise default expression" do
         output = dump_table_schema("datetime_defaults")
-        assert_match %r/t\.datetime\s+"precise_datetime",.+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
+        assert_match %r/t\.datetime\s+"precise_datetime",\s+precision: 6,\s+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
       end
 
       test "schema dump datetime includes precise default expression with on update" do
         output = dump_table_schema("datetime_defaults")
-        assert_match %r/t\.datetime\s+"updated_datetime",.+default: -> { "CURRENT_TIMESTAMP\(6\) ON UPDATE CURRENT_TIMESTAMP\(6\)" }/i, output
+        assert_match %r/t\.datetime\s+"updated_datetime",\s+precision: 6,\s+default: -> { "CURRENT_TIMESTAMP\(6\) ON UPDATE CURRENT_TIMESTAMP\(6\)" }/i, output
       end
 
       test "schema dump timestamp includes default expression" do
