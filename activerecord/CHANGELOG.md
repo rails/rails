@@ -1,3 +1,7 @@
+*   Permit underscores in the VERSION argument to database rake tasks.
+
+    *Eddie Lebow*
+
 *   Add `update_attribute!` to `ActiveRecord::Persistence`
 
     Similar to `update_attribute`, but raises `ActiveRecord::RecordNotSaved` when a `before_*` callback throws `:abort`.
