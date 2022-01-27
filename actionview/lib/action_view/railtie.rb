@@ -14,12 +14,16 @@ module ActionView
     config.action_view.image_decoding = nil
     config.action_view.apply_stylesheet_media_default = true
     config.action_view.prepend_content_exfiltration_prevention = false
+    config.action_view.closes_form_tag_without_block = false
 
     config.eager_load_namespaces << ActionView
 
     config.after_initialize do |app|
       ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms =
         app.config.action_view.delete(:embed_authenticity_token_in_remote_forms)
+
+      ActionView::Helpers::FormTagHelper.closes_form_tag_without_block =
+        app.config.action_view.delete(:closes_form_tag_without_block)
     end
 
     config.after_initialize do |app|
