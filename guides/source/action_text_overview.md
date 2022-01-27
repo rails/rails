@@ -242,4 +242,8 @@ Message.all.with_rich_text_content_and_embeds # Preload both body and attachment
     <action-text-attachment sgid="BAh7CEkiCG…"></action-text-attachment>
     ```
 
+## Internationalization (I18n)
+
+Action Text rich text can be translated using [Mobility Action Text](https://github.com/sedubois/mobility-actiontext).
+
 This is based on Basecamp, so if you still can't find what you are looking for, check this [Basecamp Doc](https://github.com/basecamp/bc3-api/blob/master/sections/rich_text.md).
