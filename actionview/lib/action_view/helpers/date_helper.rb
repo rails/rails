@@ -844,14 +844,14 @@ module ActionView
         if @options[:use_hidden] || @options[:discard_year]
           build_hidden(:year, val)
         else
-          options                     = {}
-          options[:start]             = @options[:start_year] || middle_year - 5
-          options[:end]               = @options[:end_year] || middle_year + 5
-          options[:step]              = options[:start] < options[:end] ? 1 : -1
-          options[:leading_zeros]     = false
-          options[:max_years_allowed] = @options[:max_years_allowed] || 1000
+          options         = {}
+          options[:start] = @options[:start_year] || middle_year - 5
+          options[:end]   = @options[:end_year] || middle_year + 5
+          options[:step]  = options[:start] < options[:end] ? 1 : -1
 
-          if (options[:end] - options[:start]).abs > options[:max_years_allowed]
+          max_years_allowed = @options[:max_years_allowed] || 1000
+
+          if (options[:end] - options[:start]).abs > max_years_allowed
             raise ArgumentError, "There are too many years options to be built. Are you sure you haven't mistyped something? You can provide the :max_years_allowed parameter."
           end
 
@@ -932,7 +932,7 @@ module ActionView
         #
         #   month_name(1) # => 1
         #
-        # If the <tt>:use_two_month_numbers</tt> option is passed:
+        # If the <tt>:use_two_digit_numbers</tt> option is passed:
         #
         #   month_name(1) # => '01'
         #
@@ -1066,17 +1066,10 @@ module ActionView
         end
 
         # Build select option HTML for year.
-        # If <tt>year_format</tt> option is not passed
         #  build_year_options(1998, start: 1998, end: 2000)
         #  => "<option value="1998" selected="selected">1998</option>
         #      <option value="1999">1999</option>
         #      <option value="2000">2000</option>"
-        #
-        # If <tt>year_format</tt> option is passed
-        #  build_year_options(1998, start: 1998, end: 2000, year_format: ->year { "Heisei #{ year - 1988 }" })
-        #  => "<option value="1998" selected="selected">Heisei 10</option>
-        #      <option value="1999">Heisei 11</option>
-        #      <option value="2000">Heisei 12</option>"
         def build_year_options(selected, options = {})
           start = options.delete(:start)
           stop = options.delete(:end)
