@@ -42,3 +42,8 @@
 #  - :lazily - Skip automatic analysis; analyze on-demand
 #++
 # Rails.application.config.active_storage.analyze = :immediately
+
+###
+# Controls whether or not to close the <form> element rendered by a call to form_with without a block
+#++
+# Rails.application.config.action_view.close_form_with_without_block = true

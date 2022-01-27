@@ -1,3 +1,17 @@
+*   Include closing `</form>` tag when calling `form_with` without a block:
+
+    ```ruby
+    form_with url: "https://example.com"
+    # => <form action="https://example.com" method="post"><!-- Rails-generated hidden fields -->
+
+    config.action_view.close_form_with_without_block = true
+
+    form_with url: "https://example.com"
+    # => <form action="https://example.com" method="post"><!-- Rails-generated hidden fields --></form>
+    ```
+
+    *Sean Doyle*
+
 *   Fix tag parameter content being overwritten instead of combined with tag block content.
     Before `tag.div("Hello ") { "World" }` would just return `<div>World</div>`, now it returns `<div>Hello World</div>`.
 
