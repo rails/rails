@@ -366,10 +366,8 @@ module Rails
           end
 
           if respond_to?(:action_view)
+            action_view.close_form_with_without_block = true
             action_view.render_tracker = :ruby
-          end
-
-          if respond_to?(:action_view)
             action_view.remove_hidden_field_autocomplete = true
           end
         else
