@@ -118,3 +118,8 @@
 # `ArgumentError`, matching the Ruby standard library's `Time.parse`.
 #++
 # ActiveSupport.raise_on_invalid_time_zone_parse = true
+
+###
+# Controls whether or not to close the <form> element rendered by a call to form_with without a block
+#++
+# Rails.application.config.action_view.close_form_with_without_block = true
