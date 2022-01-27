@@ -477,6 +477,42 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_with_with_id_option
+    form_with(model: Post.new, id: "new_special_post") do |form|
+      concat form.button(form: form.id)
+    end
+
+    expected = whole_form("/posts", "new_special_post") do
+      '<button name="button" type="submit" form="new_special_post">Create Post</button>'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_with_id_option_nested_in_html
+    form_with(model: Post.new, html: { id: "new_special_post" }) do |form|
+      concat form.button(form: form.id)
+    end
+
+    expected = whole_form("/posts", "new_special_post") do
+      '<button name="button" type="submit" form="new_special_post">Create Post</button>'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_with_competing_id_option_nested_in_html
+    form_with(model: Post.new, id: "ignored", html: { id: "new_special_post" }) do |form|
+      concat form.button(form: form.id)
+    end
+
+    expected = whole_form("/posts", "new_special_post") do
+      '<button name="button" type="submit" form="new_special_post">Create Post</button>'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_with_attribute_not_on_model
     form_with(model: @post) do |f|
       concat f.text_field :this_dont_exist_on_post

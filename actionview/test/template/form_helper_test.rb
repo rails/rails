@@ -1644,6 +1644,42 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_with_id_option
+    form_for(Post.new, id: "new_special_post") do |form|
+      concat form.button(form: form.id)
+    end
+
+    expected = whole_form("/posts", "new_special_post", "new_post") do
+      '<button name="button" type="submit" form="new_special_post">Create Post</button>'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_id_option_nested_in_html
+    form_for(Post.new, html: { id: "new_special_post" }) do |form|
+      concat form.button(form: form.id)
+    end
+
+    expected = whole_form("/posts", "new_special_post", "new_post") do
+      '<button name="button" type="submit" form="new_special_post">Create Post</button>'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_competing_id_option_nested_in_html
+    form_for(Post.new, id: "ignored", html: { id: "new_special_post" }) do |form|
+      concat form.button(form: form.id)
+    end
+
+    expected = whole_form("/posts", "new_special_post", "new_post") do
+      '<button name="button" type="submit" form="new_special_post">Create Post</button>'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_false_url
     form_for(Post.new, url: false) do |form|
     end
