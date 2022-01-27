@@ -100,8 +100,8 @@ module ActiveRecord
             statements = statements.map { |sql| transform_query(sql) }
             combine_multi_statements(statements).each do |statement|
               raw_execute(statement, name)
+              @connection.abandon_results!
             end
-            @connection.abandon_results!
           end
 
           def default_insert_value(column)
