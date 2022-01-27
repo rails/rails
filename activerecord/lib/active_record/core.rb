@@ -657,7 +657,7 @@ module ActiveRecord
     #   => #<ActiveRecord::Associations::CollectionProxy>
     def strict_loading!(value = true, mode: :all)
       unless [:all, :n_plus_one_only].include?(mode)
-        raise ArgumentError, "The :mode option must be one of [:all, :n_plus_one_only]."
+        raise ArgumentError, "The :mode option must be one of [:all, :n_plus_one_only] but #{mode.inspect} was provided."
       end
 
       @strict_loading_mode = mode
