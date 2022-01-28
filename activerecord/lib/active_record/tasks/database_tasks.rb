@@ -365,6 +365,7 @@ module ActiveRecord
 
       def load_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
         file ||= schema_dump_path(db_config, format)
+        return unless file
 
         verbose_was, Migration.verbose = Migration.verbose, verbose? && ENV["VERBOSE"]
         check_schema_file(file)
@@ -390,7 +391,7 @@ module ActiveRecord
 
         file ||= schema_dump_path(db_config)
 
-        return true unless File.exist?(file)
+        return true unless file && File.exist?(file)
 
         ActiveRecord::Base.establish_connection(db_config)
 
@@ -403,7 +404,7 @@ module ActiveRecord
       def reconstruct_from_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
         file ||= schema_dump_path(db_config, format)
 
-        check_schema_file(file)
+        check_schema_file(file) if file
 
         ActiveRecord::Base.establish_connection(db_config)
 
@@ -421,6 +422,8 @@ module ActiveRecord
       def dump_schema(db_config, format = ActiveRecord.schema_format) # :nodoc:
         require "active_record/schema_dumper"
         filename = schema_dump_path(db_config, format)
+        return unless filename
+
         connection = ActiveRecord::Base.connection
 
         FileUtils.mkdir_p(db_dir)
