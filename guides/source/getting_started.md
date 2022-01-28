@@ -1745,6 +1745,9 @@ And next, let's update the database with the generated migrations:
 $ bin/rails db:migrate
 ```
 
+To choose the status for the existing articles and comments you can add a default value to the generated migration files by adding the `default: "public"` option and launch the migrations again. You can also call in a rails console `Article.update_all(status: "public")` and `Comment.update_all(status: "public")`.
+
+
 TIP: To learn more about migrations, see [Active Record Migrations](
 active_record_migrations.html).
 
