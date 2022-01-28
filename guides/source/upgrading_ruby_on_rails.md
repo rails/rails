@@ -388,6 +388,35 @@ You can invalidate the cache either by touching the product, or changing the cac
 <% end %>
 ```
 
+### Rails version is now included in the Active Record schema dump
+
+Rails 7.0 changed some default values for some column types. To avoid that application upgrading from 6.1 to 7.0
+load the current schema using the new 7.0 defaults, Rails now includes the version of the framework in the schema dump.
+
+Before loading the schema for the first time in Rails 7.0, make sure to run `rails app:update` to ensure that the
+version of the schema is included in the schema dump.
+
+The schema file will look like this:
+
+```ruby
+# This file is auto-generated from the current state of the database. Instead
+# of editing this file, please use the migrations feature of Active Record to
+# incrementally modify your database, and then regenerate this schema definition.
+#
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
+#
+# It's strongly recommended that you check this file into your version control system.
+
+ActiveRecord::Schema[6.1].define(version: 2022_01_28_123512) do
+```
+
+NOTE: The first time you dump the schema with Rails 7.0, you will see many changes to that file, including
+some column information. Make sure to review the new schema file content and commit it to your repository.
+
 Upgrading from Rails 6.0 to Rails 6.1
 -------------------------------------
 
