@@ -125,6 +125,10 @@ module ActionView
   end
 
   class HelperInclusionTest < ActionView::TestCase
+    def teardown
+      ActionController::Base.view_paths.map(&:clear_cache)
+    end
+
     module RenderHelper
       def render_from_helper
         render partial: "customer", collection: @customers
