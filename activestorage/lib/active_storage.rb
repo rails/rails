@@ -41,7 +41,6 @@ module ActiveStorage
   autoload :Service
   autoload :Previewer
   autoload :Analyzer
-  autoload :DirectUploadToken
 
   mattr_accessor :logger
   mattr_accessor :verifier
