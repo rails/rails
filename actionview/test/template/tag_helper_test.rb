@@ -404,7 +404,11 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_attributes_escapes_values
-    assert_not_includes "<script>alert()</script>", render_erb(<<~HTML.strip)
+    expected_output = <<~HTML.strip
+      <input type="text" xss="&quot;&gt;&lt;script&gt;alert()&lt;/script&gt;">
+    HTML
+
+    assert_equal expected_output, render_erb(<<~HTML.strip)
       <input type="text" <%= tag.attributes xss: '"><script>alert()</script>' %>>
     HTML
   end
