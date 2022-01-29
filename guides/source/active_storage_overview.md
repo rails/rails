@@ -1148,12 +1148,9 @@ input.addEventListener('change', (event) => {
 
 const uploadFile = (file) => {
   // your form needs the file_field direct_upload: true, which
-  //  provides data-direct-upload-url, data-direct-upload-token
-  // and data-direct-upload-attachment-name
+  //  provides data-direct-upload-url
   const url = input.dataset.directUploadUrl
-  const token = input.dataset.directUploadToken
-  const attachmentName = input.dataset.directUploadAttachmentName
-  const upload = new DirectUpload(file, url, token, attachmentName)
+  const upload = new DirectUpload(file, url)
 
   upload.create((error, blob) => {
     if (error) {
@@ -1172,7 +1169,7 @@ const uploadFile = (file) => {
 }
 ```
 
-If you need to track the progress of the file upload, you can pass a fifth
+If you need to track the progress of the file upload, you can pass a third
 parameter to the `DirectUpload` constructor. During the upload, DirectUpload
 will call the object's `directUploadWillStoreFileWithXHR` method. You can then
 bind your own progress handler on the XHR.
@@ -1181,8 +1178,8 @@ bind your own progress handler on the XHR.
 import { DirectUpload } from "@rails/activestorage"
 
 class Uploader {
-  constructor(file, url, token, attachmentName) {
-    this.upload = new DirectUpload(file, url, token, attachmentName, this)
+  constructor(file, url) {
+    this.upload = new DirectUpload(this.file, this.url, this)
   }
 
   upload(file) {
