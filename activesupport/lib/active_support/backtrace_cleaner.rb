@@ -56,7 +56,7 @@ module ActiveSupport
     # mapped against this filter.
     #
     #   # Will turn "/my/rails/root/app/models/person.rb" into "/app/models/person.rb"
-    #   backtrace_cleaner.add_filter { |line| line.gsub(Rails.root, '') }
+    #   backtrace_cleaner.add_filter { |line| line.gsub(Rails.root.to_s, '') }
     def add_filter(&block)
       @filters << block
     end
