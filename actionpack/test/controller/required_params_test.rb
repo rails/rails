@@ -4,7 +4,7 @@ require "abstract_unit"
 
 class BooksController < ActionController::Base
   def create
-    params.require(:book).require(:name)
+    params.require(:book).require_scalar(:name)
     head :ok
   end
 end
@@ -46,10 +46,6 @@ class ActionControllerRequiredParamsTest < ActionController::TestCase
 end
 
 class ParametersRequireTest < ActiveSupport::TestCase
-  test "required parameters should accept and return false value" do
-    assert_equal(false, ActionController::Parameters.new(person: false).require(:person))
-  end
-
   test "required parameters must not be nil" do
     assert_raises(ActionController::ParameterMissing) do
       ActionController::Parameters.new(person: nil).require(:person)
@@ -63,19 +59,72 @@ class ParametersRequireTest < ActiveSupport::TestCase
   end
 
   test "require array when all required params are present" do
-    safe_params = ActionController::Parameters.new(person: { first_name: "Gaurish", title: "Mjallo", city: "Barcelona" })
-      .require(:person)
-      .require([:first_name, :title])
+    safe_params = ActionController::Parameters.new(person: { first_name: "Gaurish" }, profile: { title: "Mjallo" })
+      .require([:person, :profile])
+
+    assert_kind_of Array, safe_params
+    assert_equal "Gaurish", safe_params.first.require_scalar(:first_name)
+    assert_equal "Mjallo", safe_params.last.require_scalar(:title)
+  end
+
+  test "require array when a required param is missing" do
+    assert_raises(ActionController::ParameterMissing) do
+      ActionController::Parameters.new(person: { first_name: "Gaurish" })
+        .require([:person, :profile])
+    end
+  end
+
+  test "require_scalar should accept and return scalar values" do
+    params = ActionController::Parameters.new(name: "Gaurish")
+    assert_equal("Gaurish", params.require_scalar(:name))
+  end
+
+  test "require_scalar ignores other keys" do
+    params = ActionController::Parameters.new(name: "Gaurish", age: 22)
+    assert_equal("Gaurish", params.require_scalar(:name))
+  end
+
+  test "require_scalar should accept and return false value" do
+    params = ActionController::Parameters.new(enabled: false)
+    assert_equal(false, params.require_scalar(:enabled))
+  end
+
+  test "required scalar must not be nil" do
+    assert_raises(ActionController::ParameterMissing) do
+      ActionController::Parameters.new(first_name: nil).require_scalar(:first_name)
+    end
+  end
+
+  test "required scalar must not be a hash" do
+    assert_raises(ActionController::ParameterMissing) do
+      ActionController::Parameters.new(name: { first_name: "Gaurish" }).require_scalar(:name)
+    end
+  end
+
+  test "required scalar must not be an array" do
+    assert_raises(ActionController::ParameterMissing) do
+      ActionController::Parameters.new(name: ["Gaurish", "Sharma"]).require_scalar(:name)
+    end
+  end
+
+  test "required scalar must not be an unpermitted scalar value" do
+    assert_raises(ActionController::ParameterMissing) do
+      ActionController::Parameters.new(name: Object.new).require_scalar(:name)
+    end
+  end
+
+  test "require_scalar with array when all required scalar are present" do
+    safe_params = ActionController::Parameters.new(first_name: "Gaurish", title: "Mjallo", city: "Barcelona")
+      .require_scalar([:first_name, :title])
 
     assert_kind_of Array, safe_params
     assert_equal ["Gaurish", "Mjallo"], safe_params
   end
 
-  test "require array when a required param is missing" do
+  test "require_scalar with array when a required scalar is missing" do
     assert_raises(ActionController::ParameterMissing) do
-      ActionController::Parameters.new(person: { first_name: "Gaurish", title: nil })
-        .require(:person)
-        .require([:first_name, :title])
+      ActionController::Parameters.new(first_name: "Gaurish", title: nil)
+        .require_scalar([:first_name, :title])
     end
   end
 

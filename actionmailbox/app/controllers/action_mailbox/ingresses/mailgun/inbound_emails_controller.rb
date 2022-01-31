@@ -51,8 +51,8 @@ module ActionMailbox
 
     private
       def mail
-        params.require("body-mime").tap do |raw_email|
-          raw_email.prepend("X-Original-To: ", params.require(:recipient), "\n") if params.key?(:recipient)
+        params.require_scalar("body-mime").tap do |raw_email|
+          raw_email.prepend("X-Original-To: ", params.require_scalar(:recipient), "\n") if params.key?(:recipient)
         end
       end
 
@@ -64,9 +64,9 @@ module ActionMailbox
         if key.present?
           Authenticator.new(
             key:       key,
-            timestamp: params.require(:timestamp),
-            token:     params.require(:token),
-            signature: params.require(:signature)
+            timestamp: params.require_scalar(:timestamp),
+            token:     params.require_scalar(:token),
+            signature: params.require_scalar(:signature)
           ).authenticated?
         else
           raise ArgumentError, <<~MESSAGE.squish

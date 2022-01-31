@@ -35,7 +35,7 @@ module ActionMailbox
       end
 
       def events
-        JSON.parse params.require(:mandrill_events)
+        JSON.parse params.require_scalar(:mandrill_events)
       end
 
 

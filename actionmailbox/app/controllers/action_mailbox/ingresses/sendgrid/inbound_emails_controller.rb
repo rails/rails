@@ -56,13 +56,13 @@ module ActionMailbox
 
     private
       def mail
-        params.require(:email).tap do |raw_email|
+        params.require_scalar(:email).tap do |raw_email|
           envelope["to"].each { |to| raw_email.prepend("X-Original-To: ", to, "\n") } if params.key?(:envelope)
         end
       end
 
       def envelope
-        JSON.parse(params.require(:envelope))
+        JSON.parse(params.require_scalar(:envelope))
       end
   end
 end

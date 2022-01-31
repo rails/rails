@@ -439,7 +439,7 @@ module ActionController
     # This method accepts both a single key and an array of keys.
     #
     # When passed a single key, if it exists and its associated value is
-    # either present or the singleton +false+, returns said value:
+    # present returns said value:
     #
     #   ActionController::Parameters.new(person: { name: "Francesco" }).require(:person)
     #   # => #<ActionController::Parameters {"name"=>"Francesco"} permitted: false>
@@ -471,25 +471,14 @@ module ActionController
     #   user_params, profile_params = params.require([:user, :profile])
     #   # ActionController::ParameterMissing: param is missing or the value is empty: user
     #
-    # Technically this method can be used to fetch terminal values:
+    # To fetch scalar values use +require_scalar+:
     #
-    #   # CAREFUL
     #   params = ActionController::Parameters.new(person: { name: "Finn" })
-    #   name = params.require(:person).require(:name) # CAREFUL
-    #
-    # but take into account that at some point those ones have to be permitted:
-    #
-    #   def person_params
-    #     params.require(:person).permit(:name).tap do |person_params|
-    #       person_params.require(:name) # SAFER
-    #     end
-    #   end
-    #
-    # for example.
+    #   name = params.require(:person).require_scalar(:name)
     def require(key)
       return key.map { |k| require(k) } if key.is_a?(Array)
       value = self[key]
-      if value.present? || value == false
+      if value.present? && non_scalar?(value)
         value
       else
         raise ParameterMissing.new(key, @parameters.keys)
@@ -498,6 +487,54 @@ module ActionController
 
     # Alias of #require.
     alias :required :require
+
+    # This method accepts both a single key and an array of keys.
+    #
+    # When passed a single key, if it exists and its associated value is either
+    # a permitted scalar value that is present, or the singleton +false+,
+    # returns said value:
+    #
+    #   ActionController::Parameters.new(name: "Francesco").require_scalar(:name)
+    #   # "Francesco"
+    #
+    # Otherwise raises <tt>ActionController::ParameterMissing</tt>:
+    #
+    #   ActionController::Parameters.new.require_scalar(:name)
+    #   # ActionController::ParameterMissing: param is missing or the value is empty: name
+    #
+    #   ActionController::Parameters.new(name: nil).require_scalar(:name)
+    #   # ActionController::ParameterMissing: param is missing or the value is empty: name
+    #
+    #   ActionController::Parameters.new(name: "\t").require_scalar(:name)
+    #   # ActionController::ParameterMissing: param is missing or the value is empty: name
+    #
+    #   ActionController::Parameters.new(name: { first: "Francesco" }).require_scalar(:name)
+    #   # ActionController::ParameterMissing: param is missing or the value is empty: name
+    #
+    # When given an array of keys, the method tries to call +require_scalar+ on
+    # each one of them in order. If it succeeds, an array with the respective
+    # return values is returned:
+    #
+    #   params = ActionController::Parameters.new(name: "Francesco", age: 22)
+    #   name, age = params.require_scalar([:name, :age])
+    #
+    # Otherwise, the method re-raises the first exception found:
+    #
+    #   params = ActionController::Parameters.new(name: "", age: "")
+    #   name, age = params.require_scalar([:name, :age])
+    #   # ActionController::ParameterMissing: param is missing or the value is empty: name
+    def require_scalar(key)
+      return key.map { |k| require_scalar(k) } if key.is_a?(Array)
+      value = self[key]
+      if (value.present? && !non_scalar?(value) && permitted_scalar?(value)) || value == false
+        value
+      else
+        raise ParameterMissing.new(key, @parameters.keys)
+      end
+    end
+
+    # Alias of #require_scalar.
+    alias :required_scalar :require_scalar
 
     # Returns a new <tt>ActionController::Parameters</tt> instance that
     # includes only the given +filters+ and sets the +permitted+ attribute
