@@ -198,16 +198,40 @@ module ActiveRecord
           @indexes      = deep_deduplicate(@indexes)
         end
 
-        def deep_deduplicate(value)
-          case value
-          when Hash
-            value.transform_keys { |k| deep_deduplicate(k) }.transform_values { |v| deep_deduplicate(v) }
-          when Array
-            value.map { |i| deep_deduplicate(i) }
-          when String, Deduplicable
-            -value
-          else
-            value
+        if RUBY_VERSION.start_with?("2.6")
+          def deep_deduplicate(value)
+            case value
+            when Hash
+              value.transform_keys { |k| deep_deduplicate(k) }.transform_values { |v| deep_deduplicate(v) }
+            when Array
+              value.map { |i| deep_deduplicate(i) }
+            when String
+              if value.tainted?
+                # Ruby 2.6 and 2.7 have slightly different implementations of the String#@- method.
+                # In Ruby 2.6, the receiver of the String#@- method is modified under certain
+                # circumstances, and this was later identified as a bug
+                # (https://bugs.ruby-lang.org/issues/15926) and only fixed in Ruby 2.7.
+                value = value.dup
+              end
+              -value
+            when Deduplicable
+              -value
+            else
+              value
+            end
+          end
+        else
+          def deep_deduplicate(value)
+            case value
+            when Hash
+              value.transform_keys { |k| deep_deduplicate(k) }.transform_values { |v| deep_deduplicate(v) }
+            when Array
+              value.map { |i| deep_deduplicate(i) }
+            when String, Deduplicable
+              -value
+            else
+              value
+            end
           end
         end
 
