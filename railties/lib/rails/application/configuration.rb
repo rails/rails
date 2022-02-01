@@ -91,7 +91,6 @@ module Rails
           if respond_to?(:action_controller)
             action_controller.per_form_csrf_tokens = true
             action_controller.forgery_protection_origin_check = true
-            action_controller.urlsafe_csrf_tokens = false
           end
 
           ActiveSupport.to_time_preserves_timezone = true
@@ -174,10 +173,6 @@ module Rails
           if respond_to?(:action_dispatch)
             action_dispatch.cookies_same_site_protection = :lax
             action_dispatch.ssl_default_redirect_status = 308
-          end
-
-          if respond_to?(:action_controller)
-            action_controller.delete(:urlsafe_csrf_tokens)
           end
 
           if respond_to?(:action_view)
