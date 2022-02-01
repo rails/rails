@@ -1,3 +1,7 @@
+*   Add `ActiveSupport::TestCase#stub_const` to stub a constant for the duration of a yield.
+
+    *DHH*
+
 *   Fix `ActiveSupport::EncryptedConfiguration` to be compatible with Psych 4
 
     *Stephen Sugden*
