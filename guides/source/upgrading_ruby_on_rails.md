@@ -86,6 +86,10 @@ This means it won't be possible to load them with a manual `require` call, the c
 Reducing the size of `$LOAD_PATH` speed-up `require` calls for apps not using `bootsnap`, and reduce the
 size of the `bootsnap` cache for the others.
 
+### `ActiveStorage::BaseController` no longer includes the streaming concern
+
+Application controllers that inherit from `ActiveStorage::BaseController` and use streaming to implement custom file serving logic must now explicitly include the `ActiveStorage::Streaming` module. 
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 
