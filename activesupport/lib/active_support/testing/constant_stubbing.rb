@@ -12,6 +12,10 @@ module ActiveSupport
       #
       # Using this method rather than forcing `World::List::Import::LARGE_IMPORT_THRESHOLD = 5000` prevents
       # warnings from being thrown, and ensures that the old value is returned after the test has completed.
+      #
+      # Note: Stubbing a const will stub it across all threads. So if you have concurrent threads
+      # (like separate test suites running in parallel) that all depend on the same constant, it's possible
+      # divergent stubbing will trample on each other.
       def stub_const(klass, constant, new_value)
         old_value = klass.const_get(constant)
         klass.send(:remove_const, constant)
