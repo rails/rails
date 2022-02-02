@@ -1,3 +1,14 @@
+*   Fix `config.active_record.destroy_association_async_job` configuration
+
+    `config.active_record.destroy_association_async_job` should allow
+    applications to specify the job that will be used to destroy associated
+    records in the background for `has_many` associations with the
+    `dependent: :destroy_async` option. Previously, that was ignored, which
+    meant the default `ActiveRecord::DestroyAssociationAsyncJob` always
+    destroyed records in the background.
+
+    *Nick Holden*
+
 *   Fix quoting of `ActiveSupport::Duration` and `Rational` numbers in the MySQL adapter.
 
     *Kevin McPhillips*
