@@ -860,6 +860,55 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 end
 ```
 
+If you want to use a remote browser, e.g.
+[Headless Chrome in Docker](https://github.com/SeleniumHQ/docker-selenium),
+you have to add  remote `url` through `options`.
+
+```ruby
+require "test_helper"
+
+class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  options = ENV["SELENIUM_REMOTE_URL"].present? ? { url: ENV["SELENIUM_REMOTE_URL"] } : {}
+  driven_by :selenium, using: :headless_chrome, options: options
+end
+```
+
+In such a case, the gem `webdrivers` is no longer required. You could remove it
+completely or add `require:` option in `Gemfile`.
+
+```ruby
+# ...
+group :test do
+  gem "webdrivers", require: !ENV["SELENIUM_REMOTE_URL"] || ENV["SELENIUM_REMOTE_URL"].empty?
+end
+```
+
+Now you should get a connection to remote browser.
+
+```bash
+$ SELENIUM_REMOTE_URL=http://localhost:4444/wd/hub bin/rails test:system
+```
+
+If your application in test is running remote too, e.g. Docker container,
+Capybara needs more input about how to
+[call remote servers](https://github.com/teamcapybara/capybara#calling-remote-servers).
+
+```ruby
+require "test_helper"
+
+class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  def setup
+    Capybara.server_host = "0.0.0.0" # bind to all interfaces
+    Capybara.app_host = "http://#{IPSocket.getaddress(Socket.gethostname)}" if ENV["SELENIUM_REMOTE_URL"].present?
+    super
+  end
+  # ...
+end
+```
+
+Now you should get a connection to remote browser and server, regardless if it
+is running in Docker container or CI.
+
 If your Capybara configuration requires more setup than provided by Rails, this
 additional configuration could be added into the `application_system_test_case.rb`
 file.
