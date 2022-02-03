@@ -269,6 +269,22 @@ module ActiveRecord
         assert_not @cache.columns_hash?("posts")
       end
 
+      # This test covers a patch for a Ruby 2.6 bug that was only fixed in Ruby 2.7.
+      # See: https://bugs.ruby-lang.org/issues/15926
+      test "#deep_duplicate does not modify the frozen/ufrozen state of untainted or tainted string arguments" do
+        test_string = "banana"
+        [
+          test_string.dup,
+          test_string.dup.taint,
+          test_string.dup.freeze,
+          test_string.dup.taint.freeze
+        ].each do |str|
+          starting_frozen_state = str.frozen?
+          @cache.send(:deep_deduplicate, str)
+          assert_equal(starting_frozen_state, str.frozen?)
+        end
+      end
+
       private
         def schema_dump_path
           "#{ASSETS_ROOT}/schema_dump_5_1.yml"
