@@ -320,6 +320,30 @@ To fix this, just remove the wildcards:
 config.autoload_paths << "#{config.root}/extras"
 ```
 
+### Decorating Classes and Modules from Engines
+
+If your application decorates classes or modules from an engine, chances are it is doing something like this somewhere:
+
+```ruby
+config.to_prepare do
+  Dir.glob("#{Rails.root}/app/overrides/**/*_override.rb").each do |override|
+    require_dependency override
+  end
+end
+```
+
+That has to be updated: You need to tell the `main` autoloader to ignore the directory with the overrides, and you need to load them with `load` instead. Something like this:
+
+```ruby
+overrides = "#{Rails.root}/app/overrides"
+Rails.autoloaders.main.ignore(overrides)
+config.to_prepare do
+  Dir.glob("#{overrides}/**/*_override.rb").each do |override|
+    load override
+  end
+end
+```
+
 ### Spring and the `test` Environment
 
 Spring reloads the application code if something changes. In the `test` environment you need to enable reloading for that to work:
