@@ -1,3 +1,9 @@
+*   When populating a form field for a model attribute, the `collection_select`
+    and `grouped_collection_select` form tag helpers will now match a `nil`
+    attribute value with a `nil` choice value, just as the `select` helper does.
+
+    *Jonathan Hefner*
+
 *   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
 
     Escape dangerous characters in names of tags and names of attributes in the

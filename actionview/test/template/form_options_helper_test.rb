@@ -1105,6 +1105,28 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_collection_select_without_selected_option_when_value_is_nil
+    countries = [Country.new(nil, "Atlantis"), Country.new("ca", "Canada")]
+    @post = Post.new
+    @post.origin = nil
+
+    assert_dom_equal(
+      %(<select id="post_origin" name="post[origin]"><option value="" selected="selected">Atlantis</option>\n<option value="ca">Canada</option></select>),
+      collection_select(:post, :origin, countries, :country_id, :country_name)
+    )
+  end
+
+  def test_collection_select_with_nil_selected_option_when_value_is_nil
+    countries = [Country.new(nil, "Atlantis"), Country.new("ca", "Canada")]
+    @post = Post.new
+    @post.origin = nil
+
+    assert_dom_equal(
+      %(<select id="post_origin" name="post[origin]"><option value="">Atlantis</option>\n<option value="ca">Canada</option></select>),
+      collection_select(:post, :origin, countries, :country_id, :country_name, selected: nil)
+    )
+  end
+
   def test_collection_select_with_disabled
     @post = Post.new
     @post.author_name = "Babe"
@@ -1482,6 +1504,34 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       %Q{<select id="post_origin" name="post[origin]"><optgroup label="&lt;Africa&gt;"><option value="&lt;sa&gt;">&lt;South Africa&gt;</option>\n<option value="so">Somalia</option></optgroup><optgroup label="Europe"><option value="dk" selected="selected">Denmark</option>\n<option value="ie">Ireland</option></optgroup></select>},
       grouped_collection_select("post", "origin", dummy_continents, :countries, :continent_name, :country_id, :country_name, selected: "dk")
+    )
+  end
+
+  def test_grouped_collection_select_without_selected_option_when_value_is_nil
+    continents = [
+      Continent.new("Atlantic Ocean", [Country.new(nil, "Atlantis")]),
+      Continent.new("North America", [Country.new("ca", "Canada")]),
+    ]
+    @post = Post.new
+    @post.origin = nil
+
+    assert_dom_equal(
+      %(<select id="post_origin" name="post[origin]"><optgroup label="Atlantic Ocean"><option value="" selected="selected">Atlantis</option></optgroup><optgroup label="North America"><option value="ca">Canada</option></optgroup></select>),
+      grouped_collection_select(:post, :origin, continents, :countries, :continent_name, :country_id, :country_name)
+    )
+  end
+
+  def test_grouped_collection_select_with_nil_selected_option_when_value_is_nil
+    continents = [
+      Continent.new("Atlantic Ocean", [Country.new(nil, "Atlantis")]),
+      Continent.new("North America", [Country.new("ca", "Canada")]),
+    ]
+    @post = Post.new
+    @post.origin = nil
+
+    assert_dom_equal(
+      %(<select id="post_origin" name="post[origin]"><optgroup label="Atlantic Ocean"><option value="">Atlantis</option></optgroup><optgroup label="North America"><option value="ca">Canada</option></optgroup></select>),
+      grouped_collection_select(:post, :origin, continents, :countries, :continent_name, :country_id, :country_name, selected: nil)
     )
   end
 
