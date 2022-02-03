@@ -811,6 +811,21 @@ class FormHelperTest < ActionView::TestCase
     assert_predicate check_box("post", "secret", {}, "on", nil), :html_safe?
   end
 
+  def test_check_box_uses_value_before_type_cast
+    def @post.secret_before_type_cast; "before"; end
+    @post.secret = "after"
+
+    assert_dom_equal(
+      '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="before" />',
+      check_box("post", "secret", {}, "before", nil)
+    )
+
+    assert_dom_equal(
+      '<input id="post_secret" name="post[secret]" type="checkbox" value="after" />',
+      check_box("post", "secret", {}, "after", nil)
+    )
+  end
+
   def test_check_box_with_multiple_behavior
     @post.comment_ids = [2, 3]
     assert_dom_equal(
@@ -870,6 +885,21 @@ class FormHelperTest < ActionView::TestCase
   def test_radio_button_with_negative_integer_value
     assert_dom_equal('<input id="post_secret_-1" name="post[secret]" type="radio" value="-1" />',
       radio_button("post", "secret", "-1"))
+  end
+
+  def test_radio_button_uses_value_before_type_cast
+    def @post.secret_before_type_cast; "before"; end
+    @post.secret = "after"
+
+    assert_dom_equal(
+      '<input checked="checked" id="post_secret_before" name="post[secret]" type="radio" value="before" />',
+      radio_button("post", "secret", "before")
+    )
+
+    assert_dom_equal(
+      '<input id="post_secret_after" name="post[secret]" type="radio" value="after" />',
+      radio_button("post", "secret", "after")
+    )
   end
 
   def test_radio_button_respects_passed_in_id
@@ -1005,6 +1035,11 @@ class FormHelperTest < ActionView::TestCase
 
   def test_inputs_use_before_type_cast_to_retain_information_from_validations_like_numericality
     assert_dom_equal(
+      %{<input id="post_id" name="post[id]" type="text" value="omg" />},
+      text_field("post", "id")
+    )
+
+    assert_dom_equal(
       %{<textarea id="post_id" name="post[id]">\nomg</textarea>},
       text_area("post", "id")
     )
@@ -1017,13 +1052,26 @@ class FormHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal(
+      %{<input id="post_id" name="post[id]" type="text" value="0" />},
+      text_field("post", "id")
+    )
+
+    assert_dom_equal(
       %{<textarea id="post_id" name="post[id]">\n0</textarea>},
       text_area("post", "id")
     )
   end
 
-  def test_inputs_use_before_typecast_when_object_doesnt_respond_to_came_from_user
-    class << @post; undef id_came_from_user?; end
+  def test_inputs_use_before_type_cast_when_object_doesnt_respond_to_came_from_user
+    class << @post
+      undef id_came_from_user?
+    end
+
+    assert_dom_equal(
+      %{<input id="post_id" name="post[id]" type="text" value="omg" />},
+      text_field("post", "id")
+    )
+
     assert_dom_equal(
       %{<textarea id="post_id" name="post[id]">\nomg</textarea>},
       text_area("post", "id")
@@ -1059,6 +1107,14 @@ class FormHelperTest < ActionView::TestCase
   def test_color_field_with_value_attr
     expected = %{<input id="car_color" name="car[color]" type="color" value="#00FF00" />}
     assert_dom_equal(expected, color_field("car", "color", value: "#00FF00"))
+  end
+
+  def test_color_field_uses_value_before_type_cast
+    def @car.color_before_type_cast; "#00ff00"; end
+    @car.color = "(0,255,0)"
+
+    expected = %{<input id="car_color" name="car[color]" type="color" value="#00ff00" />}
+    assert_dom_equal(expected, color_field("car", "color"))
   end
 
   def test_search_field

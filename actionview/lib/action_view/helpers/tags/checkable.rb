@@ -9,7 +9,7 @@ module ActionView
             checked = options.delete "checked"
             checked == true || checked == "checked"
           else
-            checked?(value)
+            checked?(value_before_type_cast)
           end
         end
       end

@@ -1,3 +1,18 @@
+*   When populating a form field for a model attribute, the following form tag
+    helpers will now use the attribute's value before type cast, just as the
+    `text_field` helper does:
+
+    * `color_field`
+    * `check_box`
+    * `collection_check_boxes`
+    * `radio_button`
+    * `collection_radio_buttons`
+    * `select`
+    * `collection_select`
+    * `grouped_collection_select`
+
+    *Jonathan Hefner*
+
 *   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
 
     Escape dangerous characters in names of tags and names of attributes in the
