@@ -525,7 +525,7 @@ module ActiveRecord
           scope = quoted_scope(table_name)
 
           check_info = exec_query(<<-SQL, "SCHEMA")
-            SELECT conname, pg_get_constraintdef(c.oid) AS constraintdef, c.convalidated AS valid
+            SELECT conname, pg_get_constraintdef(c.oid, true) AS constraintdef, c.convalidated AS valid
             FROM pg_constraint c
             JOIN pg_class t ON c.conrelid = t.oid
             WHERE c.contype = 'c'
@@ -537,7 +537,7 @@ module ActiveRecord
               name: row["conname"],
               validate: row["valid"]
             }
-            expression = row["constraintdef"][/CHECK \({2}(.+)\){2}/, 1]
+            expression = row["constraintdef"][/CHECK \((.+)\)/m, 1]
 
             CheckConstraintDefinition.new(table_name, expression, options)
           end
@@ -569,7 +569,7 @@ module ActiveRecord
               else raise ArgumentError, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead."
               end
             when "enum"
-              raise ArgumentError "enum_type is required for enums" if enum_type.nil?
+              raise ArgumentError, "enum_type is required for enums" if enum_type.nil?
 
               enum_type
             else
@@ -663,7 +663,12 @@ module ActiveRecord
             column_name, type, default, notnull, oid, fmod, collation, comment, attgenerated = field
             type_metadata = fetch_type_metadata(column_name, type, oid.to_i, fmod.to_i)
             default_value = extract_value_from_default(default)
-            default_function = extract_default_function(default_value, default)
+
+            if attgenerated.present?
+              default_function = default
+            else
+              default_function = extract_default_function(default_value, default)
+            end
 
             if match = default_function&.match(/\Anextval\('"?(?<sequence_name>.+_(?<suffix>seq\d*))"?'::regclass\)\z/)
               serial = sequence_name_from_parts(table_name, column_name, match[:suffix]) == match[:sequence_name]

@@ -203,6 +203,7 @@ An API application comes with the following middleware by default:
 - `Rack::Sendfile`
 - `ActionDispatch::Static`
 - `ActionDispatch::Executor`
+- `ActionDispatch::ServerTiming`
 - `ActiveSupport::Cache::Strategy::LocalCache::Middleware`
 - `Rack::Runtime`
 - `ActionDispatch::RequestId`

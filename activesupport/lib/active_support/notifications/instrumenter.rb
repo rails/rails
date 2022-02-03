@@ -153,20 +153,18 @@ module ActiveSupport
             Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID, :float_millisecond)
           end
         rescue
-          def now_cpu
+          def now_cpu # rubocop:disable Lint/DuplicateMethods
             0.0
           end
         end
 
-        begin
-          GC.stat(:total_allocated_objects)
-        rescue ArgumentError # Likely on JRuby
-          def now_allocations
-            0
-          end
-        else
+        if GC.stat.key?(:total_allocated_objects)
           def now_allocations
             GC.stat(:total_allocated_objects)
+          end
+        else # Likely on JRuby, TruffleRuby
+          def now_allocations
+            0
           end
         end
     end

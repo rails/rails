@@ -1170,7 +1170,7 @@ module ApplicationTests
       assert_equal [::MyMailObserver, ::MyOtherMailObserver], ::Mail.class_variable_get(:@@delivery_notification_observers)
     end
 
-    test "allows setting the queue name for the ActionMailer::DeliveryJob" do
+    test "allows setting the queue name for the ActionMailer::MailDeliveryJob" do
       add_to_config <<-RUBY
         config.action_mailer.deliver_later_queue_name = 'test_default'
       RUBY
@@ -1822,7 +1822,8 @@ module ApplicationTests
       end
     end
 
-    test "autoload paths are added to $LOAD_PATH by default" do
+    test "autoload paths are not added to $LOAD_PATH if opted-in" do
+      add_to_config "config.add_autoload_paths_to_load_path = true"
       app "development"
 
       # Action Mailer modifies AS::Dependencies.autoload_paths in-place.
@@ -1838,8 +1839,7 @@ module ApplicationTests
       assert_empty Rails.configuration.paths.load_paths - $LOAD_PATH
     end
 
-    test "autoload paths are not added to $LOAD_PATH if opted-out" do
-      add_to_config "config.add_autoload_paths_to_load_path = false"
+    test "autoload paths are not added to $LOAD_PATH by default" do
       app "development"
 
       assert_empty ActiveSupport::Dependencies.autoload_paths & $LOAD_PATH
@@ -1868,10 +1868,6 @@ module ApplicationTests
         assert_includes config.autoload_once_paths, "#{app_path}/custom_autoload_once_path"
         assert_includes config.eager_load_paths, "#{app_path}/custom_eager_load_path"
       end
-
-      assert_includes $LOAD_PATH, "#{app_path}/custom_autoload_path"
-      assert_includes $LOAD_PATH, "#{app_path}/custom_autoload_once_path"
-      assert_includes $LOAD_PATH, "#{app_path}/custom_eager_load_path"
     end
 
     test "load_database_yaml returns blank hash if configuration file is blank" do
@@ -2358,18 +2354,6 @@ module ApplicationTests
       assert_equal OpenSSL::Digest::MD5, ActiveSupport::Digest.hash_digest_class
     end
 
-    test "ActiveSupport::Digest.hash_digest_class can be configured via config.active_support.use_sha1_digests" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.active_support.use_sha1_digests = true
-      RUBY
-
-      app "development"
-
-      assert_equal OpenSSL::Digest::SHA1, ActiveSupport::Digest.hash_digest_class
-    end
-
     test "ActiveSupport::Digest.hash_digest_class can be configured via config.active_support.hash_digest_class" do
       remove_from_config '.*config\.load_defaults.*\n'
 
@@ -2706,21 +2690,6 @@ module ApplicationTests
       assert_equal 0.22, ActiveJob::Base.retry_jitter
     end
 
-    test "ActiveJob::Base.skip_after_callbacks_if_terminated is true by default" do
-      app "development"
-
-      assert_equal true, ActiveJob::Base.skip_after_callbacks_if_terminated
-    end
-
-    test "ActiveJob::Base.skip_after_callbacks_if_terminated is false in the 6.0 defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "6.0"'
-
-      app "development"
-
-      assert_equal false, ActiveJob::Base.skip_after_callbacks_if_terminated
-    end
-
     test "Rails.application.config.action_dispatch.cookies_same_site_protection is :lax by default" do
       app "production"
 
@@ -2772,21 +2741,31 @@ module ApplicationTests
 
     test "Rails.application.config.action_mailer.smtp_settings have open_timeout and read_timeout defined as 5 in 7.0 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "7.0"'
+      add_to_config <<-RUBY
+        config.action_mailer.smtp_settings = { domain: "example.com" }
+        config.load_defaults "7.0"
+      RUBY
 
       app "development"
 
-      assert_equal 5, ActionMailer::Base.smtp_settings[:open_timeout]
-      assert_equal 5, ActionMailer::Base.smtp_settings[:read_timeout]
+      smtp_settings = { domain: "example.com", open_timeout: 5, read_timeout: 5 }
+
+      assert_equal smtp_settings, ActionMailer::Base.smtp_settings
+      assert_equal smtp_settings, Rails.configuration.action_mailer.smtp_settings
     end
 
     test "Rails.application.config.action_mailer.smtp_settings does not have open_timeout and read_timeout configured on other versions" do
       remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config <<-RUBY
+        config.action_mailer.smtp_settings = { domain: "example.com" }
+      RUBY
 
       app "development"
 
-      assert_nil ActionMailer::Base.smtp_settings[:open_timeout]
-      assert_nil ActionMailer::Base.smtp_settings[:read_timeout]
+      smtp_settings = { domain: "example.com" }
+
+      assert_equal smtp_settings, ActionMailer::Base.smtp_settings
+      assert_equal smtp_settings, ActionMailer::Base.smtp_settings
     end
 
     test "ActiveSupport.utc_to_local_returns_utc_offset_times is true in 6.1 defaults" do
@@ -3033,27 +3012,6 @@ module ApplicationTests
     end
 
     test "ActionMailer::Base.delivery_job is ActionMailer::MailDeliveryJob by default" do
-      app "development"
-
-      assert_equal ActionMailer::MailDeliveryJob, ActionMailer::Base.delivery_job
-    end
-
-    test "ActionMailer::Base.delivery_job is ActionMailer::DeliveryJob in the 5.x defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "5.2"'
-
-      app "development"
-
-      assert_equal ActionMailer::DeliveryJob, ActionMailer::Base.delivery_job
-    end
-
-    test "ActionMailer::Base.delivery_job can be configured in the new framework defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.action_mailer.delivery_job = "ActionMailer::MailDeliveryJob"
-      RUBY
-
       app "development"
 
       assert_equal ActionMailer::MailDeliveryJob, ActionMailer::Base.delivery_job
@@ -3481,6 +3439,102 @@ module ApplicationTests
       app "production"
 
       assert_equal [], ActionController::Base._wrapper_options.format
+    end
+
+    test "deprecated #to_s with format works with the Rails 6.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "production"
+
+      assert_deprecated do
+        assert_equal "21 Feb", Date.new(2005, 2, 21).to_s(:short)
+      end
+      assert_deprecated do
+        assert_equal "2005-02-21 14:30:00", DateTime.new(2005, 2, 21, 14, 30, 0, 0).to_s(:db)
+      end
+      assert_deprecated do
+        assert_equal "555-1234", 5551234.to_s(:phone)
+      end
+      assert_deprecated do
+        assert_equal "BETWEEN 'a' AND 'z'", ("a".."z").to_s(:db)
+      end
+      assert_deprecated do
+        assert_equal "2005-02-21 17:44:30", Time.utc(2005, 2, 21, 17, 44, 30.12345678901).to_s(:db)
+      end
+    end
+
+    test "deprecated #to_s with format does not work with the Rails 6.1 defaults and the config set" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      add_to_config <<-RUBY
+        config.active_support.disable_to_s_conversion = true
+      RUBY
+
+      app "production"
+
+      assert_raises(ArgumentError) do
+        Date.new(2005, 2, 21).to_s(:short)
+      end
+      assert_raises(ArgumentError) do
+        DateTime.new(2005, 2, 21, 14, 30, 0, 0).to_s(:db)
+      end
+      assert_raises(TypeError) do
+        5551234.to_s(:phone)
+      end
+      assert_raises(ArgumentError) do
+        ("a".."z").to_s(:db)
+      end
+      assert_raises(ArgumentError) do
+        Time.utc(2005, 2, 21, 17, 44, 30.12345678901).to_s(:db)
+      end
+    end
+
+    test "deprecated #to_s with format does not work with the Rails 7.0 defaults" do
+      app "production"
+
+      assert_raises(ArgumentError) do
+        Date.new(2005, 2, 21).to_s(:short)
+      end
+      assert_raises(ArgumentError) do
+        DateTime.new(2005, 2, 21, 14, 30, 0, 0).to_s(:db)
+      end
+      assert_raises(TypeError) do
+        5551234.to_s(:phone)
+      end
+      assert_raises(ArgumentError) do
+        ("a".."z").to_s(:db)
+      end
+      assert_raises(ArgumentError) do
+        Time.utc(2005, 2, 21, 17, 44, 30.12345678901).to_s(:db)
+      end
+    end
+
+    test "ActionController::Base.raise_on_missing_callback_actions is false by default for production" do
+      app "production"
+
+      assert_equal false, ActionController::Base.raise_on_missing_callback_actions
+    end
+
+    test "ActionController::Base.raise_on_missing_callback_actions is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal false, ActionController::Base.raise_on_missing_callback_actions
+    end
+
+    test "ActionController::Base.raise_on_missing_callback_actions can be configured in the new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_2.rb", <<-RUBY
+        Rails.application.config.action_controller.raise_on_missing_callback_actions = true
+      RUBY
+
+      app "production"
+
+      assert_equal true, ActionController::Base.raise_on_missing_callback_actions
     end
 
     private

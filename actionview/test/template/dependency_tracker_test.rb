@@ -115,8 +115,8 @@ module SharedTrackerTests
 
   def test_finds_dependency_on_multiline_render_calls
     template = FakeTemplate.new("<%=
-      render :object => @all_posts,
-             :partial => 'posts' %>", :erb)
+      render object: @all_posts,
+             partial: 'posts' %>", :erb)
 
     tracker = make_tracker("some/_little_posts", template)
 

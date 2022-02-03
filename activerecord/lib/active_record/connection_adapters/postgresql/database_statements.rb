@@ -28,6 +28,8 @@ module ActiveRecord
 
         def write_query?(sql) # :nodoc:
           !READ_QUERY.match?(sql)
+        rescue ArgumentError # Invalid encoding
+          !READ_QUERY.match?(sql.b)
         end
 
         # Executes an SQL statement, returning a PG::Result object on success
@@ -120,6 +122,8 @@ module ActiveRecord
 
         # Aborts a transaction.
         def exec_rollback_db_transaction # :nodoc:
+          @connection.cancel unless @connection.transaction_status == PG::PQTRANS_IDLE
+          @connection.block
           execute("ROLLBACK", "TRANSACTION")
         end
 

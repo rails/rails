@@ -395,7 +395,7 @@ value, proc, or symbol. Any class that includes Comparable can be compared.
 
 ```ruby
 class Promotion < ApplicationRecord
-  validates :start_date, comparison: { greater_than: :end_date }
+  validates :end_date, comparison: { greater_than: :start_date }
 end
 ```
 
@@ -1094,7 +1094,7 @@ instance.
 ```ruby
 class EmailValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
-    unless value =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
+    unless value =~ URI::MailTo::EMAIL_REGEXP
       record.errors.add attribute, (options[:message] || "is not an email")
     end
   end

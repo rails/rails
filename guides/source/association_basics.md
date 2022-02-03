@@ -80,7 +80,7 @@ Rails supports six types of associations:
 * [`has_one :through`][`has_one`]
 * [`has_and_belongs_to_many`][]
 
-Associations are implemented using macro-style calls, so that you can declaratively add features to your models. For example, by declaring that one model `belongs_to` another, you instruct Rails to maintain [Primary Key](https://en.wikipedia.org/wiki/Unique_key)-[Foreign Key](https://en.wikipedia.org/wiki/Foreign_key) information between instances of the two models, and you also get a number of utility methods added to your model.
+Associations are implemented using macro-style calls, so that you can declaratively add features to your models. For example, by declaring that one model `belongs_to` another, you instruct Rails to maintain [Primary Key](https://en.wikipedia.org/wiki/Primary_key)-[Foreign Key](https://en.wikipedia.org/wiki/Foreign_key) information between instances of the two models, and you also get a number of utility methods added to your model.
 
 In the remainder of this guide, you'll learn how to declare and use the various forms of associations. But first, a quick introduction to the situations where each association type is appropriate.
 
@@ -106,7 +106,7 @@ NOTE: `belongs_to` associations _must_ use the singular term. If you used the pl
 The corresponding migration might look like this:
 
 ```ruby
-class CreateBooks < ActiveRecord::Migration[7.0]
+class CreateBooks < ActiveRecord::Migration[7.1]
   def change
     create_table :authors do |t|
       t.string :name
@@ -153,7 +153,7 @@ The main difference from `belongs_to` is that the link column `supplier_id` is l
 The corresponding migration might look like this:
 
 ```ruby
-class CreateSuppliers < ActiveRecord::Migration[7.0]
+class CreateSuppliers < ActiveRecord::Migration[7.1]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -199,7 +199,7 @@ NOTE: The name of the other model is pluralized when declaring a `has_many` asso
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAuthors < ActiveRecord::Migration[7.0]
+class CreateAuthors < ActiveRecord::Migration[7.1]
   def change
     create_table :authors do |t|
       t.string :name
@@ -251,7 +251,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAppointments < ActiveRecord::Migration[7.0]
+class CreateAppointments < ActiveRecord::Migration[7.1]
   def change
     create_table :physicians do |t|
       t.string :name
@@ -337,7 +337,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAccountHistories < ActiveRecord::Migration[7.0]
+class CreateAccountHistories < ActiveRecord::Migration[7.1]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -380,7 +380,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAssembliesAndParts < ActiveRecord::Migration[7.0]
+class CreateAssembliesAndParts < ActiveRecord::Migration[7.1]
   def change
     create_table :assemblies do |t|
       t.string :name
@@ -419,7 +419,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateSuppliers < ActiveRecord::Migration[7.0]
+class CreateSuppliers < ActiveRecord::Migration[7.1]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -501,7 +501,7 @@ Similarly, you can retrieve `@product.pictures`.
 If you have an instance of the `Picture` model, you can get to its parent via `@picture.imageable`. To make this work, you need to declare both a foreign key column and a type column in the model that declares the polymorphic interface:
 
 ```ruby
-class CreatePictures < ActiveRecord::Migration[7.0]
+class CreatePictures < ActiveRecord::Migration[7.1]
   def change
     create_table :pictures do |t|
       t.string  :name
@@ -518,7 +518,7 @@ end
 This migration can be simplified by using the `t.references` form:
 
 ```ruby
-class CreatePictures < ActiveRecord::Migration[7.0]
+class CreatePictures < ActiveRecord::Migration[7.1]
   def change
     create_table :pictures do |t|
       t.string :name
@@ -549,7 +549,7 @@ With this setup, you can retrieve `@employee.subordinates` and `@employee.manage
 In your migrations/schema, you will add a references column to the model itself.
 
 ```ruby
-class CreateEmployees < ActiveRecord::Migration[7.0]
+class CreateEmployees < ActiveRecord::Migration[7.1]
   def change
     create_table :employees do |t|
       t.references :manager, foreign_key: { to_table: :employees }
@@ -619,7 +619,7 @@ end
 This declaration needs to be backed up by a corresponding foreign key column in the books table. For a brand new table, the migration might look something like this:
 
 ```ruby
-class CreateBooks < ActiveRecord::Migration[7.0]
+class CreateBooks < ActiveRecord::Migration[7.1]
   def change
     create_table :books do |t|
       t.datetime   :published_at
@@ -633,7 +633,7 @@ end
 Whereas for an existing table, it might look like this:
 
 ```ruby
-class AddAuthorToBooks < ActiveRecord::Migration[7.0]
+class AddAuthorToBooks < ActiveRecord::Migration[7.1]
   def change
     add_reference :books, :author
   end
@@ -663,7 +663,7 @@ end
 These need to be backed up by a migration to create the `assemblies_parts` table. This table should be created without a primary key:
 
 ```ruby
-class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.0]
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.1]
   def change
     create_table :assemblies_parts, id: false do |t|
       t.bigint :assembly_id
@@ -681,7 +681,7 @@ We pass `id: false` to `create_table` because that table does not represent a mo
 You can also use the method `create_join_table`
 
 ```ruby
-class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.0]
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.1]
   def change
     create_join_table :assemblies, :parts do |t|
       t.index :assembly_id
@@ -761,17 +761,60 @@ class Book < ApplicationRecord
 end
 ```
 
-Active Record will attempt to automatically identify that these two models share a bi-directional association based on the association name. In this way, Active Record will only load one copy of the `Author` object, making your application more efficient and preventing inconsistent data:
+Active Record will attempt to automatically identify that these two models share
+a bi-directional association based on the association name. This information
+allows Active Record to:
 
-```irb
-irb> a = Author.first
-irb> b = a.books.first
-irb> a.first_name == b.author.first_name
-=> true
-irb> a.first_name = 'David'
-irb> a.first_name == b.author.first_name
-=> true
-```
+* Prevent needless queries for already-loaded data
+
+    ```irb
+    irb> author = Author.first
+    irb> author.books.all? do |book|
+    irb>   book.author.equal?(author) # No additional queries executed here
+    irb> end
+    => true
+    ```
+
+* Prevent inconsistent data (since there is only one copy of the `Author` object
+  loaded)
+
+    ```irb
+    irb> author = Author.first
+    irb> book = author.books.first
+    irb> author.name == book.author.name
+    => true
+    irb> author.name = "Changed Name"
+    irb> author.name == book.author.name
+    => true
+    ```
+
+* Autosave associations in more cases
+
+    ```irb
+    irb> author = Author.new
+    irb> book = author.books.new
+    irb> book.save!
+    irb> book.persisted?
+    => true
+    irb> author.persisted?
+    => true
+    ```
+
+* Validate the [presence](active_record_validations.html#presence) and
+  [absence](active_record_validations.html#absence) of associations in more
+  cases
+
+    ```irb
+    irb> book = Book.new
+    irb> book.valid?
+    => false
+    irb> book.errors.full_messages
+    => ["Author must exist"]
+    irb> author = Author.new
+    irb> book = author.books.new
+    irb> book.valid?
+    => true
+    ```
 
 Active Record supports automatic identification for most associations with
 standard names. However, Active Record will not automatically identify
@@ -793,17 +836,53 @@ class Book < ApplicationRecord
 end
 ```
 
-Active Record will no longer automatically recognize the bi-directional association:
+Because of the `:foreign_key` option, Active Record will no longer automatically
+recognize the bi-directional association. This can cause your application to:
 
-```irb
-irb> a = Author.first
-irb> b = a.books.first
-irb> a.first_name == b.writer.first_name
-=> true
-irb> a.first_name = 'David'
-irb> a.first_name == b.writer.first_name
-=> false
-```
+* Execute needless queries for the same data (in this example causing N+1 queries)
+
+    ```irb
+    irb> author = Author.first
+    irb> author.books.any? do |book|
+    irb>   book.author.equal?(author) # This executes an author query for every book
+    irb> end
+    => false
+    ```
+
+* Reference multiple copies of a model with inconsistent data
+
+    ```irb
+    irb> author = Author.first
+    irb> book = author.books.first
+    irb> author.name == book.author.name
+    => true
+    irb> author.name = "Changed Name"
+    irb> author.name == book.author.name
+    => false
+    ```
+
+* Fail to autosave associations
+
+    ```irb
+    irb> author = Author.new
+    irb> book = author.books.new
+    irb> book.save!
+    irb> book.persisted?
+    => true
+    irb> author.persisted?
+    => false
+    ```
+
+* Fail to validate presence or absence
+
+    ```irb
+    irb> author = Author.new
+    irb> book = author.books.new
+    irb> book.valid?
+    => false
+    irb> book.errors.full_messages
+    => ["Author must exist"]
+    ```
 
 Active Record provides the `:inverse_of` option so you can explicitly declare bi-directional associations:
 
@@ -817,17 +896,9 @@ class Book < ApplicationRecord
 end
 ```
 
-By including the `:inverse_of` option in the `has_many` association declaration, Active Record will now recognize the bi-directional association:
-
-```irb
-irb> a = Author.first
-irb> b = a.books.first
-irb> a.first_name == b.writer.first_name
-=> true
-irb> a.first_name = 'David'
-irb> a.first_name == b.writer.first_name
-=> true
-```
+By including the `:inverse_of` option in the `has_many` association declaration,
+Active Record will now recognize the bi-directional association and behave as in
+the initial examples above.
 
 Detailed Association Reference
 ------------------------------
@@ -1037,7 +1108,15 @@ end
 NOTE: You only need to specify the `:counter_cache` option on the `belongs_to`
 side of the association.
 
-Counter cache columns are added to the containing model's list of read-only attributes through `attr_readonly`.
+Counter cache columns are added to the owner model's list of read-only
+attributes through `attr_readonly`.
+
+If for some reason you change the value of an owner model's primary key, and do
+not also update the foreign keys of the counted models, then the counter cache
+may have stale data. In other words, any orphaned models will still count
+towards the counter. To fix a stale counter cache, use [`reset_counters`][].
+
+[`reset_counters`]: https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-reset_counters
 
 ##### `:dependent`
 
@@ -1089,6 +1168,7 @@ When we execute `@user.todos.create` then the `@todo` record will have its
 ##### `:inverse_of`
 
 The `:inverse_of` option specifies the name of the `has_many` or `has_one` association that is the inverse of this association.
+See the [bi-directional association](#bi-directional-associations) section for more details.
 
 ```ruby
 class Author < ApplicationRecord
@@ -1377,6 +1457,7 @@ TIP: In any case, Rails will not create foreign key columns for you. You need to
 ##### `:inverse_of`
 
 The `:inverse_of` option specifies the name of the `belongs_to` association that is the inverse of this association.
+See the [bi-directional association](#bi-directional-associations) section for more details.
 
 ```ruby
 class Supplier < ApplicationRecord
@@ -1830,6 +1911,7 @@ TIP: In any case, Rails will not create foreign key columns for you. You need to
 ##### `:inverse_of`
 
 The `:inverse_of` option specifies the name of the `belongs_to` association that is the inverse of this association.
+See the [bi-directional association](#bi-directional-associations) section for more details.
 
 ```ruby
 class Author < ApplicationRecord

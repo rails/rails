@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "weakref"
+require "active_support/ruby_features"
 
 module ActiveSupport
   # This module provides an internal implementation to track descendants
@@ -16,8 +17,44 @@ module ActiveSupport
       end
     end
 
-    if ActiveSupport.instance_variable_get(:@has_native_class_descendants) # RUBY_VERSION >= "3.1"
+    @clear_disabled = false
+
+    if RubyFeatures::CLASS_SUBCLASSES
+      @@excluded_descendants = if RUBY_ENGINE == "ruby"
+        # On MRI `ObjectSpace::WeakMap` keys are weak references.
+        # So we can simply use WeakMap as a `Set`.
+        ObjectSpace::WeakMap.new
+      else
+        # On TruffleRuby `ObjectSpace::WeakMap` keys are strong references.
+        # So we use `object_id` as a key and the actual object as a value.
+        #
+        # JRuby for now doesn't have Class#descendant, but when it will, it will likely
+        # have the same WeakMap semantic than Truffle so we future proof this as much as possible.
+        class WeakSet # :nodoc:
+          def initialize
+            @map = ObjectSpace::WeakMap.new
+          end
+
+          def [](object)
+            @map.key?(object.object_id)
+          end
+
+          def []=(object, _present)
+            @map[object.object_id] = object
+          end
+        end
+        WeakSet.new
+      end
+
       class << self
+        def disable_clear! # :nodoc:
+          unless @clear_disabled
+            @clear_disabled = true
+            remove_method(:subclasses)
+            @@excluded_descendants = nil
+          end
+        end
+
         def subclasses(klass)
           klass.subclasses
         end
@@ -26,8 +63,15 @@ module ActiveSupport
           klass.descendants
         end
 
-        def clear(only: nil) # :nodoc:
-          # noop
+        def clear(classes) # :nodoc:
+          raise "DescendantsTracker.clear was disabled because config.cache_classes = true" if @clear_disabled
+
+          classes.each do |klass|
+            @@excluded_descendants[klass] = true
+            klass.descendants.each do |descendant|
+              @@excluded_descendants[descendant] = true
+            end
+          end
         end
 
         def native? # :nodoc:
@@ -36,7 +80,13 @@ module ActiveSupport
       end
 
       def subclasses
-        descendants.select { |descendant| descendant.superclass == self }
+        subclasses = super
+        subclasses.reject! { |d| @@excluded_descendants[d] }
+        subclasses
+      end
+
+      def descendants
+        subclasses.concat(subclasses.flat_map(&:descendants))
       end
 
       def direct_descendants
@@ -50,6 +100,10 @@ module ActiveSupport
       @@direct_descendants = {}
 
       class << self
+        def disable_clear! # :nodoc:
+          @clear_disabled = true
+        end
+
         def subclasses(klass)
           descendants = @@direct_descendants[klass]
           descendants ? descendants.to_a : []
@@ -61,18 +115,15 @@ module ActiveSupport
           arr
         end
 
-        def clear(only: nil) # :nodoc:
-          if only.nil?
-            @@direct_descendants.clear
-            return
-          end
+        def clear(classes) # :nodoc:
+          raise "DescendantsTracker.clear was disabled because config.cache_classes = true" if @clear_disabled
 
           @@direct_descendants.each do |klass, direct_descendants_of_klass|
-            if only.member?(klass)
+            if classes.member?(klass)
               @@direct_descendants.delete(klass)
             else
               direct_descendants_of_klass.reject! do |direct_descendant_of_class|
-                only.member?(direct_descendant_of_class)
+                classes.member?(direct_descendant_of_class)
               end
             end
           end

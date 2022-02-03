@@ -32,11 +32,6 @@ module ActiveRecord
         @configuration_hash = configuration_hash.symbolize_keys.freeze
       end
 
-      def config
-        ActiveSupport::Deprecation.warn("DatabaseConfig#config will be removed in 7.0.0 in favor of DatabaseConfig#configuration_hash which returns a hash with symbol keys")
-        configuration_hash.stringify_keys
-      end
-
       # Determines whether a database configuration is for a replica / readonly
       # connection. If the +replica+ key is present in the config, +replica?+ will
       # return +true+.

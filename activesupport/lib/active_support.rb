@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2005-2021 David Heinemeier Hansson
+# Copyright (c) 2005-2022 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -40,14 +40,18 @@ module ActiveSupport
   autoload :CurrentAttributes
   autoload :Dependencies
   autoload :DescendantsTracker
+  autoload :ExecutionContext
   autoload :ExecutionWrapper
   autoload :Executor
+  autoload :ErrorReporter
   autoload :FileUpdateChecker
   autoload :EventedFileUpdateChecker
   autoload :ForkTracker
   autoload :LogSubscriber
+  autoload :IsolatedExecutionState
   autoload :Notifications
   autoload :Reloader
+  autoload :PerThreadRegistry
   autoload :SecureCompareRotator
 
   eager_autoload do
@@ -90,6 +94,8 @@ module ActiveSupport
   cattr_accessor :test_order # :nodoc:
   cattr_accessor :test_parallelization_threshold, default: 50 # :nodoc:
 
+  singleton_class.attr_accessor :error_reporter # :nodoc:
+
   def self.cache_format_version
     Cache.format_version
   end
@@ -113,12 +119,6 @@ module ActiveSupport
   def self.utc_to_local_returns_utc_offset_times=(value)
     DateAndTime::Compatibility.utc_to_local_returns_utc_offset_times = value
   end
-
-  def self.current_attributes_use_thread_variables=(value)
-    CurrentAttributes._use_thread_variables = value
-  end
-
-  @has_native_class_descendants = Class.method_defined?(:descendants) # RUBY_VERSION >= "3.1"
 end
 
 autoload :I18n, "active_support/i18n"

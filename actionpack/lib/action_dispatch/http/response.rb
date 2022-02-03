@@ -86,18 +86,6 @@ module ActionDispatch # :nodoc:
     cattr_accessor :default_charset, default: "utf-8"
     cattr_accessor :default_headers
 
-    def self.return_only_media_type_on_content_type=(*)
-      ActiveSupport::Deprecation.warn(
-        ".return_only_media_type_on_content_type= is deprecated with no replacement and will be removed in 7.0."
-      )
-    end
-
-    def self.return_only_media_type_on_content_type
-      ActiveSupport::Deprecation.warn(
-        ".return_only_media_type_on_content_type is deprecated with no replacement and will be removed in 7.0."
-      )
-    end
-
     include Rack::Response::Helpers
     # Aliasing these off because AD::Http::Cache::Response defines them.
     alias :_cache_control :cache_control

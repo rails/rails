@@ -23,14 +23,14 @@ module ActiveStorage
       @upload_options[:acl] = "public-read" if public?
     end
 
-    def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, **)
+    def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, custom_metadata: {}, **)
       instrument :upload, key: key, checksum: checksum do
         content_disposition = content_disposition_with(filename: filename, type: disposition) if disposition && filename
 
         if io.size < multipart_upload_threshold
-          upload_with_single_part key, io, checksum: checksum, content_type: content_type, content_disposition: content_disposition
+          upload_with_single_part key, io, checksum: checksum, content_type: content_type, content_disposition: content_disposition, custom_metadata: custom_metadata
         else
-          upload_with_multipart key, io, content_type: content_type, content_disposition: content_disposition
+          upload_with_multipart key, io, content_type: content_type, content_disposition: content_disposition, custom_metadata: custom_metadata
         end
       end
     end
@@ -77,11 +77,11 @@ module ActiveStorage
       end
     end
 
-    def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
+    def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:, custom_metadata: {})
       instrument :url, key: key do |payload|
         generated_url = object_for(key).presigned_url :put, expires_in: expires_in.to_i,
           content_type: content_type, content_length: content_length, content_md5: checksum,
-          whitelist_headers: ["content-length"], **upload_options
+          metadata: custom_metadata, whitelist_headers: ["content-length"], **upload_options
 
         payload[:url] = generated_url
 
@@ -89,10 +89,28 @@ module ActiveStorage
       end
     end
 
-    def headers_for_direct_upload(key, content_type:, checksum:, filename: nil, disposition: nil, **)
+    def headers_for_direct_upload(key, content_type:, checksum:, filename: nil, disposition: nil, custom_metadata: {}, **)
       content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
 
-      { "Content-Type" => content_type, "Content-MD5" => checksum, "Content-Disposition" => content_disposition }
+      { "Content-Type" => content_type, "Content-MD5" => checksum, "Content-Disposition" => content_disposition, **custom_metadata_headers(custom_metadata) }
+    end
+
+    def compose(source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
+      content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
+
+      object_for(destination_key).upload_stream(
+        content_type: content_type,
+        content_disposition: content_disposition,
+        part_size: MINIMUM_UPLOAD_PART_SIZE,
+        metadata: custom_metadata,
+        **upload_options
+      ) do |out|
+        source_keys.each do |source_key|
+          stream(source_key) do |chunk|
+            IO.copy_stream(StringIO.new(chunk), out)
+          end
+        end
+      end
     end
 
     private
@@ -110,16 +128,16 @@ module ActiveStorage
       MAXIMUM_UPLOAD_PARTS_COUNT = 10000
       MINIMUM_UPLOAD_PART_SIZE   = 5.megabytes
 
-      def upload_with_single_part(key, io, checksum: nil, content_type: nil, content_disposition: nil)
-        object_for(key).put(body: io, content_md5: checksum, content_type: content_type, content_disposition: content_disposition, **upload_options)
+      def upload_with_single_part(key, io, checksum: nil, content_type: nil, content_disposition: nil, custom_metadata: {})
+        object_for(key).put(body: io, content_md5: checksum, content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata, **upload_options)
       rescue Aws::S3::Errors::BadDigest
         raise ActiveStorage::IntegrityError
       end
 
-      def upload_with_multipart(key, io, content_type: nil, content_disposition: nil)
+      def upload_with_multipart(key, io, content_type: nil, content_disposition: nil, custom_metadata: {})
         part_size = [ io.size.fdiv(MAXIMUM_UPLOAD_PARTS_COUNT).ceil, MINIMUM_UPLOAD_PART_SIZE ].max
 
-        object_for(key).upload_stream(content_type: content_type, content_disposition: content_disposition, part_size: part_size, **upload_options) do |out|
+        object_for(key).upload_stream(content_type: content_type, content_disposition: content_disposition, part_size: part_size, metadata: custom_metadata, **upload_options) do |out|
           IO.copy_stream(io, out)
         end
       end
@@ -142,6 +160,10 @@ module ActiveStorage
           yield object.get(range: "bytes=#{offset}-#{offset + chunk_size - 1}").body.string.force_encoding(Encoding::BINARY)
           offset += chunk_size
         end
+      end
+
+      def custom_metadata_headers(metadata)
+        metadata.transform_keys { |key| "x-amz-meta-#{key}" }
       end
   end
 end

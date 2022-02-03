@@ -90,10 +90,6 @@ module ActionController # :nodoc:
       config_accessor :default_protect_from_forgery
       self.default_protect_from_forgery = false
 
-      # Controls whether URL-safe CSRF tokens are generated.
-      config_accessor :urlsafe_csrf_tokens, instance_writer: false
-      self.urlsafe_csrf_tokens = false
-
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
     end
@@ -508,31 +504,15 @@ module ActionController # :nodoc:
       end
 
       def generate_csrf_token # :nodoc:
-        if urlsafe_csrf_tokens
-          SecureRandom.urlsafe_base64(AUTHENTICITY_TOKEN_LENGTH)
-        else
-          SecureRandom.base64(AUTHENTICITY_TOKEN_LENGTH)
-        end
+        SecureRandom.urlsafe_base64(AUTHENTICITY_TOKEN_LENGTH)
       end
 
       def encode_csrf_token(csrf_token) # :nodoc:
-        if urlsafe_csrf_tokens
-          Base64.urlsafe_encode64(csrf_token, padding: false)
-        else
-          Base64.strict_encode64(csrf_token)
-        end
+        Base64.urlsafe_encode64(csrf_token, padding: false)
       end
 
       def decode_csrf_token(encoded_csrf_token) # :nodoc:
-        if urlsafe_csrf_tokens
-          Base64.urlsafe_decode64(encoded_csrf_token)
-        else
-          begin
-            Base64.strict_decode64(encoded_csrf_token)
-          rescue ArgumentError
-            Base64.urlsafe_decode64(encoded_csrf_token)
-          end
-        end
+        Base64.urlsafe_decode64(encoded_csrf_token)
       end
   end
 end

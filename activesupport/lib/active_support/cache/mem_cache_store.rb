@@ -298,8 +298,9 @@ module ActiveSupport
 
         def rescue_error_with(fallback)
           yield
-        rescue Dalli::DalliError => e
-          logger.error("DalliError (#{e}): #{e.message}") if logger
+        rescue Dalli::DalliError => error
+          ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
+          logger.error("DalliError (#{error}): #{error.message}") if logger
           fallback
         end
     end

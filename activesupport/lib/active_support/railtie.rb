@@ -6,8 +6,15 @@ require "active_support/i18n_railtie"
 module ActiveSupport
   class Railtie < Rails::Railtie # :nodoc:
     config.active_support = ActiveSupport::OrderedOptions.new
+    config.active_support.disable_to_s_conversion = false
 
     config.eager_load_namespaces << ActiveSupport
+
+    initializer "active_support.isolation_level" do |app|
+      if level = app.config.active_support.delete(:isolation_level)
+        ActiveSupport::IsolatedExecutionState.isolation_level = level
+      end
+    end
 
     initializer "active_support.remove_deprecated_time_with_zone_name" do |app|
       config.after_initialize do
@@ -27,8 +34,14 @@ module ActiveSupport
       end
     end
 
+    initializer "active_support.reset_execution_context" do |app|
+      app.reloader.before_class_unload { ActiveSupport::ExecutionContext.clear }
+      app.executor.to_run              { ActiveSupport::ExecutionContext.clear }
+      app.executor.to_complete         { ActiveSupport::ExecutionContext.clear }
+    end
+
     initializer "active_support.reset_all_current_attributes_instances" do |app|
-      executor_around_test_case = app.config.active_support.delete(:executor_around_test_case)
+      executor_around_test_case = app.config.active_support.executor_around_test_case
 
       app.reloader.before_class_unload { ActiveSupport::CurrentAttributes.clear_all }
       app.executor.to_run              { ActiveSupport::CurrentAttributes.reset_all }
@@ -41,6 +54,9 @@ module ActiveSupport
         else
           require "active_support/current_attributes/test_helper"
           include ActiveSupport::CurrentAttributes::TestHelper
+
+          require "active_support/execution_context/test_helper"
+          include ActiveSupport::ExecutionContext::TestHelper
         end
       end
     end
@@ -97,6 +113,10 @@ module ActiveSupport
       end
     end
 
+    initializer "active_support.set_error_reporter" do |app|
+      ActiveSupport.error_reporter = app.executor.error_reporter
+    end
+
     initializer "active_support.set_configs" do |app|
       app.config.active_support.each do |k, v|
         k = "#{k}="
@@ -106,15 +126,6 @@ module ActiveSupport
 
     initializer "active_support.set_hash_digest_class" do |app|
       config.after_initialize do
-        if app.config.active_support.use_sha1_digests
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            config.active_support.use_sha1_digests is deprecated and will
-            be removed from Rails 7.0. Use
-            config.active_support.hash_digest_class = OpenSSL::Digest::SHA1 instead.
-          MSG
-          ActiveSupport::Digest.hash_digest_class = OpenSSL::Digest::SHA1
-        end
-
         if klass = app.config.active_support.hash_digest_class
           ActiveSupport::Digest.hash_digest_class = klass
         end

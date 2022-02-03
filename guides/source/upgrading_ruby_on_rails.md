@@ -75,8 +75,40 @@ The new Rails version might have different configuration defaults than the previ
 
 To allow you to upgrade to new defaults one by one, the update task has created a file `config/initializers/new_framework_defaults_X.Y.rb` (with the desired Rails version in the filename). You should enable the new configuration defaults by uncommenting them in the file; this can be done gradually over several deployments. Once your application is ready to run with new defaults, you can remove this file and flip the `config.load_defaults` value.
 
+Upgrading from Rails 7.0 to Rails 7.1
+-------------------------------------
+
+### Autoloaded paths are no longer in load path
+
+Starting from Rails 7.1, all paths managed by the autoloader will no longer be added to `$LOAD_PATH`.
+This means it won't be possible to load them with a manual `require` call, the class or module can be referenced instead.
+
+Reducing the size of `$LOAD_PATH` speed-up `require` calls for apps not using `bootsnap`, and reduce the
+size of the `bootsnap` cache for the others.
+
+### `ActiveStorage::BaseController` no longer includes the streaming concern
+
+Application controllers that inherit from `ActiveStorage::BaseController` and use streaming to implement custom file serving logic must now explicitly include the `ActiveStorage::Streaming` module. 
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
+
+### `ActionView::Helpers::UrlHelper#button_to` changed behavior
+
+Starting from Rails 7.0 `button_to` renders a `form` tag with `patch` HTTP verb if a persisted Active Record object is used to build button URL.
+To keep current behavior consider explicitly passing `method:` option:
+
+```diff
+-button_to("Do a POST", [:my_custom_post_action_on_workshop, Workshop.find(1)])
++button_to("Do a POST", [:my_custom_post_action_on_workshop, Workshop.find(1)], method: :post)
+```
+
+or using helper to build the URL:
+
+```diff
+-button_to("Do a POST", [:my_custom_post_action_on_workshop, Workshop.find(1)])
++button_to("Do a POST", my_custom_post_action_on_workshop_workshop_path(Workshop.find(1)))
+```
 
 ### Spring
 
@@ -87,6 +119,15 @@ undefined method `mechanism=' for ActiveSupport::Dependencies:Module
 ```
 
 Also, make sure `config.cache_classes` is set to `false` in `config/environments/test.rb`.
+
+### Sprockets is now an optional dependency
+
+The gem `rails` doesn't depend on `sprockets-rails` anymore. If your application still needs to use Sprockets,
+make sure to add `sprockets-rails` to your Gemfile.
+
+```
+gem "sprockets-rails"
+```
 
 ### Applications need to run in `zeitwerk` mode
 
@@ -224,7 +265,7 @@ processes have been updated you can set `config.active_support.cache_format_vers
 Rails 7.0 is able to read both formats so the cache won't be invalidated during the
 upgrade.
 
-### ActiveStorage video preview image generation
+### Active Storage video preview image generation
 
 Video preview image generation now uses FFmpeg's scene change detection to generate
 more meaningful preview images. Previously the first frame of the video would be used
@@ -235,7 +276,7 @@ FFmpeg v3.4+.
 
 For new apps, image transformation will use libvips instead of ImageMagick. This will reduce
 the time taken to generate variants as well as CPU and memory usage, improving response
-times in apps that rely on active storage to serve their images.
+times in apps that rely on Active Storage to serve their images.
 
 The `:mini_magick` option is not being deprecated, so it is fine to keep using it.
 
@@ -462,7 +503,7 @@ The default HTTP status code used in `ActionDispatch::SSL` when redirecting non-
 
 ### Active Storage now requires Image Processing
 
-When processing variants in Active Storage, it's now required to have the [image_processing gem](https://github.com/janko-m/image_processing) bundled instead of directly using `mini_magick`. Image Processing is configured by default to use `mini_magick` behind the scenes, so the easiest way to upgrade is by replacing the `mini_magick` gem for the `image_processing` gem and making sure to remove the explicit usage of `combine_options` since it's no longer needed.
+When processing variants in Active Storage, it's now required to have the [image_processing gem](https://github.com/janko/image_processing) bundled instead of directly using `mini_magick`. Image Processing is configured by default to use `mini_magick` behind the scenes, so the easiest way to upgrade is by replacing the `mini_magick` gem for the `image_processing` gem and making sure to remove the explicit usage of `combine_options` since it's no longer needed.
 
 For readability, you may wish to change raw `resize` calls to `image_processing` macros. For example, instead of:
 
@@ -753,7 +794,7 @@ end
 
 while `Bar` could not be autoloaded, autoloading `Foo` would mark `Bar` as autoloaded too. This is not the case in `zeitwerk` mode, you need to move `Bar` to its own file `bar.rb`. One file, one constant.
 
-This affects only to constants at the same top-level as in the example above. Inner classes and modules are fine. For example, consider
+This only applies to constants at the same top-level as in the example above. Inner classes and modules are fine. For example, consider
 
 ```ruby
 # app/models/foo.rb
@@ -897,8 +938,14 @@ For more information on changes made to Rails 5.2 please see the [release notes]
 ### Bootsnap
 
 Rails 5.2 adds bootsnap gem in the [newly generated app's Gemfile](https://github.com/rails/rails/pull/29313).
-The `app:update` command sets it up in `boot.rb`. If you want to use it, then add it in the Gemfile,
-otherwise change the `boot.rb` to not use bootsnap.
+The `app:update` command sets it up in `boot.rb`. If you want to use it, then add it in the Gemfile:
+
+```ruby
+# Reduces boot times through caching; required in config/boot.rb
+gem 'bootsnap', require: false
+```
+
+Otherwise change the `boot.rb` to not use bootsnap.
 
 ### Expiry in signed or encrypted cookie is now embedded in the cookies values
 

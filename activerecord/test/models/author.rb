@@ -53,13 +53,13 @@ class Author < ActiveRecord::Base
 
   has_many :ratings, through: :comments
   has_many :good_ratings,
-    -> { where("ratings.value > 5") },
+    -> { where("ratings.value > 5").order(:id) },
     through: :comments,
     source: :ratings
 
   has_many :no_joins_ratings, through: :no_joins_comments, disable_joins: :true, source: :ratings
   has_many :no_joins_good_ratings,
-    -> { where("ratings.value > 5") },
+    -> { where("ratings.value > 5").order(:id) },
     through: :comments,
     source: :ratings,
     disable_joins: true

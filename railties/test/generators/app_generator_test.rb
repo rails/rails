@@ -180,7 +180,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_new_application_doesnt_need_defaults
     run_generator
-    assert_no_file "config/initializers/new_framework_defaults_7_0.rb"
+    assert_empty Dir.glob("config/initializers/new_framework_defaults_*.rb", base: destination_root)
   end
 
   def test_new_application_load_defaults
@@ -190,17 +190,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_app_update_create_new_framework_defaults
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root]
+    run_generator
+    defaults_path = "config/initializers/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
 
-    assert_no_file "#{app_root}/config/initializers/new_framework_defaults_7_0.rb"
+    assert_no_file defaults_path
 
-    stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, { destination_root: app_root, shell: @shell }
+    stub_rails_application do
+      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, { destination_root: destination_root, shell: @shell }
       generator.send(:app_const)
       quietly { generator.update_config_files }
 
-      assert_file "#{app_root}/config/initializers/new_framework_defaults_7_0.rb"
+      assert_file defaults_path
     end
   end
 
@@ -241,7 +241,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
       assert_no_file "#{app_root}/config/initializers/assets.rb"
       assert_no_file "#{app_root}/app/assets/config/manifest.js"
-      assert_no_file "#{app_root}/app/assets/stylesheets/application.css"
     end
   end
 
@@ -685,48 +684,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_dev_option
-    generator([destination_root], dev: true)
-    run_generator_instance
-
-    assert_equal 1, @bundle_commands.count("install")
-    rails_path = File.expand_path("../../..", Rails.root)
-    assert_file "Gemfile", /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
-  end
-
-  def test_edge_option
-    Rails.stub(:gem_version, Gem::Version.new("2.1.0")) do
-      generator([destination_root], edge: true)
-      run_generator_instance
-    end
-
-    assert_equal 1, @bundle_commands.count("install")
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']2-1-stable["']$}
-  end
-
-  def test_edge_option_during_alpha
-    Rails.stub(:gem_version, Gem::Version.new("2.1.0.alpha")) do
-      generator([destination_root], edge: true)
-      run_generator_instance
-    end
-
-    assert_equal 1, @bundle_commands.count("install")
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
-  end
-
-  def test_master_option
-    run_generator [destination_root, "--master"]
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
-  end
-
-  def test_main_option
-    generator([destination_root], main: true)
-    run_generator_instance
-
-    assert_equal 1, @bundle_commands.count("install")
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
-  end
-
   def test_bundler_binstub
     generator([destination_root])
     run_generator_instance
@@ -786,7 +743,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_hotwire
-    run_generator [destination_root, "--dev"]
+    run_generator [destination_root, "--no-skip-bundle"]
     assert_gem "turbo-rails"
     assert_gem "stimulus-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
@@ -809,7 +766,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_asset_pipeline_tailwind
-    run_generator [destination_root, "--dev", "--css", "tailwind"]
+    run_generator [destination_root, "--css", "tailwind", "--no-skip-bundle"]
     assert_gem "tailwindcss-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_match(/tailwind/, content)
@@ -817,7 +774,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_cssbundling_gem
-    run_generator [destination_root, "--dev", "--css", "postcss"]
+    run_generator [destination_root, "--css", "postcss", "--no-skip-bundle"]
     assert_gem "cssbundling-rails"
     assert_file "app/assets/stylesheets/application.postcss.css"
   end
@@ -848,7 +805,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_bootsnap_with_dev_option
-    run_generator [destination_root, "--dev", "--skip-bundle"]
+    run_generator_using_prerelease [destination_root, "--dev"]
 
     assert_no_gem "bootsnap"
     assert_file "config/boot.rb" do |content|
@@ -987,26 +944,25 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_minimal_rails_app
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root, "--minimal"]
+    run_generator [destination_root, "--minimal"]
 
-    assert_no_file "#{app_root}/config/storage.yml"
-    assert_no_file "#{app_root}/config/cable.yml"
-    assert_no_file "#{app_root}/views/layouts/mailer.html.erb"
-    assert_no_file "#{app_root}/app/jobs/application.rb"
-    assert_file "#{app_root}/app/views/layouts/application.html.erb" do |content|
+    assert_no_file "config/storage.yml"
+    assert_no_file "config/cable.yml"
+    assert_no_file "views/layouts/mailer.html.erb"
+    assert_no_file "app/jobs/application.rb"
+    assert_file "app/views/layouts/application.html.erb" do |content|
       assert_no_match(/data-turbo-track/, content)
     end
-    assert_file "#{app_root}/config/environments/development.rb" do |content|
+    assert_file "config/environments/development.rb" do |content|
       assert_no_match(/config\.active_storage/, content)
     end
-    assert_file "#{app_root}/config/environments/production.rb" do |content|
+    assert_file "config/environments/production.rb" do |content|
       assert_no_match(/config\.active_job/, content)
     end
-    assert_file "#{app_root}/config/boot.rb" do |content|
+    assert_file "config/boot.rb" do |content|
       assert_no_match(/require "bootsnap\/setup"/, content)
     end
-    assert_file "#{app_root}/config/application.rb" do |content|
+    assert_file "config/application.rb" do |content|
       assert_match(/#\s+require\s+["']active_job\/railtie["']/, content)
       assert_match(/#\s+require\s+["']active_storage\/engine["']/, content)
       assert_match(/#\s+require\s+["']action_mailer\/railtie["']/, content)
@@ -1015,31 +971,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/#\s+require\s+["']action_cable\/engine["']/, content)
     end
 
-    assert_no_gem "jbuilder", app_root
-    assert_no_gem "web-console", app_root
+    assert_no_gem "jbuilder"
+    assert_no_gem "web-console"
   end
 
   private
-    def stub_rails_application(root, &block)
+    def stub_rails_application(root = destination_root, &block)
       Rails.application.config.root = root
       Rails.application.class.stub(:name, "Myapp", &block)
     end
 
     def action(*args, &block)
       capture(:stdout) { generator.send(*args, &block) }
-    end
-
-    def assert_gem(gem, constraint = nil, app_path = ".")
-      if constraint
-        assert_file File.join(app_path, "Gemfile"), /^\s*gem\s+["']#{gem}["'], #{constraint}$*/
-      else
-        assert_file File.join(app_path, "Gemfile"), /^\s*gem\s+["']#{gem}["']$*/
-      end
-    end
-
-    def assert_no_gem(gem, app_path = ".")
-      assert_file File.join(app_path, "Gemfile") do |content|
-        assert_no_match(gem, content)
-      end
     end
 end

@@ -29,16 +29,16 @@ Starting with Rails 6, Rails ships with a new and better way to autoload, which 
 Why Switch from `classic` to `zeitwerk`?
 ----------------------------------------
 
-The `classic` autoloader has been extremely useful, but had a number of [issues](https://guides.rubyonrails.org/v6.1/autoloading_and_reloading_constants_classic_mode.html#common-gotchas) that made autoloading a bit tricky and confusing at times. Zeitwerk was developed to address them, among other [motivations](https://github.com/fxn/zeitwerk#motivation).
+The `classic` autoloader has been extremely useful, but had a number of [issues](https://guides.rubyonrails.org/v6.1/autoloading_and_reloading_constants_classic_mode.html#common-gotchas) that made autoloading a bit tricky and confusing at times. Zeitwerk was developed to address this, among other [motivations](https://github.com/fxn/zeitwerk#motivation).
 
-When upgrading to Rails 6.x, it is highly encouraged to switch to `zeitwerk` mode because `classic` mode is deprecated.
+When upgrading to Rails 6.x, it is highly encouraged to switch to `zeitwerk` mode because it is a better autoloader, `classic` mode is deprecated.
 
 Rails 7 ends the transition period and does not include `classic` mode.
 
 I am Scared
 -----------
 
-Don't :).
+Don't be :).
 
 Zeitwerk was designed to be as compatible with the classic autoloader as possible. If you have a working application autoloading correctly today, chances are the switch will be easy. Many projects, big and small, have reported really smooth switches.
 
@@ -80,7 +80,7 @@ config.autoloader = :zeitwerk
 
 In Rails 7 there is only `zeitwerk` mode, you do not need to do anything to enable it.
 
-Indeed, the setter `config.autoloader=` does not even exist. If `config/application.rb` has it, please just delete the line.
+Indeed, in Rails 7 the setter `config.autoloader=` does not even exist. If `config/application.rb` uses it, please delete the line.
 
 
 How to Verify The Application Runs in `zeitwerk` Mode?
@@ -98,7 +98,26 @@ If that prints `true`, `zeitwerk` mode is enabled.
 Does my Application Comply with Zeitwerk Conventions?
 -----------------------------------------------------
 
-Once `zeitwerk` mode is enabled, please run:
+### config.eager_load_paths
+
+Compliance test runs only for eager loaded files. Therefore, in order to verify Zeitwerk compliance, it is recommended to have all autoload paths in the eager load paths.
+
+This is already the case by default, but if the project has custom autoload paths configured just like this:
+
+```ruby
+config.autoload_paths << "#{Rails.root}/extras"
+```
+
+those are not eager loaded and won't be verified. Adding them to the eager load paths is easy:
+
+```ruby
+config.autoload_paths << "#{Rails.root}/extras"
+config.eager_load_paths << "#{Rails.root}/extras"
+```
+
+### zeitwerk:check
+
+Once `zeitwerk` mode is enabled and the configuration of eager load paths double-checked, please run:
 
 ```
 bin/rails zeitwerk:check
@@ -114,7 +133,9 @@ All is good!
 
 There can be additional output depending on the application configuration, but the last "All is good!" is what you are looking for.
 
-If there's any file that does not define the expected constant, the task will tell you. It does so one file at a time, because if it moved on, the failure loading one file could cascade into other failures unrelated to the check we want to run and the error report would be confusing.
+If the double-check explained in the previous section determined actually there have to be some custom autoload paths outside the eager load paths, the task will detect and warn about them. However, if the test suite loads those files successfully, you're good.
+
+Now, if there's any file that does not define the expected constant, the task will tell you. It does so one file at a time, because if it moved on, the failure loading one file could cascade into other failures unrelated to the check we want to run and the error report would be confusing.
 
 If there's one constant reported, fix that particular one and run the task again. Repeat until you get "All is good!".
 
@@ -145,14 +166,14 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
 end
 ```
 
-Doing so affects how Active Support inflects globally. That may be fine, but if you prefer you can also pass overrides to the inflector used by the autoloader:
+Doing so affects how Active Support inflects globally. That may be fine, but if you prefer you can also pass overrides to the inflectors used by the autoloaders:
 
 ```ruby
 # config/initializers/zeitwerk.rb
-Rails.autoloaders.each do |autoloader|
-  autoloader.inflector.inflect("vat" => "VAT")
-end
+Rails.autoloaders.main.inflector.inflect("vat" => "VAT")
 ```
+
+With this option you have more control, because only files called exactly `vat.rb` or directories exactly called `vat` will be inflected as `VAT`. A file called `vat_rules.rb` is not affected by that and can define `VatRules` just fine. This may be handy if the project has this kind of naming inconsistencies.
 
 With that in place, the check passes!
 
@@ -161,6 +182,8 @@ With that in place, the check passes!
 Hold on, I am eager loading the application.
 All is good!
 ```
+
+Once all is good, it is recommended to keep validating the project in the test suite. The section [_Check Zeitwerk Compliance in the Test Suite_](#check-zeitwerk-compliance-in-the-test-suite) explains how to do this.
 
 ### Concerns
 
@@ -189,7 +212,7 @@ If your application uses `Concerns` as namespace, you have two options:
 
 Some projects want something like `app/api/base.rb` to define `API::Base`, and add `app` to the autoload paths to accomplish that.
 
-Since Rails adds all subdirectories of `app` to the autoload paths automatically (with a few exceptions like directories for assets), we have another situation in which there are nested root directories, similar to what happens with `app/models/concerns`. That setup no longer works as is.
+Since Rails adds all subdirectories of `app` to the autoload paths automatically (with a few exceptions), we have another situation in which there are nested root directories, similar to what happens with `app/models/concerns`. That setup no longer works as is.
 
 However, you can keep that structure, just delete `app/api` from the autoload paths in an initializer:
 
@@ -199,6 +222,22 @@ ActiveSupport::Dependencies.
   autoload_paths.
   delete("#{Rails.root}/app/api")
 ```
+
+Beware of subdirectories that do not have files to be autoloaded/eager loaded. For example, if the application has `app/admin` with resources for [ActiveAdmin](https://activeadmin.info/), you need to ignore them. Same for `assets` and friends:
+
+```ruby
+# config/initializers/zeitwerk.rb
+Rails.autoloaders.main.ignore(
+  "app/admin",
+  "app/assets",
+  "app/javascripts",
+  "app/views"
+)
+```
+
+Without that configuration, the application would eager load those trees. Would err on `app/admin` because its files do not define constants, and would define a `Views` module, for example, as an unwanted side-effect.
+
+As you see, having `app` in the autoload paths is technically possible, but a bit tricky.
 
 ### Autoloaded Constants and Explicit Namespaces
 
@@ -306,7 +345,7 @@ Please make sure to depend on at least Bootsnap 1.4.4.
 Check Zeitwerk Compliance in the Test Suite
 -------------------------------------------
 
-The task `zeitwerk:check` is handy while migrating. Once the project is compliant, it is recommended to automate this check. In order to do so, it is enough to eager load the application, which is all the task does, indeed.
+The task `zeitwerk:check` is handy while migrating. Once the project is compliant, it is recommended to automate this check. In order to do so, it is enough to eager load the application, which is all `zeitwerk:check` does, indeed.
 
 ### Continuous Integration
 
@@ -349,6 +388,21 @@ RSpec.describe "Zeitwerk compliance" do
 end
 ```
 
+Delete any `require` calls
+--------------------------
+
+In my experience, projects generally do not do this. But I've seen a couple, and have heard of a few others.
+
+In Rails application you use `require` exclusively to load code from `lib` or from 3rd party like gem dependencies or the standard library. **Never load autoloadable application code with `require`**. See why this was a bad idea already in `classic` [here](https://guides.rubyonrails.org/v6.1/autoloading_and_reloading_constants_classic_mode.html#autoloading-and-require).
+
+```ruby
+require "nokogiri" # GOOD
+require "net/http" # GOOD
+require "user"     # BAD, DELETE THIS (assuming app/models/user.rb)
+```
+
+Please delete any `require` calls of that type.
+
 New Features You Can Leverage
 -----------------------------
 
@@ -358,13 +412,12 @@ All known use cases of `require_dependency` have been eliminated with Zeitwerk. 
 
 If your application uses Single Table Inheritance, please see the [Single Table Inheritance section](autoloading_and_reloading_constants.html#single-table-inheritance) of the Autoloading and Reloading Constants (Zeitwerk Mode) guide.
 
-
 ### Qualified Names in Class and Module Definitions Are Now Possible
 
 You can now robustly use constant paths in class and module definitions:
 
 ```ruby
-# Autoloading in this class' body matches Ruby semantics now.
+# Autoloading in this class body matches Ruby semantics now.
 class Admin::UsersController < ApplicationController
   # ...
 end
@@ -398,7 +451,7 @@ end
 
 ### Thread-safety Everywhere
 
-In classic mode, constant autoloading is not thread-safe, though Rails has locks in place for example to make web requests thread-safe.
+In `classic` mode, constant autoloading is not thread-safe, though Rails has locks in place for example to make web requests thread-safe.
 
 Constant autoloading is thread-safe in `zeitwerk` mode. For example, you can now autoload in multi-threaded scripts executed by the `runner` command.
 

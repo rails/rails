@@ -21,7 +21,10 @@ if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].pr
         "my_key_1": "my_value_1",
         "my_key_2": "my_value_2",
         "platform": "my_platform",
-        "library_ID": "12345"
+        "library_ID": "12345",
+        "custom": {
+          "my_key_3": "my_value_3"
+        }
       }
 
       post rails_direct_uploads_url, params: { blob: {
@@ -32,11 +35,11 @@ if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].pr
         assert_equal "hello.txt", details["filename"]
         assert_equal 6, details["byte_size"]
         assert_equal checksum, details["checksum"]
-        assert_equal metadata, details["metadata"].transform_keys(&:to_sym)
+        assert_equal metadata, details["metadata"].deep_transform_keys(&:to_sym)
         assert_equal "text/plain", details["content_type"]
         assert_match SERVICE_CONFIGURATIONS[:s3][:bucket], details["direct_upload"]["url"]
         assert_match(/s3(-[-a-z0-9]+)?\.(\S+)?amazonaws\.com/, details["direct_upload"]["url"])
-        assert_equal({ "Content-Type" => "text/plain", "Content-MD5" => checksum, "Content-Disposition" => "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt" }, details["direct_upload"]["headers"])
+        assert_equal({ "Content-Type" => "text/plain", "Content-MD5" => checksum, "Content-Disposition" => "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", "x-amz-meta-my_key_3" => "my_value_3" }, details["direct_upload"]["headers"])
       end
     end
   end
@@ -64,7 +67,10 @@ if SERVICE_CONFIGURATIONS[:gcs]
         "my_key_1": "my_value_1",
         "my_key_2": "my_value_2",
         "platform": "my_platform",
-        "library_ID": "12345"
+        "library_ID": "12345",
+        "custom": {
+          "my_key_3": "my_value_3"
+        }
       }
 
       post rails_direct_uploads_url, params: { blob: {
@@ -75,10 +81,10 @@ if SERVICE_CONFIGURATIONS[:gcs]
         assert_equal "hello.txt", details["filename"]
         assert_equal 6, details["byte_size"]
         assert_equal checksum, details["checksum"]
-        assert_equal metadata, details["metadata"].transform_keys(&:to_sym)
+        assert_equal metadata, details["metadata"].deep_transform_keys(&:to_sym)
         assert_equal "text/plain", details["content_type"]
         assert_match %r{storage\.googleapis\.com/#{@config[:bucket]}}, details["direct_upload"]["url"]
-        assert_equal({ "Content-MD5" => checksum, "Content-Disposition" => "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt" }, details["direct_upload"]["headers"])
+        assert_equal({ "Content-MD5" => checksum, "Content-Disposition" => "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", "x-goog-meta-my_key_3" => "my_value_3" }, details["direct_upload"]["headers"])
       end
     end
   end
@@ -117,7 +123,7 @@ if SERVICE_CONFIGURATIONS[:azure]
         assert_equal "hello.txt", details["filename"]
         assert_equal 6, details["byte_size"]
         assert_equal checksum, details["checksum"]
-        assert_equal metadata, details["metadata"].transform_keys(&:to_sym)
+        assert_equal metadata, details["metadata"].deep_transform_keys(&:to_sym)
         assert_equal "text/plain", details["content_type"]
         assert_match %r{#{@config[:storage_account_name]}\.blob\.core\.windows\.net/#{@config[:container]}}, details["direct_upload"]["url"]
         assert_equal({ "Content-Type" => "text/plain", "Content-MD5" => checksum, "x-ms-blob-content-disposition" => "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", "x-ms-blob-type" => "BlockBlob" }, details["direct_upload"]["headers"])
@@ -147,7 +153,7 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
       assert_equal "hello.txt", details["filename"]
       assert_equal 6, details["byte_size"]
       assert_equal checksum, details["checksum"]
-      assert_equal metadata, details["metadata"].transform_keys(&:to_sym)
+      assert_equal metadata, details["metadata"].deep_transform_keys(&:to_sym)
       assert_equal "text/plain", details["content_type"]
       assert_match(/rails\/active_storage\/disk/, details["direct_upload"]["url"])
       assert_equal({ "Content-Type" => "text/plain" }, details["direct_upload"]["headers"])

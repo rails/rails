@@ -44,17 +44,17 @@ module ActiveRecord
   #    ]
   #    ActiveRecord::QueryLogs.tags = tags
   #
-  # The QueryLogs +context+ can be manipulated via the +set_context+ method.
+  # The QueryLogs +context+ can be manipulated via the +ActiveSupport::ExecutionContext.set+ method.
   #
   # Temporary updates limited to the execution of a block:
   #
-  #    ActiveRecord::QueryLogs.set_context(foo: Bar.new) do
+  #    ActiveSupport::ExecutionContext.set(foo: Bar.new) do
   #      posts = Post.all
   #    end
   #
   # Direct updates to a context value:
   #
-  #    ActiveRecord::QueryLogs.set_context(foo: Bar.new)
+  #    ActiveSupport::ExecutionContext[:foo] = Bar.new
   #
   # Tag comments can be prepended to the query:
   #
@@ -76,30 +76,6 @@ module ActiveRecord
     thread_mattr_accessor :cached_comment, instance_accessor: false
 
     class << self
-      # Updates the context used to construct tags in the SQL comment.
-      # If a block is given, it resets the provided keys to their
-      # previous value once the block exits.
-      def set_context(**options)
-        options.symbolize_keys!
-
-        keys = options.keys
-        previous_context = keys.zip(context.values_at(*keys)).to_h
-        context.merge!(options)
-        self.cached_comment = nil
-        if block_given?
-          begin
-            yield
-          ensure
-            context.merge!(previous_context)
-            self.cached_comment = nil
-          end
-        end
-      end
-
-      def clear_context # :nodoc:
-        context.clear
-      end
-
       def call(sql) # :nodoc:
         if prepend_comment
           "#{self.comment} #{sql}"
@@ -107,6 +83,12 @@ module ActiveRecord
           "#{sql} #{self.comment}"
         end.strip
       end
+
+      def clear_cache # :nodoc:
+        self.cached_comment = nil
+      end
+
+      ActiveSupport::ExecutionContext.after_change { ActiveRecord::QueryLogs.clear_cache }
 
       private
         # Returns an SQL comment +String+ containing the query log tags.
@@ -126,15 +108,13 @@ module ActiveRecord
           end
         end
 
-        def context
-          Thread.current[:active_record_query_log_tags_context] ||= {}
-        end
-
         def escape_sql_comment(content)
           content.to_s.gsub(%r{ (/ (?: | \g<1>) \*) \+? \s* | \s* (\* (?: | \g<2>) /) }x, "")
         end
 
         def tag_content
+          context = ActiveSupport::ExecutionContext.to_h
+
           tags.flat_map { |i| [*i] }.filter_map do |tag|
             key, handler = tag
             handler ||= taggings[key]

@@ -9,6 +9,7 @@ require "jobs/logging_job"
 require "jobs/nested_job"
 require "jobs/rescue_job"
 require "jobs/raising_job"
+require "jobs/retry_job"
 require "jobs/inherited_job"
 require "jobs/multiple_kwargs_job"
 require "models/person"
@@ -714,7 +715,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No enqueued job found with {:job=>MultipleKwargsJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/No jobs of class MultipleKwargsJob where enqueued, job classes enqueued: HelloJob/, error.message)
+    assert_match(/No jobs of class MultipleKwargsJob were enqueued, job classes enqueued: HelloJob/, error.message)
   end
 
   def test_shows_no_jobs_enqueued_when_there_are_no_jobs
@@ -724,7 +725,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[\]}/, error.message)
-    assert_match(/No jobs where enqueued/, error.message)
+    assert_match(/No jobs were enqueued/, error.message)
   end
 
   def test_assert_enqueued_with_failure_with_no_block_with_global_id_args
@@ -1985,7 +1986,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No performed job found with {:job=>HelloJob, :args=>\[\]}/, error.message)
-    assert_match(/No jobs where performed/, error.message)
+    assert_match(/No jobs were performed/, error.message)
   end
 
   def test_assert_performed_when_not_matching_the_class_shows_alteratives
@@ -1998,7 +1999,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No performed job found with {:job=>MultipleKwargsJob, :args=>\[#<Person.* @id=11>\]}/, error.message)
-    assert_match(/No jobs of class MultipleKwargsJob where performed, job classes performed: HelloJob/, error.message)
+    assert_match(/No jobs of class MultipleKwargsJob were performed, job classes performed: HelloJob/, error.message)
   end
 
   def test_assert_performed_with_does_not_change_jobs_count
@@ -2025,6 +2026,14 @@ class PerformedJobsTest < ActiveJob::TestCase
 
     assert_equal 0, queue_adapter.enqueued_jobs.count
     assert_equal 2, queue_adapter.performed_jobs.count
+  end
+
+  test "perform_enqueued_jobs doesn't raise if discard_on ActiveJob::DeserializationError" do
+    RetryJob.perform_later Person.new(404), 1
+
+    assert_nothing_raised do
+      perform_enqueued_jobs(only: RetryJob)
+    end
   end
 
   test "TestAdapter respect max attempts" do

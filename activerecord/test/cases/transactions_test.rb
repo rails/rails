@@ -184,7 +184,7 @@ class TransactionTest < ActiveRecord::TestCase
     topic.send(:add_to_transaction)
   end
 
-  def test_successful_with_return
+  def test_rollback_with_return
     committed = false
 
     Topic.connection.class_eval do
@@ -195,13 +195,11 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert_deprecated do
-      transaction_with_return
-    end
-    assert committed
+    transaction_with_return
+    assert_not committed
 
-    assert_predicate Topic.find(1), :approved?, "First should have been approved"
-    assert_not_predicate Topic.find(2), :approved?, "Second should have been unapproved"
+    assert_not_predicate Topic.find(1), :approved?
+    assert_predicate Topic.find(2), :approved?
   ensure
     Topic.connection.class_eval do
       remove_method :commit_db_transaction
@@ -209,19 +207,17 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
-  def test_deprecation_on_ruby_timeout
-    assert_deprecated do
-      catch do |timeout|
-        Topic.transaction do
-          @first.approved = true
-          @first.save!
+  def test_rollback_on_ruby_timeout
+    catch do |timeout|
+      Topic.transaction do
+        @first.approved = true
+        @first.save!
 
-          throw timeout
-        end
+        throw timeout
       end
     end
 
-    assert Topic.find(1).approved?, "First should have been approved"
+    assert_not_predicate Topic.find(1), :approved?
   end
 
   def test_early_return_from_transaction

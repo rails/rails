@@ -70,8 +70,8 @@ module AbstractController
 
   private
     # Normalize args by converting <tt>render "foo"</tt> to
-    # <tt>render :action => "foo"</tt> and <tt>render "foo/bar"</tt> to
-    # <tt>render :file => "foo/bar"</tt>.
+    # <tt>render action: "foo"</tt> and <tt>render "foo/bar"</tt> to
+    # <tt>render file: "foo/bar"</tt>.
     def _normalize_args(action = nil, options = {}) # :doc:
       if action.respond_to?(:permitted?)
         if action.permitted?

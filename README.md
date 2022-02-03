@@ -1,9 +1,3 @@
-<p align="center">
-  <a href="https://rubyonrails.org/" target="_blank" rel="noopener noreferrer">
-    <img src="https://rubyonrails.org/images/rails-logo.svg" width="400">
-  </a>
-</p>
-
 # Welcome to Rails
 
 ## What's Rails?
@@ -78,8 +72,7 @@ and may also be used independently outside Rails.
 
    Run with `--help` or `-h` for options.
 
-4. Go to `http://localhost:3000` and you'll see:
-"Yay! You’re on Rails!"
+4. Go to `http://localhost:3000` and you'll see the Rails bootscreen with your Rails and Ruby versions.
 
 5. Follow the guidelines to start developing your application. You may find
    the following resources handy:
@@ -93,10 +86,10 @@ We encourage you to contribute to Ruby on Rails! Please check out the
 [Contributing to Ruby on Rails guide](https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) for guidelines about how to proceed. [Join us!](https://contributors.rubyonrails.org)
 
 Trying to report a possible security vulnerability in Rails? Please
-check out our [security policy](https://rubyonrails.org/security/) for
+check out our [security policy](https://rubyonrails.org/security) for
 guidelines about how to proceed.
 
-Everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://rubyonrails.org/conduct/).
+Everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://rubyonrails.org/conduct).
 
 ## License
 

@@ -248,21 +248,20 @@ irb> contact.save!
 
 * [type definition](https://www.postgresql.org/docs/current/static/datatype-enum.html)
 
-Currently there is no special support for enumerated types. They are mapped as
-normal text columns:
+The type can be mapped as a normal text column, or to an [`ActiveRecord::Enum`](https://api.rubyonrails.org/classes/ActiveRecord/Enum.html).
 
 ```ruby
 # db/migrate/20131220144913_create_articles.rb
 def up
-  execute <<-SQL
-    CREATE TYPE article_status AS ENUM ('draft', 'published');
-  SQL
+  create_enum :article_status, ["draft", "published"]
+
   create_table :articles do |t|
-    t.column :status, :article_status
+    t.enum :status, enum_type: :article_status, default: "draft", null: false
   end
 end
 
-# NOTE: It's important to drop table before dropping enum.
+# There's no built in support for dropping enums, but you can do it manually.
+# You should first drop any table that depends on them.
 def down
   drop_table :articles
 
@@ -275,17 +274,21 @@ end
 ```ruby
 # app/models/article.rb
 class Article < ApplicationRecord
+  enum status: {
+    draft: "draft", published: "published"
+  }, _prefix: true
 end
 ```
 
 ```irb
 irb> Article.create status: "draft"
 irb> article = Article.first
+irb> article.status_draft!
 irb> article.status
 => "draft"
 
-irb> article.status = "published"
-irb> article.save!
+irb> article.status_published?
+=> false
 ```
 
 To add a new value before/after existing one you should use [ALTER TYPE](https://www.postgresql.org/docs/current/static/sql-altertype.html):
@@ -302,7 +305,7 @@ def up
 end
 ```
 
-NOTE: ENUM values can't be dropped currently. You can read why [here](https://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
+NOTE: Enum values can't be dropped. You can read why [here](https://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
 
 Hint: to show all the values of the all enums you have, you should call this query in `bin/rails db` or `psql` console:
 
@@ -399,7 +402,7 @@ irb> user.settings
 => "01010011"
 irb> user.settings = "0xAF"
 irb> user.settings
-=> 10101111
+=> "10101111"
 irb> user.save!
 ```
 

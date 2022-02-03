@@ -45,6 +45,34 @@ module ActiveRecord
           0
         end
 
+        def quote_default_expression(value, column) # :nodoc:
+          if value.is_a?(Proc)
+            value = value.call
+            if value.match?(/\A\w+\(.*\)\z/)
+              "(#{value})"
+            else
+              value
+            end
+          else
+            super
+          end
+        end
+
+        def type_cast(value) # :nodoc:
+          case value
+          when BigDecimal
+            value.to_f
+          when String
+            if value.encoding == Encoding::ASCII_8BIT
+              super(value.encode(Encoding::UTF_8))
+            else
+              super
+            end
+          else
+            super
+          end
+        end
+
         def column_name_matcher
           COLUMN_NAME
         end
@@ -80,22 +108,6 @@ module ActiveRecord
         /ix
 
         private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
-
-        private
-          def _type_cast(value)
-            case value
-            when BigDecimal
-              value.to_f
-            when String
-              if value.encoding == Encoding::ASCII_8BIT
-                super(value.encode(Encoding::UTF_8))
-              else
-                super
-              end
-            else
-              super
-            end
-          end
       end
     end
   end

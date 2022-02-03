@@ -441,6 +441,8 @@ Please refer to the [Changelog][action-mailbox] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate `Rails.application.credentials.action_mailbox.api_key` and `MAILGUN_INGRESS_API_KEY` in favor of `Rails.application.credentials.action_mailbox.signing_key` and `MAILGUN_INGRESS_SIGNING_KEY`.
+
 ### Notable changes
 
 Ruby on Rails Guides

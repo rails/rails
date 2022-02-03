@@ -16,14 +16,14 @@ module ActiveStorage
       @public = public
     end
 
-    def upload(key, io, checksum: nil, content_type: nil, disposition: nil, filename: nil)
+    def upload(key, io, checksum: nil, content_type: nil, disposition: nil, filename: nil, custom_metadata: {})
       instrument :upload, key: key, checksum: checksum do
         # GCS's signed URLs don't include params such as response-content-type response-content_disposition
         # in the signature, which means an attacker can modify them and bypass our effort to force these to
         # binary and attachment when the file's content type requires it. The only way to force them is to
         # store them as object's metadata.
         content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
-        bucket.create_file(io, key, md5: checksum, cache_control: @config[:cache_control], content_type: content_type, content_disposition: content_disposition)
+        bucket.create_file(io, key, md5: checksum, cache_control: @config[:cache_control], content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata)
       rescue Google::Cloud::InvalidArgumentError
         raise ActiveStorage::IntegrityError
       end
@@ -43,11 +43,12 @@ module ActiveStorage
       end
     end
 
-    def update_metadata(key, content_type:, disposition: nil, filename: nil)
+    def update_metadata(key, content_type:, disposition: nil, filename: nil, custom_metadata: {})
       instrument :update_metadata, key: key, content_type: content_type, disposition: disposition do
         file_for(key).update do |file|
           file.content_type = content_type
           file.content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
+          file.metadata = custom_metadata
         end
       end
     end
@@ -86,7 +87,7 @@ module ActiveStorage
       end
     end
 
-    def url_for_direct_upload(key, expires_in:, checksum:, **)
+    def url_for_direct_upload(key, expires_in:, checksum:, custom_metadata: {}, **)
       instrument :url, key: key do |payload|
         headers = {}
         version = :v2
@@ -98,6 +99,8 @@ module ActiveStorage
           # whereas v2 has no limit
           version = :v4
         end
+
+        headers.merge!(custom_metadata_headers(custom_metadata))
 
         args = {
           content_md5: checksum,
@@ -120,16 +123,23 @@ module ActiveStorage
       end
     end
 
-    def headers_for_direct_upload(key, checksum:, filename: nil, disposition: nil, **)
+    def headers_for_direct_upload(key, checksum:, filename: nil, disposition: nil, custom_metadata: {}, **)
       content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
 
-      headers = { "Content-MD5" => checksum, "Content-Disposition" => content_disposition }
-
+      headers = { "Content-MD5" => checksum, "Content-Disposition" => content_disposition, **custom_metadata_headers(custom_metadata) }
       if @config[:cache_control].present?
         headers["Cache-Control"] = @config[:cache_control]
       end
 
       headers
+    end
+
+    def compose(source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
+      bucket.compose(source_keys, destination_key).update do |file|
+        file.content_type = content_type
+        file.content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
+        file.metadata = custom_metadata
+      end
     end
 
     private
@@ -222,6 +232,10 @@ module ActiveStorage
           response = iam_client.sign_service_account_blob(resource, request)
           response.signed_blob
         end
+      end
+
+      def custom_metadata_headers(metadata)
+        metadata.transform_keys { |key| "x-goog-meta-#{key}" }
       end
   end
 end

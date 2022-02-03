@@ -304,6 +304,484 @@ Rails 7 includes the `debug` gem in the `Gemfile` of new applications generated
 by CRuby. By default, it is ready in the `development` and `test` environments.
 Please check its [documentation](https://github.com/ruby/debug) for usage.
 
+### Entering a Debugging Session
+
+By default, a debugging session will start after the `debug` library is required, which happens when your app boots. But don't worry, the session won't interfere your program.
+
+ To enter the debugging session, you can use `binding.break` and its aliases: `binding.b` and `debugger`. The following examples will use `debugger`:
+
+```rb
+class PostsController < ApplicationController
+  before_action :set_post, only: %i[ show edit update destroy ]
+
+  # GET /posts or /posts.json
+  def index
+    @posts = Post.all
+    debugger
+  end
+  # ...
+end
+```
+
+Once your app evaluates the debugging statement, it'll enter the debugging session:
+
+```rb
+Processing by PostsController#index as HTML
+[2, 11] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+     2|   before_action :set_post, only: %i[ show edit update destroy ]
+     3|
+     4|   # GET /posts or /posts.json
+     5|   def index
+     6|     @posts = Post.all
+=>   7|     debugger
+     8|   end
+     9|
+    10|   # GET /posts/1 or /posts/1.json
+    11|   def show
+=>#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7
+  #1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg)
+```
+
+### The Context
+
+After entering the debugging session, you can type in Ruby code as you're in a Rails console or IRB.
+
+```rb
+(rdbg) @posts    # ruby
+[]
+(rdbg) self
+#<PostsController:0x0000000000aeb0>
+(rdbg)
+```
+
+You can also use `p` or `pp` command to evaluate Ruby expressions (e.g. when a variable name conflicts with a debugger command).
+
+```rb
+(rdbg) p headers    # command
+=> {"X-Frame-Options"=>"SAMEORIGIN", "X-XSS-Protection"=>"1; mode=block", "X-Content-Type-Options"=>"nosniff", "X-Download-Options"=>"noopen", "X-Permitted-Cross-Domain-Policies"=>"none", "Referrer-Policy"=>"strict-origin-when-cross-origin"}
+(rdbg) pp headers    # command
+{"X-Frame-Options"=>"SAMEORIGIN",
+ "X-XSS-Protection"=>"1; mode=block",
+ "X-Content-Type-Options"=>"nosniff",
+ "X-Download-Options"=>"noopen",
+ "X-Permitted-Cross-Domain-Policies"=>"none",
+ "Referrer-Policy"=>"strict-origin-when-cross-origin"}
+(rdbg)
+```
+
+Besides direct evaluation, debugger also helps you collect rich amount of information through different commands. Just to name a few here:
+
+- `info` (or `i`) - Information about current frame.
+- `backtrace` (or `bt`) - Backtrace (with additional information).
+- `outline` (or `o`, `ls`) - Available methods, constants, local variables, and instance variables in the current scope.
+
+#### The info command
+
+It'll give you an overview of the values of local and instance variables that are visible from the current frame.
+
+```rb
+(rdbg) info    # command
+%self = #<PostsController:0x0000000000af78>
+@_action_has_layout = true
+@_action_name = "index"
+@_config = {}
+@_lookup_context = #<ActionView::LookupContext:0x00007fd91a037e38 @details_key=nil, @digest_cache=...
+@_request = #<ActionDispatch::Request GET "http://localhost:3000/posts" for 127.0.0.1>
+@_response = #<ActionDispatch::Response:0x00007fd91a03ea08 @mon_data=#<Monitor:0x00007fd91a03e8c8>...
+@_response_body = nil
+@_routes = nil
+@marked_for_same_origin_verification = true
+@posts = []
+@rendered_format = nil
+```
+
+#### The backtrace command
+
+When used without any options, it lists all the frames on the stack:
+
+```rb
+=>#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7
+  #1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/action_controller/metal/basic_implicit_render.rb:6
+  #2    AbstractController::Base#process_action(method_name="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/abstract_controller/base.rb:214
+  #3    ActionController::Rendering#process_action(#arg_rest=nil) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/action_controller/metal/rendering.rb:53
+  #4    block in process_action at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/abstract_controller/callbacks.rb:221
+  #5    block in run_callbacks at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-7.1.0.alpha/lib/active_support/callbacks.rb:118
+  #6    ActionText::Rendering::ClassMethods#with_renderer(renderer=#<PostsController:0x0000000000af78>) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-7.1.0.alpha/lib/action_text/rendering.rb:20
+  #7    block {|controller=#<PostsController:0x0000000000af78>, action=#<Proc:0x00007fd91985f1c0 /Users/st0012/...|} in <class:Engine> (4 levels) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-7.1.0.alpha/lib/action_text/engine.rb:69
+  #8    [C] BasicObject#instance_exec at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-7.1.0.alpha/lib/active_support/callbacks.rb:127
+  ..... and more
+```
+
+Every frame comes with:
+
+- Frame identifier
+- Call location
+- Additional information (e.g. block or method arguments)
+
+This will give you a great sense about what's happening in your app. However, you probably will notice that:
+
+- There are too many frames (usually 50+ in a Rails app).
+- Most of the frames are from Rails or other libraries you use.
+
+Don't worry, the `backtrace` command provides 2 options to help you filter frames:
+
+- `backtrace [num]` - only show `num` numbers of frames, e.g. `backtrace 10` .
+- `backtrace /pattern/` - only show frames with identifier or location that matches the pattern, e.g. `backtrace /MyModel/`.
+
+It's also possible to use these options together: `backtrace [num] /pattern/`.
+
+#### The outline command
+
+This command is similar to `pry` and `irb`'s `ls` command. It will show you what's accessible from you current scope, including:
+
+- Local variables
+- Instance variables
+- Class variables
+- Methods & their sources
+- ...etc.
+
+```rb
+ActiveSupport::Configurable#methods: config
+AbstractController::Base#methods:
+  action_methods  action_name  action_name=  available_action?  controller_path  inspect
+  response_body
+ActionController::Metal#methods:
+  content_type       content_type=  controller_name  dispatch          headers
+  location           location=      media_type       middleware_stack  middleware_stack=
+  middleware_stack?  performed?     request          request=          reset_session
+  response           response=      response_body=   response_code     session
+  set_request!       set_response!  status           status=           to_a
+ActionView::ViewPaths#methods:
+  _prefixes  any_templates?  append_view_path   details_for_lookup  formats     formats=  locale
+  locale=    lookup_context  prepend_view_path  template_exists?    view_paths
+AbstractController::Rendering#methods: view_assigns
+
+# .....
+
+PostsController#methods: create  destroy  edit  index  new  show  update
+instance variables:
+  @_action_has_layout  @_action_name    @_config  @_lookup_context                      @_request
+  @_response           @_response_body  @_routes  @marked_for_same_origin_verification  @posts
+  @rendered_format
+class variables: @@raise_on_missing_translations  @@raise_on_open_redirects
+```
+
+### Breakpoints
+
+There are many ways to insert and trigger a breakpoint in the debugger. In additional to adding debugging statements (e.g. `debugger`) directly in your code, you can also insert breakpoints with commands:
+
+- `break` (or `b`)
+  - `break` - list all breakpoints
+  - `break <num>` - set a breakpoint on the `num` line of the current file
+  - `break <file:num>` - set a breakpoint on the `num` line of `file`
+  - `break <Class#method>` or `break <Class.method>` - set a breakpoint on `Class#method` or `Class.method`
+  - `break <expr>.<method>` - sets a breakpoint on `<expr>` result's `<method>` method.
+- `catch <Exception>` - set a breakpoint that'll stop when `Exception` is raised
+- `watch <@ivar>` - set a breakpoint that'll stop when the result of current object's `@ivar` is changed (this is slow)
+
+And to remove them, you can use:
+
+- `delete` (or `del`)
+  - `delete` - delete all breakpoints
+  - `delete <num>` - delete the breakpoint with id `num`
+
+#### The break command
+
+**Set a breakpoint with specified line number - e.g. `b 28`**
+
+```rb
+[20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+    20|   end
+    21|
+    22|   # POST /posts or /posts.json
+    23|   def create
+    24|     @post = Post.new(post_params)
+=>  25|     debugger
+    26|
+    27|     respond_to do |format|
+    28|       if @post.save
+    29|         format.html { redirect_to @post, notice: "Post was successfully created." }
+=>#0    PostsController#create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:25
+  #1    ActionController::BasicImplicitRender#send_action(method="create", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg) b 28    # break command
+#0  BP - Line  /Users/st0012/projects/rails-guide-example/app/controllers/posts_controller.rb:28 (line)
+```
+
+```rb
+(rdbg) c    # continue command
+[23, 32] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+    23|   def create
+    24|     @post = Post.new(post_params)
+    25|     debugger
+    26|
+    27|     respond_to do |format|
+=>  28|       if @post.save
+    29|         format.html { redirect_to @post, notice: "Post was successfully created." }
+    30|         format.json { render :show, status: :created, location: @post }
+    31|       else
+    32|         format.html { render :new, status: :unprocessable_entity }
+=>#0    block {|format=#<ActionController::MimeResponds::Collec...|} in create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:28
+  #1    ActionController::MimeResponds#respond_to(mimes=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/mime_responds.rb:205
+  # and 74 frames (use `bt' command for all frames)
+
+Stop by #0  BP - Line  /Users/st0012/projects/rails-guide-example/app/controllers/posts_controller.rb:28 (line)
+```
+
+**Set a breakpoint on a given method call - e.g. `b @post.save`**
+
+```rb
+[20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+    20|   end
+    21|
+    22|   # POST /posts or /posts.json
+    23|   def create
+    24|     @post = Post.new(post_params)
+=>  25|     debugger
+    26|
+    27|     respond_to do |format|
+    28|       if @post.save
+    29|         format.html { redirect_to @post, notice: "Post was successfully created." }
+=>#0    PostsController#create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:25
+  #1    ActionController::BasicImplicitRender#send_action(method="create", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg) b @post.save    # break command
+#0  BP - Method  @post.save at /Users/st0012/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/suppressor.rb:43
+
+```
+
+```rb
+(rdbg) c    # continue command
+[39, 48] in ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/suppressor.rb
+    39|         SuppressorRegistry.suppressed[name] = previous_state
+    40|       end
+    41|     end
+    42|
+    43|     def save(**) # :nodoc:
+=>  44|       SuppressorRegistry.suppressed[self.class.name] ? true : super
+    45|     end
+    46|
+    47|     def save!(**) # :nodoc:
+    48|       SuppressorRegistry.suppressed[self.class.name] ? true : super
+=>#0    ActiveRecord::Suppressor#save(#arg_rest=nil) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/suppressor.rb:44
+  #1    block {|format=#<ActionController::MimeResponds::Collec...|} in create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:28
+  # and 75 frames (use `bt' command for all frames)
+
+Stop by #0  BP - Method  @post.save at /Users/st0012/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/suppressor.rb:43
+```
+
+#### The catch command
+
+**Stop when an exception is raised - e.g. `catch ActiveRecord::RecordInvalid`**
+
+```rb
+[20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+    20|   end
+    21|
+    22|   # POST /posts or /posts.json
+    23|   def create
+    24|     @post = Post.new(post_params)
+=>  25|     debugger
+    26|
+    27|     respond_to do |format|
+    28|       if @post.save!
+    29|         format.html { redirect_to @post, notice: "Post was successfully created." }
+=>#0    PostsController#create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:25
+  #1    ActionController::BasicImplicitRender#send_action(method="create", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg) catch ActiveRecord::RecordInvalid    # command
+#1  BP - Catch  "ActiveRecord::RecordInvalid"
+```
+
+```rb
+(rdbg) c    # continue command
+[75, 84] in ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb
+    75|     def default_validation_context
+    76|       new_record? ? :create : :update
+    77|     end
+    78|
+    79|     def raise_validation_error
+=>  80|       raise(RecordInvalid.new(self))
+    81|     end
+    82|
+    83|     def perform_validations(options = {})
+    84|       options[:validate] == false || valid?(options[:context])
+=>#0    ActiveRecord::Validations#raise_validation_error at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:80
+  #1    ActiveRecord::Validations#save!(options={}) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:53
+  # and 88 frames (use `bt' command for all frames)
+
+Stop by #1  BP - Catch  "ActiveRecord::RecordInvalid"
+```
+
+#### The watch command
+
+**Stop when the instance variable is changed - e.g. `watch @_response_body`**
+
+```rb
+[20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+    20|   end
+    21|
+    22|   # POST /posts or /posts.json
+    23|   def create
+    24|     @post = Post.new(post_params)
+=>  25|     debugger
+    26|
+    27|     respond_to do |format|
+    28|       if @post.save!
+    29|         format.html { redirect_to @post, notice: "Post was successfully created." }
+=>#0    PostsController#create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:25
+  #1    ActionController::BasicImplicitRender#send_action(method="create", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg) watch @_response_body    # command
+#0  BP - Watch  #<PostsController:0x00007fce69ca5320> @_response_body =
+```
+
+```rb
+(rdbg) c    # continue command
+[173, 182] in ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal.rb
+   173|       body = [body] unless body.nil? || body.respond_to?(:each)
+   174|       response.reset_body!
+   175|       return unless body
+   176|       response.body = body
+   177|       super
+=> 178|     end
+   179|
+   180|     # Tests if render or redirect has already happened.
+   181|     def performed?
+   182|       response_body || response.committed?
+=>#0    ActionController::Metal#response_body=(body=["<html><body>You are being <a href=\"ht...) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal.rb:178 #=> ["<html><body>You are being <a href=\"ht...
+  #1    ActionController::Redirecting#redirect_to(options=#<Post id: 13, title: "qweqwe", content:..., response_options={:allow_other_host=>false}) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/redirecting.rb:74
+  # and 82 frames (use `bt' command for all frames)
+
+Stop by #0  BP - Watch  #<PostsController:0x00007fce69ca5320> @_response_body =  -> ["<html><body>You are being <a href=\"http://localhost:3000/posts/13\">redirected</a>.</body></html>"]
+(rdbg)
+```
+
+#### Breakpoint options
+
+In addition to different types of breakpoints, you can also specify options to achieve more advanced debugging workflow. Currently, the debugger supports 4 options:
+
+- `do: <cmd or expr>` - when the breakpoint is triggered, execute the given command/expression and continue the program:
+  - `break Foo#bar do: bt` - when `Foo#bar` is called, print the stack frames
+- `pre: <cmd or expr>` - when the breakpoint is triggered, execute the given command/expression before stopping:
+  - `break Foo#bar pre: info` - when `Foo#bar` is called, print its surrounding variables before stopping.
+- `if: <expr>` - the breakpoint only stops if the result of `<expr`> is true:
+  - `break Post#save if: params[:debug]` - stops at `Post#save` if `params[:debug]` is also true
+- `path: <path_regexp>` - the breakpoint only stops if the event that triggers it (e.g. a method call) happens from the given path:
+  - `break Post#save if: app/services/a_service` - stops at `Post#save` if the method call happens at a method matches Ruby regexp `/app\/services\/a_service/`.
+
+Please also note that the first 3 options: `do:`, `pre:` and `if:` are also available for the debug statements we mentioned earlier. For example:
+
+```rb
+[2, 11] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+     2|   before_action :set_post, only: %i[ show edit update destroy ]
+     3|
+     4|   # GET /posts or /posts.json
+     5|   def index
+     6|     @posts = Post.all
+=>   7|     debugger(do: "info")
+     8|   end
+     9|
+    10|   # GET /posts/1 or /posts/1.json
+    11|   def show
+=>#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7
+  #1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg:binding.break) info
+%self = #<PostsController:0x00000000017480>
+@_action_has_layout = true
+@_action_name = "index"
+@_config = {}
+@_lookup_context = #<ActionView::LookupContext:0x00007fce3ad336b8 @details_key=nil, @digest_cache=...
+@_request = #<ActionDispatch::Request GET "http://localhost:3000/posts" for 127.0.0.1>
+@_response = #<ActionDispatch::Response:0x00007fce3ad397e8 @mon_data=#<Monitor:0x00007fce3ad396a8>...
+@_response_body = nil
+@_routes = nil
+@marked_for_same_origin_verification = true
+@posts = #<ActiveRecord::Relation [#<Post id: 2, title: "qweqwe", content: "qweqwe", created_at: "...
+@rendered_format = nil
+```
+
+#### Program your debugging workflow
+
+With those options, you can script your debugging workflow in one line like:
+
+```rb
+def create
+  debugger(do: "catch ActiveRecord::RecordInvalid do: bt 10")
+  # ...
+end
+```
+
+And then the debugger will run the scripted command and insert the catch breakpoint
+
+```rb
+(rdbg:binding.break) catch ActiveRecord::RecordInvalid do: bt 10
+#0  BP - Catch  "ActiveRecord::RecordInvalid"
+[75, 84] in ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb
+    75|     def default_validation_context
+    76|       new_record? ? :create : :update
+    77|     end
+    78|
+    79|     def raise_validation_error
+=>  80|       raise(RecordInvalid.new(self))
+    81|     end
+    82|
+    83|     def perform_validations(options = {})
+    84|       options[:validate] == false || valid?(options[:context])
+=>#0    ActiveRecord::Validations#raise_validation_error at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:80
+  #1    ActiveRecord::Validations#save!(options={}) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:53
+  # and 88 frames (use `bt' command for all frames)
+```
+
+Once the catch breakpoint is triggered, it'll print the stack frames
+
+```rb
+Stop by #0  BP - Catch  "ActiveRecord::RecordInvalid"
+
+(rdbg:catch) bt 10
+=>#0    ActiveRecord::Validations#raise_validation_error at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:80
+  #1    ActiveRecord::Validations#save!(options={}) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:53
+  #2    block in save! at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/transactions.rb:302
+```
+
+This technique can save you from repeated manual input and make the debugging experience smoother.
+
+You can find more commands and configuration options from its [documentation](https://github.com/ruby/debug).
+
+#### Autoloading Caveat
+
+Debugging with `debug` works fine most of the time, but there's an edge case: If you evaluate an expression in the console that autoloads a namespace defined in a file, constants in that namespace won't be found.
+
+For example, if the application has these two files:
+
+```ruby
+# hotel.rb
+class Hotel
+end
+
+# hotel/pricing.rb
+module Hotel::Pricing
+end
+```
+
+and `Hotel` is not yet loaded, then
+
+```
+(rdbg) p Hotel::Pricing
+```
+
+will raise a `NameError`. In some cases, Ruby will be able to resolve an unintended constant in a different scope.
+
+If you hit this, please restart your debugging session with eager loading enabled (`config.eager_load = true`).
+
+Stepping commands line `next`, `continue`, etc., do not present this issue. Namespaces defined implicitly only by
+subdirectories are not subject to this issue either.
+
+See [ruby/debug#408](https://github.com/ruby/debug/issues/408) for details.
+
 Debugging with the `web-console` gem
 ------------------------------------
 
@@ -414,3 +892,4 @@ References
 ----------
 
 * [web-console Homepage](https://github.com/rails/web-console)
+* [debug homepage](https://github.com/ruby/debug)

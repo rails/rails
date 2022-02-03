@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/error_reporter"
 require "active_support/callbacks"
 require "concurrent/hash"
 
@@ -86,6 +87,9 @@ module ActiveSupport
       instance = run!
       begin
         yield
+      rescue => error
+        error_reporter.report(error, handled: false)
+        raise
       ensure
         instance.complete!
       end
@@ -105,6 +109,10 @@ module ActiveSupport
       attr_accessor :active
     end
 
+    def self.error_reporter
+      @error_reporter ||= ActiveSupport::ErrorReporter.new
+    end
+
     def self.inherited(other) # :nodoc:
       super
       other.active = Concurrent::Hash.new
@@ -113,11 +121,11 @@ module ActiveSupport
     self.active = Concurrent::Hash.new
 
     def self.active? # :nodoc:
-      @active[Thread.current]
+      @active[IsolatedExecutionState.unique_id]
     end
 
     def run! # :nodoc:
-      self.class.active[Thread.current] = true
+      self.class.active[IsolatedExecutionState.unique_id] = true
       run
     end
 
@@ -132,7 +140,7 @@ module ActiveSupport
     def complete!
       complete
     ensure
-      self.class.active.delete Thread.current
+      self.class.active.delete(IsolatedExecutionState.unique_id)
     end
 
     def complete # :nodoc:

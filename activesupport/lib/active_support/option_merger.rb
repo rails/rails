@@ -30,5 +30,9 @@ module ActiveSupport
           @context.__send__(method, *arguments, &block)
         end
       end
+
+      def respond_to_missing?(*arguments)
+        @context.respond_to?(*arguments)
+      end
   end
 end

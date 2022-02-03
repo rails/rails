@@ -105,6 +105,14 @@ class OptionMergerTest < ActiveSupport::TestCase
     assert_equal expected, @options
   end
 
+  def test_with_options_no_block
+    local_options = { "cool" => true }
+    scope = with_options(@options)
+
+    assert_equal local_options, method_with_options(local_options)
+    assert_equal @options.merge(local_options), scope.method_with_options(local_options)
+  end
+
   private
     def method_with_options(options = {})
       options

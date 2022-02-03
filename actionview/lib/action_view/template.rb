@@ -114,6 +114,9 @@ module ActionView
 
     extend Template::Handlers
 
+    singleton_class.attr_accessor :frozen_string_literal
+    @frozen_string_literal = false
+
     attr_reader :identifier, :handler
     attr_reader :variable, :format, :variant, :locals, :virtual_path
 
@@ -297,7 +300,11 @@ module ActionView
         end
 
         begin
-          mod.module_eval(source, identifier, 0)
+          if Template.frozen_string_literal
+            mod.module_eval("# frozen_string_literal: true\n#{source}", identifier, -1)
+          else
+            mod.module_eval(source, identifier, 0)
+          end
         rescue SyntaxError
           # Account for when code in the template is not syntactically valid; e.g. if we're using
           # ERB and the user writes <%= foo( %>, attempting to call a helper `foo` and interpolate

@@ -132,6 +132,22 @@ module ActiveRecord
         assert_not column_exists?(table_name, :supplier_id, :integer)
       end
 
+      def test_responds_to_if_exists_option
+        with_polymorphic_column do
+          assert_nothing_raised do
+            remove_reference table_name, :nonexistent, polymorphic: true, if_exists: true
+          end
+        end
+      end
+
+      def test_responds_to_if_not_exists_option
+        with_polymorphic_column do
+          assert_nothing_raised do
+            add_reference table_name, :supplier, polymorphic: true, if_not_exists: true
+          end
+        end
+      end
+
       private
         def with_polymorphic_column
           add_column table_name, :supplier_type, :string

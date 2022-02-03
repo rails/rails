@@ -137,9 +137,11 @@ module ActiveStorage
           end
 
           def #{name}=(attachables)
+            attachables = Array(attachables).compact_blank
+
             if ActiveStorage.replace_on_assign_to_many
               attachment_changes["#{name}"] =
-                if Array(attachables).none?
+                if attachables.none?
                   ActiveStorage::Attached::Changes::DeleteMany.new("#{name}", self)
                 else
                   ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables)
@@ -151,7 +153,7 @@ module ActiveStorage
                 "To append new attachables to the Active Storage association, prefer using `attach`. " \
                 "Using association setter would result in purging the existing attached attachments and replacing them with new ones."
 
-              if Array(attachables).any?
+              if attachables.any?
                 attachment_changes["#{name}"] =
                   ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, #{name}.blobs + attachables)
               end

@@ -282,6 +282,12 @@ module ActionView
       #     ...
       #   <% end %>
       #
+      # You can omit the <tt>action</tt> attribute by passing <tt>url: false</tt>:
+      #
+      #   <%= form_for(@post, url: false) do |f| %>
+      #     ...
+      #   <% end %>
+      #
       # You can also set the answer format, like this:
       #
       #   <%= form_for(@post, format: :json) do |f| %>
@@ -426,56 +432,53 @@ module ActionView
       #   <% end %>
       def form_for(record, options = {}, &block)
         raise ArgumentError, "Missing block" unless block_given?
-        html_options = options[:html] ||= {}
 
         case record
         when String, Symbol
+          model       = nil
           object_name = record
-          object      = nil
         else
-          object      = record.is_a?(Array) ? record.last : record
+          model       = record
+          object      = _object_for_form_builder(record)
           raise ArgumentError, "First argument in form cannot contain nil or be empty" unless object
           object_name = options[:as] || model_name_from_record_or_class(object).param_key
-          apply_form_for_options!(record, object, options)
+          apply_form_for_options!(object, options)
         end
 
-        html_options[:data]   = options.delete(:data)   if options.has_key?(:data)
-        html_options[:remote] = options.delete(:remote) if options.has_key?(:remote)
-        html_options[:method] = options.delete(:method) if options.has_key?(:method)
-        html_options[:enforce_utf8] = options.delete(:enforce_utf8) if options.has_key?(:enforce_utf8)
-        html_options[:authenticity_token] = options.delete(:authenticity_token)
+        remote = options.delete(:remote)
 
-        builder = instantiate_builder(object_name, object, options)
-        output  = capture(builder, &block)
-        html_options[:multipart] ||= builder.multipart?
+        if remote && !embed_authenticity_token_in_remote_forms && options[:authenticity_token].blank?
+          options[:authenticity_token] = false
+        end
 
-        html_options = html_options_for_form(options[:url] || {}, html_options)
-        form_tag_with_body(html_options, output)
+        options[:model]                               = model
+        options[:scope]                               = object_name
+        options[:local]                               = !remote
+        options[:skip_default_ids]                    = false
+        options[:allow_method_names_outside_object]   = options.fetch(:allow_method_names_outside_object, false)
+
+        form_with(**options, &block)
       end
 
-      def apply_form_for_options!(record, object, options) # :nodoc:
+      def apply_form_for_options!(object, options) # :nodoc:
         object = convert_to_model(object)
 
         as = options[:as]
         namespace = options[:namespace]
-        action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, :patch] : [:new, :post]
+        action = object.respond_to?(:persisted?) && object.persisted? ? :edit : :new
+        options[:html] ||= {}
         options[:html].reverse_merge!(
           class:  as ? "#{action}_#{as}" : dom_class(object, action),
           id:     (as ? [namespace, action, as] : [namespace, dom_id(object, action)]).compact.join("_").presence,
-          method: method
         )
-
-        options[:url] ||= if options.key?(:format)
-          polymorphic_path(record, format: options.delete(:format))
-        else
-          polymorphic_path(record, {})
-        end
       end
       private :apply_form_for_options!
 
       mattr_accessor :form_with_generates_remote_forms, default: true
 
       mattr_accessor :form_with_generates_ids, default: false
+
+      mattr_accessor :multiple_file_field_include_hidden, default: false
 
       # Creates a form tag based on mixing URLs, scopes, or models.
       #
@@ -485,6 +488,15 @@ module ActionView
       #   <% end %>
       #   # =>
       #   <form action="/posts" method="post">
+      #     <input type="text" name="title">
+      #   </form>
+      #
+      #   # With an intentionally empty URL:
+      #   <%= form_with url: false do |form| %>
+      #     <%= form.text_field :title %>
+      #   <% end %>
+      #   # =>
+      #   <form method="post" data-remote="true">
       #     <input type="text" name="title">
       #   </form>
       #
@@ -740,13 +752,18 @@ module ActionView
       #     form_with(**options.merge(builder: LabellingFormBuilder), &block)
       #   end
       def form_with(model: nil, scope: nil, url: nil, format: nil, **options, &block)
-        options[:allow_method_names_outside_object] = true
-        options[:skip_default_ids] = !form_with_generates_ids
+        options = { allow_method_names_outside_object: true, skip_default_ids: !form_with_generates_ids }.merge!(options)
 
         if model
-          url ||= polymorphic_path(model, format: format)
+          if url != false
+            url ||= if format.nil?
+              polymorphic_path(model, {})
+            else
+              polymorphic_path(model, format: format)
+            end
+          end
 
-          model   = model.last if model.is_a?(Array)
+          model   = _object_for_form_builder(model)
           scope ||= model_name_from_record_or_class(model).param_key
         end
 
@@ -1005,8 +1022,9 @@ module ActionView
       # hidden field is not needed and you can pass <tt>include_id: false</tt>
       # to prevent fields_for from rendering it automatically.
       def fields_for(record_name, record_object = nil, options = {}, &block)
-        builder = instantiate_builder(record_name, record_object, options)
-        capture(builder, &block)
+        options = { model: record_object, allow_method_names_outside_object: false, skip_default_ids: false }.merge!(options)
+
+        fields(record_name, **options, &block)
       end
 
       # Scopes input fields with either an explicit scope or model.
@@ -1055,10 +1073,10 @@ module ActionView
       # to work with an object as a base, like
       # FormOptionsHelper#collection_select and DateHelper#datetime_select.
       def fields(scope = nil, model: nil, **options, &block)
-        options[:allow_method_names_outside_object] = true
-        options[:skip_default_ids] = !form_with_generates_ids
+        options = { allow_method_names_outside_object: true, skip_default_ids: !form_with_generates_ids }.merge!(options)
 
         if model
+          model   = _object_for_form_builder(model)
           scope ||= model_name_from_record_or_class(model).param_key
         end
 
@@ -1202,6 +1220,7 @@ module ActionView
       # * Creates standard HTML attributes for the tag.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * <tt>:multiple</tt> - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
+      # * <tt>:include_hidden</tt> - When <tt>multiple: true</tt> and <tt>include_hidden: true</tt>, the field will be prefixed with an <tt><input type="hidden"></tt> field with an empty value to support submitting an empty collection of files.
       # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
       #
       # ==== Examples
@@ -1220,6 +1239,8 @@ module ActionView
       #   file_field(:attachment, :file, class: 'file_input')
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
       def file_field(object_name, method, options = {})
+        options = { include_hidden: multiple_file_field_include_hidden }.merge!(options)
+
         Tags::FileField.new(object_name, method, self, convert_direct_upload_option_to_url(options.dup)).render
       end
 
@@ -1276,7 +1297,7 @@ module ActionView
       # wouldn't update the flag.
       #
       # To prevent this the helper generates an auxiliary hidden field before
-      # the very check box. The hidden field has the same name and its
+      # every check box. The hidden field has the same name and its
       # attributes mimic an unchecked check box.
       #
       # This way, the client either sends only the hidden field (representing
@@ -1548,34 +1569,24 @@ module ActionView
         Tags::RangeField.new(object_name, method, self, options).render
       end
 
+      def _object_for_form_builder(object) # :nodoc:
+        object.is_a?(Array) ? object.last : object
+      end
+
       private
         def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: !form_with_generates_remote_forms,
           skip_enforcing_utf8: nil, **options)
-          html_options = options.slice(:id, :class, :multipart, :method, :data).merge(html)
+          html_options = options.slice(:id, :class, :multipart, :method, :data, :authenticity_token).merge!(html)
+          html_options[:remote] = html.delete(:remote) || !local
           html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
-          html_options[:enforce_utf8] = !skip_enforcing_utf8 unless skip_enforcing_utf8.nil?
-
-          html_options[:enctype] = "multipart/form-data" if html_options.delete(:multipart)
-
-          # The following URL is unescaped, this is just a hash of options, and it is the
-          # responsibility of the caller to escape all the values.
-          html_options[:action] = url_for(url_for_options || {})
-          html_options[:"accept-charset"] = "UTF-8"
-          html_options[:"data-remote"] = true unless local
-
-          html_options[:authenticity_token] = options.delete(:authenticity_token)
-
-          if !local && html_options[:authenticity_token].blank?
-            html_options[:authenticity_token] = embed_authenticity_token_in_remote_forms
+          if skip_enforcing_utf8.nil?
+            if options.key?(:enforce_utf8)
+              html_options[:enforce_utf8] = options[:enforce_utf8]
+            end
+          else
+            html_options[:enforce_utf8] = !skip_enforcing_utf8
           end
-
-          if html_options[:authenticity_token] == true
-            # Include the default authenticity_token, which is only generated when it's set to nil,
-            # but we needed the true value to override the default of no authenticity_token on data-remote.
-            html_options[:authenticity_token] = nil
-          end
-
-          html_options.stringify_keys!
+          html_options_for_form(url_for_options.nil? ? {} : url_for_options, html_options)
         end
 
         def instantiate_builder(record_name, record_object, options)
@@ -1742,8 +1753,30 @@ module ActionView
       # <tt>aria-describedby</tt> attribute referencing the <tt><span></tt>
       # element, sharing a common <tt>id</tt> root (<tt>post_title</tt>, in this
       # case).
-      def field_id(method, *suffixes, index: @index)
-        @template.field_id(@object_name, method, *suffixes, index: index)
+      def field_id(method, *suffixes, namespace: @options[:namespace], index: @index)
+        @template.field_id(@object_name, method, *suffixes, namespace: namespace, index: index)
+      end
+
+      # Generate an HTML <tt>name</tt> attribute value for the given name and
+      # field combination
+      #
+      # Return the value generated by the <tt>FormBuilder</tt> for the given
+      # attribute name.
+      #
+      #   <%= form_for @post do |f| %>
+      #     <%= f.text_field :title, name: f.field_name(:title, :subtitle) %>
+      #     <%# => <input type="text" name="post[title][subtitle]">
+      #   <% end %>
+      #
+      #   <%= form_for @post do |f| %>
+      #     <%= f.field_tag :tag, name: f.field_name(:tag, multiple: true) %>
+      #     <%# => <input type="text" name="post[tag][]">
+      #   <% end %>
+      #
+      def field_name(method, *methods, multiple: false, index: @index)
+        object_name = @options.fetch(:as) { @object_name }
+
+        @template.field_name(object_name, method, *methods, index: index, multiple: multiple)
       end
 
       ##
@@ -2232,7 +2265,7 @@ module ActionView
             return fields_for_with_nested_attributes(record_name, record_object, fields_options, block)
           end
         else
-          record_object = record_name.is_a?(Array) ? record_name.last : record_name
+          record_object = @template._object_for_form_builder(record_name)
           record_name   = model_name_from_record_or_class(record_object).param_key
         end
 
@@ -2361,7 +2394,7 @@ module ActionView
       # wouldn't update the flag.
       #
       # To prevent this the helper generates an auxiliary hidden field before
-      # the very check box. The hidden field has the same name and its
+      # every check box. The hidden field has the same name and its
       # attributes mimic an unchecked check box.
       #
       # This way, the client either sends only the hidden field (representing
@@ -2461,6 +2494,7 @@ module ActionView
       # * Creates standard HTML attributes for the tag.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * <tt>:multiple</tt> - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
+      # * <tt>:include_hidden</tt> - When <tt>multiple: true</tt> and <tt>include_hidden: true</tt>, the field will be prefixed with an <tt><input type="hidden"></tt> field with an empty value to support submitting an empty collection of files.
       # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
       #
       # ==== Examples
@@ -2552,6 +2586,9 @@ module ActionView
       #   button("Create post")
       #   # => <button name='button' type='submit'>Create post</button>
       #
+      #   button(:draft, value: true)
+      #   # => <button id="post_draft" name="post[draft]" value="true" type="submit">Create post</button>
+      #
       #   button do
       #     content_tag(:strong, 'Ask me!')
       #   end
@@ -2566,8 +2603,20 @@ module ActionView
       #   #      <strong>Create post</strong>
       #   #    </button>
       #
+      #   button(:draft, value: true) do
+      #     content_tag(:strong, "Save as draft")
+      #   end
+      #   # =>  <button id="post_draft" name="post[draft]" value="true" type="submit">
+      #   #       <strong>Save as draft</strong>
+      #   #     </button>
+      #
       def button(value = nil, options = {}, &block)
-        value, options = nil, value if value.is_a?(Hash)
+        case value
+        when Hash
+          value, options = nil, value
+        when Symbol
+          value, options = nil, { name: field_name(value), id: field_id(value) }.merge!(options.to_h)
+        end
         value ||= submit_default_value
 
         if block_given?

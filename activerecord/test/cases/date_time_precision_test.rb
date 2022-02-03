@@ -171,6 +171,28 @@ if supports_datetime_with_precision?
       end
     end
 
+    def test_writing_a_blank_attribute
+      @connection.create_table(:foos, force: true) do |t|
+        t.datetime :happened_at
+      end
+
+      assert_nil Foo.create!(happened_at: nil).happened_at
+      assert_nil Foo.create!(happened_at: "").happened_at
+    end
+
+    if current_adapter?(:PostgreSQLAdapter)
+      def test_writing_a_blank_attribute_timestamptz
+        with_postgresql_datetime_type(:timestamptz) do
+          @connection.create_table(:foos, force: true) do |t|
+            t.datetime :happened_at
+          end
+
+          assert_nil Foo.create!(happened_at: nil).happened_at
+          assert_nil Foo.create!(happened_at: "").happened_at
+        end
+      end
+    end
+
     def test_schema_dump_includes_datetime_precision
       @connection.create_table(:foos, force: true) do |t|
         t.timestamps precision: 6

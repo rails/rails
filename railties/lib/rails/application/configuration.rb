@@ -33,8 +33,12 @@ module Rails
         @filter_parameters                       = []
         @filter_redirect                         = []
         @helpers_paths                           = []
-        @hosts                                   = Array(([".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")] if Rails.env.development?))
-        @hosts.concat(ENV["RAILS_DEVELOPMENT_HOSTS"].to_s.split(",").map(&:strip)) if Rails.env.development?
+        if Rails.env.development?
+          @hosts = ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT +
+            ENV["RAILS_DEVELOPMENT_HOSTS"].to_s.split(",").map(&:strip)
+        else
+          @hosts = []
+        end
         @host_authorization                      = {}
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
@@ -77,7 +81,10 @@ module Rails
         @server_timing                           = false
       end
 
-      # Loads default configurations. See {the result of the method for each version}[https://guides.rubyonrails.org/configuring.html#results-of-config-load-defaults].
+      # Loads default configuration values for a target version. This includes
+      # defaults for versions prior to the target version. See the
+      # {configuration guide}[https://guides.rubyonrails.org/configuring.html]
+      # for the default values associated with a particular version.
       def load_defaults(target_version)
         case target_version.to_s
         when "5.0"
@@ -161,16 +168,11 @@ module Rails
 
           if respond_to?(:active_job)
             active_job.retry_jitter = 0.15
-            active_job.skip_after_callbacks_if_terminated = true
           end
 
           if respond_to?(:action_dispatch)
             action_dispatch.cookies_same_site_protection = :lax
             action_dispatch.ssl_default_redirect_status = 308
-          end
-
-          if respond_to?(:action_controller)
-            action_controller.urlsafe_csrf_tokens = true
           end
 
           if respond_to?(:action_view)
@@ -199,6 +201,14 @@ module Rails
           load_defaults "6.1"
 
           if respond_to?(:action_dispatch)
+            action_dispatch.default_headers = {
+              "X-Frame-Options" => "SAMEORIGIN",
+              "X-XSS-Protection" => "0",
+              "X-Content-Type-Options" => "nosniff",
+              "X-Download-Options" => "noopen",
+              "X-Permitted-Cross-Domain-Policies" => "none",
+              "Referrer-Policy" => "strict-origin-when-cross-origin"
+            }
             action_dispatch.return_only_request_media_type_on_content_type = false
             action_dispatch.cookies_serializer = :json
           end
@@ -215,6 +225,8 @@ module Rails
             active_support.cache_format_version = 7.0
             active_support.use_rfc4122_namespaced_uuids = true
             active_support.executor_around_test_case = true
+            active_support.isolation_level = :thread
+            active_support.disable_to_s_conversion = true
           end
 
           if respond_to?(:action_mailer)
@@ -227,6 +239,7 @@ module Rails
               " -frames:v 1 -f image2"
 
             active_storage.variant_processor = :vips
+            active_storage.multiple_file_field_include_hidden = true
           end
 
           if respond_to?(:active_record)
@@ -236,9 +249,23 @@ module Rails
           end
 
           if respond_to?(:action_controller)
+            action_controller.raise_on_missing_callback_actions = false
             action_controller.raise_on_open_redirects = true
-
             action_controller.wrap_parameters_by_default = true
+          end
+        when "7.1"
+          load_defaults "7.0"
+
+          self.add_autoload_paths_to_load_path = false
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.default_headers = {
+              "X-Frame-Options" => "SAMEORIGIN",
+              "X-XSS-Protection" => "0",
+              "X-Content-Type-Options" => "nosniff",
+              "X-Permitted-Cross-Domain-Policies" => "none",
+              "Referrer-Policy" => "strict-origin-when-cross-origin"
+            }
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"

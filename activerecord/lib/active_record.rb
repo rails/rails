@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2021 David Heinemeier Hansson
+# Copyright (c) 2004-2022 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -38,23 +38,23 @@ module ActiveRecord
 
   autoload :Base
   autoload :Callbacks
-  autoload :Core
   autoload :ConnectionHandling
+  autoload :Core
   autoload :CounterCache
-  autoload :DynamicMatchers
   autoload :DelegatedType
+  autoload :DestroyAssociationAsyncJob
+  autoload :DynamicMatchers
   autoload :Encryption
   autoload :Enum
-  autoload :InternalMetadata
   autoload :Explain
   autoload :Inheritance
   autoload :Integration
+  autoload :InternalMetadata
   autoload :Migration
   autoload :Migrator, "active_record/migration"
   autoload :ModelSchema
   autoload :NestedAttributes
   autoload :NoTouching
-  autoload :TouchLater
   autoload :Persistence
   autoload :QueryCache
   autoload :Querying
@@ -68,34 +68,38 @@ module ActiveRecord
   autoload :SchemaDumper
   autoload :SchemaMigration
   autoload :Scoping
+  autoload :SecurePassword
+  autoload :SecureToken
   autoload :Serialization
-  autoload :Store
   autoload :SignedId
+  autoload :Store
   autoload :Suppressor
+  autoload :TestDatabases
+  autoload :TestFixtures, "active_record/fixtures"
   autoload :Timestamp
+  autoload :TouchLater
   autoload :Transactions
   autoload :Translation
   autoload :Validations
-  autoload :SecureToken
-  autoload :DestroyAssociationAsyncJob
 
   eager_autoload do
-    autoload :StatementCache
-    autoload :ConnectionAdapters
-
     autoload :Aggregations
+    autoload :AssociationRelation
     autoload :Associations
+    autoload :AsynchronousQueriesTracker
     autoload :AttributeAssignment
     autoload :AttributeMethods
     autoload :AutosaveAssociation
-    autoload :AsynchronousQueriesTracker
-
-    autoload :LegacyYamlAdapter
-
-    autoload :Relation
-    autoload :AssociationRelation
+    autoload :ConnectionAdapters
     autoload :DisableJoinsAssociationRelation
+    autoload :FutureResult
+    autoload :LegacyYamlAdapter
     autoload :NullRelation
+    autoload :Relation
+    autoload :Result
+    autoload :StatementCache
+    autoload :TableMetadata
+    autoload :Type
 
     autoload_under "relation" do
       autoload :QueryMethods
@@ -106,16 +110,11 @@ module ActiveRecord
       autoload :Batches
       autoload :Delegation
     end
-
-    autoload :Result
-    autoload :FutureResult
-    autoload :TableMetadata
-    autoload :Type
   end
 
   module Coders
-    autoload :YAMLColumn, "active_record/coders/yaml_column"
     autoload :JSON, "active_record/coders/json"
+    autoload :YAMLColumn, "active_record/coders/yaml_column"
   end
 
   module AttributeMethods
@@ -127,9 +126,9 @@ module ActiveRecord
       autoload :PrimaryKey
       autoload :Query
       autoload :Read
+      autoload :Serialization
       autoload :TimeZoneConversion
       autoload :Write
-      autoload :Serialization
     end
   end
 
@@ -146,29 +145,26 @@ module ActiveRecord
     extend ActiveSupport::Autoload
 
     eager_autoload do
-      autoload :Named
       autoload :Default
+      autoload :Named
     end
   end
 
   module Middleware
     extend ActiveSupport::Autoload
 
-    autoload :DatabaseSelector, "active_record/middleware/database_selector"
+    autoload :DatabaseSelector
+    autoload :ShardSelector
   end
 
   module Tasks
     extend ActiveSupport::Autoload
 
     autoload :DatabaseTasks
-    autoload :SQLiteDatabaseTasks, "active_record/tasks/sqlite_database_tasks"
     autoload :MySQLDatabaseTasks,  "active_record/tasks/mysql_database_tasks"
-    autoload :PostgreSQLDatabaseTasks,
-      "active_record/tasks/postgresql_database_tasks"
+    autoload :PostgreSQLDatabaseTasks, "active_record/tasks/postgresql_database_tasks"
+    autoload :SQLiteDatabaseTasks, "active_record/tasks/sqlite_database_tasks"
   end
-
-  autoload :TestDatabases, "active_record/test_databases"
-  autoload :TestFixtures, "active_record/fixtures"
 
   # Lazily load the schema cache. This option will load the schema cache
   # when a connection is established rather than on boot. If set,

@@ -9,15 +9,15 @@ module ActiveRecord
         def quote_bound_value(value)
           case value
           when Numeric
-            _quote(value.to_s)
+            quote(value.to_s)
           when BigDecimal
-            _quote(value.to_s("F"))
+            quote(value.to_s("F"))
           when true
             "'1'"
           when false
             "'0'"
           else
-            _quote(value)
+            quote(value)
           end
         end
 
@@ -47,6 +47,26 @@ module ActiveRecord
 
         def quoted_binary(value)
           "x'#{value.hex}'"
+        end
+
+        # Override +type_cast+ we pass to mysql2 Date and Time objects instead
+        # of Strings since mysql2 is able to handle those classes more efficiently.
+        def type_cast(value) # :nodoc:
+          case value
+          when ActiveSupport::TimeWithZone
+            # We need to check explicitly for ActiveSupport::TimeWithZone because
+            # we need to transform it to Time objects but we don't want to
+            # transform Time objects to themselves.
+            if default_timezone == :utc
+              value.getutc
+            else
+              value.getlocal
+            end
+          when Date, Time
+            value
+          else
+            super
+          end
         end
 
         def column_name_matcher
@@ -84,27 +104,6 @@ module ActiveRecord
         /ix
 
         private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
-
-        private
-          # Override +_type_cast+ we pass to mysql2 Date and Time objects instead
-          # of Strings since mysql2 is able to handle those classes more efficiently.
-          def _type_cast(value)
-            case value
-            when ActiveSupport::TimeWithZone
-              # We need to check explicitly for ActiveSupport::TimeWithZone because
-              # we need to transform it to Time objects but we don't want to
-              # transform Time objects to themselves.
-              if ActiveRecord.default_timezone == :utc
-                value.getutc
-              else
-                value.getlocal
-              end
-            when Date, Time
-              value
-            else
-              super
-            end
-          end
       end
     end
   end
