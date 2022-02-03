@@ -1,3 +1,12 @@
+*   Use different cache namespace for proxy calls
+
+    Models can currently have different attribute bodies for the same method
+    names, leading to conflicts. Adding a new namespace `:active_model_proxy`
+    fixes the issue.
+
+    *Chris Salzberg*
+
+
 ## Rails 7.0.1 (January 06, 2022) ##
 
 *   No changes.
