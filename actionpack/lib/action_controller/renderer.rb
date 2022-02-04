@@ -37,7 +37,7 @@ module ActionController
     attr_reader :defaults, :controller
 
     DEFAULTS = {
-      http_host: "example.org",
+      http_host: "www.example.com",
       https: false,
       method: "get",
       script_name: "",
