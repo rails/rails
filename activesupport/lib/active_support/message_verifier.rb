@@ -28,10 +28,12 @@ module ActiveSupport
   #     self.current_user = User.find(id)
   #   end
   #
-  # === Confining messages to a specific purpose
+  # === Confine messages to a specific purpose
   #
-  # By default any message can be used throughout your app. But they can also be
-  # confined to a specific +:purpose+.
+  # It's not recommended to use the same verifier for different purposes in your application.
+  # Doing so could allow a malicious actor to re-use a signed message to perform an unauthorized
+  # action.
+  # You can reduce this risk by confining signed messages to a specific +:purpose+.
   #
   #   token = @verifier.generate("signed message", purpose: :login)
   #
@@ -55,7 +57,7 @@ module ActiveSupport
   #   @verifier.verify(token, purpose: :redirect)   # => raises ActiveSupport::MessageVerifier::InvalidSignature
   #   @verifier.verify(token)                       # => "signed message"
   #
-  # === Making messages expire
+  # === Expiring messages
   #
   # By default messages last forever and verifying one year from now will still
   # return the original value. But messages can be set to expire at a given
@@ -68,7 +70,7 @@ module ActiveSupport
   # Thereafter, the +verified+ method returns +nil+ while +verify+ raises
   # <tt>ActiveSupport::MessageVerifier::InvalidSignature</tt>.
   #
-  # === Alternative Serializers
+  # === Alternative serializers
   #
   # By default MessageVerifier uses Marshal to serialize the message. If you want to use
   # another serialization method, you can set the serializer in the options
@@ -98,13 +100,13 @@ module ActiveSupport
   # Then gradually rotate the old values out by adding them as fallbacks. Any message
   # generated with the old values will then work until the rotation is removed.
   #
-  #   verifier.rotate old_secret          # Fallback to an old secret instead of @secret.
-  #   verifier.rotate digest: "SHA256"    # Fallback to an old digest instead of SHA512.
-  #   verifier.rotate serializer: Marshal # Fallback to an old serializer instead of JSON.
+  #   verifier.rotate(old_secret)          # Fallback to an old secret instead of @secret.
+  #   verifier.rotate(digest: "SHA256")    # Fallback to an old digest instead of SHA512.
+  #   verifier.rotate(serializer: Marshal) # Fallback to an old serializer instead of JSON.
   #
   # Though the above would most likely be combined into one rotation:
   #
-  #   verifier.rotate old_secret, digest: "SHA256", serializer: Marshal
+  #   verifier.rotate(old_secret, digest: "SHA256", serializer: Marshal)
   class MessageVerifier
     prepend Messages::Rotator::Verifier
 
