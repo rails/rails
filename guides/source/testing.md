@@ -862,7 +862,7 @@ end
 
 If you want to use a remote browser, e.g.
 [Headless Chrome in Docker](https://github.com/SeleniumHQ/docker-selenium),
-you have to add  remote `url` through `options`.
+you have to add remote `url` through `options`.
 
 ```ruby
 require "test_helper"
