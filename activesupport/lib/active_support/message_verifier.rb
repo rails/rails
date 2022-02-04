@@ -13,6 +13,7 @@ module ActiveSupport
   #
   # In a Rails application, you can use +Rails.application.message_verifier+
   # to manage unique instances of verifiers for each use case.
+  # {Learn more}[link:classes/Rails/Application.html#method-i-message_verifier].
   #
   # This is useful for cases like remember-me tokens and auto-unsubscribe links
   # where the session store isn't suitable or available.
