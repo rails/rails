@@ -18,10 +18,10 @@ module ActiveSupport
   # This is useful for cases like remember-me tokens and auto-unsubscribe links
   # where the session store isn't suitable or available.
   #
-  # Remember Me:
+  # First, generate a signed message:
   #   cookies[:remember_me] = Rails.application.message_verifier(:remember_me).generate([@user.id, 2.weeks.from_now])
   #
-  # In an authentication method:
+  # Later verify that message:
   #
   #   id, time = Rails.application.message_verifier(:remember_me).verify(cookies[:remember_me])
   #   if time.future?
