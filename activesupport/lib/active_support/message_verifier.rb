@@ -11,15 +11,18 @@ module ActiveSupport
   # +MessageVerifier+ makes it easy to generate and verify messages which are
   # signed to prevent tampering.
   #
+  # In a Rails application, you can use +Rails.application.message_verifier+
+  # to manage unique instances of verifiers for each use case.
+  #
   # This is useful for cases like remember-me tokens and auto-unsubscribe links
   # where the session store isn't suitable or available.
   #
   # Remember Me:
-  #   cookies[:remember_me] = @verifier.generate([@user.id, 2.weeks.from_now])
+  #   cookies[:remember_me] = Rails.application.message_verifier(:remember_me).generate([@user.id, 2.weeks.from_now])
   #
   # In the authentication filter:
   #
-  #   id, time = @verifier.verify(cookies[:remember_me])
+  #   id, time = Rails.application.message_verifier(:remember_me).verify(cookies[:remember_me])
   #   if Time.now < time
   #     self.current_user = User.find(id)
   #   end
