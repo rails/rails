@@ -20,10 +20,10 @@ module ActiveSupport
   # Remember Me:
   #   cookies[:remember_me] = Rails.application.message_verifier(:remember_me).generate([@user.id, 2.weeks.from_now])
   #
-  # In the authentication filter:
+  # In an authentication method:
   #
   #   id, time = Rails.application.message_verifier(:remember_me).verify(cookies[:remember_me])
-  #   if Time.now < time
+  #   if time.future?
   #     self.current_user = User.find(id)
   #   end
   #
