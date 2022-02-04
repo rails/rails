@@ -76,6 +76,18 @@ module ActiveRecord
       assert_queries(0, options, &block)
     end
 
+    def assert_no_sql(query_string)
+      ActiveRecord::Base.connection.materialize_transactions
+      SQLCounter.clear_log
+
+      yield
+      query_log = SQLCounter.log_all
+
+      query_existence = query_log.join('\n') =~ /#{query_string}/
+
+      assert(query_existence.nil?, "The query '#{query_string}' has been executed while it should not be")
+    end
+
     def assert_column(model, column_name, msg = nil)
       model.reset_column_information
       assert_includes model.column_names, column_name.to_s, msg
