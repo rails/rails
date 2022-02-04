@@ -31,7 +31,9 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     book.tags << [tag, tag2]
     book.save!
 
-    book.destroy
+    assert_enqueued_jobs 1, only: ActiveRecord::DestroyAssociationAsyncJob do
+      book.destroy
+    end
 
     assert_difference -> { Tag.count }, -2 do
       perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
@@ -82,6 +84,33 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     DlKeyedHasManyThrough.delete_all
     DestroyAsyncParent.delete_all
     DlKeyedJoin.delete_all
+  end
+
+  test "enqueues multiple jobs if count of dependent records to destroy is greater than batch size" do
+    ActiveRecord::Base.destroy_association_async_batch_size = 1
+
+    tag = Tag.create!(name: "Der be treasure")
+    tag2 = Tag.create!(name: "Der be rum")
+    book = BookDestroyAsync.create!
+    book.tags << [tag, tag2]
+    book.save!
+
+    job_1_args = ->(job_args) { job_args.first[:association_ids] == [tag.id] }
+    job_2_args = ->(job_args) { job_args.first[:association_ids] == [tag2.id] }
+
+    assert_enqueued_with(job: ActiveRecord::DestroyAssociationAsyncJob, args: job_1_args) do
+      assert_enqueued_with(job: ActiveRecord::DestroyAssociationAsyncJob, args: job_2_args) do
+        book.destroy
+      end
+    end
+
+    assert_difference -> { Tag.count }, -2 do
+      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    end
+  ensure
+    Tag.delete_all
+    BookDestroyAsync.delete_all
+    ActiveRecord::Base.destroy_association_async_batch_size = nil
   end
 
   test "belongs to" do

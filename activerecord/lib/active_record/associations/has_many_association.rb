@@ -39,14 +39,16 @@ module ActiveRecord
               assoc.public_send(primary_key_column)
             end
 
-            enqueue_destroy_association(
-              owner_model_name: owner.class.to_s,
-              owner_id: owner.id,
-              association_class: reflection.klass.to_s,
-              association_ids: ids,
-              association_primary_key_column: primary_key_column,
-              ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)
-            )
+            ids.each_slice(owner.class.destroy_association_async_batch_size || ids.size) do |ids_batch|
+              enqueue_destroy_association(
+                owner_model_name: owner.class.to_s,
+                owner_id: owner.id,
+                association_class: reflection.klass.to_s,
+                association_ids: ids_batch,
+                association_primary_key_column: primary_key_column,
+                ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)
+              )
+            end
           end
         else
           delete_all

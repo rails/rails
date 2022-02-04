@@ -1,3 +1,15 @@
+*   Add `active_record.destroy_association_async_batch_size` configuration
+
+    This allows applications to specify the maximum number of records that will
+    be destroyed in a single background job by the `dependent: :destroy_async`
+    association option. By default, the current behavior will remain the same:
+    when a parent record is destroyed, all dependent records will be destroyed
+    in a single background job. If the number of dependent records is greater
+    than this configuration, the records will be destroyed in multiple
+    background jobs.
+
+    *Nick Holden*
+
 *   Fix `remove_foreign_key` with `:if_exists` option when foreign key actually exists.
 
     *fatkodima*
