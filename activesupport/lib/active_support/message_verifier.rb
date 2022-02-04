@@ -28,18 +28,6 @@ module ActiveSupport
   #     self.current_user = User.find(id)
   #   end
   #
-  # By default it uses Marshal to serialize the message. If you want to use
-  # another serialization method, you can set the serializer in the options
-  # hash upon initialization:
-  #
-  #   @verifier = ActiveSupport::MessageVerifier.new("secret", serializer: YAML)
-  #
-  # +MessageVerifier+ creates HMAC signatures using the SHA1 hash algorithm by default.
-  # If you want to use a different hash algorithm, you can change it by providing
-  # +:digest+ key as an option while initializing the verifier:
-  #
-  #   @verifier = ActiveSupport::MessageVerifier.new("secret", digest: "SHA256")
-  #
   # === Confining messages to a specific purpose
   #
   # By default any message can be used throughout your app. But they can also be
@@ -79,6 +67,20 @@ module ActiveSupport
   # Messages can then be verified and returned until expiry.
   # Thereafter, the +verified+ method returns +nil+ while +verify+ raises
   # <tt>ActiveSupport::MessageVerifier::InvalidSignature</tt>.
+  #
+  # === Alternative Serializers
+  #
+  # By default MessageVerifier uses Marshal to serialize the message. If you want to use
+  # another serialization method, you can set the serializer in the options
+  # hash upon initialization:
+  #
+  #   @verifier = ActiveSupport::MessageVerifier.new("secret", serializer: YAML)
+  #
+  # +MessageVerifier+ creates HMAC signatures using the SHA1 hash algorithm by default.
+  # If you want to use a different hash algorithm, you can change it by providing
+  # +:digest+ key as an option while initializing the verifier:
+  #
+  #   @verifier = ActiveSupport::MessageVerifier.new("secret", digest: "SHA256")
   #
   # === Rotating keys
   #
