@@ -114,11 +114,15 @@ class RoutingConcernsTest < ActionDispatch::IntegrationTest
 
   def test_concerns_executes_block_in_context_of_current_mapper
     mapper = ActionDispatch::Routing::Mapper.new(ActionDispatch::Routing::RouteSet.new)
+    self_from_concern_block = nil
+
     mapper.concern :test_concern do
       resources :things
-      return self
+      self_from_concern_block = self
     end
 
-    assert_equal mapper, mapper.concerns(:test_concern)
+    mapper.concerns(:test_concern)
+
+    assert_equal mapper, self_from_concern_block
   end
 end
