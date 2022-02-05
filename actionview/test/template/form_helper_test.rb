@@ -1593,8 +1593,8 @@ class FormHelperTest < ActionView::TestCase
       "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" \
       "<input name='commit' data-disable-with='Create post' type='submit' value='Create post' />" \
-      "<button name='button' type='submit'>Create post</button>" \
-      "<button name='button' type='submit'><span>Create post</span></button>"
+      "<button>Create post</button>" \
+      "<button><span>Create post</span></button>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1623,8 +1623,8 @@ class FormHelperTest < ActionView::TestCase
       "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" \
       "<input name='commit' data-disable-with='Create post' type='submit' value='Create post' />" \
-      "<button name='button' type='submit'>Create post</button>" \
-      "<button name='button' type='submit'><span>Create post</span></button>"
+      "<button>Create post</button>" \
+      "<button><span>Create post</span></button>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1638,7 +1638,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
-      '<button name="button" type="submit" form="new_post">Create Post</button>'
+      '<button form="new_post">Create Post</button>'
     end
 
     assert_dom_equal expected, output_buffer
@@ -2607,7 +2607,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
-      %(<button type="submit" id="post_secret" name="post[secret]" value="true">Update Post</button>)
+      %(<button id="post_secret" name="post[secret]" value="true">Update Post</button>)
     end
 
     assert_dom_equal expected, output_buffer
@@ -2619,7 +2619,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
-      %(<button type="submit" id="not_generated" name="post[not_generated]" value="true">Update Post</button>)
+      %(<button name="post[not_generated]" id="not_generated" value="true">Update Post</button>)
     end
 
     assert_dom_equal expected, output_buffer
@@ -2631,7 +2631,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
-      %(<button type="submit" id="post_secret" name="post[secret]" value="true">Update secret Post</button>)
+      %(<button id="post_secret" name="post[secret]" value="true">Update secret Post</button>)
     end
 
     assert_dom_equal expected, output_buffer
@@ -2643,7 +2643,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
-      "<button type='submit' formmethod='get' name='button'>GET</button>"
+      "<button formmethod='get'>GET</button>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -2655,7 +2655,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
-      "<button type='submit' formmethod='post' name='button'>POST</button>"
+      "<button formmethod='post'>POST</button>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -2667,7 +2667,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
-      "<button type='submit' formmethod='post' name='_method' value='delete'>Delete</button>"
+      "<button formmethod='post' name='_method' value='delete'>Delete</button>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -2679,7 +2679,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
-      "<button type='submit' formmethod='delete' name='existing'>Delete</button>"
+      "<button formmethod='delete' name='existing'>Delete</button>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -2691,7 +2691,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
-      "<button type='submit' formmethod='delete' name='button' value='existing'>Delete</button>"
+      "<button formmethod='delete' value='existing'>Delete</button>"
     end
 
     assert_dom_equal expected, output_buffer

@@ -374,8 +374,8 @@ class FormWithActsLikeFormForTest < FormWithTest
       "<input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' />" \
       "<select name='post[category]' id='post_category'><option value='animal'>animal</option>\n<option value='economy'>economy</option>\n<option value='sports'>sports</option></select>" \
       "<input name='commit' data-disable-with='Create post' type='submit' value='Create post' />" \
-      "<button name='button' type='submit'>Create post</button>" \
-      "<button name='button' type='submit'><span>Create post</span></button>"
+      "<button>Create post</button>" \
+      "<button><span>Create post</span></button>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -387,7 +387,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     expected = whole_form("/posts/123", method: :patch) do
-      "<button name='button' type='submit'><span>Update Post</span></button>"
+      "<button><span>Update Post</span></button>"
     end
 
     assert_dom_equal expected, output_buffer

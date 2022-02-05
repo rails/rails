@@ -704,48 +704,48 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_button_tag
     assert_dom_equal(
-      %(<button name="button" type="submit">Button</button>),
+      %(<button>Button</button>),
       button_tag
     )
   end
 
   def test_button_tag_with_submit_type
     assert_dom_equal(
-      %(<button name="button" type="submit">Save</button>),
+      %(<button type="submit">Save</button>),
       button_tag("Save", type: "submit")
     )
   end
 
   def test_button_tag_with_button_type
     assert_dom_equal(
-      %(<button name="button" type="button">Button</button>),
+      %(<button type="button">Button</button>),
       button_tag("Button", type: "button")
     )
   end
 
   def test_button_tag_with_reset_type
     assert_dom_equal(
-      %(<button name="button" type="reset">Reset</button>),
+      %(<button type="reset">Reset</button>),
       button_tag("Reset", type: "reset")
     )
   end
 
   def test_button_tag_with_disabled_option
     assert_dom_equal(
-      %(<button name="button" type="reset" disabled="disabled">Reset</button>),
+      %(<button type="reset" disabled="disabled">Reset</button>),
       button_tag("Reset", type: "reset", disabled: true)
     )
   end
 
   def test_button_tag_escape_content
     assert_dom_equal(
-      %(<button name="button" type="reset" disabled="disabled">&lt;b&gt;Reset&lt;/b&gt;</button>),
+      %(<button type="reset" disabled="disabled">&lt;b&gt;Reset&lt;/b&gt;</button>),
       button_tag("<b>Reset</b>", type: "reset", disabled: true)
     )
   end
 
   def test_button_tag_with_block
-    assert_dom_equal('<button name="button" type="submit">Content</button>', button_tag { "Content" })
+    assert_dom_equal("<button>Content</button>", button_tag { "Content" })
   end
 
   def test_button_tag_with_block_and_options
@@ -755,19 +755,19 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_button_tag_defaults_with_block_and_options
     output = button_tag(name: "temptation", value: "within") { content_tag(:strong, "Do not press me") }
-    assert_dom_equal('<button name="temptation" value="within" type="submit" ><strong>Do not press me</strong></button>', output)
+    assert_dom_equal('<button name="temptation" value="within" ><strong>Do not press me</strong></button>', output)
   end
 
   def test_button_tag_with_confirmation
     assert_dom_equal(
-      %(<button name="button" type="submit" data-confirm="Are you sure?">Save</button>),
+      %(<button type="submit" data-confirm="Are you sure?">Save</button>),
       button_tag("Save", type: "submit", data: { confirm: "Are you sure?" })
     )
   end
 
   def test_button_tag_with_data_disable_with_option
     assert_dom_equal(
-      %(<button name="button" type="submit" data-disable-with="Please wait...">Checkout</button>),
+      %(<button data-disable-with="Please wait...">Checkout</button>),
       button_tag("Checkout", data: { disable_with: "Please wait..." })
     )
   end

@@ -582,7 +582,7 @@ module ActionView
           options ||= {}
         end
 
-        options = { "name" => "button", "type" => "submit" }.merge!(options.stringify_keys)
+        options = options.stringify_keys
 
         if block_given?
           content_tag :button, options, &block
