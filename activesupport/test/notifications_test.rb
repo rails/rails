@@ -229,6 +229,94 @@ module Notifications
     end
   end
 
+  class SubscriberIsolationTest < TestCase
+    def test_subscribers_ignore_events_started_before_subscription
+      event_names = []
+
+      @notifier.start("started_before_subscription", nil, {})
+      @notifier.subscribe(/.*/) { |name, *| event_names << name }
+      @notifier.finish("started_before_subscription", nil, {})
+      @notifier.start("started_after_subscription", nil, {})
+      @notifier.finish("started_after_subscription", nil, {})
+
+      assert_equal ["started_after_subscription"], event_names
+    end
+
+    def test_event_start_data_is_isolated_from_other_subscribers
+      foo_events = []
+      bar_events = []
+      @notifier.subscribe("foo") { |event| foo_events << event }
+      @notifier.subscribe("bar") { |event| bar_events << event }
+
+      # finishing an unrelated event should not be emitted to subscribers
+      @notifier.start("foo", nil, {})
+      @notifier.finish("bar", nil, {})
+
+      assert_equal [], foo_events
+      assert_equal [], bar_events
+
+      # finishing an event should be emitted only to matching subscribers
+      @notifier.finish("foo", nil, { name: "FOO" })
+
+      assert_equal [["foo", "FOO"]],
+                   foo_events.map { |event| [event.name, event.payload[:name]] }
+      assert_equal [], bar_events
+    end
+
+    def test_event_start_data_is_isolated_from_events_with_different_names
+      events = []
+      @notifier.subscribe(/.*/) { |event| events << event }
+
+      @notifier.start("foo", nil, {})
+      @notifier.start("bar", nil, {})
+      @notifier.start("qux", nil, {})
+
+      # finishing events in a different order should not mix up the data
+      @notifier.finish("bar", nil, { name: "BAR" })
+      @notifier.finish("qux", nil, { name: "QUX" })
+      @notifier.finish("foo", nil, { name: "FOO" })
+
+      assert_equal [["bar", "BAR"], ["qux", "QUX"], ["foo", "FOO"]],
+                   events.map { |event| [event.name, event.payload[:name]] }
+    end
+
+    def test_event_start_data_is_isolated_from_other_instrumenters
+      events = []
+      @notifier.subscribe(/.*/) { |event| events << event }
+
+      @notifier.start("foo", nil, {})
+
+      # Setting a new notifier triggers the creation of a new Instrumenter,
+      # see ActiveSupport::Notifications.instrumenter
+      new_notifier = ActiveSupport::Notifications::Fanout.new
+      ActiveSupport::Notifications.notifier = new_notifier
+
+      new_notifier.finish("foo", nil, {})
+
+      assert_equal [], events
+    end
+
+    def test_interleaved_events_with_same_event_name
+      # Events with the same name that have overlapping durations can not be
+      # differentiated at the moment, so we take a naive FIFO approach,
+      # assuming that the event that started first will usually finish first.
+      times = []
+      @notifier.subscribe("foo") { |_, start, finish| times << [start, finish] }
+
+      travel_to Time.at(1)
+      @notifier.start("foo", nil, {})
+      travel_to Time.at(2)
+      @notifier.start("foo", nil, {})
+      travel_to Time.at(3)
+      @notifier.finish("foo", nil, {})
+      travel_to Time.at(4)
+      @notifier.finish("foo", nil, {})
+
+      assert_equal [[Time.at(1), Time.at(3)], [Time.at(2), Time.at(4)]],
+                   times
+    end
+  end
+
   class UnsubscribeTest < TestCase
     def test_unsubscribing_removes_a_subscription
       @notifier.publish :foo

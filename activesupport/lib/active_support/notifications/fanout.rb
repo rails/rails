@@ -218,6 +218,19 @@ module ActiveSupport
           def unsubscribe!(name)
             pattern.unsubscribe!(name)
           end
+
+          def stack(name, id)
+            # use isolated stacks per listener, event name, and Instrumenter#id
+            IsolatedExecutionState[:"_stack_#{object_id}_#{name}_#{id}"] ||= []
+          end
+
+          def store_start_value(name, id, value)
+            stack(name, id).unshift(value)
+          end
+
+          def fetch_start_value(name, id)
+            stack(name, id).pop
+          end
         end
 
         class Timed < Evented # :nodoc:
@@ -226,13 +239,13 @@ module ActiveSupport
           end
 
           def start(name, id, payload)
-            timestack = IsolatedExecutionState[:_timestack] ||= []
-            timestack.push Time.now
+            store_start_value(name, id, Time.now)
           end
 
           def finish(name, id, payload)
-            timestack = IsolatedExecutionState[:_timestack]
-            started = timestack.pop
+            # skip if the listener was subscribed after the event started
+            return unless started = fetch_start_value(name, id)
+
             @delegate.call(name, started, Time.now, id, payload)
           end
         end
@@ -243,28 +256,28 @@ module ActiveSupport
           end
 
           def start(name, id, payload)
-            timestack = IsolatedExecutionState[:_timestack_monotonic] ||= []
-            timestack.push Process.clock_gettime(Process::CLOCK_MONOTONIC)
+            store_start_value(name, id, Process.clock_gettime(Process::CLOCK_MONOTONIC))
           end
 
           def finish(name, id, payload)
-            timestack = IsolatedExecutionState[:_timestack_monotonic]
-            started = timestack.pop
+            # skip if the listener was subscribed after the event started
+            return unless started = fetch_start_value(name, id)
+
             @delegate.call(name, started, Process.clock_gettime(Process::CLOCK_MONOTONIC), id, payload)
           end
         end
 
         class EventObject < Evented
           def start(name, id, payload)
-            stack = IsolatedExecutionState[:_event_stack] ||= []
             event = build_event name, id, payload
             event.start!
-            stack.push event
+            store_start_value(name, id, event)
           end
 
           def finish(name, id, payload)
-            stack = IsolatedExecutionState[:_event_stack]
-            event = stack.pop
+            # skip if the listener was subscribed after the event started
+            return unless event = fetch_start_value(name, id)
+
             event.payload = payload
             event.finish!
             @delegate.call event

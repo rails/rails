@@ -1,3 +1,9 @@
+*   Fix an issue with `ActiveSupport::Notification` that caused random requests to fail in dev env and led to incorrect event data in some cases.
+
+    Fixes #44167, #44348.
+
+    *Janosch Müller*
+
 *   Add `ActiveSupport::TestCase#stub_const` to stub a constant for the duration of a yield.
 
     *DHH*
