@@ -1,3 +1,9 @@
+*   Fix PG.connect keyword arguments deprecation warning on ruby 2.7
+
+    Fixes #44307.
+
+    *Nikita Vasilevsky*
+
 *   Fix dropping DB connections after serialization failures and deadlocks.
 
     Prior to 6.1.4, serialization failures and deadlocks caused rollbacks to be
