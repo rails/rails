@@ -134,7 +134,7 @@ module ActiveSupport
         to_s(format)
       end
     end
-    alias_method :to_fs, :to_fs
+    alias_method :to_formatted_s, :to_fs
   end
 end
 

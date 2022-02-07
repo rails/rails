@@ -104,7 +104,7 @@ class Array
       to_default_s
     end
   end
-  alias_method :to_fs, :to_fs
+  alias_method :to_formatted_s, :to_fs
   alias_method :to_default_s, :to_s
 
   # Returns a string that represents the array in XML by invoking +to_xml+
