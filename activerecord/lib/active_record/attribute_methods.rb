@@ -413,7 +413,7 @@ module ActiveRecord
           inspected_value = if value.is_a?(String) && value.length > 50
             "#{value[0, 50]}...".inspect
           elsif value.is_a?(Date) || value.is_a?(Time)
-            %("#{value.to_formatted_s(:inspect)}")
+            %("#{value.to_fs(:inspect)}")
           else
             value.inspect
           end

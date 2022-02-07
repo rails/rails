@@ -89,10 +89,10 @@ class Array
   #
   # This method is aliased to <tt>to_fs</tt>.
   #
-  #   Blog.all.to_formatted_s(:db)  # => "1,2,3"
-  #   Blog.none.to_formatted_s(:db) # => "null"
-  #   [1,2].to_formatted_s          # => "[1, 2]"
-  def to_formatted_s(format = :default)
+  #   Blog.all.to_fs(:db)  # => "1,2,3"
+  #   Blog.none.to_fs(:db) # => "null"
+  #   [1,2].to_fs          # => "[1, 2]"
+  def to_fs(format = :default)
     case format
     when :db
       if empty?
@@ -104,7 +104,7 @@ class Array
       to_default_s
     end
   end
-  alias_method :to_fs, :to_formatted_s
+  alias_method :to_fs, :to_fs
   alias_method :to_default_s, :to_s
 
   # Returns a string that represents the array in XML by invoking +to_xml+

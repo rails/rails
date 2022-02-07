@@ -114,7 +114,7 @@ Short docs do not need an explicit "Examples" label to introduce snippets; they 
 # Converts a collection of elements into a formatted string by
 # calling +to_s+ on all elements and joining them.
 #
-#   Blog.all.to_formatted_s # => "First PostSecond PostThird Post"
+#   Blog.all.to_fs # => "First PostSecond PostThird Post"
 ```
 
 On the other hand, big chunks of structured documentation may have a separate "Examples" section:

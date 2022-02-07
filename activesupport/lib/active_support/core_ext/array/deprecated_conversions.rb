@@ -6,7 +6,7 @@ class Array
     case format
     when :db
       ActiveSupport::Deprecation.warn(
-        "Array#to_s(#{format.inspect}) is deprecated. Please use Array#to_formatted_s(#{format.inspect}) instead."
+        "Array#to_s(#{format.inspect}) is deprecated. Please use Array#to_fs(#{format.inspect}) instead."
       )
       if empty?
         "null"
@@ -17,7 +17,7 @@ class Array
       to_default_s
     else
       ActiveSupport::Deprecation.warn(
-        "Array#to_s(#{format.inspect}) is deprecated. Please use Array#to_formatted_s(#{format.inspect}) instead."
+        "Array#to_s(#{format.inspect}) is deprecated. Please use Array#to_fs(#{format.inspect}) instead."
       )
       to_default_s
     end

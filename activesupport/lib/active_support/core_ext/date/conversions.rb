@@ -26,17 +26,17 @@ class Date
   #
   #   date = Date.new(2007, 11, 10)       # => Sat, 10 Nov 2007
   #
-  #   date.to_formatted_s(:db)            # => "2007-11-10"
+  #   date.to_fs(:db)            # => "2007-11-10"
   #   date.to_fs(:db)                     # => "2007-11-10"
   #
-  #   date.to_formatted_s(:short)         # => "10 Nov"
-  #   date.to_formatted_s(:number)        # => "20071110"
-  #   date.to_formatted_s(:long)          # => "November 10, 2007"
-  #   date.to_formatted_s(:long_ordinal)  # => "November 10th, 2007"
-  #   date.to_formatted_s(:rfc822)        # => "10 Nov 2007"
-  #   date.to_formatted_s(:iso8601)       # => "2007-11-10"
+  #   date.to_fs(:short)         # => "10 Nov"
+  #   date.to_fs(:number)        # => "20071110"
+  #   date.to_fs(:long)          # => "November 10, 2007"
+  #   date.to_fs(:long_ordinal)  # => "November 10th, 2007"
+  #   date.to_fs(:rfc822)        # => "10 Nov 2007"
+  #   date.to_fs(:iso8601)       # => "2007-11-10"
   #
-  # == Adding your own date formats to to_formatted_s
+  # == Adding your own date formats to to_fs
   # You can add your own formats to the Date::DATE_FORMATS hash.
   # Use the format name as the hash key and either a strftime string
   # or Proc instance that takes a date argument as the value.
@@ -44,7 +44,7 @@ class Date
   #   # config/initializers/date_formats.rb
   #   Date::DATE_FORMATS[:month_and_year] = '%B %Y'
   #   Date::DATE_FORMATS[:short_ordinal] = ->(date) { date.strftime("%B #{date.day.ordinalize}") }
-  def to_formatted_s(format = :default)
+  def to_fs(format = :default)
     if formatter = DATE_FORMATS[format]
       if formatter.respond_to?(:call)
         formatter.call(self).to_s
@@ -55,7 +55,7 @@ class Date
       to_default_s
     end
   end
-  alias_method :to_fs, :to_formatted_s
+  alias_method :to_formatted_s, :to_fs
   alias_method :to_default_s, :to_s
 
   # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005"
