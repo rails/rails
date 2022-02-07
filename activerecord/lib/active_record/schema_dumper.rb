@@ -73,7 +73,6 @@ module ActiveRecord
         @version ? "version: #{formatted_version}" : ""
       end
 
-      # TODO: Fix dumper
       def header(stream)
         stream.puts <<~HEADER
           # This file is auto-generated from the current state of the database. Instead
