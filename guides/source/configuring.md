@@ -62,6 +62,7 @@ Below are the default values associated with each target version. In cases of co
 
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.add_autoload_paths_to_load_path`](#config-add-autoload-paths-to-load-path): `false`
+- [`config.active_support.use_acts_like_return_value`](#config-active-support-use-acts-like-return-value): `true`
 
 #### Default Values for Target Version 7.0
 
@@ -1836,6 +1837,17 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.0                   | `true`               |
+
+#### `config.active_support.use_acts_like_return_value`
+
+Changes whether the return value of `acts_like_duck` will be used when `acts_like?(:duck)` is called on an object
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.1                   | `true`               |
 
 #### `ActiveSupport::Logger.silencer`
 

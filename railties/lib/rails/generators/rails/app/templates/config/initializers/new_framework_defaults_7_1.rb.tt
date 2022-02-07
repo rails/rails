@@ -24,3 +24,6 @@
 #   "X-Permitted-Cross-Domain-Policies" => "none",
 #   "Referrer-Policy" => "strict-origin-when-cross-origin"
 # }
+
+# Use the return value of `acts_like_*` methods when calling `acts_like?`.
+# Rails.application.config.active_support.use_acts_like_return_value = true

@@ -292,10 +292,11 @@ The method [`acts_like?`][Object#acts_like?] provides a way to check whether som
 
 ```ruby
 def acts_like_string?
+  true
 end
 ```
 
-which is only a marker, its body or return value are irrelevant. Then, client code can query for duck-type-safeness this way:
+Then, client code can query for duck-type-safeness this way:
 
 ```ruby
 some_klass.acts_like?(:string)

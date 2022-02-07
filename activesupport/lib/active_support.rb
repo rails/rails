@@ -93,6 +93,7 @@ module ActiveSupport
 
   cattr_accessor :test_order # :nodoc:
   cattr_accessor :test_parallelization_threshold, default: 50 # :nodoc:
+  cattr_accessor :use_acts_like_return_value, default: false
 
   singleton_class.attr_accessor :error_reporter # :nodoc:
 

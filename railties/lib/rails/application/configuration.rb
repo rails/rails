@@ -267,6 +267,10 @@ module Rails
               "Referrer-Policy" => "strict-origin-when-cross-origin"
             }
           end
+
+          if respond_to?(:active_support)
+            active_support.use_acts_like_return_value = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
