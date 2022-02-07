@@ -26,7 +26,7 @@ module ActiveSupport
 
       def load(value)
         if self.fallback_to_marshal_deserialization
-          if value.starts_with?(MARSHAL_SIGNATURE)
+          if value.start_with?(MARSHAL_SIGNATURE)
             logger.warn("JsonWithMarshalFallback: Marshal load fallback occurred.") if logger
             Marshal.load(value)
           else
