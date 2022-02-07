@@ -3,7 +3,7 @@ Webpacker
 
 This guide will show you how to install and use Webpacker to package JavaScript, CSS, and other assets for the client-side of your Rails application but please note [Webpacker has been retired](https://github.com/rails/webpacker#webpacker-has-been-retired-).
 
-Also note, the below docs mainly apply to the unreleased v6, which was released as the [gem 'shakapacker'](https://github.com/shakacode/shakapacker). Webpacker development continues in that repo. You can also find updated docs in that repo.
+The below information mainly applies to the unreleased v6, which has been released as the [gem 'shakapacker'](https://github.com/shakacode/shakapacker). Webpacker development continues in that repo.
 
 After reading this guide, you will know:
 
