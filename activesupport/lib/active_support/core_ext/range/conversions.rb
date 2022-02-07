@@ -14,7 +14,7 @@ module ActiveSupport
 
     # Convert range to a formatted string. See RANGE_FORMATS for predefined formats.
     #
-    # This method is aliased to <tt>to_fs</tt>.
+    # This method is aliased to <tt>to_formatted_s</tt>.
     #
     #   range = (1..100)           # => 1..100
     #

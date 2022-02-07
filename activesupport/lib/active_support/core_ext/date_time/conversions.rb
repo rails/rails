@@ -9,7 +9,7 @@ require "active_support/values/time_zone"
 class DateTime
   # Convert to a formatted string. See Time::DATE_FORMATS for predefined formats.
   #
-  # This method is aliased to <tt>to_fs</tt>.
+  # This method is aliased to <tt>to_formatted_s</tt>.
   #
   # === Examples
   #   datetime = DateTime.civil(2007, 12, 4, 0, 0, 0, 0)   # => Tue, 04 Dec 2007 00:00:00 +0000

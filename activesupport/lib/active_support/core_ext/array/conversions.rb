@@ -87,7 +87,7 @@ class Array
   # Extends <tt>Array#to_s</tt> to convert a collection of elements into a
   # comma separated id list if <tt>:db</tt> argument is given as the format.
   #
-  # This method is aliased to <tt>to_fs</tt>.
+  # This method is aliased to <tt>to_formatted_s</tt>.
   #
   #   Blog.all.to_fs(:db)  # => "1,2,3"
   #   Blog.none.to_fs(:db) # => "null"

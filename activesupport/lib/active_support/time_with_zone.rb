@@ -232,7 +232,7 @@ module ActiveSupport
 
     # Returns a string of the object's date and time.
     #
-    # This method is aliased to <tt>to_fs</tt>.
+    # This method is aliased to <tt>to_formatted_s</tt>.
     #
     # Accepts an optional <tt>format</tt>:
     # * <tt>:default</tt> - default value, mimics Ruby Time#to_s format.
