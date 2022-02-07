@@ -84,6 +84,10 @@ module ActiveRecord
         true
       end
 
+      def savepoint_errors_invalidate_transactions?
+        true
+      end
+
       def supports_lazy_transactions?
         true
       end

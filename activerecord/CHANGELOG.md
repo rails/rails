@@ -1,3 +1,16 @@
+*   Fix dropping DB connections after serialization failures and deadlocks.
+
+    Prior to 6.1.4, serialization failures and deadlocks caused rollbacks to be
+    issued for both real transactions and savepoints. This breaks MySQL which
+    disallows rollbacks of savepoints following a deadlock.
+
+    6.1.4 removed these rollbacks, for both transactions and savepoints, causing
+    the DB connection to be left in an unknown state and thus discarded.
+
+    These rollbacks are now restored, except for savepoints on MySQL.
+
+    *Thomas Morgan*
+
 *   Make `ActiveRecord::ConnectionPool` Fiber-safe
 
     When `ActiveSupport::IsolatedExecutionState.isolation_level` is set to `:fiber`,

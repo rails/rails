@@ -187,7 +187,9 @@ module ActiveRecord
       end
 
       def rollback
-        connection.rollback_to_savepoint(savepoint_name) if materialized?
+        unless @state.invalidated?
+          connection.rollback_to_savepoint(savepoint_name) if materialized?
+        end
         @state.rollback!
       end
 
@@ -308,7 +310,7 @@ module ActiveRecord
       def rollback_transaction(transaction = nil)
         @connection.lock.synchronize do
           transaction ||= @stack.pop
-          transaction.rollback unless transaction.state.invalidated?
+          transaction.rollback
           transaction.rollback_records
         end
       end
@@ -321,7 +323,10 @@ module ActiveRecord
           ret
         rescue Exception => error
           if transaction
-            transaction.state.invalidate! if error.is_a? ActiveRecord::TransactionRollbackError
+            if error.is_a?(ActiveRecord::TransactionRollbackError) &&
+                @connection.savepoint_errors_invalidate_transactions?
+              transaction.state.invalidate!
+            end
             rollback_transaction
             after_failure_actions(transaction, error)
           end

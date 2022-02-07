@@ -329,6 +329,12 @@ module ActiveRecord
         false
       end
 
+      # Do TransactionRollbackErrors on savepoints affect the parent
+      # transaction?
+      def savepoint_errors_invalidate_transactions?
+        false
+      end
+
       # Does this adapter support application-enforced advisory locking?
       def supports_advisory_locks?
         false
