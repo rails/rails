@@ -38,6 +38,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     ActiveRecord::SchemaMigration.delete_all
   end
 
+  def test_schema_dump_include_migration_version
+    output = standard_dump
+    assert_match %r{ActiveRecord::Schema\[#{ActiveRecord::Migration.current_version}\]\.define}, output
+  end
+
   def test_schema_dump
     output = standard_dump
     assert_match %r{create_table "accounts"}, output
