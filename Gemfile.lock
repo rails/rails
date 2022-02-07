@@ -38,12 +38,6 @@ GIT
       event_emitter
       websocket
 
-GIT
-  remote: https://github.com/zzak/rbtree.git
-  revision: 6f678e50f543c43d25c018ae108c7e3de88b703a
-  specs:
-    rbtree (0.4.4)
-
 PATH
   remote: .
   specs:
@@ -423,6 +417,7 @@ GEM
     rb-fsevent (0.11.0)
     rb-inotify (0.10.1)
       ffi (~> 1.0)
+    rbtree (0.4.5)
     rdoc (6.3.3)
     redcarpet (3.2.3)
     redis (4.5.1)
@@ -625,7 +620,6 @@ DEPENDENCIES
   rack-cache (~> 1.2)
   rails!
   rake (>= 11.1)
-  rbtree!
   redcarpet (~> 3.2.3)
   redis (~> 4.0)
   redis-namespace
