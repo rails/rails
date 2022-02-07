@@ -50,7 +50,7 @@ class Time
   #   # config/initializers/time_formats.rb
   #   Time::DATE_FORMATS[:month_and_year] = '%B %Y'
   #   Time::DATE_FORMATS[:short_ordinal]  = ->(time) { time.strftime("%B #{time.day.ordinalize}") }
-  def to_fs :default)
+  def to_fs(format = :default)
     if formatter = DATE_FORMATS[format]
       formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
     else

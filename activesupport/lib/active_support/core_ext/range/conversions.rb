@@ -27,7 +27,7 @@ module ActiveSupport
     #
     #   # config/initializers/range_formats.rb
     #   Range::RANGE_FORMATS[:short] = ->(start, stop) { "Between #{start.to_fs(:db)} and #{stop.to_fs(:db)}" }
-    def to_fs :default)
+    def to_fs(format = :default)
       if formatter = RANGE_FORMATS[format]
         formatter.call(first, last)
       else
