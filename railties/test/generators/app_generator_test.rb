@@ -230,6 +230,60 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_set_the_schema_version_to_6_1
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root]
+
+    File.write("#{app_root}/db/schema.rb", <<~RUBY)
+      ActiveRecord::Schema.define(version: 1) do
+        create_table :users do |t|
+          t.string :name
+        end
+      end
+    RUBY
+
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
+      generator.send(:app_const)
+      quietly { generator.update_db_schema }
+      assert_file "#{app_root}/db/schema.rb", /ActiveRecord::Schema\[6\.1\]\.define\(version: 1\)/
+    end
+  end
+
+  def test_app_update_set_the_schema_version_to_6_1_if_already_set
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root]
+
+    File.write("#{app_root}/db/schema.rb", <<~RUBY)
+      ActiveRecord::Schema[7.0].define(version: 1) do
+        create_table :users do |t|
+          t.string :name
+        end
+      end
+    RUBY
+
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
+      generator.send(:app_const)
+      quietly { generator.update_db_schema }
+      assert_file "#{app_root}/db/schema.rb", /ActiveRecord::Schema\[7\.0\]\.define\(version: 1\)/
+    end
+  end
+
+  def test_app_update_set_the_schema_version_if_structe_file_is_used
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root]
+
+    assert_no_file "#{app_root}/db/schema.rb"
+
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
+      generator.send(:app_const)
+      quietly { generator.update_db_schema }
+      assert_no_file "#{app_root}/db/schema.rb"
+    end
+  end
+
   def test_app_update_does_not_generate_assets_initializer_when_sprockets_is_not_used
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "-a", "none"]
@@ -274,17 +328,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
         assert_no_match(/require "bootsnap\/setup"/, content)
       end
     end
-  end
-
-  def test_gem_for_active_storage
-    run_generator
-    assert_file "Gemfile", /^# gem "image_processing"/
-  end
-
-  def test_gem_for_active_storage_when_skip_active_storage_is_given
-    run_generator [destination_root, "--skip-active-storage"]
-
-    assert_no_gem "image_processing"
   end
 
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given
@@ -335,6 +378,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
       assert_no_file "#{app_root}/config/storage.yml"
     end
+  end
+
+  def test_gem_for_active_storage
+    run_generator
+    assert_file "Gemfile", /^# gem "image_processing"/
+  end
+
+  def test_gem_for_active_storage_when_skip_active_storage_is_given
+    run_generator [destination_root, "--skip-active-storage"]
+
+    assert_no_gem "image_processing"
   end
 
   def test_generator_skips_action_mailbox_when_skip_action_mailbox_is_given

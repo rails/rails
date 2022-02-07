@@ -40,7 +40,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
   def test_schema_without_version_is_the_current_version_schema
     schema_class = ActiveRecord::Schema
     assert schema_class < ActiveRecord::Migration[ActiveRecord::Migration.current_version]
-    assert_not schema_class < ActiveRecord::Migration[7.0]
+    assert_not schema_class < ActiveRecord::Migration[6.1]
     assert schema_class < ActiveRecord::Schema::Definition
   end
 

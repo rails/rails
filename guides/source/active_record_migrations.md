@@ -1038,7 +1038,7 @@ If `:ruby` is selected, then the schema is stored in `db/schema.rb`. If you look
 at this file you'll find that it looks an awful lot like one very big migration:
 
 ```ruby
-ActiveRecord::Schema[7.1].define(version: 2008_09_06_171750) do
+ActiveRecord::Schema[7.0].define(version: 2008_09_06_171750) do
   create_table "authors", force: true do |t|
     t.string   "name"
     t.datetime "created_at"
