@@ -25,15 +25,21 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match(/INSERT INTO/, schema_info)
   end
 
-  def test_dump_schema_information_outputs_lexically_ordered_versions
+  def test_dump_schema_information_outputs_lexically_reverse_ordered_versions_regardless_of_database_order
     versions = %w{ 20100101010101 20100201010101 20100301010101 }
-    versions.reverse_each do |v|
+    versions.shuffle.each do |v|
       ActiveRecord::SchemaMigration.create!(version: v)
     end
 
     schema_info = ActiveRecord::Base.connection.dump_schema_information
-    assert_match(/20100201010101.*20100301010101/m, schema_info)
-    assert_includes schema_info, "20100101010101"
+    expected = <<~STR
+    INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("schema_migrations")} (version) VALUES
+    ('20100301010101'),
+    ('20100201010101'),
+    ('20100101010101');
+
+    STR
+    assert_equal expected, schema_info
   ensure
     ActiveRecord::SchemaMigration.delete_all
   end
