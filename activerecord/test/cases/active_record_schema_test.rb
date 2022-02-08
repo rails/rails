@@ -37,6 +37,19 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     ActiveRecord::Base.primary_key_prefix_type = old_primary_key_prefix_type
   end
 
+  def test_schema_without_version_is_the_current_version_schema
+    schema_class = ActiveRecord::Schema
+    assert schema_class < ActiveRecord::Migration[ActiveRecord::Migration.current_version]
+    assert_not schema_class < ActiveRecord::Migration[6.1]
+    assert schema_class < ActiveRecord::Schema::Definition
+  end
+
+  def test_schema_version_accessor
+    schema_class = ActiveRecord::Schema[6.1]
+    assert schema_class < ActiveRecord::Migration[6.1]
+    assert schema_class < ActiveRecord::Schema::Definition
+  end
+
   def test_schema_define
     ActiveRecord::Schema.define(version: 7) do
       create_table :fruits do |t|

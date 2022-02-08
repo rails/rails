@@ -193,6 +193,14 @@ module Rails
       directory "db"
     end
 
+    def db_when_updating
+      path = File.expand_path("db/schema.rb", destination_root)
+
+      if File.exist?(path)
+        gsub_file("db/schema.rb", /ActiveRecord::Schema\.define/, "ActiveRecord::Schema[6.1].define")
+      end
+    end
+
     def lib
       empty_directory "lib"
       empty_directory_with_keep_file "lib/tasks"
@@ -332,6 +340,11 @@ module Rails
         build(:bin_when_updating)
       end
       remove_task :update_bin_files
+
+      def update_db_schema
+        build(:db_when_updating)
+      end
+      remove_task :update_db_schema
 
       def update_active_storage
         unless skip_active_storage?
