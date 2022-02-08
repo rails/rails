@@ -215,6 +215,7 @@ of the files and folders that Rails creates by default:
 |vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
 |.gitignore|This file tells git which files (or patterns) it should ignore. See [GitHub - Ignoring files](https://help.github.com/articles/ignoring-files) for more info about ignoring files.|
 |.ruby-version|This file contains the default Ruby version.|
+|.ruby-gemset|This file contains name of Ruby gemset if you're using RVM.|
 
 Hello, Rails!
 -------------
