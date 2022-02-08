@@ -43,7 +43,7 @@ class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::EncryptionTestC
 
   test "install autofiltered params" do
     application = OpenStruct.new(config: OpenStruct.new(filter_parameters: []))
-    ActiveRecord::Encryption.install_auto_filtered_parameters(application)
+    ActiveRecord::Encryption.install_auto_filtered_parameters_hook(application)
 
     Class.new(Pirate) do
       self.table_name = "pirates"
