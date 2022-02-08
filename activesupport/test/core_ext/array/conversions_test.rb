@@ -116,8 +116,8 @@ class ToSTest < ActiveSupport::TestCase
 
     assert_equal "null", [].to_fs(:db)
     assert_equal "1,2,3", collection.to_fs(:db)
-    assert_equal "null", [].to_fs(:db)
-    assert_equal "4,5,6", collection.to_fs(:db)
+    assert_equal "null", [].to_formatted_s(:db)
+    assert_equal "4,5,6", collection.to_formatted_s(:db)
   end
 end
 

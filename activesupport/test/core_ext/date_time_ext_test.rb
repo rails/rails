@@ -72,7 +72,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
       assert_equal "2009-02-05T14:30:05+00:00", DateTime.civil(2009, 2, 5, 14, 30, 5).to_fs(:iso8601)
     end
 
-    assert_equal "2005-02-21 14:30:00",                 datetime.to_fs(:db)
+    assert_equal "2005-02-21 14:30:00",                 datetime.to_formatted_s(:db)
   end
 
   def test_readable_inspect

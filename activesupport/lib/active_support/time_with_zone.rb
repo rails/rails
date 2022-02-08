@@ -33,7 +33,7 @@ module ActiveSupport
   #   t.dst?                                # => true
   #   t.utc_offset                          # => -14400
   #   t.zone                                # => "EDT"
-  #   t.to_fs(:rfc822)             # => "Sun, 18 May 2008 13:27:25 -0400"
+  #   t.to_fs(:rfc822)                      # => "Sun, 18 May 2008 13:27:25 -0400"
   #   t + 1.day                             # => Mon, 19 May 2008 13:27:25.031505668 EDT -04:00
   #   t.beginning_of_year                   # => Tue, 01 Jan 2008 00:00:00.000000000 EST -05:00
   #   t > Time.utc(1999)                    # => true

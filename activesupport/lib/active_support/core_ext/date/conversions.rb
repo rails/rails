@@ -26,8 +26,8 @@ class Date
   #
   #   date = Date.new(2007, 11, 10)       # => Sat, 10 Nov 2007
   #
-  #   date.to_fs(:db)            # => "2007-11-10"
   #   date.to_fs(:db)                     # => "2007-11-10"
+  #   date.to_formatted_s(:db)            # => "2007-11-10"
   #
   #   date.to_fs(:short)         # => "10 Nov"
   #   date.to_fs(:number)        # => "20071110"

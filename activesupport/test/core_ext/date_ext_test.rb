@@ -88,7 +88,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "2005-02-21",          date.to_fs(:inspect)
     assert_equal "21 Feb 2005",         date.to_fs(:rfc822)
     assert_equal "2005-02-21",          date.to_fs(:iso8601)
-    assert_equal "21 Feb",              date.to_fs(:short)
+    assert_equal "21 Feb",              date.to_formatted_s(:short)
   end
 
   def test_to_fs_with_single_digit_day
