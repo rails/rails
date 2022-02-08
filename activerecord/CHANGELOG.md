@@ -1,3 +1,10 @@
+*   Fix PG.connect keyword arguments deprecation warning on ruby 2.7
+
+    Fixes #44307.
+
+    *Nikita Vasilevsky*
+
+
 ## Rails 7.0.1 (January 06, 2022) ##
 
 *   Change `QueryMethods#in_order_of` to drop records not listed in values.
