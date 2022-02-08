@@ -111,13 +111,13 @@ class ToSTest < ActiveSupport::TestCase
     end
   end
 
-  def test_to_formatted_s_db
+  def test_to_fs_db
     collection = [TestDB.new, TestDB.new, TestDB.new]
 
-    assert_equal "null", [].to_formatted_s(:db)
-    assert_equal "1,2,3", collection.to_formatted_s(:db)
     assert_equal "null", [].to_fs(:db)
-    assert_equal "4,5,6", collection.to_fs(:db)
+    assert_equal "1,2,3", collection.to_fs(:db)
+    assert_equal "null", [].to_formatted_s(:db)
+    assert_equal "4,5,6", collection.to_formatted_s(:db)
   end
 end
 

@@ -388,7 +388,7 @@ module ActiveRecord
       end
 
       if timestamp
-        "#{size}-#{timestamp.utc.to_formatted_s(cache_timestamp_format)}"
+        "#{size}-#{timestamp.utc.to_fs(cache_timestamp_format)}"
       else
         "#{size}"
       end
