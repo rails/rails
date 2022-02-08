@@ -1,3 +1,8 @@
+## Rails 7.0.2 (February 08, 2022) ##
+
+*   No changes.
+
+
 ## Rails 7.0.1 (January 06, 2022) ##
 
 *   Fix `ActionController::Parameters` methods to keep the original logger context when creating a new copy

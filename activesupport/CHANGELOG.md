@@ -1,3 +1,5 @@
+## Rails 7.0.2 (February 08, 2022) ##
+
 *   Fix `ActiveSupport::EncryptedConfiguration` to be compatible with Psych 4
 
     *Stephen Sugden*
@@ -5,6 +7,7 @@
 *   Improve `File.atomic_write` error handling.
 
     *Daniel Pepper*
+
 
 ## Rails 7.0.1 (January 06, 2022) ##
 

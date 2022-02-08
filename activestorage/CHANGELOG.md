@@ -1,3 +1,18 @@
+## Rails 7.0.2 (February 08, 2022) ##
+
+*   Revert the ability to pass `service_name` param to `DirectUploadsController` which was introduced
+    in 7.0.0.
+
+    That change caused a lot of problems to upgrade Rails applications so we decided to remove it
+    while in work in a more backwards compatible implementation.
+
+    *Gannon McGibbon*
+
+*   Allow applications to opt out of precompiling Active Storage JavaScript assets.
+
+    *jlestavel*
+
+
 ## Rails 7.0.1 (January 06, 2022) ##
 
 *   No changes.

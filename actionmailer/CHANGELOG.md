@@ -1,3 +1,8 @@
+## Rails 7.0.2 (February 08, 2022) ##
+
+*   No changes.
+
+
 ## Rails 7.0.1 (January 06, 2022) ##
 
 *   Keep configuration of `smtp_settings` consistent between 6.1 and 7.0.

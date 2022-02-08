@@ -1,3 +1,15 @@
+## Rails 7.0.2 (February 08, 2022) ##
+
+*   Ensure `preload_link_tag` preloads JavaScript modules correctly.
+
+    *Máximo Mussini*
+
+*   Fix `stylesheet_link_tag` and similar helpers are being used to work in objects with
+    a `response` method.
+
+    *dark-panda*
+
+
 ## Rails 7.0.1 (January 06, 2022) ##
 
 *   Fix `button_to` to work with a hash parameter as URL.

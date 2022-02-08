@@ -1,11 +1,74 @@
-*   Fix PG.connect keyword arguments deprecation warning on ruby 2.7
+## Rails 7.0.2 (February 08, 2022) ##
+
+*   Fix `PG.connect` keyword arguments deprecation warning on ruby 2.7.
+
+    *Nikita Vasilevsky*
+
+*   Fix the ability to exclude encryption params from being autofiltered.
+
+    *Mark Gangl*
+
+*   Dump the precision for datetime columns following the new defaults.
+
+    *Rafael Mendonça França*
+
+*   Make sure encrypted attributes are not being filtered twice.
+
+    *Nikita Vasilevsky*
+
+*   Dump the database schema containing the current Rails version.
+
+    Since https://github.com/rails/rails/pull/42297, Rails now generate datetime columns
+    with a default precision of 6. This means that users upgrading to Rails 7.0 from 6.1,
+    when loading the database schema, would get the new precision value, which would not match
+    the production schema.
+
+    To avoid this the schema dumper will generate the new format which will include the Rails
+    version and will look like this:
+
+    ```
+    ActiveRecord::Schema[7.0].define
+    ```
+
+    When upgrading from Rails 6.1 to Rails 7.0, you can run the `rails app:update` task that will
+    set the current schema version to 6.1.
+
+    *Rafael Mendonça França*
+
+*   Fix parsing expression for PostgreSQL generated column.
+
+    *fatkodima*
+
+*   Fix `Mysql2::Error: Commands out of sync; you can't run this command now`
+    when bulk-inserting fixtures that exceed `max_allowed_packet` configuration.
+
+    *Nikita Vasilevsky*
+
+*   Fix error when saving an association with a relation named `record`.
+
+    *Dorian Marié*
+
+*   Fix `MySQL::SchemaDumper` behavior about datetime precision value.
+
+    *y0t4*
+
+*   Improve associated with no reflection error.
+
+    *Nikolai*
+
+*   Fix PG.connect keyword arguments deprecation warning on ruby 2.7.
 
     Fixes #44307.
 
     *Nikita Vasilevsky*
 
+*   Fix passing options to `check_constraint` from `change_table`.
+
+    *Frederick Cheung*
+
 
 ## Rails 7.0.1 (January 06, 2022) ##
+
 
 *   Change `QueryMethods#in_order_of` to drop records not listed in values.
 

@@ -1,3 +1,5 @@
+## Rails 7.0.2 (February 08, 2022) ##
+
 *   Use different cache namespace for proxy calls
 
     Models can currently have different attribute bodies for the same method
