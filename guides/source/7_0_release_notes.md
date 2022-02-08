@@ -266,7 +266,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Deprecations
 
-*   Deprecate passing a format to `#to_s` in favor of `#to_formatted_s` in `Array`, `Range`, `Date`, `DateTime`, `Time`,
+*   Deprecate passing a format to `#to_s` in favor of `#to_fs` in `Array`, `Range`, `Date`, `DateTime`, `Time`,
     `BigDecimal`, `Float` and, `Integer`.
 
     This deprecation is to allow Rails application to take advantage of a Ruby 3.1

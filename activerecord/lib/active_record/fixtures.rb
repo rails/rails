@@ -407,7 +407,7 @@ module ActiveRecord
   # defaults:
   #
   #   DEFAULTS: &DEFAULTS
-  #     created_on: <%= 3.weeks.ago.to_formatted_s(:db) %>
+  #     created_on: <%= 3.weeks.ago.to_fs(:db) %>
   #
   #   first:
   #     name: Smurf

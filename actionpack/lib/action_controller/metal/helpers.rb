@@ -26,7 +26,7 @@ module ActionController
   #
   #   module FormattedTimeHelper
   #     def format_time(time, format=:long, blank_message="&nbsp;")
-  #       time.blank? ? blank_message : time.to_formatted_s(format)
+  #       time.blank? ? blank_message : time.to_fs(format)
   #     end
   #   end
   #
