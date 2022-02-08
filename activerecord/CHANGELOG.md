@@ -1,3 +1,11 @@
+*   Use the model name as a prefix when filtering encrypted attributes from logs.
+
+    For example, when encrypting `Person#name` it will add `person.name` as a filter
+    parameter, instead of just `name`. This prevents unintended filtering of parameters
+    with a matching name in other models. 
+
+    *Jorge Manrubia*
+
 *   Fix `config.active_record.destroy_association_async_job` configuration
 
     `config.active_record.destroy_association_async_job` should allow
