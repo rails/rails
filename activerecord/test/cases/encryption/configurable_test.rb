@@ -57,7 +57,7 @@ class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::EncryptionTestC
     ActiveRecord::Encryption.config.excluded_from_filter_parameters = [:catchphrase]
 
     application = OpenStruct.new(config: OpenStruct.new(filter_parameters: []))
-    ActiveRecord::Encryption.install_auto_filtered_parameters(application)
+    ActiveRecord::Encryption.install_auto_filtered_parameters_hook(application)
 
     Class.new(Pirate) do
       self.table_name = "pirates"
