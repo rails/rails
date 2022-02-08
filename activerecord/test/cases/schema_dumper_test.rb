@@ -845,9 +845,9 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
     assert_match %r{t\.date\s+"date_with_default",\s+default: "2014-06-05"}, output
 
     if supports_datetime_with_precision?
-      assert_match %r{t\.datetime\s+"datetime_with_default",\s+precision: 6,\s+default: "2014-06-05 07:17:04"}, output
-    else
       assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: "2014-06-05 07:17:04"}, output
+    else
+      assert_match %r{t\.datetime\s+"datetime_with_default",\s+precision: nil,\s+default: "2014-06-05 07:17:04"}, output
     end
 
     assert_match %r{t\.time\s+"time_with_default",\s+default: "2000-01-01 07:17:04"}, output
@@ -864,8 +864,8 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
     output = dump_table_schema("infinity_defaults")
     assert_match %r{t\.float\s+"float_with_inf_default",\s+default: ::Float::INFINITY}, output
     assert_match %r{t\.float\s+"float_with_nan_default",\s+default: ::Float::NAN}, output
-    assert_match %r{t\.datetime\s+"beginning_of_time",\s+precision: 6,\s+default: -::Float::INFINITY}, output
-    assert_match %r{t\.datetime\s+"end_of_time",\s+precision: 6,\s+default: ::Float::INFINITY}, output
+    assert_match %r{t\.datetime\s+"beginning_of_time",\s+default: -::Float::INFINITY}, output
+    assert_match %r{t\.datetime\s+"end_of_time",\s+default: ::Float::INFINITY}, output
     assert_match %r{t\.date\s+"date_with_neg_inf_default",\s+default: -::Float::INFINITY}, output
     assert_match %r{t\.date\s+"date_with_pos_inf_default",\s+default: ::Float::INFINITY}, output
   end if current_adapter?(:PostgreSQLAdapter)
