@@ -1,3 +1,13 @@
+*   Reversed the order of `INSERT` statements in `structure.sql` dumps
+
+    This should decrease the likelihood of merge conflicts. New migrations
+    will now be added at the top of the list.
+
+    For existing apps, there will be a large diff the next time `structure.sql`
+    is generated.
+
+    *Alex Ghiculescu*, *Matt Larraz*
+
 *   Fix PG.connect keyword arguments deprecation warning on ruby 2.7
 
     Fixes #44307.
