@@ -304,9 +304,9 @@ $ bin/rails generate scaffold HighScore game:string score:integer
     create      app/views/high_scores/_high_score.json.jbuilder
 ```
 
-The generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the `high_scores` table and fields), takes care of the route for the **resource**, and new tests for everything.
+The generator creates the model, views, controller, **resource** route, and database migration (which creates the `high_scores` table) for HighScore. And it adds tests for those.
 
-The migration requires that we **migrate**, that is, run some Ruby code (living in that `20130717151933_create_high_scores.rb`) to modify the schema of our database. Which database? The SQLite3 database that Rails will create for you when we run the `bin/rails db:migrate` command. We'll talk more about that command below.
+The migration requires that we **migrate**, that is, run some Ruby code (the `20190416145729_create_high_scores.rb` file from the above output) to modify the schema of our database. Which database? The SQLite3 database that Rails will create for you when we run the `bin/rails db:migrate` command. We'll talk more about that command below.
 
 ```bash
 $ bin/rails db:migrate
