@@ -252,7 +252,7 @@ end
 ```
 
 This migration will create a `user_id` column. [References](#references) are a
-shorthand for creating columns, indexes, foreign keys or even polymorphic
+shorthand for creating columns, indexes, foreign keys, or even polymorphic
 association columns.
 
 There is also a generator which will produce join tables if `JoinTable` is part of the name:
@@ -281,7 +281,7 @@ end
 
 ### Model Generators
 
-The model, resource and scaffold generators will create migrations appropriate for adding
+The model, resource, and scaffold generators will create migrations appropriate for adding
 a new model. This migration will already contain instructions for creating the
 relevant table. If you tell Rails what columns you want, then statements for
 adding these columns will also be created. For example, running:
@@ -340,7 +340,7 @@ get to work!
 ### Creating a Table
 
 The [`create_table`][] method is one of the most fundamental, but most of the time,
-will be generated for you from using a model, resource or scaffold generator. A typical
+will be generated for you from using a model, resource, or scaffold generator. A typical
 use would be
 
 ```ruby
@@ -562,7 +562,7 @@ For example, to add a foreign key on `articles.reviewer` referencing `authors.em
 add_foreign_key :articles, :authors, column: :reviewer, primary_key: :email
 ```
 
-Options such as `name`, `on_delete`, `if_not_exists`, `validate` and `deferrable`
+Options such as `name`, `on_delete`, `if_not_exists`, `validate`, and `deferrable`
 are described in the [`add_foreign_key`][] API.
 
 NOTE: Active Record only supports single column foreign keys. `execute` and

@@ -345,7 +345,7 @@ Defines the CSS compressor to use. It is set by default by `sass-rails`. The uni
 
 #### `config.assets.js_compressor`
 
-Defines the JavaScript compressor to use. Possible values are `:terser`, `:closure`, `:uglifier` and `:yui`, which require the use of the `terser`, `closure-compiler`, `uglifier` or `yui-compressor` gems respectively.
+Defines the JavaScript compressor to use. Possible values are `:terser`, `:closure`, `:uglifier`, and `:yui`, which require the use of the `terser`, `closure-compiler`, `uglifier`, or `yui-compressor` gems respectively.
 
 #### `config.assets.gzip`
 
@@ -1988,7 +1988,7 @@ By default, this is defined as:
 config.active_storage.analyzers = [ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer]
 ```
 
-The image analyzers can extract width and height of an image blob; the video analyzer can extract width, height, duration, angle, aspect ratio and presence/absence of video/audio channels of a video blob; the audio analyzer can extract duration and bit rate of an audio blob.
+The image analyzers can extract width and height of an image blob; the video analyzer can extract width, height, duration, angle, aspect ratio, and presence/absence of video/audio channels of a video blob; the audio analyzer can extract duration and bit rate of an audio blob.
 
 #### `config.active_storage.previewers`
 

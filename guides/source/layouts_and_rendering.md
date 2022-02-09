@@ -956,7 +956,7 @@ You can also specify a special size tag, in the format "{width}x{height}":
 <%= image_tag "home.gif", size: "50x20" %>
 ```
 
-In addition to the above special tags, you can supply a final hash of standard HTML options, such as `:class`, `:id` or `:name`:
+In addition to the above special tags, you can supply a final hash of standard HTML options, such as `:class`, `:id`, or `:name`:
 
 ```erb
 <%= image_tag "home.gif", alt: "Go Home",
