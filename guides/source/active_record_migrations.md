@@ -251,7 +251,7 @@ class AddUserRefToProducts < ActiveRecord::Migration[7.0]
 end
 ```
 
-This migration will create a `user_id` column, [references](#references) are a
+This migration will create a `user_id` column. [References](#references) are a
 shorthand for creating columns, indexes, foreign keys or even polymorphic
 association columns.
 
@@ -556,7 +556,7 @@ If the `from_table` column name cannot be derived from the `to_table` name,
 you can use the `:column` option. Use the `:primary_key` option if the
 referenced primary key is not `:id`.
 
-For example add a foreign key on `articles.reviewer` referencing `authors.email`:
+For example, to add a foreign key on `articles.reviewer` referencing `authors.email`:
 
 ```ruby
 add_foreign_key :articles, :authors, column: :reviewer, primary_key: :email

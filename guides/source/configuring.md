@@ -295,7 +295,7 @@ Configures lookup path for encrypted credentials.
 
 Configures lookup path for encryption key.
 
-#### `secret_key_base``
+#### `secret_key_base`
 
 Is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get a random generated key in test and development environments, other environments should set one in `config/credentials.yml.enc`.
 
@@ -345,7 +345,7 @@ Defines the CSS compressor to use. It is set by default by `sass-rails`. The uni
 
 #### `config.assets.js_compressor`
 
-Defines the JavaScript compressor to use. Possible values are `:terser`, `:closure`, `:uglifier` and `:yui` which require the use of the `terser`, `closure-compiler`, `uglifier` or `yui-compressor` gems respectively.
+Defines the JavaScript compressor to use. Possible values are `:terser`, `:closure`, `:uglifier` and `:yui`, which require the use of the `terser`, `closure-compiler`, `uglifier` or `yui-compressor` gems respectively.
 
 #### `config.assets.gzip`
 
@@ -2722,7 +2722,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `engines_blank_point`: Provides a point-in-initialization to hook into if you wish to do anything before engines are loaded. After this point, all railtie and engine initializers are run.
 
-* `add_generator_templates`: Finds templates for generators at `lib/templates` for the application, railties, and engines and adds these to the `config.generators.templates` setting, which will make the templates available for all generators to reference.
+* `add_generator_templates`: Finds templates for generators at `lib/templates` for the application, railties, and engines, and adds these to the `config.generators.templates` setting, which will make the templates available for all generators to reference.
 
 * `ensure_autoload_once_paths_as_subset`: Ensures that the `config.autoload_once_paths` only contains paths from `config.autoload_paths`. If it contains extra paths, then an exception will be raised.
 

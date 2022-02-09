@@ -156,7 +156,7 @@ This will do three main things for you:
 If you want to take an existing application and make it an API one, read the
 following steps.
 
-In `config/application.rb` add the following line at the top of the `Application`
+In `config/application.rb`, add the following line at the top of the `Application`
 class definition:
 
 ```ruby

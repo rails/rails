@@ -299,7 +299,7 @@ NOTE: Notice that in this example we used the `cache_key_with_version` method, s
 Consider this example, which stores a list of Active Record objects representing superusers in the cache:
 
 ```ruby
- # super_admins is an expensive SQL query, so don't run it too often
+# super_admins is an expensive SQL query, so don't run it too often
 Rails.cache.fetch("super_admin_users", expires_in: 12.hours) do
   User.super_admins.to_a
 end
@@ -312,7 +312,7 @@ cache stores that reload code when you make changes.
 Instead, cache the ID or some other primitive data type. For example:
 
 ```ruby
- # super_admins is an expensive SQL query, so don't run it too often
+# super_admins is an expensive SQL query, so don't run it too often
 ids = Rails.cache.fetch("super_admin_user_ids", expires_in: 12.hours) do
   User.super_admins.pluck(:id)
 end
