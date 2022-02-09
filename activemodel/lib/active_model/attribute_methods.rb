@@ -314,12 +314,12 @@ module ActiveModel
             method_name = pattern.method_name(attr_name)
 
             unless instance_method_already_implemented?(method_name)
-              generate_method = "define_method_#{pattern.target}"
+              generate_method = "define_method_#{pattern.proxy_target}"
 
               if respond_to?(generate_method, true)
                 send(generate_method, attr_name.to_s, owner: owner)
               else
-                define_proxy_call(owner, method_name, pattern.target, pattern.parameters, attr_name.to_s, namespace: :active_model_proxy)
+                define_proxy_call(owner, method_name, pattern.proxy_target, pattern.parameters, attr_name.to_s, namespace: :active_model_proxy)
               end
             end
           end
@@ -388,7 +388,7 @@ module ActiveModel
         # Define a method `name` in `mod` that dispatches to `send`
         # using the given `extra` args. This falls back on `send`
         # if the called name cannot be compiled.
-        def define_proxy_call(code_generator, name, target, parameters, *call_args, namespace:)
+        def define_proxy_call(code_generator, name, proxy_target, parameters, *call_args, namespace:)
           mangled_name = name
           unless NAME_COMPILABLE_REGEXP.match?(name)
             mangled_name = "__temp__#{name.unpack1("h*")}"
@@ -398,10 +398,10 @@ module ActiveModel
             call_args.map!(&:inspect)
             call_args << parameters if parameters
 
-            body = if CALL_COMPILABLE_REGEXP.match?(target)
-              "self.#{target}(#{call_args.join(", ")})"
+            body = if CALL_COMPILABLE_REGEXP.match?(proxy_target)
+              "self.#{proxy_target}(#{call_args.join(", ")})"
             else
-              call_args.unshift(":'#{target}'")
+              call_args.unshift(":'#{proxy_target}'")
               "send(#{call_args.join(", ")})"
             end
 
@@ -415,22 +415,22 @@ module ActiveModel
         end
 
         class AttributeMethodPattern # :nodoc:
-          attr_reader :prefix, :suffix, :target, :parameters
+          attr_reader :prefix, :suffix, :proxy_target, :parameters
 
-          AttributeMethod = Struct.new(:target, :attr_name)
+          AttributeMethod = Struct.new(:proxy_target, :attr_name)
 
           def initialize(prefix: "", suffix: "", parameters: nil)
             @prefix = prefix
             @suffix = suffix
             @parameters = parameters.nil? ? FORWARD_PARAMETERS : parameters
             @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
-            @target = "#{@prefix}attribute#{@suffix}"
+            @proxy_target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"
           end
 
           def match(method_name)
             if @regex =~ method_name
-              AttributeMethod.new(target, $1)
+              AttributeMethod.new(proxy_target, $1)
             end
           end
 
@@ -465,7 +465,7 @@ module ActiveModel
     # attribute method. If so, we tell +attribute_missing+ to dispatch the
     # attribute. This method can be overloaded to customize the behavior.
     def attribute_missing(match, *args, &block)
-      __send__(match.target, match.attr_name, *args, &block)
+      __send__(match.proxy_target, match.attr_name, *args, &block)
     end
 
     # A +Person+ instance with a +name+ attribute can ask

@@ -286,6 +286,6 @@ class AttributeMethodsTest < ActiveModel::TestCase
     match = m.foo_test
 
     assert_equal "foo",            match.attr_name
-    assert_equal "attribute_test", match.target
+    assert_equal "attribute_test", match.proxy_target
   end
 end
