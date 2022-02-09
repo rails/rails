@@ -3788,7 +3788,7 @@ t.advance(seconds: 1)
 # => Sun Mar 28 03:00:00 +0200 2010
 ```
 
-* If [`since`][Time#since] or [`ago`][Time#ago] jump to a time that can't be expressed with `Time` a `DateTime` object is returned instead.
+* If [`since`][Time#since] or [`ago`][Time#ago] jumps to a time that can't be expressed with `Time` a `DateTime` object is returned instead.
 
 [Time#ago]: https://api.rubyonrails.org/classes/Time.html#method-i-ago
 [Time#change]: https://api.rubyonrails.org/classes/Time.html#method-i-change

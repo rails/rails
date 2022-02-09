@@ -809,7 +809,7 @@ Let's say we want to render a form with a set of fields for each of a person's a
 <% end %>
 ```
 
-Assuming the person had two addresses, with ids 23 and 45 this would create output similar to this:
+Assuming the person had two addresses with ids 23 and 45, this would create output similar to this:
 
 ```html
 <form accept-charset="UTF-8" action="/people/1" method="post">
