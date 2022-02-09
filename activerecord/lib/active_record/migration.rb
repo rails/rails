@@ -1448,6 +1448,7 @@ module ActiveRecord
         pool&.disconnect!
       end
 
+      # The migrator salt must remain unchanged to maintain backwards compatibility.
       MIGRATOR_SALT = 2053462845
       def generate_migrator_advisory_lock_id
         db_name_hash = Zlib.crc32(Base.connection.current_database)
