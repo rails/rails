@@ -71,7 +71,7 @@ module ActiveModel
 
     included do
       class_attribute :attribute_aliases, instance_writer: false, default: {}
-      class_attribute :attribute_method_matchers, instance_writer: false, default: [ ClassMethods::AttributeMethodMatcher.new ]
+      class_attribute :attribute_method_patterns, instance_writer: false, default: [ ClassMethods::AttributeMethodPattern.new ]
     end
 
     module ClassMethods
@@ -107,7 +107,7 @@ module ActiveModel
       #   person.clear_name
       #   person.name          # => nil
       def attribute_method_prefix(*prefixes, parameters: nil)
-        self.attribute_method_matchers += prefixes.map! { |prefix| AttributeMethodMatcher.new(prefix: prefix, parameters: parameters) }
+        self.attribute_method_patterns += prefixes.map! { |prefix| AttributeMethodPattern.new(prefix: prefix, parameters: parameters) }
         undefine_attribute_methods
       end
 
@@ -142,7 +142,7 @@ module ActiveModel
       #   person.name          # => "Bob"
       #   person.name_short?   # => true
       def attribute_method_suffix(*suffixes, parameters: nil)
-        self.attribute_method_matchers += suffixes.map! { |suffix| AttributeMethodMatcher.new(suffix: suffix, parameters: parameters) }
+        self.attribute_method_patterns += suffixes.map! { |suffix| AttributeMethodPattern.new(suffix: suffix, parameters: parameters) }
         undefine_attribute_methods
       end
 
@@ -178,7 +178,7 @@ module ActiveModel
       #   person.reset_name_to_default!
       #   person.name                         # => 'Default Name'
       def attribute_method_affix(*affixes)
-        self.attribute_method_matchers += affixes.map! { |affix| AttributeMethodMatcher.new(**affix) }
+        self.attribute_method_patterns += affixes.map! { |affix| AttributeMethodPattern.new(**affix) }
         undefine_attribute_methods
       end
 
@@ -209,10 +209,10 @@ module ActiveModel
       def alias_attribute(new_name, old_name)
         self.attribute_aliases = attribute_aliases.merge(new_name.to_s => old_name.to_s)
         ActiveSupport::CodeGenerator.batch(self, __FILE__, __LINE__) do |code_generator|
-          attribute_method_matchers.each do |matcher|
-            method_name = matcher.method_name(new_name).to_s
-            target_name = matcher.method_name(old_name).to_s
-            parameters = matcher.parameters
+          attribute_method_patterns.each do |pattern|
+            method_name = pattern.method_name(new_name).to_s
+            target_name = pattern.method_name(old_name).to_s
+            parameters = pattern.parameters
 
             mangled_name = target_name
             unless NAME_COMPILABLE_REGEXP.match?(target_name)
@@ -228,7 +228,7 @@ module ActiveModel
                 "send(#{call_args.join(", ")})"
               end
 
-              modifier = matcher.parameters == FORWARD_PARAMETERS ? "ruby2_keywords " : ""
+              modifier = pattern.parameters == FORWARD_PARAMETERS ? "ruby2_keywords " : ""
 
               batch <<
                 "#{modifier}def #{mangled_name}(#{parameters || ''})" <<
@@ -310,20 +310,20 @@ module ActiveModel
       #   person.name_short? # => true
       def define_attribute_method(attr_name, _owner: generated_attribute_methods)
         ActiveSupport::CodeGenerator.batch(_owner, __FILE__, __LINE__) do |owner|
-          attribute_method_matchers.each do |matcher|
-            method_name = matcher.method_name(attr_name)
+          attribute_method_patterns.each do |pattern|
+            method_name = pattern.method_name(attr_name)
 
             unless instance_method_already_implemented?(method_name)
-              generate_method = "define_method_#{matcher.target}"
+              generate_method = "define_method_#{pattern.target}"
 
               if respond_to?(generate_method, true)
                 send(generate_method, attr_name.to_s, owner: owner)
               else
-                define_proxy_call(owner, method_name, matcher.target, matcher.parameters, attr_name.to_s, namespace: :active_model_proxy)
+                define_proxy_call(owner, method_name, pattern.target, pattern.parameters, attr_name.to_s, namespace: :active_model_proxy)
               end
             end
           end
-          attribute_method_matchers_cache.clear
+          attribute_method_patterns_cache.clear
         end
       end
 
@@ -354,7 +354,7 @@ module ActiveModel
         generated_attribute_methods.module_eval do
           undef_method(*instance_methods)
         end
-        attribute_method_matchers_cache.clear
+        attribute_method_patterns_cache.clear
       end
 
       private
@@ -375,13 +375,13 @@ module ActiveModel
         # used to alleviate the GC, which ultimately also speeds up the app
         # significantly (in our case our test suite finishes 10% faster with
         # this cache).
-        def attribute_method_matchers_cache
-          @attribute_method_matchers_cache ||= Concurrent::Map.new(initial_capacity: 4)
+        def attribute_method_patterns_cache
+          @attribute_method_patterns_cache ||= Concurrent::Map.new(initial_capacity: 4)
         end
 
-        def attribute_method_matchers_matching(method_name)
-          attribute_method_matchers_cache.compute_if_absent(method_name) do
-            attribute_method_matchers.filter_map { |matcher| matcher.match(method_name) }
+        def attribute_method_patterns_matching(method_name)
+          attribute_method_patterns_cache.compute_if_absent(method_name) do
+            attribute_method_patterns.filter_map { |pattern| pattern.match(method_name) }
           end
         end
 
@@ -414,10 +414,10 @@ module ActiveModel
           end
         end
 
-        class AttributeMethodMatcher # :nodoc:
+        class AttributeMethodPattern # :nodoc:
           attr_reader :prefix, :suffix, :target, :parameters
 
-          AttributeMethodMatch = Struct.new(:target, :attr_name)
+          AttributeMethod = Struct.new(:target, :attr_name)
 
           def initialize(prefix: "", suffix: "", parameters: nil)
             @prefix = prefix
@@ -430,7 +430,7 @@ module ActiveModel
 
           def match(method_name)
             if @regex =~ method_name
-              AttributeMethodMatch.new(target, $1)
+              AttributeMethod.new(target, $1)
             end
           end
 
@@ -492,7 +492,7 @@ module ActiveModel
       # Returns a struct representing the matching attribute method.
       # The struct's attributes are prefix, base and suffix.
       def matched_attribute_method(method_name)
-        matches = self.class.send(:attribute_method_matchers_matching, method_name)
+        matches = self.class.send(:attribute_method_patterns_matching, method_name)
         matches.detect { |match| attribute_method?(match.attr_name) }
       end
 
