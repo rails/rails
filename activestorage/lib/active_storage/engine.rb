@@ -124,20 +124,22 @@ module ActiveStorage
     end
 
     initializer "active_storage.services" do
-      ActiveSupport.on_load(:active_storage_blob) do
-        configs = Rails.configuration.active_storage.service_configurations ||=
-          begin
-            config_file = Rails.root.join("config/storage/#{Rails.env}.yml")
-            config_file = Rails.root.join("config/storage.yml") unless config_file.exist?
-            raise("Couldn't find Active Storage configuration in #{config_file}") unless config_file.exist?
+      config.after_initialize do |app|
+        ActiveSupport.on_load(:active_storage_blob) do
+          configs = app.config.active_storage.service_configurations ||=
+            begin
+              config_file = Rails.root.join("config/storage/#{Rails.env}.yml")
+              config_file = Rails.root.join("config/storage.yml") unless config_file.exist?
+              raise("Couldn't find Active Storage configuration in #{config_file}") unless config_file.exist?
 
-            ActiveSupport::ConfigurationFile.parse(config_file)
+              ActiveSupport::ConfigurationFile.parse(config_file)
+            end
+
+          ActiveStorage::Blob.services = ActiveStorage::Service::Registry.new(configs)
+
+          if config_choice = app.config.active_storage.service
+            ActiveStorage::Blob.service = ActiveStorage::Blob.services.fetch(config_choice)
           end
-
-        ActiveStorage::Blob.services = ActiveStorage::Service::Registry.new(configs)
-
-        if config_choice = Rails.configuration.active_storage.service
-          ActiveStorage::Blob.service = ActiveStorage::Blob.services.fetch(config_choice)
         end
       end
     end
