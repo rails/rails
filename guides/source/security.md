@@ -510,7 +510,11 @@ By default, Rails logs all requests being made to the web application. But log f
 config.filter_parameters << :password
 ```
 
-NOTE: Provided parameters will be filtered out by partial matching regular expression. Rails adds default `:password` in the appropriate initializer (`initializers/filter_parameter_logging.rb`) and cares about typical application parameters `password` and `password_confirmation`.
+NOTE: Provided parameters will be filtered out by partial matching regular
+expression. Rails adds a list of default filters, including `:passw`,
+`:secret`, and `:token`, in the appropriate
+initializer(`initializers/filter_parameter_logging.rb`), to handle typical
+application parameters like `password`, `password_confirmation` and `my_token`.
 
 ### Regular Expressions
 
