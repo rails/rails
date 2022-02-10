@@ -247,8 +247,19 @@ Is the class used to detect file updates in the file system when `config.reload_
 
 #### `config.filter_parameters`
 
-Used for filtering out the parameters that you don't want shown in the logs, such as passwords or credit card
-numbers. It also filters out sensitive values of database columns when calling `#inspect` on an Active Record object. By default, Rails filters out passwords by adding `Rails.application.config.filter_parameters += [:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
+Used for filtering out the parameters that you don't want shown in the logs,
+such as passwords or credit card numbers. It also filters out sensitive values
+of database columns when calling `#inspect` on an Active Record object. By
+default, Rails filters out passwords by adding the following filters in
+`config/initializers/filter_parameter_logging.rb`.
+
+```ruby
+Rails.application.config.filter_parameters += [
+  :passw, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn
+]
+```
+
+Parameters filter works by partial matching regular expression.
 
 #### `config.force_ssl`
 
