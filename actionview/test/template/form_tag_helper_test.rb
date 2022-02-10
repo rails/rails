@@ -626,6 +626,13 @@ class FormTagHelperTest < ActionView::TestCase
     )
   end
 
+  def test_submit_tag_with_value_option
+    assert_dom_equal(
+      %(<input data-disable-with="Update" name='commit' type="submit" value="Update" />),
+      submit_tag("Save", value: "Update")
+    )
+  end
+
   def test_empty_submit_tag_with_opt_out
     ActionView::Base.automatically_disable_submit_tag = false
     assert_dom_equal(
