@@ -13,7 +13,9 @@ module ActiveModel
     #     attribute :weight, :decimal
     #   end
     #
-    #   bag = BagOfCoffee.new(weight: "0.0001")
+    #   bag = BagOfCoffee.new
+    #   bag.weight = "0.0001"
+    #
     #   bag.weight # => 0.1e-3
     #
     # Numeric instances are converted to BigDecimal instances. Any other objects
