@@ -11,7 +11,9 @@ module ActiveModel
     #     attribute :age, :integer
     #   end
     #
-    #   person = Person.new(age: "18")
+    #   person = Person.new
+    #   person.age = "18"
+    #
     #   person.age # => 18
     #
     # Values are cast using their +to_i+ method, if it exists. If it does not

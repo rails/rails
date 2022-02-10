@@ -11,7 +11,8 @@ module ActiveModel
     #     attribute :birthday, :date
     #   end
     #
-    #   person = Person.new(birthday: "1989-07-13")
+    #   person = Person.new
+    #   person.birthday = "1989-07-13"
     #
     #   person.birthday.class # => Date
     #   person.birthday.year  # => 1989

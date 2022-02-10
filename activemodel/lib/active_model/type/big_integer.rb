@@ -13,7 +13,9 @@ module ActiveModel
     #     attribute :id, :big_integer
     #   end
     #
-    #   person = Person.new(id: "18_000_000_000")
+    #   person = Person.new
+    #   person.id = "18_000_000_000"
+    #
     #   person.id # => 18000000000
     #
     # All casting and serialization are performed in the same way as the

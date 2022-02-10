@@ -11,7 +11,8 @@ module ActiveModel
     #     attribute :start, :time
     #   end
     #
-    #   event = Event.new(start: "2022-02-18T13:15:00-05:00")
+    #   event = Event.new
+    #   event.start = "2022-02-18T13:15:00-05:00"
     #
     #   event.start.class # => Time
     #   event.start.year  # => 2022
