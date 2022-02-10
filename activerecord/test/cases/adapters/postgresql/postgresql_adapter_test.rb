@@ -53,7 +53,7 @@ module ActiveRecord
           { host: File::NULL }
         )
 
-        connect_raises_error = proc { |_conn_params| raise(PG::ConnectionBad, "actual bad connection error") }
+        connect_raises_error = proc { |**_conn_params| raise(PG::ConnectionBad, "actual bad connection error") }
         PG.stub(:connect, connect_raises_error) do
           error = assert_raises ActiveRecord::ConnectionNotEstablished do
             @conn.reconnect!
