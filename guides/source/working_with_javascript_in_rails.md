@@ -42,6 +42,7 @@ $ bin/importmap pin react react-dom
 ```
 
 Then, import the package into `application.js` as usual:
+
 ```javascript
 import React from "react"
 import ReactDOM from "react-dom"
@@ -57,7 +58,8 @@ bundling, you can create new Rails applications with your choice of
 
 To use a bundler instead of import maps in a new Rails application, pass the `—javascript` or `-j`
 option to `rails new`:
-```
+
+```bash
 $ rails new my_new_app --javascript=webpack
 OR
 $ rails new my_new_app -j webpack
