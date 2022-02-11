@@ -548,7 +548,7 @@ While it's not required you might want to add foreign key constraints to
 add_foreign_key :articles, :authors
 ```
 
-This `add_foreign_key` call adds a new constraint to the `articles` table.
+This [`add_foreign_key`][] call adds a new constraint to the `articles` table.
 The constraint guarantees that a row in the `authors` table exists where
 the `id` column matches the `articles.author_id`.
 
@@ -562,8 +562,8 @@ For example, to add a foreign key on `articles.reviewer` referencing `authors.em
 add_foreign_key :articles, :authors, column: :reviewer, primary_key: :email
 ```
 
-Options such as `name`, `on_delete`, `if_not_exists`, `validate`, and `deferrable`
-are described in the [`add_foreign_key`][] API.
+`add_foreign_key` also supports options such as `name`, `on_delete`,
+`if_not_exists`, `validate`, and `deferrable`.
 
 NOTE: Active Record only supports single column foreign keys. `execute` and
 `structure.sql` are required to use composite foreign keys. See
@@ -578,8 +578,6 @@ remove_foreign_key :accounts, :branches
 # remove foreign key for a specific column
 remove_foreign_key :accounts, column: :owner_id
 ```
-
-[`add_foreign_key`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_foreign_key
 
 ### When Helpers aren't Enough
 
