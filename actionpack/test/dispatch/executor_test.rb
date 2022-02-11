@@ -119,13 +119,13 @@ class ExecutorTest < ActiveSupport::TestCase
     assert_not defined?(@in_shared_context) # it's not in the test itself
   end
 
-  def test_body_abandonned
+  def test_body_abandoned
     total = 0
     ran = 0
     completed = 0
 
     executor.to_run { total += 1; ran += 1 }
-    executor.to_complete { total += 1; completed += 1}
+    executor.to_complete { total += 1; completed += 1 }
 
     stack = middleware(proc { [200, {}, "response"] })
 
