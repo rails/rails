@@ -1,3 +1,8 @@
+## Rails 7.0.2.2 (February 11, 2022) ##
+
+*   No changes.
+
+
 ## Rails 7.0.2.1 (February 11, 2022) ##
 
 *   Under certain circumstances, the middleware isn't informed that the

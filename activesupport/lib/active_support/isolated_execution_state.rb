@@ -38,11 +38,11 @@ module ActiveSupport
       end
 
       def key?(key)
-        state.key?(key)
+        current.key?(key)
       end
 
       def delete(key)
-        state.delete(key)
+        current.delete(key)
       end
 
       def clear
