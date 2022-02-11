@@ -1325,7 +1325,7 @@ time_range = (Time.now.midnight - 1.day)..Time.now.midnight
 Customer.joins(:orders).where(orders: { created_at: time_range }).distinct
 ```
 
-For more advanced conditions or to reuse an existing named scope, `Relation#merge` may be used. First, let's add a new named scope to the `Order` model:
+For more advanced conditions or to reuse an existing named scope, [`merge`][] may be used. First, let's add a new named scope to the `Order` model:
 
 ```ruby
 class Order < ApplicationRecord
@@ -1337,7 +1337,7 @@ class Order < ApplicationRecord
 end
 ```
 
-Now we can use `Relation#merge` to merge in the `created_in_time_range` scope:
+Now we can use `merge` to merge in the `created_in_time_range` scope:
 
 ```ruby
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight

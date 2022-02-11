@@ -391,7 +391,7 @@ The articles resource here will have the following routes generated for it:
 | PATCH/PUT | /articles/:id(.:format)                      | articles#update   | article_path             |
 | DELETE    | /articles/:id(.:format)                      | articles#destroy  | article_path             |
 
-The `shallow` method of the DSL creates a scope inside of which every nesting is shallow. This generates the same routes as the previous example:
+The [`shallow`][] method of the DSL creates a scope inside of which every nesting is shallow. This generates the same routes as the previous example:
 
 ```ruby
 shallow do
@@ -446,6 +446,8 @@ The comments resource here will have the following routes generated for it:
 | GET       | /comments/:id(.:format)                      | comments#show     | sekret_comment_path         |
 | PATCH/PUT | /comments/:id(.:format)                      | comments#update   | sekret_comment_path         |
 | DELETE    | /comments/:id(.:format)                      | comments#destroy  | sekret_comment_path         |
+
+[`shallow`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-shallow
 
 ### Routing Concerns
 
