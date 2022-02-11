@@ -1508,7 +1508,7 @@ Configuration hooks do not hook into any particular framework, but instead they 
 | ---------------------- | ---------------------------------------------------------------------------------- |
 | `before_configuration` | First configurable block to run. Called before any initializers are run.           |
 | `before_initialize`    | Second configurable block to run. Called before frameworks initialize.             |
-| `before_eager_load`    | Third configurable block to run. Does not run if `config.eager_load` set to false. |
+| `before_eager_load`    | Third configurable block to run. Does not run if [`config.eager_load`][] set to false. |
 | `after_initialize`     | Last configurable block to run. Called after frameworks initialize.                |
 
 Configuration hooks can be called in the Engine class.
@@ -1522,3 +1522,5 @@ module Blorgh
   end
 end
 ```
+
+[`config.eager_load`]: configuring.html#config-eager-load

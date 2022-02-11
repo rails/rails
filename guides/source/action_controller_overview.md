@@ -1167,7 +1167,7 @@ Rails keeps a log file for each environment in the `log` folder. These are extre
 ### Parameters Filtering
 
 You can filter out sensitive request parameters from your log files by
-appending them to `config.filter_parameters` in the application configuration.
+appending them to [`config.filter_parameters`][] in the application configuration.
 These parameters will be marked [FILTERED] in the log.
 
 ```ruby
@@ -1179,6 +1179,8 @@ expression. Rails adds a list of default filters, including `:passw`,
 `:secret`, and `:token`, in the appropriate initializer
 (`initializers/filter_parameter_logging.rb`) to handle typical application
 parameters like `password`, `password_confirmation` and `my_token`.
+
+[`config.filter_parameters`]: configuring.html#config-filter-parameters
 
 ### Redirects Filtering
 
@@ -1272,6 +1274,7 @@ Force HTTPS protocol
 
 If you'd like to ensure that communication to your controller is only possible
 via HTTPS, you should do so by enabling the [`ActionDispatch::SSL`][] middleware via
-`config.force_ssl` in your environment configuration.
+[`config.force_ssl`][] in your environment configuration.
 
+[`config.force_ssl`]: configuring.html#config-force-ssl
 [`ActionDispatch::SSL`]: https://api.rubyonrails.org/classes/ActionDispatch/SSL.html

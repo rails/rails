@@ -163,7 +163,7 @@ class definition:
 config.api_only = true
 ```
 
-In `config/environments/development.rb`, set `config.debug_exception_response_format`
+In `config/environments/development.rb`, set [`config.debug_exception_response_format`][]
 to configure the format used in responses when errors occur in development mode.
 
 To render an HTML page with debugging information, use the value `:default`.
@@ -193,6 +193,8 @@ do:
 class ApplicationController < ActionController::API
 end
 ```
+
+[`config.debug_exception_response_format`]: configuring.html#config-debug-exception-response-format
 
 Choosing Middleware
 --------------------
@@ -285,7 +287,7 @@ If your front-end server supports accelerated file sending, `Rack::Sendfile`
 will offload the actual file sending work to the front-end server.
 
 You can configure the name of the header that your front-end server uses for
-this purpose using `config.action_dispatch.x_sendfile_header` in the appropriate
+this purpose using [`config.action_dispatch.x_sendfile_header`][] in the appropriate
 environment's configuration file.
 
 You can learn more about how to use `Rack::Sendfile` with popular
@@ -305,6 +307,8 @@ config.action_dispatch.x_sendfile_header = "X-Accel-Redirect"
 
 Make sure to configure your server to support these options following the
 instructions in the `Rack::Sendfile` documentation.
+
+[`config.action_dispatch.x_sendfile_header`]: configuring.html#config-action-dispatch-x-sendfile-header
 
 ### Using ActionDispatch::Request
 
