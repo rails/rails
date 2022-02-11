@@ -3582,10 +3582,6 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 [Date#ago]: https://api.rubyonrails.org/classes/Date.html#method-i-ago
 [Date#since]: https://api.rubyonrails.org/classes/Date.html#method-i-since
 
-#### Other Time Computations
-
-### Conversions
-
 Extensions to `DateTime`
 ------------------------
 
