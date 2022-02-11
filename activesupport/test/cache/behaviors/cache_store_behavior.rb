@@ -406,7 +406,7 @@ module CacheStoreBehavior
   end
 
   def test_keys_are_case_sensitive
-    key = SecureRandom.alphanumeric
+    key = "case_sensitive_key"
     @cache.write(key, "bar")
     assert_nil @cache.read(key.upcase)
   end
