@@ -8,6 +8,15 @@
     *Nikita Vyrko*
 
 
+## Rails 6.1.4.5 (February 11, 2022) ##
+
+*   Under certain circumstances, the middleware isn't informed that the
+    response body has been fully closed which result in request state not
+    being fully reset before the next request
+
+    [CVE-2022-23633]
+
+
 ## Rails 6.1.4.4 (December 15, 2021) ##
 
 *   Fix issue with host protection not allowing host with port in development.
