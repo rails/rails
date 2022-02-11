@@ -119,7 +119,7 @@ class ExecutorTest < ActiveSupport::TestCase
     assert_not defined?(@in_shared_context) # it's not in the test itself
   end
 
-  def test_body_abandonned
+  def test_body_abandoned
     total = 0
     ran = 0
     completed = 0
