@@ -1,3 +1,7 @@
+*   Fix quoting of `ActiveSupport::Duration` and `Rational` numbers in the MySQL adapter.
+
+    *Kevin McPhillips*
+
 *   Allow column name with COLLATE (e.g., title COLLATE "C") as safe SQL string
 
     *Shugo Maeda*
