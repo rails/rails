@@ -62,18 +62,21 @@ module ActiveSupport
     # after the work has been performed.
     #
     # Where possible, prefer +wrap+.
-    def self.run!
-      if active?
-        Null
+    def self.run!(reset: false)
+      if reset
+        lost_instance = active.delete(Thread.current)
+        lost_instance&.complete!
       else
-        new.tap do |instance|
-          success = nil
-          begin
-            instance.run!
-            success = true
-          ensure
-            instance.complete! unless success
-          end
+        return Null if active?
+      end
+
+      new.tap do |instance|
+        success = nil
+        begin
+          instance.run!
+          success = true
+        ensure
+          instance.complete! unless success
         end
       end
     end
@@ -102,11 +105,11 @@ module ActiveSupport
     self.active = Concurrent::Hash.new
 
     def self.active? # :nodoc:
-      @active[Thread.current]
+      @active.key?(Thread.current)
     end
 
     def run! # :nodoc:
-      self.class.active[Thread.current] = true
+      self.class.active[Thread.current] = self
       run_callbacks(:run)
     end
 

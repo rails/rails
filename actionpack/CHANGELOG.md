@@ -1,3 +1,12 @@
+## Rails 5.2.6.1 (February 11, 2022) ##
+
+*   Under certain circumstances, the middleware isn't informed that the
+    response body has been fully closed which result in request state not
+    being fully reset before the next request
+
+    [CVE-2022-23633]
+
+
 ## Rails 5.2.6 (May 05, 2021) ##
 
 *   Accept base64_urlsafe CSRF tokens to make forward compatible.
