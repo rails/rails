@@ -10,7 +10,7 @@ module ActiveRecord
     MAJOR = 6
     MINOR = 0
     TINY  = 4
-    PRE   = "5"
+    PRE   = "6"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
