@@ -1,3 +1,8 @@
+## Rails 6.1.4.6 (February 11, 2022) ##
+
+*   Fix Reloader method signature to work with the new Executor signature
+
+
 ## Rails 6.1.4.5 (February 11, 2022) ##
 
 *   No changes.
