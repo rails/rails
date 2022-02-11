@@ -1,3 +1,12 @@
+## Rails 7.0.2.1 (February 11, 2022) ##
+
+*   Under certain circumstances, the middleware isn't informed that the
+    response body has been fully closed which result in request state not
+    being fully reset before the next request
+
+    [CVE-2022-23633]
+
+
 ## Rails 7.0.2 (February 08, 2022) ##
 
 *   No changes.

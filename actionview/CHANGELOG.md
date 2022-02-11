@@ -1,3 +1,8 @@
+## Rails 7.0.2.1 (February 11, 2022) ##
+
+*   No changes.
+
+
 ## Rails 7.0.2 (February 08, 2022) ##
 
 *   Ensure `preload_link_tag` preloads JavaScript modules correctly.
