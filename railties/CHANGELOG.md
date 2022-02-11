@@ -1,3 +1,8 @@
+## Rails 5.2.6.2 (February 11, 2022) ##
+
+*   No changes.
+
+
 ## Rails 5.2.6.1 (February 11, 2022) ##
 
 *   No changes.
