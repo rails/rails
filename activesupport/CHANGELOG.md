@@ -1,3 +1,8 @@
+## Rails 7.0.2.2 (February 11, 2022) ##
+
+*   Fix Reloader method signature to work with the new Executor signature
+
+
 ## Rails 7.0.2.1 (February 11, 2022) ##
 
 *   No changes.
