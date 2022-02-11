@@ -40,11 +40,16 @@ module ActiveRecord
     def assert_sql(*patterns_to_match, &block)
       capture_sql(&block)
     ensure
-      failed_patterns = []
-      patterns_to_match.each do |pattern|
-        failed_patterns << pattern unless SQLCounter.log_all.any? { |sql| pattern === sql }
+      # If the test has already raised an exception, let that one through so as not
+      # to hide the real error (eg. a query may not have executed because of it and
+      # this would otherwise hide that).
+      unless $!
+        failed_patterns = []
+        patterns_to_match.each do |pattern|
+          failed_patterns << pattern unless SQLCounter.log_all.any? { |sql| pattern === sql }
+        end
+        assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map(&:inspect).join(', ')} not found.#{SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{SQLCounter.log.join("\n")}"}"
       end
-      assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map(&:inspect).join(', ')} not found.#{SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{SQLCounter.log.join("\n")}"}"
     end
 
     def assert_queries(num = 1, options = {})
