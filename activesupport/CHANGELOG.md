@@ -1,3 +1,20 @@
+*   Fix and extend `Enumerable#many?`.
+
+    ```ruby
+    # Before
+    [nil, false].none?  # => true
+    [nil, false].many?  # => true
+
+    # After
+    [nil, false].many?  # => false
+
+    # Accept a pattern just like #any?, #none? and #all?
+    [1, :b, 3.0].many?(Integer)  # => false
+    possible_emails.many?(EMAIL_REGEXP)
+    ```
+
+    *Gert Goet*
+
 *   Change default serialization format of `MessageEncryptor` from `Marshal` to `JSON` for Rails 7.1.
 
     Existing apps are provided with an upgrade path to migrate to `JSON` as described in `guides/source/upgrading_ruby_on_rails.md`

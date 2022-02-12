@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../abstract_unit"
+require "active_support/testing/stream"
 require "active_support/core_ext/array"
 require "active_support/core_ext/enumerable"
 
@@ -12,6 +13,8 @@ class SummablePayment < Payment
 end
 
 class EnumerableTests < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Stream
+
   class GenericEnumerable
     include Enumerable
 
@@ -248,20 +251,31 @@ class EnumerableTests < ActiveSupport::TestCase
 
   def test_many
     assert_equal false, GenericEnumerable.new([]).many?
-    assert_equal false, GenericEnumerable.new([ 1 ]).many?
-    assert_equal true,  GenericEnumerable.new([ 1, 2 ]).many?
+    assert_equal false, GenericEnumerable.new([1, nil, false]).many?
+    assert_equal true,  GenericEnumerable.new([1, 2]).many?
 
     assert_equal false, GenericEnumerable.new([]).many? { |x| x > 1 }
-    assert_equal false, GenericEnumerable.new([ 2 ]).many? { |x| x > 1 }
-    assert_equal false, GenericEnumerable.new([ 1, 2 ]).many? { |x| x > 1 }
-    assert_equal true,  GenericEnumerable.new([ 1, 2, 2 ]).many? { |x| x > 1 }
+    assert_equal false, GenericEnumerable.new([2]).many? { |x| x > 1 }
+    assert_equal false, GenericEnumerable.new([1, 2]).many? { |x| x > 1 }
+    assert_equal true,  GenericEnumerable.new([1, 2, 2]).many? { |x| x > 1 }
   end
 
   def test_many_iterates_only_on_what_is_needed
-    infinity = 1.0 / 0.0
-    very_long_enum = 0..infinity
+    very_long_enum = 0..Float::INFINITY
     assert_equal true, very_long_enum.many?
     assert_equal true, very_long_enum.many? { |x| x > 100 }
+  end
+
+  def test_many_with_pattern
+    assert_equal false, GenericEnumerable.new([:a, 1]).many?(Integer)
+    assert_equal true,  GenericEnumerable.new([:a, 1, 2]).many?(Integer)
+
+    assert_equal true,  GenericEnumerable.new([nil, nil]).many?(nil)
+
+    warning = capture(:stderr) do
+      assert_equal true, %w(foo bar).many?(/[a-z]+/) { false }, "When both pattern and block are provided, the pattern should be used."
+    end
+    assert_match(/warning: given block not used/, warning)
   end
 
   def test_exclude?
