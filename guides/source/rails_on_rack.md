@@ -305,7 +305,9 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 **`ActionDispatch::Flash`**
 
-* Sets up the flash keys. Only available if `config.action_controller.session_store` is set to a value.
+* Sets up the flash keys. Only available if [`config.session_store`][] is set to a value.
+
+[`config.session_store`]: configuring.html#config-session-store
 
 **`ActionDispatch::ContentSecurityPolicy::Middleware`**
 
