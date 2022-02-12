@@ -97,13 +97,16 @@ If you wish to skip some files or components from being generated, you can appen
 | `--skip-git`            | Skip .gitignore file                                        |
 | `--skip-keeps`          | Skip source control .keep files                             |
 | `--skip-action-mailer`  | Skip Action Mailer files                                    |
+| `--skip-action-mailbox` | Skip Action Mailbox gem                                     |
 | `--skip-action-text`    | Skip Action Text gem                                        |
 | `--skip-active-record`  | Skip Active Record files                                    |
+| `--skip-active-job`     | Skip Active Job                                             |
 | `--skip-active-storage` | Skip Active Storage files                                   |
 | `--skip-action-cable`   | Skip Action Cable files                                     |
 | `--skip-asset-pipeline` | Skip Asset Pipeline                                         |
 | `--skip-javascript`     | Skip JavaScript files                                       |
-| `--skip-turbolinks`     | Skip turbolinks gem                                         |
+| `--skip-hotwire`        | Skip Hotwire integration                                    |
+| `--skip-jbuilder`       | Skip jbuilder gem                                           |
 | `--skip-test`           | Skip test files                                             |
 | `--skip-system-test`    | Skip system test files                                      |
 | `--skip-bootsnap`       | Skip bootsnap gem                                           |
