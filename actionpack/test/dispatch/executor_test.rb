@@ -125,7 +125,7 @@ class ExecutorTest < ActiveSupport::TestCase
     completed = 0
 
     executor.to_run { total += 1; ran += 1 }
-    executor.to_complete { total += 1; completed += 1}
+    executor.to_complete { total += 1; completed += 1 }
 
     stack = middleware(proc { [200, {}, "response"] })
 
