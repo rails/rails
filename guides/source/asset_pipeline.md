@@ -27,10 +27,10 @@ from other gems.
 The asset pipeline is implemented by the
 [sprockets-rails](https://github.com/rails/sprockets-rails) gem,
 and is enabled by default. You can disable it while creating a new application by
-passing the `--skip-sprockets` option.
+passing the `--skip-asset-pipeline` option.
 
 ```bash
-$ rails new appname --skip-sprockets
+$ rails new appname --skip-asset-pipeline
 ```
 
 Rails can easily work with Sass by adding the [`sassc-rails`](https://github.com/sass/sassc-rails)
@@ -444,7 +444,7 @@ which contains these lines:
 ```
 
 Rails creates `app/assets/stylesheets/application.css` regardless of whether the
-`--skip-sprockets` option is used when creating a new Rails application. This is
+`--skip-asset-pipeline` option is used when creating a new Rails application. This is
 so you can easily add asset pipelining later if you like.
 
 The directives that work in JavaScript files also work in stylesheets
