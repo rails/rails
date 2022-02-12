@@ -8,7 +8,7 @@ module ActiveRecord
       module Quoting # :nodoc:
         def quote_bound_value(value)
           case value
-          when Numeric
+          when Numeric, ActiveSupport::Duration
             quote(value.to_s)
           when BigDecimal
             quote(value.to_s("F"))
