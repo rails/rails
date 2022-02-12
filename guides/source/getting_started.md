@@ -2063,6 +2063,9 @@ Authentication challenge:
 
 ![Basic HTTP Authentication Challenge](images/getting_started/challenge.png)
 
+After entering the correct username and password, you will remain authenticated
+until a different username and password is required or the browser is closed.
+
 Other authentication methods are available for Rails applications. Two popular
 authentication add-ons for Rails are the
 [Devise](https://github.com/plataformatec/devise) rails engine and
