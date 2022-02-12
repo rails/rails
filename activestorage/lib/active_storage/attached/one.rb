@@ -55,8 +55,9 @@ module ActiveStorage
     #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
     def attach(attachable)
       if record.persisted? && !record.changed?
-        record.public_send("#{name}=", attachable)
-        record.save
+        record.public_send("#{name}=", attachable).tap do |r|
+          r.save
+        end
       else
         record.public_send("#{name}=", attachable)
       end
