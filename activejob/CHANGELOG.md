@@ -1,3 +1,10 @@
+*   Add missing `bigdecimal` require in `ActiveJob::Arguments`
+
+    Could cause `uninitialized constant ActiveJob::Arguments::BigDecimal (NameError)`
+    when loading Active Job in isolation.
+
+    *Jean Boussier*
+
 ## Rails 7.0.2.2 (February 11, 2022) ##
 
 *   No changes.
