@@ -211,7 +211,9 @@
       name: Working with JavaScript in Rails
       work_in_progress: true
       url: working_with_javascript_in_rails.html
-      description: This guide covers the built-in Ajax/JavaScript functionality of Rails.
+      description: >
+        This guide explains how to use import maps or jsbundling-rails to include
+        JavaScript in Rails applications, and covers the basics of working with Turbo in Rails.
     -
       name: The Rails Initialization Process
       work_in_progress: true
