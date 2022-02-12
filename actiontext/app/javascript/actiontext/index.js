@@ -1,4 +1,4 @@
-import { AttachmentUpload } from "./attachment_upload"
+import { AttachmentUpload } from "./attachment_upload.js"
 
 addEventListener("trix-attachment-add", event => {
   const { attachment, target } = event
