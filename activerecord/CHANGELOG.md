@@ -1,3 +1,7 @@
+*   Allow column name with COLLATE (e.g., title COLLATE "C") as safe SQL string
+
+    *Shugo Maeda*
+
 *   Permit underscores in the VERSION argument to database rake tasks.
 
     *Eddie Lebow*
