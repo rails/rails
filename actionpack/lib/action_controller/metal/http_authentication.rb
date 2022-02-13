@@ -185,18 +185,18 @@ module ActionController
           authenticate_with_http_digest(realm, &password_procedure) || request_http_digest_authentication(realm, message)
         end
 
-        # Authenticate with HTTP Digest, returns true or false
+        # Authenticate with HTTP \Digest. Returns true or false.
         def authenticate_with_http_digest(realm = "Application", &password_procedure)
           HttpAuthentication::Digest.authenticate(request, realm, &password_procedure)
         end
 
-        # Render output including the HTTP Digest authentication header
+        # Render output including the HTTP \Digest authentication header.
         def request_http_digest_authentication(realm = "Application", message = nil)
           HttpAuthentication::Digest.authentication_request(self, realm, message)
         end
       end
 
-      # Returns false on a valid response, true otherwise
+      # Returns false on a valid response, true otherwise.
       def authenticate(request, realm, &password_procedure)
         request.authorization && validate_digest_response(request, realm, &password_procedure)
       end
@@ -469,7 +469,7 @@ module ActionController
         rewrite_param_values params_array_from raw_params auth
       end
 
-      # Takes raw_params and turns it into an array of parameters
+      # Takes raw_params and turns it into an array of parameters.
       def params_array_from(raw_params)
         raw_params.map { |param| param.split %r/=(.+)?/ }
       end

@@ -56,7 +56,7 @@ module ActiveModel
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+ .
-      # See <tt>ActiveModel::Validations#validates</tt> for more information
+      # See <tt>ActiveModel::Validations#validates</tt> for more information.
       #
       # The validator requires at least one of the following checks to be supplied.
       # Each will accept a proc, value, or a symbol which corresponds to a method:

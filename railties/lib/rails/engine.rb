@@ -31,7 +31,7 @@ module Rails
   #   end
   #
   # Then ensure that this file is loaded at the top of your <tt>config/application.rb</tt>
-  # (or in your +Gemfile+) and it will automatically load models, controllers and helpers
+  # (or in your +Gemfile+), and it will automatically load models, controllers and helpers
   # inside +app+, load routes at <tt>config/routes.rb</tt>, load locales at
   # <tt>config/locales/**/*</tt>, and load tasks at <tt>lib/tasks/**/*</tt>.
   #
@@ -457,7 +457,7 @@ module Rails
       self
     end
 
-    # Load Rake, railties tasks and invoke the registered hooks.
+    # Load Rake and railties tasks, and invoke the registered hooks.
     # Check <tt>Rails::Railtie.rake_tasks</tt> for more info.
     def load_tasks(app = self)
       require "rake"

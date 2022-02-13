@@ -10,7 +10,7 @@
 # of the module.
 #
 # Note that it can also be scoped per-fiber if Rails.application.config.active_support.isolation_level
-# is set to `:fiber`
+# is set to `:fiber`.
 class Module
   # Defines a per-thread class attribute and creates class and instance reader methods.
   # The underlying per-thread class variable is set to +nil+, if it is not previously defined.
@@ -21,7 +21,7 @@ class Module
   #
   #   Current.user = "DHH"
   #   Current.user # => "DHH"
-  #   Thread.new { Current.user }.values # => nil
+  #   Thread.new { Current.user }.value # => nil
   #
   # The attribute name must be a valid method name in Ruby.
   #

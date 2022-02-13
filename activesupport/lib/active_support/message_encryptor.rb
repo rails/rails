@@ -22,6 +22,7 @@ module ActiveSupport
   #   crypt = ActiveSupport::MessageEncryptor.new(key)                            # => #<ActiveSupport::MessageEncryptor ...>
   #   encrypted_data = crypt.encrypt_and_sign('my secret data')                   # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
   #   crypt.decrypt_and_verify(encrypted_data)                                    # => "my secret data"
+  #
   # The +decrypt_and_verify+ method will raise an
   # <tt>ActiveSupport::MessageEncryptor::InvalidMessage</tt> exception if the data
   # provided cannot be decrypted or verified.

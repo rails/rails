@@ -27,7 +27,7 @@ module ActiveSupport
     #
     # All you need to do is to ensure that your log subscriber is added to
     # Rails::Subscriber, as in the second line of the code above. The test
-    # helpers are responsible for setting up the queue, subscriptions and
+    # helpers are responsible for setting up the queue and subscriptions, and
     # turning colors in logs off.
     #
     # The messages are available in the @logger instance, which is a logger with

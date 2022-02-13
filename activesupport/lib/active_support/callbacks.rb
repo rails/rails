@@ -600,7 +600,7 @@ module ActiveSupport
         end
       end
 
-      class CallbackChain # :nodoc:#
+      class CallbackChain # :nodoc:
         include Enumerable
 
         attr_reader :name, :config
