@@ -27,7 +27,7 @@ module ActionMailbox
   #     routing :all => :backstop
   #   end
   #
-  # Application mailboxes need to overwrite the +#process+ method, which is invoked by the framework after
+  # Application mailboxes need to override the +#process+ method, which is invoked by the framework after
   # callbacks have been run. The callbacks available are: +before_processing+, +after_processing+, and
   # +around_processing+. The primary use case is ensure certain preconditions to processing are fulfilled
   # using +before_processing+ callbacks.
@@ -89,7 +89,7 @@ module ActionMailbox
     end
 
     def process
-      # Overwrite in subclasses
+      # Override in subclasses
     end
 
     def finished_processing? # :nodoc:
