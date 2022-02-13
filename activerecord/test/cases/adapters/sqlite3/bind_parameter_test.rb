@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/post"
 
 module ActiveRecord
   module ConnectionAdapters
