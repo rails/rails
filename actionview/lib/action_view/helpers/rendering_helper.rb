@@ -47,7 +47,7 @@ module ActionView
         end
       end
 
-      # Overwrites _layout_for in the context object so it supports the case a block is
+      # Overrides _layout_for in the context object so it supports the case a block is
       # passed to a partial. Returns the contents that are yielded to a layout, given a
       # name or a block.
       #

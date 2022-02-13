@@ -22,7 +22,7 @@ module ActiveModel
   module Translation
     include ActiveModel::Naming
 
-    # Returns the +i18n_scope+ for the class. Overwrite if you want custom lookup.
+    # Returns the +i18n_scope+ for the class. Override if you want custom lookup.
     def i18n_scope
       :activemodel
     end

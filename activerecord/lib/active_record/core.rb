@@ -411,7 +411,7 @@ module ActiveRecord
         end
       end
 
-      # Overwrite the default class equality method to provide support for decorated models.
+      # Override the default class equality method to provide support for decorated models.
       def ===(object) # :nodoc:
         object.is_a?(self)
       end
