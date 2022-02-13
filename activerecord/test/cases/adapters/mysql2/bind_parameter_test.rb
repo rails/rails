@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/topic"
+require "models/post"
 
 module ActiveRecord
   module ConnectionAdapters
