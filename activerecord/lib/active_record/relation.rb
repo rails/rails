@@ -654,7 +654,7 @@ module ActiveRecord
     # for queries to actually be executed concurrently. Otherwise it defaults to
     # executing them in the foreground.
     #
-    # +load_async+ will also fallback to executing in the foreground in the test environment when transactional
+    # +load_async+ will also fall back to executing in the foreground in the test environment when transactional
     # fixtures are enabled.
     #
     # If the query was actually executed in the background, the Active Record logs will show

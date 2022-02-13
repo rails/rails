@@ -26,7 +26,7 @@ module ActiveRecord
       #
       # [:key_provider]
       #   Key provider to use for the encryption operation. It will default to
-      #   +ActiveRecord::Encryption.key_provider+ when not provided
+      #   +ActiveRecord::Encryption.key_provider+ when not provided.
       #
       # [:cipher_options]
       #   +Cipher+-specific options that will be passed to the Cipher configured in

@@ -162,7 +162,7 @@ module ActiveRecord
     #
     #   users = User.includes(:address, friends: [:address, :followers])
     #
-    # === conditions
+    # === Conditions
     #
     # If you want to add string conditions to your included models, you'll have
     # to explicitly reference them. For example:

@@ -576,7 +576,7 @@ module ActiveRecord
     MigrationFilenameRegexp = /\A([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/ # :nodoc:
 
     # This class is used to verify that all migrations have been run before
-    # loading a web page if <tt>config.active_record.migration_error</tt> is set to :page_load
+    # loading a web page if <tt>config.active_record.migration_error</tt> is set to :page_load.
     class CheckPending
       def initialize(app, file_watcher: ActiveSupport::FileUpdateChecker)
         @app = app

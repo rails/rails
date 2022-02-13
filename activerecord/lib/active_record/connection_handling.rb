@@ -108,7 +108,7 @@ module ActiveRecord
       connections
     end
 
-    # Connects to a role (ex writing, reading or a custom role) and/or
+    # Connects to a role (e.g. writing, reading or a custom role) and/or
     # shard for the duration of the block. At the end of the block the
     # connection will be returned to the original role / shard.
     #

@@ -201,7 +201,7 @@ module DateAndTime
       end
     end
 
-    # Short-hand for months_since(3)
+    # Short-hand for months_since(3).
     def next_quarter
       months_since(3)
     end

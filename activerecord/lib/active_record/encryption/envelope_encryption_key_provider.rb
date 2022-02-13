@@ -4,9 +4,9 @@ module ActiveRecord
   module Encryption
     # Implements a simple envelope encryption approach where:
     #
-    # * It generates a random data-encryption key for each encryption operation
+    # * It generates a random data-encryption key for each encryption operation.
     # * It stores the generated key along with the encrypted payload. It encrypts this key
-    #   with the master key provided in the credential +active_record.encryption.master key+
+    #   with the master key provided in the credential +active_record.encryption.master key+.
     #
     # This provider can work with multiple master keys. It will use the last one for encrypting.
     #

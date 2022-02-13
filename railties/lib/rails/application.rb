@@ -22,7 +22,7 @@ module Rails
   # Rails::Application::Bootstrap) and finishing initializers, after all the others
   # are executed (check Rails::Application::Finisher).
   #
-  # == Configuration
+  # == \Configuration
   #
   # Besides providing the same configuration as Rails::Engine and Rails::Railtie,
   # the application object has several specific configurations, for example
@@ -53,7 +53,7 @@ module Rails
   #   5)  Load config/environments/ENV.rb
   #   6)  Run config.before_initialize callbacks
   #   7)  Run Railtie#initializer defined by railties, engines and application.
-  #       One by one, each engine sets up its load paths, routes and runs its config/initializers/* files.
+  #       One by one, each engine sets up its load paths and routes, and runs its config/initializers/* files.
   #   8)  Custom Railtie#initializers added by railties, engines and applications are executed
   #   9)  Build the middleware stack and run to_prepare callbacks
   #   10) Run config.before_eager_load and eager_load! if eager_load is true

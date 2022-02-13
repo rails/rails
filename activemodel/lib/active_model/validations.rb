@@ -241,7 +241,7 @@ module ActiveModel
       #   class Person
       #     include ActiveModel::Validations
       #
-      #     attr_accessor :name , :age
+      #     attr_accessor :name, :age
       #
       #     validates_presence_of :name
       #     validates_inclusion_of :age, in: 0..99

@@ -4,7 +4,7 @@ require "active_support/notifications/instrumenter"
 require "active_support/notifications/fanout"
 
 module ActiveSupport
-  # = Notifications
+  # = \Notifications
   #
   # <tt>ActiveSupport::Notifications</tt> provides an instrumentation API for
   # Ruby.

@@ -137,7 +137,7 @@ module ActionController
       false
     end
 
-    # Delegates to the class' <tt>controller_name</tt>.
+    # Delegates to the class's <tt>controller_name</tt>.
     def controller_name
       self.class.controller_name
     end

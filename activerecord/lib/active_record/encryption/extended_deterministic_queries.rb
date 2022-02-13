@@ -4,7 +4,7 @@ module ActiveRecord
   module Encryption
     # Automatically expand encrypted arguments to support querying both encrypted and unencrypted data
     #
-    # Active Record Encryption supports querying the db using deterministic attributes. For example:
+    # Active Record \Encryption supports querying the db using deterministic attributes. For example:
     #
     #   Contact.find_by(email_address: "jorge@hey.com")
     #
