@@ -1028,8 +1028,8 @@ your application if you are aware of the risk and know how to handle it:
 config.action_dispatch.perform_deep_munge = false
 ```
 
-Default Headers
----------------
+HTTP Security Headers
+---------------------
 
 Every HTTP response from your Rails application receives the following default security headers.
 
@@ -1070,11 +1070,13 @@ Here is a list of common headers:
 
 ### Content Security Policy
 
-Rails provides a DSL that allows you to configure a
+To help protect against XSS and injection attacks, it is recommended to define a
 [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
-for your application. You can configure a global default policy and then
+for your application. Rails provides a DSL that allows you to configure a
+Content Security Policy. You can configure a global default policy and then
 override it on a per-resource basis and even use lambdas to inject per-request
-values into the header such as account subdomains in a multi-tenant application.
+values into the header such as account subdomains in a multi-tenant
+application.
 
 Example global policy:
 
@@ -1123,6 +1125,8 @@ class LegacyPagesController < ApplicationController
 end
 ```
 
+#### Reporting Violations
+
 Use the `content_security_policy_report_only`
 configuration attribute to set
 [Content-Security-Policy-Report-Only](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only)
@@ -1141,7 +1145,12 @@ class PostsController < ApplicationController
 end
 ```
 
-You can enable automatic nonce generation:
+#### Adding a Nonce
+
+If you are considering 'unsafe-inline', consider using nonces instead. [Nonces
+provide a substantial improvement](https://www.w3.org/TR/CSP3/#security-nonces)
+over 'unsafe-inline' when implementing a Content Security Policy on top
+existing code.
 
 ```ruby
 # config/initializers/content_security_policy.rb
