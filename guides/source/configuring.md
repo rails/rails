@@ -94,7 +94,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_mailer.deliver_later_queue_name`](#config-action-mailer-deliver-later-queue-name): `nil`
 - [`config.active_job.retry_jitter`](#config-active-job-retry-jitter): `0.15`
 - [`config.action_dispatch.cookies_same_site_protection`](#config-action-dispatch-cookies-same-site-protection): `:lax`
-- [`config.action_dispatch.ssl_default_redirect_status`](`config.action_dispatch.ssl_default_redirect_status`) = `308`
+- [`config.action_dispatch.ssl_default_redirect_status`](#config-action-dispatch-ssl-default-redirect-status) = `308`
 - [`ActiveSupport.utc_to_local_returns_utc_offset_times`](#activesupport-utc-to-local-returns-utc-offset-times): `true`
 - [`config.action_controller.urlsafe_csrf_tokens`](#config-action-controller-urlsafe-csrf-tokens): `true`
 - [`config.action_view.form_with_generates_remote_forms`](#config-action-view-form-with-generates-remote-forms): `false`
