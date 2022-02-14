@@ -135,7 +135,9 @@ The default middlewares shown here (and some others) are each summarized in the 
 
 ### Configuring Middleware Stack
 
-Rails provides a simple configuration interface `config.middleware` for adding, removing, and modifying the middlewares in the middleware stack via `application.rb` or the environment specific configuration file `environments/<environment>.rb`.
+Rails provides a simple configuration interface [`config.middleware`][] for adding, removing, and modifying the middlewares in the middleware stack via `application.rb` or the environment specific configuration file `environments/<environment>.rb`.
+
+[`config.middleware`]: configuring.html#config-middleware
 
 #### Adding a Middleware
 
@@ -219,11 +221,15 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 **`Rack::Sendfile`**
 
-* Sets server specific X-Sendfile header. Configure this via `config.action_dispatch.x_sendfile_header` option.
+* Sets server specific X-Sendfile header. Configure this via [`config.action_dispatch.x_sendfile_header`][] option.
+
+[`config.action_dispatch.x_sendfile_header`]: configuring.html#config-action-dispatch-x-sendfile-header
 
 **`ActionDispatch::Static`**
 
-* Used to serve static files from the public directory. Disabled if `config.public_file_server.enabled` is `false`.
+* Used to serve static files from the public directory. Disabled if [`config.public_file_server.enabled`][] is `false`.
+
+[`config.public_file_server.enabled`]: configuring.html#config-public-file-server-enabled
 
 **`Rack::Lock`**
 

@@ -821,7 +821,7 @@ The Active Storage variant tracker improves performance of this, by storing a
 record in the database if the requested representation has been processed before.
 Thus, the above code will only make an API call to the remote service (e.g. S3)
 once, and once a variant is stored, will use that. The variant tracker runs
-automatically, but can be disabled through `config.active_storage.track_variants`.
+automatically, but can be disabled through [`config.active_storage.track_variants`][].
 
 If you're rendering lots of images on a page, the above example could result
 in N+1 queries loading all the variant records. To avoid these N+1 queries,
@@ -833,6 +833,7 @@ message.images.with_all_variant_records.each do |file|
 end
 ```
 
+[`config.active_storage.track_variants`]: configuring.html#config-active-storage-track-variants
 [`ActiveStorage::Representations::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/RedirectController.html
 [`ActiveStorage::Attachment`]: https://api.rubyonrails.org/classes/ActiveStorage/Attachment.html
 
@@ -852,16 +853,15 @@ location.
 If a variant is requested, Active Storage will automatically apply
 transformations depending on the image's format:
 
-1. Content types that are variable (as dictated by `config.active_storage.variable_content_types`)
-  and not considered web images (as dictated by `config.active_storage.web_image_content_types`),
+1. Content types that are variable (as dictated by [`config.active_storage.variable_content_types`][])
+  and not considered web images (as dictated by [`config.active_storage.web_image_content_types`][]),
   will be converted to PNG.
 
 2. If `quality` is not specified, the variant processor's default quality for the format will be used.
 
 Active Storage can use either [Vips][] or MiniMagick as the variant processor.
 The default depends on your `config.load_defaults` target version, and the
-processor can be changed by setting [`config.active_storage.variant_processor`](
-configuring.html#config-active-storage-variant-processor).
+processor can be changed by setting [`config.active_storage.variant_processor`][].
 
 The two processors are not fully compatible, so when migrating an existing application
 between MiniMagick and Vips, some changes have to be made if using options that are format
@@ -875,6 +875,9 @@ specific:
 <%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 80 }) %>
 ```
 
+[`config.active_storage.variable_content_types`]: configuring.html#config-active-storage-variable-content-types
+[`config.active_storage.variant_processor`]: configuring.html#config-active-storage-variant-processor
+[`config.active_storage.web_image_content_types`]: configuring.html#config-active-storage-web-image-content-types
 [`variant`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-variant
 [Vips]: https://www.rubydoc.info/gems/ruby-vips/Vips/Image
 

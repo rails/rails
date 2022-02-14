@@ -103,7 +103,9 @@ If your application uses Spring, it needs to be upgraded to at least version 3.0
 undefined method `mechanism=' for ActiveSupport::Dependencies:Module
 ```
 
-Also, make sure `config.cache_classes` is set to `false` in `config/environments/test.rb`.
+Also, make sure [`config.cache_classes`][] is set to `false` in `config/environments/test.rb`.
+
+[`config.cache_classes`]: configuring.html#config-cache-classes
 
 ### Sprockets is now an optional dependency
 
@@ -158,13 +160,15 @@ If you still get this warning in the logs, please check the section about autolo
 
 ### Ability to configure `config.autoload_once_paths`
 
-`config.autoload_once_paths` can be set in the body of the application class defined in `config/application.rb` or in the configuration for environments in `config/environments/*`.
+[`config.autoload_once_paths`][] can be set in the body of the application class defined in `config/application.rb` or in the configuration for environments in `config/environments/*`.
 
 Similarly, engines can configure that collection in the class body of the engine class or in the configuration for environments.
 
 After that, the collection is frozen, and you can autoload from those paths. In particular, you can autoload from there during initialization. They are managed by the `Rails.autoloaders.once` autoloader, which does not reload, only autoloads/eager loads.
 
 If you configured this setting after the environments configuration has been processed and are getting `FrozenError`, please just move the code.
+
+[`config.autoload_once_paths`]: configuring.html#config-autoload-once-paths
 
 ### `ActionDispatch::Request#content_type` now returned Content-Type header as it is.
 
@@ -557,9 +561,12 @@ $ bin/rails webpacker:install
 ### Force SSL
 
 The `force_ssl` method on controllers has been deprecated and will be removed in
-Rails 6.1. You are encouraged to enable `config.force_ssl` to enforce HTTPS
+Rails 6.1. You are encouraged to enable [`config.force_ssl`][] to enforce HTTPS
 connections throughout your application. If you need to exempt certain endpoints
-from redirection, you can use `config.ssl_options` to configure that behavior.
+from redirection, you can use [`config.ssl_options`][] to configure that behavior.
+
+[`config.force_ssl`]: configuring.html#config-force-ssl
+[`config.ssl_options`]: configuring.html#config-ssl-options
 
 ### Purpose and expiry metadata is now embedded inside signed and encrypted cookies for increased security
 
@@ -845,17 +852,13 @@ In addition to that, Bootsnap needs to disable the iseq cache due to a bug in th
 
 #### `config.add_autoload_paths_to_load_path`
 
-The new configuration point
-
-```ruby
-config.add_autoload_paths_to_load_path
-```
-
-is `true` by default for backwards compatibility, but allows you to opt-out from adding the autoload paths to `$LOAD_PATH`.
+The new configuration point [`config.add_autoload_paths_to_load_path`][] is `true` by default for backwards compatibility, but allows you to opt-out from adding the autoload paths to `$LOAD_PATH`.
 
 This makes sense in most applications, since you never should require a file in `app/models`, for example, and Zeitwerk only uses absolute file names internally.
 
 By opting-out you optimize `$LOAD_PATH` lookups (less directories to check), and save Bootsnap work and memory consumption, since it does not need to build an index for these directories.
+
+[`config.add_autoload_paths_to_load_path`]: configuring.html#config-add-autoload-paths-to-load-path
 
 #### Thread-safety
 
@@ -942,7 +945,9 @@ user.highlights.first.filename # => "funky.jpg"
 user.highlights.second.filename # => "town.jpg"
 ```
 
-Existing applications can opt in to this new behavior by setting `config.active_storage.replace_on_assign_to_many` to `true`. The old behavior will be deprecated in Rails 7.0 and removed in Rails 7.1.
+Existing applications can opt in to this new behavior by setting [`config.active_storage.replace_on_assign_to_many`][] to `true`. The old behavior will be deprecated in Rails 7.0 and removed in Rails 7.1.
+
+[`config.active_storage.replace_on_assign_to_many`]: configuring.html#config-active-storage-replace-on-assign-to-many
 
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
@@ -1331,12 +1336,14 @@ config.action_mailer.deliver_later_queue_name = :new_queue_name
 
 #### Support Fragment Caching in Action Mailer Views
 
-Set `config.action_mailer.perform_caching` in your config to determine whether your Action Mailer views
+Set [`config.action_mailer.perform_caching`][] in your config to determine whether your Action Mailer views
 should support caching.
 
 ```ruby
 config.action_mailer.perform_caching = true
 ```
+
+[`config.action_mailer.perform_caching`]: configuring.html#config-action-mailer-perform-caching
 
 #### Configure the Output of `db:structure:dump`
 
@@ -2308,7 +2315,7 @@ or `link_to_unless`).
 
     Please note that if your application is dependent on loading certain pages in a `<frame>` or `<iframe>`, then you may need to explicitly set `X-Frame-Options` to `ALLOW-FROM ...` or `ALLOWALL`.
 
-* In Rails 4.0, precompiling assets no longer automatically copies non-JS/CSS assets from `vendor/assets` and `lib/assets`. Rails application and engine developers should put these assets in `app/assets` or configure `config.assets.precompile`.
+* In Rails 4.0, precompiling assets no longer automatically copies non-JS/CSS assets from `vendor/assets` and `lib/assets`. Rails application and engine developers should put these assets in `app/assets` or configure [`config.assets.precompile`][].
 
 * In Rails 4.0, `ActionController::UnknownFormat` is raised when the action doesn't handle the request format. By default, the exception is handled by responding with 406 Not Acceptable, but you can override that now. In Rails 3, 406 Not Acceptable was always returned. No overrides.
 
@@ -2324,6 +2331,8 @@ or `link_to_unless`).
 * Rails 4.0 deprecated `ActionController::AbstractResponse` in favor of `ActionDispatch::Response`.
 * Rails 4.0 deprecated `ActionController::Response` in favor of `ActionDispatch::Response`.
 * Rails 4.0 deprecated `ActionController::Routing` in favor of `ActionDispatch::Routing`.
+
+[`config.assets.precompile`]: configuring.html#config-assets-precompile
 
 ### Active Support
 
@@ -2344,11 +2353,13 @@ The order in which helpers from more than one directory are loaded has changed i
 ### sprockets-rails
 
 * `assets:precompile:primary` and `assets:precompile:all` have been removed. Use `assets:precompile` instead.
-* The `config.assets.compress` option should be changed to `config.assets.js_compressor` like so for instance:
+* The `config.assets.compress` option should be changed to [`config.assets.js_compressor`][] like so for instance:
 
     ```ruby
     config.assets.js_compressor = :uglifier
     ```
+
+[`config.assets.js_compressor`]: configuring.html#config-assets-js-compressor
 
 ### sass-rails
 
