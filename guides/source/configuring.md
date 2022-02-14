@@ -309,13 +309,22 @@ Configures Rails to serve static files from the public directory. This option de
 
 #### `config.session_store`
 
-Specifies what class to use to store the session. Possible values are `:cookie_store` which is the default, `:mem_cache_store`, and `:disabled`. The last one tells Rails not to deal with sessions. Defaults to a cookie store with application name as the session key. Custom session stores can also be specified:
+Specifies what class to use to store the session. Possible values are `:cookie_store`, `:mem_cache_store`, a custom store, or `:disabled`. `:disabled` tells Rails not to deal with sessions.
+
+This setting is configured via a regular method call, rather than a setter. This allows additional options to be passed:
 
 ```ruby
+config.session_store :cookie_store, key: "_your_app_session"
+```
+
+If a custom store is specified as a symbol, it will be resolved to the `ActionDispatch::Session` namespace:
+
+```ruby
+# use ActionDispatch::Session::MyCustomStore as the session store
 config.session_store :my_custom_store
 ```
 
-This custom store must be defined as `ActionDispatch::Session::MyCustomStore`.
+The default store is a cookie store with the application name as the session key.
 
 #### `config.ssl_options`
 
@@ -548,11 +557,11 @@ Sets cookies for the request.
 
 #### `ActionDispatch::Session::CookieStore`
 
-Is responsible for storing the session in cookies. An alternate middleware can be used for this by changing the `config.action_controller.session_store` to an alternate value. Additionally, options passed to this can be configured by using `config.action_controller.session_options`.
+Is responsible for storing the session in cookies. An alternate middleware can be used for this by changing [`config.session_store`](#config-session-store).
 
 #### `ActionDispatch::Flash`
 
-Sets up the `flash` keys. Only available if `config.action_controller.session_store` is set to a value.
+Sets up the `flash` keys. Only available if [`config.session_store`](#config-session-store) is set to a value.
 
 #### `Rack::MethodOverride`
 
@@ -1123,10 +1132,6 @@ Configures the [`ParamsWrapper`](https://api.rubyonrails.org/classes/ActionContr
 the top level, or on individual controllers.
 
 ### Configuring Action Dispatch
-
-#### `config.action_dispatch.session_store`
-
-Sets the name of the store for session data. The default is `:cookie_store`; other valid options include `:active_record_store`, `:mem_cache_store` or the name of your own custom class.
 
 #### `config.action_dispatch.cookies_serializer`
 
