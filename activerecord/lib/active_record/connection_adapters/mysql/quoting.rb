@@ -8,6 +8,8 @@ module ActiveRecord
       module Quoting # :nodoc:
         def quote_bound_value(value)
           case value
+          when Rational
+            quote(value.to_f.to_s)
           when Numeric, ActiveSupport::Duration
             quote(value.to_s)
           when BigDecimal
