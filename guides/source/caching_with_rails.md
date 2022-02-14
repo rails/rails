@@ -36,12 +36,14 @@ page and action caching you will need to add `actionpack-page_caching` and
 
 By default, caching is only enabled in your production environment. You can play
 around with caching locally by running `rails dev:cache`, or by setting
-`config.action_controller.perform_caching` to `true` in `config/environments/development.rb`.
+[`config.action_controller.perform_caching`][] to `true` in `config/environments/development.rb`.
 
 NOTE: Changing the value of `config.action_controller.perform_caching` will
 only have an effect on the caching provided by Action Controller.
 For instance, it will not impact low-level caching, that we address
 [below](#low-level-caching).
+
+[`config.action_controller.perform_caching`]: configuring.html#config-action-controller-perform-caching
 
 ### Page Caching
 

@@ -287,7 +287,7 @@ There are many other possibilities, like using a `<script>` tag to make a cross-
 
 NOTE: We can't distinguish a `<script>` tag's origin—whether it's a tag on your own site or on some other malicious site—so we must block all `<script>` across the board, even if it's actually a safe same-origin script served from your own site. In these cases, explicitly skip CSRF protection on actions that serve JavaScript meant for a `<script>` tag.
 
-To protect against all other forged requests, we introduce a _required security token_ that our site knows but other sites don't know. We include the security token in requests and verify it on the server. This is done automatically when `config.action_controller.default_protect_from_forgery` is set to `true`, which is the default for newly created Rails applications. You can also do it manually by adding the following to your application controller:
+To protect against all other forged requests, we introduce a _required security token_ that our site knows but other sites don't know. We include the security token in requests and verify it on the server. This is done automatically when [`config.action_controller.default_protect_from_forgery`][] is set to `true`, which is the default for newly created Rails applications. You can also do it manually by adding the following to your application controller:
 
 ```ruby
 protect_from_forgery with: :exception
@@ -314,6 +314,8 @@ end
 The above method can be placed in the `ApplicationController` and will be called when a CSRF token is not present or is incorrect on a non-GET request.
 
 Note that _cross-site scripting (XSS) vulnerabilities bypass all CSRF protections_. XSS gives the attacker access to all elements on a page, so they can read the CSRF security token from a form or directly submit the form. Read [more about XSS](#cross-site-scripting-xss) later.
+
+[`config.action_controller.default_protect_from_forgery`]: configuring.html#config-action-controller-default-protect-from-forgery
 
 Redirection and Files
 ---------------------
@@ -504,7 +506,7 @@ Note that this protects you only from automatic bots, targeted tailor-made bots 
 
 WARNING: _Tell Rails not to put passwords in the log files._
 
-By default, Rails logs all requests being made to the web application. But log files can be a huge security issue, as they may contain login credentials, credit card numbers et cetera. When designing a web application security concept, you should also think about what will happen if an attacker got (full) access to the web server. Encrypting secrets and passwords in the database will be quite useless, if the log files list them in clear text. You can _filter certain request parameters from your log files_ by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
+By default, Rails logs all requests being made to the web application. But log files can be a huge security issue, as they may contain login credentials, credit card numbers et cetera. When designing a web application security concept, you should also think about what will happen if an attacker got (full) access to the web server. Encrypting secrets and passwords in the database will be quite useless, if the log files list them in clear text. You can _filter certain request parameters from your log files_ by appending them to [`config.filter_parameters`][] in the application configuration. These parameters will be marked [FILTERED] in the log.
 
 ```ruby
 config.filter_parameters << :password
@@ -515,6 +517,8 @@ expression. Rails adds a list of default filters, including `:passw`,
 `:secret`, and `:token`, in the appropriate initializer
 (`initializers/filter_parameter_logging.rb`) to handle typical application
 parameters like `password`, `password_confirmation` and `my_token`.
+
+[`config.filter_parameters`]: configuring.html#config-filter-parameters
 
 ### Regular Expressions
 

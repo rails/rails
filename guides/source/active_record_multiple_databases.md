@@ -482,7 +482,7 @@ config.active_record.shard_resolver = ->(request) {
 In Rails 6.1+, Active Record provides a new internal API for connection management.
 In most cases applications will not need to make any changes except to opt-in to the
 new behavior (if upgrading from 6.0 and below) by setting
-`config.active_record.legacy_connection_handling = false`. If you have a single database
+[`config.active_record.legacy_connection_handling`][] to `false`. If you have a single database
 application, no other changes will be required. If you have a multiple database application
 the following changes are required if your application is using these methods:
 
@@ -500,11 +500,13 @@ you'll want writing or reading pools with `connection_handler.connection_pool_li
 * If you turn off `legacy_connection_handling` in your application, any method that's unsupported
 will raise an error (i.e. `connection_handlers=`).
 
+[`config.active_record.legacy_connection_handling`]: configuring.html#config-active-record-legacy-connection-handling
+
 ## Granular Database Connection Switching
 
 In Rails 6.1 it's possible to switch connections for one database instead of
 all databases globally. To use this feature you must first set
-`config.active_record.legacy_connection_handling` to `false` in your application
+[`config.active_record.legacy_connection_handling`][] to `false` in your application
 configuration. The majority of applications should not need to make any other
 changes since the public APIs have the same behavior. See the above section for
 how to enable and migrate away from `legacy_connection_handling`.
@@ -546,7 +548,7 @@ connections globally.
 ### Handling associations with joins across databases
 
 As of Rails 7.0+, Active Record has an option for handling associations that would perform
-a join across multiple databases. If you have a has many through or a has one through association 
+a join across multiple databases. If you have a has many through or a has one through association
 that you want to disable joining and perform 2 or more queries, pass the `disable_joins: true` option.
 
 For example:
@@ -570,8 +572,8 @@ class Yard
 end
 ```
 
-Previously calling `@dog.treats` without `disable_joins` or `@dog.yard` without `disable_joins` 
-would raise an error because databases are unable to handle joins across clusters. With the 
+Previously calling `@dog.treats` without `disable_joins` or `@dog.yard` without `disable_joins`
+would raise an error because databases are unable to handle joins across clusters. With the
 `disable_joins` option, Rails will generate multiple select queries
 to avoid attempting joining across clusters. For the above association, `@dog.treats` would generate the
 following SQL:

@@ -821,7 +821,7 @@ standard names. However, Active Record will not automatically identify
 bi-directional associations that contain the `:through` or `:foreign_key`
 options. Custom scopes on the opposite association also prevent automatic
 identification, as do custom scopes on the association itself unless
-`config.active_record.automatic_scope_inversing` is set to true (the default for
+[`config.active_record.automatic_scope_inversing`][] is set to true (the default for
 new applications).
 
 For example, consider the following model declarations:
@@ -899,6 +899,8 @@ end
 By including the `:inverse_of` option in the `has_many` association declaration,
 Active Record will now recognize the bi-directional association and behave as in
 the initial examples above.
+
+[`config.active_record.automatic_scope_inversing`]: configuring.html#config-active-record-automatic-scope-inversing
 
 Detailed Association Reference
 ------------------------------

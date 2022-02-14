@@ -85,7 +85,9 @@ That does not even put the entire Active Support in memory upfront indeed, some 
 
 ### Active Support Within a Ruby on Rails Application
 
-A Ruby on Rails application loads all Active Support unless `config.active_support.bare` is true. In that case, the application will only load what the framework itself cherry-picks for its own needs, and can still cherry-pick itself at any granularity level, as explained in the previous section.
+A Ruby on Rails application loads all Active Support unless [`config.active_support.bare`][] is true. In that case, the application will only load what the framework itself cherry-picks for its own needs, and can still cherry-pick itself at any granularity level, as explained in the previous section.
+
+[`config.active_support.bare`]: configuring.html#config-active-support-bare
 
 Extensions to All Objects
 -------------------------
@@ -3214,7 +3216,7 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 The methods [`beginning_of_week`][DateAndTime::Calculations#beginning_of_week] and [`end_of_week`][DateAndTime::Calculations#end_of_week] return the dates for the
 beginning and end of the week, respectively. Weeks are assumed to start on
 Monday, but that can be changed passing an argument, setting thread local
-`Date.beginning_of_week` or `config.beginning_of_week`.
+`Date.beginning_of_week` or [`config.beginning_of_week`][].
 
 ```ruby
 d = Date.new(2010, 5, 8)     # => Sat, 08 May 2010
@@ -3228,6 +3230,7 @@ d.end_of_week(:sunday)       # => Sat, 08 May 2010
 
 NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
+[`config.beginning_of_week`]: configuring.html#config-beginning-of-week
 [DateAndTime::Calculations#at_beginning_of_week]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-at_beginning_of_week
 [DateAndTime::Calculations#at_end_of_week]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-at_end_of_week
 [DateAndTime::Calculations#beginning_of_week]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-beginning_of_week
@@ -3257,7 +3260,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ##### `prev_week`, `next_week`
 
-The method [`next_week`][DateAndTime::Calculations#next_week] receives a symbol with a day name in English (default is the thread local [`Date.beginning_of_week`][Date.beginning_of_week], or `config.beginning_of_week`, or `:monday`) and it returns the date corresponding to that day.
+The method [`next_week`][DateAndTime::Calculations#next_week] receives a symbol with a day name in English (default is the thread local [`Date.beginning_of_week`][Date.beginning_of_week], or [`config.beginning_of_week`][], or `:monday`) and it returns the date corresponding to that day.
 
 ```ruby
 d = Date.new(2010, 5, 9) # => Sun, 09 May 2010
