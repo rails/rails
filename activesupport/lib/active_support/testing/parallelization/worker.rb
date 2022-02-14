@@ -3,7 +3,7 @@
 module ActiveSupport
   module Testing
     class Parallelization # :nodoc:
-      class Worker
+      class Worker # :nodoc:
         def initialize(number, url)
           @id = SecureRandom.uuid
           @number = number

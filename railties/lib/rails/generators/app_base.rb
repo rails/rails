@@ -240,7 +240,7 @@ module Rails
       end
 
 
-      class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
+      class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out) # :nodoc:
         def initialize(name, version, comment, options = {}, commented_out = false)
           super
         end

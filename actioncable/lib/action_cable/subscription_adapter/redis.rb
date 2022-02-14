@@ -59,7 +59,7 @@ module ActionCable
           self.class.redis_connector.call(@server.config.cable.merge(id: identifier))
         end
 
-        class Listener < SubscriberMap
+        class Listener < SubscriberMap # :nodoc:
           def initialize(adapter, event_loop)
             super()
 

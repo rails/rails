@@ -23,7 +23,7 @@ module ActiveRecord
         end
       end
 
-      class Method
+      class Method # :nodoc:
         @matchers = []
 
         class << self
@@ -90,7 +90,7 @@ module ActiveRecord
           end
       end
 
-      class FindBy < Method
+      class FindBy < Method # :nodoc:
         Method.matchers << self
 
         def self.prefix
@@ -102,7 +102,7 @@ module ActiveRecord
         end
       end
 
-      class FindByBang < Method
+      class FindByBang < Method # :nodoc:
         Method.matchers << self
 
         def self.prefix

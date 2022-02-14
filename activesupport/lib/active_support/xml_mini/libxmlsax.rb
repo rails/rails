@@ -10,7 +10,7 @@ module ActiveSupport
 
     # Class that will build the hash while the XML document
     # is being parsed using SAX events.
-    class HashBuilder
+    class HashBuilder # :nodoc:
       include LibXML::XML::SaxParser::Callbacks
 
       CONTENT_KEY   = "__content__"

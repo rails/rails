@@ -4,8 +4,8 @@ require "active_support/core_ext/module/attribute_accessors"
 
 module ActionView
   class Template # :nodoc:
-    module Types
-      class Type
+    module Types # :nodoc:
+      class Type # :nodoc:
         SET = Struct.new(:symbols).new([ :html, :text, :js, :css, :xml, :json ])
 
         def self.[](type)

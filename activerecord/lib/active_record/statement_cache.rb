@@ -61,7 +61,7 @@ module ActiveRecord
       end
     end
 
-    class PartialQueryCollector
+    class PartialQueryCollector # :nodoc:
       attr_accessor :preparable
 
       def initialize

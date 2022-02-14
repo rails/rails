@@ -2,7 +2,7 @@
 
 module ActiveSupport
   class CodeGenerator # :nodoc:
-    class MethodSet
+    class MethodSet # :nodoc:
       METHOD_CACHES = Hash.new { |h, k| h[k] = Module.new }
 
       def initialize(namespace)

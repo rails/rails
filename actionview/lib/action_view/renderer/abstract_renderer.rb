@@ -127,7 +127,7 @@ module ActionView
         rendered_templates.first.format
       end
 
-      class EmptyCollection
+      class EmptyCollection # :nodoc:
         attr_reader :format
 
         def initialize(format)

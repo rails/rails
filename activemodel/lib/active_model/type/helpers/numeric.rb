@@ -2,8 +2,8 @@
 
 module ActiveModel
   module Type
-    module Helpers # :nodoc: all
-      module Numeric
+    module Helpers # :nodoc:
+      module Numeric # :nodoc:
         def serialize(value)
           cast(value)
         end

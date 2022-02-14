@@ -230,7 +230,7 @@ module ActionController
         end
     end
 
-    class Response < ActionDispatch::Response # :nodoc: all
+    class Response < ActionDispatch::Response # :nodoc:
       private
         def before_committed
           super

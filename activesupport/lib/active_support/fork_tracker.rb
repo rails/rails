@@ -2,7 +2,7 @@
 
 module ActiveSupport
   module ForkTracker # :nodoc:
-    module ModernCoreExt
+    module ModernCoreExt # :nodoc:
       def _fork
         pid = super
         if pid == 0
@@ -12,7 +12,7 @@ module ActiveSupport
       end
     end
 
-    module CoreExt
+    module CoreExt # :nodoc:
       def fork(...)
         if block_given?
           super do
@@ -28,7 +28,7 @@ module ActiveSupport
       end
     end
 
-    module CoreExtPrivate
+    module CoreExtPrivate # :nodoc:
       include CoreExt
       private :fork
     end

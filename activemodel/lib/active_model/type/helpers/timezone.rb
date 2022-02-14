@@ -4,8 +4,8 @@ require "active_support/core_ext/time/zones"
 
 module ActiveModel
   module Type
-    module Helpers # :nodoc: all
-      module Timezone
+    module Helpers # :nodoc:
+      module Timezone # :nodoc:
         def is_utc?
           ::Time.zone_default.nil? || ::Time.zone_default.match?("UTC")
         end

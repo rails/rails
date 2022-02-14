@@ -6,7 +6,7 @@ require "drb/unix" unless Gem.win_platform?
 module ActiveSupport
   module Testing
     class Parallelization # :nodoc:
-      class Server
+      class Server # :nodoc:
         include DRb::DRbUndumped
 
         def initialize

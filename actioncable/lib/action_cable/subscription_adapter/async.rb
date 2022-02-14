@@ -10,7 +10,7 @@ module ActionCable
           AsyncSubscriberMap.new(server.event_loop)
         end
 
-        class AsyncSubscriberMap < SubscriberMap
+        class AsyncSubscriberMap < SubscriberMap # :nodoc:
           def initialize(event_loop)
             @event_loop = event_loop
             super()

@@ -2,7 +2,7 @@
 
 module ActionDispatch
   class RequestEncoder # :nodoc:
-    class IdentityEncoder
+    class IdentityEncoder # :nodoc:
       def content_type; end
       def accept_header; end
       def encode_params(params); params; end

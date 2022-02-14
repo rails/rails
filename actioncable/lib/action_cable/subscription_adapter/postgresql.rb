@@ -71,7 +71,7 @@ module ActionCable
           end
         end
 
-        class Listener < SubscriberMap
+        class Listener < SubscriberMap # :nodoc:
           def initialize(adapter, event_loop)
             super()
 

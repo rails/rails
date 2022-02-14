@@ -26,7 +26,7 @@ module ActiveRecord
             Data.new(super) if value
           end
 
-          class Data
+          class Data # :nodoc:
             def initialize(value)
               @value = value
             end

@@ -6,8 +6,7 @@ module ActionView
   class Template
     module Handlers
       class ERB
-        class Erubi < ::Erubi::Engine
-          # :nodoc: all
+        class Erubi < ::Erubi::Engine # :nodoc:
           def initialize(input, properties = {})
             @newline_pending = 0
 

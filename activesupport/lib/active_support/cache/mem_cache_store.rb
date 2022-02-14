@@ -180,7 +180,7 @@ module ActiveSupport
             end
           end
 
-          module Loader
+          module Loader # :nodoc:
             def load(payload)
               if payload.is_a?(Entry)
                 payload
@@ -190,7 +190,7 @@ module ActiveSupport
             end
           end
 
-          module Rails61Coder
+          module Rails61Coder # :nodoc:
             include Loader
             extend self
 
@@ -203,7 +203,7 @@ module ActiveSupport
             end
           end
 
-          module Rails70Coder
+          module Rails70Coder # :nodoc:
             include Cache::Coders::Rails70Coder
             include Loader
             extend self
