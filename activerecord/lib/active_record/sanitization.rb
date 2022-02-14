@@ -5,14 +5,14 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      # Accepts an array or string of SQL conditions and sanitizes
-      # them into a valid SQL fragment for a WHERE clause.
+      # Accepts an array or string of SQL conditions and sanitizes them into
+      # a valid SQL fragment for a WHERE clause, using the adapter of the current `connection`.
       #
       #   sanitize_sql_for_conditions(["name=? and group_id=?", "foo'bar", 4])
       #   # => "name='foo''bar' and group_id=4"
       #
       #   sanitize_sql_for_conditions(["name=:name and group_id=:group_id", name: "foo'bar", group_id: 4])
-      #   # => "name='foo''bar' and group_id='4'"
+      #   # => "name='foo''bar' and group_id=4"
       #
       #   sanitize_sql_for_conditions(["name='%s' and group_id='%s'", "foo'bar", 4])
       #   # => "name='foo''bar' and group_id='4'"
@@ -29,8 +29,8 @@ module ActiveRecord
       end
       alias :sanitize_sql :sanitize_sql_for_conditions
 
-      # Accepts an array, hash, or string of SQL conditions and sanitizes
-      # them into a valid SQL fragment for a SET clause.
+      # Accepts an array, hash, or string of SQL conditions and sanitizes them into
+      # a valid SQL fragment for a SET clause, using the adapter of the current `connection`.
       #
       #   sanitize_sql_for_assignment(["name=? and group_id=?", nil, 4])
       #   # => "name=NULL and group_id=4"
@@ -39,7 +39,7 @@ module ActiveRecord
       #   # => "name=NULL and group_id=4"
       #
       #   Post.sanitize_sql_for_assignment({ name: nil, group_id: 4 })
-      #   # => "`posts`.`name` = NULL, `posts`.`group_id` = 4"
+      #   # => "\"name\" = NULL, \"group_id\" = 4"
       #
       #   sanitize_sql_for_assignment("name=NULL and group_id='4'")
       #   # => "name=NULL and group_id='4'"
@@ -51,10 +51,10 @@ module ActiveRecord
         end
       end
 
-      # Accepts an array, or string of SQL conditions and sanitizes
-      # them into a valid SQL fragment for an ORDER clause.
+      # Accepts an array, or string of SQL conditions and sanitizes them into
+      # a valid SQL fragment for an ORDER clause, using the adapter of the current `connection`.
       #
-      #   sanitize_sql_for_order([Arel.sql("field(id, ?)"), [1,3,2]])
+      #   sanitize_sql_for_order([Arel.sql("field(id, ?)"), [1, 3, 2]])
       #   # => "field(id, 1,3,2)"
       #
       #   sanitize_sql_for_order("id ASC")
@@ -78,10 +78,11 @@ module ActiveRecord
         end
       end
 
-      # Sanitizes a hash of attribute/value pairs into SQL conditions for a SET clause.
+      # Sanitizes a hash of attribute/value pairs into SQL conditions for a SET
+      # clause, using the adapter of the current `connection`.
       #
       #   sanitize_sql_hash_for_assignment({ status: nil, group_id: 1 }, "posts")
-      #   # => "`posts`.`status` = NULL, `posts`.`group_id` = 1"
+      #   # => "\"status\" = NULL, \"group_id\" = 1"
       def sanitize_sql_hash_for_assignment(attrs, table)
         c = connection
         attrs.map do |attr, value|
@@ -114,8 +115,8 @@ module ActiveRecord
         string.gsub(/(?=[%_])/, escape_character)
       end
 
-      # Accepts an array of conditions. The array has each value
-      # sanitized and interpolated into the SQL statement.
+      # Accepts an array of conditions. The array has each value sanitized and interpolated into
+      # the SQL statement, valid for the adapter of the current `connection`
       #
       #   sanitize_sql_array(["name=? and group_id=?", "foo'bar", 4])
       #   # => "name='foo''bar' and group_id=4"
