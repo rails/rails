@@ -38,6 +38,12 @@ module ActiveRecord
           end
         end
 
+        def test_where_with_rational_for_string_column_using_bind_parameters
+          assert_raises ActiveRecord::StatementInvalid do
+            Post.where("title = ?", Rational(0)).count
+          end
+        end
+
         def test_where_with_duration_for_string_column_using_bind_parameters
           assert_raises ActiveRecord::StatementInvalid do
             Post.where("title = ?", 0.seconds).count

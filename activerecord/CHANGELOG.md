@@ -1,3 +1,8 @@
+*   Fix quoting of `ActiveSupport::Duration` and `Rational` numbers in the MySQL adapter.
+
+    *Kevin McPhillips*
+
+
 ## Rails 7.0.2.2 (February 11, 2022) ##
 
 *   No changes.
