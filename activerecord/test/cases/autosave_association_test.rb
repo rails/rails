@@ -165,7 +165,7 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
     like.published_books << book
     author = book.authors_autosave[0]
     author.name = "Paul"
-    assert_equal true, author.changed?
+    assert_predicate author, :changed?
     assert_equal false, book.changed?
     like.save!
 
