@@ -2492,7 +2492,7 @@ class Parts < ApplicationRecord
 end
 ```
 
-If you use a hash-style `where`, then record creation via this association will be automatically scoped using the hash. In this case, using `@parts.assemblies.create` or `@parts.assemblies.build` will create orders where the `factory` column has the value "Seattle".
+If you use a hash-style `where`, then record creation via this association will be automatically scoped using the hash. In this case, using `@parts.assemblies.create` or `@parts.assemblies.build` will create assemblies where the `factory` column has the value "Seattle".
 
 ##### `extending`
 
