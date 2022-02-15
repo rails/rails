@@ -17,8 +17,6 @@ module ActiveSupport
   # EventedFileUpdateChecker#execute is run or when EventedFileUpdateChecker#execute_if_updated
   # is run and there have been changes to the file system.
   #
-  # Note: Forking will cause the first call to `updated?` to return `true`.
-  #
   # Example:
   #
   #     checker = ActiveSupport::EventedFileUpdateChecker.new(["/tmp/foo"]) { puts "changed" }
