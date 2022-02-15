@@ -65,7 +65,7 @@ module ActiveSupport
     def self.run!(reset: false)
       if reset
         lost_instance = active.delete(Thread.current)
-        lost_instance&.complete!
+        lost_instance.complete! unless lost_instance.nil?
       else
         return Null if active?
       end
