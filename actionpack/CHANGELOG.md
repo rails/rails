@@ -1,3 +1,13 @@
+*   Fix setting `trailing_slash: true` in route definition.
+
+    ```ruby
+    get '/test' => "test#index", as: :test, trailing_slash: true
+
+    test_path() # => "/test/"
+    ```
+
+    *Jean Boussier*
+
 *   Make `Session#merge!` stringify keys.
 
     Previously `Session#update` would, but `merge!` wouldn't.
