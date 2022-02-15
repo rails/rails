@@ -43,7 +43,9 @@ class LoggerTest < ActiveSupport::TestCase
     str = +"\x80"
     str.force_encoding("ASCII-8BIT")
 
-    logger.add Logger::DEBUG, str
+    assert_nothing_raised do
+      logger.add Logger::DEBUG, str
+    end
   ensure
     logger.close
     t.close true
@@ -61,7 +63,9 @@ class LoggerTest < ActiveSupport::TestCase
     str = +"\x80"
     str.force_encoding("ASCII-8BIT")
 
-    logger.add Logger::DEBUG, str
+    assert_nothing_raised do
+      logger.add Logger::DEBUG, str
+    end
   ensure
     logger.close
     File.unlink fname

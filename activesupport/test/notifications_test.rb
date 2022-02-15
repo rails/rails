@@ -185,8 +185,10 @@ module Notifications
 
       ActiveSupport::Notifications.subscribe("foo", TestSubscriber.new)
 
-      ActiveSupport::Notifications.instrument("foo") do
-        ActiveSupport::Notifications.subscribe("foo") { }
+      assert_nothing_raised do
+        ActiveSupport::Notifications.instrument("foo") do
+          ActiveSupport::Notifications.subscribe("foo") { }
+        end
       end
     ensure
       ActiveSupport::Notifications.notifier = old_notifier
