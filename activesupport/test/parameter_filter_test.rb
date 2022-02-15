@@ -77,9 +77,9 @@ class ParameterFilterTest < ActiveSupport::TestCase
 
   test "filter_param" do
     parameter_filter = ActiveSupport::ParameterFilter.new(["foo", /bar/])
-    assert_equal "[FILTERED]", parameter_filter.filter_param("food", "secret vlaue")
-    assert_equal "[FILTERED]", parameter_filter.filter_param("baz.foo", "secret vlaue")
-    assert_equal "[FILTERED]", parameter_filter.filter_param("barbar", "secret vlaue")
+    assert_equal "[FILTERED]", parameter_filter.filter_param("food", "secret value")
+    assert_equal "[FILTERED]", parameter_filter.filter_param("baz.foo", "secret value")
+    assert_equal "[FILTERED]", parameter_filter.filter_param("barbar", "secret value")
     assert_equal "non secret value", parameter_filter.filter_param("baz", "non secret value")
   end
 
@@ -104,9 +104,9 @@ class ParameterFilterTest < ActiveSupport::TestCase
   test "filter_param should return mask option when value is filtered" do
     mask = Object.new.freeze
     parameter_filter = ActiveSupport::ParameterFilter.new(["foo", /bar/], mask: mask)
-    assert_equal mask, parameter_filter.filter_param("food", "secret vlaue")
-    assert_equal mask, parameter_filter.filter_param("baz.foo", "secret vlaue")
-    assert_equal mask, parameter_filter.filter_param("barbar", "secret vlaue")
+    assert_equal mask, parameter_filter.filter_param("food", "secret value")
+    assert_equal mask, parameter_filter.filter_param("baz.foo", "secret value")
+    assert_equal mask, parameter_filter.filter_param("barbar", "secret value")
     assert_equal "non secret value", parameter_filter.filter_param("baz", "non secret value")
   end
 
