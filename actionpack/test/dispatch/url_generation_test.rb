@@ -16,12 +16,21 @@ module TestUrlGeneration
       def add_trailing_slash
         render plain: url_for(trailing_slash: true, params: request.query_parameters, format: params[:format])
       end
+
+      def trailing_slash_default
+        if params[:url]
+          render plain: trailing_slash_default_url(format: params[:url_format])
+        else
+          render plain: trailing_slash_default_path(format: params[:url_format])
+        end
+      end
     end
 
     Routes.draw do
       get "/foo", to: "my_route_generating#index", as: :foo
       get "(/optional/:optional_id)/baz", to: "my_route_generating#index", as: :baz
       get "/add_trailing_slash", to: "my_route_generating#add_trailing_slash", as: :add_trailing_slash
+      get "/trailing_slash_default", to: "my_route_generating#trailing_slash_default", as: :trailing_slash_default, trailing_slash: true
 
       resources :bars
 
@@ -174,6 +183,22 @@ module TestUrlGeneration
     test "generating the current URL with a trailing slashes and format indicator" do
       get "/add_trailing_slash.json"
       assert_equal "http://www.example.com/add_trailing_slash.json", response.body
+    end
+
+    test "generating the path with `trailing_slashes: true` default options" do
+      get "/trailing_slash_default"
+      assert_equal "/trailing_slash_default/", response.body
+
+      get "/trailing_slash_default?url=1"
+      assert_equal "http://www.example.com/trailing_slash_default/", response.body
+    end
+
+    test "generating the path with `trailing_slashes: true` default options and format" do
+      get "/trailing_slash_default?url_format=json"
+      assert_equal "/trailing_slash_default.json", response.body
+
+      get "/trailing_slash_default?url=1&url_format=json"
+      assert_equal "http://www.example.com/trailing_slash_default.json", response.body
     end
 
     test "generating URLs with trailing slashes" do
