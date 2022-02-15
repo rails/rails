@@ -1292,7 +1292,7 @@ Or, in English: "return all books that have a review by a customer."
 ##### Joining Nested Associations (Multiple Level)
 
 ```ruby
-Author.joins(books: [{reviews: { customer: :orders} }, :supplier] )
+Author.joins(books: [{ reviews: { customer: :orders } }, :supplier] )
 ```
 
 This produces:
