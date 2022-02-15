@@ -1415,8 +1415,8 @@ module ActiveRecord
         # [:disable_joins]
         #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
         #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
-        #   due to database limitations. This option is only applicable on `has_many :through` associations as
-        #   `has_many` alone do not perform a join.
+        #   due to database limitations. This option is only applicable on <tt>has_many :through</tt> associations as
+        #   +has_many+ alone do not perform a join.
         # [:source]
         #   Specifies the source association name used by #has_many <tt>:through</tt> queries.
         #   Only use it if the name cannot be inferred from the association.
@@ -1580,8 +1580,8 @@ module ActiveRecord
         # [:disable_joins]
         #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
         #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
-        #   due to database limitations. This option is only applicable on `has_one :through` associations as
-        #   `has_one` alone does not perform a join.
+        #   due to database limitations. This option is only applicable on <tt>has_one :through</tt> associations as
+        #   +has_one+ alone does not perform a join.
         # [:source]
         #   Specifies the source association name used by #has_one <tt>:through</tt> queries.
         #   Only use it if the name cannot be inferred from the association.

@@ -240,7 +240,7 @@ module ActionView
       # Transforms a Hash into HTML attributes, ready to be interpolated into
       # ERB. Includes or omits boolean attributes based on their truthiness.
       # Transforms keys nested within
-      # <tt>aria:</tt> or <tt>data:</tt> objects into `aria-` and `data-`
+      # <tt>aria:</tt> or <tt>data:</tt> objects into <tt>aria-</tt> and <tt>data-</tt>
       # prefixed attributes:
       #
       #   <input <%= tag.attributes(type: :text, aria: { label: "Search" }) %>>

@@ -10,7 +10,7 @@ module ActiveRecord
     #
     # This provider can work with multiple master keys. It will use the last one for encrypting.
     #
-    # When `config.store_key_references` is true, it will also store a reference to
+    # When +config.store_key_references+ is true, it will also store a reference to
     # the specific master key that was used to encrypt the data-encryption key. When not set,
     # it will try all the configured master keys looking for the right one, in order to
     # return the right decryption key.

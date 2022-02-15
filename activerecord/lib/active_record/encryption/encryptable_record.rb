@@ -23,7 +23,7 @@ module ActiveRecord
         # * <tt>:key</tt> - A password to derive the key from. It's a shorthand for a +:key_provider+ that
         #   serves derivated keys. Both options can't be used at the same time.
         # * <tt>:key_provider</tt> - Set a +:key_provider+ to provide encryption and decryption keys. If not
-        #   provided, it will default to the key provider set with `config.key_provider`.
+        #   provided, it will default to the key provider set with +config.key_provider+.
         # * <tt>:deterministic</tt> - By default, encryption is not deterministic. It will use a random
         #   initialization vector for each encryption operation. This means that encrypting the same content
         #   with the same key twice will generate different ciphertexts. When set to +true+, it will generate the

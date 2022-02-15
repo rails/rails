@@ -10,7 +10,7 @@
 # of the module.
 #
 # Note that it can also be scoped per-fiber if Rails.application.config.active_support.isolation_level
-# is set to `:fiber`.
+# is set to +:fiber+.
 class Module
   # Defines a per-thread class attribute and creates class and instance reader methods.
   # The underlying per-thread class variable is set to +nil+, if it is not previously defined.
@@ -118,7 +118,7 @@ class Module
   #   Account.user     # => "DHH"
   #   Account.new.user # => "DHH"
   #
-  # Unlike `mattr_accessor`, values are *not* shared with subclasses or parent classes.
+  # Unlike +mattr_accessor+, values are *not* shared with subclasses or parent classes.
   # If a subclass changes the value, the parent class' value is not changed.
   # If the parent class changes the value, the value of subclasses is not changed.
   #

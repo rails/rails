@@ -104,7 +104,7 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # PostgreSQL supports multiple types for DateTimes. By default, if you use `datetime`
+      # PostgreSQL supports multiple types for DateTimes. By default, if you use +datetime+
       # in migrations, Rails will translate this to a PostgreSQL "timestamp without time zone".
       # Change this in an initializer to use another NATIVE_DATABASE_TYPES. For example, to
       # store DateTimes as "timestamp with time zone":
