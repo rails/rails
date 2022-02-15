@@ -2355,6 +2355,35 @@ module ApplicationTests
       assert_equal Digest::SHA1, ActiveSupport::Digest.hash_digest_class
     end
 
+    test "ActiveStorage.supported_image_processing_methods can be configured via config.active_storage.supported_image_processing_methods" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/add_image_processing_methods.rb", <<-RUBY
+        Rails.application.config.active_storage.supported_image_processing_methods = ["write", "set"]
+      RUBY
+
+      app "development"
+
+      assert ActiveStorage.supported_image_processing_methods.include?("write")
+      assert ActiveStorage.supported_image_processing_methods.include?("set")
+    end
+
+    test "ActiveStorage.unsupported_image_processing_arguments can be configured via config.active_storage.unsupported_image_processing_arguments" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/add_image_processing_arguments.rb", <<-RUBY
+      Rails.application.config.active_storage.unsupported_image_processing_arguments = %w(
+        -write
+        -danger
+      )
+      RUBY
+
+      app "development"
+
+      assert ActiveStorage.unsupported_image_processing_arguments.include?("-danger")
+      refute ActiveStorage.unsupported_image_processing_arguments.include?("-set")
+    end
+
     test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
       class ::DummySerializer < ActiveJob::Serializers::ObjectSerializer; end
 
