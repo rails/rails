@@ -60,7 +60,7 @@ module ActiveRecord
       ##
       # :singleton-method:
       # Force enumeration of all columns in SELECT statements.
-      # e.g. `SELECT first_name, last_name FROM ...` instead of `SELECT * FROM ...`
+      # e.g. <tt>SELECT first_name, last_name FROM ...</tt> instead of <tt>SELECT * FROM ...</tt>
       # This avoids +PreparedStatementCacheExpired+ errors when a column is added
       # to the database while the app is running.
       class_attribute :enumerate_columns_in_select_statements, instance_accessor: false, default: false

@@ -74,7 +74,7 @@ module ActionController
     #
     # Raises UnsafeRedirectError in the case of an unsafe redirect.
     #
-    # To allow any external redirects pass `allow_other_host: true`, though using a user-provided param in that case is unsafe.
+    # To allow any external redirects pass <tt>allow_other_host: true</tt>, though using a user-provided param in that case is unsafe.
     #
     #   redirect_to "https://rubyonrails.org", allow_other_host: true
     #

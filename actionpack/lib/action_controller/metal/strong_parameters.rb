@@ -236,7 +236,7 @@ module ActionController
     # By default, never raise an UnpermittedParameters exception if these
     # params are present. The default includes both 'controller' and 'action'
     # because they are added by Rails and should be of no concern. One way
-    # to change these is to specify `always_permitted_parameters` in your
+    # to change these is to specify +always_permitted_parameters+ in your
     # config. For instance:
     #
     #    config.action_controller.always_permitted_parameters = %w( controller action format )
