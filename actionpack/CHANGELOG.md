@@ -1,3 +1,13 @@
+*   Fix setting `trailing_slash: true` in route definition.
+
+    ```ruby
+    get '/test' => "test#index", as: :test, trailing_slash: true
+
+    test_path() # => "/test/"
+    ```
+
+    *Jean Boussier*
+
 ## Rails 7.0.2.2 (February 11, 2022) ##
 
 *   No changes.
