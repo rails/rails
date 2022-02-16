@@ -85,7 +85,9 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def test_clear_also_clears_local_cache
     key = SecureRandom.uuid
     cache = lookup_store(raw: true)
-    client.stub(:flush_all, -> { client.delete(key) }) do
+    stub_called = false
+
+    client(cache).stub(:flush_all, -> { stub_called = true; client.delete("#{@namespace}:#{key}") }) do
       cache.with_local_cache do
         cache.write(key, SecureRandom.alphanumeric)
         cache.clear
@@ -93,6 +95,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
       end
       assert_nil cache.read(key)
     end
+    assert stub_called
   end
 
   def test_raw_values
