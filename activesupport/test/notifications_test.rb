@@ -231,6 +231,13 @@ module Notifications
     end
   end
 
+  class InspectTest < TestCase
+    def test_inspect_output_is_small
+      expected = "#<ActiveSupport::Notifications::Fanout (2 patterns)>"
+      assert_equal expected, @notifier.inspect
+    end
+  end
+
   class UnsubscribeTest < TestCase
     def test_unsubscribing_removes_a_subscription
       @notifier.publish :foo
