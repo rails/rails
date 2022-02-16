@@ -124,6 +124,12 @@ module ActiveRecord
           execute("ROLLBACK", "TRANSACTION")
         end
 
+        def exec_restart_db_transaction # :nodoc:
+          @raw_connection.cancel unless @raw_connection.transaction_status == PG::PQTRANS_IDLE
+          @raw_connection.block
+          execute("ROLLBACK AND CHAIN", "TRANSACTION")
+        end
+
         # From https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT
         HIGH_PRECISION_CURRENT_TIMESTAMP = Arel.sql("CURRENT_TIMESTAMP").freeze # :nodoc:
         private_constant :HIGH_PRECISION_CURRENT_TIMESTAMP

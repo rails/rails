@@ -81,6 +81,10 @@ module ActiveRecord
         true
       end
 
+      def supports_restart_db_transaction?
+        true
+      end
+
       def supports_explain?
         true
       end
@@ -222,6 +226,10 @@ module ActiveRecord
 
       def exec_rollback_db_transaction # :nodoc:
         execute("ROLLBACK", "TRANSACTION")
+      end
+
+      def exec_restart_db_transaction # :nodoc:
+        execute("ROLLBACK AND CHAIN", "TRANSACTION")
       end
 
       def empty_insert_statement_value(primary_key = nil) # :nodoc:

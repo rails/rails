@@ -234,6 +234,10 @@ module ActiveRecord
         true
       end
 
+      def supports_restart_db_transaction?
+        database_version >= 12_00_00 # >= 12.0
+      end
+
       def supports_insert_returning?
         true
       end

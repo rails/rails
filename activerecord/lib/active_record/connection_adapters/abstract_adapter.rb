@@ -335,6 +335,10 @@ module ActiveRecord
         false
       end
 
+      def supports_restart_db_transaction?
+        false
+      end
+
       # Does this adapter support application-enforced advisory locking?
       def supports_advisory_locks?
         false
