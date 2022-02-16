@@ -25,6 +25,9 @@ class SecurePasswordTest < ActiveRecord::TestCase
   end
 
   test "authenticate_by takes the same amount of time regardless of whether record is found" do
+    # Warm-up (mostly to ensure the DB connection is established)
+    User.authenticate_by(token: @user.token, password: @user.password)
+
     # Benchmark.realtime returns fractional seconds.  Thus, summing over 1000
     # iterations is equivalent to averaging over 1000 iterations and then
     # multiplying by 1000 to convert to milliseconds.

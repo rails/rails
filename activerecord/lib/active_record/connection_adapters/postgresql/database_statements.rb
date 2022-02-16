@@ -11,12 +11,11 @@ module ActiveRecord
 
         # Queries the database and returns the results in an Array-like object
         def query(sql, name = nil) # :nodoc:
-          materialize_transactions
           mark_transaction_written_if_write(sql)
 
           log(sql, name) do
-            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @raw_connection.async_exec(sql).map_types!(@type_map_for_results).values
+            with_raw_connection do |conn|
+              conn.async_exec(sql).map_types!(@type_map_for_results).values
             end
           end
         end
@@ -40,12 +39,11 @@ module ActiveRecord
           sql = transform_query(sql)
           check_if_write_query(sql)
 
-          materialize_transactions
           mark_transaction_written_if_write(sql)
 
-          log(sql, name) do
-            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @raw_connection.async_exec(sql)
+          with_raw_connection do |conn|
+            log(sql, name) do
+              conn.async_exec(sql)
             end
           end
         end

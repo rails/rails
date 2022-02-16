@@ -651,7 +651,9 @@ module ActiveRecord
 
           log(sql, name, async: async) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @raw_connection.query(sql)
+              with_raw_connection do |conn|
+                conn.query(sql)
+              end
             end
           end
         end
@@ -715,6 +717,11 @@ module ActiveRecord
           else
             super
           end
+        end
+
+        def retryable_error?(exception)
+          error_number(exception).nil? &&
+            exception.message.match?(/MySQL client is not connected/i)
         end
 
         def change_column_for_alter(table_name, column_name, type, **options)

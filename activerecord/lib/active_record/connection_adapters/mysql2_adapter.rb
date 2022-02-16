@@ -110,7 +110,7 @@ module ActiveRecord
       #++
 
       def quote_string(string)
-        @raw_connection.escape(string)
+        any_raw_connection.escape(string)
       rescue Mysql2::Error => error
         raise translate_exception(error, message: error.message, sql: "<escape>", binds: [])
       end
@@ -160,6 +160,7 @@ module ActiveRecord
 
         def configure_connection
           @raw_connection.query_options[:as] = :array
+          @raw_connection.query_options[:database_timezone] = default_timezone
           super
         end
 
@@ -168,7 +169,7 @@ module ActiveRecord
         end
 
         def get_full_version
-          @raw_connection.server_info[:version]
+          any_raw_connection.server_info[:version]
         end
 
         def translate_exception(exception, message:, sql:, binds:)

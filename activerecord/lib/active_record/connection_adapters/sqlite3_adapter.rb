@@ -204,7 +204,7 @@ module ActiveRecord
 
       # Returns the current database encoding format as a string, e.g. 'UTF-8'
       def encoding
-        @raw_connection.encoding.to_s
+        any_raw_connection.encoding.to_s
       end
 
       def supports_explain?
@@ -575,6 +575,10 @@ module ActiveRecord
           else
             super
           end
+        end
+
+        def retryable_error?(exception)
+          exception.message.match?(/called on a closed database/i)
         end
 
         COLLATE_REGEX = /.*"(\w+)".*collate\s+"(\w+)".*/i.freeze
