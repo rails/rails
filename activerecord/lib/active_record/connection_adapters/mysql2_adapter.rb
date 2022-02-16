@@ -123,9 +123,9 @@ module ActiveRecord
         @raw_connection.ping
       end
 
-      def reconnect!
+      def reconnect!(restore_transactions: false)
         @lock.synchronize do
-          disconnect!
+          @raw_connection.close
           connect
           super
         end

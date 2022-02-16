@@ -394,6 +394,23 @@ module ActiveRecord
         assert_not raw_transaction_open?(@connection)
       end
 
+      test "materialized transaction state can be restored after a reconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        # +materialize_transactions+ currently automatically dirties the
+        # connection, which would make it unrestorable
+        @connection.transaction_manager.stub(:dirty_current_transaction, nil) do
+          @connection.materialize_transactions
+        end
+        assert raw_transaction_open?(@connection)
+        @connection.reconnect!(restore_transactions: true)
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+      ensure
+        @connection.reconnect!
+        assert_not_predicate @connection, :transaction_open?
+      end
+
       test "materialized transaction state is reset after a disconnect" do
         @connection.begin_transaction
         assert_predicate @connection, :transaction_open?
@@ -414,6 +431,21 @@ module ActiveRecord
         assert_not_predicate @connection, :transaction_open?
         assert_not raw_transaction_open?(@connection)
         @connection.materialize_transactions
+        assert_not raw_transaction_open?(@connection)
+      end
+
+      test "unmaterialized transaction state can be restored after a reconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.reconnect!(restore_transactions: true)
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.materialize_transactions
+        assert raw_transaction_open?(@connection)
+      ensure
+        @connection.reconnect!
+        assert_not_predicate @connection, :transaction_open?
         assert_not raw_transaction_open?(@connection)
       end
 
