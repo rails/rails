@@ -39,7 +39,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   MINIMUM_TOKEN_LENGTH = 28
 
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
-  store :metadata, accessors: [ :analyzed, :identified ], coder: ActiveRecord::Coders::JSON
+  store :metadata, accessors: [ :analyzed, :identified, :composed ], coder: ActiveRecord::Coders::JSON
 
   class_attribute :services, default: {}
   class_attribute :service, instance_accessor: false
@@ -52,13 +52,14 @@ class ActiveStorage::Blob < ActiveStorage::Record
     self.service_name ||= self.class.service&.name
   end
 
-  after_update_commit :update_service_metadata, if: :content_type_previously_changed?
+  after_update_commit :update_service_metadata, if: -> { content_type_previously_changed? || metadata_previously_changed? }
 
   before_destroy(prepend: true) do
     raise ActiveRecord::InvalidForeignKey if attachments.exists?
   end
 
   validates :service_name, presence: true
+  validates :checksum, presence: true, unless: :composed
 
   validate do
     if service_name_changed? && service_name.present?
@@ -145,6 +146,18 @@ class ActiveStorage::Blob < ActiveStorage::Record
         all
       end
     end
+
+    # Concatenate multiple blobs into a single "composed" blob.
+    def compose(blobs, filename:, content_type: nil, metadata: nil)
+      raise ActiveRecord::RecordNotSaved, "All blobs must be persisted." if blobs.any?(&:new_record?)
+
+      content_type ||= blobs.pluck(:content_type).compact.first
+
+      new(filename: filename, content_type: content_type, metadata: metadata, byte_size: blobs.sum(&:byte_size)).tap do |combined_blob|
+        combined_blob.compose(blobs.pluck(:key))
+        combined_blob.save!
+      end
+    end
   end
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
@@ -166,6 +179,14 @@ class ActiveStorage::Blob < ActiveStorage::Record
   # that's safe to use in URLs.
   def filename
     ActiveStorage::Filename.new(self[:filename])
+  end
+
+  def custom_metadata
+    self[:metadata][:custom] || {}
+  end
+
+  def custom_metadata=(metadata)
+    self[:metadata] = self[:metadata].merge(custom: metadata)
   end
 
   # Returns true if the content_type of this blob is in the image range, like image/png.
@@ -200,12 +221,12 @@ class ActiveStorage::Blob < ActiveStorage::Record
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
   # short-lived for security and only generated on-demand by the client-side JavaScript responsible for doing the uploading.
   def service_url_for_direct_upload(expires_in: ActiveStorage.service_urls_expire_in)
-    service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum
+    service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum, custom_metadata: custom_metadata
   end
 
   # Returns a Hash of headers for +service_url_for_direct_upload+ requests.
   def service_headers_for_direct_upload
-    service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum
+    service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum, custom_metadata: custom_metadata
   end
 
   def content_type_for_serving # :nodoc:
@@ -247,6 +268,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.upload key, io, checksum: checksum, **service_metadata
   end
 
+  def compose(keys) # :nodoc:
+    self.composed = true
+    service.compose(keys, key, **service_metadata)
+  end
+
   # Downloads the file associated with this blob. If no block is given, the entire file is read into memory and returned.
   # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.
   def download(&block)
@@ -272,8 +298,14 @@ class ActiveStorage::Blob < ActiveStorage::Record
   #
   # Raises ActiveStorage::IntegrityError if the downloaded data does not match the blob's checksum.
   def open(tmpdir: nil, &block)
-    service.open key, checksum: checksum,
-      name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ], tmpdir: tmpdir, &block
+    service.open(
+      key,
+      checksum: checksum,
+      verify: !composed,
+      name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ],
+      tmpdir: tmpdir,
+      &block
+    )
   end
 
   def mirror_later # :nodoc:
@@ -362,11 +394,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
     def service_metadata
       if forcibly_serve_as_binary?
-        { content_type: ActiveStorage.binary_content_type, disposition: :attachment, filename: filename }
+        { content_type: ActiveStorage.binary_content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
       elsif !allowed_inline?
-        { content_type: content_type, disposition: :attachment, filename: filename }
+        { content_type: content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
       else
-        { content_type: content_type }
+        { content_type: content_type, custom_metadata: custom_metadata }
       end
     end
 

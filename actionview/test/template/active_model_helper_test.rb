@@ -20,11 +20,11 @@ class ActiveModelHelperTest < ActionView::TestCase
     super
 
     @post = Post.new
-    assert_deprecated { @post.errors[:author_name] << "can't be empty" }
-    assert_deprecated { @post.errors[:body] << "foo" }
-    assert_deprecated { @post.errors[:category] << "must exist" }
-    assert_deprecated { @post.errors[:published] << "must be accepted" }
-    assert_deprecated { @post.errors[:updated_at] << "bar" }
+    @post.errors.add(:author_name, "can't be empty")
+    @post.errors.add(:body, "foo")
+    @post.errors.add(:category, "must exist")
+    @post.errors.add(:published, "must be accepted")
+    @post.errors.add(:updated_at, "bar")
 
     @post.author_name = ""
     @post.body        = "Back to the hill and over it again!"

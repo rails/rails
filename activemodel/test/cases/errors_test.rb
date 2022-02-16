@@ -39,7 +39,7 @@ class ErrorsTest < ActiveModel::TestCase
 
   def test_include?
     errors = ActiveModel::Errors.new(Person.new)
-    assert_deprecated { errors[:foo] << "omg" }
+    errors.add(:foo, "omg")
     assert_includes errors, :foo, "errors should include :foo"
     assert_includes errors, "foo", "errors should include 'foo' as :foo"
   end
@@ -55,12 +55,8 @@ class ErrorsTest < ActiveModel::TestCase
   def test_any?
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name)
-    assert_not_deprecated {
-      assert errors.any?, "any? should return true"
-    }
-    assert_not_deprecated {
-      assert errors.any? { |_| true }, "any? should return true"
-    }
+    assert errors.any?, "any? should return true"
+    assert errors.any? { |_| true }, "any? should return true"
   end
 
   def test_first
@@ -111,68 +107,11 @@ class ErrorsTest < ActiveModel::TestCase
     assert_empty person.errors
   end
 
-  test "clear errors by key" do
-    person = Person.new
-    person.validate!
-
-    assert_equal 1, person.errors.count
-    assert_deprecated { person.errors[:name].clear }
-    assert_empty person.errors
-  end
-
   test "error access is indifferent" do
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name, "omg")
 
     assert_equal ["omg"], errors["name"]
-  end
-
-  test "values returns an array of messages" do
-    errors = ActiveModel::Errors.new(Person.new)
-    assert_deprecated { errors.messages[:foo] = "omg" }
-    assert_deprecated { errors.messages[:baz] = "zomg" }
-
-    assert_deprecated do
-      assert_equal ["omg", "zomg"], errors.values
-    end
-  end
-
-  test "[]= overrides values" do
-    errors = ActiveModel::Errors.new(self)
-    assert_deprecated { errors.messages[:foo] = "omg" }
-    assert_deprecated { errors.messages[:foo] = "zomg" }
-
-    assert_equal ["zomg"], errors[:foo]
-  end
-
-  test "values returns an empty array after try to get a message only" do
-    errors = ActiveModel::Errors.new(Person.new)
-    errors.messages[:foo]
-    errors.messages[:baz]
-
-    assert_deprecated do
-      assert_equal [], errors.values
-    end
-  end
-
-  test "keys returns the error keys" do
-    errors = ActiveModel::Errors.new(Person.new)
-    assert_deprecated { errors.messages[:foo] << "omg" }
-    assert_deprecated { errors.messages[:baz] << "zomg" }
-
-    assert_deprecated do
-      assert_equal [:foo, :baz], errors.keys
-    end
-  end
-
-  test "keys returns an empty array after try to get a message only" do
-    errors = ActiveModel::Errors.new(Person.new)
-    errors.messages[:foo]
-    errors.messages[:baz]
-
-    assert_deprecated do
-      assert_equal [], errors.keys
-    end
   end
 
   test "attribute_names returns the error attributes" do
@@ -205,6 +144,11 @@ class ErrorsTest < ActiveModel::TestCase
     assert_empty person.errors
     assert_predicate person.errors, :blank?
     assert_not_includes person.errors, :foo
+
+    person.errors.add(:foo, "New error")
+    assert_not_empty person.errors
+    assert_not_predicate person.errors, :blank?
+    assert_includes person.errors, :foo
   end
 
   test "include? does not add a key to messages hash" do
@@ -219,32 +163,6 @@ class ErrorsTest < ActiveModel::TestCase
     person.validate!
     assert_equal ["name cannot be nil"], person.errors.full_messages
     assert_equal ["cannot be nil"], person.errors[:name]
-  end
-
-  test "add an error message on a specific attribute (deprecated)" do
-    person = Person.new
-    person.errors.add(:name, "cannot be blank")
-    assert_equal ["cannot be blank"], person.errors[:name]
-  end
-
-  test "add an error message on a specific attribute with a defined type (deprecated)" do
-    person = Person.new
-    person.errors.add(:name, :blank, message: "cannot be blank")
-    assert_equal ["cannot be blank"], person.errors[:name]
-  end
-
-  test "add an error with a symbol (deprecated)" do
-    person = Person.new
-    person.errors.add(:name, :blank)
-    message = person.errors.generate_message(:name, :blank)
-    assert_equal [message], person.errors[:name]
-  end
-
-  test "add an error with a proc (deprecated)" do
-    person = Person.new
-    message = Proc.new { "cannot be blank" }
-    person.errors.add(:name, message)
-    assert_equal ["cannot be blank"], person.errors[:name]
   end
 
   test "add creates an error object and returns it" do
@@ -299,6 +217,12 @@ class ErrorsTest < ActiveModel::TestCase
 
     assert_equal :blank, person.errors.objects.first.type
     assert_equal ["can't be blank"], person.errors[:name]
+  end
+
+  test "add an error message on a specific attribute with a defined type" do
+    person = Person.new
+    person.errors.add(:name, :blank, message: "cannot be blank")
+    assert_equal ["cannot be blank"], person.errors[:name]
   end
 
   test "initialize options[:message] as Proc, which evaluates to String" do
@@ -515,17 +439,6 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["name cannot be blank", "name cannot be nil"], person.errors.to_a
   end
 
-  test "to_h is deprecated" do
-    person = Person.new
-    person.errors.add(:name, "cannot be blank")
-    person.errors.add(:name, "too long")
-
-    expected_deprecation = "ActiveModel::Errors#to_h is deprecated"
-    assert_deprecated(expected_deprecation) do
-      assert_equal({ name: "too long" }, person.errors.to_h)
-    end
-  end
-
   test "to_hash returns the error messages hash" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")
@@ -540,6 +453,14 @@ class ErrorsTest < ActiveModel::TestCase
   test "as_json returns a hash without default proc" do
     person = Person.new
     assert_nil person.errors.as_json.default_proc
+  end
+
+  test "messages returns empty frozen array when when accessed with non-existent attribute" do
+    errors = ActiveModel::Errors.new(Person.new)
+
+    assert_equal [], errors.messages[:foo]
+    assert_raises(FrozenError) { errors.messages[:foo] << "foo" }
+    assert_raises(FrozenError) { errors.messages[:foo].clear }
   end
 
   test "full_messages doesn't require the base object to respond to `:errors" do
@@ -660,15 +581,6 @@ class ErrorsTest < ActiveModel::TestCase
     )
   end
 
-  test "messages delete (deprecated)" do
-    person = Person.new
-    person.validate!
-
-    assert_equal 1, person.errors.count
-    assert_deprecated { person.errors.messages.delete(:name) }
-    assert_empty person.errors
-  end
-
   test "group_by_attribute" do
     person = Person.new
     error = person.errors.add(:name, :invalid, message: "is bad")
@@ -713,20 +625,12 @@ class ErrorsTest < ActiveModel::TestCase
     assert_empty person.errors.details
   end
 
-  test "copy errors (deprecated)" do
-    errors = ActiveModel::Errors.new(Person.new)
-    errors.add(:name, :invalid)
-    person = Person.new
-    person.errors.copy!(errors)
-
-    assert_equal [:name], person.errors.messages.keys
-    assert_equal [:name], person.errors.details.keys
-  end
-
   test "details returns empty array when accessed with non-existent attribute" do
     errors = ActiveModel::Errors.new(Person.new)
 
     assert_equal [], errors.details[:foo]
+    assert_raises(FrozenError) { errors.details[:foo] << "foo" }
+    assert_raises(FrozenError) { errors.details[:foo].clear }
   end
 
   test "copy errors" do
@@ -741,18 +645,6 @@ class ErrorsTest < ActiveModel::TestCase
     end
   end
 
-  test "merge errors (deprecated)" do
-    errors = ActiveModel::Errors.new(Person.new)
-    errors.add(:name, :invalid)
-
-    person = Person.new
-    person.errors.add(:name, :blank)
-    person.errors.merge!(errors)
-
-    assert_equal({ name: ["can't be blank", "is invalid"] }, person.errors.messages)
-    assert_equal({ name: [{ error: :blank }, { error: :invalid }] }, person.errors.details)
-  end
-
   test "merge errors" do
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name, :invalid)
@@ -765,28 +657,14 @@ class ErrorsTest < ActiveModel::TestCase
     assert(person.errors.added?(:name, :blank))
   end
 
-  test "slice! removes all errors except the given keys" do
-    person = Person.new
-    person.errors.add(:name, "cannot be nil")
-    person.errors.add(:age, "cannot be nil")
-    person.errors.add(:gender, "cannot be nil")
-    person.errors.add(:city, "cannot be nil")
+  test "merge does not import errors when merging with self" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :invalid)
+    errors_before_merge = errors.dup
 
-    assert_deprecated { person.errors.slice!(:age, "gender") }
+    errors.merge!(errors)
 
-    assert_equal [:age, :gender], assert_deprecated { person.errors.keys }
-  end
-
-  test "slice! returns the deleted errors" do
-    person = Person.new
-    person.errors.add(:name, "cannot be nil")
-    person.errors.add(:age, "cannot be nil")
-    person.errors.add(:gender, "cannot be nil")
-    person.errors.add(:city, "cannot be nil")
-
-    removed_errors = assert_deprecated { person.errors.slice!(:age, "gender") }
-
-    assert_equal({ name: ["cannot be nil"], city: ["cannot be nil"] }, removed_errors)
+    assert_equal errors.errors, errors_before_merge.errors
   end
 
   test "errors are marshalable" do
@@ -797,63 +675,6 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal Person, serialized.instance_variable_get(:@base).class
     assert_equal errors.messages, serialized.messages
     assert_equal errors.details, serialized.details
-  end
-
-  test "errors are compatible with marshal dumped from Rails 5.x" do
-    # Derived from
-    # errors = ActiveModel::Errors.new(Person.new)
-    # errors.add(:name, :invalid)
-    dump = "\x04\bU:\x18ActiveModel::Errors[\bo:\x17ErrorsTest::Person\x06:\f@errorsU;\x00[\b@\a{\x00{\x00{\x06:\tname[\x06I\"\x0Fis invalid\x06:\x06ET{\x06;\b[\x06{\x06:\nerror:\finvalid"
-    serialized = Marshal.load(dump)
-
-    assert_equal Person, serialized.instance_variable_get(:@base).class
-    assert_equal({ name: ["is invalid"] }, serialized.messages)
-    assert_equal({ name: [{ error: :invalid }] }, serialized.details)
-  end
-
-  test "errors are backward compatible with the Rails 4.2 format" do
-    yaml = <<~CODE
-    --- !ruby/object:ActiveModel::Errors
-    base: &1 !ruby/object:ErrorsTest::Person
-      errors: !ruby/object:ActiveModel::Errors
-        base: *1
-        messages: {}
-    messages: {}
-    CODE
-
-    errors = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(yaml) : YAML.load(yaml)
-    errors.add(:name, :invalid)
-    assert_equal({ name: ["is invalid"] }, errors.messages)
-    assert_equal({ name: [{ error: :invalid }] }, errors.details)
-
-    errors.clear
-    assert_equal({}, errors.messages)
-    assert_equal({}, errors.details)
-  end
-
-  test "errors are compatible with YAML dumped from Rails 5.x" do
-    yaml = <<~CODE
-    --- !ruby/object:ActiveModel::Errors
-    base: &1 !ruby/object:ErrorsTest::Person
-      errors: !ruby/object:ActiveModel::Errors
-        base: *1
-        messages: {}
-        details: {}
-    messages:
-      :name:
-      - is invalid
-    details:
-      :name:
-      - :error: :invalid
-    CODE
-
-    errors = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(yaml) : YAML.load(yaml)
-    assert_equal({ name: ["is invalid"] }, errors.messages)
-    assert_equal({ name: [{ error: :invalid }] }, errors.details)
-
-    errors.clear
-    assert_equal({}, errors.messages)
-    assert_equal({}, errors.details)
   end
 
   test "errors are compatible with YAML dumped from Rails 6.x" do

@@ -138,5 +138,24 @@ module ActiveStorage::Service::SharedServiceTests
       @service.delete("#{key}/a/a/b")
       @service.delete("#{key}/a/b/a")
     end
+
+    test "compose" do
+      keys = 3.times.map { SecureRandom.base58(24) }
+      data = %w(To get her)
+      keys.zip(data).each do |key, data|
+        @service.upload(
+          key,
+          StringIO.new(data),
+          checksum: Digest::MD5.base64digest(data),
+          disposition: :attachment,
+          filename: ActiveStorage::Filename.new("test.html"),
+          content_type: "text/html",
+        )
+      end
+      destination_key = SecureRandom.base58(24)
+      @service.compose(keys, destination_key)
+
+      assert_equal "Together", @service.download(destination_key)
+    end
   end
 end

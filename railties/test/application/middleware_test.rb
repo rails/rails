@@ -345,6 +345,14 @@ module ApplicationTests
       assert_equal "/foo/?something", env["ORIGINAL_FULLPATH"]
     end
 
+    test "shard selector middleware is installed by config option" do
+      add_to_config "config.active_record.shard_resolver = ->(*) { }"
+
+      boot!
+
+      assert_includes middleware, "ActiveRecord::Middleware::ShardSelector"
+    end
+
     private
       def boot!
         require "#{app_path}/config/environment"

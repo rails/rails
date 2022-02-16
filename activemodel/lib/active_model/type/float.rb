@@ -4,7 +4,28 @@ require "active_support/core_ext/object/try"
 
 module ActiveModel
   module Type
-    class Float < Value # :nodoc:
+    # Attribute type for floating point numeric values. It is registered under
+    # the +:float+ key.
+    #
+    #   class BagOfCoffee
+    #     include ActiveModel::Attributes
+    #
+    #     attribute :weight, :float
+    #   end
+    #
+    #   bag = BagOfCoffee.new
+    #   bag.weight = "0.25"
+    #
+    #   bag.weight # => 0.25
+    #
+    # Values are coerced to their float representation using their +to_f+
+    # methods. However, the following strings which represent floating point
+    # constants are cast accordingly:
+    #
+    # - <tt>"Infinity"</tt> is cast to <tt>Float::INFINITY</tt>.
+    # - <tt>"-Infinity"</tt> is cast to <tt>-Float::INFINITY</tt>.
+    # - <tt>"NaN"</tt> is cast to <tt>Float::NAN</tt>.
+    class Float < Value
       include Helpers::Numeric
 
       def type

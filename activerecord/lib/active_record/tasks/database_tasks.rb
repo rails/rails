@@ -55,8 +55,7 @@ module ActiveRecord
 
       extend self
 
-      attr_writer :current_config, :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
-      deprecate :current_config=
+      attr_writer :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
       attr_accessor :database_configuration
 
       LOCAL_HOSTS = ["127.0.0.1", "localhost"]
@@ -110,11 +109,6 @@ module ActiveRecord
         @env ||= Rails.env
       end
 
-      def spec
-        @spec ||= "primary"
-      end
-      deprecate spec: "please use name instead"
-
       def name
         @name ||= "primary"
       end
@@ -122,18 +116,6 @@ module ActiveRecord
       def seed_loader
         @seed_loader ||= Rails.application
       end
-
-      def current_config(options = {})
-        if options.has_key?(:config)
-          @current_config = options[:config]
-        else
-          env_name = options[:env] || env
-          name = options[:spec] || "primary"
-
-          @current_config ||= configs_for(env_name: env_name, name: name)&.configuration_hash
-        end
-      end
-      deprecate :current_config
 
       def create(configuration, *arguments)
         db_config = resolve_configuration(configuration)
@@ -275,8 +257,12 @@ module ActiveRecord
         scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose?
 
-        Base.connection.migration_context.migrate(target_version || version) do |migration|
-          scope.blank? || scope == migration.scope
+        Base.connection.migration_context.migrate(target_version) do |migration|
+          if version.blank?
+            scope.blank? || scope == migration.scope
+          else
+            migration.version == version
+          end
         end.tap do |migrations_ran|
           Migration.write("No migrations ran. (using #{scope} scope)") if scope.present? && migrations_ran.empty?
         end
@@ -319,7 +305,7 @@ module ActiveRecord
       end
 
       def check_target_version
-        if target_version && !(Migration::MigrationFilenameRegexp.match?(ENV["VERSION"]) || /\A\d+\z/.match?(ENV["VERSION"]))
+        if target_version && !Migration.valid_version_format?(ENV["VERSION"])
           raise "Invalid format of target version: `VERSION=#{ENV['VERSION']}`"
         end
       end
@@ -398,12 +384,8 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def schema_up_to_date?(configuration, format = ActiveRecord.schema_format, file = nil, environment = nil, name = nil)
+      def schema_up_to_date?(configuration, format = ActiveRecord.schema_format, file = nil)
         db_config = resolve_configuration(configuration)
-
-        if environment || name
-          ActiveSupport::Deprecation.warn("`environment` and `name` will be removed as parameters in 7.0.0, you may now pass an ActiveRecord::DatabaseConfigurations::DatabaseConfig as `configuration` instead.")
-        end
 
         file ||= schema_dump_path(db_config)
 
@@ -457,11 +439,6 @@ module ActiveRecord
         end
       end
 
-      def schema_file(format = ActiveRecord.schema_format)
-        File.join(db_dir, schema_file_type(format))
-      end
-      deprecate :schema_file
-
       def schema_file_type(format = ActiveRecord.schema_format)
         case format
         when :ruby
@@ -470,18 +447,7 @@ module ActiveRecord
           "structure.sql"
         end
       end
-
-      def dump_filename(db_config_name, format = ActiveRecord.schema_format)
-        ActiveSupport::Deprecation.warn("#dump_filename is deprecated. Please call `schema_dump_path` or call `schema_dump` on the `db_config` directly.")
-
-        filename = if ActiveRecord::Base.configurations.primary?(db_config_name)
-          schema_file_type(format)
-        else
-          "#{db_config_name}_#{schema_file_type(format)}"
-        end
-
-        ENV["SCHEMA"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
-      end
+      deprecate :schema_file_type
 
       def schema_dump_path(db_config, format = ActiveRecord.schema_format)
         return ENV["SCHEMA"] if ENV["SCHEMA"]

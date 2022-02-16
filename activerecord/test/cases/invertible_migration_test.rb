@@ -96,7 +96,7 @@ module ActiveRecord
       def change
         change_table("horses") do |t|
           t.remove_index [:name, :color]
-          t.remove_index [:color], if_exists: true
+          t.remove_index [:color] if t.index_exists?(:color)
         end
       end
     end

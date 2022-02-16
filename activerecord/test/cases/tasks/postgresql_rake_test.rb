@@ -351,15 +351,17 @@ if current_adapter?(:PostgreSQLAdapter)
         FileUtils.rm_f(@filename)
       end
 
+      # This test actually runs a dump so we can ensure all the arguments are parsed correctly.
+      # All other tests in this class just mock the call (using assert_called_with) to make the tests quicker.
       def test_structure_dump
-        assert_called_with(
-          Kernel,
-          :system,
-          [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comment", "--file", @filename, "my-app-db"],
-          returns: true
-        ) do
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
-        end
+        assert_equal "", File.read(@filename)
+
+        config = @configuration.dup
+        config["database"] = ARTest.config["connections"]["postgresql"]["arunit"]["database"]
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(config, @filename)
+
+        assert File.read(@filename).include?("PostgreSQL database dump complete")
       end
 
       def test_structure_dump_header_comments_removed
@@ -373,7 +375,7 @@ if current_adapter?(:PostgreSQLAdapter)
 
       def test_structure_dump_with_env
         expected_env = { "PGHOST" => "my.server.tld", "PGPORT" => "2345", "PGUSER" => "jane", "PGPASSWORD" => "s3cr3t" }
-        expected_command = [expected_env, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comment", "--file", @filename, "my-app-db"]
+        expected_command = [expected_env, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comments", "--file", @filename, "my-app-db"]
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(
@@ -385,7 +387,7 @@ if current_adapter?(:PostgreSQLAdapter)
 
       def test_structure_dump_with_ssl_env
         expected_env = { "PGSSLMODE" => "verify-full", "PGSSLCERT" => "client.crt", "PGSSLKEY" => "client.key", "PGSSLROOTCERT" => "root.crt" }
-        expected_command = [expected_env, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comment", "--file", @filename, "my-app-db"]
+        expected_command = [expected_env, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comments", "--file", @filename, "my-app-db"]
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(
@@ -396,7 +398,7 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_structure_dump_with_extra_flags
-        expected_command = [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comment", "--file", @filename, "--noop", "my-app-db"]
+        expected_command = [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comments", "--file", @filename, "--noop", "my-app-db"]
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
           with_structure_dump_flags(["--noop"]) do
@@ -406,7 +408,7 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_structure_dump_with_hash_extra_flags_for_a_different_driver
-        expected_command = [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comment", "--file", @filename, "my-app-db"]
+        expected_command = [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comments", "--file", @filename, "my-app-db"]
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
           with_structure_dump_flags({ mysql2: ["--noop"] }) do
@@ -416,7 +418,7 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_structure_dump_with_hash_extra_flags_for_the_correct_driver
-        expected_command = [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comment", "--file", @filename, "--noop", "my-app-db"]
+        expected_command = [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comments", "--file", @filename, "--noop", "my-app-db"]
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
           with_structure_dump_flags({ postgresql: ["--noop"] }) do
@@ -434,7 +436,7 @@ if current_adapter?(:PostgreSQLAdapter)
           assert_called_with(
             Kernel,
             :system,
-            [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comment", "--file", @filename, "-T", "foo", "-T", "bar", "my-app-db"],
+            [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comments", "--file", @filename, "-T", "foo", "-T", "bar", "my-app-db"],
             returns: true
           ) do
             ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
@@ -448,7 +450,7 @@ if current_adapter?(:PostgreSQLAdapter)
         assert_called_with(
           Kernel,
           :system,
-          [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comment", "--file", @filename, "--schema=foo", "--schema=bar", "my-app-db"],
+          [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comments", "--file", @filename, "--schema=foo", "--schema=bar", "my-app-db"],
           returns: true
         ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
@@ -461,7 +463,7 @@ if current_adapter?(:PostgreSQLAdapter)
         assert_called_with(
           Kernel,
           :system,
-          [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comment", "--file", @filename,  "my-app-db"],
+          [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comments", "--file", @filename,  "my-app-db"],
           returns: true
         ) do
           with_dump_schemas(:all) do
@@ -474,7 +476,7 @@ if current_adapter?(:PostgreSQLAdapter)
         assert_called_with(
           Kernel,
           :system,
-          [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comment", "--file", @filename, "--schema=foo", "--schema=bar", "my-app-db"],
+          [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comments", "--file", @filename, "--schema=foo", "--schema=bar", "my-app-db"],
           returns: true
         ) do
           with_dump_schemas("foo,bar") do
@@ -488,7 +490,7 @@ if current_adapter?(:PostgreSQLAdapter)
         assert_called_with(
           Kernel,
           :system,
-          [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comment", "--file", filename, "my-app-db"],
+          [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--no-comments", "--file", filename, "my-app-db"],
           returns: nil
         ) do
           e = assert_raise(RuntimeError) do

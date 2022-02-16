@@ -75,7 +75,7 @@ module ActiveRecord
 
       class << self
         def new_client(conn_params)
-          PG.connect(conn_params)
+          PG.connect(**conn_params)
         rescue ::PG::Error => error
           if conn_params && conn_params[:dbname] && error.message.include?(conn_params[:dbname])
             raise ActiveRecord::NoDatabaseError.db_error(conn_params[:dbname])
@@ -281,7 +281,7 @@ module ActiveRecord
       def initialize(connection, logger, connection_parameters, config)
         super(connection, logger, config)
 
-        @connection_parameters = connection_parameters
+        @connection_parameters = connection_parameters || {}
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
@@ -575,10 +575,6 @@ module ActiveRecord
           m.register_type "polygon", OID::SpecializedString.new(:polygon)
           m.register_type "circle", OID::SpecializedString.new(:circle)
 
-          register_class_with_precision m, "time", Type::Time
-          register_class_with_precision m, "timestamp", OID::Timestamp
-          register_class_with_precision m, "timestamptz", OID::TimestampWithTimeZone
-
           m.register_type "numeric" do |_, fmod, sql_type|
             precision = extract_precision(sql_type)
             scale = extract_scale(sql_type)
@@ -613,6 +609,11 @@ module ActiveRecord
 
         def initialize_type_map(m = type_map)
           self.class.initialize_type_map(m)
+
+          self.class.register_class_with_precision m, "time", Type::Time, timezone: @default_timezone
+          self.class.register_class_with_precision m, "timestamp", OID::Timestamp, timezone: @default_timezone
+          self.class.register_class_with_precision m, "timestamptz", OID::TimestampWithTimeZone
+
           load_additional_types
         end
 
@@ -872,7 +873,7 @@ module ActiveRecord
           # If using Active Record's time zone support configure the connection to return
           # TIMESTAMP WITH ZONE types in UTC.
           unless variables["timezone"]
-            if ActiveRecord.default_timezone == :utc
+            if default_timezone == :utc
               variables["timezone"] = "UTC"
             elsif @local_tz
               variables["timezone"] = @local_tz
@@ -972,15 +973,15 @@ module ActiveRecord
         end
 
         def update_typemap_for_default_timezone
-          if @default_timezone != ActiveRecord.default_timezone && @timestamp_decoder
-            decoder_class = ActiveRecord.default_timezone == :utc ?
+          if @mapped_default_timezone != default_timezone && @timestamp_decoder
+            decoder_class = default_timezone == :utc ?
               PG::TextDecoder::TimestampUtc :
               PG::TextDecoder::TimestampWithoutTimeZone
 
             @timestamp_decoder = decoder_class.new(@timestamp_decoder.to_h)
             @connection.type_map_for_results.add_coder(@timestamp_decoder)
 
-            @default_timezone = ActiveRecord.default_timezone
+            @mapped_default_timezone = default_timezone
 
             # if default timezone has changed, we need to reconfigure the connection
             # (specifically, the session time zone)
@@ -989,7 +990,7 @@ module ActiveRecord
         end
 
         def add_pg_decoders
-          @default_timezone = nil
+          @mapped_default_timezone = nil
           @timestamp_decoder = nil
 
           coders_by_name = {

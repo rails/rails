@@ -3,7 +3,7 @@ futurama:
   title: Isn't futurama awesome?
   subtitle: It really is, isn't it.
   content: I like futurama
-  created_at: <%= 1.day.ago.to_s(:db) %>
+  created_at: <%= 1.day.ago.to_fs(:db) %>
   updated_at:
 
 harvey_birdman:
@@ -11,7 +11,7 @@ harvey_birdman:
   title: Harvey Birdman is the king of all men
   subtitle: yup
   content: It really is
-  created_at: <%= 2.hours.ago.to_s(:db) %>
+  created_at: <%= 2.hours.ago.to_fs(:db) %>
   updated_at:
 
 rails:
@@ -19,4 +19,4 @@ rails:
   title: Rails is nice
   subtitle: It makes me happy
   content: except when I have to hack internals to fix pagination. even then really.
-  created_at: <%= 20.minutes.ago.to_s(:db) %>
+  created_at: <%= 20.minutes.ago.to_fs(:db) %>

@@ -187,7 +187,9 @@ module ActiveRecord
       end
 
       def rollback
-        connection.rollback_to_savepoint(savepoint_name) if materialized?
+        unless @state.invalidated?
+          connection.rollback_to_savepoint(savepoint_name) if materialized?
+        end
         @state.rollback!
       end
 
@@ -308,7 +310,7 @@ module ActiveRecord
       def rollback_transaction(transaction = nil)
         @connection.lock.synchronize do
           transaction ||= @stack.pop
-          transaction.rollback unless transaction.state.invalidated?
+          transaction.rollback
           transaction.rollback_records
         end
       end
@@ -321,7 +323,10 @@ module ActiveRecord
           ret
         rescue Exception => error
           if transaction
-            transaction.state.invalidate! if error.is_a? ActiveRecord::TransactionRollbackError
+            if error.is_a?(ActiveRecord::TransactionRollbackError) &&
+                @connection.savepoint_errors_invalidate_transactions?
+              transaction.state.invalidate!
+            end
             rollback_transaction
             after_failure_actions(transaction, error)
           end
@@ -333,26 +338,19 @@ module ActiveRecord
               # @connection still holds an open or invalid transaction, so we must not
               # put it back in the pool for reuse.
               @connection.throw_away! unless transaction.state.rolledback?
+            elsif Thread.current.status == "aborting" || (!completed && transaction.written)
+              # The transaction is still open but the block returned earlier.
+              #
+              # The block could return early because of a timeout or because the thread is aborting,
+              # so we are rolling back to make sure the timeout didn't caused the transaction to be
+              # committed incompletely.
+              rollback_transaction
             else
-              if Thread.current.status == "aborting"
-                rollback_transaction
-              else
-                if !completed && transaction.written
-                  ActiveSupport::Deprecation.warn(<<~EOW)
-                    Using `return`, `break` or `throw` to exit a transaction block is
-                    deprecated without replacement. If the `throw` came from
-                    `Timeout.timeout(duration)`, pass an exception class as a second
-                    argument so it doesn't use `throw` to abort its block. This results
-                    in the transaction being committed, but in the next release of Rails
-                    it will rollback.
-                  EOW
-                end
-                begin
-                  commit_transaction
-                rescue Exception
-                  rollback_transaction(transaction) unless transaction.state.completed?
-                  raise
-                end
+              begin
+                commit_transaction
+              rescue Exception
+                rollback_transaction(transaction) unless transaction.state.completed?
+                raise
               end
             end
           end

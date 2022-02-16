@@ -450,6 +450,7 @@ module ActionView
         def parse_float(number, raise_error)
           result = Float(number, exception: false)
           raise InvalidNumberError, number if result.nil? && raise_error
+          result
         end
     end
   end

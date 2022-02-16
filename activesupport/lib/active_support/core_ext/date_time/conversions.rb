@@ -9,21 +9,21 @@ require "active_support/values/time_zone"
 class DateTime
   # Convert to a formatted string. See Time::DATE_FORMATS for predefined formats.
   #
-  # This method is aliased to <tt>to_s</tt>.
+  # This method is aliased to <tt>to_formatted_s</tt>.
   #
   # === Examples
   #   datetime = DateTime.civil(2007, 12, 4, 0, 0, 0, 0)   # => Tue, 04 Dec 2007 00:00:00 +0000
   #
-  #   datetime.to_formatted_s(:db)            # => "2007-12-04 00:00:00"
-  #   datetime.to_s(:db)                      # => "2007-12-04 00:00:00"
-  #   datetime.to_s(:number)                  # => "20071204000000"
-  #   datetime.to_formatted_s(:short)         # => "04 Dec 00:00"
-  #   datetime.to_formatted_s(:long)          # => "December 04, 2007 00:00"
-  #   datetime.to_formatted_s(:long_ordinal)  # => "December 4th, 2007 00:00"
-  #   datetime.to_formatted_s(:rfc822)        # => "Tue, 04 Dec 2007 00:00:00 +0000"
-  #   datetime.to_formatted_s(:iso8601)       # => "2007-12-04T00:00:00+00:00"
+  #   datetime.to_fs(:db)            # => "2007-12-04 00:00:00"
+  #   datetime.to_formatted_s(:db)   # => "2007-12-04 00:00:00"
+  #   datetime.to_fs(:number)        # => "20071204000000"
+  #   datetime.to_fs(:short)         # => "04 Dec 00:00"
+  #   datetime.to_fs(:long)          # => "December 04, 2007 00:00"
+  #   datetime.to_fs(:long_ordinal)  # => "December 4th, 2007 00:00"
+  #   datetime.to_fs(:rfc822)        # => "Tue, 04 Dec 2007 00:00:00 +0000"
+  #   datetime.to_fs(:iso8601)       # => "2007-12-04T00:00:00+00:00"
   #
-  # == Adding your own datetime formats to to_formatted_s
+  # == Adding your own datetime formats to to_fs
   # DateTime formats are shared with Time. You can add your own to the
   # Time::DATE_FORMATS hash. Use the format name as the hash key and
   # either a strftime string or Proc instance that takes a time or
@@ -32,15 +32,15 @@ class DateTime
   #   # config/initializers/time_formats.rb
   #   Time::DATE_FORMATS[:month_and_year] = '%B %Y'
   #   Time::DATE_FORMATS[:short_ordinal] = lambda { |time| time.strftime("%B #{time.day.ordinalize}") }
-  def to_formatted_s(format = :default)
+  def to_fs(format = :default)
     if formatter = ::Time::DATE_FORMATS[format]
       formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
     else
       to_default_s
     end
   end
+  alias_method :to_formatted_s, :to_fs
   alias_method :to_default_s, :to_s if instance_methods(false).include?(:to_s)
-  alias_method :to_s, :to_formatted_s
 
   # Returns a formatted string of the offset from UTC, or an alternative
   # string if the time zone is already UTC.
@@ -54,7 +54,7 @@ class DateTime
 
   # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005 14:30:00 +0000".
   def readable_inspect
-    to_s(:rfc822)
+    to_fs(:rfc822)
   end
   alias_method :default_inspect, :inspect
   alias_method :inspect, :readable_inspect

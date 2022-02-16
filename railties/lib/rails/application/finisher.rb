@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "zeitwerk"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/array/conversions"
 require "active_support/descendants_tracker"
@@ -176,9 +175,7 @@ module Rails
       initializer :set_clear_dependencies_hook, group: :all do |app|
         callback = lambda do
           # Order matters.
-          ActiveSupport::DescendantsTracker.clear(
-            only: ActiveSupport::Dependencies._autoloaded_tracked_classes
-          )
+          ActiveSupport::DescendantsTracker.clear(ActiveSupport::Dependencies._autoloaded_tracked_classes)
           ActiveSupport::Dependencies.clear
         end
 
@@ -194,6 +191,7 @@ module Rails
 
         if config.cache_classes
           # No reloader
+          ActiveSupport::DescendantsTracker.disable_clear!
         elsif config.reload_classes_only_on_change
           reloader = config.file_watcher.new(*watchable_args, &callback)
           reloaders << reloader

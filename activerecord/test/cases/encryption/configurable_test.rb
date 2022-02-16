@@ -43,7 +43,7 @@ class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::EncryptionTestC
 
   test "install autofiltered params" do
     application = OpenStruct.new(config: OpenStruct.new(filter_parameters: []))
-    ActiveRecord::Encryption.install_auto_filtered_parameters(application)
+    ActiveRecord::Encryption.install_auto_filtered_parameters_hook(application)
 
     Class.new(Pirate) do
       self.table_name = "pirates"
@@ -51,5 +51,21 @@ class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::EncryptionTestC
     end
 
     assert_includes application.config.filter_parameters, :catchphrase
+  end
+
+  test "exclude the installation of autofiltered params" do
+    ActiveRecord::Encryption.config.excluded_from_filter_parameters = [:catchphrase]
+
+    application = OpenStruct.new(config: OpenStruct.new(filter_parameters: []))
+    ActiveRecord::Encryption.install_auto_filtered_parameters_hook(application)
+
+    Class.new(Pirate) do
+      self.table_name = "pirates"
+      encrypts :catchphrase
+    end
+
+    assert_equal application.config.filter_parameters, []
+
+    ActiveRecord::Encryption.config.excluded_from_filter_parameters = []
   end
 end

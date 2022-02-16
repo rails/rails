@@ -9,45 +9,46 @@ module ActiveRecord
       # Quotes the column value to help prevent
       # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
-        if value.is_a?(Base)
-          ActiveSupport::Deprecation.warn(<<~MSG)
-            Passing an Active Record object to `quote` directly is deprecated
-            and will be no longer quoted as id value in Rails 7.0.
-          MSG
-          value = value.id_for_database
+        case value
+        when String, Symbol, ActiveSupport::Multibyte::Chars
+          "'#{quote_string(value.to_s)}'"
+        when true       then quoted_true
+        when false      then quoted_false
+        when nil        then "NULL"
+        # BigDecimals need to be put in a non-normalized form and quoted.
+        when BigDecimal then value.to_s("F")
+        when Numeric, ActiveSupport::Duration then value.to_s
+        when Type::Binary::Data then quoted_binary(value)
+        when Type::Time::Value then "'#{quoted_time(value)}'"
+        when Date, Time then "'#{quoted_date(value)}'"
+        when Class      then "'#{value}'"
+        else raise TypeError, "can't quote #{value.class.name}"
         end
-
-        _quote(value)
       end
 
       # Cast a +value+ to a type that the database understands. For example,
       # SQLite does not understand dates, so this method will convert a Date
       # to a String.
-      def type_cast(value, column = nil)
-        if value.is_a?(Base)
-          ActiveSupport::Deprecation.warn(<<~MSG)
-            Passing an Active Record object to `type_cast` directly is deprecated
-            and will be no longer type casted as id value in Rails 7.0.
-          MSG
-          value = value.id_for_database
+      def type_cast(value)
+        case value
+        when Symbol, ActiveSupport::Multibyte::Chars, Type::Binary::Data
+          value.to_s
+        when true       then unquoted_true
+        when false      then unquoted_false
+        # BigDecimals need to be put in a non-normalized form and quoted.
+        when BigDecimal then value.to_s("F")
+        when nil, Numeric, String then value
+        when Type::Time::Value then quoted_time(value)
+        when Date, Time then quoted_date(value)
+        else raise TypeError, "can't cast #{value.class.name}"
         end
-
-        if column
-          ActiveSupport::Deprecation.warn(<<~MSG)
-            Passing a column to `type_cast` is deprecated and will be removed in Rails 7.0.
-          MSG
-          type = lookup_cast_type_from_column(column)
-          value = type.serialize(value)
-        end
-
-        _type_cast(value)
       end
 
       # Quote a value to be used as a bound parameter of unknown type. For example,
       # MySQL might perform dangerous castings when comparing a string to a number,
       # so this method will cast numbers to string.
       def quote_bound_value(value)
-        _quote(value)
+        quote(value)
       end
 
       # If you are having to call this function, you are likely doing something
@@ -120,14 +121,14 @@ module ActiveRecord
       # if the value is a Time responding to usec.
       def quoted_date(value)
         if value.acts_like?(:time)
-          if ActiveRecord.default_timezone == :utc
+          if default_timezone == :utc
             value = value.getutc if !value.utc?
           else
             value = value.getlocal
           end
         end
 
-        result = value.to_s(:db)
+        result = value.to_fs(:db)
         if value.respond_to?(:usec) && value.usec > 0
           result << "." << sprintf("%06d", value.usec)
         else
@@ -203,55 +204,17 @@ module ActiveRecord
 
       private
         def type_casted_binds(binds)
-          case binds.first
-          when Array
-            binds.map { |column, value| type_cast(value, column) }
-          else
-            binds.map do |value|
-              if ActiveModel::Attribute === value
-                type_cast(value.value_for_database)
-              else
-                type_cast(value)
-              end
+          binds.map do |value|
+            if ActiveModel::Attribute === value
+              type_cast(value.value_for_database)
+            else
+              type_cast(value)
             end
           end
         end
 
         def lookup_cast_type(sql_type)
           type_map.lookup(sql_type)
-        end
-
-        def _quote(value)
-          case value
-          when String, Symbol, ActiveSupport::Multibyte::Chars
-            "'#{quote_string(value.to_s)}'"
-          when true       then quoted_true
-          when false      then quoted_false
-          when nil        then "NULL"
-          # BigDecimals need to be put in a non-normalized form and quoted.
-          when BigDecimal then value.to_s("F")
-          when Numeric, ActiveSupport::Duration then value.to_s
-          when Type::Binary::Data then quoted_binary(value)
-          when Type::Time::Value then "'#{quoted_time(value)}'"
-          when Date, Time then "'#{quoted_date(value)}'"
-          when Class      then "'#{value}'"
-          else raise TypeError, "can't quote #{value.class.name}"
-          end
-        end
-
-        def _type_cast(value)
-          case value
-          when Symbol, ActiveSupport::Multibyte::Chars, Type::Binary::Data
-            value.to_s
-          when true       then unquoted_true
-          when false      then unquoted_false
-          # BigDecimals need to be put in a non-normalized form and quoted.
-          when BigDecimal then value.to_s("F")
-          when nil, Numeric, String then value
-          when Type::Time::Value then quoted_time(value)
-          when Date, Time then quoted_date(value)
-          else raise TypeError, "can't cast #{value.class.name}"
-          end
         end
     end
   end

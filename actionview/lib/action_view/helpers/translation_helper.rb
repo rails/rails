@@ -11,6 +11,9 @@ module ActionView
 
       include TagHelper
 
+      # Specify whether an error should be raised for missing translations
+      singleton_class.attr_accessor :raise_on_missing_translations
+
       included do
         mattr_accessor :debug_missing_translation, default: true
       end
@@ -37,7 +40,7 @@ module ActionView
       #
       # If you would prefer missing translations to raise an error, you can
       # opt out of span-wrapping behavior globally by setting
-      # <tt>ActionView::Base.raise_on_missing_translations = true</tt> or
+      # <tt>config.i18n.raise_on_missing_translations = true</tt> or
       # individually by passing <tt>raise: true</tt> as an option to
       # <tt>translate</tt>.
       #
@@ -75,7 +78,7 @@ module ActionView
           options[:default].is_a?(Array) ? options.delete(:default).compact : [options.delete(:default)]
         end
 
-        options[:raise] = true if options[:raise].nil? && ActionView::Base.raise_on_missing_translations
+        options[:raise] = true if options[:raise].nil? && TranslationHelper.raise_on_missing_translations
         default = MISSING_TRANSLATION
 
         translation = while key || alternatives.present?

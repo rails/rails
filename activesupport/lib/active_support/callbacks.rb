@@ -372,56 +372,153 @@ module ActiveSupport
 
       # A future invocation of user-supplied code (either as a callback,
       # or a condition filter).
-      class CallTemplate # :nodoc:
-        def initialize(target, method, arguments, block)
-          @override_target = target
-          @method_name = method
-          @arguments = arguments
-          @override_block = block
-        end
+      module CallTemplate # :nodoc:
+        class MethodCall
+          def initialize(method)
+            @method_name = method
+          end
 
-        # Return the parts needed to make this call, with the given
-        # input values.
-        #
-        # Returns an array of the form:
-        #
-        #   [target, block, method, *arguments]
-        #
-        # This array can be used as such:
-        #
-        #   target.send(method, *arguments, &block)
-        #
-        # The actual invocation is left up to the caller to minimize
-        # call stack pollution.
-        def expand(target, value, block)
-          expanded = [@override_target || target, @override_block || block, @method_name]
+          # Return the parts needed to make this call, with the given
+          # input values.
+          #
+          # Returns an array of the form:
+          #
+          #   [target, block, method, *arguments]
+          #
+          # This array can be used as such:
+          #
+          #   target.send(method, *arguments, &block)
+          #
+          # The actual invocation is left up to the caller to minimize
+          # call stack pollution.
+          def expand(target, value, block)
+            [target, block, @method_name]
+          end
 
-          @arguments.each do |arg|
-            case arg
-            when :value then expanded << value
-            when :target then expanded << target
-            when :block then expanded << (block || raise(ArgumentError))
+          def make_lambda
+            lambda do |target, value, &block|
+              target.send(@method_name, &block)
             end
           end
 
-          expanded
-        end
-
-        # Return a lambda that will make this call when given the input
-        # values.
-        def make_lambda
-          lambda do |target, value, &block|
-            target, block, method, *arguments = expand(target, value, block)
-            target.send(method, *arguments, &block)
+          def inverted_lambda
+            lambda do |target, value, &block|
+              !target.send(@method_name, &block)
+            end
           end
         end
 
-        # Return a lambda that will make this call when given the input
-        # values, but then return the boolean inverse of that result.
-        def inverted_lambda
-          lambda do |target, value, &block|
-            target, block, method, *arguments = expand(target, value, block)
-            ! target.send(method, *arguments, &block)
+        class ObjectCall
+          def initialize(target, method)
+            @override_target = target
+            @method_name = method
+          end
+
+          def expand(target, value, block)
+            [@override_target || target, block, @method_name, target]
+          end
+
+          def make_lambda
+            lambda do |target, value, &block|
+              (@override_target || target).send(@method_name, target, &block)
+            end
+          end
+
+          def inverted_lambda
+            lambda do |target, value, &block|
+              !(@override_target || target).send(@method_name, target, &block)
+            end
+          end
+        end
+
+        class InstanceExec0
+          def initialize(block)
+            @override_block = block
+          end
+
+          def expand(target, value, block)
+            [target, @override_block, :instance_exec]
+          end
+
+          def make_lambda
+            lambda do |target, value, &block|
+              target.instance_exec(&@override_block)
+            end
+          end
+
+          def inverted_lambda
+            lambda do |target, value, &block|
+              !target.instance_exec(&@override_block)
+            end
+          end
+        end
+
+        class InstanceExec1
+          def initialize(block)
+            @override_block = block
+          end
+
+          def expand(target, value, block)
+            [target, @override_block, :instance_exec, target]
+          end
+
+          def make_lambda
+            lambda do |target, value, &block|
+              target.instance_exec(target, &@override_block)
+            end
+          end
+
+          def inverted_lambda
+            lambda do |target, value, &block|
+              !target.instance_exec(target, &@override_block)
+            end
+          end
+        end
+
+        class InstanceExec2
+          def initialize(block)
+            @override_block = block
+          end
+
+          def expand(target, value, block)
+            raise ArgumentError unless block
+            [target, @override_block || block, :instance_exec, target, block]
+          end
+
+          def make_lambda
+            lambda do |target, value, &block|
+              raise ArgumentError unless block
+              target.instance_exec(target, block, &@override_block)
+            end
+          end
+
+          def inverted_lambda
+            lambda do |target, value, &block|
+              raise ArgumentError unless block
+              !target.instance_exec(target, block, &@override_block)
+            end
+          end
+        end
+
+        class ProcCall
+          def initialize(target)
+            @override_target = target
+          end
+
+          def expand(target, value, block)
+            [@override_target || target, block, :call, target, value]
+          end
+
+          def make_lambda
+            lambda do |target, value, &block|
+              (@override_target || target).call(target, value, &block)
+            end
+          end
+
+          def inverted_lambda
+            lambda do |target, value, &block|
+              !(@override_target || target).call(target, value, &block)
+            end
           end
         end
 
@@ -436,21 +533,19 @@ module ActiveSupport
         def self.build(filter, callback)
           case filter
           when Symbol
-            new(nil, filter, [], nil)
+            MethodCall.new(filter)
           when Conditionals::Value
-            new(filter, :call, [:target, :value], nil)
+            ProcCall.new(filter)
           when ::Proc
             if filter.arity > 1
-              new(nil, :instance_exec, [:target, :block], filter)
+              InstanceExec2.new(filter)
             elsif filter.arity > 0
-              new(nil, :instance_exec, [:target], filter)
+              InstanceExec1.new(filter)
             else
-              new(nil, :instance_exec, [], filter)
+              InstanceExec0.new(filter)
             end
           else
-            method_to_call = callback.current_scopes.join("_")
-
-            new(filter, method_to_call, [:target], nil)
+            ObjectCall.new(filter, callback.current_scopes.join("_").to_sym)
           end
         end
       end

@@ -4,7 +4,7 @@ export class AttachmentUpload {
   constructor(attachment, element) {
     this.attachment = attachment
     this.element = element
-    this.directUpload = new DirectUpload(attachment.file, this.directUploadUrl, this.directUploadToken, this.attachmentName, this)
+    this.directUpload = new DirectUpload(attachment.file, this.directUploadUrl, this)
   }
 
   start() {
@@ -41,12 +41,5 @@ export class AttachmentUpload {
 
   get blobUrlTemplate() {
     return this.element.dataset.blobUrlTemplate
-  }
-
-  get directUploadToken() {
-    return this.element.getAttribute("data-direct-upload-token");
-  }
-  get attachmentName() {
-    return this.element.getAttribute("data-direct-upload-attachment-name");
   }
 }

@@ -87,7 +87,7 @@ module ActiveRecord
 
     delegate :to_xml, :encode_with, :length, :each, :join,
              :[], :&, :|, :+, :-, :sample, :reverse, :rotate, :compact, :in_groups, :in_groups_of,
-             :to_sentence, :to_formatted_s, :as_json,
+             :to_sentence, :to_fs, :to_formatted_s, :as_json,
              :shuffle, :split, :slice, :index, :rindex, to: :records
 
     delegate :primary_key, :connection, to: :klass

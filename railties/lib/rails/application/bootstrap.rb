@@ -14,6 +14,7 @@ module Rails
       initializer :load_environment_hook, group: :all do end
 
       initializer :load_active_support, group: :all do
+        ENV["RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION"] = "true" if config.active_support.disable_to_s_conversion
         require "active_support/all" unless config.active_support.bare
       end
 
@@ -49,8 +50,11 @@ module Rails
           )
           logger
         end
-
         Rails.logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
+
+        unless config.consider_all_requests_local
+          Rails.error.logger = Rails.logger
+        end
       end
 
       # Initialize cache early in the stack so railties can make use of it.

@@ -31,7 +31,7 @@ module ActiveSupport
       #     perform_service(param: 'no_exception')
       #   end
       def assert_nothing_raised
-        yield
+        yield.tap { assert(true) }
       rescue => error
         raise Minitest::UnexpectedError.new(error)
       end

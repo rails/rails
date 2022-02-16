@@ -144,16 +144,7 @@ module ActiveModel
     end
 
     def marshal_load(values)
-      if values.is_a?(Hash)
-        ActiveSupport::Deprecation.warn(<<~MSG)
-          Marshalling load from legacy attributes format is deprecated and will be removed in Rails 7.0.
-        MSG
-        empty_hash = {}.freeze
-        initialize(empty_hash, empty_hash, empty_hash, empty_hash, values)
-        @materialized = true
-      else
-        initialize(*values)
-      end
+      initialize(*values)
     end
 
     protected

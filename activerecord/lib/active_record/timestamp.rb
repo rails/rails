@@ -75,7 +75,7 @@ module ActiveRecord
       end
 
       def current_time_from_proper_timezone
-        ActiveRecord.default_timezone == :utc ? Time.now.utc : Time.now
+        connection.default_timezone == :utc ? Time.now.utc : Time.now
       end
 
       private

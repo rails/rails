@@ -72,11 +72,6 @@ module ActiveRecord
       end
     end
 
-    alias :map! :map
-    alias :collect! :map
-    deprecate "map!": :map
-    deprecate "collect!": :map
-
     # Returns true if there are no records, otherwise false.
     def empty?
       rows.empty?

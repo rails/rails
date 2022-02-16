@@ -44,7 +44,8 @@ class Connection {
 
   close({allowReconnect} = {allowReconnect: true}) {
     if (!allowReconnect) { this.monitor.stop() }
-    if (this.isActive()) {
+    // Avoid closing websockets in a "connecting" state due to Safari 15.1+ bug. See: https://github.com/rails/rails/issues/43835#issuecomment-1002288478
+    if (this.isOpen()) {
       return this.webSocket.close()
     }
   }

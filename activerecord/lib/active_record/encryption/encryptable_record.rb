@@ -37,7 +37,7 @@ module ActiveRecord
         #   in preserving it.
         # * <tt>:ignore_case</tt> - When true, it behaves like +:downcase+ but, it also preserves the original case in a specially
         #   designated column +original_<name>+. When reading the encrypted content, the version with the original case is
-        #   server. But you can still execute queries that will ignore the case. This option can only be used when +:deterministic+
+        #   served. But you can still execute queries that will ignore the case. This option can only be used when +:deterministic+
         #   is true.
         # * <tt>:context_properties</tt> - Additional properties that will override +Context+ settings when this attribute is
         #   encrypted and decrypted. E.g: +encryptor:+, +cipher:+, +message_serializer:+, etc.

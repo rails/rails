@@ -7,14 +7,8 @@ class PostgresqlIntervalTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   class IntervalDataType < ActiveRecord::Base
-    attribute :maximum_term, :interval
-    attribute :minimum_term, :interval, precision: 3
-    attribute :default_term, :interval
-    attribute :all_terms,    :interval, array: true
-    attribute :legacy_term,  :string
+    attribute :legacy_term, :string
   end
-
-  class DeprecatedIntervalDataType < ActiveRecord::Base; end
 
   def setup
     @connection = ActiveRecord::Base.connection
@@ -26,21 +20,17 @@ class PostgresqlIntervalTest < ActiveRecord::PostgreSQLTestCase
         t.interval "all_terms", array: true
         t.interval "legacy_term"
       end
-      @connection.create_table("deprecated_interval_data_types") do |t|
-        t.interval "duration"
-      end
     end
     @column_max = IntervalDataType.columns_hash["maximum_term"]
     @column_min = IntervalDataType.columns_hash["minimum_term"]
     assert(@column_max.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLColumn))
     assert(@column_min.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLColumn))
     assert_nil @column_max.precision
-    assert_equal 3,   @column_min.precision
+    assert_equal 3, @column_min.precision
   end
 
   teardown do
     @connection.execute "DROP TABLE IF EXISTS interval_data_types"
-    @connection.execute "DROP TABLE IF EXISTS deprecated_interval_data_types"
   end
 
   def test_column
@@ -92,12 +82,6 @@ class PostgresqlIntervalTest < ActiveRecord::PostgreSQLTestCase
 
     assert_equal 3.years + 2.months, value
     assert_instance_of ActiveSupport::Duration, value
-  end
-
-  def test_deprecated_legacy_type
-    assert_deprecated do
-      DeprecatedIntervalDataType.new
-    end
   end
 
   def test_schema_dump_with_default_value

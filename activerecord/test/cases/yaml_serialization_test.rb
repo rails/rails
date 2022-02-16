@@ -112,25 +112,19 @@ class YamlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_deserializing_rails_41_yaml
-    topic = assert_deprecated do
+    error = assert_raises(RuntimeError) do
       yaml_load(yaml_fixture("rails_4_1"))
     end
 
-    assert_predicate topic, :new_record?
-    assert_nil topic.id
-    assert_equal "The First Topic", topic.title
-    assert_equal({ omg: :lol }, topic.content)
+    assert_equal "Active Record doesn't know how to load YAML with this format.", error.message
   end
 
   def test_deserializing_rails_4_2_0_yaml
-    topic = assert_deprecated do
+    error = assert_raises(RuntimeError) do
       yaml_load(yaml_fixture("rails_4_2_0"))
     end
 
-    assert_not_predicate topic, :new_record?
-    assert_equal 1, topic.id
-    assert_equal "The First Topic", topic.title
-    assert_equal("Have a nice day", topic.content)
+    assert_equal "Active Record doesn't know how to load YAML with this format.", error.message
   end
 
   def test_yaml_encoding_keeps_mutations

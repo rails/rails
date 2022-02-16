@@ -290,6 +290,7 @@ module ActiveRecord
     def self.eager_load!
       super
       Preloader.eager_load!
+      JoinDependency.eager_load!
     end
 
     # Returns the association instance for the given name, instantiating it if it doesn't already exist
@@ -594,19 +595,27 @@ module ActiveRecord
       # you can also define callbacks that get triggered when you add an object to or remove an
       # object from an association collection.
       #
-      #   class Project
-      #     has_and_belongs_to_many :developers, after_add: :evaluate_velocity
+      #   class Firm < ActiveRecord::Base
+      #     has_many :clients,
+      #              dependent: :destroy,
+      #              after_add: :congratulate_client,
+      #              after_remove: :log_after_remove
       #
-      #     def evaluate_velocity(developer)
-      #       ...
+      #     def congratulate_client(record)
+      #       # ...
       #     end
-      #   end
+      #
+      #     def log_after_remove(record)
+      #       # ...
+      #     end
       #
       # It's possible to stack callbacks by passing them as an array. Example:
       #
-      #   class Project
-      #     has_and_belongs_to_many :developers,
-      #                             after_add: [:evaluate_velocity, Proc.new { |p, d| p.shipping_date = Time.now}]
+      #   class Firm < ActiveRecord::Base
+      #     has_many :clients,
+      #              dependent: :destroy,
+      #              after_add: [:congratulate_client, -> (firm, record) { firm.log << "after_adding#{record.id}" }],
+      #              after_remove: :log_after_remove
       #   end
       #
       # Possible callbacks are: +before_add+, +after_add+, +before_remove+ and +after_remove+.
@@ -616,6 +625,18 @@ module ActiveRecord
       #
       # Similarly, if any of the +before_remove+ callbacks throw an exception, the object
       # will not be removed from the collection.
+      #
+      # Note: To trigger remove callbacks, you must use +destroy+ / +destroy_all+ methods. For example:
+      #
+      #   * <tt>firm.clients.destroy(client)</tt>
+      #   * <tt>firm.clients.destroy(*clients)</tt>
+      #   * <tt>firm.clients.destroy_all</tt>
+      #
+      # +delete+ / +delete_all+ methods like the following do *not* trigger remove callbacks:
+      #
+      #   * <tt>firm.clients.delete(client)</tt>
+      #   * <tt>firm.clients.delete(*clients)</tt>
+      #   * <tt>firm.clients.delete_all</tt>
       #
       # == Association extensions
       #
@@ -1120,7 +1141,8 @@ module ActiveRecord
       #      belongs_to :dungeon, inverse_of: :evil_wizard
       #    end
       #
-      # For more information, see the documentation for the +:inverse_of+ option.
+      # For more information, see the documentation for the +:inverse_of+ option and the
+      # {Active Record Associations guide}[https://guides.rubyonrails.org/association_basics.html#bi-directional-associations].
       #
       # == Deleting from associations
       #
@@ -1333,8 +1355,8 @@ module ActiveRecord
         #   of this class in lower-case and "_id" suffixed. So a Person class that makes a #has_many
         #   association will use "person_id" as the default <tt>:foreign_key</tt>.
         #
-        #   If you are going to modify the association (rather than just read from it), then it is
-        #   a good idea to set the <tt>:inverse_of</tt> option.
+        #   Setting the <tt>:foreign_key</tt> option prevents automatic detection of the association's
+        #   inverse, so it is generally a good idea to set the <tt>:inverse_of</tt> option as well.
         # [:foreign_type]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the polymorphic association
@@ -1390,7 +1412,7 @@ module ActiveRecord
         #   a good idea to set the <tt>:inverse_of</tt> option on the source association on the
         #   join model. This allows associated records to be built which will automatically create
         #   the appropriate join model records when they are saved. (See the 'Association Join Models'
-        #   section above.)
+        #   and 'Setting Inverses' sections above.)
         # [:disable_joins]
         #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
         #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
@@ -1528,8 +1550,8 @@ module ActiveRecord
         #   of this class in lower-case and "_id" suffixed. So a Person class that makes a #has_one association
         #   will use "person_id" as the default <tt>:foreign_key</tt>.
         #
-        #   If you are going to modify the association (rather than just read from it), then it is
-        #   a good idea to set the <tt>:inverse_of</tt> option.
+        #   Setting the <tt>:foreign_key</tt> option prevents automatic detection of the association's
+        #   inverse, so it is generally a good idea to set the <tt>:inverse_of</tt> option as well.
         # [:foreign_type]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the polymorphic association
@@ -1555,7 +1577,7 @@ module ActiveRecord
         #   a good idea to set the <tt>:inverse_of</tt> option on the source association on the
         #   join model. This allows associated records to be built which will automatically create
         #   the appropriate join model records when they are saved. (See the 'Association Join Models'
-        #   section above.)
+        #   and 'Setting Inverses' sections above.)
         # [:disable_joins]
         #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
         #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
@@ -1681,8 +1703,8 @@ module ActiveRecord
         #   <tt>belongs_to :favorite_person, class_name: "Person"</tt> will use a foreign key
         #   of "favorite_person_id".
         #
-        #   If you are going to modify the association (rather than just read from it), then it is
-        #   a good idea to set the <tt>:inverse_of</tt> option.
+        #   Setting the <tt>:foreign_key</tt> option prevents automatic detection of the association's
+        #   inverse, so it is generally a good idea to set the <tt>:inverse_of</tt> option as well.
         # [:foreign_type]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the association with a "_type"
@@ -1788,7 +1810,7 @@ module ActiveRecord
         # The join table should not have a primary key or a model associated with it. You must manually generate the
         # join table with a migration such as this:
         #
-        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[7.0]
+        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[7.1]
         #     def change
         #       create_join_table :developers, :projects
         #     end
@@ -1910,8 +1932,8 @@ module ActiveRecord
         #   a #has_and_belongs_to_many association to Project will use "person_id" as the
         #   default <tt>:foreign_key</tt>.
         #
-        #   If you are going to modify the association (rather than just read from it), then it is
-        #   a good idea to set the <tt>:inverse_of</tt> option.
+        #   Setting the <tt>:foreign_key</tt> option prevents automatic detection of the association's
+        #   inverse, so it is generally a good idea to set the <tt>:inverse_of</tt> option as well.
         # [:association_foreign_key]
         #   Specify the foreign key used for the association on the receiving side of the association.
         #   By default this is guessed to be the name of the associated class in lower-case and "_id" suffixed.

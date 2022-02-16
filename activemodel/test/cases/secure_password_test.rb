@@ -218,6 +218,11 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal @user, @user.authenticate_recovery_password("42password")
   end
 
+  test "authenticate should return false and not raise when password digest is blank" do
+    @user.password_digest = " "
+    assert_equal false, @user.authenticate(" ")
+  end
+
   test "Password digest cost defaults to bcrypt default cost when min_cost is false" do
     ActiveModel::SecurePassword.min_cost = false
 

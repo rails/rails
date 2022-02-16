@@ -42,15 +42,24 @@ class RelationScopingTest < ActiveRecord::TestCase
     assert_equal Developer.order("id DESC").to_a.reverse, Developer.order("id DESC").reverse_order
   end
 
-  def test_reverse_order_with_arel_node
+  def test_reverse_order_with_arel_attribute
     assert_equal Developer.order("id DESC").to_a.reverse, Developer.order(Developer.arel_table[:id].desc).reverse_order
   end
 
-  def test_reverse_order_with_multiple_arel_nodes
+  def test_reverse_order_with_arel_attribute_as_hash
+    assert_equal Developer.order("id DESC").to_a.reverse, Developer.order(Developer.arel_table[:id] => :desc).reverse_order
+  end
+
+  def test_reverse_order_with_arel_node_as_hash
+    node = Developer.arel_table[:id] + 0 # converts to Arel::Nodes::Grouping
+    assert_equal Developer.order("id DESC").to_a.reverse, Developer.order(node => :desc).reverse_order
+  end
+
+  def test_reverse_order_with_multiple_arel_attributes
     assert_equal Developer.order("id DESC").order("name DESC").to_a.reverse, Developer.order(Developer.arel_table[:id].desc).order(Developer.arel_table[:name].desc).reverse_order
   end
 
-  def test_reverse_order_with_arel_nodes_and_strings
+  def test_reverse_order_with_arel_attributes_and_strings
     assert_equal Developer.order("id DESC").order("name DESC").to_a.reverse, Developer.order("id DESC").order(Developer.arel_table[:name].desc).reverse_order
   end
 

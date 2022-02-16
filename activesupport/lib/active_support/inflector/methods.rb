@@ -109,7 +109,7 @@ module ActiveSupport
     #
     # * Applies human inflection rules to the argument.
     # * Deletes leading underscores, if any.
-    # * Removes a "_id" suffix if present.
+    # * Removes an "_id" suffix if present.
     # * Replaces underscores with spaces, if any.
     # * Downcases all words except acronyms.
     # * Capitalizes the first word.

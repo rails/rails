@@ -289,6 +289,16 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_not_predicate david.posts, :loaded?
     assert_not_predicate david.posts, :loaded
   end
+
+  def test_target_merging_ignores_persisted_in_memory_records
+    david = authors(:david)
+    assert david.thinking_posts.include?(posts(:thinking))
+
+    david.thinking_posts.create!(title: "Something else entirely", body: "Does not matter.")
+
+    assert_equal 1, david.thinking_posts.size
+    assert_equal 1, david.thinking_posts.to_a.size
+  end
 end
 
 class OverridingAssociationsTest < ActiveRecord::TestCase
@@ -385,25 +395,13 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
 end
 
 class PreloaderTest < ActiveRecord::TestCase
-  fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories
+  fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories, :author_addresses
 
   def test_preload_with_scope
     post = posts(:welcome)
 
     preloader = ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments, scope: Comment.where(body: "Thank you for the welcome"))
     preloader.call
-
-    assert_predicate post.comments, :loaded?
-    assert_equal [comments(:greetings)], post.comments
-  end
-
-  def test_legacy_preload_with_scope
-    post = posts(:welcome)
-
-    assert_deprecated do
-      preloader = ActiveRecord::Associations::Preloader.new
-      preloader.preload([post], :comments, Comment.where(body: "Thank you for the welcome"))
-    end
 
     assert_predicate post.comments, :loaded?
     assert_equal [comments(:greetings)], post.comments

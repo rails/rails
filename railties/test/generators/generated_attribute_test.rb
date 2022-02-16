@@ -91,12 +91,12 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
 
   def test_default_value_is_datetime
     %w(datetime timestamp time).each do |attribute_type|
-      assert_field_default_value attribute_type, Time.now.to_s(:db)
+      assert_field_default_value attribute_type, Time.now.to_fs(:db)
     end
   end
 
   def test_default_value_is_date
-    assert_field_default_value :date, Date.today.to_s(:db)
+    assert_field_default_value :date, Date.today.to_fs(:db)
   end
 
   def test_default_value_is_string

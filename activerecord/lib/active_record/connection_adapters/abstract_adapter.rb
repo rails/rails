@@ -62,6 +62,16 @@ module ActiveRecord
         end
       end
 
+      def self.validate_default_timezone(config)
+        case config
+        when nil
+        when "utc", "local"
+          config.to_sym
+        else
+          raise ArgumentError, "default_timezone must be either 'utc' or 'local'"
+        end
+      end
+
       DEFAULT_READ_QUERY = [:begin, :commit, :explain, :release, :rollback, :savepoint, :select, :with] # :nodoc:
       private_constant :DEFAULT_READ_QUERY
 
@@ -100,6 +110,8 @@ module ActiveRecord
         @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
           config.fetch(:advisory_locks, true)
         )
+
+        @default_timezone = self.class.validate_default_timezone(config[:default_timezone])
       end
 
       EXCEPTION_NEVER = { Exception => :never }.freeze # :nodoc:
@@ -129,6 +141,10 @@ module ActiveRecord
         @config.fetch(:use_metadata_table, true)
       end
 
+      def default_timezone
+        @default_timezone || ActiveRecord.default_timezone
+      end
+
       # Determines whether writes are currently being prevented.
       #
       # Returns true if the connection is a replica.
@@ -141,9 +157,9 @@ module ActiveRecord
       def preventing_writes?
         return true if replica?
         return ActiveRecord::Base.connection_handler.prevent_writes if ActiveRecord.legacy_connection_handling
-        return false if connection_klass.nil?
+        return false if connection_class.nil?
 
-        connection_klass.current_preventing_writes
+        connection_class.current_preventing_writes
       end
 
       def migrations_paths # :nodoc:
@@ -178,7 +194,7 @@ module ActiveRecord
       alias :prepared_statements :prepared_statements?
 
       def prepared_statements_disabled_cache # :nodoc:
-        Thread.current[:ar_prepared_statements_disabled_cache] ||= Set.new
+        ActiveSupport::IsolatedExecutionState[:active_record_prepared_statements_disabled_cache] ||= Set.new
       end
 
       class Version
@@ -208,20 +224,32 @@ module ActiveRecord
       def lease
         if in_use?
           msg = +"Cannot lease connection, "
-          if @owner == Thread.current
+          if @owner == ActiveSupport::IsolatedExecutionState.context
             msg << "it is already leased by the current thread."
           else
             msg << "it is already in use by a different thread: #{@owner}. " \
-                   "Current thread: #{Thread.current}."
+                   "Current thread: #{ActiveSupport::IsolatedExecutionState.context}."
           end
           raise ActiveRecordError, msg
         end
 
-        @owner = Thread.current
+        @owner = ActiveSupport::IsolatedExecutionState.context
       end
 
-      def connection_klass # :nodoc:
-        @pool.connection_klass
+      def connection_class # :nodoc:
+        @pool.connection_class
+      end
+
+      # The role (ie :writing) for the current connection. In a
+      # non-multi role application, `:writing` is returned.
+      def role
+        @pool.role
+      end
+
+      # The shard (ie :default) for the current connection. In
+      # a non-sharded application, `:default` is returned.
+      def shard
+        @pool.shard
       end
 
       def schema_cache
@@ -236,10 +264,10 @@ module ActiveRecord
       # this method must only be called while holding connection pool's mutex
       def expire
         if in_use?
-          if @owner != Thread.current
+          if @owner != ActiveSupport::IsolatedExecutionState.context
             raise ActiveRecordError, "Cannot expire connection, " \
               "it is owned by a different thread: #{@owner}. " \
-              "Current thread: #{Thread.current}."
+              "Current thread: #{ActiveSupport::IsolatedExecutionState.context}."
           end
 
           @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -252,10 +280,10 @@ module ActiveRecord
       # this method must only be called while holding connection pool's mutex (and a desire for segfaults)
       def steal! # :nodoc:
         if in_use?
-          if @owner != Thread.current
+          if @owner != ActiveSupport::IsolatedExecutionState.context
             pool.send :remove_connection_from_thread_cache, self, @owner
 
-            @owner = Thread.current
+            @owner = ActiveSupport::IsolatedExecutionState.context
           end
         else
           raise ActiveRecordError, "Cannot steal connection, it is not currently leased."
@@ -298,6 +326,12 @@ module ActiveRecord
 
       # Does this adapter support savepoints?
       def supports_savepoints?
+        false
+      end
+
+      # Do TransactionRollbackErrors on savepoints affect the parent
+      # transaction?
+      def savepoint_errors_invalidate_transactions?
         false
       end
 
@@ -659,6 +693,21 @@ module ActiveRecord
       end
 
       class << self
+        def register_class_with_precision(mapping, key, klass, **kwargs) # :nodoc:
+          mapping.register_type(key) do |*args|
+            precision = extract_precision(args.last)
+            klass.new(precision: precision, **kwargs)
+          end
+        end
+
+        def extended_type_map(default_timezone:) # :nodoc:
+          Type::TypeMap.new(self::TYPE_MAP).tap do |m|
+            register_class_with_precision m, %r(\A[^\(]*time)i, Type::Time, timezone: default_timezone
+            register_class_with_precision m, %r(\A[^\(]*datetime)i, Type::DateTime, timezone: default_timezone
+            m.alias_type %r(\A[^\(]*timestamp)i, "datetime"
+          end
+        end
+
         private
           def initialize_type_map(m)
             register_class_with_limit m, %r(boolean)i,       Type::Boolean
@@ -700,13 +749,6 @@ module ActiveRecord
             end
           end
 
-          def register_class_with_precision(mapping, key, klass)
-            mapping.register_type(key) do |*args|
-              precision = extract_precision(args.last)
-              klass.new(precision: precision)
-            end
-          end
-
           def extract_scale(sql_type)
             case sql_type
             when /\((\d+)\)/ then 0
@@ -724,10 +766,23 @@ module ActiveRecord
       end
 
       TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
+      EXTENDED_TYPE_MAPS = Concurrent::Map.new
 
       private
+        def extended_type_map_key
+          if @default_timezone
+            { default_timezone: @default_timezone }
+          end
+        end
+
         def type_map
-          TYPE_MAP
+          if key = extended_type_map_key
+            self.class::EXTENDED_TYPE_MAPS.compute_if_absent(key) do
+              self.class.extended_type_map(**key)
+            end
+          else
+            self.class::TYPE_MAP
+          end
         end
 
         def translate_exception_class(e, sql, binds)

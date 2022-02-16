@@ -33,7 +33,7 @@ module ActiveRecord
 
       attr_accessor :schema_cache
 
-      def connection_klass; end
+      def connection_class; end
       def checkin(_); end
       def remove(_); end
       def async_executor; end
@@ -105,8 +105,10 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :db_config, :size, :reaper, :pool_config, :connection_klass, :async_executor
+      attr_reader :db_config, :size, :reaper, :pool_config, :connection_class, :async_executor, :role, :shard
 
+      alias_method :connection_klass, :connection_class
+      deprecate :connection_klass
       delegate :schema_cache, :schema_cache=, to: :pool_config
 
       # Creates a new ConnectionPool object. +pool_config+ is a PoolConfig
@@ -120,7 +122,9 @@ module ActiveRecord
 
         @pool_config = pool_config
         @db_config = pool_config.db_config
-        @connection_klass = pool_config.connection_klass
+        @connection_class = pool_config.connection_class
+        @role = pool_config.role
+        @shard = pool_config.shard
 
         @checkout_timeout = db_config.checkout_timeout
         @idle_timeout = db_config.idle_timeout
@@ -162,7 +166,7 @@ module ActiveRecord
 
       def lock_thread=(lock_thread)
         if lock_thread
-          @lock_thread = Thread.current
+          @lock_thread = ActiveSupport::IsolatedExecutionState.context
         else
           @lock_thread = nil
         end
@@ -193,7 +197,7 @@ module ActiveRecord
       # This method only works for connections that have been obtained through
       # #connection or #with_connection methods, connections obtained through
       # #checkout will not be automatically released.
-      def release_connection(owner_thread = Thread.current)
+      def release_connection(owner_thread = ActiveSupport::IsolatedExecutionState.context)
         if conn = @thread_cached_conns.delete(connection_cache_key(owner_thread))
           checkin conn
         end
@@ -204,7 +208,7 @@ module ActiveRecord
       # exists checkout a connection, yield it to the block, and checkin the
       # connection when finished.
       def with_connection
-        unless conn = @thread_cached_conns[connection_cache_key(Thread.current)]
+        unless conn = @thread_cached_conns[connection_cache_key(ActiveSupport::IsolatedExecutionState.context)]
           conn = connection
           fresh_connection = true
         end
@@ -506,7 +510,7 @@ module ActiveRecord
         end
 
         def current_thread
-          @lock_thread || Thread.current
+          @lock_thread || ActiveSupport::IsolatedExecutionState.context
         end
 
         # Take control of all existing connections so a "group" action such as
@@ -523,13 +527,13 @@ module ActiveRecord
         def attempt_to_checkout_all_existing_connections(raise_on_acquisition_timeout = true)
           collected_conns = synchronize do
             # account for our own connections
-            @connections.select { |conn| conn.owner == Thread.current }
+            @connections.select { |conn| conn.owner == ActiveSupport::IsolatedExecutionState.context }
           end
 
           newly_checked_out = []
           timeout_time      = Process.clock_gettime(Process::CLOCK_MONOTONIC) + (@checkout_timeout * 2)
 
-          @available.with_a_bias_for(Thread.current) do
+          @available.with_a_bias_for(ActiveSupport::IsolatedExecutionState.context) do
             loop do
               synchronize do
                 return if collected_conns.size == @connections.size && @now_connecting == 0
@@ -576,7 +580,7 @@ module ActiveRecord
 
           thread_report = []
           @connections.each do |conn|
-            unless conn.owner == Thread.current
+            unless conn.owner == ActiveSupport::IsolatedExecutionState.context
               thread_report << "#{conn} is owned by #{conn.owner}"
             end
           end

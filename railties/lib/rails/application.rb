@@ -10,6 +10,7 @@ require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
 require "rails/engine"
 require "rails/secrets"
+require "rails/autoloaders"
 
 module Rails
   # An Engine with the responsibility of coordinating the whole boot process.
@@ -95,7 +96,7 @@ module Rails
 
     attr_accessor :assets, :sandbox
     alias_method :sandbox?, :sandbox
-    attr_reader :reloaders, :reloader, :executor
+    attr_reader :reloaders, :reloader, :executor, :autoloaders
 
     delegate :default_url_options, :default_url_options=, to: :routes
 
@@ -116,6 +117,8 @@ module Rails
       @executor          = Class.new(ActiveSupport::Executor)
       @reloader          = Class.new(ActiveSupport::Reloader)
       @reloader.executor = @executor
+
+      @autoloaders = Rails::Autoloaders.new
 
       # are these actually used?
       @initial_variable_values = initial_variable_values

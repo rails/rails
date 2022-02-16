@@ -216,7 +216,7 @@ One possibility is to set the expiry time-stamp of the cookie with the session I
 ```ruby
 class Session < ApplicationRecord
   def self.sweep(time = 1.hour)
-    where("updated_at < ?", time.ago.to_s(:db)).delete_all
+    where("updated_at < ?", time.ago.to_fs(:db)).delete_all
   end
 end
 ```
@@ -224,7 +224,7 @@ end
 The section about session fixation introduced the problem of maintained sessions. An attacker maintaining a session every five minutes can keep the session alive forever, although you are expiring sessions. A simple solution for this would be to add a `created_at` column to the sessions table. Now you can delete sessions that were created a long time ago. Use this line in the sweep method above:
 
 ```ruby
-where("updated_at < ? OR created_at < ?", time.ago.to_s(:db), 2.days.ago.to_s(:db)).delete_all
+where("updated_at < ? OR created_at < ?", time.ago.to_fs(:db), 2.days.ago.to_fs(:db)).delete_all
 ```
 
 Cross-Site Request Forgery (CSRF)
@@ -287,7 +287,7 @@ There are many other possibilities, like using a `<script>` tag to make a cross-
 
 NOTE: We can't distinguish a `<script>` tag's origin—whether it's a tag on your own site or on some other malicious site—so we must block all `<script>` across the board, even if it's actually a safe same-origin script served from your own site. In these cases, explicitly skip CSRF protection on actions that serve JavaScript meant for a `<script>` tag.
 
-To protect against all other forged requests, we introduce a _required security token_ that our site knows but other sites don't know. We include the security token in requests and verify it on the server. This is done automatically when `config.action_controller.default_protect_from_forgery` is set to `true`, which is the default for newly created Rails applications. You can also do it manually by adding the following to your application controller:
+To protect against all other forged requests, we introduce a _required security token_ that our site knows but other sites don't know. We include the security token in requests and verify it on the server. This is done automatically when [`config.action_controller.default_protect_from_forgery`][] is set to `true`, which is the default for newly created Rails applications. You can also do it manually by adding the following to your application controller:
 
 ```ruby
 protect_from_forgery with: :exception
@@ -314,6 +314,8 @@ end
 The above method can be placed in the `ApplicationController` and will be called when a CSRF token is not present or is incorrect on a non-GET request.
 
 Note that _cross-site scripting (XSS) vulnerabilities bypass all CSRF protections_. XSS gives the attacker access to all elements on a page, so they can read the CSRF security token from a form or directly submit the form. Read [more about XSS](#cross-site-scripting-xss) later.
+
+[`config.action_controller.default_protect_from_forgery`]: configuring.html#config-action-controller-default-protect-from-forgery
 
 Redirection and Files
 ---------------------
@@ -504,13 +506,19 @@ Note that this protects you only from automatic bots, targeted tailor-made bots 
 
 WARNING: _Tell Rails not to put passwords in the log files._
 
-By default, Rails logs all requests being made to the web application. But log files can be a huge security issue, as they may contain login credentials, credit card numbers et cetera. When designing a web application security concept, you should also think about what will happen if an attacker got (full) access to the web server. Encrypting secrets and passwords in the database will be quite useless, if the log files list them in clear text. You can _filter certain request parameters from your log files_ by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
+By default, Rails logs all requests being made to the web application. But log files can be a huge security issue, as they may contain login credentials, credit card numbers et cetera. When designing a web application security concept, you should also think about what will happen if an attacker got (full) access to the web server. Encrypting secrets and passwords in the database will be quite useless, if the log files list them in clear text. You can _filter certain request parameters from your log files_ by appending them to [`config.filter_parameters`][] in the application configuration. These parameters will be marked [FILTERED] in the log.
 
 ```ruby
 config.filter_parameters << :password
 ```
 
-NOTE: Provided parameters will be filtered out by partial matching regular expression. Rails adds default `:password` in the appropriate initializer (`initializers/filter_parameter_logging.rb`) and cares about typical application parameters `password` and `password_confirmation`.
+NOTE: Provided parameters will be filtered out by partial matching regular
+expression. Rails adds a list of default filters, including `:passw`,
+`:secret`, and `:token`, in the appropriate initializer
+(`initializers/filter_parameter_logging.rb`) to handle typical application
+parameters like `password`, `password_confirmation` and `my_token`.
+
+[`config.filter_parameters`]: configuring.html#config-filter-parameters
 
 ### Regular Expressions
 
@@ -675,7 +683,7 @@ values = { zip: entered_zip_code, qty: entered_quantity }
 Model.where("zip_code = :zip AND quantity >= :qty", values).first
 ```
 
-Aditionally, you can split and chain conditionals valid for your use case:
+Additionally, you can split and chain conditionals valid for your use case:
 
 ```ruby
 Model.where(zip_code: entered_zip_code).where("quantity >= ?", entered_quantity).first
@@ -908,21 +916,21 @@ system("/bin/echo","hello; rm *")
 `Kernel#open` executes OS command if the argument starts with a vertical bar (`|`).
 
 ```ruby
-open('| ls') { |f| f.read }
+open('| ls') { |file| file.read }
 # returns file list as a String via `ls` command
 ```
 
 Countermeasures are to use `File.open`, `IO.open` or `URI#open` instead. They don't execute an OS command.
 
 ```ruby
-File.open('| ls') { |f| f.read }
+File.open('| ls') { |file| file.read }
 # doesn't execute `ls` command, just opens `| ls` file if it exists
 
-IO.open(0) { |f| f.read }
+IO.open(0) { |file| file.read }
 # opens stdin. doesn't accept a String as the argument
 
 require 'open-uri'
-URI('https://example.com').open { |f| f.read }
+URI('https://example.com').open { |file| file.read }
 # opens the URI. `URI()` doesn't accept `| ls`
 ```
 
@@ -1028,17 +1036,16 @@ your application if you are aware of the risk and know how to handle it:
 config.action_dispatch.perform_deep_munge = false
 ```
 
-Default Headers
----------------
+HTTP Security Headers
+---------------------
 
 Every HTTP response from your Rails application receives the following default security headers.
 
 ```ruby
 config.action_dispatch.default_headers = {
   'X-Frame-Options' => 'SAMEORIGIN',
-  'X-XSS-Protection' => '1; mode=block',
+  'X-XSS-Protection' => '0',
   'X-Content-Type-Options' => 'nosniff',
-  'X-Download-Options' => 'noopen',
   'X-Permitted-Cross-Domain-Policies' => 'none',
   'Referrer-Policy' => 'strict-origin-when-cross-origin'
 }
@@ -1062,7 +1069,7 @@ config.action_dispatch.default_headers.clear
 Here is a list of common headers:
 
 * **X-Frame-Options:** _`SAMEORIGIN` in Rails by default_ - allow framing on same domain. Set it to 'DENY' to deny framing at all or remove this header completely if you want to allow framing on all websites.
-* **X-XSS-Protection:** _`1; mode=block` in Rails by default_ - use XSS Auditor and block page if XSS attack is detected. Set it to '0;' if you want to switch XSS Auditor off(useful if response contents scripts from request parameters)
+* **X-XSS-Protection:** _`0` in Rails by default_ - [deprecated legacy header](https://owasp.org/www-project-secure-headers/#x-xss-protection), set to '0' to disable problematic legacy XSS auditors.
 * **X-Content-Type-Options:** _`nosniff` in Rails by default_ - stops the browser from guessing the MIME type of a file.
 * **X-Content-Security-Policy:** [A powerful mechanism for controlling which sites certain content types can be loaded from](https://w3c.github.io/webappsec-csp/)
 * **Access-Control-Allow-Origin:** Used to control which sites are allowed to bypass same origin policies and send cross-origin requests.
@@ -1070,11 +1077,13 @@ Here is a list of common headers:
 
 ### Content Security Policy
 
-Rails provides a DSL that allows you to configure a
+To help protect against XSS and injection attacks, it is recommended to define a
 [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
-for your application. You can configure a global default policy and then
+for your application. Rails provides a DSL that allows you to configure a
+Content Security Policy. You can configure a global default policy and then
 override it on a per-resource basis and even use lambdas to inject per-request
-values into the header such as account subdomains in a multi-tenant application.
+values into the header such as account subdomains in a multi-tenant
+application.
 
 Example global policy:
 
@@ -1098,22 +1107,22 @@ Example controller overrides:
 ```ruby
 # Override policy inline
 class PostsController < ApplicationController
-  content_security_policy do |p|
-    p.upgrade_insecure_requests true
+  content_security_policy do |policy|
+    policy.upgrade_insecure_requests true
   end
 end
 
 # Using literal values
 class PostsController < ApplicationController
-  content_security_policy do |p|
-    p.base_uri "https://www.example.com"
+  content_security_policy do |policy|
+    policy.base_uri "https://www.example.com"
   end
 end
 
 # Using mixed static and dynamic values
 class PostsController < ApplicationController
-  content_security_policy do |p|
-    p.base_uri :self, -> { "https://#{current_user.domain}.example.com" }
+  content_security_policy do |policy|
+    policy.base_uri :self, -> { "https://#{current_user.domain}.example.com" }
   end
 end
 
@@ -1122,6 +1131,8 @@ class LegacyPagesController < ApplicationController
   content_security_policy false, only: :index
 end
 ```
+
+#### Reporting Violations
 
 Use the `content_security_policy_report_only`
 configuration attribute to set
@@ -1141,7 +1152,12 @@ class PostsController < ApplicationController
 end
 ```
 
-You can enable automatic nonce generation:
+#### Adding a Nonce
+
+If you are considering 'unsafe-inline', consider using nonces instead. [Nonces
+provide a substantial improvement](https://www.w3.org/TR/CSP3/#security-nonces)
+over 'unsafe-inline' when implementing a Content Security Policy on top
+existing code.
 
 ```ruby
 # config/initializers/content_security_policy.rb

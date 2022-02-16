@@ -26,6 +26,8 @@ module ActiveRecord
 
         def write_query?(sql) # :nodoc:
           !READ_QUERY.match?(sql)
+        rescue ArgumentError # Invalid encoding
+          !READ_QUERY.match?(sql.b)
         end
 
         def explain(arel, binds = [])
@@ -89,7 +91,7 @@ module ActiveRecord
           def raw_execute(sql, name, async: false)
             # make sure we carry over any changes to ActiveRecord.default_timezone that have been
             # made since we established the connection
-            @connection.query_options[:database_timezone] = ActiveRecord.default_timezone
+            @connection.query_options[:database_timezone] = default_timezone
 
             super
           end
@@ -98,8 +100,8 @@ module ActiveRecord
             statements = statements.map { |sql| transform_query(sql) }
             combine_multi_statements(statements).each do |statement|
               raw_execute(statement, name)
+              @connection.abandon_results!
             end
-            @connection.abandon_results!
           end
 
           def default_insert_value(column)
@@ -170,7 +172,7 @@ module ActiveRecord
 
             # make sure we carry over any changes to ActiveRecord.default_timezone that have been
             # made since we established the connection
-            @connection.query_options[:database_timezone] = ActiveRecord.default_timezone
+            @connection.query_options[:database_timezone] = default_timezone
 
             type_casted_binds = type_casted_binds(binds)
 

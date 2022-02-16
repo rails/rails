@@ -3,7 +3,7 @@
 require "active_support/inflector"
 
 module Rails
-  module Autoloaders
+  class Autoloaders
     module Inflector # :nodoc:
       # Concurrent::Map is not needed. This is a private class, and overrides
       # must be defined while the application boots.

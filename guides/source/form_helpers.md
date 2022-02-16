@@ -238,7 +238,11 @@ TIP: Conventionally your inputs will mirror model attributes. However, they don'
 
 #### The `fields_for` Helper
 
-You can create a similar binding without actually creating `<form>` tags with the [`fields_for`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-fields_for) helper. This is useful for editing additional model objects with the same form. For example, if you had a `Person` model with an associated `ContactDetail` model, you could create a form for creating both like so:
+The [`fields_for`][] helper creates a similar binding but without rendering a
+`<form>` tag. This can be used to render fields for additional model objects
+within the same form. For example, if you had a `Person` model with an
+associated `ContactDetail` model, you could create a single form for both like
+so:
 
 ```erb
 <%= form_with model: @person do |person_form| %>
@@ -249,7 +253,7 @@ You can create a similar binding without actually creating `<form>` tags with th
 <% end %>
 ```
 
-which produces the following output:
+Which produces the following output:
 
 ```html
 <form action="/people" accept-charset="UTF-8" method="post">
@@ -259,7 +263,10 @@ which produces the following output:
 </form>
 ```
 
-The object yielded by `fields_for` is a form builder like the one yielded by `form_with`.
+The object yielded by `fields_for` is a form builder like the one yielded by
+`form_with`.
+
+[`fields_for`]: https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-fields_for
 
 ### Relying on Record Identification
 
@@ -794,9 +801,10 @@ There's a restriction, however: while hashes can be nested arbitrarily, only one
 
 WARNING: Array parameters do not play well with the `check_box` helper. According to the HTML specification unchecked checkboxes submit no value. However it is often convenient for a checkbox to always submit a value. The `check_box` helper fakes this by creating an auxiliary hidden input with the same name. If the checkbox is unchecked only the hidden input is submitted and if it is checked then both are submitted but the value submitted by the checkbox takes precedence.
 
-### The `fields_for` Helper
+### The `fields_for` Helper `:index` Option
 
-Let's say we want to render a form with a set of fields for each of a person's addresses. The `fields_for` helper and its `:index` argument can assist with this:
+Let's say we want to render a form with a set of fields for each of a person's
+addresses. The [`fields_for`][] helper with its `:index` option can assist:
 
 ```erb
 <%= form_with model: @person do |person_form| %>
@@ -809,7 +817,8 @@ Let's say we want to render a form with a set of fields for each of a person's a
 <% end %>
 ```
 
-Assuming the person had two addresses, with ids 23 and 45 this would create output similar to this:
+Assuming the person has two addresses with IDs 23 and 45, the above form would
+render output similar to:
 
 ```html
 <form accept-charset="UTF-8" action="/people/1" method="post">
@@ -820,22 +829,35 @@ Assuming the person had two addresses, with ids 23 and 45 this would create outp
 </form>
 ```
 
-This will result in a `params` hash that looks like
+Which will result in a `params` hash that looks like:
 
 ```ruby
-{'person' => {'name' => 'Bob', 'address' => {'23' => {'city' => 'Paris'}, '45' => {'city' => 'London'}}}}
+{
+  "person" => {
+    "name" => "Bob",
+    "address" => {
+      "23" => {
+        "city" => "Paris"
+      },
+      "45" => {
+        "city" => "London"
+      }
+    }
+  }
+}
 ```
 
-Rails knows that all these inputs should be part of the person hash because you
-called `fields_for` on the first form builder. By specifying an `:index` option
-you're telling Rails that instead of naming the inputs `person[address][city]`
-it should insert that index surrounded by [] between the address and the city.
-This is often useful as it is then easy to locate which Address record
-should be modified. You can pass numbers with some other significance,
-strings or even `nil` (which will result in an array parameter being created).
+All of the form inputs map to the `"person"` hash because we called `fields_for`
+on the `person_form` form builder. By specifying an `:index` option, we mapped
+the address inputs to `person[address][#{address.id}][city]` instead of
+`person[address][city]`. Thus we are able to determine which Address records
+should be modified when processing the `params` hash.
 
-To create more intricate nestings, you can specify the first part of the input
-name (`person[address]` in the previous example) explicitly:
+You can pass other numbers or strings of significance via the `:index` option.
+You can even pass `nil`, which will produce an array parameter.
+
+To create more intricate nestings, you can specify the leading portion of the
+input name explicitly. For example:
 
 ```erb
 <%= fields_for 'person[address][primary]', address, index: address.id do |address_form| %>
@@ -843,15 +865,22 @@ name (`person[address]` in the previous example) explicitly:
 <% end %>
 ```
 
-will create inputs like
+will create inputs like:
 
 ```html
-<input id="person_address_primary_1_city" name="person[address][primary][1][city]" type="text" value="Bologna" />
+<input id="person_address_primary_23_city" name="person[address][primary][23][city]" type="text" value="Paris" />
 ```
 
-As a general rule the final input name is the concatenation of the name given to `fields_for`/`form_with`, the index value, and the name of the attribute. You can also pass an `:index` option directly to helpers such as `text_field`, but it is usually less repetitive to specify this at the form builder level rather than on individual input controls.
+You can also pass an `:index` option directly to helpers such as `text_field`,
+but it is usually less repetitive to specify this at the form builder level
+than on individual input fields.
 
-As a shortcut you can append [] to the name and omit the `:index` option. This is the same as specifying `index: address.id` so
+Speaking generally, the final input name will be a concatenation of the name
+given to `fields_for` / `form_with`, the `:index` option value, and the name of
+the attribute.
+
+Lastly, as a shortcut, instead of specifying an ID for `:index` (e.g.
+`index: address.id`), you can append `"[]"` to the given name. For example:
 
 ```erb
 <%= fields_for 'person[address][primary][]', address do |address_form| %>
@@ -859,7 +888,7 @@ As a shortcut you can append [] to the name and omit the `:index` option. This i
 <% end %>
 ```
 
-produces exactly the same output as the previous example.
+produces exactly the same output as our original example.
 
 Forms to External Resources
 ---------------------------
@@ -1021,7 +1050,7 @@ end
 
 ### Preventing Empty Records
 
-It is often useful to ignore sets of fields that the user has not filled in. You can control this by passing a `:reject_if` proc to `accepts_nested_attributes_for`. This proc will be called with each hash of attributes submitted by the form. If the proc returns `false` then Active Record will not build an associated object for that hash. The example below only tries to build an address if the `kind` attribute is set.
+It is often useful to ignore sets of fields that the user has not filled in. You can control this by passing a `:reject_if` proc to `accepts_nested_attributes_for`. This proc will be called with each hash of attributes submitted by the form. If the proc returns `true` then Active Record will not build an associated object for that hash. The example below only tries to build an address if the `kind` attribute is set.
 
 ```ruby
 class Person < ApplicationRecord

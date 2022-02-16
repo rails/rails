@@ -38,7 +38,7 @@ Rails 7 ends the transition period and does not include `classic` mode.
 I am Scared
 -----------
 
-Don't :).
+Don't be :).
 
 Zeitwerk was designed to be as compatible with the classic autoloader as possible. If you have a working application autoloading correctly today, chances are the switch will be easy. Many projects, big and small, have reported really smooth switches.
 
@@ -98,7 +98,26 @@ If that prints `true`, `zeitwerk` mode is enabled.
 Does my Application Comply with Zeitwerk Conventions?
 -----------------------------------------------------
 
-Once `zeitwerk` mode is enabled, please run:
+### config.eager_load_paths
+
+Compliance test runs only for eager loaded files. Therefore, in order to verify Zeitwerk compliance, it is recommended to have all autoload paths in the eager load paths.
+
+This is already the case by default, but if the project has custom autoload paths configured just like this:
+
+```ruby
+config.autoload_paths << "#{Rails.root}/extras"
+```
+
+those are not eager loaded and won't be verified. Adding them to the eager load paths is easy:
+
+```ruby
+config.autoload_paths << "#{Rails.root}/extras"
+config.eager_load_paths << "#{Rails.root}/extras"
+```
+
+### zeitwerk:check
+
+Once `zeitwerk` mode is enabled and the configuration of eager load paths double-checked, please run:
 
 ```
 bin/rails zeitwerk:check
@@ -114,7 +133,9 @@ All is good!
 
 There can be additional output depending on the application configuration, but the last "All is good!" is what you are looking for.
 
-If there's any file that does not define the expected constant, the task will tell you. It does so one file at a time, because if it moved on, the failure loading one file could cascade into other failures unrelated to the check we want to run and the error report would be confusing.
+If the double-check explained in the previous section determined actually there have to be some custom autoload paths outside the eager load paths, the task will detect and warn about them. However, if the test suite loads those files successfully, you're good.
+
+Now, if there's any file that does not define the expected constant, the task will tell you. It does so one file at a time, because if it moved on, the failure loading one file could cascade into other failures unrelated to the check we want to run and the error report would be confusing.
 
 If there's one constant reported, fix that particular one and run the task again. Repeat until you get "All is good!".
 
@@ -145,14 +166,14 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
 end
 ```
 
-Doing so affects how Active Support inflects globally. That may be fine, but if you prefer you can also pass overrides to the inflector used by the autoloader:
+Doing so affects how Active Support inflects globally. That may be fine, but if you prefer you can also pass overrides to the inflectors used by the autoloaders:
 
 ```ruby
 # config/initializers/zeitwerk.rb
-Rails.autoloaders.each do |autoloader|
-  autoloader.inflector.inflect("vat" => "VAT")
-end
+Rails.autoloaders.main.inflector.inflect("vat" => "VAT")
 ```
+
+With this option you have more control, because only files called exactly `vat.rb` or directories exactly called `vat` will be inflected as `VAT`. A file called `vat_rules.rb` is not affected by that and can define `VatRules` just fine. This may be handy if the project has this kind of naming inconsistencies.
 
 With that in place, the check passes!
 
@@ -191,7 +212,7 @@ If your application uses `Concerns` as namespace, you have two options:
 
 Some projects want something like `app/api/base.rb` to define `API::Base`, and add `app` to the autoload paths to accomplish that.
 
-Since Rails adds all subdirectories of `app` to the autoload paths automatically (with a few exceptions like directories for assets), we have another situation in which there are nested root directories, similar to what happens with `app/models/concerns`. That setup no longer works as is.
+Since Rails adds all subdirectories of `app` to the autoload paths automatically (with a few exceptions), we have another situation in which there are nested root directories, similar to what happens with `app/models/concerns`. That setup no longer works as is.
 
 However, you can keep that structure, just delete `app/api` from the autoload paths in an initializer:
 
@@ -201,6 +222,22 @@ ActiveSupport::Dependencies.
   autoload_paths.
   delete("#{Rails.root}/app/api")
 ```
+
+Beware of subdirectories that do not have files to be autoloaded/eager loaded. For example, if the application has `app/admin` with resources for [ActiveAdmin](https://activeadmin.info/), you need to ignore them. Same for `assets` and friends:
+
+```ruby
+# config/initializers/zeitwerk.rb
+Rails.autoloaders.main.ignore(
+  "app/admin",
+  "app/assets",
+  "app/javascripts",
+  "app/views"
+)
+```
+
+Without that configuration, the application would eager load those trees. Would err on `app/admin` because its files do not define constants, and would define a `Views` module, for example, as an unwanted side-effect.
+
+As you see, having `app` in the autoload paths is technically possible, but a bit tricky.
 
 ### Autoloaded Constants and Explicit Namespaces
 
@@ -281,6 +318,30 @@ To fix this, just remove the wildcards:
 
 ```ruby
 config.autoload_paths << "#{config.root}/extras"
+```
+
+### Decorating Classes and Modules from Engines
+
+If your application decorates classes or modules from an engine, chances are it is doing something like this somewhere:
+
+```ruby
+config.to_prepare do
+  Dir.glob("#{Rails.root}/app/overrides/**/*_override.rb").each do |override|
+    require_dependency override
+  end
+end
+```
+
+That has to be updated: You need to tell the `main` autoloader to ignore the directory with the overrides, and you need to load them with `load` instead. Something like this:
+
+```ruby
+overrides = "#{Rails.root}/app/overrides"
+Rails.autoloaders.main.ignore(overrides)
+config.to_prepare do
+  Dir.glob("#{overrides}/**/*_override.rb").each do |override|
+    load override
+  end
+end
 ```
 
 ### Spring and the `test` Environment
