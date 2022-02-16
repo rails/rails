@@ -288,7 +288,7 @@ module ActiveRecord
             quoted_sequence = quote_table_name(sequence)
             max_pk = query_value("SELECT MAX(#{quote_column_name pk}) FROM #{quote_table_name(table)}", "SCHEMA")
             if max_pk.nil?
-              if database_version >= 100000
+              if database_version >= 10_00_00
                 minvalue = query_value("SELECT seqmin FROM pg_sequence WHERE seqrelid = #{quote(quoted_sequence)}::regclass", "SCHEMA")
               else
                 minvalue = query_value("SELECT min_value FROM #{quoted_sequence}", "SCHEMA")
