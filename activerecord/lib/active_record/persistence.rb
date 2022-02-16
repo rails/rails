@@ -581,6 +581,14 @@ module ActiveRecord
       @destroyed
     end
 
+    # Returns true if this object is being destroyed because an associated
+    # record with the `dependent: :destroy_async` option has been destroyed.
+    # Allows applications to introduce `*_destroy` callbacks that only run when
+    # a record is destroyed in the background.
+    def destroying_async?
+      instance_variable_defined?(:@destroying_async) && @destroying_async
+    end
+
     # Returns true if the record is persisted, i.e. it's not a new record and it was
     # not destroyed, otherwise returns false.
     def persisted?

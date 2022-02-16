@@ -24,7 +24,9 @@ module ActiveRecord
       end
 
       association_model.where(association_primary_key_column => association_ids).find_each do |r|
+        r.instance_variable_set(:@destroying_async, true)
         r.destroy
+        r.instance_variable_set(:@destroying_async, false)
       end
     end
 

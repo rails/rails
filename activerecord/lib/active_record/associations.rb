@@ -1374,7 +1374,9 @@ module ActiveRecord
         #
         #   * <tt>nil</tt> do nothing (default).
         #   * <tt>:destroy</tt> causes all the associated objects to also be destroyed.
-        #   * <tt>:destroy_async</tt> destroys all the associated objects in a background job. <b>WARNING:</b> Do not use
+        #   * <tt>:destroy_async</tt> destroys all the associated objects in a background job. The associated
+        #     objects can have `*_destroy` callbacks that only run when they are destroyed in the background
+        #     by making the callbacks conditional on `destroying_async?`. <b>WARNING:</b> Do not use
         #     this option if the association is backed by foreign key constraints in your database. The foreign key
         #     constraint actions will occur inside the same transaction that deletes its owner.
         #   * <tt>:delete_all</tt> causes all the associated objects to be deleted directly from the database (so callbacks will not be executed).
@@ -1535,7 +1537,9 @@ module ActiveRecord
         #
         #   * <tt>nil</tt> do nothing (default).
         #   * <tt>:destroy</tt> causes the associated object to also be destroyed
-        #   * <tt>:destroy_async</tt> causes the associated object to be destroyed in a background job. <b>WARNING:</b> Do not use
+        #   * <tt>:destroy_async</tt> causes the associated object to be destroyed in a background job. The associated
+        #     object can have `*_destroy` callbacks that only run when it is destroyed in the background
+        #     by making the callbacks conditional on `destroying_async?`. <b>WARNING:</b> Do not use
         #     this option if the association is backed by foreign key constraints in your database. The foreign key
         #     constraint actions will occur inside the same transaction that deletes its owner.
         #   * <tt>:delete</tt> causes the associated object to be deleted directly from the database (so callbacks will not execute)
@@ -1717,6 +1721,8 @@ module ActiveRecord
         #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
         #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method. If set to
         #   <tt>:destroy_async</tt>, the associated object is scheduled to be destroyed in a background job.
+        #   The associated object can have `*_destroy` callbacks that only run when it is destroyed in
+        #   the background by making the callbacks conditional on `destroying_async?`.
         #   This option should not be specified when #belongs_to is used in conjunction with
         #   a #has_many relationship on another class because of the potential to leave
         #   orphaned records behind.

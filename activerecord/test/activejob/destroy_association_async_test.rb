@@ -173,6 +173,35 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     end
   end
 
+  test "performs callback conditional on destroying_async? when destroying async" do
+    essay = EssayWithDestroyingAsyncCallback.create!(name: "Der be treasure")
+    essay2 = EssayWithDestroyingAsyncCallback.create!(name: "Der be rum")
+    book = BookDestroyAsyncWithDestroyingAsyncCallbackEssays.create!(name: "Arr, matey!")
+    book.essays << [essay, essay2]
+    book.save!
+    book.destroy
+
+    assert_difference -> { EssayWithDestroyingAsyncCallback.count }, -2 do
+      assert_called_on_instance_of(EssayWithDestroyingAsyncCallback, :before_destroying_async, times: 2) do
+        perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      end
+    end
+  end
+
+  test "does not perform callback conditional on destroying_async? when not destroying async" do
+    essay = EssayWithDestroyingAsyncCallback.create!(name: "Der be treasure")
+    essay2 = EssayWithDestroyingAsyncCallback.create!(name: "Der be rum")
+    book = BookDestroySyncWithDestroyingAsyncCallbackEssays.create!(name: "Arr, matey!")
+    book.essays << [essay, essay2]
+    book.save!
+
+    assert_difference -> { EssayWithDestroyingAsyncCallback.count }, -2 do
+      assert_called_on_instance_of(EssayWithDestroyingAsyncCallback, :before_destroying_async, times: 0) do
+        book.destroy
+      end
+    end
+  end
+
   test "enqueues the has_many to be deleted with custom primary key" do
     dl_keyed_has_many = DlKeyedHasMany.new
     parent = DestroyAsyncParent.create!

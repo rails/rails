@@ -1152,6 +1152,20 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal true, developer.destroyed?
   end
 
+  def test_destroying_async_returns_boolean
+    developer = Developer.first
+    assert_equal false, developer.destroying_async?
+
+    developer.instance_variable_set(:@destroying_async, true)
+    assert_equal true, developer.destroying_async?
+
+    developer.instance_variable_set(:@destroying_async, false)
+    assert_equal false, developer.destroying_async?
+
+    developer.remove_instance_variable(:@destroying_async)
+    assert_equal false, developer.destroying_async?
+  end
+
   def test_persisted_returns_boolean
     developer = Developer.new(name: "Jose")
     assert_equal false, developer.persisted?

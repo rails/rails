@@ -1,3 +1,27 @@
+*   Add `destroying_async?` to `ActiveRecord::Persistence`
+
+    Allows applications to introduce `*_destroy` callbacks that only run when
+    a record is destroyed in the background due to an association with the
+    `dependent: :destroy_async` option.
+
+    ```ruby
+    class Book < ActiveRecord::Base
+      has_many :essays, dependent: :destroy_async
+    end
+
+    class Essay < ActiveRecord::Base
+      before_destroy :callback, if: :destroying_async?
+
+      private
+        def callback
+          # Do something before this `Essay` is destroyed only if it was
+          # destroyed in the background due to a `Book` destruction.
+        end
+    end
+    ```
+
+    *Nick Holden*
+
 *   Fix `config.active_record.destroy_association_async_job` configuration
 
     `config.active_record.destroy_association_async_job` should allow
