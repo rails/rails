@@ -17,7 +17,7 @@ module ActiveRecord
       :and, :or, :annotate, :optimizer_hints, :extending,
       :having, :create_with, :distinct, :references, :none, :unscope, :merge, :except, :only,
       :count, :average, :minimum, :maximum, :sum, :calculate,
-      :pluck, :pick, :ids, :strict_loading, :excluding, :without
+      :pluck, :pick, :ids, :strict_loading, :excluding, :without, :async,
     ].freeze # :nodoc:
     delegate(*QUERYING_METHODS, to: :all)
 
@@ -46,8 +46,12 @@ module ActiveRecord
     #
     # Note that building your own SQL query string from user input may expose your application to
     # injection attacks (https://guides.rubyonrails.org/security.html#sql-injection).
-    def find_by_sql(sql, binds = [], preparable: nil, &block)
-      _load_from_sql(_query_by_sql(sql, binds, preparable: preparable), &block)
+    #
+    # If <tt>async: true</tt> is passed, an {ActiveRecord::Promise} will be returned.
+    def find_by_sql(sql, binds = [], preparable: nil, async: false, &block)
+      _query_by_sql(sql, binds, preparable: preparable, async: async).then do |result|
+        _load_from_sql(result, &block)
+      end
     end
 
     def _query_by_sql(sql, binds = [], preparable: nil, async: false) # :nodoc:
@@ -90,8 +94,10 @@ module ActiveRecord
     # ==== Parameters
     #
     # * +sql+ - An SQL statement which should return a count query from the database, see the example above.
-    def count_by_sql(sql)
-      connection.select_value(sanitize_sql(sql), "#{name} Count").to_i
+    #
+    # If <tt>async: true</tt> is passed, an {ActiveRecord::Promise} will be returned.
+    def count_by_sql(sql, async: false)
+      connection.select_value(sanitize_sql(sql), "#{name} Count", async: async).then(&:to_i)
     end
   end
 end

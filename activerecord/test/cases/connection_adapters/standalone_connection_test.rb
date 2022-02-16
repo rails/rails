@@ -18,9 +18,10 @@ module ActiveRecord
         assert_equal [[1]], result.rows
       end
 
-      def test_silently_ignore_async
+      def test_async_fallback
         result = @connection.select_all("SELECT 1", async: true)
-        assert_equal [[1]], result.rows
+        assert_instance_of FutureResult::Complete, result
+        assert_equal [[1]], result.result.rows
       end
 
       def test_can_throw_away

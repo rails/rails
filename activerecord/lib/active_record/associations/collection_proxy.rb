@@ -719,12 +719,12 @@ module ActiveRecord
       #   #    ]
 
       #--
-      def calculate(operation, column_name)
-        null_scope? ? scope.calculate(operation, column_name) : super
+      def calculate(operation, column_name, async: false)
+        null_scope? ? scope.calculate(operation, column_name, async: async) : super
       end
 
-      def pluck(*column_names)
-        null_scope? ? scope.pluck(*column_names) : super
+      def pluck(*column_names, async: false)
+        null_scope? ? scope.pluck(*column_names, async: async) : super
       end
 
       ##
