@@ -374,6 +374,20 @@ module Rails
         generators.colorize_logging = val
       end
 
+      # Specifies what class to use to store the session. Possible values
+      # are `:cookie_store`, `:mem_cache_store`, a custom store, or
+      # `:disabled`. `:disabled` tells Rails not to deal with sessions.
+      #
+      # Additional options will be set as +session_options+:
+      #
+      #   config.session_store :cookie_store, key: "_your_app_session"
+      #   config.session_options # => {key: "_your_app_session"}
+      #
+      # If a custom store is specified as a symbol, it will be resolved to
+      # the +ActionDispatch::Session+ namespace:
+      #
+      #   # use ActionDispatch::Session::MyCustomStore as the session store
+      #   config.session_store :my_custom_store
       def session_store(new_session_store = nil, **options)
         if new_session_store
           if new_session_store == :active_record_store
@@ -409,6 +423,7 @@ module Rails
         Rails::SourceAnnotationExtractor::Annotation
       end
 
+      # Configures the ActionDispatch::ContentSecurityPolicy.
       def content_security_policy(&block)
         if block_given?
           @content_security_policy = ActionDispatch::ContentSecurityPolicy.new(&block)
@@ -417,6 +432,7 @@ module Rails
         end
       end
 
+      # Configures the ActionDispatch::PermissionsPolicy.
       def permissions_policy(&block)
         if block_given?
           @permissions_policy = ActionDispatch::PermissionsPolicy.new(&block)
