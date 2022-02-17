@@ -1075,17 +1075,14 @@ Here is a list of common headers:
 * **Access-Control-Allow-Origin:** Used to control which sites are allowed to bypass same origin policies and send cross-origin requests.
 * **Strict-Transport-Security:** [Used to control if the browser is allowed to only access a site over a secure connection](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security)
 
-### Content Security Policy
+### Content-Security-Policy Header
 
 To help protect against XSS and injection attacks, it is recommended to define a
-[Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
-for your application. Rails provides a DSL that allows you to configure a
-Content Security Policy. You can configure a global default policy and then
-override it on a per-resource basis and even use lambdas to inject per-request
-values into the header such as account subdomains in a multi-tenant
-application.
+[Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
+response header for your application. Rails provides a DSL that allows you to
+configure the header.
 
-Example global policy:
+Define the security policy in the appropriate initializer:
 
 ```ruby
 # config/initializers/content_security_policy.rb
@@ -1096,57 +1093,65 @@ Rails.application.config.content_security_policy do |policy|
   policy.object_src  :none
   policy.script_src  :self, :https
   policy.style_src   :self, :https
-
   # Specify URI for violation reports
   policy.report_uri "/csp-violation-report-endpoint"
 end
 ```
 
-Example controller overrides:
+The globally configured policy can be overridden on a per-resource basis:
 
 ```ruby
-# Override policy inline
 class PostsController < ApplicationController
   content_security_policy do |policy|
     policy.upgrade_insecure_requests true
-  end
-end
-
-# Using literal values
-class PostsController < ApplicationController
-  content_security_policy do |policy|
     policy.base_uri "https://www.example.com"
   end
 end
+```
 
-# Using mixed static and dynamic values
-class PostsController < ApplicationController
-  content_security_policy do |policy|
-    policy.base_uri :self, -> { "https://#{current_user.domain}.example.com" }
-  end
-end
+Or it can be disabled:
 
-# Disabling the global CSP
+```ruby
 class LegacyPagesController < ApplicationController
   content_security_policy false, only: :index
 end
 ```
 
-#### Reporting Violations
-
-Use the `content_security_policy_report_only`
-configuration attribute to set
-[Content-Security-Policy-Report-Only](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only)
-in order to report only content violations for migrating
-legacy content
+Use lambdas to inject per-request values, such as account subdomains in a
+multi-tenant application:
 
 ```ruby
-# config/initializers/content_security_policy.rb
+class PostsController < ApplicationController
+  content_security_policy do |policy|
+    policy.base_uri :self, -> { "https://#{current_user.domain}.example.com" }
+  end
+end
+```
+
+#### Reporting Violations
+
+Enable the
+[report-uri](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri)
+directive to report violations to the specified URI:
+
+```ruby
+Rails.application.config.content_security_policy do |policy|
+  policy.report_uri "/csp-violation-report-endpoint"
+end
+```
+
+When migrating legacy content, you might want to report violations without
+enforcing the policy. Set the
+[Content-Security-Policy-Report-Only](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only)
+response header to only report violations:
+
+```ruby
 Rails.application.config.content_security_policy_report_only = true
 ```
 
+Or override it in a controller:
+
 ```ruby
-# Controller override
 class PostsController < ApplicationController
   content_security_policy_report_only only: :index
 end
