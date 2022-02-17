@@ -1,3 +1,5 @@
+*   Deprecate `Notification::Event`'s `#children` and `#parent_of?`
+
 *   Change default serialization format of `MessageEncryptor` from `Marshal` to `JSON` for Rails 7.1.
 
     Existing apps are provided with an upgrade path to migrate to `JSON` as described in `guides/source/upgrading_ruby_on_rails.md`
