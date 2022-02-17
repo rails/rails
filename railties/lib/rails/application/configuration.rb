@@ -278,7 +278,10 @@ module Rails
         @loaded_config_version = target_version
       end
 
-      def encoding=(value)
+      # :attr_writer: encoding
+
+      # Documentated as an attr_writer
+      def encoding=(value) # :nodoc:
         @encoding = value
         silence_warnings do
           Encoding.default_external = value
@@ -286,6 +289,8 @@ module Rails
         end
       end
 
+      # Configures the application to be API only. Sets the debugging
+      # information rendering to preserve the response format.
       def api_only=(value)
         @api_only = value
         generators.api_only = value
@@ -293,7 +298,10 @@ module Rails
         @debug_exception_response_format ||= :api
       end
 
-      def debug_exception_response_format
+      # :attr_accessor: debug_exception_response_format
+
+      # Documentated as an attr_accessor
+      def debug_exception_response_format # :nodoc:
         @debug_exception_response_format || :default
       end
 
@@ -365,11 +373,17 @@ module Rails
         raise e, "Cannot load database configuration:\n#{e.message}", e.backtrace
       end
 
-      def colorize_logging
+      # :attr_reader: colorize_logging
+
+      # Documentated as an attr_reader
+      def colorize_logging # :nodoc:
         ActiveSupport::LogSubscriber.colorize_logging
       end
 
-      def colorize_logging=(val)
+      # :attr_writer: colorize_logging
+
+      # Documentated as an attr_accessor
+      def colorize_logging=(val) # :nodoc:
         ActiveSupport::LogSubscriber.colorize_logging = val
         generators.colorize_logging = val
       end
