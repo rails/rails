@@ -23,145 +23,197 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     assert_equal copied.build, @policy.build
   end
 
+  def test_deprecated_falsy_argument
+    ActiveSupport::Deprecation.silence do
+      # want to make sure this makes a deprecation but don't know how
+
+      # this call used to empty the value but now it's just a reader
+      @policy.script_src :data
+      assert_not_nil @policy.script_src
+      assert_not_nil @policy.script_src
+
+      # Call with false will still empty the set
+      @policy.script_src(false)
+      assert_nil @policy.script_src
+    end
+  end
+
   def test_mappings
+    @policy.script_src :data, clear: true
+    assert_equal "script-src data:", @policy.build
+
+    @policy.script_src :mediastream, clear: true
+    assert_equal "script-src mediastream:", @policy.build
+
+    @policy.script_src :blob, clear: true
+    assert_equal "script-src blob:", @policy.build
+
+    @policy.script_src :filesystem, clear: true
+    assert_equal "script-src filesystem:", @policy.build
+
+    @policy.script_src :self, clear: true
+    assert_equal "script-src 'self'", @policy.build
+
+    @policy.script_src :unsafe_inline, clear: true
+    assert_equal "script-src 'unsafe-inline'", @policy.build
+
+    @policy.script_src :unsafe_eval, clear: true
+    assert_equal "script-src 'unsafe-eval'", @policy.build
+
+    @policy.script_src :none, clear: true
+    assert_equal "script-src 'none'", @policy.build
+
+    @policy.script_src :strict_dynamic, clear: true
+    assert_equal "script-src 'strict-dynamic'", @policy.build
+
+    @policy.script_src :ws, clear: true
+    assert_equal "script-src ws:", @policy.build
+
+    @policy.script_src :wss, clear: true
+    assert_equal "script-src wss:", @policy.build
+
+    @policy.script_src :none, :report_sample, clear: true
+    assert_equal "script-src 'none' 'report-sample'", @policy.build
+  end
+
+  def test_directive_stacking
     @policy.script_src :data
     assert_equal "script-src data:", @policy.build
 
     @policy.script_src :mediastream
-    assert_equal "script-src mediastream:", @policy.build
+    assert_equal "script-src data: mediastream:", @policy.build
 
     @policy.script_src :blob
-    assert_equal "script-src blob:", @policy.build
+    assert_equal "script-src data: mediastream: blob:", @policy.build
 
-    @policy.script_src :filesystem
-    assert_equal "script-src filesystem:", @policy.build
+    @policy.script_src :blob
+    assert_equal "script-src data: mediastream: blob:", @policy.build
 
-    @policy.script_src :self
-    assert_equal "script-src 'self'", @policy.build
+    @policy.script_src clear: true
+    assert_equal "", @policy.build
+  end
 
-    @policy.script_src :unsafe_inline
-    assert_equal "script-src 'unsafe-inline'", @policy.build
+  def test_directive_reader
+    @policy.script_src :data
+    assert_deprecated do
+      assert_equal Set["data:"], @policy.script_src
+    end
+    assert_deprecated do
+      assert_equal Set["data:"], @policy.script_src
+    end
+    @policy.script_src :blob, "https:example.com"
 
-    @policy.script_src :unsafe_eval
-    assert_equal "script-src 'unsafe-eval'", @policy.build
+    assert_deprecated do
+      assert_equal Set["data:", "blob:", "https:example.com"], @policy.script_src
+    end
+    @policy.script_src clear: true
 
-    @policy.script_src :none
-    assert_equal "script-src 'none'", @policy.build
-
-    @policy.script_src :strict_dynamic
-    assert_equal "script-src 'strict-dynamic'", @policy.build
-
-    @policy.script_src :ws
-    assert_equal "script-src ws:", @policy.build
-
-    @policy.script_src :wss
-    assert_equal "script-src wss:", @policy.build
-
-    @policy.script_src :none, :report_sample
-    assert_equal "script-src 'none' 'report-sample'", @policy.build
+    assert_deprecated do
+      assert_nil @policy.script_src
+    end
   end
 
   def test_fetch_directives
-    @policy.child_src :self
+    @policy.child_src :self, clear: true
     assert_match %r{child-src 'self'}, @policy.build
 
-    @policy.child_src false
+    @policy.child_src clear: true
     assert_no_match %r{child-src}, @policy.build
 
     @policy.connect_src :self
     assert_match %r{connect-src 'self'}, @policy.build
 
-    @policy.connect_src false
+    @policy.connect_src clear: true
     assert_no_match %r{connect-src}, @policy.build
 
     @policy.default_src :self
     assert_match %r{default-src 'self'}, @policy.build
 
-    @policy.default_src false
+    @policy.default_src clear: true
     assert_no_match %r{default-src}, @policy.build
 
     @policy.font_src :self
     assert_match %r{font-src 'self'}, @policy.build
 
-    @policy.font_src false
+    @policy.font_src clear: true
     assert_no_match %r{font-src}, @policy.build
 
     @policy.frame_src :self
     assert_match %r{frame-src 'self'}, @policy.build
 
-    @policy.frame_src false
+    @policy.frame_src clear: true
     assert_no_match %r{frame-src}, @policy.build
 
     @policy.img_src :self
     assert_match %r{img-src 'self'}, @policy.build
 
-    @policy.img_src false
+    @policy.img_src clear: true
     assert_no_match %r{img-src}, @policy.build
 
     @policy.manifest_src :self
     assert_match %r{manifest-src 'self'}, @policy.build
 
-    @policy.manifest_src false
+    @policy.manifest_src clear: true
     assert_no_match %r{manifest-src}, @policy.build
 
     @policy.media_src :self
     assert_match %r{media-src 'self'}, @policy.build
 
-    @policy.media_src false
+    @policy.media_src clear: true
     assert_no_match %r{media-src}, @policy.build
 
     @policy.object_src :self
     assert_match %r{object-src 'self'}, @policy.build
 
-    @policy.object_src false
+    @policy.object_src clear: true
     assert_no_match %r{object-src}, @policy.build
 
     @policy.prefetch_src :self
     assert_match %r{prefetch-src 'self'}, @policy.build
 
-    @policy.prefetch_src false
+    @policy.prefetch_src clear: true
     assert_no_match %r{prefetch-src}, @policy.build
 
     @policy.script_src :self
     assert_match %r{script-src 'self'}, @policy.build
 
-    @policy.script_src false
+    @policy.script_src clear: true
     assert_no_match %r{script-src}, @policy.build
 
     @policy.script_src_attr :self
     assert_match %r{script-src-attr 'self'}, @policy.build
 
-    @policy.script_src_attr false
+    @policy.script_src_attr clear: true
     assert_no_match %r{script-src-attr}, @policy.build
 
     @policy.script_src_elem :self
     assert_match %r{script-src-elem 'self'}, @policy.build
 
-    @policy.script_src_elem false
+    @policy.script_src_elem clear: true
     assert_no_match %r{script-src-elem}, @policy.build
 
     @policy.style_src :self
     assert_match %r{style-src 'self'}, @policy.build
 
-    @policy.style_src false
+    @policy.style_src clear: true
     assert_no_match %r{style-src}, @policy.build
 
     @policy.style_src_attr :self
     assert_match %r{style-src-attr 'self'}, @policy.build
 
-    @policy.style_src_attr false
+    @policy.style_src_attr clear: true
     assert_no_match %r{style-src-attr}, @policy.build
 
     @policy.style_src_elem :self
     assert_match %r{style-src-elem 'self'}, @policy.build
 
-    @policy.style_src_elem false
+    @policy.style_src_elem clear: true
     assert_no_match %r{style-src-elem}, @policy.build
 
     @policy.worker_src :self
     assert_match %r{worker-src 'self'}, @policy.build
 
-    @policy.worker_src false
+    @policy.worker_src clear: true
     assert_no_match %r{worker-src}, @policy.build
   end
 
@@ -172,13 +224,16 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     @policy.plugin_types "application/x-shockwave-flash"
     assert_match %r{plugin-types application/x-shockwave-flash}, @policy.build
 
-    @policy.sandbox
+    @policy.plugin_types "application/stream"
+    assert_match %r{plugin-types application/x-shockwave-flash application/stream}, @policy.build
+
+    @policy.sandbox true
     assert_match %r{sandbox}, @policy.build
 
     @policy.sandbox "allow-scripts", "allow-modals"
     assert_match %r{sandbox allow-scripts allow-modals}, @policy.build
 
-    @policy.sandbox false
+    @policy.sandbox clear: true
     assert_no_match %r{sandbox}, @policy.build
   end
 
@@ -191,12 +246,21 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
   end
 
   def test_reporting_directives
+    assert_no_match %r{report-uri}, @policy.build
+
     @policy.report_uri "/violations"
     assert_match %r{report-uri /violations}, @policy.build
+
+    @policy.report_uri "/v2/violations"
+    assert_match %r{report-uri /violations /v2/violations}, @policy.build
+
+    @policy.report_uri clear: true
+    assert_no_match %r{report-uri}, @policy.build
   end
 
   def test_other_directives
-    @policy.block_all_mixed_content
+    @policy.block_all_mixed_content true
+    assert_equal true, @policy.block_all_mixed_content
     assert_match %r{block-all-mixed-content}, @policy.build
 
     @policy.block_all_mixed_content false
@@ -208,28 +272,28 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     @policy.require_sri_for "script", "style"
     assert_match %r{require-sri-for script style}, @policy.build
 
-    @policy.require_sri_for
+    @policy.require_sri_for clear: true
     assert_no_match %r{require-sri-for}, @policy.build
 
     @policy.require_trusted_types_for :script
     assert_match %r{require-trusted-types-for 'script'}, @policy.build
 
-    @policy.require_trusted_types_for
+    @policy.require_trusted_types_for clear: true
     assert_no_match %r{require-trusted-types-for}, @policy.build
 
-    @policy.trusted_types :none
+    @policy.trusted_types :none, clear: true
     assert_match %r{trusted-types 'none'}, @policy.build
 
-    @policy.trusted_types "foo", "bar"
+    @policy.trusted_types "foo", "bar", clear: true
     assert_match %r{trusted-types foo bar}, @policy.build
 
-    @policy.trusted_types "foo", "bar", :allow_duplicates
+    @policy.trusted_types "foo", "bar", :allow_duplicates, clear: true
     assert_match %r{trusted-types foo bar 'allow-duplicates'}, @policy.build
 
-    @policy.trusted_types
+    @policy.trusted_types clear: true
     assert_no_match %r{trusted-types}, @policy.build
 
-    @policy.upgrade_insecure_requests
+    @policy.upgrade_insecure_requests true
     assert_match %r{upgrade-insecure-requests}, @policy.build
 
     @policy.upgrade_insecure_requests false
@@ -366,29 +430,34 @@ end
 class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
   class PolicyController < ActionController::Base
     content_security_policy only: :inline do |p|
-      p.default_src "https://example.com"
+      p.default_src "https://example.com", clear: true
     end
 
     content_security_policy only: :conditional, if: :condition? do |p|
-      p.default_src "https://true.example.com"
+      p.default_src "https://true.example.com",  clear: true
     end
 
     content_security_policy only: :conditional, unless: :condition? do |p|
-      p.default_src "https://false.example.com"
+      p.default_src "https://false.example.com",  clear: true
     end
 
     content_security_policy only: :report_only do |p|
-      p.report_uri "/violations"
+      p.report_uri "/violations", clear: true
     end
 
     content_security_policy only: :script_src do |p|
-      p.default_src false
-      p.script_src :self
+      p.default_src clear: true
+      p.script_src :self, clear: true
     end
 
     content_security_policy only: :style_src do |p|
-      p.default_src false
-      p.style_src :self
+      p.default_src clear: true
+      p.style_src :self, clear: true
+    end
+
+    content_security_policy only: :additional_src do |p|
+      p.default_src :unsafe_eval
+      p.script_src clear: true
     end
 
     content_security_policy(false, only: :no_policy)
@@ -415,6 +484,10 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       head :ok
     end
 
+    def additional_src
+      head :ok
+    end
+
     def style_src
       head :ok
     end
@@ -438,6 +511,7 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       get "/report-only", to: "policy#report_only"
       get "/script-src", to: "policy#script_src"
       get "/style-src", to: "policy#style_src"
+      get "/additional-src", to: "policy#additional_src"
       get "/no-policy", to: "policy#no_policy"
     end
   end
@@ -496,6 +570,11 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
   def test_adds_nonce_to_script_src_content_security_policy
     get "/script-src"
     assert_policy "script-src 'self' 'nonce-iyhD0Yc0W+c='"
+  end
+
+  def test_adds_src_unless_clear_is_passed
+    get "/additional-src"
+    assert_policy "default-src 'self' 'unsafe-eval'"
   end
 
   def test_adds_nonce_to_style_src_content_security_policy
