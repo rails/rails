@@ -267,7 +267,7 @@ module ActiveRecord
       end
 
       def assert_valid_enum_definition_values(values)
-        unless values.is_a?(Hash) || values.all?(Symbol) || values.all?(String)
+        unless values.is_a?(Hash) || values.is_a?(Array) || values.all?(Symbol) || values.all?(String)
           error_message = <<~MSG
             Enum values #{values} must be either a hash, an array of symbols, or an array of strings.
           MSG
