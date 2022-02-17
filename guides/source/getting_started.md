@@ -308,7 +308,7 @@ and see our text displayed!
 
 ### Setting the Application Home Page
 
-At the moment, <http://localhost:3000> still displays "Yay! You're on Rails!".
+At the moment, <http://localhost:3000> still displays a page with the Ruby on Rails logo.
 Let's display our "Hello, Rails!" text at <http://localhost:3000> as well. To do
 so, we will add a route that maps the *root path* of our application to the
 appropriate controller and action.
@@ -1442,7 +1442,7 @@ controller. Again, we'll use the same generator we used before:
 $ bin/rails generate controller Comments
 ```
 
-This creates four files and one empty directory:
+This creates three files and one empty directory:
 
 | File/Directory                               | Purpose                                  |
 | -------------------------------------------- | ---------------------------------------- |
@@ -1450,7 +1450,6 @@ This creates four files and one empty directory:
 | app/views/comments/                          | Views of the controller are stored here  |
 | test/controllers/comments_controller_test.rb | The test for the controller              |
 | app/helpers/comments_helper.rb               | A view helper file                       |
-| app/assets/stylesheets/comments.scss         | Cascading style sheet for the controller |
 
 Like with any blog, our readers will create their comments directly after
 reading the article, and once they have added their comment, will be sent back
