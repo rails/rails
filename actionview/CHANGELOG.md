@@ -1,3 +1,8 @@
+*   Ensure models passed to `form_for` attempt to call `to_model`.
+
+    *Sean Doyle*
+
+
 ## Rails 7.0.2.2 (February 11, 2022) ##
 
 *   No changes.
