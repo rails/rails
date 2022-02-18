@@ -56,7 +56,8 @@ module ActiveStorage
     def attach(attachable)
       if record.persisted? && !record.changed?
         record.public_send("#{name}=", attachable)
-        record.save
+        return record.public_send("#{name}") if record.save
+        false
       else
         record.public_send("#{name}=", attachable)
       end
