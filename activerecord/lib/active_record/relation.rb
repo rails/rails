@@ -736,7 +736,7 @@ module ActiveRecord
     #
     #   User.where(name: 'Oscar').where_values_hash
     #   # => {name: "Oscar"}
-    def where_values_hash(relation_table_name = klass.table_name)
+    def where_values_hash(relation_table_name = klass.table_name) # :nodoc:
       where_clause.to_h(relation_table_name)
     end
 
