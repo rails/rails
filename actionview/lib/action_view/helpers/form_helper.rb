@@ -1087,7 +1087,7 @@ module ActionView
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). The text of label will default to the attribute name unless a translation
-      # is found in the current I18n locale (through helpers.label.<modelname>.<attribute>) or you specify it explicitly.
+      # is found in the current I18n locale (through <tt>helpers.label.<modelname>.<attribute></tt>) or you specify it explicitly.
       # Additional options on the label tag can be passed as a hash with +options+. These options will be tagged
       # onto the HTML as an HTML element attribute as in the example shown, except for the <tt>:value</tt> option, which is designed to
       # target labels for radio_button tags (where the value is used in the ID of the input tag).
@@ -2302,7 +2302,7 @@ module ActionView
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). The text of label will default to the attribute name unless a translation
-      # is found in the current I18n locale (through helpers.label.<modelname>.<attribute>) or you specify it explicitly.
+      # is found in the current I18n locale (through <tt>helpers.label.<modelname>.<attribute></tt>) or you specify it explicitly.
       # Additional options on the label tag can be passed as a hash with +options+. These options will be tagged
       # onto the HTML as an HTML element attribute as in the example shown, except for the <tt>:value</tt> option, which is designed to
       # target labels for radio_button tags (where the value is used in the ID of the input tag).

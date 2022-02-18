@@ -91,7 +91,7 @@ module ActionController
         end
       end
 
-      # Override modules_for_helpers to accept :all as argument, which loads
+      # Override modules_for_helpers to accept +:all+ as argument, which loads
       # all helpers in helpers_path.
       #
       # ==== Parameters

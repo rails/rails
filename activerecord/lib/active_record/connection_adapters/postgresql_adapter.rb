@@ -116,8 +116,8 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::NATIVE_DATABASE_TYPES[:my_custom_type] = { name: "my_custom_type_name" }
       #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type = :my_custom_type
       #
-      # If you're using :ruby as your config.active_record.schema_format and you change this
-      # setting, you should immediately run bin/rails db:migrate to update the types in your schema.rb.
+      # If you're using +:ruby+ as your +config.active_record.schema_format+ and you change this
+      # setting, you should immediately run <tt>bin/rails db:migrate</tt> to update the types in your schema.rb.
       class_attribute :datetime_type, default: :timestamp
 
       NATIVE_DATABASE_TYPES = {

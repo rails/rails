@@ -9,7 +9,7 @@
 # So the values are scoped within the Thread.current space under the class name
 # of the module.
 #
-# Note that it can also be scoped per-fiber if Rails.application.config.active_support.isolation_level
+# Note that it can also be scoped per-fiber if +Rails.application.config.active_support.isolation_level+
 # is set to +:fiber+.
 class Module
   # Defines a per-thread class attribute and creates class and instance reader methods.
