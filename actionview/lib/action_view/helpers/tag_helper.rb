@@ -208,7 +208,7 @@ module ActionView
       #
       # Thus <tt>data-user-id</tt> can be accessed as <tt>dataset.userId</tt>.
       #
-      # Data attribute values are encoded to JSON, with the exception of strings, symbols and
+      # Data attribute values are encoded to JSON, with the exception of strings, symbols, and
       # BigDecimals.
       # This may come in handy when using jQuery's HTML5-aware <tt>.data()</tt>
       # from 1.4.3.

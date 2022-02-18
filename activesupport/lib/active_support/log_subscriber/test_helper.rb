@@ -33,7 +33,7 @@ module ActiveSupport
     # The messages are available in the @logger instance, which is a logger with
     # limited powers (it actually does not send anything to your output), and
     # you can collect them doing @logger.logged(level), where level is the level
-    # used in logging, like info, debug, warn and so on.
+    # used in logging, like info, debug, warn, and so on.
     module TestHelper
       def setup # :nodoc:
         @logger   = MockLogger.new

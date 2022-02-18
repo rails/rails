@@ -147,7 +147,7 @@ module ActiveModel
       }
     end
 
-    # Search for errors matching +attribute+, +type+ or +options+.
+    # Search for errors matching +attribute+, +type+, or +options+.
     #
     # Only supplied params will be matched.
     #
@@ -427,7 +427,7 @@ module ActiveModel
     # if it's not there, it's looked up in <tt>activemodel.errors.models.MODEL.MESSAGE</tt> and if
     # that is not there also, it returns the translation of the default message
     # (e.g. <tt>activemodel.errors.messages.MESSAGE</tt>). The translated model
-    # name, translated attribute name and the value are available for
+    # name, translated attribute name, and the value are available for
     # interpolation.
     #
     # When using inheritance in your models, it will check all the inherited

@@ -13,7 +13,7 @@ module ActiveSupport
   # system's <tt>ENV['TZ']</tt> zone.
   #
   # You shouldn't ever need to create a TimeWithZone instance directly via +new+.
-  # Instead use methods +local+, +parse+, +at+ and +now+ on TimeZone instances,
+  # Instead use methods +local+, +parse+, +at+, and +now+ on TimeZone instances,
   # and +in_time_zone+ on Time and DateTime instances.
   #
   #   Time.zone = 'Eastern Time (US & Canada)'        # => 'Eastern Time (US & Canada)'
@@ -395,8 +395,8 @@ module ActiveSupport
     # Returns a new +ActiveSupport::TimeWithZone+ where one or more of the elements have
     # been changed according to the +options+ parameter. The time options (<tt>:hour</tt>,
     # <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>) reset cascadingly,
-    # so if only the hour is passed, then minute, sec, usec and nsec is set to 0. If the
-    # hour and minute is passed, then sec, usec and nsec is set to 0. The +options+
+    # so if only the hour is passed, then minute, sec, usec, and nsec is set to 0. If the
+    # hour and minute is passed, then sec, usec, and nsec is set to 0. The +options+
     # parameter takes a hash with any of these keys: <tt>:year</tt>, <tt>:month</tt>,
     # <tt>:day</tt>, <tt>:hour</tt>, <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>,
     # <tt>:nsec</tt>, <tt>:offset</tt>, <tt>:zone</tt>. Pass either <tt>:usec</tt>

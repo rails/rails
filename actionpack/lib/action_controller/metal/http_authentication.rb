@@ -5,7 +5,7 @@ require "active_support/security_utils"
 require "active_support/core_ext/array/access"
 
 module ActionController
-  # HTTP Basic, Digest and Token authentication.
+  # HTTP Basic, Digest, and Token authentication.
   module HttpAuthentication
     # HTTP \Basic authentication.
     #
@@ -301,7 +301,7 @@ module ActionController
       #
       # An implementation might choose not to accept a previously used nonce or a previously used digest, in order to
       # protect against a replay attack. Or, an implementation might choose to use one-time nonces or digests for
-      # POST, PUT, or PATCH requests and a time-stamp for GET requests. For more details on the issues involved see Section 4
+      # POST, PUT, or PATCH requests, and a time-stamp for GET requests. For more details on the issues involved see Section 4
       # of this document.
       #
       # The nonce is opaque to the client. Composed of Time, and hash of Time with secret

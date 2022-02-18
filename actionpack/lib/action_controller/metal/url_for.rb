@@ -8,7 +8,7 @@ module ActionController
   # URL options like the +host+. In order to do so, this module requires the host class
   # to implement +env+ which needs to be Rack-compatible and +request+
   # which is either an instance of +ActionDispatch::Request+ or an object
-  # that responds to the +host+, +optional_port+, +protocol+ and
+  # that responds to the +host+, +optional_port+, +protocol+, and
   # +symbolized_path_parameter+ methods.
   #
   #   class RootUrl

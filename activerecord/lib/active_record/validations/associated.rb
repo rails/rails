@@ -42,14 +42,14 @@ module ActiveRecord
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
-      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
+      # * <tt>:if</tt> - Specifies a method, proc, or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
-      # * <tt>:unless</tt> - Specifies a method, proc or string to call to
+      # * <tt>:unless</tt> - Specifies a method, proc, or string to call to
       #   determine if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
-      #   method, proc or string should return or evaluate to a +true+ or +false+
+      #   method, proc, or string should return or evaluate to a +true+ or +false+
       #   value.
       def validates_associated(*attr_names)
         validates_with AssociatedValidator, _merge_attributes(attr_names)
