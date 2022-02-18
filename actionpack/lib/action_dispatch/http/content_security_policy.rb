@@ -3,9 +3,9 @@
 require "active_support/core_ext/object/deep_dup"
 
 module ActionDispatch # :nodoc:
-  # Allows configuring a
+  # Configures the HTTP
   # {Content-Security-Policy}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy]
-  # to help protect against XSS and injection attacks.
+  # response header to help protect against XSS and injection attacks.
   #
   # Example global policy:
   #
