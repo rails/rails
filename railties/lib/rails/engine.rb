@@ -31,7 +31,7 @@ module Rails
   #   end
   #
   # Then ensure that this file is loaded at the top of your <tt>config/application.rb</tt>
-  # (or in your +Gemfile+), and it will automatically load models, controllers and helpers
+  # (or in your +Gemfile+), and it will automatically load models, controllers, and helpers
   # inside +app+, load routes at <tt>config/routes.rb</tt>, load locales at
   # <tt>config/locales/**/*</tt>, and load tasks at <tt>lib/tasks/**/*</tt>.
   #
@@ -192,13 +192,13 @@ module Rails
   #
   # == Isolated Engine
   #
-  # Normally when you create controllers, helpers and models inside an engine, they are treated
+  # Normally when you create controllers, helpers, and models inside an engine, they are treated
   # as if they were created inside the application itself. This means that all helpers and
   # named routes from the application will be available to your engine's controllers as well.
   #
   # However, sometimes you want to isolate your engine from the application, especially if your engine
   # has its own router. To do that, you simply need to call +isolate_namespace+. This method requires
-  # you to pass a module where all your controllers, helpers and models should be nested to:
+  # you to pass a module where all your controllers, helpers, and models should be nested to:
   #
   #   module MyEngine
   #     class Engine < Rails::Engine

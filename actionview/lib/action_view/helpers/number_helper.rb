@@ -9,7 +9,7 @@ module ActionView
   module Helpers # :nodoc:
     # Provides methods for converting numbers into formatted strings.
     # Methods are provided for phone numbers, currency, percentage,
-    # precision, positional notation, file size and pretty printing.
+    # precision, positional notation, file size, and pretty printing.
     #
     # Most methods expect a +number+ argument, and will return it
     # unchanged if can't be converted into a valid number.

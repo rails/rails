@@ -126,7 +126,7 @@ module ActiveModel
 
   # +EachValidator+ is a validator which iterates through the attributes given
   # in the options hash invoking the <tt>validate_each</tt> method passing in the
-  # record, attribute and value.
+  # record, attribute, and value.
   #
   # All \Active \Model validations are built on top of this validator.
   class EachValidator < Validator

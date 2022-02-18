@@ -28,7 +28,7 @@ module ActiveSupport
   #   end
   #
   # Additionally a +severity+ can be passed along to communicate how important the error report is.
-  # +severity+ can be one of +:error+, +:warning+ or +:info+. Handled errors default to the +:warning+
+  # +severity+ can be one of +:error+, +:warning+, or +:info+. Handled errors default to the +:warning+
   # severity, and unhandled ones to +:error+.
   #
   # Both +handle+ and +record+ pass through the return value from the block. In the case of +handle+

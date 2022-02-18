@@ -40,7 +40,7 @@ module ActiveRecord
     # but the Book model connects to a separate database called "library_db"
     # (this can even be a database on a different machine).
     #
-    # Book, ScaryBook and GoodBook will all use the same connection pool to
+    # Book, ScaryBook, and GoodBook will all use the same connection pool to
     # "library_db" while Author, BankAccount, and any other models you create
     # will use the default connection pool to "my_application".
     #

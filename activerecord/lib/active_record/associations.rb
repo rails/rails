@@ -432,7 +432,7 @@ module ActiveRecord
       #
       # == Cardinality and associations
       #
-      # Active Record associations can be used to describe one-to-one, one-to-many and many-to-many
+      # Active Record associations can be used to describe one-to-one, one-to-many, and many-to-many
       # relationships between models. Each model uses an association to describe its role in
       # the relation. The #belongs_to association is always used in the model that has
       # the foreign key.
@@ -586,7 +586,7 @@ module ActiveRecord
       #     has_many :birthday_events, ->(user) { where(starts_on: user.birthday) }, class_name: 'Event'
       #   end
       #
-      # Note: Joining, eager loading and preloading of these associations is not possible.
+      # Note: Joining, eager loading, and preloading of these associations is not possible.
       # These operations happen before instance creation and the scope will be called with a +nil+ argument.
       #
       # == Association callbacks
@@ -618,7 +618,7 @@ module ActiveRecord
       #              after_remove: :log_after_remove
       #   end
       #
-      # Possible callbacks are: +before_add+, +after_add+, +before_remove+ and +after_remove+.
+      # Possible callbacks are: +before_add+, +after_add+, +before_remove+, and +after_remove+.
       #
       # If any of the +before_add+ callbacks throw an exception, the object will not be
       # added to the collection.
@@ -1332,7 +1332,7 @@ module ActiveRecord
         # === Extensions
         #
         # The +extension+ argument allows you to pass a block into a has_many
-        # association. This is useful for adding new finders, creators and other
+        # association. This is useful for adding new finders, creators, and other
         # factory-type methods to be used as part of the association.
         #
         # Extension examples:
@@ -1904,7 +1904,7 @@ module ActiveRecord
         #
         # The +extension+ argument allows you to pass a block into a
         # has_and_belongs_to_many association. This is useful for adding new
-        # finders, creators and other factory-type methods to be used as part of
+        # finders, creators, and other factory-type methods to be used as part of
         # the association.
         #
         # Extension examples:

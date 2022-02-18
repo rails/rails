@@ -26,7 +26,7 @@ module Rails
         ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence || "development"
       end
 
-      # Receives a namespace, arguments and the behavior to invoke the command.
+      # Receives a namespace, arguments, and the behavior to invoke the command.
       def invoke(full_namespace, args = [], **config)
         namespace = full_namespace = full_namespace.to_s
 

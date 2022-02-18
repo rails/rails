@@ -27,7 +27,7 @@ module Rails
   # Besides providing the same configuration as Rails::Engine and Rails::Railtie,
   # the application object has several specific configurations, for example
   # "cache_classes", "consider_all_requests_local", "filter_parameters",
-  # "logger" and so forth.
+  # "logger", and so forth.
   #
   # Check Rails::Application::Configuration to see them all.
   #
@@ -52,9 +52,9 @@ module Rails
   #   4)  Run config.before_configuration callbacks
   #   5)  Load config/environments/ENV.rb
   #   6)  Run config.before_initialize callbacks
-  #   7)  Run Railtie#initializer defined by railties, engines and application.
+  #   7)  Run Railtie#initializer defined by railties, engines, and application.
   #       One by one, each engine sets up its load paths and routes, and runs its config/initializers/* files.
-  #   8)  Custom Railtie#initializers added by railties, engines and applications are executed
+  #   8)  Custom Railtie#initializers added by railties, engines, and applications are executed
   #   9)  Build the middleware stack and run to_prepare callbacks
   #   10) Run config.before_eager_load and eager_load! if eager_load is true
   #   11) Run config.after_initialize callbacks

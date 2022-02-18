@@ -13,7 +13,7 @@ module ActiveSupport
   #   (e.g., "Eastern Time (US & Canada)" instead of "America/New_York").
   # * Lazily load TZInfo::Timezone instances only when they're needed.
   # * Create ActiveSupport::TimeWithZone instances via TimeZone's +local+,
-  #   +parse+, +at+ and +now+ methods.
+  #   +parse+, +at+, and +now+ methods.
   #
   # If you set <tt>config.time_zone</tt> in the Rails Application, you can
   # access this TimeZone object via <tt>Time.zone</tt>:

@@ -73,14 +73,14 @@ module ActiveModel
       #   <tt>on: [:create, :custom_validation_context]</tt>)
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
-      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
+      # * <tt>:if</tt> - Specifies a method, proc, or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
-      # * <tt>:unless</tt> - Specifies a method, proc or string to call to
+      # * <tt>:unless</tt> - Specifies a method, proc, or string to call to
       #   determine if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
-      #   method, proc or string should return or evaluate to a +true+ or +false+
+      #   method, proc, or string should return or evaluate to a +true+ or +false+
       #   value.
       def validates_each(*attr_names, &block)
         validates_with BlockValidator, _merge_attributes(attr_names), &block
@@ -137,14 +137,14 @@ module ActiveModel
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
-      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
+      # * <tt>:if</tt> - Specifies a method, proc, or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
-      # * <tt>:unless</tt> - Specifies a method, proc or string to call to
+      # * <tt>:unless</tt> - Specifies a method, proc, or string to call to
       #   determine if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
-      #   method, proc or string should return or evaluate to a +true+ or +false+
+      #   method, proc, or string should return or evaluate to a +true+ or +false+
       #   value.
       #
       # NOTE: Calling +validate+ multiple times on the same method will overwrite previous definitions.

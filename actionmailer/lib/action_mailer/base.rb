@@ -106,7 +106,7 @@ module ActionMailer
   #   You got a new note!
   #   <%= truncate(@note.body, length: 25) %>
   #
-  # If you need to access the subject, from or the recipients in the view, you can do that through message object:
+  # If you need to access the subject, from, or the recipients in the view, you can do that through message object:
   #
   #   You got a new note from <%= message.from %>!
   #   <%= truncate(@note.body, length: 25) %>
@@ -493,28 +493,28 @@ module ActionMailer
       end
 
       # Register an Observer which will be notified when mail is delivered.
-      # Either a class, string or symbol can be passed in as the Observer.
+      # Either a class, string, or symbol can be passed in as the Observer.
       # If a string or symbol is passed in it will be camelized and constantized.
       def register_observer(observer)
         Mail.register_observer(observer_class_for(observer))
       end
 
       # Unregister a previously registered Observer.
-      # Either a class, string or symbol can be passed in as the Observer.
+      # Either a class, string, or symbol can be passed in as the Observer.
       # If a string or symbol is passed in it will be camelized and constantized.
       def unregister_observer(observer)
         Mail.unregister_observer(observer_class_for(observer))
       end
 
       # Register an Interceptor which will be called before mail is sent.
-      # Either a class, string or symbol can be passed in as the Interceptor.
+      # Either a class, string, or symbol can be passed in as the Interceptor.
       # If a string or symbol is passed in it will be camelized and constantized.
       def register_interceptor(interceptor)
         Mail.register_interceptor(observer_class_for(interceptor))
       end
 
       # Unregister a previously registered Interceptor.
-      # Either a class, string or symbol can be passed in as the Interceptor.
+      # Either a class, string, or symbol can be passed in as the Interceptor.
       # If a string or symbol is passed in it will be camelized and constantized.
       def unregister_interceptor(interceptor)
         Mail.unregister_interceptor(observer_class_for(interceptor))

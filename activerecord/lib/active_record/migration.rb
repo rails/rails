@@ -326,7 +326,7 @@ module ActiveRecord
   #   details.
   # * <tt>change_table(name, options)</tt>: Allows to make column alterations to
   #   the table called +name+. It makes the table object available to a block that
-  #   can then add/remove columns, indexes or foreign keys to it.
+  #   can then add/remove columns, indexes, or foreign keys to it.
   # * <tt>rename_column(table_name, column_name, new_column_name)</tt>: Renames
   #   a column but keeps the type and content.
   # * <tt>rename_index(table_name, old_name, new_name)</tt>: Renames an index.
