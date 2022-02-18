@@ -264,8 +264,8 @@ module ActionView
       #
       # ==== Options (conditions)
       #
-      # * :only   - A list of actions to apply this layout to.
-      # * :except - Apply this layout to all actions but this one.
+      # * +:only+   - A list of actions to apply this layout to.
+      # * +:except+ - Apply this layout to all actions but this one.
       def layout(layout, conditions = {})
         include LayoutConditions unless conditions.empty?
 

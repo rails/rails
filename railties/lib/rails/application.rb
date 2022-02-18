@@ -26,8 +26,8 @@ module Rails
   #
   # Besides providing the same configuration as Rails::Engine and Rails::Railtie,
   # the application object has several specific configurations, for example
-  # "cache_classes", "consider_all_requests_local", "filter_parameters",
-  # "logger", and so forth.
+  # +cache_classes+, +consider_all_requests_local+, +filter_parameters+,
+  # +logger+, and so forth.
   #
   # Check Rails::Application::Configuration to see them all.
   #
@@ -408,8 +408,8 @@ module Rails
     # In development and test, this is randomly generated and stored in a
     # temporary file in <tt>tmp/development_secret.txt</tt>.
     #
-    # In all other environments, we look for it first in ENV["SECRET_KEY_BASE"],
-    # then credentials.secret_key_base, and finally secrets.secret_key_base. For most applications,
+    # In all other environments, we look for it first in <tt>ENV["SECRET_KEY_BASE"]</tt>,
+    # then +credentials.secret_key_base+, and finally +secrets.secret_key_base+. For most applications,
     # the correct place to store it is in the encrypted credentials file.
     def secret_key_base
       if Rails.env.development? || Rails.env.test?

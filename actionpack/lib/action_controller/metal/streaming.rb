@@ -24,7 +24,7 @@ module ActionController # :nodoc:
   # Ruby implementation).
   #
   # Streaming can be added to a given template easily, all you need to do is
-  # to pass the :stream option.
+  # to pass the +:stream+ option.
   #
   #   class PostsController
   #     def index
@@ -59,8 +59,8 @@ module ActionController # :nodoc:
   #     render stream: true
   #   end
   #
-  # Notice that :stream only works with templates. Rendering :json
-  # or :xml with :stream won't work.
+  # Notice that +:stream+ only works with templates. Rendering +:json+
+  # or +:xml+ with +:stream+ won't work.
   #
   # == Communication between layout and template
   #

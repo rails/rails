@@ -15,7 +15,7 @@ module ActionView
     # unchanged if can't be converted into a valid number.
     module NumberHelper
       # Raised when argument +number+ param given to the helpers is invalid and
-      # the option :raise is set to  +true+.
+      # the option +:raise+ is set to  +true+.
       class InvalidNumberError < StandardError
         attr_accessor :number
         def initialize(number)

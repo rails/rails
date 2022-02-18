@@ -159,7 +159,7 @@ module ActiveSupport
       #     @object = 42
       #   end
       #
-      # The keyword arguments :from and :to can be given to specify the
+      # The keyword arguments +:from+ and +:to+ can be given to specify the
       # expected initial value and the expected value after the block was
       # executed.
       #

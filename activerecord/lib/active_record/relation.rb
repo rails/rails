@@ -756,7 +756,7 @@ module ActiveRecord
     # Joins that are also marked for preloading. In which case we should just eager load them.
     # Note that this is a naive implementation because we could have strings and symbols which
     # represent the same association, but that aren't matched by this. Also, we could have
-    # nested hashes which partially match, e.g. { a: :b } & { a: [:b, :c] }
+    # nested hashes which partially match, e.g. <tt>{ a: :b } & { a: [:b, :c] }</tt>
     def joined_includes_values
       includes_values & joins_values
     end

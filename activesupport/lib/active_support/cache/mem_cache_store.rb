@@ -104,7 +104,7 @@ module ActiveSupport
       #
       #   ActiveSupport::Cache::MemCacheStore.new("localhost", "server-downstairs.localnetwork:8229")
       #
-      # If no addresses are provided, but ENV['MEMCACHE_SERVERS'] is defined, it will be used instead. Otherwise,
+      # If no addresses are provided, but <tt>ENV['MEMCACHE_SERVERS']</tt> is defined, it will be used instead. Otherwise,
       # MemCacheStore will connect to localhost:11211 (the default memcached port).
       def initialize(*addresses)
         addresses = addresses.flatten
@@ -129,8 +129,8 @@ module ActiveSupport
       end
 
       # Increment a cached value. This method uses the memcached incr atomic
-      # operator and can only be used on values written with the :raw option.
-      # Calling it on a value not stored with :raw will initialize that value
+      # operator and can only be used on values written with the +:raw+ option.
+      # Calling it on a value not stored with +:raw+ will initialize that value
       # to zero.
       def increment(name, amount = 1, options = nil)
         options = merged_options(options)
@@ -142,8 +142,8 @@ module ActiveSupport
       end
 
       # Decrement a cached value. This method uses the memcached decr atomic
-      # operator and can only be used on values written with the :raw option.
-      # Calling it on a value not stored with :raw will initialize that value
+      # operator and can only be used on values written with the +:raw+ option.
+      # Calling it on a value not stored with +:raw+ will initialize that value
       # to zero.
       def decrement(name, amount = 1, options = nil)
         options = merged_options(options)

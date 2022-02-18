@@ -225,8 +225,8 @@ module ActiveSupport
       # Cache Store API implementation.
       #
       # Increment a cached value. This method uses the Redis incr atomic
-      # operator and can only be used on values written with the :raw option.
-      # Calling it on a value not stored with :raw will initialize that value
+      # operator and can only be used on values written with the +:raw+ option.
+      # Calling it on a value not stored with +:raw+ will initialize that value
       # to zero.
       #
       # Failsafe: Raises errors.
@@ -248,8 +248,8 @@ module ActiveSupport
       # Cache Store API implementation.
       #
       # Decrement a cached value. This method uses the Redis decr atomic
-      # operator and can only be used on values written with the :raw option.
-      # Calling it on a value not stored with :raw will initialize that value
+      # operator and can only be used on values written with the +:raw+ option.
+      # Calling it on a value not stored with +:raw+ will initialize that value
       # to zero.
       #
       # Failsafe: Raises errors.
