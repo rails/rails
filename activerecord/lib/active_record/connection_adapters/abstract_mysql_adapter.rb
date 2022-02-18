@@ -722,6 +722,8 @@ module ActiveRecord
             options[:comment] = column.comment
           end
 
+          options[:auto_increment] = column.auto_increment?
+
           td = create_table_definition(table_name)
           cd = td.new_column_definition(column.name, type, **options)
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
