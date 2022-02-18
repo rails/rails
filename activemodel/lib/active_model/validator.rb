@@ -136,6 +136,7 @@ module ActiveModel
     # +options+ reader, however the <tt>:attributes</tt> option will be removed
     # and instead be made available through the +attributes+ reader.
     def initialize(options)
+      options = options.dup
       @attributes = Array(options.delete(:attributes))
       raise ArgumentError, ":attributes cannot be blank" if @attributes.empty?
       super

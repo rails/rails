@@ -145,4 +145,12 @@ class ValidatesWithTest < ActiveModel::TestCase
     assert_empty topic.errors[:title]
     assert_equal ["is missing"], topic.errors[:content]
   end
+
+  test "validates_with can use multiple 'ActiveModel::EachValidator's" do
+    Topic.validates_with(ValidatorPerEachAttribute, ValidatorPerEachAttribute, attributes: [:title])
+    topic = Topic.new
+    assert_not_predicate topic, :valid?
+    assert_not_empty topic.errors[:title]
+    assert_equal ["Value is ", "Value is "], topic.errors[:title]
+  end
 end
