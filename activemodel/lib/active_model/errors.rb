@@ -102,11 +102,14 @@ module ActiveModel
     # Copies the errors from <tt>other</tt>.
     # For copying errors but keep <tt>@base</tt> as is.
     #
-    # other - The ActiveModel::Errors instance.
+    # ==== Parameters
     #
-    # Examples
+    # * +other+ - The ActiveModel::Errors instance.
+    #
+    # ==== Examples
     #
     #   person.errors.copy!(other)
+    #
     def copy!(other) # :nodoc:
       @errors = other.errors.deep_dup
       @errors.each { |error|
@@ -119,9 +122,10 @@ module ActiveModel
     # providing access to original error object.
     # If attribute or type needs to be overridden, use +override_options+.
     #
-    # override_options - Hash
-    # @option override_options [Symbol] :attribute Override the attribute the error belongs to.
-    # @option override_options [Symbol] :type Override type of the error.
+    # ==== Options
+    #
+    # * +:attribute+ - Override the attribute the error belongs to.
+    # * +:type+ - Override type of the error.
     def import(error, override_options = {})
       [:attribute, :type].each do |key|
         if override_options.key?(key)
@@ -134,11 +138,14 @@ module ActiveModel
     # Merges the errors from <tt>other</tt>,
     # each <tt>Error</tt> wrapped as <tt>NestedError</tt>.
     #
-    # other - The ActiveModel::Errors instance.
+    # ==== Parameters
     #
-    # Examples
+    # * +other+ - The ActiveModel::Errors instance.
+    #
+    # ==== Examples
     #
     #   person.errors.merge!(other)
+    #
     def merge!(other)
       return errors if equal?(other)
 

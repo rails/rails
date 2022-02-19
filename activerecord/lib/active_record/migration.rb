@@ -810,8 +810,9 @@ module ActiveRecord
 
     # Runs the given migration classes.
     # Last argument can specify options:
-    # - +:direction+ (default is +:up+)
-    # - +:revert+ (default is +false+)
+    #
+    # - +:direction+ - Default is +:up+.
+    # - +:revert+ - Default is +false+.
     def run(*migration_classes)
       opts = migration_classes.extract_options!
       dir = opts[:direction] || :up
