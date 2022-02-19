@@ -1117,9 +1117,9 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_raising_does_not_materialize_transaction
-    assert_raise(RuntimeError) do
-      assert_no_queries do
-        Topic.transaction { raise }
+    assert_no_queries do
+      assert_raise(RuntimeError) do
+        Topic.transaction { raise "Expected" }
       end
     end
   end
