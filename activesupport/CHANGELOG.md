@@ -1,3 +1,12 @@
+*   `Pathname.blank?` only returns true for `Pathname.new("")`
+
+    Previously it would end up calling `Pathname#empty?` which returned true
+    if the path existed and was an empty directory or file.
+
+    That behavior was unlikely to be expected.
+
+    *Jean Boussier*
+
 *   Deprecate `Notification::Event`'s `#children` and `#parent_of?`
 
 *   Change default serialization format of `MessageEncryptor` from `Marshal` to `JSON` for Rails 7.1.
