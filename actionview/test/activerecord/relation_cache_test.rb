@@ -25,7 +25,7 @@ class RelationCacheTest < ActionView::TestCase
 
   def view_cache_dependencies; []; end
 
-  def assert_queries(num)
+  def assert_queries(num, &block)
     ActiveRecord::Base.connection.materialize_transactions
     count = 0
 
@@ -33,7 +33,7 @@ class RelationCacheTest < ActionView::TestCase
       count += 1 unless ["SCHEMA", "TRANSACTION"].include? payload[:name]
     end
 
-    result = yield
+    result = _assert_nothing_raised_or_warn("assert_queries", &block)
     assert_equal num, count, "#{count} instead of #{num} queries were executed."
     result
   end
