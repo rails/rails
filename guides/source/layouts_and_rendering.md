@@ -966,7 +966,7 @@ In addition to the above special tags, you can supply a final hash of standard H
 
 #### Linking to Videos with the `video_tag`
 
-The [`video_tag`][] helper builds an HTML 5 `<video>` tag to the specified file. By default, files are loaded from `public/videos`.
+The [`video_tag`][] helper builds an HTML5 `<video>` tag to the specified file. By default, files are loaded from `public/videos`.
 
 ```erb
 <%= video_tag "movie.ogg" %>
@@ -1005,7 +1005,7 @@ This will produce:
 
 #### Linking to Audio Files with the `audio_tag`
 
-The [`audio_tag`][] helper builds an HTML 5 `<audio>` tag to the specified file. By default, files are loaded from `public/audios`.
+The [`audio_tag`][] helper builds an HTML5 `<audio>` tag to the specified file. By default, files are loaded from `public/audios`.
 
 ```erb
 <%= audio_tag "music.mp3" %>
