@@ -7,7 +7,7 @@ class Pathname
   #
   #   Pathname.new("").blank?      # => true
   #   Pathname.new(" ").blank?     # => false
-  #   Pathname.new("test).blank?  # => false
+  #   Pathname.new("test").blank?  # => false
   #
   # @return [true, false]
   def blank?
