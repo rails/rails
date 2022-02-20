@@ -10,7 +10,7 @@ module ActionView
     module RenderingHelper
       # Returns the result of a render that's dictated by the options hash. The primary options are:
       #
-      # * <tt>:partial</tt> - See <tt>ActionView::PartialRenderer</tt>.
+      # * <tt>:partial</tt> - See ActionView::PartialRenderer.
       # * <tt>:file</tt> - Renders an explicit template file (this used to be the old default), add +:locals+ to pass in those.
       # * <tt>:inline</tt> - Renders an inline template similar to how it's done in the controller.
       # * <tt>:plain</tt> - Renders the text passed in out. Setting the content
@@ -19,8 +19,7 @@ module ActionView
       #   performs HTML escape on the string first. Setting the content type as
       #   <tt>text/html</tt>.
       # * <tt>:body</tt> - Renders the text passed in, and inherits the content
-      #   type of <tt>text/plain</tt> from <tt>ActionDispatch::Response</tt>
-      #   object.
+      #   type of <tt>text/plain</tt> from ActionDispatch::Response object.
       #
       # If no <tt>options</tt> hash is passed or if <tt>:update</tt> is specified, then:
       #

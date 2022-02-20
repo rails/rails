@@ -2,14 +2,14 @@
 
 module ActiveRecord
   module Encryption
-    # +ActiveRecord::Encryption+ uses encryption contexts to configure the different entities used to
+    # ActiveRecord::Encryption uses encryption contexts to configure the different entities used to
     # encrypt/decrypt at a given moment in time.
     #
-    # By default, the library uses a default encryption context. This is the +Context+ that gets configured
+    # By default, the library uses a default encryption context. This is the Context that gets configured
     # initially via +config.active_record.encryption+ options. Library users can define nested encryption contexts
     # when running blocks of code.
     #
-    # See +Context+.
+    # See Context.
     module Contexts
       extend ActiveSupport::Concern
 

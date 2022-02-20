@@ -83,7 +83,7 @@ module ActiveRecord
   #
   # In rare circumstances you might need to access the mapping directly.
   # The mappings are exposed through a class method with the pluralized attribute
-  # name, which return the mapping in a +HashWithIndifferentAccess+:
+  # name, which return the mapping in a ActiveSupport::HashWithIndifferentAccess :
   #
   #   Conversation.statuses[:active]    # => 0
   #   Conversation.statuses["archived"] # => 1
