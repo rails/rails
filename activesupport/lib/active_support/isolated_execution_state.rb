@@ -53,6 +53,7 @@ module ActiveSupport
         # Action Controller streaming spawns a new thread and copy thread locals.
         # We do the same here for backward compatibility, but this is very much a hack
         # and streaming should be rethought.
+        context = @isolation_level == :thread ? Thread.current : Fiber.current
         context.active_support_execution_state = other.active_support_execution_state.dup
       end
 
