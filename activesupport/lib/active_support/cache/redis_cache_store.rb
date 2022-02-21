@@ -15,6 +15,7 @@ begin
 rescue LoadError
 end
 
+require "active_support/core_ext/numeric/time"
 require "active_support/digest"
 
 module ActiveSupport

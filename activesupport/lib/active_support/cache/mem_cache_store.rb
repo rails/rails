@@ -10,6 +10,7 @@ end
 require "delegate"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/numeric/time"
 
 module ActiveSupport
   module Cache
