@@ -1163,7 +1163,7 @@ end
 If you are considering 'unsafe-inline', consider using nonces instead. [Nonces
 provide a substantial improvement](https://www.w3.org/TR/CSP3/#security-nonces)
 over 'unsafe-inline' when implementing a Content Security Policy on top
-existing code.
+of existing code.
 
 ```ruby
 # config/initializers/content_security_policy.rb
