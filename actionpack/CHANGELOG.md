@@ -1,3 +1,13 @@
+*   Fix `ActionContoller::Live` to copy the IsolatedExecutionState in the ephemeral thread.
+
+    Since it's inception `ActionContoller::Live` has been copying thread local variables
+    to keep things such as `CurrentAttributes` set from middlewares working in the controller action.
+
+    With the introduction of `IsolatedExecutionState` in 7.0, some of that global state was lost in
+    `ActionContoller::Live` controllers.
+
+    *Jean Boussier*
+
 *   Fix setting `trailing_slash: true` in route definition.
 
     ```ruby

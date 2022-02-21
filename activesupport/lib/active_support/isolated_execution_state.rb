@@ -58,6 +58,13 @@ module ActiveSupport
         scope.current
       end
 
+      def share_with(other)
+        # Action Controller streaming spawns a new thread and copy thread locals.
+        # We do the same here for backward compatibility, but this is very much a hack
+        # and streaming should be rethought.
+        context.active_support_execution_state = other.active_support_execution_state.dup
+      end
+
       private
         def state
           context.active_support_execution_state ||= {}
