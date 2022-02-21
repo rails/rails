@@ -2,7 +2,6 @@
 
 module ActionController # :nodoc:
   module ContentSecurityPolicy
-    # TODO: Documentation
     extend ActiveSupport::Concern
 
     include AbstractController::Helpers
