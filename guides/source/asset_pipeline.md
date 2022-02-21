@@ -865,23 +865,19 @@ config.asset_host = ENV['CDN_HOST']
 NOTE: You would need to set `CDN_HOST` on your server to `mycdnsubdomain
 .fictional-cdn.com` for this to work.
 
-Once you have configured your server and your CDN when you serve a webpage that
-has an asset:
+Once you have configured your server and your CDN, asset paths from helpers such
+as:
 
 ```erb
 <%= asset_path('smile.png') %>
 ```
 
-Instead of returning a path such as `/assets/smile.png` (digests are left out
-for readability). The URL generated will have the full path to your CDN.
+Will be rendered as full CDN URLs like `http://mycdnsubdomain.fictional-cdn.com/assets/smile.png`
+(digest omitted for readability).
 
-```
-http://mycdnsubdomain.fictional-cdn.com/assets/smile.png
-```
-
-If the CDN has a copy of `smile.png` it will serve it to the browser and your
-server doesn't even know it was requested. If the CDN does not have a copy it
-will try to find it at the "origin" `example.com/assets/smile.png` and then store
+If the CDN has a copy of `smile.png`, it will serve it to the browser, and your
+server doesn't even know it was requested. If the CDN does not have a copy, it
+will try to find it at the "origin" `example.com/assets/smile.png`, and then store
 it for future use.
 
 If you want to serve only some assets from your CDN, you can use custom `:host`
