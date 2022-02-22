@@ -21,7 +21,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_rollback_dirty_changes
     topic = topics(:fifth)
 
-    ActiveRecord::Base.transaction do
+    ActiveRecord::Base.transaction(join_existing: true) do
       topic.update(title: "Ruby on Rails")
       raise ActiveRecord::Rollback
     end
@@ -43,7 +43,7 @@ class TransactionTest < ActiveRecord::TestCase
         end
       end
 
-      ActiveRecord::Base.transaction do
+      ActiveRecord::Base.transaction(join_existing: true) do
         topic.update(title: "Rails is broken")
         raise ActiveRecord::Rollback
       end
@@ -64,7 +64,7 @@ class TransactionTest < ActiveRecord::TestCase
         end
       end
 
-      ActiveRecord::Base.transaction do
+      ActiveRecord::Base.transaction(join_existing: true) do
         topic.update(title: "Rails is broken")
         raise ActiveRecord::Rollback
       end
@@ -84,7 +84,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_rollback_dirty_changes_multiple_saves
     topic = topics(:fifth)
 
-    ActiveRecord::Base.transaction do
+    ActiveRecord::Base.transaction(join_existing: true) do
       topic.update(title: "Ruby on Rails")
       topic.update(title: "Another Title")
       raise ActiveRecord::Rollback
@@ -97,7 +97,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_rollback_dirty_changes_then_retry_save
     topic = topics(:fifth)
 
-    ActiveRecord::Base.transaction do
+    ActiveRecord::Base.transaction(join_existing: true) do
       topic.update(title: "Ruby on Rails")
       raise ActiveRecord::Rollback
     end
@@ -114,7 +114,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_rollback_dirty_changes_then_retry_save_on_new_record
     topic = Topic.new(title: "Ruby on Rails")
 
-    ActiveRecord::Base.transaction do
+    ActiveRecord::Base.transaction(join_existing: true) do
       topic.save
       raise ActiveRecord::Rollback
     end
@@ -133,7 +133,7 @@ class TransactionTest < ActiveRecord::TestCase
     book = Book.create!
     author.books << book
 
-    author.transaction do
+    author.transaction(join_existing: true) do
       author.save!
       raise ActiveRecord::Rollback
     end
@@ -468,7 +468,7 @@ class TransactionTest < ActiveRecord::TestCase
     topic_one = Topic.new(title: "A new topic")
     topic_two = Topic.new(title: "Another new topic")
 
-    Topic.transaction do
+    Topic.transaction(join_existing: true) do
       topic_one.save
 
       Topic.transaction(requires_new: true) do
@@ -489,7 +489,7 @@ class TransactionTest < ActiveRecord::TestCase
     topic_one = Topic.new(title: "A new topic")
     topic_two = Topic.new(title: "Another new topic")
 
-    Topic.transaction do
+    Topic.transaction(join_existing: true) do
       topic_one.save
 
       Topic.transaction do
@@ -511,7 +511,7 @@ class TransactionTest < ActiveRecord::TestCase
     topic_two = Topic.new(title: "Another new topic")
     topic_three = Topic.new(title: "Another new topic of course")
 
-    Topic.transaction do
+    Topic.transaction(join_existing: true) do
       topic_one.save
 
       Topic.transaction do
@@ -535,7 +535,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_manually_rolling_back_a_transaction
-    Topic.transaction do
+    Topic.transaction(join_existing: true) do
       @first.approved  = true
       @second.approved = false
       @first.save
@@ -599,6 +599,31 @@ class TransactionTest < ActiveRecord::TestCase
     assert_predicate @first.reload, :approved?
     assert_not_predicate @second.reload, :approved?
   end if Topic.connection.supports_savepoints?
+
+  def test_rollback_bubbling_up_first_savepoint
+    @first.transaction do
+      @first.content = "One"
+      @second.content = "Two"
+      @first.save!
+      @second.save!
+      Topic.transaction(requires_new: true) do
+        @first.content = "Rolled back outer transaction with requires_new so it stops here"
+        @first.save!
+        Topic.transaction(join_existing: true) do
+          @second.content = "Rolled back outer transaction with no requires_new so it bubbles up"
+          @second.save!
+          Topic.transaction(join_existing: true) do
+            @second.content = "Rolled back transaction with no requires_new so it bubbles up"
+            @second.save!
+            raise ActiveRecord::Rollback
+          end
+        end
+      end
+    end
+
+    assert_equal "One", @first.reload.content
+    assert_equal "Two", @second.reload.content
+  end
 
   def test_no_savepoint_in_nested_transaction_without_force
     Topic.transaction do
@@ -784,7 +809,7 @@ class TransactionTest < ActiveRecord::TestCase
     topic_2 = Topic.new(title: "test_2")
     topic_3 = topic_without_callbacks.new(title: "test_3")
 
-    Topic.transaction do
+    Topic.transaction(join_existing: true) do
       assert topic_1.save
       assert topic_2.save
       assert topic_3.save
@@ -817,7 +842,7 @@ class TransactionTest < ActiveRecord::TestCase
     topic = Topic.create
     reply = topic.replies.create
 
-    Topic.transaction do
+    Topic.transaction(join_existing: true) do
       topic.destroy # calls #destroy on reply (since dependent: destroy)
       reply.destroy
 
@@ -831,7 +856,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_restore_new_record_after_double_save
     topic = Topic.new
 
-    Topic.transaction do
+    Topic.transaction(join_existing: true) do
       topic.save!
       topic.save!
       raise ActiveRecord::Rollback
@@ -849,7 +874,7 @@ class TransactionTest < ActiveRecord::TestCase
       topic.save!
     end
 
-    Topic.transaction do
+    Topic.transaction(join_existing: true) do
       topic.save!
       raise ActiveRecord::Rollback
     end
@@ -861,7 +886,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_restore_previously_new_record_after_double_save
     topic = Topic.create!
 
-    Topic.transaction do
+    Topic.transaction(join_existing: true) do
       topic.save!
       topic.save!
       raise ActiveRecord::Rollback
@@ -873,7 +898,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_restore_id_after_rollback
     topic = Topic.new
 
-    Topic.transaction do
+    Topic.transaction(join_existing: true) do
       topic.save!
       raise ActiveRecord::Rollback
     end
@@ -884,7 +909,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_restore_custom_primary_key_after_rollback
     movie = Movie.new(name: "foo")
 
-    Movie.transaction do
+    Movie.transaction(join_existing: true) do
       movie.save!
       raise ActiveRecord::Rollback
     end
@@ -895,7 +920,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_assign_id_after_rollback
     topic = Topic.create!
 
-    Topic.transaction do
+    Topic.transaction(join_existing: true) do
       topic.save!
       raise ActiveRecord::Rollback
     end
@@ -907,7 +932,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_assign_custom_primary_key_after_rollback
     movie = Movie.create!(name: "foo")
 
-    Movie.transaction do
+    Movie.transaction(join_existing: true) do
       movie.save!
       raise ActiveRecord::Rollback
     end
@@ -919,7 +944,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_read_attribute_after_rollback
     topic = Topic.new
 
-    Topic.transaction do
+    Topic.transaction(join_existing: true) do
       topic.save!
       raise ActiveRecord::Rollback
     end
@@ -930,7 +955,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_read_attribute_with_custom_primary_key_after_rollback
     movie = Movie.new(name: "foo")
 
-    Movie.transaction do
+    Movie.transaction(join_existing: true) do
       movie.save!
       raise ActiveRecord::Rollback
     end
@@ -941,7 +966,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_write_attribute_after_rollback
     topic = Topic.create!
 
-    Topic.transaction do
+    Topic.transaction(join_existing: true) do
       topic.save!
       raise ActiveRecord::Rollback
     end
@@ -953,7 +978,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_write_attribute_with_custom_primary_key_after_rollback
     movie = Movie.create!(name: "foo")
 
-    Movie.transaction do
+    Movie.transaction(join_existing: true) do
       movie.save!
       raise ActiveRecord::Rollback
     end
@@ -964,7 +989,7 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_rollback_of_frozen_records
     topic = Topic.create.freeze
-    Topic.transaction do
+    Topic.transaction(join_existing: true) do
       topic.destroy
       raise ActiveRecord::Rollback
     end
@@ -973,7 +998,7 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_rollback_for_freshly_persisted_records
     topic = Topic.create
-    Topic.transaction do
+    Topic.transaction(join_existing: true) do
       topic.destroy
       raise ActiveRecord::Rollback
     end
@@ -1004,7 +1029,7 @@ class TransactionTest < ActiveRecord::TestCase
         Topic.transaction { Topic.connection.add_column("topics", "stuff", :string) }
       end
     else
-      Topic.transaction do
+      Topic.transaction(join_existing: true) do
         assert_raise(ActiveRecord::StatementInvalid) { Topic.connection.add_column("topics", "stuff", :string) }
         raise ActiveRecord::Rollback
       end
@@ -1085,7 +1110,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert_no_difference(-> { klass.count }) do
-      ActiveRecord::Base.transaction do
+      ActiveRecord::Base.transaction(join_existing: true) do
         klass.create!
         raise ActiveRecord::Rollback
       end

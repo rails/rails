@@ -133,7 +133,7 @@ module ActiveRecord
     #
     # #transaction calls can be nested. By default, this makes all database
     # statements in the nested transaction block become part of the parent
-    # transaction. For example, the following behavior may be surprising:
+    # transaction. For example:
     #
     #   User.transaction do
     #     User.create(username: 'Kotori')
@@ -143,10 +143,8 @@ module ActiveRecord
     #     end
     #   end
     #
-    # creates both "Kotori" and "Nemu". Reason is the ActiveRecord::Rollback
-    # exception in the nested block does not issue a ROLLBACK. Since these exceptions
-    # are captured in transaction blocks, the parent block does not see it and the
-    # real transaction is committed.
+    # creates neither "Kotori" and "Nemu" as although there are two transaction calls
+    # there is only one real database transaction.
     #
     # In order to get a ROLLBACK for the nested transaction you may ask for a real
     # sub-transaction by passing <tt>requires_new: true</tt>. If anything goes wrong,
@@ -347,12 +345,15 @@ module ActiveRecord
       connection = self.class.connection
       ensure_finalize = !connection.transaction_open?
 
-      connection.transaction do
-        add_to_transaction(ensure_finalize || has_transactional_callbacks?)
-        remember_transaction_record_state
+      begin
+        connection.transaction(join_existing: true) do
+          add_to_transaction(ensure_finalize || has_transactional_callbacks?)
+          remember_transaction_record_state
 
-        status = yield
-        raise ActiveRecord::Rollback unless status
+          status = yield
+          raise ActiveRecord::Rollback unless status
+        end
+      rescue ActiveRecord::Rollback
       end
       status
     end

@@ -574,7 +574,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.enable_query_cache!
     post = Post.first
 
-    Post.transaction do
+    Post.transaction(join_existing: true) do
       post.update(title: "rollback")
       assert_equal 1, Post.where(title: "rollback").to_a.count
       raise ActiveRecord::Rollback

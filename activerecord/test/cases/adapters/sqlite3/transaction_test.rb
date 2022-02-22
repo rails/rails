@@ -42,7 +42,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
   test "opens a `read_uncommitted` transaction" do
     with_connection(flags: shared_cache_flags) do |conn1|
       conn1.create_table(:zines) { |t| t.column(:title, :string) } if in_memory_db?
-      conn1.transaction do
+      conn1.transaction(join_existing: true) do
         conn1.transaction_manager.materialize_transactions
         conn1.execute("INSERT INTO zines (title) VALUES ('foo')")
 

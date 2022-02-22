@@ -69,7 +69,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_change_table_supports_hstore
-    @connection.transaction do
+    @connection.transaction(join_existing: true) do
       @connection.change_table("hstores") do |t|
         t.hstore "users", default: ""
       end

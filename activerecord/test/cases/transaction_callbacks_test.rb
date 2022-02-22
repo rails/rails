@@ -255,9 +255,12 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     @first.after_commit_block { |r| r.history << :after_commit }
     @first.after_rollback_block { |r| r.history << :after_rollback }
 
-    Topic.transaction do
-      @first.save!
-      raise ActiveRecord::Rollback
+    begin
+      Topic.transaction(join_existing: true) do
+        @first.save!
+        raise ActiveRecord::Rollback
+      end
+    rescue ActiveRecord::Rollback
     end
 
     assert_equal [:after_rollback], @first.history
@@ -266,9 +269,12 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   def test_only_call_after_rollback_on_update_after_transaction_rollsback_for_existing_record
     add_transaction_execution_blocks @first
 
-    Topic.transaction do
-      @first.save!
-      raise ActiveRecord::Rollback
+    begin
+      Topic.transaction(join_existing: true) do
+        @first.save!
+        raise ActiveRecord::Rollback
+      end
+    rescue ActiveRecord::Rollback
     end
 
     assert_equal [:rollback_on_update], @first.history
@@ -277,9 +283,12 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   def test_only_call_after_rollback_on_update_after_transaction_rollsback_for_existing_record_on_touch
     add_transaction_execution_blocks @first
 
-    Topic.transaction do
-      @first.touch
-      raise ActiveRecord::Rollback
+    begin
+      Topic.transaction(join_existing: true) do
+        @first.touch
+        raise ActiveRecord::Rollback
+      end
+    rescue ActiveRecord::Rollback
     end
 
     assert_equal [:rollback_on_update], @first.history
@@ -288,9 +297,12 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   def test_only_call_after_rollback_on_destroy_after_transaction_rollsback_for_destroyed_record
     add_transaction_execution_blocks @first
 
-    Topic.transaction do
-      @first.destroy
-      raise ActiveRecord::Rollback
+    begin
+      Topic.transaction(join_existing: true) do
+        @first.destroy
+        raise ActiveRecord::Rollback
+      end
+    rescue ActiveRecord::Rollback
     end
 
     assert_equal [:rollback_on_destroy], @first.history
@@ -300,9 +312,12 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     new_record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
     add_transaction_execution_blocks new_record
 
-    Topic.transaction do
-      new_record.save!
-      raise ActiveRecord::Rollback
+    begin
+      Topic.transaction(join_existing: true) do
+        new_record.save!
+        raise ActiveRecord::Rollback
+      end
+    rescue ActiveRecord::Rollback
     end
 
     assert_equal [:rollback_on_create], new_record.history
@@ -313,7 +328,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     @first.after_rollback_block { |r| r.history << :after_rollback }
 
     assert_raises RuntimeError do
-      @first.transaction do
+      @first.transaction(join_existing: true) do
         tx = @first.class.connection.transaction_manager.current_transaction
         def tx.commit
           raise
@@ -321,6 +336,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
         @first.save
       end
+    rescue ActiveRecord::Rollback
     end
 
     assert_equal [:after_rollback], @first.history
@@ -526,12 +542,15 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     records = [klass.new, klass.new]
 
-    klass.transaction do
-      records.each do |record|
-        record.after_rollback_block { |r| r.history << :after_rollback }
-        record.save!
+    begin
+      klass.transaction(join_existing: true) do
+        records.each do |record|
+          record.after_rollback_block { |r| r.history << :after_rollback }
+          record.save!
+        end
+        raise ActiveRecord::Rollback
       end
-      raise ActiveRecord::Rollback
+    rescue ActiveRecord::Rollback
     end
 
     assert_equal [:after_rollback], records.first.history
@@ -700,10 +719,13 @@ class CallbacksOnDestroyUpdateActionRaceTest < ActiveRecord::TestCase
       topic_clone.destroy
     end
 
-    TopicWithCallbacksOnDestroy.transaction do
-      topic.update!(author_name: "Test Author")
-      topic.destroy
-      raise ActiveRecord::Rollback
+    begin
+      TopicWithCallbacksOnDestroy.transaction(join_existing: true) do
+        topic.update!(author_name: "Test Author")
+        topic.destroy
+        raise ActiveRecord::Rollback
+      end
+    rescue ActiveRecord::Rollback
     end
 
     assert_not_predicate topic, :destroyed?

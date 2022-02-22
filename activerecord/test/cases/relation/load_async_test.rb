@@ -102,7 +102,7 @@ module ActiveRecord
 
     def test_load_async_from_transaction
       posts = nil
-      Post.transaction do
+      Post.transaction(join_existing: true) do
         Post.where(author_id: 1).update_all(title: "In Transaction")
         posts = Post.where(author_id: 1).load_async
         if in_memory_db?
@@ -231,7 +231,7 @@ module ActiveRecord
 
       def test_load_async_from_transaction
         posts = nil
-        Post.transaction do
+        Post.transaction(join_existing: true) do
           Post.where(author_id: 1).update_all(title: "In Transaction")
           posts = Post.where(author_id: 1).load_async
           assert_not_predicate posts, :scheduled?
@@ -365,7 +365,7 @@ module ActiveRecord
 
       def test_load_async_from_transaction
         posts = nil
-        Post.transaction do
+        Post.transaction(join_existing: true) do
           Post.where(author_id: 1).update_all(title: "In Transaction")
           posts = Post.where(author_id: 1).load_async
           assert_predicate posts, :scheduled?

@@ -306,17 +306,44 @@ module ActiveRecord
       #
       # The mysql2 and postgresql adapters support setting the transaction
       # isolation level.
-      def transaction(requires_new: nil, isolation: nil, joinable: true, &block)
+      def transaction(requires_new: nil, isolation: nil, joinable: true, join_existing: nil, &block)
         if !requires_new && current_transaction.joinable?
           if isolation
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
           end
+          did_join = true
           yield
         else
           transaction_manager.within_new_transaction(isolation: isolation, joinable: joinable, &block)
         end
-      rescue ActiveRecord::Rollback
-        # rollbacks are silently swallowed
+      rescue ActiveRecord::Rollback => e
+        if did_join
+          if join_existing
+            raise e
+          else
+            # Deprecation Plan: always raise, ignore join_existing
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              An ActiveRecord::Rollback error was raised inside a transaction block that did not
+              create a separate transaction.  This interrupts the inner block but does not rollback
+              its changes.
+
+              In future rails versions ActiveRecord::Rollback will be re-rasied so the outer
+              transaction will be rolled back also.  To opt-into the new behavior use can use
+              `join_existing: true`.
+
+              If you wish to continue to rescue ActiveRecord::Rollback you will need to do
+              this manually, e.g.
+              ActiveRecord::Base.transaction do
+                ActiveRecord::Base.transaction(join_existing: true) do
+                  raise ActiveRecord::Rollback
+                end
+              rescue ActiveRecord::Rollback
+              end
+            MSG
+          end
+        else
+          # rollback is silently swallowed; within_new_transaction has already done the work
+        end
       end
 
       attr_reader :transaction_manager # :nodoc:

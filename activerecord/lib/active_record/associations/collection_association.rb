@@ -122,7 +122,10 @@ module ActiveRecord
           load_target
           concat_records(records)
         else
-          transaction { concat_records(records) }
+          begin
+            transaction(join_existing: true) { concat_records(records) }
+          rescue ActiveRecord::Rollback
+          end
         end
       end
 
@@ -304,8 +307,8 @@ module ActiveRecord
       end
 
       private
-        def transaction(&block)
-          reflection.klass.transaction(&block)
+        def transaction(**options, &block)
+          reflection.klass.transaction(**options, &block)
         end
 
         # We have some records loaded from the database (persisted) and some that are
@@ -347,14 +350,17 @@ module ActiveRecord
             attributes.collect { |attr| _create_record(attr, raise, &block) }
           else
             record = build_record(attributes, &block)
-            transaction do
-              result = nil
-              add_to_target(record) do
-                result = insert_record(record, true, raise) {
-                  @_was_loaded = loaded?
-                }
+            begin
+              transaction(join_existing: true) do
+                result = nil
+                add_to_target(record) do
+                  result = insert_record(record, true, raise) {
+                    @_was_loaded = loaded?
+                  }
+                end
+                raise ActiveRecord::Rollback unless result
               end
-              raise ActiveRecord::Rollback unless result
+            rescue ActiveRecord::Rollback
             end
             record
           end
@@ -408,7 +414,7 @@ module ActiveRecord
           unless concat(difference(new_target, target))
             @target = original_target
             raise RecordNotSaved, "Failed to replace #{reflection.name} because one or more of the " \
-                                  "new records could not be saved."
+              "new records could not be saved."
           end
 
           target
