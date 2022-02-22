@@ -2,11 +2,9 @@
 
 require "zlib"
 require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/numeric/bytes"
-require "active_support/core_ext/numeric/time"
 require "active_support/core_ext/object/to_param"
 require "active_support/core_ext/object/try"
 require "active_support/core_ext/string/inflections"
