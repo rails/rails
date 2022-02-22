@@ -1,3 +1,9 @@
+*   Use non-capturing group for subdomain matching in `ActionDispatch::HostAuthorization`
+
+    Since we do nothing with the captured subdomain group, we can use a non-capturing group instead.
+
+    *Sam Bostock*
+
 *   Fix `ActionController::Live` to copy the IsolatedExecutionState in the ephemeral thread.
 
     Since its inception `ActionController::Live` has been copying thread local variables
