@@ -608,26 +608,29 @@ class BasicsTest < ActiveRecord::TestCase
     car = Car.create!
     car.bulbs.build
     car.save
+    bulbs_of_car = Bulb.where(car_id: car.id)
 
-    assert car.bulbs == Bulb.where(car_id: car.id), "CollectionProxy should be comparable with Relation"
-    assert Bulb.where(car_id: car.id) == car.bulbs, "Relation should be comparable with CollectionProxy"
+    assert_equal car.bulbs, bulbs_of_car, "CollectionProxy should be comparable with Relation"
+    assert_equal bulbs_of_car, car.bulbs, "Relation should be comparable with CollectionProxy"
   end
 
   def test_equality_of_relation_and_array
     car = Car.create!
     car.bulbs.build
     car.save
+    bulbs_of_car = Bulb.where(car_id: car.id)
 
-    assert Bulb.where(car_id: car.id) == car.bulbs.to_a, "Relation should be comparable with Array"
+    assert_equal bulbs_of_car, car.bulbs.to_a, "Relation should be comparable with Array"
   end
 
   def test_equality_of_relation_and_association_relation
     car = Car.create!
     car.bulbs.build
     car.save
+    bulbs_of_car = Bulb.where(car_id: car.id)
 
-    assert_equal Bulb.where(car_id: car.id), car.bulbs.includes(:car), "Relation should be comparable with AssociationRelation"
-    assert_equal car.bulbs.includes(:car), Bulb.where(car_id: car.id), "AssociationRelation should be comparable with Relation"
+    assert_equal bulbs_of_car, car.bulbs.includes(:car), "Relation should be comparable with AssociationRelation"
+    assert_equal car.bulbs.includes(:car), bulbs_of_car, "AssociationRelation should be comparable with Relation"
   end
 
   def test_equality_of_collection_proxy_and_association_relation
