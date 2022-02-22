@@ -18,6 +18,7 @@ module ActionDispatch
   class HostAuthorization
     ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")]
     PORT_REGEX = /(?::\d+)/ # :nodoc:
+    SUBDOMAIN_REGEX = /(?:[a-z0-9-]+\.)/i # :nodoc:
     IPV4_HOSTNAME = /(?<host>\d+\.\d+\.\d+\.\d+)#{PORT_REGEX}?/ # :nodoc:
     IPV6_HOSTNAME = /(?<host>[a-f0-9]*:[a-f0-9.:]+)/i # :nodoc:
     IPV6_HOSTNAME_WITH_PORT = /\[#{IPV6_HOSTNAME}\]#{PORT_REGEX}/i # :nodoc:
@@ -69,7 +70,7 @@ module ActionDispatch
 
         def sanitize_string(host)
           if host.start_with?(".")
-            /\A([a-z0-9-]+\.)?#{Regexp.escape(host[1..-1])}#{PORT_REGEX}?\z/i
+            /\A#{SUBDOMAIN_REGEX}?#{Regexp.escape(host[1..-1])}#{PORT_REGEX}?\z/i
           else
             /\A#{Regexp.escape host}#{PORT_REGEX}?\z/i
           end
