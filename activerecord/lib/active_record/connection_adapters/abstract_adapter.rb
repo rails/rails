@@ -92,7 +92,7 @@ module ActiveRecord
       def initialize(connection, logger = nil, config = {}) # :nodoc:
         super()
 
-        @connection          = connection
+        @raw_connection      = connection
         @owner               = nil
         @instrumenter        = ActiveSupport::Notifications.instrumenter
         @logger              = logger
@@ -569,7 +569,7 @@ module ActiveRecord
       def discard!
         # This should be overridden by concrete adapters.
         #
-        # Prevent @connection's finalizer from touching the socket, or
+        # Prevent @raw_connection's finalizer from touching the socket, or
         # otherwise communicating with its server, when it is collected.
         if schema_cache.connection == self
           schema_cache.connection = nil
@@ -625,7 +625,7 @@ module ActiveRecord
       # PostgreSQL's lo_* methods.
       def raw_connection
         disable_lazy_transactions!
-        @connection
+        @raw_connection
       end
 
       def default_uniqueness_comparison(attribute, value) # :nodoc:

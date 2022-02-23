@@ -161,19 +161,19 @@ module ActiveRecord
       end
 
       def active?
-        !@connection.closed?
+        !@raw_connection.closed?
       end
 
       def reconnect!
         super
-        connect if @connection.closed?
+        connect if @raw_connection.closed?
       end
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
         super
-        @connection.close rescue nil
+        @raw_connection.close rescue nil
       end
 
       def supports_index_sort_order?
@@ -186,7 +186,7 @@ module ActiveRecord
 
       # Returns the current database encoding format as a string, e.g. 'UTF-8'
       def encoding
-        @connection.encoding.to_s
+        @raw_connection.encoding.to_s
       end
 
       def supports_explain?
@@ -601,7 +601,7 @@ module ActiveRecord
         end
 
         def connect
-          @connection = ::SQLite3::Database.new(
+          @raw_connection = ::SQLite3::Database.new(
             @config[:database].to_s,
             @config.merge(results_as_hash: true)
           )
@@ -609,7 +609,7 @@ module ActiveRecord
         end
 
         def configure_connection
-          @connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout])) if @config[:timeout]
+          @raw_connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout])) if @config[:timeout]
 
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
