@@ -36,7 +36,7 @@ gem "terser", ">= 1.1.4", require: false
 gem "json", ">= 2.0.0"
 
 group :rubocop do
-  gem "rubocop", ">= 0.90", require: false
+  gem "rubocop", ">= 1.25.1", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
