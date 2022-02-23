@@ -367,11 +367,6 @@ Sets the default time zone for the application and enables time zone awareness f
 
 ### Configuring Assets
 
-#### `config.assets.enabled`
-
-A flag that controls whether the asset pipeline is enabled. It is set to `true`
-by default.
-
 #### `config.assets.css_compressor`
 
 Defines the CSS compressor to use. It is set by default by `sass-rails`. The unique alternative value at the moment is `:yui`, which uses the `yui-compressor` gem.
