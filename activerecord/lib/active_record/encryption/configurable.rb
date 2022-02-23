@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Encryption
-    # Configuration API for +ActiveRecord::Encryption+
+    # Configuration API for ActiveRecord::Encryption
     module Configurable
       extend ActiveSupport::Concern
 

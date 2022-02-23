@@ -143,7 +143,7 @@ module ActiveSupport # :nodoc:
     alias_method :original_concat, :concat
     private :original_concat
 
-    # Raised when <tt>ActiveSupport::SafeBuffer#safe_concat</tt> is called on unsafe buffers.
+    # Raised when ActiveSupport::SafeBuffer#safe_concat is called on unsafe buffers.
     class SafeConcatError < StandardError
       def initialize
         super "Could not concatenate to the buffer because it is not html safe."

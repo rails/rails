@@ -48,9 +48,9 @@ module ActiveModel
   #
   # The last three methods are required in your object for +Errors+ to be
   # able to generate error messages correctly and also handle multiple
-  # languages. Of course, if you extend your object with <tt>ActiveModel::Translation</tt>
+  # languages. Of course, if you extend your object with ActiveModel::Translation
   # you will not need to implement the last two. Likewise, using
-  # <tt>ActiveModel::Validations</tt> will handle the validation related methods
+  # ActiveModel::Validations will handle the validation related methods
   # for you.
   #
   # The above allows you to do:
@@ -136,7 +136,7 @@ module ActiveModel
     end
 
     # Merges the errors from <tt>other</tt>,
-    # each <tt>Error</tt> wrapped as <tt>NestedError</tt>.
+    # each Error wrapped as NestedError.
     #
     # ==== Parameters
     #

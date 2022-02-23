@@ -6,7 +6,7 @@ module ActiveRecord
     #
     # It validates and serves attribute encryption options.
     #
-    # See +EncryptedAttributeType+, +Context+
+    # See EncryptedAttributeType, Context
     class Scheme
       attr_accessor :previous_schemes
 

@@ -177,7 +177,7 @@ module AbstractController
 
     # Tests if a response body is set. Used to determine if the
     # +process_action+ callback needs to be terminated in
-    # +AbstractController::Callbacks+.
+    # AbstractController::Callbacks.
     def performed?
       response_body
     end

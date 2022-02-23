@@ -32,7 +32,7 @@ module ActiveModel
   #   person.errors.messages          # => {first_name:["starts with z."]}
   #
   # Note that <tt>ActiveModel::Validations</tt> automatically adds an +errors+
-  # method to your instances initialized with a new <tt>ActiveModel::Errors</tt>
+  # method to your instances initialized with a new ActiveModel::Errors
   # object, so there is no need for you to do this manually.
   module Validations
     extend ActiveSupport::Concern
