@@ -7,7 +7,7 @@ require "active_support/core_ext/array/access"
 module ActionController
   # HTTP Basic, Digest, and Token authentication.
   module HttpAuthentication
-    # HTTP \Basic authentication.
+    # = HTTP \Basic authentication
     #
     # === Simple \Basic example
     #
@@ -70,6 +70,9 @@ module ActionController
         extend ActiveSupport::Concern
 
         module ClassMethods
+          # Enables HTTP \Basic authentication.
+          #
+          # See ActionController::HttpAuthentication::Basic for example usage.
           def http_basic_authenticate_with(name:, password:, realm: nil, **options)
             before_action(options) { http_basic_authenticate_or_request_with name: name, password: password, realm: realm }
           end
@@ -135,7 +138,7 @@ module ActionController
       end
     end
 
-    # HTTP \Digest authentication.
+    # = HTTP \Digest authentication
     #
     # === Simple \Digest example
     #
@@ -181,16 +184,22 @@ module ActionController
       extend self
 
       module ControllerMethods
+        # Authenticate using an HTTP \Digest, or otherwise render an HTTP header
+        # requesting the client to send a \Digest.
+        #
+        # See ActionController::HttpAuthentication::Digest for example usage.
         def authenticate_or_request_with_http_digest(realm = "Application", message = nil, &password_procedure)
           authenticate_with_http_digest(realm, &password_procedure) || request_http_digest_authentication(realm, message)
         end
 
-        # Authenticate with HTTP \Digest. Returns true or false.
+        # Authenticate using an HTTP \Digest. Returns true if authentication is
+        # successful, false otherwise.
         def authenticate_with_http_digest(realm = "Application", &password_procedure)
           HttpAuthentication::Digest.authenticate(request, realm, &password_procedure)
         end
 
-        # Render output including the HTTP \Digest authentication header.
+        # Render an HTTP header requesting the client to send a \Digest for
+        # authentication.
         def request_http_digest_authentication(realm = "Application", message = nil)
           HttpAuthentication::Digest.authentication_request(self, realm, message)
         end
@@ -331,9 +340,9 @@ module ActionController
       end
     end
 
-    # HTTP Token authentication.
+    # = HTTP \Token authentication
     #
-    # Simple Token example:
+    # === Simple \Token example
     #
     #   class PostsController < ApplicationController
     #     TOKEN = "secret"
@@ -412,14 +421,22 @@ module ActionController
       extend self
 
       module ControllerMethods
+        # Authenticate using an HTTP Bearer token, or otherwise render an HTTP
+        # header requesting the client to send a Bearer token.
+        #
+        # See ActionController::HttpAuthentication::Token for example usage.
         def authenticate_or_request_with_http_token(realm = "Application", message = nil, &login_procedure)
           authenticate_with_http_token(&login_procedure) || request_http_token_authentication(realm, message)
         end
 
+        # Authenticate using an HTTP Bearer token. Returns true if
+        # authentication is successful, false otherwise.
         def authenticate_with_http_token(&login_procedure)
           Token.authenticate(self, &login_procedure)
         end
 
+        # Render an HTTP header requesting the client to send a Bearer token for
+        # authentication.
         def request_http_token_authentication(realm = "Application", message = nil)
           Token.authentication_request(self, realm, message)
         end
@@ -428,17 +445,17 @@ module ActionController
       # If token Authorization header is present, call the login
       # procedure with the present token and options.
       #
-      # [controller]
-      #   ActionController::Base instance for the current request.
+      # Returns the return value of <tt>login_procedure</tt> if a
+      # token is found. Returns <tt>nil</tt> if no token is found.
       #
-      # [login_procedure]
-      #   Proc to call if a token is present. The Proc should take two arguments:
+      # ==== Parameters
+      #
+      # * +controller+ - ActionController::Base instance for the current request.
+      # * +login_procedure+ - Proc to call if a token is present. The Proc
+      #   should take two arguments:
       #
       #     authenticate(controller) { |token, options| ... }
       #
-      # Returns the return value of <tt>login_procedure</tt> if a
-      # token is found. Returns <tt>nil</tt> if no token is found.
-
       def authenticate(controller, &login_procedure)
         token, options = token_and_options(controller.request)
         unless token.blank?
@@ -449,14 +466,18 @@ module ActionController
       # Parses the token and options out of the token Authorization header.
       # The value for the Authorization header is expected to have the prefix
       # <tt>"Token"</tt> or <tt>"Bearer"</tt>. If the header looks like this:
-      #   Authorization: Token token="abc", nonce="def"
-      # Then the returned token is <tt>"abc"</tt>, and the options are
-      # <tt>{nonce: "def"}</tt>
       #
-      # request - ActionDispatch::Request instance with the current headers.
+      #   Authorization: Token token="abc", nonce="def"
+      #
+      # Then the returned token is <tt>"abc"</tt>, and the options are
+      # <tt>{nonce: "def"}</tt>.
       #
       # Returns an +Array+ of <tt>[String, Hash]</tt> if a token is present.
       # Returns +nil+ if no token is found.
+      #
+      # ==== Parameters
+      #
+      # * +request+ - ActionDispatch::Request instance with the current headers.
       def token_and_options(request)
         authorization_request = request.authorization.to_s
         if authorization_request[TOKEN_REGEX]
@@ -469,7 +490,7 @@ module ActionController
         rewrite_param_values params_array_from raw_params auth
       end
 
-      # Takes raw_params and turns it into an array of parameters.
+      # Takes +raw_params+ and turns it into an array of parameters.
       def params_array_from(raw_params)
         raw_params.map { |param| param.split %r/=(.+)?/ }
       end
@@ -494,10 +515,12 @@ module ActionController
 
       # Encodes the given token and options into an Authorization header value.
       #
-      # token   - String token.
-      # options - optional Hash of the options.
-      #
       # Returns String.
+      #
+      # ==== Parameters
+      #
+      # * +token+ - String token.
+      # * +options+ - Optional Hash of the options.
       def encode_credentials(token, options = {})
         values = ["#{TOKEN_KEY}#{token.to_s.inspect}"] + options.map do |key, value|
           "#{key}=#{value.to_s.inspect}"
@@ -507,10 +530,12 @@ module ActionController
 
       # Sets a WWW-Authenticate header to let the client know a token is desired.
       #
-      # controller - ActionController::Base instance for the outgoing response.
-      # realm      - String realm to use in the header.
-      #
       # Returns nothing.
+      #
+      # ==== Parameters
+      #
+      # * +controller+ - ActionController::Base instance for the outgoing response.
+      # * +realm+ - String realm to use in the header.
       def authentication_request(controller, realm, message = nil)
         message ||= "HTTP Token: Access denied.\n"
         controller.headers["WWW-Authenticate"] = %(Token realm="#{realm.tr('"', "")}")
