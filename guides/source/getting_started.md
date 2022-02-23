@@ -2088,7 +2088,6 @@ resources:
 
 * The [Ruby on Rails Guides](index.html)
 * The [Ruby on Rails mailing list](https://discuss.rubyonrails.org/c/rubyonrails-talk)
-* The [#rubyonrails](irc://irc.freenode.net/#rubyonrails) channel on irc.freenode.net
 
 
 Configuration Gotchas
