@@ -43,21 +43,21 @@ module Rails
   # == Booting process
   #
   # The application is also responsible for setting up and executing the booting
-  # process. From the moment you require "config/application.rb" in your app,
+  # process. From the moment you require <tt>config/application.rb</tt> in your app,
   # the booting process goes like this:
   #
-  #   1)  require "config/boot.rb" to set up load paths
-  #   2)  require railties and engines
-  #   3)  Define Rails.application as "class MyApp::Application < Rails::Application"
-  #   4)  Run config.before_configuration callbacks
-  #   5)  Load config/environments/ENV.rb
-  #   6)  Run config.before_initialize callbacks
-  #   7)  Run Railtie#initializer defined by railties, engines, and application.
-  #       One by one, each engine sets up its load paths and routes, and runs its config/initializers/* files.
-  #   8)  Custom Railtie#initializers added by railties, engines, and applications are executed
-  #   9)  Build the middleware stack and run to_prepare callbacks
-  #   10) Run config.before_eager_load and eager_load! if eager_load is true
-  #   11) Run config.after_initialize callbacks
+  # 1.  <tt>require "config/boot.rb"</tt> to set up load paths.
+  # 2.  +require+ railties and engines.
+  # 3.  Define +Rails.application+ as <tt>class MyApp::Application < Rails::Application</tt>.
+  # 4.  Run +config.before_configuration+ callbacks.
+  # 5.  Load <tt>config/environments/ENV.rb</tt>.
+  # 6.  Run +config.before_initialize+ callbacks.
+  # 7.  Run <tt>Railtie#initializer</tt> defined by railties, engines, and application.
+  #     One by one, each engine sets up its load paths and routes, and runs its <tt>config/initializers/*</tt> files.
+  # 8.  Custom <tt>Railtie#initializers</tt> added by railties, engines, and applications are executed.
+  # 9.  Build the middleware stack and run +to_prepare+ callbacks.
+  # 10. Run +config.before_eager_load+ and +eager_load!+ if +eager_load+ is +true+.
+  # 11. Run +config.after_initialize+ callbacks.
   class Application < Engine
     autoload :Bootstrap,              "rails/application/bootstrap"
     autoload :Configuration,          "rails/application/configuration"
