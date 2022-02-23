@@ -757,7 +757,6 @@ module ActiveRecord
 
         def exec_no_cache(sql, name, binds, async: false)
           materialize_transactions
-          mark_transaction_written_if_write(sql)
 
           # make sure we carry over any changes to ActiveRecord.default_timezone that have been
           # made since we established the connection
@@ -773,7 +772,6 @@ module ActiveRecord
 
         def exec_cache(sql, name, binds, async: false)
           materialize_transactions
-          mark_transaction_written_if_write(sql)
           update_typemap_for_default_timezone
 
           stmt_key = prepare_statement(sql, binds)

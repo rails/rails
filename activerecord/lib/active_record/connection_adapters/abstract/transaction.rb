@@ -84,7 +84,6 @@ module ActiveRecord
 
     class Transaction # :nodoc:
       attr_reader :connection, :state, :savepoint_name, :isolation_level
-      attr_accessor :written
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         @connection = connection
@@ -338,7 +337,7 @@ module ActiveRecord
               # @connection still holds an open or invalid transaction, so we must not
               # put it back in the pool for reuse.
               @connection.throw_away! unless transaction.state.rolledback?
-            elsif Thread.current.status == "aborting" || (!completed && transaction.written)
+            elsif Thread.current.status == "aborting" || !completed
               # The transaction is still open but the block returned earlier.
               #
               # The block could return early because of a timeout or because the thread is aborting,

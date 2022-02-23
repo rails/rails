@@ -636,7 +636,6 @@ module ActiveRecord
 
         def raw_execute(sql, name, async: false)
           materialize_transactions
-          mark_transaction_written_if_write(sql)
 
           log(sql, name, async: async) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
