@@ -711,7 +711,9 @@ module ActiveRecord
             options[:comment] = column.comment
           end
 
-          options[:auto_increment] = column.auto_increment?
+          unless options.key?(:auto_increment)
+            options[:auto_increment] = column.auto_increment?
+          end
 
           td = create_table_definition(table_name)
           cd = td.new_column_definition(column.name, type, **options)
