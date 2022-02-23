@@ -39,7 +39,7 @@ module ActiveRecord
     #   Post.find_by_sql "SELECT p.title, c.author FROM posts p, comments c WHERE p.id = c.post_id"
     #   # => [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "author"=>"Quentin"}>, ...]
     #
-    # You can use the same string replacement techniques as you can with <tt>ActiveRecord::QueryMethods#where</tt>:
+    # You can use the same string replacement techniques as you can with ActiveRecord::QueryMethods#where :
     #
     #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
     #   Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]

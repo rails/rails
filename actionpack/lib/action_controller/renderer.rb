@@ -71,7 +71,7 @@ module ActionController
     # Render templates with any options from ActionController::Base#render_to_string.
     #
     # The primary options are:
-    # * <tt>:partial</tt> - See <tt>ActionView::PartialRenderer</tt> for details.
+    # * <tt>:partial</tt> - See ActionView::PartialRenderer for details.
     # * <tt>:file</tt> - Renders an explicit template file. Add <tt>:locals</tt> to pass in, if so desired.
     #   It shouldn’t be used directly with unsanitized user input due to lack of validation.
     # * <tt>:inline</tt> - Renders an ERB template string.

@@ -57,12 +57,12 @@ module ActiveJob
     # Specifies the queue adapter to use with all Active Job test helpers.
     #
     # Returns an instance of the queue adapter and defaults to
-    # <tt>ActiveJob::QueueAdapters::TestAdapter</tt>.
+    # ActiveJob::QueueAdapters::TestAdapter.
     #
     # Note: The adapter provided by this method must provide some additional
-    # methods from those expected of a standard <tt>ActiveJob::QueueAdapter</tt>
+    # methods from those expected of a standard ActiveJob::QueueAdapter
     # in order to be used with the active job test helpers. Refer to
-    # <tt>ActiveJob::QueueAdapters::TestAdapter</tt>.
+    # ActiveJob::QueueAdapters::TestAdapter.
     def queue_adapter_for_test
       ActiveJob::QueueAdapters::TestAdapter.new
     end

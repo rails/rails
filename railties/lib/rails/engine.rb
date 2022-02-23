@@ -11,10 +11,10 @@ require "thread"
 module Rails
   # <tt>Rails::Engine</tt> allows you to wrap a specific Rails application or subset of
   # functionality and share it with other applications or within a larger packaged application.
-  # Every <tt>Rails::Application</tt> is just an engine, which allows for simple
+  # Every Rails::Application is just an engine, which allows for simple
   # feature and application sharing.
   #
-  # Any <tt>Rails::Engine</tt> is also a <tt>Rails::Railtie</tt>, so the same
+  # Any <tt>Rails::Engine</tt> is also a Rails::Railtie, so the same
   # methods (like <tt>rake_tasks</tt> and +generators+) and configuration
   # options that are available in railties can also be used in engines.
   #
@@ -236,9 +236,9 @@ module Rails
   # +articles_path+, like you would do with your main application.
   #
   # To make this behavior consistent with other parts of the framework,
-  # isolated engines also have an effect on <tt>ActiveModel::Naming</tt>. In a
+  # isolated engines also have an effect on ActiveModel::Naming. In a
   # normal Rails app, when you use a namespaced model such as
-  # <tt>Namespace::Article</tt>, <tt>ActiveModel::Naming</tt> will generate
+  # <tt>Namespace::Article</tt>, ActiveModel::Naming will generate
   # names with the prefix "namespace". In an isolated engine, the prefix will
   # be omitted in URL helpers and form fields, for convenience.
   #
@@ -442,7 +442,7 @@ module Rails
     end
 
     # Load console and invoke the registered hooks.
-    # Check <tt>Rails::Railtie.console</tt> for more info.
+    # Check Rails::Railtie.console for more info.
     def load_console(app = self)
       require "rails/console/app"
       require "rails/console/helpers"
@@ -451,14 +451,14 @@ module Rails
     end
 
     # Load Rails runner and invoke the registered hooks.
-    # Check <tt>Rails::Railtie.runner</tt> for more info.
+    # Check Rails::Railtie.runner for more info.
     def load_runner(app = self)
       run_runner_blocks(app)
       self
     end
 
     # Load Rake and railties tasks, and invoke the registered hooks.
-    # Check <tt>Rails::Railtie.rake_tasks</tt> for more info.
+    # Check Rails::Railtie.rake_tasks for more info.
     def load_tasks(app = self)
       require "rake"
       run_tasks_blocks(app)
@@ -466,7 +466,7 @@ module Rails
     end
 
     # Load Rails generators and invoke the registered hooks.
-    # Check <tt>Rails::Railtie.generators</tt> for more info.
+    # Check Rails::Railtie.generators for more info.
     def load_generators(app = self)
       require "rails/generators"
       run_generators_blocks(app)
@@ -475,7 +475,7 @@ module Rails
     end
 
     # Invoke the server registered hooks.
-    # Check <tt>Rails::Railtie.server</tt> for more info.
+    # Check Rails::Railtie.server for more info.
     def load_server(app = self)
       run_server_blocks(app)
       self

@@ -65,9 +65,8 @@ module ActionDispatch
   #     resources :posts, :comments
   #   end
   #
-  # For more, see <tt>Routing::Mapper::Resources#resources</tt>,
-  # <tt>Routing::Mapper::Scoping#namespace</tt>, and
-  # <tt>Routing::Mapper::Scoping#scope</tt>.
+  # For more, see Routing::Mapper::Resources#resources,
+  # Routing::Mapper::Scoping#namespace, and Routing::Mapper::Scoping#scope.
   #
   # == Non-resourceful routes
   #

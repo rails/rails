@@ -32,7 +32,7 @@ module ActionController # :nodoc:
   # response may be extracted. To prevent this, only XmlHttpRequest (known as XHR or
   # Ajax) requests are allowed to make requests for JavaScript responses.
   #
-  # Subclasses of <tt>ActionController::Base</tt> are protected by default with the
+  # Subclasses of ActionController::Base are protected by default with the
   # <tt>:exception</tt> strategy, which raises an
   # <tt>ActionController::InvalidAuthenticityToken</tt> error on unverified requests.
   #

@@ -118,7 +118,7 @@ module ActiveModel
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, and +:strict+.
-      # See <tt>ActiveModel::Validations#validates</tt> for more information.
+      # See ActiveModel::Validations::ClassMethods#validates for more information.
       def validates_length_of(*attr_names)
         validates_with LengthValidator, _merge_attributes(attr_names)
       end

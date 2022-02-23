@@ -4,18 +4,18 @@ require "mail"
 
 module ActionMailbox
   module TestHelper
-    # Create an +InboundEmail+ record using an eml fixture in the format of message/rfc822
+    # Create an InboundEmail record using an eml fixture in the format of message/rfc822
     # referenced with +fixture_name+ located in +test/fixtures/files/fixture_name+.
     def create_inbound_email_from_fixture(fixture_name, status: :processing)
       create_inbound_email_from_source file_fixture(fixture_name).read, status: status
     end
 
-    # Creates an +InboundEmail+ by specifying through options or a block.
+    # Creates an InboundEmail by specifying through options or a block.
     #
     # ==== Options
     #
-    # * <tt>:status</tt> - The +status+ to set for the created +InboundEmail+.
-    #   For possible statuses, see {its documentation}[rdoc-ref:ActionMailbox::InboundEmail].
+    # * <tt>:status</tt> - The +status+ to set for the created InboundEmail.
+    #   For possible statuses, see its documentation.
     #
     # ==== Creating a simple email
     #
@@ -68,26 +68,25 @@ module ActionMailbox
       create_inbound_email_from_source mail.to_s, status: status
     end
 
-    # Create an +InboundEmail+ using the raw rfc822 +source+ as text.
+    # Create an InboundEmail using the raw rfc822 +source+ as text.
     def create_inbound_email_from_source(source, status: :processing)
       ActionMailbox::InboundEmail.create_and_extract_message_id! source, status: status
     end
 
 
-    # Create an +InboundEmail+ from fixture using the same arguments as +create_inbound_email_from_fixture+
+    # Create an InboundEmail from fixture using the same arguments as create_inbound_email_from_fixture
     # and immediately route it to processing.
     def receive_inbound_email_from_fixture(*args)
       create_inbound_email_from_fixture(*args).tap(&:route)
     end
 
-    # Create an +InboundEmail+ using the same options or block as
-    # {create_inbound_email_from_mail}[rdoc-ref:#create_inbound_email_from_mail],
-    # then immediately route it for processing.
+    # Create an InboundEmail using the same options or block as
+    # create_inbound_email_from_mail, then immediately route it for processing.
     def receive_inbound_email_from_mail(**kwargs, &block)
       create_inbound_email_from_mail(**kwargs, &block).tap(&:route)
     end
 
-    # Create an +InboundEmail+ using the same arguments as +create_inbound_email_from_source+ and immediately route it
+    # Create an InboundEmail using the same arguments as create_inbound_email_from_source and immediately route it
     # to processing.
     def receive_inbound_email_from_source(*args)
       create_inbound_email_from_source(*args).tap(&:route)

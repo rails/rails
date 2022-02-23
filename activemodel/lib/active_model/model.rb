@@ -3,8 +3,8 @@
 module ActiveModel
   # == Active \Model \Basic \Model
   #
-  # Allows implementing models similar to <tt>ActiveRecord::Base</tt>.
-  # Includes <tt>ActiveModel::API</tt> for the required interface for an
+  # Allows implementing models similar to ActiveRecord::Base.
+  # Includes ActiveModel::API for the required interface for an
   # object to interact with Action Pack and Action View, but can be
   # extended with other functionalities.
   #
