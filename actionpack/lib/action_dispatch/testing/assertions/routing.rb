@@ -187,6 +187,7 @@ module ActionDispatch
           super
         end
       end
+      ruby2_keywords(:method_missing)
 
       private
         # Recognizes the route for a given path.
