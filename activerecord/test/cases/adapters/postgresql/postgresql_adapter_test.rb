@@ -38,6 +38,10 @@ module ActiveRecord
             {}
           end
 
+          def escape(query)
+            PG::Connection.escape(query)
+          end
+
           def reset
             raise PG::ConnectionBad, "I'll be rescued by the reconnect method"
           end
