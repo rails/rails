@@ -1479,43 +1479,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 10, Topic.select("10 as tenderlove").first.tenderlove
   end
 
-  def test_slice
-    company = Company.new(rating: 1, name: "37signals", firm_name: "37signals")
-    hash = company.slice(:name, :rating, "arbitrary_method")
-    assert_equal hash[:name], company.name
-    assert_equal hash["name"], company.name
-    assert_equal hash[:rating], company.rating
-    assert_equal hash["arbitrary_method"], company.arbitrary_method
-    assert_equal hash[:arbitrary_method], company.arbitrary_method
-    assert_nil hash[:firm_name]
-    assert_nil hash["firm_name"]
-  end
-
-  def test_slice_accepts_array_argument
-    attrs = {
-      title: "slice",
-      author_name: "@Cohen-Carlisle",
-      content: "accept arrays so I don't have to splat"
-    }.with_indifferent_access
-    topic = Topic.new(attrs)
-    assert_equal attrs, topic.slice(attrs.keys)
-  end
-
-  def test_values_at
-    company = Company.new(name: "37signals", rating: 1)
-
-    assert_equal [ "37signals", 1, "I am Jack's profound disappointment" ],
-      company.values_at(:name, :rating, :arbitrary_method)
-    assert_equal [ "I am Jack's profound disappointment", 1, "37signals" ],
-      company.values_at(:arbitrary_method, :rating, :name)
-  end
-
-  def test_values_at_accepts_array_argument
-    topic = Topic.new(title: "Budget", author_name: "Jason")
-
-    assert_equal %w( Budget Jason ), topic.values_at(%w( title author_name ))
-  end
-
   def test_default_values_are_deeply_dupped
     company = Company.new
     company.description << "foo"
