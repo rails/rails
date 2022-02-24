@@ -4,6 +4,17 @@
 
     * Sammy Larbi *
 
+*   Reduce the memory footprint of fixtures accessors.
+
+    Until now fixtures accessors were eagerly defined using `define_method`.
+    So the memory usage was directly dependent of the number of fixtures and
+    test suites.
+
+    Instead fixtures accessors are now implemented with `method_missing`,
+    so they incur much less memory and CPU overhead.
+
+    *Jean Boussier*
+
 *   Fix `config.active_record.destroy_association_async_job` configuration
 
     `config.active_record.destroy_association_async_job` should allow

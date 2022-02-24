@@ -17,7 +17,7 @@ module ActiveRecord::Encryption
     end
 
     def assert_invalid_key_cant_read_attribute(model, attribute_name)
-      if model.type_for_attribute(attribute_name).key_provider.present?
+      if model.type_for_attribute(attribute_name).key_provider.respond_to?(:keys=)
         assert_invalid_key_cant_read_attribute_with_custom_key_provider(model, attribute_name)
       else
         assert_invalid_key_cant_read_attribute_with_default_key_provider(model, attribute_name)
@@ -91,11 +91,14 @@ module ActiveRecord::Encryption
 
         model.reload
 
-        attribute_type.key_provider.key = ActiveRecord::Encryption::Key.derive_from "other custom attribute secret"
+        original_keys = attribute_type.key_provider.keys
+        attribute_type.key_provider.keys = [ ActiveRecord::Encryption::Key.derive_from("other custom attribute secret") ]
 
         assert_raises ActiveRecord::Encryption::Errors::Decryption do
           model.public_send(attribute_name)
         end
+      ensure
+        attribute_type.key_provider.keys = original_keys
       end
   end
 
@@ -141,22 +144,29 @@ end
 
 class ActiveRecord::EncryptionTestCase < ActiveRecord::TestCase
   include ActiveRecord::Encryption::EncryptionHelpers, ActiveRecord::Encryption::PerformanceHelpers
-  # , PerformanceHelpers
 
-  ENCRYPTION_ATTRIBUTES_TO_RESET = %i[ primary_key deterministic_key key_derivation_salt store_key_references
-    key_derivation_salt support_unencrypted_data encrypt_fixtures forced_encoding_for_deterministic_encryption ]
+  ENCRYPTION_PROPERTIES_TO_RESET = {
+    config: %i[ primary_key deterministic_key key_derivation_salt store_key_references
+      key_derivation_salt support_unencrypted_data encrypt_fixtures
+      forced_encoding_for_deterministic_encryption ],
+    context: %i[ key_provider ]
+  }
 
   setup do
-    ENCRYPTION_ATTRIBUTES_TO_RESET.each do |property|
-      instance_variable_set "@_original_#{property}", ActiveRecord::Encryption.config.public_send(property)
+    ENCRYPTION_PROPERTIES_TO_RESET.each do |key, properties|
+      properties.each do |property|
+        instance_variable_set "@_original_encryption_#{key}_#{property}", ActiveRecord::Encryption.public_send(key).public_send(property)
+      end
     end
     ActiveRecord::Encryption.config.previous_schemes.clear
     ActiveRecord::Encryption.encrypted_attribute_declaration_listeners&.clear
   end
 
   teardown do
-    ENCRYPTION_ATTRIBUTES_TO_RESET.each do |property|
-      ActiveRecord::Encryption.config.public_send("#{property}=", instance_variable_get("@_original_#{property}"))
+    ENCRYPTION_PROPERTIES_TO_RESET.each do |key, properties|
+      properties.each do |property|
+        ActiveRecord::Encryption.public_send(key).public_send("#{property}=", instance_variable_get("@_original_encryption_#{key}_#{property}"))
+      end
     end
   end
 end
