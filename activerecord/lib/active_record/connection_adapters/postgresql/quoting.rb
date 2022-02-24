@@ -43,7 +43,7 @@ module ActiveRecord
 
         # Quotes strings for use in SQL input.
         def quote_string(s) # :nodoc:
-          PG::Connection.escape(s)
+          @connection.escape(s)
         end
 
         # Checks the following cases:
