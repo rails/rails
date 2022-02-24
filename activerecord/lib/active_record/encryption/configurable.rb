@@ -17,12 +17,10 @@ module ActiveRecord
           delegate name, to: :context
         end
 
-        def configure(primary_key:, deterministic_key:, key_derivation_salt:, **properties) # :nodoc:
+        def configure(primary_key: nil, deterministic_key: nil, key_derivation_salt: nil, **properties) # :nodoc:
           config.primary_key = primary_key
           config.deterministic_key = deterministic_key
           config.key_derivation_salt = key_derivation_salt
-
-          context.key_provider = ActiveRecord::Encryption::DerivedSecretKeyProvider.new(primary_key)
 
           properties.each do |name, value|
             [:context, :config].each do |configurable_object_name|
