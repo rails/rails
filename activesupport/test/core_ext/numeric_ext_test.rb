@@ -189,6 +189,9 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal("$1,234,567,891", 1234567891.50.to_fs(:currency, precision: 0, round_mode: :down))
     assert_equal("$1,234,567,890.5", 1234567890.50.to_fs(:currency, precision: 1))
     assert_equal("&pound;1234567890,50", 1234567890.50.to_fs(:currency, unit: "&pound;", separator: ",", delimiter: ""))
+    assert_equal("\u00A31234567890,50", 1234567890.50.to_fs(:currency, unit: "\u00A3", separator: ",", delimiter: ""))
+    assert_equal("\u00A31234567890,50", 1234567890.50.to_fs(:currency, unit: "£", separator: ",", delimiter: ""))
+    assert_equal("£1234567890,50", 1234567890.50.to_fs(:currency, unit: "\u00A3", separator: ",", delimiter: ""))
   end
 
   def test_to_fs__rounded
