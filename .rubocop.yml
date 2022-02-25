@@ -159,6 +159,9 @@ Style/FrozenStringLiteralComment:
     - 'actionmailbox/db/migrate/**/*.rb'
     - 'actiontext/db/migrate/**/*.rb'
 
+Style/MapToHash:
+  Enabled: true
+
 Style/RedundantFreeze:
   Enabled: true
 
