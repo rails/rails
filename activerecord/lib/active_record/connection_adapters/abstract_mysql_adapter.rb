@@ -639,7 +639,7 @@ module ActiveRecord
 
           log(sql, name, async: async) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @connection.query(sql)
+              @raw_connection.query(sql)
             end
           end
         end
