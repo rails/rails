@@ -52,6 +52,11 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
   tests RenderPartialWithRecordIdentificationController
   fixtures :developers, :projects, :developers_projects, :topics, :replies, :companies, :mascots
 
+  def setup
+    super
+    ActionView::LookupContext::DetailsKey.clear
+  end
+
   def test_rendering_partial_with_has_many_and_belongs_to_association
     get :render_with_has_many_and_belongs_to_association
     assert_equal Developer.find(1).projects.map(&:name).join, @response.body
