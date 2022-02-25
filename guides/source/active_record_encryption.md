@@ -241,6 +241,8 @@ end
 
 By default, encrypted columns are configured to be [automatically filtered in Rails logs](https://guides.rubyonrails.org/action_controller_overview.html#parameters-filtering). You can disable this behavior by adding the following to your `application.rb`:
 
+When generating the filter parameter, it will use the model name as a prefix. E.g: For `Person#name` the filter parameter will be `person.name`.
+
 ```ruby
 config.active_record.encryption.add_to_filter_parameters = false
 ```
