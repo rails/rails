@@ -188,12 +188,12 @@ module ActiveRecord
         end
 
         def build_decrypt_attribute_assignments
-          Array(self.class.encrypted_attributes).collect do |attribute_name|
+          Array(self.class.encrypted_attributes).to_h do |attribute_name|
             type = type_for_attribute(attribute_name)
             encrypted_value = ciphertext_for(attribute_name)
             new_value = type.deserialize(encrypted_value)
             [attribute_name, new_value]
-          end.to_h
+          end
         end
 
         def cant_modify_encrypted_attributes_when_frozen
