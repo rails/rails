@@ -321,10 +321,10 @@ module ActiveRecord
       # Close then reopen the connection.
       def reconnect!
         @lock.synchronize do
-          super
           @connection.reset
           configure_connection
           reload_type_map
+          super
         rescue PG::ConnectionBad
           connect
         end
@@ -332,12 +332,12 @@ module ActiveRecord
 
       def reset!
         @lock.synchronize do
-          clear_cache!
           reset_transaction
           unless @connection.transaction_status == ::PG::PQTRANS_IDLE
             @connection.query "ROLLBACK"
           end
           @connection.query "DISCARD ALL"
+          clear_cache!(new_connection: true)
           configure_connection
         end
       end
