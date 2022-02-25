@@ -1,3 +1,10 @@
+*   Make `redirect_to` return an empty response body.
+
+    Application controllers that wish to add a response body after calling
+    `redirect_to` can continue to do so.
+
+    *Jon Dufresne*
+
 *   Use non-capturing group for subdomain matching in `ActionDispatch::HostAuthorization`
 
     Since we do nothing with the captured subdomain group, we can use a non-capturing group instead.
