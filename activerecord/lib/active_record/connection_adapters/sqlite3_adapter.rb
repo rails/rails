@@ -165,6 +165,9 @@ module ActiveRecord
       end
 
       def reconnect!
+        unless @raw_connection.closed?
+          @raw_connection.rollback rescue nil
+        end
         super
         connect if @raw_connection.closed?
       end

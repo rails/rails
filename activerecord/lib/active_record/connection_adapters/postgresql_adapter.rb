@@ -322,9 +322,9 @@ module ActiveRecord
       def reconnect!
         @lock.synchronize do
           @raw_connection.reset
+          super
           configure_connection
           reload_type_map
-          super
         rescue PG::ConnectionBad
           connect
         end
