@@ -133,7 +133,8 @@ module ActionDispatch
             { name: route.name,
               verb: route.verb,
               path: route.path,
-              reqs: route.reqs }
+              reqs: route.reqs,
+              source_location: route.source_location }
           end
         end
 
@@ -239,13 +240,16 @@ module ActionDispatch
         private
           def draw_expanded_section(routes)
             routes.map.each_with_index do |r, i|
-              <<~MESSAGE.chomp
+              route_rows = <<~MESSAGE.chomp
                 #{route_header(index: i + 1)}
                 Prefix            | #{r[:name]}
                 Verb              | #{r[:verb]}
                 URI               | #{r[:path]}
                 Controller#Action | #{r[:reqs]}
               MESSAGE
+              source_location = "\nSource Location   | #{r[:source_location]}"
+              route_rows += source_location if r[:source_location].present?
+              route_rows
             end
           end
 

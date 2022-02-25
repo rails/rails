@@ -12,6 +12,9 @@ module ActionDispatch
     class Mapper
       URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
 
+      cattr_accessor :route_source_locations, instance_accessor: false, default: false
+      cattr_accessor :backtrace_cleaner, instance_accessor: false, default: ActiveSupport::BacktraceCleaner.new
+
       class Constraints < Routing::Endpoint # :nodoc:
         attr_reader :app, :constraints
 
@@ -170,7 +173,7 @@ module ActionDispatch
           Journey::Route.new(name: name, app: application, path: path, constraints: conditions,
                              required_defaults: required_defaults, defaults: defaults,
                              request_method_match: request_method, precedence: precedence,
-                             scope_options: scope_options, internal: @internal)
+                             scope_options: scope_options, internal: @internal, source_location: route_source_location)
         end
 
         def application
@@ -355,6 +358,15 @@ module ActionDispatch
 
           def dispatcher(raise_on_name_error)
             Routing::RouteSet::Dispatcher.new raise_on_name_error
+          end
+
+          def route_source_location
+            if Mapper.route_source_locations
+              action_dispatch_dir = File.expand_path("..", __dir__)
+              caller_location = caller_locations.find { |location| !location.path.include?(action_dispatch_dir) }
+              cleaned_path = Mapper.backtrace_cleaner.clean([caller_location.path]).first
+              "#{cleaned_path}:#{caller_location.lineno}" if cleaned_path
+            end
           end
       end
 
