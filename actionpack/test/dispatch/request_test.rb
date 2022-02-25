@@ -1329,7 +1329,7 @@ class RequestEtag < BaseRequestTest
     assert_equal header, request.if_none_match
     assert_equal expected, request.if_none_match_etags
     expected.each do |etag|
-      assert request.etag_matches?(etag), etag
+      assert request.etag_matches?(etag), "Etag #{etag} did not match HTTP_IF_NONE_MATCH values"
     end
   end
 end

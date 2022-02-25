@@ -263,7 +263,7 @@ module ApplicationTests
       prev = ActionMailer::Base.preview_paths
       ActionMailer::Base.preview_paths = ["#{app_path}/lib/mailer/previews"]
       assert_deprecated do
-        assert "#{app_path}/lib/mailer/previews", ActionMailer::Base.preview_path
+        assert_equal "#{app_path}/lib/mailer/previews", ActionMailer::Base.preview_path
       end
     ensure
       ActionMailer::Base.preview_paths = prev
@@ -274,7 +274,7 @@ module ApplicationTests
       assert_deprecated do
         ActionMailer::Base.preview_path = "#{app_path}/lib/mailer/previews"
       end
-      assert ["#{app_path}/lib/mailer/previews"], ActionMailer::Base.preview_paths
+      assert_equal ["#{app_path}/lib/mailer/previews"], ActionMailer::Base.preview_paths
     ensure
       ActionMailer::Base.preview_paths = prev
     end
