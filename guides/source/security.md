@@ -1201,6 +1201,43 @@ for allowing inline `<script>` tags.
 This is used by the Rails UJS helper to create dynamically
 loaded inline `<script>` elements.
 
+### Feature-Policy Header
+
+NOTE: The Feature-Policy header has been renamed to Permissions-Policy.
+The Permissions-Policy requires a different implementation and isn't
+yet supported by all browsers. To avoid having to rename this
+middleware in the future we use the new name for the middleware but
+keep the old header name and implementation for now.
+
+To allow or block the use of browser features you can define a
+[Feature-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy)
+response header for you application. Rails provides a DSL that allows you to
+configure the header.
+
+Define the policy in the appropriate initializer:
+
+```ruby
+# config/initializers/permissions_policy.rb
+Rails.application.config.permissions_policy do |policy|
+  policy.camera      :none
+  policy.gyroscope   :none
+  policy.microphone  :none
+  policy.usb         :none
+  policy.fullscreen  :self
+  policy.payment     :self, "https://secure.example.com"
+end
+```
+
+The globally configured policy can be overridden on a per-resource basis:
+
+```ruby
+class PagesController < ApplicationController
+  permissions_policy do |policy|
+    policy.geolocation "https://example.com"
+  end
+end
+```
+
 Environmental Security
 ----------------------
 
