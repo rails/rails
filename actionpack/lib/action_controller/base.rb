@@ -87,10 +87,11 @@ module ActionController
   #
   # or you can remove the entire session with +reset_session+.
   #
-  # Sessions are stored by default in a browser cookie that's cryptographically signed, but unencrypted.
-  # This prevents the user from tampering with the session but also allows them to see its contents.
-  #
-  # Do not put secret information in cookie-based sessions!
+  # By default, sessions are stored in an encrypted browser cookie (see
+  # ActionDispatch::Session::CookieStore). Thus the user will not be able to
+  # read or edit the session data. However, the user can keep a copy of the
+  # cookie even after it has expired, so you should avoid storing sensitive
+  # information in cookie-based sessions.
   #
   # == Responses
   #
