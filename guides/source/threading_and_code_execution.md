@@ -310,7 +310,7 @@ involved, you can temporarily add the ActionDispatch::DebugLocks middleware to
 `config/application.rb`:
 
 ```ruby
-config.middleware.insert_before Rack::Sendfile,
+config.middleware.insert_before ActionDispatch::Static,
                                   ActionDispatch::DebugLocks
 ```
 

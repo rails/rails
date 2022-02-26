@@ -293,7 +293,6 @@ Choosing Middleware
 An API application comes with the following middleware by default:
 
 - `ActionDispatch::HostAuthorization`
-- `Rack::Sendfile`
 - `ActionDispatch::Static`
 - `ActionDispatch::Executor`
 - `ActionDispatch::ServerTiming`
@@ -371,40 +370,6 @@ subsequent inbound requests for the same URL.
 
 Think of it as page caching using HTTP semantics.
 
-### Using Rack::Sendfile
-
-When you use the `send_file` method inside a Rails controller, it sets the
-`X-Sendfile` header. `Rack::Sendfile` is responsible for actually sending the
-file.
-
-If your front-end server supports accelerated file sending, `Rack::Sendfile`
-will offload the actual file sending work to the front-end server.
-This enables Rails to finish request handling and free resources earlier.
-
-You can configure the name of the header that your front-end server uses for
-this purpose using [`config.action_dispatch.x_sendfile_header`][] in the appropriate
-environment's configuration file.
-
-You can learn more about how to use `Rack::Sendfile` with popular
-front-ends in [the Rack::Sendfile
-documentation](https://www.rubydoc.info/gems/rack/Rack/Sendfile).
-
-Here are some values for this header for some popular servers, once these servers are configured to support
-accelerated file sending:
-
-```ruby
-# Apache and lighttpd
-config.action_dispatch.x_sendfile_header = "X-Sendfile"
-
-# Nginx
-config.action_dispatch.x_sendfile_header = "X-Accel-Redirect"
-```
-
-Make sure to configure your server to support these options following the
-instructions in the `Rack::Sendfile` documentation.
-
-[`config.action_dispatch.x_sendfile_header`]: configuring.html#config-action-dispatch-x-sendfile-header
-
 ### Using ActionDispatch::Request
 
 `ActionDispatch::Request#params` will take parameters from the client in the JSON
@@ -477,10 +442,10 @@ If you don't want to use a middleware that is included by default in the API-onl
 middleware set, you can remove it with:
 
 ```ruby
-config.middleware.delete ::Rack::Sendfile
+config.middleware.delete ::Rack::Runtime
 ```
 
-Keep in mind that removing these middlewares will remove support for certain
+Keep in mind that removing some of these middlewares will remove support for certain
 features in Action Controller.
 
 Choosing Controller Modules

@@ -855,10 +855,6 @@ Makes a unique X-Request-Id header available to the response and enables the `Ac
 
 Checks for IP spoofing attacks and gets valid `client_ip` from request headers. Configurable with the `config.action_dispatch.ip_spoofing_check`, and `config.action_dispatch.trusted_proxies` options.
 
-#### `Rack::Sendfile`
-
-Intercepts responses whose body is being served from a file and replaces it with a server specific X-Sendfile header. Configurable with `config.action_dispatch.x_sendfile_header`.
-
 #### `ActionDispatch::Callbacks`
 
 Runs the prepare callbacks before serving the request.
@@ -2004,10 +2000,6 @@ Sets the TLD (top-level domain) length for the application. Defaults to `1`.
 #### `config.action_dispatch.ignore_accept_header`
 
 Is used to determine whether to ignore accept headers from a request. Defaults to `false`.
-
-#### `config.action_dispatch.x_sendfile_header`
-
-Specifies server specific X-Sendfile header. This is useful for accelerated file sending from server. For example it can be set to 'X-Sendfile' for Apache.
 
 #### `config.action_dispatch.http_auth_salt`
 
