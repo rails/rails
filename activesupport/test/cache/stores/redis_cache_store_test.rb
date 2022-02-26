@@ -307,6 +307,10 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include FailureRaisingBehavior
 
     private
+      def expected_exception
+        Redis::BaseError
+      end
+
       def emulating_unavailability
         old_client = Redis.send(:remove_const, :Client)
         Redis.const_set(:Client, UnavailableRedisClient)
@@ -323,6 +327,10 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include FailureRaisingBehavior
 
     private
+      def expected_exception
+        Redis::BaseError
+      end
+
       def emulating_unavailability
         old_client = Redis.send(:remove_const, :Client)
         Redis.const_set(:Client, MaxClientsReachedRedisClient)

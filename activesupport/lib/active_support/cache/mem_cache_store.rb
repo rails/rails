@@ -27,6 +27,12 @@ module ActiveSupport
     # MemCacheStore implements the Strategy::LocalCache strategy which implements
     # an in-memory cache inside of a block.
     class MemCacheStore < Store
+      DEFAULT_ERROR_HANDLER = -> (method:, returning:, exception:) do
+        if logger
+          logger.error { "MemCacheStore: #{method} failed, returned #{returning.inspect}: #{exception.class}: #{exception.message}" }
+        end
+      end
+
       # Advertise cache versioning support.
       def self.supports_cache_versioning?
         true
@@ -113,6 +119,9 @@ module ActiveSupport
         if options.key?(:cache_nils)
           options[:skip_nil] = !options.delete(:cache_nils)
         end
+
+        @error_handler = options.key?(:error_handler) ? options.delete(:error_handler) : DEFAULT_ERROR_HANDLER
+
         super(options)
 
         unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
@@ -136,7 +145,7 @@ module ActiveSupport
       def increment(name, amount = 1, options = nil)
         options = merged_options(options)
         instrument(:increment, name, amount: amount) do
-          rescue_error_with nil do
+          failsafe(:increment) do
             @data.with { |c| c.incr(normalize_key(name, options), amount, options[:expires_in]) }
           end
         end
@@ -149,7 +158,7 @@ module ActiveSupport
       def decrement(name, amount = 1, options = nil)
         options = merged_options(options)
         instrument(:decrement, name, amount: amount) do
-          rescue_error_with nil do
+          failsafe(:decrement) do
             @data.with { |c| c.decr(normalize_key(name, options), amount, options[:expires_in]) }
           end
         end
@@ -158,7 +167,7 @@ module ActiveSupport
       # Clear the entire cache on all memcached servers. This method should
       # be used with care when shared cache is being used.
       def clear(options = nil)
-        rescue_error_with(nil) { @data.with { |c| c.flush_all } }
+        failsafe(:clear) { @data.with { |c| c.flush_all } }
       end
 
       # Get the statistics from the memcached servers.
@@ -221,7 +230,7 @@ module ActiveSupport
         end
 
         def read_serialized_entry(key, **options)
-          rescue_error_with(nil) do
+          failsafe(:read_entry) do
             @data.with { |c| c.get(key, options) }
           end
         end
@@ -238,7 +247,7 @@ module ActiveSupport
             # Set the memcache expire a few minutes in the future to support race condition ttls on read
             expires_in += 5.minutes
           end
-          rescue_error_with false do
+          failsafe(:write_entry, returning: false) do
             # Don't pass compress option to Dalli since we are already dealing with compression.
             options.delete(:compress)
             @data.with { |c| c.send(method, key, payload, expires_in, **options) }
@@ -265,7 +274,7 @@ module ActiveSupport
 
         # Delete an entry from the cache.
         def delete_entry(key, **options)
-          rescue_error_with(false) { @data.with { |c| c.delete(key) } }
+          failsafe(:delete_entry, returning: false) { @data.with { |c| c.delete(key) } }
         end
 
         def serialize_entry(entry, raw: false, **options)
@@ -297,12 +306,12 @@ module ActiveSupport
           end
         end
 
-        def rescue_error_with(fallback)
+        def failsafe(method, returning: nil)
           yield
         rescue Dalli::DalliError => error
           ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
-          logger.error("DalliError (#{error}): #{error.message}") if logger
-          fallback
+          @error_handler&.call(method: method, exception: error, returning: returning)
+          returning
         end
     end
   end

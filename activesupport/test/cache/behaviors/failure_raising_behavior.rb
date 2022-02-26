@@ -5,7 +5,7 @@ module FailureRaisingBehavior
     key = SecureRandom.uuid
     @cache.write(key, SecureRandom.alphanumeric)
 
-    assert_raise Redis::BaseError do
+    assert_raise expected_exception do
       emulating_unavailability do |cache|
         cache.fetch(key)
       end
@@ -17,7 +17,7 @@ module FailureRaisingBehavior
     value = SecureRandom.alphanumeric
     @cache.write(key, value)
 
-    assert_raise Redis::BaseError do
+    assert_raise expected_exception do
       emulating_unavailability do |cache|
         cache.fetch(key) { SecureRandom.alphanumeric }
       end
@@ -30,7 +30,7 @@ module FailureRaisingBehavior
     key = SecureRandom.uuid
     @cache.write(key, SecureRandom.alphanumeric)
 
-    assert_raise Redis::BaseError do
+    assert_raise expected_exception do
       emulating_unavailability do |cache|
         cache.read(key)
       end
@@ -45,7 +45,7 @@ module FailureRaisingBehavior
       other_key => SecureRandom.alphanumeric
     )
 
-    assert_raise Redis::BaseError do
+    assert_raise expected_exception do
       emulating_unavailability do |cache|
         cache.read_multi(key, other_key)
       end
@@ -53,7 +53,7 @@ module FailureRaisingBehavior
   end
 
   def test_write_failure_raises
-    assert_raise Redis::BaseError do
+    assert_raise expected_exception do
       emulating_unavailability do |cache|
         cache.write(SecureRandom.uuid, SecureRandom.alphanumeric)
       end
@@ -61,7 +61,7 @@ module FailureRaisingBehavior
   end
 
   def test_write_multi_failure_raises
-    assert_raise Redis::BaseError do
+    assert_raise expected_exception do
       emulating_unavailability do |cache|
         cache.write_multi(
           SecureRandom.uuid => SecureRandom.alphanumeric,
@@ -79,7 +79,7 @@ module FailureRaisingBehavior
       other_key => SecureRandom.alphanumeric
     )
 
-    assert_raise Redis::BaseError do
+    assert_raise expected_exception do
       emulating_unavailability do |cache|
         cache.fetch_multi(key, other_key) { |k| "unavailable" }
       end
@@ -90,7 +90,7 @@ module FailureRaisingBehavior
     key = SecureRandom.uuid
     @cache.write(key, SecureRandom.alphanumeric)
 
-    assert_raise Redis::BaseError do
+    assert_raise expected_exception do
       emulating_unavailability do |cache|
         cache.delete(key)
       end
@@ -101,7 +101,7 @@ module FailureRaisingBehavior
     key = SecureRandom.uuid
     @cache.write(key, SecureRandom.alphanumeric)
 
-    assert_raise Redis::BaseError do
+    assert_raise expected_exception do
       emulating_unavailability do |cache|
         cache.exist?(key)
       end
@@ -112,7 +112,7 @@ module FailureRaisingBehavior
     key = SecureRandom.uuid
     @cache.write(key, 1, raw: true)
 
-    assert_raise Redis::BaseError do
+    assert_raise expected_exception do
       emulating_unavailability do |cache|
         cache.increment(key)
       end
@@ -123,7 +123,7 @@ module FailureRaisingBehavior
     key = SecureRandom.uuid
     @cache.write(key, 1, raw: true)
 
-    assert_raise Redis::BaseError do
+    assert_raise expected_exception do
       emulating_unavailability do |cache|
         cache.decrement(key)
       end
@@ -131,7 +131,7 @@ module FailureRaisingBehavior
   end
 
   def test_clear_failure_returns_nil
-    assert_raise Redis::BaseError do
+    assert_raise expected_exception do
       emulating_unavailability do |cache|
         cache.clear
       end
