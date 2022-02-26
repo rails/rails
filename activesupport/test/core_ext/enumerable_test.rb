@@ -49,6 +49,30 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_nil payments.maximum(:price)
   end
 
+  def test_each_decreasing_slice
+    elements = GenericEnumerable.new([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    assert_equal [[1, 2, 3, 4], [5, 6, 7], [8, 9], [10]], elements.each_decreasing_slice(4).to_a
+  end
+
+  def test_each_decreasing_slice_with_decrement
+    elements = GenericEnumerable.new([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    assert_equal [[1, 2, 3, 4], [5, 6], [7], [8], [9], [10]], elements.each_decreasing_slice(4, 2).to_a
+  end
+
+  def test_each_decreasing_slice_with_block
+    elements = GenericEnumerable.new([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    eachstuff = elements.each { |el| el +1 }
+
+    result = []
+    elements.each_decreasing_slice(4, 2) do |slice|
+      result << slice.sum
+    end
+
+
+    assert_equal [10, 11, 7, 8, 9, 10], result
+  end
+
+
   def test_sums
     enum = GenericEnumerable.new([5, 15, 10])
     assert_equal 30, enum.sum

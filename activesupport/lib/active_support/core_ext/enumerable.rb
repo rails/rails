@@ -36,6 +36,41 @@ module Enumerable
     map(&key).max
   end
 
+
+  # Without a block returns an Enumerable of Enumerables (slices).
+  # Each slice is decreased by the decrement (defaults to 1).
+  #
+  #   (1..10).each_decreasing_slice(4).to_a
+  #    # => [[1, 2, 3, 4], [5, 6, 7], [8, 9], [10]]
+  #   (1..10).each_decreasing_slice(4, 2)
+  #   # => [[1, 2, 3, 4], [5, 6], [7], [8], [9], [10]]
+  #
+  # With a block executes the block and returns an enumerable of Enumerables.
+  #   result = []
+  #   elements.each_decreasing_slice(4, 2) { |slice| result << slice.sum }
+  #   # => [[1, 2, 3, 4], [5, 6], [7], [8], [9], [10]]
+  #   p result
+  #   # => [10, 11, 7, 8, 9, 10]
+  def each_decreasing_slice(initial_slice_size, decrement = 1, &block)
+    next_slice_size = initial_slice_size
+    index = 0
+    slices = slice_after do |el|
+      if (index += 1) == next_slice_size
+        initial_slice_size = initial_slice_size > decrement ? initial_slice_size - decrement : 1
+        next_slice_size += initial_slice_size
+        true
+      end
+    end
+
+
+
+    if block_given?
+      slices.to_a.each(&block)
+    else
+      slices
+    end
+  end
+
   # Calculates a sum from the elements.
   #
   #  payments.sum { |p| p.price * p.tax_rate }
