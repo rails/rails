@@ -46,7 +46,13 @@ module MemCacheStoreTest
 
   class StoreTest < ActiveSupport::TestCase
     def lookup_store(options = {})
-      cache = ActiveSupport::Cache.lookup_store(*store, { namespace: @namespace }.merge(options))
+      cache = ActiveSupport::Cache.lookup_store(
+        *store,
+        {
+          namespace: @namespace,
+          error_handler: -> (method:, returning:, exception:) { raise exception },
+        }.merge(options)
+      )
       (@_stores ||= []) << cache
       cache
     end
