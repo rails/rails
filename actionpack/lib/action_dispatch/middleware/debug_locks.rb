@@ -10,7 +10,7 @@ module ActionDispatch
   # To use it, insert it near the top of the middleware stack, using
   # `config/application.rb`:
   #
-  #     config.middleware.insert_before Rack::Sendfile, ActionDispatch::DebugLocks
+  #     config.middleware.insert_before ActionDispatch::Static, ActionDispatch::DebugLocks
   #
   # After restarting the application and re-triggering the deadlock condition, the
   # route `/rails/locks` will show a summary of all threads currently known to the

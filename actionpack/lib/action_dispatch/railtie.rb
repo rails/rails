@@ -11,7 +11,12 @@ require "rails/railtie"
 module ActionDispatch
   class Railtie < Rails::Railtie # :nodoc:
     config.action_dispatch = ActiveSupport::OrderedOptions.new
-    config.action_dispatch.x_sendfile_header = nil
+    config.action_dispatch.singleton_class.define_method(:x_sendfile_header=) do |val|
+      ActionDispatch.deprecator.warn(<<-MSG.squish)
+        `config.action_dispatch.x_sendfile_header` is deprecated
+        since Rack::Sendfile was removed from the default middleware stack in Rails.
+      MSG
+    end
     config.action_dispatch.ip_spoofing_check = true
     config.action_dispatch.show_exceptions = :all
     config.action_dispatch.tld_length = 1
