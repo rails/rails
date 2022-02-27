@@ -69,7 +69,7 @@ group :job do
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false
-  gem "queue_classic", github: "jhawthorn/queue_classic", branch: "fix-connection-pg-14", require: false, platforms: :ruby
+  gem "queue_classic", ">= 4.0.0.pre.beta1", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "que", require: false
   gem "backburner", require: false
