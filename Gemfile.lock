@@ -22,14 +22,6 @@ GIT
       useragent (>= 0.16.7)
 
 GIT
-  remote: https://github.com/jhawthorn/queue_classic.git
-  revision: dbfee9bda71020b8f11ae8d9b85932462b7fbee0
-  branch: fix-connection-pg-14
-  specs:
-    queue_classic (4.0.0.pre.alpha1)
-      pg (>= 0.17, < 2.0)
-
-GIT
   remote: https://github.com/matthewd/websocket-client-simple.git
   revision: e161305f1a466b9398d86df3b1731b03362da91b
   branch: close-race
@@ -398,6 +390,8 @@ GEM
     puma (5.5.2)
       nio4r (~> 2.0)
     que (1.0.0)
+    queue_classic (4.0.0.pre.beta1)
+      pg (>= 0.17, < 2.0)
     raabro (1.4.0)
     racc (1.6.0)
     rack (2.2.3)
@@ -572,8 +566,6 @@ GEM
 PLATFORMS
   ruby
   x86_64-darwin
-  x86_64-darwin-19
-  x86_64-darwin-20
   x86_64-linux
 
 DEPENDENCIES
@@ -615,7 +607,7 @@ DEPENDENCIES
   psych (~> 3.0)
   puma
   que
-  queue_classic!
+  queue_classic (>= 4.0.0.pre.beta1)
   racc (>= 1.4.6)
   rack-cache (~> 1.2)
   rails!
