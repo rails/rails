@@ -696,6 +696,12 @@ class FormHelperTest < ActionView::TestCase
       check_box("post", "secret")
     )
 
+    @post.secret = [1]
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
+      check_box("post", "secret")
+    )
+
     @post.secret = Set.new(["1"])
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
