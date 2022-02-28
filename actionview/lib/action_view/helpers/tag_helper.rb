@@ -46,7 +46,7 @@ module ActionView
         include OutputSafetyHelper
 
         HTML_VOID_ELEMENTS = %i(area base br col circle embed hr img input keygen link meta param source track wbr).to_set
-        SVG_VOID_ELEMENTS = %i(animate animateMotion animateTransform circle ellipse line path polygon polyline rect set stop use view).to_set
+        SVG_SELF_CLOSING_ELEMENTS = %i(animate animateMotion animateTransform circle ellipse line path polygon polyline rect set stop use view).to_set
 
         def initialize(view_context)
           @view_context = view_context
@@ -67,8 +67,9 @@ module ActionView
 
         def tag_string(name, content = nil, escape_attributes: true, **options, &block)
           content = @view_context.capture(self, &block) if block_given?
-          if (HTML_VOID_ELEMENTS.include?(name) || SVG_VOID_ELEMENTS.include?(name)) && content.nil?
-            "<#{name.to_s.dasherize}#{tag_options(options, escape_attributes)}>".html_safe
+          self_closing = SVG_SELF_CLOSING_ELEMENTS.include?(name)
+          if (HTML_VOID_ELEMENTS.include?(name) || self_closing) && content.nil?
+            "<#{name.to_s.dasherize}#{tag_options(options, escape_attributes)}#{self_closing ? " />" : ">"}".html_safe
           else
             content_tag_string(name.to_s.dasherize, content || "", options, escape_attributes)
           end
