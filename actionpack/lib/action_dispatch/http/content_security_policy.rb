@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/object/deep_dup"
+require "active_support/core_ext/array/wrap"
 
 module ActionDispatch #:nodoc:
   class ContentSecurityPolicy
@@ -272,7 +273,7 @@ module ActionDispatch #:nodoc:
             raise RuntimeError, "Missing context for the dynamic content security policy source: #{source.inspect}"
           else
             resolved = context.instance_exec(&source)
-            resolved.is_a?(Symbol) ? apply_mapping(resolved) : resolved
+            apply_mappings(Array.wrap(resolved))
           end
         else
           raise RuntimeError, "Unexpected content security policy source: #{source.inspect}"

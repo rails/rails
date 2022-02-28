@@ -237,6 +237,14 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     assert_equal "script-src www.example.com", @policy.build(controller)
   end
 
+  def test_multiple_and_dynamic_directives
+    request = ActionDispatch::Request.new("HTTP_HOST" => "www.example.com")
+    controller = Struct.new(:request).new(request)
+
+    @policy.frame_ancestors -> { [:self, "https://example.com"] }
+    assert_equal "frame-ancestors 'self' https://example.com", @policy.build(controller)
+  end
+
   def test_mixed_static_and_dynamic_directives
     @policy.script_src :self, -> { "foo.com" }, "bar.com"
     request = ActionDispatch::Request.new({})

@@ -1,3 +1,19 @@
+*   Fix `content_security_policy` returning invalid directives.
+
+    Directives such as `self`, `unsafe-eval` and few others were not
+    single quoted when the directive was the result of calling a lambda
+    returning an array.
+
+    ```ruby
+    content_security_policy do |policy|
+      policy.frame_ancestors lambda { [:self, "https://example.com"] }
+    end
+    ```
+
+    With this fix the policy generated from above will now be valid.
+
+    *Edouard Chin*
+
 *   Update `HostAuthorization` middleware to render debug info only
     when `config.consider_all_requests_local` is set to true.
 
