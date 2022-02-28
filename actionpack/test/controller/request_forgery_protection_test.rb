@@ -190,6 +190,11 @@ class SkipProtectionController < ActionController::Base
   attr_accessor :skip_requested
 end
 
+class SkipProtectionWhenUnprotectedController < ActionController::Base
+  include RequestForgeryProtectionActions
+  skip_forgery_protection
+end
+
 # common test methods
 module RequestForgeryProtectionTests
   def setup
@@ -1114,6 +1119,17 @@ class SkipProtectionControllerTest < ActionController::TestCase
 
   def assert_blocked(&block)
     assert_raises(ActionController::InvalidAuthenticityToken, &block)
+  end
+
+  def assert_not_blocked(&block)
+    assert_nothing_raised(&block)
+    assert_response :success
+  end
+end
+
+class SkipProtectionWhenUnprotectedControllerTest < ActionController::TestCase
+  def test_should_allow_skip_request_when_protection_is_not_set
+    assert_not_blocked { post :index }
   end
 
   def assert_not_blocked(&block)

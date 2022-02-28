@@ -747,5 +747,17 @@ module ApplicationTests
       get "/"
       assert_equal 200, last_response.status
     end
+
+    test "request to rails/welcome is successful when default_protect_from_forgery is false" do
+      add_to_config <<-RUBY
+        config.action_dispatch.show_exceptions = false
+        config.action_controller.default_protect_from_forgery = false
+      RUBY
+
+      app "development"
+
+      get "/"
+      assert_equal 200, last_response.status
+    end
   end
 end
