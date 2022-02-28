@@ -42,14 +42,6 @@ module ActiveRecord
           MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
         end
 
-        # Executes the SQL statement in the context of this connection.
-        def execute(sql, name = nil, async: false)
-          sql = transform_query(sql)
-          check_if_write_query(sql)
-
-          raw_execute(sql, name, async: async)
-        end
-
         def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
           if without_prepared_statement?(binds)
             execute_and_free(sql, name, async: async) do |result|
@@ -91,12 +83,18 @@ module ActiveRecord
         end
 
         private
-          def raw_execute(sql, name, async: false)
-            # make sure we carry over any changes to ActiveRecord.default_timezone that have been
-            # made since we established the connection
-            @raw_connection.query_options[:database_timezone] = default_timezone
+          def raw_execute(sql, name, async: false, allow_retry: false, uses_transaction: true)
+            mark_transaction_written_if_write(sql)
 
-            super
+            log(sql, name, async: async) do
+              with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
+                # make sure we carry over any changes to ActiveRecord.default_timezone that have been
+                # made since we established the connection
+                conn.query_options[:database_timezone] = default_timezone
+
+                conn.query(sql)
+              end
+            end
           end
 
           def execute_batch(statements, name = nil)

@@ -377,7 +377,7 @@ module ActiveRecord
       end
 
       def set_standard_conforming_strings
-        execute("SET standard_conforming_strings = on", "SCHEMA")
+        internal_execute("SET standard_conforming_strings = on")
       end
 
       def supports_ddl_transactions?
@@ -458,7 +458,7 @@ module ActiveRecord
       end
 
       def extensions
-        exec_query("SELECT extname FROM pg_extension", "SCHEMA").cast_values
+        exec_query("SELECT extname FROM pg_extension", "SCHEMA", allow_retry: true, uses_transaction: false).cast_values
       end
 
       # Returns a list of defined enum types, and their values.
@@ -474,7 +474,7 @@ module ActiveRecord
           GROUP BY type.OID, type.typname;
         SQL
 
-        exec_query(query, "SCHEMA").cast_values.each_with_object({}) do |row, memo|
+        exec_query(query, "SCHEMA", allow_retry: true, uses_transaction: false).cast_values.each_with_object({}) do |row, memo|
           memo[row.first] = row.last
         end.to_a
       end
@@ -516,7 +516,7 @@ module ActiveRecord
       # Set the authorized user for this session
       def session_auth=(user)
         clear_cache!
-        execute("SET SESSION AUTHORIZATION #{user}")
+        internal_execute("SET SESSION AUTHORIZATION #{user}", nil, uses_transaction: true)
       end
 
       def use_insert_returning?
@@ -743,7 +743,7 @@ module ActiveRecord
         def load_additional_types(oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
           load_types_queries(initializer, oids) do |query|
-            execute_and_clear(query, "SCHEMA", []) do |records|
+            execute_and_clear(query, "SCHEMA", [], allow_retry: true, uses_transaction: false) do |records|
               initializer.run(records)
             end
           end
@@ -766,14 +766,14 @@ module ActiveRecord
 
         FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
 
-        def execute_and_clear(sql, name, binds, prepare: false, async: false)
+        def execute_and_clear(sql, name, binds, prepare: false, async: false, allow_retry: false, uses_transaction: true)
           sql = transform_query(sql)
           check_if_write_query(sql)
 
           if !prepare || without_prepared_statement?(binds)
-            result = exec_no_cache(sql, name, binds, async: async)
+            result = exec_no_cache(sql, name, binds, async: async, allow_retry: allow_retry, uses_transaction: uses_transaction)
           else
-            result = exec_cache(sql, name, binds, async: async)
+            result = exec_cache(sql, name, binds, async: async, allow_retry: allow_retry, uses_transaction: uses_transaction)
           end
           begin
             ret = yield result
@@ -783,8 +783,7 @@ module ActiveRecord
           ret
         end
 
-        def exec_no_cache(sql, name, binds, async: false)
-          materialize_transactions
+        def exec_no_cache(sql, name, binds, async:, allow_retry:, uses_transaction:)
           mark_transaction_written_if_write(sql)
 
           # make sure we carry over any changes to ActiveRecord.default_timezone that have been
@@ -799,9 +798,9 @@ module ActiveRecord
           end
         end
 
-        def exec_cache(sql, name, binds, async: false)
-          materialize_transactions
+        def exec_cache(sql, name, binds, async:, allow_retry:, uses_transaction:)
           mark_transaction_written_if_write(sql)
+
           update_typemap_for_default_timezone
 
           stmt_key = prepare_statement(sql, binds)
@@ -896,16 +895,16 @@ module ActiveRecord
           variables = @config.fetch(:variables, {}).stringify_keys
 
           # Set interval output format to ISO 8601 for ease of parsing by ActiveSupport::Duration.parse
-          execute("SET intervalstyle = iso_8601", "SCHEMA")
+          internal_execute("SET intervalstyle = iso_8601")
 
           # SET statements from :variables config hash
           # https://www.postgresql.org/docs/current/static/sql-set.html
           variables.map do |k, v|
             if v == ":default" || v == :default
               # Sets the value to the global or compile default
-              execute("SET SESSION #{k} TO DEFAULT", "SCHEMA")
+              internal_execute("SET SESSION #{k} TO DEFAULT")
             elsif !v.nil?
-              execute("SET SESSION #{k} TO #{quote(v)}", "SCHEMA")
+              internal_execute("SET SESSION #{k} TO #{quote(v)}")
             end
           end
 
@@ -926,9 +925,9 @@ module ActiveRecord
           # If using Active Record's time zone support configure the connection
           # to return TIMESTAMP WITH ZONE types in UTC.
           if default_timezone == :utc
-            execute("SET SESSION timezone TO 'UTC'", "SCHEMA")
+            internal_execute("SET SESSION timezone TO 'UTC'")
           else
-            execute("SET SESSION timezone TO DEFAULT", "SCHEMA")
+            internal_execute("SET SESSION timezone TO DEFAULT")
           end
         end
 
@@ -995,7 +994,7 @@ module ActiveRecord
                   AND castsource = #{quote column.sql_type}::regtype
               )
             SQL
-            execute_and_clear(sql, "SCHEMA", []) do |result|
+            execute_and_clear(sql, "SCHEMA", [], allow_retry: true, uses_transaction: false) do |result|
               result.getvalue(0, 0)
             end
           end
@@ -1049,7 +1048,7 @@ module ActiveRecord
             FROM pg_type as t
             WHERE t.typname IN (%s)
           SQL
-          coders = execute_and_clear(query, "SCHEMA", []) do |result|
+          coders = execute_and_clear(query, "SCHEMA", [], allow_retry: true, uses_transaction: false) do |result|
             result.filter_map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
           end
 

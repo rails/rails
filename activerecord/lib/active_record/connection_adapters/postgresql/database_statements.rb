@@ -48,8 +48,19 @@ module ActiveRecord
           end
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
-          execute_and_clear(sql, name, binds, prepare: prepare, async: async) do |result|
+        def internal_execute(sql, name = "SCHEMA", allow_retry: true, uses_transaction: false)
+          sql = transform_query(sql)
+          check_if_write_query(sql)
+
+          with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
+            log(sql, name) do
+              conn.async_exec(sql)
+            end
+          end
+        end
+
+        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false, uses_transaction: true) # :nodoc:
+          execute_and_clear(sql, name, binds, prepare: prepare, async: async, allow_retry: allow_retry, uses_transaction: uses_transaction) do |result|
             types = {}
             fields = result.fields
             fields.each_with_index do |fname, i|
@@ -105,29 +116,33 @@ module ActiveRecord
 
         # Begins a transaction.
         def begin_db_transaction # :nodoc:
-          execute("BEGIN", "TRANSACTION")
+          internal_execute("BEGIN", "TRANSACTION")
         end
 
         def begin_isolated_db_transaction(isolation) # :nodoc:
-          execute("BEGIN ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION")
+          internal_execute("BEGIN ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION")
         end
 
         # Commits a transaction.
         def commit_db_transaction # :nodoc:
-          execute("COMMIT", "TRANSACTION")
+          internal_execute("COMMIT", "TRANSACTION")
         end
 
         # Aborts a transaction.
         def exec_rollback_db_transaction # :nodoc:
-          @raw_connection.cancel unless @raw_connection.transaction_status == PG::PQTRANS_IDLE
-          @raw_connection.block
-          execute("ROLLBACK", "TRANSACTION")
+          if @raw_connection
+            @raw_connection.cancel unless @raw_connection.transaction_status == PG::PQTRANS_IDLE
+            @raw_connection.block
+          end
+          internal_execute("ROLLBACK", "TRANSACTION")
         end
 
         def exec_restart_db_transaction # :nodoc:
-          @raw_connection.cancel unless @raw_connection.transaction_status == PG::PQTRANS_IDLE
-          @raw_connection.block
-          execute("ROLLBACK AND CHAIN", "TRANSACTION")
+          if @raw_connection
+            @raw_connection.cancel unless @raw_connection.transaction_status == PG::PQTRANS_IDLE
+            @raw_connection.block
+          end
+          internal_execute("ROLLBACK AND CHAIN", "TRANSACTION")
         end
 
         # From https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT

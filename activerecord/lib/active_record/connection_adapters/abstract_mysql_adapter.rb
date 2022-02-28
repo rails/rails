@@ -201,6 +201,9 @@ module ActiveRecord
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil, async: false)
+        sql = transform_query(sql)
+        check_if_write_query(sql)
+
         raw_execute(sql, name, async: async)
       end
 
@@ -212,24 +215,24 @@ module ActiveRecord
       end
 
       def begin_db_transaction # :nodoc:
-        execute("BEGIN", "TRANSACTION")
+        internal_execute("BEGIN", "TRANSACTION")
       end
 
       def begin_isolated_db_transaction(isolation) # :nodoc:
-        execute "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}"
+        internal_execute "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION"
         begin_db_transaction
       end
 
       def commit_db_transaction # :nodoc:
-        execute("COMMIT", "TRANSACTION")
+        internal_execute("COMMIT", "TRANSACTION")
       end
 
       def exec_rollback_db_transaction # :nodoc:
-        execute("ROLLBACK", "TRANSACTION")
+        internal_execute("ROLLBACK", "TRANSACTION")
       end
 
       def exec_restart_db_transaction # :nodoc:
-        execute("ROLLBACK AND CHAIN", "TRANSACTION")
+        internal_execute("ROLLBACK AND CHAIN", "TRANSACTION")
       end
 
       def empty_insert_statement_value(primary_key = nil) # :nodoc:
@@ -645,17 +648,18 @@ module ActiveRecord
           end
         end
 
-        def raw_execute(sql, name, async: false)
-          materialize_transactions
+        def raw_execute(sql, name, async: false, allow_retry: false, uses_transaction: true)
           mark_transaction_written_if_write(sql)
 
           log(sql, name, async: async) do
-            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              with_raw_connection do |conn|
-                conn.query(sql)
-              end
+            with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
+              conn.query(sql)
             end
           end
+        end
+
+        def internal_execute(sql, name = "SCHEMA", allow_retry: true, uses_transaction: false)
+          raw_execute(sql, name, allow_retry: allow_retry, uses_transaction: uses_transaction)
         end
 
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html
@@ -840,7 +844,7 @@ module ActiveRecord
           end.join(", ")
 
           # ...and send them all in one query
-          execute("SET #{encoding} #{sql_mode_assignment} #{variable_assignments}", "SCHEMA")
+          internal_execute("SET #{encoding} #{sql_mode_assignment} #{variable_assignments}")
         end
 
         def column_definitions(table_name) # :nodoc:
