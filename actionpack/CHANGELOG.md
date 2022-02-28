@@ -1,3 +1,12 @@
+*   Fix `skip_forgery_protection` to run without raising an error if forgery
+    protection has not been enabled / `verify_authenticity_token` is not a
+    defined callback.
+
+    This fix prevents the Rails 7.0 Welcome Page (`/`) from raising an
+    `ArgumentError` if `default_protect_from_forgery` is false.
+
+    *Brad Trick*
+
 *   Make `redirect_to` return an empty response body.
 
     Application controllers that wish to add a response body after calling
