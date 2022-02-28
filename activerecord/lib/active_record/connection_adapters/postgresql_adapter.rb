@@ -283,21 +283,13 @@ module ActiveRecord
 
       # Initializes and connects a PostgreSQL adapter.
       def initialize(connection, logger, connection_parameters, config)
-        super(connection, logger, config)
-
         @connection_parameters = connection_parameters || {}
 
-        # @local_tz is initialized as nil to avoid warnings when connect tries to use it
-        @local_tz = nil
         @max_identifier_length = nil
+        @type_map = nil
 
-        configure_connection
-        add_pg_encoders
-        add_pg_decoders
+        super(connection, logger, config)
 
-        @type_map = Type::HashLookupTypeMap.new
-        initialize_type_map
-        @local_tz = execute("SHOW TIME ZONE", "SCHEMA").first["TimeZone"]
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
 
@@ -318,31 +310,38 @@ module ActiveRecord
       end
 
       def reload_type_map # :nodoc:
-        type_map.clear
-        initialize_type_map
+        @lock.synchronize do
+          if @type_map
+            type_map.clear
+          else
+            @type_map = Type::HashLookupTypeMap.new
+          end
+
+          initialize_type_map
+        end
       end
 
       # Close then reopen the connection.
       def reconnect!
         @lock.synchronize do
-          @raw_connection.reset
+          begin
+            @raw_connection.reset
+          rescue PG::ConnectionBad
+            connect
+          end
+
           super
-          configure_connection
-          reload_type_map
-        rescue PG::ConnectionBad
-          connect
         end
       end
 
       def reset!
         @lock.synchronize do
-          reset_transaction
           unless @raw_connection.transaction_status == ::PG::PQTRANS_IDLE
             @raw_connection.query "ROLLBACK"
           end
           @raw_connection.query "DISCARD ALL"
-          clear_cache!(new_connection: true)
-          configure_connection
+
+          super
         end
       end
 
@@ -853,9 +852,6 @@ module ActiveRecord
         # connected server's characteristics.
         def connect
           @raw_connection = self.class.new_client(@connection_parameters)
-          configure_connection
-          add_pg_encoders
-          add_pg_decoders
         end
 
         # Configures the encoding, verbosity, schema search path, and time zone of the connection.
@@ -872,16 +868,6 @@ module ActiveRecord
 
           variables = @config.fetch(:variables, {}).stringify_keys
 
-          # If using Active Record's time zone support configure the connection to return
-          # TIMESTAMP WITH ZONE types in UTC.
-          unless variables["timezone"]
-            if default_timezone == :utc
-              variables["timezone"] = "UTC"
-            elsif @local_tz
-              variables["timezone"] = @local_tz
-            end
-          end
-
           # Set interval output format to ISO 8601 for ease of parsing by ActiveSupport::Duration.parse
           execute("SET intervalstyle = iso_8601", "SCHEMA")
 
@@ -894,6 +880,28 @@ module ActiveRecord
             elsif !v.nil?
               execute("SET SESSION #{k} TO #{quote(v)}", "SCHEMA")
             end
+          end
+
+          add_pg_encoders
+          add_pg_decoders
+
+          reload_type_map
+        end
+
+        def reconfigure_connection_timezone
+          variables = @config.fetch(:variables, {}).stringify_keys
+
+          # If it's been directly configured as a connection variable, we don't
+          # need to do anything here; it will be set up by configure_connection
+          # and then never changed.
+          return if variables["timezone"]
+
+          # If using Active Record's time zone support configure the connection
+          # to return TIMESTAMP WITH ZONE types in UTC.
+          if default_timezone == :utc
+            execute("SET SESSION timezone TO 'UTC'", "SCHEMA")
+          else
+            execute("SET SESSION timezone TO DEFAULT", "SCHEMA")
           end
         end
 
@@ -987,7 +995,7 @@ module ActiveRecord
 
             # if default timezone has changed, we need to reconfigure the connection
             # (specifically, the session time zone)
-            configure_connection
+            reconfigure_connection_timezone
           end
         end
 

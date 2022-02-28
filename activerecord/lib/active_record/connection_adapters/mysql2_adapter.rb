@@ -59,7 +59,6 @@ module ActiveRecord
         check_prepared_statements_deprecation(config)
         superclass_config = config.reverse_merge(prepared_statements: false)
         super(connection, logger, connection_options, superclass_config)
-        configure_connection
       end
 
       def self.database_exists?(config)
@@ -125,9 +124,11 @@ module ActiveRecord
       end
 
       def reconnect!
-        super
-        disconnect!
-        connect
+        @lock.synchronize do
+          disconnect!
+          connect
+          super
+        end
       end
       alias :reset! :reconnect!
 
@@ -155,7 +156,6 @@ module ActiveRecord
 
         def connect
           @raw_connection = self.class.new_client(@config)
-          configure_connection
         end
 
         def configure_connection
