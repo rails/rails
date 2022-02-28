@@ -12,6 +12,7 @@ require "models/author"
 require "models/topic"
 require "models/reply"
 require "models/numeric_data"
+require "models/need_quoting"
 require "models/minivan"
 require "models/speedometer"
 require "models/ship_part"
@@ -1378,6 +1379,12 @@ class CalculationsTest < ActiveRecord::TestCase
         Account.all.skip_query_cache!.group(:firm_id).calculate(:sum, :credit_limit)
         Account.all.skip_query_cache!.group(:firm_id).calculate(:sum, :credit_limit)
       end
+    end
+  end
+
+  test "group alias is properly quoted" do
+    assert_nothing_raised do
+      NeedQuoting.group(:name).count
     end
   end
 end

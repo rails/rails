@@ -14,7 +14,4 @@
   </p>
 
 <% end -%>
-  <p>
-    <%%= link_to "Show this <%= human_name.downcase %>", <%= singular_name %> %>
-  </p>
 </div>

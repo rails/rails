@@ -72,10 +72,7 @@ module Rails
 
     def version_control
       if !options[:skip_git] && !options[:pretend]
-        run "git init", capture: options[:quiet], abort_on_failure: false
-        if user_default_branch.strip.empty?
-          `git symbolic-ref HEAD refs/heads/main`
-        end
+        run git_init_command, capture: options[:quiet], abort_on_failure: false
       end
     end
 
@@ -244,11 +241,6 @@ module Rails
     def config_target_version
       defined?(@config_target_version) ? @config_target_version : Rails::VERSION::STRING.to_f
     end
-
-    private
-      def user_default_branch
-        @user_default_branch ||= `git config init.defaultbranch`
-      end
   end
 
   module Generators
@@ -266,7 +258,7 @@ module Rails
       class_option :api, type: :boolean, desc: "Preconfigure smaller stack for API only apps"
       class_option :minimal, type: :boolean, desc: "Preconfigure a minimal rails app"
       class_option :javascript, type: :string, aliases: "-j", default: "importmap", desc: "Choose JavaScript approach [options: importmap (default), webpack, esbuild, rollup]"
-      class_option :css, type: :string, desc: "Choose CSS processor [options: tailwind, bootstrap, bulma, postcss, sass... check https://github.com/rails/cssbundling-rails]"
+      class_option :css, type: :string, aliases: "-c", desc: "Choose CSS processor [options: tailwind, bootstrap, bulma, postcss, sass... check https://github.com/rails/cssbundling-rails]"
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false, desc: "Don't run bundle install"
 
       def initialize(*args)
@@ -303,6 +295,7 @@ module Rails
 
       public_task :set_default_accessors!
       public_task :create_root
+      public_task :target_rails_prerelease
 
       def create_root_files
         build(:readme)
@@ -447,7 +440,9 @@ module Rails
         if skip_sprockets?
           remove_file "config/initializers/assets.rb"
           remove_file "app/assets/config/manifest.js"
+          remove_dir  "app/assets/config"
           remove_file "app/assets/stylesheets/application.css"
+          create_file "app/assets/stylesheets/application.css", "/* Application styles */\n" unless options[:api]
         end
       end
 
@@ -495,7 +490,7 @@ module Rails
 
       def delete_new_framework_defaults
         unless options[:update]
-          remove_file "config/initializers/new_framework_defaults_7_0.rb"
+          remove_file "config/initializers/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
         end
       end
 

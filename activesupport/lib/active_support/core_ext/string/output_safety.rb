@@ -97,7 +97,7 @@ class ERB
     # WARNING: this helper only works with valid JSON. Using this on non-JSON values
     # will open up serious XSS vulnerabilities. For example, if you replace the
     # +current_user.to_json+ in the example above with user input instead, the browser
-    # will happily eval() that string as JavaScript.
+    # will happily <tt>eval()</tt> that string as JavaScript.
     #
     # The escaping performed in this method is identical to those performed in the
     # Active Support JSON encoder when +ActiveSupport.escape_html_entities_in_json+ is
@@ -143,7 +143,7 @@ module ActiveSupport # :nodoc:
     alias_method :original_concat, :concat
     private :original_concat
 
-    # Raised when <tt>ActiveSupport::SafeBuffer#safe_concat</tt> is called on unsafe buffers.
+    # Raised when ActiveSupport::SafeBuffer#safe_concat is called on unsafe buffers.
     class SafeConcatError < StandardError
       def initialize
         super "Could not concatenate to the buffer because it is not html safe."

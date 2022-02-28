@@ -15,20 +15,64 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_to_s
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0, 0)
-    assert_equal "2005-02-21 14:30:00",                 datetime.to_s(:db)
-    assert_equal "2005-02-21 14:30:00.000000000 +0000", datetime.to_s(:inspect)
-    assert_equal "14:30",                               datetime.to_s(:time)
-    assert_equal "21 Feb 14:30",                        datetime.to_s(:short)
-    assert_equal "February 21, 2005 14:30",             datetime.to_s(:long)
-    assert_equal "Mon, 21 Feb 2005 14:30:00 +0000",     datetime.to_s(:rfc822)
-    assert_equal "February 21st, 2005 14:30",           datetime.to_s(:long_ordinal)
+    assert_deprecated do
+      assert_equal "2005-02-21 14:30:00",                 datetime.to_s(:db)
+    end
+    assert_deprecated do
+      assert_equal "2005-02-21 14:30:00.000000000 +0000", datetime.to_s(:inspect)
+    end
+    assert_deprecated do
+      assert_equal "14:30",                               datetime.to_s(:time)
+    end
+    assert_deprecated do
+      assert_equal "21 Feb 14:30",                        datetime.to_s(:short)
+    end
+    assert_deprecated do
+      assert_equal "February 21, 2005 14:30",             datetime.to_s(:long)
+    end
+    assert_deprecated do
+      assert_equal "Mon, 21 Feb 2005 14:30:00 +0000",     datetime.to_s(:rfc822)
+    end
+    assert_deprecated do
+      assert_equal "February 21st, 2005 14:30",           datetime.to_s(:long_ordinal)
+    end
     assert_match(/^2005-02-21T14:30:00(Z|\+00:00)$/,    datetime.to_s)
+    assert_deprecated do
+      assert_match(/^2005-02-21T14:30:00(Z|\+00:00)$/,    datetime.to_s(:not_existent))
+    end
 
     with_env_tz "US/Central" do
-      assert_equal "2009-02-05T14:30:05-06:00", DateTime.civil(2009, 2, 5, 14, 30, 5, Rational(-21600, 86400)).to_s(:iso8601)
-      assert_equal "2008-06-09T04:05:01-05:00", DateTime.civil(2008, 6, 9, 4, 5, 1, Rational(-18000, 86400)).to_s(:iso8601)
-      assert_equal "2009-02-05T14:30:05+00:00", DateTime.civil(2009, 2, 5, 14, 30, 5).to_s(:iso8601)
+      assert_deprecated do
+        assert_equal "2009-02-05T14:30:05-06:00", DateTime.civil(2009, 2, 5, 14, 30, 5, Rational(-21600, 86400)).to_s(:iso8601)
+      end
+      assert_deprecated do
+        assert_equal "2008-06-09T04:05:01-05:00", DateTime.civil(2008, 6, 9, 4, 5, 1, Rational(-18000, 86400)).to_s(:iso8601)
+      end
+      assert_deprecated do
+        assert_equal "2009-02-05T14:30:05+00:00", DateTime.civil(2009, 2, 5, 14, 30, 5).to_s(:iso8601)
+      end
     end
+  end
+
+  def test_to_fs
+    datetime = DateTime.new(2005, 2, 21, 14, 30, 0, 0)
+    assert_equal "2005-02-21 14:30:00",                 datetime.to_fs(:db)
+    assert_equal "2005-02-21 14:30:00.000000000 +0000", datetime.to_fs(:inspect)
+    assert_equal "14:30",                               datetime.to_fs(:time)
+    assert_equal "21 Feb 14:30",                        datetime.to_fs(:short)
+    assert_equal "February 21, 2005 14:30",             datetime.to_fs(:long)
+    assert_equal "Mon, 21 Feb 2005 14:30:00 +0000",     datetime.to_fs(:rfc822)
+    assert_equal "February 21st, 2005 14:30",           datetime.to_fs(:long_ordinal)
+    assert_match(/^2005-02-21T14:30:00(Z|\+00:00)$/,    datetime.to_fs)
+    assert_match(/^2005-02-21T14:30:00(Z|\+00:00)$/,    datetime.to_fs(:not_existent))
+
+    with_env_tz "US/Central" do
+      assert_equal "2009-02-05T14:30:05-06:00", DateTime.civil(2009, 2, 5, 14, 30, 5, Rational(-21600, 86400)).to_fs(:iso8601)
+      assert_equal "2008-06-09T04:05:01-05:00", DateTime.civil(2008, 6, 9, 4, 5, 1, Rational(-18000, 86400)).to_fs(:iso8601)
+      assert_equal "2009-02-05T14:30:05+00:00", DateTime.civil(2009, 2, 5, 14, 30, 5).to_fs(:iso8601)
+    end
+
+    assert_equal "2005-02-21 14:30:00",                 datetime.to_formatted_s(:db)
   end
 
   def test_readable_inspect
@@ -37,9 +81,19 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal datetime.readable_inspect, datetime.inspect
   end
 
-  def test_custom_date_format
+  def test_to_s_with_custom_date_format
     Time::DATE_FORMATS[:custom] = "%Y%m%d%H%M%S"
-    assert_equal "20050221143000", DateTime.new(2005, 2, 21, 14, 30, 0).to_s(:custom)
+    assert_deprecated do
+      assert_equal "20050221143000", DateTime.new(2005, 2, 21, 14, 30, 0).to_s(:custom)
+    end
+  ensure
+    Time::DATE_FORMATS.delete(:custom)
+  end
+
+  def test_to_fs_with_custom_date_format
+    Time::DATE_FORMATS[:custom] = "%Y%m%d%H%M%S"
+    assert_equal "20050221143000", DateTime.new(2005, 2, 21, 14, 30, 0).to_fs(:custom)
+  ensure
     Time::DATE_FORMATS.delete(:custom)
   end
 

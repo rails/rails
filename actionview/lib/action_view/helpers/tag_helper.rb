@@ -208,7 +208,7 @@ module ActionView
       #
       # Thus <tt>data-user-id</tt> can be accessed as <tt>dataset.userId</tt>.
       #
-      # Data attribute values are encoded to JSON, with the exception of strings, symbols and
+      # Data attribute values are encoded to JSON, with the exception of strings, symbols, and
       # BigDecimals.
       # This may come in handy when using jQuery's HTML5-aware <tt>.data()</tt>
       # from 1.4.3.
@@ -240,7 +240,7 @@ module ActionView
       # Transforms a Hash into HTML attributes, ready to be interpolated into
       # ERB. Includes or omits boolean attributes based on their truthiness.
       # Transforms keys nested within
-      # <tt>aria:</tt> or <tt>data:</tt> objects into `aria-` and `data-`
+      # <tt>aria:</tt> or <tt>data:</tt> objects into <tt>aria-</tt> and <tt>data-</tt>
       # prefixed attributes:
       #
       #   <input <%= tag.attributes(type: :text, aria: { label: "Search" }) %>>

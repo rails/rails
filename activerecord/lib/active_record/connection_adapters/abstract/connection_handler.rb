@@ -40,7 +40,7 @@ module ActiveRecord
     # but the Book model connects to a separate database called "library_db"
     # (this can even be a database on a different machine).
     #
-    # Book, ScaryBook and GoodBook will all use the same connection pool to
+    # Book, ScaryBook, and GoodBook will all use the same connection pool to
     # "library_db" while Author, BankAccount, and any other models you create
     # will use the default connection pool to "my_application".
     #
@@ -217,15 +217,6 @@ module ActiveRecord
         pool = retrieve_connection_pool(spec_name, role: role, shard: shard)
         pool && pool.connected?
       end
-
-      # Remove the connection for this class. This will close the active
-      # connection and the defined connection (if they exist). The result
-      # can be used as an argument for #establish_connection, for easily
-      # re-establishing the connection.
-      def remove_connection(owner, role: ActiveRecord::Base.current_role, shard: ActiveRecord::Base.current_shard)
-        remove_connection_pool(owner, role: role, shard: shard)&.configuration_hash
-      end
-      deprecate remove_connection: "Use #remove_connection_pool, which now returns a DatabaseConfig object instead of a Hash"
 
       def remove_connection_pool(owner, role: ActiveRecord::Base.current_role, shard: ActiveRecord::Base.current_shard)
         if pool_manager = get_pool_manager(owner)

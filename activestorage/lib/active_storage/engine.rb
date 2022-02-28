@@ -30,6 +30,7 @@ module ActiveStorage
     config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new
+    config.active_storage.precompile_assets = true
 
     config.active_storage.variable_content_types = %w(
       image/png
@@ -155,9 +156,23 @@ module ActiveStorage
       end
     end
 
+    initializer "action_view.configuration" do
+      config.after_initialize do |app|
+        ActiveSupport.on_load(:action_view) do
+          multiple_file_field_include_hidden = app.config.active_storage.delete(:multiple_file_field_include_hidden)
+
+          unless multiple_file_field_include_hidden.nil?
+            ActionView::Helpers::FormHelper.multiple_file_field_include_hidden = multiple_file_field_include_hidden
+          end
+        end
+      end
+    end
+
     initializer "active_storage.asset" do
-      if Rails.application.config.respond_to?(:assets)
-        Rails.application.config.assets.precompile += %w( activestorage activestorage.esm )
+      config.after_initialize do |app|
+        if app.config.respond_to?(:assets) && app.config.active_storage.precompile_assets
+          app.config.assets.precompile += %w( activestorage activestorage.esm )
+        end
       end
     end
 

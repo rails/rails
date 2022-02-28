@@ -159,7 +159,7 @@ module ActiveModel
       self.class.full_message(attribute, message, @base)
     end
 
-    # See if error matches provided +attribute+, +type+ and +options+.
+    # See if error matches provided +attribute+, +type+, and +options+.
     #
     # Omitted params are not checked for a match.
     def match?(attribute, type = nil, **options)
@@ -176,7 +176,7 @@ module ActiveModel
       true
     end
 
-    # See if error matches provided +attribute+, +type+ and +options+ exactly.
+    # See if error matches provided +attribute+, +type+, and +options+ exactly.
     #
     # All params must be equal to Error's own attributes to be considered a
     # strict match.

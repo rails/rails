@@ -2,7 +2,40 @@
 
 module ActiveModel
   module Type
-    class Integer < Value # :nodoc:
+    # Attribute type for integer representation. This type is registered under
+    # the +:integer+ key.
+    #
+    #   class Person
+    #     include ActiveModel::Attributes
+    #
+    #     attribute :age, :integer
+    #   end
+    #
+    #   person = Person.new
+    #   person.age = "18"
+    #
+    #   person.age # => 18
+    #
+    # Values are cast using their +to_i+ method, if it exists. If it does not
+    # exist, or if it raises an error, the value will be cast to +nil+:
+    #
+    #   person.age = :not_an_integer
+    #   person.age # => nil (because Symbol does not define #to_i)
+    #
+    # Serialization also works under the same principle. Non-numeric strings are
+    # serialized as +nil+, for example.
+    #
+    # Serialization also validates that the integer can be stored using a
+    # limited number of bytes. If it cannot, an ActiveModel::RangeError will be
+    # raised. The default limit is 4 bytes, and can be customized when declaring
+    # an attribute:
+    #
+    #   class Person
+    #     include ActiveModel::Attributes
+    #
+    #     attribute :age, :integer, limit: 6
+    #   end
+    class Integer < Value
       include Helpers::Numeric
 
       # Column storage size in bytes.

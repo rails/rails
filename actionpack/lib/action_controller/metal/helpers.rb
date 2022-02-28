@@ -26,7 +26,7 @@ module ActionController
   #
   #   module FormattedTimeHelper
   #     def format_time(time, format=:long, blank_message="&nbsp;")
-  #       time.blank? ? blank_message : time.to_s(format)
+  #       time.blank? ? blank_message : time.to_fs(format)
   #     end
   #   end
   #
@@ -91,7 +91,7 @@ module ActionController
         end
       end
 
-      # Overwrite modules_for_helpers to accept :all as argument, which loads
+      # Override modules_for_helpers to accept +:all+ as argument, which loads
       # all helpers in helpers_path.
       #
       # ==== Parameters

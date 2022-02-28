@@ -197,7 +197,7 @@ module ActionView
       #
       # * <tt>confirm: 'question?'</tt> - This will allow the unobtrusive JavaScript
       #   driver to prompt with the question specified (in this case, the
-      #   resulting text would be <tt>question?</tt>. If the user accepts, the
+      #   resulting text would be <tt>question?</tt>). If the user accepts, the
       #   link is processed normally, otherwise no action is taken.
       # * <tt>:disable_with</tt> - Value of this parameter will be used as the
       #   name for a disabled version of the link. This feature is provided by
@@ -262,34 +262,24 @@ module ActionView
       #   be placed
       # * <tt>:params</tt> - \Hash of parameters to be rendered as hidden fields within the form.
       #
-      # ==== Data attributes
-      #
-      # * <tt>:confirm</tt> - This will use the unobtrusive JavaScript driver to
-      #   prompt with the question specified. If the user accepts, the link is
-      #   processed normally, otherwise no action is taken.
-      # * <tt>:disable_with</tt> - Value of this parameter will be
-      #   used as the value for a disabled version of the submit
-      #   button when the form is submitted. This feature is provided
-      #   by the unobtrusive JavaScript driver.
-      #
       # ==== Examples
       #   <%= button_to "New", action: "new" %>
       #   # => "<form method="post" action="/controller/new" class="button_to">
       #   #      <button type="submit">New</button>
-      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6" autocomplete="off"/>
       #   #    </form>"
       #
       #   <%= button_to "New", new_article_path %>
       #   # => "<form method="post" action="/articles/new" class="button_to">
       #   #      <button type="submit">New</button>
-      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6" autocomplete="off"/>
       #   #    </form>"
       #
       #   <%= button_to "New", new_article_path, params: { time: Time.now  } %>
       #   # => "<form method="post" action="/articles/new" class="button_to">
       #   #      <button type="submit">New</button>
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
-      #   #      <input type="hidden" name="time" value="2021-04-08 14:06:09 -0500">
+      #   #      <input type="hidden" name="time" value="2021-04-08 14:06:09 -0500" autocomplete="off">
       #   #    </form>"
       #
       #   <%= button_to [:make_happy, @user] do %>
@@ -299,37 +289,34 @@ module ActionView
       #   #      <button type="submit">
       #   #        Make happy <strong><%= @user.name %></strong>
       #   #      </button>
-      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"  autocomplete="off"/>
       #   #    </form>"
       #
       #   <%= button_to "New", { action: "new" }, form_class: "new-thing" %>
       #   # => "<form method="post" action="/controller/new" class="new-thing">
       #   #      <button type="submit">New</button>
-      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"  autocomplete="off"/>
       #   #    </form>"
       #
       #   <%= button_to "Create", { action: "create" }, remote: true, form: { "data-type" => "json" } %>
       #   # => "<form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
       #   #      <button type="submit">Create</button>
-      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"  autocomplete="off"/>
       #   #    </form>"
       #
-      #   <%= button_to "Delete Image", { action: "delete", id: @image.id },
-      #                                   method: :delete, data: { confirm: "Are you sure?" } %>
-      #   # => "<form method="post" action="/images/delete/1" class="button_to">
-      #   #      <input type="hidden" name="_method" value="delete" />
-      #   #      <button data-confirm='Are you sure?' type="submit">Delete Image</button>
-      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
-      #   #    </form>"
+      # ==== Deprecated: Rails UJS attributes
       #
-      #   <%= button_to('Destroy', 'http://www.example.com',
-      #             method: :delete, remote: true, data: { confirm: 'Are you sure?', disable_with: 'loading...' }) %>
-      #   # => "<form class='button_to' method='post' action='http://www.example.com' data-remote='true'>
-      #   #       <input name='_method' value='delete' type='hidden' />
-      #   #       <button type='submit' data-disable-with='loading...' data-confirm='Are you sure?'>Destroy</button>
-      #   #       <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
-      #   #     </form>"
-      #   #
+      # Prior to Rails 7, Rails shipped with a JavaScript library called @rails/ujs on by default. Following Rails 7,
+      # this library is no longer on by default. This library integrated with the following options:
+      #
+      # * <tt>confirm: 'question?'</tt> - This will allow the unobtrusive JavaScript
+      #   driver to prompt with the question specified (in this case, the
+      #   resulting text would be <tt>question?</tt>). If the user accepts, the
+      #   button is processed normally, otherwise no action is taken.
+      # * <tt>:disable_with</tt> - Value of this parameter will be
+      #   used as the value for a disabled version of the submit
+      #   button when the form is submitted. This feature is provided
+      #   by the unobtrusive JavaScript driver.
       def button_to(name = nil, options = nil, html_options = nil, &block)
         html_options, options = options, name if block_given?
         html_options ||= {}
@@ -366,7 +353,9 @@ module ActionView
         html_options = convert_options_to_data_attributes(options, html_options)
         html_options["type"] = "submit"
 
-        button = if block_given? || button_to_generates_button_tag
+        button = if block_given?
+          content_tag("button", html_options, &block)
+        elsif button_to_generates_button_tag
           content_tag("button", name || url, html_options, &block)
         else
           html_options["value"] = name || url
@@ -743,7 +732,7 @@ module ActionView
         end
 
         def url_target(name, options)
-          if name.respond_to?(:model_name) && options.empty?
+          if name.respond_to?(:model_name) && options.is_a?(Hash) && options.empty?
             url_for(name)
           else
             url_for(options)

@@ -4,7 +4,6 @@ require "time"
 require "base64"
 require "bigdecimal"
 require "bigdecimal/util"
-require "active_support"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/date_time/calculations"
@@ -55,7 +54,7 @@ module ActiveSupport
 
     FORMATTING = {
       "symbol"   => Proc.new { |symbol| symbol.to_s },
-      "date"     => Proc.new { |date| date.to_s(:db) },
+      "date"     => Proc.new { |date| date.to_fs(:db) },
       "dateTime" => Proc.new { |time| time.xmlschema },
       "binary"   => Proc.new { |binary| ::Base64.encode64(binary) },
       "yaml"     => Proc.new { |yaml| yaml.to_yaml }

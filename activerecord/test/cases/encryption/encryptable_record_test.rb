@@ -30,7 +30,7 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
 
     post = EncryptedPost.create!(title: "The Starfleet is here!", body: "take cover!")
     post.reload.tags_count # accessing regular attributes works
-    assert_invalid_key_cant_read_attribute(post, :title)
+    assert_invalid_key_cant_read_attribute(post, :body)
   end
 
   test "ignores nil values" do
@@ -247,12 +247,12 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
   end
 
   # Only run for adapters that add a default string limit when not provided (MySQL, 255)
-  if EncryptedAuthor.columns_hash["name"].limit
+  if author_name_limit = EncryptedAuthor.columns_hash["name"].limit
     # No column limits in SQLite
     test "validate column sizes" do
       assert EncryptedAuthor.new(name: "jorge").valid?
-      assert_not EncryptedAuthor.new(name: "a" * 256).valid?
-      author = EncryptedAuthor.create(name: "a" * 256)
+      assert_not EncryptedAuthor.new(name: "a" * (author_name_limit + 1)).valid?
+      author = EncryptedAuthor.create(name: "a" * (author_name_limit + 1))
       assert_not author.valid?
     end
   end

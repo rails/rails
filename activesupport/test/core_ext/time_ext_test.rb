@@ -582,33 +582,107 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   def test_to_s
     time = Time.utc(2005, 2, 21, 17, 44, 30.12345678901)
     assert_equal time.to_default_s,                 time.to_s
-    assert_equal time.to_default_s,                 time.to_s(:doesnt_exist)
-    assert_equal "2005-02-21 17:44:30",             time.to_s(:db)
-    assert_equal "21 Feb 17:44",                    time.to_s(:short)
-    assert_equal "17:44",                           time.to_s(:time)
-    assert_equal "20050221174430",                  time.to_s(:number)
-    assert_equal "20050221174430123456789",         time.to_s(:nsec)
-    assert_equal "20050221174430123456",            time.to_s(:usec)
-    assert_equal "February 21, 2005 17:44",         time.to_s(:long)
-    assert_equal "February 21st, 2005 17:44",       time.to_s(:long_ordinal)
+    assert_deprecated do
+      assert_equal time.to_default_s,                 time.to_s(:doesnt_exist)
+    end
+    assert_deprecated do
+      assert_equal "2005-02-21 17:44:30",             time.to_s(:db)
+    end
+    assert_deprecated do
+      assert_equal "21 Feb 17:44",                    time.to_s(:short)
+    end
+    assert_deprecated do
+      assert_equal "17:44",                           time.to_s(:time)
+    end
+    assert_deprecated do
+      assert_equal "20050221174430",                  time.to_s(:number)
+    end
+    assert_deprecated do
+      assert_equal "20050221174430123456789",         time.to_s(:nsec)
+    end
+    assert_deprecated do
+      assert_equal "20050221174430123456",            time.to_s(:usec)
+    end
+    assert_deprecated do
+      assert_equal "February 21, 2005 17:44",         time.to_s(:long)
+    end
+    assert_deprecated do
+      assert_equal "February 21st, 2005 17:44",       time.to_s(:long_ordinal)
+    end
     with_env_tz "UTC" do
-      assert_equal "Mon, 21 Feb 2005 17:44:30 +0000", time.to_s(:rfc822)
-      assert_equal "2005-02-21 17:44:30.123456789 +0000", time.to_s(:inspect)
+      assert_deprecated do
+        assert_equal "Mon, 21 Feb 2005 17:44:30 +0000", time.to_s(:rfc822)
+      end
+      assert_deprecated do
+        assert_equal "2005-02-21 17:44:30.123456789 +0000", time.to_s(:inspect)
+      end
     end
     with_env_tz "US/Central" do
-      assert_equal "Thu, 05 Feb 2009 14:30:05 -0600", Time.local(2009, 2, 5, 14, 30, 5).to_s(:rfc822)
-      assert_equal "Mon, 09 Jun 2008 04:05:01 -0500", Time.local(2008, 6, 9, 4, 5, 1).to_s(:rfc822)
-      assert_equal "2009-02-05T14:30:05-06:00", Time.local(2009, 2, 5, 14, 30, 5).to_s(:iso8601)
-      assert_equal "2008-06-09T04:05:01-05:00", Time.local(2008, 6, 9, 4, 5, 1).to_s(:iso8601)
-      assert_equal "2009-02-05T14:30:05Z", Time.utc(2009, 2, 5, 14, 30, 5).to_s(:iso8601)
-      assert_equal "2009-02-05 14:30:05.000000000 -0600", Time.local(2009, 2, 5, 14, 30, 5).to_s(:inspect)
-      assert_equal "2008-06-09 04:05:01.000000000 -0500", Time.local(2008, 6, 9, 4, 5, 1).to_s(:inspect)
+      assert_deprecated do
+        assert_equal "Thu, 05 Feb 2009 14:30:05 -0600", Time.local(2009, 2, 5, 14, 30, 5).to_s(:rfc822)
+      end
+      assert_deprecated do
+        assert_equal "Mon, 09 Jun 2008 04:05:01 -0500", Time.local(2008, 6, 9, 4, 5, 1).to_s(:rfc822)
+      end
+      assert_deprecated do
+        assert_equal "2009-02-05T14:30:05-06:00", Time.local(2009, 2, 5, 14, 30, 5).to_s(:iso8601)
+      end
+      assert_deprecated do
+        assert_equal "2008-06-09T04:05:01-05:00", Time.local(2008, 6, 9, 4, 5, 1).to_s(:iso8601)
+      end
+      assert_deprecated do
+        assert_equal "2009-02-05T14:30:05Z", Time.utc(2009, 2, 5, 14, 30, 5).to_s(:iso8601)
+      end
+      assert_deprecated do
+        assert_equal "2009-02-05 14:30:05.000000000 -0600", Time.local(2009, 2, 5, 14, 30, 5).to_s(:inspect)
+      end
+      assert_deprecated do
+        assert_equal "2008-06-09 04:05:01.000000000 -0500", Time.local(2008, 6, 9, 4, 5, 1).to_s(:inspect)
+      end
     end
   end
 
-  def test_custom_date_format
+  def test_to_fs
+    time = Time.utc(2005, 2, 21, 17, 44, 30.12345678901)
+    assert_equal time.to_s,                         time.to_fs(:doesnt_exist)
+    assert_equal "2005-02-21 17:44:30",             time.to_fs(:db)
+    assert_equal "21 Feb 17:44",                    time.to_fs(:short)
+    assert_equal "17:44",                           time.to_fs(:time)
+    assert_equal "20050221174430",                  time.to_fs(:number)
+    assert_equal "20050221174430123456789",         time.to_fs(:nsec)
+    assert_equal "20050221174430123456",            time.to_fs(:usec)
+    assert_equal "February 21, 2005 17:44",         time.to_fs(:long)
+    assert_equal "February 21st, 2005 17:44",       time.to_fs(:long_ordinal)
+    with_env_tz "UTC" do
+      assert_equal "Mon, 21 Feb 2005 17:44:30 +0000", time.to_fs(:rfc822)
+      assert_equal "2005-02-21 17:44:30.123456789 +0000", time.to_fs(:inspect)
+    end
+    with_env_tz "US/Central" do
+      assert_equal "Thu, 05 Feb 2009 14:30:05 -0600", Time.local(2009, 2, 5, 14, 30, 5).to_fs(:rfc822)
+      assert_equal "Mon, 09 Jun 2008 04:05:01 -0500", Time.local(2008, 6, 9, 4, 5, 1).to_fs(:rfc822)
+      assert_equal "2009-02-05T14:30:05-06:00", Time.local(2009, 2, 5, 14, 30, 5).to_fs(:iso8601)
+      assert_equal "2008-06-09T04:05:01-05:00", Time.local(2008, 6, 9, 4, 5, 1).to_fs(:iso8601)
+      assert_equal "2009-02-05T14:30:05Z", Time.utc(2009, 2, 5, 14, 30, 5).to_fs(:iso8601)
+      assert_equal "2009-02-05 14:30:05.000000000 -0600", Time.local(2009, 2, 5, 14, 30, 5).to_fs(:inspect)
+      assert_equal "2008-06-09 04:05:01.000000000 -0500", Time.local(2008, 6, 9, 4, 5, 1).to_fs(:inspect)
+    end
+
+    assert_equal "2005-02-21 17:44:30",             time.to_formatted_s(:db)
+  end
+
+  def test_to_s_custom_date_format
     Time::DATE_FORMATS[:custom] = "%Y%m%d%H%M%S"
-    assert_equal "20050221143000", Time.local(2005, 2, 21, 14, 30, 0).to_s(:custom)
+    assert_deprecated do
+      assert_equal "20050221143000", Time.local(2005, 2, 21, 14, 30, 0).to_s(:custom)
+    end
+  ensure
+    Time::DATE_FORMATS.delete(:custom)
+  end
+
+  def test_to_fs_custom_date_format
+    Time::DATE_FORMATS[:custom] = "%Y%m%d%H%M%S"
+    assert_equal "20050221143000", Time.local(2005, 2, 21, 14, 30, 0).to_fs(:custom)
+  ensure
     Time::DATE_FORMATS.delete(:custom)
   end
 

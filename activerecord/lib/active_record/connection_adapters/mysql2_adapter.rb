@@ -56,6 +56,7 @@ module ActiveRecord
       end
 
       def initialize(connection, logger, connection_options, config)
+        check_prepared_statements_deprecation(config)
         superclass_config = config.reverse_merge(prepared_statements: false)
         super(connection, logger, connection_options, superclass_config)
         configure_connection
@@ -83,6 +84,10 @@ module ActiveRecord
         true
       end
 
+      def savepoint_errors_invalidate_transactions?
+        true
+      end
+
       def supports_lazy_transactions?
         true
       end
@@ -106,7 +111,7 @@ module ActiveRecord
       #++
 
       def quote_string(string)
-        @connection.escape(string)
+        @raw_connection.escape(string)
       rescue Mysql2::Error => error
         raise translate_exception(error, message: error.message, sql: "<escape>", binds: [])
       end
@@ -116,7 +121,7 @@ module ActiveRecord
       #++
 
       def active?
-        @connection.ping
+        @raw_connection.ping
       end
 
       def reconnect!
@@ -130,23 +135,31 @@ module ActiveRecord
       # Otherwise, this method does nothing.
       def disconnect!
         super
-        @connection.close
+        @raw_connection.close
       end
 
       def discard! # :nodoc:
         super
-        @connection.automatic_close = false
-        @connection = nil
+        @raw_connection.automatic_close = false
+        @raw_connection = nil
       end
 
       private
+        def check_prepared_statements_deprecation(config)
+          if !config.key?(:prepared_statements)
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              The default value of `prepared_statements` for the mysql2 adapter will be changed from +false+ to +true+ in Rails 7.2.
+            MSG
+          end
+        end
+
         def connect
-          @connection = self.class.new_client(@config)
+          @raw_connection = self.class.new_client(@config)
           configure_connection
         end
 
         def configure_connection
-          @connection.query_options[:as] = :array
+          @raw_connection.query_options[:as] = :array
           super
         end
 
@@ -155,7 +168,7 @@ module ActiveRecord
         end
 
         def get_full_version
-          @connection.server_info[:version]
+          @raw_connection.server_info[:version]
         end
 
         def translate_exception(exception, message:, sql:, binds:)

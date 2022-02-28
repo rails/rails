@@ -74,7 +74,7 @@ module ActiveSupport
       # Matches an exception to a handler based on the exception class.
       #
       # If no handler matches the exception, check for a handler matching the
-      # (optional) exception.cause. If no handler matches the exception or its
+      # (optional) +exception.cause+. If no handler matches the exception or its
       # cause, this returns +nil+, so you can deal with unhandled exceptions.
       # Be sure to re-raise unhandled exceptions if this is what you expect.
       #
@@ -160,7 +160,7 @@ module ActiveSupport
     end
 
     # Delegates to the class method, but uses the instance as the subject for
-    # rescue_from handlers (method calls, instance_exec blocks).
+    # rescue_from handlers (method calls, +instance_exec+ blocks).
     def rescue_with_handler(exception)
       self.class.rescue_with_handler exception, object: self
     end

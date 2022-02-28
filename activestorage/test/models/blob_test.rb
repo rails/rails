@@ -86,7 +86,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
   test "compose" do
     blobs = 3.times.map { create_blob(data: "123", filename: "numbers.txt", content_type: "text/plain", identify: false) }
-    blob = ActiveStorage::Blob.compose(filename: "all_numbers.txt", blobs: blobs)
+    blob = ActiveStorage::Blob.compose(blobs, filename: "all_numbers.txt")
 
     assert_equal "123123123", blob.download
     assert_equal "text/plain", blob.content_type
@@ -99,7 +99,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     blobs = 3.times.map { create_blob(data: "123", filename: "numbers.txt", content_type: "text/plain", identify: false).dup }
 
     error = assert_raises(ActiveRecord::RecordNotSaved) do
-      ActiveStorage::Blob.compose(filename: "all_numbers.txt", blobs: blobs)
+      ActiveStorage::Blob.compose(blobs, filename: "all_numbers.txt")
     end
     assert_equal "All blobs must be persisted.", error.message
   end
@@ -295,7 +295,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
         content_type: "application/octet-stream",
         disposition: :attachment,
         filename: blob.filename,
-        custom_metadatata: { "test" => true }
+        custom_metadata: { "test" => true }
       }
     ]
 

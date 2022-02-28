@@ -178,9 +178,13 @@ if ActiveRecord::Base.connection.supports_comments?
     end
 
     def test_change_column_comment
-      @connection.change_column_comment :commenteds, :name, "Edited column comment"
-      column = Commented.columns_hash["name"]
+      @connection.change_column_comment :commenteds, :id, "Edited column comment"
+      column = Commented.columns_hash["id"]
       assert_equal "Edited column comment", column.comment
+
+      if current_adapter?(:Mysql2Adapter)
+        assert column.auto_increment?
+      end
     end
 
     def test_change_column_comment_to_nil

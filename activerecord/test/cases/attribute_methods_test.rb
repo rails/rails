@@ -20,14 +20,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :companies, :computers
 
   def setup
-    @old_matchers = ActiveRecord::Base.send(:attribute_method_matchers).dup
+    @old_matchers = ActiveRecord::Base.send(:attribute_method_patterns).dup
     @target = Class.new(ActiveRecord::Base)
     @target.table_name = "topics"
   end
 
   teardown do
-    ActiveRecord::Base.send(:attribute_method_matchers).clear
-    ActiveRecord::Base.send(:attribute_method_matchers).concat(@old_matchers)
+    ActiveRecord::Base.send(:attribute_method_patterns).clear
+    ActiveRecord::Base.send(:attribute_method_patterns).concat(@old_matchers)
   end
 
   test "attribute_for_inspect with a string" do
@@ -41,7 +41,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "attribute_for_inspect with a date" do
     t = topics(:first)
 
-    assert_equal %("#{t.written_on.to_s(:inspect)}"), t.attribute_for_inspect(:written_on)
+    assert_equal %("#{t.written_on.to_fs(:inspect)}"), t.attribute_for_inspect(:written_on)
   end
 
   test "attribute_for_inspect with an array" do

@@ -9,6 +9,7 @@
 # It is also good to know what is the bare minimum to get
 # Rails booted up.
 require "fileutils"
+require "shellwords"
 
 require "bundler/setup" unless defined?(Bundler)
 require "active_support"
@@ -95,7 +96,7 @@ module TestHelpers
       assert_equal 200, resp[0]
       assert_match "text/html", resp[1]["Content-Type"]
       assert_match "charset=utf-8", resp[1]["Content-Type"]
-      assert extract_body(resp).match(/Yay! You.*re on Rails!/)
+      assert extract_body(resp).match(/Rails version:/)
     end
   end
 
@@ -122,85 +123,11 @@ module TestHelpers
         end
       end
 
-      if options[:multi_db]
-        File.open("#{app_path}/config/database.yml", "w") do |f|
-          f.puts <<-YAML
-          default: &default
-            adapter: sqlite3
-            pool: 5
-            timeout: 5000
-            variables:
-              statement_timeout: 1000
-          development:
-            primary:
-              <<: *default
-              database: db/development.sqlite3
-            primary_readonly:
-              <<: *default
-              database: db/development.sqlite3
-              replica: true
-            animals:
-              <<: *default
-              database: db/development_animals.sqlite3
-              migrations_paths: db/animals_migrate
-            animals_readonly:
-              <<: *default
-              database: db/development_animals.sqlite3
-              migrations_paths: db/animals_migrate
-              replica: true
-          test:
-            primary:
-              <<: *default
-              database: db/test.sqlite3
-            primary_readonly:
-              <<: *default
-              database: db/test.sqlite3
-              replica: true
-            animals:
-              <<: *default
-              database: db/test_animals.sqlite3
-              migrations_paths: db/animals_migrate
-            animals_readonly:
-              <<: *default
-              database: db/test_animals.sqlite3
-              migrations_paths: db/animals_migrate
-              replica: true
-          production:
-            primary:
-              <<: *default
-              database: db/production.sqlite3
-            primary_readonly:
-              <<: *default
-              database: db/production.sqlite3
-              replica: true
-            animals:
-              <<: *default
-              database: db/production_animals.sqlite3
-              migrations_paths: db/animals_migrate
-            animals_readonly:
-              <<: *default
-              database: db/production_animals.sqlite3
-              migrations_paths: db/animals_migrate
-              replica: true
-          YAML
-        end
-      else
-        File.open("#{app_path}/config/database.yml", "w") do |f|
-          f.puts <<-YAML
-          default: &default
-            adapter: sqlite3
-            pool: 5
-            timeout: 5000
-          development:
-            <<: *default
-            database: db/development.sqlite3
-          test:
-            <<: *default
-            database: db/test.sqlite3
-          production:
-            <<: *default
-            database: db/production.sqlite3
-          YAML
+      File.open("#{app_path}/config/database.yml", "w") do |f|
+        if options[:multi_db]
+          f.puts multi_db_database_configs
+        else
+          f.puts default_database_configs
         end
       end
 
@@ -217,6 +144,86 @@ module TestHelpers
     def teardown_app
       ENV["RAILS_ENV"] = @prev_rails_env if @prev_rails_env
       FileUtils.rm_rf(tmp_path)
+    end
+
+    def default_database_configs
+      <<-YAML
+        default: &default
+          adapter: sqlite3
+          pool: 5
+          timeout: 5000
+        development:
+          <<: *default
+          database: db/development.sqlite3
+        test:
+          <<: *default
+          database: db/test.sqlite3
+        production:
+          <<: *default
+          database: db/production.sqlite3
+      YAML
+    end
+
+    def multi_db_database_configs
+      <<-YAML
+        default: &default
+          adapter: sqlite3
+          pool: 5
+          timeout: 5000
+          variables:
+            statement_timeout: 1000
+        development:
+          primary:
+            <<: *default
+            database: db/development.sqlite3
+          primary_readonly:
+            <<: *default
+            database: db/development.sqlite3
+            replica: true
+          animals:
+            <<: *default
+            database: db/development_animals.sqlite3
+            migrations_paths: db/animals_migrate
+          animals_readonly:
+            <<: *default
+            database: db/development_animals.sqlite3
+            migrations_paths: db/animals_migrate
+            replica: true
+        test:
+          primary:
+            <<: *default
+            database: db/test.sqlite3
+          primary_readonly:
+            <<: *default
+            database: db/test.sqlite3
+            replica: true
+          animals:
+            <<: *default
+            database: db/test_animals.sqlite3
+            migrations_paths: db/animals_migrate
+          animals_readonly:
+            <<: *default
+            database: db/test_animals.sqlite3
+            migrations_paths: db/animals_migrate
+            replica: true
+        production:
+          primary:
+            <<: *default
+            database: db/production.sqlite3
+          primary_readonly:
+            <<: *default
+            database: db/production.sqlite3
+            replica: true
+          animals:
+            <<: *default
+            database: db/production_animals.sqlite3
+            migrations_paths: db/animals_migrate
+          animals_readonly:
+            <<: *default
+            database: db/production_animals.sqlite3
+            migrations_paths: db/animals_migrate
+            replica: true
+      YAML
     end
 
     # Make a very basic app, without creating the whole directory structure.

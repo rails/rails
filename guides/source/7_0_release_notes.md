@@ -30,9 +30,20 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `config` in `dbconsole`.
+
 ### Deprecations
 
 ### Notable changes
+
+*   Sprockets is now an optional dependency
+
+    The gem `rails` doesn't depend on `sprockets-rails` anymore. If your application still needs to use Sprockets,
+    make sure to add `sprockets-rails` to your Gemfile.
+
+    ```
+    gem "sprockets-rails"
+    ```
 
 Action Cable
 ------------
@@ -77,6 +88,15 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Notable changes
 
+*  `button_to` infers HTTP verb [method] from an Active Record object if object is used to build URL
+
+    ```ruby
+    button_to("Do a POST", [:do_post_action, Workshop.find(1)])
+    # Before
+    #=>   <input type="hidden" name="_method" value="post" autocomplete="off" />
+    # After
+    #=>   <input type="hidden" name="_method" value="patch" autocomplete="off" />
+
 Action Mailer
 -------------
 
@@ -106,7 +126,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated support to YAML load `ActiveRecord::Base` instance in the Rails 4.2 and 4.1 formats.
 
-*   Remove deprecation warning when using `:interval` column is used in PostgreSQL database.
+*   Remove deprecation warning when `:interval` column is used in PostgreSQL database.
 
     Now, interval columns will return `ActiveSupport::Duration` objects instead of strings.
 
@@ -116,7 +136,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     attribute :column, :string
     ```
 
-*   Remove deprecacated support to resolve connection using `"primary"` as connection specification name.
+*   Remove deprecated support to resolve connection using `"primary"` as connection specification name.
 
 *   Remove deprecated support to quote `ActiveRecord::Base` objects.
 
@@ -149,9 +169,15 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `Tasks::DatabaseTasks.current_config`.
 
+*   Remove deprecated `ActiveRecord::Connection#allowed_index_name_length`.
+
+*   Remove deprecated `ActiveRecord::Connection#in_clause_length`.
+
+*   Remove deprecated `ActiveRecord::DatabaseConfigurations::DatabaseConfig#spec_name`.
+
 ### Deprecations
 
-*   Deprecated `Tasks::DatabaseTasks.:schema_file_type`.
+*   Deprecated `Tasks::DatabaseTasks.schema_file_type`.
 
 ### Notable changes
 
@@ -236,9 +262,19 @@ Please refer to the [Changelog][active-support] for detailed changes.
 *   Remove deprecated support to use `Range#include?` to check the inclusion of a value in
     a date time range is deprecated.
 
-*   Remove deprecate `ActiveSupport::Multibyte::Unicode.default_normalization_form`.
+*   Remove deprecated `ActiveSupport::Multibyte::Unicode.default_normalization_form`.
 
 ### Deprecations
+
+*   Deprecate passing a format to `#to_s` in favor of `#to_fs` in `Array`, `Range`, `Date`, `DateTime`, `Time`,
+    `BigDecimal`, `Float` and, `Integer`.
+
+    This deprecation is to allow Rails application to take advantage of a Ruby 3.1
+    [optimization](https://github.com/ruby/ruby/commit/b08dacfea39ad8da3f1fd7fdd0e4538cc892ec44) that makes
+    interpolation of some types of objects faster.
+
+    New applications will not have the `#to_s` method overridden on those classes, existing applications can use
+    `config.active_support.disable_to_s_conversion`.
 
 ### Notable changes
 
@@ -263,6 +299,8 @@ Please refer to the [Changelog][active-job] for detailed changes.
 *   Remove deprecated `ActiveRecord::Base.configurations.to_h`.
 
 *   Remove deprecated `ActiveRecord::Result#map!` and `ActiveRecord::Result#collect!`.
+
+*   Remove deprecated `ActiveRecord::Base#remove_connection`.
 
 ### Deprecations
 
@@ -311,16 +349,16 @@ See the
 for the many people who spent many hours making Rails, the stable and robust
 framework it is. Kudos to all of them.
 
-[railties]:       https://github.com/rails/rails/blob/main/railties/CHANGELOG.md
-[action-pack]:    https://github.com/rails/rails/blob/main/actionpack/CHANGELOG.md
-[action-view]:    https://github.com/rails/rails/blob/main/actionview/CHANGELOG.md
-[action-mailer]:  https://github.com/rails/rails/blob/main/actionmailer/CHANGELOG.md
-[action-cable]:   https://github.com/rails/rails/blob/main/actioncable/CHANGELOG.md
-[active-record]:  https://github.com/rails/rails/blob/main/activerecord/CHANGELOG.md
-[active-storage]: https://github.com/rails/rails/blob/main/activestorage/CHANGELOG.md
-[active-model]:   https://github.com/rails/rails/blob/main/activemodel/CHANGELOG.md
-[active-support]: https://github.com/rails/rails/blob/main/activesupport/CHANGELOG.md
-[active-job]:     https://github.com/rails/rails/blob/main/activejob/CHANGELOG.md
-[action-text]:    https://github.com/rails/rails/blob/main/actiontext/CHANGELOG.md
-[action-mailbox]: https://github.com/rails/rails/blob/main/actionmailbox/CHANGELOG.md
-[guides]:         https://github.com/rails/rails/blob/main/guides/CHANGELOG.md
+[railties]:       https://github.com/rails/rails/blob/7-0-stable/railties/CHANGELOG.md
+[action-pack]:    https://github.com/rails/rails/blob/7-0-stable/actionpack/CHANGELOG.md
+[action-view]:    https://github.com/rails/rails/blob/7-0-stable/actionview/CHANGELOG.md
+[action-mailer]:  https://github.com/rails/rails/blob/7-0-stable/actionmailer/CHANGELOG.md
+[action-cable]:   https://github.com/rails/rails/blob/7-0-stable/actioncable/CHANGELOG.md
+[active-record]:  https://github.com/rails/rails/blob/7-0-stable/activerecord/CHANGELOG.md
+[active-storage]: https://github.com/rails/rails/blob/7-0-stable/activestorage/CHANGELOG.md
+[active-model]:   https://github.com/rails/rails/blob/7-0-stable/activemodel/CHANGELOG.md
+[active-support]: https://github.com/rails/rails/blob/7-0-stable/activesupport/CHANGELOG.md
+[active-job]:     https://github.com/rails/rails/blob/7-0-stable/activejob/CHANGELOG.md
+[action-text]:    https://github.com/rails/rails/blob/7-0-stable/actiontext/CHANGELOG.md
+[action-mailbox]: https://github.com/rails/rails/blob/7-0-stable/actionmailbox/CHANGELOG.md
+[guides]:         https://github.com/rails/rails/blob/7-0-stable/guides/CHANGELOG.md

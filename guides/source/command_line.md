@@ -97,13 +97,16 @@ If you wish to skip some files or components from being generated, you can appen
 | `--skip-git`            | Skip .gitignore file                                        |
 | `--skip-keeps`          | Skip source control .keep files                             |
 | `--skip-action-mailer`  | Skip Action Mailer files                                    |
+| `--skip-action-mailbox` | Skip Action Mailbox gem                                     |
 | `--skip-action-text`    | Skip Action Text gem                                        |
 | `--skip-active-record`  | Skip Active Record files                                    |
+| `--skip-active-job`     | Skip Active Job                                             |
 | `--skip-active-storage` | Skip Active Storage files                                   |
 | `--skip-action-cable`   | Skip Action Cable files                                     |
-| `--skip-sprockets`      | Skip Sprockets files                                        |
+| `--skip-asset-pipeline` | Skip Asset Pipeline                                         |
 | `--skip-javascript`     | Skip JavaScript files                                       |
-| `--skip-turbolinks`     | Skip turbolinks gem                                         |
+| `--skip-hotwire`        | Skip Hotwire integration                                    |
+| `--skip-jbuilder`       | Skip jbuilder gem                                           |
 | `--skip-test`           | Skip test files                                             |
 | `--skip-system-test`    | Skip system test files                                      |
 | `--skip-bootsnap`       | Skip bootsnap gem                                           |
@@ -118,7 +121,7 @@ With no further work, `bin/rails server` will run our new shiny Rails app:
 $ cd commandsapp
 $ bin/rails server
 => Booting Puma
-=> Rails 6.0.0 application starting in development
+=> Rails 7.0.0 application starting in development
 => Run `bin/rails server --help` for more startup options
 Puma starting in single mode...
 * Version 3.12.1 (ruby 2.5.7-p206), codename: Llamas in Pajamas
@@ -301,9 +304,9 @@ $ bin/rails generate scaffold HighScore game:string score:integer
     create      app/views/high_scores/_high_score.json.jbuilder
 ```
 
-The generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the `high_scores` table and fields), takes care of the route for the **resource**, and new tests for everything.
+The generator creates the model, views, controller, **resource** route, and database migration (which creates the `high_scores` table) for HighScore. And it adds tests for those.
 
-The migration requires that we **migrate**, that is, run some Ruby code (living in that `20130717151933_create_high_scores.rb`) to modify the schema of our database. Which database? The SQLite3 database that Rails will create for you when we run the `bin/rails db:migrate` command. We'll talk more about that command below.
+The migration requires that we **migrate**, that is, run some Ruby code (the `20190416145729_create_high_scores.rb` file from the above output) to modify the schema of our database. Which database? The SQLite3 database that Rails will create for you when we run the `bin/rails db:migrate` command. We'll talk more about that command below.
 
 ```bash
 $ bin/rails db:migrate
@@ -345,7 +348,7 @@ If you wish to test out some code without changing any data, you can do that by 
 
 ```bash
 $ bin/rails console --sandbox
-Loading development environment in sandbox (Rails 7.0.0)
+Loading development environment in sandbox (Rails 7.1.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
@@ -441,7 +444,7 @@ $ bin/rails destroy model Oops
 ```bash
 $ bin/rails about
 About your application's environment
-Rails version             6.0.0
+Rails version             7.0.0
 Ruby version              2.7.0 (x86_64-linux)
 RubyGems version          2.7.3
 Rack version              2.0.4

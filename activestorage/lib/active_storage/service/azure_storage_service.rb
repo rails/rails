@@ -114,7 +114,7 @@ module ActiveStorage
       { "Content-Type" => content_type, "Content-MD5" => checksum, "x-ms-blob-content-disposition" => content_disposition, "x-ms-blob-type" => "BlockBlob", **custom_metadata_headers(custom_metadata) }
     end
 
-    def compose(*source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
+    def compose(source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
       content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
 
       client.create_append_blob(

@@ -323,14 +323,8 @@ module ActiveRecord
 
       delegate :within_new_transaction, :open_transactions, :current_transaction, :begin_transaction,
                :commit_transaction, :rollback_transaction, :materialize_transactions,
-               :disable_lazy_transactions!, :enable_lazy_transactions!, to: :transaction_manager
-
-      def mark_transaction_written_if_write(sql) # :nodoc:
-        transaction = current_transaction
-        if transaction.open?
-          transaction.written ||= write_query?(sql)
-        end
-      end
+               :disable_lazy_transactions!, :enable_lazy_transactions!, :dirty_current_transaction,
+               to: :transaction_manager
 
       def transaction_open?
         current_transaction.open?
@@ -375,6 +369,12 @@ module ActiveRecord
       end
 
       def exec_rollback_db_transaction() end # :nodoc:
+
+      def restart_db_transaction
+        exec_restart_db_transaction
+      end
+
+      def exec_restart_db_transaction() end # :nodoc:
 
       def rollback_to_savepoint(name = nil)
         exec_rollback_to_savepoint(name)

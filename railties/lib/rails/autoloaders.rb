@@ -1,44 +1,48 @@
 # frozen_string_literal: true
 
-require "zeitwerk"
-
 module Rails
-  module Autoloaders # :nodoc:
+  class Autoloaders # :nodoc:
     require_relative "autoloaders/inflector"
 
-    class << self
-      include Enumerable
+    include Enumerable
 
-      def main
-        @main ||= Zeitwerk::Loader.new.tap do |loader|
-          loader.tag = "rails.main"
-          loader.inflector = Inflector
-        end
-      end
+    attr_reader :main, :once
 
-      def once
-        @once ||= Zeitwerk::Loader.new.tap do |loader|
-          loader.tag = "rails.once"
-          loader.inflector = Inflector
-        end
-      end
+    def initialize
+      # This `require` delays loading the library on purpose.
+      #
+      # In Rails 7.0.0, railties/lib/rails.rb loaded Zeitwerk as a side-effect,
+      # but a couple of edge cases related to Bundler and Bootsnap showed up.
+      # They had to do with order of decoration of `Kernel#require`, something
+      # the three of them do.
+      #
+      # Delaying this `require` up to this point is a convenient trade-off.
+      require "zeitwerk"
 
-      def each
-        yield main
-        yield once
-      end
+      @main = Zeitwerk::Loader.new
+      @main.tag = "rails.main"
+      @main.inflector = Inflector
 
-      def logger=(logger)
-        each { |loader| loader.logger = logger }
-      end
+      @once = Zeitwerk::Loader.new
+      @once.tag = "rails.once"
+      @once.inflector = Inflector
+    end
 
-      def log!
-        each(&:log!)
-      end
+    def each
+      yield main
+      yield once
+    end
 
-      def zeitwerk_enabled?
-        true
-      end
+    def logger=(logger)
+      each { |loader| loader.logger = logger }
+    end
+
+    def log!
+      each(&:log!)
+    end
+
+    def zeitwerk_enabled?
+      true
     end
   end
 end

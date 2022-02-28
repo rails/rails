@@ -648,6 +648,43 @@ class ActionsTest < Rails::Generators::TestCase
     ROUTING_CODE
   end
 
+  test "route with namespace option revokes route without breaking existing namespace blocks" do
+    run_generator
+    action :route, <<~ROUTING_CODE.chomp
+      namespace :baz do
+        get 'foo1'
+        namespace :qux do
+          get 'foo2'
+          namespace :hoge do
+            get 'foo3'
+          end
+        end
+        get 'bar1'
+      end
+    ROUTING_CODE
+
+    revoke :route, "get 'foo2'", namespace: %w[baz qux]
+    assert_routes <<~ROUTING_CODE.chomp
+      namespace :baz do
+        get 'foo1'
+        namespace :qux do
+          namespace :hoge do
+            get 'foo3'
+          end
+        end
+        get 'bar1'
+      end
+    ROUTING_CODE
+
+    revoke :route, "get 'foo3'", namespace: %w[baz qux hoge]
+    assert_routes <<~ROUTING_CODE.chomp
+      namespace :baz do
+        get 'foo1'
+        get 'bar1'
+      end
+    ROUTING_CODE
+  end
+
   def test_readme
     run_generator
     assert_called(Rails::Generators::AppGenerator, :source_root, times: 2, returns: destination_root) do
@@ -682,15 +719,26 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   private
-    def action(*args, **kwargs, &block)
-      capture(:stdout) { generator.send(*args, **kwargs, &block) }
+    def action(...)
+      capture(:stdout) { generator.send(...) }
+    end
+
+    def revoke(...)
+      original_behavior, generator.behavior = generator.behavior, :revoke
+      action(...)
+    ensure
+      generator.behavior = original_behavior
     end
 
     def assert_runs(commands, config = {}, &block)
       config_matcher = ->(actual_config) do
         assert_equal config, actual_config.slice(*config.keys)
       end if config
-      args = Array(commands).map { |command| [command, *config_matcher] }
+      args = Array(commands).map do |command|
+        command_matcher = Regexp.escape(command)
+        command_matcher = command_matcher.sub(/^sudo\\ /, '\A\1.*')
+        [/#{command_matcher}\z/, *config_matcher]
+      end
 
       assert_called_with(generator, :run, args) do
         block.call

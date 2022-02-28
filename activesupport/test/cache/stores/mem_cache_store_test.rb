@@ -20,7 +20,11 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   class UnavailableDalliServer < Dalli::Protocol::Binary
-    def alive?
+    def alive? # before https://github.com/petergoldstein/dalli/pull/863
+      false
+    end
+
+    def ensure_connected! # after https://github.com/petergoldstein/dalli/pull/863
       false
     end
   end
@@ -79,10 +83,19 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   # Overrides test from LocalCacheBehavior in order to stub out the cache clear
   # and replace it with a delete.
   def test_clear_also_clears_local_cache
-    key = "#{@namespace}:foo"
-    client.stub(:flush_all, -> { client.delete(key) }) do
-      super
+    key = SecureRandom.uuid
+    cache = lookup_store(raw: true)
+    stub_called = false
+
+    client(cache).stub(:flush_all, -> { stub_called = true; client.delete("#{@namespace}:#{key}") }) do
+      cache.with_local_cache do
+        cache.write(key, SecureRandom.alphanumeric)
+        cache.clear
+        assert_nil cache.read(key)
+      end
+      assert_nil cache.read(key)
     end
+    assert stub_called
   end
 
   def test_raw_values
@@ -304,7 +317,11 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
 
     def servers(cache = @cache)
-      client(cache).instance_variable_get(:@servers)
+      if client(cache).instance_variable_defined?(:@normalized_servers)
+        client(cache).instance_variable_get(:@normalized_servers)
+      else
+        client(cache).instance_variable_get(:@servers)
+      end
     end
 
     def client(cache = @cache)

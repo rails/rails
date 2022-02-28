@@ -349,7 +349,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response 302
       assert_response :redirect
       assert_response :found
-      assert_equal "<html><body>You are being <a href=\"http://www.example.com/get\">redirected</a>.</body></html>", response.body
+      assert_equal "", response.body
       assert_kind_of Nokogiri::HTML::Document, html_document
       assert_equal 1, request_count
 

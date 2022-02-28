@@ -257,8 +257,12 @@ module ActiveRecord
         scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose?
 
-        Base.connection.migration_context.migrate(target_version || version) do |migration|
-          scope.blank? || scope == migration.scope
+        Base.connection.migration_context.migrate(target_version) do |migration|
+          if version.blank?
+            scope.blank? || scope == migration.scope
+          else
+            migration.version == version
+          end
         end.tap do |migrations_ran|
           Migration.write("No migrations ran. (using #{scope} scope)") if scope.present? && migrations_ran.empty?
         end
@@ -301,7 +305,7 @@ module ActiveRecord
       end
 
       def check_target_version
-        if target_version && !(Migration::MigrationFilenameRegexp.match?(ENV["VERSION"]) || /\A\d+\z/.match?(ENV["VERSION"]))
+        if target_version && !Migration.valid_version_format?(ENV["VERSION"])
           raise "Invalid format of target version: `VERSION=#{ENV['VERSION']}`"
         end
       end

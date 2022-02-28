@@ -21,10 +21,10 @@ module ActiveSupport
   #
   # To reconfigure an existing BacktraceCleaner (like the default one in Rails)
   # and show as much data as possible, you can always call
-  # <tt>BacktraceCleaner#remove_silencers!</tt>, which will restore the
+  # BacktraceCleaner#remove_silencers!, which will restore the
   # backtrace to a pristine state. If you need to reconfigure an existing
   # BacktraceCleaner so that it does not filter or modify the paths of any lines
-  # of the backtrace, you can call <tt>BacktraceCleaner#remove_filters!</tt>
+  # of the backtrace, you can call BacktraceCleaner#remove_filters!
   # These two methods will give you a completely untouched backtrace.
   #
   # Inspired by the Quiet Backtrace gem by thoughtbot.
@@ -56,7 +56,7 @@ module ActiveSupport
     # mapped against this filter.
     #
     #   # Will turn "/my/rails/root/app/models/person.rb" into "/app/models/person.rb"
-    #   backtrace_cleaner.add_filter { |line| line.gsub(Rails.root, '') }
+    #   backtrace_cleaner.add_filter { |line| line.gsub(Rails.root.to_s, '') }
     def add_filter(&block)
       @filters << block
     end

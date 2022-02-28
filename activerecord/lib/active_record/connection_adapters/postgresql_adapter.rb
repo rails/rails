@@ -75,7 +75,7 @@ module ActiveRecord
 
       class << self
         def new_client(conn_params)
-          PG.connect(conn_params)
+          PG.connect(**conn_params)
         rescue ::PG::Error => error
           if conn_params && conn_params[:dbname] && error.message.include?(conn_params[:dbname])
             raise ActiveRecord::NoDatabaseError.db_error(conn_params[:dbname])
@@ -104,7 +104,7 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # PostgreSQL supports multiple types for DateTimes. By default if you use `datetime`
+      # PostgreSQL supports multiple types for DateTimes. By default, if you use +datetime+
       # in migrations, Rails will translate this to a PostgreSQL "timestamp without time zone".
       # Change this in an initializer to use another NATIVE_DATABASE_TYPES. For example, to
       # store DateTimes as "timestamp with time zone":
@@ -116,8 +116,8 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::NATIVE_DATABASE_TYPES[:my_custom_type] = { name: "my_custom_type_name" }
       #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type = :my_custom_type
       #
-      # If you're using :ruby as your config.active_record.schema_format and you change this
-      # setting, you should immediately run bin/rails db:migrate to update the types in your schema.rb.
+      # If you're using +:ruby+ as your +config.active_record.schema_format+ and you change this
+      # setting, you should immediately run <tt>bin/rails db:migrate</tt> to update the types in your schema.rb.
       class_attribute :datetime_type, default: :timestamp
 
       NATIVE_DATABASE_TYPES = {
@@ -183,7 +183,7 @@ module ActiveRecord
       end
 
       def supports_partitioned_indexes?
-        database_version >= 110_000 # >= 11.0
+        database_version >= 11_00_00 # >= 11.0
       end
 
       def supports_partial_index?
@@ -234,19 +234,23 @@ module ActiveRecord
         true
       end
 
+      def supports_restart_db_transaction?
+        database_version >= 12_00_00 # >= 12.0
+      end
+
       def supports_insert_returning?
         true
       end
 
       def supports_insert_on_conflict?
-        database_version >= 90500 # >= 9.5
+        database_version >= 9_05_00 # >= 9.5
       end
       alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
       alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
       alias supports_insert_conflict_target? supports_insert_on_conflict?
 
       def supports_virtual_columns?
-        database_version >= 120_000 # >= 12.0
+        database_version >= 12_00_00 # >= 12.0
       end
 
       def index_algorithms
@@ -256,7 +260,7 @@ module ActiveRecord
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         def initialize(connection, max)
           super(max)
-          @connection = connection
+          @raw_connection = connection
           @counter = 0
         end
 
@@ -266,12 +270,12 @@ module ActiveRecord
 
         private
           def dealloc(key)
-            @connection.query "DEALLOCATE #{key}" if connection_active?
+            @raw_connection.query "DEALLOCATE #{key}" if connection_active?
           rescue PG::Error
           end
 
           def connection_active?
-            @connection.status == PG::CONNECTION_OK
+            @raw_connection.status == PG::CONNECTION_OK
           rescue PG::Error
             false
           end
@@ -281,7 +285,7 @@ module ActiveRecord
       def initialize(connection, logger, connection_parameters, config)
         super(connection, logger, config)
 
-        @connection_parameters = connection_parameters
+        @connection_parameters = connection_parameters || {}
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
@@ -306,7 +310,7 @@ module ActiveRecord
       # Is this connection alive and ready for queries?
       def active?
         @lock.synchronize do
-          @connection.query ";"
+          @raw_connection.query ";"
         end
         true
       rescue PG::Error
@@ -321,8 +325,8 @@ module ActiveRecord
       # Close then reopen the connection.
       def reconnect!
         @lock.synchronize do
+          @raw_connection.reset
           super
-          @connection.reset
           configure_connection
           reload_type_map
         rescue PG::ConnectionBad
@@ -332,12 +336,12 @@ module ActiveRecord
 
       def reset!
         @lock.synchronize do
-          clear_cache!
           reset_transaction
-          unless @connection.transaction_status == ::PG::PQTRANS_IDLE
-            @connection.query "ROLLBACK"
+          unless @raw_connection.transaction_status == ::PG::PQTRANS_IDLE
+            @raw_connection.query "ROLLBACK"
           end
-          @connection.query "DISCARD ALL"
+          @raw_connection.query "DISCARD ALL"
+          clear_cache!(new_connection: true)
           configure_connection
         end
       end
@@ -347,14 +351,14 @@ module ActiveRecord
       def disconnect!
         @lock.synchronize do
           super
-          @connection.close rescue nil
+          @raw_connection.close rescue nil
         end
       end
 
       def discard! # :nodoc:
         super
-        @connection.socket_io.reopen(IO::NULL) rescue nil
-        @connection = nil
+        @raw_connection.socket_io.reopen(IO::NULL) rescue nil
+        @raw_connection = nil
       end
 
       def native_database_types # :nodoc:
@@ -398,7 +402,7 @@ module ActiveRecord
       end
 
       def supports_pgcrypto_uuid?
-        database_version >= 90400 # >= 9.4
+        database_version >= 9_04_00 # >= 9.4
       end
 
       def supports_optimizer_hints?
@@ -503,7 +507,7 @@ module ActiveRecord
 
       # Returns the version of the connected PostgreSQL server.
       def get_database_version # :nodoc:
-        @connection.server_version
+        @raw_connection.server_version
       end
       alias :postgresql_version :database_version
 
@@ -531,7 +535,7 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < 90300 # < 9.3
+        if database_version < 9_03_00 # < 9.3
           raise "Your version of PostgreSQL (#{database_version}) is too old. Active Record supports PostgreSQL >= 9.3."
         end
       end
@@ -575,10 +579,6 @@ module ActiveRecord
           m.register_type "polygon", OID::SpecializedString.new(:polygon)
           m.register_type "circle", OID::SpecializedString.new(:circle)
 
-          register_class_with_precision m, "time", Type::Time
-          register_class_with_precision m, "timestamp", OID::Timestamp
-          register_class_with_precision m, "timestamptz", OID::TimestampWithTimeZone
-
           m.register_type "numeric" do |_, fmod, sql_type|
             precision = extract_precision(sql_type)
             scale = extract_scale(sql_type)
@@ -613,6 +613,11 @@ module ActiveRecord
 
         def initialize_type_map(m = type_map)
           self.class.initialize_type_map(m)
+
+          self.class.register_class_with_precision m, "time", Type::Time, timezone: @default_timezone
+          self.class.register_class_with_precision m, "timestamp", OID::Timestamp, timezone: @default_timezone
+          self.class.register_class_with_precision m, "timestamptz", OID::TimestampWithTimeZone
+
           load_additional_types
         end
 
@@ -756,7 +761,6 @@ module ActiveRecord
 
         def exec_no_cache(sql, name, binds, async: false)
           materialize_transactions
-          mark_transaction_written_if_write(sql)
 
           # make sure we carry over any changes to ActiveRecord.default_timezone that have been
           # made since we established the connection
@@ -765,14 +769,13 @@ module ActiveRecord
           type_casted_binds = type_casted_binds(binds)
           log(sql, name, binds, type_casted_binds, async: async) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @connection.exec_params(sql, type_casted_binds)
+              @raw_connection.exec_params(sql, type_casted_binds)
             end
           end
         end
 
         def exec_cache(sql, name, binds, async: false)
           materialize_transactions
-          mark_transaction_written_if_write(sql)
           update_typemap_for_default_timezone
 
           stmt_key = prepare_statement(sql, binds)
@@ -780,7 +783,7 @@ module ActiveRecord
 
           log(sql, name, binds, type_casted_binds, stmt_key, async: async) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @connection.exec_prepared(stmt_key, type_casted_binds)
+              @raw_connection.exec_prepared(stmt_key, type_casted_binds)
             end
           end
         rescue ActiveRecord::StatementInvalid => e
@@ -834,12 +837,12 @@ module ActiveRecord
             unless @statements.key? sql_key
               nextkey = @statements.next_key
               begin
-                @connection.prepare nextkey, sql
+                @raw_connection.prepare nextkey, sql
               rescue => e
                 raise translate_exception_class(e, sql, binds)
               end
               # Clear the queue
-              @connection.get_last_result
+              @raw_connection.get_last_result
               @statements[sql_key] = nextkey
             end
             @statements[sql_key]
@@ -849,7 +852,7 @@ module ActiveRecord
         # Connects to a PostgreSQL server and sets up the adapter depending on the
         # connected server's characteristics.
         def connect
-          @connection = self.class.new_client(@connection_parameters)
+          @raw_connection = self.class.new_client(@connection_parameters)
           configure_connection
           add_pg_encoders
           add_pg_decoders
@@ -859,7 +862,7 @@ module ActiveRecord
         # This is called by #connect and should not be called manually.
         def configure_connection
           if @config[:encoding]
-            @connection.set_client_encoding(@config[:encoding])
+            @raw_connection.set_client_encoding(@config[:encoding])
           end
           self.client_min_messages = @config[:min_messages] || "warning"
           self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
@@ -872,7 +875,7 @@ module ActiveRecord
           # If using Active Record's time zone support configure the connection to return
           # TIMESTAMP WITH ZONE types in UTC.
           unless variables["timezone"]
-            if ActiveRecord.default_timezone == :utc
+            if default_timezone == :utc
               variables["timezone"] = "UTC"
             elsif @local_tz
               variables["timezone"] = @local_tz
@@ -938,7 +941,7 @@ module ActiveRecord
         end
 
         def build_statement_pool
-          StatementPool.new(@connection, self.class.type_cast_config_to_integer(@config[:statement_limit]))
+          StatementPool.new(@raw_connection, self.class.type_cast_config_to_integer(@config[:statement_limit]))
         end
 
         def can_perform_case_insensitive_comparison_for?(column)
@@ -968,19 +971,19 @@ module ActiveRecord
           map[Integer] = PG::TextEncoder::Integer.new
           map[TrueClass] = PG::TextEncoder::Boolean.new
           map[FalseClass] = PG::TextEncoder::Boolean.new
-          @connection.type_map_for_queries = map
+          @raw_connection.type_map_for_queries = map
         end
 
         def update_typemap_for_default_timezone
-          if @default_timezone != ActiveRecord.default_timezone && @timestamp_decoder
-            decoder_class = ActiveRecord.default_timezone == :utc ?
+          if @mapped_default_timezone != default_timezone && @timestamp_decoder
+            decoder_class = default_timezone == :utc ?
               PG::TextDecoder::TimestampUtc :
               PG::TextDecoder::TimestampWithoutTimeZone
 
             @timestamp_decoder = decoder_class.new(@timestamp_decoder.to_h)
-            @connection.type_map_for_results.add_coder(@timestamp_decoder)
+            @raw_connection.type_map_for_results.add_coder(@timestamp_decoder)
 
-            @default_timezone = ActiveRecord.default_timezone
+            @mapped_default_timezone = default_timezone
 
             # if default timezone has changed, we need to reconfigure the connection
             # (specifically, the session time zone)
@@ -989,7 +992,7 @@ module ActiveRecord
         end
 
         def add_pg_decoders
-          @default_timezone = nil
+          @mapped_default_timezone = nil
           @timestamp_decoder = nil
 
           coders_by_name = {
@@ -1017,7 +1020,7 @@ module ActiveRecord
 
           map = PG::TypeMapByOid.new
           coders.each { |coder| map.add_coder(coder) }
-          @connection.type_map_for_results = map
+          @raw_connection.type_map_for_results = map
 
           @type_map_for_results = PG::TypeMapByOid.new
           @type_map_for_results.default_type_map = map

@@ -702,6 +702,35 @@ module RenderTestCases
       @view.render(TestRenderable.new)
     )
   end
+
+  def test_render_mutate_string_literal
+    assert_equal "foobar", @view.render(inline: "'foo' << 'bar'", type: :ruby)
+  end
+end
+
+class FrozenStringLiteralEnabledViewRenderTest < ActiveSupport::TestCase
+  include RenderTestCases
+
+  def setup
+    ActionView::LookupContext::DetailsKey.clear
+
+    @previous_frozen_literal = ActionView::Template.frozen_string_literal
+    ActionView::Template.frozen_string_literal = true
+    view_paths = ActionController::Base.view_paths
+    setup_view(view_paths)
+  end
+
+  def teardown
+    super
+    ActionView::Template.frozen_string_literal = @previous_frozen_literal
+  end
+
+  def test_render_mutate_string_literal
+    error = assert_raise ActionView::Template::Error do
+      @view.render(inline: "'foo' << 'bar'", type: :ruby)
+    end
+    assert_includes(error.message, "can't modify frozen String")
+  end
 end
 
 class CachedViewRenderTest < ActiveSupport::TestCase

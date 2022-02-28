@@ -6,6 +6,7 @@ require "active_support/i18n_railtie"
 module ActiveSupport
   class Railtie < Rails::Railtie # :nodoc:
     config.active_support = ActiveSupport::OrderedOptions.new
+    config.active_support.disable_to_s_conversion = false
 
     config.eager_load_namespaces << ActiveSupport
 
@@ -40,7 +41,7 @@ module ActiveSupport
     end
 
     initializer "active_support.reset_all_current_attributes_instances" do |app|
-      executor_around_test_case = app.config.active_support.delete(:executor_around_test_case)
+      executor_around_test_case = app.config.active_support.executor_around_test_case
 
       app.reloader.before_class_unload { ActiveSupport::CurrentAttributes.clear_all }
       app.executor.to_run              { ActiveSupport::CurrentAttributes.reset_all }
@@ -144,6 +145,33 @@ module ActiveSupport
         if app.config.active_support.use_rfc4122_namespaced_uuids
           require "active_support/core_ext/digest"
           ::Digest::UUID.use_rfc4122_namespaced_uuids = app.config.active_support.use_rfc4122_namespaced_uuids
+        end
+      end
+    end
+
+    initializer "active_support.set_fallback_to_marshal_deserialization" do |app|
+      config.after_initialize do
+        unless app.config.active_support.fallback_to_marshal_deserialization.nil?
+          ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization =
+            app.config.active_support.fallback_to_marshal_deserialization
+        end
+      end
+    end
+
+    initializer "active_support.set_default_message_encryptor_serializer" do |app|
+      config.after_initialize do
+        unless app.config.active_support.default_message_encryptor_serializer.nil?
+          ActiveSupport::MessageEncryptor.default_message_encryptor_serializer =
+            app.config.active_support.default_message_encryptor_serializer
+        end
+      end
+    end
+
+    initializer "active_support.set_marshal_serialization" do |app|
+      config.after_initialize do
+        unless app.config.active_support.use_marshal_serialization.nil?
+          ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization =
+            app.config.active_support.use_marshal_serialization
         end
       end
     end

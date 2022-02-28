@@ -503,7 +503,7 @@ module ActiveRecord
       # when just after creating a table you want to populate it with some default
       # values, e.g.:
       #
-      #  class CreateJobLevels < ActiveRecord::Migration[7.0]
+      #  class CreateJobLevels < ActiveRecord::Migration[7.1]
       #    def up
       #      create_table :job_levels do |t|
       #        t.integer :id
@@ -617,7 +617,7 @@ module ActiveRecord
 
             "#{full_table_name_prefix}#{contained}#{undecorated_table_name(model_name)}#{full_table_name_suffix}"
           else
-            # STI subclasses always use their superclass' table.
+            # STI subclasses always use their superclass's table.
             base_class.table_name
           end
         end

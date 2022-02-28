@@ -65,7 +65,7 @@ module ActiveModel
   # life cycle, and not on each validation run.
   #
   # The easiest way to add custom validators for validating individual attributes
-  # is with the convenient <tt>ActiveModel::EachValidator</tt>.
+  # is with the convenient ActiveModel::EachValidator.
   #
   #   class TitleValidator < ActiveModel::EachValidator
   #     def validate_each(record, attribute, value)
@@ -74,7 +74,7 @@ module ActiveModel
   #   end
   #
   # This can now be used in combination with the +validates+ method
-  # (see <tt>ActiveModel::Validations::ClassMethods.validates</tt> for more on this).
+  # (see ActiveModel::Validations::ClassMethods#validates for more on this).
   #
   #   class Person
   #     include ActiveModel::Validations
@@ -126,7 +126,7 @@ module ActiveModel
 
   # +EachValidator+ is a validator which iterates through the attributes given
   # in the options hash invoking the <tt>validate_each</tt> method passing in the
-  # record, attribute and value.
+  # record, attribute, and value.
   #
   # All \Active \Model validations are built on top of this validator.
   class EachValidator < Validator

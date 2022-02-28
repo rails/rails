@@ -300,16 +300,6 @@ module ActiveRecord
     test "type_to_sql returns a String for unmapped types" do
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
     end
-
-    def test_allowed_index_name_length_is_deprecated
-      assert_deprecated { @connection.allowed_index_name_length }
-    end
-
-    unless current_adapter?(:OracleAdapter)
-      def test_in_clause_length_is_deprecated
-        assert_deprecated { @connection.in_clause_length }
-      end
-    end
   end
 
   class AdapterForeignKeyTest < ActiveRecord::TestCase
@@ -394,20 +384,50 @@ module ActiveRecord
         assert_predicate @connection, :active?
       end
 
-      test "transaction state is reset after a reconnect" do
+      test "materialized transaction state is reset after a reconnect" do
         @connection.begin_transaction
         assert_predicate @connection, :transaction_open?
+        @connection.materialize_transactions
+        assert raw_transaction_open?(@connection)
         @connection.reconnect!
         assert_not_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
       end
 
-      test "transaction state is reset after a disconnect" do
+      test "materialized transaction state is reset after a disconnect" do
         @connection.begin_transaction
         assert_predicate @connection, :transaction_open?
+        @connection.materialize_transactions
+        assert raw_transaction_open?(@connection)
         @connection.disconnect!
         assert_not_predicate @connection, :transaction_open?
       ensure
         @connection.reconnect!
+        assert_not raw_transaction_open?(@connection)
+      end
+
+      test "unmaterialized transaction state is reset after a reconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.reconnect!
+        assert_not_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.materialize_transactions
+        assert_not raw_transaction_open?(@connection)
+      end
+
+      test "unmaterialized transaction state is reset after a disconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.disconnect!
+        assert_not_predicate @connection, :transaction_open?
+      ensure
+        @connection.reconnect!
+        assert_not raw_transaction_open?(@connection)
+        @connection.materialize_transactions
+        assert_not raw_transaction_open?(@connection)
       end
     end
 
@@ -499,6 +519,31 @@ module ActiveRecord
     end
 
     private
+      def raw_transaction_open?(connection)
+        case connection.class::ADAPTER_NAME
+        when "PostgreSQL"
+          connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
+        when "Mysql2"
+          begin
+            connection.instance_variable_get(:@raw_connection).query("SAVEPOINT transaction_test")
+            connection.instance_variable_get(:@raw_connection).query("RELEASE SAVEPOINT transaction_test")
+
+            true
+          rescue
+            false
+          end
+        when "SQLite"
+          begin
+            connection.instance_variable_get(:@raw_connection).transaction { nil }
+            false
+          rescue
+            true
+          end
+        else
+          skip
+        end
+      end
+
       def reset_fixtures(*fixture_names)
         ActiveRecord::FixtureSet.reset_cache
 

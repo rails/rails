@@ -97,7 +97,7 @@ module ActiveRecord
           super
         else
           # If ThisClass < ... < SomeSuperClass < ... < Base and SomeSuperClass
-          # defines its own attribute method, then we don't want to overwrite that.
+          # defines its own attribute method, then we don't want to override that.
           defined = method_defined_within?(method_name, superclass, Base) &&
             ! superclass.instance_method(method_name).owner.is_a?(GeneratedAttributeMethods)
           defined || super
@@ -413,7 +413,7 @@ module ActiveRecord
           inspected_value = if value.is_a?(String) && value.length > 50
             "#{value[0, 50]}...".inspect
           elsif value.is_a?(Date) || value.is_a?(Time)
-            %("#{value.to_s(:inspect)}")
+            %("#{value.to_fs(:inspect)}")
           else
             value.inspect
           end

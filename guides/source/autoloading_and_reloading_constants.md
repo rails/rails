@@ -178,9 +178,9 @@ Rails automatically reloads classes and modules if application files in the auto
 
 More precisely, if the web server is running and application files have been modified, Rails unloads all autoloaded constants managed by the `main` autoloader just before the next request is processed. That way, application classes or modules used during that request will be autoloaded again, thus picking up their current implementation in the file system.
 
-Reloading can be enabled or disabled. The setting that controls this behavior is `config.cache_classes`, which is false by default in `development` mode (reloading enabled), and true by default in `production` mode (reloading disabled).
+Reloading can be enabled or disabled. The setting that controls this behavior is [`config.cache_classes`][], which is false by default in `development` mode (reloading enabled), and true by default in `production` mode (reloading disabled).
 
-Rails uses an evented file monitor to detect files changes by default.  It can be configured instead to detect file changes by walking the autoload paths. This is controlled by the `config.file_watcher` setting.
+Rails uses an evented file monitor to detect files changes by default.  It can be configured instead to detect file changes by walking the autoload paths. This is controlled by the [`config.file_watcher`][] setting.
 
 In a Rails console there is no file watcher active regardless of the value of `config.cache_classes`. This is because, normally, it would be confusing to have code reloaded in the middle of a console session. Similar to an individual request, you generally want a console session to be served by a consistent, non-changing set of application classes and modules.
 
@@ -197,6 +197,9 @@ irb(main):003:0> User.object_id
 ```
 
 As you can see, the class object stored in the `User` constant is different after reloading.
+
+[`config.cache_classes`]: configuring.html#config-cache-classes
+[`config.file_watcher`]: configuring.html#config-file-watcher
 
 ### Reloading and Stale Objects
 
@@ -245,7 +248,7 @@ ApiGateway.endpoint = "https://example.com" # DO NOT DO THIS
 
 a reloaded `ApiGateway` would have a `nil` endpoint, because the code above does not run again.
 
-You can still set things up during boot, but you need to wrap them in a `to_prepare` block, which is runs on boot, and after each reload:
+You can still set things up during boot, but you need to wrap them in a `to_prepare` block, which runs on boot, and after each reload:
 
 ```ruby
 # config/initializers/api_gateway_setup.rb
@@ -300,12 +303,13 @@ Eager Loading
 
 In production-like environments it is generally better to load all the application code when the application boots. Eager loading puts everything in memory ready to serve requests right away, and it is also [CoW](https://en.wikipedia.org/wiki/Copy-on-write)-friendly.
 
-Eager loading is controlled by the flag `config.eager_load`, which is enabled by default in `production` mode.
+Eager loading is controlled by the flag [`config.eager_load`][], which is enabled by default in `production` mode.
 
 The order in which files are eager-loaded is undefined.
 
 If the `Zeitwerk` constant is defined, Rails invokes `Zeitwerk::Loader.eager_load_all` regardless of the application autoloading mode. That ensures dependencies managed by Zeitwerk are eager-loaded.
 
+[`config.eager_load`]: configuring.html#config-eager-load
 
 Single Table Inheritance
 ------------------------

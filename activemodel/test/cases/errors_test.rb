@@ -657,6 +657,16 @@ class ErrorsTest < ActiveModel::TestCase
     assert(person.errors.added?(:name, :blank))
   end
 
+  test "merge does not import errors when merging with self" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :invalid)
+    errors_before_merge = errors.dup
+
+    errors.merge!(errors)
+
+    assert_equal errors.errors, errors_before_merge.errors
+  end
+
   test "errors are marshalable" do
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name, :invalid)

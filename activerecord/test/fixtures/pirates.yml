@@ -5,8 +5,8 @@ blackbeard:
 redbeard:
   catchphrase: "Avast!"
   parrot: louis
-  created_on: "<%= 2.weeks.ago.to_s(:db) %>"
-  updated_on: "<%= 2.weeks.ago.to_s(:db) %>"
+  created_on: "<%= 2.weeks.ago.to_fs(:db) %>"
+  updated_on: "<%= 2.weeks.ago.to_fs(:db) %>"
 
 mark:
   catchphrase: "X $LABELs the spot!"

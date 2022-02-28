@@ -90,7 +90,7 @@ If we want to display the properties of all the books in our view, we can do so 
         <td><%= book.content %></td>
         <td><%= link_to "Show", book %></td>
         <td><%= link_to "Edit", edit_book_path(book) %></td>
-        <td><%= link_to "Destroy", book, method: :delete, data: { confirm: "Are you sure?" } %></td>
+        <td><%= link_to "Destroy", book, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %></td>
       </tr>
     <% end %>
   </tbody>
@@ -157,7 +157,7 @@ render template: "products/show"
 
 The above two ways of rendering (rendering the template of another action in the same controller, and rendering the template of another action in a different controller) are actually variants of the same operation.
 
-In fact, in the BooksController class, inside of the update action where we want to render the edit template if the book does not update successfully, all of the following render calls would all render the `edit.html.erb` template in the `views/books` directory:
+In fact, in the `BooksController` class, inside of the update action where we want to render the edit template if the book does not update successfully, all of the following render calls would all render the `edit.html.erb` template in the `views/books` directory:
 
 ```ruby
 render :edit
@@ -956,7 +956,7 @@ You can also specify a special size tag, in the format "{width}x{height}":
 <%= image_tag "home.gif", size: "50x20" %>
 ```
 
-In addition to the above special tags, you can supply a final hash of standard HTML options, such as `:class`, `:id` or `:name`:
+In addition to the above special tags, you can supply a final hash of standard HTML options, such as `:class`, `:id`, or `:name`:
 
 ```erb
 <%= image_tag "home.gif", alt: "Go Home",
@@ -966,7 +966,7 @@ In addition to the above special tags, you can supply a final hash of standard H
 
 #### Linking to Videos with the `video_tag`
 
-The [`video_tag`][] helper builds an HTML 5 `<video>` tag to the specified file. By default, files are loaded from `public/videos`.
+The [`video_tag`][] helper builds an HTML5 `<video>` tag to the specified file. By default, files are loaded from `public/videos`.
 
 ```erb
 <%= video_tag "movie.ogg" %>
@@ -1005,7 +1005,7 @@ This will produce:
 
 #### Linking to Audio Files with the `audio_tag`
 
-The [`audio_tag`][] helper builds an HTML 5 `<audio>` tag to the specified file. By default, files are loaded from `public/audios`.
+The [`audio_tag`][] helper builds an HTML5 `<audio>` tag to the specified file. By default, files are loaded from `public/audios`.
 
 ```erb
 <%= audio_tag "music.mp3" %>

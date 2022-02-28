@@ -4,7 +4,7 @@ require "active_support/notifications/instrumenter"
 require "active_support/notifications/fanout"
 
 module ActiveSupport
-  # = Notifications
+  # = \Notifications
   #
   # <tt>ActiveSupport::Notifications</tt> provides an instrumentation API for
   # Ruby.
@@ -84,7 +84,7 @@ module ActiveSupport
   #   event.payload[:exception]         # => ["ArgumentError", "Invalid value"]
   #   event.payload[:exception_object]  # => #<ArgumentError: Invalid value>
   #
-  # As the earlier example depicts, the class <tt>ActiveSupport::Notifications::Event</tt>
+  # As the earlier example depicts, the class ActiveSupport::Notifications::Event
   # is able to take the arguments as they come and provide an object-oriented
   # interface to that data.
   #

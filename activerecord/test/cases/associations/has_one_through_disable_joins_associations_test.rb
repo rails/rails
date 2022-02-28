@@ -76,10 +76,6 @@ class HasOneThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
       assert_no_match(/INNER JOIN/, nj)
     end
 
-    if current_adapter?(:Mysql2Adapter)
-      assert_match(/`memberships`.`type`/, no_joins.first)
-    else
-      assert_match(/"memberships"."type"/, no_joins.first)
-    end
+    assert_match(/#{Regexp.escape(Member.connection.quote_table_name('memberships.type'))}/, no_joins.first)
   end
 end

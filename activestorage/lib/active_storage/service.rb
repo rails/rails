@@ -90,8 +90,8 @@ module ActiveStorage
       ActiveStorage::Downloader.new(self).open(*args, **options, &block)
     end
 
-    # Concatenate multiple files into a single "composed" file. Returns the checksum of the composed file.
-    def compose(*source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
+    # Concatenate multiple files into a single "composed" file.
+    def compose(source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
       raise NotImplementedError
     end
 

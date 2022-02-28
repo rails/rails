@@ -12,11 +12,10 @@ module ActiveRecord
         # Queries the database and returns the results in an Array-like object
         def query(sql, name = nil) # :nodoc:
           materialize_transactions
-          mark_transaction_written_if_write(sql)
 
           log(sql, name) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @connection.async_exec(sql).map_types!(@type_map_for_results).values
+              @raw_connection.async_exec(sql).map_types!(@type_map_for_results).values
             end
           end
         end
@@ -28,6 +27,8 @@ module ActiveRecord
 
         def write_query?(sql) # :nodoc:
           !READ_QUERY.match?(sql)
+        rescue ArgumentError # Invalid encoding
+          !READ_QUERY.match?(sql.b)
         end
 
         # Executes an SQL statement, returning a PG::Result object on success
@@ -39,11 +40,10 @@ module ActiveRecord
           check_if_write_query(sql)
 
           materialize_transactions
-          mark_transaction_written_if_write(sql)
 
           log(sql, name) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @connection.async_exec(sql)
+              @raw_connection.async_exec(sql)
             end
           end
         end
@@ -109,8 +109,7 @@ module ActiveRecord
         end
 
         def begin_isolated_db_transaction(isolation) # :nodoc:
-          begin_db_transaction
-          execute "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}"
+          execute("BEGIN ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION")
         end
 
         # Commits a transaction.
@@ -120,7 +119,15 @@ module ActiveRecord
 
         # Aborts a transaction.
         def exec_rollback_db_transaction # :nodoc:
+          @raw_connection.cancel unless @raw_connection.transaction_status == PG::PQTRANS_IDLE
+          @raw_connection.block
           execute("ROLLBACK", "TRANSACTION")
+        end
+
+        def exec_restart_db_transaction # :nodoc:
+          @raw_connection.cancel unless @raw_connection.transaction_status == PG::PQTRANS_IDLE
+          @raw_connection.block
+          execute("ROLLBACK AND CHAIN", "TRANSACTION")
         end
 
         # From https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT

@@ -57,7 +57,7 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
         t = Time.new(2000, 7, 1, 0, 0, 0, "+04:30")
 
         expected = t.change(year: 2000, month: 1, day: 1)
-        expected = expected.getutc.to_s(:db).sub(/\A\d\d\d\d-\d\d-\d\d /, "2000-01-01 ")
+        expected = expected.getutc.to_fs(:db).sub(/\A\d\d\d\d-\d\d-\d\d /, "2000-01-01 ")
 
         assert_equal expected, @conn.quoted_time(t)
       end
@@ -70,7 +70,7 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
         t = Time.new(2000, 7, 1, 0, 0, 0, "+04:30")
 
         expected = t.change(year: 2000, month: 1, day: 1)
-        expected = expected.getlocal.to_s(:db).sub(/\A\d\d\d\d-\d\d-\d\d /, "2000-01-01 ")
+        expected = expected.getlocal.to_fs(:db).sub(/\A\d\d\d\d-\d\d-\d\d /, "2000-01-01 ")
 
         assert_equal expected, @conn.quoted_time(t)
       end

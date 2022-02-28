@@ -1822,7 +1822,8 @@ module ApplicationTests
       end
     end
 
-    test "autoload paths are added to $LOAD_PATH by default" do
+    test "autoload paths are not added to $LOAD_PATH if opted-in" do
+      add_to_config "config.add_autoload_paths_to_load_path = true"
       app "development"
 
       # Action Mailer modifies AS::Dependencies.autoload_paths in-place.
@@ -1838,8 +1839,7 @@ module ApplicationTests
       assert_empty Rails.configuration.paths.load_paths - $LOAD_PATH
     end
 
-    test "autoload paths are not added to $LOAD_PATH if opted-out" do
-      add_to_config "config.add_autoload_paths_to_load_path = false"
+    test "autoload paths are not added to $LOAD_PATH by default" do
       app "development"
 
       assert_empty ActiveSupport::Dependencies.autoload_paths & $LOAD_PATH
@@ -1868,10 +1868,6 @@ module ApplicationTests
         assert_includes config.autoload_once_paths, "#{app_path}/custom_autoload_once_path"
         assert_includes config.eager_load_paths, "#{app_path}/custom_eager_load_path"
       end
-
-      assert_includes $LOAD_PATH, "#{app_path}/custom_autoload_path"
-      assert_includes $LOAD_PATH, "#{app_path}/custom_autoload_once_path"
-      assert_includes $LOAD_PATH, "#{app_path}/custom_eager_load_path"
     end
 
     test "load_database_yaml returns blank hash if configuration file is blank" do
@@ -2448,6 +2444,20 @@ module ApplicationTests
       assert_equal ActiveRecord::DestroyAssociationAsyncJob, ActiveRecord::Base.destroy_association_async_job
     end
 
+    test "ActiveRecord::Base.destroy_association_async_job can be configured via config.active_record.destroy_association_job" do
+      class ::DummyDestroyAssociationAsyncJob; end
+
+      app_file "config/environments/test.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_record.destroy_association_async_job = DummyDestroyAssociationAsyncJob
+        end
+      RUBY
+
+      app "test"
+
+      assert_equal DummyDestroyAssociationAsyncJob, ActiveRecord::Base.destroy_association_async_job
+    end
+
     test "ActionView::Helpers::FormTagHelper.default_enforce_utf8 is false by default" do
       app "development"
       assert_equal false, ActionView::Helpers::FormTagHelper.default_enforce_utf8
@@ -2745,21 +2755,31 @@ module ApplicationTests
 
     test "Rails.application.config.action_mailer.smtp_settings have open_timeout and read_timeout defined as 5 in 7.0 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "7.0"'
+      add_to_config <<-RUBY
+        config.action_mailer.smtp_settings = { domain: "example.com" }
+        config.load_defaults "7.0"
+      RUBY
 
       app "development"
 
-      assert_equal 5, ActionMailer::Base.smtp_settings[:open_timeout]
-      assert_equal 5, ActionMailer::Base.smtp_settings[:read_timeout]
+      smtp_settings = { domain: "example.com", open_timeout: 5, read_timeout: 5 }
+
+      assert_equal smtp_settings, ActionMailer::Base.smtp_settings
+      assert_equal smtp_settings, Rails.configuration.action_mailer.smtp_settings
     end
 
     test "Rails.application.config.action_mailer.smtp_settings does not have open_timeout and read_timeout configured on other versions" do
       remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config <<-RUBY
+        config.action_mailer.smtp_settings = { domain: "example.com" }
+      RUBY
 
       app "development"
 
-      assert_nil ActionMailer::Base.smtp_settings[:open_timeout]
-      assert_nil ActionMailer::Base.smtp_settings[:read_timeout]
+      smtp_settings = { domain: "example.com" }
+
+      assert_equal smtp_settings, ActionMailer::Base.smtp_settings
+      assert_equal smtp_settings, ActionMailer::Base.smtp_settings
     end
 
     test "ActiveSupport.utc_to_local_returns_utc_offset_times is true in 6.1 defaults" do
@@ -3163,6 +3183,69 @@ module ApplicationTests
       assert_equal true, Rails.application.config.rake_eager_load
     end
 
+    test "ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization is true by default" do
+      app "development"
+
+      assert_equal true, ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization
+    end
+
+    test "ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization can be configured via config.active_support.fallback_to_marshal_deserialization" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/fallback_to_marshal_deserialization.rb", <<-RUBY
+        Rails.application.config.active_support.fallback_to_marshal_deserialization = false
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization
+    end
+
+    test "ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization is true by default" do
+      app "development"
+
+      assert_equal true, ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization
+    end
+
+    test "ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization can be configured via config.active_support.use_marshal_serialization" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/use_marshal_serialization.rb", <<-RUBY
+        Rails.application.config.active_support.use_marshal_serialization = false
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization
+    end
+
+    test "ActiveSupport::MessageEncryptor.default_message_encryptor_serializer is :json by default" do
+      app "development"
+
+      assert_equal :json, ActiveSupport::MessageEncryptor.default_message_encryptor_serializer
+    end
+
+    test "ActiveSupport::MessageEncryptor.default_message_encryptor_serializer is :marshal by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "development"
+
+      assert_equal :marshal, ActiveSupport::MessageEncryptor.default_message_encryptor_serializer
+    end
+
+    test "ActiveSupport::MessageEncryptor.default_message_encryptor_serializer can be configured via config.active_support.default_message_encryptor_serializer" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/default_message_encryptor_serializer.rb", <<-RUBY
+        Rails.application.config.active_support.default_message_encryptor_serializer = :hybrid
+      RUBY
+
+      app "development"
+
+      assert_equal :hybrid, ActiveSupport::MessageEncryptor.default_message_encryptor_serializer
+    end
+
     test "unknown_asset_fallback is false by default" do
       app "development"
 
@@ -3433,6 +3516,102 @@ module ApplicationTests
       app "production"
 
       assert_equal [], ActionController::Base._wrapper_options.format
+    end
+
+    test "deprecated #to_s with format works with the Rails 6.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "production"
+
+      assert_deprecated do
+        assert_equal "21 Feb", Date.new(2005, 2, 21).to_s(:short)
+      end
+      assert_deprecated do
+        assert_equal "2005-02-21 14:30:00", DateTime.new(2005, 2, 21, 14, 30, 0, 0).to_s(:db)
+      end
+      assert_deprecated do
+        assert_equal "555-1234", 5551234.to_s(:phone)
+      end
+      assert_deprecated do
+        assert_equal "BETWEEN 'a' AND 'z'", ("a".."z").to_s(:db)
+      end
+      assert_deprecated do
+        assert_equal "2005-02-21 17:44:30", Time.utc(2005, 2, 21, 17, 44, 30.12345678901).to_s(:db)
+      end
+    end
+
+    test "deprecated #to_s with format does not work with the Rails 6.1 defaults and the config set" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      add_to_config <<-RUBY
+        config.active_support.disable_to_s_conversion = true
+      RUBY
+
+      app "production"
+
+      assert_raises(ArgumentError) do
+        Date.new(2005, 2, 21).to_s(:short)
+      end
+      assert_raises(ArgumentError) do
+        DateTime.new(2005, 2, 21, 14, 30, 0, 0).to_s(:db)
+      end
+      assert_raises(TypeError) do
+        5551234.to_s(:phone)
+      end
+      assert_raises(ArgumentError) do
+        ("a".."z").to_s(:db)
+      end
+      assert_raises(ArgumentError) do
+        Time.utc(2005, 2, 21, 17, 44, 30.12345678901).to_s(:db)
+      end
+    end
+
+    test "deprecated #to_s with format does not work with the Rails 7.0 defaults" do
+      app "production"
+
+      assert_raises(ArgumentError) do
+        Date.new(2005, 2, 21).to_s(:short)
+      end
+      assert_raises(ArgumentError) do
+        DateTime.new(2005, 2, 21, 14, 30, 0, 0).to_s(:db)
+      end
+      assert_raises(TypeError) do
+        5551234.to_s(:phone)
+      end
+      assert_raises(ArgumentError) do
+        ("a".."z").to_s(:db)
+      end
+      assert_raises(ArgumentError) do
+        Time.utc(2005, 2, 21, 17, 44, 30.12345678901).to_s(:db)
+      end
+    end
+
+    test "ActionController::Base.raise_on_missing_callback_actions is false by default for production" do
+      app "production"
+
+      assert_equal false, ActionController::Base.raise_on_missing_callback_actions
+    end
+
+    test "ActionController::Base.raise_on_missing_callback_actions is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal false, ActionController::Base.raise_on_missing_callback_actions
+    end
+
+    test "ActionController::Base.raise_on_missing_callback_actions can be configured in the new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_2.rb", <<-RUBY
+        Rails.application.config.action_controller.raise_on_missing_callback_actions = true
+      RUBY
+
+      app "production"
+
+      assert_equal true, ActionController::Base.raise_on_missing_callback_actions
     end
 
     private

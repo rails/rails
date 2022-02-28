@@ -182,7 +182,7 @@ module ApplicationTests
     end
 
     def test_code_statistics
-      assert_match "Code LOC: 62     Test LOC: 3     Code to Test Ratio: 1:0.0",
+      assert_match "Code LOC: 62     Test LOC: 5     Code to Test Ratio: 1:0.1",
         rails("stats")
     end
 
@@ -229,7 +229,7 @@ module ApplicationTests
       end
       output = rails("test")
 
-      assert_match(/7 runs, 9 assertions, 0 failures, 0 errors/, output)
+      assert_match(/7 runs, 11 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
     end
 
@@ -247,7 +247,7 @@ module ApplicationTests
       with_rails_env("test") { rails("db:migrate") }
       output = rails("test")
 
-      assert_match(/5 runs, 7 assertions, 0 failures, 0 errors/, output)
+      assert_match(/5 runs, 9 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
     end
 
@@ -260,7 +260,7 @@ module ApplicationTests
       end
       output = rails("test")
 
-      assert_match(/7 runs, 9 assertions, 0 failures, 0 errors/, output)
+      assert_match(/7 runs, 11 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
     end
 

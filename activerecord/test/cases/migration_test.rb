@@ -1347,6 +1347,21 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal "This is a comment", column(:birthdate).comment
     end
 
+    if current_adapter?(:Mysql2Adapter)
+      def test_updating_auto_increment
+        with_bulk_change_table do |t|
+          t.change :id, :bigint, auto_increment: true
+        end
+
+        assert column(:id).auto_increment?
+
+        with_bulk_change_table do |t|
+          t.change :id, :bigint, auto_increment: false
+        end
+        assert_not column(:id).auto_increment?
+      end
+    end
+
     def test_changing_index
       with_bulk_change_table do |t|
         t.string :username

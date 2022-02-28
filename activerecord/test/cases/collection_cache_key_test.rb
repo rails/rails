@@ -27,7 +27,7 @@ module ActiveRecord
 
       assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
       assert_equal developers.count.to_s, $2
-      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+      assert_equal last_developer_timestamp.to_fs(ActiveRecord::Base.cache_timestamp_format), $3
     end
 
     test "cache_key for relation with limit" do
@@ -40,7 +40,7 @@ module ActiveRecord
 
       assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
       assert_equal developers.count.to_s, $2
-      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+      assert_equal last_developer_timestamp.to_fs(ActiveRecord::Base.cache_timestamp_format), $3
     end
 
     test "cache_key for relation with custom select and limit" do
@@ -54,7 +54,7 @@ module ActiveRecord
 
       assert_equal ActiveSupport::Digest.hexdigest(developers_with_select.to_sql), $1
       assert_equal developers.count.to_s, $2
-      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+      assert_equal last_developer_timestamp.to_fs(ActiveRecord::Base.cache_timestamp_format), $3
     end
 
     test "cache_key for loaded relation" do
@@ -67,7 +67,7 @@ module ActiveRecord
 
       assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
       assert_equal developers.count.to_s, $2
-      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+      assert_equal last_developer_timestamp.to_fs(ActiveRecord::Base.cache_timestamp_format), $3
     end
 
     test "cache_key for relation with table alias" do
@@ -89,7 +89,7 @@ module ActiveRecord
 
       assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
       assert_equal developers.count.to_s, $2
-      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+      assert_equal last_developer_timestamp.to_fs(ActiveRecord::Base.cache_timestamp_format), $3
     end
 
     test "cache_key for relation with includes" do
@@ -182,7 +182,7 @@ module ActiveRecord
 
     test "cache_key with custom timestamp column" do
       topics = Topic.where("title like ?", "%Topic%")
-      last_topic_timestamp = topics(:fifth).written_on.utc.to_s(:usec)
+      last_topic_timestamp = topics(:fifth).written_on.utc.to_fs(:usec)
       assert_match(last_topic_timestamp, topics.cache_key(:written_on))
     end
 
@@ -250,7 +250,7 @@ module ActiveRecord
         /(\d+)-(\d+)\z/ =~ developers.cache_version
 
         assert_equal developers.count.to_s, $1
-        assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $2
+        assert_equal last_developer_timestamp.to_fs(ActiveRecord::Base.cache_timestamp_format), $2
       end
     end
 

@@ -133,16 +133,35 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "1999-12-31 19:00:00 -0500", @twz.to_s
   end
 
-  def test_to_formatted_s
-    assert_equal "1999-12-31 19:00:00 -0500", @twz.to_formatted_s
+  def test_to_fs
+    assert_equal "1999-12-31 19:00:00 -0500", @twz.to_fs
+  end
+
+  def test_to_fs_db
+    assert_equal "2000-01-01 00:00:00", @twz.to_fs(:db)
+    assert_equal "2000-01-01 00:00:00", @twz.to_formatted_s(:db)
+  end
+
+  def test_to_fs_inspect
+    assert_equal "1999-12-31 19:00:00.000000000 -0500", @twz.to_fs(:inspect)
   end
 
   def test_to_s_db
-    assert_equal "2000-01-01 00:00:00", @twz.to_s(:db)
+    assert_deprecated do
+      assert_equal "2000-01-01 00:00:00", @twz.to_s(:db)
+    end
   end
 
   def test_to_s_inspect
-    assert_equal "1999-12-31 19:00:00.000000000 -0500", @twz.to_s(:inspect)
+    assert_deprecated do
+      assert_equal "1999-12-31 19:00:00.000000000 -0500", @twz.to_s(:inspect)
+    end
+  end
+
+  def test_to_s_not_existent
+    assert_deprecated do
+      assert_equal "1999-12-31 19:00:00 -0500", @twz.to_s(:not_existent)
+    end
   end
 
   def test_xmlschema

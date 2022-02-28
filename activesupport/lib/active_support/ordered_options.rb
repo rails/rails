@@ -68,7 +68,7 @@ module ActiveSupport
     end
   end
 
-  # +InheritableOptions+ provides a constructor to build an +OrderedOptions+
+  # +InheritableOptions+ provides a constructor to build an OrderedOptions
   # hash inherited from another hash.
   #
   # Use this if you already have some hash and you want to create a new one based on it.

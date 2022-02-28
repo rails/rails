@@ -68,7 +68,7 @@ module ActiveRecord
       #    # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
       def associated(*associations)
         associations.each do |association|
-          reflection = @scope.klass._reflect_on_association(association)
+          reflection = scope_association_reflection(association)
           @scope.joins!(association)
           self.not(reflection.table_name => { reflection.association_primary_key => nil })
         end
@@ -96,13 +96,22 @@ module ActiveRecord
       #    # WHERE "authors"."id" IS NULL AND "comments"."id" IS NULL
       def missing(*associations)
         associations.each do |association|
-          reflection = @scope.klass._reflect_on_association(association)
+          reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
           @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
         end
 
         @scope
       end
+
+      private
+        def scope_association_reflection(association)
+          reflection = @scope.klass._reflect_on_association(association)
+          unless reflection
+            raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{@scope.name}`.")
+          end
+          reflection
+        end
     end
 
     FROZEN_EMPTY_ARRAY = [].freeze
@@ -153,7 +162,7 @@ module ActiveRecord
     #
     #   users = User.includes(:address, friends: [:address, :followers])
     #
-    # === conditions
+    # === Conditions
     #
     # If you want to add string conditions to your included models, you'll have
     # to explicitly reference them. For example:
@@ -172,6 +181,11 @@ module ActiveRecord
     # will work correctly:
     #
     #   User.includes(:posts).where(posts: { name: 'example' })
+    #
+    # Conditions affect both sides of an association.  For example, the above
+    # code will return only users that have a post named "example", <em>and will
+    # only include posts named "example"</em>, even when a matching user has
+    # other additional posts.
     def includes(*args)
       check_if_method_has_arguments!(__callee__, args)
       spawn.includes!(*args)
@@ -424,18 +438,23 @@ module ActiveRecord
     # adapter this will either use a CASE statement or a built-in function.
     #
     #   User.in_order_of(:id, [1, 5, 3])
-    #   # SELECT "users".* FROM "users" ORDER BY FIELD("users"."id", 1, 5, 3)
+    #   # SELECT "users".* FROM "users"
+    #   #   ORDER BY FIELD("users"."id", 1, 5, 3)
+    #   #   WHERE "users"."id" IN (1, 5, 3)
     #
     def in_order_of(column, values)
       klass.disallow_raw_sql!([column], permit: connection.column_name_with_order_matcher)
+      return spawn.none! if values.empty?
 
       references = column_references([column])
       self.references_values |= references unless references.empty?
 
       values = values.map { |value| type_caster.type_cast_for_database(column, value) }
-      column = order_column(column.to_s) if column.is_a?(Symbol)
+      arel_column = column.is_a?(Symbol) ? order_column(column.to_s) : column
 
-      spawn.order!(connection.field_ordered_value(column, values))
+      spawn
+        .order!(connection.field_ordered_value(arel_column, values))
+        .where!(arel_column.in(values))
     end
 
     # Replaces any existing order defined on the relation with the specified order.
@@ -1583,7 +1602,7 @@ module ActiveRecord
           when Hash
             arg.map { |field, dir|
               case field
-              when Arel::Nodes::SqlLiteral
+              when Arel::Nodes::SqlLiteral, Arel::Nodes::Node, Arel::Attribute
                 field.public_send(dir.downcase)
               else
                 order_column(field.to_s).public_send(dir.downcase)
@@ -1607,7 +1626,9 @@ module ActiveRecord
           when String, Symbol
             arg
           when Hash
-            arg.keys
+            arg.keys.map do |key|
+              key if key.is_a?(String) || key.is_a?(Symbol)
+            end
           end
         end
         references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!

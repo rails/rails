@@ -190,18 +190,20 @@ class SkipProtectionController < ActionController::Base
   attr_accessor :skip_requested
 end
 
+class SkipProtectionWhenUnprotectedController < ActionController::Base
+  include RequestForgeryProtectionActions
+  skip_forgery_protection
+end
+
 # common test methods
 module RequestForgeryProtectionTests
   def setup
-    @old_urlsafe_csrf_tokens = ActionController::Base.urlsafe_csrf_tokens
-    ActionController::Base.urlsafe_csrf_tokens = true
     @token = Base64.urlsafe_encode64("railstestrailstestrailstestrails")
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
 
   def teardown
-    ActionController::Base.urlsafe_csrf_tokens = @old_urlsafe_csrf_tokens
     ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
   end
 
@@ -405,19 +407,6 @@ module RequestForgeryProtectionTests
     @controller.stub :form_authenticity_token, token_including_url_unsafe_chars do
       assert_not_blocked { post :index, params: { custom_authenticity_token: token_including_url_unsafe_chars } }
     end
-  end
-
-  def test_should_allow_post_with_urlsafe_token_when_migrating
-    config_before = ActionController::Base.urlsafe_csrf_tokens
-    ActionController::Base.urlsafe_csrf_tokens = false
-    token_length = (ActionController::RequestForgeryProtection::AUTHENTICITY_TOKEN_LENGTH * 4.0 / 3).ceil
-    token_including_url_safe_chars = "-_".ljust(token_length, "A")
-    session[:_csrf_token] = token_including_url_safe_chars
-    @controller.stub :form_authenticity_token, token_including_url_safe_chars do
-      assert_not_blocked { post :index, params: { custom_authenticity_token: token_including_url_safe_chars } }
-    end
-  ensure
-    ActionController::Base.urlsafe_csrf_tokens = config_before
   end
 
   def test_should_allow_patch_with_token
@@ -1130,6 +1119,17 @@ class SkipProtectionControllerTest < ActionController::TestCase
 
   def assert_blocked(&block)
     assert_raises(ActionController::InvalidAuthenticityToken, &block)
+  end
+
+  def assert_not_blocked(&block)
+    assert_nothing_raised(&block)
+    assert_response :success
+  end
+end
+
+class SkipProtectionWhenUnprotectedControllerTest < ActionController::TestCase
+  def test_should_allow_skip_request_when_protection_is_not_set
+    assert_not_blocked { post :index }
   end
 
   def assert_not_blocked(&block)

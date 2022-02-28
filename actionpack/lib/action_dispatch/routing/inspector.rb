@@ -7,7 +7,14 @@ module ActionDispatch
   module Routing
     class RouteWrapper < SimpleDelegator # :nodoc:
       def endpoint
-        app.dispatcher? ? "#{controller}##{action}" : rack_app.inspect
+        case
+        when app.dispatcher?
+          "#{controller}##{action}"
+        when rack_app.is_a?(Proc)
+          "Inline handler (Proc/Lambda)"
+        else
+          rack_app.inspect
+        end
       end
 
       def constraints

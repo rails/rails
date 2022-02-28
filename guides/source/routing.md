@@ -89,7 +89,7 @@ Resource routing allows you to quickly declare all of the common routes for a gi
 
 ### Resources on the Web
 
-Browsers request pages from Rails by making a request for a URL using a specific HTTP method, such as `GET`, `POST`, `PATCH`, `PUT` and `DELETE`. Each method is a request to perform an operation on the resource. A resource route maps a number of related requests to actions in a single controller.
+Browsers request pages from Rails by making a request for a URL using a specific HTTP method, such as `GET`, `POST`, `PATCH`, `PUT`, and `DELETE`. Each method is a request to perform an operation on the resource. A resource route maps a number of related requests to actions in a single controller.
 
 When your Rails application receives an incoming request for:
 
@@ -325,7 +325,7 @@ Deeply-nested resources quickly become cumbersome. In this case, for example, th
 /publishers/1/magazines/2/photos/3
 ```
 
-The corresponding route helper would be `publisher_magazine_photo_url`, requiring you to specify objects at all three levels. Indeed, this situation is confusing enough that a popular [article](http://weblog.jamisbuck.org/2007/2/5/nesting-resources) by Jamis Buck proposes a rule of thumb for good Rails design:
+The corresponding route helper would be `publisher_magazine_photo_url`, requiring you to specify objects at all three levels. Indeed, this situation is confusing enough that a [popular article by Jamis Buck](http://weblog.jamisbuck.org/2007/2/5/nesting-resources) proposes a rule of thumb for good Rails design:
 
 TIP: Resources should never be nested more than 1 level deep.
 
@@ -391,7 +391,7 @@ The articles resource here will have the following routes generated for it:
 | PATCH/PUT | /articles/:id(.:format)                      | articles#update   | article_path             |
 | DELETE    | /articles/:id(.:format)                      | articles#destroy  | article_path             |
 
-The `shallow` method of the DSL creates a scope inside of which every nesting is shallow. This generates the same routes as the previous example:
+The [`shallow`][] method of the DSL creates a scope inside of which every nesting is shallow. This generates the same routes as the previous example:
 
 ```ruby
 shallow do
@@ -446,6 +446,8 @@ The comments resource here will have the following routes generated for it:
 | GET       | /comments/:id(.:format)                      | comments#show     | sekret_comment_path         |
 | PATCH/PUT | /comments/:id(.:format)                      | comments#update   | sekret_comment_path         |
 | DELETE    | /comments/:id(.:format)                      | comments#destroy  | sekret_comment_path         |
+
+[`shallow`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-shallow
 
 ### Routing Concerns
 

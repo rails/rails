@@ -457,6 +457,13 @@ class CookiesTest < ActionController::TestCase
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
+  def test_setting_cookie_with_secure_on_onion_address
+    @request.host = "fake.onion"
+    get :authenticate_with_secure
+    assert_cookie_header "user_name=david; path=/; secure; SameSite=Lax"
+    assert_equal({ "user_name" => "david" }, @response.cookies)
+  end
+
   def test_setting_cookie_with_secure_when_always_write_cookie_is_true
     old_cookie, @request.cookie_jar.always_write_cookie = @request.cookie_jar.always_write_cookie, true
     get :authenticate_with_secure

@@ -395,7 +395,7 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
 end
 
 class PreloaderTest < ActiveRecord::TestCase
-  fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories
+  fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories, :author_addresses
 
   def test_preload_with_scope
     post = posts(:welcome)

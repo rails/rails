@@ -519,6 +519,76 @@ module ActiveRecord
         assert connection.column_exists?(:testings, :published_at, **precision_implicit_default)
       end
 
+      def test_change_table_allows_if_exists_option_on_7_0
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          def migrate(x)
+            change_table(:testings) do |t|
+              t.remove :foo, if_exists: true
+            end
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+
+        assert_not connection.column_exists?(:testings, :foo)
+      end
+
+      def test_add_reference_allows_if_exists_option_on_7_0
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          def migrate(x)
+            add_reference :testings, :widget, if_not_exists: true
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+
+        assert connection.column_exists?(:testings, :widget_id)
+      end
+
+      if current_adapter?(:SQLite3Adapter)
+        def test_references_stays_as_integer_column_on_create_table_with_reference_6_0
+          migration = Class.new(ActiveRecord::Migration[6.0]) {
+            def migrate(x)
+              create_table :more_testings do |t|
+                t.references :testings
+              end
+            end
+          }.new
+
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+
+          testings_id_column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
+          assert_match(/integer/i, testings_id_column.sql_type)
+        ensure
+          connection.drop_table :more_testings rescue nil
+        end
+
+        def test_references_stays_as_integer_column_on_add_reference_6_0
+          create_migration = Class.new(ActiveRecord::Migration[6.0]) {
+            def version; 100 end
+            def migrate(x)
+              create_table :more_testings do |t|
+                t.string :test
+              end
+            end
+          }.new
+
+          migration = Class.new(ActiveRecord::Migration[6.0]) {
+            def version; 101 end
+            def migrate(x)
+              add_reference :more_testings, :testings
+            end
+          }.new
+
+          ActiveRecord::Migrator.new(:up, [create_migration, migration], @schema_migration).migrate
+
+          testings_id_column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
+          assert_match(/integer/i, testings_id_column.sql_type)
+        ensure
+          connection.drop_table :more_testings rescue nil
+        end
+      end
+
       private
         def precision_implicit_default
           if current_adapter?(:Mysql2Adapter)

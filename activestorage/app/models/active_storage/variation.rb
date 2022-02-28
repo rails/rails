@@ -10,7 +10,7 @@ require "mini_mime"
 #
 #   ActiveStorage::Variation.new(resize_to_limit: [100, 100], colourspace: "b-w", rotate: "-90", saver: { trim: true })
 #
-# The options map directly to {ImageProcessing}[https://github.com/janko-m/image_processing] commands.
+# The options map directly to {ImageProcessing}[https://github.com/janko/image_processing] commands.
 class ActiveStorage::Variation
   attr_reader :transformations
 

@@ -63,10 +63,10 @@ if ActiveRecord::Base.connection.prepared_statements
         assert_equal 1, Topic.find(1).id
         assert_raises(RecordNotFound) { SillyReply.find(2) }
 
-        topic_sql = cached_statement(Topic, Topic.primary_key)
+        topic_sql = cached_statement(Topic, [Topic.primary_key])
         assert_includes statement_cache, to_sql_key(topic_sql)
 
-        reply_sql = cached_statement(SillyReply, SillyReply.primary_key)
+        reply_sql = cached_statement(SillyReply, [SillyReply.primary_key])
         assert_includes statement_cache, to_sql_key(reply_sql)
 
         replies = SillyReply.where(id: 2).limit(1)
@@ -283,18 +283,18 @@ if ActiveRecord::Base.connection.prepared_statements
 
         def assert_filtered_log_binds(binds)
           payload = {
-              name: "SQL",
-              sql: "select * from users where auth_token = ?",
-              binds: binds,
-              type_casted_binds: @connection.send(:type_casted_binds, binds)
+            name: "SQL",
+            sql: "select * from users where auth_token = ?",
+            binds: binds,
+            type_casted_binds: @connection.send(:type_casted_binds, binds)
           }
 
           event = ActiveSupport::Notifications::Event.new(
-              "foo",
-              Time.now,
-              Time.now,
-              123,
-              payload)
+            "foo",
+            Time.now,
+            Time.now,
+            123,
+            payload)
 
           logger = Class.new(ActiveRecord::LogSubscriber) {
             attr_reader :debugs
@@ -310,7 +310,7 @@ if ActiveRecord::Base.connection.prepared_statements
           }.new
 
           logger.sql(event)
-          assert_match %r([[auth_token, [FILTERED]]]), logger.debugs.first
+          assert_match %r/#{Regexp.escape '[["auth_token", "[FILTERED]"]]'}/, logger.debugs.first
         end
     end
   end

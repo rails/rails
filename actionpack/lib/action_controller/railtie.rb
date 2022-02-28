@@ -122,5 +122,11 @@ module ActionController
         end
       end
     end
+
+    initializer "action_controller.test_case" do |app|
+      ActiveSupport.on_load(:action_controller_test_case) do
+        ActionController::TestCase.executor_around_each_request = app.config.active_support.executor_around_test_case
+      end
+    end
   end
 end
