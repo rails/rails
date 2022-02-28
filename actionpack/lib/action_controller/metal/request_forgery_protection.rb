@@ -168,7 +168,7 @@ module ActionController # :nodoc:
       #
       # See +skip_before_action+ for allowed options.
       def skip_forgery_protection(options = {})
-        skip_before_action :verify_authenticity_token, options
+        skip_before_action :verify_authenticity_token, options.reverse_merge(raise: false)
       end
 
       private
