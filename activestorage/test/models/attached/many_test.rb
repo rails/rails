@@ -746,6 +746,21 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "attaching blobs to a record returns the attachments" do
+    @user.highlights.attach create_blob(filename: "racecar.jpg")
+    highlights = @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+    assert_instance_of ActiveStorage::Attached::Many, highlights
+    assert_equal 3, @user.highlights.count
+    assert_equal 3, highlights.count
+    assert_equal highlights.name.to_s, @user.highlights.name.to_s
+    assert_equal highlights.first.key.to_s, @user.highlights.first.key.to_s
+    assert_equal highlights.first.filename.to_s, @user.highlights.first.filename.to_s
+    assert_equal highlights.second.key.to_s, @user.highlights.second.key.to_s
+    assert_equal highlights.second.filename.to_s, @user.highlights.second.filename.to_s
+    assert_equal highlights.third.key.to_s, @user.highlights.third.key.to_s
+    assert_equal highlights.third.filename.to_s, @user.highlights.third.filename.to_s
+  end
+
   test "raises error when misconfigured service is passed" do
     error = assert_raises ArgumentError do
       User.class_eval do

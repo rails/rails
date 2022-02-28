@@ -68,6 +68,14 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "attaching a blob to a record returns the attachment" do
+    avatar = @user.avatar.attach create_blob(filename: "funky.jpg")
+    assert_instance_of ActiveStorage::Attached::One, avatar
+    assert_equal avatar.key, @user.avatar.key
+    assert_equal avatar.name.to_s, @user.avatar.name.to_s
+    assert_equal avatar.filename.to_s, @user.avatar.filename.to_s
+  end
+
   test "attaching an existing blob to an existing, changed record" do
     @user.name = "Tina"
     assert @user.changed?
