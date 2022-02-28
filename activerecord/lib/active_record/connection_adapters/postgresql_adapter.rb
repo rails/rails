@@ -264,7 +264,7 @@ module ActiveRecord
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         def initialize(connection, max)
           super(max)
-          @raw_connection = connection
+          @connection = connection
           @counter = 0
         end
 
@@ -274,14 +274,14 @@ module ActiveRecord
 
         private
           def dealloc(key)
-            @raw_connection.query "DEALLOCATE #{key}" if connection_active?
+            # This is ugly, but safe: the statement pool is only
+            # accessed while holding the connection's lock. (And we
+            # don't need the complication of with_raw_connection because
+            # a reconnect would invalidate the entire statement pool.)
+            if conn = @connection.instance_variable_get(:@raw_connection)
+              conn.query "DEALLOCATE #{key}" if conn.status == PG::CONNECTION_OK
+            end
           rescue PG::Error
-          end
-
-          def connection_active?
-            @raw_connection.status == PG::CONNECTION_OK
-          rescue PG::Error
-            false
           end
       end
 
@@ -976,7 +976,7 @@ module ActiveRecord
         end
 
         def build_statement_pool
-          StatementPool.new(@raw_connection, self.class.type_cast_config_to_integer(@config[:statement_limit]))
+          StatementPool.new(self, self.class.type_cast_config_to_integer(@config[:statement_limit]))
         end
 
         def can_perform_case_insensitive_comparison_for?(column)
