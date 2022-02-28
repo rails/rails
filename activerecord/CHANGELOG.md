@@ -20,7 +20,7 @@
 
     *Nick Holden*
 
-* Fix `change_column_comment` to preserve column's AUTO_INCREMENT in the MySQL adapter
+*   Fix `change_column_comment` to preserve column's AUTO_INCREMENT in the MySQL adapter
 
     *fatkodima*
 
