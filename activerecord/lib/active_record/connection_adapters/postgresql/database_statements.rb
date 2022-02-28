@@ -109,8 +109,7 @@ module ActiveRecord
         end
 
         def begin_isolated_db_transaction(isolation) # :nodoc:
-          begin_db_transaction
-          execute "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}"
+          execute("BEGIN ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION")
         end
 
         # Commits a transaction.
@@ -123,6 +122,12 @@ module ActiveRecord
           @raw_connection.cancel unless @raw_connection.transaction_status == PG::PQTRANS_IDLE
           @raw_connection.block
           execute("ROLLBACK", "TRANSACTION")
+        end
+
+        def exec_restart_db_transaction # :nodoc:
+          @raw_connection.cancel unless @raw_connection.transaction_status == PG::PQTRANS_IDLE
+          @raw_connection.block
+          execute("ROLLBACK AND CHAIN", "TRANSACTION")
         end
 
         # From https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT

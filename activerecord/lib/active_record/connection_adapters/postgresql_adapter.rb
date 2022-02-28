@@ -183,7 +183,7 @@ module ActiveRecord
       end
 
       def supports_partitioned_indexes?
-        database_version >= 110_000 # >= 11.0
+        database_version >= 11_00_00 # >= 11.0
       end
 
       def supports_partial_index?
@@ -234,19 +234,23 @@ module ActiveRecord
         true
       end
 
+      def supports_restart_db_transaction?
+        database_version >= 12_00_00 # >= 12.0
+      end
+
       def supports_insert_returning?
         true
       end
 
       def supports_insert_on_conflict?
-        database_version >= 90500 # >= 9.5
+        database_version >= 9_05_00 # >= 9.5
       end
       alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
       alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
       alias supports_insert_conflict_target? supports_insert_on_conflict?
 
       def supports_virtual_columns?
-        database_version >= 120_000 # >= 12.0
+        database_version >= 12_00_00 # >= 12.0
       end
 
       def index_algorithms
@@ -398,7 +402,7 @@ module ActiveRecord
       end
 
       def supports_pgcrypto_uuid?
-        database_version >= 90400 # >= 9.4
+        database_version >= 9_04_00 # >= 9.4
       end
 
       def supports_optimizer_hints?
@@ -531,7 +535,7 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < 90300 # < 9.3
+        if database_version < 9_03_00 # < 9.3
           raise "Your version of PostgreSQL (#{database_version}) is too old. Active Record supports PostgreSQL >= 9.3."
         end
       end

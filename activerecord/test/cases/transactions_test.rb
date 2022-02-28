@@ -697,10 +697,14 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_savepoints_name
     Topic.transaction do
+      Topic.delete_all # Dirty the transaction to force a savepoint below
+
       assert_nil Topic.connection.current_savepoint_name
       assert_nil Topic.connection.current_transaction.savepoint_name
 
       Topic.transaction(requires_new: true) do
+        Topic.delete_all # Dirty the transaction to force a savepoint below
+
         assert_equal "active_record_1", Topic.connection.current_savepoint_name
         assert_equal "active_record_1", Topic.connection.current_transaction.savepoint_name
 
@@ -1099,6 +1103,43 @@ class TransactionTest < ActiveRecord::TestCase
   def test_unprepared_statement_materializes_transaction
     assert_sql(/BEGIN/i, /COMMIT/i) do
       Topic.transaction { Topic.where("1=1").first }
+    end
+  end
+
+  def test_nested_transactions_skip_excess_savepoints
+    capture_sql do
+      # RealTransaction (begin..commit)
+      Topic.transaction(requires_new: true) do
+        # ResetParentTransaction (no queries)
+        Topic.transaction(requires_new: true) do
+          Topic.delete_all
+          # SavepointTransaction (savepoint..release)
+          Topic.transaction(requires_new: true) do
+            # ResetParentTransaction (no queries)
+            Topic.transaction(requires_new: true) do
+              Topic.delete_all
+            end
+          end
+        end
+        Topic.delete_all
+      end
+    end
+
+    actual_queries = ActiveRecord::SQLCounter.log_all
+
+    expected_queries = [
+      /BEGIN/i,
+      /DELETE/i,
+      /^SAVEPOINT/i,
+      /DELETE/i,
+      /^RELEASE/i,
+      /DELETE/i,
+      /COMMIT/i,
+    ]
+
+    assert_equal expected_queries.size, actual_queries.size
+    expected_queries.zip(actual_queries) do |expected, actual|
+      assert_match expected, actual
     end
   end
 

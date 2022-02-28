@@ -80,6 +80,9 @@ module ActiveRecord
       def open?; false; end
       def joinable?; false; end
       def add_record(record, _ = true); end
+      def restartable?; false; end
+      def dirty?; false; end
+      def dirty!; end
     end
 
     class Transaction # :nodoc:
@@ -94,6 +97,15 @@ module ActiveRecord
         @joinable = joinable
         @run_commit_callbacks = run_commit_callbacks
         @lazy_enrollment_records = nil
+        @dirty = false
+      end
+
+      def dirty!
+        @dirty = true
+      end
+
+      def dirty?
+        @dirty
       end
 
       def add_record(record, ensure_finalize = true)
@@ -112,6 +124,12 @@ module ActiveRecord
           @lazy_enrollment_records = nil
         end
         @records
+      end
+
+      # Can this transaction's current state be recreated by
+      # rollback+begin ?
+      def restartable?
+        joinable? && !dirty?
       end
 
       def materialize!
@@ -167,6 +185,33 @@ module ActiveRecord
       def open?; !closed?; end
     end
 
+    class RestartParentTransaction < Transaction
+      def initialize(connection, parent_transaction, **options)
+        super(connection, **options)
+
+        @parent = parent_transaction
+
+        if isolation_level
+          raise ActiveRecord::TransactionIsolationError, "cannot set transaction isolation in a nested transaction"
+        end
+
+        @parent.state.add_child(@state)
+      end
+
+      delegate :materialize!, :materialized?, :restart, to: :@parent
+
+      def rollback
+        @state.rollback!
+        @parent.restart
+      end
+
+      def commit
+        @state.commit!
+      end
+
+      def full_rollback?; false; end
+    end
+
     class SavepointTransaction < Transaction
       def initialize(connection, savepoint_name, parent_transaction, **options)
         super(connection, **options)
@@ -183,6 +228,10 @@ module ActiveRecord
       def materialize!
         connection.create_savepoint(savepoint_name)
         super
+      end
+
+      def restart
+        connection.rollback_to_savepoint(savepoint_name) if materialized?
       end
 
       def rollback
@@ -209,6 +258,17 @@ module ActiveRecord
         end
 
         super
+      end
+
+      def restart
+        return unless materialized?
+
+        if connection.supports_restart_db_transaction?
+          connection.restart_db_transaction
+        else
+          connection.rollback_db_transaction
+          materialize!
+        end
       end
 
       def rollback
@@ -242,11 +302,19 @@ module ActiveRecord
                 joinable: joinable,
                 run_commit_callbacks: run_commit_callbacks
               )
+            elsif current_transaction.restartable?
+              RestartParentTransaction.new(
+                @connection,
+                current_transaction,
+                isolation: isolation,
+                joinable: joinable,
+                run_commit_callbacks: run_commit_callbacks
+              )
             else
               SavepointTransaction.new(
                 @connection,
                 "active_record_#{@stack.size}",
-                @stack.last,
+                current_transaction,
                 isolation: isolation,
                 joinable: joinable,
                 run_commit_callbacks: run_commit_callbacks
@@ -276,8 +344,20 @@ module ActiveRecord
         @lazy_transactions_enabled
       end
 
+      def dirty_current_transaction
+        current_transaction.dirty!
+      end
+
       def materialize_transactions
         return if @materializing_transactions
+
+        # As a logical simplification for now, we assume anything that requests
+        # materialization is about to dirty the transaction. Note this is just
+        # an assumption about the caller, not a direct property of this method.
+        # It can go away later when callers are able to handle dirtiness for
+        # themselves.
+        dirty_current_transaction
+
         return unless @has_unmaterialized_transactions
 
         @connection.lock.synchronize do
@@ -300,6 +380,8 @@ module ActiveRecord
           ensure
             @stack.pop
           end
+
+          dirty_current_transaction if transaction.dirty?
 
           transaction.commit
           transaction.commit_records
