@@ -1,3 +1,19 @@
+*   Fix `content_security_policy` returning invalid directives.
+
+    Directives such as `self`, `unsafe-eval` and few others were not
+    single quoted when the directive was the result of calling a lambda
+    returning an array.
+
+    ```ruby
+    content_security_policy do |policy|
+      policy.frame_ancestors lambda { [:self, "https://example.com"] }
+    end
+    ```
+
+    With this fix the policy generated from above will now be valid.
+
+    *Edouard Chin*
+
 *   Fix `skip_forgery_protection` to run without raising an error if forgery
     protection has not been enabled / `verify_authenticity_token` is not a
     defined callback.
