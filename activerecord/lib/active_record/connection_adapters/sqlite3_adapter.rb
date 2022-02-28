@@ -88,7 +88,6 @@ module ActiveRecord
       def initialize(connection, logger, connection_options, config)
         @memory_database = config[:database] == ":memory:"
         super(connection, logger, config)
-        configure_connection
       end
 
       def self.database_exists?(config)
@@ -165,12 +164,17 @@ module ActiveRecord
       end
 
       def reconnect!
-        unless @raw_connection.closed?
-          @raw_connection.rollback rescue nil
+        @lock.synchronize do
+          if active?
+            @raw_connection.rollback rescue nil
+          else
+            connect
+          end
+
+          super
         end
-        super
-        connect if @raw_connection.closed?
       end
+      alias :reset! :reconnect!
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
@@ -608,7 +612,6 @@ module ActiveRecord
             @config[:database].to_s,
             @config.merge(results_as_hash: true)
           )
-          configure_connection
         end
 
         def configure_connection

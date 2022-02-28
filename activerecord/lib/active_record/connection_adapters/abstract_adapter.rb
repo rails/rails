@@ -112,6 +112,8 @@ module ActiveRecord
         )
 
         @default_timezone = self.class.validate_default_timezone(config[:default_timezone])
+
+        configure_connection
       end
 
       EXCEPTION_NEVER = { Exception => :never }.freeze # :nodoc:
@@ -550,11 +552,13 @@ module ActiveRecord
       end
 
       # Disconnects from the database if already connected, and establishes a
-      # new connection with the database. Implementors should call super if they
-      # override the default implementation.
+      # new connection with the database. Implementors should call super
+      # immediately after establishing the new connection (and while still
+      # holding @lock).
       def reconnect!
         clear_cache!(new_connection: true)
         reset_transaction
+        configure_connection
       end
 
       # Disconnects from the database if already connected. Otherwise, this
@@ -584,10 +588,14 @@ module ActiveRecord
       # transactions and other connection-related server-side state. Usually a
       # database-dependent operation.
       #
-      # The default implementation does nothing; the implementation should be
-      # overridden by concrete adapters.
+      # If a database driver or protocol does not support such a feature,
+      # implementors may alias this to #reconnect!. Otherwise, implementors
+      # should call super immediately after resetting the connection (and while
+      # still holding @lock).
       def reset!
-        # this should be overridden by concrete adapters
+        clear_cache!(new_connection: true)
+        reset_transaction
+        configure_connection
       end
 
       # Removes the connection from the pool and disconnect it.
@@ -882,6 +890,16 @@ module ActiveRecord
         # custom result objects with connection-specific data.
         def build_result(columns:, rows:, column_types: {})
           ActiveRecord::Result.new(columns, rows, column_types)
+        end
+
+        # Perform any necessary initialization upon the newly-established
+        # @raw_connection -- this is the place to modify the adapter's
+        # connection settings, run queries to configure any application-global
+        # "session" variables, etc.
+        #
+        # Implementations may assume this method will only be called while
+        # holding @lock (or from #initialize).
+        def configure_connection
         end
     end
   end
