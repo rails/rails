@@ -191,7 +191,7 @@ GEM
     crack (0.4.5)
       rexml
     crass (1.0.6)
-    cssbundling-rails (1.0.0)
+    cssbundling-rails (1.1.0)
       railties (>= 6.0.0)
     curses (1.4.3)
     daemons (1.4.1)
@@ -316,7 +316,7 @@ GEM
     irb (1.4.1)
       reline (>= 0.3.0)
     jmespath (1.4.0)
-    jsbundling-rails (1.0.0)
+    jsbundling-rails (1.0.2)
       railties (>= 6.0.0)
     json (2.6.1)
     jwt (2.3.0)
