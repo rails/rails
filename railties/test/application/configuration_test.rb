@@ -291,7 +291,7 @@ module ApplicationTests
       assert_instance_of Pathname, Rails.public_path
     end
 
-    test "does not eager load controller actions in development" do
+    test "does not eager load controllers state actions in development" do
       app_file "app/controllers/posts_controller.rb", <<-RUBY
         class PostsController < ActionController::Base
           def index;end
@@ -302,9 +302,10 @@ module ApplicationTests
       app "development"
 
       assert_nil PostsController.instance_variable_get(:@action_methods)
+      assert_nil PostsController.instance_variable_get(:@view_context_class)
     end
 
-    test "eager loads controller actions in production" do
+    test "eager loads controllers state in production" do
       app_file "app/controllers/posts_controller.rb", <<-RUBY
         class PostsController < ActionController::Base
           def index;end
@@ -320,6 +321,7 @@ module ApplicationTests
       app "production"
 
       assert_equal %w(index show).to_set, PostsController.instance_variable_get(:@action_methods)
+      assert_not_nil PostsController.instance_variable_get(:@view_context_class)
     end
 
     test "does not eager load mailer actions in development" do

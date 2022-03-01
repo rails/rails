@@ -127,6 +127,11 @@ module AbstractController
         super
         clear_action_methods!
       end
+
+      def eager_load! # :nodoc:
+        action_methods
+        nil
+      end
     end
 
     abstract!
