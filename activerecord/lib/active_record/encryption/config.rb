@@ -5,7 +5,7 @@ module ActiveRecord
     # Container of configuration options
     class Config
       attr_accessor :primary_key, :deterministic_key, :store_key_references, :key_derivation_salt,
-                    :support_unencrypted_data, :encrypt_fixtures, :validate_column_size, :add_to_filter_parameters,
+                    :support_unencrypted_data, :encrypt_fixtures, :validate_column_size, :compress, :add_to_filter_parameters,
                     :excluded_from_filter_parameters, :extend_queries, :previous_schemes, :forced_encoding_for_deterministic_encryption
 
       def initialize
@@ -35,6 +35,7 @@ module ActiveRecord
           self.support_unencrypted_data = false
           self.encrypt_fixtures = false
           self.validate_column_size = true
+          self.compress = true
           self.add_to_filter_parameters = true
           self.excluded_from_filter_parameters = []
           self.previous_schemes = []
