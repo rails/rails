@@ -93,7 +93,7 @@ module ActiveModel
         attr_reader attribute
 
         define_method("#{attribute}=") do |unencrypted_password|
-          if unencrypted_password.nil? || unencrypted_password.empty?
+          if unencrypted_password.blank?
             instance_variable_set("@#{attribute}", nil)
             self.public_send("#{attribute}_digest=", nil)
           else
