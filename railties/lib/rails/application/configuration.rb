@@ -270,7 +270,6 @@ module Rails
 
           if respond_to?(:active_support)
             active_support.default_message_encryptor_serializer = :json
-            active_support.default_message_verifier_serializer = :json
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"

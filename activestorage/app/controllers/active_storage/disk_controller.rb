@@ -42,13 +42,11 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
     end
 
     def decode_verified_key
-      key = ActiveStorage.verifier.verified(params[:encoded_key], purpose: :blob_key)
-      key&.deep_symbolize_keys
+      ActiveStorage.verifier.verified(params[:encoded_key], purpose: :blob_key)
     end
 
     def decode_verified_token
-      token = ActiveStorage.verifier.verified(params[:encoded_token], purpose: :blob_token)
-      token&.deep_symbolize_keys
+      ActiveStorage.verifier.verified(params[:encoded_token], purpose: :blob_token)
     end
 
     def acceptable_content?(token)
