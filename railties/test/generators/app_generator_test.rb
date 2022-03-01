@@ -774,8 +774,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_cssbundling_gem
-    skip if ENV["CI"]
-
     run_generator [destination_root, "--css", "postcss", "--no-skip-bundle"]
     assert_gem "cssbundling-rails"
     assert_file "app/assets/stylesheets/application.postcss.css"
