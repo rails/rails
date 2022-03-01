@@ -45,7 +45,7 @@ module ActionView
         include CaptureHelper
         include OutputSafetyHelper
 
-        HTML_VOID_ELEMENTS = %i(area base br col circle embed hr img input keygen link meta param source track wbr).to_set
+        HTML_VOID_ELEMENTS = %i(area base br col embed hr img input keygen link meta param source track wbr).to_set
         SVG_SELF_CLOSING_ELEMENTS = %i(animate animateMotion animateTransform circle ellipse line path polygon polyline rect set stop use view).to_set
 
         def initialize(view_context)
