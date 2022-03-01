@@ -364,7 +364,6 @@ module ActionDispatch
     def nullify_state
       self.session = NullSessionHash.new(self)
       self.session_options = { skip: true }
-      self.cookie_jar = NullCookieJar.build(self, {})
     end
 
     def session=(session) # :nodoc:
@@ -462,12 +461,6 @@ module ActionDispatch
 
         def enabled?
           false
-        end
-      end
-
-      class NullCookieJar < ActionDispatch::Cookies::CookieJar #:nodoc:
-        def write(*)
-          # nothing
         end
       end
   end

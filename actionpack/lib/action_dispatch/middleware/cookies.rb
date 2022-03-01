@@ -21,6 +21,11 @@ module ActionDispatch
       end
     }
 
+    def nullify_state
+      self.cookie_jar = NullCookieJar.build(self, {})
+      super
+    end
+
     def have_cookie_jar?
       has_header? "action_dispatch.cookies"
     end
@@ -528,6 +533,12 @@ module ActionDispatch
         def commit(name, options)
           options[:expires] = 20.years.from_now
         end
+    end
+
+    class NullCookieJar < ActionDispatch::Cookies::CookieJar #:nodoc:
+      def write(*)
+        # nothing
+      end
     end
 
     class MarshalWithJsonFallback # :nodoc:
