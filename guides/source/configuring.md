@@ -63,6 +63,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.add_autoload_paths_to_load_path`](#config-add-autoload-paths-to-load-path): `false`
 - [`config.active_support.default_message_encryptor_serializer`](#config-active-support-default-message-encryptor-serializer): `:json`
+- [`config.active_support.default_message_verifier_serializer`](#config-active-support-default-message-verifier-serializer): `:json`
 
 #### Default Values for Target Version 7.0
 
@@ -1908,6 +1909,19 @@ If this is set to false, it will use `JSON` to serialize payloads.
 Used to help migrate apps from `Marshal` to `JSON` as the default serializer for the `MessageEncryptor` class.
 
 Defaults to `true`.
+
+#### `config.active_support.default_message_verifier_serializer`
+
+Specifies what serializer the `MessageVerifier` class will use by default.
+
+Options are `:json`, `:hybrid`, and `:marshal`. `:hybrid` uses the `JsonWithMarshalFallback` class.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:marshal`           |
+| 7.1                   | `:json`              |
 
 ### Configuring Active Job
 
