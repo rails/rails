@@ -89,34 +89,51 @@ module ActiveRecord
         @quoted_table_names ||= {}
       end
 
-      def initialize(connection, logger = nil, config = {}) # :nodoc:
+      def initialize(config_or_deprecated_connection, deprecated_logger = nil, deprecated_connection_options = nil, deprecated_config = nil) # :nodoc:
         super()
 
-        @raw_connection      = connection
-        @owner               = nil
-        @instrumenter        = ActiveSupport::Notifications.instrumenter
-        @logger              = logger
-        @config              = config
-        @pool                = ActiveRecord::ConnectionAdapters::NullPool.new
-        @idle_since          = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        if config_or_deprecated_connection.is_a?(Hash)
+          @raw_connection = nil
+          @config = config_or_deprecated_connection.symbolize_keys
+          @logger = ActiveRecord::Base.logger
+
+          if deprecated_logger || deprecated_connection_options || deprecated_config
+            raise ArgumentError, "new API accepts just one config hash"
+          end
+        else
+          # Soft-deprecated for now; we'll probably warn in future.
+
+          @raw_connection = config_or_deprecated_connection
+          @logger = deprecated_logger || ActiveRecord::Base.logger
+          if deprecated_config
+            @config = (deprecated_config || {}).symbolize_keys
+            @connection_parameters = deprecated_connection_options
+          else
+            @config = (deprecated_connection_options || {}).symbolize_keys
+            @connection_parameters = nil
+          end
+        end
+
+        @owner = nil
+        @instrumenter = ActiveSupport::Notifications.instrumenter
+        @pool = ActiveRecord::ConnectionAdapters::NullPool.new
+        @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @visitor = arel_visitor
         @statements = build_statement_pool
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
 
         @prepared_statements = self.class.type_cast_config_to_boolean(
-          config.fetch(:prepared_statements, true)
+          @config.fetch(:prepared_statements, true)
         )
 
         @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
-          config.fetch(:advisory_locks, true)
+          @config.fetch(:advisory_locks, true)
         )
 
-        @default_timezone = self.class.validate_default_timezone(config[:default_timezone])
+        @default_timezone = self.class.validate_default_timezone(@config[:default_timezone])
 
         @raw_connection_dirty = false
         @verified = false
-
-        configure_connection
       end
 
       EXCEPTION_NEVER = { Exception => :never }.freeze # :nodoc:
@@ -314,7 +331,14 @@ module ActiveRecord
 
       # Does the database for this adapter exist?
       def self.database_exists?(config)
-        raise NotImplementedError
+        new(config).database_exists?
+      end
+
+      def database_exists?
+        connect!
+        true
+      rescue ActiveRecord::NoDatabaseError
+        false
       end
 
       # Does this adapter support DDL rollbacks in transactions? That is, would
@@ -598,6 +622,7 @@ module ActiveRecord
       def disconnect!
         clear_cache!(new_connection: true)
         reset_transaction
+        @raw_connection_dirty = false
       end
 
       # Immediately forget this connection ever existed. Unlike disconnect!,
@@ -660,6 +685,11 @@ module ActiveRecord
       def verify!
         reconnect!(restore_transactions: true) unless active?
         @verified = true
+      end
+
+      def connect!
+        verify!
+        self
       end
 
       def clean! # :nodoc:
@@ -864,6 +894,8 @@ module ActiveRecord
         #
         def with_raw_connection(allow_retry: false, uses_transaction: true)
           @lock.synchronize do
+            connect! if @raw_connection.nil? && reconnect_can_restore_state?
+
             materialize_transactions if uses_transaction
 
             retries_available = allow_retry ? connection_retries : 0
@@ -942,7 +974,7 @@ module ActiveRecord
         # to both be thread-safe and not rely upon actual server communication.
         # This is useful for e.g. string escaping methods.
         def any_raw_connection
-          @raw_connection
+          @raw_connection || valid_raw_connection
         end
 
         # Similar to any_raw_connection, but ensures it is validated and

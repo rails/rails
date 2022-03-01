@@ -414,13 +414,6 @@ module ActiveRecord
             @has_unmaterialized_transactions = false
           end
         end
-
-        # As a logical simplification for now, we assume anything that requests
-        # materialization is about to dirty the transaction. Note this is just
-        # an assumption about the caller, not a direct property of this method.
-        # It can go away later when callers are able to handle dirtiness for
-        # themselves.
-        dirty_current_transaction
       end
 
       def commit_transaction
