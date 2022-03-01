@@ -169,6 +169,85 @@ Alternatively, you could load defaults for 7.1
 config.load_defaults 7.1
 ```
 
+### New `ActiveSupport::MessageVerifier` default serializer
+
+As of Rails 7.1, the default serializer in use by the `MessageVerifier` is `JSON`.
+This offers a more secure alternative to the current default serializer.
+
+The `MessageVerifier` offers the ability to migrate the default serializer from `Marshal` to `JSON`.
+
+If you would like to ignore this change in existing applications, set the following: `config.active_support.default_message_verifier_serializer = :marshal`.
+
+In order to roll out the new default when upgrading from `7.0` to `7.1`, there are three configuration variables to keep in mind.
+```
+config.active_support.default_verifier_serializer
+config.active_support.fallback_to_marshal_deserialization
+config.active_support.use_marshal_serialization
+```
+
+`default_message_verifier_serializer` defaults to `:json` as of `7.1` but it offers both a `:hybrid` and `:marshal` option.
+
+In order to migrate an older deployment to `:json`, first ensure that the `default_message_verifier_serializer` is set to `:marshal`.
+```ruby
+# config/application.rb
+config.load_defaults 7.0
+config.active_support.default_message_verifier_serializer = :marshal
+```
+
+Once this is deployed on all Rails processes, set `default_message_verifier_serializer` to `:hybrid` to begin using the
+`ActiveSupport::JsonWithMarshalFallback` class as the serializer. The defaults for this class are to use `Marshal`
+as the serializer and to allow the deserialisation of both `Marshal` and `JSON` serialized payloads.
+
+```ruby
+config.load_defaults 7.0
+config.active_support.default_message_verifier_serializer = :hybrid
+```
+
+Once this is deployed on all Rails processes, set the following configuration options in order to stop the
+`ActiveSupport::JsonWithMarshalFallback` class from using `Marshal` to serialize new payloads.
+
+```ruby
+# config/application.rb
+config.load_defaults 7.0
+config.active_support.default_message_verifier_serializer = :hybrid
+config.active_support.use_marshal_serialization = false
+```
+
+Allow this configuration to run on all processes for a considerable amount of time.
+`ActiveSupport::JsonWithMarshalFallback` logs the following each time the `Marshal` fallback
+is used:
+```
+JsonWithMarshalFallback: Marshal load fallback occurred.
+```
+
+Once those message stop appearing in your logs and you're confident that all `MessageVerifier`
+payloads in transit are `JSON` serialized, the following configuration options will disable the
+Marshal fallback in `ActiveSupport::JsonWithMarshalFallback`.
+
+```ruby
+# config/application.rb
+config.load_defaults 7.0
+config.active_support.default_message_verifier_serializer = :hybrid
+config.active_support.use_marshal_serialization = false
+config.active_support.fallback_to_marshal_deserialization = false
+```
+
+If all goes well, you should now be safe to migrate the Message Verifier from
+`ActiveSupport::JsonWithMarshalFallback` to `ActiveSupport::JSON`.
+To do so, simply swap the `:hybrid` serializer for the `:json` serializer.
+
+```ruby
+# config/application.rb
+config.load_defaults 7.0
+config.active_support.default_message_verifier_serializer = :json
+```
+
+Alternatively, you could load defaults for 7.1
+```ruby
+# config/application.rb
+config.load_defaults 7.1
+```
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 

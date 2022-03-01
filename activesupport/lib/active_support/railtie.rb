@@ -167,6 +167,15 @@ module ActiveSupport
       end
     end
 
+    initializer "active_support.set_default_message_verifier_serializer" do |app|
+      config.after_initialize do
+        unless app.config.active_support.default_message_verifier_serializer.nil?
+          ActiveSupport::MessageVerifier.default_message_verifier_serializer =
+            app.config.active_support.default_message_verifier_serializer
+        end
+      end
+    end
+
     initializer "active_support.set_marshal_serialization" do |app|
       config.after_initialize do
         unless app.config.active_support.use_marshal_serialization.nil?
