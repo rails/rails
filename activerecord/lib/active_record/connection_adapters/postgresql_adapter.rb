@@ -120,6 +120,14 @@ module ActiveRecord
       # setting, you should immediately run <tt>bin/rails db:migrate</tt> to update the types in your schema.rb.
       class_attribute :datetime_type, default: :timestamp
 
+      ##
+      # :singleton-method:
+      # Should comments on tables and columns be included in structure.sql?
+      #
+      # If false and a supported Postgres version is used, the `--no-comment` flag will be passed to `pg_dump`.
+      # The default is true.
+      class_attribute :comments_in_structure_dump, default: true
+
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigserial primary key",
         string:      { name: "character varying" },

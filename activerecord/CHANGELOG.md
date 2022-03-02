@@ -1,3 +1,13 @@
+*   Allow configuring if Postgres structure dumps include comments
+
+    Introduces `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.comments_in_structure_dump`
+    to allow users to determine if `structure.sql` will include custom comments on tables or
+    columns.
+
+    The default is true, meaning comments will be included.
+
+    *Alex Ghiculescu*
+    
 *   Reduce the memory footprint of fixtures accessors.
 
     Until now fixtures accessors were eagerly defined using `define_method`.

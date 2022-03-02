@@ -976,7 +976,7 @@ should be large enough to accommodate both the foreground threads (.e.g web serv
 
 Controls whether the Active Record MySQL adapter will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
 
-#### `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_table`
+#### `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables`
 
 Controls whether database tables created by PostgreSQL should be "unlogged", which can speed
 up performance but adds a risk of data loss if the database crashes. It is
@@ -992,6 +992,12 @@ configured `NATIVE_DATABASE_TYPES`. The default is `:timestamp`, meaning
 To use "timestamp with time zone", change this to `:timestamptz` in an
 initializer. You should run `bin/rails db:migrate` to rebuild your schema.rb
 if you change this.
+
+#### `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.comments_in_structure_dump`
+
+Controls whether the `structure.sql` file includes custom comments on tables
+and columns. If `false`, the `--no-comments` flag will be passed to `pg_dump`.
+Defaults to `true`.
 
 #### `ActiveRecord::SchemaDumper.ignore_tables`
 

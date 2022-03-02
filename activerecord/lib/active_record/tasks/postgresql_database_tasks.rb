@@ -58,7 +58,8 @@ module ActiveRecord
           end
 
         args = ["--schema-only", "--no-privileges", "--no-owner"]
-        args << "--no-comments" if connection.database_version >= 110_000
+        remove_comments = !ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.comments_in_structure_dump && connection.database_version >= 110_000
+        args << "--no-comments" if remove_comments
         args.concat(["--file", filename])
 
         args.concat(Array(extra_flags)) if extra_flags
