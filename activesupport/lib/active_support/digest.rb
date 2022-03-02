@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "digest"
+
 module ActiveSupport
   class Digest #:nodoc:
     class <<self

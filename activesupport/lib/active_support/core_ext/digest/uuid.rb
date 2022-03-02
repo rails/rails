@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "securerandom"
+require "digest"
 
 module Digest
   module UUID
