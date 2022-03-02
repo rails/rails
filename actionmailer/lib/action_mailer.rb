@@ -57,7 +57,7 @@ module ActionMailer
   def self.eager_load!
     super
 
-    require "mail"
+    require "action_mailer/mail_with_error_handling"
     Mail.eager_autoload!
   end
 end
