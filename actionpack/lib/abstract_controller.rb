@@ -24,5 +24,10 @@ module AbstractController
   def self.eager_load!
     super
     AbstractController::Caching.eager_load!
+    AbstractController::Base.descendants.each do |controller|
+      unless controller.abstract?
+        controller.eager_load!
+      end
+    end
   end
 end

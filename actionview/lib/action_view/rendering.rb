@@ -72,6 +72,12 @@ module ActionView
         end
       end
 
+      def eager_load!
+        super
+        view_context_class
+        nil
+      end
+
       def view_context_class
         klass = ActionView::LookupContext::DetailsKey.view_context_class(ActionView::Base)
 
