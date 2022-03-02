@@ -868,6 +868,17 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_equal "application/octet-stream", file.content_type
   end
 
+  def test_tag_with_attrs
+    xml = <<-XML
+      <blog name="bacon is the best">
+        "Have a nice day"
+      </blog>
+    XML
+    hash = Hash.from_xml(xml)
+    assert_equal "bacon is the best", hash["blog"]["name"]
+    assert_match "Have a nice day", hash["blog"]["__content__"]
+  end
+
   def test_tag_with_attrs_and_whitespace
     xml = <<-XML
       <blog name="bacon is the best">
