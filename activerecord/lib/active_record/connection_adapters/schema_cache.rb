@@ -198,7 +198,7 @@ module ActiveRecord
           @indexes      = deep_deduplicate(@indexes)
         end
 
-        if RUBY_VERSION.start_with?("2.6")
+        if RUBY_VERSION < "2.7"
           def deep_deduplicate(value)
             case value
             when Hash
