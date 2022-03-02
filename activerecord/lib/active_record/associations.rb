@@ -1753,6 +1753,9 @@ module ActiveRecord
         #   will be updated with the current time in addition to the updated_at/on attribute.
         #   Please note that with touching no validation is performed and only the +after_touch+,
         #   +after_commit+ and +after_rollback+ callbacks are executed.
+        #
+        #   NOTE: if this option is used with +:counter_cache+, calling reload[link:classes/ActiveRecord/Persistence.html#method-i-reload]
+        #   is required to get the new +updated_at+ value from the database.
         # [:inverse_of]
         #   Specifies the name of the #has_one or #has_many association on the associated
         #   object that is the inverse of this #belongs_to association.
