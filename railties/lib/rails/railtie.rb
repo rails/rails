@@ -247,6 +247,10 @@ module Rails
       end
     end
 
+    def inspect # :nodoc:
+      "#<#{self.class.name}>"
+    end
+
     def configure(&block) # :nodoc:
       instance_eval(&block)
     end
