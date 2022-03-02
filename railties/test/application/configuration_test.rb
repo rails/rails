@@ -3974,6 +3974,51 @@ module ApplicationTests
       assert_equal ActiveSupport::Cache::Coders::Rails61Coder, Rails.cache.instance_variable_get(:@coder)
     end
 
+    test "adds a time zone aware type if using PostgreSQL" do
+      original_configurations = ActiveRecord::Base.configurations
+      ActiveRecord::Base.configurations = { production: { db1: { adapter: "postgresql" } } }
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "production"
+
+      assert_equal [:datetime, :time, :timestamptz], ActiveRecord::Base.time_zone_aware_types
+    ensure
+      ActiveRecord::Base.configurations = original_configurations
+    end
+
+    test "doesn't add a time zone aware type if using MySQL" do
+      original_configurations = ActiveRecord::Base.configurations
+      ActiveRecord::Base.configurations = { production: { db1: { adapter: "mysql2" } } }
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "mysql2")
+      RUBY
+
+      app "production"
+
+      assert_equal [:datetime, :time], ActiveRecord::Base.time_zone_aware_types
+    ensure
+      ActiveRecord::Base.configurations = original_configurations
+    end
+
+    test "can opt out of extra time zone aware types if using PostgreSQL" do
+      original_configurations = ActiveRecord::Base.configurations
+      ActiveRecord::Base.configurations = { production: { db1: { adapter: "postgresql" } } }
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+      app_file "config/initializers/tz_aware_types.rb", <<~RUBY
+        ActiveRecord::Base.time_zone_aware_types -= [:timestamptz]
+      RUBY
+
+      app "production"
+
+      assert_equal [:datetime, :time], ActiveRecord::Base.time_zone_aware_types
+    ensure
+      ActiveRecord::Base.configurations = original_configurations
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents

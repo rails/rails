@@ -102,6 +102,7 @@ def with_timezone_config(cfg)
 
   old_default_zone = ActiveRecord.default_timezone
   old_awareness = ActiveRecord::Base.time_zone_aware_attributes
+  old_aware_types = ActiveRecord::Base.time_zone_aware_types
   old_zone = Time.zone
 
   if cfg.has_key?(:default)
@@ -110,6 +111,9 @@ def with_timezone_config(cfg)
   if cfg.has_key?(:aware_attributes)
     ActiveRecord::Base.time_zone_aware_attributes = cfg[:aware_attributes]
   end
+  if cfg.has_key?(:aware_types)
+    ActiveRecord::Base.time_zone_aware_types = cfg[:aware_types]
+  end
   if cfg.has_key?(:zone)
     Time.zone = cfg[:zone]
   end
@@ -117,12 +121,14 @@ def with_timezone_config(cfg)
 ensure
   ActiveRecord.default_timezone = old_default_zone
   ActiveRecord::Base.time_zone_aware_attributes = old_awareness
+  ActiveRecord::Base.time_zone_aware_types = old_aware_types
   Time.zone = old_zone
 end
 
 # This method makes sure that tests don't leak global state related to time zones.
 EXPECTED_ZONE = nil
 EXPECTED_DEFAULT_TIMEZONE = :utc
+EXPECTED_AWARE_TYPES = [:datetime, :time]
 EXPECTED_TIME_ZONE_AWARE_ATTRIBUTES = false
 def verify_default_timezone_config
   if Time.zone != EXPECTED_ZONE
@@ -147,6 +153,14 @@ def verify_default_timezone_config
     Global state `ActiveRecord::Base.time_zone_aware_attributes` was leaked.
       Expected: #{EXPECTED_TIME_ZONE_AWARE_ATTRIBUTES}
       Got: #{ActiveRecord::Base.time_zone_aware_attributes}
+    MSG
+  end
+  if ActiveRecord::Base.time_zone_aware_types != EXPECTED_AWARE_TYPES
+    $stderr.puts <<-MSG
+\n#{self}
+    Global state `ActiveRecord::Base.time_zone_aware_types` was leaked.
+      Expected: #{EXPECTED_AWARE_TYPES}
+      Got: #{ActiveRecord::Base.time_zone_aware_types}
     MSG
   end
 end
