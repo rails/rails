@@ -20,6 +20,24 @@ module Enumerable
 
   # :startdoc:
 
+  # Return a hash of counts by the evaluation of the block.
+  #
+  #  payments = [Payment.new(25), Payment.new(10), Payment.new(10)]
+  #  payments.count_by(&:price) # => { 25 => 1, 10 => 2 }
+  def count_by(&block)
+    if block_given?
+      result = {}
+      each do |elem|
+        value = yield(elem)
+        result[value] ||= 0
+        result[value] += 1
+      end
+      result
+    else
+      to_enum(:count_by) { size if respond_to?(:size) }
+    end
+  end
+
   # Calculates the minimum from the extracted elements.
   #
   #   payments = [Payment.new(5), Payment.new(15), Payment.new(10)]

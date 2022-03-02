@@ -29,6 +29,11 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal(e, v, msg)
   end
 
+  def test_count_by
+    payments = GenericEnumerable.new([Payment.new(25), Payment.new(10), Payment.new(10)])
+    assert_equal({ 25 => 1, 10 => 2 }, payments.count_by(&:price))
+  end
+
   def test_minimum
     payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
     assert_equal 5, payments.minimum(:price)
