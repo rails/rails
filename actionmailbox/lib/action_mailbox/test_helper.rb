@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "mail"
+require "action_mailbox/mail_with_error_handling"
 
 module ActionMailbox
   module TestHelper
