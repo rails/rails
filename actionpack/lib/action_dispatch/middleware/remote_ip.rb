@@ -7,10 +7,8 @@ module ActionDispatch
   # making the request. It does this by checking various headers that could
   # contain the address, and then picking the last-set address that is not
   # on the list of trusted IPs. This follows the precedent set by e.g.
-  # {the Tomcat server}[https://issues.apache.org/bugzilla/show_bug.cgi?id=50453],
-  # with {reasoning explained at length}[https://blog.gingerlime.com/2012/rails-ip-spoofing-vulnerabilities-and-protection]
-  # by @gingerlime. A more detailed explanation of the algorithm is given
-  # at GetIp#calculate_ip.
+  # {the Tomcat server}[https://issues.apache.org/bugzilla/show_bug.cgi?id=50453].
+  # A more detailed explanation of the algorithm is given at GetIp#calculate_ip.
   #
   # Some Rack servers concatenate repeated headers, like {HTTP RFC 2616}[https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2]
   # requires. Some Rack servers simply drop preceding headers, and only report
@@ -24,7 +22,8 @@ module ActionDispatch
   # a proxy, because you are hosted on e.g. Heroku without SSL, any client can
   # claim to have any IP address by setting the X-Forwarded-For header. If you
   # care about that, then you need to explicitly drop or ignore those headers
-  # sometime before this middleware runs.
+  # sometime before this middleware runs. Alternatively, remove this middleware
+  # to avoid inadvertently relying on it.
   class RemoteIp
     class IpSpoofAttackError < StandardError; end
 
@@ -114,7 +113,7 @@ module ActionDispatch
       # proxies, that header may contain a list of IPs. Other proxy services
       # set the Client-Ip header instead, so we check that too.
       #
-      # As discussed in {this post about Rails IP Spoofing}[https://blog.gingerlime.com/2012/rails-ip-spoofing-vulnerabilities-and-protection/],
+      # As discussed in {this post about Rails IP Spoofing}[https://web.archive.org/web/20170626095448/https://blog.gingerlime.com/2012/rails-ip-spoofing-vulnerabilities-and-protection/],
       # while the first IP in the list is likely to be the "originating" IP,
       # it could also have been set by the client maliciously.
       #
