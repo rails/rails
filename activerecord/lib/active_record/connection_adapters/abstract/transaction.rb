@@ -141,6 +141,10 @@ module ActiveRecord
         @materialized
       end
 
+      def restore!
+        @materialized = false
+      end
+
       def rollback_records
         return unless records
         ite = records.uniq(&:__id__)
@@ -347,6 +351,20 @@ module ActiveRecord
 
       def dirty_current_transaction
         current_transaction.dirty!
+      end
+
+      def restore_transactions
+        return false unless restorable?
+
+        @stack.each(&:restore!)
+
+        materialize_transactions unless @lazy_transactions_enabled
+
+        true
+      end
+
+      def restorable?
+        @stack.none?(&:dirty?)
       end
 
       def materialize_transactions

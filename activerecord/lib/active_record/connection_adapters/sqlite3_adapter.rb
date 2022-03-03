@@ -163,7 +163,7 @@ module ActiveRecord
         !@raw_connection.closed?
       end
 
-      def reconnect!
+      def reconnect!(restore_transactions: false)
         @lock.synchronize do
           if active?
             @raw_connection.rollback rescue nil
