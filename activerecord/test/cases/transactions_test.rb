@@ -183,9 +183,63 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def transaction_with_shallow_return
+    Topic.transaction do
+      Topic.transaction(requires_new: true) do
+        @first.approved  = true
+        @second.approved = false
+        @first.save
+        @second.save
+      end
+      return
+    end
+  end
+
   def test_add_to_null_transaction
     topic = Topic.new
     topic.send(:add_to_transaction)
+  end
+
+  def test_successful_with_return_outside_inner_transaction
+    committed = false
+
+    Topic.connection.class_eval do
+      alias :real_commit_db_transaction :commit_db_transaction
+      define_method(:commit_db_transaction) do
+        committed = true
+        real_commit_db_transaction
+      end
+    end
+
+    assert_deprecated do
+      transaction_with_shallow_return
+    end
+    assert committed
+
+    assert_predicate Topic.find(1), :approved?, "First should have been approved"
+    assert_not_predicate Topic.find(2), :approved?, "Second should have been unapproved"
+  ensure
+    Topic.connection.class_eval do
+      remove_method :commit_db_transaction
+      alias :commit_db_transaction :real_commit_db_transaction rescue nil
+    end
+  end
+
+  def test_deprecation_on_ruby_timeout_outside_inner_transaction
+    assert_deprecated do
+      catch do |timeout|
+        Topic.transaction do
+          Topic.transaction(requires_new: true) do
+            @first.approved = true
+            @first.save!
+          end
+
+          throw timeout
+        end
+      end
+    end
+
+    assert Topic.find(1).approved?, "First should have been approved"
   end
 
   def test_rollback_with_return
