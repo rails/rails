@@ -18,7 +18,7 @@ module ActionCable
         end
       end
 
-      # Delegates to the class' <tt>channel_name</tt>
+      # Delegates to the class's ::channel_name.
       delegate :channel_name, to: :class
     end
   end

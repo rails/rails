@@ -30,6 +30,7 @@ require "active_model/version"
 module ActiveModel
   extend ActiveSupport::Autoload
 
+  autoload :Access
   autoload :API
   autoload :Attribute
   autoload :Attributes

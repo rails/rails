@@ -86,11 +86,11 @@ module ActionView
         end
 
         def hash_from_body(body)
-          body.map do |hash_node|
+          body.to_h do |hash_node|
             return nil if hash_node.type != :assoc_new
 
             [hash_node[0], hash_node[1]]
-          end.to_h
+          end
         end
 
         def symbol?
@@ -189,9 +189,9 @@ module ActionView
         parser = RenderCallExtractor.new(code)
         parser.parse
 
-        parser.render_calls.group_by(&:first).collect do |method, nodes|
+        parser.render_calls.group_by(&:first).to_h do |method, nodes|
           [ method.to_sym, nodes.collect { |v| v[1] } ]
-        end.to_h
+        end
       end
     end
   end

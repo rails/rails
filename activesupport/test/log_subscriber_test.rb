@@ -77,7 +77,9 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
 
   def test_event_attributes
     ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
-    instrument "some_event.my_log_subscriber"
+    instrument "some_event.my_log_subscriber" do
+      [] # Make an allocation
+    end
     wait
     event = @log_subscriber.event
     if defined?(JRUBY_VERSION)

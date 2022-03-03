@@ -326,7 +326,7 @@ module ActiveRecord
   #   details.
   # * <tt>change_table(name, options)</tt>: Allows to make column alterations to
   #   the table called +name+. It makes the table object available to a block that
-  #   can then add/remove columns, indexes or foreign keys to it.
+  #   can then add/remove columns, indexes, or foreign keys to it.
   # * <tt>rename_column(table_name, column_name, new_column_name)</tt>: Renames
   #   a column but keeps the type and content.
   # * <tt>rename_index(table_name, old_name, new_name)</tt>: Renames an index.
@@ -583,7 +583,7 @@ module ActiveRecord
     end
 
     # This class is used to verify that all migrations have been run before
-    # loading a web page if <tt>config.active_record.migration_error</tt> is set to :page_load
+    # loading a web page if <tt>config.active_record.migration_error</tt> is set to +:page_load+.
     class CheckPending
       def initialize(app, file_watcher: ActiveSupport::FileUpdateChecker)
         @app = app
@@ -817,8 +817,9 @@ module ActiveRecord
 
     # Runs the given migration classes.
     # Last argument can specify options:
-    # - :direction (default is :up)
-    # - :revert (default is false)
+    #
+    # - +:direction+ - Default is +:up+.
+    # - +:revert+ - Default is +false+.
     def run(*migration_classes)
       opts = migration_classes.extract_options!
       dir = opts[:direction] || :up

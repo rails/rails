@@ -6,7 +6,7 @@ require "active_support/subscriber"
 
 module ActiveSupport
   # <tt>ActiveSupport::LogSubscriber</tt> is an object set to consume
-  # <tt>ActiveSupport::Notifications</tt> with the sole purpose of logging them.
+  # ActiveSupport::Notifications with the sole purpose of logging them.
   # The log subscriber dispatches notifications to a registered object based
   # on its given namespace.
   #
@@ -36,7 +36,7 @@ module ActiveSupport
   # it will properly dispatch the event
   # (<tt>ActiveSupport::Notifications::Event</tt>) to the sql method.
   #
-  # Being an <tt>ActiveSupport::Notifications</tt> consumer,
+  # Being an ActiveSupport::Notifications consumer,
   # <tt>ActiveSupport::LogSubscriber</tt> exposes a simple interface to check if
   # instrumented code raises an exception. It is common to log a different
   # message in case of an error, and this can be achieved by extending
@@ -107,14 +107,10 @@ module ActiveSupport
       LogSubscriber.logger
     end
 
-    def start(name, id, payload)
-      super if logger
-    end
-
-    def finish(name, id, payload)
+    def call(event)
       super if logger
     rescue => e
-      log_exception(name, e)
+      log_exception(event.name, e)
     end
 
     def publish_event(event)

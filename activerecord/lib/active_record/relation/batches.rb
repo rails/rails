@@ -37,7 +37,7 @@ module ActiveRecord
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
     #   an order is present in the relation.
-    # * <tt>:order</tt> - Specifies the primary key order (can be :asc or :desc). Defaults to :asc.
+    # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+). Defaults to +:asc+.
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size: it can be less than, equal to, or greater than the limit.
@@ -102,7 +102,7 @@ module ActiveRecord
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
     #   an order is present in the relation.
-    # * <tt>:order</tt> - Specifies the primary key order (can be :asc or :desc). Defaults to :asc.
+    # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+). Defaults to +:asc+.
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size: it can be less than, equal to, or greater than the limit.
@@ -167,7 +167,7 @@ module ActiveRecord
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
     #   an order is present in the relation.
-    # * <tt>:order</tt> - Specifies the primary key order (can be :asc or :desc). Defaults to :asc.
+    # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+). Defaults to +:asc+.
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size, it can be less than, equal, or greater than the limit.

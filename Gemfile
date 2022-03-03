@@ -36,7 +36,7 @@ gem "terser", ">= 1.1.4", require: false
 gem "json", ">= 2.0.0"
 
 group :rubocop do
-  gem "rubocop", ">= 0.90", require: false
+  gem "rubocop", ">= 1.25.1", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
@@ -69,7 +69,7 @@ group :job do
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false
-  gem "queue_classic", github: "jhawthorn/queue_classic", branch: "fix-connection-pg-14", require: false, platforms: :ruby
+  gem "queue_classic", ">= 4.0.0.pre.beta1", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "que", require: false
   gem "backburner", require: false

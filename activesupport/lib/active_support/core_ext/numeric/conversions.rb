@@ -7,7 +7,7 @@ module ActiveSupport
   module NumericWithFormat
     # Provides options for converting numbers into formatted strings.
     # Options are provided for phone numbers, currency, percentage,
-    # precision, positional notation, file size and pretty printing.
+    # precision, positional notation, file size, and pretty printing.
     #
     # This method is aliased to <tt>to_formatted_s</tt>.
     #

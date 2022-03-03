@@ -734,7 +734,11 @@ class ActionsTest < Rails::Generators::TestCase
       config_matcher = ->(actual_config) do
         assert_equal config, actual_config.slice(*config.keys)
       end if config
-      args = Array(commands).map { |command| [command, *config_matcher] }
+      args = Array(commands).map do |command|
+        command_matcher = Regexp.escape(command)
+        command_matcher = command_matcher.sub(/^sudo\\ /, '\A\1.*')
+        [/#{command_matcher}\z/, *config_matcher]
+      end
 
       assert_called_with(generator, :run, args) do
         block.call

@@ -12,7 +12,7 @@ module SecureRandom
   #
   # If _n_ is not specified or is +nil+, 16 is assumed. It may be larger in the future.
   #
-  # The result may contain alphanumeric characters except 0, O, I and l.
+  # The result may contain alphanumeric characters except 0, O, I, and l.
   #
   #   p SecureRandom.base58 # => "4kUgL2pdQMSCQtjE"
   #   p SecureRandom.base58(24) # => "77TMHrHJFvFDwodq8w7Ev2m7"

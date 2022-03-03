@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Encryption
-    # An +ActiveModel::Type+ that encrypts/decrypts strings of text.
+    # An ActiveModel::Type::Value that encrypts/decrypts strings of text.
     #
     # This is the central piece that connects the encryption system with +encrypts+ declarations in the
     # model classes. Whenever you declare an attribute as encrypted, it configures an +EncryptedAttributeType+
@@ -19,7 +19,7 @@ module ActiveRecord
       #
       # * <tt>:scheme</tt> - A +Scheme+ with the encryption properties for this attribute.
       # * <tt>:cast_type</tt> - A type that will be used to serialize (before encrypting) and deserialize
-      #   (after decrypting). +ActiveModel::Type::String+ by default.
+      #   (after decrypting). ActiveModel::Type::String by default.
       def initialize(scheme:, cast_type: ActiveModel::Type::String.new, previous_type: false)
         super()
         @scheme = scheme

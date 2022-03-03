@@ -33,7 +33,7 @@ module ActionView
       super
     end
 
-    # Overwrite process to set up I18n proxy.
+    # Override process to set up I18n proxy.
     def process(*) # :nodoc:
       old_config, I18n.config = I18n.config, I18nProxy.new(I18n.config, lookup_context)
       super
@@ -70,6 +70,12 @@ module ActionView
             include helpers
           end
         end
+      end
+
+      def eager_load!
+        super
+        view_context_class
+        nil
       end
 
       def view_context_class

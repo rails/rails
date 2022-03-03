@@ -13,7 +13,7 @@ module ActiveSupport
   # The cipher text and initialization vector are base64 encoded and returned
   # to you.
   #
-  # This can be used in situations similar to the <tt>MessageVerifier</tt>, but
+  # This can be used in situations similar to the MessageVerifier, but
   # where you don't want users to be able to determine the value of the payload.
   #
   #   len   = ActiveSupport::MessageEncryptor.key_len
@@ -22,6 +22,7 @@ module ActiveSupport
   #   crypt = ActiveSupport::MessageEncryptor.new(key)                            # => #<ActiveSupport::MessageEncryptor ...>
   #   encrypted_data = crypt.encrypt_and_sign('my secret data')                   # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
   #   crypt.decrypt_and_verify(encrypted_data)                                    # => "my secret data"
+  #
   # The +decrypt_and_verify+ method will raise an
   # <tt>ActiveSupport::MessageEncryptor::InvalidMessage</tt> exception if the data
   # provided cannot be decrypted or verified.
@@ -130,10 +131,10 @@ module ActiveSupport
     # Initialize a new MessageEncryptor. +secret+ must be at least as long as
     # the cipher key size. For the default 'aes-256-gcm' cipher, this is 256
     # bits. If you are using a user-entered secret, you can generate a suitable
-    # key by using <tt>ActiveSupport::KeyGenerator</tt> or a similar key
+    # key by using ActiveSupport::KeyGenerator or a similar key
     # derivation function.
     #
-    # First additional parameter is used as the signature key for +MessageVerifier+.
+    # First additional parameter is used as the signature key for MessageVerifier.
     # This allows you to specify keys to encrypt and sign data.
     #
     #    ActiveSupport::MessageEncryptor.new('secret', 'signature_secret')

@@ -24,7 +24,7 @@ module ActionController # :nodoc:
   # Ruby implementation).
   #
   # Streaming can be added to a given template easily, all you need to do is
-  # to pass the :stream option.
+  # to pass the +:stream+ option.
   #
   #   class PostsController
   #     def index
@@ -59,8 +59,8 @@ module ActionController # :nodoc:
   #     render stream: true
   #   end
   #
-  # Notice that :stream only works with templates. Rendering :json
-  # or :xml with :stream won't work.
+  # Notice that +:stream+ only works with templates. Rendering +:json+
+  # or +:xml+ with +:stream+ won't work.
   #
   # == Communication between layout and template
   #
@@ -72,7 +72,7 @@ module ActionController # :nodoc:
   # variables set in the template to be used in the layout, they won't
   # work once you move to streaming. The proper way to communicate
   # between layout and template, regardless of whether you use streaming
-  # or not, is by using +content_for+, +provide+ and +yield+.
+  # or not, is by using +content_for+, +provide+, and +yield+.
   #
   # Take a simple example where the layout expects the template to tell
   # which title to use:
@@ -132,7 +132,7 @@ module ActionController # :nodoc:
   # That said, when streaming, you need to properly check your templates
   # and choose when to use +provide+ and +content_for+.
   #
-  # == Headers, cookies, session and flash
+  # == Headers, cookies, session, and flash
   #
   # When streaming, the HTTP headers are sent to the client right before
   # it renders the first line. This means that, modifying headers, cookies,

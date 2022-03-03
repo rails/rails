@@ -59,7 +59,7 @@ module ActiveSupport
     #   transliterate('Jürgen', locale: :de)
     #   # => "Juergen"
     #
-    # Transliteration is restricted to UTF-8, US-ASCII and GB18030 strings
+    # Transliteration is restricted to UTF-8, US-ASCII, and GB18030 strings.
     # Other encodings will raise an ArgumentError.
     def transliterate(string, replacement = "?", locale: nil)
       string = string.dup if string.frozen?

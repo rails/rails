@@ -30,7 +30,7 @@ module ActionDispatch
         uri = URI.parse location
 
         if uri.relative? || uri.scheme == "http" || uri.scheme == "https"
-          body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(location)}\">redirected</a>.</body></html>"
+          body = ""
         else
           return [400, { "Content-Type" => "text/plain" }, ["Invalid redirection URI"]]
         end

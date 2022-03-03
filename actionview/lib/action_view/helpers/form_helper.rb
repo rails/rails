@@ -438,7 +438,7 @@ module ActionView
           model       = nil
           object_name = record
         else
-          model       = record
+          model       = convert_to_model(record)
           object      = _object_for_form_builder(record)
           raise ArgumentError, "First argument in form cannot contain nil or be empty" unless object
           object_name = options[:as] || model_name_from_record_or_class(object).param_key
@@ -1087,7 +1087,7 @@ module ActionView
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). The text of label will default to the attribute name unless a translation
-      # is found in the current I18n locale (through helpers.label.<modelname>.<attribute>) or you specify it explicitly.
+      # is found in the current I18n locale (through <tt>helpers.label.<modelname>.<attribute></tt>) or you specify it explicitly.
       # Additional options on the label tag can be passed as a hash with +options+. These options will be tagged
       # onto the HTML as an HTML element attribute as in the example shown, except for the <tt>:value</tt> option, which is designed to
       # target labels for radio_button tags (where the value is used in the ID of the input tag).
@@ -2290,7 +2290,7 @@ module ActionView
         @template.fields_for(record_name, record_object, fields_options, &block)
       end
 
-      # See the docs for the <tt>ActionView::FormHelper.fields</tt> helper method.
+      # See the docs for the ActionView::Helpers::FormHelper#fields helper method.
       def fields(scope = nil, model: nil, **options, &block)
         options[:allow_method_names_outside_object] = true
         options[:skip_default_ids] = !FormHelper.form_with_generates_ids
@@ -2302,7 +2302,7 @@ module ActionView
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). The text of label will default to the attribute name unless a translation
-      # is found in the current I18n locale (through helpers.label.<modelname>.<attribute>) or you specify it explicitly.
+      # is found in the current I18n locale (through <tt>helpers.label.<modelname>.<attribute></tt>) or you specify it explicitly.
       # Additional options on the label tag can be passed as a hash with +options+. These options will be tagged
       # onto the HTML as an HTML element attribute as in the example shown, except for the <tt>:value</tt> option, which is designed to
       # target labels for radio_button tags (where the value is used in the ID of the input tag).

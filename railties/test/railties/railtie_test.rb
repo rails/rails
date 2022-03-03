@@ -224,5 +224,18 @@ module RailtiesTest
       Rails.env = original_env
       assert_equal(original_env, Rails.env)
     end
+
+    test "Railtie object isn't output when a NoMethodError is raised" do
+      class Foo < Rails::Railtie
+        config.foo = ActiveSupport::OrderedOptions.new
+        config.foo.greetings = "hello"
+      end
+
+      error = assert_raises(NoMethodError) do
+        Foo.instance.abc
+      end
+
+      assert_equal("undefined method `abc' for #<RailtiesTest::RailtieTest::Foo>", error.original_message)
+    end
   end
 end

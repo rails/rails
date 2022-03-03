@@ -33,8 +33,12 @@ module ActiveJob
 
   autoload :Base
   autoload :QueueAdapters
-  autoload :Serializers
-  autoload :ConfiguredJob
+
+  eager_autoload do
+    autoload :Serializers
+    autoload :ConfiguredJob
+  end
+
   autoload :TestCase
   autoload :TestHelper
   autoload :QueryTags

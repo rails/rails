@@ -48,9 +48,9 @@ module ActiveModel
   #
   # The last three methods are required in your object for +Errors+ to be
   # able to generate error messages correctly and also handle multiple
-  # languages. Of course, if you extend your object with <tt>ActiveModel::Translation</tt>
+  # languages. Of course, if you extend your object with ActiveModel::Translation
   # you will not need to implement the last two. Likewise, using
-  # <tt>ActiveModel::Validations</tt> will handle the validation related methods
+  # ActiveModel::Validations will handle the validation related methods
   # for you.
   #
   # The above allows you to do:
@@ -102,11 +102,14 @@ module ActiveModel
     # Copies the errors from <tt>other</tt>.
     # For copying errors but keep <tt>@base</tt> as is.
     #
-    # other - The ActiveModel::Errors instance.
+    # ==== Parameters
     #
-    # Examples
+    # * +other+ - The ActiveModel::Errors instance.
+    #
+    # ==== Examples
     #
     #   person.errors.copy!(other)
+    #
     def copy!(other) # :nodoc:
       @errors = other.errors.deep_dup
       @errors.each { |error|
@@ -114,14 +117,15 @@ module ActiveModel
       }
     end
 
-    # Imports one error
+    # Imports one error.
     # Imported errors are wrapped as a NestedError,
     # providing access to original error object.
     # If attribute or type needs to be overridden, use +override_options+.
     #
-    # override_options - Hash
-    # @option override_options [Symbol] :attribute Override the attribute the error belongs to
-    # @option override_options [Symbol] :type Override type of the error.
+    # ==== Options
+    #
+    # * +:attribute+ - Override the attribute the error belongs to.
+    # * +:type+ - Override type of the error.
     def import(error, override_options = {})
       [:attribute, :type].each do |key|
         if override_options.key?(key)
@@ -132,13 +136,16 @@ module ActiveModel
     end
 
     # Merges the errors from <tt>other</tt>,
-    # each <tt>Error</tt> wrapped as <tt>NestedError</tt>.
+    # each Error wrapped as NestedError.
     #
-    # other - The ActiveModel::Errors instance.
+    # ==== Parameters
     #
-    # Examples
+    # * +other+ - The ActiveModel::Errors instance.
+    #
+    # ==== Examples
     #
     #   person.errors.merge!(other)
+    #
     def merge!(other)
       return errors if equal?(other)
 
@@ -147,7 +154,7 @@ module ActiveModel
       }
     end
 
-    # Search for errors matching +attribute+, +type+ or +options+.
+    # Search for errors matching +attribute+, +type+, or +options+.
     #
     # Only supplied params will be matched.
     #
@@ -427,7 +434,7 @@ module ActiveModel
     # if it's not there, it's looked up in <tt>activemodel.errors.models.MODEL.MESSAGE</tt> and if
     # that is not there also, it returns the translation of the default message
     # (e.g. <tt>activemodel.errors.messages.MESSAGE</tt>). The translated model
-    # name, translated attribute name and the value are available for
+    # name, translated attribute name, and the value are available for
     # interpolation.
     #
     # When using inheritance in your models, it will check all the inherited

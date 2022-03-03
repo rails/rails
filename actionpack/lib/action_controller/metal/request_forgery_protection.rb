@@ -32,7 +32,7 @@ module ActionController # :nodoc:
   # response may be extracted. To prevent this, only XmlHttpRequest (known as XHR or
   # Ajax) requests are allowed to make requests for JavaScript responses.
   #
-  # Subclasses of <tt>ActionController::Base</tt> are protected by default with the
+  # Subclasses of ActionController::Base are protected by default with the
   # <tt>:exception</tt> strategy, which raises an
   # <tt>ActionController::InvalidAuthenticityToken</tt> error on unverified requests.
   #
@@ -111,8 +111,8 @@ module ActionController # :nodoc:
       #
       # Valid Options:
       #
-      # * <tt>:only/:except</tt> - Only apply forgery protection to a subset of actions. For example <tt>only: [ :create, :create_all ]</tt>.
-      # * <tt>:if/:unless</tt> - Turn off the forgery protection entirely depending on the passed Proc or method reference.
+      # * <tt>:only</tt> / <tt>:except</tt> - Only apply forgery protection to a subset of actions. For example <tt>only: [ :create, :create_all ]</tt>.
+      # * <tt>:if</tt> / <tt>:unless</tt> - Turn off the forgery protection entirely depending on the passed Proc or method reference.
       # * <tt>:prepend</tt> - By default, the verification of the authentication token will be added at the position of the
       #   protect_from_forgery call in your application. This means any callbacks added before are run first. This is useful
       #   when you want your forgery protection to depend on other callbacks, like authentication methods (Oauth vs Cookie auth).
@@ -155,7 +155,7 @@ module ActionController # :nodoc:
       #
       # See +skip_before_action+ for allowed options.
       def skip_forgery_protection(options = {})
-        skip_before_action :verify_authenticity_token, options
+        skip_before_action :verify_authenticity_token, options.reverse_merge(raise: false)
       end
 
       private

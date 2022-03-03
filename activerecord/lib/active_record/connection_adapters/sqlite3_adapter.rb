@@ -77,6 +77,8 @@ module ActiveRecord
       }
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
+        alias reset clear
+
         private
           def dealloc(stmt)
             stmt.close unless stmt.closed?
@@ -86,7 +88,6 @@ module ActiveRecord
       def initialize(connection, logger, connection_options, config)
         @memory_database = config[:database] == ":memory:"
         super(connection, logger, config)
-        configure_connection
       end
 
       def self.database_exists?(config)
@@ -159,19 +160,27 @@ module ActiveRecord
       end
 
       def active?
-        !@connection.closed?
+        !@raw_connection.closed?
       end
 
-      def reconnect!
-        super
-        connect if @connection.closed?
+      def reconnect!(restore_transactions: false)
+        @lock.synchronize do
+          if active?
+            @raw_connection.rollback rescue nil
+          else
+            connect
+          end
+
+          super
+        end
       end
+      alias :reset! :reconnect!
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
         super
-        @connection.close rescue nil
+        @raw_connection.close rescue nil
       end
 
       def supports_index_sort_order?
@@ -184,7 +193,7 @@ module ActiveRecord
 
       # Returns the current database encoding format as a string, e.g. 'UTF-8'
       def encoding
-        @connection.encoding.to_s
+        @raw_connection.encoding.to_s
       end
 
       def supports_explain?
@@ -599,15 +608,14 @@ module ActiveRecord
         end
 
         def connect
-          @connection = ::SQLite3::Database.new(
+          @raw_connection = ::SQLite3::Database.new(
             @config[:database].to_s,
             @config.merge(results_as_hash: true)
           )
-          configure_connection
         end
 
         def configure_connection
-          @connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout])) if @config[:timeout]
+          @raw_connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout])) if @config[:timeout]
 
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end

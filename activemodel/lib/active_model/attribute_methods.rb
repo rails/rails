@@ -253,7 +253,7 @@ module ActiveModel
       # <tt>ActiveModel::AttributeMethods</tt>.
       #
       # To use, pass attribute names (as strings or symbols). Be sure to declare
-      # +define_attribute_methods+ after you define any prefix, suffix or affix
+      # +define_attribute_methods+ after you define any prefix, suffix, or affix
       # methods, or they will not hook in.
       #
       #   class Person

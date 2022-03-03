@@ -30,7 +30,7 @@ module ActionController
       super
     end
 
-    # Overwrite render_to_string because body can now be set to a Rack body.
+    # Override render_to_string because body can now be set to a Rack body.
     def render_to_string(*)
       result = super
       if result.respond_to?(:each)

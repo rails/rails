@@ -51,7 +51,7 @@ module ApplicationTests
       assert_equal false, ActionDispatch::Cookies::CookieJar.always_write_cookie
     end
 
-    test "signed cookies with SHA512 digest and rotated out SHA256 and SHA1 digests" do
+    test "signed cookies with SHA512 digest and marshal serializer and rotated out SHA256 and SHA1 digests" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get  ':controller(/:action)'
@@ -88,8 +88,8 @@ module ApplicationTests
         sha256_secret = Rails.application.key_generator.generate_key("sha256")
 
         ::TestVerifiers = Class.new do
-          class_attribute :sha1, default: ActiveSupport::MessageVerifier.new(sha1_secret, digest: "SHA1")
-          class_attribute :sha256, default: ActiveSupport::MessageVerifier.new(sha256_secret, digest: "SHA256")
+          class_attribute :sha1, default: ActiveSupport::MessageVerifier.new(sha1_secret, digest: "SHA1", serializer: Marshal)
+          class_attribute :sha256, default: ActiveSupport::MessageVerifier.new(sha256_secret, digest: "SHA256", serializer: Marshal)
         end
 
         config.action_dispatch.signed_cookie_digest = "SHA512"
@@ -104,7 +104,77 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      verifier_sha512 = ActiveSupport::MessageVerifier.new(app.key_generator.generate_key("sha512 salt"), digest: :SHA512)
+      verifier_sha512 = ActiveSupport::MessageVerifier.new(app.key_generator.generate_key("sha512 salt"), digest: :SHA512, serializer: Marshal)
+
+      get "/foo/write_raw_cookie_sha1"
+      get "/foo/read_signed"
+      assert_equal "signed cookie".inspect, last_response.body
+
+      get "/foo/read_raw_cookie"
+      assert_equal "signed cookie", verifier_sha512.verify(last_response.body, purpose: "cookie.signed_cookie")
+
+      get "/foo/write_raw_cookie_sha256"
+      get "/foo/read_signed"
+      assert_equal "signed cookie".inspect, last_response.body
+
+      get "/foo/read_raw_cookie"
+      assert_equal "signed cookie", verifier_sha512.verify(last_response.body, purpose: "cookie.signed_cookie")
+    end
+
+    test "signed cookies with SHA512 digest and json serializer and rotated out SHA256 and SHA1 digests" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get  ':controller(/:action)'
+          post ':controller(/:action)'
+        end
+      RUBY
+
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          protect_from_forgery with: :null_session
+
+          def write_raw_cookie_sha1
+            cookies[:signed_cookie] = TestVerifiers.sha1.generate("signed cookie")
+            head :ok
+          end
+
+          def write_raw_cookie_sha256
+            cookies[:signed_cookie] = TestVerifiers.sha256.generate("signed cookie")
+            head :ok
+          end
+
+          def read_signed
+            render plain: cookies.signed[:signed_cookie].inspect
+          end
+
+          def read_raw_cookie
+            render plain: cookies[:signed_cookie]
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        sha1_secret   = Rails.application.key_generator.generate_key("sha1")
+        sha256_secret = Rails.application.key_generator.generate_key("sha256")
+
+        ::TestVerifiers = Class.new do
+          class_attribute :sha1, default: ActiveSupport::MessageVerifier.new(sha1_secret, digest: "SHA1", serializer: JSON)
+          class_attribute :sha256, default: ActiveSupport::MessageVerifier.new(sha256_secret, digest: "SHA256", serializer: JSON)
+        end
+
+        config.action_dispatch.signed_cookie_digest = "SHA512"
+        config.action_dispatch.signed_cookie_salt = "sha512 salt"
+        config.action_dispatch.cookies_serializer = :json
+
+        config.action_dispatch.cookies_rotations.tap do |cookies|
+          cookies.rotate :signed, sha1_secret,   digest: "SHA1"
+          cookies.rotate :signed, sha256_secret, digest: "SHA256"
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      verifier_sha512 = ActiveSupport::MessageVerifier.new(app.key_generator.generate_key("sha512 salt"), digest: :SHA512, serializer: JSON)
 
       get "/foo/write_raw_cookie_sha1"
       get "/foo/read_signed"

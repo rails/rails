@@ -60,7 +60,7 @@ module ActionController
 
   # <tt>ActionController::Metal</tt> is the simplest possible controller, providing a
   # valid Rack interface without the additional niceties provided by
-  # <tt>ActionController::Base</tt>.
+  # ActionController::Base.
   #
   # A sample metal controller might look like this:
   #
@@ -111,7 +111,7 @@ module ActionController
   #
   # == Other Helpers
   #
-  # You can refer to the modules included in <tt>ActionController::Base</tt> to see
+  # You can refer to the modules included in ActionController::Base to see
   # other features you can bring into your metal controller.
   #
   class Metal < AbstractController::Base
@@ -137,7 +137,7 @@ module ActionController
       false
     end
 
-    # Delegates to the class' <tt>controller_name</tt>.
+    # Delegates to the class's ::controller_name.
     def controller_name
       self.class.controller_name
     end

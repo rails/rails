@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/encryption/helper"
+require "base64"
 
 class ActiveRecord::Encryption::MessageSerializerTest < ActiveRecord::EncryptionTestCase
   setup do

@@ -94,7 +94,7 @@ module Rails
       #
       # The first and last part used to find the generator to be invoked are
       # guessed based on class invokes hook_for, as noticed in the example above.
-      # This can be customized with two options: :in and :as.
+      # This can be customized with two options: +:in+ and +:as+.
       #
       # Let's suppose you are creating a generator that needs to invoke the
       # controller generator from test unit. Your first attempt is:
@@ -108,7 +108,7 @@ module Rails
       #   "test_unit:awesome", "test_unit"
       #
       # Which is not the desired lookup. You can change it by providing the
-      # :as option:
+      # +:as+ option:
       #
       #   class AwesomeGenerator < Rails::Generators::Base
       #     hook_for :test_framework, as: :controller
@@ -119,7 +119,7 @@ module Rails
       #   "test_unit:controller", "test_unit"
       #
       # Similarly, if you want it to also look up in the rails namespace, you
-      # just need to provide the :in value:
+      # just need to provide the +:in+ value:
       #
       #   class AwesomeGenerator < Rails::Generators::Base
       #     hook_for :test_framework, in: :rails, as: :controller

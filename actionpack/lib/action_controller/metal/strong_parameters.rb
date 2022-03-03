@@ -236,7 +236,7 @@ module ActionController
     # By default, never raise an UnpermittedParameters exception if these
     # params are present. The default includes both 'controller' and 'action'
     # because they are added by Rails and should be of no concern. One way
-    # to change these is to specify `always_permitted_parameters` in your
+    # to change these is to specify +always_permitted_parameters+ in your
     # config. For instance:
     #
     #    config.action_controller.always_permitted_parameters = %w( controller action format )
@@ -778,7 +778,7 @@ module ActionController
 
     # Deletes a key-value pair from +Parameters+ and returns the value. If
     # +key+ is not found, returns +nil+ (or, with optional code block, yields
-    # +key+ and returns the result). Cf. +#extract!+, which returns the
+    # +key+ and returns the result). Cf. #extract!, which returns the
     # corresponding +ActionController::Parameters+ object.
     def delete(key, &block)
       convert_value_to_parameters(@parameters.delete(key, &block))
