@@ -43,7 +43,8 @@ Mime::Type.register "application/x-www-form-urlencoded", :url_encoded_form
 
 # https://www.ietf.org/rfc/rfc4627.txt
 # http://www.json.org/JSONRequest.html
-Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
+# https://www.ietf.org/rfc/rfc7807.txt
+Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest application/problem+json )
 
 Mime::Type.register "application/pdf", :pdf, [], %w(pdf)
 Mime::Type.register "application/zip", :zip, [], %w(zip)
