@@ -326,6 +326,13 @@ module ActiveRecord
                :disable_lazy_transactions!, :enable_lazy_transactions!, :dirty_current_transaction,
                to: :transaction_manager
 
+      def mark_transaction_written_if_write(sql) # :nodoc:
+        transaction = current_transaction
+        if transaction.open?
+          transaction.written ||= write_query?(sql)
+        end
+      end
+
       def transaction_open?
         current_transaction.open?
       end
