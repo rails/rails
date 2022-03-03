@@ -87,6 +87,7 @@ module ActiveRecord
 
     class Transaction # :nodoc:
       attr_reader :connection, :state, :savepoint_name, :isolation_level
+      attr_accessor :written, :written_indirectly
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         @connection = connection
@@ -383,6 +384,10 @@ module ActiveRecord
 
           dirty_current_transaction if transaction.dirty?
 
+          if current_transaction.open?
+            current_transaction.written_indirectly ||= transaction.written || transaction.written_indirectly
+          end
+
           transaction.commit
           transaction.commit_records
         end
@@ -419,19 +424,37 @@ module ActiveRecord
               # @connection still holds an open or invalid transaction, so we must not
               # put it back in the pool for reuse.
               @connection.throw_away! unless transaction.state.rolledback?
-            elsif Thread.current.status == "aborting" || !completed
-              # The transaction is still open but the block returned earlier.
-              #
-              # The block could return early because of a timeout or because the thread is aborting,
-              # so we are rolling back to make sure the timeout didn't caused the transaction to be
-              # committed incompletely.
-              rollback_transaction
             else
-              begin
-                commit_transaction
-              rescue Exception
-                rollback_transaction(transaction) unless transaction.state.completed?
-                raise
+              if Thread.current.status == "aborting"
+                rollback_transaction
+              elsif !completed && transaction.written
+                # This was deprecated in 6.1, and has now changed to a rollback
+                rollback_transaction
+              elsif !completed && !transaction.written_indirectly
+                # This was a silent commit in 6.1, but now becomes a rollback; we skipped
+                # the warning because (having not been written) the change generally won't
+                # have any effect
+                rollback_transaction
+              else
+                if !completed && transaction.written_indirectly
+                  # This is the case that was missed in the 6.1 deprecation, so we have to
+                  # do it now
+                  ActiveSupport::Deprecation.warn(<<~EOW)
+                    Using `return`, `break` or `throw` to exit a transaction block is
+                    deprecated without replacement. If the `throw` came from
+                    `Timeout.timeout(duration)`, pass an exception class as a second
+                    argument so it doesn't use `throw` to abort its block. This results
+                    in the transaction being committed, but in the next release of Rails
+                    it will rollback.
+                  EOW
+                end
+
+                begin
+                  commit_transaction
+                rescue Exception
+                  rollback_transaction(transaction) unless transaction.state.completed?
+                  raise
+                end
               end
             end
           end

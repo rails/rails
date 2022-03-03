@@ -168,6 +168,7 @@ module ActiveRecord
             check_if_write_query(sql)
 
             materialize_transactions
+            mark_transaction_written_if_write(sql)
 
             # make sure we carry over any changes to ActiveRecord.default_timezone that have been
             # made since we established the connection
