@@ -3,6 +3,7 @@
 module ActiveRecord
   module Type
     class Time < ActiveModel::Type::Time
+      include ActiveModel::Type::SerializeCastValue
       include Internal::Timezone
 
       class Value < DelegateClass(::Time) # :nodoc:
@@ -15,6 +16,10 @@ module ActiveRecord
         else
           value
         end
+      end
+
+      def serialize_cast_value(value) # :nodoc:
+        Value.new(super) if value
       end
 
       private

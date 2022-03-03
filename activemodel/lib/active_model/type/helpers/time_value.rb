@@ -20,6 +20,7 @@ module ActiveModel
 
           value
         end
+        alias :serialize_time_value :serialize
 
         def apply_seconds_precision(value)
           return value unless precision && value.respond_to?(:nsec)

@@ -82,6 +82,20 @@ module ActiveModel
       assert_equal "serialize(cast(whatever))", attribute.value_for_database
     end
 
+    test "from_user + value_for_database uses serialize_cast_value when possible" do
+      @type = Class.new(InscribingType) do
+        include Type::SerializeCastValue
+
+        def serialize_cast_value(value)
+          "serialize_cast_value(#{value})"
+        end
+      end.new
+
+      attribute = Attribute.from_user(nil, "whatever", @type)
+
+      assert_equal "serialize_cast_value(cast(whatever))", attribute.value_for_database
+    end
+
     test "duping dups the value" do
       attribute = Attribute.from_database(nil, "a value", @type)
 
