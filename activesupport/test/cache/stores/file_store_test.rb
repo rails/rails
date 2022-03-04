@@ -47,7 +47,7 @@ class FileStoreTest < ActiveSupport::TestCase
 
   def test_clear_without_cache_dir
     FileUtils.rm_r(cache_dir)
-    @cache.clear
+    assert_nothing_raised { @cache.clear }
   end
 
   def test_long_uri_encoded_keys

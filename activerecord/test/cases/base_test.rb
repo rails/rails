@@ -608,26 +608,29 @@ class BasicsTest < ActiveRecord::TestCase
     car = Car.create!
     car.bulbs.build
     car.save
+    bulbs_of_car = Bulb.where(car_id: car.id)
 
-    assert car.bulbs == Bulb.where(car_id: car.id), "CollectionProxy should be comparable with Relation"
-    assert Bulb.where(car_id: car.id) == car.bulbs, "Relation should be comparable with CollectionProxy"
+    assert_equal car.bulbs, bulbs_of_car, "CollectionProxy should be comparable with Relation"
+    assert_equal bulbs_of_car, car.bulbs, "Relation should be comparable with CollectionProxy"
   end
 
   def test_equality_of_relation_and_array
     car = Car.create!
     car.bulbs.build
     car.save
+    bulbs_of_car = Bulb.where(car_id: car.id)
 
-    assert Bulb.where(car_id: car.id) == car.bulbs.to_a, "Relation should be comparable with Array"
+    assert_equal bulbs_of_car, car.bulbs.to_a, "Relation should be comparable with Array"
   end
 
   def test_equality_of_relation_and_association_relation
     car = Car.create!
     car.bulbs.build
     car.save
+    bulbs_of_car = Bulb.where(car_id: car.id)
 
-    assert_equal Bulb.where(car_id: car.id), car.bulbs.includes(:car), "Relation should be comparable with AssociationRelation"
-    assert_equal car.bulbs.includes(:car), Bulb.where(car_id: car.id), "AssociationRelation should be comparable with Relation"
+    assert_equal bulbs_of_car, car.bulbs.includes(:car), "Relation should be comparable with AssociationRelation"
+    assert_equal car.bulbs.includes(:car), bulbs_of_car, "AssociationRelation should be comparable with Relation"
   end
 
   def test_equality_of_collection_proxy_and_association_relation
@@ -1474,43 +1477,6 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_typecasting_aliases
     assert_equal 10, Topic.select("10 as tenderlove").first.tenderlove
-  end
-
-  def test_slice
-    company = Company.new(rating: 1, name: "37signals", firm_name: "37signals")
-    hash = company.slice(:name, :rating, "arbitrary_method")
-    assert_equal hash[:name], company.name
-    assert_equal hash["name"], company.name
-    assert_equal hash[:rating], company.rating
-    assert_equal hash["arbitrary_method"], company.arbitrary_method
-    assert_equal hash[:arbitrary_method], company.arbitrary_method
-    assert_nil hash[:firm_name]
-    assert_nil hash["firm_name"]
-  end
-
-  def test_slice_accepts_array_argument
-    attrs = {
-      title: "slice",
-      author_name: "@Cohen-Carlisle",
-      content: "accept arrays so I don't have to splat"
-    }.with_indifferent_access
-    topic = Topic.new(attrs)
-    assert_equal attrs, topic.slice(attrs.keys)
-  end
-
-  def test_values_at
-    company = Company.new(name: "37signals", rating: 1)
-
-    assert_equal [ "37signals", 1, "I am Jack's profound disappointment" ],
-      company.values_at(:name, :rating, :arbitrary_method)
-    assert_equal [ "I am Jack's profound disappointment", 1, "37signals" ],
-      company.values_at(:arbitrary_method, :rating, :name)
-  end
-
-  def test_values_at_accepts_array_argument
-    topic = Topic.new(title: "Budget", author_name: "Jason")
-
-    assert_equal %w( Budget Jason ), topic.values_at(%w( title author_name ))
   end
 
   def test_default_values_are_deeply_dupped

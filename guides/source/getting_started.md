@@ -83,8 +83,6 @@ proper prerequisites installed. These include:
 
 * Ruby
 * SQLite3
-* Node.js
-* Yarn
 
 #### Installing Ruby
 
@@ -120,31 +118,6 @@ $ sqlite3 --version
 ```
 
 The program should report its version.
-
-#### Installing Node.js and Yarn
-
-Finally, you'll need Node.js and Yarn installed to manage your application's JavaScript.
-
-Find the installation instructions at the [Node.js website](https://nodejs.org/en/download/) and
-verify it's installed correctly with the following command:
-
-```bash
-$ node --version
-```
-
-The version of your Node.js runtime should be printed out. Make sure it's greater
-than 8.16.0.
-
-To install Yarn, follow the installation
-instructions at the [Yarn website](https://classic.yarnpkg.com/en/docs/install).
-
-Running this command should print out Yarn version:
-
-```bash
-$ yarn --version
-```
-
-If it says something like "1.22.0", Yarn has been installed correctly.
 
 #### Installing Rails
 
@@ -213,7 +186,8 @@ of the files and folders that Rails creates by default:
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
 |tmp/|Temporary files (like cache and pid files).|
 |vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
-|.gitignore|This file tells git which files (or patterns) it should ignore. See [GitHub - Ignoring files](https://help.github.com/articles/ignoring-files) for more info about ignoring files.|
+|.gitattributes|This file defines metadata for specific paths in a git repository. This metadata can be used by git and other tools to enhance their behavior. See the [gitattributes documentation](https://git-scm.com/docs/gitattributes) for more information.|
+|.gitignore|This file tells git which files (or patterns) it should ignore. See [GitHub - Ignoring files](https://help.github.com/articles/ignoring-files) for more information about ignoring files.|
 |.ruby-version|This file contains the default Ruby version.|
 
 Hello, Rails!
@@ -335,7 +309,7 @@ and see our text displayed!
 
 ### Setting the Application Home Page
 
-At the moment, <http://localhost:3000> still displays "Yay! You're on Rails!".
+At the moment, <http://localhost:3000> still displays a page with the Ruby on Rails logo.
 Let's display our "Hello, Rails!" text at <http://localhost:3000> as well. To do
 so, we will add a route that maps the *root path* of our application to the
 appropriate controller and action.
@@ -1469,7 +1443,7 @@ controller. Again, we'll use the same generator we used before:
 $ bin/rails generate controller Comments
 ```
 
-This creates four files and one empty directory:
+This creates three files and one empty directory:
 
 | File/Directory                               | Purpose                                  |
 | -------------------------------------------- | ---------------------------------------- |
@@ -1477,7 +1451,6 @@ This creates four files and one empty directory:
 | app/views/comments/                          | Views of the controller are stored here  |
 | test/controllers/comments_controller_test.rb | The test for the controller              |
 | app/helpers/comments_helper.rb               | A view helper file                       |
-| app/assets/stylesheets/comments.scss         | Cascading style sheet for the controller |
 
 Like with any blog, our readers will create their comments directly after
 reading the article, and once they have added their comment, will be sent back
@@ -2090,6 +2063,9 @@ Authentication challenge:
 
 ![Basic HTTP Authentication Challenge](images/getting_started/challenge.png)
 
+After entering the correct username and password, you will remain authenticated
+until a different username and password is required or the browser is closed.
+
 Other authentication methods are available for Rails applications. Two popular
 authentication add-ons for Rails are the
 [Devise](https://github.com/plataformatec/devise) rails engine and
@@ -2115,7 +2091,6 @@ resources:
 
 * The [Ruby on Rails Guides](index.html)
 * The [Ruby on Rails mailing list](https://discuss.rubyonrails.org/c/rubyonrails-talk)
-* The [#rubyonrails](irc://irc.freenode.net/#rubyonrails) channel on irc.freenode.net
 
 
 Configuration Gotchas

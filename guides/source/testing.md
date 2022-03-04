@@ -264,8 +264,7 @@ Notice the 'E' in the output. It denotes a test with error.
 NOTE: The execution of each test method stops as soon as any error or an
 assertion failure is encountered, and the test suite continues with the next
 method. All test methods are executed in random order. The
-[`config.active_support.test_order` option](configuring.html#configuring-active-support)
-can be used to configure test order.
+[`config.active_support.test_order`][] option can be used to configure test order.
 
 When a test fails you are presented with the corresponding backtrace. By default
 Rails filters that backtrace and will only print lines relevant to your
@@ -289,6 +288,8 @@ end
 ```
 
 This test should now pass.
+
+[`config.active_support.test_order`]: configuring.html#config-active-support-test-order
 
 ### Available Assertions
 

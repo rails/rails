@@ -16,19 +16,19 @@ module ActiveSupport
   # needing to override or redefine methods of the base class.
   #
   # Mixing in this module allows you to define the events in the object's
-  # life cycle that will support callbacks (via +ClassMethods.define_callbacks+),
+  # life cycle that will support callbacks (via ClassMethods#define_callbacks),
   # set the instance methods, procs, or callback objects to be called (via
-  # +ClassMethods.set_callback+), and run the installed callbacks at the
+  # ClassMethods#set_callback), and run the installed callbacks at the
   # appropriate times (via +run_callbacks+).
   #
   # By default callbacks are halted by throwing +:abort+.
-  # See +ClassMethods.define_callbacks+ for details.
+  # See ClassMethods#define_callbacks for details.
   #
   # Three kinds of callbacks are supported: before callbacks, run before a
   # certain event; after callbacks, run after the event; and around callbacks,
   # blocks that surround the event, triggering it when they yield. Callback code
   # can be contained in instance methods, procs or lambdas, or callback objects
-  # that respond to certain predetermined methods. See +ClassMethods.set_callback+
+  # that respond to certain predetermined methods. See ClassMethods#set_callback
   # for details.
   #
   #   class Record
@@ -600,7 +600,7 @@ module ActiveSupport
         end
       end
 
-      class CallbackChain # :nodoc:#
+      class CallbackChain # :nodoc:
         include Enumerable
 
         attr_reader :name, :config

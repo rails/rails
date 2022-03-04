@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/enumerable"
-require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/string/filters"
 require "active_support/parameter_filter"
 require "concurrent/map"
@@ -9,6 +8,7 @@ require "concurrent/map"
 module ActiveRecord
   module Core
     extend ActiveSupport::Concern
+    include ActiveModel::Access
 
     included do
       ##
@@ -60,7 +60,7 @@ module ActiveRecord
       ##
       # :singleton-method:
       # Force enumeration of all columns in SELECT statements.
-      # e.g. `SELECT first_name, last_name FROM ...` instead of `SELECT * FROM ...`
+      # e.g. <tt>SELECT first_name, last_name FROM ...</tt> instead of <tt>SELECT * FROM ...</tt>
       # This avoids +PreparedStatementCacheExpired+ errors when a column is added
       # to the database while the app is running.
       class_attribute :enumerate_columns_in_select_statements, instance_accessor: false, default: false
@@ -395,7 +395,7 @@ module ActiveRecord
         end
       end
 
-      # Overwrite the default class equality method to provide support for decorated models.
+      # Override the default class equality method to provide support for decorated models.
       def ===(object) # :nodoc:
         object.is_a?(self)
       end
@@ -722,15 +722,26 @@ module ActiveRecord
       end
     end
 
-    # Returns a hash of the given methods with their names as keys and returned values as values.
-    def slice(*methods)
-      methods.flatten.index_with { |method| public_send(method) }.with_indifferent_access
-    end
+    ##
+    # :method: slice
+    #
+    # :call-seq: slice(*methods)
+    #
+    # Returns a hash of the given methods with their names as keys and returned
+    # values as values.
+    #
+    #--
+    # Implemented by ActiveModel::Access#slice.
 
+    ##
+    # :method: values_at
+    #
+    # :call-seq: values_at(*methods)
+    #
     # Returns an array of the values returned by the given methods.
-    def values_at(*methods)
-      methods.flatten.map! { |method| public_send(method) }
-    end
+    #
+    #--
+    # Implemented by ActiveModel::Access#values_at.
 
     private
       # +Array#flatten+ will call +#to_ary+ (recursively) on each of the elements of

@@ -125,7 +125,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_application_new_exits_with_non_zero_code_on_invalid_application_name
-    quietly { system "rails new test --no-rc" }
+    quietly { system "#{File.expand_path("../../exe/rails", __dir__)} new test --no-rc" }
     assert_equal false, $?.success?
   end
 
@@ -134,7 +134,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [app_root]
     output = nil
     Dir.chdir(app_root) do
-      output = `rails new mysecondapp`
+      output = `#{File.expand_path("../../exe/rails", __dir__)} new mysecondapp`
     end
     assert_equal "Can't initialize a new Rails application within the directory of another, please change to a non-Rails directory first.\nType 'rails' for help.\n", output
     assert_equal false, $?.success?
@@ -144,7 +144,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, "myfirstapp")
     run_generator [app_root]
     output = Dir.chdir(app_root) do
-      `rails new --help`
+      `#{File.expand_path("../../exe/rails", __dir__)} new --help`
     end
     assert_match(/rails new APP_PATH \[options\]/, output)
     assert_equal true, $?.success?

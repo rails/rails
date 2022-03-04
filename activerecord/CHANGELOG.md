@@ -1,3 +1,41 @@
+*   Reduce the memory footprint of fixtures accessors.
+
+    Until now fixtures accessors were eagerly defined using `define_method`.
+    So the memory usage was directly dependent of the number of fixtures and
+    test suites.
+
+    Instead fixtures accessors are now implemented with `method_missing`,
+    so they incur much less memory and CPU overhead.
+
+    *Jean Boussier*
+
+*   Fix `config.active_record.destroy_association_async_job` configuration
+
+    `config.active_record.destroy_association_async_job` should allow
+    applications to specify the job that will be used to destroy associated
+    records in the background for `has_many` associations with the
+    `dependent: :destroy_async` option. Previously, that was ignored, which
+    meant the default `ActiveRecord::DestroyAssociationAsyncJob` always
+    destroyed records in the background.
+
+    *Nick Holden*
+
+*   Fix `change_column_comment` to preserve column's AUTO_INCREMENT in the MySQL adapter
+
+    *fatkodima*
+
+*   Fix quoting of `ActiveSupport::Duration` and `Rational` numbers in the MySQL adapter.
+
+    *Kevin McPhillips*
+
+*   Allow column name with COLLATE (e.g., title COLLATE "C") as safe SQL string
+
+    *Shugo Maeda*
+
+*   Permit underscores in the VERSION argument to database rake tasks.
+
+    *Eddie Lebow*
+
 *   Reversed the order of `INSERT` statements in `structure.sql` dumps
 
     This should decrease the likelihood of merge conflicts. New migrations

@@ -68,7 +68,7 @@ class Date
   silence_redefinition_of_method :to_time
 
   # Converts a Date instance to a Time, where the time is set to the beginning of the day.
-  # The timezone can be either :local or :utc (default :local).
+  # The timezone can be either +:local+ or +:utc+ (default +:local+).
   #
   #   date = Date.new(2007, 11, 10)  # => Sat, 10 Nov 2007
   #
@@ -77,8 +77,8 @@ class Date
   #
   #   date.to_time(:utc)             # => 2007-11-10 00:00:00 UTC
   #
-  # NOTE: The :local timezone is Ruby's *process* timezone, i.e. ENV['TZ'].
-  #       If the *application's* timezone is needed, then use +in_time_zone+ instead.
+  # NOTE: The +:local+ timezone is Ruby's *process* timezone, i.e. <tt>ENV['TZ']</tt>.
+  # If the <b>application's</b> timezone is needed, then use +in_time_zone+ instead.
   def to_time(form = :local)
     raise ArgumentError, "Expected :local or :utc, got #{form.inspect}." unless [:local, :utc].include?(form)
     ::Time.public_send(form, year, month, day)

@@ -64,18 +64,21 @@ module ActiveSupport
     # after the work has been performed.
     #
     # Where possible, prefer +wrap+.
-    def self.run!
-      if active?
-        Null
+    def self.run!(reset: false)
+      if reset
+        lost_instance = IsolatedExecutionState.delete(active_key)
+        lost_instance&.complete!
       else
-        new.tap do |instance|
-          success = nil
-          begin
-            instance.run!
-            success = true
-          ensure
-            instance.complete! unless success
-          end
+        return Null if active?
+      end
+
+      new.tap do |instance|
+        success = nil
+        begin
+          instance.run!
+          success = true
+        ensure
+          instance.complete! unless success
         end
       end
     end
@@ -105,27 +108,20 @@ module ActiveSupport
       end
     end
 
-    class << self # :nodoc:
-      attr_accessor :active
-    end
-
     def self.error_reporter
       @error_reporter ||= ActiveSupport::ErrorReporter.new
     end
 
-    def self.inherited(other) # :nodoc:
-      super
-      other.active = Concurrent::Hash.new
+    def self.active_key # :nodoc:
+      @active_key ||= :"active_execution_wrapper_#{object_id}"
     end
 
-    self.active = Concurrent::Hash.new
-
     def self.active? # :nodoc:
-      @active[IsolatedExecutionState.unique_id]
+      IsolatedExecutionState.key?(active_key)
     end
 
     def run! # :nodoc:
-      self.class.active[IsolatedExecutionState.unique_id] = true
+      IsolatedExecutionState[self.class.active_key] = self
       run
     end
 
@@ -140,7 +136,7 @@ module ActiveSupport
     def complete!
       complete
     ensure
-      self.class.active.delete(IsolatedExecutionState.unique_id)
+      IsolatedExecutionState.delete(self.class.active_key)
     end
 
     def complete # :nodoc:

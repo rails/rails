@@ -13,6 +13,7 @@ module ActiveModel
     #
     #   person = Person.new
     #   person.name = 1
+    #
     #   person.name # => "1"
     #   person.name.frozen? # => true
     #
@@ -27,7 +28,9 @@ module ActiveModel
     #     attribute :active, :immutable_string, true: "aye", false: "nay"
     #   end
     #
-    #   person = Person.new(active: true)
+    #   person = Person.new
+    #   person.active = true
+    #
     #   person.active # => "aye"
     class ImmutableString < Value
       def initialize(**args)

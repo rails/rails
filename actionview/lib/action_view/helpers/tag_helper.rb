@@ -45,8 +45,8 @@ module ActionView
         include CaptureHelper
         include OutputSafetyHelper
 
-        HTML_VOID_ELEMENTS = %i(area base br col circle embed hr img input keygen link meta param source track wbr).to_set
-        SVG_VOID_ELEMENTS = %i(animate animateMotion animateTransform circle ellipse line path polygon polyline rect set stop use view).to_set
+        HTML_VOID_ELEMENTS = %i(area base br col embed hr img input keygen link meta param source track wbr).to_set
+        SVG_SELF_CLOSING_ELEMENTS = %i(animate animateMotion animateTransform circle ellipse line path polygon polyline rect set stop use view).to_set
 
         def initialize(view_context)
           @view_context = view_context
@@ -67,8 +67,9 @@ module ActionView
 
         def tag_string(name, content = nil, escape_attributes: true, **options, &block)
           content = @view_context.capture(self, &block) if block_given?
-          if (HTML_VOID_ELEMENTS.include?(name) || SVG_VOID_ELEMENTS.include?(name)) && content.nil?
-            "<#{name.to_s.dasherize}#{tag_options(options, escape_attributes)}>".html_safe
+          self_closing = SVG_SELF_CLOSING_ELEMENTS.include?(name)
+          if (HTML_VOID_ELEMENTS.include?(name) || self_closing) && content.nil?
+            "<#{name.to_s.dasherize}#{tag_options(options, escape_attributes)}#{self_closing ? " />" : ">"}".html_safe
           else
             content_tag_string(name.to_s.dasherize, content || "", options, escape_attributes)
           end
@@ -208,7 +209,7 @@ module ActionView
       #
       # Thus <tt>data-user-id</tt> can be accessed as <tt>dataset.userId</tt>.
       #
-      # Data attribute values are encoded to JSON, with the exception of strings, symbols and
+      # Data attribute values are encoded to JSON, with the exception of strings, symbols, and
       # BigDecimals.
       # This may come in handy when using jQuery's HTML5-aware <tt>.data()</tt>
       # from 1.4.3.
@@ -240,7 +241,7 @@ module ActionView
       # Transforms a Hash into HTML attributes, ready to be interpolated into
       # ERB. Includes or omits boolean attributes based on their truthiness.
       # Transforms keys nested within
-      # <tt>aria:</tt> or <tt>data:</tt> objects into `aria-` and `data-`
+      # <tt>aria:</tt> or <tt>data:</tt> objects into <tt>aria-</tt> and <tt>data-</tt>
       # prefixed attributes:
       #
       #   <input <%= tag.attributes(type: :text, aria: { label: "Search" }) %>>

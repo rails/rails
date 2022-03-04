@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/numeric/time"
+
 # Tests the base functionality that should be identical across all cache stores.
 module CacheStoreBehavior
   def test_should_read_and_write_strings
@@ -406,7 +408,7 @@ module CacheStoreBehavior
   end
 
   def test_keys_are_case_sensitive
-    key = SecureRandom.alphanumeric
+    key = "case_sensitive_key"
     @cache.write(key, "bar")
     assert_nil @cache.read(key.upcase)
   end

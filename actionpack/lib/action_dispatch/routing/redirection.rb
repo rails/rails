@@ -38,7 +38,7 @@ module ActionDispatch
 
         req.commit_flash
 
-        body = %(<html><body>You are being <a href="#{ERB::Util.unwrapped_html_escape(uri.to_s)}">redirected</a>.</body></html>)
+        body = ""
 
         headers = {
           "Location" => uri.to_s,

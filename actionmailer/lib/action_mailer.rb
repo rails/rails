@@ -58,6 +58,10 @@ module ActionMailer
 
     require "mail"
     Mail.eager_autoload!
+
+    Base.descendants.each do |mailer|
+      mailer.eager_load! unless mailer.abstract?
+    end
   end
 end
 

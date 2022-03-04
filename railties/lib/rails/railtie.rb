@@ -24,7 +24,7 @@ module Rails
   # * creating initializers
   # * configuring a Rails framework for the application, like setting a generator
   # * adding <tt>config.*</tt> keys to the environment
-  # * setting up a subscriber with <tt>ActiveSupport::Notifications</tt>
+  # * setting up a subscriber with ActiveSupport::Notifications
   # * adding Rake tasks
   #
   # == Creating a Railtie
@@ -129,7 +129,7 @@ module Rails
   # == Application and Engine
   #
   # An engine is nothing more than a railtie with some initializers already set. And since
-  # <tt>Rails::Application</tt> is an engine, the same configuration described here can be
+  # Rails::Application is an engine, the same configuration described here can be
   # used in both.
   #
   # Be sure to look at the documentation of those specific classes for more information.
@@ -245,6 +245,10 @@ module Rails
       if self.class.abstract_railtie?
         raise "#{self.class.name} is abstract, you cannot instantiate it directly."
       end
+    end
+
+    def inspect # :nodoc:
+      "#<#{self.class.name}>"
     end
 
     def configure(&block) # :nodoc:

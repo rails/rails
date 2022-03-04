@@ -202,7 +202,7 @@ module Rails
         end
 
         # Add a class collisions name to be checked on class initialization. You
-        # can supply a hash with a :prefix or :suffix to be tested.
+        # can supply a hash with a +:prefix+ or +:suffix+ to be tested.
         #
         # ==== Examples
         #

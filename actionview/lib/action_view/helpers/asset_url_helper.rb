@@ -219,7 +219,7 @@ module ActionView
 
       # Computes the full URL to an asset in the public directory. This
       # will use +asset_path+ internally, so most of their behaviors
-      # will be the same. If :host options is set, it overwrites global
+      # will be the same. If +:host+ options is set, it overwrites global
       # +config.action_controller.asset_host+ setting.
       #
       # All other options provided are forwarded to +asset_path+ call.
@@ -324,7 +324,7 @@ module ActionView
 
       # Computes the full URL to a JavaScript asset in the public javascripts directory.
       # This will use +javascript_path+ internally, so most of their behaviors will be the same.
-      # Since +javascript_url+ is based on +asset_url+ method you can set :host options. If :host
+      # Since +javascript_url+ is based on +asset_url+ method you can set +:host+ options. If +:host+
       # options is set, it overwrites global +config.action_controller.asset_host+ setting.
       #
       #   javascript_url "js/xmlhr.js", host: "http://stage.example.com" # => http://stage.example.com/assets/js/xmlhr.js
@@ -351,7 +351,7 @@ module ActionView
 
       # Computes the full URL to a stylesheet asset in the public stylesheets directory.
       # This will use +stylesheet_path+ internally, so most of their behaviors will be the same.
-      # Since +stylesheet_url+ is based on +asset_url+ method you can set :host options. If :host
+      # Since +stylesheet_url+ is based on +asset_url+ method you can set +:host+ options. If +:host+
       # options is set, it overwrites global +config.action_controller.asset_host+ setting.
       #
       #   stylesheet_url "css/style.css", host: "http://stage.example.com" # => http://stage.example.com/assets/css/style.css
@@ -381,7 +381,7 @@ module ActionView
 
       # Computes the full URL to an image asset.
       # This will use +image_path+ internally, so most of their behaviors will be the same.
-      # Since +image_url+ is based on +asset_url+ method you can set :host options. If :host
+      # Since +image_url+ is based on +asset_url+ method you can set +:host+ options. If +:host+
       # options is set, it overwrites global +config.action_controller.asset_host+ setting.
       #
       #   image_url "edit.png", host: "http://stage.example.com" # => http://stage.example.com/assets/edit.png
@@ -407,7 +407,7 @@ module ActionView
 
       # Computes the full URL to a video asset in the public videos directory.
       # This will use +video_path+ internally, so most of their behaviors will be the same.
-      # Since +video_url+ is based on +asset_url+ method you can set :host options. If :host
+      # Since +video_url+ is based on +asset_url+ method you can set +:host+ options. If +:host+
       # options is set, it overwrites global +config.action_controller.asset_host+ setting.
       #
       #   video_url "hd.avi", host: "http://stage.example.com" # => http://stage.example.com/videos/hd.avi
@@ -433,7 +433,7 @@ module ActionView
 
       # Computes the full URL to an audio asset in the public audios directory.
       # This will use +audio_path+ internally, so most of their behaviors will be the same.
-      # Since +audio_url+ is based on +asset_url+ method you can set :host options. If :host
+      # Since +audio_url+ is based on +asset_url+ method you can set +:host+ options. If +:host+
       # options is set, it overwrites global +config.action_controller.asset_host+ setting.
       #
       #   audio_url "horse.wav", host: "http://stage.example.com" # => http://stage.example.com/audios/horse.wav
@@ -458,7 +458,7 @@ module ActionView
 
       # Computes the full URL to a font asset.
       # This will use +font_path+ internally, so most of their behaviors will be the same.
-      # Since +font_url+ is based on +asset_url+ method you can set :host options. If :host
+      # Since +font_url+ is based on +asset_url+ method you can set +:host+ options. If +:host+
       # options is set, it overwrites global +config.action_controller.asset_host+ setting.
       #
       #   font_url "font.ttf", host: "http://stage.example.com" # => http://stage.example.com/fonts/font.ttf

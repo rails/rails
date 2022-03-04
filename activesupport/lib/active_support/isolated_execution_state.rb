@@ -42,12 +42,27 @@ module ActiveSupport
         state[key] = value
       end
 
+      def key?(key)
+        state.key?(key)
+      end
+
+      def delete(key)
+        state.delete(key)
+      end
+
       def clear
         state.clear
       end
 
       def context
         scope.current
+      end
+
+      def share_with(other)
+        # Action Controller streaming spawns a new thread and copy thread locals.
+        # We do the same here for backward compatibility, but this is very much a hack
+        # and streaming should be rethought.
+        context.active_support_execution_state = other.active_support_execution_state.dup
       end
 
       private

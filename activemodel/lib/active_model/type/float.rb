@@ -13,7 +13,9 @@ module ActiveModel
     #     attribute :weight, :float
     #   end
     #
-    #   bag = BagOfCoffee.new(weight: "0.25")
+    #   bag = BagOfCoffee.new
+    #   bag.weight = "0.25"
+    #
     #   bag.weight # => 0.25
     #
     # Values are coerced to their float representation using their +to_f+

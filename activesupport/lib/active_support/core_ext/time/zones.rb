@@ -55,7 +55,7 @@ class Time
     #     end
     #   end
     #
-    # NOTE: This won't affect any <tt>ActiveSupport::TimeWithZone</tt>
+    # NOTE: This won't affect any ActiveSupport::TimeWithZone
     # objects that have already been created, e.g. any model timestamp
     # attributes that have been read before the block will remain in
     # the application's default timezone.

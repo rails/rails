@@ -74,12 +74,6 @@ module ActionMailer
       end
     end
 
-    initializer "action_mailer.eager_load_actions" do
-      ActiveSupport.on_load(:after_initialize) do
-        ActionMailer::Base.descendants.each(&:action_methods) if config.eager_load
-      end
-    end
-
     config.after_initialize do |app|
       options = app.config.action_mailer
 

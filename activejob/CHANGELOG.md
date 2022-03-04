@@ -1,3 +1,10 @@
+*   Add missing `bigdecimal` require in `ActiveJob::Arguments`
+
+    Could cause `uninitialized constant ActiveJob::Arguments::BigDecimal (NameError)`
+    when loading Active Job in isolation.
+
+    *Jean Boussier*
+
 *   Allow testing `discard_on/retry_on ActiveJob::DeserializationError`
 
     Previously in `perform_enqueued_jobs`, `deserialize_arguments_if_needed`

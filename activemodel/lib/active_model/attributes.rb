@@ -23,7 +23,8 @@ module ActiveModel
   #     attribute :active, :boolean, default: true
   #   end
   #
-  #   person = Person.new(name: "Volmer")
+  #   person = Person.new
+  #   person.name = "Volmer"
   #
   #   person.name # => "Volmer"
   #   person.active # => true
@@ -50,7 +51,8 @@ module ActiveModel
       #     attribute :active, :boolean, default: true
       #   end
       #
-      #   person = Person.new(name: "Volmer")
+      #   person = Person.new
+      #   person.name = "Volmer"
       #
       #   person.name   # => "Volmer"
       #   person.active # => true
@@ -132,7 +134,10 @@ module ActiveModel
     #     attribute :age, :integer
     #   end
     #
-    #   person = Person.new(name: "Francesco", age: 22)
+    #   person = Person.new
+    #   person.name = "Francesco"
+    #   person.age = 22
+    #
     #   person.attributes # => { "name" => "Francesco", "age" => 22}
     def attributes
       @attributes.to_hash

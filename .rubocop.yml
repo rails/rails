@@ -159,6 +159,9 @@ Style/FrozenStringLiteralComment:
     - 'actionmailbox/db/migrate/**/*.rb'
     - 'actiontext/db/migrate/**/*.rb'
 
+Style/MapToHash:
+  Enabled: true
+
 Style/RedundantFreeze:
   Enabled: true
 
@@ -213,7 +216,7 @@ Lint/DuplicateMethods:
 
 Lint/ErbNewArguments:
   Enabled: true
-  
+
 Lint/EnsureReturn:
   Enabled: true
 
@@ -300,6 +303,9 @@ Performance/DeletePrefix:
   Enabled: true
 
 Performance/DeleteSuffix:
+  Enabled: true
+
+Performance/OpenStruct:
   Enabled: true
 
 Minitest/UnreachableAssertion:

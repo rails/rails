@@ -139,7 +139,7 @@ module ActionDispatch
   #
   #   cookies.delete :user_name
   #
-  # Please note that if you specify a :domain when setting a cookie, you must also specify the domain when deleting the cookie:
+  # Please note that if you specify a +:domain+ when setting a cookie, you must also specify the domain when deleting the cookie:
   #
   #  cookies[:name] = {
   #    value: 'a yummy cookie',
@@ -199,7 +199,7 @@ module ActionDispatch
     # Raised when storing more than 4K of session data.
     CookieOverflow = Class.new StandardError
 
-    # Include in a cookie jar to allow chaining, e.g. cookies.permanent.signed.
+    # Include in a cookie jar to allow chaining, e.g. +cookies.permanent.signed+.
     module ChainedCookieJars
       # Returns a jar that'll automatically set the assigned cookies to have an expiration date 20 years from now. Example:
       #

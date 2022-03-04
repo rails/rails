@@ -92,7 +92,7 @@ module ActiveRecord
       def initialize(connection, logger = nil, config = {}) # :nodoc:
         super()
 
-        @connection          = connection
+        @raw_connection      = connection
         @owner               = nil
         @instrumenter        = ActiveSupport::Notifications.instrumenter
         @logger              = logger
@@ -112,6 +112,10 @@ module ActiveRecord
         )
 
         @default_timezone = self.class.validate_default_timezone(config[:default_timezone])
+
+        @raw_connection_dirty = false
+
+        configure_connection
       end
 
       EXCEPTION_NEVER = { Exception => :never }.freeze # :nodoc:
@@ -240,14 +244,14 @@ module ActiveRecord
         @pool.connection_class
       end
 
-      # The role (ie :writing) for the current connection. In a
-      # non-multi role application, `:writing` is returned.
+      # The role (e.g. +:writing+) for the current connection. In a
+      # non-multi role application, +:writing+ is returned.
       def role
         @pool.role
       end
 
-      # The shard (ie :default) for the current connection. In
-      # a non-sharded application, `:default` is returned.
+      # The shard (e.g. +:default+) for the current connection. In
+      # a non-sharded application, +:default+ is returned.
       def shard
         @pool.shard
       end
@@ -332,6 +336,10 @@ module ActiveRecord
       # Do TransactionRollbackErrors on savepoints affect the parent
       # transaction?
       def savepoint_errors_invalidate_transactions?
+        false
+      end
+
+      def supports_restart_db_transaction?
         false
       end
 
@@ -546,17 +554,20 @@ module ActiveRecord
       end
 
       # Disconnects from the database if already connected, and establishes a
-      # new connection with the database. Implementors should call super if they
-      # override the default implementation.
-      def reconnect!
-        clear_cache!
-        reset_transaction
+      # new connection with the database. Implementors should call super
+      # immediately after establishing the new connection (and while still
+      # holding @lock).
+      def reconnect!(restore_transactions: false)
+        reset_transaction(restore: restore_transactions) do
+          clear_cache!(new_connection: true)
+          configure_connection
+        end
       end
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
-        clear_cache!
+        clear_cache!(new_connection: true)
         reset_transaction
       end
 
@@ -569,7 +580,7 @@ module ActiveRecord
       def discard!
         # This should be overridden by concrete adapters.
         #
-        # Prevent @connection's finalizer from touching the socket, or
+        # Prevent @raw_connection's finalizer from touching the socket, or
         # otherwise communicating with its server, when it is collected.
         if schema_cache.connection == self
           schema_cache.connection = nil
@@ -580,10 +591,14 @@ module ActiveRecord
       # transactions and other connection-related server-side state. Usually a
       # database-dependent operation.
       #
-      # The default implementation does nothing; the implementation should be
-      # overridden by concrete adapters.
+      # If a database driver or protocol does not support such a feature,
+      # implementors may alias this to #reconnect!. Otherwise, implementors
+      # should call super immediately after resetting the connection (and while
+      # still holding @lock).
       def reset!
-        # this should be overridden by concrete adapters
+        clear_cache!(new_connection: true)
+        reset_transaction
+        configure_connection
       end
 
       # Removes the connection from the pool and disconnect it.
@@ -593,8 +608,16 @@ module ActiveRecord
       end
 
       # Clear any caching the database adapter may be doing.
-      def clear_cache!
-        @lock.synchronize { @statements.clear } if @statements
+      def clear_cache!(new_connection: false)
+        if @statements
+          @lock.synchronize do
+            if new_connection
+              @statements.reset
+            else
+              @statements.clear
+            end
+          end
+        end
       end
 
       # Returns true if its required to reload the connection between requests for development mode.
@@ -617,7 +640,8 @@ module ActiveRecord
       # PostgreSQL's lo_* methods.
       def raw_connection
         disable_lazy_transactions!
-        @connection
+        @raw_connection_dirty = true
+        @raw_connection
       end
 
       def default_uniqueness_comparison(attribute, value) # :nodoc:
@@ -769,6 +793,10 @@ module ActiveRecord
       EXTENDED_TYPE_MAPS = Concurrent::Map.new
 
       private
+        def reconnect_can_restore_state?
+          transaction_manager.restorable? && !@raw_connection_dirty
+        end
+
         def extended_type_map_key
           if @default_timezone
             { default_timezone: @default_timezone }
@@ -870,6 +898,16 @@ module ActiveRecord
         # custom result objects with connection-specific data.
         def build_result(columns:, rows:, column_types: {})
           ActiveRecord::Result.new(columns, rows, column_types)
+        end
+
+        # Perform any necessary initialization upon the newly-established
+        # @raw_connection -- this is the place to modify the adapter's
+        # connection settings, run queries to configure any application-global
+        # "session" variables, etc.
+        #
+        # Implementations may assume this method will only be called while
+        # holding @lock (or from #initialize).
+        def configure_connection
         end
     end
   end

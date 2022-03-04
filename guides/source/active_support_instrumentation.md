@@ -256,10 +256,10 @@ INFO. Additional keys may be added by the caller.
 
 #### unpermitted_parameters.action_controller
 
-| Key           | Value                                                                 |
-| ------------- | --------------------------------------------------------------------- |
-| `:keys`       | The unpermitted keys                                                  |
-| `:context`    | Hash with the following keys: :controller, :action, :params, :request |
+| Key           | Value                                                                         |
+| ------------- | ----------------------------------------------------------------------------- |
+| `:keys`       | The unpermitted keys                                                          |
+| `:context`    | Hash with the following keys: `:controller`, `:action`, `:params`, `:request` |
 
 ### Action Dispatch
 
@@ -419,12 +419,12 @@ INFO. The adapters will add their own data as well.
 
 #### cache_read.active_support
 
-| Key                | Value                                             |
-| ------------------ | ------------------------------------------------- |
-| `:key`             | Key used in the store                             |
-| `:store`           | Name of the store class                           |
-| `:hit`             | If this read is a hit                             |
-| `:super_operation` | :fetch is added when a read is used with `#fetch` |
+| Key                | Value                                               |
+| ------------------ | --------------------------------------------------- |
+| `:key`             | Key used in the store                               |
+| `:store`           | Name of the store class                             |
+| `:hit`             | If this read is a hit                               |
+| `:super_operation` | `:fetch` is added when a read is used with `#fetch` |
 
 #### cache_generate.active_support
 

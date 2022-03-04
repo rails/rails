@@ -4,7 +4,7 @@ require "singleton"
 
 module ActiveSupport
   # \Deprecation specifies the API used by Rails to deprecate methods, instance
-  # variables, objects and constants.
+  # variables, objects, and constants.
   class Deprecation
     # active_support.rb sets an autoload for ActiveSupport::Deprecation.
     #

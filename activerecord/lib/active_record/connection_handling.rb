@@ -44,7 +44,7 @@ module ActiveRecord
     #
     #   ActiveRecord::Base.establish_connection(:production)
     #
-    # The exceptions AdapterNotSpecified, AdapterNotFound and +ArgumentError+
+    # The exceptions AdapterNotSpecified, AdapterNotFound, and +ArgumentError+
     # may be returned on an error.
     def establish_connection(config_or_env = nil)
       config_or_env ||= DEFAULT_ENV.call.to_sym
@@ -108,7 +108,7 @@ module ActiveRecord
       connections
     end
 
-    # Connects to a role (ex writing, reading or a custom role) and/or
+    # Connects to a role (e.g. writing, reading, or a custom role) and/or
     # shard for the duration of the block. At the end of the block the
     # connection will be returned to the original role / shard.
     #

@@ -63,6 +63,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.add_autoload_paths_to_load_path`](#config-add-autoload-paths-to-load-path): `false`
 - [`config.active_support.default_message_encryptor_serializer`](#config-active-support-default-message-encryptor-serializer): `:json`
+- [`config.active_support.default_message_verifier_serializer`](#config-active-support-default-message-verifier-serializer): `:json`
 
 #### Default Values for Target Version 7.0
 
@@ -100,7 +101,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_mailer.deliver_later_queue_name`](#config-action-mailer-deliver-later-queue-name): `nil`
 - [`config.active_job.retry_jitter`](#config-active-job-retry-jitter): `0.15`
 - [`config.action_dispatch.cookies_same_site_protection`](#config-action-dispatch-cookies-same-site-protection): `:lax`
-- [`config.action_dispatch.ssl_default_redirect_status`](`config.action_dispatch.ssl_default_redirect_status`) = `308`
+- [`config.action_dispatch.ssl_default_redirect_status`](#config-action-dispatch-ssl-default-redirect-status) = `308`
 - [`ActiveSupport.utc_to_local_returns_utc_offset_times`](#activesupport-utc-to-local-returns-utc-offset-times): `true`
 - [`config.action_controller.urlsafe_csrf_tokens`](#config-action-controller-urlsafe-csrf-tokens): `true`
 - [`config.action_view.form_with_generates_remote_forms`](#config-action-view-form-with-generates-remote-forms): `false`
@@ -247,8 +248,19 @@ Is the class used to detect file updates in the file system when `config.reload_
 
 #### `config.filter_parameters`
 
-Used for filtering out the parameters that you don't want shown in the logs, such as passwords or credit card
-numbers. It also filters out sensitive values of database columns when calling `#inspect` on an Active Record object. By default, Rails filters out passwords by adding `Rails.application.config.filter_parameters += [:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
+Used for filtering out the parameters that you don't want shown in the logs,
+such as passwords or credit card numbers. It also filters out sensitive values
+of database columns when calling `#inspect` on an Active Record object. By
+default, Rails filters out passwords by adding the following filters in
+`config/initializers/filter_parameter_logging.rb`.
+
+```ruby
+Rails.application.config.filter_parameters += [
+  :passw, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn
+]
+```
+
+Parameters filter works by partial matching regular expression.
 
 #### `config.force_ssl`
 
@@ -308,7 +320,7 @@ Configures lookup path for encrypted credentials.
 
 Configures lookup path for encryption key.
 
-#### `secret_key_base``
+#### `secret_key_base`
 
 Is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get a random generated key in test and development environments, other environments should set one in `config/credentials.yml.enc`.
 
@@ -322,13 +334,22 @@ Configures Rails to serve static files from the public directory. This option de
 
 #### `config.session_store`
 
-Specifies what class to use to store the session. Possible values are `:cookie_store` which is the default, `:mem_cache_store`, and `:disabled`. The last one tells Rails not to deal with sessions. Defaults to a cookie store with application name as the session key. Custom session stores can also be specified:
+Specifies what class to use to store the session. Possible values are `:cookie_store`, `:mem_cache_store`, a custom store, or `:disabled`. `:disabled` tells Rails not to deal with sessions.
+
+This setting is configured via a regular method call, rather than a setter. This allows additional options to be passed:
 
 ```ruby
+config.session_store :cookie_store, key: "_your_app_session"
+```
+
+If a custom store is specified as a symbol, it will be resolved to the `ActionDispatch::Session` namespace:
+
+```ruby
+# use ActionDispatch::Session::MyCustomStore as the session store
 config.session_store :my_custom_store
 ```
 
-This custom store must be defined as `ActionDispatch::Session::MyCustomStore`.
+The default store is a cookie store with the application name as the session key.
 
 #### `config.ssl_options`
 
@@ -347,18 +368,13 @@ Sets the default time zone for the application and enables time zone awareness f
 
 ### Configuring Assets
 
-#### `config.assets.enabled`
-
-A flag that controls whether the asset pipeline is enabled. It is set to `true`
-by default.
-
 #### `config.assets.css_compressor`
 
 Defines the CSS compressor to use. It is set by default by `sass-rails`. The unique alternative value at the moment is `:yui`, which uses the `yui-compressor` gem.
 
 #### `config.assets.js_compressor`
 
-Defines the JavaScript compressor to use. Possible values are `:terser`, `:closure`, `:uglifier` and `:yui` which require the use of the `terser`, `closure-compiler`, `uglifier` or `yui-compressor` gems respectively.
+Defines the JavaScript compressor to use. Possible values are `:terser`, `:closure`, `:uglifier`, and `:yui`, which require the use of the `terser`, `closure-compiler`, `uglifier`, or `yui-compressor` gems respectively.
 
 #### `config.assets.gzip`
 
@@ -561,11 +577,11 @@ Sets cookies for the request.
 
 #### `ActionDispatch::Session::CookieStore`
 
-Is responsible for storing the session in cookies. An alternate middleware can be used for this by changing the `config.action_controller.session_store` to an alternate value. Additionally, options passed to this can be configured by using `config.action_controller.session_options`.
+Is responsible for storing the session in cookies. An alternate middleware can be used for this by changing [`config.session_store`](#config-session-store).
 
 #### `ActionDispatch::Flash`
 
-Sets up the `flash` keys. Only available if `config.action_controller.session_store` is set to a value.
+Sets up the `flash` keys. Only available if [`config.session_store`](#config-session-store) is set to a value.
 
 #### `Rack::MethodOverride`
 
@@ -1136,10 +1152,6 @@ Configures the [`ParamsWrapper`](https://api.rubyonrails.org/classes/ActionContr
 the top level, or on individual controllers.
 
 ### Configuring Action Dispatch
-
-#### `config.action_dispatch.session_store`
-
-Sets the name of the store for session data. The default is `:cookie_store`; other valid options include `:active_record_store`, `:mem_cache_store` or the name of your own custom class.
 
 #### `config.action_dispatch.cookies_serializer`
 
@@ -1873,7 +1885,7 @@ The default value depends on the `config.load_defaults` target version:
 
 Specifies what serializer the `MessageEncryptor` class will use by default.
 
-Options are `:json`, `:hybrid` and `:marshal`. `:hybrid` uses the `JsonWithMarshalFallback` class. 
+Options are `:json`, `:hybrid`, and `:marshal`. `:hybrid` uses the `JsonWithMarshalFallback` class.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -1897,6 +1909,19 @@ If this is set to false, it will use `JSON` to serialize payloads.
 Used to help migrate apps from `Marshal` to `JSON` as the default serializer for the `MessageEncryptor` class.
 
 Defaults to `true`.
+
+#### `config.active_support.default_message_verifier_serializer`
+
+Specifies what serializer the `MessageVerifier` class will use by default.
+
+Options are `:json`, `:hybrid`, and `:marshal`. `:hybrid` uses the `JsonWithMarshalFallback` class.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:marshal`           |
+| 7.1                   | `:json`              |
 
 ### Configuring Active Job
 
@@ -2031,7 +2056,7 @@ By default, this is defined as:
 config.active_storage.analyzers = [ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer]
 ```
 
-The image analyzers can extract width and height of an image blob; the video analyzer can extract width, height, duration, angle, aspect ratio and presence/absence of video/audio channels of a video blob; the audio analyzer can extract duration and bit rate of an audio blob.
+The image analyzers can extract width and height of an image blob; the video analyzer can extract width, height, duration, angle, aspect ratio, and presence/absence of video/audio channels of a video blob; the audio analyzer can extract duration and bit rate of an audio blob.
 
 #### `config.active_storage.previewers`
 
@@ -2765,7 +2790,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `engines_blank_point`: Provides a point-in-initialization to hook into if you wish to do anything before engines are loaded. After this point, all railtie and engine initializers are run.
 
-* `add_generator_templates`: Finds templates for generators at `lib/templates` for the application, railties, and engines and adds these to the `config.generators.templates` setting, which will make the templates available for all generators to reference.
+* `add_generator_templates`: Finds templates for generators at `lib/templates` for the application, railties, and engines, and adds these to the `config.generators.templates` setting, which will make the templates available for all generators to reference.
 
 * `ensure_autoload_once_paths_as_subset`: Ensures that the `config.autoload_once_paths` only contains paths from `config.autoload_paths`. If it contains extra paths, then an exception will be raised.
 

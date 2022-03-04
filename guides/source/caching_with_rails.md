@@ -36,12 +36,14 @@ page and action caching you will need to add `actionpack-page_caching` and
 
 By default, caching is only enabled in your production environment. You can play
 around with caching locally by running `rails dev:cache`, or by setting
-`config.action_controller.perform_caching` to `true` in `config/environments/development.rb`.
+[`config.action_controller.perform_caching`][] to `true` in `config/environments/development.rb`.
 
 NOTE: Changing the value of `config.action_controller.perform_caching` will
 only have an effect on the caching provided by Action Controller.
 For instance, it will not impact low-level caching, that we address
 [below](#low-level-caching).
+
+[`config.action_controller.perform_caching`]: configuring.html#config-action-controller-perform-caching
 
 ### Page Caching
 
@@ -299,7 +301,7 @@ NOTE: Notice that in this example we used the `cache_key_with_version` method, s
 Consider this example, which stores a list of Active Record objects representing superusers in the cache:
 
 ```ruby
- # super_admins is an expensive SQL query, so don't run it too often
+# super_admins is an expensive SQL query, so don't run it too often
 Rails.cache.fetch("super_admin_users", expires_in: 12.hours) do
   User.super_admins.to_a
 end
@@ -312,7 +314,7 @@ cache stores that reload code when you make changes.
 Instead, cache the ID or some other primitive data type. For example:
 
 ```ruby
- # super_admins is an expensive SQL query, so don't run it too often
+# super_admins is an expensive SQL query, so don't run it too often
 ids = Rails.cache.fetch("super_admin_user_ids", expires_in: 12.hours) do
   User.super_admins.pluck(:id)
 end

@@ -61,7 +61,7 @@ class ActiveSupport::TestCase
     ActiveStorage::Current.reset
   end
 
-  def assert_queries(expected_count)
+  def assert_queries(expected_count, &block)
     ActiveRecord::Base.connection.materialize_transactions
 
     queries = []
@@ -69,9 +69,9 @@ class ActiveSupport::TestCase
       queries << payload[:sql] unless %w[ SCHEMA TRANSACTION ].include?(payload[:name])
     end
 
-    yield.tap do
-      assert_equal expected_count, queries.size, "#{queries.size} instead of #{expected_count} queries were executed. #{queries.inspect}"
-    end
+    result = _assert_nothing_raised_or_warn("assert_queries", &block)
+    assert_equal expected_count, queries.size, "#{queries.size} instead of #{expected_count} queries were executed. #{queries.inspect}"
+    result
   end
 
   def assert_no_queries(&block)
