@@ -1,12 +1,12 @@
 * Set the value of the explicit `:value` option to `data-disable-with`
 
     ```ruby
-    = f.submit value: '選択する'
+    = f.submit value: 'Submit'
 
     # Before
-    # => <input type="submit" name="commit" value="選択する" data-disable-with="登録する">
+    # => <input type="submit" name="commit" value="Submit" data-disable-with="Create">
     # After
-    # => <input type="submit" name="commit" value="選択する" data-disable-with="選択する">
+    # => <input type="submit" name="commit" value="Submit" data-disable-with="Submit">
     ```
 
     *Noriyo Akita*
