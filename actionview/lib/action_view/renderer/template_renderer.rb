@@ -49,7 +49,7 @@ module ActionView
             @lookup_context.find_template(options[:template], options[:prefixes], false, keys, @details)
           end
         else
-          raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file, :plain, :html or :body option."
+          raise ArgumentError, "You invoked render but did not give any of :body, :file, :html, :inline, :partial, :plain, :renderable, or :template option."
         end
       end
 
