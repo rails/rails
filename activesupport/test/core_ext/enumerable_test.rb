@@ -360,4 +360,13 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_raise(expected_raise) { GenericEnumerable.new([1, 2]).sole }
     assert_raise(expected_raise) { GenericEnumerable.new([1, nil]).sole }
   end
+
+  def test_doesnt_bust_constant_cache
+    skip "Only applies to MRI" unless defined?(RubyVM.stat) && RubyVM.stat(:global_constant_state)
+
+    object = Object.new
+    assert_no_difference -> { RubyVM.stat(:global_constant_state) } do
+      object.extend(Enumerable)
+    end
+  end
 end
