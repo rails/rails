@@ -138,7 +138,7 @@ module Rails
         template "config/storage.yml"
       end
 
-      if skip_sprockets? && !assets_config_exist
+      if skip_sprockets? && skip_propshaft? && !assets_config_exist
         remove_file "config/initializers/assets.rb"
       end
 
@@ -457,9 +457,12 @@ module Rails
         end
       end
 
-      def delete_assets_initializer_skipping_sprockets
-        if skip_sprockets?
+      def delete_assets_initializer_skipping_sprockets_and_propshaft
+        if skip_sprockets? && skip_propshaft?
           remove_file "config/initializers/assets.rb"
+        end
+
+        if skip_sprockets?
           remove_file "app/assets/config/manifest.js"
           remove_dir  "app/assets/config"
           remove_file "app/assets/stylesheets/application.css"

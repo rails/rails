@@ -239,6 +239,10 @@ module Rails
         options[:skip_asset_pipeline] || options[:asset_pipeline] != "sprockets"
       end
 
+      def skip_propshaft?
+        options[:skip_asset_pipeline] || options[:asset_pipeline] != "propshaft"
+      end
+
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
         def initialize(name, version, comment, options = {}, commented_out = false)
