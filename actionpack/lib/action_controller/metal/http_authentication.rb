@@ -74,6 +74,8 @@ module ActionController
           #
           # See ActionController::HttpAuthentication::Basic for example usage.
           def http_basic_authenticate_with(name:, password:, realm: nil, **options)
+            raise ArgumentError, "Expected name: to be a String, got #{name.class}" unless name.is_a?(String)
+            raise ArgumentError, "Expected password: to be a String, got #{password.class}" unless name.is_a?(String)
             before_action(options) { http_basic_authenticate_or_request_with name: name, password: password, realm: realm }
           end
         end
@@ -82,8 +84,8 @@ module ActionController
           authenticate_or_request_with_http_basic(realm, message) do |given_name, given_password|
             # This comparison uses & so that it doesn't short circuit and
             # uses `secure_compare` so that length information isn't leaked.
-            ActiveSupport::SecurityUtils.secure_compare(given_name, name) &
-              ActiveSupport::SecurityUtils.secure_compare(given_password, password)
+            ActiveSupport::SecurityUtils.secure_compare(given_name.to_s, name) &
+              ActiveSupport::SecurityUtils.secure_compare(given_password.to_s, password)
           end
         end
 
@@ -107,7 +109,7 @@ module ActionController
       end
 
       def has_basic_credentials?(request)
-        request.authorization.present? && (auth_scheme(request).downcase == "basic") && user_name_and_password(request).length == 2
+        request.authorization.present? && (auth_scheme(request).downcase == "basic")
       end
 
       def user_name_and_password(request)
