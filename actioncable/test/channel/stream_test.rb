@@ -288,8 +288,6 @@ module ActionCable::StreamTests
       end
   end
 
-  require "action_cable/subscription_adapter/async"
-
   class UserCallbackChannel < ActionCable::Channel::Base
     def subscribed
       stream_from :channel do
