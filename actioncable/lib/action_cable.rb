@@ -27,9 +27,22 @@ require "active_support"
 require "active_support/rails"
 require "action_cable/version"
 
-module ActionCable
-  extend ActiveSupport::Autoload
+require "zeitwerk"
+Zeitwerk::Loader.for_gem.tap do |loader|
+  loader.inflector.inflect("postgresql" => "PostgreSQL")
 
+  # You only want to load the adapters that are needed at runtime.
+  loader.do_not_eager_load("#{__dir__}/action_cable/subscription_adapter")
+
+  # This directory contains generators, templates, documentation, etc.
+  # Generators are required on demand, so we can just ignore it all.
+  loader.ignore("#{__dir__}/rails")
+  loader.ignore("#{__dir__}/action_cable/gem_version.rb")
+
+  loader.setup
+end
+
+module ActionCable
   INTERNAL = {
     message_types: {
       welcome: "welcome",
@@ -51,12 +64,4 @@ module ActionCable
   module_function def server
     @server ||= ActionCable::Server::Base.new
   end
-
-  autoload :Server
-  autoload :Connection
-  autoload :Channel
-  autoload :RemoteConnections
-  autoload :SubscriptionAdapter
-  autoload :TestHelper
-  autoload :TestCase
 end
