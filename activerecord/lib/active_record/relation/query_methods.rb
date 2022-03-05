@@ -31,15 +31,21 @@ module ActiveRecord
       #
       #    User.where.not(name: "Jon")
       #    # SELECT * FROM users WHERE name != 'Jon'
+      #    # If the column is nullable
+      #    # SELECT * FROM users WHERE (name != 'Jon' OR name IS NULL)
       #
       #    User.where.not(name: nil)
       #    # SELECT * FROM users WHERE name IS NOT NULL
       #
       #    User.where.not(name: %w(Ko1 Nobu))
       #    # SELECT * FROM users WHERE name NOT IN ('Ko1', 'Nobu')
+      #    # If the column is nullable
+      #    # SELECT * FROM users WHERE (name NOT IN ('Ko1', 'Nobu') OR name IS NULL)
       #
       #    User.where.not(name: "Jon", role: "admin")
       #    # SELECT * FROM users WHERE NOT (name == 'Jon' AND role == 'admin')
+      #    # If name is nullable
+      #    # SELECT * FROM users WHERE NOT (name == 'Jon' AND role == 'admin' AND name IS NOT NULL)
       def not(opts, *rest)
         where_clause = @scope.send(:build_where_clause, opts, rest)
 

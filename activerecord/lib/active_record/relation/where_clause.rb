@@ -83,10 +83,40 @@ module ActiveRecord
       end
 
       def invert
+        if predicates.any? { |pred| pred.nil? }
+          raise ArgumentError, "Invalid argument for .where.not(), got nil."
+        end
+
+        attrs_need_null_preds = attributes_need_null_preds
         if predicates.size == 1
-          inverted_predicates = [ invert_predicate(predicates.first) ]
+          # We can't treat a predicate as a special case of a group of predicates for
+          # the unscope compatible reason. (e.g. unscope(where: :foo))
+          predicate = predicates.first
+          inverted_predicate = invert_predicate(predicate)
+
+          if attrs_need_null_preds.present?
+            attribute = attrs_need_null_preds.first
+            is_null =
+              Arel::Nodes::IsNotDistinctFrom.new(
+                attribute, Arel::Nodes.build_quoted(nil, attribute))
+            inverted_predicate =
+              # we wrap it with a grouping to avoid conflict with others
+              Arel::Nodes::Grouping.new(
+                Arel::Nodes::Or.new(inverted_predicate, is_null))
+          end
+
+          inverted_predicates = [inverted_predicate]
         else
-          inverted_predicates = [ Arel::Nodes::Not.new(ast) ]
+          is_not_null_predicates = attrs_need_null_preds.uniq.map do |attribute|
+            Arel::Nodes::IsDistinctFrom.new(
+              attribute, Arel::Nodes.build_quoted(nil, attribute))
+          end
+
+          predicate = ast
+          predicate =
+            predicate.is_a?(Arel::Nodes::And) ? predicate.children : [predicate]
+          predicate = Arel::Nodes::And.new(predicate + is_not_null_predicates)
+          inverted_predicates = [Arel::Nodes::Not.new(predicate)]
         end
 
         WhereClause.new(inverted_predicates)
@@ -123,13 +153,39 @@ module ActiveRecord
         end
 
       private
-        def each_attributes
-          predicates.each do |node|
+        def attributes_need_null_preds
+          attributes.filter_map do |attribute, node|
+            case node
+            when Arel::Nodes::Equality
+              next false if node.right.nil?
+            when Arel::Nodes::HomogeneousIn
+              next false if node.type != :in
+            else next false
+            end
+
+            nullable_attribute?(attribute) && attribute
+          end
+        end
+
+        def nullable_attribute?(attribute)
+          columns_hash = attribute&.relation&.klass&.columns_hash
+          return nil unless columns_hash
+          columns_hash[attribute.name]&.null
+        end
+
+        def attributes
+          predicates.filter_map do |node|
             attr = extract_attribute(node) || begin
               node.left if equality_node?(node) && node.left.is_a?(Arel::Predications)
             end
 
-            yield attr, node if attr
+            [attr, node] if attr
+          end
+        end
+
+        def each_attributes
+          attributes.each do |attr, node|
+            yield attr, node
           end
         end
 
@@ -174,8 +230,6 @@ module ActiveRecord
 
         def invert_predicate(node)
           case node
-          when NilClass
-            raise ArgumentError, "Invalid argument for .where.not(), got nil."
           when String
             Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new(node))
           else

@@ -1,3 +1,14 @@
+*   Make `invert` generate null predicates with nullable columns
+
+    Original `invert` didn't generate the appropriate null predicates for
+    nullable columns.
+
+    Now, `invert` detects nullable columns and non-null expressions, generates
+    the appropriate null predicates, so `where.not` have a more consistent
+    behavior.
+
+    *vy0b0x*
+
 *   Reduce the memory footprint of fixtures accessors.
 
     Until now fixtures accessors were eagerly defined using `define_method`.

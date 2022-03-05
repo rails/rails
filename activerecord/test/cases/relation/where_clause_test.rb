@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/admin"
+require "models/admin/user"
 
 class ActiveRecord::Relation
   class WhereClauseTest < ActiveRecord::TestCase
@@ -85,6 +87,71 @@ class ActiveRecord::Relation
       assert_raises ArgumentError do
         where_clause.invert
       end
+    end
+
+    test "invert creates null predicates when the corresponding attribute is nullable" do
+      table = Arel::Table.new("admin_users", klass: Admin::User)
+
+      original = WhereClause.new([table["settings"].eq("1")])
+      expected = WhereClause.new([
+        Arel::Nodes::Grouping.new(
+          Arel::Nodes::Or.new(
+            table["settings"].not_eq("1"),
+            table["settings"].is_not_distinct_from(nil)))
+      ])
+      assert_equal expected, original.invert
+
+      original = WhereClause.new(
+        [table["settings"].eq("1"), table["settings"].eq("2")])
+      expected = WhereClause.new([
+        Arel::Nodes::Not.new(
+          Arel::Nodes::And.new([
+            table["settings"].eq("1"),
+            table["settings"].eq("2"),
+            table["settings"].is_distinct_from(nil)
+          ])
+        )
+      ])
+      assert_equal expected, original.invert
+
+      original = WhereClause.new(
+        [table["settings"].eq("1"), table["configs"].eq("2")])
+      expected = WhereClause.new([
+        Arel::Nodes::Not.new(
+          Arel::Nodes::And.new([
+            table["settings"].eq("1"),
+            table["configs"].eq("2"),
+            table["settings"].is_distinct_from(nil),
+            table["configs"].is_distinct_from(nil)
+          ])
+        )
+      ])
+      assert_equal expected, original.invert
+
+      original = WhereClause.new(
+        [Arel::Nodes::HomogeneousIn.new(["1", "2"], table["settings"], :in)])
+      expected = WhereClause.new([
+        Arel::Nodes::Grouping.new(Arel::Nodes::Or.new(
+          Arel::Nodes::HomogeneousIn.new(["1", "2"], table["settings"], :notin),
+          table["settings"].is_not_distinct_from(nil)
+        ))
+      ])
+      assert_equal expected, original.invert
+
+      original = WhereClause.new([
+        Arel::Nodes::HomogeneousIn.new(["1", "2"], table["settings"], :in),
+        Arel::Nodes::HomogeneousIn.new(["1", "2"], table["configs"], :notin),
+      ])
+      expected = WhereClause.new([
+        Arel::Nodes::Not.new(
+          Arel::Nodes::And.new([
+            Arel::Nodes::HomogeneousIn.new(["1", "2"], table["settings"], :in),
+            Arel::Nodes::HomogeneousIn.new(["1", "2"], table["configs"], :notin),
+            table["settings"].is_distinct_from(nil)
+          ])
+        )
+      ])
+      assert_equal expected, original.invert
     end
 
     test "invert wraps the ast inside a NAND node" do

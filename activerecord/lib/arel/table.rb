@@ -8,6 +8,7 @@ module Arel # :nodoc: all
     @engine = nil
     class << self; attr_accessor :engine; end
 
+    attr_reader :klass
     attr_accessor :name, :table_alias
 
     # TableAlias and Table both have a #table_name which is the name of the underlying table
