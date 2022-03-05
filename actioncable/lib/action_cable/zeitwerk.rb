@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "zeitwerk"
 
 lib = File.expand_path("..", __dir__)
