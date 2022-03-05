@@ -2,7 +2,6 @@
 
 gem "pg", "~> 1.1"
 require "pg"
-require "thread"
 require "openssl"
 
 module ActionCable
