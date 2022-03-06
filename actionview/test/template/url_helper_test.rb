@@ -889,6 +889,11 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal({ class: "special" }, options)
   end
 
+  def test_mail_to_if
+    assert_dom_equal %{<a href="mailto:shubham@test.com">shubham@test.com</a>}, mail_to_if(true, "shubham@test.com")
+    assert_dom_equal %{}, mail_to_if(false, "shubham@test.com")
+  end
+
   def test_sms_to
     assert_dom_equal %{<a href="sms:15155555785;">15155555785</a>}, sms_to("15155555785")
     assert_dom_equal %{<a href="sms:15155555785;">Jim Jones</a>}, sms_to("15155555785", "Jim Jones")
