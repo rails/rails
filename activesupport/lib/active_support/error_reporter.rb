@@ -91,8 +91,8 @@ module ActiveSupport
 
     # When the block based +handle+ and +record+ methods are not suitable, you can directly use +report+
     #
-    #   Rails.error.report(error, handled: true)
-    def report(error, handled:, severity: handled ? :warning : :error, context: {})
+    #   Rails.error.report(error)
+    def report(error, handled: true, severity: handled ? :warning : :error, context: {})
       unless SEVERITIES.include?(severity)
         raise ArgumentError, "severity must be one of #{SEVERITIES.map(&:inspect).join(", ")}, got: #{severity.inspect}"
       end
