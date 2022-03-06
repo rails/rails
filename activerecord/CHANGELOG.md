@@ -1,3 +1,9 @@
+*   Migrations with a custom context and fixtures utilizing a `#connected_to` block now use the shard specified in the method call.
+
+    Fixes #43978.
+
+    * Sammy Larbi *
+
 *   Reduce the memory footprint of fixtures accessors.
 
     Until now fixtures accessors were eagerly defined using `define_method`.
