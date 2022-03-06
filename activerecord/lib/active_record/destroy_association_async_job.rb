@@ -11,10 +11,14 @@ module ActiveRecord
     discard_on ActiveJob::DeserializationError
 
     def perform(
-      owner_model_name: nil, owner_id: nil,
-      association_class: nil, association_ids: nil, association_primary_key_column: nil,
-      ensuring_owner_was_method: nil
-    )
+          owner_model_name: nil,
+          owner_id: nil,
+          association_class: nil,
+          association_ids: nil,
+          association_primary_key_column: nil,
+          ensuring_owner_was_method: nil,
+          **_options
+        )
       association_model = association_class.constantize
       owner_class = owner_model_name.constantize
       owner = owner_class.find_by(owner_class.primary_key.to_sym => owner_id)
