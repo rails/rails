@@ -723,6 +723,24 @@ module ApplicationTests
           assert_match(/Dropped database/, repeat_output)
         end
       end
+
+      test "destructive tasks are protected" do
+        add_to_config "config.active_record.protected_environments = ['development', 'test']"
+
+        require "#{app_path}/config/environment"
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+
+          destructive_tasks = ["db:drop:all", "db:drop", "db:purge:all", "db:truncate_all", "db:purge", "db:schema:load", "db:test:purge"]
+
+          destructive_tasks.each do |task|
+            error = assert_raises("#{task} did not raise ActiveRecord::ProtectedEnvironmentError") { rails task }
+            assert_match(/ActiveRecord::ProtectedEnvironmentError/, error.message)
+          end
+        end
+      end
     end
   end
 end
