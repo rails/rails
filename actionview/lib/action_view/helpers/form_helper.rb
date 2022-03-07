@@ -1565,7 +1565,7 @@ module ActionView
       # Returns an input tag of type "range".
       #
       # ==== Options
-      # * Accepts same options as range_field_tag
+      # * Accepts same options as number_field_tag
       def range_field(object_name, method, options = {})
         Tags::RangeField.new(object_name, method, self, options).render
       end
