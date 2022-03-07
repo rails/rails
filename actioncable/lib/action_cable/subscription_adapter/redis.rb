@@ -150,6 +150,9 @@ module ActionCable
 
                 conn = @adapter.redis_connection_for_subscriptions
                 listen conn
+              rescue ::Redis::BaseConnectionError
+                @thread = @raw_client = nil
+                ActionCable.server.restart
               end
             end
 
