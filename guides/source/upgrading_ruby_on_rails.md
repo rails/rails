@@ -248,6 +248,27 @@ Alternatively, you could load defaults for 7.1
 config.load_defaults 7.1
 ```
 
+### Response body content removed from redirect responses
+Rails no longer adds the "You are being redirected" text to redirect responses. If your test suit throws the following error:
+```bash
+NoMethodError: undefined method `document' for nil:NilClass
+
+              Nokogiri::XML::NodeSet.new(node.document, [node])
+```
+
+You are likely missing the follow redirect command. Locate the lines of code that are causing the error:
+```ruby
+get user_photos_path
+assert_select "h1", text: "My Photos"
+```
+
+And add the command to them:
+```ruby
+get user_photos_path
+follow_redirect!
+assert_select "h1", text: "My Photos"
+```
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 
