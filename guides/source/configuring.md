@@ -962,7 +962,7 @@ should be large enough to accommodate both the foreground threads (.e.g web serv
 
 Controls whether the Active Record MySQL adapter will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
 
-#### `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_table`
+#### `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables`
 
 Controls whether database tables created by PostgreSQL should be "unlogged", which can speed
 up performance but adds a risk of data loss if the database crashes. It is

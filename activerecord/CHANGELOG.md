@@ -1,3 +1,14 @@
+*   Remove `--no-comments` flag in structure dumps for PostgreSQL
+
+    This broke some apps that used custom schema comments. If you don't want
+    comments in your structure dump, you can use:
+
+    ```ruby
+    ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ['--no-comments']
+    ```
+
+    *Alex Ghiculescu*
+
 *   Use the model name as a prefix when filtering encrypted attributes from logs.
 
     For example, when encrypting `Person#name` it will add `person.name` as a filter
