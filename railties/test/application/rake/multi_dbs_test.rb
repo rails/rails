@@ -1135,6 +1135,24 @@ module ApplicationTests
           assert_equal "true", animals_db_exists.call
         end
       end
+
+      test "destructive tasks are protected" do
+        add_to_config "config.active_record.protected_environments = ['development', 'test']"
+
+        require "#{app_path}/config/environment"
+
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          rails "db:migrate"
+
+          destructive_tasks = ["db:drop:animals", "db:schema:load:animals", "db:test:purge:animals"]
+
+          destructive_tasks.each do |task|
+            error = assert_raises("#{task} did not raise ActiveRecord::ProtectedEnvironmentError") { rails task }
+            assert_match(/ActiveRecord::ProtectedEnvironmentError/, error.message)
+          end
+        end
+      end
     end
   end
 end
