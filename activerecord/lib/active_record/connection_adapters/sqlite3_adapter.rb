@@ -577,10 +577,6 @@ module ActiveRecord
           end
         end
 
-        def retryable_error?(exception)
-          exception.message.match?(/called on a closed database/i)
-        end
-
         COLLATE_REGEX = /.*"(\w+)".*collate\s+"(\w+)".*/i.freeze
 
         def table_structure_with_collation(table_name, basic_structure)

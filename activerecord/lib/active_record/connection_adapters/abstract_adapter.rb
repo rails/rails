@@ -859,22 +859,39 @@ module ActiveRecord
               result = yield @raw_connection
               @verified = true
               result
-            rescue => ex
-              if retries_available > 0 && retryable_error?(ex) && reconnect_can_restore_state?
+            rescue => original_exception
+              translated_exception = translate_exception_class(original_exception, nil, nil)
+
+              if retries_available > 0
                 retries_available -= 1
-                reconnect!(restore_transactions: true)
-                retry
+
+                if retryable_query_error?(translated_exception)
+                  backoff(connection_retries - retries_available)
+                  retry
+                elsif retryable_connection_error?(translated_exception)
+                  reconnect!(restore_transactions: true)
+                  retry
+                end
               end
 
-              raise
+              raise translated_exception
             ensure
               dirty_current_transaction if uses_transaction
             end
           end
         end
 
-        def retryable_error?(exception)
-          false
+        def retryable_connection_error?(exception)
+          exception.is_a?(ConnectionNotEstablished)
+        end
+
+        def retryable_query_error?(exception)
+          exception.is_a?(Deadlocked) ||
+            exception.is_a?(LockWaitTimeout)
+        end
+
+        def backoff(counter)
+          sleep 0.1 * counter
         end
 
         # Returns a raw connection for internal use with methods that are known
@@ -923,7 +940,7 @@ module ActiveRecord
           exception
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil, async: false) # :doc:
+        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil, async: false, &block) # :doc:
           @instrumenter.instrument(
             "sql.active_record",
             sql:               sql,
@@ -932,11 +949,11 @@ module ActiveRecord
             type_casted_binds: type_casted_binds,
             statement_name:    statement_name,
             async:             async,
-            connection:        self) do
-            yield
-          rescue => e
-            raise translate_exception_class(e, sql, binds)
-          end
+            connection:        self,
+            &block
+          )
+        rescue ActiveRecord::StatementInvalid => ex
+          raise ex.set_query(sql, binds)
         end
 
         def transform_query(sql)

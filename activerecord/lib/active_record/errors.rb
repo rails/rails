@@ -166,6 +166,15 @@ module ActiveRecord
     end
 
     attr_reader :sql, :binds
+
+    def set_query(sql, binds)
+      unless @sql
+        @sql = sql
+        @binds = binds
+      end
+
+      self
+    end
   end
 
   # Defunct wrapper class kept for compatibility.
@@ -192,8 +201,12 @@ module ActiveRecord
       foreign_key: nil,
       target_table: nil,
       primary_key: nil,
-      primary_key_column: nil
+      primary_key_column: nil,
+      query_parser: nil
     )
+      @original_message = message
+      @query_parser = query_parser
+
       if table
         type = primary_key_column.bigint? ? :bigint : primary_key_column.type
         msg = <<~EOM.squish
@@ -211,7 +224,23 @@ module ActiveRecord
       if message
         msg << "\nOriginal message: #{message}"
       end
+
       super(msg, sql: sql, binds: binds)
+    end
+
+    def set_query(sql, binds)
+      if @query_parser && !@sql
+        self.class.new(
+          message: @original_message,
+          sql: sql,
+          binds: binds,
+          **@query_parser.call(sql)
+        ).tap do |exception|
+          exception.set_backtrace backtrace
+        end
+      else
+        super
+      end
     end
   end
 
