@@ -405,7 +405,7 @@ module ActiveRecord
         assert raw_transaction_open?(@connection)
         @connection.reconnect!(restore_transactions: true)
         assert_predicate @connection, :transaction_open?
-        assert_not raw_transaction_open?(@connection)
+        assert raw_transaction_open?(@connection)
       ensure
         @connection.reconnect!
         assert_not_predicate @connection, :transaction_open?
