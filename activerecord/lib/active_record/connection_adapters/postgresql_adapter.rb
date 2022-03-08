@@ -711,12 +711,10 @@ module ActiveRecord
         end
 
         def retryable_query_error?(exception)
-        end
-
-        def retryable_connection_error?(exception)
-          case exception
-          when PG::ConnectionBad; !exception.message.end_with?("\n")
-          end
+          # We cannot retry anything if we're inside a broken transaction; we need to at
+          # least raise until the innermost savepoint is rolled back
+          @raw_connection&.transaction_status != ::PG::PQTRANS_INERROR &&
+            super
         end
 
         def get_oid_type(oid, fmod, column_name, sql_type = "")
