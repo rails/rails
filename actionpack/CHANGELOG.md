@@ -1,3 +1,7 @@
+*   Allow Content Security Policy DSL to generate for API responses.
+
+    *Tim Wade*
+
 *   Fix `authenticate_with_http_basic` to allow for missing password.
 
     Before Rails 7.0 it was possible to handle basic authentication with only a username.
