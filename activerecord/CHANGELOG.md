@@ -26,6 +26,11 @@
     *fatkodima*
 
 
+## Rails 7.0.2.3 (March 08, 2022) ##
+
+*   No changes.
+
+
 ## Rails 7.0.2.2 (February 11, 2022) ##
 
 *   No changes.
