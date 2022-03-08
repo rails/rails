@@ -123,13 +123,6 @@ module ActiveRecord
         @raw_connection.ping
       end
 
-      def reconnect!(restore_transactions: false)
-        @lock.synchronize do
-          @raw_connection.close
-          connect
-          super
-        end
-      end
       alias :reset! :reconnect!
 
       # Disconnects from the database if already connected.
@@ -156,6 +149,11 @@ module ActiveRecord
 
         def connect
           @raw_connection = self.class.new_client(@config)
+        end
+
+        def reconnect
+          @raw_connection.close
+          connect
         end
 
         def configure_connection

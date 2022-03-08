@@ -557,20 +557,41 @@ module ActiveRecord
       def active?
       end
 
-      # Disconnects from the database if already connected, and establishes a
-      # new connection with the database. Implementors should call super
-      # immediately after establishing the new connection (and while still
-      # holding @lock).
+      # Disconnects from the database if already connected, and establishes a new
+      # connection with the database. Implementors should define private #reconnect
+      # instead.
       def reconnect!(restore_transactions: false)
-        enable_lazy_transactions!
-        @raw_connection_dirty = false
-        @verified = true
+        retries_available = connection_retries
 
-        reset_transaction(restore: restore_transactions) do
-          clear_cache!(new_connection: true)
-          configure_connection
+        @lock.synchronize do
+          reconnect
+
+          enable_lazy_transactions!
+          @raw_connection_dirty = false
+          @verified = true
+
+          reset_transaction(restore: restore_transactions) do
+            clear_cache!(new_connection: true)
+            configure_connection
+          end
+        rescue => original_exception
+          translated_exception = translate_exception_class(original_exception, nil, nil)
+
+          if retries_available > 0
+            retries_available -= 1
+
+            if retryable_connection_error?(translated_exception)
+              backoff(connection_retries - retries_available)
+              retry
+            end
+          end
+
+          @verified = false
+
+          raise translated_exception
         end
       end
+
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
@@ -845,14 +866,24 @@ module ActiveRecord
           @lock.synchronize do
             materialize_transactions if uses_transaction
 
-            retries_available = 0
+            retries_available = allow_retry ? connection_retries : 0
 
-            if reconnect_can_restore_state?
+            if @verified
+              # Cool, we're confident the connection's ready to use. (Note this might have
+              # become true during the above #materialize_transactions.)
+            elsif reconnect_can_restore_state?
               if allow_retry
-                retries_available = connection_retries
-              elsif !@verified
+                # Not sure about the connection yet, but if anything goes wrong we can
+                # just reconnect and re-run our query
+              else
+                # We can reconnect if needed, but we don't trust the upcoming query to be
+                # safely re-runnable: let's verify the connection to be sure
                 verify!
               end
+            else
+              # We don't know whether the connection is okay, but it also doesn't matter:
+              # we wouldn't be able to reconnect anyway. We're just going to run our query
+              # and hope for the best.
             end
 
             begin
@@ -868,7 +899,8 @@ module ActiveRecord
                 if retryable_query_error?(translated_exception)
                   backoff(connection_retries - retries_available)
                   retry
-                elsif retryable_connection_error?(translated_exception)
+                elsif retryable_connection_error?(translated_exception) &&
+                    reconnect_can_restore_state?
                   reconnect!(restore_transactions: true)
                   retry
                 end
@@ -892,6 +924,10 @@ module ActiveRecord
 
         def backoff(counter)
           sleep 0.1 * counter
+        end
+
+        def reconnect
+          raise NotImplementedError
         end
 
         # Returns a raw connection for internal use with methods that are known

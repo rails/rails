@@ -325,19 +325,6 @@ module ActiveRecord
         end
       end
 
-      # Close then reopen the connection.
-      def reconnect!(restore_transactions: false)
-        @lock.synchronize do
-          begin
-            @raw_connection.reset
-          rescue PG::ConnectionBad
-            connect
-          end
-
-          super
-        end
-      end
-
       def reset!
         @lock.synchronize do
           unless @raw_connection.transaction_status == ::PG::PQTRANS_IDLE
@@ -883,6 +870,12 @@ module ActiveRecord
         # connected server's characteristics.
         def connect
           @raw_connection = self.class.new_client(@connection_parameters)
+        end
+
+        def reconnect
+          @raw_connection.reset
+        rescue PG::ConnectionBad
+          connect
         end
 
         # Configures the encoding, verbosity, schema search path, and time zone of the connection.
