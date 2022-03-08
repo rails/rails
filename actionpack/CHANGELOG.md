@@ -1,4 +1,5 @@
 *   Allow Content Security Policy DSL to generate for API responses.
+
     *Tim Wade*
 
 *   Fix `authenticate_with_http_basic` to allow for missing password.
