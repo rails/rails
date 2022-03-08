@@ -867,11 +867,12 @@ module ActiveRecord
             materialize_transactions if uses_transaction
 
             retries_available = allow_retry ? connection_retries : 0
+            reconnectable = reconnect_can_restore_state?
 
             if @verified
               # Cool, we're confident the connection's ready to use. (Note this might have
               # become true during the above #materialize_transactions.)
-            elsif reconnect_can_restore_state?
+            elsif reconnectable
               if allow_retry
                 # Not sure about the connection yet, but if anything goes wrong we can
                 # just reconnect and re-run our query
@@ -899,9 +900,11 @@ module ActiveRecord
                 if retryable_query_error?(translated_exception)
                   backoff(connection_retries - retries_available)
                   retry
-                elsif retryable_connection_error?(translated_exception) &&
-                    reconnect_can_restore_state?
+                elsif reconnectable && retryable_connection_error?(translated_exception)
                   reconnect!(restore_transactions: true)
+                  # Only allowed to reconnect once, because reconnect! has its own retry
+                  # loop
+                  reconnectable = false
                   retry
                 end
               end
