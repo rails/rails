@@ -1,3 +1,7 @@
+*   Allow Content Security Policy DSL to generate for API responses.
+
+    *Tim Wade*
+
 ## Rails 6.0.4.7 (March 08, 2022) ##
 
 *   No changes.
