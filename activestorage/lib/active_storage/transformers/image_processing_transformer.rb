@@ -340,7 +340,7 @@ module ActiveStorage
         end
 
         def validate_transformation(name, argument)
-          method_name = name.to_s.gsub("-","_")
+          method_name = name.to_s.tr("-", "_")
 
           unless SUPPORTED_IMAGE_PROCESSING_METHODS.any? { |method| method_name == method }
             raise UnsupportedImageProcessingMethod, <<~ERROR.squish
