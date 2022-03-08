@@ -1,3 +1,7 @@
+*   Allow Content Security Policy DSL to generate for API responses.
+
+    *Tim Wade*
+
 ## Rails 6.1.5 (March 09, 2022) ##
 
 *   Fix `content_security_policy` returning invalid directives.
