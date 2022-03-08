@@ -3124,7 +3124,7 @@ module ApplicationTests
       app "development"
 
       assert ActiveStorage.unsupported_image_processing_arguments.include?("-danger")
-      refute ActiveStorage.unsupported_image_processing_arguments.include?("-set")
+      assert_not ActiveStorage.unsupported_image_processing_arguments.include?("-set")
     end
 
     test "hosts include .localhost in development" do
