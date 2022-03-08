@@ -59,6 +59,11 @@
 *   `ActiveRecord::Base.logger` is now a `class_attribute`.
 
 
+## Rails 6.1.4.7 (March 08, 2022) ##
+
+*   No changes.
+
+
 ## Rails 6.1.4.6 (February 11, 2022) ##
 
 *   No changes.
