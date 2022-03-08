@@ -4,6 +4,80 @@ require "test_helper"
 require "database/setup"
 
 class ActiveStorage::VariantTest < ActiveSupport::TestCase
+  test "variations with unsupported methods raise UnsupportedImageProcessingMethod" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    assert_raise(ActiveStorage::Variation::UnsupportedImageProcessingMethod) do
+      blob.variant(system: "touch /tmp/dangerous").processed
+    end
+  end
+
+  test "variations with unsupported methods in combine_options raise UnsupportedImageProcessingMethod" do
+    blob = create_file_blob(filename: "racecar.jpg")
+
+    assert_raise(ActiveStorage::Variation::UnsupportedImageProcessingMethod) do
+      blob.variant(combine_options: {
+        gravity: "center",
+        write: "/tmp/danger",
+        crop: "100x10000",
+      }).processed
+    end
+  end
+
+  test "variations with dangerous argument in combine_options raise UnsupportedImageProcessingArgument" do
+    blob = create_file_blob(filename: "racecar.jpg")
+
+    assert_raise(ActiveStorage::Variation::UnsupportedImageProcessingArgument) do
+      blob.variant(combine_options: {
+        gravity: "center",
+        resize: "-write /tmp/danger",
+        crop: "100x10000",
+      }).processed
+    end
+  end
+
+  test "variations with dangerous argument string raise UnsupportedImageProcessingArgument" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    assert_raise(ActiveStorage::Variation::UnsupportedImageProcessingArgument) do
+      blob.variant(resize: "-PaTh /tmp/file.erb").processed
+    end
+  end
+
+  test "variations with dangerous argument array raise UnsupportedImageProcessingArgument" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    assert_raise(ActiveStorage::Variation::UnsupportedImageProcessingArgument) do
+      blob.variant(resize: [123, "-write", "/tmp/file.erb"]).processed
+    end
+  end
+
+  test "variations with dangerous argument in a nested array raise UnsupportedImageProcessingArgument" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    assert_raise(ActiveStorage::Variation::UnsupportedImageProcessingArgument) do
+      blob.variant(resize: [123, ["-write", "/tmp/file.erb"], "/tmp/file.erb"]).processed
+    end
+
+    assert_raise(ActiveStorage::Variation::UnsupportedImageProcessingArgument) do
+      blob.variant(resize: [123, {"-write /tmp/file.erb": "something"}, "/tmp/file.erb"]).processed
+    end
+  end
+
+  test "variations with dangerous argument hash raise UnsupportedImageProcessingArgument" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    assert_raise(ActiveStorage::Variation::UnsupportedImageProcessingArgument) do
+      blob.variant(saver: {"-write": "/tmp/file.erb"}).processed
+    end
+  end
+
+  test "variations with dangerous argument in a nested hash raise UnsupportedImageProcessingArgument" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    assert_raise(ActiveStorage::Variation::UnsupportedImageProcessingArgument) do
+      blob.variant(saver: {"something": {"-write": "/tmp/file.erb"}}).processed
+    end
+
+    assert_raise(ActiveStorage::Variation::UnsupportedImageProcessingArgument) do
+      blob.variant(saver: {"something": ["-write", "/tmp/file.erb"]}).processed
+    end
+  end
+
   test "resized variation of JPEG blob" do
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(resize: "100x100").processed

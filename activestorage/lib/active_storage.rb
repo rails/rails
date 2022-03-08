@@ -50,4 +50,6 @@ module ActiveStorage
   mattr_accessor :content_types_to_serve_as_binary, default: []
   mattr_accessor :content_types_allowed_inline, default: []
   mattr_accessor :binary_content_type, default: "application/octet-stream"
+  mattr_accessor :supported_image_processing_methods, default: []
+  mattr_accessor :unsupported_image_processing_arguments
 end
