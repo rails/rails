@@ -1,3 +1,7 @@
+*   Fix `remove_foreign_key` with `:if_exists` option when foreign key actually exists.
+
+    *fatkodima*
+
 *   Remove `--no-comments` flag in structure dumps for PostgreSQL
 
     This broke some apps that used custom schema comments. If you don't want
