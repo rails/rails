@@ -307,7 +307,7 @@ Eager loading is controlled by the flag [`config.eager_load`][], which is enable
 
 The order in which files are eager-loaded is undefined.
 
-If the `Zeitwerk` constant is defined, Rails invokes `Zeitwerk::Loader.eager_load_all` regardless of the application autoloading mode. That ensures dependencies managed by Zeitwerk are eager-loaded.
+During eager loading, Rails invokes `Zeitwerk::Loader.eager_load_all`. That ensures all gem dependencies managed by Zeitwerk are eager-loaded too.
 
 [`config.eager_load`]: configuring.html#config-eager-load
 
