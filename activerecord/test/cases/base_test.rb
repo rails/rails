@@ -128,7 +128,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     Topic.reset_column_information
 
-    Topic.connection.stub(:lookup_cast_type_from_column, ->(_) { raise "Some Error" }) do
+    Topic.connection.stub(:schema_cache, -> { raise "Some Error" }) do
       assert_raises RuntimeError do
         Topic.columns_hash
       end
