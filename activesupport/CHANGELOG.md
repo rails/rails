@@ -15,6 +15,14 @@
 
     *Alex Ghiculescu*
 
+*   Clone to keep extended Logger methods for tagged logger.
+
+    *Orhan Toy*
+
+*   `assert_changes` works on including `ActiveSupport::Assertions` module.
+
+    *Pedro Medeiros*
+
 
 ## Rails 6.1.4.7 (March 08, 2022) ##
 

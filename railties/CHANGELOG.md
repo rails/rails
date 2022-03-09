@@ -1,6 +1,15 @@
-*   In `zeitwerk` mode, setup the `once` autoloader first, and the `main` autoloader after it. This order plays better with shared namespaces.
+*   In `zeitwerk` mode, setup the `once` autoloader first, and the `main` autoloader after it.
+    This order plays better with shared namespaces.
 
     *Xavier Noria*
+
+*   Handle paths with spaces when editing credentials.
+
+    *Alex Ghiculescu*
+
+*   Support Psych 4 when loading secrets.
+
+    *Nat Morcos*
 
 
 ## Rails 6.1.4.7 (March 08, 2022) ##
@@ -40,8 +49,6 @@
 
 
 ## Rails 6.1.4 (June 24, 2021) ##
-
-*   Allow loading nested locales in engines.
 
 *   Fix compatibility with `psych >= 4`.
 

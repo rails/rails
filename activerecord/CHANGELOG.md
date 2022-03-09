@@ -1,21 +1,32 @@
 *   Fix `ActiveRecord::ConnectionAdapters::SchemaCache#deep_deduplicate` for Ruby 2.6.
 
-    Ruby 2.6 and 2.7 have slightly different implementations of the String#@- method. In Ruby 2.6, the receiver of the String#@- method is modified under certain circumstances. This was later identified as a bug (https://bugs.ruby-lang.org/issues/15926) and only fixed in Ruby 2.7.
+    Ruby 2.6 and 2.7 have slightly different implementations of the `String#@-` method.
+    In Ruby 2.6, the receiver of the `String#@-` method is modified under certain circumstances.
+    This was later identified as a bug (https://bugs.ruby-lang.org/issues/15926) and only
+    fixed in Ruby 2.7.
 
-    Before the changes in this commit, the ActiveRecord::ConnectionAdapters::SchemaCache#deep_deduplicate method, which internally calls the String#@- method, could also modify an input string argument in Ruby 2.6 -- changing a tainted, unfrozen string into a tainted, frozen string.
+    Before the changes in this commit, the
+    `ActiveRecord::ConnectionAdapters::SchemaCache#deep_deduplicate` method, which internally
+    calls the `String#@-` method, could also modify an input string argument in Ruby 2.6 --
+    changing a tainted, unfrozen string into a tainted, frozen string.
 
     Fixes #43056
 
     *Eric O'Hanlon*
 
-*   Fix migration compatibility to create SQLite references/belongs_to column as integer when migration version is 6.0.
+*   Fix migration compatibility to create SQLite references/belongs_to column as integer when
+    migration version is 6.0.
 
-    Reference/belongs_to in migrations with version 6.0 were creating columns as
+    `reference`/`belongs_to` in migrations with version 6.0 were creating columns as
     bigint instead of integer for the SQLite Adapter.
 
     *Marcelo Lauxen*
 
-* Better handle SQL queries with invalid encoding.
+*   Fix dbconsole for 3-tier config.
+
+    *Eileen M. Uchitelle*
+
+*   Better handle SQL queries with invalid encoding.
 
     ```ruby
     Post.create(name: "broken \xC8 UTF-8")
@@ -29,18 +40,19 @@
 
     *Jean Boussier*
 
-
 *   Ignore persisted in-memory records when merging target lists.
 
     *Kevin Sjöberg*
 
-*   Fix regression bug that caused ignoring additional conditions for preloading has_many-through relations.
+*   Fix regression bug that caused ignoring additional conditions for preloading
+    `has_many` through relations.
 
     Fixes #43132
 
     *Alexander Pauly*
 
-*   Fix `ActiveRecord::InternalMetadata` to not be broken by `config.active_record.record_timestamps = false`
+*   Fix `ActiveRecord::InternalMetadata` to not be broken by
+    `config.active_record.record_timestamps = false`
 
     Since the model always create the timestamp columns, it has to set them, otherwise it breaks
     various DB management tasks.
@@ -49,14 +61,23 @@
 
     *Jean Boussier*
 
-*   Fix compatibility with `psych >= 4`.
+*   Fix duplicate active record objects on `inverse_of`.
 
-    Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility
-    Active Record's schema cache loader and `YAMLColumn` now uses `YAML.unsafe_load` if available.
+    *Justin Carvalho*
 
-    *Jean Boussier*
+*   Fix duplicate objects stored in has many association after save.
 
-*   `ActiveRecord::Base.logger` is now a `class_attribute`.
+    Fixes #42549.
+
+    *Alex Ghiculescu*
+
+*   Fix performance regression in `CollectionAssocation#build`.
+
+    *Alex Ghiculescu*
+
+*   Fix retrieving default value for text column for MariaDB.
+
+    *fatkodima*
 
 
 ## Rails 6.1.4.7 (March 08, 2022) ##

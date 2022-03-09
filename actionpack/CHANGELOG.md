@@ -19,9 +19,35 @@
 
     Also, blocked host info is always logged with level `error`.
 
-    Fixes #42813
+    Fixes #42813.
 
     *Nikita Vyrko*
+
+*   Dup arrays that get "converted".
+
+    Fixes #43681.
+
+    *Aaron Patterson*
+
+*   Don't show deprecation warning for equal paths.
+
+    *Anton Rieder*
+
+*   Fix crash in `ActionController::Instrumentation` with invalid HTTP formats.
+
+    Fixes #43094.
+
+    *Alex Ghiculescu*
+
+*   Add fallback host for SystemTestCase driven by RackTest.
+
+    Fixes #42780.
+
+    *Petrik de Heus*
+
+*   Add more detail about what hosts are allowed.
+
+    *Alex Ghiculescu*
 
 
 ## Rails 6.1.4.7 (March 08, 2022) ##

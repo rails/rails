@@ -1,3 +1,8 @@
+*   Fix Action Text extra trix content wrapper.
+
+    *Alexandre Ruban*
+
+
 ## Rails 6.1.4.7 (March 08, 2022) ##
 
 *   No changes.

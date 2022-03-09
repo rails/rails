@@ -1,6 +1,22 @@
-*   `preload_link_tag` properly inserts `as` attributes for files with `image` MIME types, such as JPG or SVG.
+*   `preload_link_tag` properly inserts `as` attributes for files with `image` MIME
+    types, such as JPG or SVG.
 
     *Nate Berkopec*
+
+*   Add `autocomplete="off"` to all generated hidden fields.
+
+    Fixes #42610.
+
+    *Ryan Baumann*
+
+*   Fix `current_page?` when URL has trailing slash.
+
+    This fixes the `current_page?` helper when the given URL has a trailing slash,
+    and is an absolute URL or also has query params.
+
+    Fixes #33956.
+
+    *Jonathan Hefner*
 
 
 ## Rails 6.1.4.7 (March 08, 2022) ##
