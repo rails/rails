@@ -41,9 +41,9 @@ class OrderedOptionsTest < ActiveSupport::TestCase
 
     a[:test_key] = 56
     assert_equal 56, a.test_key
-    assert_equal 56, a['test_key']
+    assert_equal 56, a["test_key"]
     assert_equal 56, a.dig(:test_key)
-    assert_equal 56, a.dig('test_key')
+    assert_equal 56, a.dig("test_key")
   end
 
   def test_method_access
