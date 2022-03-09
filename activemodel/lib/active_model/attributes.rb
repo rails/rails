@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "active_model/attribute_set"
-require "active_model/attribute/user_provided_default"
-
 module ActiveModel
   # The Attributes module allows models to define attributes beyond simple Ruby
   # readers and writers. Similar to Active Record attributes, which are
@@ -30,16 +27,18 @@ module ActiveModel
   #   person.active # => true
   module Attributes
     extend ActiveSupport::Concern
+    include ActiveModel::AttributeRegistration
     include ActiveModel::AttributeMethods
 
     included do
       attribute_method_suffix "=", parameters: "value"
-      class_attribute :attribute_types, :_default_attributes, instance_accessor: false
-      self.attribute_types = Hash.new(Type.default_value)
-      self._default_attributes = AttributeSet.new({})
     end
 
     module ClassMethods
+      ##
+      # :method: attribute
+      # :call-seq: attribute(name, cast_type = nil, default: nil, **options)
+      #
       # Defines a model attribute. In addition to the attribute name, a cast
       # type and default value may be specified, as well as any options
       # supported by the given cast type.
@@ -56,14 +55,8 @@ module ActiveModel
       #
       #   person.name   # => "Volmer"
       #   person.active # => true
-      def attribute(name, cast_type = nil, default: NO_DEFAULT_PROVIDED, **options)
-        name = name.to_s
-
-        cast_type = Type.lookup(cast_type, **options) if Symbol === cast_type
-        cast_type ||= attribute_types[name]
-
-        self.attribute_types = attribute_types.merge(name => cast_type)
-        define_default_attribute(name, default, cast_type)
+      def attribute(name, ...)
+        super
         define_attribute_method(name)
       end
 
@@ -93,24 +86,6 @@ module ActiveModel
                 "end"
             end
           end
-        end
-
-        NO_DEFAULT_PROVIDED = Object.new # :nodoc:
-        private_constant :NO_DEFAULT_PROVIDED
-
-        def define_default_attribute(name, value, type)
-          self._default_attributes = _default_attributes.deep_dup
-          if value == NO_DEFAULT_PROVIDED
-            default_attribute = _default_attributes[name].with_type(type)
-          else
-            default_attribute = Attribute::UserProvidedDefault.new(
-              name,
-              value,
-              type,
-              _default_attributes.fetch(name.to_s) { nil },
-            )
-          end
-          _default_attributes[name] = default_attribute
         end
     end
 

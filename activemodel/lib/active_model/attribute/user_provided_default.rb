@@ -4,6 +4,10 @@ require "active_model/attribute"
 
 module ActiveModel
   class Attribute # :nodoc:
+    def with_user_default(value)
+      UserProvidedDefault.new(name, value, type, self.is_a?(FromDatabase) ? self : original_attribute)
+    end
+
     class UserProvidedDefault < FromUser # :nodoc:
       def initialize(name, value, type, database_default)
         @user_provided_value = value
