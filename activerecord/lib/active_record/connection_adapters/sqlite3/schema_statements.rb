@@ -60,7 +60,7 @@ module ActiveRecord
         end
 
         def remove_foreign_key(from_table, to_table = nil, **options)
-          return if options[:if_exists] == true && !foreign_key_exists?(from_table, to_table)
+          return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table)
 
           to_table ||= options[:to_table]
           options = options.except(:name, :to_table, :validate)

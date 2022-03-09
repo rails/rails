@@ -1127,7 +1127,7 @@ module ActiveRecord
       #   The name of the table that contains the referenced primary key.
       def remove_foreign_key(from_table, to_table = nil, **options)
         return unless supports_foreign_keys?
-        return if options[:if_exists] == true && !foreign_key_exists?(from_table, to_table)
+        return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table)
 
         fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
 
