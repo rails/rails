@@ -78,14 +78,16 @@ module ActionMailbox
     end
 
     def perform_processing # :nodoc:
-      track_status_of_inbound_email do
-        run_callbacks :process do
-          process
+      ActiveSupport::Notifications.instrument "process.action_mailbox", instrumentation_payload do
+        track_status_of_inbound_email do
+          run_callbacks :process do
+            process
+          end
         end
+      rescue => exception
+        # TODO: Include a reference to the inbound_email in the exception raised so error handling becomes easier
+        rescue_with_handler(exception) || raise
       end
-    rescue => exception
-      # TODO: Include a reference to the inbound_email in the exception raised so error handling becomes easier
-      rescue_with_handler(exception) || raise
     end
 
     def process
@@ -104,6 +106,13 @@ module ActionMailbox
     end
 
     private
+      def instrumentation_payload
+        {
+          mailbox: self.class.name,
+          inbound_email: inbound_email.instrumentation_payload
+        }
+      end
+
       def track_status_of_inbound_email
         inbound_email.processing!
         yield
