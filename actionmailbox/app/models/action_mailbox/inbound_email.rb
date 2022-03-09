@@ -43,6 +43,14 @@ module ActionMailbox
     def processed?
       delivered? || failed? || bounced?
     end
+
+    def instrumentation_payload # :nodoc:
+      {
+        id: id,
+        message_id: message_id,
+        status: status
+      }
+    end
   end
 end
 
