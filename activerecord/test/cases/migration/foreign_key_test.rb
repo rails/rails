@@ -668,7 +668,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           @connection.add_foreign_key :astronauts, :rockets
           assert_equal 1, @connection.foreign_keys("astronauts").size
 
-          @connection.remove_foreign_key :astronauts, :rockets
+          @connection.remove_foreign_key :astronauts, :rockets, if_exists: true
           assert_equal [], @connection.foreign_keys("astronauts")
 
           assert_nothing_raised do
