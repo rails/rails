@@ -182,14 +182,14 @@ module ActiveRecord
             super
           end
 
-          def define_attribute(name, cast_type, **) # :nodoc:
-            if lock_optimistically && name == locking_column
-              cast_type = LockingType.new(cast_type)
-            end
-            super
-          end
-
           private
+            def hook_attribute_type(name, cast_type)
+              if lock_optimistically && name == locking_column
+                cast_type = LockingType.new(cast_type)
+              end
+              super
+            end
+
             def inherited(base)
               super
               base.class_eval do
