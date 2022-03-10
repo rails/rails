@@ -365,7 +365,9 @@
       this.subscriptions.push(subscription);
       this.consumer.ensureActiveConnection();
       this.notify(subscription, "initialized");
-      this.subscribe(subscription);
+      if (!this.findAll(subscription.identifier).length) {
+        this.subscribe(subscription);
+      }
       return subscription;
     }
     remove(subscription) {
