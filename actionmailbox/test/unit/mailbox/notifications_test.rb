@@ -12,13 +12,14 @@ class ActionMailbox::Base::NotificationsTest < ActiveSupport::TestCase
       events << ActiveSupport::Notifications::Event.new(*args)
     end
 
-    RepliesMailbox.receive create_inbound_email_from_fixture("welcome.eml")
+    mailbox = RepliesMailbox.new(create_inbound_email_from_fixture("welcome.eml"))
+    mailbox.perform_processing
 
     assert_equal 1, events.length
     assert_equal "process.action_mailbox", events[0].name
     assert_equal(
       {
-        mailbox: "RepliesMailbox",
+        mailbox: mailbox,
         inbound_email: {
           id: 1,
           message_id: "0CB459E0-0336-41DA-BC88-E6E28C697DDB@37signals.com",
