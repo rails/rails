@@ -114,7 +114,7 @@ If you wish to skip some files or components from being generated, you can appen
 
 ### `bin/dev`
 
-The `bin/dev` command launches a web server named Puma which comes bundled with Rails. You'll use this any time you want to access your application through a web browser as well as start up any auxilary processes such as for background jobs or frontend bundlers.
+The `bin/dev` command launches a web server named Puma which comes bundled with Rails. You'll use this any time you want to access your application through a web browser as well as start up any auxiliary processes such as for background jobs or frontend bundlers.
 
 With no further work, `bin/dev` will run our new shiny Rails app:
 
