@@ -43,6 +43,7 @@ class Module
   #
   #   module HairColors
   #     mattr_reader :hair_colors, default: [:brown, :black, :blonde, :red]
+  #     mattr_reader(:hair_styles) { [:long, :short] }
   #   end
   #
   #   class Person
@@ -50,6 +51,7 @@ class Module
   #   end
   #
   #   Person.new.hair_colors # => [:brown, :black, :blonde, :red]
+  #   Person.new.hair_styles # => [:long, :short]
   def mattr_reader(*syms, instance_reader: true, instance_accessor: true, default: nil, location: nil)
     raise TypeError, "module attributes should be defined directly on class, not singleton" if singleton_class?
     location ||= caller_locations(1, 1).first
@@ -107,6 +109,7 @@ class Module
   #
   #   module HairColors
   #     mattr_writer :hair_colors, default: [:brown, :black, :blonde, :red]
+  #     mattr_writer(:hair_styles) { [:long, :short] }
   #   end
   #
   #   class Person
@@ -114,6 +117,7 @@ class Module
   #   end
   #
   #   Person.class_variable_get("@@hair_colors") # => [:brown, :black, :blonde, :red]
+  #   Person.class_variable_get("@@hair_styles") # => [:long, :short]
   def mattr_writer(*syms, instance_writer: true, instance_accessor: true, default: nil, location: nil)
     raise TypeError, "module attributes should be defined directly on class, not singleton" if singleton_class?
     location ||= caller_locations(1, 1).first
@@ -192,6 +196,7 @@ class Module
   #
   #   module HairColors
   #     mattr_accessor :hair_colors, default: [:brown, :black, :blonde, :red]
+  #     mattr_accessor(:hair_styles) { [:long, :short] }
   #   end
   #
   #   class Person
@@ -199,6 +204,7 @@ class Module
   #   end
   #
   #   Person.class_variable_get("@@hair_colors") # => [:brown, :black, :blonde, :red]
+  #   Person.class_variable_get("@@hair_styles") # => [:long, :short]
   def mattr_accessor(*syms, instance_reader: true, instance_writer: true, instance_accessor: true, default: nil, &blk)
     location = caller_locations(1, 1).first
     mattr_reader(*syms, instance_reader: instance_reader, instance_accessor: instance_accessor, default: default, location: location, &blk)
