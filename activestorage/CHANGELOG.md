@@ -1,10 +1,18 @@
+## Rails 5.2.7 (March 10, 2022) ##
+
+*   Fix `ActiveStorage.supported_image_processing_methods` and
+    `ActiveStorage.unsupported_image_processing_arguments` that were not being applied.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 5.2.6.3 (March 08, 2022) ##
 
 *   Added image transformation validation via configurable allow-list.
-    
+
     Variant now offers a configurable allow-list for
     transformation methods in addition to a configurable deny-list for arguments.
-    
+
     [CVE-2022-21831]
 
 

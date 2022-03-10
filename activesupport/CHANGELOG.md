@@ -1,3 +1,10 @@
+## Rails 5.2.7 (March 10, 2022) ##
+
+*   Restore support to Ruby 2.2.
+
+    *ojab*
+
+
 ## Rails 5.2.6.3 (March 08, 2022) ##
 
 *   No changes.
