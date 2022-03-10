@@ -1,3 +1,11 @@
+*   Fixed MariaDB default function support.
+
+    Defaults would be written wrong in "db/schema.rb" and not work correctly
+    if using `db:schema:load`. Further more the function name would be
+    added as string content when saving new records.
+
+    *kaspernj*
+
 *   Add `active_record.destroy_association_async_batch_size` configuration
 
     This allows applications to specify the maximum number of records that will
