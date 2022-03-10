@@ -1,3 +1,7 @@
+*   Allow relative redirects when `raise_on_open_redirects` is enabled
+
+    *Tom Hughes*
+
 *   Allow Content Security Policy DSL to generate for API responses.
 
     *Tim Wade*
