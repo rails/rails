@@ -1,3 +1,5 @@
+## Rails 6.1.5 (March 09, 2022) ##
+
 *   In `zeitwerk` mode, setup the `once` autoloader first, and the `main` autoloader after it.
     This order plays better with shared namespaces.
 

@@ -1,3 +1,5 @@
+## Rails 6.1.5 (March 09, 2022) ##
+
 *   Fix `content_security_policy` returning invalid directives.
 
     Directives such as `self`, `unsafe-eval` and few others were not

@@ -1,3 +1,5 @@
+## Rails 6.1.5 (March 09, 2022) ##
+
 *   Fix Action Text extra trix content wrapper.
 
     *Alexandre Ruban*

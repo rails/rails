@@ -1,3 +1,5 @@
+## Rails 6.1.5 (March 09, 2022) ##
+
 *   Fix `ActiveRecord::ConnectionAdapters::SchemaCache#deep_deduplicate` for Ruby 2.6.
 
     Ruby 2.6 and 2.7 have slightly different implementations of the `String#@-` method.

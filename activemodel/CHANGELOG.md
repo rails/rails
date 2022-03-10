@@ -1,3 +1,5 @@
+## Rails 6.1.5 (March 09, 2022) ##
+
 *   Clear secure password cache if password is set to `nil`
 
     Before:

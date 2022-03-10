@@ -1,3 +1,5 @@
+## Rails 6.1.5 (March 09, 2022) ##
+
 *   Attachments can be deleted after their association is no longer defined.
 
     Fixes #42514

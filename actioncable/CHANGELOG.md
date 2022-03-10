@@ -1,3 +1,5 @@
+## Rails 6.1.5 (March 09, 2022) ##
+
 *   The Action Cable client now ensures successful channel subscriptions:
 
     * The client maintains a set of pending subscriptions until either

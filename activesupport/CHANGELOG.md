@@ -1,3 +1,5 @@
+## Rails 6.1.5 (March 09, 2022) ##
+
 *   Fix `ActiveSupport::Duration.build` to support negative values.
 
     The algorithm to collect the `parts` of the `ActiveSupport::Duration`
