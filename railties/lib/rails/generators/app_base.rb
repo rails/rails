@@ -81,6 +81,9 @@ module Rails
         class_option :skip_bootsnap,       type: :boolean, default: false,
                                            desc: "Skip bootsnap gem"
 
+        class_option :skip_bin_dev,        type: :boolean, default: false,
+                                           desc: "Skip bin/dev and Procfile.dev generation"
+
         class_option :dev,                 type: :boolean, default: false,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
@@ -464,6 +467,14 @@ module Rails
         else
           rails_command "css:install:#{options[:css]}"
         end
+      end
+
+      def run_bin_dev
+        return if options[:skip_bin_dev]
+
+        copy_file "dev", "bin/dev"
+        chmod "bin/dev", 0755, verbose: false
+        copy_file "Procfile.dev", "Procfile.dev"
       end
 
       def generate_bundler_binstub

@@ -1,3 +1,13 @@
+*   New app generator includes `Procfile.dev` and `bin/dev`.
+
+    Based off of the files provided by `jsbundling-rails` and `cssbundling-rails`, a `bin/dev` binary which executes
+    `foreman` against a `Procfile.dev` file is now part of the default Rails install. This provides a single point
+    of entry for starting up a local environment (server, frontend bundling, background job processe, etc.).
+
+    Use `--skip-bin-dev` to skip these files for new apps.
+
+    *Tony Drake*
+
 *   No longer add autoloaded paths to `$LOAD_PATH`.
 
     This means it won't be possible to load them with a manual `require` call, the class or module can be referenced instead.

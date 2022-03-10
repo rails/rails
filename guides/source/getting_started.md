@@ -179,6 +179,7 @@ of the files and folders that Rails creates by default:
 |Gemfile<br>Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see the [Bundler website](https://bundler.io).|
 |lib/|Extended modules for your application.|
 |log/|Application log files.|
+|Procfile.dev|A local procfile that `bin/dev` executes to run a local Rails server and any additional processes.|
 |public/|Contains static files and compiled assets. When your app is running, this directory will be exposed as-is.|
 |Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing `Rakefile`, you should add your own tasks by adding files to the `lib/tasks` directory of your application.|
 |README.md|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
@@ -203,11 +204,12 @@ start a web server on your development machine. You can do this by running the
 following command in the `blog` directory:
 
 ```bash
-$ bin/rails server
+$ bin/dev
 ```
 
-TIP: If you are using Windows, you have to pass the scripts under the `bin`
-folder directly to the Ruby interpreter e.g. `ruby bin\rails server`.
+TIP: If you are using Windows, you should use the Rails server command directly
+and have to pass the scripts under the `bin` folder directly to the Ruby
+interpreter e.g. `ruby bin\rails server`.
 
 TIP: JavaScript asset compression requires you
 have a JavaScript runtime available on your system, in the absence

@@ -96,6 +96,7 @@ If you wish to skip some files or components from being generated, you can appen
 | ----------------------- | ----------------------------------------------------------- |
 | `--skip-git`            | Skip .gitignore file                                        |
 | `--skip-keeps`          | Skip source control .keep files                             |
+| `--skip-bin-dev`        | Skip bin/dev and Procfile.dev files                         |
 | `--skip-action-mailer`  | Skip Action Mailer files                                    |
 | `--skip-action-mailbox` | Skip Action Mailbox gem                                     |
 | `--skip-action-text`    | Skip Action Text gem                                        |
@@ -111,27 +112,35 @@ If you wish to skip some files or components from being generated, you can appen
 | `--skip-system-test`    | Skip system test files                                      |
 | `--skip-bootsnap`       | Skip bootsnap gem                                           |
 
-### `bin/rails server`
+### `bin/dev`
 
-The `bin/rails server` command launches a web server named Puma which comes bundled with Rails. You'll use this any time you want to access your application through a web browser.
+The `bin/dev` command launches a web server named Puma which comes bundled with Rails. You'll use this any time you want to access your application through a web browser as well as start up any auxilary processes such as for background jobs or frontend bundlers.
 
-With no further work, `bin/rails server` will run our new shiny Rails app:
+With no further work, `bin/dev` will run our new shiny Rails app:
 
 ```bash
 $ cd commandsapp
-$ bin/rails server
-=> Booting Puma
-=> Rails 7.0.0 application starting in development
-=> Run `bin/rails server --help` for more startup options
-Puma starting in single mode...
-* Version 3.12.1 (ruby 2.5.7-p206), codename: Llamas in Pajamas
-* Min threads: 5, max threads: 5
-* Environment: development
-* Listening on tcp://localhost:3000
-Use Ctrl-C to stop
+$ bin/dev
+19:34:25 web.1  | started with pid 16429
+19:34:25 web.1  | => Booting Puma
+19:34:25 web.1  | => Rails 7.0.0 application starting in development
+19:34:25 web.1  | => Run `bin/rails server --help` for more startup options
+19:34:26 web.1  | Puma starting in single mode...
+19:34:26 web.1  | * Puma version: 5.6.2 (ruby 3.0.2-p107) ("Birdie's Version")
+19:34:26 web.1  | *  Min threads: 5
+19:34:26 web.1  | *  Max threads: 5
+19:34:26 web.1  | *  Environment: development
+19:34:26 web.1  | *          PID: 16429
+19:34:26 web.1  | * Listening on http://127.0.0.1:3000
+19:34:26 web.1  | * Listening on http://[::1]:3000
+19:34:26 web.1  | Use Ctrl-C to stop
 ```
 
 With just three commands we whipped up a Rails server listening on port 3000. Go to your browser and open [http://localhost:3000](http://localhost:3000), you will see a basic Rails app running.
+
+### `bin/rails server`
+
+To start only the Rails server, use the `bin/rails server` command.
 
 INFO: You can also use the alias "s" to start the server: `bin/rails s`.
 

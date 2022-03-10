@@ -503,6 +503,7 @@ module Rails
 
       public_task :apply_rails_template, :run_bundle
       public_task :generate_bundler_binstub
+      public_task :run_bin_dev
       public_task :run_javascript
       public_task :run_hotwire
       public_task :run_css

@@ -86,6 +86,12 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     assert_no_directory "app/views"
   end
 
+  def test_generator_if_skip_bin_dev_is_given
+    run_generator [destination_root, "--api", "--skip-bin-dev"]
+    assert_no_file "bin/dev"
+    assert_no_file "Procfile.dev"
+  end
+
   def test_app_update_does_not_generate_unnecessary_config_files
     run_generator
 
@@ -121,6 +127,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         app/views/layouts
         app/views/layouts/mailer.html.erb
         app/views/layouts/mailer.text.erb
+        bin/dev
         bin/rails
         bin/rake
         bin/setup
@@ -147,6 +154,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         lib
         lib/tasks
         log
+        Procfile.dev
         test/fixtures
         test/controllers
         test/integration
