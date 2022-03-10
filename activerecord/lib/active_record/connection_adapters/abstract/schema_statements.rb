@@ -322,6 +322,29 @@ module ActiveRecord
           schema_cache.clear_data_source_cache!(table_name.to_s)
         end
 
+        # Which execute is called at this point?
+        # I’m in the SQLite3Adapter
+        #   I want to make a change that does not depend on changing the protocol / changing the various adapters.
+        #   I also wonder if the change I make here is going to require more changes because this is in the abstract connection adapter and other adapters might override execute
+        #
+        #     Do other adapters override `execute`?
+        #     Can I introduce a dry-run feature without making changes in adapters?
+        #     If I make a change just in this abstract adapter, the feature is not guaranteed to work since `execute` might be overrided
+        #     I don’t think I can change it at another layer?
+        #       Changing the protocol feels like a big lift
+        #
+        #     Feels like module prepending is a good solution?
+        #
+        # How can I learn where #execute is going to be defined / overridden?
+        #   I know the MySQL adapter does something weird where
+        #     vendor/rails/activerecord/lib/active_record/connection_adapters/mysql/database_statements.rb
+        #   overrides #execute and is included in AbstractMysqlAdapter
+        #   and AbstractMysqlAdapter < AbstractAdapter and include MySQL::SchemaStatements
+        #
+        #   …what am I looking for here? I want to know where, if I can, insert a spot that works to take over execute.
+        #   It seems like if I change it in the AbstractAdapter spot, that won’t work.
+        #      I’ll make one branch where I make the change in all of the execute spots (not that many though there are other adapters that this will not work with)
+        #      and I’ll make another branch in which I make a prepend module
         result = execute schema_creation.accept td
 
         unless supports_indexes_in_create?

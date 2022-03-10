@@ -1363,7 +1363,14 @@ module ActiveRecord
 
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
+        # Do the stuff with module prepending or maybe using a refinement here
+        dry_run = ENV["DRY_RUN_MIGRATION"] = "true"
+        if dry_run
+          ActiveRecord::Base.connection.class.prepend(DryConnection)
+        end
+
         ddl_transaction(migration) do
+          # Maybe fail the migration if ENV["DRY_RUN_MIGRATION"] but what if there are no transactions supported?
           migration.migrate(@direction)
           record_version_state_after_migrating(migration.version)
         end
@@ -1395,11 +1402,14 @@ module ActiveRecord
       end
 
       def record_version_state_after_migrating(version)
-        if down?
+        if ENV["DRY_RUN_MIGRATION"] = "true"
+          # do nothing
+        elsif down?
           migrated.delete(version)
           @schema_migration.delete_by(version: version.to_s)
         else
           migrated << version
+          # How does this have a connection that is actually executed?
           @schema_migration.create!(version: version.to_s)
         end
       end

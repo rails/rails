@@ -84,9 +84,59 @@ db_namespace = namespace :db do
     ActiveRecord::Tasks::DatabaseTasks.purge_current
   end
 
+  # Do I want a task here or is having a bin/safety_check runner sufficient? I think a runner is okay for now.
+  # I just want a method in the migration flow that outputs the resulting SQL
+  #     Maybe a thing that works ENV['DRY_RUN_MIGRATION'] == true that does the same?
+  # task :before_migrate do
+  #   Rails.logger.debug "before migrate is working"
+  #   ActiveRecord::Tasks::DatabaseTasks.pre_migrate
+  # end
+
+
+  # This is kinda weird since we should allow read queries to go through so that Active Record models can be used in migrations but we don’t want to allow writes.
+  #
+  # This almost works – I also want the transaction to fail / the ActiveRecord::SchemaMigration Create to not happen since nothing should be migrated
+  #   Where does this happen? It happens in Migration#record_version_state_after_migrating
+  #
+  # However – if the migration is also creating the schema_migrations table, that’s bad
+  #
+  # Should I use a refinement instead?
+  #
+  # Where is the spot that I want to allow the schema_migrations table being created?
+  #
+  module DryConnection
+    def execute(sql, name = nil)
+      # So that I can turn this off after the pre-migration task
+      if ENV["DRY_RUN_MIGRATION"]
+        if write_query?(sql)
+          @write_sql_log ||= []
+          @write_sql_log << sql
+          Rails.logger.debug "Not actually executing #{sql}"
+        else
+          Rails.logger.debug "Executing #{sql} since it’s a read query"
+          super
+        end
+      else
+        super
+      end
+    end
+
+    def write_sql_log
+      @write_sql_log
+    end
+  end
+
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
-  task migrate: :load_config do
+  # task migrate: [:load_config, :before_migrate] do
+  task migrate: [:load_config] do
     db_configs = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env)
+
+    # Had to move this deeper so that the schema_migrations table can be made as part of migration setup
+    #
+    # dry_run = ENV["DRY_RUN_MIGRATION"] = "true"
+    # if dry_run
+    #   ActiveRecord::Base.connection.class.prepend(DryConnection)
+    # end
 
     if db_configs.size == 1
       ActiveRecord::Tasks::DatabaseTasks.migrate
@@ -101,6 +151,13 @@ db_namespace = namespace :db do
         end
       end
     end
+
+    # How will this work with multiple databases? Will I still have just the one connection? Maybe Eileen or someone else knows more?
+    Rails.logger.debug "Ok here is what was recorded"
+    Rails.logger.debug ActiveRecord::Base.connection.write_sql_log
+
+    # If this works, we can add a pre-migration hook that calls this same code as db:migrate with the flag on, get the recorded SQL
+    # and then pass that through a safety check.
 
     db_namespace["_dump"].invoke
   ensure
