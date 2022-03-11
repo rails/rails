@@ -1,3 +1,11 @@
+*   Add the ability to use custom logic for storing and retrieving CSRF tokens.
+
+    By default, the token will be stored in the session.  Custom classes can be
+    defined to specify arbitrary behaviour, but the ability to store them in
+    encrypted cookies is built in.
+
+    *Andrew Kowpak*
+
 *   Make ActionController::Parameters#values cast nested hashes into parameters.
 
     *Gannon McGibbon*

@@ -30,6 +30,10 @@ module ActionDispatch
         def write_session(env, sid, session, options)
           @sessions[sid] = SessionId.new(sid, session)
         end
+
+        def session_exists?(req)
+          true
+        end
       end
 
       def test_session_is_set

@@ -358,6 +358,7 @@ module ActionDispatch
 
     def reset_session
       session.destroy
+      controller_instance.reset_csrf_token(self) if controller_instance.respond_to?(:reset_csrf_token)
     end
 
     def session=(session) # :nodoc:
@@ -427,6 +428,10 @@ module ActionDispatch
 
     def inspect # :nodoc:
       "#<#{self.class.name} #{method} #{original_url.dump} for #{remote_ip}>"
+    end
+
+    def commit_csrf_token
+      controller_instance.commit_csrf_token(self) if controller_instance.respond_to?(:commit_csrf_token)
     end
 
     private

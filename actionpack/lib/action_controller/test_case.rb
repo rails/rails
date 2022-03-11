@@ -182,11 +182,12 @@ module ActionController
   class TestSession < Rack::Session::Abstract::PersistedSecure::SecureSessionHash # :nodoc:
     DEFAULT_OPTIONS = Rack::Session::Abstract::Persisted::DEFAULT_OPTIONS
 
-    def initialize(session = {})
+    def initialize(session = {}, id = Rack::Session::SessionId.new(SecureRandom.hex(16)))
       super(nil, nil)
-      @id = Rack::Session::SessionId.new(SecureRandom.hex(16))
+      @id = id
       @data = stringify_keys(session)
       @loaded = true
+      @initially_empty = @data.empty?
     end
 
     def exists?
@@ -216,6 +217,10 @@ module ActionController
 
     def enabled?
       true
+    end
+
+    def id_was
+      @id
     end
 
     private
