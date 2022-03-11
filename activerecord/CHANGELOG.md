@@ -2,14 +2,14 @@
 
 *   Fix `ActiveRecord::ConnectionAdapters::SchemaCache#deep_deduplicate` for Ruby 2.6.
 
-    Ruby 2.6 and 2.7 have slightly different implementations of the `String#@-` method.
-    In Ruby 2.6, the receiver of the `String#@-` method is modified under certain circumstances.
+    Ruby 2.6 and 2.7 have slightly different implementations of the `String#-@` method.
+    In Ruby 2.6, the receiver of the `String#-@` method is modified under certain circumstances.
     This was later identified as a bug (https://bugs.ruby-lang.org/issues/15926) and only
     fixed in Ruby 2.7.
 
     Before the changes in this commit, the
     `ActiveRecord::ConnectionAdapters::SchemaCache#deep_deduplicate` method, which internally
-    calls the `String#@-` method, could also modify an input string argument in Ruby 2.6 --
+    calls the `String#-@` method, could also modify an input string argument in Ruby 2.6 --
     changing a tainted, unfrozen string into a tainted, frozen string.
 
     Fixes #43056
