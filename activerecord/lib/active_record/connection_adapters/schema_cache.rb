@@ -207,8 +207,8 @@ module ActiveRecord
               value.map { |i| deep_deduplicate(i) }
             when String
               if value.tainted?
-                # Ruby 2.6 and 2.7 have slightly different implementations of the String#@- method.
-                # In Ruby 2.6, the receiver of the String#@- method is modified under certain
+                # Ruby 2.6 and 2.7 have slightly different implementations of the String#-@ method.
+                # In Ruby 2.6, the receiver of the String#-@ method is modified under certain
                 # circumstances, and this was later identified as a bug
                 # (https://bugs.ruby-lang.org/issues/15926) and only fixed in Ruby 2.7.
                 value = value.dup
