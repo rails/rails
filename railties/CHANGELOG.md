@@ -1,3 +1,36 @@
+*   Use `controller_class_path` in `Rails::Generators::NamedBase#route_url`
+
+    The `route_url` method now returns the correct path when generating
+    a namespaced controller with a top-level model using `--model-name`.
+
+    Previously, when running this command:
+
+    ``` sh
+    bin/rails generate scaffold_controller Admin/Post --model-name Post
+    ```
+
+    the comments above the controller action would look like:
+
+    ``` ruby
+    # GET /posts
+    def index
+      @posts = Post.all
+    end
+    ```
+
+    afterwards, they now look like this:
+
+    ``` ruby
+    # GET /admin/posts
+    def index
+      @posts = Post.all
+    end
+    ```
+
+    Fixes #44662.
+
+    *Andrew White*
+
 *   No longer add autoloaded paths to `$LOAD_PATH`.
 
     This means it won't be possible to load them with a manual `require` call, the class or module can be referenced instead.
