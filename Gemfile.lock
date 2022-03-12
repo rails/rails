@@ -54,7 +54,7 @@ PATH
       actionview (= 7.1.0.alpha)
       activejob (= 7.1.0.alpha)
       activesupport (= 7.1.0.alpha)
-      mail (~> 2.5, >= 2.5.4)
+      mail (>= 2.7.1)
       net-imap
       net-pop
       net-smtp
