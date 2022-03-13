@@ -56,7 +56,7 @@ In a Rails application file names have to match the constants they define, with 
 
 For example, the file `app/helpers/users_helper.rb` should define `UsersHelper` and the file `app/controllers/admin/payments_controller.rb` should define `Admin::PaymentsController`.
 
-By default, Rails configures Zeitwerk to inflect file names with `String#camelize`. For example, it expects that `app/controllers/users_controller.rb` defines the constant `UsersController` because
+By default, Rails configures Zeitwerk to inflect file names with `String#camelize`. For example, it expects that `app/controllers/users_controller.rb` defines the constant `UsersController` because:
 
 ```ruby
 "users_controller".camelize # => UsersController
@@ -100,14 +100,14 @@ Also, engines can push in body of the engine class and in their own `config/envi
 
 WARNING. Please do not mutate `ActiveSupport::Dependencies.autoload_paths`; the public interface to change autoload paths is `config.autoload_paths`.
 
-WARNING: You cannot autoload code in the autoload paths while the application boots. It particular, directly in `config/initializers/*.rb`. Please check [_Autoloading when the application boots_](#autoloading-when-the-application-boots) down below for valid ways to do that.
+WARNING: You cannot autoload code in the autoload paths while the application boots. In particular, directly in `config/initializers/*.rb`. Please check [_Autoloading when the application boots_](#autoloading-when-the-application-boots) down below for valid ways to do that.
 
 The autoload paths are managed by the `Rails.autoloaders.main` autoloader.
 
 config.autoload_once_paths
 --------------------------
 
-You may want to be able to autoload classes and modules without reloading them. The autoload once paths store code that can be autoloaded, but won't be reloaded.
+You may want to be able to autoload classes and modules without reloading them. The `autoload_once_paths` configuration stores code that can be autoloaded, but won't be reloaded.
 
 By default, this collection is empty, but you can extend it pushing to `config.autoload_once_paths`. You can do so in `config/application.rb` or `config/environments/*.rb`. For example:
 
@@ -136,7 +136,7 @@ and Active Job itself is not reloaded when there's a reload, only application an
 
 Making `MoneySerializer` reloadable would be confusing, because reloading an edited version would have no effect on that class object stored in Active Job. Indeed, if `MoneySerializer` was reloadable, starting with Rails 7 such initializer would raise a `NameError`.
 
-Another use case are engines decorating framework classes:
+Another use case is when engines decorate framework classes:
 
 ```ruby
 initializer "decorate ActionController::Base" do
@@ -168,7 +168,7 @@ Autoload paths are added to `$LOAD_PATH` by default. However, Zeitwerk uses abso
 config.add_autoload_paths_to_load_path = false
 ```
 
-That may speed up legitimate `require` calls a bit since there are fewer lookups. Also, if your application uses [Bootsnap](https://github.com/Shopify/bootsnap), that saves the library from building unnecessary indexes, and saves the RAM they would need.
+That may speed up legitimate `require` calls a bit since there are fewer lookups. Also, if your application uses [Bootsnap](https://github.com/Shopify/bootsnap), that saves the library from building unnecessary indexes, leading to lower memory usage.
 
 
 Reloading
@@ -229,7 +229,7 @@ if `User` is reloaded, since `VipUser` is not, the superclass of `VipUser` is th
 
 Bottom line: **do not cache reloadable classes or modules**.
 
-## Autoloading when the application boots
+## Autoloading When the Application Boots
 
 While booting, applications can autoload from the autoload once paths, which are managed by the `once` autoloader. Please check the section [`config.autoload_once_paths`](#config-autoload-once-paths) above.
 
@@ -314,7 +314,7 @@ During eager loading, Rails invokes `Zeitwerk::Loader.eager_load_all`. That ensu
 Single Table Inheritance
 ------------------------
 
-Single Table Inheritance is a feature that doesn't play well with lazy loading. The reason is: its API generally needs to be able to enumerate the STI hierarchy to work correctly, whereas lazy loading defers loading classes until they are referenced. You can't enumerate what you haven't referenced yet.
+Single Table Inheritance is a feature that doesn't play well with lazy loading. The reason is that its API generally needs to be able to enumerate the STI hierarchy to work correctly, whereas lazy loading defers loading classes until they are referenced. You can't enumerate what you haven't referenced yet.
 
 In a sense, applications need to eager load STI hierarchies regardless of the loading mode.
 
@@ -434,7 +434,7 @@ Autoloading and Engines
 
 Engines run in the context of a parent application, and their code is autoloaded, reloaded, and eager loaded by the parent application. If the application runs in `zeitwerk` mode, the engine code is loaded by `zeitwerk` mode. If the application runs in `classic` mode, the engine code is loaded by `classic` mode.
 
-When Rails boots, engine directories are added to the autoload paths, and from the point of view of the autoloader, there's no difference. Autoloaders' main input are the autoload paths, and whether they belong to the application source tree or to some engine source tree is irrelevant.
+When Rails boots, engine directories are added to the autoload paths, and from the point of view of the autoloader, there's no difference. Autoloaders' main inputs are the autoload paths, and whether they belong to the application source tree or to some engine source tree is irrelevant.
 
 For example, this application uses [Devise](https://github.com/heartcombo/devise):
 
@@ -458,7 +458,7 @@ However, if an engine supports Rails 6 or Rails 6.1 and does not control its par
 
 2. `classic` mode underscores constant names ("User" -> "user.rb"), and `zeitwerk` mode camelizes file names ("user.rb" -> "User"). They coincide in most cases, but they don't if there are series of consecutive uppercase letters as in "HTMLParser". The easiest way to be compatible is to avoid such names. In this case, pick "HtmlParser".
 
-3. In `classic` mode, a file `app/model/concerns/foo.rb` is allowed to define both `Foo` and `Concerns::Foo`. In `zeitwerk` mode, there's only one option: it has to define `Foo`. In order to be compatible, define `Foo`.
+3. In `classic` mode, the file `app/model/concerns/foo.rb` is allowed to define both `Foo` and `Concerns::Foo`. In `zeitwerk` mode, there's only one option: it has to define `Foo`. In order to be compatible, define `Foo`.
 
 Testing
 -------
@@ -486,7 +486,7 @@ Troubleshooting
 
 The best way to follow what the loaders are doing is to inspect their activity.
 
-The easiest way to do that is to include
+The easiest way to do that is to include:
 
 ```ruby
 Rails.autoloaders.log!
@@ -510,14 +510,14 @@ Rails.autoloaders.logger = Rails.logger
 Rails.autoloaders
 -----------------
 
-The Zeitwerk instances managing your application are available at
+The Zeitwerk instances managing your application are available at:
 
 ```ruby
 Rails.autoloaders.main
 Rails.autoloaders.once
 ```
 
-The predicate
+The predicate:
 
 ```ruby
 Rails.autoloaders.zeitwerk_enabled?
