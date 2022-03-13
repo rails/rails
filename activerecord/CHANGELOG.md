@@ -1,3 +1,11 @@
+*   Fixed MariaDB default function support.
+
+    Defaults would be written wrong in "db/schema.rb" and not work correctly
+    if using `db:schema:load`. Further more the function name would be
+    added as string content when saving new records.
+
+    *kaspernj*
+
 *   Fix `remove_foreign_key` with `:if_exists` option when foreign key actually exists.
 
     *fatkodima*

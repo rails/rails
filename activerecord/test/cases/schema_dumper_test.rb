@@ -819,7 +819,16 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
       t.datetime :datetime_with_default, default: "2014-06-05 07:17:04"
       t.time     :time_with_default,     default: "07:17:04"
       t.decimal  :decimal_with_default,  default: "1234567890.0123456789", precision: 20, scale: 10
-      t.text :text_with_default, default: "John' Doe" if supports_text_column_with_default?
+
+      if supports_text_column_with_default?
+        t.text :text_with_default, default: "John' Doe"
+
+        if current_adapter?(:PostgreSQLAdapter)
+          t.text :uuid, default: -> { "gen_random_uuid()" }
+        else
+          t.text :uuid, default: -> { "uuid()" }
+        end
+      end
     end
 
     if current_adapter?(:PostgreSQLAdapter)
@@ -858,6 +867,12 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
     output = dump_table_schema("dump_defaults")
 
     assert_match %r{t\.text\s+"text_with_default",.*?default: "John' Doe"}, output
+
+    if current_adapter?(:PostgreSQLAdapter)
+      assert_match %r{t\.text\s+"uuid",.*?default: -> \{ "gen_random_uuid\(\)" \}}, output
+    else
+      assert_match %r{t\.text\s+"uuid",.*?default: -> \{ "uuid\(\)" \}}, output
+    end
   end if supports_text_column_with_default?
 
   def test_schema_dump_with_column_infinity_default
