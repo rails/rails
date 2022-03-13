@@ -47,4 +47,17 @@ class AccessTest < ActiveSupport::TestCase
   def test_without
     assert_equal [1, 2, 4], [1, 2, 3, 4, 5].without(3, 5)
   end
+
+  def test_average
+    assert_equal 10, [5, 10, 15].average
+    assert_equal 5, [5, nil, nil].average
+    assert_nil [].average
+    assert_equal 5, [].average(5)
+    assert_equal "Random string", [].average("Random string")
+
+    string_list = %w(a b c d)
+    assert_nil string_list.average
+    assert_equal 15, string_list.average(15)
+    assert_equal "Random string", string_list.average("Random string")
+  end
 end

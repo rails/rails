@@ -49,6 +49,18 @@ class Array
   end
   alias :without :excluding
 
+  # Calculates an average from the elements.
+  #  [5, 15, 10, nil].average # => 10
+  #
+  # The default average of an empty list is nil. You can override this default:
+  #  [].average(0) # => 0
+  def average(default = nil)
+    arr = self.compact.select{|x| x.is_a? Numeric}
+    return default if arr.empty?
+
+    arr.sum.fdiv(arr.size)
+  end
+
   # Equal to <tt>self[1]</tt>.
   #
   #   %w( a b c d e ).second # => "b"
