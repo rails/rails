@@ -45,8 +45,13 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
   end
 
   test "Chunked responses don't set content length header" do
-    blob = create_blob data: "a" * 6.0625.megabytes # Large enough to start chunking
-    Rack::Response.prepend(Module.new { def chunked?; true; end}) # Bug in Rack::Response
+    blob = create_blob data: "a" * 5.0625.megabytes # Large enough to start chunking
+    # NOTE: Bug in Rack::Response prevents tests from passing, 
+    #       Rack Response sets Content-Length if chunked isn't set, however chunked middleware was depreciated
+    #       and setting that header isn't an application level concern.
+    #
+    # To emulate fix in Rack::Response uncomment below
+    # Rack::Response.prepend(Module.new { def chunked?; true; end}) 
     get rails_storage_proxy_url(blob)
     assert_nil response.headers["Content-Length"] # Forbidden by rfc2616 4.4 (chunked responses)
   end
