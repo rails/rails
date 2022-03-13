@@ -488,6 +488,20 @@ module Rails
       def git_init_command
         return "git init" if user_default_branch.strip.present?
 
+        warn <<~INFO
+          [Warning] You didn't explicitly set your default git branch, so Rails take the
+          liberty to force you into a branch named 'main'. If you don't want this, run:
+
+          git config --global init.defaultBranch <your default branch name>
+
+          to set a default. To rename the branch in the generated application, run:
+
+          git branch -m <new branch name>
+
+          For more information, see the related discussion on Github:
+          https://github.com/rails/rails/pull/40254
+        INFO
+
         git_version = `git --version`[/\d+\.\d+\.\d+/]
 
         if Gem::Version.new(git_version) >= Gem::Version.new("2.28.0")
