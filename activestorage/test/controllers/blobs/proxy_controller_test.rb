@@ -44,6 +44,13 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     assert_response :not_found
   end
 
+  test "Chunked responses don't set content length header" do
+    blob = create_blob data: "a" * 6.0625.megabytes # Large enough to start chunking
+    Rack::Response.prepend(Module.new { def chunked?; true; end}) # Bug in Rack::Response
+    get rails_storage_proxy_url(blob)
+    assert_nil response.headers["Content-Length"] # Forbidden by rfc2616 4.4 (chunked responses)
+  end
+
   test "single Byte Range" do
     get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg")), headers: { "Range" => "bytes=5-9" }
     assert_response :partial_content
