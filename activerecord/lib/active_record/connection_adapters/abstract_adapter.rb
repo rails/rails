@@ -972,6 +972,7 @@ module ActiveRecord
               result
             rescue => original_exception
               translated_exception = translate_exception_class(original_exception, nil, nil)
+              invalidate_transaction(translated_exception)
               retry_deadline_exceeded = deadline && deadline < Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
               if !retry_deadline_exceeded && retries_available > 0
@@ -1005,6 +1006,13 @@ module ActiveRecord
 
         def retryable_connection_error?(exception)
           exception.is_a?(ConnectionNotEstablished) || exception.is_a?(ConnectionFailed)
+        end
+
+        def invalidate_transaction(exception)
+          return unless exception.is_a?(TransactionRollbackError)
+          return unless savepoint_errors_invalidate_transactions?
+
+          current_transaction.state.invalidate! if current_transaction
         end
 
         def retryable_query_error?(exception)

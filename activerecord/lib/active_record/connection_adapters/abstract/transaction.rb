@@ -457,10 +457,6 @@ module ActiveRecord
           ret
         rescue Exception => error
           if transaction
-            if error.is_a?(ActiveRecord::TransactionRollbackError) &&
-                @connection.savepoint_errors_invalidate_transactions?
-              transaction.state.invalidate!
-            end
             rollback_transaction
             after_failure_actions(transaction, error)
           end
