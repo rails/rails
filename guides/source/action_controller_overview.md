@@ -479,7 +479,7 @@ class LoginsController < ApplicationController
   def destroy
     # Remove the user id from the session
     session.delete(:current_user_id)
-    # Clear the memoized current user
+    # Clear the memorized current user
     @_current_user = nil
     redirect_to root_url
   end
