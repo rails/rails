@@ -108,7 +108,7 @@ module ActionMailbox
     private
       def instrumentation_payload
         {
-          mailbox: self.class.name,
+          mailbox: self,
           inbound_email: inbound_email.instrumentation_payload
         }
       end
