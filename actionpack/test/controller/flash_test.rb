@@ -173,7 +173,7 @@ class FlashTest < ActionController::TestCase
   end
 
   def test_keep_and_discard_return_values
-    flash = ActionDispatch::Flash::FlashHash.new
+    flash = ActionDispatch::Request::Flash::FlashHash.new
     flash.update(foo: :foo_indeed, bar: :bar_indeed)
 
     assert_equal(:foo_indeed, flash.discard(:foo)) # valid key passed
@@ -308,7 +308,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
 
   def test_setting_flash_does_not_raise_in_following_requests
     with_test_route_set do
-      env = { "action_dispatch.request.flash_hash" => ActionDispatch::Flash::FlashHash.new }
+      env = { "action_dispatch.request.flash_hash" => ActionDispatch::Request::Flash::FlashHash.new }
       get "/set_flash", env: env
       get "/set_flash", env: env
     end
@@ -316,7 +316,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
 
   def test_setting_flash_now_does_not_raise_in_following_requests
     with_test_route_set do
-      env = { "action_dispatch.request.flash_hash" => ActionDispatch::Flash::FlashHash.new }
+      env = { "action_dispatch.request.flash_hash" => ActionDispatch::Request::Flash::FlashHash.new }
       get "/set_flash_now", env: env
       get "/set_flash_now", env: env
     end

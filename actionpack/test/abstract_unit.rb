@@ -113,13 +113,14 @@ end
 
 class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   def self.build_app(routes = nil)
+    ActionDispatch::Request::Flash.use!
+
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
       middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
       middleware.use ActionDispatch::DebugExceptions
       middleware.use ActionDispatch::ActionableExceptions
       middleware.use ActionDispatch::Callbacks
       middleware.use ActionDispatch::Cookies
-      middleware.use ActionDispatch::Flash
       middleware.use Rack::MethodOverride
       middleware.use Rack::Head
       yield(middleware) if block_given?

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "action_dispatch/middleware/cookies"
-require "action_dispatch/middleware/flash"
+require "active_support/lazy_load_hooks"
 
 module ActionDispatch
   module TestProcess
@@ -50,4 +50,8 @@ module ActionDispatch
       @response.redirect_url
     end
   end
+end
+
+ActiveSupport.on_load(:action_dispatch_request) do
+  ActionDispatch::Request::Flash.use!
 end

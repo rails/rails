@@ -43,6 +43,12 @@ module ActionDispatch
     # See docs on the FlashHash class for more details about the flash.
     module Flash
       KEY = "action_dispatch.request.flash_hash"
+
+      extend self
+
+      def use! # :nodoc:
+        Request.prepend(Flash::RequestMethods)
+      end
     end
   end
 end
