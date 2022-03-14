@@ -11,12 +11,6 @@ module ActionDispatch
 
         def self.from_session_value(value) # :nodoc:
           case value
-          when FlashHash # Rails 3.1, 3.2
-            flashes = value.instance_variable_get(:@flashes)
-            if discard = value.instance_variable_get(:@used)
-              flashes.except!(*discard)
-            end
-            new(flashes, flashes.keys)
           when Hash # Rails 4.0
             flashes = value["flashes"]
             if discard = value["discard"]
