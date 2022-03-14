@@ -49,7 +49,7 @@ module ActionView
               value == @checked_value
             else
               if value.respond_to?(:include?)
-                value.include?(@checked_value)
+                value.map(&:to_s).include?(@checked_value.to_s)
               else
                 value.to_i == @checked_value.to_i
               end
