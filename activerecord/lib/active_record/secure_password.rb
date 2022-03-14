@@ -43,6 +43,8 @@ module ActiveRecord
         raise ArgumentError, "One or more password arguments are required" if passwords.empty?
         raise ArgumentError, "One or more finder arguments are required" if identifiers.empty?
 
+        return if passwords.any? { |name, value| value.nil? || value.empty? }
+
         if record = find_by(identifiers)
           record if passwords.count { |name, value| record.public_send(:"authenticate_#{name}", value) } == passwords.size
         else

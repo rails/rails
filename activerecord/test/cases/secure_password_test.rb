@@ -43,6 +43,18 @@ class SecurePasswordTest < ActiveRecord::TestCase
     assert_in_delta found_average_time_in_ms, not_found_average_time_in_ms, 0.5
   end
 
+  test "authenticate_by short circuits when password is nil" do
+    assert_no_queries do
+      assert_nil User.authenticate_by(token: @user.token, password: nil)
+    end
+  end
+
+  test "authenticate_by short circuits when password is an empty string" do
+    assert_no_queries do
+      assert_nil User.authenticate_by(token: @user.token, password: "")
+    end
+  end
+
   test "authenticate_by finds record using multiple attributes" do
     assert_equal @user, User.authenticate_by(token: @user.token, auth_token: @user.auth_token, password: @user.password)
     assert_nil User.authenticate_by(token: @user.token, auth_token: "wrong", password: @user.password)
