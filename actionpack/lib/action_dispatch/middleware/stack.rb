@@ -185,6 +185,21 @@ module ActionDispatch
       end
 
       def index_of(klass)
+        if klass.name == "ActionDispatch::Flash"
+          ActiveSupport::Deprecation.warn(<<~EOM)
+            The ActionDispatch::Flash middleware is deprecated without
+            replacement and will be deleted in Rails 7.1
+
+            If you used the ActionDispatch::Flash constant in your
+            application for inserting other middlewares, in example:
+            config.middleware.insert_after(ActionDispatch::Flash, MyMiddleware))
+            this will no longer work.
+
+            The Flash feature still exists and will work exactly the
+            same way as before, only the middleware will be removed.
+          EOM
+        end
+
         middlewares.index do |m|
           m.name == klass.name
         end
