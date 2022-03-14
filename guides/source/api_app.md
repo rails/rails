@@ -465,7 +465,6 @@ API application, especially if one of your API clients is the browser:
 
 - `Rack::MethodOverride`
 - `ActionDispatch::Cookies`
-- `ActionDispatch::Flash`
 
 Any of these middleware can be added via:
 

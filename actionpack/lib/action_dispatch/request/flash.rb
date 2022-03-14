@@ -40,7 +40,7 @@ module ActionDispatch
     #
     # Just remember: They'll be gone by the time the next action has been performed.
     #
-    # See docs on the FlashHash class for more details about the flash.
+    # See docs on the ActionDispatch::Request::Flash::FlashHash class for more details about the flash.
     module Flash
       KEY = "action_dispatch.request.flash_hash"
 

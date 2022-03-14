@@ -6,9 +6,9 @@ module ActionDispatch
   class Request
     module Flash
       module RequestMethods
-        # Access the contents of the flash. Returns a ActionDispatch::Flash::FlashHash.
+        # Access the contents of the flash. Returns a ActionDispatch::Request::Flash::FlashHash.
         #
-        # See ActionDispatch::Flash for example usage.
+        # See ActionDispatch::Request::Flash for example usage.
         def flash
           flash = flash_hash
           return flash if flash

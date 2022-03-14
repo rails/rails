@@ -830,10 +830,6 @@ Sets cookies for the request.
 
 Is responsible for storing the session in cookies. An alternate middleware can be used for this by changing [`config.session_store`](#config-session-store).
 
-#### `ActionDispatch::Flash`
-
-Sets up the `flash` keys. Only available if [`config.session_store`](#config-session-store) is set to a value.
-
 #### `Rack::MethodOverride`
 
 Allows the method to be overridden if `params[:_method]` is set. This is the middleware which supports the PATCH, PUT, and DELETE HTTP method types.
@@ -877,14 +873,14 @@ config.middleware.swap ActionController::Failsafe, Lifo::Failsafe
 Middlewares can be moved from one place to another:
 
 ```ruby
-config.middleware.move_before ActionDispatch::Flash, Magical::Unicorns
+config.middleware.move_before Rack::Head, Magical::Unicorns
 ```
 
 This will move the `Magical::Unicorns` middleware before
-`ActionDispatch::Flash`. You can also move it after:
+`Rack::Head`. You can also move it after:
 
 ```ruby
-config.middleware.move_after ActionDispatch::Flash, Magical::Unicorns
+config.middleware.move_after Rack::Head, Magical::Unicorns
 ```
 
 They can also be removed from the stack completely:
