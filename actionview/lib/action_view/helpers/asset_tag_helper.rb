@@ -396,7 +396,7 @@ module ActionView
         check_for_image_tag_errors(options)
         skip_pipeline = options.delete(:skip_pipeline)
 
-        options[:src] = resolve_image_source(source, skip_pipeline)
+        options[:src] = resolve_asset_source("image", source, skip_pipeline)
 
         if options[:srcset] && !options[:srcset].is_a?(String)
           options[:srcset] = options[:srcset].map do |src_path, size|
@@ -416,8 +416,8 @@ module ActionView
       # Returns an HTML video tag for the +sources+. If +sources+ is a string,
       # a single video tag will be returned. If +sources+ is an array, a video
       # tag with nested source tags for each source will be returned. The
-      # +sources+ can be full paths or files that exist in your public videos
-      # directory.
+      # +sources+ can be full paths, files that exist in your public videos
+      # directory, or Active Storage attachments.
       #
       # ==== Options
       #
@@ -456,6 +456,11 @@ module ActionView
       #   # => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       #   video_tag(["trailer.ogg", "trailer.flv"], size: "160x120")
       #   # => <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
+      #
+      # Active Storage blobs (videos that are uploaded by the users of your app):
+      #
+      #   video_tag(user.intro_video)
+      #   # => <img src="/rails/active_storage/blobs/.../intro_video.mp4" />
       def video_tag(*sources)
         options = sources.extract_options!.symbolize_keys
         public_poster_folder = options.delete(:poster_skip_pipeline)
@@ -469,8 +474,8 @@ module ActionView
       # Returns an HTML audio tag for the +sources+. If +sources+ is a string,
       # a single audio tag will be returned. If +sources+ is an array, an audio
       # tag with nested source tags for each source will be returned. The
-      # +sources+ can be full paths or files that exist in your public audios
-      # directory.
+      # +sources+ can be full paths, files that exist in your public audios
+      # directory, or Active Storage attachments.
       #
       # When the last parameter is a hash you can add HTML attributes using that
       # parameter.
@@ -483,6 +488,11 @@ module ActionView
       #   # => <audio autoplay="autoplay" controls="controls" src="/audios/sound.wav"></audio>
       #   audio_tag("sound.wav", "sound.mid")
       #   # => <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
+      #
+      # Active Storage blobs (audios that are uploaded by the users of your app):
+      #
+      #   audio_tag(user.name_pronunciation_audio)
+      #   # => <img src="/rails/active_storage/blobs/.../name_pronunciation_audio.mp4" />
       def audio_tag(*sources)
         multiple_sources_tag_builder("audio", sources)
       end
@@ -497,22 +507,22 @@ module ActionView
 
           if sources.size > 1
             content_tag(type, options) do
-              safe_join sources.map { |source| tag("source", src: send("path_to_#{type}", source, skip_pipeline: skip_pipeline)) }
+              safe_join sources.map { |source| tag("source", src: resolve_asset_source(type, source, skip_pipeline)) }
             end
           else
-            options[:src] = send("path_to_#{type}", sources.first, skip_pipeline: skip_pipeline)
+            options[:src] = resolve_asset_source(type, sources.first, skip_pipeline)
             content_tag(type, nil, options)
           end
         end
 
-        def resolve_image_source(source, skip_pipeline)
+        def resolve_asset_source(asset_type, source, skip_pipeline)
           if source.is_a?(Symbol) || source.is_a?(String)
-            path_to_image(source, skip_pipeline: skip_pipeline)
+            path_to_asset(source, type: asset_type.to_sym, skip_pipeline: skip_pipeline)
           else
             polymorphic_url(source)
           end
         rescue NoMethodError => e
-          raise ArgumentError, "Can't resolve image into URL: #{e}"
+          raise ArgumentError, "Can't resolve #{asset_type} into URL: #{e}"
         end
 
         def extract_dimensions(size)
