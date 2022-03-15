@@ -3,8 +3,8 @@
 require_relative "gem_version"
 
 module Rails
-  # Returns the version of the currently loaded Rails as a string.
+  # Returns the version of the currently loaded Rails as a <tt>Gem::Version</tt>.
   def self.version
-    VERSION::STRING
+    gem_version
   end
 end
