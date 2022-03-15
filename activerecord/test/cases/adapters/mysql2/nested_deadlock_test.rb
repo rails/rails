@@ -44,7 +44,9 @@ module ActiveRecord
         begin
           thread = Thread.new do
             Sample.transaction(requires_new: false) do
+              make_parent_transaction_dirty
               Sample.transaction(requires_new: true) do
+                assert_current_transaction_is_savepoint_transaction
                 s1.lock!
                 barrier.wait
                 s2.update value: 1
@@ -54,7 +56,9 @@ module ActiveRecord
 
           begin
             Sample.transaction(requires_new: false) do
+              make_parent_transaction_dirty
               Sample.transaction(requires_new: true) do
+                assert_current_transaction_is_savepoint_transaction
                 s2.lock!
                 barrier.wait
                 s1.update value: 2
@@ -83,8 +87,10 @@ module ActiveRecord
 
       thread = Thread.new do
         Sample.transaction(requires_new: false) do
+          make_parent_transaction_dirty
           begin
             Sample.transaction(requires_new: true) do
+              assert_current_transaction_is_savepoint_transaction
               s1.lock!
               barrier.wait
               s2.update value: 4
@@ -98,8 +104,10 @@ module ActiveRecord
 
       begin
         Sample.transaction(requires_new: false) do
+          make_parent_transaction_dirty
           begin
             Sample.transaction(requires_new: true) do
+              assert_current_transaction_is_savepoint_transaction
               s2.lock!
               barrier.wait
               s1.update value: 3
@@ -115,5 +123,18 @@ module ActiveRecord
       assert_equal 1, deadlocks
       assert_equal [10, 10], Sample.pluck(:value)
     end
+
+    private
+      # This should cause the next nested transaction to be a savepoint transaction.
+      def make_parent_transaction_dirty
+        Sample.take
+      end
+
+      def assert_current_transaction_is_savepoint_transaction
+        current_transaction = Sample.connection.current_transaction
+        unless current_transaction.is_a?(ActiveRecord::ConnectionAdapters::SavepointTransaction)
+          flunk("current transaction is not a savepoint transaction")
+        end
+      end
   end
 end
