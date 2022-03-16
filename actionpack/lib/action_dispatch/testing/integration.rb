@@ -631,6 +631,8 @@ module ActionDispatch
   class IntegrationTest < ActiveSupport::TestCase
     include TestProcess::FixtureFile
 
+    InvalidParamError = Class.new(ArgumentError)
+
     module UrlOptions
       extend ActiveSupport::Concern
       def url_options

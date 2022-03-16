@@ -1,12 +1,29 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/hash/deep_transform_values"
+
 module ActionDispatch
   class RequestEncoder # :nodoc:
     class IdentityEncoder
       def content_type; end
       def accept_header; end
-      def encode_params(params); params; end
+      def encode_params(params); prevent_invalid_params(params); end
       def response_parser; -> body { body }; end
+
+      private
+        def prevent_invalid_params(params)
+          return params unless params.respond_to?(:deep_transform_values)
+
+          params.deep_transform_values do |v|
+            if defined?(ActiveRecord::Base) && v.is_a?(ActiveRecord::Base)
+              raise ActionDispatch::IntegrationTest::InvalidParamError.new(
+                "#{v} is an instance of an Active Record. You can't use this as a param in a test. Use basic types - strings, ints, etc - like a browser would."
+              )
+            end
+          end
+
+          params
+        end
     end
 
     @encoders = { identity: IdentityEncoder.new }

@@ -1199,6 +1199,34 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     end
 end
 
+module ActiveRecord
+  class Base; end
+end
+
+class IntegrationInvalidParamsTest < ActionDispatch::IntegrationTest
+  class Foo < ActiveRecord::Base; end
+
+  class FooController < ActionController::Base
+    def foos
+      render plain: "ok"
+    end
+  end
+
+  def test_prevents_ar_objects_as_params
+    with_routing do |routes|
+      routes.draw do
+        ActiveSupport::Deprecation.silence do
+          post ":action" => FooController
+        end
+      end
+
+      assert_raise(ActionDispatch::IntegrationTest::InvalidParamError) do
+        post "/foos", params: { foo: Foo.new }
+      end
+    end
+  end
+end
+
 class IntegrationFileUploadTest < ActionDispatch::IntegrationTest
   class IntegrationController < ActionController::Base
     def test_file_upload

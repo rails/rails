@@ -1,3 +1,16 @@
+*   Prevent Active Record instances from being used as params in test requests
+
+    Integration tests will now raise an `ActionDispatch::IntegrationTest::InvalidParamError`
+    when an Active Record instance is used as a param. This prevents common test mistakes like:
+
+    ```ruby
+    post comments_path, params: { comment: comment } # should be comment.id
+    ```
+
+    This check only occurs when using the default params encoder.
+
+    *Alex Ghiculescu*
+
 *   Allow relative redirects when `raise_on_open_redirects` is enabled
 
     *Tom Hughes*
