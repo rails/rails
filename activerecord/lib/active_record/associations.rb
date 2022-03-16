@@ -1452,6 +1452,9 @@ module ActiveRecord
         # [:ensuring_owner_was]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.
+        # [:scope]
+        #   Specify the scope as a callable (i.e. proc o rlambda) to retrieve a specific set of records or
+        #   customize the generated query when you access the associated collection.
         #
         # Option examples:
         #   has_many :comments, -> { order("posted_on") }
@@ -1463,9 +1466,10 @@ module ActiveRecord
         #   has_many :reports, -> { readonly }
         #   has_many :subscribers, through: :subscriptions, source: :user
         #   has_many :subscribers, through: :subscriptions, disable_joins: true
+        #   has_many :tracks, scope: -> { order("position") }, dependent: :destroy
         #   has_many :comments, strict_loading: true
         def has_many(name, scope = nil, **options, &extension)
-          reflection = Builder::HasMany.build(self, name, scope, options, &extension)
+          reflection = Builder::HasMany.build(self, name, sanitize_scope(scope, options), options, &extension)
           Reflection.add_reflection self, name, reflection
         end
 
@@ -1614,6 +1618,9 @@ module ActiveRecord
         # [:ensuring_owner_was]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.
+        # [:scope]
+        #   Specify the scope as a callable (i.e. proc o rlambda) to retrieve a specific set of records or
+        #   customize the generated query when you access the associated collection.
         #
         # Option examples:
         #   has_one :credit_card, dependent: :destroy  # destroys the associated credit card
@@ -1627,9 +1634,10 @@ module ActiveRecord
         #   has_one :club, through: :membership, disable_joins: true
         #   has_one :primary_address, -> { where(primary: true) }, through: :addressables, source: :addressable
         #   has_one :credit_card, required: true
+        #   has_one :credit_card, scope: -> { order('expiration_date') }
         #   has_one :credit_card, strict_loading: true
         def has_one(name, scope = nil, **options)
-          reflection = Builder::HasOne.build(self, name, scope, options)
+          reflection = Builder::HasOne.build(self, name, sanitize_scope(scope, options), options)
           Reflection.add_reflection self, name, reflection
         end
 
@@ -1773,6 +1781,9 @@ module ActiveRecord
         # [:ensuring_owner_was]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.
+        # [:scope]
+        #   Specify the scope as a callable (i.e. proc o rlambda) to retrieve a specific set of records or
+        #   customize the generated query when you access the associated collection.
         #
         # Option examples:
         #   belongs_to :firm, foreign_key: "client_of"
@@ -1787,9 +1798,10 @@ module ActiveRecord
         #   belongs_to :company, touch: :employees_last_updated_at
         #   belongs_to :user, optional: true
         #   belongs_to :account, default: -> { company.account }
+        #   belongs_to :project, scope: { readonly }
         #   belongs_to :account, strict_loading: true
         def belongs_to(name, scope = nil, **options)
-          reflection = Builder::BelongsTo.build(self, name, scope, options)
+          reflection = Builder::BelongsTo.build(self, name, sanitize_scope(scope, options), options)
           Reflection.add_reflection self, name, reflection
         end
 
@@ -1947,6 +1959,9 @@ module ActiveRecord
         #   saving the parent object.
         #   If false, never save or destroy the associated objects.
         #   By default, only save associated objects that are new records.
+        # [:scope]
+        #   Specify the scope as a callable (i.e. proc o rlambda) to retrieve a specific set of records or
+        #   customize the generated query when you access the associated collection.
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
         #   <tt>:autosave</tt> to <tt>true</tt>.
@@ -1959,9 +1974,10 @@ module ActiveRecord
         #   has_and_belongs_to_many :nations, class_name: "Country"
         #   has_and_belongs_to_many :categories, join_table: "prods_cats"
         #   has_and_belongs_to_many :categories, -> { readonly }
+        #   has_and_belongs_to_many :categories, scope: -> { readonly }, class_name: "Country"
         #   has_and_belongs_to_many :categories, strict_loading: true
         def has_and_belongs_to_many(name, scope = nil, **options, &extension)
-          habtm_reflection = ActiveRecord::Reflection::HasAndBelongsToManyReflection.new(name, scope, options, self)
+          habtm_reflection = ActiveRecord::Reflection::HasAndBelongsToManyReflection.new(name, sanitize_scope(scope, options), options, self)
 
           builder = Builder::HasAndBelongsToMany.new name, self, options
 
@@ -1997,6 +2013,15 @@ module ActiveRecord
           has_many name, scope, **hm_options, &extension
           _reflections[name.to_s].parent_reflection = habtm_reflection
         end
+
+        private
+          def sanitize_scope(scope, options)
+            if options[:scope].is_a? Proc
+              options.delete(:scope)
+            else
+              scope
+            end
+          end
       end
   end
 end

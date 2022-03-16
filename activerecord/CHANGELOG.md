@@ -1,3 +1,18 @@
+*   Add `scope` as a valid option for associations
+
+    This allows models to define scopes for associations also via the `:scope` option as opposed
+    to passing it as an argument. Previously, the scope had to be the second argument and it was
+    not possible to define a scope for associations as an option. Now, it's possible to define a
+    scope as an option for associations like so:
+
+    ```ruby
+    class Topic < ActiveRecord::Base
+      has_many :categories, scope: -> { where(visible: true) }
+    end
+    ```
+
+    *Ghouse Mohamed*
+
 *   Fixed MariaDB default function support.
 
     Defaults would be written wrong in "db/schema.rb" and not work correctly
