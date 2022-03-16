@@ -1,9 +1,13 @@
 # frozen_string_literal: true
 
+require "active_support/dependencies/autoload"
+
 module ActiveSupport # :nodoc:
   module Multibyte
-    autoload :Chars, "active_support/multibyte/chars"
-    autoload :Unicode, "active_support/multibyte/unicode"
+    extend ActiveSupport::Autoload
+
+    autoload :Chars
+    autoload :Unicode
 
     # The proxy class returned when calling mb_chars. You can use this accessor
     # to configure your own proxy class so you can support other encodings. See

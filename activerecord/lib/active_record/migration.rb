@@ -545,9 +545,11 @@ module ActiveRecord
   # Remember that you can still open your own transactions, even if you
   # are in a Migration with <tt>self.disable_ddl_transaction!</tt>.
   class Migration
-    autoload :CommandRecorder, "active_record/migration/command_recorder"
-    autoload :Compatibility, "active_record/migration/compatibility"
-    autoload :JoinTable, "active_record/migration/join_table"
+    extend ActiveSupport::Autoload
+
+    autoload :CommandRecorder
+    autoload :Compatibility
+    autoload :JoinTable
 
     # This must be defined before the inherited hook, below
     class Current < Migration # :nodoc:

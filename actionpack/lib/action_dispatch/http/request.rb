@@ -16,6 +16,8 @@ require "active_support/core_ext/array/conversions"
 
 module ActionDispatch
   class Request
+    extend ActiveSupport::Autoload
+
     include Rack::Request::Helpers
     include ActionDispatch::Http::Cache::Request
     include ActionDispatch::Http::MimeNegotiation
@@ -26,8 +28,8 @@ module ActionDispatch
     include ActionDispatch::PermissionsPolicy::Request
     include Rack::Request::Env
 
-    autoload :Session, "action_dispatch/request/session"
-    autoload :Utils,   "action_dispatch/request/utils"
+    autoload :Session
+    autoload :Utils
 
     LOCALHOST   = Regexp.union [/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
 

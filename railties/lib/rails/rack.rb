@@ -2,6 +2,8 @@
 
 module Rails
   module Rack
-    autoload :Logger, "rails/rack/logger"
+    extend ActiveSupport::Autoload
+
+    autoload :Logger
   end
 end

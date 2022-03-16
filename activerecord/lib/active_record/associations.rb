@@ -262,14 +262,16 @@ module ActiveRecord
     autoload :ThroughAssociation
 
     module Builder # :nodoc:
-      autoload :Association,           "active_record/associations/builder/association"
-      autoload :SingularAssociation,   "active_record/associations/builder/singular_association"
-      autoload :CollectionAssociation, "active_record/associations/builder/collection_association"
+      extend ActiveSupport::Autoload
 
-      autoload :BelongsTo,           "active_record/associations/builder/belongs_to"
-      autoload :HasOne,              "active_record/associations/builder/has_one"
-      autoload :HasMany,             "active_record/associations/builder/has_many"
-      autoload :HasAndBelongsToMany, "active_record/associations/builder/has_and_belongs_to_many"
+      autoload :association
+      autoload :SingularAssociation
+      autoload :CollectionAssociation
+
+      autoload :BelongsTo
+      autoload :HasOne
+      autoload :HasMany
+      autoload :HasAndBelongsToMany
     end
 
     eager_autoload do

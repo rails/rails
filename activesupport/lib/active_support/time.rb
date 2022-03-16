@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 module ActiveSupport
-  autoload :Duration, "active_support/duration"
-  autoload :TimeWithZone, "active_support/time_with_zone"
-  autoload :TimeZone, "active_support/values/time_zone"
+  extend ActiveSupport::Autoload
+
+  autoload :Duration
+  autoload :TimeWithZone
+  autoload :TimeZone
 end
 
 require "date"

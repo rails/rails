@@ -59,12 +59,14 @@ module Rails
   # 10. Run +config.before_eager_load+ and +eager_load!+ if +eager_load+ is +true+.
   # 11. Run +config.after_initialize+ callbacks.
   class Application < Engine
-    autoload :Bootstrap,              "rails/application/bootstrap"
-    autoload :Configuration,          "rails/application/configuration"
-    autoload :DefaultMiddlewareStack, "rails/application/default_middleware_stack"
-    autoload :Finisher,               "rails/application/finisher"
-    autoload :Railties,               "rails/engine/railties"
-    autoload :RoutesReloader,         "rails/application/routes_reloader"
+    extend ActiveSupport::Autoload
+
+    autoload :Bootstrap
+    autoload :Configuration
+    autoload :DefaultMiddlewareStack
+    autoload :Finisher
+    autoload :Railties
+    autoload :RoutesReloader
 
     class << self
       def inherited(base)

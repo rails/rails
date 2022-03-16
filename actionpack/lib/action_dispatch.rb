@@ -89,11 +89,13 @@ module ActionDispatch
   end
 
   module Session
-    autoload :AbstractStore,       "action_dispatch/middleware/session/abstract_store"
+    extend ActiveSupport::Autoload
+
+    autoload :AbstractStore
     autoload :AbstractSecureStore, "action_dispatch/middleware/session/abstract_store"
-    autoload :CookieStore,         "action_dispatch/middleware/session/cookie_store"
-    autoload :MemCacheStore,       "action_dispatch/middleware/session/mem_cache_store"
-    autoload :CacheStore,          "action_dispatch/middleware/session/cache_store"
+    autoload :CookieStore
+    autoload :MemCacheStore
+    autoload :CacheStore
   end
 
   mattr_accessor :test_app

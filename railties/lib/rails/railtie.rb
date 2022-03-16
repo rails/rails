@@ -134,7 +134,9 @@ module Rails
   #
   # Be sure to look at the documentation of those specific classes for more information.
   class Railtie
-    autoload :Configuration, "rails/railtie/configuration"
+    extend ActiveSupport::Autoload
+
+    autoload :Configuration
 
     extend ActiveSupport::DescendantsTracker
     include Initializable

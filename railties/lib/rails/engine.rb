@@ -347,7 +347,9 @@ module Rails
   #   # load Blog::Engine with highest priority, followed by application and other railties
   #   config.railties_order = [Blog::Engine, :main_app, :all]
   class Engine < Railtie
-    autoload :Configuration, "rails/engine/configuration"
+    extend ActiveSupport::Autoload
+
+    autoload :Configuration
 
     class << self
       attr_accessor :called_from, :isolated

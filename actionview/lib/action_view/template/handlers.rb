@@ -4,10 +4,12 @@ module ActionView # :nodoc:
   # = Action View Template Handlers
   class Template # :nodoc:
     module Handlers # :nodoc:
-      autoload :Raw, "action_view/template/handlers/raw"
+      extend ActiveSupport::Autoload
+
+      autoload :Raw
       autoload :ERB, "action_view/template/handlers/erb"
-      autoload :Html, "action_view/template/handlers/html"
-      autoload :Builder, "action_view/template/handlers/builder"
+      autoload :Html
+      autoload :Builder
 
       def self.extended(base)
         base.register_default_template_handler :raw, Raw.new

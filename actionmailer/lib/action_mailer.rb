@@ -35,7 +35,7 @@ require "active_support/core_ext/string/inflections"
 require "active_support/lazy_load_hooks"
 
 module ActionMailer
-  extend ::ActiveSupport::Autoload
+  extend ActiveSupport::Autoload
 
   eager_autoload do
     autoload :Collector

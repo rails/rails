@@ -45,10 +45,10 @@ module ActiveRecord
       extend ActiveSupport::Autoload
 
       eager_autoload do
-        autoload :Association,        "active_record/associations/preloader/association"
-        autoload :Batch,              "active_record/associations/preloader/batch"
-        autoload :Branch,             "active_record/associations/preloader/branch"
-        autoload :ThroughAssociation, "active_record/associations/preloader/through_association"
+        autoload :Association
+        autoload :Batch
+        autoload :Branch
+        autoload :ThroughAssociation
       end
 
       attr_reader :records, :associations, :scope, :associate_by_default
