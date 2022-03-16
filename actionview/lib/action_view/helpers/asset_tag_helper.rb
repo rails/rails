@@ -100,9 +100,9 @@ module ActionView
           href = path_to_javascript(source, path_options)
           if preload_links_header && !options["defer"] && href.present? && !href.start_with?("data:")
             preload_link = "<#{href}>; rel=#{rel}; as=script"
-            preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
-            preload_link += "; integrity=#{integrity}" unless integrity.nil?
-            preload_link += "; nopush" if nopush
+            preload_link << "; crossorigin=#{crossorigin}" unless crossorigin.nil?
+            preload_link << "; integrity=#{integrity}" unless integrity.nil?
+            preload_link << "; nopush" if nopush
             preload_links << preload_link
           end
           tag_options = {
@@ -180,9 +180,9 @@ module ActionView
           href = path_to_stylesheet(source, path_options)
           if preload_links_header && href.present? && !href.start_with?("data:")
             preload_link = "<#{href}>; rel=preload; as=style"
-            preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
-            preload_link += "; integrity=#{integrity}" unless integrity.nil?
-            preload_link += "; nopush" if nopush
+            preload_link << "; crossorigin=#{crossorigin}" unless crossorigin.nil?
+            preload_link << "; integrity=#{integrity}" unless integrity.nil?
+            preload_link << "; nopush" if nopush
             preload_links << preload_link
           end
           tag_options = {
@@ -336,10 +336,10 @@ module ActionView
         }.merge!(options.symbolize_keys))
 
         preload_link = "<#{href}>; rel=#{rel}; as=#{as_type}"
-        preload_link += "; type=#{mime_type}" if mime_type
-        preload_link += "; crossorigin=#{crossorigin}" if crossorigin
-        preload_link += "; integrity=#{integrity}" if integrity
-        preload_link += "; nopush" if nopush
+        preload_link << "; type=#{mime_type}" if mime_type
+        preload_link << "; crossorigin=#{crossorigin}" if crossorigin
+        preload_link << "; integrity=#{integrity}" if integrity
+        preload_link << "; nopush" if nopush
 
         send_preload_links_header([preload_link])
 

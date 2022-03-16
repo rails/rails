@@ -824,7 +824,7 @@ module ActionDispatch
         path = route_with_params.path(method_name)
 
         if options[:trailing_slash] && !options[:format] && !path.end_with?("/")
-          path += "/"
+          path << "/"
         end
 
         params = route_with_params.params

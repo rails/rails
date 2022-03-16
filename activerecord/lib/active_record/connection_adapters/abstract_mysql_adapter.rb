@@ -437,7 +437,7 @@ module ActiveRecord
               AND tc.table_name = #{scope[:name]}
               AND cc.constraint_schema = #{scope[:schema]}
           SQL
-          sql += " AND cc.table_name = #{scope[:name]}" if mariadb?
+          sql << " AND cc.table_name = #{scope[:name]}" if mariadb?
 
           chk_info = exec_query(sql, "SCHEMA")
 

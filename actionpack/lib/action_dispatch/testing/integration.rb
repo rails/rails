@@ -232,7 +232,7 @@ module ActionDispatch
 
             if url_host = location.host
               default = Rack::Request::DEFAULT_PORTS[location.scheme]
-              url_host += ":#{location.port}" if default != location.port
+              url_host << ":#{location.port}" if default != location.port
               host! url_host
             end
           end

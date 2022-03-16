@@ -378,7 +378,7 @@ module ActiveRecord
     def initialize(model = nil, description = nil)
       if model
         message = "Unknown primary key for table #{model.table_name} in model #{model}."
-        message += "\n#{description}" if description
+        message << "\n#{description}" if description
         @model = model
         super(message)
       else

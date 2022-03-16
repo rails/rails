@@ -210,7 +210,7 @@ module ActionCable
         # the proper channel identifier marked as the recipient.
         def transmit(data, via: nil) # :doc:
           status = "#{self.class.name} transmitting #{data.inspect.truncate(300)}"
-          status += " (via #{via})" if via
+          status << " (via #{via})" if via
           logger.debug(status)
 
           payload = { channel_class: self.class.name, data: data, via: via }
