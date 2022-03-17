@@ -361,7 +361,7 @@ module ActiveRecord
       # Register a record with the current transaction so that its after_commit and after_rollback callbacks
       # can be called.
       def add_transaction_record(record, ensure_finalize = true)
-        current_transaction.add_record(record, ensure_finalize)
+        current_transaction.uniquely_add_record(record, ensure_finalize)
       end
 
       # Begins the transaction (and turns off auto-committing).
