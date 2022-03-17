@@ -13,7 +13,7 @@ module Arel # :nodoc: all
 
       def order(*expr)
         # FIXME: We SHOULD NOT be converting these to SqlLiteral automatically
-        @orders.concat expr.map { |x|
+        @orders.concat expr.map! { |x|
           String === x || Symbol === x ? Nodes::SqlLiteral.new(x.to_s) : x
         }
         self
@@ -21,7 +21,7 @@ module Arel # :nodoc: all
 
       def partition(*expr)
         # FIXME: We SHOULD NOT be converting these to SqlLiteral automatically
-        @partitions.concat expr.map { |x|
+        @partitions.concat expr.map! { |x|
           String === x || Symbol === x ? Nodes::SqlLiteral.new(x.to_s) : x
         }
         self
@@ -49,7 +49,7 @@ module Arel # :nodoc: all
 
       def initialize_copy(other)
         super
-        @orders = @orders.map { |x| x.clone }
+        @orders = @orders.map! { |x| x.clone }
       end
 
       def hash

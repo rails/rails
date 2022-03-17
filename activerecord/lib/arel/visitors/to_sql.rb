@@ -165,12 +165,12 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_OptimizerHints(o, collector)
-          hints = o.expr.map { |v| sanitize_as_sql_comment(v) }.join(" ")
+          hints = o.expr.map! { |v| sanitize_as_sql_comment(v) }.join(" ")
           collector << "/*+ #{hints} */"
         end
 
         def visit_Arel_Nodes_Comment(o, collector)
-          collector << o.values.map { |v| "/* #{sanitize_as_sql_comment(v)} */" }.join(" ")
+          collector << o.values.map! { |v| "/* #{sanitize_as_sql_comment(v)} */" }.join(" ")
         end
 
         def collect_nodes_for(nodes, collector, spacer, connector = ", ")

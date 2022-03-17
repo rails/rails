@@ -281,7 +281,7 @@ module Arel # :nodoc: all
 
         def to_dot
           "digraph \"Arel\" {\nnode [width=0.375,height=0.25,shape=record];\n" +
-            @nodes.map { |node|
+            @nodes.map! { |node|
               label = "<f0>#{node.name}"
 
               node.fields.each_with_index do |field, i|
@@ -289,7 +289,7 @@ module Arel # :nodoc: all
               end
 
               "#{node.id} [label=\"#{label}\"];"
-            }.join("\n") + "\n" + @edges.map { |edge|
+            }.join("\n") + "\n" + @edges.map! { |edge|
               "#{edge.from.id} -> #{edge.to.id} [label=\"#{edge.name}\"];"
             }.join("\n") + "\n}"
         end
