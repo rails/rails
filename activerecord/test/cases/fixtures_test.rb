@@ -32,7 +32,6 @@ require "models/task"
 require "models/topic"
 require "models/traffic_light"
 require "models/treasure"
-require "tempfile"
 
 class FixturesTest < ActiveRecord::TestCase
   include ConnectionHelper

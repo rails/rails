@@ -136,27 +136,10 @@ module ActiveRecord
           end
         end
 
-        module SQLite3
-          module TableDefinition
-            def references(*args, **options)
-              args.each do |ref_name|
-                ReferenceDefinition.new(ref_name, type: :integer, **options).add_to(self)
-              end
-            end
-            alias :belongs_to :references
-
-            def column(name, type, index: nil, **options)
-              options[:precision] ||= nil
-              super
-            end
-          end
-        end
-
         module TableDefinition
           def references(*args, **options)
-            args.each do |ref_name|
-              ReferenceDefinition.new(ref_name, **options).add_to(self)
-            end
+            options[:_uses_legacy_reference_index_name] = true
+            super
           end
           alias :belongs_to :references
 
@@ -196,12 +179,11 @@ module ActiveRecord
 
         def add_reference(table_name, ref_name, **options)
           if connection.adapter_name == "SQLite"
-            reference_definition = ReferenceDefinition.new(ref_name, type: :integer, **options)
-          else
-            reference_definition = ReferenceDefinition.new(ref_name, **options)
+            options[:type] = :integer
           end
 
-          reference_definition.add_to(connection.update_table_definition(table_name, self))
+          options[:_uses_legacy_reference_index_name] = true
+          super
         end
         alias :add_belongs_to :add_reference
 
@@ -209,9 +191,8 @@ module ActiveRecord
           def compatible_table_definition(t)
             class << t
               prepend TableDefinition
-              prepend SQLite3::TableDefinition
             end
-            t
+            super
           end
       end
 
@@ -280,7 +261,7 @@ module ActiveRecord
             class << t
               prepend TableDefinition
             end
-            t
+            super
           end
 
           def command_recorder

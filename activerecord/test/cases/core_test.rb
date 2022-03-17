@@ -50,6 +50,11 @@ class CoreTest < ActiveRecord::TestCase
     assert_equal "NonExistentTable(Table doesn't exist)", NonExistentTable.inspect
   end
 
+  def test_inspect_relation_with_virtual_field
+    relation = Topic.limit(1).select("1 as virtual_field")
+    assert_match(/virtual_field: 1/, relation.inspect)
+  end
+
   def test_pretty_print_new
     topic = Topic.new
     actual = +""

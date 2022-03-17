@@ -83,7 +83,7 @@ module ActiveRecord
           # <tt>all_queries: true</tt>:
           #
           #   class Article < ActiveRecord::Base
-          #     default_scope { where(blog_id: 1) }, all_queries: true
+          #     default_scope -> { where(blog_id: 1) }, all_queries: true
           #   end
           #
           # Applying a default scope to all queries will ensure that records

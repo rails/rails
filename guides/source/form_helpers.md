@@ -227,7 +227,7 @@ Outputs:
 </form>
 ```
 
-The are several things to notice here:
+There are several things to notice here:
 
 * The form `action` is automatically filled with an appropriate value for `@article`.
 * The form fields are automatically filled with the corresponding values from `@article`.

@@ -41,6 +41,20 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_equal [[error, true, :warning, { section: "public" }]], @subscriber.events
   end
 
+  test "#disable allow to skip a subscriber" do
+    @reporter.disable(@subscriber) do
+      @reporter.report(ArgumentError.new("Oops"), handled: true)
+    end
+    assert_equal [], @subscriber.events
+  end
+
+  test "#disable allow to skip a subscribers per class" do
+    @reporter.disable(ErrorSubscriber) do
+      @reporter.report(ArgumentError.new("Oops"), handled: true)
+    end
+    assert_equal [], @subscriber.events
+  end
+
   test "#handle swallow and report any unhandled error" do
     error = ArgumentError.new("Oops")
     @reporter.handle do

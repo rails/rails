@@ -40,6 +40,13 @@ module ActiveRecord
       #
       #    User.where.not(name: "Jon", role: "admin")
       #    # SELECT * FROM users WHERE NOT (name == 'Jon' AND role == 'admin')
+      #
+      # If there is a non-nil condition on a nullable column in the hash condition, the records that have
+      # nil values on the nullable column won't be returned.
+      #    User.create!(nullbale_country: nil)
+      #    User.where.not(nullable_country: "UK")
+      #    # SELECT * FROM users WHERE NOT (nullable_country = 'UK')
+      #    # => []
       def not(opts, *rest)
         where_clause = @scope.send(:build_where_clause, opts, rest)
 

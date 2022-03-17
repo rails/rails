@@ -1,3 +1,25 @@
+*   Allow relative redirects when `raise_on_open_redirects` is enabled
+
+    *Tom Hughes*
+
+*   Allow Content Security Policy DSL to generate for API responses.
+
+    *Tim Wade*
+
+*   Fix `authenticate_with_http_basic` to allow for missing password.
+
+    Before Rails 7.0 it was possible to handle basic authentication with only a username.
+    
+    ```ruby
+    authenticate_with_http_basic do |token, _|
+      ApiClient.authenticate(token)
+    end
+    ```
+
+    This ability is restored.
+
+    *Jean Boussier*
+
 *   Fix `content_security_policy` returning invalid directives.
 
     Directives such as `self`, `unsafe-eval` and few others were not

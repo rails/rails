@@ -1950,7 +1950,7 @@ If you want to test the broadcasting made with `Channel.broadcast_to`, you shoul
 ```ruby
 # app/jobs/chat_relay_job.rb
 class ChatRelayJob < ApplicationJob
-  def perform_later(room, message)
+  def perform(room, message)
     ChatChannel.broadcast_to room, text: message
   end
 end

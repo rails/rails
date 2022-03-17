@@ -109,6 +109,11 @@ module ActionDispatch
   end
 
   autoload :SystemTestCase, "action_dispatch/system_test_case"
+
+  def eager_load!
+    super
+    Routing.eager_load!
+  end
 end
 
 autoload :Mime, "action_dispatch/http/mime_type"

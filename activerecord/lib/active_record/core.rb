@@ -26,6 +26,16 @@ module ActiveRecord
       class_attribute :destroy_association_async_job, instance_writer: false, instance_predicate: false, default: false
 
       ##
+      # :singleton-method:
+      #
+      # Specifies the maximum number of records that will be destroyed in a
+      # single background job by the +dependent: :destroy_async+ association
+      # option. When +nil+ (default), all dependent records will be destroyed
+      # in a single background job. If specified, the records to be destroyed
+      # will be split into multiple background jobs.
+      class_attribute :destroy_association_async_batch_size, instance_writer: false, instance_predicate: false, default: nil
+
+      ##
       # Contains the database configuration - as is typically stored in config/database.yml -
       # as an ActiveRecord::DatabaseConfigurations object.
       #
@@ -685,7 +695,7 @@ module ActiveRecord
       # We check defined?(@attributes) not to issue warnings if the object is
       # allocated but not initialized.
       inspection = if defined?(@attributes) && @attributes
-        self.class.attribute_names.filter_map do |name|
+        attribute_names.filter_map do |name|
           if _has_attribute?(name)
             "#{name}: #{attribute_for_inspect(name)}"
           end

@@ -78,7 +78,7 @@ module ActiveSupport
     alias_method :getutc, :utc
     alias_method :gmtime, :utc
 
-    # Returns the underlying TZInfo::TimezonePeriod.
+    # Returns the underlying <tt>TZInfo::TimezonePeriod</tt>.
     def period
       @period ||= time_zone.period_for_utc(@utc)
     end

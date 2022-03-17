@@ -111,8 +111,9 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   %w{capitalize downcase lstrip reverse rstrip swapcase upcase}.each do |method|
     class_eval(<<-EOTESTS, __FILE__, __LINE__ + 1)
       def test_#{method}_bang_should_return_self_when_modifying_wrapped_string
-        chars = ' él piDió Un bUen café '.dup
-        assert_equal chars.object_id, chars.public_send("#{method}!").object_id
+        original = ' él piDió Un bUen café '.dup
+        proxy = chars(original.dup)
+        assert_equal proxy.object_id, proxy.public_send("#{method}!").object_id
       end
 
       def test_#{method}_bang_should_change_wrapped_string

@@ -189,7 +189,7 @@ To move on from submitting bugs to helping resolve existing issues or contributi
 
 #### The Easiest Way
 
-Start a Github Codespace from the repository and start developing right away from the browser IDE or in your local VScode. The Codespace is initialized with all required dependencies and allows you to run all tests.
+Start a GitHub Codespace from the repository and start developing right away from the browser IDE or in your local VScode. The Codespace is initialized with all required dependencies and allows you to run all tests.
 
 #### The Easy Way
 

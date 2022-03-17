@@ -132,7 +132,7 @@ should share a connection with.
 
 ```
 class PrimaryApplicationRecord < ActiveRecord::Base
-  self.primary_abstract_class
+  self.primary_abstract_class = true
 end
 ```
 

@@ -19,6 +19,41 @@
 
     *Dan Ungureanu*
 
+*   Fixed MariaDB default function support.
+
+    Defaults would be written wrong in "db/schema.rb" and not work correctly
+    if using `db:schema:load`. Further more the function name would be
+    added as string content when saving new records.
+
+    *kaspernj*
+
+*   Add `active_record.destroy_association_async_batch_size` configuration
+
+    This allows applications to specify the maximum number of records that will
+    be destroyed in a single background job by the `dependent: :destroy_async`
+    association option. By default, the current behavior will remain the same:
+    when a parent record is destroyed, all dependent records will be destroyed
+    in a single background job. If the number of dependent records is greater
+    than this configuration, the records will be destroyed in multiple
+    background jobs.
+
+    *Nick Holden*
+
+*   Fix `remove_foreign_key` with `:if_exists` option when foreign key actually exists.
+
+    *fatkodima*
+
+*   Remove `--no-comments` flag in structure dumps for PostgreSQL
+
+    This broke some apps that used custom schema comments. If you don't want
+    comments in your structure dump, you can use:
+
+    ```ruby
+    ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ['--no-comments']
+    ```
+
+    *Alex Ghiculescu*
+
 *   Reduce the memory footprint of fixtures accessors.
 
     Until now fixtures accessors were eagerly defined using `define_method`.

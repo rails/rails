@@ -250,7 +250,9 @@ module ActionDispatch
 
     autoload :Mapper
     autoload :RouteSet
-    autoload :RoutesProxy
+    eager_autoload do
+      autoload :RoutesProxy
+    end
     autoload :UrlFor
     autoload :PolymorphicRoutes
 

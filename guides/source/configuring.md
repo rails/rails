@@ -902,6 +902,10 @@ The default value depends on the `config.load_defaults` target version:
 
 Allows specifying the job that will be used to destroy the associated records in background. It defaults to `ActiveRecord::DestroyAssociationAsyncJob`.
 
+#### `config.active_record.destroy_association_async_batch_size`
+
+Allows specifying the maximum number of records that will be destroyed in a background job by the `dependent: :destroy_async` association option. All else equal, a lower batch size will enqueue more, shorter-running background jobs, while a higher batch size will enqueue fewer, longer-running background jobs. This option defaults to `nil`, which will cause all dependent records for a given association to be destroyed in the same background job.
+
 #### `config.active_record.queues.destroy`
 
 Allows specifying the Active Job queue to use for destroy jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). It defaults to `nil`.
@@ -976,7 +980,7 @@ should be large enough to accommodate both the foreground threads (.e.g web serv
 
 Controls whether the Active Record MySQL adapter will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
 
-#### `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_table`
+#### `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables`
 
 Controls whether database tables created by PostgreSQL should be "unlogged", which can speed
 up performance but adds a risk of data loss if the database crashes. It is

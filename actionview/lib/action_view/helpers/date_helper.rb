@@ -871,6 +871,10 @@ module ActionView
           end
         end
 
+        def prompt_text(prompt, type)
+          prompt.kind_of?(String) ? prompt : I18n.translate(:"datetime.prompts.#{type}", locale: @options[:locale])
+        end
+
         # If the day is hidden, the day should be set to the 1st so all month and year choices are
         # valid. Otherwise, February 31st or February 29th, 2011 can be selected, which are invalid.
         def set_day_if_discarded
@@ -1137,7 +1141,7 @@ module ActionView
               I18n.translate(:"datetime.prompts.#{type}", locale: @options[:locale])
             end
 
-          prompt ? content_tag("option", prompt, value: "") : ""
+          prompt ? content_tag("option", prompt_text(prompt, type), value: "") : ""
         end
 
         # Builds hidden input tag for date part and value.

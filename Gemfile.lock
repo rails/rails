@@ -38,6 +38,7 @@ PATH
       activesupport (= 7.1.0.alpha)
       nio4r (~> 2.0)
       websocket-driver (>= 0.6.1)
+      zeitwerk (~> 2.5)
     actionmailbox (7.1.0.alpha)
       actionpack (= 7.1.0.alpha)
       activejob (= 7.1.0.alpha)

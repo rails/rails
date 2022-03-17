@@ -30,6 +30,7 @@ require "models/pet"
 require "models/owner"
 require "concurrent/atomic/count_down_latch"
 require "active_support/core_ext/enumerable"
+require "active_support/core_ext/kernel/reporting"
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true

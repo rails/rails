@@ -174,6 +174,8 @@ class User < ActiveRecord::Base
   has_one_attached :avatar_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
   end
+  has_one_attached :intro_video
+  has_one_attached :name_pronunciation_audio
 
   has_many_attached :highlights
   has_many_attached :vlogs, dependent: false, service: :local

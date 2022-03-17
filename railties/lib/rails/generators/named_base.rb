@@ -127,7 +127,7 @@ module Rails
         end
 
         def route_url # :doc:
-          @route_url ||= class_path.collect { |dname| "/" + dname }.join + "/" + plural_file_name
+          @route_url ||= controller_class_path.collect { |dname| "/" + dname }.join + "/" + plural_file_name
         end
 
         def url_helper_prefix # :doc:
