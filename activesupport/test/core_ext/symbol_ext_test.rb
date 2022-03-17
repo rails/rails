@@ -19,3 +19,9 @@ class SymbolStartsEndsWithTest < ActiveSupport::TestCase
     assert_not s.ends_with?("he", "ll")
   end
 end
+
+class SymbolActsLikeTest < ActiveSupport::TestCase
+  def test_acts_like_symbol
+    assert_predicate :symbol, :acts_like_symbol?
+  end
+end

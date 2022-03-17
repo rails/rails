@@ -38,6 +38,8 @@ class Object
       respond_to? :acts_like_date?
     when :string
       respond_to? :acts_like_string?
+    when :symbol
+      respond_to? :acts_like_symbol?
     else
       respond_to? :"acts_like_#{duck}?"
     end

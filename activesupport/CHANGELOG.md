@@ -1,3 +1,7 @@
+*   Add `acts_like_symbol?` method to the `Symbol` core extension.
+
+    *Ghouse Mohamed*
+
 *   `Pathname.blank?` only returns true for `Pathname.new("")`
 
     Previously it would end up calling `Pathname#empty?` which returned true
