@@ -72,6 +72,27 @@ class Rails::Conductor::ActionMailbox::InboundEmailsControllerTest < ActionDispa
     end
   end
 
+  test "create inbound email without attachments" do
+    with_rails_env("development") do
+      assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
+        post rails_conductor_inbound_emails_path, params: {
+          mail: {
+            from: "Jason Fried <jason@37signals.com>",
+            to: "Replies <replies@example.com>",
+            subject: "There is no attachment",
+            body: "There is no attachment this time.",
+            attachments: [ "" ]
+          }
+        }
+      end
+
+      mail = ActionMailbox::InboundEmail.last.mail
+      assert_equal "There is no attachment this time.", mail.body.decoded
+      assert_equal 0, mail.attachments.count
+      assert_equal [], mail.attachments.collect(&:filename)
+    end
+  end
+
   private
     def with_rails_env(env)
       old_rails_env = Rails.env
