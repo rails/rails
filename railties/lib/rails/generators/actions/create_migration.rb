@@ -6,7 +6,7 @@ require "thor/actions"
 module Rails
   module Generators
     module Actions
-      class CreateMigration < Thor::Actions::CreateFile #:nodoc:
+      class CreateMigration < Thor::Actions::CreateFile # :nodoc:
         def migration_dir
           File.dirname(@destination)
         end

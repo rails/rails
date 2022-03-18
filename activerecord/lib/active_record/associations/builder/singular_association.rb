@@ -3,7 +3,7 @@
 # This class is inherited by the has_one and belongs_to association classes
 
 module ActiveRecord::Associations::Builder # :nodoc:
-  class SingularAssociation < Association #:nodoc:
+  class SingularAssociation < Association # :nodoc:
     def self.valid_options(options)
       super + [:required, :touch]
     end

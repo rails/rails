@@ -941,6 +941,36 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not_predicate person, :changed?
   end
 
+  test "partial insert off with unchanged default function attribute" do
+    with_partial_writes Aircraft, false do
+      aircraft = Aircraft.new(name: "Boeing")
+      assert_equal "Boeing", aircraft.name
+
+      aircraft.save!
+      expected_manufactured_at = Time.now
+      aircraft.reload
+
+      assert_equal "Boeing", aircraft.name
+      assert_in_delta expected_manufactured_at, aircraft.manufactured_at, 1
+    end
+  end
+
+  test "partial insert off with changed default function attribute" do
+    with_partial_writes Aircraft, false do
+      manufactured_at = 1.years.ago
+      aircraft = Aircraft.new(name: "Boeing2", manufactured_at: manufactured_at)
+
+      assert_equal "Boeing2", aircraft.name
+      assert_equal manufactured_at.to_i, aircraft.manufactured_at.to_i
+
+      aircraft.save!
+      aircraft.reload
+
+      assert_equal "Boeing2", aircraft.name
+      assert_equal manufactured_at.utc.strftime("%Y-%m-%d %H:%M:%S"), aircraft.manufactured_at.strftime("%Y-%m-%d %H:%M:%S")
+    end
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old_inserts = klass.partial_inserts?

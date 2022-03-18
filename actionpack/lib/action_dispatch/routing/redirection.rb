@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "action_dispatch/http/request"
 require "active_support/core_ext/array/extract_options"
 require "rack/utils"
 require "action_controller/metal/exceptions"
@@ -39,7 +38,7 @@ module ActionDispatch
 
         req.commit_flash
 
-        body = %(<html><body>You are being <a href="#{ERB::Util.unwrapped_html_escape(uri.to_s)}">redirected</a>.</body></html>)
+        body = ""
 
         headers = {
           "Location" => uri.to_s,

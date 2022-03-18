@@ -1,49 +1,48 @@
 # frozen_string_literal: true
 
-require "active_support/dependencies/zeitwerk_integration"
-require "zeitwerk"
-
 module Rails
-  module Autoloaders # :nodoc:
-    class << self
-      include Enumerable
+  class Autoloaders # :nodoc:
+    require_relative "autoloaders/inflector"
 
-      def main
-        if zeitwerk_enabled?
-          @main ||= Zeitwerk::Loader.new.tap do |loader|
-            loader.tag = "rails.main"
-            loader.inflector = ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector
-          end
-        end
-      end
+    include Enumerable
 
-      def once
-        if zeitwerk_enabled?
-          @once ||= Zeitwerk::Loader.new.tap do |loader|
-            loader.tag = "rails.once"
-            loader.inflector = ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector
-          end
-        end
-      end
+    attr_reader :main, :once
 
-      def each
-        if zeitwerk_enabled?
-          yield main
-          yield once
-        end
-      end
+    def initialize
+      # This `require` delays loading the library on purpose.
+      #
+      # In Rails 7.0.0, railties/lib/rails.rb loaded Zeitwerk as a side-effect,
+      # but a couple of edge cases related to Bundler and Bootsnap showed up.
+      # They had to do with order of decoration of `Kernel#require`, something
+      # the three of them do.
+      #
+      # Delaying this `require` up to this point is a convenient trade-off.
+      require "zeitwerk"
 
-      def logger=(logger)
-        each { |loader| loader.logger = logger }
-      end
+      @main = Zeitwerk::Loader.new
+      @main.tag = "rails.main"
+      @main.inflector = Inflector
 
-      def log!
-        each(&:log!)
-      end
+      @once = Zeitwerk::Loader.new
+      @once.tag = "rails.once"
+      @once.inflector = Inflector
+    end
 
-      def zeitwerk_enabled?
-        true
-      end
+    def each
+      yield main
+      yield once
+    end
+
+    def logger=(logger)
+      each { |loader| loader.logger = logger }
+    end
+
+    def log!
+      each(&:log!)
+    end
+
+    def zeitwerk_enabled?
+      true
     end
   end
 end

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
+require "set"
 require "isolation/abstract_unit"
-require "active_support/dependencies/zeitwerk_integration"
 
 class ZeitwerkIntegrationTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
@@ -22,14 +22,9 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     ActiveSupport::Dependencies
   end
 
-  def decorated?
-    deps.singleton_class < deps::ZeitwerkIntegration::Decorations
-  end
-
-  test "ActiveSupport::Dependencies is decorated" do
+  test "The integration is minimally looking good" do
     boot
 
-    assert decorated?
     assert Rails.autoloaders.zeitwerk_enabled?
     assert_instance_of Zeitwerk::Loader, Rails.autoloaders.main
     assert_instance_of Zeitwerk::Loader, Rails.autoloaders.once
@@ -61,111 +56,53 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert RESTfulController
   end
 
-  test "constantize returns the value stored in the constant" do
-    app_file "app/models/admin/user.rb", "class Admin::User; end"
-    boot
 
-    assert_same Admin::User, deps.constantize("Admin::User")
-  end
+  test "the once autoloader can autoload from initializers" do
+    app_file "extras0/x.rb", "X = 0"
+    app_file "extras1/y.rb", "Y = 0"
 
-  test "constantize raises if the constant is unknown" do
-    boot
+    # We should be able to configure autoload_once_paths in
+    # config/application.rb and in config/environments/*.rb.
+    add_to_config 'config.autoload_once_paths << "#{Rails.root}/extras0"'
+    add_to_env_config "development", 'config.autoload_once_paths << "#{Rails.root}/extras1"'
 
-    assert_raises(NameError) { deps.constantize("Admin") }
-  end
-
-  test "safe_constantize returns the value stored in the constant" do
-    app_file "app/models/admin/user.rb", "class Admin::User; end"
-    boot
-
-    assert_same Admin::User, deps.safe_constantize("Admin::User")
-  end
-
-  test "safe_constantize returns nil for unknown constants" do
-    boot
-
-    assert_nil deps.safe_constantize("Admin")
-  end
-
-  test "autoloaded? and overridden class names" do
-    invalid_constant_name = Module.new do
-      def self.name
-        "MyModule::SchemaMigration"
-      end
+    # Collections should br frozen after bootstrap, and you are ready to
+    # autoload with the once autoloader. In particular, from initializers.
+    $config_autoload_once_paths_is_frozen = false
+    $global_autoload_once_paths_is_frozen = false
+    add_to_config <<~RUBY
+    initializer :test_autoload_once_paths_is_frozen, after: :bootstrap_hook do
+      $config_autoload_once_paths_is_frozen = config.autoload_once_paths.frozen?
+      $global_autoload_once_paths_is_frozen = ActiveSupport::Dependencies.autoload_once_paths.frozen?
+      X
     end
-    assert_not deps.autoloaded?(invalid_constant_name)
-  end
+    RUBY
 
-  test "unloadable constants (main)" do
-    app_file "app/models/user.rb", "class User; end"
-    app_file "app/models/post.rb", "class Post; end"
+    app_file "config/initializers/autoload_Y.rb", "Y"
+
+    # Preconditions.
+    assert_not Object.const_defined?(:X)
+    assert_not Object.const_defined?(:Y)
+
     boot
 
-    assert Post
-
-    assert deps.autoloaded?("Post")
-    assert deps.autoloaded?(Post)
-    assert_not deps.autoloaded?("User")
-
-    assert_equal ["Post"], deps.autoloaded_constants
+    assert Object.const_defined?(:X)
+    assert Object.const_defined?(:Y)
+    assert $config_autoload_once_paths_is_frozen
+    assert $global_autoload_once_paths_is_frozen
   end
 
-  test "unloadable constants (once)" do
-    add_to_config 'config.autoload_once_paths << "#{Rails.root}/extras"'
-    app_file "extras/foo.rb", "class Foo; end"
-    app_file "extras/bar.rb", "class Bar; end"
-    boot
+  test "the once autoloader can eager load" do
+    app_file "app/serializers/money_serializer.rb", "MoneySerializer = :dummy_value"
 
-    assert Foo
+    add_to_config 'config.autoload_once_paths << "#{Rails.root}/app/serializers"'
+    add_to_config 'config.eager_load_paths << "#{Rails.root}/app/serializers"'
 
-    assert_not deps.autoloaded?("Foo")
-    assert_not deps.autoloaded?(Foo)
-    assert_not deps.autoloaded?("Bar")
+    assert_not Object.const_defined?(:MoneySerializer)
 
-    assert_empty deps.autoloaded_constants
-  end
-
-  test "unloadable constants (reloading disabled)" do
-    app_file "app/models/user.rb", "class User; end"
-    app_file "app/models/post.rb", "class Post; end"
     boot("production")
 
-    assert Post
-
-    assert_not deps.autoloaded?("Post")
-    assert_not deps.autoloaded?(Post)
-    assert_not deps.autoloaded?("User")
-
-    assert_empty deps.autoloaded_constants
-  end
-
-  [true, false].each do |add_aps_to_lp|
-    test "require_dependency looks autoload paths up (#{add_aps_to_lp})" do
-      add_to_config "config.add_autoload_paths_to_load_path = #{add_aps_to_lp}"
-      app_file "app/models/user.rb", "class User; end"
-      boot
-
-      assert require_dependency("user")
-    end
-
-    test "require_dependency handles absolute paths correctly (#{add_aps_to_lp})" do
-      add_to_config "config.add_autoload_paths_to_load_path = #{add_aps_to_lp}"
-      app_file "app/models/user.rb", "class User; end"
-      boot
-
-      assert require_dependency("#{app_path}/app/models/user.rb")
-    end
-
-    test "require_dependency supports arguments that respond to to_path (#{add_aps_to_lp})" do
-      add_to_config "config.add_autoload_paths_to_load_path = #{add_aps_to_lp}"
-      app_file "app/models/user.rb", "class User; end"
-      boot
-
-      user = Object.new
-      def user.to_path; "user"; end
-
-      assert require_dependency(user)
-    end
+    assert Object.const_defined?(:MoneySerializer)
   end
 
   test "eager loading loads the application code" do
@@ -213,15 +150,6 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
 
     assert_not Rails.autoloaders.main.reloading_enabled?
     assert_not Rails.autoloaders.once.reloading_enabled?
-  end
-
-  test "reloading raises if config.cache_classes is true" do
-    boot("production")
-
-    e = assert_raises(StandardError) do
-      deps.clear
-    end
-    assert_equal "reloading is disabled because config.cache_classes is true", e.message
   end
 
   test "eager loading loads code in engines" do
@@ -334,11 +262,62 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_equal %i(main_autoloader), $zeitwerk_integration_reload_test
   end
 
-  test "unhooks" do
+  test "reloading invokes before_remove_const" do
+    $before_remove_const_invoked = false
+
+    app_file "app/models/foo.rb", <<~RUBY
+      # While the most common use case is classes/modules, the contract does not
+      # require values to be so. Let's weaken the test down to Object.new.
+      Foo = Object.new
+      def Foo.before_remove_const
+        $before_remove_const_invoked = true
+      end
+    RUBY
+
+    app_file "app/models/bar.rb", <<~RUBY
+      # This object does not implement before_remove_const. We define it to make
+      # sure reloading does not raise. That is, it does not blindly invoke the
+      # hook on all unloaded objects.
+      Bar = Object.new
+    RUBY
+
     boot
 
-    assert_equal Module, Module.method(:const_missing).owner
-    assert_equal :no_op, deps.unhook!
+    assert Foo
+    assert Bar
+    ActiveSupport::Dependencies.clear
+
+    assert $before_remove_const_invoked
+  end
+
+  test "reloading clears autoloaded tracked classes" do
+    eval <<~RUBY
+      class Parent
+        extend ActiveSupport::DescendantsTracker
+      end
+    RUBY
+
+    app_file "app/models/child.rb", <<~RUBY
+      class Child < #{self.class.name}::Parent
+      end
+    RUBY
+
+    app_file "app/models/grandchild.rb", <<~RUBY
+      class Grandchild < Child
+      end
+    RUBY
+
+    boot
+    assert Grandchild
+
+    # Preconditions, we add some redundancy about descendants tracking.
+    assert_equal Set[Child, Grandchild], ActiveSupport::Dependencies._autoloaded_tracked_classes
+    assert_equal [Child, Grandchild], Parent.descendants
+
+    Rails.application.reloader.reload!
+
+    assert_empty ActiveSupport::Dependencies._autoloaded_tracked_classes
+    assert_equal [], Parent.descendants
   end
 
   test "autoloaders.logger=" do

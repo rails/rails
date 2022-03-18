@@ -31,7 +31,7 @@ module ActiveStorage
       private
         # Returns an open Tempfile containing a transformed image in the given +format+.
         # All subclasses implement this method.
-        def process(file, format:) #:doc:
+        def process(file, format:) # :doc:
           raise NotImplementedError
         end
     end

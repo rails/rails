@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 module ActionView
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     module JavaScriptHelper
       JS_ESCAPE_MAP = {
-        '\\'    => '\\\\',
+        "\\"    => "\\\\",
         "</"    => '<\/',
         "\r\n"  => '\n',
         "\n"    => '\n',
@@ -87,7 +87,7 @@ module ActionView
         content_tag("script", javascript_cdata_section(content), html_options)
       end
 
-      def javascript_cdata_section(content) #:nodoc:
+      def javascript_cdata_section(content) # :nodoc:
         "\n//#{cdata_section("\n#{content}\n//")}\n".html_safe
       end
     end

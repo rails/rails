@@ -12,7 +12,10 @@ require "active_storage/previewer/mupdf_previewer"
 require "active_storage/previewer/video_previewer"
 
 require "active_storage/analyzer/image_analyzer"
+require "active_storage/analyzer/image_analyzer/image_magick"
+require "active_storage/analyzer/image_analyzer/vips"
 require "active_storage/analyzer/video_analyzer"
+require "active_storage/analyzer/audio_analyzer"
 
 require "active_storage/service/registry"
 
@@ -24,9 +27,10 @@ module ActiveStorage
 
     config.active_storage = ActiveSupport::OrderedOptions.new
     config.active_storage.previewers = [ ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
-    config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer ]
+    config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new
+    config.active_storage.precompile_assets = true
 
     config.active_storage.variable_content_types = %w(
       image/png
@@ -39,6 +43,9 @@ module ActiveStorage
       image/vnd.adobe.photoshop
       image/vnd.microsoft.icon
       image/webp
+      image/avif
+      image/heic
+      image/heif
     )
 
     config.active_storage.web_image_content_types = %w(
@@ -86,12 +93,31 @@ module ActiveStorage
         ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false
         ActiveStorage.resolve_model_to_route = app.config.active_storage.resolve_model_to_route || :rails_storage_redirect
 
+        ActiveStorage.supported_image_processing_methods += app.config.active_storage.supported_image_processing_methods || []
+        ActiveStorage.unsupported_image_processing_arguments = app.config.active_storage.unsupported_image_processing_arguments || %w(
+          -debug
+          -display
+          -distribute-cache
+          -help
+          -path
+          -print
+          -set
+          -verbose
+          -version
+          -write
+          -write-mask
+        )
+
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
         ActiveStorage.web_image_content_types = app.config.active_storage.web_image_content_types || []
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
         ActiveStorage.service_urls_expire_in = app.config.active_storage.service_urls_expire_in || 5.minutes
+        ActiveStorage.urls_expire_in = app.config.active_storage.urls_expire_in
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
+        ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
+
+        ActiveStorage.silence_invalid_content_types_warning = app.config.active_storage.silence_invalid_content_types_warning || false
 
         ActiveStorage.replace_on_assign_to_many = app.config.active_storage.replace_on_assign_to_many || false
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
@@ -141,6 +167,26 @@ module ActiveStorage
       ActiveSupport.on_load(:active_record) do
         include Reflection::ActiveRecordExtensions
         ActiveRecord::Reflection.singleton_class.prepend(Reflection::ReflectionExtension)
+      end
+    end
+
+    initializer "action_view.configuration" do
+      config.after_initialize do |app|
+        ActiveSupport.on_load(:action_view) do
+          multiple_file_field_include_hidden = app.config.active_storage.delete(:multiple_file_field_include_hidden)
+
+          unless multiple_file_field_include_hidden.nil?
+            ActionView::Helpers::FormHelper.multiple_file_field_include_hidden = multiple_file_field_include_hidden
+          end
+        end
+      end
+    end
+
+    initializer "active_storage.asset" do
+      config.after_initialize do |app|
+        if app.config.respond_to?(:assets) && app.config.active_storage.precompile_assets
+          app.config.assets.precompile += %w( activestorage activestorage.esm )
+        end
       end
     end
 

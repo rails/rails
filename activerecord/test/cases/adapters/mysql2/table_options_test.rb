@@ -46,7 +46,7 @@ class Mysql2TableOptionsTest < ActiveRecord::Mysql2TestCase
   test "charset and collation options" do
     @connection.create_table "mysql_table_options", force: true, charset: "utf8mb4", collation: "utf8mb4_bin"
     output = dump_table_schema("mysql_table_options")
-    expected = /create_table "mysql_table_options", charset: "utf8mb4", collation: "utf8mb4_bin", force: :cascade/
+    expected = /create_table "mysql_table_options", charset: "utf8mb4", collation: "utf8mb4_bin"(:?, options: "ENGINE=InnoDB ROW_FORMAT=DYNAMIC")?, force: :cascade/
     assert_match expected, output
   end
 
@@ -103,7 +103,7 @@ class Mysql2DefaultEngineOptionTest < ActiveRecord::Mysql2TestCase
     assert_no_match %r{ENGINE=InnoDB}, @log.string
 
     output = dump_table_schema("mysql_table_options")
-    expected = /create_table "mysql_table_options", charset: "utf8mb4"(?:, collation: "\w+")?, force: :cascade/
+    expected = /create_table "mysql_table_options", charset: "utf8mb4"(?:, collation: "\w+")?(:?, options: "ENGINE=InnoDB ROW_FORMAT=DYNAMIC")?, force: :cascade/
     assert_match expected, output
   end
 

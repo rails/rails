@@ -21,8 +21,16 @@ module ActiveModel
       @attributes[name] = value
     end
 
+    def cast_types
+      attributes.transform_values(&:type)
+    end
+
     def values_before_type_cast
       attributes.transform_values(&:value_before_type_cast)
+    end
+
+    def values_for_database
+      attributes.transform_values(&:value_for_database)
     end
 
     def to_hash
@@ -33,6 +41,7 @@ module ActiveModel
     def key?(name)
       attributes.key?(name) && self[name].initialized?
     end
+    alias :include? :key?
 
     def keys
       attributes.each_key.select { |name| self[name].initialized? }

@@ -100,7 +100,7 @@ module ActionText
     end
 
     def inspect
-      "#<#{self.class.name} #{to_s.truncate(25).inspect}>"
+      "#<#{self.class.name} #{to_html.truncate(25).inspect}>"
     end
 
     def ==(other)

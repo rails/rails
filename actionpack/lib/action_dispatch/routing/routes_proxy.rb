@@ -4,7 +4,7 @@ require "active_support/core_ext/array/extract_options"
 
 module ActionDispatch
   module Routing
-    class RoutesProxy #:nodoc:
+    class RoutesProxy # :nodoc:
       include ActionDispatch::Routing::UrlFor
 
       attr_accessor :scope, :routes

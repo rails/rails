@@ -65,7 +65,12 @@ The [Layouts and Rendering Guide](layouts_and_rendering.html) explains this in m
 
 Only public methods are callable as actions. It is a best practice to lower the visibility of methods (with `private` or `protected`) which are not intended to be actions, like auxiliary methods or filters.
 
+WARNING: Some method names are reserved by Action Controller. Accidentally redefining them as actions, or even as auxiliary methods, could result in `SystemStackError`. If you limit your controllers to only RESTful [Resource Routing][] actions you should not need to worry about this.
+
+NOTE: If you must use a reserved method as an action name, one workaround is to use a custom route to map the reserved method name to your non-reserved action method.
+
 [`ActionController::Base`]: https://api.rubyonrails.org/classes/ActionController/Base.html
+[Resource Routing]: https://guides.rubyonrails.org/routing.html#resource-routing-the-rails-default
 
 Parameters
 ----------
@@ -374,7 +379,7 @@ Your application has a session for each user in which you can store small amount
 * [`ActionDispatch::Session::CookieStore`][] - Stores everything on the client.
 * [`ActionDispatch::Session::CacheStore`][] - Stores the data in the Rails cache.
 * `ActionDispatch::Session::ActiveRecordStore` - Stores the data in a database using Active Record (requires the `activerecord-session_store` gem).
-* [`ActionDispatch::Session::MemCacheStore`][] - Stores the data in a memcached cluster (this is a legacy implementation; consider using CacheStore instead).
+* [`ActionDispatch::Session::MemCacheStore`][] - Stores the data in a memcached cluster (this is a legacy implementation; consider using `CacheStore` instead).
 
 All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
 
@@ -1161,13 +1166,21 @@ Rails keeps a log file for each environment in the `log` folder. These are extre
 
 ### Parameters Filtering
 
-You can filter out sensitive request parameters from your log files by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
+You can filter out sensitive request parameters from your log files by
+appending them to [`config.filter_parameters`][] in the application configuration.
+These parameters will be marked [FILTERED] in the log.
 
 ```ruby
 config.filter_parameters << :password
 ```
 
-NOTE: Provided parameters will be filtered out by partial matching regular expression. Rails adds default `:password` in the appropriate initializer (`initializers/filter_parameter_logging.rb`) and cares about typical application parameters `password` and `password_confirmation`.
+NOTE: Provided parameters will be filtered out by partial matching regular
+expression. Rails adds a list of default filters, including `:passw`,
+`:secret`, and `:token`, in the appropriate initializer
+(`initializers/filter_parameter_logging.rb`) to handle typical application
+parameters like `password`, `password_confirmation` and `my_token`.
+
+[`config.filter_parameters`]: configuring.html#config-filter-parameters
 
 ### Redirects Filtering
 
@@ -1261,6 +1274,7 @@ Force HTTPS protocol
 
 If you'd like to ensure that communication to your controller is only possible
 via HTTPS, you should do so by enabling the [`ActionDispatch::SSL`][] middleware via
-`config.force_ssl` in your environment configuration.
+[`config.force_ssl`][] in your environment configuration.
 
+[`config.force_ssl`]: configuring.html#config-force-ssl
 [`ActionDispatch::SSL`]: https://api.rubyonrails.org/classes/ActionDispatch/SSL.html

@@ -47,7 +47,7 @@ module ActiveRecord
     end
   end
 
-  module ConnectionAdapters #:nodoc:
+  module ConnectionAdapters # :nodoc:
     # The SQLite3 adapter works with the sqlite3-ruby drivers
     # (available as gem from https://rubygems.org/gems/sqlite3).
     #
@@ -77,6 +77,8 @@ module ActiveRecord
       }
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
+        alias reset clear
+
         private
           def dealloc(stmt)
             stmt.close unless stmt.closed?
@@ -86,7 +88,6 @@ module ActiveRecord
       def initialize(connection, logger, connection_options, config)
         @memory_database = config[:database] == ":memory:"
         super(connection, logger, config)
-        configure_connection
       end
 
       def self.database_exists?(config)
@@ -159,32 +160,40 @@ module ActiveRecord
       end
 
       def active?
-        !@connection.closed?
+        !@raw_connection.closed?
       end
 
-      def reconnect!
-        super
-        connect if @connection.closed?
+      def reconnect!(restore_transactions: false)
+        @lock.synchronize do
+          if active?
+            @raw_connection.rollback rescue nil
+          else
+            connect
+          end
+
+          super
+        end
       end
+      alias :reset! :reconnect!
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
         super
-        @connection.close rescue nil
+        @raw_connection.close rescue nil
       end
 
       def supports_index_sort_order?
         true
       end
 
-      def native_database_types #:nodoc:
+      def native_database_types # :nodoc:
         NATIVE_DATABASE_TYPES
       end
 
-      # Returns the current database encoding format as a string, eg: 'UTF-8'
+      # Returns the current database encoding format as a string, e.g. 'UTF-8'
       def encoding
-        @connection.encoding.to_s
+        @raw_connection.encoding.to_s
       end
 
       def supports_explain?
@@ -209,6 +218,10 @@ module ActiveRecord
           execute("PRAGMA defer_foreign_keys = #{old_defer_foreign_keys}")
           execute("PRAGMA foreign_keys = #{old_foreign_keys}")
         end
+      end
+
+      def all_foreign_keys_valid? # :nodoc:
+        execute("PRAGMA foreign_key_check").blank?
       end
 
       # SCHEMA STATEMENTS ========================================
@@ -237,7 +250,7 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name)
       end
 
-      def add_column(table_name, column_name, type, **options) #:nodoc:
+      def add_column(table_name, column_name, type, **options) # :nodoc:
         if invalid_alter_table_type?(type, options)
           alter_table(table_name) do |definition|
             definition.column(column_name, type, **options)
@@ -247,7 +260,7 @@ module ActiveRecord
         end
       end
 
-      def remove_column(table_name, column_name, type = nil, **options) #:nodoc:
+      def remove_column(table_name, column_name, type = nil, **options) # :nodoc:
         alter_table(table_name) do |definition|
           definition.remove_column column_name
           definition.foreign_keys.delete_if { |fk| fk.column == column_name.to_s }
@@ -264,7 +277,7 @@ module ActiveRecord
         end
       end
 
-      def change_column_default(table_name, column_name, default_or_changes) #:nodoc:
+      def change_column_default(table_name, column_name, default_or_changes) # :nodoc:
         default = extract_new_default_value(default_or_changes)
 
         alter_table(table_name) do |definition|
@@ -272,7 +285,7 @@ module ActiveRecord
         end
       end
 
-      def change_column_null(table_name, column_name, null, default = nil) #:nodoc:
+      def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
         unless null || default.nil?
           exec_query("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
@@ -281,7 +294,7 @@ module ActiveRecord
         end
       end
 
-      def change_column(table_name, column_name, type, **options) #:nodoc:
+      def change_column(table_name, column_name, type, **options) # :nodoc:
         alter_table(table_name) do |definition|
           definition[column_name].instance_eval do
             self.type = aliased_types(type.to_s, type)
@@ -290,7 +303,7 @@ module ActiveRecord
         end
       end
 
-      def rename_column(table_name, column_name, new_column_name) #:nodoc:
+      def rename_column(table_name, column_name, new_column_name) # :nodoc:
         column = column_for(table_name, column_name)
         alter_table(table_name, rename: { column.name => new_column_name.to_s })
         rename_column_indexes(table_name, column.name, new_column_name)
@@ -346,16 +359,33 @@ module ActiveRecord
         end
       end
 
+      class SQLite3Integer < Type::Integer # :nodoc:
+        private
+          def _limit
+            # INTEGER storage class can be stored 8 bytes value.
+            # See https://www.sqlite.org/datatype3.html#storage_classes_and_datatypes
+            limit || 8
+          end
+      end
+
+      ActiveRecord::Type.register(:integer, SQLite3Integer, adapter: :sqlite3)
+
+      class << self
+        private
+          def initialize_type_map(m)
+            super
+            register_class_with_limit m, %r(int)i, SQLite3Integer
+          end
+      end
+
+      TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
+      EXTENDED_TYPE_MAPS = Concurrent::Map.new
+
       private
         # See https://www.sqlite.org/limits.html,
         # the default value is 999 when not configured.
         def bind_params_length
           999
-        end
-
-        def initialize_type_map(m = type_map)
-          super
-          register_class_with_limit m, %r(int)i, SQLite3Integer
         end
 
         def table_structure(table_name)
@@ -364,6 +394,34 @@ module ActiveRecord
           table_structure_with_collation(table_name, structure)
         end
         alias column_definitions table_structure
+
+        def extract_value_from_default(default)
+          case default
+          when /^null$/i
+            nil
+          # Quoted types
+          when /^'(.*)'$/m
+            $1.gsub("''", "'")
+          # Quoted types
+          when /^"(.*)"$/m
+            $1.gsub('""', '"')
+          # Numeric types
+          when /\A-?\d+(\.\d*)?\z/
+            $&
+          else
+            # Anything else is blank or some function
+            # and we can't know the value of that, so return nil.
+            nil
+          end
+        end
+
+        def extract_default_function(default_value, default)
+          default if has_default_function?(default_value, default)
+        end
+
+        def has_default_function?(default_value, default)
+          !default_value && %r{\w+\(.*\)|CURRENT_TIME|CURRENT_DATE|CURRENT_TIMESTAMP}.match?(default)
+        end
 
         # See: https://www.sqlite.org/lang_altertable.html
         # SQLite has an additional restriction on the ALTER TABLE statement
@@ -550,29 +608,17 @@ module ActiveRecord
         end
 
         def connect
-          @connection = ::SQLite3::Database.new(
+          @raw_connection = ::SQLite3::Database.new(
             @config[:database].to_s,
             @config.merge(results_as_hash: true)
           )
-          configure_connection
         end
 
         def configure_connection
-          @connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout])) if @config[:timeout]
+          @raw_connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout])) if @config[:timeout]
 
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
-
-        class SQLite3Integer < Type::Integer # :nodoc:
-          private
-            def _limit
-              # INTEGER storage class can be stored 8 bytes value.
-              # See https://www.sqlite.org/datatype3.html#storage_classes_and_datatypes
-              limit || 8
-            end
-        end
-
-        ActiveRecord::Type.register(:integer, SQLite3Integer, adapter: :sqlite3)
     end
     ActiveSupport.run_load_hooks(:active_record_sqlite3adapter, SQLite3Adapter)
   end

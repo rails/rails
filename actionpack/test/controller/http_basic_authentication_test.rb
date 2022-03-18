@@ -31,6 +31,13 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
       render plain: "All inline"
     end
 
+    def no_password
+      username, password = authenticate_with_http_basic do |username, password|
+        [username, password]
+      end
+      render plain: "Hello #{username} (password: #{password.inspect})"
+    end
+
     private
       def authenticate
         authenticate_or_request_with_http_basic do |username, password|
@@ -135,6 +142,21 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     assert_response :unauthorized
     assert_equal "Authentication Failed\n", @response.body
     assert_equal 'Basic realm="SuperSecret"', @response.headers["WWW-Authenticate"]
+  end
+
+  test "authentication request with a missing password" do
+    @request.env["HTTP_AUTHORIZATION"] = "Basic #{::Base64.encode64("David")}"
+    get :search
+
+    assert_response :unauthorized
+  end
+
+  test "authentication request with no required password" do
+    @request.env["HTTP_AUTHORIZATION"] = "Basic #{::Base64.encode64("George")}"
+    get :no_password
+
+    assert_response :success
+    assert_equal "Hello George (password: nil)", @response.body
   end
 
   test "authentication request with valid credential" do

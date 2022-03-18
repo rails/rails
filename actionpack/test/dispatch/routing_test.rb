@@ -3914,11 +3914,7 @@ private
   def verify_redirect(url, status = 301)
     assert_equal status, @response.status
     assert_equal url, @response.headers["Location"]
-    assert_equal expected_redirect_body(url), @response.body
-  end
-
-  def expected_redirect_body(url)
-    %(<html><body>You are being <a href="#{ERB::Util.h(url)}">redirected</a>.</body></html>)
+    assert_equal "", @response.body
   end
 end
 
@@ -4341,11 +4337,7 @@ private
   def verify_redirect(url, status = 301)
     assert_equal status, @response.status
     assert_equal url, @response.headers["Location"]
-    assert_equal expected_redirect_body(url), @response.body
-  end
-
-  def expected_redirect_body(url)
-    %(<html><body>You are being <a href="#{ERB::Util.h(url)}">redirected</a>.</body></html>)
+    assert_equal "", @response.body
   end
 end
 
@@ -4806,7 +4798,7 @@ class TestRouteDefaults < ActionDispatch::IntegrationTest
 
   def test_route_options_are_required_for_url_for
     assert_raises(ActionController::UrlGenerationError) do
-      assert_equal "/posts/1", url_for(controller: "posts", action: "show", id: 1, only_path: true)
+      url_for(controller: "posts", action: "show", id: 1, only_path: true)
     end
 
     assert_equal "/posts/1", url_for(controller: "posts", action: "show", id: 1, bucket_type: "post", only_path: true)
@@ -4913,11 +4905,9 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
     assert_match message, error.message
   end
 
-  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-    test "exceptions have suggestions for fix" do
-      error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
-      assert_match "Did you mean?", error.message
-    end
+  test "exceptions have suggestions for fix" do
+    error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
+    assert_match "Did you mean?", error.message
   end
 
   # FIXME: we should fix all locations that raise this exception to provide
@@ -4926,8 +4916,8 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
   # we don't want to break other code.
   test "correct for empty UrlGenerationError" do
     err = ActionController::UrlGenerationError.new("oh no!")
-    correction = ActionController::UrlGenerationError::Correction.new(err)
-    assert_equal [], correction.corrections
+
+    assert_equal [], err.corrections
   end
 end
 

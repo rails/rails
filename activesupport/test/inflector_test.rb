@@ -469,6 +469,18 @@ class InflectorTest < ActiveSupport::TestCase
     RUBY
   end
 
+  def test_clear_acronyms_resets_to_reusable_state
+    ActiveSupport::Inflector.inflections.clear(:acronyms)
+
+    assert_empty ActiveSupport::Inflector.inflections.acronyms
+
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.acronym "HTML"
+    end
+
+    assert_equal "HTML", "html".titleize
+  end
+
   def test_inflector_locality
     ActiveSupport::Inflector.inflections(:es) do |inflect|
       inflect.plural(/$/, "s")
@@ -512,6 +524,7 @@ class InflectorTest < ActiveSupport::TestCase
       inflect.singular(/(database)s$/i, '\1')
       inflect.uncountable("series")
       inflect.human("col_rpted_bugs", "Reported bugs")
+      inflect.acronym("HTML")
 
       inflect.clear :all
 
@@ -519,6 +532,7 @@ class InflectorTest < ActiveSupport::TestCase
       assert_empty inflect.singulars
       assert_empty inflect.uncountables
       assert_empty inflect.humans
+      assert_empty inflect.acronyms
     end
   end
 
@@ -529,6 +543,7 @@ class InflectorTest < ActiveSupport::TestCase
       inflect.singular(/(database)s$/i, '\1')
       inflect.uncountable("series")
       inflect.human("col_rpted_bugs", "Reported bugs")
+      inflect.acronym("HTML")
 
       inflect.clear
 
@@ -536,6 +551,22 @@ class InflectorTest < ActiveSupport::TestCase
       assert_empty inflect.singulars
       assert_empty inflect.uncountables
       assert_empty inflect.humans
+      assert_empty inflect.acronyms
+    end
+  end
+
+  def test_clear_all_resets_camelize_and_underscore_regexes
+    ActiveSupport::Inflector.inflections do |inflect|
+      # ensure any data is present
+      inflect.acronym("HTTP")
+      assert_equal "http_s", "HTTPS".underscore
+      assert_equal "Https", "https".camelize
+
+      inflect.clear :all
+
+      assert_empty inflect.acronyms
+      assert_equal "https", "HTTPS".underscore
+      assert_equal "Https", "https".camelize
     end
   end
 
@@ -592,13 +623,20 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
-  %w(plurals singulars uncountables humans acronyms).each do |scope|
+  %i(plurals singulars uncountables humans).each do |scope|
     define_method("test_clear_inflections_with_#{scope}") do
       # clear the inflections
       ActiveSupport::Inflector.inflections do |inflect|
         inflect.clear(scope)
         assert_equal [], inflect.public_send(scope)
       end
+    end
+  end
+
+  def test_clear_inflections_with_acronyms
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.clear(:acronyms)
+      assert_equal({}, inflect.acronyms)
     end
   end
 end

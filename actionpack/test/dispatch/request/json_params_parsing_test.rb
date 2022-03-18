@@ -80,7 +80,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
         post "/parse", params: json, headers: { "CONTENT_TYPE" => "application/json", "action_dispatch.show_exceptions" => false }
       end
       assert_equal JSON::ParserError, exception.cause.class
-      assert_equal exception.cause.message, exception.message
+      assert_equal "Error occurred while parsing request parameters", exception.message
     ensure
       $stderr = STDERR
     end

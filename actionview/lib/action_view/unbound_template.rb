@@ -14,10 +14,25 @@ module ActionView
       @virtual_path = virtual_path
 
       @templates = Concurrent::Map.new(initial_capacity: 2)
+      @write_lock = Mutex.new
     end
 
     def bind_locals(locals)
-      @templates[locals] ||= build_template(locals)
+      if template = @templates[locals]
+        template
+      else
+        @write_lock.synchronize do
+          normalized_locals = normalize_locals(locals)
+
+          # We need ||=, both to dedup on the normalized locals and to check
+          # while holding the lock.
+          @templates[normalized_locals] ||= build_template(normalized_locals)
+
+          # This may have already been assigned, but we've already de-dup'd so
+          # reassignment is fine.
+          @templates[locals.dup] = @templates[normalized_locals]
+        end
+      end
     end
 
     private
@@ -31,8 +46,12 @@ module ActionView
           variant: variant&.to_s,
           virtual_path: @virtual_path,
 
-          locals: locals
+          locals: locals.map(&:to_s)
         )
+      end
+
+      def normalize_locals(locals)
+        locals.map(&:to_sym).sort!.freeze
       end
   end
 end

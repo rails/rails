@@ -31,10 +31,12 @@
 /storage/*
 <% if keeps? -%>
 !/storage/.keep
+/tmp/storage/*
+!/tmp/storage/
+!/tmp/storage/.keep
 <% end -%>
 <% end -%>
 <% unless options.api? -%>
 
 /public/assets
 <% end -%>
-.byebug_history

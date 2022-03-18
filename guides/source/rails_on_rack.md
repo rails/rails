@@ -103,10 +103,13 @@ $ bin/rails middleware
 For a freshly generated Rails application, this might produce something like:
 
 ```ruby
+use ActionDispatch::HostAuthorization
 use Rack::Sendfile
 use ActionDispatch::Static
 use ActionDispatch::Executor
+use ActionDispatch::ServerTiming
 use ActiveSupport::Cache::Strategy::LocalCache::Middleware
+use Rack::Runtime
 use Rack::MethodOverride
 use ActionDispatch::RequestId
 use ActionDispatch::RemoteIp
@@ -134,7 +137,9 @@ The default middlewares shown here (and some others) are each summarized in the 
 
 ### Configuring Middleware Stack
 
-Rails provides a simple configuration interface `config.middleware` for adding, removing, and modifying the middlewares in the middleware stack via `application.rb` or the environment specific configuration file `environments/<environment>.rb`.
+Rails provides a simple configuration interface [`config.middleware`][] for adding, removing, and modifying the middlewares in the middleware stack via `application.rb` or the environment specific configuration file `environments/<environment>.rb`.
+
+[`config.middleware`]: configuring.html#config-middleware
 
 #### Adding a Middleware
 
@@ -174,10 +179,10 @@ Add the following lines to your application configuration:
 
 ```ruby
 # config/application.rb
-config.middleware.delete ActionDispatch::Executor
+config.middleware.delete Rack::Runtime
 ```
 
-And now if you inspect the middleware stack, you'll find that `ActionDispatch::Executor` is
+And now if you inspect the middleware stack, you'll find that `Rack::Runtime` is
 not a part of it.
 
 ```bash
@@ -205,17 +210,32 @@ And to remove browser related middleware,
 config.middleware.delete Rack::MethodOverride
 ```
 
+If you want an error to be raised when you try to delete a non-existent item, use `delete!` instead.
+
+```ruby
+# config/application.rb
+config.middleware.delete! ActionDispatch::Executor
+```
+
 ### Internal Middleware Stack
 
 Much of Action Controller's functionality is implemented as Middlewares. The following list explains the purpose of each of them:
 
+**`ActionDispatch::HostAuthorization`**
+
+* Guards from DNS rebinding attacks by explicitly permitting the hosts a request can be sent to. See the [configuration guide](configuring.html#actiondispatch-hostauthorization) for configuration instructions.
+
 **`Rack::Sendfile`**
 
-* Sets server specific X-Sendfile header. Configure this via `config.action_dispatch.x_sendfile_header` option.
+* Sets server specific X-Sendfile header. Configure this via [`config.action_dispatch.x_sendfile_header`][] option.
+
+[`config.action_dispatch.x_sendfile_header`]: configuring.html#config-action-dispatch-x-sendfile-header
 
 **`ActionDispatch::Static`**
 
-* Used to serve static files from the public directory. Disabled if `config.public_file_server.enabled` is `false`.
+* Used to serve static files from the public directory. Disabled if [`config.public_file_server.enabled`][] is `false`.
+
+[`config.public_file_server.enabled`]: configuring.html#config-public-file-server-enabled
 
 **`Rack::Lock`**
 
@@ -225,9 +245,17 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 * Used for thread safe code reloading during development.
 
+**`ActionDispatch::ServerTiming`**
+
+* Sets a [`Server-Timing`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing) header containing performance metrics for the request.
+
 **`ActiveSupport::Cache::Strategy::LocalCache::Middleware`**
 
 * Used for memory caching. This cache is not thread safe.
+
+**`Rack::Runtime`**
+
+* Sets an X-Runtime header, containing the time (in seconds) taken to execute the request.
 
 **`Rack::MethodOverride`**
 
@@ -283,7 +311,9 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 **`ActionDispatch::Flash`**
 
-* Sets up the flash keys. Only available if `config.action_controller.session_store` is set to a value.
+* Sets up the flash keys. Only available if [`config.session_store`][] is set to a value.
+
+[`config.session_store`]: configuring.html#config-session-store
 
 **`ActionDispatch::ContentSecurityPolicy::Middleware`**
 

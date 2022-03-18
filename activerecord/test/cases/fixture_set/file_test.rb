@@ -70,6 +70,15 @@ module ActiveRecord
         end
       end
 
+      def test_wrong_config_row
+        tmp_yaml ["empty", "yml"], { "_fixture" => { "class_name" => "Foo" } }.to_yaml do |t|
+          error = assert_raises(ActiveRecord::Fixture::FormatError) do
+            File.open(t.path) { |fh| fh.model_class }
+          end
+          assert_includes error.message, "Invalid `_fixture` section"
+        end
+      end
+
       def test_render_context_helper
         ActiveRecord::FixtureSet.context_class.class_eval do
           def fixture_helper

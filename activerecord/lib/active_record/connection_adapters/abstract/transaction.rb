@@ -33,6 +33,10 @@ module ActiveRecord
         @state == :fully_rolledback
       end
 
+      def invalidated?
+        @state == :invalidated
+      end
+
       def fully_completed?
         completed?
       end
@@ -51,6 +55,11 @@ module ActiveRecord
         @state = :fully_rolledback
       end
 
+      def invalidate!
+        @children&.each { |c| c.invalidate! }
+        @state = :invalidated
+      end
+
       def commit!
         @state = :committed
       end
@@ -64,18 +73,21 @@ module ActiveRecord
       end
     end
 
-    class NullTransaction #:nodoc:
+    class NullTransaction # :nodoc:
       def initialize; end
       def state; end
       def closed?; true; end
       def open?; false; end
       def joinable?; false; end
       def add_record(record, _ = true); end
+      def restartable?; false; end
+      def dirty?; false; end
+      def dirty!; end
     end
 
-    class Transaction #:nodoc:
+    class Transaction # :nodoc:
       attr_reader :connection, :state, :savepoint_name, :isolation_level
-      attr_accessor :written
+      attr_accessor :written, :written_indirectly
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         @connection = connection
@@ -86,6 +98,15 @@ module ActiveRecord
         @joinable = joinable
         @run_commit_callbacks = run_commit_callbacks
         @lazy_enrollment_records = nil
+        @dirty = false
+      end
+
+      def dirty!
+        @dirty = true
+      end
+
+      def dirty?
+        @dirty
       end
 
       def add_record(record, ensure_finalize = true)
@@ -106,12 +127,22 @@ module ActiveRecord
         @records
       end
 
+      # Can this transaction's current state be recreated by
+      # rollback+begin ?
+      def restartable?
+        joinable? && !dirty?
+      end
+
       def materialize!
         @materialized = true
       end
 
       def materialized?
         @materialized
+      end
+
+      def restore!
+        @materialized = false
       end
 
       def rollback_records
@@ -159,6 +190,33 @@ module ActiveRecord
       def open?; !closed?; end
     end
 
+    class RestartParentTransaction < Transaction
+      def initialize(connection, parent_transaction, **options)
+        super(connection, **options)
+
+        @parent = parent_transaction
+
+        if isolation_level
+          raise ActiveRecord::TransactionIsolationError, "cannot set transaction isolation in a nested transaction"
+        end
+
+        @parent.state.add_child(@state)
+      end
+
+      delegate :materialize!, :materialized?, :restart, to: :@parent
+
+      def rollback
+        @state.rollback!
+        @parent.restart
+      end
+
+      def commit
+        @state.commit!
+      end
+
+      def full_rollback?; false; end
+    end
+
     class SavepointTransaction < Transaction
       def initialize(connection, savepoint_name, parent_transaction, **options)
         super(connection, **options)
@@ -177,8 +235,14 @@ module ActiveRecord
         super
       end
 
-      def rollback
+      def restart
         connection.rollback_to_savepoint(savepoint_name) if materialized?
+      end
+
+      def rollback
+        unless @state.invalidated?
+          connection.rollback_to_savepoint(savepoint_name) if materialized?
+        end
         @state.rollback!
       end
 
@@ -201,6 +265,17 @@ module ActiveRecord
         super
       end
 
+      def restart
+        return unless materialized?
+
+        if connection.supports_restart_db_transaction?
+          connection.restart_db_transaction
+        else
+          connection.rollback_db_transaction
+          materialize!
+        end
+      end
+
       def rollback
         connection.rollback_db_transaction if materialized?
         @state.full_rollback!
@@ -212,7 +287,7 @@ module ActiveRecord
       end
     end
 
-    class TransactionManager #:nodoc:
+    class TransactionManager # :nodoc:
       def initialize(connection)
         @stack = []
         @connection = connection
@@ -232,11 +307,19 @@ module ActiveRecord
                 joinable: joinable,
                 run_commit_callbacks: run_commit_callbacks
               )
+            elsif current_transaction.restartable?
+              RestartParentTransaction.new(
+                @connection,
+                current_transaction,
+                isolation: isolation,
+                joinable: joinable,
+                run_commit_callbacks: run_commit_callbacks
+              )
             else
               SavepointTransaction.new(
                 @connection,
                 "active_record_#{@stack.size}",
-                @stack.last,
+                current_transaction,
                 isolation: isolation,
                 joinable: joinable,
                 run_commit_callbacks: run_commit_callbacks
@@ -266,8 +349,34 @@ module ActiveRecord
         @lazy_transactions_enabled
       end
 
+      def dirty_current_transaction
+        current_transaction.dirty!
+      end
+
+      def restore_transactions
+        return false unless restorable?
+
+        @stack.each(&:restore!)
+
+        materialize_transactions unless @lazy_transactions_enabled
+
+        true
+      end
+
+      def restorable?
+        @stack.none?(&:dirty?)
+      end
+
       def materialize_transactions
         return if @materializing_transactions
+
+        # As a logical simplification for now, we assume anything that requests
+        # materialization is about to dirty the transaction. Note this is just
+        # an assumption about the caller, not a direct property of this method.
+        # It can go away later when callers are able to handle dirtiness for
+        # themselves.
+        dirty_current_transaction
+
         return unless @has_unmaterialized_transactions
 
         @connection.lock.synchronize do
@@ -291,6 +400,12 @@ module ActiveRecord
             @stack.pop
           end
 
+          dirty_current_transaction if transaction.dirty?
+
+          if current_transaction.open?
+            current_transaction.written_indirectly ||= transaction.written || transaction.written_indirectly
+          end
+
           transaction.commit
           transaction.commit_records
         end
@@ -312,21 +427,36 @@ module ActiveRecord
           ret
         rescue Exception => error
           if transaction
+            if error.is_a?(ActiveRecord::TransactionRollbackError) &&
+                @connection.savepoint_errors_invalidate_transactions?
+              transaction.state.invalidate!
+            end
             rollback_transaction
             after_failure_actions(transaction, error)
           end
+
           raise
         ensure
           if transaction
             if error
-              # @connection still holds an open transaction, so we must not
-              # put it back in the pool for reuse
+              # @connection still holds an open or invalid transaction, so we must not
+              # put it back in the pool for reuse.
               @connection.throw_away! unless transaction.state.rolledback?
             else
               if Thread.current.status == "aborting"
                 rollback_transaction
+              elsif !completed && transaction.written
+                # This was deprecated in 6.1, and has now changed to a rollback
+                rollback_transaction
+              elsif !completed && !transaction.written_indirectly
+                # This was a silent commit in 6.1, but now becomes a rollback; we skipped
+                # the warning because (having not been written) the change generally won't
+                # have any effect
+                rollback_transaction
               else
-                if !completed && transaction.written
+                if !completed && transaction.written_indirectly
+                  # This is the case that was missed in the 6.1 deprecation, so we have to
+                  # do it now
                   ActiveSupport::Deprecation.warn(<<~EOW)
                     Using `return`, `break` or `throw` to exit a transaction block is
                     deprecated without replacement. If the `throw` came from
@@ -336,6 +466,7 @@ module ActiveRecord
                     it will rollback.
                   EOW
                 end
+
                 begin
                   commit_transaction
                 rescue Exception

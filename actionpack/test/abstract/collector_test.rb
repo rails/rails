@@ -12,8 +12,8 @@ module AbstractController
         @responses = []
       end
 
-      def custom(mime, *args, &block)
-        @responses << [mime, args, block]
+      def custom(mime, *args, **kwargs, &block)
+        @responses << [mime, args, kwargs, block]
       end
     end
 
@@ -53,12 +53,12 @@ module AbstractController
       test "generated methods call custom with arguments received" do
         collector = MyCollector.new
         collector.html
-        collector.text(:foo)
+        collector.text(:foo, bar: :baz)
         collector.js(:bar) { :baz }
-        assert_equal [Mime[:html], [], nil], collector.responses[0]
-        assert_equal [Mime[:text], [:foo], nil], collector.responses[1]
-        assert_equal [Mime[:js], [:bar]], collector.responses[2][0, 2]
-        assert_equal :baz, collector.responses[2][2].call
+        assert_equal [Mime[:html], [], {}, nil], collector.responses[0]
+        assert_equal [Mime[:text], [:foo], { bar: :baz }, nil], collector.responses[1]
+        assert_equal [Mime[:js], [:bar], {}], collector.responses[2][0, 3]
+        assert_equal :baz, collector.responses[2][3].call
       end
     end
   end

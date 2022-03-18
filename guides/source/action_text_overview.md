@@ -47,30 +47,19 @@ happens after every keystroke, and avoids the need to use execCommand at all.
 
 Run `bin/rails action_text:install` to add the Yarn package and copy over the necessary migration. Also, you need to set up Active Storage for embedded images and other attachments. Please refer to the [Active Storage Overview](active_storage_overview.html) guide.
 
-NOTE: ActionText uses polymorphic relationships with the `action_text_rich_texts` table so that it can be shared with all models that have rich text attributes. If your models with ActionText content use UUID values for identifiers, all models that use ActionText attributes will need to use UUID values for their unique identifiers. The generated migration for ActionText will also need to be updated to specify `type: :uuid` for the `:record` `references` line.
+NOTE: Action Text uses polymorphic relationships with the `action_text_rich_texts` table so that it can be shared with all models that have rich text attributes. If your models with Action Text content use UUID values for identifiers, all models that use Action Text attributes will need to use UUID values for their unique identifiers. The generated migration for Action Text will also need to be updated to specify `type: :uuid` for the `:record` `references` line.
 
-After the installation is complete, a Rails app using Webpacker should have the following changes:
+After the installation is complete, a Rails app should have the following changes:
 
-1. Both `trix` and `@rails/actiontext` should be required in your JavaScript pack.
+1. Both `trix` and `@rails/actiontext` should be required in your JavaScript entrypoint.
 
     ```js
     // application.js
-    require("trix")
-    require("@rails/actiontext")
+    import "trix"
+    import "@rails/actiontext"
     ```
 
-2. The `trix` stylesheet should be imported into `actiontext.scss`.
-
-    ```scss
-    @import "trix/dist/trix";
-    ```
-
-    Additionally, this `actiontext.scss` file should be imported into your stylesheet pack.
-
-    ```scss
-    // application.scss
-    @import "./actiontext.scss";
-    ```
+2. The `trix` stylesheet will be included together with Action Text styles in your `application.css` file.
 
 ## Creating Rich Text content
 
@@ -124,16 +113,8 @@ end
 
 ## Rendering Rich Text content
 
-Action Text will sanitize and render rich content on your behalf.
-
-By default, the Action Text editor and content is styled by the Trix defaults.
-
-If you want to change these defaults, remove the `// require "actiontext.scss"`
-line from your `application.scss` to omit the [contents of that
-file](https://raw.githubusercontent.com/basecamp/trix/master/dist/trix.css).
-
-By default, Action Text will render rich text content into an element that
-declares the `.trix-content` class:
+By default, Action Text will render rich text content inside an element with the
+`.trix-content` class:
 
 ```html+erb
 <%# app/views/layouts/action_text/contents/_content.html.erb %>
@@ -142,13 +123,18 @@ declares the `.trix-content` class:
 </div>
 ```
 
-If you'd like to change the rich text's surrounding HTML with your own layout,
-declare your own `app/views/layouts/action_text/contents/_content.html.erb`
-template and call `yield` in place of the content.
+Elements with this class, as well as the Action Text editor, are styled by the
+[`trix` stylesheet](https://raw.githubusercontent.com/basecamp/trix/master/dist/trix.css).
+To provide your own styles instead, remove the `= require trix` line from the
+`app/assets/stylesheets/actiontext.css` stylesheet created by the installer.
 
-You can also style the HTML used for embedded images and other attachments
-(known as blobs). On installation, Action Text will copy over a partial to
-`app/views/active_storage/blobs/_blob.html.erb`, which you can specialize.
+To customize the HTML rendered around rich text content, edit the
+`app/views/layouts/action_text/contents/_content.html.erb` layout created by the
+installer.
+
+To customize the HTML rendered for embedded images and other attachments (known
+as blobs), edit the `app/views/active_storage/blobs/_blob.html.erb` template
+created by the installer.
 
 ### Rendering attachments
 

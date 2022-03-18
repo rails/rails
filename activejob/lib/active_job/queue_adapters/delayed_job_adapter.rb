@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "delayed_job"
+require "active_support/core_ext/string/inflections"
 
 module ActiveJob
   module QueueAdapters
@@ -15,19 +16,19 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :delayed_job
     class DelayedJobAdapter
-      def enqueue(job) #:nodoc:
+      def enqueue(job) # :nodoc:
         delayed_job = Delayed::Job.enqueue(JobWrapper.new(job.serialize), queue: job.queue_name, priority: job.priority)
         job.provider_job_id = delayed_job.id
         delayed_job
       end
 
-      def enqueue_at(job, timestamp) #:nodoc:
+      def enqueue_at(job, timestamp) # :nodoc:
         delayed_job = Delayed::Job.enqueue(JobWrapper.new(job.serialize), queue: job.queue_name, priority: job.priority, run_at: Time.at(timestamp))
         job.provider_job_id = delayed_job.id
         delayed_job
       end
 
-      class JobWrapper #:nodoc:
+      class JobWrapper # :nodoc:
         attr_accessor :job_data
 
         def initialize(job_data)
@@ -35,12 +36,21 @@ module ActiveJob
         end
 
         def display_name
-          "#{job_data['job_class']} [#{job_data['job_id']}] from DelayedJob(#{job_data['queue_name']}) with arguments: #{job_data['arguments']}"
+          base_name = "#{job_data["job_class"]} [#{job_data["job_id"]}] from DelayedJob(#{job_data["queue_name"]})"
+
+          return base_name unless log_arguments?
+
+          "#{base_name} with arguments: #{job_data["arguments"]}"
         end
 
         def perform
           Base.execute(job_data)
         end
+
+        private
+          def log_arguments?
+            job_data["job_class"].constantize.log_arguments?
+          end
       end
     end
   end

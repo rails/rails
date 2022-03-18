@@ -54,7 +54,7 @@ module ActiveRecord
       # Accepts an array, or string of SQL conditions and sanitizes
       # them into a valid SQL fragment for an ORDER clause.
       #
-      #   sanitize_sql_for_order(["field(id, ?)", [1,3,2]])
+      #   sanitize_sql_for_order([Arel.sql("field(id, ?)"), [1,3,2]])
       #   # => "field(id, 1,3,2)"
       #
       #   sanitize_sql_for_order("id ASC")
@@ -143,8 +143,12 @@ module ActiveRecord
 
         if unexpected
           raise(ActiveRecord::UnknownAttributeReference,
-            "Query method called with non-attribute argument(s): " +
-            unexpected.map(&:inspect).join(", ")
+            "Dangerous query method (method whose arguments are used as raw " \
+            "SQL) called with non-attribute argument(s): " \
+            "#{unexpected.map(&:inspect).join(", ")}." \
+            "This method should not be called with user-provided values, such as request " \
+            "parameters or model attributes. Known-safe values can be passed " \
+            "by wrapping them in Arel.sql()."
           )
         end
       end
@@ -183,13 +187,13 @@ module ActiveRecord
           if value.respond_to?(:map) && !value.acts_like?(:string)
             values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
             if values.empty?
-              c.quote(nil)
+              c.quote_bound_value(nil)
             else
-              values.map! { |v| c.quote(v) }.join(",")
+              values.map! { |v| c.quote_bound_value(v) }.join(",")
             end
           else
             value = value.id_for_database if value.respond_to?(:id_for_database)
-            c.quote(value)
+            c.quote_bound_value(value)
           end
         end
 

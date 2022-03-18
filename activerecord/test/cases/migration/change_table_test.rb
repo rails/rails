@@ -188,7 +188,7 @@ module ActiveRecord
 
       def test_index_exists
         with_change_table do |t|
-          @connection.expect :index_exists?, nil, [:delete_me, :bar, {}]
+          @connection.expect :index_exists?, nil, [:delete_me, :bar]
           t.index_exists?(:bar)
         end
       end
@@ -287,6 +287,22 @@ module ActiveRecord
         with_change_table do |t|
           @connection.expect :remove_check_constraint, nil, [:delete_me, name: "price_check"]
           t.remove_check_constraint name: "price_check"
+        end
+      end
+
+      def test_remove_column_with_if_exists_raises_error
+        assert_raises(ArgumentError) do
+          with_change_table do |t|
+            t.remove :name, if_exists: true
+          end
+        end
+      end
+
+      def test_add_column_with_if_not_exists_raises_error
+        assert_raises(ArgumentError) do
+          with_change_table do |t|
+            t.string :nickname, if_not_exists: true
+          end
         end
       end
     end

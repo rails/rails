@@ -13,10 +13,10 @@ module ActiveRecord
     # * add_reference
     # * add_timestamps
     # * change_column
-    # * change_column_default (must supply a :from and :to option)
+    # * change_column_default (must supply a +:from+ and +:to+ option)
     # * change_column_null
-    # * change_column_comment (must supply a :from and :to option)
-    # * change_table_comment (must supply a :from and :to option)
+    # * change_column_comment (must supply a +:from+ and +:to+ option)
+    # * change_table_comment (must supply a +:from+ and +:to+ option)
     # * create_join_table
     # * create_table
     # * disable_extension
@@ -154,9 +154,9 @@ module ActiveRecord
 
         include StraightReversions
 
-        def invert_transaction(args)
+        def invert_transaction(args, &block)
           sub_recorder = CommandRecorder.new(delegate)
-          sub_recorder.revert { yield }
+          sub_recorder.revert(&block)
 
           invertions_proc = proc {
             sub_recorder.replay(self)

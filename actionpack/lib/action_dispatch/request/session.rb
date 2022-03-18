@@ -42,7 +42,7 @@ module ActionDispatch
         req.delete_header ENV_SESSION_KEY
       end
 
-      class Options #:nodoc:
+      class Options # :nodoc:
         def self.set(req, options)
           req.set_header ENV_SESSION_OPTIONS_KEY, options
         end
@@ -176,9 +176,14 @@ module ActionDispatch
       #   session.to_hash
       #   # => {"session_id"=>"e29b9ea315edf98aad94cc78c34cc9b2", "foo" => "bar"}
       def update(hash)
+        unless hash.respond_to?(:to_hash)
+          raise TypeError, "no implicit conversion of #{hash.class.name} into Hash"
+        end
+
         load_for_write!
-        @delegate.update hash.stringify_keys
+        @delegate.update hash.to_hash.stringify_keys
       end
+      alias :merge! :update
 
       # Deletes given key from the session.
       def delete(key)
@@ -230,11 +235,6 @@ module ActionDispatch
       def empty?
         load_for_read!
         @delegate.empty?
-      end
-
-      def merge!(other)
-        load_for_write!
-        @delegate.merge!(other)
       end
 
       def each(&block)

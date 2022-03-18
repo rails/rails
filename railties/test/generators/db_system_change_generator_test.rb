@@ -11,9 +11,10 @@ module Rails
           include GeneratorsTestHelper
 
           setup do
-            copy_gemfile(
-              GemfileEntry.new("sqlite3", nil, "Use sqlite3 as the database for Active Record")
-            )
+            copy_gemfile <<~ENTRY
+              # Use sqlite3 as the database for Active Record
+              gem 'sqlite3'
+            ENTRY
           end
 
           test "change to invalid database" do

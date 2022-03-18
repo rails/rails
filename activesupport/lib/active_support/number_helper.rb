@@ -99,8 +99,6 @@ module ActiveSupport
     #   number_to_currency(1234567890.506, locale: :fr)  # => "1 234 567 890,51 €"
     #   number_to_currency('123a456')                    # => "$123a456"
     #
-    #   number_to_currency("123a456", raise: true)       # => InvalidNumberError
-    #
     #   number_to_currency(-0.456789, precision: 0)
     #   # => "$0"
     #   number_to_currency(-1234567890.50, negative_format: '(%u%n)')

@@ -163,21 +163,8 @@ module ActiveRecord
             attr = extract_attribute(node) || begin
               node.left if equality_node?(node) && node.left.is_a?(Arel::Predications)
             end
-            next false unless attr
 
-            ref = referenced_columns[attr]
-            next false unless ref
-
-            if equality_node?(node) && equality_node?(ref) || node == ref
-              true
-            else
-              ActiveSupport::Deprecation.warn(<<-MSG.squish)
-                Merging (#{node.to_sql}) and (#{ref.to_sql}) no longer maintain
-                both conditions, and will be replaced by the latter in Rails 7.0.
-                To migrate to Rails 7.0's behavior, use `relation.merge(other, rewhere: true)`.
-              MSG
-              false
-            end
+            attr && referenced_columns[attr]
           end
         end
 

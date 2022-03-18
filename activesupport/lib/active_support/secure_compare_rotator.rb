@@ -4,7 +4,7 @@ require "active_support/security_utils"
 require "active_support/messages/rotator"
 
 module ActiveSupport
-  # The ActiveSupport::SecureCompareRotator is a wrapper around +ActiveSupport::SecurityUtils.secure_compare+
+  # The ActiveSupport::SecureCompareRotator is a wrapper around ActiveSupport::SecurityUtils.secure_compare
   # and allows you to rotate a previously defined value to a new one.
   #
   # It can be used as follow:

@@ -68,6 +68,17 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal [general, general], author.tags
     end
+
+    # Preloading with automatic scope inversing reduces the number of queries
+    tag_reflection = Tagging.reflect_on_association(:tag)
+    taggings_reflection = Tag.reflect_on_association(:taggings)
+
+    assert tag_reflection.scope
+    assert_not taggings_reflection.scope
+
+    with_automatic_scope_inversing(tag_reflection, taggings_reflection) do
+      assert_queries(4) { Author.includes(:tags).first }
+    end
   end
 
   def test_has_many_through_has_many_with_has_many_through_source_reflection_preload_via_joins
@@ -308,6 +319,17 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_no_queries do
       assert_equal [general, general], author.tagging_tags
+    end
+
+    # Preloading with automatic scope inversing reduces the number of queries
+    tag_reflection = Tagging.reflect_on_association(:tag)
+    taggings_reflection = Tag.reflect_on_association(:taggings)
+
+    assert tag_reflection.scope
+    assert_not taggings_reflection.scope
+
+    with_automatic_scope_inversing(tag_reflection, taggings_reflection) do
+      assert_queries(4) { Author.includes(:tagging_tags).first }
     end
   end
 

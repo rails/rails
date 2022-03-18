@@ -1,116 +1,87 @@
-*   Drop support for the `SERVER_ADDR` header
+*   Allow relative redirects when `raise_on_open_redirects` is enabled
 
-    Following up https://github.com/rack/rack/pull/1573 and https://github.com/rails/rails/pull/42349
+    *Tom Hughes*
 
-    *Ricardo Díaz*
+*   Allow Content Security Policy DSL to generate for API responses.
 
-*   Set session options when initializing a basic session.
+    *Tim Wade*
 
-    *Gannon McGibbon*
+*   Fix `authenticate_with_http_basic` to allow for missing password.
 
-*   Add `cache_control: {}` option to `fresh_when` and `stale?`
-
-    Works as a shortcut to set `response.cache_control` with the above methods.
-
-    *Jacopo Beschi*
-
-*   Writing into a disabled session will now raise an error.
-
-    Previously when no session store was set, writing into the session would silently fail.
-
-    *Jean Boussier*
-
-*   Add support for 'require-trusted-types-for' and 'trusted-types' headers.
-
-    Fixes #42034
-
-    *lfalcao*
-
-*   Remove inline styles and address basic accessibility issues on rescue templates.
-
-    *Jacob Herrington*
-
-*   Add support for 'private, no-store' Cache-Control headers.
-
-    Previously, 'no-store' was exclusive; no other directives could be specified.
-
-    *Alex Smith*
-
-*   Expand payload of `unpermitted_parameters.action_controller` instrumentation to allow subscribers to
-    know which controller action received unpermitted parameters.
-
-    *bbuchalter*
-
-*   Add `ActionController::Live#send_stream` that makes it more convenient to send generated streams:
-
+    Before Rails 7.0 it was possible to handle basic authentication with only a username.
+    
     ```ruby
-    send_stream(filename: "subscribers.csv") do |stream|
-      stream.writeln "email_address,updated_at"
-
-      @subscribers.find_each do |subscriber|
-        stream.writeln [ subscriber.email_address, subscriber.updated_at ].join(",")
-      end
+    authenticate_with_http_basic do |token, _|
+      ApiClient.authenticate(token)
     end
     ```
 
-    *DHH*
+    This ability is restored.
 
-*   Add `ActionController::Live::Buffer#writeln` to write a line to the stream with a newline included.
+    *Jean Boussier*
 
-    *DHH*
+*   Fix `content_security_policy` returning invalid directives.
 
-*   `ActionDispatch::Request#content_type` now returned Content-Type header as it is.
-
-    Previously, `ActionDispatch::Request#content_type` returned value does NOT contain charset part.
-    This behavior changed to returned Content-Type header containing charset part as it is.
-
-    If you want just MIME type, please use `ActionDispatch::Request#media_type` instead.
-
-    Before:
+    Directives such as `self`, `unsafe-eval` and few others were not
+    single quoted when the directive was the result of calling a lambda
+    returning an array.
 
     ```ruby
-    request = ActionDispatch::Request.new("CONTENT_TYPE" => "text/csv; header=present; charset=utf-16", "REQUEST_METHOD" => "GET")
-    request.content_type #=> "text/csv"
+    content_security_policy do |policy|
+      policy.frame_ancestors lambda { [:self, "https://example.com"] }
+    end
     ```
 
-    After:
+    With this fix the policy generated from above will now be valid.
+
+    *Edouard Chin*
+
+*   Fix `skip_forgery_protection` to run without raising an error if forgery
+    protection has not been enabled / `verify_authenticity_token` is not a
+    defined callback.
+
+    This fix prevents the Rails 7.0 Welcome Page (`/`) from raising an
+    `ArgumentError` if `default_protect_from_forgery` is false.
+
+    *Brad Trick*
+
+*   Make `redirect_to` return an empty response body.
+
+    Application controllers that wish to add a response body after calling
+    `redirect_to` can continue to do so.
+
+    *Jon Dufresne*
+
+*   Use non-capturing group for subdomain matching in `ActionDispatch::HostAuthorization`
+
+    Since we do nothing with the captured subdomain group, we can use a non-capturing group instead.
+
+    *Sam Bostock*
+
+*   Fix `ActionController::Live` to copy the IsolatedExecutionState in the ephemeral thread.
+
+    Since its inception `ActionController::Live` has been copying thread local variables
+    to keep things such as `CurrentAttributes` set from middlewares working in the controller action.
+
+    With the introduction of `IsolatedExecutionState` in 7.0, some of that global state was lost in
+    `ActionController::Live` controllers.
+
+    *Jean Boussier*
+
+*   Fix setting `trailing_slash: true` in route definition.
 
     ```ruby
-    request = ActionDispatch::Request.new("Content-Type" => "text/csv; header=present; charset=utf-16", "REQUEST_METHOD" => "GET")
-    request.content_type #=> "text/csv; header=present; charset=utf-16"
-    request.media_type   #=> "text/csv"
+    get '/test' => "test#index", as: :test, trailing_slash: true
+
+    test_path() # => "/test/"
     ```
 
-    *Rafael Mendonça França*
+    *Jean Boussier*
 
-*   Change `ActionDispatch::Request#media_type` to return `nil` when the request don't have a `Content-Type` header.
+*   Make `Session#merge!` stringify keys.
 
-    *Rafael Mendonça França*
+    Previously `Session#update` would, but `merge!` wouldn't.
 
-*   Fix error in `ActionController::LogSubscriber` that would happen when throwing inside a controller action.
+    *Drew Bragg*
 
-    *Janko Marohnić*
-
-*   Allow anything with `#to_str` (like `Addressable::URI`) as a `redirect_to` location
-
-    *ojab*
-
-*   Change the request method to a `GET` when passing failed requests down to `config.exceptions_app`.
-
-    *Alex Robbin*
-
-*   Deprecate the ability to assign a single value to `config.action_dispatch.trusted_proxies`
-    as `RemoteIp` middleware behaves inconsistently depending on whether this is configured
-    with a single value or an enumerable.
-
-    Fixes #40772
-
-    *Christian Sutter*
-
-*   Add `redirect_back_or_to(fallback_location, **)` as a more aesthetically pleasing version of `redirect_back fallback_location:, **`.
-    The old method name is retained without explicit deprecation.
-
-    *DHH*
-
-
-Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/actionpack/CHANGELOG.md) for previous changes.
+Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/actionpack/CHANGELOG.md) for previous changes.

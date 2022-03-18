@@ -6,7 +6,7 @@ module ActiveRecord
 
   # Job to destroy the records associated with a destroyed record in background.
   class DestroyAssociationAsyncJob < ActiveJob::Base
-    queue_as { ActiveRecord::Base.queues[:destroy] }
+    queue_as { ActiveRecord.queues[:destroy] }
 
     discard_on ActiveJob::DeserializationError
 

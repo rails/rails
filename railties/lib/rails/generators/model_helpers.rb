@@ -18,7 +18,7 @@ module Rails
       ERROR
       mattr_accessor :skip_warn
 
-      def self.included(base) #:nodoc:
+      def self.included(base) # :nodoc:
         base.class_option :force_plural, type: :boolean, default: false, desc: "Forces the use of the given model name"
       end
 

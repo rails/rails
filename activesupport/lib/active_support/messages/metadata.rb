@@ -3,8 +3,8 @@
 require "time"
 
 module ActiveSupport
-  module Messages #:nodoc:
-    class Metadata #:nodoc:
+  module Messages # :nodoc:
+    class Metadata # :nodoc:
       def initialize(message, expires_at = nil, purpose = nil)
         @message, @purpose = message, purpose
         @expires_at = expires_at.is_a?(String) ? parse_expires_at(expires_at) : expires_at

@@ -11,6 +11,8 @@ require "models/human"
 require "models/interest"
 require "models/owner"
 require "models/pet"
+require "models/entry"
+require "models/message"
 require "active_support/hash_with_indifferent_access"
 
 class TestNestedAttributesInGeneral < ActiveRecord::TestCase
@@ -67,7 +69,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     exception = assert_raise ActiveModel::UnknownAttributeError do
       Pirate.new(ship_attributes: { sail: true })
     end
-    assert_equal "unknown attribute 'sail' for Ship.", exception.message
+    assert_match "unknown attribute 'sail' for Ship.", exception.message
   end
 
   def test_should_disable_allow_destroy_by_default
@@ -606,7 +608,7 @@ module NestedAttributesOnACollectionAssociationTests
     exception = assert_raise ActiveModel::UnknownAttributeError do
       @pirate.parrots_attributes = [{ peg_leg: true }]
     end
-    assert_equal "unknown attribute 'peg_leg' for Parrot.", exception.message
+    assert_match "unknown attribute 'peg_leg' for Parrot.", exception.message
   end
 
   def test_should_save_only_one_association_on_create
@@ -1115,5 +1117,17 @@ class TestNestedAttributesWithExtend < ActiveRecord::TestCase
     pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
     pirate.treasures_attributes = [{ id: nil }]
     assert_equal "from extension", pirate.treasures[0].name
+  end
+end
+
+class TestNestedAttributesForDelegatedType < ActiveRecord::TestCase
+  setup do
+    Entry.accepts_nested_attributes_for :entryable
+    @entry = Entry.new(entryable_type: "Message", entryable_attributes: { subject: "Hello world!" })
+  end
+
+  def test_should_build_a_new_record_based_on_the_delegated_type
+    assert_not_predicate @entry.entryable, :persisted?
+    assert_equal "Hello world!", @entry.entryable.subject
   end
 end

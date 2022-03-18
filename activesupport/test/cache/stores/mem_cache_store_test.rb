@@ -5,35 +5,43 @@ require "active_support/cache"
 require_relative "../behaviors"
 require "dalli"
 
-# Emulates a latency on Dalli's back-end for the key latency to facilitate
-# connection pool testing.
-class SlowDalliClient < Dalli::Client
-  def get(key, options = {})
-    if /latency/.match?(key)
-      sleep 3
-      super
-    else
-      super
+class MemCacheStoreTest < ActiveSupport::TestCase
+  # Emulates a latency on Dalli's back-end for the key latency to facilitate
+  # connection pool testing.
+  class SlowDalliClient < Dalli::Client
+    def get(key, options = {})
+      if /latency/.match?(key)
+        sleep 3
+        super
+      else
+        super
+      end
     end
   end
-end
 
-class UnavailableDalliServer < Dalli::Server
-  def alive?
-    false
+  class UnavailableDalliServer < Dalli::Protocol::Binary
+    def alive? # before https://github.com/petergoldstein/dalli/pull/863
+      false
+    end
+
+    def ensure_connected! # after https://github.com/petergoldstein/dalli/pull/863
+      false
+    end
   end
-end
 
-class MemCacheStoreTest < ActiveSupport::TestCase
-  begin
-    servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
-    ss = Dalli::Client.new(servers).stats
-    raise Dalli::DalliError unless ss[servers] || ss[servers + ":11211"]
-
+  if ENV["CI"]
     MEMCACHE_UP = true
-  rescue Dalli::DalliError
-    $stderr.puts "Skipping memcached tests. Start memcached and try again."
-    MEMCACHE_UP = false
+  else
+    begin
+      servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
+      ss = Dalli::Client.new(servers).stats
+      raise Dalli::DalliError unless ss[servers] || ss[servers + ":11211"]
+
+      MEMCACHE_UP = true
+    rescue Dalli::DalliError
+      $stderr.puts "Skipping memcached tests. Start memcached and try again."
+      MEMCACHE_UP = false
+    end
   end
 
   def lookup_store(options = {})
@@ -52,6 +60,8 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def after_teardown
+    return unless defined?(@_stores) # because skipped test
+
     stores, @_stores = @_stores, []
     stores.each do |store|
       # Eagerly closing Dalli connection avoid file descriptor exhaustion.
@@ -73,10 +83,19 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   # Overrides test from LocalCacheBehavior in order to stub out the cache clear
   # and replace it with a delete.
   def test_clear_also_clears_local_cache
-    key = "#{@namespace}:foo"
-    client.stub(:flush_all, -> { client.delete(key) }) do
-      super
+    key = SecureRandom.uuid
+    cache = lookup_store(raw: true)
+    stub_called = false
+
+    client(cache).stub(:flush_all, -> { stub_called = true; client.delete("#{@namespace}:#{key}") }) do
+      cache.with_local_cache do
+        cache.write(key, SecureRandom.alphanumeric)
+        cache.clear
+        assert_nil cache.read(key)
+      end
+      assert_nil cache.read(key)
     end
+    assert stub_called
   end
 
   def test_raw_values
@@ -232,6 +251,42 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert_compressed(LARGE_OBJECT)
   end
 
+  def test_can_load_raw_values_from_dalli_store
+    key = "test-with-value-the-way-the-dalli-store-did"
+
+    @cache.instance_variable_get(:@data).with { |c| c.set(@cache.send(:normalize_key, key, nil), "value", 0, compress: false) }
+    assert_nil @cache.read(key)
+    assert_equal "value", @cache.fetch(key) { "value" }
+  end
+
+  def test_can_load_raw_falsey_values_from_dalli_store
+    key = "test-with-false-value-the-way-the-dalli-store-did"
+
+    @cache.instance_variable_get(:@data).with { |c| c.set(@cache.send(:normalize_key, key, nil), false, 0, compress: false) }
+    assert_nil @cache.read(key)
+    assert_equal false, @cache.fetch(key) { false }
+  end
+
+  def test_can_load_raw_values_from_dalli_store_with_local_cache
+    key = "test-with-value-the-way-the-dalli-store-did-with-local-cache"
+
+    @cache.instance_variable_get(:@data).with { |c| c.set(@cache.send(:normalize_key, key, nil), "value", 0, compress: false) }
+    @cache.with_local_cache do
+      assert_nil @cache.read(key)
+      assert_equal "value", @cache.fetch(key) { "value" }
+    end
+  end
+
+  def test_can_load_raw_falsey_values_from_dalli_store_with_local_cache
+    key = "test-with-false-value-the-way-the-dalli-store-did-with-local-cache"
+
+    @cache.instance_variable_get(:@data).with { |c| c.set(@cache.send(:normalize_key, key, nil), false, 0, compress: false) }
+    @cache.with_local_cache do
+      assert_nil @cache.read(key)
+      assert_equal false, @cache.fetch(key) { false }
+    end
+  end
+
   private
     def random_string(length)
       (0...length).map { (65 + rand(26)).chr }.join
@@ -252,17 +307,21 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
 
     def emulating_unavailability
-      old_server = Dalli.send(:remove_const, :Server)
-      Dalli.const_set(:Server, UnavailableDalliServer)
+      old_server = Dalli::Protocol.send(:remove_const, :Binary)
+      Dalli::Protocol.const_set(:Binary, UnavailableDalliServer)
 
       yield ActiveSupport::Cache::MemCacheStore.new
     ensure
-      Dalli.send(:remove_const, :Server)
-      Dalli.const_set(:Server, old_server)
+      Dalli::Protocol.send(:remove_const, :Binary)
+      Dalli::Protocol.const_set(:Binary, old_server)
     end
 
     def servers(cache = @cache)
-      client(cache).instance_variable_get(:@servers)
+      if client(cache).instance_variable_defined?(:@normalized_servers)
+        client(cache).instance_variable_get(:@normalized_servers)
+      else
+        client(cache).instance_variable_get(:@servers)
+      end
     end
 
     def client(cache = @cache)
@@ -289,7 +348,12 @@ class OptimizedMemCacheStoreTest < MemCacheStoreTest
     super
   end
 
-  def forward_compatibility
+  def teardown
+    super
+    ActiveSupport::Cache.format_version = @previous_format
+  end
+
+  def test_forward_compatibility
     previous_format = ActiveSupport::Cache.format_version
     ActiveSupport::Cache.format_version = 6.1
     @old_store = lookup_store
@@ -299,7 +363,7 @@ class OptimizedMemCacheStoreTest < MemCacheStoreTest
     assert_equal "bar", @cache.read("foo")
   end
 
-  def forward_compatibility
+  def test_backward_compatibility
     previous_format = ActiveSupport::Cache.format_version
     ActiveSupport::Cache.format_version = 6.1
     @old_store = lookup_store
@@ -307,10 +371,5 @@ class OptimizedMemCacheStoreTest < MemCacheStoreTest
 
     @cache.write("foo", "bar")
     assert_equal "bar", @old_store.read("foo")
-  end
-
-  def teardown
-    super
-    ActiveSupport::Cache.format_version = @previous_format
   end
 end

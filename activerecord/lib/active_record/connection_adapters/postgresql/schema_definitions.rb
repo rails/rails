@@ -173,11 +173,19 @@ module ActiveRecord
         # :method: xml
         # :call-seq: xml(*names, **options)
 
+        ##
+        # :method: timestamptz
+        # :call-seq: timestamptz(*names, **options)
+
+        ##
+        # :method: enum
+        # :call-seq: enum(*names, **options)
+
         included do
           define_column_methods :bigserial, :bit, :bit_varying, :cidr, :citext, :daterange,
             :hstore, :inet, :interval, :int4range, :int8range, :jsonb, :ltree, :macaddr,
             :money, :numrange, :oid, :point, :line, :lseg, :box, :path, :polygon, :circle,
-            :serial, :tsrange, :tstzrange, :tsvector, :uuid, :xml, :timestamptz
+            :serial, :tsrange, :tstzrange, :tsvector, :uuid, :xml, :timestamptz, :enum
         end
       end
 
@@ -189,6 +197,15 @@ module ActiveRecord
         def initialize(*, **)
           super
           @unlogged = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
+        end
+
+        def new_column_definition(name, type, **options) # :nodoc:
+          case type
+          when :virtual
+            type = options[:type]
+          end
+
+          super
         end
 
         private

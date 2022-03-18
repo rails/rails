@@ -11,7 +11,7 @@ module ActiveSupport
     # to share cache data with each other and this may not be the most
     # appropriate cache in that scenario.
     #
-    # This cache has a bounded size specified by the :size options to the
+    # This cache has a bounded size specified by the +:size+ options to the
     # initializer (default is 32Mb). When the cache exceeds the allotted size,
     # a cleanup will occur which tries to prune the cache down to three quarters
     # of the maximum size by removing the least recently used entries.
@@ -89,13 +89,13 @@ module ActiveSupport
         return if pruning?
         @pruning = true
         begin
-          start_time = Concurrent.monotonic_time
+          start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           cleanup
           instrument(:prune, target_size, from: @cache_size) do
             keys = synchronize { @data.keys }
             keys.each do |key|
               delete_entry(key, **options)
-              return if @cache_size <= target_size || (max_time && Concurrent.monotonic_time - start_time > max_time)
+              return if @cache_size <= target_size || (max_time && Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time > max_time)
             end
           end
         ensure

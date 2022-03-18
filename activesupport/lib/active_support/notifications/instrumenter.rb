@@ -6,26 +6,6 @@ module ActiveSupport
   module Notifications
     # Instrumenters are stored in a thread local.
     class Instrumenter
-      class Buffer # :nodoc:
-        def initialize(instrumenter)
-          @instrumenter = instrumenter
-          @events = []
-        end
-
-        def instrument(name, payload = {}, &block)
-          event = @instrumenter.new_event(name, payload)
-          @events << event
-          event.record(&block)
-        end
-
-        def flush
-          events, @events = @events, []
-          events.each do |event|
-            ActiveSupport::Notifications.publish_event(event)
-          end
-        end
-      end
-
       attr_reader :id
 
       def initialize(notifier)
@@ -55,10 +35,6 @@ module ActiveSupport
         Event.new(name, nil, nil, @id, payload)
       end
 
-      def buffer # :nodoc:
-        Buffer.new(self)
-      end
-
       # Send a start notification with +name+ and +payload+.
       def start(name, payload)
         @notifier.start name, @id, payload
@@ -80,18 +56,17 @@ module ActiveSupport
     end
 
     class Event
-      attr_reader :name, :time, :end, :transaction_id, :children
+      attr_reader :name, :time, :end, :transaction_id
       attr_accessor :payload
 
       def initialize(name, start, ending, transaction_id, payload)
         @name           = name
         @payload        = payload.dup
-        @time           = start
+        @time           = start ? start.to_f * 1_000.0 : start
         @transaction_id = transaction_id
-        @end            = ending
-        @children       = []
-        @cpu_time_start = 0
-        @cpu_time_finish = 0
+        @end            = ending ? ending.to_f * 1_000.0 : ending
+        @cpu_time_start = 0.0
+        @cpu_time_finish = 0.0
         @allocation_count_start = 0
         @allocation_count_finish = 0
       end
@@ -126,7 +101,7 @@ module ActiveSupport
       # Returns the CPU time (in milliseconds) passed since the call to
       # +start!+ and the call to +finish!+
       def cpu_time
-        (@cpu_time_finish - @cpu_time_start) * 1000
+        @cpu_time_finish - @cpu_time_start
       end
 
       # Returns the idle time time (in milliseconds) passed since the call to
@@ -139,6 +114,23 @@ module ActiveSupport
       # the call to +finish!+
       def allocations
         @allocation_count_finish - @allocation_count_start
+      end
+
+      def children # :nodoc:
+        ActiveSupport::Deprecation.warn <<~EOM
+          ActiveSupport::Notifications::Event#children is deprecated and will
+          be removed in Rails 7.2.
+        EOM
+        []
+      end
+
+      def parent_of?(event) # :nodoc:
+        ActiveSupport::Deprecation.warn <<~EOM
+          ActiveSupport::Notifications::Event#parent_of? is deprecated and will
+          be removed in Rails 7.2.
+        EOM
+        start = (time - event.time) * 1000
+        start <= 0 && (start + duration >= event.duration)
       end
 
       # Returns the difference in milliseconds between when the execution of the
@@ -154,41 +146,33 @@ module ActiveSupport
       #
       #   @event.duration # => 1000.138
       def duration
-        1000.0 * (self.end - time)
-      end
-
-      def <<(event)
-        @children << event
-      end
-
-      def parent_of?(event)
-        @children.include? event
+        self.end - time
       end
 
       private
         def now
-          Concurrent.monotonic_time
+          Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_millisecond)
         end
 
         begin
-          Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID)
+          Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID, :float_millisecond)
 
           def now_cpu
-            Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID)
+            Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID, :float_millisecond)
           end
         rescue
-          def now_cpu
-            0
+          def now_cpu # rubocop:disable Lint/DuplicateMethods
+            0.0
           end
         end
 
-        if defined?(JRUBY_VERSION)
+        if GC.stat.key?(:total_allocated_objects)
+          def now_allocations
+            GC.stat(:total_allocated_objects)
+          end
+        else # Likely on JRuby, TruffleRuby
           def now_allocations
             0
-          end
-        else
-          def now_allocations
-            GC.stat :total_allocated_objects
           end
         end
     end

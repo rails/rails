@@ -101,6 +101,94 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_equal "2 updated", Topic.find(2).content
   end
 
+  def test_returns_object_even_if_validations_failed
+    assert_equal Developer.all.to_a, Developer.update(salary: 1_000_000)
+  end
+
+  def test_update_many!
+    topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
+    updated = Topic.update!(topic_data.keys, topic_data.values)
+
+    assert_equal [1, 2], updated.map(&:id)
+    assert_equal "1 updated", Topic.find(1).content
+    assert_equal "2 updated", Topic.find(2).content
+  end
+
+  def test_update_many_with_duplicated_ids!
+    updated = Topic.update!([1, 1, 2], [
+      { "content" => "1 duplicated" }, { "content" => "1 updated" }, { "content" => "2 updated" }
+    ])
+
+    assert_equal [1, 1, 2], updated.map(&:id)
+    assert_equal "1 updated", Topic.find(1).content
+    assert_equal "2 updated", Topic.find(2).content
+  end
+
+  def test_update_many_with_invalid_id!
+    topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" }, 99999 => {} }
+
+    assert_raise(ActiveRecord::RecordNotFound) do
+      Topic.update!(topic_data.keys, topic_data.values)
+    end
+
+    assert_not_equal "1 updated", Topic.find(1).content
+    assert_not_equal "2 updated", Topic.find(2).content
+  end
+
+  def test_update_many_with_active_record_base_object!
+    error = assert_raises(ArgumentError) do
+      Topic.update!(Topic.first, "content" => "1 updated")
+    end
+
+    assert_equal "You are passing an instance of ActiveRecord::Base to `update!`. " \
+    "Please pass the id of the object by calling `.id`.", error.message
+
+    assert_not_equal "1 updated", Topic.first.content
+  end
+
+  def test_update_many_with_array_of_active_record_base_objects!
+    error = assert_raise(ArgumentError) do
+      Topic.update!(Topic.first(2), content: "updated")
+    end
+
+    assert_equal "You are passing an array of ActiveRecord::Base instances to `update!`. " \
+    "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`.", error.message
+
+    assert_not_equal "updated", Topic.first.content
+    assert_not_equal "updated", Topic.second.content
+  end
+
+  def test_class_level_update_without_ids!
+    topics = Topic.all
+    assert_equal 5, topics.length
+    topics.each do |topic|
+      assert_not_equal "updated", topic.content
+    end
+
+    updated = Topic.update!(content: "updated")
+    assert_equal 5, updated.length
+    updated.each do |topic|
+      assert_equal "updated", topic.content
+    end
+  end
+
+  def test_class_level_update_is_affected_by_scoping!
+    topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
+
+    assert_raise(ActiveRecord::RecordNotFound) do
+      Topic.where("1=0").scoping { Topic.update!(topic_data.keys, topic_data.values) }
+    end
+
+    assert_not_equal "1 updated", Topic.find(1).content
+    assert_not_equal "2 updated", Topic.find(2).content
+  end
+
+  def test_raises_error_when_validations_failed
+    assert_raises(ActiveRecord::RecordInvalid) do
+      Developer.update!(salary: 1_000_000)
+    end
+  end
+
   def test_delete_all
     assert Topic.count > 0
 
@@ -217,7 +305,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_predicate company, :valid?
     original_errors = company.errors
     client = company.becomes(Client)
-    assert_equal assert_deprecated { original_errors.keys }, assert_deprecated { client.errors.keys }
+    assert_equal original_errors.attribute_names, client.errors.attribute_names
   end
 
   def test_becomes_errors_base
@@ -231,7 +319,7 @@ class PersistenceTest < ActiveRecord::TestCase
     admin.errors.add :token, :invalid
     child = admin.becomes(child_class)
 
-    assert_equal [:token], assert_deprecated { child.errors.keys }
+    assert_equal [:token], child.errors.attribute_names
     assert_nothing_raised do
       child.errors.add :foo, :invalid
     end
@@ -723,6 +811,69 @@ class PersistenceTest < ActiveRecord::TestCase
 
     developer.reload
     assert_not_equal prev_month, developer.updated_at
+  end
+
+  def test_update_attribute!
+    assert_not_predicate Topic.find(1), :approved?
+    Topic.find(1).update_attribute!("approved", true)
+    assert_predicate Topic.find(1), :approved?
+
+    Topic.find(1).update_attribute!(:approved, false)
+    assert_not_predicate Topic.find(1), :approved?
+
+    Topic.find(1).update_attribute!(:change_approved_before_save, true)
+    assert_predicate Topic.find(1), :approved?
+  end
+
+  def test_update_attribute_for_readonly_attribute!
+    minivan = Minivan.find("m1")
+    assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_attribute!(:color, "black") }
+  end
+
+  def test_update_attribute_with_one_updated!
+    t = Topic.first
+    t.update_attribute!(:title, "super_title")
+    assert_equal "super_title", t.title
+    assert_not t.changed?, "topic should not have changed"
+    assert_not t.title_changed?, "title should not have changed"
+    assert_nil t.title_change, "title change should be nil"
+
+    t.reload
+    assert_equal "super_title", t.title
+  end
+
+  def test_update_attribute_for_updated_at_on!
+    developer = Developer.find(1)
+    prev_month = Time.now.prev_month.change(usec: 0)
+
+    developer.update_attribute!(:updated_at, prev_month)
+    assert_equal prev_month, developer.updated_at
+
+    developer.update_attribute!(:salary, 80001)
+    assert_not_equal prev_month, developer.updated_at
+
+    developer.reload
+    assert_not_equal prev_month, developer.updated_at
+  end
+
+  def test_update_attribute_for_aborted_callback!
+    klass = Class.new(Topic) do
+      def self.name; "Topic"; end
+
+      before_update :throw_abort
+
+      def throw_abort
+        throw(:abort)
+      end
+    end
+
+    t = klass.create(title: "New Topic", author_name: "Not David")
+
+    assert_raises(ActiveRecord::RecordNotSaved) { t.update_attribute!(:title, "super_title") }
+
+    t_reloaded = Topic.find(t.id)
+
+    assert_equal "New Topic", t_reloaded.title
   end
 
   def test_update_column

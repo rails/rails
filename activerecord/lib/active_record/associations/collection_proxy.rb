@@ -27,7 +27,7 @@ module ActiveRecord
     # is computed directly through SQL and does not trigger by itself the
     # instantiation of the actual post records.
     class CollectionProxy < Relation
-      def initialize(klass, association, **) #:nodoc:
+      def initialize(klass, association, **) # :nodoc:
         @association = association
         super klass
 
@@ -475,7 +475,7 @@ module ActiveRecord
 
       # Deletes the records of the collection directly from the database
       # ignoring the +:dependent+ option. Records are instantiated and it
-      # invokes +before_remove+, +after_remove+ , +before_destroy+ and
+      # invokes +before_remove+, +after_remove+, +before_destroy+, and
       # +after_destroy+ callbacks.
       #
       #   class Person < ActiveRecord::Base

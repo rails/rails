@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/per_thread_registry"
+require "active_support/core_ext/module/delegation"
 
 module ActiveRecord
   # This is a thread locals registry for EXPLAIN. For example
@@ -8,13 +8,18 @@ module ActiveRecord
   #   ActiveRecord::ExplainRegistry.queries
   #
   # returns the collected queries local to the current thread.
-  #
-  # See the documentation of ActiveSupport::PerThreadRegistry
-  # for further details.
   class ExplainRegistry # :nodoc:
-    extend ActiveSupport::PerThreadRegistry
+    class << self
+      delegate :reset, :collect, :collect=, :collect?, :queries, to: :instance
 
-    attr_accessor :queries, :collect
+      private
+        def instance
+          ActiveSupport::IsolatedExecutionState[:active_record_explain_registry] ||= new
+        end
+    end
+
+    attr_accessor :collect
+    attr_reader :queries
 
     def initialize
       reset

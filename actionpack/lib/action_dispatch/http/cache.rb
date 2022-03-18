@@ -187,13 +187,20 @@ module ActionDispatch
 
           return if control.empty? && cache_control.empty?  # Let middleware handle default behavior
 
-          if extras = control.delete(:extras)
-            cache_control[:extras] ||= []
-            cache_control[:extras] += extras
-            cache_control[:extras].uniq!
-          end
+          if cache_control.any?
+            # Any caching directive coming from a controller overrides
+            # no-cache/no-store in the default Cache-Control header.
+            control.delete(:no_cache)
+            control.delete(:no_store)
 
-          control.merge! cache_control
+            if extras = control.delete(:extras)
+              cache_control[:extras] ||= []
+              cache_control[:extras] += extras
+              cache_control[:extras].uniq!
+            end
+
+            control.merge! cache_control
+          end
 
           options = []
 

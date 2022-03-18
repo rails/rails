@@ -131,8 +131,8 @@ module ActionDispatch
         alias []    get
         alias clear clear!
 
-        def each
-          routes.each { |name, route| yield name, route }
+        def each(&block)
+          routes.each(&block)
           self
         end
 
@@ -196,7 +196,9 @@ module ActionDispatch
             def call(t, method_name, args, inner_options, url_strategy)
               if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
                 options = t.url_options.merge @options
-                options[:path] = optimized_helper(args)
+                path = optimized_helper(args)
+                path << "/" if options[:trailing_slash] && !path.end_with?("/")
+                options[:path] = path
 
                 original_script_name = options.delete(:original_script_name)
                 script_name = t._routes.find_script_name(options)
@@ -596,14 +598,14 @@ module ActionDispatch
         if route.segment_keys.include?(:controller)
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             Using a dynamic :controller segment in a route is deprecated and
-            will be removed in Rails 7.0.
+            will be removed in Rails 7.1.
           MSG
         end
 
         if route.segment_keys.include?(:action)
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             Using a dynamic :action segment in a route is deprecated and
-            will be removed in Rails 7.0.
+            will be removed in Rails 7.1.
           MSG
         end
 
@@ -820,10 +822,19 @@ module ActionDispatch
 
         route_with_params = generate(route_name, path_options, recall)
         path = route_with_params.path(method_name)
+
+        if options[:trailing_slash] && !options[:format] && !path.end_with?("/")
+          path += "/"
+        end
+
         params = route_with_params.params
 
         if options.key? :params
-          params.merge! options[:params]
+          if options[:params]&.respond_to?(:to_hash)
+            params.merge! options[:params]
+          else
+            params[:params] = options[:params]
+          end
         end
 
         options[:path]        = path

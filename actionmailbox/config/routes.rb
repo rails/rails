@@ -21,5 +21,6 @@ Rails.application.routes.draw do
     post "inbound_emails/sources", to: "inbound_emails/sources#create", as: :rails_conductor_inbound_email_sources
 
     post ":inbound_email_id/reroute" => "reroutes#create", as: :rails_conductor_inbound_email_reroute
+    post ":inbound_email_id/incinerate" => "incinerates#create", as: :rails_conductor_inbound_email_incinerate
   end
 end

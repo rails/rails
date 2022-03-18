@@ -64,12 +64,10 @@ if ActiveRecord::Base.connection.supports_explain?
     end
 
     private
-      def stub_explain_for_query_plans(query_plans = ["query plan foo", "query plan bar"])
+      def stub_explain_for_query_plans(query_plans = ["query plan foo", "query plan bar"], &block)
         explain_called = 0
 
-        connection.stub(:explain, proc { explain_called += 1; query_plans[explain_called - 1] }) do
-          yield
-        end
+        connection.stub(:explain, proc { explain_called += 1; query_plans[explain_called - 1] }, &block)
       end
 
       def bind_param(name, value)

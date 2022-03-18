@@ -26,7 +26,22 @@ class SystemTestCaseTest < ActiveSupport::TestCase
     assert_not_includes(ActionDispatch::SystemTestCase.runnable_methods, :test_foo_url)
   end
 
-  test "system tests set the Capybara host in the url_options by default" do
+  test "system tests use 127.0.0.1 in the url_options be default" do
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        get 'foo', to: 'foo#index', as: 'test_foo'
+      end
+    RUBY
+
+    app("test")
+    rack_test_case = Class.new(ActionDispatch::SystemTestCase) do
+      driven_by :rack_test
+    end
+    system_test = rack_test_case.new("my_test")
+    assert_equal("http://127.0.0.1/foo", system_test.test_foo_url)
+  end
+
+  test "system tests use Capybara.app_host in the url_options if present" do
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
         get 'foo', to: 'foo#index', as: 'test_foo'

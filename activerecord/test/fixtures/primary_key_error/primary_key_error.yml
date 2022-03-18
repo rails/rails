@@ -1,0 +1,6 @@
+_fixture:
+  model_class: Author
+
+david:
+  name: David
+  owned_essay: a_modest_proposal

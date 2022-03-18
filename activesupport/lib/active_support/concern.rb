@@ -108,23 +108,23 @@ module ActiveSupport
   #
   # <tt>prepend</tt> is also used for any dependencies.
   module Concern
-    class MultipleIncludedBlocks < StandardError #:nodoc:
+    class MultipleIncludedBlocks < StandardError # :nodoc:
       def initialize
         super "Cannot define multiple 'included' blocks for a Concern"
       end
     end
 
-    class MultiplePrependBlocks < StandardError #:nodoc:
+    class MultiplePrependBlocks < StandardError # :nodoc:
       def initialize
         super "Cannot define multiple 'prepended' blocks for a Concern"
       end
     end
 
-    def self.extended(base) #:nodoc:
+    def self.extended(base) # :nodoc:
       base.instance_variable_set(:@_dependencies, [])
     end
 
-    def append_features(base) #:nodoc:
+    def append_features(base) # :nodoc:
       if base.instance_variable_defined?(:@_dependencies)
         base.instance_variable_get(:@_dependencies) << self
         false
@@ -137,7 +137,7 @@ module ActiveSupport
       end
     end
 
-    def prepend_features(base) #:nodoc:
+    def prepend_features(base) # :nodoc:
       if base.instance_variable_defined?(:@_dependencies)
         base.instance_variable_get(:@_dependencies).unshift self
         false

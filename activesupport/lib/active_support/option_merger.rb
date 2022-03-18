@@ -3,7 +3,7 @@
 require "active_support/core_ext/hash/deep_merge"
 
 module ActiveSupport
-  class OptionMerger #:nodoc:
+  class OptionMerger # :nodoc:
     instance_methods.each do |method|
       undef_method(method) unless method.start_with?("__", "instance_eval", "class", "object_id")
     end
@@ -29,6 +29,10 @@ module ActiveSupport
         else
           @context.__send__(method, *arguments, &block)
         end
+      end
+
+      def respond_to_missing?(*arguments)
+        @context.respond_to?(*arguments)
       end
   end
 end

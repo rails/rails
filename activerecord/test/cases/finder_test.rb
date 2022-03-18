@@ -1648,9 +1648,11 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   test "find_by! raises RecordNotFound if the record is missing" do
-    assert_raises(ActiveRecord::RecordNotFound) do
+    error = assert_raises(ActiveRecord::RecordNotFound) do
       Post.find_by!("1 = 0")
     end
+
+    assert_equal "Couldn't find Post with [WHERE (1 = 0)]", error.message
   end
 
   test "find on a scope does not perform statement caching" do

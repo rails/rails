@@ -9,7 +9,7 @@ require "action_view/context"
 require "action_view/template"
 require "action_view/lookup_context"
 
-module ActionView #:nodoc:
+module ActionView # :nodoc:
   # = Action View Base
   #
   # Action View templates can be written in several ways.
@@ -142,7 +142,7 @@ module ActionView #:nodoc:
     include Helpers, ::ERB::Util, Context
 
     # Specify the proc used to decorate input tags that refer to attributes with errors.
-    cattr_accessor :field_error_proc, default: Proc.new { |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
+    cattr_accessor :field_error_proc, default: Proc.new { |html_tag, instance| content_tag :div, html_tag, class: "field_with_errors" }
 
     # How to complete the streaming when an exception occurs.
     # This is our best guess: first try to close the attribute, then the tag.
@@ -155,9 +155,6 @@ module ActionView #:nodoc:
 
     # Specify default_formats that can be rendered.
     cattr_accessor :default_formats
-
-    # Specify whether an error should be raised for missing translations
-    cattr_accessor :raise_on_missing_translations, default: false
 
     # Specify whether submit_tag should automatically disable on click
     cattr_accessor :automatically_disable_submit_tag, default: true
@@ -179,7 +176,7 @@ module ActionView #:nodoc:
         ActionView::Resolver.caching = value
       end
 
-      def xss_safe? #:nodoc:
+      def xss_safe? # :nodoc:
         true
       end
 
@@ -227,7 +224,7 @@ module ActionView #:nodoc:
 
     # :startdoc:
 
-    def initialize(lookup_context, assigns, controller) #:nodoc:
+    def initialize(lookup_context, assigns, controller) # :nodoc:
       @_config = ActiveSupport::InheritableOptions.new
 
       @lookup_context = lookup_context

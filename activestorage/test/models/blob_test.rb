@@ -6,6 +6,7 @@ require "active_support/testing/method_call_assertions"
 
 class ActiveStorage::BlobTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
+  include ActiveJob::TestHelper
 
   test "unattached scope" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
@@ -31,33 +32,13 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal data, blob.download
   end
 
-  test "create_after_upload! has the same effect as create_and_upload!" do
-    data = "Some other, even more funky file"
-    blob = assert_deprecated do
-      ActiveStorage::Blob.create_after_upload!(io: StringIO.new(data), filename: "funky.bin")
-    end
-
-    assert blob.persisted?
-    assert_equal data, blob.download
-  end
-
-  test "build_after_upload uploads to service but does not save the Blob" do
-    data = "A potentially overwriting file"
-    blob = assert_deprecated do
-      ActiveStorage::Blob.build_after_upload(io: StringIO.new(data), filename: "funky.bin")
-    end
-
-    assert_not blob.persisted?
-    assert_equal data, blob.download
-  end
-
   test "create_and_upload sets byte size and checksum" do
     data = "Hello world!"
     blob = create_blob data: data
 
     assert_equal data, blob.download
     assert_equal data.length, blob.byte_size
-    assert_equal Digest::MD5.base64digest(data), blob.checksum
+    assert_equal OpenSSL::Digest::MD5.base64digest(data), blob.checksum
   end
 
   test "create_and_upload extracts content type from data" do
@@ -101,6 +82,26 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
   test "build_after_unfurling generates a 28-character base36 key" do
     assert_match(/^[a-z0-9]{28}$/, build_blob_after_unfurling.key)
+  end
+
+  test "compose" do
+    blobs = 3.times.map { create_blob(data: "123", filename: "numbers.txt", content_type: "text/plain", identify: false) }
+    blob = ActiveStorage::Blob.compose(blobs, filename: "all_numbers.txt")
+
+    assert_equal "123123123", blob.download
+    assert_equal "text/plain", blob.content_type
+    assert_equal blobs.first.byte_size * blobs.count, blob.byte_size
+    assert_predicate(blob, :composed)
+    assert_nil blob.checksum
+  end
+
+  test "compose with unpersisted blobs" do
+    blobs = 3.times.map { create_blob(data: "123", filename: "numbers.txt", content_type: "text/plain", identify: false).dup }
+
+    error = assert_raises(ActiveRecord::RecordNotSaved) do
+      ActiveStorage::Blob.compose(blobs, filename: "all_numbers.txt")
+    end
+    assert_equal "All blobs must be persisted.", error.message
   end
 
   test "image?" do
@@ -148,7 +149,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
   test "open without integrity" do
     create_blob(data: "Hello, world!").tap do |blob|
-      blob.update! checksum: Digest::MD5.base64digest("Goodbye, world!")
+      blob.update! checksum: OpenSSL::Digest::MD5.base64digest("Goodbye, world!")
 
       assert_raises ActiveStorage::IntegrityError do
         blob.open { |file| flunk "Expected integrity check to fail" }
@@ -229,12 +230,12 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_not ActiveStorage::Blob.service.exist?(blob.key)
   end
 
-  test "purge deletes variants from external service" do
+  test "purge deletes variants from external service with the purge_later" do
     blob = create_file_blob
-    variant = blob.variant(resize: "100>").processed
+    variant = blob.variant(resize_to_limit: [100, nil]).processed
 
     blob.purge
-    assert_not ActiveStorage::Blob.service.exist?(variant.key)
+    assert_enqueued_with(job: ActiveStorage::PurgeJob, args: [variant.image.blob])
   end
 
   test "purge does nothing when attachments exist" do
@@ -278,11 +279,82 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   test "updating the content_type updates service metadata" do
     blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
 
-    expected_arguments = [blob.key, content_type: "image/jpeg"]
+    expected_arguments = [blob.key, content_type: "image/jpeg", custom_metadata: {}]
 
     assert_called_with(blob.service, :update_metadata, expected_arguments) do
       blob.update!(content_type: "image/jpeg")
     end
+  end
+
+  test "updating the metadata updates service metadata" do
+    blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
+
+    expected_arguments = [
+      blob.key,
+      {
+        content_type: "application/octet-stream",
+        disposition: :attachment,
+        filename: blob.filename,
+        custom_metadata: { "test" => true }
+      }
+    ]
+
+    assert_called_with(blob.service, :update_metadata, expected_arguments) do
+      blob.update!(metadata: { custom: { "test" => true } })
+    end
+  end
+
+  test "scope_for_strict_loading adds includes only when track_variants and strict_loading_by_default" do
+    assert_empty(
+      ActiveStorage::Blob.scope_for_strict_loading.includes_values,
+      "Expected ActiveStorage::Blob.scope_for_strict_loading have no includes"
+    )
+
+    with_strict_loading_by_default do
+      includes_values = ActiveStorage::Blob.scope_for_strict_loading.includes_values
+
+      assert(
+        includes_values.any? { |values| values[:variant_records] == { image_attachment: :blob } },
+        "Expected ActiveStorage::Blob.scope_for_strict_loading to have variant_records included"
+      )
+      assert(
+        includes_values.any? { |values| values[:preview_image_attachment] == :blob },
+        "Expected ActiveStorage::Blob.scope_for_strict_loading to have preview_image_attachment included"
+      )
+
+      without_variant_tracking do
+        assert_empty(
+          ActiveStorage::Blob.scope_for_strict_loading.includes_values,
+          "Expected ActiveStorage::Blob.scope_for_strict_loading have no includes"
+        )
+      end
+    end
+  end
+
+  test "warning if blob is created with invalid mime type" do
+    assert_deprecated do
+      create_blob(filename: "funky.jpg", content_type: "image/jpg")
+    end
+
+    assert_not_deprecated do
+      create_blob(filename: "funky.jpg", content_type: "image/jpeg")
+    end
+  end
+
+  test "warning if blob is created with invalid mime type can be disabled" do
+    warning_was = ActiveStorage.silence_invalid_content_types_warning
+    ActiveStorage.silence_invalid_content_types_warning = true
+
+    assert_not_deprecated do
+      create_blob(filename: "funky.jpg", content_type: "image/jpg")
+    end
+
+    assert_not_deprecated do
+      create_blob(filename: "funky.jpg", content_type: "image/jpeg")
+    end
+
+  ensure
+    ActiveStorage.silence_invalid_content_types_warning = warning_was
   end
 
   private

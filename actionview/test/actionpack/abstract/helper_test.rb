@@ -71,10 +71,8 @@ module AbstractController
       end
 
       def test_declare_missing_helper
-        e = assert_raise NameError do
-          AbstractHelpers.helper :missing
-        end
-        assert_equal "uninitialized constant MissingHelper", e.message
+        e = assert_raise(NameError) { AbstractHelpers.helper :missing }
+        assert_includes e.message, "uninitialized constant MissingHelper"
       end
 
       def test_helpers_with_module_through_block
@@ -103,7 +101,7 @@ module AbstractController
     class InvalidHelpersTest < ActiveSupport::TestCase
       def test_controller_raise_error_about_missing_helper
         e = assert_raise(NameError) { AbstractHelpers.helper(:missing) }
-        assert_equal "uninitialized constant MissingHelper", e.message
+        assert_includes e.message, "uninitialized constant MissingHelper"
       end
     end
   end

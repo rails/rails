@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveStorage
-  class Service::Registry #:nodoc:
+  class Service::Registry # :nodoc:
     def initialize(configurations)
       @configurations = configurations.deep_symbolize_keys
       @services = {}

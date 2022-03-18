@@ -7,11 +7,11 @@ module ActionView
   #
   # * Support streaming from child templates, partials and so on.
   # * Rack::Cache needs to support streaming bodies
-  class StreamingTemplateRenderer < TemplateRenderer #:nodoc:
+  class StreamingTemplateRenderer < TemplateRenderer # :nodoc:
     # A valid Rack::Body (i.e. it responds to each).
     # It is initialized with a block that, when called, starts
     # rendering the template.
-    class Body #:nodoc:
+    class Body # :nodoc:
       def initialize(&start)
         @start = start
       end
@@ -42,7 +42,7 @@ module ActionView
     # For streaming, instead of rendering a given a template, we return a Body
     # object that responds to each. This object is initialized with a block
     # that knows how to render the template.
-    def render_template(view, template, layout_name = nil, locals = {}) #:nodoc:
+    def render_template(view, template, layout_name = nil, locals = {}) # :nodoc:
       return [super.body] unless layout_name && template.supports_streaming?
 
       locals ||= {}

@@ -5,7 +5,7 @@ module ActiveRecord
     class BatchEnumerator
       include Enumerable
 
-      def initialize(of: 1000, start: nil, finish: nil, relation:) #:nodoc:
+      def initialize(of: 1000, start: nil, finish: nil, relation:) # :nodoc:
         @of       = of
         @relation = relation
         @start = start
@@ -47,11 +47,11 @@ module ActiveRecord
       #   Person.in_batches.each_record.with_index do |person, index|
       #     person.award_trophy(index + 1)
       #   end
-      def each_record
+      def each_record(&block)
         return to_enum(:each_record) unless block_given?
 
         @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: true).each do |relation|
-          relation.records.each { |record| yield record }
+          relation.records.each(&block)
         end
       end
 
@@ -89,9 +89,9 @@ module ActiveRecord
       #   Person.in_batches.each do |relation|
       #     relation.update_all(awesome: true)
       #   end
-      def each
+      def each(&block)
         enum = @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: false)
-        return enum.each { |relation| yield relation } if block_given?
+        return enum.each(&block) if block_given?
         enum
       end
     end

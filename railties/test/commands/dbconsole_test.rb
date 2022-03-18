@@ -140,6 +140,16 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     assert_not_equal "q1w2e3", ENV["PGPASSWORD"]
   end
 
+  def test_postgresql_with_ssl
+    start(adapter: "postgresql", database: "db", sslmode: "verify-full", sslcert: "client.crt", sslkey: "client.key", sslrootcert: "root.crt")
+    assert_not aborted
+    assert_equal ["psql", "db"], dbconsole.find_cmd_and_exec_args
+    assert_equal "verify-full", ENV["PGSSLMODE"]
+    assert_equal "client.crt", ENV["PGSSLCERT"]
+    assert_equal "client.key", ENV["PGSSLKEY"]
+    assert_equal "root.crt", ENV["PGSSLROOTCERT"]
+  end
+
   def test_postgresql_include_password
     start({ adapter: "postgresql", database: "db", username: "user", password: "q1w2e3" }, ["-p"])
     assert_not aborted
@@ -261,7 +271,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
         Rails::Command.invoke(:dbconsole)
       end
 
-      assert_includes e.message, "'primary' database is not configured for 'test'."
+      assert_includes e.message, "No databases are configured for 'test'."
     end
   end
 
@@ -283,10 +293,8 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   private :aborted, :output
 
   private
-    def app_db_config(results)
-      Rails.application.config.stub(:database_configuration, results || {}) do
-        yield
-      end
+    def app_db_config(results, &block)
+      Rails.application.config.stub(:database_configuration, results || {}, &block)
     end
 
     def make_dbconsole

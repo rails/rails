@@ -17,15 +17,15 @@ module ActionMailer
 
     include Base64
 
-    def self.previewing_email(message) #:nodoc:
+    def self.previewing_email(message) # :nodoc:
       new(message).transform!
     end
 
-    def initialize(message) #:nodoc:
+    def initialize(message) # :nodoc:
       @message = message
     end
 
-    def transform! #:nodoc:
+    def transform! # :nodoc:
       return message if html_part.blank?
 
       html_part.body = html_part.decoded.gsub(PATTERN) do |match|

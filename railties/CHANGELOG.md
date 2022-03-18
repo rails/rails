@@ -1,77 +1,51 @@
-*   Raise an error in generators if a field type is invalid.
+*   Use `controller_class_path` in `Rails::Generators::NamedBase#route_url`
 
-    *Petrik de Heus*
+    The `route_url` method now returns the correct path when generating
+    a namespaced controller with a top-level model using `--model-name`.
 
-*   `bin/rails tmp:clear` deletes also files and directories in `tmp/storage`.
+    Previously, when running this command:
 
-    *George Claghorn*
+    ``` sh
+    bin/rails generate scaffold_controller Admin/Post --model-name Post
+    ```
 
-*   Fix compatibility with `psych >= 4`.
+    the comments above the controller action would look like:
 
-    Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility
-    `Rails.application.config_for` now uses `YAML.unsafe_load` if available.
+    ``` ruby
+    # GET /posts
+    def index
+      @posts = Post.all
+    end
+    ```
+
+    afterwards, they now look like this:
+
+    ``` ruby
+    # GET /admin/posts
+    def index
+      @posts = Post.all
+    end
+    ```
+
+    Fixes #44662.
+
+    *Andrew White*
+
+*   No longer add autoloaded paths to `$LOAD_PATH`.
+
+    This means it won't be possible to load them with a manual `require` call, the class or module can be referenced instead.
+
+    Reducing the size of `$LOAD_PATH` speed-up `require` calls for apps not using `bootsnap`, and reduce the
+    size of the `bootsnap` cache for the others.
 
     *Jean Boussier*
 
-*   Allow loading nested locales in engines.
+*   Remove default `X-Download-Options` header
 
-    *Gannon McGibbon*
+    This header is currently only used by Internet Explorer which
+    will be discontinued in 2022 and since Rails 7 does not fully
+    support Internet Explorer this header should not be a default one.
 
-*   Ensure `Rails.application.config_for` always cast hashes to `ActiveSupport::OrderedOptions`.
+    *Harun Sabljaković*
 
-    *Jean Boussier*
-
-*   Remove Rack::Runtime from the default middleware stack and deprecate
-    referencing it in middleware operations without adding it back
-
-    *Hartley McGuire*
-
-*   Allow adding additional authorized hosts in development via `ENV['RAILS_DEVELOPMENT_HOSTS']`
-
-    *Josh Abernathy*, *Debbie Milburn*
-
-*   Add app concern and test keepfiles to generated engine plugins.
-
-    *Gannon McGibbon*
-
-*   Stop generating a license for in-app plugins.
-
-    *Gannon McGibbon*
-
-*   `rails app:update` no longer prompts you to overwrite files that are generally modified in the
-    course of developing a Rails app. See [#41083](https://github.com/rails/rails/pull/41083) for
-    the full list of changes.
-
-    *Alex Ghiculescu*
-
-*   Change default branch for new Rails projects and plugins to `main`.
-
-    *Prateek Choudhary*
-
-*   Add benchmark method that can be called from anywhere.
-
-    This method is used as a quick way to measure & log the speed of some code.
-    However, it was previously available only in specific contexts, mainly views and controllers.
-    The new Rails.benchmark can be used in the rest of your app: services, API wrappers, models, etc.
-
-        def test
-          Rails.benchmark("test") { ... }
-        end
-
-    *Simon Perepelitsa*
-
-*   Removed manifest.js and application.css in app/assets
-    folder when --skip-sprockets option passed as flag to rails.
-
-    *Cindy Gao*
-
-*   Add support for stylesheets and ERB views to `rails stats`.
-
-    *Joel Hawksley*
-
-*   Allow appended root routes to take precedence over internal welcome controller.
-
-    *Gannon McGibbon*
-
-
-Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/railties/CHANGELOG.md) for previous changes.
+Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/railties/CHANGELOG.md) for previous changes.

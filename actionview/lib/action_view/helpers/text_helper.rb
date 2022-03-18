@@ -9,7 +9,7 @@ require "action_view/helpers/output_safety_helper"
 
 module ActionView
   # = Action View Text Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # The TextHelper module provides a set of methods for filtering, formatting
     # and transforming strings, which can reduce the amount of inline Ruby code in
     # your views. These helper methods extend Action View making them callable
@@ -133,7 +133,7 @@ module ActionView
       #
       #   highlight('<a href="javascript:alert(\'no!\')">ruby</a> on rails', 'rails', sanitize: false)
       #   # => <a href="javascript:alert('no!')">ruby</a> on <mark>rails</mark>
-      def highlight(text, phrases, options = {})
+      def highlight(text, phrases, options = {}, &block)
         text = sanitize(text) if options.fetch(:sanitize, true)
 
         if text.blank? || phrases.blank?
@@ -144,7 +144,7 @@ module ActionView
           end.join("|")
 
           if block_given?
-            text.gsub(/(#{match})(?![^<]*?>)/i) { |found| yield found }
+            text.gsub(/(#{match})(?![^<]*?>)/i, &block)
           else
             highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
             text.gsub(/(#{match})(?![^<]*?>)/i, highlighter)
@@ -268,7 +268,7 @@ module ActionView
       end
 
       # Returns +text+ transformed into HTML using simple formatting rules.
-      # Two or more consecutive newlines(<tt>\n\n</tt> or <tt>\r\n\r\n</tt>) are
+      # Two or more consecutive newlines (<tt>\n\n</tt> or <tt>\r\n\r\n</tt>) are
       # considered a paragraph and wrapped in <tt><p></tt> tags. One newline
       # (<tt>\n</tt> or <tt>\r\n</tt>) is considered a linebreak and a
       # <tt><br /></tt> tag is appended. This method does not remove the
@@ -407,7 +407,7 @@ module ActionView
         cycle.reset if cycle
       end
 
-      class Cycle #:nodoc:
+      class Cycle # :nodoc:
         attr_reader :values
 
         def initialize(first_value, *values)

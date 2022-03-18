@@ -7,14 +7,14 @@ module ActiveRecord
   #
   # This class is used to dump the database schema for some connection to some
   # output format (i.e., ActiveRecord::Schema).
-  class SchemaDumper #:nodoc:
+  class SchemaDumper # :nodoc:
     private_class_method :new
 
     ##
     # :singleton-method:
     # A list of tables which should not be dumped to the schema.
-    # Acceptable values are strings as well as regexp if ActiveRecord::Base.schema_format == :ruby.
-    # Only strings are accepted if ActiveRecord::Base.schema_format == :sql.
+    # Acceptable values are strings as well as regexp if ActiveRecord.schema_format == :ruby.
+    # Only strings are accepted if ActiveRecord.schema_format == :sql.
     cattr_accessor :ignore_tables, default: []
 
     ##
@@ -47,6 +47,7 @@ module ActiveRecord
     def dump(stream)
       header(stream)
       extensions(stream)
+      types(stream)
       tables(stream)
       trailer(stream)
       stream
@@ -73,22 +74,21 @@ module ActiveRecord
       end
 
       def header(stream)
-        stream.puts <<HEADER
-# This file is auto-generated from the current state of the database. Instead
-# of editing this file, please use the migrations feature of Active Record to
-# incrementally modify your database, and then regenerate this schema definition.
-#
-# This file is the source Rails uses to define your schema when running `bin/rails
-# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
-# be faster and is potentially less error prone than running all of your
-# migrations from scratch. Old migrations may fail to apply correctly if those
-# migrations use external dependencies or application code.
-#
-# It's strongly recommended that you check this file into your version control system.
+        stream.puts <<~HEADER
+          # This file is auto-generated from the current state of the database. Instead
+          # of editing this file, please use the migrations feature of Active Record to
+          # incrementally modify your database, and then regenerate this schema definition.
+          #
+          # This file is the source Rails uses to define your schema when running `bin/rails
+          # db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+          # be faster and is potentially less error prone than running all of your
+          # migrations from scratch. Old migrations may fail to apply correctly if those
+          # migrations use external dependencies or application code.
+          #
+          # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(#{define_params}) do
-
-HEADER
+          ActiveRecord::Schema[#{ActiveRecord::Migration.current_version}].define(#{define_params}) do
+        HEADER
       end
 
       def trailer(stream)
@@ -97,6 +97,10 @@ HEADER
 
       # extensions are only supported by PostgreSQL
       def extensions(stream)
+      end
+
+      # (enum) types are only supported by PostgreSQL
+      def types(stream)
       end
 
       def tables(stream)
@@ -154,6 +158,7 @@ HEADER
           columns.each do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
+
             type, colspec = column_spec(column)
             if type.is_a?(Symbol)
               tbl.print "    t.#{type} #{column.name.inspect}"
@@ -259,6 +264,7 @@ HEADER
 
             parts << "on_update: #{foreign_key.on_update.inspect}" if foreign_key.on_update
             parts << "on_delete: #{foreign_key.on_delete.inspect}" if foreign_key.on_delete
+            parts << "deferrable: #{foreign_key.deferrable.inspect}" if foreign_key.deferrable
 
             "  #{parts.join(', ')}"
           end

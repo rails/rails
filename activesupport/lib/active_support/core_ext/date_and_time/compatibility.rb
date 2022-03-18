@@ -15,7 +15,7 @@ module DateAndTime
 
     # Change the output of <tt>ActiveSupport::TimeZone.utc_to_local</tt>.
     #
-    # When `true`, it returns local times with an UTC offset, with `false` local
+    # When +true+, it returns local times with a UTC offset, with +false+ local
     # times are returned as UTC.
     #
     #   # Given this zone:

@@ -41,6 +41,12 @@
       });
     });
 
+    document.addEventListener("keyup", function(e) {
+      if (e.key === "Escape" && guides.classList.contains("visible")) {
+        guides.classList.remove("visible");
+      }
+    });
+
     var guidesIndexItem   = document.querySelector("select.guides-index-item");
     var currentGuidePath  = window.location.pathname;
     guidesIndexItem.value = currentGuidePath.substring(currentGuidePath.lastIndexOf("/") + 1);

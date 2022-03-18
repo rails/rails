@@ -362,21 +362,21 @@ module ActiveRecord
       end
 
       def test_default_handlers_are_writing_and_reading
-        assert_equal :writing, ActiveRecord::Base.writing_role
-        assert_equal :reading, ActiveRecord::Base.reading_role
+        assert_equal :writing, ActiveRecord.writing_role
+        assert_equal :reading, ActiveRecord.reading_role
       end
 
       def test_an_application_can_change_the_default_handlers
-        old_writing = ActiveRecord::Base.writing_role
-        old_reading = ActiveRecord::Base.reading_role
-        ActiveRecord::Base.writing_role = :default
-        ActiveRecord::Base.reading_role = :readonly
+        old_writing = ActiveRecord.writing_role
+        old_reading = ActiveRecord.reading_role
+        ActiveRecord.writing_role = :default
+        ActiveRecord.reading_role = :readonly
 
-        assert_equal :default, ActiveRecord::Base.writing_role
-        assert_equal :readonly, ActiveRecord::Base.reading_role
+        assert_equal :default, ActiveRecord.writing_role
+        assert_equal :readonly, ActiveRecord.reading_role
       ensure
-        ActiveRecord::Base.writing_role = old_writing
-        ActiveRecord::Base.reading_role = old_reading
+        ActiveRecord.writing_role = old_writing
+        ActiveRecord.reading_role = old_reading
       end
     end
   end

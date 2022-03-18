@@ -3,12 +3,14 @@
 module Arel # :nodoc: all
   module Nodes
     class DeleteStatement < Arel::Nodes::Node
-      attr_accessor :relation, :wheres, :orders, :limit, :offset, :key
+      attr_accessor :relation, :wheres, :groups, :havings, :orders, :limit, :offset, :key
 
       def initialize(relation = nil, wheres = [])
         super()
         @relation = relation
         @wheres = wheres
+        @groups = []
+        @havings = []
         @orders = []
         @limit = nil
         @offset = nil
@@ -30,6 +32,8 @@ module Arel # :nodoc: all
           self.relation == other.relation &&
           self.wheres == other.wheres &&
           self.orders == other.orders &&
+          self.groups == other.groups &&
+          self.havings == other.havings &&
           self.limit == other.limit &&
           self.offset == other.offset &&
           self.key == other.key

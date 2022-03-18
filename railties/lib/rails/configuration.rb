@@ -85,7 +85,7 @@ module Rails
         @operations << -> middleware { middleware.unshift(...) }
       end
 
-      def merge_into(other) #:nodoc:
+      def merge_into(other) # :nodoc:
         (@operations + @delete_operations).each do |operation|
           operation.call(other)
         end
@@ -101,7 +101,7 @@ module Rails
         attr_reader :operations, :delete_operations
     end
 
-    class Generators #:nodoc:
+    class Generators # :nodoc:
       attr_accessor :aliases, :options, :templates, :fallbacks, :colorize_logging, :api_only
       attr_reader :hidden_namespaces, :after_generate_callbacks
 

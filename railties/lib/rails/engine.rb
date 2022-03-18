@@ -11,10 +11,10 @@ require "thread"
 module Rails
   # <tt>Rails::Engine</tt> allows you to wrap a specific Rails application or subset of
   # functionality and share it with other applications or within a larger packaged application.
-  # Every <tt>Rails::Application</tt> is just an engine, which allows for simple
+  # Every Rails::Application is just an engine, which allows for simple
   # feature and application sharing.
   #
-  # Any <tt>Rails::Engine</tt> is also a <tt>Rails::Railtie</tt>, so the same
+  # Any <tt>Rails::Engine</tt> is also a Rails::Railtie, so the same
   # methods (like <tt>rake_tasks</tt> and +generators+) and configuration
   # options that are available in railties can also be used in engines.
   #
@@ -31,7 +31,7 @@ module Rails
   #   end
   #
   # Then ensure that this file is loaded at the top of your <tt>config/application.rb</tt>
-  # (or in your +Gemfile+) and it will automatically load models, controllers and helpers
+  # (or in your +Gemfile+), and it will automatically load models, controllers, and helpers
   # inside +app+, load routes at <tt>config/routes.rb</tt>, load locales at
   # <tt>config/locales/**/*</tt>, and load tasks at <tt>lib/tasks/**/*</tt>.
   #
@@ -192,13 +192,13 @@ module Rails
   #
   # == Isolated Engine
   #
-  # Normally when you create controllers, helpers and models inside an engine, they are treated
+  # Normally when you create controllers, helpers, and models inside an engine, they are treated
   # as if they were created inside the application itself. This means that all helpers and
   # named routes from the application will be available to your engine's controllers as well.
   #
   # However, sometimes you want to isolate your engine from the application, especially if your engine
   # has its own router. To do that, you simply need to call +isolate_namespace+. This method requires
-  # you to pass a module where all your controllers, helpers and models should be nested to:
+  # you to pass a module where all your controllers, helpers, and models should be nested to:
   #
   #   module MyEngine
   #     class Engine < Rails::Engine
@@ -236,9 +236,9 @@ module Rails
   # +articles_path+, like you would do with your main application.
   #
   # To make this behavior consistent with other parts of the framework,
-  # isolated engines also have an effect on <tt>ActiveModel::Naming</tt>. In a
+  # isolated engines also have an effect on ActiveModel::Naming. In a
   # normal Rails app, when you use a namespaced model such as
-  # <tt>Namespace::Article</tt>, <tt>ActiveModel::Naming</tt> will generate
+  # <tt>Namespace::Article</tt>, ActiveModel::Naming will generate
   # names with the prefix "namespace". In an isolated engine, the prefix will
   # be omitted in URL helpers and form fields, for convenience.
   #
@@ -442,7 +442,7 @@ module Rails
     end
 
     # Load console and invoke the registered hooks.
-    # Check <tt>Rails::Railtie.console</tt> for more info.
+    # Check Rails::Railtie.console for more info.
     def load_console(app = self)
       require "rails/console/app"
       require "rails/console/helpers"
@@ -451,14 +451,14 @@ module Rails
     end
 
     # Load Rails runner and invoke the registered hooks.
-    # Check <tt>Rails::Railtie.runner</tt> for more info.
+    # Check Rails::Railtie.runner for more info.
     def load_runner(app = self)
       run_runner_blocks(app)
       self
     end
 
-    # Load Rake, railties tasks and invoke the registered hooks.
-    # Check <tt>Rails::Railtie.rake_tasks</tt> for more info.
+    # Load Rake and railties tasks, and invoke the registered hooks.
+    # Check Rails::Railtie.rake_tasks for more info.
     def load_tasks(app = self)
       require "rake"
       run_tasks_blocks(app)
@@ -466,7 +466,7 @@ module Rails
     end
 
     # Load Rails generators and invoke the registered hooks.
-    # Check <tt>Rails::Railtie.generators</tt> for more info.
+    # Check Rails::Railtie.generators for more info.
     def load_generators(app = self)
       require "rails/generators"
       run_generators_blocks(app)
@@ -475,24 +475,15 @@ module Rails
     end
 
     # Invoke the server registered hooks.
-    # Check <tt>Rails::Railtie.server</tt> for more info.
+    # Check Rails::Railtie.server for more info.
     def load_server(app = self)
       run_server_blocks(app)
       self
     end
 
     def eager_load!
-      # Already done by Zeitwerk::Loader.eager_load_all. We need this guard to
-      # easily provide a compatible API for both zeitwerk and classic modes.
-      return if Rails.autoloaders.zeitwerk_enabled?
-
-      config.eager_load_paths.each do |load_path|
-        # Starts after load_path plus a slash, ends before ".rb".
-        relname_range = (load_path.to_s.length + 1)...-3
-        Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
-          require_dependency file[relname_range]
-        end
-      end
+      # Already done by Zeitwerk::Loader.eager_load_all. By now, we leave the
+      # method as a no-op for backwards compatibility.
     end
 
     def railties
@@ -579,11 +570,6 @@ module Rails
       $LOAD_PATH.uniq!
     end
 
-    # Set the paths from which Rails will automatically load source files,
-    # and the load_once paths.
-    #
-    # This needs to be an initializer, since it needs to run once
-    # per engine and get the engine as a block parameter.
     initializer :set_autoload_paths, before: :bootstrap_hook do
       ActiveSupport::Dependencies.autoload_paths.unshift(*_all_autoload_paths)
       ActiveSupport::Dependencies.autoload_once_paths.unshift(*_all_autoload_once_paths)
@@ -665,12 +651,12 @@ module Rails
       end
     end
 
-    def routes? #:nodoc:
+    def routes? # :nodoc:
       @routes
     end
 
     protected
-      def run_tasks_blocks(*) #:nodoc:
+      def run_tasks_blocks(*) # :nodoc:
         super
         paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
       end
@@ -686,7 +672,7 @@ module Rails
         paths["db/migrate"].existent.any?
       end
 
-      def self.find_root_with_flag(flag, root_path, default = nil) #:nodoc:
+      def self.find_root_with_flag(flag, root_path, default = nil) # :nodoc:
         while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
           parent = File.dirname(root_path)
           root_path = parent != root_path && parent
@@ -703,17 +689,25 @@ module Rails
       end
 
       def _all_autoload_once_paths
-        config.autoload_once_paths
+        config.autoload_once_paths.uniq
       end
 
       def _all_autoload_paths
-        @_all_autoload_paths ||= (config.autoload_paths + config.eager_load_paths + config.autoload_once_paths).uniq
+        @_all_autoload_paths ||= begin
+          autoload_paths  = config.autoload_paths
+          autoload_paths += config.eager_load_paths
+          autoload_paths -= config.autoload_once_paths
+          autoload_paths.uniq
+        end
       end
 
       def _all_load_paths(add_autoload_paths_to_load_path)
         @_all_load_paths ||= begin
-          load_paths  = config.paths.load_paths
-          load_paths += _all_autoload_paths if add_autoload_paths_to_load_path
+          load_paths = config.paths.load_paths
+          if add_autoload_paths_to_load_path
+            load_paths += _all_autoload_paths
+            load_paths += _all_autoload_once_paths
+          end
           load_paths.uniq
         end
       end

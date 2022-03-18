@@ -42,6 +42,10 @@ module ActiveSupport
         @queue_server << work
       end
 
+      def size
+        @worker_count
+      end
+
       def shutdown
         @queue_server.shutdown
         @worker_pool.each { |pid| Process.waitpid pid }

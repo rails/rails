@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "pp"
 require "cases/helper"
 require "models/tag"
 require "models/tagging"
@@ -473,7 +474,11 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_sanitized_order
     query = Tag.order([Arel.sql("field(id, ?)"), [1, 3, 2]]).to_sql
-    assert_match(/field\(id, 1,3,2\)/, query)
+    if current_adapter?(:Mysql2Adapter)
+      assert_match(/field\(id, '1','3','2'\)/, query)
+    else
+      assert_match(/field\(id, 1,3,2\)/, query)
+    end
 
     query = Tag.order([Arel.sql("field(id, ?)"), []]).to_sql
     assert_match(/field\(id, NULL\)/, query)
@@ -529,7 +534,8 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_joins_with_string_array
-    person_with_reader_and_post = Post.joins([
+    person_with_reader_and_post = Post.joins(
+      [
         "INNER JOIN categorizations ON categorizations.post_id = posts.id",
         "INNER JOIN categories ON categories.id = categorizations.category_id AND categories.type = 'SpecialCategory'"
       ]
@@ -875,7 +881,7 @@ class RelationTest < ActiveRecord::TestCase
     ids = Author.pluck(:id)
     slugs = ids.map { |id| "#{id}-as-a-slug" }
 
-    assert_equal Author.all.to_a, Author.where(id: slugs).to_a
+    assert_equal Author.where(id: ids).to_a, Author.where(id: slugs).to_a
   end
 
   def test_find_all_using_where_with_relation
@@ -1169,10 +1175,14 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_many_with_limits
-    posts = Post.all
+    posts_with_limit = Post.limit(5)
+    posts_with_limit_one = Post.limit(1)
 
-    assert_predicate posts, :many?
-    assert_not_predicate posts.limit(1), :many?
+    assert_predicate posts_with_limit, :many?
+    assert_not_predicate posts_with_limit, :loaded?
+
+    assert_not_predicate posts_with_limit_one, :many?
+    assert_not_predicate posts_with_limit_one, :loaded?
   end
 
   def test_none?
@@ -1205,6 +1215,18 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert_predicate posts, :loaded?
+  end
+
+  def test_one_with_destroy
+    posts = Post.all
+    assert_queries(1) do
+      assert_not posts.one?
+    end
+
+    posts.where.not(id: Post.first).destroy_all
+
+    assert_equal 1, posts.size
+    assert posts.one?
   end
 
   def test_to_a_should_dup_target
@@ -1699,6 +1721,36 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_predicate scope, :eager_loading?
   end
 
+  def test_order_triggers_eager_loading
+    scope = Post.includes(:comments).order("comments.label ASC")
+    assert_predicate scope, :eager_loading?
+  end
+
+  def test_order_doesnt_trigger_eager_loading_when_ordering_using_the_owner_table
+    scope = Post.includes(:comments).order("posts.title ASC")
+    assert_not_predicate scope, :eager_loading?
+  end
+
+  def test_order_triggers_eager_loading_when_ordering_using_symbols
+    scope = Post.includes(:comments).order(:"comments.label")
+    assert_predicate scope, :eager_loading?
+  end
+
+  def test_order_doesnt_trigger_eager_loading_when_ordering_using_owner_table_and_symbols
+    scope = Post.includes(:comments).order(:"posts.title")
+    assert_not_predicate scope, :eager_loading?
+  end
+
+  def test_order_triggers_eager_loading_when_ordering_using_hash_syntax
+    scope = Post.includes(:comments).order({ "comments.label": :ASC })
+    assert_predicate scope, :eager_loading?
+  end
+
+  def test_order_doesnt_trigger_eager_loading_when_ordering_using_the_owner_table_and_hash_syntax
+    scope = Post.includes(:comments).order({ "posts.title": :ASC })
+    assert_not_predicate scope, :eager_loading?
+  end
+
   def test_automatically_added_where_references
     scope = Post.where(comments: { body: "Bla" })
     assert_equal ["comments"], scope.references_values
@@ -1786,17 +1838,14 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_reorder_with_first
+    post = nil
+
     sql_log = capture_sql do
-      message = <<~MSG.squish
-        `.reorder(nil)` with `.first` / `.first!` no longer
-        takes non-deterministic result in Rails 7.0.
-        To continue taking non-deterministic result, use `.take` / `.take!` instead.
-      MSG
-      assert_deprecated(message) do
-        assert Post.order(:title).reorder(nil).first
-      end
+      post = Post.order(:title).reorder(nil).first
     end
-    assert sql_log.all? { |sql| !/order by/i.match?(sql) }, "ORDER BY was used in the query: #{sql_log}"
+
+    assert_equal posts(:welcome), post
+    assert sql_log.any? { |sql| /order by/i.match?(sql) }, "ORDER BY was not used in the query: #{sql_log}"
   end
 
   def test_reorder_with_take
@@ -1973,6 +2022,35 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  test "relations limit the records in #pretty_print at 10" do
+    relation = Post.limit(11)
+    out = StringIO.new
+    PP.pp(relation, out)
+    assert_equal 10, out.string.scan(/#<\w*Post:/).size
+    assert out.string.end_with?("\"...\"]\n"), "Did not end with an ellipsis."
+  end
+
+  test "relations don't load all records in #pretty_print" do
+    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+      PP.pp Post.all, StringIO.new # avoid outputting.
+    end
+  end
+
+  test "loading query is annotated in #pretty_print" do
+    assert_sql(%r(/\* loading for pp \*/)) do
+      PP.pp Post.all, StringIO.new # avoid outputting.
+    end
+  end
+
+  test "already-loaded relations don't perform a new query in #pretty_print" do
+    relation = Post.limit(2)
+    relation.to_a
+
+    assert_no_queries do
+      PP.pp relation, StringIO.new # avoid outputting.
+    end
+  end
+
   test "using a custom table affects the wheres" do
     post = posts(:welcome)
 
@@ -2030,6 +2108,8 @@ class RelationTest < ActiveRecord::TestCase
   test "joins with order by custom attribute" do
     companies = Company.create!([{ name: "test1" }, { name: "test2" }])
     companies.each { |company| company.contracts.create! }
+    # In ordering by Contract#metadata, we rely on that JSON string to
+    # be consistent
     assert_equal companies, Company.joins(:contracts).order(:metadata, :count)
     assert_equal companies.reverse, Company.joins(:contracts).order(metadata: :desc, count: :desc)
   end

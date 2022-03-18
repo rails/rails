@@ -223,23 +223,6 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_migration_with_attributes_and_with_wrong_index_declaration
-    run_generator ["product", "name:string", "supplier_id:integer:inex", "user_id:integer:unqu"]
-
-    assert_migration "db/migrate/create_products.rb" do |m|
-      assert_method :change, m do |up|
-        assert_match(/create_table :products/, up)
-        assert_match(/t\.string :name/, up)
-        assert_match(/t\.integer :supplier_id/, up)
-        assert_match(/t\.integer :user_id/, up)
-
-        assert_no_match(/add_index :products, :name/, up)
-        assert_no_match(/add_index :products, :supplier_id/, up)
-        assert_no_match(/add_index :products, :user_id/, up)
-      end
-    end
-  end
-
   def test_migration_with_missing_attribute_type_and_with_index
     run_generator ["product", "name:index", "supplier_id:integer:index", "year:integer"]
 
@@ -274,14 +257,14 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_migration_without_timestamps
-    ActiveRecord::Base.timestamped_migrations = false
+    ActiveRecord.timestamped_migrations = false
     run_generator ["account"]
     assert_file "db/migrate/001_create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
 
     run_generator ["project"]
     assert_file "db/migrate/002_create_projects.rb", /class CreateProjects < ActiveRecord::Migration\[[0-9.]+\]/
   ensure
-    ActiveRecord::Base.timestamped_migrations = true
+    ActiveRecord.timestamped_migrations = true
   end
 
   def test_migration_with_configured_path

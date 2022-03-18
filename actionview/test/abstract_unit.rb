@@ -34,8 +34,6 @@ end
 ActionViewTestSuiteUtils.require_helpers("#{__dir__}/fixtures/helpers")
 ActionViewTestSuiteUtils.require_helpers("#{__dir__}/fixtures/alternate_helpers")
 
-ActiveSupport::Dependencies.hook!
-
 Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.

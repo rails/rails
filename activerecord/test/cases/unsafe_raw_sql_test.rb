@@ -166,12 +166,26 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal ids_expected, ids
   end
 
+  test "order: allows valid arguments with COLLATE" do
+    collation_name = {
+      "PostgreSQL" => "C",
+      "Mysql2" => "utf8mb4_bin",
+      "SQLite" => "binary"
+    }[ActiveRecord::Base.connection.adapter_name]
+
+    ids_expected = Post.order(Arel.sql(%Q'author_id, title COLLATE "#{collation_name}" DESC')).pluck(:id)
+
+    ids = Post.order(["author_id", %Q'title COLLATE "#{collation_name}" DESC']).pluck(:id)
+
+    assert_equal ids_expected, ids
+  end
+
   test "order: logs deprecation warning for unrecognized column" do
     e = assert_raises(ActiveRecord::UnknownAttributeReference) do
       Post.order("REPLACE(title, 'misc', 'zzzz')")
     end
 
-    assert_match(/Query method called with non-attribute argument\(s\):/, e.message)
+    assert_match(/Dangerous query method \(method whose arguments are used as raw SQL\) called with non-attribute argument\(s\):/, e.message)
   end
 
   test "pluck: allows string column name" do
@@ -269,6 +283,6 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
       Post.includes(:comments).pluck(:title, "REPLACE(title, 'misc', 'zzzz')")
     end
 
-    assert_match(/Query method called with non-attribute argument\(s\):/, e.message)
+    assert_match(/Dangerous query method \(method whose arguments are used as raw SQL\) called with non-attribute argument\(s\):/, e.message)
   end
 end

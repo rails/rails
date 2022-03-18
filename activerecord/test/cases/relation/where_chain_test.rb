@@ -10,7 +10,7 @@ require "models/categorization"
 
 module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
-    fixtures :posts, :comments, :authors, :humans, :essays
+    fixtures :posts, :comments, :authors, :humans, :essays, :author_addresses
 
     def test_associated_with_association
       Post.where.associated(:author).tap do |relation|
@@ -28,9 +28,25 @@ module ActiveRecord
       end
     end
 
+    def test_associated_with_invalid_association_name
+      e = assert_raises(ArgumentError) do
+        Post.where.associated(:cars).to_a
+      end
+
+      assert_match(/An association named `:cars` does not exist on the model `Post`\./, e.message)
+    end
+
     def test_missing_with_association
       assert posts(:authorless).author.blank?
       assert_equal [posts(:authorless)], Post.where.missing(:author).to_a
+    end
+
+    def test_missing_with_invalid_association_name
+      e = assert_raises(ArgumentError) do
+        Post.where.missing(:cars).to_a
+      end
+
+      assert_match(/An association named `:cars` does not exist on the model `Post`\./, e.message)
     end
 
     def test_missing_with_multiple_association

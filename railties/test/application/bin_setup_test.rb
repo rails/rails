@@ -51,10 +51,6 @@ module ApplicationTests
         assert_equal(<<~OUTPUT, output)
           == Installing dependencies ==
           The Gemfile's dependencies are satisfied
-          yarn install
-          [1/4] Resolving packages...
-          success Already up-to-date.
-          Done in 0.00s.
 
           == Preparing database ==
           Created database 'app_development'

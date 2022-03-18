@@ -6,16 +6,16 @@ require "active_support/number_helper"
 
 module ActionView
   # = Action View Number Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # Provides methods for converting numbers into formatted strings.
     # Methods are provided for phone numbers, currency, percentage,
-    # precision, positional notation, file size and pretty printing.
+    # precision, positional notation, file size, and pretty printing.
     #
     # Most methods expect a +number+ argument, and will return it
     # unchanged if can't be converted into a valid number.
     module NumberHelper
       # Raised when argument +number+ param given to the helpers is invalid and
-      # the option :raise is set to  +true+.
+      # the option +:raise+ is set to  +true+.
       class InvalidNumberError < StandardError
         attr_accessor :number
         def initialize(number)
@@ -448,9 +448,9 @@ module ActionView
         end
 
         def parse_float(number, raise_error)
-          Float(number)
-        rescue ArgumentError, TypeError
-          raise InvalidNumberError, number if raise_error
+          result = Float(number, exception: false)
+          raise InvalidNumberError, number if result.nil? && raise_error
+          result
         end
     end
   end

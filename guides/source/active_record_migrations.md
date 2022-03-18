@@ -34,7 +34,7 @@ history to the latest version. Active Record will also update your
 Here's an example of a migration:
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[7.0]
+class CreateProducts < ActiveRecord::Migration[7.1]
   def change
     create_table :products do |t|
       t.string :name
@@ -71,7 +71,7 @@ If you wish for a migration to do something that Active Record doesn't know how
 to reverse, you can use `reversible`:
 
 ```ruby
-class ChangeProductsPrice < ActiveRecord::Migration[7.0]
+class ChangeProductsPrice < ActiveRecord::Migration[7.1]
   def change
     reversible do |dir|
       change_table :products do |t|
@@ -86,7 +86,7 @@ end
 Alternatively, you can use `up` and `down` instead of `change`:
 
 ```ruby
-class ChangeProductsPrice < ActiveRecord::Migration[7.0]
+class ChangeProductsPrice < ActiveRecord::Migration[7.1]
   def up
     change_table :products do |t|
       t.change :price, :string
@@ -128,7 +128,7 @@ $ bin/rails generate migration AddPartNumberToProducts
 This will create an appropriately named empty migration:
 
 ```ruby
-class AddPartNumberToProducts < ActiveRecord::Migration[7.0]
+class AddPartNumberToProducts < ActiveRecord::Migration[7.1]
   def change
   end
 end
@@ -150,7 +150,7 @@ $ bin/rails generate migration AddPartNumberToProducts part_number:string
 will generate
 
 ```ruby
-class AddPartNumberToProducts < ActiveRecord::Migration[7.0]
+class AddPartNumberToProducts < ActiveRecord::Migration[7.1]
   def change
     add_column :products, :part_number, :string
   end
@@ -166,7 +166,7 @@ $ bin/rails generate migration AddPartNumberToProducts part_number:string:index
 will generate the appropriate `add_column` and [`add_index`][] statements:
 
 ```ruby
-class AddPartNumberToProducts < ActiveRecord::Migration[7.0]
+class AddPartNumberToProducts < ActiveRecord::Migration[7.1]
   def change
     add_column :products, :part_number, :string
     add_index :products, :part_number
@@ -183,7 +183,7 @@ $ bin/rails generate migration RemovePartNumberFromProducts part_number:string
 generates
 
 ```ruby
-class RemovePartNumberFromProducts < ActiveRecord::Migration[7.0]
+class RemovePartNumberFromProducts < ActiveRecord::Migration[7.1]
   def change
     remove_column :products, :part_number, :string
   end
@@ -199,7 +199,7 @@ $ bin/rails generate migration AddDetailsToProducts part_number:string price:dec
 generates
 
 ```ruby
-class AddDetailsToProducts < ActiveRecord::Migration[7.0]
+class AddDetailsToProducts < ActiveRecord::Migration[7.1]
   def change
     add_column :products, :part_number, :string
     add_column :products, :price, :decimal
@@ -218,7 +218,7 @@ $ bin/rails generate migration CreateProducts name:string part_number:string
 generates
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[7.0]
+class CreateProducts < ActiveRecord::Migration[7.1]
   def change
     create_table :products do |t|
       t.string :name
@@ -244,14 +244,16 @@ $ bin/rails generate migration AddUserRefToProducts user:references
 generates the following [`add_reference`][] call:
 
 ```ruby
-class AddUserRefToProducts < ActiveRecord::Migration[7.0]
+class AddUserRefToProducts < ActiveRecord::Migration[7.1]
   def change
     add_reference :products, :user, foreign_key: true
   end
 end
 ```
 
-This migration will create a `user_id` column and appropriate index.
+This migration will create a `user_id` column. [References](#references) are a
+shorthand for creating columns, indexes, foreign keys, or even polymorphic
+association columns.
 
 There is also a generator which will produce join tables if `JoinTable` is part of the name:
 
@@ -262,7 +264,7 @@ $ bin/rails generate migration CreateJoinTableCustomerProduct customer product
 will produce the following migration:
 
 ```ruby
-class CreateJoinTableCustomerProduct < ActiveRecord::Migration[7.0]
+class CreateJoinTableCustomerProduct < ActiveRecord::Migration[7.1]
   def change
     create_join_table :customers, :products do |t|
       # t.index [:customer_id, :product_id]
@@ -279,7 +281,7 @@ end
 
 ### Model Generators
 
-The model and scaffold generators will create migrations appropriate for adding
+The model, resource, and scaffold generators will create migrations appropriate for adding
 a new model. This migration will already contain instructions for creating the
 relevant table. If you tell Rails what columns you want, then statements for
 adding these columns will also be created. For example, running:
@@ -291,7 +293,7 @@ $ bin/rails generate model Product name:string description:text
 will create a migration that looks like this
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[7.0]
+class CreateProducts < ActiveRecord::Migration[7.1]
   def change
     create_table :products do |t|
       t.string :name
@@ -319,7 +321,7 @@ $ bin/rails generate migration AddDetailsToProducts 'price:decimal{5,2}' supplie
 will produce a migration that looks like this
 
 ```ruby
-class AddDetailsToProducts < ActiveRecord::Migration[7.0]
+class AddDetailsToProducts < ActiveRecord::Migration[7.1]
   def change
     add_column :products, :price, :decimal, precision: 5, scale: 2
     add_reference :products, :supplier, polymorphic: true
@@ -338,7 +340,7 @@ get to work!
 ### Creating a Table
 
 The [`create_table`][] method is one of the most fundamental, but most of the time,
-will be generated for you from using a model or scaffold generator. A typical
+will be generated for you from using a model, resource, or scaffold generator. A typical
 use would be
 
 ```ruby
@@ -347,8 +349,7 @@ create_table :products do |t|
 end
 ```
 
-which creates a `products` table with a column called `name` (and as discussed
-below, an implicit `id` column).
+which creates a `products` table with a column called `name`.
 
 By default, `create_table` will create a primary key called `id`. You can change
 the name of the primary key with the `:primary_key` option (don't forget to
@@ -363,6 +364,16 @@ end
 ```
 
 will append `ENGINE=BLACKHOLE` to the SQL statement used to create the table.
+
+An index can be created on the columns created within the `create_table` block
+by passing true or an options hash to the `:index` option:
+
+```ruby
+create_table :users do |t|
+  t.string :name, index: true
+  t.string :email, index: { unique: true, name: 'unique_emails' }
+end
+```
 
 Also you can pass the `:comment` option with any description for the table
 that will be stored in database itself and can be viewed with database administration
@@ -469,22 +480,64 @@ example, this would make your migration irreversible.
 
 Column modifiers can be applied when creating or changing a column:
 
-* `limit`        Sets the maximum size of the `string/text/binary/integer` fields.
-* `precision`    Defines the precision for the `decimal` fields, representing the
-total number of digits in the number.
-* `scale`        Defines the scale for the `decimal` fields, representing the
-number of digits after the decimal point.
-* `polymorphic`  Adds a `type` column for `belongs_to` associations.
-* `null`         Allows or disallows `NULL` values in the column.
+* `comment`      Adds a comment for the column.
+* `collation`    Specifies the collation for a `string` or `text` column.
 * `default`      Allows to set a default value on the column. Note that if you
 are using a dynamic value (such as a date), the default will only be calculated
-the first time (i.e. on the date the migration is applied).
-* `comment`      Adds a comment for the column.
+the first time (i.e. on the date the migration is applied). Use `nil` for `NULL`.
+* `limit`        Sets the maximum number of characters for a `string` column
+and the maximum number of bytes for `text/binary/integer` columns.
+* `null`         Allows or disallows `NULL` values in the column.
+* `precision`    Specifies the precision for `decimal/numeric/datetime/time` columns.
+* `scale`        Specifies the scale for the `decimal` and `numeric` columns,
+representing the number of digits after the decimal point.
+
+NOTE: For `add_column` or `change_column` there is no option for adding indexes.
+They need to be added separately using `add_index`.
 
 Some adapters may support additional options; see the adapter specific API docs
 for further information.
 
 NOTE: `null` and `default` cannot be specified via command line.
+
+### References
+
+The `add_reference` method allows the creation of an appropriately named column.
+
+```ruby
+add_reference :users, :role
+```
+
+This migration will create a `role_id` column in the users table. It creates an
+index for this column as well, unless explicitly told not with the
+`index: false` option:
+
+```ruby
+add_reference :users, :role, index: false
+```
+
+The method `add_belongs_to` is an alias of `add_reference`.
+
+```ruby
+add_belongs_to :taggings, :taggable, polymorphic: true
+```
+
+The polymorphic option will create two columns on the taggings table which can
+be used for polymorphic associations: `taggable_type` and `taggable_id`.
+
+A foreign key can be created with the `foreign_key` option.
+
+```ruby
+add_reference :users, :role, foreign_key: true
+```
+
+For more `add_reference` options, visit the [API documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference).
+
+References can also be removed:
+
+```ruby
+remove_reference :products, :user, foreign_key: true, index: false
+```
 
 ### Foreign Keys
 
@@ -495,15 +548,22 @@ While it's not required you might want to add foreign key constraints to
 add_foreign_key :articles, :authors
 ```
 
-This adds a new foreign key to the `author_id` column of the `articles`
-table. The key references the `id` column of the `authors` table. If the
-column names cannot be derived from the table names, you can use the
-`:column` and `:primary_key` options.
+This [`add_foreign_key`][] call adds a new constraint to the `articles` table.
+The constraint guarantees that a row in the `authors` table exists where
+the `id` column matches the `articles.author_id`.
 
-Rails will generate a name for every foreign key starting with
-`fk_rails_` followed by 10 characters which are deterministically
-generated from the `from_table` and `column`.
-There is a `:name` option to specify a different name if needed.
+If the `from_table` column name cannot be derived from the `to_table` name,
+you can use the `:column` option. Use the `:primary_key` option if the
+referenced primary key is not `:id`.
+
+For example, to add a foreign key on `articles.reviewer` referencing `authors.email`:
+
+```ruby
+add_foreign_key :articles, :authors, column: :reviewer, primary_key: :email
+```
+
+`add_foreign_key` also supports options such as `name`, `on_delete`,
+`if_not_exists`, `validate`, and `deferrable`.
 
 NOTE: Active Record only supports single column foreign keys. `execute` and
 `structure.sql` are required to use composite foreign keys. See
@@ -517,9 +577,6 @@ remove_foreign_key :accounts, :branches
 
 # remove foreign key for a specific column
 remove_foreign_key :accounts, column: :owner_id
-
-# remove foreign key by name
-remove_foreign_key :accounts, name: :special_fk_name
 ```
 
 ### When Helpers aren't Enough
@@ -605,7 +662,7 @@ to reverse. You can use [`reversible`][] to specify what to do when running a
 migration and what else to do when reverting it. For example:
 
 ```ruby
-class ExampleMigration < ActiveRecord::Migration[7.0]
+class ExampleMigration < ActiveRecord::Migration[7.1]
   def change
     create_table :distributors do |t|
       t.string :zipcode
@@ -660,7 +717,7 @@ is wise to perform the transformations in precisely the reverse order they were
 made in the `up` method. The example in the `reversible` section is equivalent to:
 
 ```ruby
-class ExampleMigration < ActiveRecord::Migration[7.0]
+class ExampleMigration < ActiveRecord::Migration[7.1]
   def up
     create_table :distributors do |t|
       t.string :zipcode
@@ -703,7 +760,7 @@ You can use Active Record's ability to rollback migrations using the [`revert`][
 ```ruby
 require_relative "20121212123456_example_migration"
 
-class FixupExampleMigration < ActiveRecord::Migration[7.0]
+class FixupExampleMigration < ActiveRecord::Migration[7.1]
   def change
     revert ExampleMigration
 
@@ -721,7 +778,7 @@ is later decided it would be best to use Active Record validations,
 in place of the `CHECK` constraint, to verify the zipcode.
 
 ```ruby
-class DontUseConstraintForZipcodeValidationMigration < ActiveRecord::Migration[7.0]
+class DontUseConstraintForZipcodeValidationMigration < ActiveRecord::Migration[7.1]
   def change
     revert do
       # copy-pasted code from ExampleMigration
@@ -883,7 +940,7 @@ Several methods are provided in migrations that allow you to control all this:
 For example, this migration:
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[7.0]
+class CreateProducts < ActiveRecord::Migration[7.1]
   def change
     suppress_messages do
       create_table :products do |t|
@@ -972,14 +1029,14 @@ summed up in the schema file.
 ### Types of Schema Dumps
 
 The format of the schema dump generated by Rails is controlled by the
-`config.active_record.schema_format` setting in `config/application.rb`. By
+[`config.active_record.schema_format`][] setting in `config/application.rb`. By
 default, the format is `:ruby`, but can also be set to `:sql`.
 
 If `:ruby` is selected, then the schema is stored in `db/schema.rb`. If you look
 at this file you'll find that it looks an awful lot like one very big migration:
 
 ```ruby
-ActiveRecord::Schema.define(version: 2008_09_06_171750) do
+ActiveRecord::Schema[7.1].define(version: 2008_09_06_171750) do
   create_table "authors", force: true do |t|
     t.string   "name"
     t.datetime "created_at"
@@ -1017,6 +1074,8 @@ To load the schema from `db/structure.sql`, run `bin/rails db:schema:load`.
 Loading this file is done by executing the SQL statements it contains. By
 definition, this will create a perfect copy of the database's structure.
 
+[`config.active_record.schema_format`]: configuring.html#config-active-record-schema-format
+
 ### Schema Dumps and Source Control
 
 Because schema files are commonly used to create new databases, it is strongly
@@ -1052,7 +1111,7 @@ to add or modify data. This is useful in an existing database that can't be dest
 and recreated, such as a production database.
 
 ```ruby
-class AddInitialProducts < ActiveRecord::Migration[7.0]
+class AddInitialProducts < ActiveRecord::Migration[7.1]
   def up
     5.times do |i|
       Product.create(name: "Product ##{i}", description: "A product.")
@@ -1097,3 +1156,11 @@ If you run the `bin/rails db:migrate:status` command, which displays the status
 (up or down) of each migration, you should see `********** NO FILE **********`
 displayed next to any deleted migration file which was once executed on a
 specific environment but can no longer be found in the `db/migrate/` directory.
+
+There's a caveat, though. Rake tasks to install migrations from engines are idempotent. Migrations present in the parent application due to a previous installation are skipped, and missing ones are copied with a new leading timestamp. If you deleted old engine migrations and ran the install task again, you'd get new files with new timestamps, and `db:migrate` would attempt to run them again.
+
+Thus, you generally want to preserve migrations coming from engines. They have a special comment like this:
+
+```
+# This migration comes from blorgh (originally 20210621082949)
+```

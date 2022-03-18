@@ -118,6 +118,10 @@ module ActionDispatch
       Rack::Utils.status_code(@@rescue_responses[class_name])
     end
 
+    def rescue_response?
+      @@rescue_responses.key?(exception.class.name)
+    end
+
     def source_extracts
       backtrace.map do |trace|
         file, line_number = extract_file_and_line_number(trace)

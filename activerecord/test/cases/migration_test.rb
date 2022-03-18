@@ -15,6 +15,12 @@ require MIGRATIONS_ROOT + "/rename/1_we_need_things"
 require MIGRATIONS_ROOT + "/rename/2_rename_things"
 require MIGRATIONS_ROOT + "/decimal/1_give_me_big_numbers"
 
+class ValidPeopleHaveLastNames < ActiveRecord::Migration::Current
+  def change
+    drop_table :people
+  end
+end
+
 class BigNumber < ActiveRecord::Base
   unless current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
     attribute :value_of_e, :integer
@@ -106,6 +112,14 @@ class MigrationTest < ActiveRecord::TestCase
 
     ActiveRecord::SchemaMigration.create!(version: 3)
     assert_equal true, migrator.needs_migration?
+  end
+
+  def test_name_collision_across_dbs
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    migrator = ActiveRecord::MigrationContext.new(migrations_path)
+    migrator.up
+
+    assert_column Person, :last_name
   end
 
   def test_migration_detection_without_schema_migration_table
@@ -1333,6 +1347,47 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal "This is a comment", column(:birthdate).comment
     end
 
+    if supports_text_column_with_default?
+      def test_default_functions_on_columns
+        with_bulk_change_table do |t|
+          if current_adapter?(:PostgreSQLAdapter)
+            t.string :name, default: -> { "gen_random_uuid()" }
+          else
+            t.string :name, default: -> { "UUID()" }
+          end
+        end
+
+        assert_nil column(:name).default
+
+        if current_adapter?(:PostgreSQLAdapter)
+          assert_equal "gen_random_uuid()", column(:name).default_function
+          Person.connection.execute("INSERT INTO delete_me DEFAULT VALUES")
+          person_data = Person.connection.execute("SELECT * FROM delete_me ORDER BY id DESC").to_a.first
+        else
+          assert_equal "uuid()", column(:name).default_function
+          Person.connection.execute("INSERT INTO delete_me () VALUES ()")
+          person_data = Person.connection.execute("SELECT * FROM delete_me ORDER BY id DESC").to_a(as: :hash).first
+        end
+
+        assert_match(/\A(.+)-(.+)-(.+)-(.+)\Z/, person_data.fetch("name"))
+      end
+    end
+
+    if current_adapter?(:Mysql2Adapter)
+      def test_updating_auto_increment
+        with_bulk_change_table do |t|
+          t.change :id, :bigint, auto_increment: true
+        end
+
+        assert column(:id).auto_increment?
+
+        with_bulk_change_table do |t|
+          t.change :id, :bigint, auto_increment: false
+        end
+        assert_not column(:id).auto_increment?
+      end
+    end
+
     def test_changing_index
       with_bulk_change_table do |t|
         t.string :username
@@ -1362,13 +1417,11 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
     end
 
     private
-      def with_bulk_change_table
+      def with_bulk_change_table(&block)
         # Reset columns/indexes cache as we're changing the table
         @columns = @indexes = nil
 
-        Person.connection.change_table(:delete_me, bulk: true) do |t|
-          yield t
-        end
+        Person.connection.change_table(:delete_me, bulk: true, &block)
       end
 
       def column(name)
@@ -1396,13 +1449,13 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   end
 
   def clear
-    ActiveRecord::Base.timestamped_migrations = true
+    ActiveRecord.timestamped_migrations = true
     to_delete = Dir[@migrations_path + "/*.rb"] - @existing_migrations
     File.delete(*to_delete)
   end
 
   def test_copying_migrations_without_timestamps
-    ActiveRecord::Base.timestamped_migrations = false
+    ActiveRecord.timestamped_migrations = false
     @migrations_path = MIGRATIONS_ROOT + "/valid"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
@@ -1412,7 +1465,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     assert_equal [@migrations_path + "/4_people_have_hobbies.bukkits.rb", @migrations_path + "/5_people_have_descriptions.bukkits.rb"], copied.map(&:filename)
 
     expected = "# This migration comes from bukkits (originally 1)"
-    assert_equal expected, IO.readlines(@migrations_path + "/4_people_have_hobbies.bukkits.rb")[1].chomp
+    assert_equal expected, IO.readlines(@migrations_path + "/4_people_have_hobbies.bukkits.rb")[2].chomp
 
     files_count = Dir[@migrations_path + "/*.rb"].length
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy")
@@ -1423,7 +1476,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   end
 
   def test_copying_migrations_without_timestamps_from_2_sources
-    ActiveRecord::Base.timestamped_migrations = false
+    ActiveRecord.timestamped_migrations = false
     @migrations_path = MIGRATIONS_ROOT + "/valid"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
@@ -1507,7 +1560,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   end
 
   def test_copying_migrations_preserving_magic_comments
-    ActiveRecord::Base.timestamped_migrations = false
+    ActiveRecord.timestamped_migrations = false
     @migrations_path = MIGRATIONS_ROOT + "/valid"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
@@ -1515,8 +1568,8 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     assert File.exist?(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")
     assert_equal [@migrations_path + "/4_currencies_have_symbols.bukkits.rb"], copied.map(&:filename)
 
-    expected = "# frozen_string_literal: true\n# coding: ISO-8859-15\n# This migration comes from bukkits (originally 1)"
-    assert_equal expected, IO.readlines(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")[0..2].join.chomp
+    expected = "# frozen_string_literal: true\n# coding: ISO-8859-15\n\n# This migration comes from bukkits (originally 1)"
+    assert_equal expected, IO.readlines(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")[0..3].join.chomp
 
     files_count = Dir[@migrations_path + "/*.rb"].length
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/magic")

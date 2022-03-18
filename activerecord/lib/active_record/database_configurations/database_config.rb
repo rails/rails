@@ -15,15 +15,6 @@ module ActiveRecord
         @name = name
       end
 
-      def spec_name
-        @name
-      end
-      deprecate spec_name: "please use name instead"
-
-      def config
-        raise NotImplementedError
-      end
-
       def adapter_method
         "#{adapter}_connection"
       end

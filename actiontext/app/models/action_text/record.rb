@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActionText
-  class Record < ActiveRecord::Base #:nodoc:
+  class Record < ActiveRecord::Base # :nodoc:
     self.abstract_class = true
   end
 end

@@ -28,12 +28,12 @@ class RailsStorageRedirectUrlTest < ActiveSupport::TestCase
   end
 
   test "rails_blob_path with variant generates redirect path" do
-    variant = @blob.variant(resize: "100x100")
+    variant = @blob.variant(resize_to_limit: [100, 100])
     assert_includes rails_blob_path(variant, only_path: true), "/rails/active_storage/representations/redirect/"
   end
 
   test "rails_representation_path generates proxy path" do
-    variant = @blob.variant(resize: "100x100")
+    variant = @blob.variant(resize_to_limit: [100, 100])
     assert_includes rails_representation_path(variant, only_path: true), "/rails/active_storage/representations/redirect/"
   end
 end

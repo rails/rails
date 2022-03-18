@@ -34,6 +34,8 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_touching_a_record_updates_its_timestamp
+    sleep 1.0 unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
+
     previous_salary = @developer.salary
     @developer.salary = previous_salary + 10000
     @developer.touch
@@ -51,6 +53,8 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_touching_a_record_with_default_scope_that_excludes_it_updates_its_timestamp
+    sleep 1.0 unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
+
     developer = @developer.becomes(DeveloperCalledJamis)
     developer.touch
 

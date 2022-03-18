@@ -37,14 +37,16 @@ in point releases.
 Bug Fixes
 ---------
 
-Only the latest release series will receive bug fixes. When enough bugs are
-fixed and its deemed worthy to release a new gem, this is the branch it happens
-from.
+Only the latest release series will receive bug fixes. Bug fixes are typically
+added to the main branch, and backported to the x-y-stable branch of the latest
+release series if there is sufficient need. When enough bugs fixes have been added
+to an x-y-stable branch, a new patch release is built from it. For example, a
+theoretical 1.2.2 patch release would be built from the 1-2-stable branch.
 
 In special situations, where someone from the Core Team agrees to support more series,
 they are included in the list of supported series.
 
-**Currently included series:** `7.0.Z`.
+**Currently included series:** `7.1.Z`.
 
 Security Issues
 ---------------
@@ -64,7 +66,7 @@ non-security related bugs resulting from a security patch may be published on a
 release's x-y-stable branch, and will only be released as a new gem in
 accordance with the Bug Fixes policy.
 
-**Currently included series:** `7.0.Z`, `6.1.Z`, `5.2.Z`.
+**Currently included series:** `7.1.Z`, `7.0.Z`, `6.1.Z`.
 
 Severe Security Issues
 ----------------------
@@ -73,7 +75,7 @@ For severe security issues all releases in the current major series, and also th
 last release in the previous major series will receive patches and new versions. The
 classification of the security issue is judged by the core team.
 
-**Currently included series:** `7.0.Z`, `6.1.Z`, `6.0.Z`, `5.2.Z`.
+**Currently included series:** `7.1.Z`, `7.0.Z`, `6.1.Z`.
 
 Unsupported Release Series
 --------------------------

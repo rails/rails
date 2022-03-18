@@ -11,8 +11,8 @@ module ActiveRecord
       fixtures :people
 
       def setup
-        @legacy_setting = ActiveRecord::Base.legacy_connection_handling
-        ActiveRecord::Base.legacy_connection_handling = true
+        @legacy_setting = ActiveRecord.legacy_connection_handling
+        ActiveRecord.legacy_connection_handling = true
         assert_deprecated do
           ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
         end
@@ -29,7 +29,7 @@ module ActiveRecord
 
       def teardown
         clean_up_legacy_connection_handlers
-        ActiveRecord::Base.legacy_connection_handling = @legacy_setting
+        ActiveRecord.legacy_connection_handling = @legacy_setting
       end
 
       unless in_memory_db?

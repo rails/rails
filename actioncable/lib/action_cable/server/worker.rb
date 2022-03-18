@@ -2,7 +2,6 @@
 
 require "active_support/callbacks"
 require "active_support/core_ext/module/attribute_accessors_per_thread"
-require "action_cable/server/worker/active_record_connection_management"
 require "concurrent"
 
 module ActionCable
@@ -36,12 +35,10 @@ module ActionCable
         @executor.shuttingdown?
       end
 
-      def work(connection)
+      def work(connection, &block)
         self.connection = connection
 
-        run_callbacks :work do
-          yield
-        end
+        run_callbacks :work, &block
       ensure
         self.connection = nil
       end

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord::Associations::Builder # :nodoc:
-  class BelongsTo < SingularAssociation #:nodoc:
+  class BelongsTo < SingularAssociation # :nodoc:
     def self.macro
       :belongs_to
     end
@@ -30,7 +30,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       model.after_update lambda { |record|
         association = association(reflection.name)
 
-        if association.target_changed?
+        if association.saved_change_to_target?
           association.increment_counters
           association.decrement_counters_before_last_save
         end
@@ -49,7 +49,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
         if reflection.polymorphic?
           foreign_type = reflection.foreign_type
           klass = changes[foreign_type] && changes[foreign_type].first || o.public_send(foreign_type)
-          klass = klass.constantize
+          klass = o.class.polymorphic_class_for(klass)
         else
           klass = association.klass
         end
@@ -87,7 +87,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       if reflection.counter_cache_column
         touch_callback = callback.(:saved_changes)
         update_callback = lambda { |record|
-          instance_exec(record, &touch_callback) unless association(reflection.name).target_changed?
+          instance_exec(record, &touch_callback) unless association(reflection.name).saved_change_to_target?
         }
         model.after_update update_callback, if: :saved_changes?
       else
@@ -127,7 +127,20 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
     end
 
-    private_class_method :macro, :valid_options, :valid_dependent_options, :define_callbacks, :define_validations,
-      :add_counter_cache_callbacks, :add_touch_callbacks, :add_default_callbacks, :add_destroy_callbacks
+    def self.define_change_tracking_methods(model, reflection)
+      model.generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{reflection.name}_changed?
+          association(:#{reflection.name}).target_changed?
+        end
+
+        def #{reflection.name}_previously_changed?
+          association(:#{reflection.name}).target_previously_changed?
+        end
+      CODE
+    end
+
+    private_class_method :macro, :valid_options, :valid_dependent_options, :define_callbacks,
+      :define_validations, :define_change_tracking_methods, :add_counter_cache_callbacks,
+      :add_touch_callbacks, :add_default_callbacks, :add_destroy_callbacks
   end
 end

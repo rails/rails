@@ -31,7 +31,11 @@ class SanitizeTest < ActiveRecord::TestCase
   def test_sanitize_sql_array_handles_named_bind_variables
     quoted_bambi = ActiveRecord::Base.connection.quote("Bambi")
     assert_equal "name=#{quoted_bambi}", Binary.sanitize_sql_array(["name=:name", name: "Bambi"])
-    assert_equal "name=#{quoted_bambi} AND id=1", Binary.sanitize_sql_array(["name=:name AND id=:id", name: "Bambi", id: 1])
+    if current_adapter?(:Mysql2Adapter)
+      assert_equal "name=#{quoted_bambi} AND id='1'", Binary.sanitize_sql_array(["name=:name AND id=:id", name: "Bambi", id: 1])
+    else
+      assert_equal "name=#{quoted_bambi} AND id=1", Binary.sanitize_sql_array(["name=:name AND id=:id", name: "Bambi", id: 1])
+    end
 
     quoted_bambi_and_thumper = ActiveRecord::Base.connection.quote("Bambi\nand\nThumper")
     assert_equal "name=#{quoted_bambi_and_thumper}", Binary.sanitize_sql_array(["name=:name", name: "Bambi\nand\nThumper"])
@@ -91,6 +95,14 @@ class SanitizeTest < ActiveRecord::TestCase
     end
   end
 
+  def test_disallow_raw_sql_with_unknown_attribute_string
+    assert_raise(ActiveRecord::UnknownAttributeReference) { Binary.disallow_raw_sql!(["field(id, ?)"]) }
+  end
+
+  def test_disallow_raw_sql_with_unknown_attribute_sql_literal
+    assert_nothing_raised { Binary.disallow_raw_sql!([Arel.sql("field(id, ?)")]) }
+  end
+
   def test_bind_arity
     assert_nothing_raised                                { bind "" }
     assert_raise(ActiveRecord::PreparedStatementInvalid) { bind "", 1 }
@@ -101,8 +113,13 @@ class SanitizeTest < ActiveRecord::TestCase
   end
 
   def test_named_bind_variables
-    assert_equal "1", bind(":a", a: 1) # ' ruby-mode
-    assert_equal "1 1", bind(":a :a", a: 1)  # ' ruby-mode
+    if current_adapter?(:Mysql2Adapter)
+      assert_equal "'1'", bind(":a", a: 1) # ' ruby-mode
+      assert_equal "'1' '1'", bind(":a :a", a: 1)  # ' ruby-mode
+    else
+      assert_equal "1", bind(":a", a: 1) # ' ruby-mode
+      assert_equal "1 1", bind(":a :a", a: 1)  # ' ruby-mode
+    end
 
     assert_nothing_raised { bind("'+00:00'", foo: "bar") }
   end
@@ -128,16 +145,32 @@ class SanitizeTest < ActiveRecord::TestCase
   def test_bind_enumerable
     quoted_abc = %(#{ActiveRecord::Base.connection.quote('a')},#{ActiveRecord::Base.connection.quote('b')},#{ActiveRecord::Base.connection.quote('c')})
 
-    assert_equal "1,2,3", bind("?", [1, 2, 3])
+    if current_adapter?(:Mysql2Adapter)
+      assert_equal "'1','2','3'", bind("?", [1, 2, 3])
+    else
+      assert_equal "1,2,3", bind("?", [1, 2, 3])
+    end
     assert_equal quoted_abc, bind("?", %w(a b c))
 
-    assert_equal "1,2,3", bind(":a", a: [1, 2, 3])
+    if current_adapter?(:Mysql2Adapter)
+      assert_equal "'1','2','3'", bind(":a", a: [1, 2, 3])
+    else
+      assert_equal "1,2,3", bind(":a", a: [1, 2, 3])
+    end
     assert_equal quoted_abc, bind(":a", a: %w(a b c)) # '
 
-    assert_equal "1,2,3", bind("?", SimpleEnumerable.new([1, 2, 3]))
+    if current_adapter?(:Mysql2Adapter)
+      assert_equal "'1','2','3'", bind("?", SimpleEnumerable.new([1, 2, 3]))
+    else
+      assert_equal "1,2,3", bind("?", SimpleEnumerable.new([1, 2, 3]))
+    end
     assert_equal quoted_abc, bind("?", SimpleEnumerable.new(%w(a b c)))
 
-    assert_equal "1,2,3", bind(":a", a: SimpleEnumerable.new([1, 2, 3]))
+    if current_adapter?(:Mysql2Adapter)
+      assert_equal "'1','2','3'", bind(":a", a: SimpleEnumerable.new([1, 2, 3]))
+    else
+      assert_equal "1,2,3", bind(":a", a: SimpleEnumerable.new([1, 2, 3]))
+    end
     assert_equal quoted_abc, bind(":a", a: SimpleEnumerable.new(%w(a b c))) # '
   end
 
@@ -150,8 +183,13 @@ class SanitizeTest < ActiveRecord::TestCase
 
   def test_bind_range
     quoted_abc = %(#{ActiveRecord::Base.connection.quote('a')},#{ActiveRecord::Base.connection.quote('b')},#{ActiveRecord::Base.connection.quote('c')})
-    assert_equal "0", bind("?", 0..0)
-    assert_equal "1,2,3", bind("?", 1..3)
+    if current_adapter?(:Mysql2Adapter)
+      assert_equal "'0'", bind("?", 0..0)
+      assert_equal "'1','2','3'", bind("?", 1..3)
+    else
+      assert_equal "0", bind("?", 0..0)
+      assert_equal "1,2,3", bind("?", 1..3)
+    end
     assert_equal quoted_abc, bind("?", "a"..."d")
   end
 

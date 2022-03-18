@@ -3,29 +3,29 @@
 require "delegate"
 
 module ActiveSupport
-  module Tryable #:nodoc:
-    def try(method_name = nil, *args, &block)
-      if method_name.nil? && block_given?
+  module Tryable # :nodoc:
+    def try(*args, &block)
+      if args.empty? && block_given?
         if block.arity == 0
           instance_eval(&block)
         else
           yield self
         end
-      elsif respond_to?(method_name)
-        public_send(method_name, *args, &block)
+      elsif respond_to?(args.first)
+        public_send(*args, &block)
       end
     end
     ruby2_keywords(:try)
 
-    def try!(method_name = nil, *args, &block)
-      if method_name.nil? && block_given?
+    def try!(*args, &block)
+      if args.empty? && block_given?
         if block.arity == 0
           instance_eval(&block)
         else
           yield self
         end
       else
-        public_send(method_name, *args, &block)
+        public_send(*args, &block)
       end
     end
     ruby2_keywords(:try!)
@@ -145,14 +145,14 @@ class NilClass
   #
   # With +try+
   #   @person.try(:children).try(:first).try(:name)
-  def try(_method_name = nil, *)
+  def try(*)
     nil
   end
 
   # Calling +try!+ on +nil+ always returns +nil+.
   #
   #   nil.try!(:name) # => nil
-  def try!(_method_name = nil, *)
+  def try!(*)
     nil
   end
 end

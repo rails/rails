@@ -124,8 +124,13 @@ module ActionController
     class ClientDisconnected < RuntimeError
     end
 
-    class Buffer < ActionDispatch::Response::Buffer #:nodoc:
+    class Buffer < ActionDispatch::Response::Buffer # :nodoc:
       include MonitorMixin
+
+      class << self
+        attr_accessor :queue_size
+      end
+      @queue_size = 10
 
       # Ignore that the client has disconnected.
       #
@@ -136,7 +141,7 @@ module ActionController
       attr_accessor :ignore_disconnect
 
       def initialize(response)
-        super(response, SizedQueue.new(10))
+        super(response, build_queue(self.class.queue_size))
         @error_callback = lambda { true }
         @cv = new_cond
         @aborted = false
@@ -219,9 +224,13 @@ module ActionController
             yield str
           end
         end
+
+        def build_queue(queue_size)
+          queue_size ? SizedQueue.new(queue_size) : Queue.new
+        end
     end
 
-    class Response < ActionDispatch::Response #:nodoc: all
+    class Response < ActionDispatch::Response # :nodoc: all
       private
         def before_committed
           super
@@ -252,6 +261,7 @@ module ActionController
           # Since we're processing the view in a different thread, copy the
           # thread locals from the main thread to the child thread. :'(
           locals.each { |k, v| t2[k] = v }
+          ActiveSupport::IsolatedExecutionState.share_with(t1)
 
           begin
             super(name)

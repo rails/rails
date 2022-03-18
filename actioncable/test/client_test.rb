@@ -201,7 +201,7 @@ class ClientTest < ActionCable::TestCase
   end
 
   def concurrently(enum)
-    enum.map { |*x| Concurrent::Future.execute { yield(*x) } }.map(&:value!)
+    enum.map { |*x| Concurrent::Promises.future { yield(*x) } }.map(&:value!)
   end
 
   def test_single_client

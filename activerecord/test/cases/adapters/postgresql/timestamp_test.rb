@@ -125,7 +125,7 @@ class PostgresqlTimestampMigrationTest < ActiveRecord::PostgreSQLTestCase
 
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::NATIVE_DATABASE_TYPES[:datetimes_as_enum] = { name: "custom_time_format" }
     with_postgresql_datetime_type(:datetimes_as_enum) do
-      ActiveRecord::Migration.new.add_column :postgresql_timestamp_with_zones, :times, :datetime
+      ActiveRecord::Migration.new.add_column :postgresql_timestamp_with_zones, :times, :datetime, precision: nil
 
       assert_equal({ "data_type" => "USER-DEFINED", "udt_name" => "custom_time_format" },
                    PostgresqlTimestampWithZone.connection.execute("select data_type, udt_name from information_schema.columns where column_name = 'times'").to_a.first)

@@ -2,9 +2,9 @@
 
 require "active_support/core_ext/string/output_safety"
 
-module ActionView #:nodoc:
+module ActionView # :nodoc:
   # = Action View Raw Output Helper
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     module OutputSafetyHelper
       # This method outputs without escaping a string. Since escaping tags is
       # now default, this can be used when you don't want Rails to automatically

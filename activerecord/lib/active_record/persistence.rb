@@ -62,9 +62,9 @@ module ActiveRecord
       # Active Record callbacks or validations. Though passed values
       # go through Active Record's type casting and serialization.
       #
-      # See <tt>ActiveRecord::Persistence#insert_all</tt> for documentation.
-      def insert(attributes, returning: nil, unique_by: nil)
-        insert_all([ attributes ], returning: returning, unique_by: unique_by)
+      # See #insert_all for documentation.
+      def insert(attributes, returning: nil, unique_by: nil, record_timestamps: nil)
+        insert_all([ attributes ], returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
       end
 
       # Inserts multiple records into the database in a single SQL INSERT
@@ -79,7 +79,7 @@ module ActiveRecord
       # duplicate rows are skipped.
       # Override with <tt>:unique_by</tt> (see below).
       #
-      # Returns an <tt>ActiveRecord::Result</tt> with its contents based on
+      # Returns an ActiveRecord::Result with its contents based on
       # <tt>:returning</tt> (see below).
       #
       # ==== Options
@@ -110,6 +110,17 @@ module ActiveRecord
       #     unique_by: %i[ author_id name ]
       #     unique_by: :index_books_on_isbn
       #
+      # [:record_timestamps]
+      #   By default, automatic setting of timestamp columns is controlled by
+      #   the model's <tt>record_timestamps</tt> config, matching typical
+      #   behavior.
+      #
+      #   To override this and force automatic setting of timestamp columns one
+      #   way or the other, pass <tt>:record_timestamps</tt>:
+      #
+      #     record_timestamps: true  # Always set timestamps automatically
+      #     record_timestamps: false # Never set timestamps automatically
+      #
       # Because it relies on the index information from the database
       # <tt>:unique_by</tt> is recommended to be paired with
       # Active Record's schema_cache.
@@ -131,8 +142,8 @@ module ActiveRecord
       #     { id: 1, title: "Rework" },
       #     { id: 2, title: "Eloquent Ruby" }
       #   ])
-      def insert_all(attributes, returning: nil, unique_by: nil)
-        InsertAll.new(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by).execute
+      def insert_all(attributes, returning: nil, unique_by: nil, record_timestamps: nil)
+        InsertAll.new(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps).execute
       end
 
       # Inserts a single record into the database in a single SQL INSERT
@@ -140,9 +151,9 @@ module ActiveRecord
       # Active Record callbacks or validations. Though passed values
       # go through Active Record's type casting and serialization.
       #
-      # See <tt>ActiveRecord::Persistence#insert_all!</tt> for more.
-      def insert!(attributes, returning: nil)
-        insert_all!([ attributes ], returning: returning)
+      # See #insert_all! for more.
+      def insert!(attributes, returning: nil, record_timestamps: nil)
+        insert_all!([ attributes ], returning: returning, record_timestamps: record_timestamps)
       end
 
       # Inserts multiple records into the database in a single SQL INSERT
@@ -156,10 +167,9 @@ module ActiveRecord
       # Raises <tt>ActiveRecord::RecordNotUnique</tt> if any rows violate a
       # unique index on the table. In that case, no rows are inserted.
       #
-      # To skip duplicate rows, see <tt>ActiveRecord::Persistence#insert_all</tt>.
-      # To replace them, see <tt>ActiveRecord::Persistence#upsert_all</tt>.
+      # To skip duplicate rows, see #insert_all. To replace them, see #upsert_all.
       #
-      # Returns an <tt>ActiveRecord::Result</tt> with its contents based on
+      # Returns an ActiveRecord::Result with its contents based on
       # <tt>:returning</tt> (see below).
       #
       # ==== Options
@@ -173,6 +183,17 @@ module ActiveRecord
       #
       #   You can also pass an SQL string if you need more control on the return values
       #   (for example, <tt>returning: "id, name as new_name"</tt>).
+      #
+      # [:record_timestamps]
+      #   By default, automatic setting of timestamp columns is controlled by
+      #   the model's <tt>record_timestamps</tt> config, matching typical
+      #   behavior.
+      #
+      #   To override this and force automatic setting of timestamp columns one
+      #   way or the other, pass <tt>:record_timestamps</tt>:
+      #
+      #     record_timestamps: true  # Always set timestamps automatically
+      #     record_timestamps: false # Never set timestamps automatically
       #
       # ==== Examples
       #
@@ -188,8 +209,8 @@ module ActiveRecord
       #     { id: 1, title: "Rework", author: "David" },
       #     { id: 1, title: "Eloquent Ruby", author: "Russ" }
       #   ])
-      def insert_all!(attributes, returning: nil)
-        InsertAll.new(self, attributes, on_duplicate: :raise, returning: returning).execute
+      def insert_all!(attributes, returning: nil, record_timestamps: nil)
+        InsertAll.new(self, attributes, on_duplicate: :raise, returning: returning, record_timestamps: record_timestamps).execute
       end
 
       # Updates or inserts (upserts) a single record into the database in a
@@ -197,9 +218,9 @@ module ActiveRecord
       # it trigger Active Record callbacks or validations. Though passed values
       # go through Active Record's type casting and serialization.
       #
-      # See <tt>ActiveRecord::Persistence#upsert_all</tt> for documentation.
-      def upsert(attributes, on_duplicate: :update, returning: nil, unique_by: nil)
-        upsert_all([ attributes ], on_duplicate: on_duplicate, returning: returning, unique_by: unique_by)
+      # See #upsert_all for documentation.
+      def upsert(attributes, on_duplicate: :update, returning: nil, unique_by: nil, record_timestamps: nil)
+        upsert_all([ attributes ], on_duplicate: on_duplicate, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
       end
 
       # Updates or inserts (upserts) multiple records into the database in a
@@ -210,8 +231,12 @@ module ActiveRecord
       # The +attributes+ parameter is an Array of Hashes. Every Hash determines
       # the attributes for a single row and must have the same keys.
       #
-      # Returns an <tt>ActiveRecord::Result</tt> with its contents based on
+      # Returns an ActiveRecord::Result with its contents based on
       # <tt>:returning</tt> (see below).
+      #
+      # By default, +upsert_all+ will update all the columns that can be updated when
+      # there is a conflict. These are all the columns except primary keys, read-only
+      # columns, and columns covered by the optional +unique_by+.
       #
       # ==== Options
       #
@@ -246,9 +271,52 @@ module ActiveRecord
       # Active Record's schema_cache.
       #
       # [:on_duplicate]
-      #   Specify a custom SQL for updating rows on conflict.
+      #   Configure the SQL update sentence that will be used in case of conflict.
       #
-      #   NOTE: in this case you must provide all the columns you want to update by yourself.
+      #   NOTE: If you use this option you must provide all the columns you want to update
+      #   by yourself.
+      #
+      #   Example:
+      #
+      #     Commodity.upsert_all(
+      #       [
+      #         { id: 2, name: "Copper", price: 4.84 },
+      #         { id: 4, name: "Gold", price: 1380.87 },
+      #         { id: 6, name: "Aluminium", price: 0.35 }
+      #       ],
+      #       on_duplicate: Arel.sql("price = GREATEST(commodities.price, EXCLUDED.price)")
+      #     )
+      #
+      #   See the related +:update_only+ option. Both options can't be used at the same time.
+      #
+      # [:update_only]
+      #   Provide a list of column names that will be updated in case of conflict. If not provided,
+      #   +upsert_all+ will update all the columns that can be updated. These are all the columns
+      #   except primary keys, read-only columns, and columns covered by the optional +unique_by+
+      #
+      #   Example:
+      #
+      #     Commodity.upsert_all(
+      #       [
+      #         { id: 2, name: "Copper", price: 4.84 },
+      #         { id: 4, name: "Gold", price: 1380.87 },
+      #         { id: 6, name: "Aluminium", price: 0.35 }
+      #       ],
+      #       update_only: [:price] # Only prices will be updated
+      #     )
+      #
+      #   See the related +:on_duplicate+ option. Both options can't be used at the same time.
+      #
+      # [:record_timestamps]
+      #   By default, automatic setting of timestamp columns is controlled by
+      #   the model's <tt>record_timestamps</tt> config, matching typical
+      #   behavior.
+      #
+      #   To override this and force automatic setting of timestamp columns one
+      #   way or the other, pass <tt>:record_timestamps</tt>:
+      #
+      #     record_timestamps: true  # Always set timestamps automatically
+      #     record_timestamps: false # Never set timestamps automatically
       #
       # ==== Examples
       #
@@ -261,8 +329,8 @@ module ActiveRecord
       #   ], unique_by: :isbn)
       #
       #   Book.find_by(isbn: "1").title # => "Eloquent Ruby"
-      def upsert_all(attributes, on_duplicate: :update, returning: nil, unique_by: nil, update_sql: nil)
-        InsertAll.new(self, attributes, on_duplicate: on_duplicate, returning: returning, unique_by: unique_by).execute
+      def upsert_all(attributes, on_duplicate: :update, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
+        InsertAll.new(self, attributes, on_duplicate: on_duplicate, update_only: update_only, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps).execute
       end
 
       # Given an attributes hash, +instantiate+ returns a new instance of
@@ -286,6 +354,7 @@ module ActiveRecord
       # ==== Parameters
       #
       # * +id+ - This should be the id or an array of ids to be updated.
+      #   Optional argument, defaults to all records in the relation.
       # * +attributes+ - This should be a hash of attributes or an array of hashes.
       #
       # ==== Examples
@@ -326,6 +395,32 @@ module ActiveRecord
           end
           object = find(id)
           object.update(attributes)
+          object
+        end
+      end
+
+      # Updates the object (or multiple objects) just like #update but calls #update! instead
+      # of +update+, so an exception is raised if the record is invalid and saving will fail.
+      def update!(id = :all, attributes)
+        if id.is_a?(Array)
+          if id.any?(ActiveRecord::Base)
+            raise ArgumentError,
+              "You are passing an array of ActiveRecord::Base instances to `update!`. " \
+              "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
+          end
+          id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
+            object.update!(attributes[idx])
+          }
+        elsif id == :all
+          all.each { |record| record.update!(attributes) }
+        else
+          if ActiveRecord::Base === id
+            raise ArgumentError,
+              "You are passing an instance of ActiveRecord::Base to `update!`. " \
+              "Please pass the id of the object by calling `.id`."
+          end
+          object = find(id)
+          object.update!(attributes)
           object
         end
       end
@@ -404,9 +499,8 @@ module ActiveRecord
       def _update_record(values, constraints) # :nodoc:
         constraints = constraints.map { |name, value| predicate_builder[name, value] }
 
-        if default_scopes?(all_queries: true)
-          constraints << default_scoped(all_queries: true).where_clause.ast
-        end
+        default_constraint = build_default_constraint
+        constraints << default_constraint if default_constraint
 
         if current_scope = self.global_current_scope
           constraints << current_scope.where_clause.ast
@@ -422,9 +516,8 @@ module ActiveRecord
       def _delete_record(constraints) # :nodoc:
         constraints = constraints.map { |name, value| predicate_builder[name, value] }
 
-        if default_scopes?(all_queries: true)
-          constraints << default_scoped(all_queries: true).where_clause.ast
-        end
+        default_constraint = build_default_constraint
+        constraints << default_constraint if default_constraint
 
         if current_scope = self.global_current_scope
           constraints << current_scope.where_clause.ast
@@ -451,6 +544,16 @@ module ActiveRecord
         # the single-table inheritance discriminator.
         def discriminate_class_for_record(record)
           self
+        end
+
+        # Called by +_update_record+ and +_delete_record+
+        # to build `where` clause from default scopes.
+        # Skips empty scopes.
+        def build_default_constraint
+          return unless default_scopes?(all_queries: true)
+
+          default_where_clause = default_scoped(all_queries: true).where_clause
+          default_where_clause.ast unless default_where_clause.empty?
         end
     end
 
@@ -643,7 +746,7 @@ module ActiveRecord
     # * updated_at/updated_on column is updated if that column is available.
     # * Updates all the attributes that are dirty in this object.
     #
-    # This method raises an ActiveRecord::ActiveRecordError  if the
+    # This method raises an ActiveRecord::ActiveRecordError if the
     # attribute is marked as readonly.
     #
     # Also see #update_column.
@@ -653,6 +756,28 @@ module ActiveRecord
       public_send("#{name}=", value)
 
       save(validate: false)
+    end
+
+    # Updates a single attribute and saves the record.
+    # This is especially useful for boolean flags on existing records. Also note that
+    #
+    # * Validation is skipped.
+    # * \Callbacks are invoked.
+    # * updated_at/updated_on column is updated if that column is available.
+    # * Updates all the attributes that are dirty in this object.
+    #
+    # This method raises an ActiveRecord::ActiveRecordError if the
+    # attribute is marked as readonly.
+    #
+    # If any of the <tt>before_*</tt> callbacks throws +:abort+ the action is cancelled
+    # and #update_attribute! raises ActiveRecord::RecordNotSaved. See
+    # ActiveRecord::Callbacks for further details.
+    def update_attribute!(name, value)
+      name = name.to_s
+      verify_readonly_attribute(name)
+      public_send("#{name}=", value)
+
+      save!(validate: false)
     end
 
     # Updates the attributes of the model from the passed-in hash and saves the
@@ -1008,7 +1133,8 @@ module ActiveRecord
 
     def _raise_record_not_destroyed
       @_association_destroy_exception ||= nil
-      raise @_association_destroy_exception || RecordNotDestroyed.new("Failed to destroy the record", self)
+      key = self.class.primary_key
+      raise @_association_destroy_exception || RecordNotDestroyed.new("Failed to destroy #{self.class} with #{key}=#{send(key)}", self)
     ensure
       @_association_destroy_exception = nil
     end

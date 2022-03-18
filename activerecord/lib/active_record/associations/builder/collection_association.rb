@@ -3,7 +3,7 @@
 require "active_record/associations"
 
 module ActiveRecord::Associations::Builder # :nodoc:
-  class CollectionAssociation < Association #:nodoc:
+  class CollectionAssociation < Association # :nodoc:
     CALLBACKS = [:before_add, :after_add, :before_remove, :after_remove]
 
     def self.valid_options(options)
@@ -30,11 +30,18 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_callback(model, callback_name, name, options)
       full_callback_name = "#{callback_name}_for_#{name}"
 
-      unless model.method_defined?(full_callback_name)
+      callback_values = Array(options[callback_name.to_sym])
+      method_defined = model.respond_to?(full_callback_name)
+
+      # If there are no callbacks, we must also check if a superclass had
+      # previously defined this association
+      return if callback_values.empty? && !method_defined
+
+      unless method_defined
         model.class_attribute(full_callback_name, instance_accessor: false, instance_predicate: false)
       end
 
-      callbacks = Array(options[callback_name.to_sym]).map do |callback|
+      callbacks = callback_values.map do |callback|
         case callback
         when Symbol
           ->(method, owner, record) { owner.send(callback, record) }

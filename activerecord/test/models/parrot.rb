@@ -29,6 +29,7 @@ class Parrot < ActiveRecord::Base
 end
 
 class LiveParrot < Parrot
+  enum breed: { african: 0, australian: 1 }
 end
 
 class DeadParrot < Parrot

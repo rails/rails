@@ -10,7 +10,14 @@ module ActiveRecord
           end
 
           def visit_AddForeignKey(o)
-            super.dup.tap { |sql| sql << " NOT VALID" unless o.validate? }
+            super.dup.tap do |sql|
+              if o.deferrable
+                sql << " DEFERRABLE"
+                sql << " INITIALLY #{o.deferrable.to_s.upcase}" unless o.deferrable == true
+              end
+
+              sql << " NOT VALID" unless o.validate?
+            end
           end
 
           def visit_CheckConstraintDefinition(o)
@@ -60,6 +67,19 @@ module ActiveRecord
           def add_column_options!(sql, options)
             if options[:collation]
               sql << " COLLATE \"#{options[:collation]}\""
+            end
+
+            if as = options[:as]
+              sql << " GENERATED ALWAYS AS (#{as})"
+
+              if options[:stored]
+                sql << " STORED"
+              else
+                raise ArgumentError, <<~MSG
+                  PostgreSQL currently does not support VIRTUAL (not persisted) generated columns.
+                  Specify 'stored: true' option for '#{options[:column].name}'
+                MSG
+              end
             end
             super
           end

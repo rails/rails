@@ -13,38 +13,6 @@ class ActiveRecord::Encryption::SchemeTest < ActiveRecord::EncryptionTestCase
     assert_valid_declaration key_provider: ActiveRecord::Encryption::DerivedSecretKeyProvider.new("my secret")
   end
 
-  test "validates primary_key is set for non deterministic encryption" do
-    ActiveRecord::Encryption.config.primary_key = nil
-
-    assert_raise ActiveRecord::Encryption::Errors::Configuration do
-      declare_and_use_class
-    end
-
-    assert_nothing_raised do
-      declare_and_use_class deterministic: true
-    end
-  end
-
-  test "validates deterministic_key is set for non deterministic encryption" do
-    ActiveRecord::Encryption.config.deterministic_key = nil
-
-    assert_raise ActiveRecord::Encryption::Errors::Configuration do
-      declare_and_use_class deterministic: true
-    end
-
-    assert_nothing_raised do
-      declare_and_use_class
-    end
-  end
-
-  test "validates key_derivation_salt is set" do
-    ActiveRecord::Encryption.config.key_derivation_salt = nil
-
-    assert_raise ActiveRecord::Encryption::Errors::Configuration do
-      declare_and_use_class
-    end
-  end
-
   private
     def assert_invalid_declaration(**options)
       assert_raises ActiveRecord::Encryption::Errors::Configuration do

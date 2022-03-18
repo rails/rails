@@ -127,8 +127,7 @@ module ActiveRecord
     # <tt>attribute :foo, :string</tt>. Defaults to false.
 
     included do
-      mattr_accessor :primary_key_prefix_type, instance_writer: false
-
+      class_attribute :primary_key_prefix_type, instance_writer: false
       class_attribute :table_name_prefix, instance_writer: false, default: ""
       class_attribute :table_name_suffix, instance_writer: false, default: ""
       class_attribute :schema_migrations_table_name, instance_accessor: false, default: "schema_migrations"
@@ -264,7 +263,7 @@ module ActiveRecord
       end
 
       # Computes the table name, (re)sets it internally, and returns it.
-      def reset_table_name #:nodoc:
+      def reset_table_name # :nodoc:
         self.table_name = if abstract_class?
           superclass == Base ? nil : superclass.table_name
         elsif superclass.abstract_class?
@@ -274,11 +273,11 @@ module ActiveRecord
         end
       end
 
-      def full_table_name_prefix #:nodoc:
+      def full_table_name_prefix # :nodoc:
         (module_parents.detect { |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
       end
 
-      def full_table_name_suffix #:nodoc:
+      def full_table_name_suffix # :nodoc:
         (module_parents.detect { |p| p.respond_to?(:table_name_suffix) } || self).table_name_suffix
       end
 
@@ -355,7 +354,7 @@ module ActiveRecord
         end
       end
 
-      def reset_sequence_name #:nodoc:
+      def reset_sequence_name # :nodoc:
         @explicit_sequence_name = false
         @sequence_name          = connection.default_sequence_name(table_name, primary_key)
       end
@@ -502,9 +501,9 @@ module ActiveRecord
       #
       # The most common usage pattern for this method is probably in a migration,
       # when just after creating a table you want to populate it with some default
-      # values, eg:
+      # values, e.g.:
       #
-      #  class CreateJobLevels < ActiveRecord::Migration[7.0]
+      #  class CreateJobLevels < ActiveRecord::Migration[7.1]
       #    def up
       #      create_table :job_levels do |t|
       #        t.integer :id
@@ -572,7 +571,6 @@ module ActiveRecord
           @columns_hash.each do |name, column|
             type = connection.lookup_cast_type_from_column(column)
             type = _convert_type_from_options(type)
-            warn_if_deprecated_type(column)
             define_attribute(
               name,
               type,
@@ -596,7 +594,7 @@ module ActiveRecord
           @schema_loaded = false
           @attribute_names = nil
           @yaml_encoder = nil
-          direct_descendants.each do |descendant|
+          subclasses.each do |descendant|
             descendant.send(:reload_schema_from_cache)
           end
         end
@@ -619,7 +617,7 @@ module ActiveRecord
 
             "#{full_table_name_prefix}#{contained}#{undecorated_table_name(model_name)}#{full_table_name_suffix}"
           else
-            # STI subclasses always use their superclass' table.
+            # STI subclasses always use their superclass's table.
             base_class.table_name
           end
         end
@@ -629,32 +627,6 @@ module ActiveRecord
             type.to_immutable_string
           else
             type
-          end
-        end
-
-        def warn_if_deprecated_type(column)
-          return if attributes_to_define_after_schema_loads.key?(column.name)
-          return unless column.respond_to?(:array?)
-
-          if column.array?
-            array_arguments = ", array: true"
-          else
-            array_arguments = ""
-          end
-
-          if column.sql_type.start_with?("interval")
-            precision_arguments = column.precision.presence && ", precision: #{column.precision}"
-            ActiveSupport::Deprecation.warn(<<~WARNING)
-              The behavior of the `:interval` type will be changing in Rails 7.0
-              to return an `ActiveSupport::Duration` object. If you'd like to keep
-              the old behavior, you can add this line to #{self.name} model:
-
-                attribute :#{column.name}, :string#{precision_arguments}#{array_arguments}
-
-              If you'd like the new behavior today, you can add this line:
-
-                attribute :#{column.name}, :interval#{precision_arguments}#{array_arguments}
-            WARNING
           end
         end
     end

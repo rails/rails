@@ -41,6 +41,10 @@ module ActiveRecord
       def all_versions
         order(:version).pluck(:version)
       end
+
+      def table_exists?
+        connection.data_source_exists?(table_name)
+      end
     end
 
     def version

@@ -2,8 +2,6 @@
 
 require "active_support/core_ext/array/extract_options"
 require "action_dispatch/middleware/stack"
-require "action_dispatch/http/request"
-require "action_dispatch/http/response"
 
 module ActionController
   # Extend ActionDispatch middleware stack to make it aware of options
@@ -13,8 +11,8 @@ module ActionController
   #     use AuthenticationMiddleware, except: [:index, :show]
   #   end
   #
-  class MiddlewareStack < ActionDispatch::MiddlewareStack #:nodoc:
-    class Middleware < ActionDispatch::MiddlewareStack::Middleware #:nodoc:
+  class MiddlewareStack < ActionDispatch::MiddlewareStack # :nodoc:
+    class Middleware < ActionDispatch::MiddlewareStack::Middleware # :nodoc:
       def initialize(klass, args, actions, strategy, block)
         @actions = actions
         @strategy = strategy
@@ -62,7 +60,7 @@ module ActionController
 
   # <tt>ActionController::Metal</tt> is the simplest possible controller, providing a
   # valid Rack interface without the additional niceties provided by
-  # <tt>ActionController::Base</tt>.
+  # ActionController::Base.
   #
   # A sample metal controller might look like this:
   #
@@ -113,7 +111,7 @@ module ActionController
   #
   # == Other Helpers
   #
-  # You can refer to the modules included in <tt>ActionController::Base</tt> to see
+  # You can refer to the modules included in ActionController::Base to see
   # other features you can bring into your metal controller.
   #
   class Metal < AbstractController::Base
@@ -139,7 +137,7 @@ module ActionController
       false
     end
 
-    # Delegates to the class' <tt>controller_name</tt>.
+    # Delegates to the class's ::controller_name.
     def controller_name
       self.class.controller_name
     end
@@ -184,7 +182,7 @@ module ActionController
       response_body || response.committed?
     end
 
-    def dispatch(name, request, response) #:nodoc:
+    def dispatch(name, request, response) # :nodoc:
       set_request!(request)
       set_response!(response)
       process(name)
@@ -196,12 +194,12 @@ module ActionController
       @_response = response
     end
 
-    def set_request!(request) #:nodoc:
+    def set_request!(request) # :nodoc:
       @_request = request
       @_request.controller_instance = self
     end
 
-    def to_a #:nodoc:
+    def to_a # :nodoc:
       response.to_a
     end
 

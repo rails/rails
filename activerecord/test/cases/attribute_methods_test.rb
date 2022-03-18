@@ -20,14 +20,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :companies, :computers
 
   def setup
-    @old_matchers = ActiveRecord::Base.send(:attribute_method_matchers).dup
+    @old_matchers = ActiveRecord::Base.send(:attribute_method_patterns).dup
     @target = Class.new(ActiveRecord::Base)
     @target.table_name = "topics"
   end
 
   teardown do
-    ActiveRecord::Base.send(:attribute_method_matchers).clear
-    ActiveRecord::Base.send(:attribute_method_matchers).concat(@old_matchers)
+    ActiveRecord::Base.send(:attribute_method_patterns).clear
+    ActiveRecord::Base.send(:attribute_method_patterns).concat(@old_matchers)
   end
 
   test "attribute_for_inspect with a string" do
@@ -41,7 +41,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "attribute_for_inspect with a date" do
     t = topics(:first)
 
-    assert_equal %("#{t.written_on.to_s(:inspect)}"), t.attribute_for_inspect(:written_on)
+    assert_equal %("#{t.written_on.to_fs(:inspect)}"), t.attribute_for_inspect(:written_on)
   end
 
   test "attribute_for_inspect with an array" do
@@ -214,6 +214,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       assert_equal Time.zone.parse("2009-10-11 12:13:14"), record.written_on
       assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
     end
+  end
+
+  test "read attributes_for_database" do
+    topic = Topic.new
+    topic.content = { one: 1, two: 2 }
+
+    db_attributes = Topic.instantiate(topic.attributes_for_database).attributes
+    before_type_cast_attributes = Topic.instantiate(topic.attributes_before_type_cast).attributes
+
+    assert_equal topic.attributes, db_attributes
+    assert_not_equal topic.attributes, before_type_cast_attributes
   end
 
   test "read attributes_after_type_cast on a date" do
@@ -907,7 +918,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     }
     assert_instance_of Topic, error.record
     assert_equal "hello", error.attribute
-    assert_equal "unknown attribute 'hello' for Topic.", error.message
+    assert_match "unknown attribute 'hello' for Topic.", error.message
   end
 
   test "method overrides in multi-level subclasses" do
@@ -1074,7 +1085,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     model = @target.select("id").last!
 
     assert_equal ["id"], model.attribute_names
-    # Sanity check, make sure other columns exist.
+    # Ensure other columns exist.
     assert_not_equal ["id"], @target.column_names
   end
 

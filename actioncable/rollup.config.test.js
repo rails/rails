@@ -1,6 +1,5 @@
-import babel from "rollup-plugin-babel"
-import commonjs from "rollup-plugin-commonjs"
-import resolve from "rollup-plugin-node-resolve"
+import commonjs from "@rollup/plugin-commonjs"
+import resolve from "@rollup/plugin-node-resolve"
 
 export default {
   input: "test/javascript/src/test.js",
@@ -12,7 +11,6 @@ export default {
 
   plugins: [
     resolve(),
-    commonjs(),
-    babel()
+    commonjs()
   ]
 }

@@ -207,26 +207,26 @@ class EachTest < ActiveRecord::TestCase
 
   def test_find_in_batches_should_not_error_if_config_overridden
     # Set the config option which will be overridden
-    prev = ActiveRecord::Base.error_on_ignored_order
-    ActiveRecord::Base.error_on_ignored_order = true
+    prev = ActiveRecord.error_on_ignored_order
+    ActiveRecord.error_on_ignored_order = true
     assert_nothing_raised do
       PostWithDefaultScope.find_in_batches(error_on_ignore: false) { }
     end
   ensure
     # Set back to default
-    ActiveRecord::Base.error_on_ignored_order = prev
+    ActiveRecord.error_on_ignored_order = prev
   end
 
   def test_find_in_batches_should_error_on_config_specified_to_error
     # Set the config option
-    prev = ActiveRecord::Base.error_on_ignored_order
-    ActiveRecord::Base.error_on_ignored_order = true
+    prev = ActiveRecord.error_on_ignored_order
+    ActiveRecord.error_on_ignored_order = true
     assert_raise(ArgumentError) do
       PostWithDefaultScope.find_in_batches() { }
     end
   ensure
     # Set back to default
-    ActiveRecord::Base.error_on_ignored_order = prev
+    ActiveRecord.error_on_ignored_order = prev
   end
 
   def test_find_in_batches_should_not_error_by_default

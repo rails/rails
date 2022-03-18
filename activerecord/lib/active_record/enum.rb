@@ -57,11 +57,18 @@ module ActiveRecord
   #   conversation = Conversation.new
   #   conversation.status # => "active"
   #
-  # Finally, it's also possible to explicitly map the relation between attribute and
+  # It's possible to explicitly map the relation between attribute and
   # database integer with a hash:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum :status, active: 0, archived: 1
+  #   end
+  #
+  # Finally it's also possible to use a string column to persist the enumerated value.
+  # Note that this will likely lead to slower database queries:
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum :status, active: "active", archived: "archived"
   #   end
   #
   # Note that when an array is used, the implicit mapping from the values to database
@@ -76,7 +83,7 @@ module ActiveRecord
   #
   # In rare circumstances you might need to access the mapping directly.
   # The mappings are exposed through a class method with the pluralized attribute
-  # name, which return the mapping in a +HashWithIndifferentAccess+:
+  # name, which return the mapping in a ActiveSupport::HashWithIndifferentAccess :
   #
   #   Conversation.statuses[:active]    # => 0
   #   Conversation.statuses["archived"] # => 1
@@ -260,15 +267,29 @@ module ActiveRecord
       end
 
       def assert_valid_enum_definition_values(values)
-        unless values.is_a?(Hash) || values.all?(Symbol) || values.all?(String)
-          error_message = <<~MSG
-            Enum values #{values} must be either a hash, an array of symbols, or an array of strings.
-          MSG
-          raise ArgumentError, error_message
-        end
+        case values
+        when Hash
+          if values.empty?
+            raise ArgumentError, "Enum values #{values} must not be empty."
+          end
 
-        if values.is_a?(Hash) && values.keys.any?(&:blank?) || values.is_a?(Array) && values.any?(&:blank?)
-          raise ArgumentError, "Enum label name must not be blank."
+          if values.keys.any?(&:blank?)
+            raise ArgumentError, "Enum values #{values} must not contain a blank name."
+          end
+        when Array
+          if values.empty?
+            raise ArgumentError, "Enum values #{values} must not be empty."
+          end
+
+          unless values.all?(Symbol) || values.all?(String)
+            raise ArgumentError, "Enum values #{values} must only contain symbols or strings."
+          end
+
+          if values.any?(&:blank?)
+            raise ArgumentError, "Enum values #{values} must not contain a blank name."
+          end
+        else
+          raise ArgumentError, "Enum values #{values} must be either a non-empty hash or an array."
         end
       end
 

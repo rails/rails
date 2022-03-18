@@ -63,6 +63,30 @@ module ActiveRecord
   class ConnectionTimeoutError < ConnectionNotEstablished
   end
 
+  # Raised when connection to the database could not been established because it was not
+  # able to connect to the host or when the authorization failed.
+  class DatabaseConnectionError < ConnectionNotEstablished
+    def initialize(message = nil)
+      super(message || "Database connection error")
+    end
+
+    class << self
+      def hostname_error(hostname)
+        DatabaseConnectionError.new(<<~MSG)
+          There is an issue connecting with your hostname: #{hostname}.\n
+          Please check your database configuration and ensure there is a valid connection to your database.
+        MSG
+      end
+
+      def username_error(username)
+        DatabaseConnectionError.new(<<~MSG)
+          There is an issue connecting to your database with your username/password, username: #{username}.\n
+          Please check your database configuration to ensure the username/password are valid.
+        MSG
+      end
+    end
+  end
+
   # Raised when a pool was unable to get ahold of all its connections
   # to perform a "group" action such as
   # {ActiveRecord::Base.connection_pool.disconnect!}[rdoc-ref:ConnectionAdapters::ConnectionPool#disconnect!]
@@ -100,7 +124,7 @@ module ActiveRecord
   end
 
   # Raised by {ActiveRecord::Base#destroy!}[rdoc-ref:Persistence#destroy!]
-  # when a call to {#destroy}[rdoc-ref:Persistence#destroy!]
+  # when a call to {#destroy}[rdoc-ref:Persistence#destroy]
   # would return false.
   #
   #   begin
@@ -212,6 +236,30 @@ module ActiveRecord
 
   # Raised when a given database does not exist.
   class NoDatabaseError < StatementInvalid
+    include ActiveSupport::ActionableError
+
+    action "Create database" do
+      ActiveRecord::Tasks::DatabaseTasks.create_current
+    end
+
+    def initialize(message = nil)
+      super(message || "Database not found")
+    end
+
+    class << self
+      def db_error(db_name)
+        NoDatabaseError.new(<<~MSG)
+          We could not find your database: #{db_name}. Which can be found in the database configuration file located at config/database.yml.
+
+          To resolve this issue:
+
+          - Did you create the database for this app, or delete it? You may need to create your database.
+          - Has the database name changed? Check your database.yml config has the correct database name.
+
+          To create your database, run:\n\n        bin/rails db:create
+        MSG
+      end
+    end
   end
 
   # Raised when creating a database if it exists.
@@ -278,7 +326,7 @@ module ActiveRecord
   #           # The system must fail on Friday so that our support department
   #           # won't be out of job. We silently rollback this transaction
   #           # without telling the user.
-  #           raise ActiveRecord::Rollback, "Call tech support!"
+  #           raise ActiveRecord::Rollback
   #         end
   #       end
   #       # ActiveRecord::Rollback is the only exception that won't be passed on
@@ -424,12 +472,12 @@ module ActiveRecord
   #
   # For example, the following code would raise this exception:
   #
-  #   Post.order("length(title)").first
+  #   Post.order("REPLACE(title, 'misc', 'zzzz') asc").pluck(:id)
   #
   # The desired result can be accomplished by wrapping the known-safe string
   # in Arel.sql:
   #
-  #   Post.order(Arel.sql("length(title)")).first
+  #   Post.order(Arel.sql("REPLACE(title, 'misc', 'zzzz') asc")).pluck(:id)
   #
   # Again, such a workaround should *not* be used when passing user-provided
   # values, such as request parameters or model attributes to query methods.

@@ -82,11 +82,11 @@ module ApplicationTests
       app_file "app/controllers/foo_controller.rb", <<-RUBY
         class FooController < ApplicationController
           def included_helpers
-            render :inline => "<%= from_app_helper -%> <%= from_foo_helper %>"
+            render inline: "<%= from_app_helper -%> <%= from_foo_helper %>"
           end
 
           def not_included_helper
-            render :inline => "<%= respond_to?(:from_bar_helper) -%>"
+            render inline: "<%= respond_to?(:from_bar_helper) -%>"
           end
         end
       RUBY

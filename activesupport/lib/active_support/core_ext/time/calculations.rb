@@ -126,8 +126,8 @@ class Time
   # Returns a new Time where one or more of the elements have been changed according
   # to the +options+ parameter. The time options (<tt>:hour</tt>, <tt>:min</tt>,
   # <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>) reset cascadingly, so if only
-  # the hour is passed, then minute, sec, usec and nsec is set to 0. If the hour
-  # and minute is passed, then sec, usec and nsec is set to 0. The +options+ parameter
+  # the hour is passed, then minute, sec, usec, and nsec is set to 0. If the hour
+  # and minute is passed, then sec, usec, and nsec is set to 0. The +options+ parameter
   # takes a hash with any of these keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>,
   # <tt>:hour</tt>, <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>,
   # <tt>:offset</tt>. Pass either <tt>:usec</tt> or <tt>:nsec</tt>, not both.
@@ -159,6 +159,8 @@ class Time
       ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, new_offset)
     elsif utc?
       ::Time.utc(new_year, new_month, new_day, new_hour, new_min, new_sec)
+    elsif zone&.respond_to?(:utc_to_local)
+      ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, zone)
     elsif zone
       ::Time.local(new_year, new_month, new_day, new_hour, new_min, new_sec)
     else
@@ -275,7 +277,7 @@ class Time
   end
   alias :at_end_of_minute :end_of_minute
 
-  def plus_with_duration(other) #:nodoc:
+  def plus_with_duration(other) # :nodoc:
     if ActiveSupport::Duration === other
       other.since(self)
     else
@@ -285,7 +287,7 @@ class Time
   alias_method :plus_without_duration, :+
   alias_method :+, :plus_with_duration
 
-  def minus_with_duration(other) #:nodoc:
+  def minus_with_duration(other) # :nodoc:
     if ActiveSupport::Duration === other
       other.until(self)
     else
@@ -303,7 +305,7 @@ class Time
     other.is_a?(DateTime) ? to_f - other.to_f : minus_without_coercion(other)
   end
   alias_method :minus_without_coercion, :-
-  alias_method :-, :minus_with_coercion
+  alias_method :-, :minus_with_coercion # rubocop:disable Lint/DuplicateMethods
 
   # Layers additional behavior on Time#<=> so that DateTime and ActiveSupport::TimeWithZone instances
   # can be chronologically compared with a Time

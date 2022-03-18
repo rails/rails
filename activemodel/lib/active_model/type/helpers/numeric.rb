@@ -25,10 +25,18 @@ module ActiveModel
         end
 
         def changed?(old_value, _new_value, new_value_before_type_cast) # :nodoc:
-          super || number_to_non_number?(old_value, new_value_before_type_cast)
+          (super || number_to_non_number?(old_value, new_value_before_type_cast)) &&
+            !equal_nan?(old_value, new_value_before_type_cast)
         end
 
         private
+          def equal_nan?(old_value, new_value)
+            (old_value.is_a?(::Float) || old_value.is_a?(BigDecimal)) &&
+              old_value.nan? &&
+              old_value.instance_of?(new_value.class) &&
+              new_value.nan?
+          end
+
           def number_to_non_number?(old_value, new_value_before_type_cast)
             old_value != nil && non_numeric_string?(new_value_before_type_cast.to_s)
           end

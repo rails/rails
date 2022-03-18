@@ -16,7 +16,8 @@ module ActiveRecord
 
       private
         def last_scope_chain(reverse_chain, owner)
-          first_scope = [reverse_chain.shift, false, [owner.id]]
+          first_item = reverse_chain.shift
+          first_scope = [first_item, false, [owner._read_attribute(first_item.join_foreign_key)]]
 
           reverse_chain.inject(first_scope) do |(reflection, ordered, join_ids), next_reflection|
             key = reflection.join_primary_key
@@ -31,6 +32,12 @@ module ActiveRecord
 
         def add_constraints(reflection, key, join_ids, owner, ordered)
           scope = reflection.build_scope(reflection.aliased_table).where(key => join_ids)
+
+          relation = reflection.klass.scope_for_association
+          scope.merge!(
+            relation.except(:select, :create_with, :includes, :preload, :eager_load, :joins, :left_outer_joins)
+          )
+
           scope = reflection.constraints.inject(scope) do |memo, scope_chain_item|
             item = eval_scope(reflection, scope_chain_item, owner)
             scope.unscope!(*item.unscope_values)

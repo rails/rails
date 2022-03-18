@@ -40,6 +40,13 @@ module ActiveRecord
       #
       #    User.where.not(name: "Jon", role: "admin")
       #    # SELECT * FROM users WHERE NOT (name == 'Jon' AND role == 'admin')
+      #
+      # If there is a non-nil condition on a nullable column in the hash condition, the records that have
+      # nil values on the nullable column won't be returned.
+      #    User.create!(nullbale_country: nil)
+      #    User.where.not(nullable_country: "UK")
+      #    # SELECT * FROM users WHERE NOT (nullable_country = 'UK')
+      #    # => []
       def not(opts, *rest)
         where_clause = @scope.send(:build_where_clause, opts, rest)
 
@@ -68,7 +75,7 @@ module ActiveRecord
       #    # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
       def associated(*associations)
         associations.each do |association|
-          reflection = @scope.klass._reflect_on_association(association)
+          reflection = scope_association_reflection(association)
           @scope.joins!(association)
           self.not(reflection.table_name => { reflection.association_primary_key => nil })
         end
@@ -96,13 +103,22 @@ module ActiveRecord
       #    # WHERE "authors"."id" IS NULL AND "comments"."id" IS NULL
       def missing(*associations)
         associations.each do |association|
-          reflection = @scope.klass._reflect_on_association(association)
+          reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
           @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
         end
 
         @scope
       end
+
+      private
+        def scope_association_reflection(association)
+          reflection = @scope.klass._reflect_on_association(association)
+          unless reflection
+            raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{@scope.name}`.")
+          end
+          reflection
+        end
     end
 
     FROZEN_EMPTY_ARRAY = [].freeze
@@ -153,7 +169,7 @@ module ActiveRecord
     #
     #   users = User.includes(:address, friends: [:address, :followers])
     #
-    # === conditions
+    # === Conditions
     #
     # If you want to add string conditions to your included models, you'll have
     # to explicitly reference them. For example:
@@ -172,6 +188,11 @@ module ActiveRecord
     # will work correctly:
     #
     #   User.includes(:posts).where(posts: { name: 'example' })
+    #
+    # Conditions affect both sides of an association.  For example, the above
+    # code will return only users that have a post named "example", <em>and will
+    # only include posts named "example"</em>, even when a matching user has
+    # other additional posts.
     def includes(*args)
       check_if_method_has_arguments!(__callee__, args)
       spawn.includes!(*args)
@@ -354,16 +375,36 @@ module ActiveRecord
       self
     end
 
-    # Allows to specify an order attribute:
+    # Applies an <code>ORDER BY</code> clause to a query.
+    #
+    # #order accepts arguments in one of several formats.
+    #
+    # === symbols
+    #
+    # The symbol represents the name of the column you want to order the results by.
     #
     #   User.order(:name)
     #   # SELECT "users".* FROM "users" ORDER BY "users"."name" ASC
     #
+    # By default, the order is ascending. If you want descending order, you can
+    # map the column name symbol to +:desc+.
+    #
     #   User.order(email: :desc)
     #   # SELECT "users".* FROM "users" ORDER BY "users"."email" DESC
     #
+    # Multiple columns can be passed this way, and they will be applied in the order specified.
+    #
     #   User.order(:name, email: :desc)
     #   # SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
+    #
+    # === strings
+    #
+    # Strings are passed directly to the database, allowing you to specify
+    # simple SQL expressions.
+    #
+    # This could be a source of SQL injection, so only strings composed of plain
+    # column names and simple <code>function(column_name)</code> expressions
+    # with optional +ASC+/+DESC+ modifiers are allowed.
     #
     #   User.order('name')
     #   # SELECT "users".* FROM "users" ORDER BY name
@@ -373,6 +414,19 @@ module ActiveRecord
     #
     #   User.order('name DESC, email')
     #   # SELECT "users".* FROM "users" ORDER BY name DESC, email
+    #
+    # === Arel
+    #
+    # If you need to pass in complicated expressions that you have verified
+    # are safe for the database, you can use Arel.
+    #
+    #   User.order(Arel.sql('end_date - start_date'))
+    #   # SELECT "users".* FROM "users" ORDER BY end_date - start_date
+    #
+    # Custom query syntax, like JSON columns for Postgres, is supported in this way.
+    #
+    #   User.order(Arel.sql("payload->>'kind'"))
+    #   # SELECT "users".* FROM "users" ORDER BY payload->>'kind'
     def order(*args)
       check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
@@ -387,6 +441,29 @@ module ActiveRecord
       self
     end
 
+    # Allows to specify an order by a specific set of values. Depending on your
+    # adapter this will either use a CASE statement or a built-in function.
+    #
+    #   User.in_order_of(:id, [1, 5, 3])
+    #   # SELECT "users".* FROM "users"
+    #   #   ORDER BY FIELD("users"."id", 1, 5, 3)
+    #   #   WHERE "users"."id" IN (1, 5, 3)
+    #
+    def in_order_of(column, values)
+      klass.disallow_raw_sql!([column], permit: connection.column_name_with_order_matcher)
+      return spawn.none! if values.empty?
+
+      references = column_references([column])
+      self.references_values |= references unless references.empty?
+
+      values = values.map { |value| type_caster.type_cast_for_database(column, value) }
+      arel_column = column.is_a?(Symbol) ? order_column(column.to_s) : column
+
+      spawn
+        .order!(connection.field_ordered_value(arel_column, values))
+        .where!(arel_column.in(values))
+    end
+
     # Replaces any existing order defined on the relation with the specified order.
     #
     #   User.order('email DESC').reorder('id ASC') # generated SQL has 'ORDER BY id ASC'
@@ -398,14 +475,14 @@ module ActiveRecord
     # generates a query with 'ORDER BY id ASC, name ASC'.
     def reorder(*args)
       check_if_method_has_arguments!(__callee__, args) do
-        sanitize_order_arguments(args) unless args.all?(&:blank?)
+        sanitize_order_arguments(args)
       end
       spawn.reorder!(*args)
     end
 
     # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
-      preprocess_order_args(args) unless args.all?(&:blank?)
+      preprocess_order_args(args)
       args.uniq!
       self.reordering_value = true
       self.order_values = args
@@ -483,7 +560,7 @@ module ActiveRecord
       self
     end
 
-    # Performs a joins on +args+. The given symbol(s) should match the name of
+    # Performs JOINs on +args+. The given symbol(s) should match the name of
     # the association(s).
     #
     #   User.joins(:posts)
@@ -521,7 +598,7 @@ module ActiveRecord
       self
     end
 
-    # Performs a left outer joins on +args+:
+    # Performs LEFT OUTER JOINs on +args+:
     #
     #   User.left_outer_joins(:posts)
     #   => SELECT "users".* FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"
@@ -603,13 +680,13 @@ module ActiveRecord
     #
     # Fields can be symbols or strings. Values can be single values, arrays, or ranges.
     #
-    #    User.where({ name: "Joe", email: "joe@example.com" })
+    #    User.where(name: "Joe", email: "joe@example.com")
     #    # SELECT * FROM users WHERE name = 'Joe' AND email = 'joe@example.com'
     #
-    #    User.where({ name: ["Alice", "Bob"]})
+    #    User.where(name: ["Alice", "Bob"])
     #    # SELECT * FROM users WHERE name IN ('Alice', 'Bob')
     #
-    #    User.where({ created_at: (Time.now.midnight - 1.day)..Time.now.midnight })
+    #    User.where(created_at: (Time.now.midnight - 1.day)..Time.now.midnight)
     #    # SELECT * FROM users WHERE (created_at BETWEEN '2012-06-09 07:00:00.000000' AND '2012-06-10 07:00:00.000000')
     #
     # In the case of a belongs_to relationship, an association key can be used
@@ -639,8 +716,8 @@ module ActiveRecord
     #
     # For hash conditions, you can either use the table name in the key, or use a sub-hash.
     #
-    #    User.joins(:posts).where({ "posts.published" => true })
-    #    User.joins(:posts).where({ posts: { published: true } })
+    #    User.joins(:posts).where("posts.published" => true)
+    #    User.joins(:posts).where(posts: { published: true })
     #
     # === no argument
     #
@@ -729,6 +806,21 @@ module ActiveRecord
     def invert_where! # :nodoc:
       self.where_clause = where_clause.invert
       self
+    end
+
+    # Checks whether the given relation is structurally compatible with this relation, to determine
+    # if it's possible to use the #and and #or methods without raising an error. Structurally
+    # compatible is defined as: they must be scoping the same model, and they must differ only by
+    # #where (if no #group has been defined) or #having (if a #group is present).
+    #
+    #    Post.where("id = 1").structurally_compatible?(Post.where("author_id = 3"))
+    #    # => true
+    #
+    #    Post.joins(:comments).structurally_compatible?(Post.where("id = 1"))
+    #    # => false
+    #
+    def structurally_compatible?(other)
+      structurally_incompatible_values_for(other).empty?
     end
 
     # Returns a new relation, which is the logical intersection of this relation and the one passed
@@ -1230,11 +1322,9 @@ module ActiveRecord
         nil
       end
 
-      def each_join_dependencies(join_dependencies = build_join_dependencies)
+      def each_join_dependencies(join_dependencies = build_join_dependencies, &block)
         join_dependencies.each do |join_dependency|
-          join_dependency.each do |join|
-            yield join
-          end
+          join_dependency.each(&block)
         end
       end
 
@@ -1276,14 +1366,6 @@ module ActiveRecord
         unless annotate_values.empty?
           annotates = annotate_values
           annotates = annotates.uniq if annotates.size > 1
-          unless annotates == annotate_values
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Duplicated query annotations are no longer shown in queries in Rails 7.0.
-              To migrate to Rails 7.0's behavior, use `uniq!(:annotate)` to deduplicate query annotations
-              (`#{klass.name&.tableize || klass.table_name}.uniq!(:annotate)`).
-            MSG
-            annotates = annotate_values
-          end
           arel.comment(*annotates)
         end
 
@@ -1527,7 +1609,7 @@ module ActiveRecord
           when Hash
             arg.map { |field, dir|
               case field
-              when Arel::Nodes::SqlLiteral
+              when Arel::Nodes::SqlLiteral, Arel::Nodes::Node, Arel::Attribute
                 field.public_send(dir.downcase)
               else
                 order_column(field.to_s).public_send(dir.downcase)
@@ -1543,12 +1625,19 @@ module ActiveRecord
         order_args.map! do |arg|
           klass.sanitize_sql_for_order(arg)
         end
-        order_args.flatten!
-        order_args.compact_blank!
       end
 
       def column_references(order_args)
-        references = order_args.grep(String)
+        references = order_args.flat_map do |arg|
+          case arg
+          when String, Symbol
+            arg
+          when Hash
+            arg.keys.map do |key|
+              key if key.is_a?(String) || key.is_a?(Symbol)
+            end
+          end
+        end
         references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!
         references
       end
@@ -1606,9 +1695,9 @@ module ActiveRecord
       def check_if_method_has_arguments!(method_name, args, message = nil)
         if args.blank?
           raise ArgumentError, message || "The method .#{method_name}() must contain arguments."
-        elsif block_given?
-          yield args
         else
+          yield args if block_given?
+
           args.flatten!
           args.compact_blank!
         end

@@ -44,7 +44,7 @@ module ActionController
       # template digest from the ETag.
       def pick_template_for_etag(options)
         unless options[:template] == false
-          options[:template] || "#{controller_path}/#{action_name}"
+          options[:template] || lookup_context.find_all(action_name, _prefixes).first&.virtual_path
         end
       end
 

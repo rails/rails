@@ -26,7 +26,7 @@ module Rails
         ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence || "development"
       end
 
-      # Receives a namespace, arguments and the behavior to invoke the command.
+      # Receives a namespace, arguments, and the behavior to invoke the command.
       def invoke(full_namespace, args = [], **config)
         namespace = full_namespace = full_namespace.to_s
 
@@ -47,6 +47,7 @@ module Rails
         if command && command.all_commands[command_name]
           command.perform(command_name, args, config)
         else
+          args = ["--describe", full_namespace] if HELP_MAPPINGS.include?(args[0])
           find_by_namespace("rake").perform(full_namespace, args, config)
         end
       ensure

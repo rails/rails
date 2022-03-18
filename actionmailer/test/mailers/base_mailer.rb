@@ -31,6 +31,11 @@ class BaseMailer < ActionMailer::Base
     mail(template_name: "welcome", to: to)
   end
 
+  def with_blank_name
+    to = email_address_with_name("sunny@example.com", "")
+    mail(template_name: "welcome", to: to)
+  end
+
   def html_only(hash = {})
     mail(hash)
   end

@@ -2,7 +2,7 @@
 
 module ActiveModel
   module Validations
-    module Comparability #:nodoc:
+    module Comparability # :nodoc:
       COMPARE_CHECKS = { greater_than: :>, greater_than_or_equal_to: :>=,
         equal_to: :==, less_than: :<, less_than_or_equal_to: :<=,
         other_than: :!= }.freeze

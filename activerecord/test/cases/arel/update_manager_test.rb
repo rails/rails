@@ -22,6 +22,57 @@ module Arel
       assert_match(/LIMIT 10/, um.to_sql)
     end
 
+    describe "having" do
+      it "sets having" do
+        users_table = Table.new(:users)
+        posts_table = Table.new(:posts)
+        join_source = Arel::Nodes::InnerJoin.new(users_table, posts_table)
+
+        update_manager = Arel::UpdateManager.new
+        update_manager.table(join_source)
+        update_manager.group(["posts.id"])
+        update_manager.having("count(posts.id) >= 2")
+
+        assert_equal(["count(posts.id) >= 2"], update_manager.ast.havings)
+      end
+    end
+
+    describe "group" do
+      it "adds columns to the AST when group value is a String" do
+        users_table = Table.new(:users)
+        posts_table = Table.new(:posts)
+        join_source = Arel::Nodes::InnerJoin.new(users_table, posts_table)
+
+        update_manager = Arel::UpdateManager.new
+        update_manager.table(join_source)
+        update_manager.group(["posts.id"])
+        update_manager.having("count(posts.id) >= 2")
+
+        assert_equal(1, update_manager.ast.groups.count)
+        group_ast = update_manager.ast.groups.first
+        _(group_ast).must_be_kind_of Nodes::Group
+        assert_equal("posts.id", group_ast.expr)
+        assert_equal(["count(posts.id) >= 2"], update_manager.ast.havings)
+      end
+
+      it "adds columns to the AST when group value is a Symbol" do
+        users_table = Table.new(:users)
+        posts_table = Table.new(:posts)
+        join_source = Arel::Nodes::InnerJoin.new(users_table, posts_table)
+
+        update_manager = Arel::UpdateManager.new
+        update_manager.table(join_source)
+        update_manager.group([:"posts.id"])
+        update_manager.having("count(posts.id) >= 2")
+
+        assert_equal(1, update_manager.ast.groups.count)
+        group_ast = update_manager.ast.groups.first
+        _(group_ast).must_be_kind_of Nodes::Group
+        assert_equal("posts.id", group_ast.expr)
+        assert_equal(["count(posts.id) >= 2"], update_manager.ast.havings)
+      end
+    end
+
     describe "set" do
       it "updates with null" do
         table = Table.new(:users)

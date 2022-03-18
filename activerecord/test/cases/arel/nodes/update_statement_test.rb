@@ -27,6 +27,8 @@ describe Arel::Nodes::UpdateStatement do
       statement1.orders   = %w[x y z]
       statement1.limit    = 42
       statement1.key      = "zomg"
+      statement1.groups   = ["foo"]
+      statement1.havings  = []
       statement2 = Arel::Nodes::UpdateStatement.new
       statement2.relation = "zomg"
       statement2.wheres   = 2
@@ -34,6 +36,8 @@ describe Arel::Nodes::UpdateStatement do
       statement2.orders   = %w[x y z]
       statement2.limit    = 42
       statement2.key      = "zomg"
+      statement2.groups   = ["foo"]
+      statement2.havings  = []
       array = [statement1, statement2]
       assert_equal 1, array.uniq.size
     end

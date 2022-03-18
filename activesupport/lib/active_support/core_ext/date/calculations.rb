@@ -13,22 +13,22 @@ class Date
   class << self
     attr_accessor :beginning_of_week_default
 
-    # Returns the week start (e.g. :monday) for the current request, if this has been set (via Date.beginning_of_week=).
+    # Returns the week start (e.g. +:monday+) for the current request, if this has been set (via Date.beginning_of_week=).
     # If <tt>Date.beginning_of_week</tt> has not been set for the current request, returns the week start specified in <tt>config.beginning_of_week</tt>.
-    # If no config.beginning_of_week was specified, returns :monday.
+    # If no +config.beginning_of_week+ was specified, returns +:monday+.
     def beginning_of_week
-      Thread.current[:beginning_of_week] || beginning_of_week_default || :monday
+      ::ActiveSupport::IsolatedExecutionState[:beginning_of_week] || beginning_of_week_default || :monday
     end
 
-    # Sets <tt>Date.beginning_of_week</tt> to a week start (e.g. :monday) for current request/thread.
+    # Sets <tt>Date.beginning_of_week</tt> to a week start (e.g. +:monday+) for current request/thread.
     #
     # This method accepts any of the following day symbols:
-    # :monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday
+    # +:monday+, +:tuesday+, +:wednesday+, +:thursday+, +:friday+, +:saturday+, +:sunday+
     def beginning_of_week=(week_start)
-      Thread.current[:beginning_of_week] = find_beginning_of_week!(week_start)
+      ::ActiveSupport::IsolatedExecutionState[:beginning_of_week] = find_beginning_of_week!(week_start)
     end
 
-    # Returns week start day symbol (e.g. :monday), or raises an +ArgumentError+ for invalid day symbol.
+    # Returns week start day symbol (e.g. +:monday+), or raises an +ArgumentError+ for invalid day symbol.
     def find_beginning_of_week!(week_start)
       raise ArgumentError, "Invalid beginning of week: #{week_start}" unless ::Date::DAYS_INTO_WEEK.key?(week_start)
       week_start
@@ -87,7 +87,7 @@ class Date
   end
   alias :at_end_of_day :end_of_day
 
-  def plus_with_duration(other) #:nodoc:
+  def plus_with_duration(other) # :nodoc:
     if ActiveSupport::Duration === other
       other.since(self)
     else
@@ -97,7 +97,7 @@ class Date
   alias_method :plus_without_duration, :+
   alias_method :+, :plus_with_duration
 
-  def minus_with_duration(other) #:nodoc:
+  def minus_with_duration(other) # :nodoc:
     if ActiveSupport::Duration === other
       plus_with_duration(-other)
     else

@@ -3,6 +3,7 @@
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/introspection"
 require "active_support/core_ext/module/redefine_method"
+require "active_support/core_ext/module/delegation"
 
 module ActiveModel
   class Name
@@ -194,18 +195,15 @@ module ActiveModel
     #
     # Specify +options+ with additional translating options.
     def human(options = {})
-      return @human unless @klass.respond_to?(:lookup_ancestors) &&
-                           @klass.respond_to?(:i18n_scope)
+      return @human if i18n_keys.empty? || i18n_scope.empty?
 
-      defaults = @klass.lookup_ancestors.map do |klass|
-        klass.model_name.i18n_key
-      end
-
+      key, *defaults = i18n_keys
       defaults << options[:default] if options[:default]
-      defaults << @human
+      defaults << MISSING_TRANSLATION
 
-      options = { scope: [@klass.i18n_scope, :models], count: 1, default: defaults }.merge!(options.except(:default))
-      I18n.translate(defaults.shift, **options)
+      translation = I18n.translate(key, scope: i18n_scope, count: 1, **options, default: defaults)
+      translation = @human if translation == MISSING_TRANSLATION
+      translation
     end
 
     def uncountable?
@@ -213,8 +211,22 @@ module ActiveModel
     end
 
     private
+      MISSING_TRANSLATION = Object.new # :nodoc:
+
       def _singularize(string)
         ActiveSupport::Inflector.underscore(string).tr("/", "_")
+      end
+
+      def i18n_keys
+        @i18n_keys ||= if @klass.respond_to?(:lookup_ancestors)
+          @klass.lookup_ancestors.map { |klass| klass.model_name.i18n_key }
+        else
+          []
+        end
+      end
+
+      def i18n_scope
+        @i18n_scope ||= @klass.respond_to?(:i18n_scope) ? [@klass.i18n_scope, :models] : []
       end
   end
 
@@ -238,7 +250,7 @@ module ActiveModel
   # is required to pass the \Active \Model Lint test. So either extending the
   # provided method below, or rolling your own is required.
   module Naming
-    def self.extended(base) #:nodoc:
+    def self.extended(base) # :nodoc:
       base.silence_redefinition_of_method :model_name
       base.delegate :model_name, to: :class
     end
@@ -327,7 +339,7 @@ module ActiveModel
       model_name_from_record_or_class(record_or_class).param_key
     end
 
-    def self.model_name_from_record_or_class(record_or_class) #:nodoc:
+    def self.model_name_from_record_or_class(record_or_class) # :nodoc:
       if record_or_class.respond_to?(:to_model)
         record_or_class.to_model.model_name
       else

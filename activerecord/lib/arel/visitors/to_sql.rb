@@ -245,6 +245,13 @@ module Arel # :nodoc: all
           collector << ")"
         end
 
+        def visit_Arel_Nodes_Filter(o, collector)
+          visit o.left, collector
+          collector << " FILTER (WHERE "
+          visit o.right, collector
+          collector << ")"
+        end
+
         def visit_Arel_Nodes_Rows(o, collector)
           if o.expr
             collector << "ROWS "
@@ -834,6 +841,10 @@ module Arel # :nodoc: all
           o.limit || o.offset || !o.orders.empty?
         end
 
+        def has_group_by_and_having?(o)
+          !o.groups.empty? && !o.havings.empty?
+        end
+
         # The default strategy for an UPDATE with joins is to use a subquery. This doesn't work
         # on MySQL (even when aliasing the tables), but MySQL allows using JOIN directly in
         # an UPDATE statement, so in the MySQL visitor we redefine this to do that.
@@ -845,6 +856,8 @@ module Arel # :nodoc: all
             stmt.orders = []
             stmt.wheres = [Nodes::In.new(o.key, [build_subselect(o.key, o)])]
             stmt.relation = o.relation.left if has_join_sources?(o)
+            stmt.groups = o.groups unless o.groups.empty?
+            stmt.havings = o.havings unless o.havings.empty?
             stmt
           else
             o
@@ -859,6 +872,8 @@ module Arel # :nodoc: all
           core.froms       = o.relation
           core.wheres      = o.wheres
           core.projections = [key]
+          core.groups      = o.groups unless o.groups.empty?
+          core.havings     = o.havings unless o.havings.empty?
           stmt.limit       = o.limit
           stmt.offset      = o.offset
           stmt.orders      = o.orders

@@ -6,17 +6,17 @@ require "active_support/core_ext/numeric"
 
 module ActiveRecord
   module Encryption
-    # An encryptor exposes the encryption API that +ActiveRecord::Encryption::EncryptedAttributeType+
+    # An encryptor exposes the encryption API that ActiveRecord::Encryption::EncryptedAttributeType
     # uses for encrypting and decrypting attribute values.
     #
-    # It interacts with a +KeyProvider+ for getting the keys, and delegate to
-    # +ActiveRecord::Encryption::Cipher+ the actual encryption algorithm.
+    # It interacts with a KeyProvider for getting the keys, and delegate to
+    # ActiveRecord::Encryption::Cipher the actual encryption algorithm.
     class Encryptor
       # Encrypts +clean_text+ and returns the encrypted result
       #
       # Internally, it will:
       #
-      # 1. Create a new +ActiveRecord::Encryption::Message+
+      # 1. Create a new ActiveRecord::Encryption::Message
       # 2. Compress and encrypt +clean_text+ as the message payload
       # 3. Serialize it with +ActiveRecord::Encryption.message_serializer+ (+ActiveRecord::Encryption::SafeMarshal+
       #    by default)
@@ -26,12 +26,14 @@ module ActiveRecord
       #
       # [:key_provider]
       #   Key provider to use for the encryption operation. It will default to
-      #   +ActiveRecord::Encryption.key_provider+ when not provided
+      #   +ActiveRecord::Encryption.key_provider+ when not provided.
       #
       # [:cipher_options]
-      #   +Cipher+-specific options that will be passed to the Cipher configured in
+      #   Cipher-specific options that will be passed to the Cipher configured in
       #   +ActiveRecord::Encryption.cipher+
       def encrypt(clear_text, key_provider: default_key_provider, cipher_options: {})
+        clear_text = force_encoding_if_needed(clear_text) if cipher_options[:deterministic]
+
         validate_payload_type(clear_text)
         serialize_message build_encrypted_message(clear_text, key_provider: key_provider, cipher_options: cipher_options)
       end
@@ -45,7 +47,7 @@ module ActiveRecord
       #   +ActiveRecord::Encryption.key_provider+ when not provided
       #
       # [:cipher_options]
-      #   +Cipher+-specific options that will be passed to the Cipher configured in
+      #   Cipher-specific options that will be passed to the Cipher configured in
       #   +ActiveRecord::Encryption.cipher+
       def decrypt(encrypted_text, key_provider: default_key_provider, cipher_options: {})
         message = deserialize_message(encrypted_text)
@@ -135,6 +137,18 @@ module ActiveRecord
           Zlib::Inflate.inflate(data).tap do |uncompressed_data|
             uncompressed_data.force_encoding(data.encoding)
           end
+        end
+
+        def force_encoding_if_needed(value)
+          if forced_encoding_for_deterministic_encryption && value && value.encoding != forced_encoding_for_deterministic_encryption
+            value.encode(forced_encoding_for_deterministic_encryption, invalid: :replace, undef: :replace)
+          else
+            value
+          end
+        end
+
+        def forced_encoding_for_deterministic_encryption
+          ActiveRecord::Encryption.config.forced_encoding_for_deterministic_encryption
         end
     end
   end

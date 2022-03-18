@@ -29,7 +29,17 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     sleep 1
   end
 
+  def mkdir(dirs)
+    super
+    wait # wait for the events to fire
+  end
+
   def touch(files)
+    super
+    wait # wait for the events to fire
+  end
+
+  def rm_f(files)
     super
     wait # wait for the events to fire
   end
@@ -75,14 +85,23 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
   end
 
   test "can be garbage collected" do
-    previous_threads = Thread.list
-    checker_ref = WeakRef.new(ActiveSupport::EventedFileUpdateChecker.new([], tmpdir => ".rb") { })
-    listener_threads = Thread.list - previous_threads
+    # Use a separate thread to isolate objects and ensure they will be garbage collected.
+    checker_ref, listener_threads = Thread.new do
+      threads_before_checker = Thread.list
+      checker = ActiveSupport::EventedFileUpdateChecker.new([], tmpdir => ".rb") { }
 
-    wait # Wait for listener thread to start processing events.
-    GC.start
+      # Wait for listener thread to start processing events.
+      wait
 
-    assert_not_predicate checker_ref, :weakref_alive?
+      [WeakRef.new(checker), Thread.list - threads_before_checker]
+    end.value
+
+    # Calling `GC.start` 4 times should trigger a full GC run.
+    4.times do
+      GC.start
+    end
+
+    assert_not checker_ref.weakref_alive?, "EventedFileUpdateChecker was not garbage collected"
     assert_empty Thread.list & listener_threads
   end
 
@@ -97,8 +116,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
 
     assert_not_predicate checker, :updated?
 
-    FileUtils.touch(File.join(actual_dir, "a.rb"))
-    wait
+    touch(File.join(actual_dir, "a.rb"))
 
     assert_predicate checker, :updated?
     assert checker.execute_if_updated
@@ -114,8 +132,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
 
     checker = new_checker([], watched_dir => ".rb", not_exist_watched_dir => ".rb") { }
 
-    FileUtils.touch(File.join(watched_dir, "a.rb"))
-    wait
+    touch(File.join(watched_dir, "a.rb"))
     assert_predicate checker, :updated?
     assert checker.execute_if_updated
 
@@ -124,8 +141,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     assert_predicate checker, :updated?
     assert checker.execute_if_updated
 
-    FileUtils.touch(File.join(unwatched_dir, "a.rb"))
-    wait
+    touch(File.join(unwatched_dir, "a.rb"))
     assert_not_predicate checker, :updated?
     assert_not checker.execute_if_updated
   end

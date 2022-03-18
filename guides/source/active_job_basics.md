@@ -114,7 +114,7 @@ Job Execution
 -------------
 
 For enqueuing and executing jobs in production you need to set up a queuing backend,
-that is to say you need to decide on a 3rd-party queuing library that Rails should use.
+that is to say, you need to decide on a 3rd-party queuing library that Rails should use.
 Rails itself only provides an in-process queuing system, which only keeps the jobs in RAM.
 If the process crashes or the machine is reset, then all outstanding jobs are lost with the
 default async backend. This may be fine for smaller apps or non-critical jobs, but most
@@ -130,7 +130,7 @@ see the API Documentation for [`ActiveJob::QueueAdapters`][].
 
 ### Setting the Backend
 
-You can easily set your queuing backend:
+You can easily set your queuing backend with [`config.active_job.queue_adapter`]:
 
 ```ruby
 # config/application.rb
@@ -156,6 +156,8 @@ end
 # was configured in `config.active_job.queue_adapter`.
 ```
 
+[`config.active_job.queue_adapter`]: configuring.html#config-active-job-queue-adapter
+
 ### Starting the Backend
 
 Since jobs run in parallel to your Rails application, most queuing libraries
@@ -172,6 +174,7 @@ Here is a noncomprehensive list of documentation:
 - [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
 - [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
 - [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
+- [Good Job](https://github.com/bensheldon/good_job#readme)
 
 Queues
 ------
@@ -187,7 +190,7 @@ end
 ```
 
 You can prefix the queue name for all your jobs using
-`config.active_job.queue_name_prefix` in `application.rb`:
+[`config.active_job.queue_name_prefix`][] in `application.rb`:
 
 ```ruby
 # config/application.rb
@@ -224,7 +227,7 @@ end
 ```
 
 The default queue name prefix delimiter is '\_'.  This can be changed by setting
-`config.active_job.queue_name_delimiter` in `application.rb`:
+[`config.active_job.queue_name_delimiter`][] in `application.rb`:
 
 ```ruby
 # config/application.rb
@@ -283,6 +286,8 @@ ProcessVideoJob.perform_later(Video.last)
 NOTE: Make sure your queuing backend "listens" on your queue name. For some
 backends you need to specify the queues to listen to.
 
+[`config.active_job.queue_name_delimiter`]: configuring.html#config-active-job-queue-name-delimiter
+[`config.active_job.queue_name_prefix`]: configuring.html#config-active-job-queue-name-prefix
 [`queue_as`]: https://api.rubyonrails.org/classes/ActiveJob/QueueName/ClassMethods.html#method-i-queue_as
 
 Callbacks
@@ -451,11 +456,11 @@ end
 and add this serializer to the list:
 
 ```ruby
-# config/initializer/custom_serializers.rb
+# config/initializers/custom_serializers.rb
 Rails.application.config.active_job.custom_serializers << MoneySerializer
 ```
 
-Note that auto-loading reloadable code during initialization is not supported. Thus it is recommended
+Note that autoloading reloadable code during initialization is not supported. Thus it is recommended
 to set-up serializers to be loaded only once, e.g. by amending `config/application.rb` like this:
 
 ```ruby

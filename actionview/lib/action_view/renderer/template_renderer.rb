@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActionView
-  class TemplateRenderer < AbstractRenderer #:nodoc:
+  class TemplateRenderer < AbstractRenderer # :nodoc:
     def render(context, options)
       @details = extract_details(options)
       template = determine_template(options)
@@ -26,7 +26,11 @@ module ActionView
           if File.exist?(options[:file])
             Template::RawFile.new(options[:file])
           else
-            raise ArgumentError, "`render file:` should be given the absolute path to a file. '#{options[:file]}' was given instead"
+            if Pathname.new(options[:file]).absolute?
+              raise ArgumentError, "File #{options[:file]} does not exist"
+            else
+              raise ArgumentError, "`render file:` should be given the absolute path to a file. '#{options[:file]}' was given instead"
+            end
           end
         elsif options.key?(:inline)
           handler = Template.handler_for_extension(options[:type] || "erb")

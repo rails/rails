@@ -14,15 +14,15 @@ module ActiveRecord
       end
 
       # This file exists to ensure that old migrations run the same way they did before a Rails upgrade.
-      # eg. if you write a migration on Rails 6.1, then upgrade to Rails 7, the migration should do the same thing to your
+      # e.g. if you write a migration on Rails 6.1, then upgrade to Rails 7, the migration should do the same thing to your
       # database as it did when you were running Rails 6.1
       #
       # "Current" is an alias for `ActiveRecord::Migration`, it represents the current Rails version.
       # New migration functionality that will never be backward compatible should be added directly to `ActiveRecord::Migration`.
       #
       # There are classes for each prior Rails version. Each class descends from the *next* Rails version, so:
-      # 6.1 < 7.0
-      # 5.2 < 6.0 < 6.1 < 7.0
+      # 7.0 < 7.1
+      # 5.2 < 6.0 < 6.1 < 7.0 < 7.1
       #
       # If you are introducing new migration functionality that should only apply from Rails 7 onward, then you should
       # find the class that immediately precedes it (6.1), and override the relevant migration methods to undo your changes.
@@ -30,7 +30,39 @@ module ActiveRecord
       # For example, Rails 6 added a default value for the `precision` option on datetime columns. So in this file, the `V5_2`
       # class sets the value of `precision` to `nil` if it's not explicitly provided. This way, the default value will not apply
       # for migrations written for 5.2, but will for migrations written for 6.0.
-      V7_0 = Current
+      V7_1 = Current
+
+      class V7_0 < V7_1
+        module TableDefinition
+          private
+            def raise_on_if_exist_options(options)
+            end
+        end
+
+        def create_table(table_name, **options)
+          if block_given?
+            super { |t| yield compatible_table_definition(t) }
+          else
+            super
+          end
+        end
+
+        def change_table(table_name, **options)
+          if block_given?
+            super { |t| yield compatible_table_definition(t) }
+          else
+            super
+          end
+        end
+
+        private
+          def compatible_table_definition(t)
+            class << t
+              prepend TableDefinition
+            end
+            t
+          end
+      end
 
       class V6_1 < V7_0
         class PostgreSQLCompat
@@ -48,6 +80,10 @@ module ActiveRecord
         end
 
         def add_column(table_name, column_name, type, **options)
+          if type == :datetime
+            options[:precision] ||= nil
+          end
+
           type = PostgreSQLCompat.compatible_timestamp_type(type, connection)
           super
         end
@@ -60,11 +96,28 @@ module ActiveRecord
           end
         end
 
+        def change_table(table_name, **options)
+          if block_given?
+            super { |t| yield compatible_table_definition(t) }
+          else
+            super
+          end
+        end
+
         module TableDefinition
           def new_column_definition(name, type, **options)
             type = PostgreSQLCompat.compatible_timestamp_type(type, @conn)
             super
           end
+
+          def column(name, type, index: nil, **options)
+            options[:precision] ||= nil
+            super
+          end
+
+          private
+            def raise_on_if_exist_options(options)
+            end
         end
 
         private
@@ -85,11 +138,19 @@ module ActiveRecord
 
         module TableDefinition
           def references(*args, **options)
-            args.each do |ref_name|
-              ReferenceDefinition.new(ref_name, **options).add_to(self)
-            end
+            options[:_uses_legacy_reference_index_name] = true
+            super
           end
           alias :belongs_to :references
+
+          def column(name, type, index: nil, **options)
+            options[:precision] ||= nil
+            super
+          end
+
+          private
+            def raise_on_if_exist_options(options)
+            end
         end
 
         def create_table(table_name, **options)
@@ -117,8 +178,12 @@ module ActiveRecord
         end
 
         def add_reference(table_name, ref_name, **options)
-          ReferenceDefinition.new(ref_name, **options)
-            .add_to(connection.update_table_definition(table_name, self))
+          if connection.adapter_name == "SQLite"
+            options[:type] = :integer
+          end
+
+          options[:_uses_legacy_reference_index_name] = true
+          super
         end
         alias :add_belongs_to :add_reference
 
@@ -127,7 +192,7 @@ module ActiveRecord
             class << t
               prepend TableDefinition
             end
-            t
+            super
           end
       end
 
@@ -137,6 +202,15 @@ module ActiveRecord
             options[:precision] ||= nil
             super
           end
+
+          def column(name, type, index: nil, **options)
+            options[:precision] ||= nil
+            super
+          end
+
+          private
+            def raise_on_if_exist_options(options)
+            end
         end
 
         module CommandRecorder
@@ -187,7 +261,7 @@ module ActiveRecord
             class << t
               prepend TableDefinition
             end
-            t
+            super
           end
 
           def command_recorder
@@ -231,6 +305,10 @@ module ActiveRecord
             super(*args, type: :integer, **options)
           end
           alias :belongs_to :references
+
+          private
+            def raise_on_if_exist_options(options)
+            end
         end
 
         def create_table(table_name, **options)
@@ -265,6 +343,8 @@ module ActiveRecord
           if type == :primary_key
             type = :integer
             options[:primary_key] = true
+          elsif type == :datetime
+            options[:precision] ||= nil
           end
           super
         end
@@ -295,6 +375,10 @@ module ActiveRecord
             options[:null] = true if options[:null].nil?
             super
           end
+
+          private
+            def raise_on_if_exist_options(options)
+            end
         end
 
         def add_reference(table_name, ref_name, **options)

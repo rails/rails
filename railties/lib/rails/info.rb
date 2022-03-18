@@ -21,7 +21,7 @@ module Rails
       end
     end
 
-    class << self #:nodoc:
+    class << self # :nodoc:
       def property(name, value = nil)
         value ||= yield
         properties << [name, value] if value

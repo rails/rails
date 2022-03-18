@@ -140,8 +140,6 @@ module ActiveRecord
     #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people ORDER BY people.id LIMIT 3
     #
     def first(limit = nil)
-      check_reorder_deprecation unless loaded?
-
       if limit
         find_nth_with_limit(0, limit)
       else
@@ -390,17 +388,6 @@ module ActiveRecord
     end
 
     private
-      def check_reorder_deprecation
-        if !order_values.empty? && order_values.all?(&:blank?)
-          blank_value = order_values.first
-          ActiveSupport::Deprecation.warn(<<~MSG.squish)
-            `.reorder(#{blank_value.inspect})` with `.first` / `.first!` no longer
-            takes non-deterministic result in Rails 7.0.
-            To continue taking non-deterministic result, use `.take` / `.take!` instead.
-          MSG
-        end
-      end
-
       def construct_relation_for_exists(conditions)
         conditions = sanitize_forbidden_attributes(conditions)
 
@@ -435,7 +422,7 @@ module ActiveRecord
                 ), nil
               ).reflections
             )
-        )
+          )
           relation = skip_query_cache_if_necessary do
             klass.connection.distinct_relation_for_primary_key(relation)
           end

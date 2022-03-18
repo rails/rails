@@ -62,6 +62,7 @@ module ActiveRecord
           status[:executed] = true
           status[:async] = event.payload[:async]
           status[:thread_id] = Thread.current.object_id
+          status[:lock_wait] = event.payload[:lock_wait]
         end
       end
 
@@ -70,6 +71,11 @@ module ActiveRecord
       assert_equal expected_records, deferred_posts.to_a
       assert_equal Post.connection.supports_concurrent_connections?, status[:async]
       assert_equal Thread.current.object_id, status[:thread_id]
+      if Post.connection.supports_concurrent_connections?
+        assert_instance_of Float, status[:lock_wait]
+      else
+        assert_nil status[:lock_wait]
+      end
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
@@ -178,13 +184,13 @@ module ActiveRecord
       fixtures :posts, :comments
 
       def setup
-        @old_config = ActiveRecord::Base.async_query_executor
-        ActiveRecord::Base.async_query_executor = nil
+        @old_config = ActiveRecord.async_query_executor
+        ActiveRecord.async_query_executor = nil
         ActiveRecord::Base.establish_connection :arunit
       end
 
       def teardown
-        ActiveRecord::Base.async_query_executor = @old_config
+        ActiveRecord.async_query_executor = @old_config
         ActiveRecord::Base.establish_connection :arunit
       end
 
@@ -302,8 +308,8 @@ module ActiveRecord
       fixtures :posts, :comments
 
       def setup
-        @old_config = ActiveRecord::Base.async_query_executor
-        ActiveRecord::Base.async_query_executor = :multi_thread_pool
+        @old_config = ActiveRecord.async_query_executor
+        ActiveRecord.async_query_executor = :multi_thread_pool
 
         handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
         config_hash1 = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash
@@ -319,7 +325,7 @@ module ActiveRecord
       end
 
       def teardown
-        ActiveRecord::Base.async_query_executor = @old_config
+        ActiveRecord.async_query_executor = @old_config
         clean_up_connection_handler
       end
 
@@ -434,8 +440,8 @@ module ActiveRecord
 
       def setup
         @previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
-        @old_config = ActiveRecord::Base.async_query_executor
-        ActiveRecord::Base.async_query_executor = :multi_thread_pool
+        @old_config = ActiveRecord.async_query_executor
+        ActiveRecord.async_query_executor = :multi_thread_pool
         config_hash1 = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash
         config_hash2 = ActiveRecord::Base.configurations.configs_for(env_name: "arunit2", name: "primary").configuration_hash
         config = {
@@ -453,7 +459,7 @@ module ActiveRecord
       def teardown
         ENV["RAILS_ENV"] = @previous_env
         ActiveRecord::Base.configurations = @prev_configs
-        ActiveRecord::Base.async_query_executor = @old_config
+        ActiveRecord.async_query_executor = @old_config
         clean_up_connection_handler
       end
 

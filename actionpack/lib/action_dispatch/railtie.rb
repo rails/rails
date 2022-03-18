@@ -25,6 +25,7 @@ module ActionDispatch
     config.action_dispatch.perform_deep_munge = true
     config.action_dispatch.request_id_header = "X-Request-Id"
     config.action_dispatch.return_only_request_media_type_on_content_type = true
+    config.action_dispatch.log_rescued_responses = true
 
     config.action_dispatch.default_headers = {
       "X-Frame-Options" => "SAMEORIGIN",

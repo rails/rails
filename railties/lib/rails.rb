@@ -12,7 +12,6 @@ require "active_support/core_ext/object/blank"
 
 require "rails/application"
 require "rails/version"
-require "rails/autoloaders"
 
 require "active_support/railtie"
 require "action_dispatch/railtie"
@@ -81,6 +80,10 @@ module Rails
       @_env = ActiveSupport::EnvironmentInquirer.new(environment)
     end
 
+    def error
+      application && application.executor.error_reporter
+    end
+
     # Returns all Rails groups for loading based on:
     #
     # * The Rails environment;
@@ -111,7 +114,7 @@ module Rails
     end
 
     def autoloaders
-      Autoloaders
+      application.autoloaders
     end
   end
 end

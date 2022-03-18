@@ -62,6 +62,32 @@ module ActiveRecord
       end
 
       unless in_memory_db?
+        def test_not_setting_writing_role_while_using_another_named_role_raises
+          connection_handler = ActiveRecord::Base.connection_handler
+          ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+
+          ActiveRecord::Base.connects_to(shards: { default: { all: :arunit }, one: { all: :arunit } })
+
+          assert_raises(ArgumentError) { setup_shared_connection_pool }
+        ensure
+          ActiveRecord::Base.connection_handler = connection_handler
+          ActiveRecord::Base.establish_connection :arunit
+        end
+
+        def test_setting_writing_role_while_using_another_named_role_does_not_raise
+          connection_handler = ActiveRecord::Base.connection_handler
+          ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+          old_role, ActiveRecord.writing_role = ActiveRecord.writing_role, :all
+
+          ActiveRecord::Base.connects_to(shards: { default: { all: :arunit }, one: { all: :arunit } })
+
+          assert_nothing_raised { setup_shared_connection_pool }
+        ensure
+          ActiveRecord.writing_role = old_role
+          ActiveRecord::Base.connection_handler = connection_handler
+          ActiveRecord::Base.establish_connection :arunit
+        end
+
         def test_establish_connection_with_primary_works_without_deprecation
           old_config = ActiveRecord::Base.configurations
           config = { "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" } }
@@ -75,20 +101,6 @@ module ActiveRecord
           end
         ensure
           ActiveRecord::Base.configurations = old_config
-        end
-
-        def test_retrieve_connection_shows_primary_deprecation_warning_when_established_on_active_record_base
-          old_config = ActiveRecord::Base.configurations
-          config = { "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" } }
-          ActiveRecord::Base.configurations = config
-
-          ActiveRecord::Base.establish_connection(:primary)
-
-          assert_deprecated { @handler.retrieve_connection("primary") }
-          assert_deprecated { @handler.remove_connection_pool("primary") }
-        ensure
-          ActiveRecord::Base.configurations = old_config
-          ActiveRecord::Base.establish_connection(:arunit)
         end
 
         def test_establish_connection_using_3_level_config_defaults_to_default_env_primary_db
@@ -134,18 +146,6 @@ module ActiveRecord
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ENV["RAILS_ENV"] = previous_env
-          ActiveRecord::Base.establish_connection(:arunit)
-        end
-
-        def test_remove_connection_is_deprecated
-          expected = @handler.retrieve_connection_pool(@owner_name).db_config.configuration_hash
-
-          config_hash = assert_deprecated do
-            @handler.remove_connection(@owner_name)
-          end
-
-          assert_equal expected, config_hash
-        ensure
           ActiveRecord::Base.establish_connection(:arunit)
         end
       end
@@ -285,8 +285,8 @@ module ActiveRecord
       end
 
       def test_default_handlers_are_writing_and_reading
-        assert_equal :writing, ActiveRecord::Base.writing_role
-        assert_equal :reading, ActiveRecord::Base.reading_role
+        assert_equal :writing, ActiveRecord.writing_role
+        assert_equal :reading, ActiveRecord.reading_role
       end
 
       if Process.respond_to?(:fork)

@@ -48,6 +48,8 @@ module ActionController
 
     private
       def process_action(*)
+        ActiveSupport::ExecutionContext[:controller] = self
+
         raw_payload = {
           controller: self.class.name,
           action: action_name,
@@ -99,7 +101,7 @@ module ActionController
         # A hook which allows other frameworks to log what happened during
         # controller process action. This method should return an array
         # with the messages to be added.
-        def log_process_action(payload) #:nodoc:
+        def log_process_action(payload) # :nodoc:
           messages, view_runtime = [], payload[:view_runtime]
           messages << ("Views: %.1fms" % view_runtime.to_f) if view_runtime
           messages

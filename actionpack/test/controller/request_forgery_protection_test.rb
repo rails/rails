@@ -103,6 +103,24 @@ class RequestForgeryProtectionControllerUsingNullSession < ActionController::Bas
   end
 end
 
+class RequestForgeryProtectionControllerUsingCustomStrategy < ActionController::Base
+  include RequestForgeryProtectionActions
+
+  class FakeException < Exception; end
+
+  class CustomStrategy
+    def initialize(controller)
+      @controller = controller
+    end
+
+    def handle_unverified_request
+      raise FakeException, "Raised a fake exception."
+    end
+  end
+
+  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: CustomStrategy
+end
+
 class PrependProtectForgeryBaseController < ActionController::Base
   before_action :custom_action
   attr_accessor :called_callbacks
@@ -172,18 +190,20 @@ class SkipProtectionController < ActionController::Base
   attr_accessor :skip_requested
 end
 
+class SkipProtectionWhenUnprotectedController < ActionController::Base
+  include RequestForgeryProtectionActions
+  skip_forgery_protection
+end
+
 # common test methods
 module RequestForgeryProtectionTests
   def setup
-    @old_urlsafe_csrf_tokens = ActionController::Base.urlsafe_csrf_tokens
-    ActionController::Base.urlsafe_csrf_tokens = true
     @token = Base64.urlsafe_encode64("railstestrailstestrailstestrails")
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
 
   def teardown
-    ActionController::Base.urlsafe_csrf_tokens = @old_urlsafe_csrf_tokens
     ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
   end
 
@@ -387,19 +407,6 @@ module RequestForgeryProtectionTests
     @controller.stub :form_authenticity_token, token_including_url_unsafe_chars do
       assert_not_blocked { post :index, params: { custom_authenticity_token: token_including_url_unsafe_chars } }
     end
-  end
-
-  def test_should_allow_post_with_urlsafe_token_when_migrating
-    config_before = ActionController::Base.urlsafe_csrf_tokens
-    ActionController::Base.urlsafe_csrf_tokens = false
-    token_length = (ActionController::RequestForgeryProtection::AUTHENTICITY_TOKEN_LENGTH * 4.0 / 3).ceil
-    token_including_url_safe_chars = "-_".ljust(token_length, "A")
-    session[:_csrf_token] = token_including_url_safe_chars
-    @controller.stub :form_authenticity_token, token_including_url_safe_chars do
-      assert_not_blocked { post :index, params: { custom_authenticity_token: token_including_url_safe_chars } }
-    end
-  ensure
-    ActionController::Base.urlsafe_csrf_tokens = config_before
   end
 
   def test_should_allow_patch_with_token
@@ -634,14 +641,12 @@ module RequestForgeryProtectionTests
     assert_response :success
   end
 
-  def assert_cross_origin_blocked
-    assert_raises(ActionController::InvalidCrossOriginRequest) do
-      yield
-    end
+  def assert_cross_origin_blocked(&block)
+    assert_raises(ActionController::InvalidCrossOriginRequest, &block)
   end
 
-  def assert_cross_origin_not_blocked
-    assert_not_blocked { yield }
+  def assert_cross_origin_not_blocked(&block)
+    assert_not_blocked(&block)
   end
 
   def forgery_protection_origin_check
@@ -701,10 +706,33 @@ end
 
 class RequestForgeryProtectionControllerUsingExceptionTest < ActionController::TestCase
   include RequestForgeryProtectionTests
-  def assert_blocked
-    assert_raises(ActionController::InvalidAuthenticityToken) do
-      yield
+
+  def assert_blocked(&block)
+    assert_raises(ActionController::InvalidAuthenticityToken, &block)
+  end
+
+  def test_raised_exception_message_explains_why_it_occurred
+    forgery_protection_origin_check do
+      session[:_csrf_token] = @token
+      @controller.stub :form_authenticity_token, @token do
+        exception = assert_raises(ActionController::InvalidAuthenticityToken) do
+          @request.set_header "HTTP_ORIGIN", "http://bad.host"
+          post :index, params: { custom_authenticity_token: @token }
+        end
+        assert_match(
+          "HTTP Origin header (http://bad.host) didn't match request.base_url (http://test.host)",
+          exception.message
+        )
+      end
     end
+  end
+end
+
+class RequestForgeryProtectionControllerUsingCustomStrategyTest < ActionController::TestCase
+  include RequestForgeryProtectionTests
+
+  def assert_blocked(&block)
+    assert_raises(RequestForgeryProtectionControllerUsingCustomStrategy::FakeException, &block)
   end
 end
 
@@ -872,9 +900,10 @@ class PerFormTokensControllerTest < ActionController::TestCase
 
     # Set invalid URI in PATH_INFO
     @request.env["PATH_INFO"] = "/foo/bar<"
-    assert_raise ActionController::InvalidAuthenticityToken do
+    exception = assert_raises(ActionController::InvalidAuthenticityToken) do
       post :post_one, params: { custom_authenticity_token: form_token }
     end
+    assert_match "Can't verify CSRF token authenticity.", exception.message
   end
 
   def test_rejects_token_for_incorrect_path
@@ -1088,10 +1117,19 @@ class SkipProtectionControllerTest < ActionController::TestCase
     assert_not_blocked { post :index }
   end
 
-  def assert_blocked
-    assert_raises(ActionController::InvalidAuthenticityToken) do
-      yield
-    end
+  def assert_blocked(&block)
+    assert_raises(ActionController::InvalidAuthenticityToken, &block)
+  end
+
+  def assert_not_blocked(&block)
+    assert_nothing_raised(&block)
+    assert_response :success
+  end
+end
+
+class SkipProtectionWhenUnprotectedControllerTest < ActionController::TestCase
+  def test_should_allow_skip_request_when_protection_is_not_set
+    assert_not_blocked { post :index }
   end
 
   def assert_not_blocked(&block)

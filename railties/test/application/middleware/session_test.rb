@@ -136,7 +136,7 @@ module ApplicationTests
       assert_equal '"1"', last_response.body
     end
 
-    test "session using encrypted cookie store" do
+    test "session using encrypted cookie store with json serializer" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get ':controller(/:action)'
@@ -167,6 +167,8 @@ module ApplicationTests
       add_to_config <<-RUBY
         # Enable AEAD cookies
         config.action_dispatch.use_authenticated_cookie_encryption = true
+
+        config.action_dispatch.cookies_serializer = :json
       RUBY
 
       require "#{app_path}/config/environment"
@@ -181,6 +183,58 @@ module ApplicationTests
       cipher = "aes-256-gcm"
       secret = app.key_generator.generate_key("authenticated encrypted cookie")
       encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
+
+      get "/foo/read_raw_cookie"
+      assert_equal 1, encryptor.decrypt_and_verify(last_response.body, purpose: "cookie._myapp_session")["foo"]
+    end
+
+    test "session using encrypted cookie store with marshal serializer" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get ':controller(/:action)'
+        end
+      RUBY
+
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def write_session
+            session[:foo] = 1
+            head :ok
+          end
+
+          def read_session
+            render plain: session[:foo]
+          end
+
+          def read_encrypted_cookie
+            render plain: cookies.encrypted[:_myapp_session]['foo']
+          end
+
+          def read_raw_cookie
+            render plain: cookies[:_myapp_session]
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        # Enable AEAD cookies
+        config.action_dispatch.use_authenticated_cookie_encryption = true
+
+        config.action_dispatch.cookies_serializer = :marshal
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      get "/foo/write_session"
+      get "/foo/read_session"
+      assert_equal "1", last_response.body
+
+      get "/foo/read_encrypted_cookie"
+      assert_equal "1", last_response.body
+
+      cipher = "aes-256-gcm"
+      secret = app.key_generator.generate_key("authenticated encrypted cookie")
+      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher, serializer: Marshal)
 
       get "/foo/read_raw_cookie"
       assert_equal 1, encryptor.decrypt_and_verify(last_response.body, purpose: "cookie._myapp_session")["foo"]
@@ -217,6 +271,7 @@ module ApplicationTests
       add_to_config <<-RUBY
         # Enable AEAD cookies
         config.action_dispatch.use_authenticated_cookie_encryption = true
+        config.action_dispatch.cookies_serializer = :marshal
       RUBY
 
       require "#{app_path}/config/environment"
@@ -230,7 +285,7 @@ module ApplicationTests
 
       cipher = "aes-256-gcm"
       secret = app.key_generator.generate_key("authenticated encrypted cookie")
-      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
+      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher, serializer: Marshal)
 
       get "/foo/read_raw_cookie"
       assert_equal 1, encryptor.decrypt_and_verify(last_response.body, purpose: "cookie._myapp_session")["foo"]
@@ -280,6 +335,8 @@ module ApplicationTests
 
         # Use SHA1 key derivation
         config.active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA1
+
+        config.action_dispatch.cookies_serializer = :marshal
       RUBY
 
       begin
@@ -300,7 +357,7 @@ module ApplicationTests
 
         cipher = "aes-256-gcm"
         secret = app.key_generator.generate_key("authenticated encrypted cookie")
-        encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
+        encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher, serializer: Marshal)
 
         get "/foo/read_raw_cookie"
         assert_equal 2, encryptor.decrypt_and_verify(last_response.body, purpose: "cookie._myapp_session")["foo"]

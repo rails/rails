@@ -78,7 +78,7 @@ module ActiveRecord
             @quoted_primary_key ||= connection.quote_column_name(primary_key)
           end
 
-          def reset_primary_key #:nodoc:
+          def reset_primary_key # :nodoc:
             if base_class?
               self.primary_key = get_primary_key(base_class.name)
             else
@@ -86,7 +86,7 @@ module ActiveRecord
             end
           end
 
-          def get_primary_key(base_name) #:nodoc:
+          def get_primary_key(base_name) # :nodoc:
             if base_name && primary_key_prefix_type == :table_name
               base_name.foreign_key(false)
             elsif base_name && primary_key_prefix_type == :table_name_with_underscore

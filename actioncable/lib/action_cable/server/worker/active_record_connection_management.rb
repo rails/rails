@@ -12,8 +12,8 @@ module ActionCable
           end
         end
 
-        def with_database_connections
-          connection.logger.tag(ActiveRecord::Base.logger) { yield }
+        def with_database_connections(&block)
+          connection.logger.tag(ActiveRecord::Base.logger, &block)
         end
       end
     end

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "bigdecimal"
 require "active_support/core_ext/hash"
 
 module ActiveJob
@@ -7,7 +8,7 @@ module ActiveJob
   #
   # Wraps the original exception raised as +cause+.
   class DeserializationError < StandardError
-    def initialize #:nodoc:
+    def initialize # :nodoc:
       super("Error while trying to deserialize arguments: #{$!.message}")
       set_backtrace $!.backtrace
     end
@@ -17,7 +18,7 @@ module ActiveJob
   # currently support String, Integer, Float, NilClass, TrueClass, FalseClass,
   # BigDecimal, Symbol, Date, Time, DateTime, ActiveSupport::TimeWithZone,
   # ActiveSupport::Duration, Hash, ActiveSupport::HashWithIndifferentAccess,
-  # Array, Range or GlobalID::Identification instances, although this can be
+  # Array, Range, or GlobalID::Identification instances, although this can be
   # extended by adding custom serializers.
   # Raised if you set the key for a Hash something else than a string or
   # a symbol. Also raised when trying to serialize an object which can't be

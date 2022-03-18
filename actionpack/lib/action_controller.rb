@@ -18,10 +18,6 @@ module ActionController
   end
 
   autoload_under "metal" do
-    eager_autoload do
-      autoload :Live
-    end
-
     autoload :ConditionalGet
     autoload :ContentSecurityPolicy
     autoload :Cookies
@@ -37,6 +33,7 @@ module ActionController
     autoload :BasicImplicitRender
     autoload :ImplicitRender
     autoload :Instrumentation
+    autoload :Live
     autoload :Logging
     autoload :MimeResponds
     autoload :ParamsWrapper

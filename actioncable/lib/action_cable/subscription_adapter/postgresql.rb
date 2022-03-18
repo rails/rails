@@ -2,8 +2,7 @@
 
 gem "pg", "~> 1.1"
 require "pg"
-require "thread"
-require "digest/sha1"
+require "openssl"
 
 module ActionCable
   module SubscriptionAdapter
@@ -58,7 +57,7 @@ module ActionCable
 
       private
         def channel_identifier(channel)
-          channel.size > 63 ? Digest::SHA1.hexdigest(channel) : channel
+          channel.size > 63 ? OpenSSL::Digest::SHA1.hexdigest(channel) : channel
         end
 
         def listener

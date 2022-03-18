@@ -32,6 +32,9 @@ module ActiveRecord
     config.active_record.maintain_test_schema = true
     config.active_record.has_many_inversing = false
     config.active_record.sqlite3_production_warning = true
+    config.active_record.query_log_tags_enabled = false
+    config.active_record.query_log_tags = [ :application ]
+    config.active_record.cache_query_log_tags = false
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 
@@ -62,7 +65,7 @@ module ActiveRecord
         console.level = Rails.logger.level
         Rails.logger.extend ActiveSupport::Logger.broadcast console
       end
-      ActiveRecord::Base.verbose_query_logs = false
+      ActiveRecord.verbose_query_logs = false
     end
 
     runner do
@@ -72,7 +75,6 @@ module ActiveRecord
     initializer "active_record.initialize_timezone" do
       ActiveSupport.on_load(:active_record) do
         self.time_zone_aware_attributes = true
-        self.default_timezone = :utc
       end
     end
 
@@ -85,7 +87,7 @@ module ActiveRecord
     end
 
     initializer "active_record.migration_error" do |app|
-      if config.active_record.delete(:migration_error) == :page_load
+      if config.active_record.migration_error == :page_load
         config.app_middleware.insert_after ::ActionDispatch::Callbacks,
           ActiveRecord::Migration::CheckPending,
           file_watcher: app.config.file_watcher
@@ -93,10 +95,18 @@ module ActiveRecord
     end
 
     initializer "active_record.database_selector" do
-      if options = config.active_record.delete(:database_selector)
-        resolver = config.active_record.delete(:database_resolver)
-        operations = config.active_record.delete(:database_resolver_context)
+      if options = config.active_record.database_selector
+        resolver = config.active_record.database_resolver
+        operations = config.active_record.database_resolver_context
         config.app_middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, operations, options
+      end
+    end
+
+    initializer "active_record.shard_selector" do
+      if resolver = config.active_record.shard_resolver
+        options = config.active_record.shard_selector || {}
+
+        config.app_middleware.use ActiveRecord::Middleware::ShardSelector, resolver, options
       end
     end
 
@@ -126,9 +136,9 @@ To keep using the current cache store, you can turn off cache versioning entirel
     end
 
     initializer "active_record.check_schema_cache_dump" do
-      check_schema_cache_dump_version = config.active_record.delete(:check_schema_cache_dump_version)
+      check_schema_cache_dump_version = config.active_record.check_schema_cache_dump_version
 
-      if config.active_record.delete(:use_schema_cache_dump)
+      if config.active_record.use_schema_cache_dump && !config.active_record.lazily_load_schema_cache
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
             db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).first
@@ -151,11 +161,12 @@ To keep using the current cache store, you can turn off cache versioning entirel
               next if current_version.nil?
 
               if cache.version != current_version
-                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
+                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{cache.version}."
                 next
               end
             end
 
+            Rails.logger.info("Using schema cache file #{filename}")
             connection_pool.set_schema_cache(cache)
           end
         end
@@ -199,12 +210,58 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    SQLITE3_PRODUCTION_WARN = "You are running SQLite in production, this is generally not recommended."\
+      " You can disable this warning by setting \"config.active_record.sqlite3_production_warning=false\"."
+    initializer "active_record.sqlite3_production_warning" do
+      if config.active_record.sqlite3_production_warning && Rails.env.production?
+        ActiveSupport.on_load(:active_record_sqlite3adapter) do
+          Rails.logger.warn(SQLITE3_PRODUCTION_WARN)
+        end
+      end
+    end
+
     initializer "active_record.set_configs" do |app|
+      configs = app.config.active_record
+
+      config.after_initialize do
+        configs.each do |k, v|
+          next if k == :encryption
+          setter = "#{k}="
+          if ActiveRecord.respond_to?(setter)
+            ActiveRecord.send(setter, v)
+          end
+        end
+      end
+
       ActiveSupport.on_load(:active_record) do
-        configs = app.config.active_record
+        # Configs used in other initializers
+        configs = configs.except(
+          :migration_error,
+          :database_selector,
+          :database_resolver,
+          :database_resolver_context,
+          :shard_selector,
+          :shard_resolver,
+          :query_log_tags_enabled,
+          :query_log_tags,
+          :cache_query_log_tags,
+          :sqlite3_production_warning,
+          :check_schema_cache_dump_version,
+          :use_schema_cache_dump
+        )
 
         configs.each do |k, v|
-          send "#{k}=", v if k != :encryption
+          next if k == :encryption
+          setter = "#{k}="
+          # Some existing initializers might rely on Active Record configuration
+          # being copied from the config object to their actual destination when
+          # `ActiveRecord::Base` is loaded.
+          # So to preserve backward compatibility we copy the config a second time.
+          if ActiveRecord.respond_to?(setter)
+            ActiveRecord.send(setter, v)
+          else
+            send(setter, v)
+          end
         end
       end
     end
@@ -213,22 +270,12 @@ To keep using the current cache store, you can turn off cache versioning entirel
     # and then establishes the connection.
     initializer "active_record.initialize_database" do
       ActiveSupport.on_load(:active_record) do
-        if ActiveRecord::Base.legacy_connection_handling
-          self.connection_handlers = { writing_role => ActiveRecord::Base.default_connection_handler }
+        if ActiveRecord.legacy_connection_handling
+          self.connection_handlers = { ActiveRecord.writing_role => ActiveRecord::Base.default_connection_handler }
         end
         self.configurations = Rails.application.config.database_configuration
 
         establish_connection
-      end
-    end
-
-    SQLITE3_PRODUCTION_WARN = "You are running SQLite in production, this is generally not recommended."\
-      " You can disable this warning by setting \"config.active_record.sqlite3_production_warning=false\"."
-    initializer "active_record.sqlite3_production_warning" do
-      if config.active_record.sqlite3_production_warning && Rails.env.production?
-        ActiveSupport.on_load(:active_record_sqlite3adapter) do
-          Rails.logger.warn(SQLITE3_PRODUCTION_WARN)
-        end
       end
     end
 
@@ -313,9 +360,32 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
 
       # Filtered params
-      ActiveSupport.on_load(:action_controller) do
+      ActiveSupport.on_load(:action_controller, run_once: true) do
         if ActiveRecord::Encryption.config.add_to_filter_parameters
-          ActiveRecord::Encryption.install_auto_filtered_parameters(app)
+          ActiveRecord::Encryption.install_auto_filtered_parameters_hook(app)
+        end
+      end
+    end
+
+    initializer "active_record.query_log_tags_config" do |app|
+      config.after_initialize do
+        if app.config.active_record.query_log_tags_enabled
+          ActiveRecord.query_transformers << ActiveRecord::QueryLogs
+          ActiveRecord::QueryLogs.taggings.merge!(
+            application:  Rails.application.class.name.split("::").first,
+            pid:          -> { Process.pid },
+            socket:       -> { ActiveRecord::Base.connection_db_config.socket },
+            db_host:      -> { ActiveRecord::Base.connection_db_config.host },
+            database:     -> { ActiveRecord::Base.connection_db_config.database }
+          )
+
+          if app.config.active_record.query_log_tags.present?
+            ActiveRecord::QueryLogs.tags = app.config.active_record.query_log_tags
+          end
+
+          if app.config.active_record.cache_query_log_tags
+            ActiveRecord::QueryLogs.cache_query_log_tags = true
+          end
         end
       end
     end

@@ -6,16 +6,23 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 gemspec
 
+gem "minitest", ">= 5.15.0"
+
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
 
+gem "sprockets-rails", ">= 2.0.0"
+gem "propshaft", ">= 0.1.7"
 gem "capybara", ">= 3.26"
-gem "selenium-webdriver", ">= 4.0.0.alpha7"
+gem "selenium-webdriver", ">= 4.0.0"
 
 gem "rack-cache", "~> 1.2"
-gem "sass-rails"
-gem "turbolinks", "~> 5"
-gem "webpacker", "~> 5.0", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"
+gem "stimulus-rails"
+gem "turbo-rails"
+gem "jsbundling-rails"
+gem "cssbundling-rails"
+gem "importmap-rails"
+gem "tailwindcss-rails"
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
@@ -23,20 +30,21 @@ gem "bcrypt", "~> 3.1.11", require: false
 
 # This needs to be with require false to avoid it being automatically loaded by
 # sprockets.
-gem "uglifier", ">= 1.3.0", require: false
+gem "terser", ">= 1.1.4", require: false
 
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0"
 
 group :rubocop do
-  gem "rubocop", ">= 0.90", require: false
+  gem "rubocop", ">= 1.25.1", require: false
+  gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
   gem "rubocop-rails", require: false
 end
 
 group :doc do
-  gem "sdoc", ">= 2.2.0"
+  gem "sdoc", ">= 2.3.1"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "kindlerb", "~> 1.2.0"
@@ -44,7 +52,7 @@ group :doc do
 end
 
 # Active Support
-gem "dalli"
+gem "dalli", ">= 3.0.1"
 gem "listen", "~> 3.3", require: false
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
@@ -61,7 +69,7 @@ group :job do
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false
-  gem "queue_classic", github: "QueueClassic/queue_classic", require: false, platforms: :ruby
+  gem "queue_classic", ">= 4.0.0.pre.beta1", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "que", require: false
   gem "backburner", require: false
@@ -85,7 +93,7 @@ end
 group :storage do
   gem "aws-sdk-s3", require: false
   gem "google-cloud-storage", "~> 1.11", require: false
-  gem "azure-storage-blob", require: false
+  gem "azure-storage-blob", "~> 2.0", require: false
 
   gem "image_processing", "~> 1.2"
 end
@@ -95,13 +103,12 @@ gem "aws-sdk-sns", require: false
 gem "webmock"
 
 group :ujs do
-  gem "qunit-selenium"
   gem "webdrivers"
 end
 
 # Action View
 group :view do
-  gem "blade", require: false, platforms: [:ruby]
+  gem "blade", github: "javan/blade", require: false, platforms: [:ruby]
   gem "sprockets-export", require: false
 end
 
@@ -111,12 +118,12 @@ instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
   gem "minitest-bisect"
+  gem "minitest-ci", require: false
   gem "minitest-retry"
-  gem "minitest-reporters"
 
   platforms :mri do
     gem "stackprof"
-    gem "byebug"
+    gem "debug", ">= 1.1.0", require: false
   end
 
   gem "benchmark-ips"
@@ -132,7 +139,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
   gem "sqlite3", "~> 1.4"
 
   group :db do
-    gem "pg", "~> 1.1"
+    gem "pg", "~> 1.3"
     gem "mysql2", "~> 0.5", github: "brianmario/mysql2"
   end
 end
@@ -169,15 +176,3 @@ end
 
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "wdm", ">= 0.1.0", platforms: [:mingw, :mswin, :x64_mingw, :mswin64]
-
-if RUBY_VERSION >= "3.1"
-  # net-smtp, net-imap and net-pop were removed from default gems in Ruby 3.1, but is used by the `mail` gem.
-  # So we need to add them as dependencies until `mail` is fixed: https://github.com/mikel/mail/pull/1439
-  gem "net-smtp", require: false
-  gem "net-imap", require: false
-  gem "net-pop", require: false
-
-  # matrix was removed from default gems in Ruby 3.1, but is used by the `capybara` gem.
-  # So we need to add it as a dependency until `capybara` is fixed: https://github.com/teamcapybara/capybara/pull/2468
-  gem "matrix", require: false
-end

@@ -10,7 +10,7 @@ module ActiveRecord
       # :singleton-method:
       # Set the secret used for the signed id verifier instance when using Active Record outside of Rails.
       # Within Rails, this is automatically set using the Rails application key generator.
-      mattr_accessor :signed_id_verifier_secret, instance_writer: false
+      class_attribute :signed_id_verifier_secret, instance_writer: false
     end
 
     module ClassMethods
@@ -47,7 +47,7 @@ module ActiveRecord
         end
       end
 
-      # Works like +find_signed+, but will raise an +ActiveSupport::MessageVerifier::InvalidSignature+
+      # Works like find_signed, but will raise an +ActiveSupport::MessageVerifier::InvalidSignature+
       # exception if the +signed_id+ has either expired, has a purpose mismatch, is for another record,
       # or has been tampered with. It will also raise an +ActiveRecord::RecordNotFound+ exception if
       # the valid signed id can't find a record.

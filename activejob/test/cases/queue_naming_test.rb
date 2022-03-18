@@ -1,12 +1,17 @@
 # frozen_string_literal: true
 
 require "helper"
+require "jobs/configuration_job"
 require "jobs/hello_job"
 require "jobs/prefixed_job"
 require "jobs/logging_job"
 require "jobs/nested_job"
 
 class QueueNamingTest < ActiveSupport::TestCase
+  setup do
+    JobBuffer.clear
+  end
+
   test "name derived from base" do
     assert_equal "default", HelloJob.new.queue_name
   end
@@ -143,8 +148,15 @@ class QueueNamingTest < ActiveSupport::TestCase
     end
   end
 
-  test "uses queue passed to #set" do
-    job = HelloJob.set(queue: :some_queue).perform_later
+  test "is assigned when perform_now" do
+    ConfigurationJob.set(queue: :some_queue).perform_now
+    job = JobBuffer.last_value
+    assert_equal "some_queue", job.queue_name
+  end
+
+  test "is assigned when perform_later" do
+    ConfigurationJob.set(queue: :some_queue).perform_later
+    job = JobBuffer.last_value
     assert_equal "some_queue", job.queue_name
   end
 end

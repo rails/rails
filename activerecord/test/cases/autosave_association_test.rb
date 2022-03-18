@@ -34,6 +34,8 @@ require "models/organization"
 require "models/guitar"
 require "models/tuning_peg"
 require "models/reply"
+require "models/attachment"
+require "models/translation"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_works_even_when_other_callbacks_update_the_parent_model
@@ -512,8 +514,8 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
   end
 
   def test_errors_should_be_indexed_when_global_flag_is_set
-    old_attribute_config = ActiveRecord::Base.index_nested_attribute_errors
-    ActiveRecord::Base.index_nested_attribute_errors = true
+    old_attribute_config = ActiveRecord.index_nested_attribute_errors
+    ActiveRecord.index_nested_attribute_errors = true
 
     molecule = Molecule.new
     valid_electron = Electron.new(name: "electron")
@@ -527,7 +529,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_equal ["can't be blank"], molecule.errors["electrons[1].name"]
     assert_not_equal ["can't be blank"], molecule.errors["electrons.name"]
   ensure
-    ActiveRecord::Base.index_nested_attribute_errors = old_attribute_config
+    ActiveRecord.index_nested_attribute_errors = old_attribute_config
   end
 
   def test_errors_details_should_be_set
@@ -559,8 +561,8 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
   end
 
   def test_errors_details_should_be_indexed_when_global_flag_is_set
-    old_attribute_config = ActiveRecord::Base.index_nested_attribute_errors
-    ActiveRecord::Base.index_nested_attribute_errors = true
+    old_attribute_config = ActiveRecord.index_nested_attribute_errors
+    ActiveRecord.index_nested_attribute_errors = true
 
     molecule = Molecule.new
     valid_electron = Electron.new(name: "electron")
@@ -574,7 +576,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_equal [{ error: :blank }], molecule.errors.details[:"electrons[1].name"]
     assert_equal [], molecule.errors.details[:"electrons.name"]
   ensure
-    ActiveRecord::Base.index_nested_attribute_errors = old_attribute_config
+    ActiveRecord.index_nested_attribute_errors = old_attribute_config
   end
 
   def test_valid_adding_with_nested_attributes
@@ -1290,9 +1292,9 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_automatically_save_the_associated_model
-    @pirate.ship.name = "The Vile Insanity"
+    @pirate.ship.name = "The Vile Serpent"
     @pirate.save
-    assert_equal "The Vile Insanity", @pirate.reload.ship.name
+    assert_equal "The Vile Serpent", @pirate.reload.ship.name
   end
 
   def test_changed_for_autosave_should_handle_cycles
@@ -1306,9 +1308,9 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_automatically_save_bang_the_associated_model
-    @pirate.ship.name = "The Vile Insanity"
+    @pirate.ship.name = "The Vile Serpent"
     @pirate.save!
-    assert_equal "The Vile Insanity", @pirate.reload.ship.name
+    assert_equal "The Vile Serpent", @pirate.reload.ship.name
   end
 
   def test_should_automatically_validate_the_associated_model
@@ -1376,7 +1378,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
 
   def test_should_not_save_and_return_false_if_a_callback_cancelled_saving
     pirate = Pirate.new(catchphrase: "Arr")
-    ship = pirate.build_ship(name: "The Vile Insanity")
+    ship = pirate.build_ship(name: "The Vile Serpent")
     ship.cancel_save_from_callback = true
 
     assert_no_difference "Pirate.count" do
@@ -1390,7 +1392,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     before = [@pirate.catchphrase, @pirate.ship.name]
 
     @pirate.catchphrase = "Arr"
-    @pirate.ship.name = "The Vile Insanity"
+    @pirate.ship.name = "The Vile Serpent"
 
     # Stub the save method of the @pirate.ship instance to raise an exception
     class << @pirate.ship
@@ -1472,9 +1474,9 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
 
   def test_should_still_work_without_an_associated_model
     @pirate.destroy
-    @ship.reload.name = "The Vile Insanity"
+    @ship.reload.name = "The Vile Serpent"
     @ship.save
-    assert_equal "The Vile Insanity", @ship.reload.name
+    assert_equal "The Vile Serpent", @ship.reload.name
   end
 
   def test_should_automatically_save_the_associated_model
@@ -1523,7 +1525,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
   end
 
   def test_should_not_save_and_return_false_if_a_callback_cancelled_saving
-    ship = Ship.new(name: "The Vile Insanity")
+    ship = Ship.new(name: "The Vile Serpent")
     pirate = ship.build_pirate(catchphrase: "Arr")
     pirate.cancel_save_from_callback = true
 
@@ -1538,7 +1540,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
     before = [@ship.pirate.catchphrase, @ship.name]
 
     @ship.pirate.catchphrase = "Arr"
-    @ship.name = "The Vile Insanity"
+    @ship.name = "The Vile Serpent"
 
     # Stub the save method of the @ship.pirate instance to raise an exception
     class << @ship.pirate
@@ -1553,7 +1555,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
   end
 
   def test_should_not_load_the_associated_model
-    assert_queries(1) { @ship.name = "The Vile Insanity"; @ship.save! }
+    assert_queries(1) { @ship.name = "The Vile Serpent"; @ship.save! }
   end
 
   def test_should_save_with_non_nullable_foreign_keys
@@ -2006,5 +2008,16 @@ class TestAutosaveAssociationOnAHasManyAssociationDefinedInSubclassWithAcceptsNe
     valid_project.reload
 
     assert_equal "Updated", valid_project.name
+  end
+end
+
+class TestAutosaveAssociationOnABelongsToAssociationDefinedAsRecord < ActiveRecord::TestCase
+  def test_should_not_raise_error
+    translation = Translation.create(locale: "fr", key: "bread", value: "Baguette 🥖")
+    author = Author.create(name: "Dorian Marié")
+    translation.build_attachment(record: author)
+    assert_nothing_raised do
+      translation.save!
+    end
   end
 end

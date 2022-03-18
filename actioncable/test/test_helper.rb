@@ -7,11 +7,6 @@ require "active_support/testing/method_call_assertions"
 require "puma"
 require "rack/mock"
 
-begin
-  require "byebug"
-rescue LoadError
-end
-
 # Require all the stubs and models
 Dir[File.expand_path("stubs/*.rb", __dir__)].each { |file| require file }
 

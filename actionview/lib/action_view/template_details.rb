@@ -4,13 +4,30 @@ module ActionView
   class TemplateDetails # :nodoc:
     class Requested
       attr_reader :locale, :handlers, :formats, :variants
+      attr_reader :locale_idx, :handlers_idx, :formats_idx, :variants_idx
+
+      ANY_HASH = Hash.new(1).merge(nil => 0).freeze
 
       def initialize(locale:, handlers:, formats:, variants:)
         @locale = locale
         @handlers = handlers
         @formats = formats
         @variants = variants
+
+        @locale_idx   = build_idx_hash(locale)
+        @handlers_idx = build_idx_hash(handlers)
+        @formats_idx  = build_idx_hash(formats)
+        if variants == :any
+          @variants_idx = ANY_HASH
+        else
+          @variants_idx = build_idx_hash(variants)
+        end
       end
+
+      private
+        def build_idx_hash(arr)
+          [*arr, nil].each_with_index.to_h.freeze
+        end
     end
 
     attr_reader :locale, :handler, :format, :variant
@@ -23,28 +40,19 @@ module ActionView
     end
 
     def matches?(requested)
-      return if format && !requested.formats.include?(format)
-      return if locale && !requested.locale.include?(locale)
-      unless requested.variants == :any
-        return if variant && !requested.variants.include?(variant)
-      end
-      return if handler && !requested.handlers.include?(handler)
-
-      true
+      requested.formats_idx[@format] &&
+        requested.locale_idx[@locale] &&
+        requested.variants_idx[@variant] &&
+        requested.handlers_idx[@handler]
     end
 
     def sort_key_for(requested)
-      locale_match = details_match_sort_key(locale, requested.locale)
-      format_match = details_match_sort_key(format, requested.formats)
-      variant_match =
-        if requested.variants == :any
-          variant ? 1 : 0
-        else
-          details_match_sort_key(variant, requested.variants)
-        end
-      handler_match = details_match_sort_key(handler, requested.handlers)
-
-      [locale_match, format_match, variant_match, handler_match]
+      [
+        requested.formats_idx[@format],
+        requested.locale_idx[@locale],
+        requested.variants_idx[@variant],
+        requested.handlers_idx[@handler]
+      ]
     end
 
     def handler_class
@@ -54,14 +62,5 @@ module ActionView
     def format_or_default
       format || handler_class.try(:default_format)
     end
-
-    private
-      def details_match_sort_key(have, want)
-        if have
-          want.index(have)
-        else
-          want.size
-        end
-      end
   end
 end

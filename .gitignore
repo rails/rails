@@ -2,7 +2,6 @@
 # Check out https://help.github.com/articles/ignoring-files for how to set that up.
 
 .Gemfile
-.byebug_history
 .ruby-version
 /*/doc/
 /*/test/tmp/

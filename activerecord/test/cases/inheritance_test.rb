@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/inflector"
+require "zeitwerk"
 require "cases/helper"
 require "models/author"
 require "models/company"
@@ -11,6 +13,7 @@ require "models/subscriber"
 require "models/vegetables"
 require "models/shop"
 require "models/sponsor"
+require "models/club"
 
 module InheritanceTestHelper
   def with_store_full_sti_class(&block)
@@ -62,42 +65,38 @@ class InheritanceTest < ActiveRecord::TestCase
     e = assert_raises NameError do
       Company.send :compute_type, "NonexistentModel"
     end
-    assert_equal "uninitialized constant Company::NonexistentModel", e.message
+    assert_match "uninitialized constant Company::NonexistentModel", e.message
     assert_equal "Company::NonexistentModel", e.name
   end
 
   def test_compute_type_no_method_error
-    ActiveSupport::Dependencies.stub(:safe_constantize, proc { raise NoMethodError }) do
-      assert_raises NoMethodError do
-        Company.send :compute_type, "InvalidModel"
-      end
-    end
+    # Done via autoload because you need the exception to happen when the file
+    # is required.
+    model = "RaisesNoMethodError"
+    Object.autoload(model, "#{MODELS_ROOT}/#{model.underscore}")
+    assert_raises(NoMethodError) { Company.send(:compute_type, model) }
+  ensure
+    Object.send(:remove_const, model)
   end
 
   def test_compute_type_on_undefined_method
-    error = nil
-    begin
-      Class.new(Author) do
-        alias_method :foo, :bar
-      end
-    rescue => e
-      error = e
-    end
-
-    ActiveSupport::Dependencies.stub(:safe_constantize, proc { raise e }) do
-      exception = assert_raises NameError do
-        Company.send :compute_type, "InvalidModel"
-      end
-      assert_equal error.message, exception.message
-    end
+    # Done via autoload because you need the exception to happen when the file
+    # is required.
+    model = "InvokesAnUndefinedMethod"
+    Object.autoload(model, "#{MODELS_ROOT}/#{model.underscore}")
+    assert_raises(NameError) { Company.send(:compute_type, model) }
+  ensure
+    Object.send(:remove_const, model)
   end
 
   def test_compute_type_argument_error
-    ActiveSupport::Dependencies.stub(:safe_constantize, proc { raise ArgumentError }) do
-      assert_raises ArgumentError do
-        Company.send :compute_type, "InvalidModel"
-      end
-    end
+    # Done via autoload because you need the exception to happen when the file
+    # is required.
+    model = "RaisesArgumentError"
+    Object.autoload(model, "#{MODELS_ROOT}/#{model.underscore}")
+    assert_raises(ArgumentError) { Company.send(:compute_type, model) }
+  ensure
+    Object.send(:remove_const, model)
   end
 
   def test_should_store_demodulized_class_name_with_store_full_sti_class_option_disabled
@@ -377,13 +376,15 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_new_with_autoload_paths
     path = File.expand_path("../models/autoloadable", __dir__)
-    ActiveSupport::Dependencies.autoload_paths << path
+    Zeitwerk.with_loader do |loader|
+      loader.push_dir(path)
+      loader.setup
 
-    firm = Company.new(type: "ExtraFirm")
-    assert_equal ExtraFirm, firm.class
-  ensure
-    ActiveSupport::Dependencies.autoload_paths.reject! { |p| p == path }
-    ActiveSupport::Dependencies.clear
+      firm = Company.new(type: "ExtraFirm")
+      assert_equal ExtraFirm, firm.class
+    ensure
+      loader.unload
+    end
   end
 
   def test_inheritance_condition

@@ -25,12 +25,12 @@ module ActionController
     end
 
     # Check for double render errors and set the content_type after rendering.
-    def render(*args) #:nodoc:
+    def render(*args) # :nodoc:
       raise ::AbstractController::DoubleRenderError if response_body
       super
     end
 
-    # Overwrite render_to_string because body can now be set to a Rack body.
+    # Override render_to_string because body can now be set to a Rack body.
     def render_to_string(*)
       result = super
       if result.respond_to?(:each)
@@ -48,7 +48,7 @@ module ActionController
 
     private
       # Before processing, set the request formats in current controller formats.
-      def process_action(*) #:nodoc:
+      def process_action(*) # :nodoc:
         self.formats = request.formats.filter_map(&:ref)
         super
       end

@@ -4,16 +4,16 @@ require "tzinfo"
 require "concurrent/map"
 
 module ActiveSupport
-  # The TimeZone class serves as a wrapper around TZInfo::Timezone instances.
+  # The TimeZone class serves as a wrapper around <tt>TZInfo::Timezone</tt> instances.
   # It allows us to do the following:
   #
   # * Limit the set of zones provided by TZInfo to a meaningful subset of 134
   #   zones.
   # * Retrieve and display zones with a friendlier name
   #   (e.g., "Eastern Time (US & Canada)" instead of "America/New_York").
-  # * Lazily load TZInfo::Timezone instances only when they're needed.
+  # * Lazily load <tt>TZInfo::Timezone</tt> instances only when they're needed.
   # * Create ActiveSupport::TimeWithZone instances via TimeZone's +local+,
-  #   +parse+, +at+ and +now+ methods.
+  #   +parse+, +at+, and +now+ methods.
   #
   # If you set <tt>config.time_zone</tt> in the Rails Application, you can
   # access this TimeZone object via <tt>Time.zone</tt>:
@@ -260,7 +260,7 @@ module ActiveSupport
         @country_zones[code] ||= load_country_zones(code)
       end
 
-      def clear #:nodoc:
+      def clear # :nodoc:
         @lazy_zones_map = Concurrent::Map.new
         @country_zones  = Concurrent::Map.new
         @zones = nil
@@ -385,12 +385,28 @@ module ActiveSupport
     # If the string is invalid then an +ArgumentError+ will be raised unlike +parse+
     # which usually returns +nil+ when given an invalid date string.
     def iso8601(str)
+      # Historically `Date._iso8601(nil)` returns `{}`, but in the `date` gem versions `3.2.1`, `3.1.2`, `3.0.2`,
+      # and `2.0.1`, `Date._iso8601(nil)` raises `TypeError` https://github.com/ruby/date/issues/39
+      # Future `date` releases are expected to revert back to the original behavior.
+      raise ArgumentError, "invalid date" if str.nil?
+
       parts = Date._iso8601(str)
 
+      year = parts.fetch(:year)
+
+      if parts.key?(:yday)
+        ordinal_date = Date.ordinal(year, parts.fetch(:yday))
+        month = ordinal_date.month
+        day = ordinal_date.day
+      else
+        month = parts.fetch(:mon)
+        day = parts.fetch(:mday)
+      end
+
       time = Time.new(
-        parts.fetch(:year),
-        parts.fetch(:mon),
-        parts.fetch(:mday),
+        year,
+        month,
+        day,
         parts.fetch(:hour, 0),
         parts.fetch(:min, 0),
         parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
@@ -403,7 +419,7 @@ module ActiveSupport
         TimeWithZone.new(nil, self, time)
       end
 
-    rescue KeyError
+    rescue Date::Error, KeyError
       raise ArgumentError, "invalid date"
     end
 
@@ -527,27 +543,27 @@ module ActiveSupport
       tzinfo.local_to_utc(time, dst)
     end
 
-    # Available so that TimeZone instances respond like TZInfo::Timezone
+    # Available so that TimeZone instances respond like <tt>TZInfo::Timezone</tt>
     # instances.
     def period_for_utc(time)
       tzinfo.period_for_utc(time)
     end
 
-    # Available so that TimeZone instances respond like TZInfo::Timezone
+    # Available so that TimeZone instances respond like <tt>TZInfo::Timezone</tt>
     # instances.
     def period_for_local(time, dst = true)
       tzinfo.period_for_local(time, dst) { |periods| periods.last }
     end
 
-    def periods_for_local(time) #:nodoc:
+    def periods_for_local(time) # :nodoc:
       tzinfo.periods_for_local(time)
     end
 
-    def init_with(coder) #:nodoc:
+    def init_with(coder) # :nodoc:
       initialize(coder["name"])
     end
 
-    def encode_with(coder) #:nodoc:
+    def encode_with(coder) # :nodoc:
       coder.tag = "!ruby/object:#{self.class}"
       coder.map = { "name" => tzinfo.name }
     end

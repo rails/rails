@@ -33,8 +33,8 @@ class ActionText::FormHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal \
-      '<form action="/messages" accept-charset="UTF-8" data-remote="true" method="post">' \
-        '<input type="hidden" name="content" id="trix_input_1" />' \
+      '<form action="/messages" accept-charset="UTF-8" method="post">' \
+        '<input type="hidden" name="content" id="trix_input_1" autocomplete="off" />' \
         '<trix-editor input="trix_input_1" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">' \
         "</trix-editor>" \
       "</form>",
@@ -47,8 +47,8 @@ class ActionText::FormHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal \
-      '<form action="/messages" accept-charset="UTF-8" data-remote="true" method="post">' \
-        '<input type="hidden" name="message[content]" id="message_content_trix_input_message" />' \
+      '<form action="/messages" accept-charset="UTF-8" method="post">' \
+        '<input type="hidden" name="message[content]" id="message_content_trix_input_message" autocomplete="off" />' \
         '<trix-editor id="message_content" input="message_content_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">' \
         "</trix-editor>" \
       "</form>",
@@ -61,8 +61,8 @@ class ActionText::FormHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal \
-      '<form action="/messages" accept-charset="UTF-8" data-remote="true" method="post">' \
-        '<input type="hidden" name="message[content]" id="message_content_trix_input_message" />' \
+      '<form action="/messages" accept-charset="UTF-8" method="post">' \
+        '<input type="hidden" name="message[content]" id="message_content_trix_input_message" autocomplete="off" />' \
         '<trix-editor id="message_content" input="message_content_trix_input_message" class="custom-class" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">' \
         "</trix-editor>" \
       "</form>",
@@ -75,8 +75,8 @@ class ActionText::FormHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal \
-      '<form action="/messages" accept-charset="UTF-8" data-remote="true" method="post">' \
-        '<input type="hidden" name="message[not_an_attribute]" id="message_not_an_attribute_trix_input_message" />' \
+      '<form action="/messages" accept-charset="UTF-8" method="post">' \
+        '<input type="hidden" name="message[not_an_attribute]" id="message_not_an_attribute_trix_input_message" autocomplete="off" />' \
         '<trix-editor id="message_not_an_attribute" input="message_not_an_attribute_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">' \
         "</trix-editor>" \
       "</form>",
@@ -89,8 +89,8 @@ class ActionText::FormHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal \
-      '<form action="/messages" accept-charset="UTF-8" data-remote="true" method="post">' \
-        '<input type="hidden" name="message[content]" id="trix_input_2" />' \
+      '<form action="/messages" accept-charset="UTF-8" method="post">' \
+        '<input type="hidden" name="message[content]" id="trix_input_2" autocomplete="off" />' \
         '<trix-editor id="message_content" input="trix_input_2" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">' \
         "</trix-editor>" \
       "</form>",
@@ -103,8 +103,8 @@ class ActionText::FormHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal \
-      '<form action="/messages" accept-charset="UTF-8" data-remote="true" method="post">' \
-        '<input type="hidden" name="message[content]" id="message_content_trix_input_message" />' \
+      '<form action="/messages" accept-charset="UTF-8" method="post">' \
+        '<input type="hidden" name="message[content]" id="message_content_trix_input_message" autocomplete="off" />' \
         '<trix-editor placeholder="Content" id="message_content" input="message_content_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">' \
         "</trix-editor>" \
       "</form>",
@@ -119,8 +119,8 @@ class ActionText::FormHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal \
-      '<form action="/messages" accept-charset="UTF-8" data-remote="true" method="post">' \
-        '<input type="hidden" name="message[title]" id="message_title_trix_input_message" />' \
+      '<form action="/messages" accept-charset="UTF-8" method="post">' \
+        '<input type="hidden" name="message[title]" id="message_title_trix_input_message" autocomplete="off" />' \
         '<trix-editor placeholder="Story title" id="message_title" input="message_title_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">' \
         "</trix-editor>" \
       "</form>",
@@ -133,8 +133,8 @@ class ActionText::FormHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal \
-      '<form action="/messages" accept-charset="UTF-8" data-remote="true" method="post">' \
-        '<input type="hidden" name="message[title]" id="message_title_trix_input_message" value="&lt;h1&gt;hello world&lt;/h1&gt;" />' \
+      '<form action="/messages" accept-charset="UTF-8" method="post">' \
+        '<input type="hidden" name="message[title]" id="message_title_trix_input_message" value="&lt;h1&gt;hello world&lt;/h1&gt;" autocomplete="off" />' \
         '<trix-editor id="message_title" input="message_title_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">' \
         "</trix-editor>" \
       "</form>",
@@ -147,9 +147,37 @@ class ActionText::FormHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal \
-      '<form action="/messages" accept-charset="UTF-8" data-remote="true" method="post">' \
-        '<input type="hidden" name="message[title]" id="message_title_trix_input_message" form="other_form" />' \
+      '<form action="/messages" accept-charset="UTF-8" method="post">' \
+        '<input type="hidden" name="message[title]" id="message_title_trix_input_message" form="other_form" autocomplete="off" />' \
         '<trix-editor id="message_title" input="message_title_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">' \
+        "</trix-editor>" \
+      "</form>",
+      output_buffer
+  end
+
+  test "form with rich text area with data[direct_upload_url]" do
+    form_with model: Message.new, scope: :message do |form|
+      form.rich_text_area :content, data: { direct_upload_url: "http://test.host/direct_uploads" }
+    end
+
+    assert_dom_equal \
+      '<form action="/messages" accept-charset="UTF-8" method="post">' \
+        '<input type="hidden" name="message[content]" id="message_content_trix_input_message" autocomplete="off" />' \
+        '<trix-editor id="message_content" input="message_content_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">' \
+        "</trix-editor>" \
+      "</form>",
+      output_buffer
+  end
+
+  test "form with rich text area with data[blob_url_template]" do
+    form_with model: Message.new, scope: :message do |form|
+      form.rich_text_area :content, data: { blob_url_template: "http://test.host/blobs/:signed_id/:filename" }
+    end
+
+    assert_dom_equal \
+      '<form action="/messages" accept-charset="UTF-8" method="post">' \
+        '<input type="hidden" name="message[content]" id="message_content_trix_input_message" autocomplete="off" />' \
+        '<trix-editor id="message_content" input="message_content_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/blobs/:signed_id/:filename">' \
         "</trix-editor>" \
       "</form>",
       output_buffer

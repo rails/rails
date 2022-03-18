@@ -10,6 +10,7 @@ require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
 require "rails/engine"
 require "rails/secrets"
+require "rails/autoloaders"
 
 module Rails
   # An Engine with the responsibility of coordinating the whole boot process.
@@ -21,12 +22,12 @@ module Rails
   # Rails::Application::Bootstrap) and finishing initializers, after all the others
   # are executed (check Rails::Application::Finisher).
   #
-  # == Configuration
+  # == \Configuration
   #
   # Besides providing the same configuration as Rails::Engine and Rails::Railtie,
   # the application object has several specific configurations, for example
-  # "cache_classes", "consider_all_requests_local", "filter_parameters",
-  # "logger" and so forth.
+  # +cache_classes+, +consider_all_requests_local+, +filter_parameters+,
+  # +logger+, and so forth.
   #
   # Check Rails::Application::Configuration to see them all.
   #
@@ -42,44 +43,21 @@ module Rails
   # == Booting process
   #
   # The application is also responsible for setting up and executing the booting
-  # process. From the moment you require "config/application.rb" in your app,
+  # process. From the moment you require <tt>config/application.rb</tt> in your app,
   # the booting process goes like this:
   #
-  #   1)  require "config/boot.rb" to set up load paths
-  #   2)  require railties and engines
-  #   3)  Define Rails.application as "class MyApp::Application < Rails::Application"
-  #   4)  Run config.before_configuration callbacks
-  #   5)  Load config/environments/ENV.rb
-  #   6)  Run config.before_initialize callbacks
-  #   7)  Run Railtie#initializer defined by railties, engines and application.
-  #       One by one, each engine sets up its load paths, routes and runs its config/initializers/* files.
-  #   8)  Custom Railtie#initializers added by railties, engines and applications are executed
-  #   9)  Build the middleware stack and run to_prepare callbacks
-  #   10) Run config.before_eager_load and eager_load! if eager_load is true
-  #   11) Run config.after_initialize callbacks
-  #
-  # == Multiple Applications
-  #
-  # If you decide to define multiple applications, then the first application
-  # that is initialized will be set to +Rails.application+, unless you override
-  # it with a different application.
-  #
-  # To create a new application, you can instantiate a new instance of a class
-  # that has already been created:
-  #
-  #   class Application < Rails::Application
-  #   end
-  #
-  #   first_application  = Application.new
-  #   second_application = Application.new(config: first_application.config)
-  #
-  # In the above example, the configuration from the first application was used
-  # to initialize the second application. You can also use the +initialize_copy+
-  # on one of the applications to create a copy of the application which shares
-  # the configuration.
-  #
-  # If you decide to define Rake tasks, runners, or initializers in an
-  # application other than +Rails.application+, then you must run them manually.
+  # 1.  <tt>require "config/boot.rb"</tt> to set up load paths.
+  # 2.  +require+ railties and engines.
+  # 3.  Define +Rails.application+ as <tt>class MyApp::Application < Rails::Application</tt>.
+  # 4.  Run +config.before_configuration+ callbacks.
+  # 5.  Load <tt>config/environments/ENV.rb</tt>.
+  # 6.  Run +config.before_initialize+ callbacks.
+  # 7.  Run <tt>Railtie#initializer</tt> defined by railties, engines, and application.
+  #     One by one, each engine sets up its load paths and routes, and runs its <tt>config/initializers/*</tt> files.
+  # 8.  Custom <tt>Railtie#initializers</tt> added by railties, engines, and applications are executed.
+  # 9.  Build the middleware stack and run +to_prepare+ callbacks.
+  # 10. Run +config.before_eager_load+ and +eager_load!+ if +eager_load+ is +true+.
+  # 11. Run +config.after_initialize+ callbacks.
   class Application < Engine
     autoload :Bootstrap,              "rails/application/bootstrap"
     autoload :Configuration,          "rails/application/configuration"
@@ -118,7 +96,7 @@ module Rails
 
     attr_accessor :assets, :sandbox
     alias_method :sandbox?, :sandbox
-    attr_reader :reloaders, :reloader, :executor
+    attr_reader :reloaders, :reloader, :executor, :autoloaders
 
     delegate :default_url_options, :default_url_options=, to: :routes
 
@@ -139,6 +117,8 @@ module Rails
       @executor          = Class.new(ActiveSupport::Executor)
       @reloader          = Class.new(ActiveSupport::Reloader)
       @reloader.executor = @executor
+
+      @autoloaders = Rails::Autoloaders.new
 
       # are these actually used?
       @initial_variable_values = initial_variable_values
@@ -195,7 +175,7 @@ module Rails
     #     Rails.application.message_verifier('sensitive_data').verify(message)
     #     # => 'my sensible data'
     #
-    # See the +ActiveSupport::MessageVerifier+ documentation for more information.
+    # See the ActiveSupport::MessageVerifier documentation for more information.
     def message_verifier(verifier_name)
       @message_verifiers[verifier_name] ||= begin
         secret = key_generator.generate_key(verifier_name.to_s)
@@ -247,9 +227,11 @@ module Rails
         config, shared = all_configs[env.to_sym], all_configs[:shared]
 
         if shared
-          config = {} if config.nil?
-          if config.is_a?(Hash)
+          config = {} if config.nil? && shared.is_a?(Hash)
+          if config.is_a?(Hash) && shared.is_a?(Hash)
             config = shared.deep_merge(config)
+          elsif config.nil?
+            config = shared
           end
         end
 
@@ -272,6 +254,7 @@ module Rails
           "action_dispatch.secret_key_base" => secret_key_base,
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
+          "action_dispatch.log_rescued_responses" => config.action_dispatch.log_rescued_responses,
           "action_dispatch.logger" => Rails.logger,
           "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner,
           "action_dispatch.key_generator" => key_generator,
@@ -353,26 +336,26 @@ module Rails
     # are changing config.root inside your application definition or having a custom
     # Rails application, you will need to add lib to $LOAD_PATH on your own in case
     # you need to load files in lib/ during the application configuration as well.
-    def self.add_lib_to_load_path!(root) #:nodoc:
+    def self.add_lib_to_load_path!(root) # :nodoc:
       path = File.join root, "lib"
       if File.exist?(path) && !$LOAD_PATH.include?(path)
         $LOAD_PATH.unshift(path)
       end
     end
 
-    def require_environment! #:nodoc:
+    def require_environment! # :nodoc:
       environment = paths["config/environment"].existent.first
       require environment if environment
     end
 
-    def routes_reloader #:nodoc:
+    def routes_reloader # :nodoc:
       @routes_reloader ||= RoutesReloader.new
     end
 
     # Returns an array of file paths appended with a hash of
     # directories-extensions suitable for ActiveSupport::FileUpdateChecker
     # API.
-    def watchable_args #:nodoc:
+    def watchable_args # :nodoc:
       files, dirs = config.watchable_files.dup, config.watchable_dirs.dup
 
       ActiveSupport::Dependencies.autoload_paths.each do |path|
@@ -384,20 +367,20 @@ module Rails
 
     # Initialize the application passing the given group. By default, the
     # group is :default
-    def initialize!(group = :default) #:nodoc:
+    def initialize!(group = :default) # :nodoc:
       raise "Application has been already initialized." if @initialized
       run_initializers(group, self)
       @initialized = true
       self
     end
 
-    def initializers #:nodoc:
+    def initializers # :nodoc:
       Bootstrap.initializers_for(self) +
       railties_initializers(super) +
       Finisher.initializers_for(self)
     end
 
-    def config #:nodoc:
+    def config # :nodoc:
       @config ||= Application::Configuration.new(self.class.find_root(self.class.called_from))
     end
 
@@ -420,13 +403,14 @@ module Rails
     attr_writer :secrets, :credentials
 
     # The secret_key_base is used as the input secret to the application's key generator, which in turn
-    # is used to create all MessageVerifiers/MessageEncryptors, including the ones that sign and encrypt cookies.
+    # is used to create all ActiveSupport::MessageVerifier and ActiveSupport::MessageEncryptor instances,
+    # including the ones that sign and encrypt cookies.
     #
     # In development and test, this is randomly generated and stored in a
     # temporary file in <tt>tmp/development_secret.txt</tt>.
     #
-    # In all other environments, we look for it first in ENV["SECRET_KEY_BASE"],
-    # then credentials.secret_key_base, and finally secrets.secret_key_base. For most applications,
+    # In all other environments, we look for it first in <tt>ENV["SECRET_KEY_BASE"]</tt>,
+    # then +credentials.secret_key_base+, and finally +secrets.secret_key_base+. For most applications,
     # the correct place to store it is in the encrypted credentials file.
     def secret_key_base
       if Rails.env.development? || Rails.env.test?
@@ -485,11 +469,11 @@ module Rails
       )
     end
 
-    def to_app #:nodoc:
+    def to_app # :nodoc:
       self
     end
 
-    def helpers_paths #:nodoc:
+    def helpers_paths # :nodoc:
       config.helpers_paths
     end
 
@@ -511,17 +495,13 @@ module Rails
 
     # Eager loads the application code.
     def eager_load!
-      if Rails.autoloaders.zeitwerk_enabled?
-        Rails.autoloaders.each(&:eager_load)
-      else
-        super
-      end
+      Rails.autoloaders.each(&:eager_load)
     end
 
   protected
     alias :build_middleware_stack :app
 
-    def run_tasks_blocks(app) #:nodoc:
+    def run_tasks_blocks(app) # :nodoc:
       railties.each { |r| r.run_tasks_blocks(app) }
       super
       load "rails/tasks.rb"
@@ -532,28 +512,28 @@ module Rails
       end
     end
 
-    def run_generators_blocks(app) #:nodoc:
+    def run_generators_blocks(app) # :nodoc:
       railties.each { |r| r.run_generators_blocks(app) }
       super
     end
 
-    def run_runner_blocks(app) #:nodoc:
+    def run_runner_blocks(app) # :nodoc:
       railties.each { |r| r.run_runner_blocks(app) }
       super
     end
 
-    def run_console_blocks(app) #:nodoc:
+    def run_console_blocks(app) # :nodoc:
       railties.each { |r| r.run_console_blocks(app) }
       super
     end
 
-    def run_server_blocks(app) #:nodoc:
+    def run_server_blocks(app) # :nodoc:
       railties.each { |r| r.run_server_blocks(app) }
       super
     end
 
     # Returns the ordered railties for this application considering railties_order.
-    def ordered_railties #:nodoc:
+    def ordered_railties # :nodoc:
       @ordered_railties ||= begin
         order = config.railties_order.map do |railtie|
           if railtie == :main_app
@@ -575,7 +555,7 @@ module Rails
       end
     end
 
-    def railties_initializers(current) #:nodoc:
+    def railties_initializers(current) # :nodoc:
       initializers = []
       ordered_railties.reverse.flatten.each do |r|
         if r == self
@@ -587,7 +567,7 @@ module Rails
       initializers
     end
 
-    def default_middleware_stack #:nodoc:
+    def default_middleware_stack # :nodoc:
       default_stack = DefaultMiddlewareStack.new(self, config, paths)
       default_stack.build_stack
     end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/dependencies"
+require "active_support/core_ext/name_error"
 
 module AbstractController
   module Helpers

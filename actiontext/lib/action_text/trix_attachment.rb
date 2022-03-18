@@ -9,9 +9,9 @@ module ActionText
     ATTRIBUTES = %w( sgid contentType url href filename filesize width height previewable content ) + COMPOSED_ATTRIBUTES
     ATTRIBUTE_TYPES = {
       "previewable" => ->(value) { value.to_s == "true" },
-      "filesize"    => ->(value) { Integer(value.to_s) rescue value },
-      "width"       => ->(value) { Integer(value.to_s) rescue nil },
-      "height"      => ->(value) { Integer(value.to_s) rescue nil },
+      "filesize"    => ->(value) { Integer(value.to_s, exception: false) || value },
+      "width"       => ->(value) { Integer(value.to_s, exception: false) },
+      "height"      => ->(value) { Integer(value.to_s, exception: false) },
       :default      => ->(value) { value.to_s }
     }
 
@@ -39,10 +39,10 @@ module ActionText
         end
 
         def typecast_attribute_values(attributes)
-          attributes.map do |key, value|
+          attributes.to_h do |key, value|
             typecast = ATTRIBUTE_TYPES[key] || ATTRIBUTE_TYPES[:default]
             [key, typecast.call(value)]
-          end.to_h
+          end
         end
     end
 

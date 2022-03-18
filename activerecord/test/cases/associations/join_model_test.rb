@@ -341,13 +341,11 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::HasManyThroughAssociationNotFoundError) { authors(:david).nothings }
   end
 
-  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-    def test_exceptions_have_suggestions_for_fix
-      error = assert_raise(ActiveRecord::HasManyThroughAssociationNotFoundError) {
-        authors(:david).nothings
-      }
-      assert_match "Did you mean?", error.message
-    end
+  def test_exceptions_have_suggestions_for_fix
+    error = assert_raise(ActiveRecord::HasManyThroughAssociationNotFoundError) {
+      authors(:david).nothings
+    }
+    assert_match "Did you mean?", error.message
   end
 
   def test_has_many_through_join_model_with_conditions

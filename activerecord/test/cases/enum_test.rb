@@ -70,6 +70,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "visible", @book.author_visibility
     assert_equal "visible", @book.illustrator_visibility
     assert_equal "medium", @book.difficulty
+    assert_equal "soft", @book.cover
   end
 
   test "find via scope" do
@@ -108,6 +109,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where(status: [written, written]).first
     assert_not_equal @book, Book.where.not(status: published).first
     assert_equal @book, Book.where.not(status: written).first
+    assert_equal @book, Book.where(cover: Book.covers[:soft]).first
   end
 
   test "find via where with symbols" do
@@ -119,6 +121,8 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal @book, Book.where.not(status: :written).first
     assert_equal books(:ddd), Book.where(last_read: :forgotten).first
     assert_nil Book.where(status: :prohibited).first
+    assert_equal @book, Book.where(cover: :soft).first
+    assert_equal @book, Book.where.not(cover: :hard).first
   end
 
   test "find via where with strings" do
@@ -145,6 +149,8 @@ class EnumTest < ActiveRecord::TestCase
 
     enabled = Book.boolean_statuses[:enabled].to_s
     assert_equal book, Book.where(boolean_status: enabled).last
+    assert_equal @book, Book.where(cover: "soft").first
+    assert_equal @book, Book.where.not(cover: "hard").first
   end
 
   test "build from scope" do
@@ -170,11 +176,15 @@ class EnumTest < ActiveRecord::TestCase
     assert_predicate @book, :in_english?
     @book.author_visibility_visible!
     assert_predicate @book, :author_visibility_visible?
+    @book.hard!
+    assert_predicate @book, :hard?
   end
 
   test "update by setter" do
     @book.update! status: :written
     assert_predicate @book, :written?
+    @book.update! cover: :hard
+    assert_predicate @book, :hard?
   end
 
   test "enum methods are overwritable" do
@@ -185,11 +195,15 @@ class EnumTest < ActiveRecord::TestCase
   test "direct assignment" do
     @book.status = :written
     assert_predicate @book, :written?
+    @book.cover = :hard
+    assert_predicate @book, :hard?
   end
 
   test "assign string value" do
     @book.status = "written"
     assert_predicate @book, :written?
+    @book.cover = "hard"
+    assert_predicate @book, :hard?
   end
 
   test "enum changed attributes" do
@@ -378,7 +392,42 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "published", @book.status
   end
 
+  test "attributes_for_database" do
+    assert_equal 2, @book.attributes_for_database["status"]
+
+    @book.status = "published"
+
+    assert_equal 2, @book.attributes_for_database["status"]
+  end
+
   test "invalid definition values raise an ArgumentError" do
+    e = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum :status
+      end
+    end
+
+    assert_match(/must not be empty\.$/, e.message)
+
+    e = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum :status, {}
+      end
+    end
+
+    assert_match(/must not be empty\.$/, e.message)
+
+    e = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum :status, []
+      end
+    end
+
+    assert_match(/must not be empty\.$/, e.message)
+
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
         self.table_name = "books"
@@ -386,7 +435,7 @@ class EnumTest < ActiveRecord::TestCase
       end
     end
 
-    assert_match(/must be either a hash, an array of symbols, or an array of strings./, e.message)
+    assert_match(/must only contain symbols or strings\.$/, e.message)
 
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
@@ -395,7 +444,7 @@ class EnumTest < ActiveRecord::TestCase
       end
     end
 
-    assert_match(/Enum label name must not be blank/, e.message)
+    assert_match(/must not contain a blank name\.$/, e.message)
 
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
@@ -404,7 +453,16 @@ class EnumTest < ActiveRecord::TestCase
       end
     end
 
-    assert_match(/Enum label name must not be blank/, e.message)
+    assert_match(/must not contain a blank name\.$/, e.message)
+
+    e = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum status: Object.new
+      end
+    end
+
+    assert_match(/must be either a non-empty hash or an array\.$/, e.message)
   end
 
   test "reserved enum names" do
@@ -871,9 +929,6 @@ class EnumTest < ActiveRecord::TestCase
       " This has caused a conflict with auto generated negative scopes."\
       " Avoid using enum elements starting with 'not' where the positive form is also an element."
 
-    # this message comes from ActiveRecord::Scoping::Named, but it's worth noting that both occur in this case
-    expected_message_2 = "Creating scope :not_sent. Overwriting existing method Book.not_sent."
-
     Class.new(ActiveRecord::Base) do
       def self.name
         "Book"
@@ -884,7 +939,6 @@ class EnumTest < ActiveRecord::TestCase
     end
 
     assert_includes(logger.logged(:warn), expected_message_1)
-    assert_includes(logger.logged(:warn), expected_message_2)
   ensure
     ActiveRecord::Base.logger = old_logger
   end
@@ -899,9 +953,6 @@ class EnumTest < ActiveRecord::TestCase
       " This has caused a conflict with auto generated negative scopes."\
       " Avoid using enum elements starting with 'not' where the positive form is also an element."
 
-    # this message comes from ActiveRecord::Scoping::Named, but it's worth noting that both occur in this case
-    expected_message_2 = "Creating scope :not_sent. Overwriting existing method Book.not_sent."
-
     Class.new(ActiveRecord::Base) do
       def self.name
         "Book"
@@ -912,7 +963,6 @@ class EnumTest < ActiveRecord::TestCase
     end
 
     assert_includes(logger.logged(:warn), expected_message_1)
-    assert_includes(logger.logged(:warn), expected_message_2)
   ensure
     ActiveRecord::Base.logger = old_logger
   end

@@ -39,8 +39,8 @@ module ActiveRecord
         #   Post.unscoped {
         #     Post.limit(10) # Fires "SELECT * FROM posts LIMIT 10"
         #   }
-        def unscoped
-          block_given? ? relation.scoping { yield } : relation
+        def unscoped(&block)
+          block_given? ? relation.scoping(&block) : relation
         end
 
         # Are there attributes associated with this scope?
@@ -48,7 +48,7 @@ module ActiveRecord
           super || default_scopes.any? || respond_to?(:default_scope)
         end
 
-        def before_remove_const #:nodoc:
+        def before_remove_const # :nodoc:
           self.current_scope = nil
         end
 
@@ -83,7 +83,7 @@ module ActiveRecord
           # <tt>all_queries: true</tt>:
           #
           #   class Article < ActiveRecord::Base
-          #     default_scope { where(blog_id: 1) }, all_queries: true
+          #     default_scope -> { where(blog_id: 1) }, all_queries: true
           #   end
           #
           # Applying a default scope to all queries will ensure that records

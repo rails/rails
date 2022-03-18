@@ -752,6 +752,17 @@ class DurationTest < ActiveSupport::TestCase
     assert (1.day + 12.hours).variable?
   end
 
+  def test_duration_symmetry
+    time = Time.parse("Dec 7, 2021")
+    expected_time = Time.parse("2021-12-06 23:59:59")
+
+    assert_equal expected_time, time + -1.second
+    assert_equal expected_time, time + ActiveSupport::Duration.build(1) * -1
+    assert_equal expected_time, time + -ActiveSupport::Duration.build(1)
+    assert_equal expected_time, time + ActiveSupport::Duration::Scalar.new(-1)
+    assert_equal expected_time, time + ActiveSupport::Duration.build(-1)
+  end
+
   private
     def eastern_time_zone
       if Gem.win_platform?

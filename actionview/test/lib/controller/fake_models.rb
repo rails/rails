@@ -183,9 +183,9 @@ class ArelLike
   def to_ary
     true
   end
-  def each
+  def each(&block)
     a = Array.new(2) { |id| Comment.new(id + 1) }
-    a.each { |i| yield i }
+    a.each(&block)
   end
 end
 

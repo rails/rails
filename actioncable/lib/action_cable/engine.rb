@@ -2,15 +2,13 @@
 
 require "rails"
 require "action_cable"
-require "action_cable/helpers/action_cable_helper"
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActionCable
   class Engine < Rails::Engine # :nodoc:
     config.action_cable = ActiveSupport::OrderedOptions.new
     config.action_cable.mount_path = ActionCable::INTERNAL[:default_mount_path]
-
-    config.eager_load_namespaces << ActionCable
+    config.action_cable.precompile_assets = true
 
     initializer "action_cable.helpers" do
       ActiveSupport.on_load(:action_view) do
@@ -20,6 +18,14 @@ module ActionCable
 
     initializer "action_cable.logger" do
       ActiveSupport.on_load(:action_cable) { self.logger ||= ::Rails.logger }
+    end
+
+    initializer "action_cable.asset" do
+      config.after_initialize do |app|
+        if app.config.respond_to?(:assets) && app.config.action_cable.precompile_assets
+          app.config.assets.precompile += %w( actioncable.js actioncable.esm.js )
+        end
+      end
     end
 
     initializer "action_cable.set_configs" do |app|

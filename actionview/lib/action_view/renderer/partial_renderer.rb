@@ -27,7 +27,7 @@ module ActionView
   # This would first render <tt>advertiser/_account.html.erb</tt> with <tt>@buyer</tt> passed in as the local variable +account+, then
   # render <tt>advertiser/_ad.html.erb</tt> and pass the local variable +ad+ to the template for display.
   #
-  # == The :as and :object options
+  # == The +:as+ and +:object+ options
   #
   # By default ActionView::PartialRenderer doesn't have any local variables.
   # The <tt>:object</tt> option can be used to pass an object to the partial. For instance:
@@ -217,40 +217,6 @@ module ActionView
   #   </div>
   #
   # As you can see, the <tt>:locals</tt> hash is shared between both the partial and its layout.
-  #
-  # If you pass arguments to "yield" then this will be passed to the block. One way to use this is to pass
-  # an array to layout and treat it as an enumerable.
-  #
-  #   <%# app/views/users/_user.html.erb %>
-  #   <div class="user">
-  #     Budget: $<%= user.budget %>
-  #     <%= yield user %>
-  #   </div>
-  #
-  #   <%# app/views/users/index.html.erb %>
-  #   <%= render layout: @users do |user| %>
-  #     Title: <%= user.title %>
-  #   <% end %>
-  #
-  # This will render the layout for each user and yield to the block, passing the user, each time.
-  #
-  # You can also yield multiple times in one layout and use block arguments to differentiate the sections.
-  #
-  #   <%# app/views/users/_user.html.erb %>
-  #   <div class="user">
-  #     <%= yield user, :header %>
-  #     Budget: $<%= user.budget %>
-  #     <%= yield user, :footer %>
-  #   </div>
-  #
-  #   <%# app/views/users/index.html.erb %>
-  #   <%= render layout: @users do |user, section| %>
-  #     <%- case section when :header -%>
-  #       Title: <%= user.title %>
-  #     <%- when :footer -%>
-  #       Deadline: <%= user.deadline %>
-  #     <%- end -%>
-  #   <% end %>
   class PartialRenderer < AbstractRenderer
     include CollectionCaching
 

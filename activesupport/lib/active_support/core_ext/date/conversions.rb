@@ -22,21 +22,21 @@ class Date
 
   # Convert to a formatted string. See DATE_FORMATS for predefined formats.
   #
-  # This method is aliased to <tt>to_s</tt>.
+  # This method is aliased to <tt>to_formatted_s</tt>.
   #
   #   date = Date.new(2007, 11, 10)       # => Sat, 10 Nov 2007
   #
+  #   date.to_fs(:db)                     # => "2007-11-10"
   #   date.to_formatted_s(:db)            # => "2007-11-10"
-  #   date.to_s(:db)                      # => "2007-11-10"
   #
-  #   date.to_formatted_s(:short)         # => "10 Nov"
-  #   date.to_formatted_s(:number)        # => "20071110"
-  #   date.to_formatted_s(:long)          # => "November 10, 2007"
-  #   date.to_formatted_s(:long_ordinal)  # => "November 10th, 2007"
-  #   date.to_formatted_s(:rfc822)        # => "10 Nov 2007"
-  #   date.to_formatted_s(:iso8601)       # => "2007-11-10"
+  #   date.to_fs(:short)         # => "10 Nov"
+  #   date.to_fs(:number)        # => "20071110"
+  #   date.to_fs(:long)          # => "November 10, 2007"
+  #   date.to_fs(:long_ordinal)  # => "November 10th, 2007"
+  #   date.to_fs(:rfc822)        # => "10 Nov 2007"
+  #   date.to_fs(:iso8601)       # => "2007-11-10"
   #
-  # == Adding your own date formats to to_formatted_s
+  # == Adding your own date formats to to_fs
   # You can add your own formats to the Date::DATE_FORMATS hash.
   # Use the format name as the hash key and either a strftime string
   # or Proc instance that takes a date argument as the value.
@@ -44,7 +44,7 @@ class Date
   #   # config/initializers/date_formats.rb
   #   Date::DATE_FORMATS[:month_and_year] = '%B %Y'
   #   Date::DATE_FORMATS[:short_ordinal] = ->(date) { date.strftime("%B #{date.day.ordinalize}") }
-  def to_formatted_s(format = :default)
+  def to_fs(format = :default)
     if formatter = DATE_FORMATS[format]
       if formatter.respond_to?(:call)
         formatter.call(self).to_s
@@ -55,8 +55,8 @@ class Date
       to_default_s
     end
   end
+  alias_method :to_formatted_s, :to_fs
   alias_method :to_default_s, :to_s
-  alias_method :to_s, :to_formatted_s
 
   # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005"
   def readable_inspect
@@ -68,7 +68,7 @@ class Date
   silence_redefinition_of_method :to_time
 
   # Converts a Date instance to a Time, where the time is set to the beginning of the day.
-  # The timezone can be either :local or :utc (default :local).
+  # The timezone can be either +:local+ or +:utc+ (default +:local+).
   #
   #   date = Date.new(2007, 11, 10)  # => Sat, 10 Nov 2007
   #
@@ -77,8 +77,8 @@ class Date
   #
   #   date.to_time(:utc)             # => 2007-11-10 00:00:00 UTC
   #
-  # NOTE: The :local timezone is Ruby's *process* timezone, i.e. ENV['TZ'].
-  #       If the *application's* timezone is needed, then use +in_time_zone+ instead.
+  # NOTE: The +:local+ timezone is Ruby's *process* timezone, i.e. <tt>ENV['TZ']</tt>.
+  # If the <b>application's</b> timezone is needed, then use +in_time_zone+ instead.
   def to_time(form = :local)
     raise ArgumentError, "Expected :local or :utc, got #{form.inspect}." unless [:local, :utc].include?(form)
     ::Time.public_send(form, year, month, day)

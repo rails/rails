@@ -14,7 +14,7 @@ module ActionMailbox::InboundEmail::MessageId
     # attachment called +raw_email+. Before the upload, extract the Message-ID from the +source+ and set
     # it as an attribute on the new +InboundEmail+.
     def create_and_extract_message_id!(source, **options)
-      message_checksum = Digest::SHA1.hexdigest(source)
+      message_checksum = OpenSSL::Digest::SHA1.hexdigest(source)
       message_id = extract_message_id(source) || generate_missing_message_id(message_checksum)
 
       create! raw_email: create_and_upload_raw_email!(source),
@@ -35,7 +35,8 @@ module ActionMailbox::InboundEmail::MessageId
       end
 
       def create_and_upload_raw_email!(source)
-        ActiveStorage::Blob.create_and_upload! io: StringIO.new(source), filename: "message.eml", content_type: "message/rfc822"
+        ActiveStorage::Blob.create_and_upload! io: StringIO.new(source), filename: "message.eml", content_type: "message/rfc822",
+                                               service_name: ActionMailbox.storage_service
       end
   end
 end

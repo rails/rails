@@ -5,7 +5,7 @@ module ActiveSupport
     module Isolation
       require "thread"
 
-      def self.included(klass) #:nodoc:
+      def self.included(klass) # :nodoc:
         klass.class_eval do
           parallelize_me!
         end
@@ -63,7 +63,7 @@ module ActiveSupport
       module Subprocess
         ORIG_ARGV = ARGV.dup unless defined?(ORIG_ARGV)
 
-        # Crazy H4X to get this working in windows / jruby with
+        # Complicated H4X to get this working in windows / jruby with
         # no forking.
         def run_in_isolation(&blk)
           require "tempfile"

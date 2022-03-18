@@ -209,6 +209,22 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal "wherever.mp4", @user.vlogs.second.filename.to_s
   end
 
+  test "replacing attachments with an empty list" do
+    @user.highlights = []
+    assert_empty @user.highlights
+  end
+
+  test "replacing attachments with a list containing empty items" do
+    @user.highlights = [""]
+    assert_empty @user.highlights
+  end
+
+  test "replacing attachments with a list containing a mixture of empty and present items" do
+    @user.highlights = [ "", fixture_file_upload("racecar.jpg") ]
+    assert_equal 1, @user.highlights.size
+    assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
+  end
+
   test "successfully updating an existing record to replace existing, dependent attachments" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |old_blobs|
       @user.highlights.attach old_blobs
@@ -294,18 +310,20 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
   test "updating an existing record with attachments when appending on assign" do
     append_on_assign do
-      @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+      assert_deprecated do
+        @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
 
-      assert_difference -> { @user.reload.highlights.count }, +2 do
-        @user.update! highlights: [ create_blob(filename: "whenever.jpg"), create_blob(filename: "wherever.jpg") ]
-      end
+        assert_difference -> { @user.reload.highlights.count }, +2 do
+          @user.update! highlights: [ create_blob(filename: "whenever.jpg"), create_blob(filename: "wherever.jpg") ]
+        end
 
-      assert_no_difference -> { @user.reload.highlights.count } do
-        @user.update! highlights: [ ]
-      end
+        assert_no_difference -> { @user.reload.highlights.count } do
+          @user.update! highlights: [ ]
+        end
 
-      assert_no_difference -> { @user.reload.highlights.count } do
-        @user.update! highlights: nil
+        assert_no_difference -> { @user.reload.highlights.count } do
+          @user.update! highlights: nil
+        end
       end
     end
   end
@@ -440,6 +458,24 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "detaching when record is not persisted" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
+      user = User.new
+      user.highlights.attach blobs
+      assert user.highlights.attached?
+
+      perform_enqueued_jobs do
+        user.highlights.detach
+      end
+
+      assert_not user.highlights.attached?
+      assert ActiveStorage::Blob.exists?(blobs.first.id)
+      assert ActiveStorage::Blob.exists?(blobs.second.id)
+      assert ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.second.key)
+    end
+  end
+
   test "purging" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
       @user.highlights.attach blobs
@@ -447,6 +483,28 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
       assert_changes -> { @user.updated_at } do
         @user.highlights.purge
+      end
+      assert_not @user.highlights.attached?
+      assert_not ActiveStorage::Blob.exists?(blobs.first.id)
+      assert_not ActiveStorage::Blob.exists?(blobs.second.id)
+      assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert_not ActiveStorage::Blob.service.exist?(blobs.second.key)
+    end
+  end
+
+  test "purging from the attachments relation" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
+      @user.highlights.attach blobs
+      assert @user.highlights.attached?
+
+      message = <<-MSG.squish
+        Calling `purge` from `highlights_attachments` is deprecated and will be removed in Rails 7.1.
+        To migrate to Rails 7.1's behavior call `purge` from `highlights` instead: `highlights.purge`.
+      MSG
+      assert_deprecated(message) do
+        assert_changes -> { @user.updated_at } do
+          @user.highlights_attachments.purge
+        end
       end
       assert_not @user.highlights.attached?
       assert_not ActiveStorage::Blob.exists?(blobs.first.id)
@@ -483,6 +541,33 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "purging when record is not persisted" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
+      user = User.new
+      user.highlights.attach blobs
+      assert user.highlights.attached?
+
+      attachments = user.highlights.attachments
+      user.highlights.purge
+
+      assert_not user.highlights.attached?
+      assert attachments.all?(&:destroyed?)
+      blobs.each do |blob|
+        assert_not ActiveStorage::Blob.exists?(blob.id)
+        assert_not ActiveStorage::Blob.service.exist?(blob.key)
+      end
+    end
+  end
+
+  test "purging delete changes when record is not persisted" do
+    user = User.new
+    user.highlights = []
+
+    user.highlights.purge
+
+    assert_nil user.attachment_changes["highlights"]
+  end
+
   test "purging later" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
       @user.highlights.attach blobs
@@ -491,6 +576,31 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       perform_enqueued_jobs do
         assert_changes -> { @user.updated_at } do
           @user.highlights.purge_later
+        end
+      end
+
+      assert_not @user.highlights.attached?
+      assert_not ActiveStorage::Blob.exists?(blobs.first.id)
+      assert_not ActiveStorage::Blob.exists?(blobs.second.id)
+      assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert_not ActiveStorage::Blob.service.exist?(blobs.second.key)
+    end
+  end
+
+  test "purging later from the attachments relation" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
+      @user.highlights.attach blobs
+      assert @user.highlights.attached?
+
+      message = <<-MSG.squish
+        Calling `purge_later` from `highlights_attachments` is deprecated and will be removed in Rails 7.1.
+        To migrate to Rails 7.1's behavior call `purge_later` from `highlights` instead: `highlights.purge_later`.
+      MSG
+      assert_deprecated(message) do
+        perform_enqueued_jobs do
+          assert_changes -> { @user.updated_at } do
+            @user.highlights_attachments.purge_later
+          end
         end
       end
 
@@ -528,6 +638,24 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
       assert ActiveStorage::Blob.service.exist?(blobs.second.key)
       assert ActiveStorage::Blob.service.exist?(blobs.third.key)
+    end
+  end
+
+  test "purging attachment later when record is not persisted" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
+      user = User.new
+      user.highlights.attach blobs
+      assert user.highlights.attached?
+
+      perform_enqueued_jobs do
+        user.highlights.purge_later
+      end
+
+      assert_not user.highlights.attached?
+      blobs.each do |blob|
+        assert_not ActiveStorage::Blob.exists?(blob.id)
+        assert_not ActiveStorage::Blob.service.exist?(blob.key)
+      end
     end
   end
 
@@ -650,20 +778,37 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
   test "successfully attaches new blobs and destroys attachments marked for destruction via nested attributes" do
     append_on_assign do
-      town_blob = create_blob(filename: "town.jpg")
-      @user.highlights.attach(town_blob)
-      @user.reload
+      assert_deprecated do
+        town_blob = create_blob(filename: "town.jpg")
+        @user.highlights.attach(town_blob)
+        @user.reload
 
-      racecar_blob = fixture_file_upload("racecar.jpg")
-      attachment_id = town_blob.attachments.find_by!(record: @user).id
-      @user.update(
-        highlights: [racecar_blob],
-        highlights_attachments_attributes: [{ id: attachment_id, _destroy: true }]
-      )
+        racecar_blob = fixture_file_upload("racecar.jpg")
+        attachment_id = town_blob.attachments.find_by!(record: @user).id
+        @user.update(
+          highlights: [racecar_blob],
+          highlights_attachments_attributes: [{ id: attachment_id, _destroy: true }]
+        )
 
-      assert @user.reload.highlights.attached?
-      assert_equal 1, @user.highlights.count
-      assert_equal "racecar.jpg", @user.highlights.blobs.first.filename.to_s
+        assert @user.reload.highlights.attached?
+        assert_equal 1, @user.highlights.count
+        assert_equal "racecar.jpg", @user.highlights.blobs.first.filename.to_s
+      end
+    end
+  end
+
+  test "deprecation warning when replace_on_assign_to_many is false" do
+    append_on_assign do
+      message = <<-MSG.squish
+        DEPRECATION WARNING: config.active_storage.replace_on_assign_to_many is deprecated and will be removed in Rails 7.1.
+        Make sure that your code works well with config.active_storage.replace_on_assign_to_many set to true before upgrading.
+        To append new attachables to the Active Storage association, prefer using `attach`.
+        Using association setter would result in purging the existing attached attachments and replacing them with new ones.
+      MSG
+
+      assert_deprecated(message) do
+        @user.update! highlights: [create_blob(filename: "whenever.jpg")]
+      end
     end
   end
 

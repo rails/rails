@@ -18,7 +18,7 @@ module ActionView
   # renderer object of the correct type is created, and the +render+ method on
   # that new object is called in turn. This abstracts the set up and rendering
   # into a separate classes for partials and templates.
-  class AbstractRenderer #:nodoc:
+  class AbstractRenderer # :nodoc:
     delegate :template_exists?, :any_templates?, :formats, to: :@lookup_context
 
     def initialize(lookup_context)
@@ -158,7 +158,7 @@ module ActionView
 
       def extract_details(options) # :doc:
         details = nil
-        @lookup_context.registered_details.each do |key|
+        LookupContext.registered_details.each do |key|
           value = options[key]
 
           if value

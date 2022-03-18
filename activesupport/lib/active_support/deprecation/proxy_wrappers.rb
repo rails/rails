@@ -2,7 +2,7 @@
 
 module ActiveSupport
   class Deprecation
-    class DeprecationProxy #:nodoc:
+    class DeprecationProxy # :nodoc:
       def self.new(*args, &block)
         object = args.first
 
@@ -26,7 +26,7 @@ module ActiveSupport
     end
 
     # DeprecatedObjectProxy transforms an object into a deprecated one. It
-    # takes an object, a deprecation message and optionally a deprecator. The
+    # takes an object, a deprecation message, and optionally a deprecator. The
     # deprecator defaults to +ActiveSupport::Deprecator+ if none is specified.
     #
     #   deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, "This object is now deprecated")

@@ -40,12 +40,9 @@ module ActionDispatch
         # Takes a screenshot of the current page in the browser if the test
         # failed.
         #
-        # +take_failed_screenshot+ is included in <tt>application_system_test_case.rb</tt>
-        # that is generated with the application. To take screenshots when a test
-        # fails add +take_failed_screenshot+ to the teardown block before clearing
-        # sessions.
+        # +take_failed_screenshot+ is called during system test teardown.
         def take_failed_screenshot
-          take_screenshot if failed? && supports_screenshot?
+          take_screenshot if failed? && supports_screenshot? && Capybara::Session.instance_created?
         end
 
         private

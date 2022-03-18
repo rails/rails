@@ -23,7 +23,11 @@ class Contract < ActiveRecord::Base
   end
 
   def update_metadata
-    self.metadata = { company_id: company_id, developer_id: developer_id }
+    # 'code' makes the JSON string consistently orderable, which is used
+    # by RelationsTest "joins with order by custom attribute". Without
+    # this it would still pass 99% of the time, but fail when two
+    # records' company_id lexical and numeric order differ (99, 100).
+    self.metadata = { code: company_id && "%08x" % company_id, company_id: company_id, developer_id: developer_id }
   end
 end
 

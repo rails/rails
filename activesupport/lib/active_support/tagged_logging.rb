@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/object/blank"
 require "logger"
 require "active_support/logger"
@@ -57,7 +58,7 @@ module ActiveSupport
       def current_tags
         # We use our object ID here to avoid conflicting with other instances
         thread_key = @thread_key ||= "activesupport_tagged_logging_tags:#{object_id}"
-        Thread.current[thread_key] ||= []
+        IsolatedExecutionState[thread_key] ||= []
       end
 
       def tags_text
@@ -93,6 +94,20 @@ module ActiveSupport
     end
 
     delegate :push_tags, :pop_tags, :clear_tags!, to: :formatter
+
+    def broadcast_to(other_logger) # :nodoc:
+      define_singleton_method(:formatter=) do |formatter|
+        other_logger.formatter ||= formatter
+
+        other_logger.formatter.singleton_class.redefine_method(:current_tags) do
+          formatter.current_tags
+        end
+
+        super(formatter)
+      end
+
+      self.formatter = self.formatter.clone
+    end
 
     def tagged(*tags)
       if block_given?

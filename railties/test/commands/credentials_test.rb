@@ -5,7 +5,6 @@ require "env_helpers"
 require "rails/command"
 require "rails/commands/credentials/credentials_command"
 require "fileutils"
-require "tempfile"
 
 class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation, EnvHelpers

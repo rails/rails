@@ -68,10 +68,7 @@ module Rails
 
     def version_control
       if !options[:skip_git] && !options[:pretend]
-        run "git init", capture: options[:quiet], abort_on_failure: false
-        if user_default_branch.strip.empty?
-          `git symbolic-ref HEAD refs/heads/main`
-        end
+        run git_init_command, capture: options[:quiet], abort_on_failure: false
       end
     end
 
@@ -94,10 +91,6 @@ module Rails
     def test
       template "test/test_helper.rb"
       template "test/%namespaced_name%_test.rb"
-      append_file "Rakefile", <<~EOF
-        #{rakefile_test_tasks}
-        task default: :test
-      EOF
 
       if engine?
         empty_directory_with_keep_file "test/fixtures/files"
@@ -120,11 +113,8 @@ module Rails
       opts = options.transform_keys(&:to_sym).except(*DUMMY_IGNORE_OPTIONS)
       opts[:force] = force
       opts[:skip_bundle] = true
-      opts[:skip_spring] = true
-      opts[:skip_listen] = true
       opts[:skip_git] = true
-      opts[:skip_turbolinks] = true
-      opts[:skip_webpack_install] = true
+      opts[:skip_hotwire] = true
       opts[:dummy_app] = true
 
       invoke Rails::Generators::AppGenerator,
@@ -141,10 +131,13 @@ module Rails
       if mountable?
         template "rails/routes.rb", "#{dummy_path}/config/routes.rb", force: true
       end
-    end
+      if engine? && !api?
+        insert_into_file "#{dummy_path}/config/application.rb", indent(<<~RUBY, 4), after: /^\s*config\.load_defaults.*\n/
 
-    def test_dummy_webpacker_assets
-      template "rails/javascripts.js",    "#{dummy_path}/app/javascript/packs/application.js", force: true
+          # For compatibility with applications that use this config
+          config.action_controller.include_all_helpers = false
+        RUBY
+      end
     end
 
     def test_dummy_sprocket_assets
@@ -195,11 +188,6 @@ module Rails
         append_file gemfile_in_app_path, entry
       end
     end
-
-    private
-      def user_default_branch
-        @user_default_branch ||= `git config init.defaultbranch`
-      end
   end
 
   module Generators
@@ -230,10 +218,18 @@ module Rails
       def initialize(*args)
         @dummy_path = nil
         super
+
+        if !engine? || !with_dummy_app?
+          self.options = options.merge(skip_asset_pipeline: true).freeze
+        end
       end
 
       public_task :set_default_accessors!
       public_task :create_root
+
+      def target_rails_prerelease
+        super("plugin new")
+      end
 
       def create_root_files
         build(:readme)
@@ -241,7 +237,7 @@ module Rails
         build(:gemspec)   unless options[:skip_gemspec]
         build(:license)
         build(:gitignore) unless options[:skip_git]
-        build(:gemfile)   unless options[:skip_gemfile]
+        build(:gemfile)
         build(:version_control)
       end
 
@@ -309,6 +305,33 @@ module Rails
       end
 
     private
+      def gemfile_entries
+        [
+          rails_gemfile_entry,
+          simplify_gemfile_entries(
+            database_gemfile_entry,
+            asset_pipeline_gemfile_entry,
+          ),
+        ].flatten.compact
+      end
+
+      def rails_gemfile_entry
+        if options[:skip_gemspec]
+          super
+        elsif rails_prerelease?
+          super.dup.tap do |entry|
+            entry.comment = <<~COMMENT
+              Your gem is dependent on a prerelease version of Rails. Once you can lock this
+              dependency down to a specific version, move it to your gemspec.
+            COMMENT
+          end
+        end
+      end
+
+      def simplify_gemfile_entries(*gemfile_entries)
+        gemfile_entries.flatten.compact.map { |entry| GemfileEntry.floats(entry.name) }
+      end
+
       def create_dummy_app(path = nil)
         dummy_path(path) if path
 
@@ -316,8 +339,7 @@ module Rails
         mute do
           build(:generate_test_dummy)
           build(:test_dummy_config)
-          build(:test_dummy_webpacker_assets)
-          build(:test_dummy_sprocket_assets) unless options[:skip_sprockets]
+          build(:test_dummy_sprocket_assets) unless skip_sprockets?
           build(:test_dummy_clean)
           # ensure that bin/rails has proper dummy_path
           build(:bin, true)
@@ -399,6 +421,10 @@ module Rails
         end
       end
 
+      def rails_version_specifier(gem_version = Rails.gem_version)
+        [">= #{gem_version}"]
+      end
+
       def valid_const?
         if /-\d/.match?(original_name)
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not contain a namespace starting with numeric characters."
@@ -417,18 +443,6 @@ module Rails
 
       def get_builder_class
         defined?(::PluginBuilder) ? ::PluginBuilder : Rails::PluginBuilder
-      end
-
-      def rakefile_test_tasks
-        <<-RUBY
-require "rake/testtask"
-
-Rake::TestTask.new(:test) do |t|
-  t.libs << "test"
-  t.pattern = "test/**/*_test.rb"
-  t.verbose = false
-end
-        RUBY
       end
 
       def dummy_path(path = nil)

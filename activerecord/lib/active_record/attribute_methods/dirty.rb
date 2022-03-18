@@ -229,7 +229,15 @@ module ActiveRecord
         end
 
         def attribute_names_for_partial_inserts
-          partial_inserts? ? changed_attribute_names_to_save : attribute_names
+          if partial_inserts?
+            changed_attribute_names_to_save
+          else
+            attribute_names.reject do |attr_name|
+              if column_for_attribute(attr_name).default_function
+                !attribute_changed?(attr_name)
+              end
+            end
+          end
         end
     end
   end

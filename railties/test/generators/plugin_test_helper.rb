@@ -23,4 +23,15 @@ module PluginTestHelper
       f.puts contents
     end
   end
+
+  def fill_in_gemspec_fields(gemspec_path = "#{plugin_path}/#{File.basename plugin_path}.gemspec")
+    # Some fields must be a valid URL.
+    filled_in = File.read(gemspec_path).gsub(/"TODO.*"/, "http://example.com".inspect)
+    File.write(gemspec_path, filled_in)
+  end
+
+  def resolve_rails_gem_to_repository(gemfile_path = "#{plugin_path}/Gemfile")
+    repository_path = File.expand_path("../../..", __dir__)
+    File.write(gemfile_path, "gem 'rails', path: #{repository_path.inspect}\n", mode: "a")
+  end
 end

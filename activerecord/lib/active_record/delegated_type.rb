@@ -51,10 +51,9 @@ module ActiveRecord
   #     end
   #   end
   #
-  #   # Schema: messages[ id, subject ]
+  #   # Schema: messages[ id, subject, body ]
   #   class Message < ApplicationRecord
   #     include Entryable
-  #     has_rich_text :content
   #   end
   #
   #   # Schema: comments[ id, content ]
@@ -76,7 +75,9 @@ module ActiveRecord
   #
   #   # entries/entryables/_message.html.erb
   #   <div class="message">
-  #     Posted on <%= entry.created_at %> by <%= entry.creator.name %>: <%= entry.message.content %>
+  #     <div class="subject"><%= entry.message.subject %></div>
+  #     <p><%= entry.message.body %></p>
+  #     <i>Posted on <%= entry.created_at %> by <%= entry.creator.name %></i>
   #   </div>
   #
   #   # entries/entryables/_comment.html.erb
@@ -136,6 +137,21 @@ module ActiveRecord
   #   end
   #
   # Now you can list a bunch of entries, call +Entry#title+, and polymorphism will provide you with the answer.
+  #
+  # == Nested Attributes
+  #
+  # Enabling nested attributes on a delegated_type association allows you to
+  # create the entry and message in one go:
+  #
+  #   class Entry < ApplicationRecord
+  #     delegated_type :entryable, types: %w[ Message Comment ]
+  #     accepts_nested_attributes_for :entryable
+  #   end
+  #
+  #   params = { entry: { entryable_type: 'Message', entryable_attributes: { subject: 'Smiling' } } }
+  #   entry = Entry.create(params[:entry])
+  #   entry.entryable.id # => 2
+  #   entry.entryable.subject # => 'Smiling'
   module DelegatedType
     # Defines this as a class that'll delegate its type for the passed +role+ to the class references in +types+.
     # That'll create a polymorphic +belongs_to+ relationship to that +role+, and it'll add all the delegated
@@ -204,6 +220,10 @@ module ActiveRecord
 
         define_method "#{role}_name" do
           public_send("#{role}_class").model_name.singular.inquiry
+        end
+
+        define_method "build_#{role}" do |*params|
+          public_send("#{role}=", public_send("#{role}_class").new(*params))
         end
 
         types.each do |type|

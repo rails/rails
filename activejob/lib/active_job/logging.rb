@@ -4,7 +4,7 @@ require "active_support/tagged_logging"
 require "active_support/logger"
 
 module ActiveJob
-  module Logging #:nodoc:
+  module Logging # :nodoc:
     extend ActiveSupport::Concern
 
     included do
@@ -19,10 +19,10 @@ module ActiveJob
     end
 
     private
-      def tag_logger(*tags)
+      def tag_logger(*tags, &block)
         if logger.respond_to?(:tagged)
           tags.unshift "ActiveJob" unless logger_tagged_by_active_job?
-          logger.tagged(*tags) { yield }
+          logger.tagged(*tags, &block)
         else
           yield
         end

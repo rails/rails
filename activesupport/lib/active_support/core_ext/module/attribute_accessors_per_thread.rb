@@ -1,11 +1,16 @@
 # frozen_string_literal: true
 
+# == Attribute Accessors per Thread
+#
 # Extends the module object with class/module and instance accessors for
 # class/module attributes, just like the native attr* accessors for instance
 # attributes, but does so on a per-thread basis.
 #
 # So the values are scoped within the Thread.current space under the class name
 # of the module.
+#
+# Note that it can also be scoped per-fiber if +Rails.application.config.active_support.isolation_level+
+# is set to +:fiber+.
 class Module
   # Defines a per-thread class attribute and creates class and instance reader methods.
   # The underlying per-thread class variable is set to +nil+, if it is not previously defined.
@@ -14,9 +19,9 @@ class Module
   #     thread_mattr_reader :user
   #   end
   #
-  #   Current.user # => nil
-  #   Thread.current[:attr_Current_user] = "DHH"
+  #   Current.user = "DHH"
   #   Current.user # => "DHH"
+  #   Thread.new { Current.user }.value # => nil
   #
   # The attribute name must be a valid method name in Ruby.
   #
@@ -41,7 +46,8 @@ class Module
       # to work with inheritance via polymorphism.
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{sym}
-          Thread.current["attr_" + name + "_#{sym}"]
+          @__thread_mattr_#{sym} ||= "attr_\#{name}_#{sym}"
+          ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}]
         end
       EOS
 
@@ -53,7 +59,7 @@ class Module
         EOS
       end
 
-      Thread.current["attr_" + name + "_#{sym}"] = default unless default.nil?
+      ::ActiveSupport::IsolatedExecutionState["attr_#{name}_#{sym}"] = default unless default.nil?
     end
   end
   alias :thread_cattr_reader :thread_mattr_reader
@@ -84,7 +90,8 @@ class Module
       # to work with inheritance via polymorphism.
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{sym}=(obj)
-          Thread.current["attr_" + name + "_#{sym}"] = obj
+          @__thread_mattr_#{sym} ||= "attr_\#{name}_#{sym}"
+          ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}] = obj
         end
       EOS
 
@@ -111,16 +118,18 @@ class Module
   #   Account.user     # => "DHH"
   #   Account.new.user # => "DHH"
   #
+  # Unlike +mattr_accessor+, values are *not* shared with subclasses or parent classes.
   # If a subclass changes the value, the parent class' value is not changed.
-  # Similarly, if the parent class changes the value, the value of subclasses
-  # is not changed.
+  # If the parent class changes the value, the value of subclasses is not changed.
   #
   #   class Customer < Account
   #   end
   #
-  #   Customer.user = "Rafael"
-  #   Customer.user # => "Rafael"
-  #   Account.user  # => "DHH"
+  #   Account.user   # => "DHH"
+  #   Customer.user  # => nil
+  #   Customer.user  = "Rafael"
+  #   Customer.user  # => "Rafael"
+  #   Account.user   # => "DHH"
   #
   # To omit the instance writer method, pass <tt>instance_writer: false</tt>.
   # To omit the instance reader method, pass <tt>instance_reader: false</tt>.

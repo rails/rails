@@ -105,15 +105,15 @@ class Mysql2AdapterPreventWritesLegacyTest < ActiveRecord::Mysql2TestCase
   include DdlHelper
 
   def setup
-    @old_value = ActiveRecord::Base.legacy_connection_handling
-    ActiveRecord::Base.legacy_connection_handling = true
+    @old_value = ActiveRecord.legacy_connection_handling
+    ActiveRecord.legacy_connection_handling = true
 
     @conn = ActiveRecord::Base.connection
     @connection_handler = ActiveRecord::Base.connection_handler
   end
 
   def teardown
-    ActiveRecord::Base.legacy_connection_handling = @old_value
+    ActiveRecord.legacy_connection_handling = @old_value
   end
 
   def test_errors_when_an_insert_query_is_called_while_preventing_writes

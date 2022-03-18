@@ -51,11 +51,11 @@ module ActiveRecord
               end
 
               key.gsub!('\"', '"')
-              key.gsub!('\\\\', '\\')
+              key.gsub!("\\\\", "\\")
 
               if value
                 value.gsub!('\"', '"')
-                value.gsub!('\\\\', '\\')
+                value.gsub!("\\\\", "\\")
               end
 
               hash[key] = value

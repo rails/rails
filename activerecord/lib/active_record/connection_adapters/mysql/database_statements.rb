@@ -11,7 +11,7 @@ module ActiveRecord
           else
             super
           end
-          @connection.abandon_results!
+          @raw_connection.abandon_results!
           result
         end
 
@@ -26,29 +26,28 @@ module ActiveRecord
 
         def write_query?(sql) # :nodoc:
           !READ_QUERY.match?(sql)
+        rescue ArgumentError # Invalid encoding
+          !READ_QUERY.match?(sql.b)
         end
 
         def explain(arel, binds = [])
           sql     = "EXPLAIN #{to_sql(arel, binds)}"
-          start   = Concurrent.monotonic_time
+          start   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           result  = exec_query(sql, "EXPLAIN", binds)
-          elapsed = Concurrent.monotonic_time - start
+          elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
 
           MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
         end
 
         # Executes the SQL statement in the context of this connection.
         def execute(sql, name = nil, async: false)
+          sql = transform_query(sql)
           check_if_write_query(sql)
 
-          # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
-          # made since we established the connection
-          @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
-
-          super
+          raw_execute(sql, name, async: async)
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
+        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
           if without_prepared_statement?(binds)
             execute_and_free(sql, name, async: async) do |result|
               if result
@@ -68,10 +67,10 @@ module ActiveRecord
           end
         end
 
-        def exec_delete(sql, name = nil, binds = [])
+        def exec_delete(sql, name = nil, binds = []) # :nodoc:
           if without_prepared_statement?(binds)
             @lock.synchronize do
-              execute_and_free(sql, name) { @connection.affected_rows }
+              execute_and_free(sql, name) { @raw_connection.affected_rows }
             end
           else
             exec_stmt_and_free(sql, name, binds) { |stmt| stmt.affected_rows }
@@ -79,12 +78,30 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
+        # https://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html#function_current-timestamp
+        # https://dev.mysql.com/doc/refman/5.7/en/date-and-time-type-syntax.html
+        HIGH_PRECISION_CURRENT_TIMESTAMP = Arel.sql("CURRENT_TIMESTAMP(6)").freeze # :nodoc:
+        private_constant :HIGH_PRECISION_CURRENT_TIMESTAMP
+
+        def high_precision_current_timestamp
+          HIGH_PRECISION_CURRENT_TIMESTAMP
+        end
+
         private
+          def raw_execute(sql, name, async: false)
+            # make sure we carry over any changes to ActiveRecord.default_timezone that have been
+            # made since we established the connection
+            @raw_connection.query_options[:database_timezone] = default_timezone
+
+            super
+          end
+
           def execute_batch(statements, name = nil)
+            statements = statements.map { |sql| transform_query(sql) }
             combine_multi_statements(statements).each do |statement|
-              execute(statement, name)
+              raw_execute(statement, name)
+              @raw_connection.abandon_results!
             end
-            @connection.abandon_results!
           end
 
           def default_insert_value(column)
@@ -92,7 +109,7 @@ module ActiveRecord
           end
 
           def last_inserted_id(result)
-            @connection.last_id
+            @raw_connection.last_id
           end
 
           def multi_statements_enabled?
@@ -109,13 +126,13 @@ module ActiveRecord
             multi_statements_was = multi_statements_enabled?
 
             unless multi_statements_was
-              @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
+              @raw_connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
             end
 
             yield
           ensure
             unless multi_statements_was
-              @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
+              @raw_connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
             end
           end
 
@@ -147,22 +164,23 @@ module ActiveRecord
           end
 
           def exec_stmt_and_free(sql, name, binds, cache_stmt: false, async: false)
+            sql = transform_query(sql)
             check_if_write_query(sql)
 
             materialize_transactions
             mark_transaction_written_if_write(sql)
 
-            # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
+            # make sure we carry over any changes to ActiveRecord.default_timezone that have been
             # made since we established the connection
-            @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
+            @raw_connection.query_options[:database_timezone] = default_timezone
 
             type_casted_binds = type_casted_binds(binds)
 
             log(sql, name, binds, type_casted_binds, async: async) do
               if cache_stmt
-                stmt = @statements[sql] ||= @connection.prepare(sql)
+                stmt = @statements[sql] ||= @raw_connection.prepare(sql)
               else
-                stmt = @connection.prepare(sql)
+                stmt = @raw_connection.prepare(sql)
               end
 
               begin

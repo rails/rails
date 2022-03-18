@@ -224,6 +224,13 @@ class FlashTest < ActionController::TestCase
     @controller = original_controller
   end
 
+  def test_additional_flash_types_are_not_listed_in_actions_set
+    test_controller_with_flash_type_foo = Class.new(TestController) do
+      add_flash_types :foo
+    end
+    assert_not_includes test_controller_with_flash_type_foo.action_methods, "foo"
+  end
+
   def test_add_flash_type_to_subclasses
     test_controller_with_flash_type_foo = Class.new(TestController) do
       add_flash_types :foo

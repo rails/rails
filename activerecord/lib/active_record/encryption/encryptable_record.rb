@@ -18,12 +18,10 @@ module ActiveRecord
         #
         # === Options
         #
-        # * <tt>:key_provider</tt> - Configure a +KeyProvider+ for serving the keys to encrypt and
-        #   decrypt this attribute. If not provided, it will default to +ActiveRecord::Encryption.key_provider+.
+        # * <tt>:key_provider</tt> - A key provider to provide encryption and decryption keys. Defaults to
+        #   +ActiveRecord::Encryption.key_provider+.
         # * <tt>:key</tt> - A password to derive the key from. It's a shorthand for a +:key_provider+ that
         #   serves derivated keys. Both options can't be used at the same time.
-        # * <tt>:key_provider</tt> - Set a +:key_provider+ to provide encryption and decryption keys. If not
-        #   provided, it will default to the key provider set with `config.key_provider`.
         # * <tt>:deterministic</tt> - By default, encryption is not deterministic. It will use a random
         #   initialization vector for each encryption operation. This means that encrypting the same content
         #   with the same key twice will generate different ciphertexts. When set to +true+, it will generate the
@@ -37,7 +35,7 @@ module ActiveRecord
         #   in preserving it.
         # * <tt>:ignore_case</tt> - When true, it behaves like +:downcase+ but, it also preserves the original case in a specially
         #   designated column +original_<name>+. When reading the encrypted content, the version with the original case is
-        #   server. But you can still execute queries that will ignore the case. This option can only be used when +:deterministic+
+        #   served. But you can still execute queries that will ignore the case. This option can only be used when +:deterministic+
         #   is true.
         # * <tt>:context_properties</tt> - Additional properties that will override +Context+ settings when this attribute is
         #   encrypted and decrypted. E.g: +encryptor:+, +cipher:+, +message_serializer:+, etc.
@@ -46,10 +44,10 @@ module ActiveRecord
         #   encryption is used, they will be used to generate additional ciphertexts to check in the queries.
         def encrypts(*names, key_provider: nil, key: nil, deterministic: false, downcase: false, ignore_case: false, previous: [], **context_properties)
           self.encrypted_attributes ||= Set.new # not using :default because the instance would be shared across classes
+          scheme = scheme_for key_provider: key_provider, key: key, deterministic: deterministic, downcase: downcase, \
+              ignore_case: ignore_case, previous: previous, **context_properties
 
           names.each do |name|
-            scheme = scheme_for key_provider: key_provider, key: key, deterministic: deterministic, downcase: downcase, \
-              ignore_case: ignore_case, previous: previous, **context_properties
             encrypt_attribute name, scheme
           end
         end
@@ -89,7 +87,6 @@ module ActiveRecord
             end
 
             preserve_original_encrypted(name) if attribute_scheme.ignore_case?
-            validate_column_size(name) if ActiveRecord::Encryption.config.validate_column_size
             ActiveRecord::Encryption.encrypted_attribute_was_declared(self, name)
           end
 
@@ -121,12 +118,22 @@ module ActiveRecord
             end)
           end
 
+          def load_schema!
+            super
+
+            add_length_validation_for_encrypted_columns if ActiveRecord::Encryption.config.validate_column_size
+          end
+
+          def add_length_validation_for_encrypted_columns
+            encrypted_attributes&.each do |attribute_name|
+              validate_column_size attribute_name
+            end
+          end
+
           def validate_column_size(attribute_name)
-            if table_exists? && limit = columns_hash[attribute_name.to_s]&.limit
+            if limit = columns_hash[attribute_name.to_s]&.limit
               validates_length_of attribute_name, maximum: limit
             end
-          rescue ActiveRecord::ConnectionNotEstablished => e
-            Rails.logger.warn "Skipping adding length validation for #{self.name}\##{attribute_name}. Can't check column limit due to: #{e.inspect}"
           end
       end
 
@@ -176,21 +183,17 @@ module ActiveRecord
 
         def build_encrypt_attribute_assignments
           Array(self.class.encrypted_attributes).index_with do |attribute_name|
-            if source_attribute_name = self.class.source_attribute_from_preserved_attribute(attribute_name)
-              self[source_attribute_name]
-            else
-              self[attribute_name]
-            end
+            self[attribute_name]
           end
         end
 
         def build_decrypt_attribute_assignments
-          Array(self.class.encrypted_attributes).collect do |attribute_name|
+          Array(self.class.encrypted_attributes).to_h do |attribute_name|
             type = type_for_attribute(attribute_name)
             encrypted_value = ciphertext_for(attribute_name)
             new_value = type.deserialize(encrypted_value)
             [attribute_name, new_value]
-          end.to_h
+          end
         end
 
         def cant_modify_encrypted_attributes_when_frozen

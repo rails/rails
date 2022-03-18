@@ -3,7 +3,7 @@
 require "active_support/core_ext/string/output_safety"
 
 module ActionView
-  class OutputFlow #:nodoc:
+  class OutputFlow # :nodoc:
     attr_reader :content
 
     def initialize
@@ -27,7 +27,7 @@ module ActionView
     alias_method :append!, :append
   end
 
-  class StreamingFlow < OutputFlow #:nodoc:
+  class StreamingFlow < OutputFlow # :nodoc:
     def initialize(view, fiber)
       @view    = view
       @parent  = nil

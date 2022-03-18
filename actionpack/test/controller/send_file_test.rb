@@ -146,7 +146,6 @@ class SendFileTest < ActionController::TestCase
       assert_equal "image/png", response.content_type
       assert_equal %(disposition; filename="filename"; filename*=UTF-8''filename), response.get_header("Content-Disposition")
       assert_equal "binary", response.get_header("Content-Transfer-Encoding")
-      assert_equal "private", response.get_header("Cache-Control")
     end
   end
 

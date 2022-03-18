@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Encryption
-    # An +ActiveModel::Type+ that encrypts/decrypts strings of text.
+    # An ActiveModel::Type::Value that encrypts/decrypts strings of text.
     #
     # This is the central piece that connects the encryption system with +encrypts+ declarations in the
     # model classes. Whenever you declare an attribute as encrypted, it configures an +EncryptedAttributeType+
@@ -13,12 +13,13 @@ module ActiveRecord
       attr_reader :scheme, :cast_type
 
       delegate :key_provider, :downcase?, :deterministic?, :previous_schemes, :with_context, :fixed?, to: :scheme
+      delegate :accessor, to: :cast_type
 
       # === Options
       #
-      # * <tt>:scheme</tt> - An +Scheme+ with the encryption properties for this attribute.
+      # * <tt>:scheme</tt> - A +Scheme+ with the encryption properties for this attribute.
       # * <tt>:cast_type</tt> - A type that will be used to serialize (before encrypting) and deserialize
-      #   (after decrypting). +ActiveModel::Type::String+ by default.
+      #   (after decrypting). ActiveModel::Type::String by default.
       def initialize(scheme:, cast_type: ActiveModel::Type::String.new, previous_type: false)
         super()
         @scheme = scheme
@@ -54,7 +55,7 @@ module ActiveRecord
         end
 
         def previous_types_without_clean_text
-          @previous_types_without_clean_text  ||= build_previous_types_for(previous_schemes)
+          @previous_types_without_clean_text ||= build_previous_types_for(previous_schemes)
         end
 
         def build_previous_types_for(schemes)

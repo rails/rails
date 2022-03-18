@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveJob
-  module Instrumentation #:nodoc:
+  module Instrumentation # :nodoc:
     extend ActiveSupport::Concern
 
     included do

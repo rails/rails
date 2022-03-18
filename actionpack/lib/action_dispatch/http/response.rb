@@ -86,18 +86,6 @@ module ActionDispatch # :nodoc:
     cattr_accessor :default_charset, default: "utf-8"
     cattr_accessor :default_headers
 
-    def self.return_only_media_type_on_content_type=(*)
-      ActiveSupport::Deprecation.warn(
-        ".return_only_media_type_on_content_type= is deprecated with no replacement and will be removed in 7.0."
-      )
-    end
-
-    def self.return_only_media_type_on_content_type
-      ActiveSupport::Deprecation.warn(
-        ".return_only_media_type_on_content_type is deprecated with no replacement and will be removed in 7.0."
-      )
-    end
-
     include Rack::Response::Helpers
     # Aliasing these off because AD::Http::Cache::Response defines them.
     alias :_cache_control :cache_control
@@ -336,7 +324,7 @@ module ActionDispatch # :nodoc:
     # Avoid having to pass an open file handle as the response body.
     # Rack::Sendfile will usually intercept the response and uses
     # the path directly, so there is no reason to open the file.
-    class FileBody #:nodoc:
+    class FileBody # :nodoc:
       attr_reader :to_path
 
       def initialize(path)

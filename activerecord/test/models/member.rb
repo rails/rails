@@ -5,6 +5,7 @@ class Member < ActiveRecord::Base
   has_one :selected_membership
   has_one :membership
   has_one :club, through: :current_membership
+  has_one :club_without_joins, through: :current_membership, source: :club, disable_joins: true
   has_one :selected_club, through: :selected_membership, source: :club
   has_one :favorite_club, -> { where "memberships.favorite = ?", true }, through: :membership, source: :club
   has_one :hairy_club, -> { where clubs: { name: "Moustache and Eyebrow Fancier Club" } }, through: :membership, source: :club

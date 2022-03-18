@@ -131,7 +131,7 @@ class String
   end
 end
 
-class Numeric #:nodoc:
+class Numeric # :nodoc:
   # No number is blank:
   #
   #   1.blank? # => false
@@ -143,7 +143,7 @@ class Numeric #:nodoc:
   end
 end
 
-class Time #:nodoc:
+class Time # :nodoc:
   # No Time is blank:
   #
   #   Time.now.blank? # => false

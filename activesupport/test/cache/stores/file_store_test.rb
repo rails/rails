@@ -32,7 +32,6 @@ class FileStoreTest < ActiveSupport::TestCase
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
   include CacheStoreCoderBehavior
-  include LocalCacheBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
@@ -48,7 +47,7 @@ class FileStoreTest < ActiveSupport::TestCase
 
   def test_clear_without_cache_dir
     FileUtils.rm_r(cache_dir)
-    @cache.clear
+    assert_nothing_raised { @cache.clear }
   end
 
   def test_long_uri_encoded_keys
@@ -152,7 +151,7 @@ class OptimizedFileStoreTest < FileStoreTest
     super
   end
 
-  def forward_compatibility
+  def test_forward_compatibility
     previous_format = ActiveSupport::Cache.format_version
     ActiveSupport::Cache.format_version = 6.1
     @old_store = lookup_store
@@ -162,7 +161,7 @@ class OptimizedFileStoreTest < FileStoreTest
     assert_equal "bar", @cache.read("foo")
   end
 
-  def forward_compatibility
+  def test_backward_compatibility
     previous_format = ActiveSupport::Cache.format_version
     ActiveSupport::Cache.format_version = 6.1
     @old_store = lookup_store

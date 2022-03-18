@@ -28,10 +28,6 @@ class RenderJsonTest < ActionController::TestCase
       render json: nil
     end
 
-    def render_json_render_to_string
-      render plain: render_to_string(json: "[]")
-    end
-
     def render_json_hello_world
       render json: ActiveSupport::JSON.encode(hello: "world")
     end
@@ -80,11 +76,6 @@ class RenderJsonTest < ActionController::TestCase
     get :render_json_nil
     assert_equal "null", @response.body
     assert_equal "application/json", @response.media_type
-  end
-
-  def test_render_json_render_to_string
-    get :render_json_render_to_string
-    assert_equal "[]", @response.body
   end
 
   def test_render_json

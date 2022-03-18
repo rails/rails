@@ -306,24 +306,25 @@ module ActiveRecord
       #
       # The mysql2 and postgresql adapters support setting the transaction
       # isolation level.
-      def transaction(requires_new: nil, isolation: nil, joinable: true)
+      def transaction(requires_new: nil, isolation: nil, joinable: true, &block)
         if !requires_new && current_transaction.joinable?
           if isolation
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
           end
           yield
         else
-          transaction_manager.within_new_transaction(isolation: isolation, joinable: joinable) { yield }
+          transaction_manager.within_new_transaction(isolation: isolation, joinable: joinable, &block)
         end
       rescue ActiveRecord::Rollback
         # rollbacks are silently swallowed
       end
 
-      attr_reader :transaction_manager #:nodoc:
+      attr_reader :transaction_manager # :nodoc:
 
       delegate :within_new_transaction, :open_transactions, :current_transaction, :begin_transaction,
                :commit_transaction, :rollback_transaction, :materialize_transactions,
-               :disable_lazy_transactions!, :enable_lazy_transactions!, to: :transaction_manager
+               :disable_lazy_transactions!, :enable_lazy_transactions!, :dirty_current_transaction,
+               to: :transaction_manager
 
       def mark_transaction_written_if_write(sql) # :nodoc:
         transaction = current_transaction
@@ -336,8 +337,24 @@ module ActiveRecord
         current_transaction.open?
       end
 
-      def reset_transaction #:nodoc:
+      def reset_transaction(restore: false) # :nodoc:
+        # Store the existing transaction state to the side
+        old_state = @transaction_manager if restore && @transaction_manager&.restorable?
+
         @transaction_manager = ConnectionAdapters::TransactionManager.new(self)
+
+        if block_given?
+          # Reconfigure the connection without any transaction state in the way
+          result = yield
+
+          # Now the connection's fully established, we can swap back
+          if old_state
+            @transaction_manager = old_state
+            @transaction_manager.restore_transactions
+          end
+
+          result
+        end
       end
 
       # Register a record with the current transaction so that its after_commit and after_rollback callbacks
@@ -374,7 +391,13 @@ module ActiveRecord
         exec_rollback_db_transaction
       end
 
-      def exec_rollback_db_transaction() end #:nodoc:
+      def exec_rollback_db_transaction() end # :nodoc:
+
+      def restart_db_transaction
+        exec_restart_db_transaction
+      end
+
+      def exec_restart_db_transaction() end # :nodoc:
 
       def rollback_to_savepoint(name = nil)
         exec_rollback_to_savepoint(name)
@@ -441,6 +464,19 @@ module ActiveRecord
         end
       end
 
+      # This is a safe default, even if not high precision on all databases
+      HIGH_PRECISION_CURRENT_TIMESTAMP = Arel.sql("CURRENT_TIMESTAMP").freeze # :nodoc:
+      private_constant :HIGH_PRECISION_CURRENT_TIMESTAMP
+
+      # Returns an Arel SQL literal for the CURRENT_TIMESTAMP for usage with
+      # arbitrary precision date/time columns.
+      #
+      # Adapters supporting datetime with precision should override this to
+      # provide as much precision as is available.
+      def high_precision_current_timestamp
+        HIGH_PRECISION_CURRENT_TIMESTAMP
+      end
+
       private
         def execute_batch(statements, name = nil)
           statements.each do |statement|
@@ -456,7 +492,7 @@ module ActiveRecord
         end
 
         def build_fixture_sql(fixtures, table_name)
-          columns = schema_cache.columns_hash(table_name)
+          columns = schema_cache.columns_hash(table_name).reject { |_, column| supports_virtual_columns? && column.virtual? }
 
           values_list = fixtures.map do |fixture|
             fixture = fixture.stringify_keys

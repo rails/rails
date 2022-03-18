@@ -298,8 +298,12 @@ class DeprecationTest < ActiveSupport::TestCase
     end
 
     ActiveSupport::Deprecation.silenced = true
+    assert ActiveSupport::Deprecation.silenced
+
     assert_not_deprecated { @dtc.partially }
+
     ActiveSupport::Deprecation.silenced = false
+    assert_not ActiveSupport::Deprecation.silenced
   end
 
   def test_silence_threaded
@@ -504,8 +508,10 @@ class DeprecationTest < ActiveSupport::TestCase
   def test_no_disallowed_behavior_with_no_disallowed_messages
     resetting_disallowed_deprecation_config do
       ActiveSupport::Deprecation.disallowed_behavior = :raise
-      @dtc.none
-      @dtc.partially
+      assert_nothing_raised do
+        @dtc.none
+        @dtc.partially
+      end
     end
   end
 
@@ -514,7 +520,7 @@ class DeprecationTest < ActiveSupport::TestCase
       ActiveSupport::Deprecation.disallowed_behavior = :raise
       ActiveSupport::Deprecation.disallowed_warnings = ["foo=nil"]
 
-      @dtc.none
+      assert_nothing_raised { @dtc.none }
     end
   end
 

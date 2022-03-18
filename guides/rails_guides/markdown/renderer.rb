@@ -14,12 +14,10 @@ module RailsGuides
         formatter = Rouge::Formatters::HTML.new
         lexer = ::Rouge::Lexer.find_fancy(lexer_language(language))
         formatted_code = formatter.format(lexer.lex(code))
-        clipboard_id = "clipboard-#{SecureRandom.hex(16)}"
         <<~HTML
           <div class="code_container">
           <pre><code class="highlight #{lexer_language(language)}">#{formatted_code}</code></pre>
-          <textarea class="clipboard-content" id="#{clipboard_id}">#{clipboard_content(code, language)}</textarea>
-          <button class="clipboard-button" data-clipboard-target="##{clipboard_id}">Copy</button>
+          <button class="clipboard-button" data-clipboard-text="#{clipboard_content(code, language)}">Copy</button>
           </div>
         HTML
       end
@@ -95,7 +93,7 @@ module RailsGuides
             code = code.lines.grep(prompt_regexp).join.gsub(prompt_regexp, "")
           end
 
-          ERB::Util.h(code)
+          ERB::Util.html_escape(code)
         end
 
         def convert_notes(body)

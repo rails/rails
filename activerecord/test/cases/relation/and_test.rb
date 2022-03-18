@@ -5,7 +5,7 @@ require "models/author"
 
 module ActiveRecord
   class AndTest < ActiveRecord::TestCase
-    fixtures :authors
+    fixtures :authors, :author_addresses
 
     def test_and
       david, mary, bob = authors(:david, :mary, :bob)

@@ -12,7 +12,7 @@ class Time
     # Returns the TimeZone for the current request, if this has been set (via Time.zone=).
     # If <tt>Time.zone</tt> has not been set for the current request, returns the TimeZone specified in <tt>config.time_zone</tt>.
     def zone
-      Thread.current[:time_zone] || zone_default
+      ::ActiveSupport::IsolatedExecutionState[:time_zone] || zone_default
     end
 
     # Sets <tt>Time.zone</tt> to a TimeZone object for the current request/thread.
@@ -21,8 +21,8 @@ class Time
     #
     # * A Rails TimeZone object.
     # * An identifier for a Rails TimeZone object (e.g., "Eastern Time (US & Canada)", <tt>-5.hours</tt>).
-    # * A TZInfo::Timezone object.
-    # * An identifier for a TZInfo::Timezone object (e.g., "America/New_York").
+    # * A <tt>TZInfo::Timezone</tt> object.
+    # * An identifier for a <tt>TZInfo::Timezone</tt> object (e.g., "America/New_York").
     #
     # Here's an example of how you might set <tt>Time.zone</tt> on a per request basis and reset it when the request is done.
     # <tt>current_user.time_zone</tt> just needs to return a string identifying the user's preferred time zone:
@@ -39,7 +39,7 @@ class Time
     #     end
     #   end
     def zone=(time_zone)
-      Thread.current[:time_zone] = find_zone!(time_zone)
+      ::ActiveSupport::IsolatedExecutionState[:time_zone] = find_zone!(time_zone)
     end
 
     # Allows override of <tt>Time.zone</tt> locally inside supplied block;
@@ -55,7 +55,7 @@ class Time
     #     end
     #   end
     #
-    # NOTE: This won't affect any <tt>ActiveSupport::TimeWithZone</tt>
+    # NOTE: This won't affect any ActiveSupport::TimeWithZone
     # objects that have already been created, e.g. any model timestamp
     # attributes that have been read before the block will remain in
     # the application's default timezone.

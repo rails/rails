@@ -7,6 +7,16 @@ require "models/task"
 class DateTimeTest < ActiveRecord::TestCase
   include InTimeZone
 
+  def test_default_timezone_validation
+    assert_raises ArgumentError do
+      ActiveRecord.default_timezone = "UTC"
+    end
+
+    # These values should not raise errors
+    ActiveRecord.default_timezone = :local
+    ActiveRecord.default_timezone = :utc
+  end
+
   def test_saves_both_date_and_time
     with_env_tz "America/New_York" do
       with_timezone_config default: :utc do
