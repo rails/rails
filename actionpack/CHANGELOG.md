@@ -1,3 +1,16 @@
+*   Introduce `html:` and `screenshot:` kwargs for system test screenshot helper
+
+    Use these as an alternative to the already-available environment variables.
+
+    For example, this will display a screenshot in iTerm, save the HTML, and output
+    its path.
+
+    ```ruby
+    take_screenshot(html: true, screenshot: "inline")
+    ```
+
+    *Alex Ghiculescu*
+
 *   Allow relative redirects when `raise_on_open_redirects` is enabled
 
     *Tom Hughes*
