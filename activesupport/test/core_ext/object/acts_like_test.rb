@@ -54,6 +54,6 @@ class ObjectTests < ActiveSupport::TestCase
     assert_not string.acts_like?(:invalid)
 
     assert duck_string.acts_like?(:string)
-    assert_not string.acts_like?(:invalid)
+    assert_not duck_string.acts_like?(:invalid)
   end
 end
