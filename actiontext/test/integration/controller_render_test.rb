@@ -4,7 +4,7 @@ require "test_helper"
 
 class ActionText::ControllerRenderTest < ActionDispatch::IntegrationTest
   test "uses current request environment" do
-    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     message = Message.create!(content: ActionText::Content.new.append_attachables(blob))
 
     host! "loocalhoost"
@@ -15,7 +15,7 @@ class ActionText::ControllerRenderTest < ActionDispatch::IntegrationTest
   end
 
   test "renders as HTML when the request format is not HTML" do
-    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     message = Message.create!(content: ActionText::Content.new.append_attachables(blob))
 
     host! "loocalhoost"
@@ -34,7 +34,7 @@ class ActionText::ControllerRenderTest < ActionDispatch::IntegrationTest
   end
 
   test "resolves partials when controller is namespaced" do
-    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     message = Message.create!(content: ActionText::Content.new.append_attachables(blob))
 
     get admin_message_path(message)
