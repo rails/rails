@@ -592,6 +592,25 @@ Book.where("created_at >= :start_date AND created_at <= :end_date",
 
 This makes for clearer readability if you have a large number of variable conditions.
 
+#### Conditions That Use `LIKE`
+
+Although condition arguments are automatically escaped to prevent SQL injection, SQL `LIKE` wildcards (i.e., `%` and `_`) are **not** escaped. This may cause unexpected behavior if an unsanitized value is used in an argument. For example:
+
+```ruby
+Book.where("title LIKE ?", params[:title] + "%")
+```
+
+In the above code, the intent is to match titles that start with a user-specified string. However, any occurrences of `%` or `_` in `params[:title]` will be treated as wildcards, leading to surprising query results. In some circumstances, this may also prevent the database from using an intended index, leading to a much slower query.
+
+To avoid these problems, use [`sanitize_sql_like`][] to escape wildcard characters in the relevant portion of the argument:
+
+```ruby
+Book.where("title LIKE ?",
+  Book.sanitize_sql_like(params[:title]) + "%")
+```
+
+[`sanitize_sql_like`]: https://api.rubyonrails.org/classes/ActiveRecord/Sanitization/ClassMethods.html#method-i-sanitize_sql_like
+
 ### Hash Conditions
 
 Active Record also allows you to pass in hash conditions which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want qualified and the values of how you want to qualify them:
