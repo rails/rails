@@ -1,3 +1,7 @@
+*   The Classic to Zeitwerk HOWTO guide has a new section about the undocumented `before_remove_const`.
+
+    *Xavier Noria*
+
 ## Rails 7.0.2.3 (March 08, 2022) ##
 
 *   No changes.
