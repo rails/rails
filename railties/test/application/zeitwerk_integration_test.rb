@@ -262,34 +262,6 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_equal %i(main_autoloader), $zeitwerk_integration_reload_test
   end
 
-  test "reloading invokes before_remove_const" do
-    $before_remove_const_invoked = false
-
-    app_file "app/models/foo.rb", <<~RUBY
-      # While the most common use case is classes/modules, the contract does not
-      # require values to be so. Let's weaken the test down to Object.new.
-      Foo = Object.new
-      def Foo.before_remove_const
-        $before_remove_const_invoked = true
-      end
-    RUBY
-
-    app_file "app/models/bar.rb", <<~RUBY
-      # This object does not implement before_remove_const. We define it to make
-      # sure reloading does not raise. That is, it does not blindly invoke the
-      # hook on all unloaded objects.
-      Bar = Object.new
-    RUBY
-
-    boot
-
-    assert Foo
-    assert Bar
-    ActiveSupport::Dependencies.clear
-
-    assert $before_remove_const_invoked
-  end
-
   test "reloading clears autoloaded tracked classes" do
     eval <<~RUBY
       class Parent

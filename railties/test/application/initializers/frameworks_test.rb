@@ -338,5 +338,18 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
     end
+
+    test "Current scopes in AR models are reset on reloading" do
+      rails %w(generate model post)
+      rails %w(db:migrate)
+      require "#{app_path}/config/environment"
+
+      Post.current_scope = Post
+      assert_not_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(Post) # precondition
+
+      ActiveSupport::Dependencies.clear
+
+      assert_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(Post)
+    end
   end
 end
