@@ -1,3 +1,9 @@
+*   Some internal housekeeping on reloads could break custom `respond_to?`
+    methods in class objects that referenced reloadable constants. See
+    [#44125](https://github.com/rails/rails/issues/44125) for details.
+
+    *Xavier Noria*
+
 *   Fixed MariaDB default function support.
 
     Defaults would be written wrong in "db/schema.rb" and not work correctly
