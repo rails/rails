@@ -1300,20 +1300,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal c1, c2
   end
 
-  def test_before_remove_const_resets_the_current_scope
-    # Done this way because a class cannot be defined in a method using the
-    # class keyword.
-    Object.const_set(:ReloadableModel, Class.new(ActiveRecord::Base))
-    ReloadableModel.current_scope = ReloadableModel.all
-    assert_not_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(ReloadableModel) # precondition
-
-    ReloadableModel.before_remove_const
-
-    assert_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(ReloadableModel)
-  ensure
-    Object.send(:remove_const, :ReloadableModel)
-  end
-
   def test_marshal_round_trip
     expected = posts(:welcome)
     marshalled = Marshal.dump(expected)
