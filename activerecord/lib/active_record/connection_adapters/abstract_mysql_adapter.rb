@@ -787,8 +787,8 @@ module ActiveRecord
         def configure_connection
           variables = @config.fetch(:variables, {}).stringify_keys
 
-          # By default, MySQL 'where id is null' selects the last inserted id; Turn this off.
-          variables["sql_auto_is_null"] = 0
+          # Since MySQL 5.5 sql_auto_is_null is off by default, but if it is set for any reason, we need to turn it off.
+          variables["sql_auto_is_null"] = 0 unless query_value("select @@sql_auto_is_null") == 0
 
           # Increase timeout so the server doesn't disconnect us.
           wait_timeout = self.class.type_cast_config_to_integer(@config[:wait_timeout])
