@@ -342,8 +342,25 @@ module ApplicationTests
     test "Current scopes in AR models are reset on reloading" do
       rails %w(generate model post)
       rails %w(db:migrate)
+
+      app_file "app/models/a.rb", "A = 1"
+      app_file "app/models/m.rb", "module M; end"
+      app_file "app/models/post.rb", <<~RUBY
+        class Post < ActiveRecord::Base
+          def self.is_a?(_)
+            false
+          end
+
+          def self.<(_)
+            false
+          end
+        end
+      RUBY
+
       require "#{app_path}/config/environment"
 
+      A
+      M
       Post.current_scope = Post
       assert_not_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(Post) # precondition
 
