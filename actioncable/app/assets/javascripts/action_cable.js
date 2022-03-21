@@ -367,6 +367,8 @@
       this.notify(subscription, "initialized");
       if (!this.findAll(subscription.identifier).length) {
         this.subscribe(subscription);
+      } else if (!this.guarantor.pendingSubscriptions.some((s => s.identifier === subscription.identifier))) {
+        this.notify(subscription, "connected");
       }
       return subscription;
     }
