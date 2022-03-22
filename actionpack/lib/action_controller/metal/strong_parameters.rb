@@ -881,33 +881,6 @@ module ActionController
       "#<#{self.class} #{@parameters} permitted: #{@permitted}>"
     end
 
-    def self.hook_into_yaml_loading # :nodoc:
-      # Wire up YAML format compatibility with Rails 4.2 and Psych 2.0.8 and 2.0.9+.
-      # Makes the YAML parser call `init_with` when it encounters the keys below
-      # instead of trying its own parsing routines.
-      YAML.load_tags["!ruby/hash-with-ivars:ActionController::Parameters"] = name
-      YAML.load_tags["!ruby/hash:ActionController::Parameters"] = name
-    end
-    hook_into_yaml_loading
-
-    def init_with(coder) # :nodoc:
-      case coder.tag
-      when "!ruby/hash:ActionController::Parameters"
-        # YAML 2.0.8's format where hash instance variables weren't stored.
-        @parameters = coder.map.with_indifferent_access
-        @permitted  = false
-      when "!ruby/hash-with-ivars:ActionController::Parameters"
-        # YAML 2.0.9's Hash subclass format where keys and values
-        # were stored under an elements hash and `permitted` within an ivars hash.
-        @parameters = coder.map["elements"].with_indifferent_access
-        @permitted  = coder.map["ivars"][:@permitted]
-      when "!ruby/object:ActionController::Parameters"
-        # YAML's Object format. Only needed because of the format
-        # backwards compatibility above, otherwise equivalent to YAML's initialization.
-        @parameters, @permitted = coder.map["parameters"], coder.map["permitted"]
-      end
-    end
-
     # Returns duplicate of object including all parameters.
     def deep_dup
       self.class.new(@parameters.deep_dup, @logging_context).tap do |duplicate|
