@@ -92,16 +92,17 @@ module ActiveRecord
       end
 
       # Sanitizes a +string+ so that it is safe to use within an SQL
-      # LIKE statement. This method uses +escape_character+ to escape all occurrences of "\", "_" and "%".
+      # LIKE statement. This method uses +escape_character+ to escape all
+      # occurrences of itself, "_" and "%".
       #
-      #   sanitize_sql_like("100%")
-      #   # => "100\\%"
+      #   sanitize_sql_like("100% true!")
+      #   # => "100\\% true!"
       #
       #   sanitize_sql_like("snake_cased_string")
       #   # => "snake\\_cased\\_string"
       #
-      #   sanitize_sql_like("100%", "!")
-      #   # => "100!%"
+      #   sanitize_sql_like("100% true!", "!")
+      #   # => "100!% true!!"
       #
       #   sanitize_sql_like("snake_cased_string", "!")
       #   # => "snake!_cased!_string"
