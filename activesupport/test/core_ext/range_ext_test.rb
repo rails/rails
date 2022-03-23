@@ -65,6 +65,14 @@ class RangeTest < ActiveSupport::TestCase
     assert_not (5..10).overlaps?(1...5)
   end
 
+  def test_overlaps_with_beginless_range
+    assert((1..5).overlaps?(..10))
+  end
+
+  def test_overlaps_with_two_beginless_ranges
+    assert((..5).overlaps?(..10))
+  end
+
   def test_should_include_identical_inclusive
     assert((1..10).include?(1..10))
   end
