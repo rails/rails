@@ -139,6 +139,7 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     plaintext_under_threshold = "_" * 130
     plaintext_over_threshold = "_" * 300
 
+    # Explicitly set the default
     ActiveRecord::Encryption.config.compress = true
     minimal_length = EncryptedBook.create!(name: "_").ciphertext_for(:name).length
     under_threshold_length = EncryptedBook.create!(name: plaintext_under_threshold).ciphertext_for(:name).length
@@ -146,6 +147,9 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
 
     ActiveRecord::Encryption.config.compress = false
     over_threshold_uncompressed_length = EncryptedBook.create!(name: plaintext_over_threshold).ciphertext_for(:name).length
+
+    # Change back to the default to avoid affecting other tests.
+    ActiveRecord::Encryption.config.compress = true
 
     # Short plaintexts are not compressed.
     assert_operator under_threshold_length, :>, minimal_length + 150
