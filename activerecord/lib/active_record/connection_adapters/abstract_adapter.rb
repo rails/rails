@@ -917,7 +917,7 @@ module ActiveRecord
         end
 
         def retryable_connection_error?(exception)
-          exception.is_a?(ConnectionNotEstablished)
+          exception.is_a?(ConnectionNotEstablished) || exception.is_a?(ConnectionFailed)
         end
 
         def retryable_query_error?(exception)

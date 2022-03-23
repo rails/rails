@@ -224,15 +224,15 @@ module ActiveRecord
       end
 
       def commit_db_transaction # :nodoc:
-        internal_execute("COMMIT", "TRANSACTION")
+        internal_execute("COMMIT", "TRANSACTION", allow_retry: false, uses_transaction: true)
       end
 
       def exec_rollback_db_transaction # :nodoc:
-        internal_execute("ROLLBACK", "TRANSACTION")
+        internal_execute("ROLLBACK", "TRANSACTION", allow_retry: false, uses_transaction: true)
       end
 
       def exec_restart_db_transaction # :nodoc:
-        internal_execute("ROLLBACK AND CHAIN", "TRANSACTION")
+        internal_execute("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, uses_transaction: true)
       end
 
       def empty_insert_statement_value(primary_key = nil) # :nodoc:
@@ -679,8 +679,12 @@ module ActiveRecord
         ER_CANNOT_CREATE_TABLE  = 1005
         ER_LOCK_WAIT_TIMEOUT    = 1205
         ER_QUERY_INTERRUPTED    = 1317
+        ER_CONNECTION_KILLED    = 1927
+        CR_SERVER_GONE_ERROR    = 2006
+        CR_SERVER_LOST          = 2013
         ER_QUERY_TIMEOUT        = 3024
         ER_FK_INCOMPATIBLE_COLUMNS = 3780
+        ER_CLIENT_INTERACTION_TIMEOUT = 4031
 
         def translate_exception(exception, message:, sql:, binds:)
           case error_number(exception)
@@ -690,6 +694,8 @@ module ActiveRecord
             else
               super
             end
+          when ER_CONNECTION_KILLED, CR_SERVER_GONE_ERROR, CR_SERVER_LOST, ER_CLIENT_INTERACTION_TIMEOUT
+            ConnectionFailed.new(message, sql: sql, binds: binds)
           when ER_DB_CREATE_EXISTS
             DatabaseAlreadyExists.new(message, sql: sql, binds: binds)
           when ER_DUP_ENTRY

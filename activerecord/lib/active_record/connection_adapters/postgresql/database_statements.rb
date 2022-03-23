@@ -125,24 +125,18 @@ module ActiveRecord
 
         # Commits a transaction.
         def commit_db_transaction # :nodoc:
-          internal_execute("COMMIT", "TRANSACTION")
+          internal_execute("COMMIT", "TRANSACTION", allow_retry: false, uses_transaction: true)
         end
 
         # Aborts a transaction.
         def exec_rollback_db_transaction # :nodoc:
-          if @raw_connection
-            @raw_connection.cancel unless @raw_connection.transaction_status == PG::PQTRANS_IDLE
-            @raw_connection.block
-          end
-          internal_execute("ROLLBACK", "TRANSACTION")
+          cancel_any_running_query
+          internal_execute("ROLLBACK", "TRANSACTION", allow_retry: false, uses_transaction: true)
         end
 
         def exec_restart_db_transaction # :nodoc:
-          if @raw_connection
-            @raw_connection.cancel unless @raw_connection.transaction_status == PG::PQTRANS_IDLE
-            @raw_connection.block
-          end
-          internal_execute("ROLLBACK AND CHAIN", "TRANSACTION")
+          cancel_any_running_query
+          internal_execute("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, uses_transaction: true)
         end
 
         # From https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT
@@ -154,6 +148,13 @@ module ActiveRecord
         end
 
         private
+          def cancel_any_running_query
+            return unless @raw_connection && @raw_connection.transaction_status != PG::PQTRANS_IDLE
+            @raw_connection.cancel
+            @raw_connection.block
+          rescue PG::Error
+          end
+
           def execute_batch(statements, name = nil)
             execute(combine_multi_statements(statements))
           end

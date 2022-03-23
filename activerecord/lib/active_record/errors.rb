@@ -493,6 +493,11 @@ module ActiveRecord
   class AdapterTimeout < QueryAborted
   end
 
+  # ConnectionFailed will be raised when the network connection to the
+  # database fails while sending a query or waiting for its result.
+  class ConnectionFailed < QueryAborted
+  end
+
   # UnknownAttributeReference is raised when an unknown and potentially unsafe
   # value is passed to a query method. For example, passing a non column name
   # value to a relation's #order method might cause this exception.

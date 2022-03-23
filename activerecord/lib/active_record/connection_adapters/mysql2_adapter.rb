@@ -173,6 +173,12 @@ module ActiveRecord
         def translate_exception(exception, message:, sql:, binds:)
           if exception.is_a?(Mysql2::Error::TimeoutError) && !exception.error_number
             ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds)
+          elsif exception.is_a?(Mysql2::Error::ConnectionError)
+            if exception.message.match?(/MySQL client is not connected/i)
+              ActiveRecord::ConnectionNotEstablished.new(exception)
+            else
+              ActiveRecord::ConnectionFailed.new(message, sql: sql, binds: binds)
+            end
           else
             super
           end

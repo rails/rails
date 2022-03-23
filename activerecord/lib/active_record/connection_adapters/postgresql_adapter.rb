@@ -680,8 +680,17 @@ module ActiveRecord
           when nil
             if exception.message.match?(/connection is closed/i)
               ConnectionNotEstablished.new(exception)
-            elsif exception.is_a?(PG::ConnectionBad) && !exception.message.end_with?("\n")
-              ConnectionNotEstablished.new(exception)
+            elsif exception.is_a?(PG::ConnectionBad)
+              # libpq message style always ends with a newline; the pg gem's internal
+              # errors do not. We separate these cases because a pg-internal
+              # ConnectionBad means it failed before it managed to send the query,
+              # whereas a libpq failure could have occurred at any time (meaning the
+              # server may have already executed part or all of the query).
+              if exception.message.end_with?("\n")
+                ConnectionFailed.new(exception)
+              else
+                ConnectionNotEstablished.new(exception)
+              end
             else
               super
             end

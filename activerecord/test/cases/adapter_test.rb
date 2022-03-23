@@ -376,91 +376,6 @@ module ActiveRecord
     end
 
     unless in_memory_db?
-      test "reconnect after a disconnect" do
-        assert_predicate @connection, :active?
-        @connection.disconnect!
-        assert_not_predicate @connection, :active?
-        @connection.reconnect!
-        assert_predicate @connection, :active?
-      end
-
-      test "materialized transaction state is reset after a reconnect" do
-        @connection.begin_transaction
-        assert_predicate @connection, :transaction_open?
-        @connection.materialize_transactions
-        assert raw_transaction_open?(@connection)
-        @connection.reconnect!
-        assert_not_predicate @connection, :transaction_open?
-        assert_not raw_transaction_open?(@connection)
-      end
-
-      test "materialized transaction state can be restored after a reconnect" do
-        @connection.begin_transaction
-        assert_predicate @connection, :transaction_open?
-        # +materialize_transactions+ currently automatically dirties the
-        # connection, which would make it unrestorable
-        @connection.transaction_manager.stub(:dirty_current_transaction, nil) do
-          @connection.materialize_transactions
-        end
-        assert raw_transaction_open?(@connection)
-        @connection.reconnect!(restore_transactions: true)
-        assert_predicate @connection, :transaction_open?
-        assert raw_transaction_open?(@connection)
-      ensure
-        @connection.reconnect!
-        assert_not_predicate @connection, :transaction_open?
-      end
-
-      test "materialized transaction state is reset after a disconnect" do
-        @connection.begin_transaction
-        assert_predicate @connection, :transaction_open?
-        @connection.materialize_transactions
-        assert raw_transaction_open?(@connection)
-        @connection.disconnect!
-        assert_not_predicate @connection, :transaction_open?
-      ensure
-        @connection.reconnect!
-        assert_not raw_transaction_open?(@connection)
-      end
-
-      test "unmaterialized transaction state is reset after a reconnect" do
-        @connection.begin_transaction
-        assert_predicate @connection, :transaction_open?
-        assert_not raw_transaction_open?(@connection)
-        @connection.reconnect!
-        assert_not_predicate @connection, :transaction_open?
-        assert_not raw_transaction_open?(@connection)
-        @connection.materialize_transactions
-        assert_not raw_transaction_open?(@connection)
-      end
-
-      test "unmaterialized transaction state can be restored after a reconnect" do
-        @connection.begin_transaction
-        assert_predicate @connection, :transaction_open?
-        assert_not raw_transaction_open?(@connection)
-        @connection.reconnect!(restore_transactions: true)
-        assert_predicate @connection, :transaction_open?
-        assert_not raw_transaction_open?(@connection)
-        @connection.materialize_transactions
-        assert raw_transaction_open?(@connection)
-      ensure
-        @connection.reconnect!
-        assert_not_predicate @connection, :transaction_open?
-        assert_not raw_transaction_open?(@connection)
-      end
-
-      test "unmaterialized transaction state is reset after a disconnect" do
-        @connection.begin_transaction
-        assert_predicate @connection, :transaction_open?
-        assert_not raw_transaction_open?(@connection)
-        @connection.disconnect!
-        assert_not_predicate @connection, :transaction_open?
-      ensure
-        @connection.reconnect!
-        assert_not raw_transaction_open?(@connection)
-        @connection.materialize_transactions
-        assert_not raw_transaction_open?(@connection)
-      end
     end
 
     def test_create_with_query_cache
@@ -551,31 +466,6 @@ module ActiveRecord
     end
 
     private
-      def raw_transaction_open?(connection)
-        case connection.class::ADAPTER_NAME
-        when "PostgreSQL"
-          connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
-        when "Mysql2"
-          begin
-            connection.instance_variable_get(:@raw_connection).query("SAVEPOINT transaction_test")
-            connection.instance_variable_get(:@raw_connection).query("RELEASE SAVEPOINT transaction_test")
-
-            true
-          rescue
-            false
-          end
-        when "SQLite"
-          begin
-            connection.instance_variable_get(:@raw_connection).transaction { nil }
-            false
-          rescue
-            true
-          end
-        else
-          skip
-        end
-      end
-
       def reset_fixtures(*fixture_names)
         ActiveRecord::FixtureSet.reset_cache
 
@@ -583,6 +473,225 @@ module ActiveRecord
           ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, fixture_name)
         end
       end
+  end
+
+  unless in_memory_db?
+    class AdapterConnectionTest < ActiveRecord::TestCase
+      self.use_transactional_tests = false
+
+      fixtures :posts, :authors, :author_addresses
+
+      def setup
+        @connection = ActiveRecord::Base.connection
+        assert_predicate @connection, :active?
+      end
+
+      def teardown
+        @connection.reconnect!
+        assert_predicate @connection, :active?
+        assert_not_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+      end
+
+      test "reconnect after a disconnect" do
+        @connection.disconnect!
+        assert_not_predicate @connection, :active?
+        @connection.reconnect!
+        assert_predicate @connection, :active?
+      end
+
+      test "materialized transaction state is reset after a reconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        @connection.materialize_transactions
+        assert raw_transaction_open?(@connection)
+        @connection.reconnect!
+        assert_not_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+      end
+
+      test "materialized transaction state can be restored after a reconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        # +materialize_transactions+ currently automatically dirties the
+        # connection, which would make it unrestorable
+        @connection.transaction_manager.stub(:dirty_current_transaction, nil) do
+          @connection.materialize_transactions
+        end
+        assert raw_transaction_open?(@connection)
+        @connection.reconnect!(restore_transactions: true)
+        assert_predicate @connection, :transaction_open?
+        assert raw_transaction_open?(@connection)
+      end
+
+      test "materialized transaction state is reset after a disconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        @connection.materialize_transactions
+        assert raw_transaction_open?(@connection)
+        @connection.disconnect!
+        assert_not_predicate @connection, :transaction_open?
+      end
+
+      test "unmaterialized transaction state is reset after a reconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.reconnect!
+        assert_not_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.materialize_transactions
+        assert_not raw_transaction_open?(@connection)
+      end
+
+      test "unmaterialized transaction state can be restored after a reconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.reconnect!(restore_transactions: true)
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.materialize_transactions
+        assert raw_transaction_open?(@connection)
+      end
+
+      test "unmaterialized transaction state is reset after a disconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.disconnect!
+        assert_not_predicate @connection, :transaction_open?
+      end
+
+      test "active? detects remote disconnection" do
+        remote_disconnect @connection
+        assert_not_predicate @connection, :active?
+      end
+
+      test "verify! restores after remote disconnection" do
+        remote_disconnect @connection
+        @connection.verify!
+        assert_predicate @connection, :active?
+      end
+
+      test "reconnect! restores after remote disconnection" do
+        remote_disconnect @connection
+        @connection.reconnect!
+        assert_predicate @connection, :active?
+      end
+
+      test "querying a 'clean' failed connection restores and succeeds" do
+        remote_disconnect @connection
+
+        @connection.clean! # this simulates a fresh checkout from the pool
+
+        # Clean did not verify / fix the connection
+        assert_not_predicate @connection, :active?
+
+        # Because the connection hasn't been verified since checkout,
+        # and the query cannot safely be retried, the connection will be
+        # verified before querying.
+        Post.delete_all
+
+        assert_predicate @connection, :active?
+      end
+
+      test "transaction restores after remote disconnection" do
+        remote_disconnect @connection
+        Post.transaction do
+          Post.count
+        end
+        assert_predicate @connection, :active?
+      end
+
+      test "active transaction is restored after remote disconnection" do
+        assert_operator Post.count, :>, 0
+        Post.transaction do
+          # +materialize_transactions+ currently automatically dirties the
+          # connection, which would make it unrestorable
+          @connection.transaction_manager.stub(:dirty_current_transaction, nil) do
+            @connection.materialize_transactions
+          end
+
+          remote_disconnect @connection
+
+          # Regular queries are not retryable, so the only abstract operation we can
+          # perform here is a direct verify. The outer transaction means using another
+          # here would just be a ResetParent.
+          @connection.verify!
+
+          Post.delete_all
+
+          assert_equal 0, Post.count
+          raise ActiveRecord::Rollback
+        end
+
+        # The deletion occurred within the outer transaction (which was then rolled
+        # back), and not directly on the freshly-reestablished connection, so the
+        # posts are still there:
+        assert_operator Post.count, :>, 0
+      end
+
+      test "dirty transaction cannot be restored after remote disconnection" do
+        invocations = 0
+        assert_raises ActiveRecord::ConnectionFailed do
+          Post.transaction do
+            invocations += 1
+            Post.delete_all
+            remote_disconnect @connection
+            Post.count
+          end
+        end
+
+        assert_equal 1, invocations # the whole transaction block is not retried
+
+        # After the (outermost) transaction block failed, it reconnected
+        assert_predicate @connection, :active?
+        assert_operator Post.count, :>, 0
+      end
+
+      private
+        def raw_transaction_open?(connection)
+          case connection.class::ADAPTER_NAME
+          when "PostgreSQL"
+            connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
+          when "Mysql2"
+            begin
+              connection.instance_variable_get(:@raw_connection).query("SAVEPOINT transaction_test")
+              connection.instance_variable_get(:@raw_connection).query("RELEASE SAVEPOINT transaction_test")
+
+              true
+            rescue
+              false
+            end
+          when "SQLite"
+            begin
+              connection.instance_variable_get(:@raw_connection).transaction { nil }
+              false
+            rescue
+              true
+            end
+          else
+            skip
+          end
+        end
+
+        def remote_disconnect(connection)
+          case connection.class::ADAPTER_NAME
+          when "PostgreSQL"
+            unless connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
+              connection.instance_variable_get(:@raw_connection).async_exec("begin")
+            end
+            connection.instance_variable_get(:@raw_connection).async_exec("set idle_in_transaction_session_timeout = '10ms'")
+            sleep 0.05
+          when "Mysql2"
+            connection.send(:internal_execute, "set @@wait_timeout=1")
+            sleep 1.2
+          else
+            skip
+          end
+        end
+    end
   end
 end
 
