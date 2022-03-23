@@ -908,6 +908,10 @@ module ActionController
       end
     end
 
+    def encode_with(coder) # :nodoc:
+      coder.map = { "parameters" => @parameters, "permitted" => @permitted }
+    end
+
     # Returns duplicate of object including all parameters.
     def deep_dup
       self.class.new(@parameters.deep_dup, @logging_context).tap do |duplicate|
