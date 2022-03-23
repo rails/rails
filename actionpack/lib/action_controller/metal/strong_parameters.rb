@@ -297,9 +297,9 @@ module ActionController
     #
     #   safe_params = params.permit(:name)
     #   safe_params.to_h # => {"name"=>"Senjougahara Hitagi"}
-    def to_h
+    def to_h(&block)
       if permitted?
-        convert_parameters_to_hashes(@parameters, :to_h)
+        convert_parameters_to_hashes(@parameters, :to_h, &block)
       else
         raise UnfilteredParameters
       end
@@ -941,14 +941,15 @@ module ActionController
         end
       end
 
-      def convert_parameters_to_hashes(value, using)
+      def convert_parameters_to_hashes(value, using, &block)
         case value
         when Array
           value.map { |v| convert_parameters_to_hashes(v, using) }
         when Hash
-          value.transform_values do |v|
+          transformed = value.transform_values do |v|
             convert_parameters_to_hashes(v, using)
-          end.with_indifferent_access
+          end
+          (block_given? ? transformed.to_h(&block) : transformed).with_indifferent_access
         when Parameters
           value.send(using)
         else
