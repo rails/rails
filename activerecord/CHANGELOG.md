@@ -1,3 +1,11 @@
+*   Include encrypted attributes in model-level filter attributes.
+
+    Encrypted attributes would not be added to the model class `filter_attributes` due
+    to the auto-filtered-parameters hook only being applied when Action Controller is
+    loaded.
+
+    *Alex Robbin*
+
 *   Fixed MariaDB default function support.
 
     Defaults would be written wrong in "db/schema.rb" and not work correctly
