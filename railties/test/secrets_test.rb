@@ -141,6 +141,22 @@ class Rails::SecretsTest < ActiveSupport::TestCase
     end
   end
 
+  test "can read keys loaded as methods" do
+    run_secrets_generator do
+      Rails::Secrets.write(<<-end_of_yaml)
+        production:
+          some_secret: yeah yeah
+          nested:
+            value: nested value
+      end_of_yaml
+
+      app("production")
+
+      assert_equal "yeah yeah", Rails.application.secrets.some_secret
+      assert_equal "nested value", Rails.application.secrets.nested.value
+    end
+  end
+
   test "can read secrets written in non-binary" do
     run_secrets_generator do
       secrets = <<-end_of_secrets

@@ -396,7 +396,7 @@ module Rails
         # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
         secrets.secret_key_base ||= config.secret_key_base
 
-        secrets
+        deep_transform(secrets)
       end
     end
 
@@ -612,6 +612,16 @@ module Rails
 
       def coerce_same_site_protection(protection)
         protection.respond_to?(:call) ? protection : proc { protection }
+      end
+
+      def deep_transform(hash)
+        return hash unless hash.is_a?(Hash)
+
+        h = ActiveSupport::OrderedOptions.new
+        hash.each do |k, v|
+          h[k] = deep_transform(v)
+        end
+        h
       end
   end
 end

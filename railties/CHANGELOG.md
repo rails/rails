@@ -1,3 +1,22 @@
+*   Allow nested access to `secrets.yml` keys via method calls
+
+    Previously only top level keys loaded in `secrets.yml` were accessible
+    with method calls. Now any key, however nested, can be accessed with
+    method calls.
+
+    If the following `secrets.yml` file is loaded:
+
+    ```yml
+    # config/secrets.yml
+    development:
+      payment_options:
+        gateway: stripe
+    ```
+
+    `Rails.application.secrets.payment_options.gateway` will now return the same thing as `Rails.application.config.secrets.payment_options[:gateway]`
+
+    *Ghouse Mohamed*
+
 *   Add JavaScript dependencies installation on bin/setup
 
     Add  `yarn install` to bin/setup when using esbuild, webpack, or rollout.
