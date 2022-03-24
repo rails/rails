@@ -22,6 +22,7 @@ require "models/doubloon"
 require "models/essay"
 require "models/joke"
 require "models/matey"
+require "models/organization"
 require "models/other_dog"
 require "models/parrot"
 require "models/pirate"
@@ -322,9 +323,9 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_create_fixtures
-    fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, "parrots")
-    assert Parrot.find_by_name("Curious George"), "George is not in the database"
-    assert fixtures.detect { |f| f.name == "parrots" }, "no fixtures named 'parrots' in #{fixtures.map(&:name).inspect}"
+    fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, "organizations")
+    assert Organization.find_by_name("No Such Agency"), "'No Such Agency' is not in the database"
+    assert fixtures.detect { |f| f.name == "organizations" }, "no fixtures named 'organizations' in #{fixtures.map(&:name).inspect}"
   end
 
   def test_multiple_clean_fixtures
@@ -1350,12 +1351,12 @@ class FoxyFixturesTest < ActiveRecord::TestCase
 end
 
 class ActiveSupportSubclassWithFixturesTest < ActiveRecord::TestCase
-  fixtures :parrots
+  fixtures :organizations
 
   # This seemingly useless assertion catches a bug that caused the fixtures
   # setup code call nil[]
   def test_foo
-    assert_equal parrots(:louis), Parrot.find_by_name("King Louis")
+    assert_equal organizations(:nsa), Organization.find_by_name("No Such Agency")
   end
 end
 
@@ -1391,7 +1392,7 @@ class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
 end
 
 class IgnoreFixturesTest < ActiveRecord::TestCase
-  fixtures :other_books, :parrots
+  fixtures :other_books, :parrots, :parrots_pirates, :pirates, :treasures
 
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # without interfering with other tests that use the same `model_class`.
