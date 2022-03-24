@@ -56,11 +56,7 @@ In a Rails application file names have to match the constants they define, with 
 
 For example, the file `app/helpers/users_helper.rb` should define `UsersHelper` and the file `app/controllers/admin/payments_controller.rb` should define `Admin::PaymentsController`.
 
-By default, Rails configures Zeitwerk to inflect file names with `String#camelize`. For example, it expects that `app/controllers/users_controller.rb` defines the constant `UsersController` because:
-
-```ruby
-"users_controller".camelize # => UsersController
-```
+By default, Rails configures Zeitwerk to inflect file names with `String#camelize`. For example, it expects that `app/controllers/users_controller.rb` defines the constant `UsersController` because that is what `"users_controller".camelize` returns.
 
 The section _Customizing Inflections_ below documents ways to override this default.
 
@@ -486,7 +482,7 @@ Troubleshooting
 
 The best way to follow what the loaders are doing is to inspect their activity.
 
-The easiest way to do that is to include:
+The easiest way to do that is to include
 
 ```ruby
 Rails.autoloaders.log!
@@ -510,14 +506,14 @@ Rails.autoloaders.logger = Rails.logger
 Rails.autoloaders
 -----------------
 
-The Zeitwerk instances managing your application are available at:
+The Zeitwerk instances managing your application are available at
 
 ```ruby
 Rails.autoloaders.main
 Rails.autoloaders.once
 ```
 
-The predicate:
+The predicate
 
 ```ruby
 Rails.autoloaders.zeitwerk_enabled?

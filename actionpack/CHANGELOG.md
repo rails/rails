@@ -11,6 +11,10 @@
 
     *Alex Ghiculescu*
 
+*   Allow `ActionController::Parameters#to_h` to receive a block.
+
+    *Bob Farrell*
+
 *   Allow relative redirects when `raise_on_open_redirects` is enabled
 
     *Tom Hughes*

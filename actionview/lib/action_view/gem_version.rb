@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActionView
-  # Returns the version of the currently loaded Action View as a <tt>Gem::Version</tt>
+  # Returns the currently loaded version of Action View as a <tt>Gem::Version</tt>.
   def self.gem_version
     Gem::Version.new VERSION::STRING
   end

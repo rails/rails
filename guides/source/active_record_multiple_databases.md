@@ -438,12 +438,12 @@ end
 Applications are able to automatically switch shards per request using the provided
 middleware.
 
-The ShardSelector Middleware provides a framework for automatically
+The `ShardSelector` Middleware provides a framework for automatically
 swapping shards. Rails provides a basic framework to determine which
 shard to switch to and allows for applications to write custom strategies
 for swapping if needed.
 
-The ShardSelector takes a set of options (currently only `lock` is supported)
+The `ShardSelector` takes a set of options (currently only `lock` is supported)
 that can be used by the middleware to alter behavior. `lock` is
 true by default and will prohibit the request from switching shards once
 inside the block. If `lock` is false, then shard swapping will be allowed.

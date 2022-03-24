@@ -358,6 +358,10 @@ module ActiveModel
       end
 
       private
+        def resolve_attribute_name(name)
+          attribute_aliases.fetch(super, &:itself)
+        end
+
         def generated_attribute_methods
           @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
         end

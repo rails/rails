@@ -35,10 +35,6 @@ module Rails
               ActiveSupport::Dependencies._autoloaded_tracked_classes << value
             end
           end
-
-          autoloader.on_unload do |_cpath, value, _abspath|
-            value.before_remove_const if value.respond_to?(:before_remove_const)
-          end
         end
 
         autoloader.setup

@@ -18,22 +18,44 @@ module ActiveJob
     #   Rails.application.config.active_job.queue_adapter = :que
     class QueAdapter
       def enqueue(job) # :nodoc:
-        que_job = JobWrapper.enqueue job.serialize, priority: job.priority, queue: job.queue_name
+        job_options = { priority: job.priority, queue: job.queue_name }
+        que_job = nil
+
+        if require_job_options_kwarg?
+          que_job = JobWrapper.enqueue job.serialize, job_options: job_options
+        else
+          que_job = JobWrapper.enqueue job.serialize, **job_options
+        end
+
         job.provider_job_id = que_job.attrs["job_id"]
         que_job
       end
 
       def enqueue_at(job, timestamp) # :nodoc:
-        que_job = JobWrapper.enqueue job.serialize, priority: job.priority, queue: job.queue_name, run_at: Time.at(timestamp)
+        job_options = { priority: job.priority, queue: job.queue_name, run_at: Time.at(timestamp) }
+        que_job = nil
+
+        if require_job_options_kwarg?
+          que_job = JobWrapper.enqueue job.serialize, job_options: job_options
+        else
+          que_job = JobWrapper.enqueue job.serialize, **job_options
+        end
+
         job.provider_job_id = que_job.attrs["job_id"]
         que_job
       end
 
-      class JobWrapper < Que::Job # :nodoc:
-        def run(job_data)
-          Base.execute job_data
+      private
+        def require_job_options_kwarg?
+          @require_job_options_kwarg ||=
+            JobWrapper.method(:enqueue).parameters.any? { |ptype, pname| ptype == :key && pname == :job_options }
         end
-      end
+
+        class JobWrapper < Que::Job # :nodoc:
+          def run(job_data)
+            Base.execute job_data
+          end
+        end
     end
   end
 end

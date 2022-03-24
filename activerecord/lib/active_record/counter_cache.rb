@@ -29,6 +29,7 @@ module ActiveRecord
       def reset_counters(id, *counters, touch: nil)
         object = find(id)
 
+        updates = {}
         counters.each do |counter_association|
           has_many_association = _reflect_on_association(counter_association)
           unless has_many_association
@@ -47,18 +48,18 @@ module ActiveRecord
           reflection   = child_class._reflections.values.find { |e| e.belongs_to? && e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
           counter_name = reflection.counter_cache_column
 
-          updates = { counter_name => object.send(counter_association).count(:all) }
-
-          if touch
-            names = touch if touch != true
-            names = Array.wrap(names)
-            options = names.extract_options!
-            touch_updates = touch_attributes_with_time(*names, **options)
-            updates.merge!(touch_updates)
-          end
-
-          unscoped.where(primary_key => object.id).update_all(updates)
+          updates[counter_name] = object.send(counter_association).count(:all)
         end
+
+        if touch
+          names = touch if touch != true
+          names = Array.wrap(names)
+          options = names.extract_options!
+          touch_updates = touch_attributes_with_time(*names, **options)
+          updates.merge!(touch_updates)
+        end
+
+        unscoped.where(primary_key => object.id).update_all(updates)
 
         true
       end

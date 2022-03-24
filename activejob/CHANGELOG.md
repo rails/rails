@@ -1,3 +1,10 @@
+*   Update `ActiveJob::QueueAdapters::QueAdapter` te remove deprecation warning
+
+    Remove a deprecation warning introduced in que 1.2 to prepare for changes in
+    que 2.0 necessary for Ruby 3 compatibility.
+
+    *Damir Zekic* and *Adis Hasovic*
+
 *   Add missing `bigdecimal` require in `ActiveJob::Arguments`
 
     Could cause `uninitialized constant ActiveJob::Arguments::BigDecimal (NameError)`
