@@ -214,13 +214,15 @@ module Rails
         end
 
         def respond_to_missing?(name, _)
+          return super if abstract_railtie?
+
           instance.respond_to?(name) || super
         end
 
         # If the class method does not have a method, then send the method call
         # to the Railtie instance.
         def method_missing(name, *args, &block)
-          if instance.respond_to?(name)
+          if !abstract_railtie? && instance.respond_to?(name)
             instance.public_send(name, *args, &block)
           else
             super
