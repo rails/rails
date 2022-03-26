@@ -64,12 +64,12 @@ module ActiveSupport
 
       # Returns the current behavior or if one isn't set, defaults to +:stderr+.
       def behavior
-        @behavior ||= [DEFAULT_BEHAVIORS[:stderr]]
+        @behavior ||= self == Deprecation.instance ? [DEFAULT_BEHAVIORS[:stderr]] : Deprecation.behavior
       end
 
       # Returns the current behavior for disallowed deprecations or if one isn't set, defaults to +:raise+.
       def disallowed_behavior
-        @disallowed_behavior ||= [DEFAULT_BEHAVIORS[:raise]]
+        @disallowed_behavior ||= self == Deprecation.instance ? [DEFAULT_BEHAVIORS[:raise]] : Deprecation.disallowed_behavior
       end
 
       # Sets the behavior to the specified value. Can be a single value, array,

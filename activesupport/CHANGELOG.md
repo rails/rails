@@ -1,3 +1,7 @@
+*   Fall back on globally configured `disallowed_behavior` in custom `ActiveSupport::Deprecator` instances.
+
+    *grncdr*
+
 *   `default` option of `thread_mattr_accessor` now applies through inheritance and
     also across new threads.
 

@@ -504,6 +504,35 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  def test_custom_deprecator_uses_global_disallowed_behavior
+    resetting_disallowed_deprecation_config do
+      ActiveSupport::Deprecation.disallowed_warnings = :all
+      ActiveSupport::Deprecation.disallowed_behavior = [
+        lambda { |msg, callstack, horizon, gem| @captured_message = msg }
+      ]
+
+      deprecator = ActiveSupport::Deprecation.new("2.0", "Custom")
+
+      deprecator.warn("oh no")
+
+      assert_match(/oh no/, @captured_message)
+    end
+  end
+
+  def test_custom_deprecator_can_override_disallowed_behavior
+    resetting_disallowed_deprecation_config do
+      ActiveSupport::Deprecation.disallowed_warnings = :all
+      ActiveSupport::Deprecation.disallowed_behavior = :raise
+
+      deprecator = ActiveSupport::Deprecation.new("2.0", "Custom")
+      deprecator.disallowed_behavior = lambda { |*args| @captured_message = args.first }
+
+      deprecator.warn("oh no")
+
+      assert_match(/oh no/, @captured_message)
+    end
+  end
+
   def test_deprecate_work_before_define_method
     assert_deprecated(/g is deprecated/) { @dtc.g(1) }
   end
