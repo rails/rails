@@ -828,6 +828,16 @@ module ActiveRecord
       #
       # Note: Partial indexes are only supported for PostgreSQL and SQLite.
       #
+      # ====== Creating an index that includes additional columns
+      #
+      #   add_index(:accounts, :branch_id,  include: :party_id)
+      #
+      # generates:
+      #
+      #   CREATE INDEX index_accounts_on_branch_id ON accounts USING btree(branch_id) INCLUDE (party_id)
+      #
+      # Note: only supported by PostgreSQL.
+      #
       # ====== Creating an index with a specific method
       #
       #   add_index(:developers, :name, using: 'btree')
@@ -1385,7 +1395,7 @@ module ActiveRecord
       end
 
       def add_index_options(table_name, column_name, name: nil, if_not_exists: false, internal: false, **options) # :nodoc:
-        options.assert_valid_keys(:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm)
+        options.assert_valid_keys(:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include)
 
         column_names = index_column_names(column_name)
 
@@ -1404,6 +1414,7 @@ module ActiveRecord
           where: options[:where],
           type: options[:type],
           using: options[:using],
+          include: options[:include],
           comment: options[:comment]
         )
 

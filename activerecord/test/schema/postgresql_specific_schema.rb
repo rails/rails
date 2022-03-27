@@ -148,4 +148,8 @@ _SQL
     create_table(:measurements_concepcion, id: false, force: true,
                                            options: "PARTITION OF measurements FOR VALUES IN (2)")
   end
+
+  if supports_index_include?
+    add_index(:companies, [:firm_id, :type], name: "company_include_index", include: [:name, :account_id])
+  end
 end

@@ -315,6 +315,22 @@ module ActiveRecord
         end
       end
 
+      def test_include_index
+        with_example_table do
+          @connection.add_index "ex", %w{ id }, name: "include", include: :number
+          index = @connection.indexes("ex").find { |idx| idx.name == "include" }
+          assert_equal [:number], index.include
+        end
+      end
+
+      def test_include_multiple_columns_index
+        with_example_table do
+          @connection.add_index "ex", %w{ id }, name: "include", include: [:number, :data]
+          index = @connection.indexes("ex").find { |idx| idx.name == "include" }
+          assert_equal [:number, :data], index.include
+        end
+      end
+
       def test_expression_index
         with_example_table do
           expr = "mod(id, 10), abs(number)"
