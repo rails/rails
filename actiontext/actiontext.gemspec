@@ -37,6 +37,6 @@ Gem::Specification.new do |s|
   s.add_dependency "activestorage", version
   s.add_dependency "actionpack",    version
 
-  s.add_dependency "nokogiri", ">= 1.8.5"
+  s.add_dependency "nokogiri", ">= 1.13.2"
   s.add_dependency "globalid", ">= 0.6.0"
 end
