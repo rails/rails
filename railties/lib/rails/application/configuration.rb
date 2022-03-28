@@ -376,8 +376,9 @@ module Rails
       end
 
       # Specifies what class to use to store the session. Possible values
-      # are +:cookie_store+, +:mem_cache_store+, a custom store, or
-      # +:disabled+. +:disabled+ tells Rails not to deal with sessions.
+      # are +:cache_store+, +:cookie_store+, +:mem_cache_store+, a custom
+      # store, or +:disabled+. +:disabled+ tells Rails not to deal with
+      # sessions.
       #
       # Additional options will be set as +session_options+:
       #

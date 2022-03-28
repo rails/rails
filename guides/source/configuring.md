@@ -334,7 +334,7 @@ Configures Rails to serve static files from the public directory. This option de
 
 #### `config.session_store`
 
-Specifies what class to use to store the session. Possible values are `:cookie_store`, `:mem_cache_store`, a custom store, or `:disabled`. `:disabled` tells Rails not to deal with sessions.
+Specifies what class to use to store the session. Possible values are `:cache_store`, `:cookie_store`, `:mem_cache_store`, a custom store, or `:disabled`. `:disabled` tells Rails not to deal with sessions.
 
 This setting is configured via a regular method call, rather than a setter. This allows additional options to be passed:
 
