@@ -90,7 +90,7 @@ module ActiveModel
       #
       # If the database column does not exist, the +terms_of_service+ attribute
       # is entirely virtual. This check is performed only if +terms_of_service+
-      # is not +nil+ and by default on save.
+      # is not +nil+.
       #
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "must be
