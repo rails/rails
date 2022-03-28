@@ -1,3 +1,7 @@
+*   Apply `field_error_proc` to `rich_text_area` form fields.
+
+    *Kaíque Kandy Koga*
+
 *   Action Text attachment URLs rendered in a background job (a la Turbo
     Streams) now use `Rails.application.default_url_options` and
     `Rails.application.config.force_ssl` instead of `http://example.org`.
