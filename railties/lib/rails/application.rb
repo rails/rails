@@ -239,7 +239,7 @@ module Rails
           config = ActiveSupport::OrderedOptions.new.update(config)
         end
 
-        config
+        deep_transform(config)
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end
@@ -612,6 +612,16 @@ module Rails
 
       def coerce_same_site_protection(protection)
         protection.respond_to?(:call) ? protection : proc { protection }
+      end
+
+      def deep_transform(hash)
+        return hash unless hash.is_a?(Hash)
+
+        h = ActiveSupport::OrderedOptions.new
+        hash.each do |k, v|
+          h[k] = deep_transform(v)
+        end
+        h
       end
   end
 end

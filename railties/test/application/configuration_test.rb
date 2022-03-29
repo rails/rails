@@ -1985,6 +1985,20 @@ module ApplicationTests
       assert_equal 1, Rails.application.config.my_custom_config[:foo][:bar][:baz]
     end
 
+    test "config_for loads custom configuration from yaml accessible as methods" do
+      set_custom_config <<~RUBY
+        development:
+          foo: "bar"
+          nested:
+            foo: "bar"
+      RUBY
+
+      app "development"
+
+      assert_equal "bar", Rails.application.config.my_custom_config.foo
+      assert_equal "bar", Rails.application.config.my_custom_config.nested.foo
+    end
+
     test "config_for makes all hash methods available" do
       set_custom_config <<~RUBY
         development:

@@ -1,3 +1,26 @@
+*   Allow nested access to keys loaded as custom config via `config_for`
+
+    Previously only top level keys loaded as custom config could be accessed
+    with method calls. Now any key loaded via `config_for` can be accessed
+    with method calls.
+
+    If the following config is loaded:
+
+    ```ruby
+      config.custom_config = config_for(:custom)
+    ```
+
+    ```yml
+    # config/custom.yml
+    development:
+      payment_options:
+        gateway: stripe
+    ```
+
+    `Rails.application.config.custom_config.payment_options.gateway` will now return the same thing as `Rails.application.config.custom_config[:payment_options][:gateway]`
+
+    *Ghouse Mohamed*
+
 *   Add JavaScript dependencies installation on bin/setup
 
     Add  `yarn install` to bin/setup when using esbuild, webpack, or rollout.
