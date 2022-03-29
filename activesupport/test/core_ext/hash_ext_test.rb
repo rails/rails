@@ -958,7 +958,7 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_equal expected, Hash.from_trusted_xml('<product><name type="yaml">:value</name></product>')
   end
 
-  # The XML builder seems to fail miserably when trying to tag something
+  # The XML Builder seems to fail miserably when trying to tag something
   # with the same name as a Kernel method (throw, test, loop, select ...)
   def test_kernel_method_names_to_xml
     hash     = { throw: { ball: "red" } }

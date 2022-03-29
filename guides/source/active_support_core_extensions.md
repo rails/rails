@@ -2565,7 +2565,7 @@ WARNING. If the collection is empty the root element is by default "nil-classes"
 
 The name of children nodes is by default the name of the root node singularized. In the examples above we've seen "contributor" and "object". The option `:children` allows you to set these node names.
 
-The default XML builder is a fresh instance of `Builder::XmlMarkup`. You can configure your own builder via the `:builder` option. The method also accepts options like `:dasherize` and friends, they are forwarded to the builder:
+The default XML Builder is a fresh instance of `Builder::XmlMarkup`. You can configure your own builder via the `:builder` option. The method also accepts options like `:dasherize` and friends, they are forwarded to the builder:
 
 ```ruby
 Contributor.limit(2).order(:rank).to_xml(skip_types: true)
@@ -2797,7 +2797,7 @@ XML_TYPE_NAMES = {
 
 By default the root node is "hash", but that's configurable via the `:root` option.
 
-The default XML builder is a fresh instance of `Builder::XmlMarkup`. You can configure your own builder with the `:builder` option. The method also accepts options like `:dasherize` and friends, they are forwarded to the builder.
+The default XML Builder is a fresh instance of `Builder::XmlMarkup`. You can configure your own builder with the `:builder` option. The method also accepts options like `:dasherize` and friends, they are forwarded to the builder.
 
 NOTE: Defined in `active_support/core_ext/hash/conversions.rb`.
 
