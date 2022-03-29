@@ -82,9 +82,9 @@ module ActionView
       #     end
       #
       # The Atom spec defines five elements (content rights title subtitle
-      # summary) which may directly contain xhtml content if type: 'xhtml'
+      # summary) which may directly contain XHTML content if type: 'xhtml'
       # is specified as an attribute. If so, this helper will take care of
-      # the enclosing div and xhtml namespace declaration. Example usage:
+      # the enclosing div and XHTML namespace declaration. Example usage:
       #
       #    entry.summary type: 'xhtml' do |xhtml|
       #      xhtml.p pluralize(order.line_items.count, "line item")
@@ -134,7 +134,7 @@ module ActionView
         end
 
         private
-          # Delegate to xml builder, first wrapping the element in an xhtml
+          # Delegate to XML Builder, first wrapping the element in an XHTML
           # namespaced div element if the method and arguments indicate
           # that an xhtml_block? is desired.
           def method_missing(method, *arguments, &block)
