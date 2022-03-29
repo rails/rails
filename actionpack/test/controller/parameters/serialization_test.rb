@@ -13,7 +13,7 @@ class ParametersSerializationTest < ActiveSupport::TestCase
     ActionController::Parameters.permit_all_parameters = @old_permitted_parameters
   end
 
-  test "yaml serialization" do
+  test "YAML serialization" do
     params = ActionController::Parameters.new(key: :value)
     yaml_dump = YAML.dump(params)
     assert_match("--- !ruby/object:ActionController::Parameters", yaml_dump)
@@ -21,7 +21,7 @@ class ParametersSerializationTest < ActiveSupport::TestCase
     assert_match("permitted: false", yaml_dump)
   end
 
-  test "yaml deserialization" do
+  test "YAML deserialization" do
     params = ActionController::Parameters.new(key: :value)
     payload = YAML.dump(params)
     roundtripped = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
@@ -30,7 +30,7 @@ class ParametersSerializationTest < ActiveSupport::TestCase
     assert_not_predicate roundtripped, :permitted?
   end
 
-  test "yaml backwardscompatible with psych 2.0.8 format" do
+  test "YAML backwardscompatible with psych 2.0.8 format" do
     payload = <<~end_of_yaml
       --- !ruby/hash:ActionController::Parameters
       key: :value
@@ -41,7 +41,7 @@ class ParametersSerializationTest < ActiveSupport::TestCase
     assert_not_predicate params, :permitted?
   end
 
-  test "yaml backwardscompatible with psych 2.0.9+ format" do
+  test "YAML backwardscompatible with psych 2.0.9+ format" do
     payload = <<~end_of_yaml
       --- !ruby/hash-with-ivars:ActionController::Parameters
       elements:

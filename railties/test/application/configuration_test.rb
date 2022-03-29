@@ -1960,7 +1960,7 @@ module ApplicationTests
       assert_equal true, Rails.application.config.action_mailer.show_previews
     end
 
-    test "config_for loads custom configuration from yaml accessible as symbol or string" do
+    test "config_for loads custom configuration from YAML accessible as symbol or string" do
       set_custom_config <<~RUBY
         development:
           foo: "bar"
@@ -1972,7 +1972,7 @@ module ApplicationTests
       assert_equal "bar", Rails.application.config.my_custom_config["foo"]
     end
 
-    test "config_for loads nested custom configuration from yaml as symbol keys" do
+    test "config_for loads nested custom configuration from YAML as symbol keys" do
       set_custom_config <<~RUBY
         development:
           foo:
