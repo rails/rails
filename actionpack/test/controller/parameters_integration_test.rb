@@ -11,7 +11,7 @@ end
 class ActionControllerParametersIntegrationTest < ActionController::TestCase
   tests IntegrationController
 
-  test "parameters can be serialized as yaml" do
+  test "parameters can be serialized as YAML" do
     post :yaml_params, params: { person: { name: "Mjallo!" } }
     expected = <<~YAML
 --- !ruby/object:ActionController::Parameters
