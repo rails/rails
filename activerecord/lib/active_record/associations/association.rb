@@ -228,15 +228,66 @@ module ActiveRecord
             target_scope.merge!(as.scope(self))
           end
 
-          binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          sc.execute(binds, klass.connection) do |record|
-            set_inverse_instance(record)
-            if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
-              record.strict_loading!
-            else
-              record.strict_loading!(false, mode: owner.strict_loading_mode)
+          if attempt_to_preload_records?
+            records = attempt_preload
+          else
+            binds = AssociationScope.get_bind_values(owner, reflection.chain)
+            records = sc.execute(binds, klass.connection) do |record|
+              set_inverse_instance(record)
+              if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
+                record.strict_loading!
+              else
+                record.strict_loading!(false, mode: owner.strict_loading_mode)
+              end
+            end
+
+            # Setup the siblings for the preload tooling if it
+            # gets turned on in the future, or is needed by some other.
+            # tooling.
+            records.each do |record|
+              record._create_load_tree(siblings: records, parent: owner, association_name: reflection.name)
             end
           end
+          records
+        end
+
+        def attempt_to_preload_records?
+          return false unless owner.respond_to?(reflection.name)
+          return false unless ActiveRecord.dynamic_includes_enabled?
+          return false if owner._load_tree.siblings.length <= 1
+          true
+        end
+
+        def attempt_preload
+          available_records = (Array.wrap(target) + [owner._load_tree.siblings]).flatten.uniq
+
+          preloaders = ActiveRecord::Associations::Preloader.new(
+            records: owner._load_tree.siblings,
+            associations: [reflection.name],
+            available_records: available_records
+          ).call
+
+          return [] unless !preloaders.nil? && preloaders.any?
+
+          records = []
+          preloaders.each do |loader|
+            # Setup all the records in the tree and turn on auto includes
+            # so that future request can also use the auto includes
+            loader.records_by_owner.each do |parent, owned_records|
+              owned_records.each do |record|
+                record._create_load_tree(siblings: loader.preloaded_records, parent: parent, association_name: reflection.name)
+              end
+            end
+
+            records.concat(loader.records_by_owner[owner]) if loader.records_by_owner.key?(owner)
+            if loader.records_by_owner.key?(owner) && loader.records_by_owner[owner].length >= 1 && loader.records_by_owner.keys.length > 1
+              ActiveRecord::Base.logger.debug { "Dynamically preloaded: #{loader.records_by_owner[owner].first._load_tree.full_load_path}, #{loader.preloaded_records.count} records for #{loader.records_by_owner.keys.count} owners" }
+            end
+          end
+
+          return [] if  records.nil?
+
+          records
         end
 
         def violates_strict_loading?

@@ -754,6 +754,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
       assert_not_nil iz
       assert_equal interest.topic, iz.topic, "Interest topics should be the same before changes to child"
       interest.topic = "Eating cheese with a spoon"
+      assert_equal interest.object_id, iz.object_id
       assert_equal interest.topic, iz.topic, "Interest topics should be the same after changes to child"
       iz.topic = "Cow tipping"
       assert_equal interest.topic, iz.topic, "Interest topics should be the same after changes to parent-owned instance"

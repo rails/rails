@@ -1,3 +1,27 @@
+*   Dynamic Includes
+
+    Added a feature to automatically prefill an association on reference.
+
+    Normally this code would n+1 and happen in 9 queries, when
+    using the dynamic includes block it will prefill the association
+    on reference causing this to only create 4 database queries:
+
+    developers = Developer.where(id: [developer.id, developer2.id])
+
+        ActiveRecord.enable_dynamic_includes do
+            assert_queries(4) do
+                developers.each do |d|
+                d.ship.parts.each do |part|
+                    part.trinkets.each do |t|
+                    t
+                    end
+                end
+                end
+            end
+        end
+
+    * Cory Gwin *
+
 *   Fixed MariaDB default function support.
 
     Defaults would be written wrong in "db/schema.rb" and not work correctly

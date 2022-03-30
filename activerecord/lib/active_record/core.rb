@@ -450,7 +450,9 @@ module ActiveRecord
           }
 
           begin
-            statement.execute(values, connection).first
+            record = statement.execute(values, connection).first
+            record._create_load_tree(siblings: [record]) unless record.nil?
+            record
           rescue TypeError
             raise ActiveRecord::StatementInvalid
           end
@@ -549,6 +551,7 @@ module ActiveRecord
 
       _run_initialize_callbacks
 
+      _create_load_tree(siblings: [self])
       @new_record               = true
       @previously_new_record    = false
       @destroyed                = false
@@ -732,6 +735,14 @@ module ActiveRecord
       end
     end
 
+    def _create_load_tree(siblings:, parent: nil, association_name: nil)
+      @_load_tree = ActiveRecord::LoadTree.new(creator: self, siblings: siblings, parent: parent, association_name: association_name).set_records
+    end
+
+    def _load_tree
+      @_load_tree || ActiveRecord::LoadTree.new(siblings: [])
+    end
+
     ##
     # :method: slice
     #
@@ -773,6 +784,7 @@ module ActiveRecord
         @marked_for_destruction   = false
         @destroyed_by_association = nil
         @_start_transaction_state = nil
+        @_load_tree               = nil
 
         klass = self.class
 

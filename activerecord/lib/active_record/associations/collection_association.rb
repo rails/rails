@@ -321,6 +321,9 @@ module ActiveRecord
         def merge_target_lists(persisted, memory)
           return persisted if memory.empty?
           return memory    if persisted.empty?
+          # If merge target list ran in the preloader, then
+          # the in memory records will be the same array as the persisted records
+          return persisted if persisted.equal?(memory)
 
           persisted.map! do |record|
             if mem_record = memory.delete(record)

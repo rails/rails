@@ -917,10 +917,19 @@ module ActiveRecord
           else
             exec_main_query
           end
-
           records = instantiate_records(rows, &block)
-          preload_associations(records) unless skip_preloading_value
 
+          # Setup the siblings and turn on auto includes
+          # when appropriate for future requests.
+          records.each do |record|
+            if null_relation? || @association.nil?
+              record._create_load_tree(siblings: records)
+            else
+              record._create_load_tree(siblings: records, parent: @association.owner, association_name: @association.reflection.name)
+            end
+          end
+
+          preload_associations(records) unless skip_preloading_value
           records.each(&:readonly!) if readonly_value
           records.each(&:strict_loading!) if strict_loading_value
 

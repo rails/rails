@@ -182,16 +182,28 @@ module ActiveRecord
           # #compare_by_identity makes such owners different hash keys
           @records_by_owner = {}.compare_by_identity
           raw_records ||= loader_query.records_for([self])
+          preloaded_split_owner_association = {}
 
           @preloaded_records = raw_records.select do |record|
             assignments = false
 
             owners_by_key[convert_key(record[association_key_name])]&.each do |owner|
               entries = (@records_by_owner[owner] ||= [])
-
+              association_owner = preloaded_split_owner_association[owner.class.name] ||= {}
+              association_of_records = association_owner[reflection.name] ||= []
               if reflection.collection? || entries.empty?
                 entries << record
+                association_of_records << record
                 assignments = true
+              end
+            end
+
+            preloaded_split_owner_association.each do |klass_name, association_of_records|
+              association_of_records.each do |_, records|
+                records.each do |record|
+                  record._load_tree.siblings = records
+                  record._load_tree.set_records
+                end
               end
             end
 
@@ -230,12 +242,33 @@ module ActiveRecord
             return if loaded?(owner)
 
             association = owner.association(reflection.name)
+            memory = Array.wrap(association.target)
+
+            records = merge_target_lists(records, memory)
 
             if reflection.collection?
               association.target = records
             else
               association.target = records.first
             end
+          end
+
+          # When there are already in memory records that match the records fetched by the query,
+          # we want to use the in memory records so any edited state is preserved.
+          def merge_target_lists(records, memory)
+            records.map! do |record|
+              if mem_record = memory.delete(record)
+                ((record.attribute_names & mem_record.attribute_names) - mem_record.changed_attribute_names_to_save).each do |name|
+                  mem_record[name] = record[name]
+                end
+
+                mem_record
+              else
+                record
+              end
+            end
+
+            records + memory
           end
 
           def key_conversion_required?

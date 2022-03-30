@@ -44,12 +44,14 @@ module ActiveRecord
   autoload :DelegatedType
   autoload :DestroyAssociationAsyncJob
   autoload :DynamicMatchers
+  autoload :DynamicIncludes
   autoload :Encryption
   autoload :Enum
   autoload :Explain
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
+  autoload :LoadTree
   autoload :Migration
   autoload :Migrator, "active_record/migration"
   autoload :ModelSchema
@@ -340,6 +342,8 @@ module ActiveRecord
 
   singleton_class.attr_accessor :query_transformers
   self.query_transformers = []
+
+  include DynamicIncludes
 
   def self.eager_load!
     super
