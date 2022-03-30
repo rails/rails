@@ -917,10 +917,11 @@ module ActiveRecord
           else
             exec_main_query
           end
-
           records = instantiate_records(rows, &block)
           preload_associations(records) unless skip_preloading_value
-
+          records.each do |record|
+            record._record_siblings = records
+          end
           records.each(&:readonly!) if readonly_value
           records.each(&:strict_loading!) if strict_loading_value
 

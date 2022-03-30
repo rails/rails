@@ -328,6 +328,15 @@ module ActiveRecord # :nodoc:
     include SignedId
     include Suppressor
     include Encryption::EncryptableRecord
+
+    def _record_siblings
+      @_record_siblings ||= []
+    end
+
+    def _record_siblings=(siblings)
+      raise ArgumentError, "expected Array, got #{siblings.class.name}" unless siblings.is_a?(Array)
+      @_record_siblings = siblings
+    end
   end
 
   ActiveSupport.run_load_hooks(:active_record, Base)

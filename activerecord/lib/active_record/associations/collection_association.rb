@@ -260,6 +260,11 @@ module ActiveRecord
       end
 
       def load_target
+          puts "Sibilings: "
+          puts owner._record_siblings
+          puts "Reflection: "
+          puts reflection.inspect
+          ActiveRecord::Associations::Preloader.new(records: owner._record_siblings, associations: [reflection.name])
         if find_target?
           @target = merge_target_lists(find_target, target)
         end
