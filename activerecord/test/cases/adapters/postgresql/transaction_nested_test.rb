@@ -52,7 +52,9 @@ module ActiveRecord
         thread = Thread.new do
           with_warning_suppression do
             Sample.transaction(isolation: :serializable, requires_new: false) do
+              make_parent_transaction_dirty
               Sample.transaction(requires_new: true) do
+                assert_current_transaction_is_savepoint_transaction
                 before.wait
                 Sample.create value: Sample.sum(:value)
                 after.wait
@@ -64,7 +66,9 @@ module ActiveRecord
         begin
           with_warning_suppression do
             Sample.transaction(isolation: :serializable, requires_new: false) do
+              make_parent_transaction_dirty
               Sample.transaction(requires_new: true) do
+                assert_current_transaction_is_savepoint_transaction
                 before.wait
                 Sample.create value: Sample.sum(:value)
                 after.wait
@@ -98,8 +102,10 @@ module ActiveRecord
         with_warning_suppression do
           start_right.wait
           Sample.transaction(isolation: :serializable, requires_new: false) do
+            make_parent_transaction_dirty
             assert_raises(ActiveRecord::SerializationFailure) do
               Sample.transaction(requires_new: true) do
+                assert_current_transaction_is_savepoint_transaction
                 Sample.create value: 3
                 commit_left.set
                 finish_right.wait(2)
@@ -128,7 +134,9 @@ module ActiveRecord
           thread = Thread.new do
             connections.add Sample.connection
             Sample.transaction(requires_new: false) do
+              make_parent_transaction_dirty
               Sample.transaction(requires_new: true) do
+                assert_current_transaction_is_savepoint_transaction
                 s1.lock!
                 barrier.wait
                 s2.update value: 1
@@ -139,7 +147,9 @@ module ActiveRecord
           begin
             connections.add Sample.connection
             Sample.transaction(requires_new: false) do
+              make_parent_transaction_dirty
               Sample.transaction(requires_new: true) do
+                assert_current_transaction_is_savepoint_transaction
                 s2.lock!
                 barrier.wait
                 s1.update value: 2
@@ -163,8 +173,10 @@ module ActiveRecord
 
         thread = Thread.new do
           Sample.transaction(requires_new: false) do
+            make_parent_transaction_dirty
             begin
               Sample.transaction(requires_new: true) do
+                assert_current_transaction_is_savepoint_transaction
                 s1.lock!
                 barrier.wait
                 s2.update value: 4
@@ -178,8 +190,10 @@ module ActiveRecord
 
         begin
           Sample.transaction(requires_new: false) do
+            make_parent_transaction_dirty
             begin
               Sample.transaction(requires_new: true) do
+                assert_current_transaction_is_savepoint_transaction
                 s2.lock!
                 barrier.wait
                 s1.update value: 3
@@ -205,6 +219,20 @@ module ActiveRecord
       ensure
         ActiveRecord::Base.clear_active_connections!
         ActiveRecord::Base.connection.client_min_messages = log_level
+      end
+
+      # These tests are coordinating a controlled sequence of accesses to rows in `samples` table under serializable isolation.
+      # We need to run a query to dirty our transaction, but must avoid touching `samples` rows
+      # because otherwise our no-op query becomes an active participant of the test setup
+      def make_parent_transaction_dirty
+        Bit.take
+      end
+
+      def assert_current_transaction_is_savepoint_transaction
+        current_transaction = Sample.connection.current_transaction
+        unless current_transaction.is_a?(ActiveRecord::ConnectionAdapters::SavepointTransaction)
+          flunk("current transaction is not a savepoint transaction")
+        end
       end
   end
 end
