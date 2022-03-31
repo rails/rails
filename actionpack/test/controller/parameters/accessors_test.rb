@@ -312,8 +312,8 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "values returns an array of the values of the params" do
-    params = ActionController::Parameters.new(city: "Chicago", state: "Illinois")
-    assert_equal ["Chicago", "Illinois"], params.values
+    params = ActionController::Parameters.new(city: "Chicago", state: "Illinois", person: ActionController::Parameters.new(first_name: "David"))
+    assert_equal ["Chicago", "Illinois", ActionController::Parameters.new(first_name: "David")], params.values
   end
 
   test "values_at retains permitted status" do
