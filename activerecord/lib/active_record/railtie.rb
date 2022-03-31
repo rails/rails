@@ -145,7 +145,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
             filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
               db_config.name,
-              schema_cache_path: db_config&.schema_cache_path
+              schema_cache_path: db_config.schema_cache_path
             )
 
             cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(filename)
