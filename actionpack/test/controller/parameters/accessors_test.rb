@@ -94,7 +94,14 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "each_pair without a block returns an enumerator" do
     assert_kind_of Enumerator, @params.each_pair
-    assert_equal @params, @params.each_pair.to_h
+    assert_equal @params, ActionController::Parameters.new(@params.each_pair.to_h)
+  end
+
+  test "deprecated comparison works" do
+    assert_kind_of Enumerator, @params.each_pair
+    assert_deprecated do
+      assert_equal @params, @params.each_pair.to_h
+    end
   end
 
   test "each_value carries permitted status" do
