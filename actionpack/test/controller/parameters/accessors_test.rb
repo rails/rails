@@ -72,7 +72,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "each without a block returns an enumerator" do
     assert_kind_of Enumerator, @params.each
-    assert_equal @params, @params.each.to_h
+    assert_equal @params, ActionController::Parameters.new(@params.each.to_h)
   end
 
   test "each_pair carries permitted status" do
