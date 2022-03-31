@@ -276,7 +276,18 @@ module ActionController
       if other.respond_to?(:permitted?)
         permitted? == other.permitted? && parameters == other.parameters
       else
-        @parameters == other
+        if Hash === other
+          ActiveSupport::Deprecation.warn <<-WARNING.squish
+            Comparing equality between `ActionController::Parameters` and a
+            `Hash` is deprecated and will be removed in Rails 7.1. Please only do
+            comparisons between instances of `ActionController::Parameters`. If
+            you need to compare to a hash, first convert it using
+            `ActionController::Parameters#new`.
+          WARNING
+          @parameters == other
+        else
+          super
+        end
       end
     end
     alias eql? ==
