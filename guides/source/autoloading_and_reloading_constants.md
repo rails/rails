@@ -235,6 +235,8 @@ Why? Initializers only run once, when the application boots. If you reboot the s
 
 ### Use case 1: During boot, load reloadable code
 
+#### Autoload on boot and on each reload
+
 Let's imagine `ApiGateway` is a reloadable class from `app/services` managed by the `main` autoloader and you need to configure its endpoint while the application boots:
 
 ```ruby
@@ -254,6 +256,21 @@ end
 ```
 
 NOTE: For historical reasons, this callback may run twice. The code it executes must be idempotent.
+
+#### Autoload on boot only
+
+Reloadable classes and modules can be autoloaded in `after_initialize` blocks too. These run on boot, but do not run again on reload. In some exceptional cases this may be what you want.
+
+Preflight checks are a use case for this:
+
+```ruby
+# config/initializers/check_admin_presence.rb
+Rails.application.config.after_initialize do
+  unless Role.where(name: "admin").exists?
+    abort "The admin role is not present, please seed the database."
+  end
+end
+```
 
 ### Use case 2: During boot, load code that remains cached
 
