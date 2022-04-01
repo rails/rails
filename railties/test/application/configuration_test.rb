@@ -3372,21 +3372,6 @@ module ApplicationTests
       assert_equal false, Rails.application.config.assets.unknown_asset_fallback
     end
 
-    test "legacy_connection_handling is false by default for new apps" do
-      app "development"
-
-      assert_equal false, Rails.application.config.active_record.legacy_connection_handling
-    end
-
-    test "legacy_connection_handling is not set before 6.1" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "6.0"'
-
-      app "development"
-
-      assert_nil Rails.application.config.active_record.legacy_connection_handling
-    end
-
     test "ActionDispatch::Request.return_only_media_type_on_content_type is false by default" do
       app "development"
 

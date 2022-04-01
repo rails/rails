@@ -135,18 +135,12 @@ module ActiveRecord
     #     Dog.first # finds first Dog record stored on the shard one replica
     #   end
     def connected_to(role: nil, shard: nil, prevent_writes: false, &blk)
-      if ActiveRecord.legacy_connection_handling
-        if self != Base
-          raise NotImplementedError, "`connected_to` can only be called on ActiveRecord::Base with legacy connection handling."
-        end
-      else
-        if self != Base && !abstract_class
-          raise NotImplementedError, "calling `connected_to` is only allowed on ActiveRecord::Base or abstract classes."
-        end
+      if self != Base && !abstract_class
+        raise NotImplementedError, "calling `connected_to` is only allowed on ActiveRecord::Base or abstract classes."
+      end
 
-        if name != connection_specification_name && !primary_class?
-          raise NotImplementedError, "calling `connected_to` is only allowed on the abstract class that established the connection."
-        end
+      if name != connection_specification_name && !primary_class?
+        raise NotImplementedError, "calling `connected_to` is only allowed on the abstract class that established the connection."
       end
 
       unless role || shard
@@ -172,10 +166,6 @@ module ActiveRecord
     def connected_to_many(*classes, role:, shard: nil, prevent_writes: false)
       classes = classes.flatten
 
-      if ActiveRecord.legacy_connection_handling
-        raise NotImplementedError, "connected_to_many is not available with legacy connection handling"
-      end
-
       if self != Base || classes.include?(Base)
         raise NotImplementedError, "connected_to_many can only be called on ActiveRecord::Base."
       end
@@ -196,10 +186,6 @@ module ActiveRecord
     # It is not recommended to use this method in a request since it
     # does not yield to a block like +connected_to+.
     def connecting_to(role: default_role, shard: default_shard, prevent_writes: false)
-      if ActiveRecord.legacy_connection_handling
-        raise NotImplementedError, "`connecting_to` is not available with `legacy_connection_handling`."
-      end
-
       prevent_writes = true if role == ActiveRecord.reading_role
 
       append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self])
@@ -236,11 +222,7 @@ module ActiveRecord
     # See +READ_QUERY+ for the queries that are blocked by this
     # method.
     def while_preventing_writes(enabled = true, &block)
-      if ActiveRecord.legacy_connection_handling
-        connection_handler.while_preventing_writes(enabled, &block)
-      else
-        connected_to(role: current_role, prevent_writes: enabled, &block)
-      end
+      connected_to(role: current_role, prevent_writes: enabled, &block)
     end
 
     # Returns true if role is the current connected role.
@@ -254,23 +236,12 @@ module ActiveRecord
     end
 
     def lookup_connection_handler(handler_key) # :nodoc:
-      if ActiveRecord.legacy_connection_handling
-        handler_key ||= ActiveRecord.writing_role
-        connection_handlers[handler_key] ||= ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-      else
-        ActiveRecord::Base.connection_handler
-      end
+      ActiveRecord::Base.connection_handler
     end
 
     # Clears the query cache for all connections associated with the current thread.
     def clear_query_caches_for_current_thread
-      if ActiveRecord.legacy_connection_handling
-        ActiveRecord::Base.connection_handlers.each_value do |handler|
-          clear_on_handler(handler)
-        end
-      else
-        clear_on_handler(ActiveRecord::Base.connection_handler)
-      end
+      clear_on_handler(ActiveRecord::Base.connection_handler)
     end
 
     # Returns the connection currently associated with the class. This can
@@ -362,19 +333,10 @@ module ActiveRecord
       def with_role_and_shard(role, shard, prevent_writes)
         prevent_writes = true if role == ActiveRecord.reading_role
 
-        if ActiveRecord.legacy_connection_handling
-          with_handler(role.to_sym) do
-            connection_handler.while_preventing_writes(prevent_writes) do
-              append_to_connected_to_stack(shard: shard, klasses: [self])
-              yield
-            end
-          end
-        else
-          append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self])
-          return_value = yield
-          return_value.load if return_value.is_a? ActiveRecord::Relation
-          return_value
-        end
+        append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self])
+        return_value = yield
+        return_value.load if return_value.is_a? ActiveRecord::Relation
+        return_value
       ensure
         self.connected_to_stack.pop
       end
