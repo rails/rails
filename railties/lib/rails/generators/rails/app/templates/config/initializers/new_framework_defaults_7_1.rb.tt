@@ -24,3 +24,7 @@
 #   "X-Permitted-Cross-Domain-Policies" => "none",
 #   "Referrer-Policy" => "strict-origin-when-cross-origin"
 # }
+
+# Do not treat an `ActionController::Parameters` instance
+# as equal to an equivalent `Hash` by default.
+# Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality = false
