@@ -224,7 +224,15 @@ module ActiveRecord
     # Like #find_or_create_by, but calls {new}[rdoc-ref:Core#new]
     # instead of {create}[rdoc-ref:Persistence::ClassMethods#create].
     def find_or_initialize_by(attributes, &block)
-      find_by(attributes) || new(attributes, &block)
+      record = find_by(attributes)
+      if record
+        if block_given?
+          yield record
+        end
+        record
+      else
+        new(attributes, &block)
+      end
     end
 
     # Runs EXPLAIN on the query or queries triggered by this relation and

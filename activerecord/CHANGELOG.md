@@ -1,3 +1,20 @@
+*   Blocks work for existing record when calling `find_or_initialize_by` as well.
+
+    Previously if `find_or_initialize_by` returned an existing record, the block
+    was not being executed for the particular record which is being queried.
+    After this change, the block is executed for the record being queried.
+
+    ```ruby
+    bird = Bird.find_or_initialize_by(name: "bob") do |record|
+      record.name = "alice"
+      record.color = "red"
+    end
+    bird.name # => "alice"
+    bird.color # => "red"
+    ```
+
+    *Ghouse Mohamed*
+
 *   Fixed MariaDB default function support.
 
     Defaults would be written wrong in "db/schema.rb" and not work correctly

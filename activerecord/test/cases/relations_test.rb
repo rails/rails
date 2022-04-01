@@ -1562,6 +1562,36 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal bird, Bird.find_or_initialize_by(name: "bob")
   end
 
+  def test_find_or_initialize_by_with_block_for_new_record
+    assert_nil Bird.find_by(name: "bob")
+
+    bird = Bird.find_or_initialize_by(name: "bob") do |record|
+      record.color = "blue"
+    end
+    assert_predicate bird, :new_record?
+    assert_equal bird.color, "blue"
+    bird.save!
+
+    assert_equal bird, Bird.find_or_initialize_by(name: "bob")
+  end
+
+  def test_find_or_initialize_by_with_block_for_existing_record
+    old_bird = Bird.create!(name: "bob", color: "blue")
+    assert_equal old_bird.name, "bob"
+    assert_equal old_bird.color, "blue"
+
+    new_bird = Bird.find_or_initialize_by(name: "bob") do |record|
+      record.name = "alice"
+      record.color = "red"
+    end
+    assert_not new_bird.new_record?
+    assert_equal new_bird.name, "alice"
+    assert_equal new_bird.color, "red"
+    new_bird.save!
+
+    assert_equal new_bird, Bird.find_or_initialize_by(name: "alice")
+  end
+
   def test_explicit_create_with
     hens = Bird.where(name: "hen")
     assert_equal "hen", hens.new.name
