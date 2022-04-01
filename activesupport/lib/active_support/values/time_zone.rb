@@ -179,7 +179,8 @@ module ActiveSupport
       "Nuku'alofa"                   => "Pacific/Tongatapu",
       "Tokelau Is."                  => "Pacific/Fakaofo",
       "Chatham Is."                  => "Pacific/Chatham",
-      "Samoa"                        => "Pacific/Apia"
+      "Samoa"                        => "Pacific/Apia",
+      "Kiritimati Is."               => "Pacific/Kiritimati"
     }
 
     UTC_OFFSET_WITH_COLON = "%s%02d:%02d" # :nodoc:
@@ -240,7 +241,7 @@ module ActiveSupport
         when TZInfo::Timezone
           @lazy_zones_map[arg.name] ||= create(arg.name, nil, arg)
         when Numeric, ActiveSupport::Duration
-          arg *= 3600 if arg.abs <= 13
+          arg *= 3600 if arg.abs <= 60
           all.find { |z| z.utc_offset == arg.to_i }
         else
           raise ArgumentError, "invalid argument to TimeZone[]: #{arg.inspect}"
