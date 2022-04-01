@@ -72,7 +72,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "each without a block returns an enumerator" do
     assert_kind_of Enumerator, @params.each
-    assert_equal @params, @params.each.to_h
+    assert_equal @params, ActionController::Parameters.new(@params.each.to_h)
   end
 
   test "each_pair carries permitted status" do
@@ -312,8 +312,8 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "values returns an array of the values of the params" do
-    params = ActionController::Parameters.new(city: "Chicago", state: "Illinois")
-    assert_equal ["Chicago", "Illinois"], params.values
+    params = ActionController::Parameters.new(city: "Chicago", state: "Illinois", person: ActionController::Parameters.new(first_name: "David"))
+    assert_equal ["Chicago", "Illinois", ActionController::Parameters.new(first_name: "David")], params.values
   end
 
   test "values_at retains permitted status" do

@@ -1,3 +1,7 @@
+*   Make ActionController::Parameters#values cast nested hashes into parameters.
+
+    *Gannon McGibbon*
+
 *   Introduce `html:` and `screenshot:` kwargs for system test screenshot helper
 
     Use these as an alternative to the already-available environment variables.
@@ -26,7 +30,7 @@
 *   Fix `authenticate_with_http_basic` to allow for missing password.
 
     Before Rails 7.0 it was possible to handle basic authentication with only a username.
-    
+
     ```ruby
     authenticate_with_http_basic do |token, _|
       ApiClient.authenticate(token)
