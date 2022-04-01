@@ -1,3 +1,7 @@
+*   The autoloading guide documents a use case for autoloading reloadable constants in `after_initialize`.
+
+    *Xavier Noria*
+
 *   The Classic to Zeitwerk HOWTO guide has a new section about the undocumented `before_remove_const`.
 
     *Xavier Noria*
