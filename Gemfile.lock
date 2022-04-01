@@ -306,7 +306,6 @@ GEM
       actionpack (>= 6.0.0)
       railties (>= 6.0.0)
     io-console (0.5.11)
-    io-wait (0.2.1)
     irb (1.4.1)
       reline (>= 0.3.0)
     jmespath (1.4.0)
@@ -360,8 +359,7 @@ GEM
       digest
       net-protocol
       timeout
-    net-protocol (0.1.2)
-      io-wait
+    net-protocol (0.1.3)
       timeout
     net-smtp (0.3.1)
       digest
