@@ -702,6 +702,17 @@ module ApplicationTests
         end
       end
 
+      test "db:prepare creates test database if it does not exist" do
+        Dir.chdir(app_path) do
+          use_postgresql
+          rails "db:drop", "db:create"
+          rails "runner", "ActiveRecord::Base.connection.drop_database(:railties_test)"
+
+          output = rails("db:prepare")
+          assert_match(%r{Created database 'railties_test'}, output)
+        end
+      end
+
       test "lazily loaded schema cache isn't read when reading the schema migrations table" do
         Dir.chdir(app_path) do
           app_file "config/initializers/lazy_load_schema_cache.rb", <<-RUBY
