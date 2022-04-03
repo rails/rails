@@ -112,7 +112,7 @@ module ActiveSupport
   def self.to_time_preserves_timezone=(value)
     unless value
       ActiveSupport::Deprecation.warn(
-        "Support for the pre-Ruby 2.4 behavior of to_time has been deprecated and will be removed in Rails 7.1."
+        "Support for the pre-Ruby 2.4 behavior of to_time has been deprecated and will be removed in Rails 7.2."
       )
     end
 
