@@ -1,6 +1,19 @@
+*   `rails db:schema:{dump,load}` now checks `ENV["SCHEMA_FORMAT"]` before config
+
+    Since `rails db:structure:{dump,load}` was deprecated there wasn't a simple
+    way to dump a schema to both SQL and Ruby formats. You can now do this with
+    an environment variable. For example:
+
+    ```
+    SCHEMA_FORMAT=sql rake db:schema:dump
+    ```
+
+    *Alex Ghiculescu*
+
 *   Fix Hstore deserialize regression.
 
     *edsharp*
+
 
 ## Rails 7.0.3 (May 09, 2022) ##
 
