@@ -1,3 +1,27 @@
+*   Add support for `ActiveRecord::Point` type casts using `Hash` values
+
+    This allows `ActiveRecord::Point` to be cast or serialized from a hash
+    with `:x` and `:y` keys of numeric values, mirroring the functionality of
+    existing casts for string and array values. Both string and symbol keys are
+    supported.
+
+    ```ruby
+    class PostgresqlPoint < ActiveRecord::Base
+      attribute :x, :point
+      attribute :y, :point
+      attribute :z, :point
+    end
+
+    val = PostgresqlPoint.new({
+      x: '(12.34, -43.21)',
+      y: [12.34, '-43.21'],
+      z: {x: '12.34', y: -43.21}
+    })
+    ActiveRecord::Point.new(12.32, -43.21) == val.x == val.y == val.z
+    ```
+
+    *Stephen Drew*
+
 *   Replace `SQLite3::Database#busy_timeout` with `#busy_handler_timeout=`.
 
     Provides a non-GVL-blocking, fair retry interval busy handler implementation.
