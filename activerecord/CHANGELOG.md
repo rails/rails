@@ -1,3 +1,15 @@
+*   `rails db:schema:{dump,load}` now checks `ENV["SCHEMA_FORMAT"]` before config
+
+    Since `rails db:structure:{dump,load}` was deprecated there wasn't a simple
+    way to dump a schema to both SQL and Ruby formats. You can now do this with
+    an environment variable. For example:
+
+    ```
+    SCHEMA_FORMAT=sql rake db:schema:dump
+    ```
+
+    *Alex Ghiculescu*
+
 *   Fixed MariaDB default function support.
 
     Defaults would be written wrong in "db/schema.rb" and not work correctly

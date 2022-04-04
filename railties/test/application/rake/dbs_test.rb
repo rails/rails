@@ -352,6 +352,15 @@ module ApplicationTests
         end
       end
 
+      def db_schema_sql_dump
+        Dir.chdir(app_path) do
+          args = ["generate", "model", "book", "title:string"]
+          rails args
+          rails "db:migrate", "db:schema:dump"
+          assert_match(/CREATE TABLE/, File.read("db/structure.sql"))
+        end
+      end
+
       test "db:schema:dump without database_url" do
         db_schema_dump
       end
@@ -361,7 +370,29 @@ module ApplicationTests
         db_schema_dump
       end
 
-      def db_schema_cache_dump(filename = "db/schema_cache.yml")
+      test "db:schema:dump with env as ruby" do
+        add_to_config "config.active_record.schema_format = :sql"
+
+        old_env = ENV["SCHEMA_FORMAT"]
+        ENV["SCHEMA_FORMAT"] = "ruby"
+
+        db_schema_dump
+      ensure
+        ENV["SCHEMA_FORMAT"] = old_env
+      end
+
+      test "db:schema:dump with env as sql" do
+        add_to_config "config.active_record.schema_format = :ruby"
+
+        old_env = ENV["SCHEMA_FORMAT"]
+        ENV["SCHEMA_FORMAT"] = "sql"
+
+        db_schema_sql_dump
+      ensure
+        ENV["SCHEMA_FORMAT"] = old_env
+      end
+
+      def db_schema_cache_dump
         Dir.chdir(app_path) do
           rails "db:schema:cache:dump"
 
@@ -398,7 +429,7 @@ module ApplicationTests
         end
 
         db_schema_dump
-        db_schema_cache_dump("db/special_schema_cache.yml")
+        db_schema_cache_dump
       end
 
       test "db:schema:cache:dump custom env" do
@@ -407,7 +438,7 @@ module ApplicationTests
         ENV["SCHEMA_CACHE"] = filename
 
         db_schema_dump
-        db_schema_cache_dump(filename)
+        db_schema_cache_dump
       ensure
         ENV["SCHEMA_CACHE"] = @old_schema_cache_env
       end
