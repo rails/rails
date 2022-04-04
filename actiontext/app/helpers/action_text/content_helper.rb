@@ -39,7 +39,11 @@ module ActionText
       options = { locals: locals, object: attachment, partial: attachment }
 
       if attachment.respond_to?(:to_attachable_partial_path)
-        options[:partial] = attachment.to_attachable_partial_path
+        if controller.kind_of?(ActionMailer::Base) && attachment.respond_to?(:to_email_attachment_partial_path)
+          options[:partial] = attachment.to_email_attachment_partial_path
+        else
+          options[:partial] = attachment.to_attachable_partial_path
+        end
       end
 
       if attachment.respond_to?(:model_name)

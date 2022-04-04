@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module ActionText
+  # Provides the methods required to render the mixed-in class as an Action Text attachment.
   module Attachable
     extend ActiveSupport::Concern
 
@@ -67,10 +68,56 @@ module ActionText
       super.merge(attachable_sgid: attachable_sgid)
     end
 
+    # Returns the partial path used to render the Attachable in the Trix editor.
+    #
+    # Calls +to_partial_path+ by default.
+    #
+    # Can be overridden to provide a custom partial.
+    #
+    #   # Providing a custom partial
+    #   class VideoEmbed < ApplicationRecord
+    #     include ActionText::Attachable
+    #
+    #     def to_trix_content_attachment_partial_path
+    #       "video_embeds/trix_preview"
+    #     end
+    #   end
     def to_trix_content_attachment_partial_path
       to_partial_path
     end
 
+    # Returns the partial path used to render the Attachable in mailers.
+    #
+    # Calls +to_partial_path+ by default.
+    #
+    # Can be overridden to provide a custom partial.
+    #
+    #   # Providing a custom partial
+    #   class VideoEmbed < ApplicationRecord
+    #     include ActionText::Attachable
+    #
+    #     def to_email_attachment_partial_path
+    #       "video_embeds/email_preview"
+    #     end
+    #   end
+    def to_email_attachment_partial_path
+      to_partial_path
+    end
+
+    # Returns the partial path used to render the Attachable.
+    #
+    # Calls +to_partial_path+ by default.
+    #
+    # Can be overridden to provide a custom partial.
+    #
+    #   # Providing a custom partial
+    #   class VideoEmbed < ApplicationRecord
+    #     include ActionText::Attachable
+    #
+    #     def to_attachable_partial_path
+    #       "video_embeds/custom_preview"
+    #     end
+    #   end
     def to_attachable_partial_path
       to_partial_path
     end

@@ -41,6 +41,10 @@ module ActionText
       def to_partial_path
         "action_text/attachables/remote_image"
       end
+
+      def to_email_attachment_partial_path
+        to_partial_path
+      end
     end
   end
 end

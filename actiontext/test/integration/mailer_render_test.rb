@@ -20,4 +20,16 @@ class ActionText::MailerRenderTest < ActionMailer::TestCase
   ensure
     ActionMailer::Base.default_url_options = original_default_url_options
   end
+
+  test "resolves ActionText::Attachable based on their to_email_attachment_partial_path" do
+    alice = people(:alice)
+
+    message = Message.new(content: ActionText::Content.new.append_attachables(alice))
+
+    MessagesMailer.with(recipient: "test", message: message).notification.deliver_now
+
+    assert_select_email do
+      assert_select "a", "#{alice.name.downcase}@example.com"
+    end
+  end
 end
