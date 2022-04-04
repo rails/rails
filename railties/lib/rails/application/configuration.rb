@@ -274,6 +274,10 @@ module Rails
             active_support.default_message_encryptor_serializer = :json
             active_support.default_message_verifier_serializer = :json
           end
+
+          if respond_to?(:action_controller)
+            action_controller.allow_deprecated_parameters_hash_equality = false
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

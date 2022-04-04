@@ -6,6 +6,7 @@ require "action_controller/metal/strong_parameters"
 class ParametersAccessorsTest < ActiveSupport::TestCase
   setup do
     ActionController::Parameters.permit_all_parameters = false
+    ActionController::Parameters.allow_deprecated_parameters_hash_equality = true
 
     @params = ActionController::Parameters.new(
       person: {
@@ -101,6 +102,15 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_kind_of Enumerator, @params.each_pair
     assert_deprecated do
       assert_equal @params, @params.each_pair.to_h
+    end
+  end
+
+  test "deprecated comparison disabled" do
+    ActionController::Parameters.allow_deprecated_parameters_hash_equality = false
+
+    assert_kind_of Enumerator, @params.each_pair
+    assert_not_deprecated do
+      assert_not_equal @params, @params.each_pair.to_h
     end
   end
 
