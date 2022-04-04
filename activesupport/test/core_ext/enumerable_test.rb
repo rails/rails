@@ -362,11 +362,31 @@ class EnumerableTests < ActiveSupport::TestCase
   end
 
   def test_doesnt_bust_constant_cache
-    skip "Only applies to MRI" unless defined?(RubyVM.stat) && RubyVM.stat(:global_constant_state)
-
     object = Object.new
-    assert_no_difference -> { RubyVM.stat(:global_constant_state) } do
+    assert_constant_cache_unchanged do
       object.extend(Enumerable)
     end
   end
+
+  private
+    if defined?(RubyVM.stat)
+      if RubyVM.stat.key?(:global_constant_state)
+        def assert_constant_cache_unchanged(&block)
+          assert_no_difference(-> { RubyVM.stat(:global_constant_state) }, &block)
+        end
+      else
+        def assert_constant_cache_unchanged(&block)
+          before = RubyVM.stat(:constant_cache)
+          assert_nothing_raised(&block)
+          after = RubyVM.stat(:constant_cache)
+          changed = after.select { |k, v| before[k] != v }
+          expected = before.select { |k, _v| changed.key?(k) }
+          assert_equal(expected, changed)
+        end
+      end
+    else
+      def assert_constant_cache_unchanged
+        skip "VM constant cache only applies to MRI"
+      end
+    end
 end
