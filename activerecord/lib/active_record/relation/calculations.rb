@@ -40,9 +40,7 @@ module ActiveRecord
     #
     # Note: not all valid {Relation#select}[rdoc-ref:QueryMethods#select] expressions are valid #count expressions. The specifics differ
     # between databases. In invalid cases, an error from the database is thrown.
-    #
-    # If <tt>async: true</tt> is passed, an {ActiveRecord::Promise} will be returned.
-    def count(column_name = nil, async: false)
+    def count(column_name = nil)
       if block_given?
         unless column_name.nil?
           raise ArgumentError, "Column name argument is not supported when a block is passed."
@@ -50,18 +48,26 @@ module ActiveRecord
 
         super()
       else
-        calculate(:count, column_name, async: async)
+        calculate(:count, column_name)
       end
+    end
+
+    # Same as <tt>#count</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_count(column_name = nil)
+      async.count(column_name)
     end
 
     # Calculates the average value on a given column. Returns +nil+ if there's
     # no row. See #calculate for examples with options.
     #
     #   Person.average(:age) # => 35.8
-    #
-    # If <tt>async: true</tt> is passed, an {ActiveRecord::Promise} will be returned.
-    def average(column_name, async: false)
-      calculate(:average, column_name, async: async)
+    def average(column_name)
+      calculate(:average, column_name)
+    end
+
+    # Same as <tt>#average</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_average(column_name)
+      async.average(column_name)
     end
 
     # Calculates the minimum value on a given column. The value is returned
@@ -69,10 +75,13 @@ module ActiveRecord
     # #calculate for examples with options.
     #
     #   Person.minimum(:age) # => 7
-    #
-    # If <tt>async: true</tt> is passed, an {ActiveRecord::Promise} will be returned.
-    def minimum(column_name, async: false)
-      calculate(:minimum, column_name, async: async)
+    def minimum(column_name)
+      calculate(:minimum, column_name)
+    end
+
+    # Same as <tt>#minimum</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_minimum(column_name)
+      async.minimum(column_name)
     end
 
     # Calculates the maximum value on a given column. The value is returned
@@ -80,10 +89,13 @@ module ActiveRecord
     # #calculate for examples with options.
     #
     #   Person.maximum(:age) # => 93
-    #
-    # If <tt>async: true</tt> is passed, an {ActiveRecord::Promise} will be returned.
-    def maximum(column_name, async: false)
-      calculate(:maximum, column_name, async: async)
+    def maximum(column_name)
+      calculate(:maximum, column_name)
+    end
+
+    # Same as <tt>#maximum</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_maximum(column_name)
+      async.maximum(column_name)
     end
 
     # Calculates the sum of values on a given column. The value is returned
@@ -91,9 +103,7 @@ module ActiveRecord
     # #calculate for examples with options.
     #
     #   Person.sum(:age) # => 4562
-    #
-    # If <tt>async: true</tt> is passed, an {ActiveRecord::Promise} will be returned.
-    def sum(identity_or_column = nil, async: false, &block)
+    def sum(identity_or_column = nil, &block)
       if block_given?
         values = map(&block)
         if identity_or_column.nil? && (values.first.is_a?(Numeric) || values.first(1) == [])
@@ -110,8 +120,13 @@ module ActiveRecord
           values.sum(identity_or_column)
         end
       else
-        calculate(:sum, identity_or_column, async: async)
+        calculate(:sum, identity_or_column)
       end
+    end
+
+    # Same as <tt>#sum</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_sum(identity_or_column = nil)
+      async.sum(identity_or_column)
     end
 
     # This calculates aggregate values in the given column. Methods for #count, #sum, #average,
@@ -145,9 +160,7 @@ module ActiveRecord
     #      values.each do |family, max_age|
     #        ...
     #      end
-    #
-    # If <tt>async: true</tt> is passed, an {ActiveRecord::Promise} will be returned.
-    def calculate(operation, column_name, async: false)
+    def calculate(operation, column_name)
       if has_include?(column_name)
         relation = apply_join_dependency
 
@@ -160,9 +173,9 @@ module ActiveRecord
           relation.order_values = [] if group_values.empty?
         end
 
-        relation.calculate(operation, column_name, async: async)
+        relation.calculate(operation, column_name)
       else
-        perform_calculation(operation, column_name, async: async)
+        perform_calculation(operation, column_name)
       end
     end
 
@@ -200,12 +213,10 @@ module ActiveRecord
     #   # => ['0', '27761', '173']
     #
     # See also #ids.
-    #
-    # If <tt>async: true</tt> is passed, an {ActiveRecord::Promise} will be returned.
-    def pluck(*column_names, async: false)
+    def pluck(*column_names)
       if loaded? && all_attributes?(column_names)
         result = records.pluck(*column_names)
-        if async
+        if @async
           return Promise::Complete.new(result)
         else
           return result
@@ -222,15 +233,20 @@ module ActiveRecord
         relation.select_values = columns
         result = skip_query_cache_if_necessary do
           if where_clause.contradiction?
-            ActiveRecord::Result.empty(async: async)
+            ActiveRecord::Result.empty(async: @async)
           else
-            klass.connection.select_all(relation.arel, "#{klass.name} Pluck", async: async)
+            klass.connection.select_all(relation.arel, "#{klass.name} Pluck", async: @async)
           end
         end
         result.then do |result|
           type_cast_pluck_values(result, columns)
         end
       end
+    end
+
+    # Same as <tt>#pluck</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_pluck(*column_names)
+      async.pluck(*column_names)
     end
 
     # Pick the value(s) from the named column(s) in the current relation.
@@ -247,15 +263,18 @@ module ActiveRecord
     #   Person.where(id: 1).pick(:name, :email_address)
     #   # SELECT people.name, people.email_address FROM people WHERE id = 1 LIMIT 1
     #   # => [ 'David', 'david@loudthinking.com' ]
-    #
-    # If <tt>async: true</tt> is passed, an {ActiveRecord::Promise} will be returned.
-    def pick(*column_names, async: false)
+    def pick(*column_names)
       if loaded? && all_attributes?(column_names)
         result = records.pick(*column_names)
-        return async ? Promise::Complete.new(result) : result
+        return @async ? Promise::Complete.new(result) : result
       end
 
-      limit(1).pluck(*column_names, async: async).then(&:first)
+      limit(1).pluck(*column_names).then(&:first)
+    end
+
+    # Same as <tt>#pick</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_pick(*column_names)
+      async.pick(*column_names)
     end
 
     # Pluck all the ID's for the relation using the table's primary key
@@ -275,7 +294,7 @@ module ActiveRecord
         eager_loading? || (includes_values.present? && column_name && column_name != :all)
       end
 
-      def perform_calculation(operation, column_name, async: false)
+      def perform_calculation(operation, column_name)
         operation = operation.to_s.downcase
 
         # If #count is used with #distinct (i.e. `relation.distinct.count`) it is
@@ -296,9 +315,9 @@ module ActiveRecord
         end
 
         if group_values.any?
-          execute_grouped_calculation(operation, column_name, distinct, async: async)
+          execute_grouped_calculation(operation, column_name, distinct)
         else
-          execute_simple_calculation(operation, column_name, distinct, async: async)
+          execute_simple_calculation(operation, column_name, distinct)
         end
       end
 
@@ -318,7 +337,7 @@ module ActiveRecord
         operation == "count" ? column.count(distinct) : column.public_send(operation)
       end
 
-      def execute_simple_calculation(operation, column_name, distinct, async: false) # :nodoc:
+      def execute_simple_calculation(operation, column_name, distinct) # :nodoc:
         if operation == "count" && (column_name == :all && distinct || has_limit_or_offset?)
           # Shortcut when limit is zero.
           return 0 if limit_value == 0
@@ -338,7 +357,7 @@ module ActiveRecord
         end
 
         query_result = skip_query_cache_if_necessary do
-          @klass.connection.select_all(query_builder, "#{@klass.name} #{operation.capitalize}", async: async)
+          @klass.connection.select_all(query_builder, "#{@klass.name} #{operation.capitalize}", async: @async)
         end
 
         query_result.then do |result|
@@ -352,7 +371,7 @@ module ActiveRecord
         end
       end
 
-      def execute_grouped_calculation(operation, column_name, distinct, async: false) # :nodoc:
+      def execute_grouped_calculation(operation, column_name, distinct) # :nodoc:
         group_fields = group_values
         group_fields = group_fields.uniq if group_fields.size > 1
 
@@ -390,7 +409,7 @@ module ActiveRecord
         relation.group_values  = group_fields
         relation.select_values = select_values
 
-        result = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, "#{@klass.name} #{operation.capitalize}", async: async) }
+        result = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, "#{@klass.name} #{operation.capitalize}", async: @async) }
         result.then do |calculated_data|
           if association
             key_ids     = calculated_data.collect { |row| row[group_aliases.first] }

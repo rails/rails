@@ -33,6 +33,7 @@ module ActiveRecord
       @delegate_to_klass = false
       @future_result = nil
       @records = nil
+      @async = false
     end
 
     def initialize_copy(other)

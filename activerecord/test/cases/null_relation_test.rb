@@ -78,8 +78,8 @@ class NullRelationTest < ActiveRecord::TestCase
 
     define_method "test_null_relation_#{method}_async" do
       assert_no_queries do
-        assert_async_equal 0, Comment.none.public_send(method, :id, async: true)
-        assert_async_equal Hash.new, Comment.none.group(:post_id).public_send(method, :id, async: true)
+        assert_async_equal 0, Comment.none.public_send("async_#{method}", :id)
+        assert_async_equal Hash.new, Comment.none.group(:post_id).public_send("async_#{method}", :id)
       end
     end
   end
@@ -94,8 +94,8 @@ class NullRelationTest < ActiveRecord::TestCase
 
     define_method "test_null_relation_#{method}_async" do
       assert_no_queries do
-        assert_async_equal nil, Comment.none.public_send(method, :id, async: true)
-        assert_async_equal Hash.new, Comment.none.group(:post_id).public_send(method, :id, async: true)
+        assert_async_equal nil, Comment.none.public_send("async_#{method}", :id)
+        assert_async_equal Hash.new, Comment.none.group(:post_id).public_send("async_#{method}", :id)
       end
     end
   end
