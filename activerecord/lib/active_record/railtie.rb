@@ -270,9 +270,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
     # and then establishes the connection.
     initializer "active_record.initialize_database" do
       ActiveSupport.on_load(:active_record) do
-        if ActiveRecord.legacy_connection_handling
-          self.connection_handlers = { ActiveRecord.writing_role => ActiveRecord::Base.default_connection_handler }
-        end
         self.configurations = Rails.application.config.database_configuration
 
         establish_connection

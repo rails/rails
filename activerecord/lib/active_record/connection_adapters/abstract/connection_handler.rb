@@ -88,28 +88,6 @@ module ActiveRecord
         ActiveSupport::IsolatedExecutionState[:active_record_prevent_writes] = prevent_writes
       end
 
-      # Prevent writing to the database regardless of role.
-      #
-      # In some cases you may want to prevent writes to the database
-      # even if you are on a database that can write. +while_preventing_writes+
-      # will prevent writes to the database for the duration of the block.
-      #
-      # This method does not provide the same protection as a readonly
-      # user and is meant to be a safeguard against accidental writes.
-      #
-      # See +READ_QUERY+ for the queries that are blocked by this
-      # method.
-      def while_preventing_writes(enabled = true)
-        unless ActiveRecord.legacy_connection_handling
-          raise NotImplementedError, "`while_preventing_writes` is only available on the connection_handler with legacy_connection_handling"
-        end
-
-        original, self.prevent_writes = self.prevent_writes, enabled
-        yield
-      ensure
-        self.prevent_writes = original
-      end
-
       def connection_pool_names # :nodoc:
         owner_to_pool_manager.keys
       end
@@ -143,11 +121,7 @@ module ActiveRecord
           payload[:config] = db_config.configuration_hash
         end
 
-        if ActiveRecord.legacy_connection_handling
-          owner_to_pool_manager[pool_config.connection_specification_name] ||= LegacyPoolManager.new
-        else
-          owner_to_pool_manager[pool_config.connection_specification_name] ||= PoolManager.new
-        end
+        owner_to_pool_manager[pool_config.connection_specification_name] ||= PoolManager.new
         pool_manager = get_pool_manager(pool_config.connection_specification_name)
         pool_manager.set_pool_config(role, shard, pool_config)
 

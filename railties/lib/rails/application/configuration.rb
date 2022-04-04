@@ -163,7 +163,9 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
-            active_record.legacy_connection_handling = false
+            if respond_to?(:legacy_connection_handling)
+              active_record.legacy_connection_handling = false
+            end
           end
 
           if respond_to?(:active_job)
