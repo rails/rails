@@ -827,6 +827,7 @@ module ActiveRecord
     def update_columns(attributes)
       raise ActiveRecordError, "cannot update a new record" if new_record?
       raise ActiveRecordError, "cannot update a destroyed record" if destroyed?
+      _raise_readonly_record_error if readonly?
 
       attributes = attributes.transform_keys do |key|
         name = key.to_s
@@ -1013,6 +1014,7 @@ module ActiveRecord
     #
     def touch(*names, time: nil)
       _raise_record_not_touched_error unless persisted?
+      _raise_readonly_record_error if readonly?
 
       attribute_names = timestamp_attributes_for_update_in_model
       attribute_names |= names.map! do |name|
