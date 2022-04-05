@@ -56,11 +56,7 @@ In a Rails application file names have to match the constants they define, with 
 
 For example, the file `app/helpers/users_helper.rb` should define `UsersHelper` and the file `app/controllers/admin/payments_controller.rb` should define `Admin::PaymentsController`.
 
-By default, Rails configures Zeitwerk to inflect file names with `String#camelize`. For example, it expects that `app/controllers/users_controller.rb` defines the constant `UsersController` because:
-
-```ruby
-"users_controller".camelize # => UsersController
-```
+By default, Rails configures Zeitwerk to inflect file names with `String#camelize`. For example, it expects that `app/controllers/users_controller.rb` defines the constant `UsersController` because that is what `"users_controller".camelize` returns.
 
 The section _Customizing Inflections_ below documents ways to override this default.
 
@@ -239,6 +235,8 @@ Why? Initializers only run once, when the application boots. If you reboot the s
 
 ### Use case 1: During boot, load reloadable code
 
+#### Autoload on boot and on each reload
+
 Let's imagine `ApiGateway` is a reloadable class from `app/services` managed by the `main` autoloader and you need to configure its endpoint while the application boots:
 
 ```ruby
@@ -258,6 +256,21 @@ end
 ```
 
 NOTE: For historical reasons, this callback may run twice. The code it executes must be idempotent.
+
+#### Autoload on boot only
+
+Reloadable classes and modules can be autoloaded in `after_initialize` blocks too. These run on boot, but do not run again on reload. In some exceptional cases this may be what you want.
+
+Preflight checks are a use case for this:
+
+```ruby
+# config/initializers/check_admin_presence.rb
+Rails.application.config.after_initialize do
+  unless Role.where(name: "admin").exists?
+    abort "The admin role is not present, please seed the database."
+  end
+end
+```
 
 ### Use case 2: During boot, load code that remains cached
 
@@ -486,7 +499,7 @@ Troubleshooting
 
 The best way to follow what the loaders are doing is to inspect their activity.
 
-The easiest way to do that is to include:
+The easiest way to do that is to include
 
 ```ruby
 Rails.autoloaders.log!
@@ -510,14 +523,14 @@ Rails.autoloaders.logger = Rails.logger
 Rails.autoloaders
 -----------------
 
-The Zeitwerk instances managing your application are available at:
+The Zeitwerk instances managing your application are available at
 
 ```ruby
 Rails.autoloaders.main
 Rails.autoloaders.once
 ```
 
-The predicate:
+The predicate
 
 ```ruby
 Rails.autoloaders.zeitwerk_enabled?

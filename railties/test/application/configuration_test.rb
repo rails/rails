@@ -1960,7 +1960,7 @@ module ApplicationTests
       assert_equal true, Rails.application.config.action_mailer.show_previews
     end
 
-    test "config_for loads custom configuration from yaml accessible as symbol or string" do
+    test "config_for loads custom configuration from YAML accessible as symbol or string" do
       set_custom_config <<~RUBY
         development:
           foo: "bar"
@@ -1972,7 +1972,7 @@ module ApplicationTests
       assert_equal "bar", Rails.application.config.my_custom_config["foo"]
     end
 
-    test "config_for loads nested custom configuration from yaml as symbol keys" do
+    test "config_for loads nested custom configuration from YAML as symbol keys" do
       set_custom_config <<~RUBY
         development:
           foo:
@@ -3370,21 +3370,6 @@ module ApplicationTests
       app "development"
 
       assert_equal false, Rails.application.config.assets.unknown_asset_fallback
-    end
-
-    test "legacy_connection_handling is false by default for new apps" do
-      app "development"
-
-      assert_equal false, Rails.application.config.active_record.legacy_connection_handling
-    end
-
-    test "legacy_connection_handling is not set before 6.1" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "6.0"'
-
-      app "development"
-
-      assert_nil Rails.application.config.active_record.legacy_connection_handling
     end
 
     test "ActionDispatch::Request.return_only_media_type_on_content_type is false by default" do

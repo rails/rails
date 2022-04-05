@@ -163,7 +163,9 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
-            active_record.legacy_connection_handling = false
+            if respond_to?(:legacy_connection_handling)
+              active_record.legacy_connection_handling = false
+            end
           end
 
           if respond_to?(:active_job)
@@ -272,6 +274,10 @@ module Rails
             active_support.default_message_encryptor_serializer = :json
             active_support.default_message_verifier_serializer = :json
           end
+
+          if respond_to?(:action_controller)
+            action_controller.allow_deprecated_parameters_hash_equality = false
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -376,8 +382,9 @@ module Rails
       end
 
       # Specifies what class to use to store the session. Possible values
-      # are +:cookie_store+, +:mem_cache_store+, a custom store, or
-      # +:disabled+. +:disabled+ tells Rails not to deal with sessions.
+      # are +:cache_store+, +:cookie_store+, +:mem_cache_store+, a custom
+      # store, or +:disabled+. +:disabled+ tells Rails not to deal with
+      # sessions.
       #
       # Additional options will be set as +session_options+:
       #

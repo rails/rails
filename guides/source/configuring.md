@@ -64,6 +64,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.add_autoload_paths_to_load_path`](#config-add-autoload-paths-to-load-path): `false`
 - [`config.active_support.default_message_encryptor_serializer`](#config-active-support-default-message-encryptor-serializer): `:json`
 - [`config.active_support.default_message_verifier_serializer`](#config-active-support-default-message-verifier-serializer): `:json`
+- [`config.action_controller.allow_deprecated_parameters_hash_equality`](#config-action-controller-allow-deprecated-parameters-hash-equality): `false`
 
 #### Default Values for Target Version 7.0
 
@@ -212,7 +213,7 @@ end
 
 #### `config.disable_sandbox`
 
-Controls whether or not someone can start a console in sandbox mode. This is helpful to avoid a long running session of sandbox console, that could lead a database server to run out of memory. Defaults to false.
+Controls whether or not someone can start a console in sandbox mode. This is helpful to avoid a long running session of sandbox console, that could lead a database server to run out of memory. Defaults to `false`.
 
 #### `config.eager_load`
 
@@ -228,7 +229,7 @@ Accepts an array of paths from which Rails will eager load on boot if `config.ca
 
 #### `config.enable_dependency_loading`
 
-When true, enables autoloading, even if the application is eager loaded and `config.cache_classes` is set to `true`. Defaults to false.
+When `true`, enables autoloading, even if the application is eager loaded and `config.cache_classes` is set to `true`. Defaults to `false`.
 
 #### `config.encoding`
 
@@ -334,7 +335,7 @@ Configures Rails to serve static files from the public directory. This option de
 
 #### `config.session_store`
 
-Specifies what class to use to store the session. Possible values are `:cookie_store`, `:mem_cache_store`, a custom store, or `:disabled`. `:disabled` tells Rails not to deal with sessions.
+Specifies what class to use to store the session. Possible values are `:cache_store`, `:cookie_store`, `:mem_cache_store`, a custom store, or `:disabled`. `:disabled` tells Rails not to deal with sessions.
 
 This setting is configured via a regular method call, rather than a setter. This allows additional options to be passed:
 
@@ -734,7 +735,7 @@ Lets you set an array of names of environments where destructive actions should 
 
 #### `config.active_record.pluralize_table_names`
 
-Specifies whether Rails will look for singular or plural table names in the database. If set to `true` (the default), then the Customer class will use the `customers` table. If set to false, then the Customer class will use the `customer` table.
+Specifies whether Rails will look for singular or plural table names in the database. If set to `true` (the default), then the Customer class will use the `customers` table. If set to `false`, then the Customer class will use the `customer` table.
 
 #### `config.active_record.default_timezone`
 
@@ -912,7 +913,7 @@ Allows specifying the Active Job queue to use for destroy jobs. When this option
 
 #### `config.active_record.enumerate_columns_in_select_statements`
 
-When true, will always include column names in `SELECT` statements, and avoid wildcard `SELECT * FROM ...` queries. This avoids prepared statement cache errors when adding columns to a PostgreSQL database for example. Defaults to `false`.
+When `true`, will always include column names in `SELECT` statements, and avoid wildcard `SELECT * FROM ...` queries. This avoids prepared statement cache errors when adding columns to a PostgreSQL database for example. Defaults to `false`.
 
 #### `config.active_record.verify_foreign_keys_for_fixtures`
 
@@ -1154,6 +1155,18 @@ The default value depends on the `config.load_defaults` target version:
 
 Configures the [`ParamsWrapper`](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html). This can be called at
 the top level, or on individual controllers.
+
+#### `config.action_controller.allow_deprecated_parameters_hash_equality`
+
+Controls behaviour of `ActionController::Parameters#==` with `Hash` arguments.
+Value of the setting determines whether an `ActionController::Parameters` instance is equal to an equivalent `Hash`.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 7.1                   | `false`              |
 
 ### Configuring Action Dispatch
 
@@ -1614,7 +1627,7 @@ Defines the delivery method and defaults to `:smtp`. See the [configuration sect
 
 #### `config.action_mailer.perform_deliveries`
 
-Specifies whether mail will actually be delivered and is true by default. It can be convenient to set it to `false` for testing.
+Specifies whether mail will actually be delivered and is `true` by default. It can be convenient to set it to `false` for testing.
 
 #### `config.action_mailer.default_options`
 
@@ -1908,7 +1921,7 @@ Defaults to `true`.
 
 Specifies if the `ActiveSupport::JsonWithMarshalFallback` class will use `Marshal` to serialize payloads.
 
-If this is set to false, it will use `JSON` to serialize payloads.
+If this is set to `false`, it will use `JSON` to serialize payloads.
 
 Used to help migrate apps from `Marshal` to `JSON` as the default serializer for the `MessageEncryptor` class.
 

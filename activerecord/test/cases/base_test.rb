@@ -1300,20 +1300,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal c1, c2
   end
 
-  def test_before_remove_const_resets_the_current_scope
-    # Done this way because a class cannot be defined in a method using the
-    # class keyword.
-    Object.const_set(:ReloadableModel, Class.new(ActiveRecord::Base))
-    ReloadableModel.current_scope = ReloadableModel.all
-    assert_not_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(ReloadableModel) # precondition
-
-    ReloadableModel.before_remove_const
-
-    assert_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(ReloadableModel)
-  ensure
-    Object.send(:remove_const, :ReloadableModel)
-  end
-
   def test_marshal_round_trip
     expected = posts(:welcome)
     marshalled = Marshal.dump(expected)
@@ -1679,20 +1665,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "`connects_to` can only be called on ActiveRecord::Base or abstract classes", error.message
   end
 
-  test "cannot call connected_to on subclasses of ActiveRecord::Base with legacy connection handling" do
-    old_value = ActiveRecord.legacy_connection_handling
-    ActiveRecord.legacy_connection_handling = true
-
-    error = assert_raises(NotImplementedError) do
-      Bird.connected_to(role: :reading) { }
-    end
-
-    assert_equal "`connected_to` can only be called on ActiveRecord::Base with legacy connection handling.", error.message
-  ensure
-    clean_up_legacy_connection_handlers
-    ActiveRecord.legacy_connection_handling = old_value
-  end
-
   test "cannot call connected_to with role and shard on non-abstract classes" do
     error = assert_raises(NotImplementedError) do
       Bird.connected_to(role: :reading, shard: :default) { }
@@ -1739,28 +1711,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert SecondAbstractClass.current_preventing_writes
   ensure
     ActiveRecord::Base.connected_to_stack.pop
-  end
-
-  test "#connecting_to doesn't work with legacy connection handling" do
-    old_value = ActiveRecord.legacy_connection_handling
-    ActiveRecord.legacy_connection_handling = true
-
-    assert_raises NotImplementedError do
-      SecondAbstractClass.connecting_to(role: :writing, prevent_writes: true)
-    end
-  ensure
-    ActiveRecord.legacy_connection_handling = old_value
-  end
-
-  test "#connected_to_many doesn't work with legacy connection handling" do
-    old_value = ActiveRecord.legacy_connection_handling
-    ActiveRecord.legacy_connection_handling = true
-
-    assert_raises NotImplementedError do
-      ActiveRecord::Base.connected_to_many([SecondAbstractClass], role: :writing)
-    end
-  ensure
-    ActiveRecord.legacy_connection_handling = old_value
   end
 
   test "#connected_to_many cannot be called on anything but ActiveRecord::Base" do

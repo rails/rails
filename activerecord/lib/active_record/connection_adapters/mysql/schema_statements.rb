@@ -159,7 +159,7 @@ module ActiveRecord
           end
 
           def default_type(table_name, field_name)
-            match = create_table_sql(table_name).match(/`#{field_name}` (.+) DEFAULT ('|\d+|[A-z]+)/)
+            match = create_table_info(table_name).match(/`#{field_name}` (.+) DEFAULT ('|\d+|[A-z]+)/)
             default_pre = match[2] if match
 
             if default_pre == "'"
@@ -168,12 +168,6 @@ module ActiveRecord
               :integer
             elsif default_pre&.match?(/^[A-z]+$/)
               :function
-            end
-          end
-
-          def create_table_sql(table_name)
-            execute_and_free("SHOW CREATE TABLE #{quote_table_name(table_name)}") do |result|
-              result.first[1]
             end
           end
 

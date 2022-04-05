@@ -177,7 +177,7 @@ else
 fi
 
 # Install the GitHub CLI
-echo "Downloading github CLI..."
+echo "Downloading GitHub CLI..."
 # Import key safely (new method rather than deprecated apt-key approach) and install
 . /etc/os-release
 receive_gpg_keys GITHUB_CLI_ARCHIVE_GPG_KEY /usr/share/keyrings/githubcli-archive-keyring.gpg

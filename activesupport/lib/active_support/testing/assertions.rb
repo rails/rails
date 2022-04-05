@@ -179,7 +179,7 @@ module ActiveSupport
         retval = _assert_nothing_raised_or_warn("assert_changes", &block)
 
         unless from == UNTRACKED
-          error = "Expected change from #{from.inspect}"
+          error = "Expected change from #{from.inspect}, got #{before}"
           error = "#{message}.\n#{error}" if message
           assert from === before, error
         end
@@ -192,7 +192,7 @@ module ActiveSupport
         refute_equal before, after, error
 
         unless to == UNTRACKED
-          error = "Expected change to #{to}\n"
+          error = "Expected change to #{to}, got #{after}\n"
           error = "#{message}.\n#{error}" if message
           assert to === after, error
         end

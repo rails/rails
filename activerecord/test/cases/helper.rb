@@ -168,19 +168,6 @@ def disable_extension!(extension, connection)
   connection.reconnect!
 end
 
-def clean_up_legacy_connection_handlers
-  handler = ActiveRecord::Base.default_connection_handler
-  assert_deprecated do
-    ActiveRecord::Base.connection_handlers = {}
-  end
-
-  handler.connection_pool_names.each do |name|
-    next if ["ActiveRecord::Base", "ARUnit2Model", "Contact", "ContactSti", "FirstAbstractClass", "SecondAbstractClass"].include?(name)
-
-    handler.send(:owner_to_pool_manager).delete(name)
-  end
-end
-
 def clean_up_connection_handler
   handler = ActiveRecord::Base.connection_handler
   handler.instance_variable_get(:@owner_to_pool_manager).each do |owner, pool_manager|

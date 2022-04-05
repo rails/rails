@@ -216,7 +216,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   ImageLinkToTag = {
     %(image_tag("xml.png")) => %(<img src="/images/xml.png" />),
-    %(image_tag("rss.gif", :alt => "rss syndication")) => %(<img alt="rss syndication" src="/images/rss.gif" />),
+    %(image_tag("rss.gif", :alt => "RSS syndication")) => %(<img alt="RSS syndication" src="/images/rss.gif" />),
     %(image_tag("gold.png", :size => "20")) => %(<img height="20" src="/images/gold.png" width="20" />),
     %(image_tag("gold.png", :size => 20)) => %(<img height="20" src="/images/gold.png" width="20" />),
     %(image_tag("silver.png", :size => "90.9")) => %(<img height="90.9" src="/images/silver.png" width="90.9" />),

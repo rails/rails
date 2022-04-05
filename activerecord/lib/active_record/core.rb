@@ -109,33 +109,6 @@ module ActiveRecord
         ActiveSupport::IsolatedExecutionState[:active_record_connection_handler] = handler
       end
 
-      def self.connection_handlers
-        if ActiveRecord.legacy_connection_handling
-        else
-          raise NotImplementedError, "The new connection handling does not support accessing multiple connection handlers."
-        end
-
-        @@connection_handlers ||= {}
-      end
-
-      def self.connection_handlers=(handlers)
-        if ActiveRecord.legacy_connection_handling
-          ActiveSupport::Deprecation.warn(<<~MSG)
-            Using legacy connection handling is deprecated. Please set
-            `legacy_connection_handling` to `false` in your application.
-
-            The new connection handling does not support `connection_handlers`
-            getter and setter.
-
-            Read more about how to migrate at: https://guides.rubyonrails.org/active_record_multiple_databases.html#migrate-to-the-new-connection-handling
-          MSG
-        else
-          raise NotImplementedError, "The new connection handling does not support multiple connection handlers."
-        end
-
-        @@connection_handlers = handlers
-      end
-
       def self.asynchronous_queries_session # :nodoc:
         asynchronous_queries_tracker.current_session
       end
@@ -155,16 +128,12 @@ module ActiveRecord
       #     ActiveRecord::Base.current_role #=> :reading
       #   end
       def self.current_role
-        if ActiveRecord.legacy_connection_handling
-          connection_handlers.key(connection_handler) || default_role
-        else
-          connected_to_stack.reverse_each do |hash|
-            return hash[:role] if hash[:role] && hash[:klasses].include?(Base)
-            return hash[:role] if hash[:role] && hash[:klasses].include?(connection_class_for_self)
-          end
-
-          default_role
+        connected_to_stack.reverse_each do |hash|
+          return hash[:role] if hash[:role] && hash[:klasses].include?(Base)
+          return hash[:role] if hash[:role] && hash[:klasses].include?(connection_class_for_self)
         end
+
+        default_role
       end
 
       # Returns the symbol representing the current connected shard.
@@ -196,16 +165,12 @@ module ActiveRecord
       #     ActiveRecord::Base.current_preventing_writes #=> false
       #   end
       def self.current_preventing_writes
-        if ActiveRecord.legacy_connection_handling
-          connection_handler.prevent_writes
-        else
-          connected_to_stack.reverse_each do |hash|
-            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(Base)
-            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(connection_class_for_self)
-          end
-
-          false
+        connected_to_stack.reverse_each do |hash|
+          return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(Base)
+          return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(connection_class_for_self)
         end
+
+        false
       end
 
       def self.connected_to_stack # :nodoc:
@@ -325,7 +290,7 @@ module ActiveRecord
       end
 
       %w(
-        reading_role writing_role legacy_connection_handling default_timezone index_nested_attribute_errors
+        reading_role writing_role default_timezone index_nested_attribute_errors
         verbose_query_logs queues warn_on_records_fetched_greater_than maintain_test_schema
         application_record_class action_on_strict_loading_violation schema_format error_on_ignored_order
         timestamped_migrations dump_schema_after_migration dump_schemas suppress_multiple_database_warning

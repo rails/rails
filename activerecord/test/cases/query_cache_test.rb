@@ -74,36 +74,6 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert_cache :off
   end
 
-  def test_query_cache_is_applied_to_legacy_connections_in_all_handlers
-    old_value = ActiveRecord.legacy_connection_handling
-    ActiveRecord.legacy_connection_handling = true
-
-    assert_deprecated do
-      ActiveRecord::Base.connection_handlers = {
-        writing: ActiveRecord::Base.default_connection_handler,
-        reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-      }
-    end
-
-    ActiveRecord::Base.connected_to(role: :reading) do
-      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-      ActiveRecord::Base.establish_connection(db_config)
-    end
-
-    mw = middleware { |env|
-      reading_handler = ActiveRecord::Base.connection_handlers[:reading]
-      ro_pool = reading_handler.connection_pool_list
-      ro_conn = ro_pool.first.connection
-      assert_predicate ActiveRecord::Base.connection, :query_cache_enabled
-      assert_predicate ro_conn, :query_cache_enabled
-    }
-
-    mw.call({})
-  ensure
-    clean_up_legacy_connection_handlers
-    ActiveRecord.legacy_connection_handling = old_value
-  end
-
   def test_query_cache_is_applied_to_all_connections
     ActiveRecord::Base.connected_to(role: :reading) do
       db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
@@ -125,74 +95,6 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   if Process.respond_to?(:fork) && !in_memory_db?
-    def test_query_cache_with_multiple_handlers_and_forked_processes_legacy_handling
-      old_value = ActiveRecord.legacy_connection_handling
-      ActiveRecord.legacy_connection_handling = true
-
-      assert_deprecated do
-        ActiveRecord::Base.connection_handlers = {
-          writing: ActiveRecord::Base.default_connection_handler,
-          reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-        }
-      end
-
-      ActiveRecord::Base.connected_to(role: :reading) do
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        ActiveRecord::Base.establish_connection(db_config)
-      end
-
-      rd, wr = IO.pipe
-      rd.binmode
-      wr.binmode
-
-      pid = fork {
-        rd.close
-        status = 0
-
-        middleware { |env|
-          begin
-            assert_cache :clean
-
-            # first request dirties cache
-            ActiveRecord::Base.connected_to(role: :reading) do
-              Post.first
-              assert_cache :dirty
-            end
-
-            # should clear the cache
-            Post.create!(title: "a new post", body: "and a body")
-
-            # fails because cache is still dirty
-            ActiveRecord::Base.connected_to(role: :reading) do
-              assert_cache :clean
-              Post.first
-            end
-
-          rescue Minitest::Assertion => e
-            wr.write Marshal.dump e
-            status = 1
-          end
-        }.call({})
-
-        wr.close
-        exit!(status)
-      }
-
-      wr.close
-
-      Process.waitpid pid
-      if !$?.success?
-        raise Marshal.load(rd.read)
-      else
-        assert_predicate $?, :success?
-      end
-
-      rd.close
-    ensure
-      clean_up_legacy_connection_handlers
-      ActiveRecord.legacy_connection_handling = old_value
-    end
-
     def test_query_cache_with_forked_processes
       ActiveRecord::Base.connected_to(role: :reading) do
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
@@ -663,51 +565,6 @@ class QueryCacheTest < ActiveRecord::TestCase
         assert pool.connection.query_cache_enabled
       end
     }.call({})
-  end
-
-  def test_clear_query_cache_is_called_on_all_legacy_connections
-    skip "with in memory db, reading role won't be able to see database on writing role" if in_memory_db?
-    old_value = ActiveRecord.legacy_connection_handling
-    ActiveRecord.legacy_connection_handling = true
-
-    assert_deprecated do
-      ActiveRecord::Base.connection_handlers = {
-        writing: ActiveRecord::Base.default_connection_handler,
-        reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-      }
-    end
-
-    ActiveRecord::Base.connected_to(role: :reading) do
-      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-      ActiveRecord::Base.establish_connection(db_config)
-    end
-
-    mw = middleware { |env|
-      ActiveRecord::Base.connected_to(role: :reading) do
-        @topic = Topic.first
-      end
-
-      assert @topic
-
-      ActiveRecord::Base.connected_to(role: :writing) do
-        @topic.title = "Topic title"
-        @topic.save!
-      end
-
-      assert_equal "Topic title", @topic.title
-
-      ActiveRecord::Base.connected_to(role: :reading) do
-        @topic = Topic.first
-        assert_equal "Topic title", @topic.title
-      end
-    }
-
-    mw.call({})
-  ensure
-    unless in_memory_db?
-      clean_up_legacy_connection_handlers
-      ActiveRecord.legacy_connection_handling = old_value
-    end
   end
 
   def test_clear_query_cache_is_called_on_all_connections

@@ -487,11 +487,12 @@ module TestHelpers
           default: &default
             adapter: postgresql
             pool: 5
-            database: railties_test
           development:
             <<: *default
+            database: railties_development
           test:
             <<: *default
+            database: railties_test
           YAML
         end
       end

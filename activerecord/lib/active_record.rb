@@ -178,9 +178,6 @@ module ActiveRecord
   singleton_class.attr_accessor :schema_cache_ignored_tables
   self.schema_cache_ignored_tables = []
 
-  singleton_class.attr_accessor :legacy_connection_handling
-  self.legacy_connection_handling = true
-
   singleton_class.attr_reader :default_timezone
 
   # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling

@@ -222,15 +222,7 @@ module ActionController
     #   value?(value)
     #
     # Returns true if the given value is present for some key in the parameters.
-
-    ##
-    # :method: values
-    #
-    # :call-seq:
-    #   values()
-    #
-    # Returns a new array of the values of the parameters.
-    delegate :keys, :key?, :has_key?, :member?, :values, :has_value?, :value?, :empty?, :include?,
+    delegate :keys, :key?, :has_key?, :member?, :has_value?, :value?, :empty?, :include?,
       :as_json, :to_s, :each_key, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these
@@ -241,6 +233,8 @@ module ActionController
     #
     #    config.action_controller.always_permitted_parameters = %w( controller action format )
     cattr_accessor :always_permitted_parameters, default: %w( controller action )
+
+    cattr_accessor :allow_deprecated_parameters_hash_equality, default: true, instance_accessor: false
 
     class << self
       def nested_attribute?(key, value) # :nodoc:
@@ -276,7 +270,20 @@ module ActionController
       if other.respond_to?(:permitted?)
         permitted? == other.permitted? && parameters == other.parameters
       else
-        @parameters == other
+        if self.class.allow_deprecated_parameters_hash_equality && Hash === other
+          ActiveSupport::Deprecation.warn <<-WARNING.squish
+            Comparing equality between `ActionController::Parameters` and a
+            `Hash` is deprecated and will be removed in Rails 7.2. Please only do
+            comparisons between instances of `ActionController::Parameters`. If
+            you need to compare to a hash, first convert it using
+            `ActionController::Parameters#new`.
+            To disable the deprecated behaviour set
+            `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality = false`.
+          WARNING
+          @parameters == other
+        else
+          super
+        end
       end
     end
     alias eql? ==
@@ -297,9 +304,9 @@ module ActionController
     #
     #   safe_params = params.permit(:name)
     #   safe_params.to_h # => {"name"=>"Senjougahara Hitagi"}
-    def to_h
+    def to_h(&block)
       if permitted?
-        convert_parameters_to_hashes(@parameters, :to_h)
+        convert_parameters_to_hashes(@parameters, :to_h, &block)
       else
         raise UnfilteredParameters
       end
@@ -390,6 +397,11 @@ module ActionController
       end
 
       self
+    end
+
+    # Returns a new array of the values of the parameters.
+    def values
+      to_enum(:each_value).to_a
     end
 
     # Attribute that keeps track of converted arrays, if any, to avoid double
@@ -908,6 +920,10 @@ module ActionController
       end
     end
 
+    def encode_with(coder) # :nodoc:
+      coder.map = { "parameters" => @parameters, "permitted" => @permitted }
+    end
+
     # Returns duplicate of object including all parameters.
     def deep_dup
       self.class.new(@parameters.deep_dup, @logging_context).tap do |duplicate|
@@ -937,14 +953,15 @@ module ActionController
         end
       end
 
-      def convert_parameters_to_hashes(value, using)
+      def convert_parameters_to_hashes(value, using, &block)
         case value
         when Array
           value.map { |v| convert_parameters_to_hashes(v, using) }
         when Hash
-          value.transform_values do |v|
+          transformed = value.transform_values do |v|
             convert_parameters_to_hashes(v, using)
-          end.with_indifferent_access
+          end
+          (block_given? ? transformed.to_h(&block) : transformed).with_indifferent_access
         when Parameters
           value.send(using)
         else
