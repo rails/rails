@@ -1173,8 +1173,23 @@ end
 Rails.application.config.content_security_policy_nonce_generator = -> request { SecureRandom.base64(16) }
 ```
 
-Then you can add an automatic nonce value by passing `nonce: true`
-as part of `html_options`. Example:
+There are a few tradeoffs to consider when configuring the nonce generator.
+Using `SecureRandom.base64(16)` is a good default value, because it will
+generate a new random nonce for each request. However, this method is
+incompatible with [Conditional GET caching](caching_with_rails.html#conditional-get-caching)
+because new nonces will result in new ETag values for every request. An
+alternative to per-request random nonces would be to use the session id:
+
+```ruby
+Rails.application.config.content_security_policy_nonce_generator = -> request { request.session.id.to_s }
+```
+
+This generation method is compatible with ETags, however its security depends on
+the session id being sufficiently random and not being exposed in insecure
+cookies.
+
+Once nonce generation is configured in an initializer, automatic nonce values
+can be added to script tags by passing `nonce: true` as part of `html_options`:
 
 ```html+erb
 <%= javascript_tag nonce: true do -%>
