@@ -1,3 +1,9 @@
+*   Allow only String and Symbol keys in `ActionController::Parameters`.
+    Raise `ActionController::InvalidParameterKey` when initializing Parameters
+    with keys that aren't strings or symbols.
+
+    *Seva Stefkin*
+
 *   Add the ability to use custom logic for storing and retrieving CSRF tokens.
 
     By default, the token will be stored in the session.  Custom classes can be

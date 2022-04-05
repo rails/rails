@@ -519,4 +519,10 @@ class ParametersPermitTest < ActiveSupport::TestCase
 
     assert_equal false, params.permitted?
   end
+
+  test "only String and Symbol keys are allowed" do
+    assert_raises(ActionController::InvalidParameterKey) do
+      ActionController::Parameters.new({ foo: 1 } => :bar)
+    end
+  end
 end
