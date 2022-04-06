@@ -41,5 +41,4 @@ module ActiveJob
 
   autoload :TestCase
   autoload :TestHelper
-  autoload :QueryTags
 end
