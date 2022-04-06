@@ -150,6 +150,7 @@ module AbstractController
 
       process_action(action_name, *args)
     end
+    ruby2_keywords(:process)
 
     # Delegates to the class's ::controller_path.
     def controller_path
@@ -210,8 +211,8 @@ module AbstractController
       #
       # Notice that the first argument is the method to be dispatched
       # which is *not* necessarily the same as the action name.
-      def process_action(method_name, *args)
-        send_action(method_name, *args)
+      def process_action(...)
+        send_action(...)
       end
 
       # Actually call the method associated with the action. Override
