@@ -624,6 +624,7 @@ module ActionMailer
         @_message = NullMail.new unless @_mail_was_called
       end
     end
+    ruby2_keywords(:process)
 
     class NullMail # :nodoc:
       def body; "" end
