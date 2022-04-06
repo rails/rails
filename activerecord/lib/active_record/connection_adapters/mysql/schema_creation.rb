@@ -11,6 +11,16 @@ module ActiveRecord
             "DROP FOREIGN KEY #{name}"
           end
 
+          def visit_DropTableDefinition(o)
+            sql = +"DROP "
+            sql << "TEMPORARY " if o.temporary
+            sql << "TABLE "
+            sql << "IF EXISTS " if o.if_exists
+            sql << quote_table_name(o.name)
+            sql << " CASCADE" if o.force == :cascade
+            sql
+          end
+
           def visit_DropCheckConstraint(name)
             "DROP #{mariadb? ? 'CONSTRAINT' : 'CHECK'} #{name}"
           end

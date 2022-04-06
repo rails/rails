@@ -21,6 +21,7 @@ module ActiveRecord
       autoload :ForeignKeyDefinition
       autoload :CheckConstraintDefinition
       autoload :TableDefinition
+      autoload :DropTableDefinition
       autoload :Table
       autoload :AlterTable
       autoload :ReferenceDefinition

@@ -545,6 +545,16 @@ module ActiveRecord
         end
     end
 
+    class DropTableDefinition
+      attr_reader :name, :if_exists, :force
+
+      def initialize(name, if_exists: false, force: false, **options)
+        @name = name
+        @if_exists = if_exists
+        @force = force
+      end
+    end
+
     class AlterTable # :nodoc:
       attr_reader :adds
       attr_reader :foreign_key_adds, :foreign_key_drops

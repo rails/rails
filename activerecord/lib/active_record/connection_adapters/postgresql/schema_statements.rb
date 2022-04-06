@@ -56,7 +56,8 @@ module ActiveRecord
 
         def drop_table(table_name, **options) # :nodoc:
           schema_cache.clear_data_source_cache!(table_name.to_s)
-          execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
+          drop_table_definition = DropTableDefinition.new(table_name, **options)
+          execute schema_creation.accept(drop_table_definition)
         end
 
         # Returns true if schema exists.

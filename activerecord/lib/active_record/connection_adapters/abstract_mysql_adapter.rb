@@ -333,7 +333,8 @@ module ActiveRecord
       # In that case, +options+ and the block will be used by create_table.
       def drop_table(table_name, **options)
         schema_cache.clear_data_source_cache!(table_name.to_s)
-        execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
+        drop_table_definition = MySQL::DropTableDefinition.new(table_name, **options)
+        execute schema_creation.accept(drop_table_definition)
       end
 
       def rename_index(table_name, old_name, new_name)

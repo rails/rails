@@ -516,7 +516,8 @@ module ActiveRecord
       # In that case, +options+ and the block will be used by #create_table.
       def drop_table(table_name, **options)
         schema_cache.clear_data_source_cache!(table_name.to_s)
-        execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}"
+        drop_table_definition = DropTableDefinition.new(table_name, **options)
+        execute schema_creation.accept(drop_table_definition)
       end
 
       # Add a new +type+ column named +column_name+ to +table_name+.

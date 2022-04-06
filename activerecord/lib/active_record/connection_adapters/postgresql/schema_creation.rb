@@ -9,6 +9,14 @@ module ActiveRecord
             super << o.constraint_validations.map { |fk| visit_ValidateConstraint fk }.join(" ")
           end
 
+          def visit_DropTableDefinition(o)
+            sql = +"DROP TABLE "
+            sql << "IF EXISTS " if o.if_exists
+            sql << quote_table_name(o.name)
+            sql << " CASCADE" if o.force == :cascade
+            sql
+          end
+
           def visit_AddForeignKey(o)
             super.dup.tap do |sql|
               if o.deferrable

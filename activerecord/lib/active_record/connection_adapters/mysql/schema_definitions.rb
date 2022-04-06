@@ -98,6 +98,15 @@ module ActiveRecord
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
       end
+
+      class DropTableDefinition < ActiveRecord::ConnectionAdapters::DropTableDefinition
+        attr_reader :temporary
+
+        def initialize(name, temporary: false, **options)
+          @temporary = temporary
+          super(name, **options)
+        end
+      end
     end
   end
 end

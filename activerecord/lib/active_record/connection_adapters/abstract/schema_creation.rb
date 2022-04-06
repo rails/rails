@@ -65,6 +65,12 @@ module ActiveRecord
           create_sql
         end
 
+        def visit_DropTableDefinition(o)
+          sql = +"DROP TABLE "
+          sql << "IF EXISTS " if o.if_exists
+          sql << quote_table_name(o.name)
+        end
+
         def visit_PrimaryKeyDefinition(o)
           "PRIMARY KEY (#{o.name.map { |name| quote_column_name(name) }.join(', ')})"
         end
