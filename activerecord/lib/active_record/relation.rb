@@ -406,9 +406,9 @@ module ActiveRecord
       already_in_scope? ? yield : _scoping(self) { yield }
     end
 
-    def _exec_scope(*args, &block) # :nodoc:
+    def _exec_scope(...) # :nodoc:
       @delegate_to_klass = true
-      _scoping(nil) { instance_exec(*args, &block) || self }
+      _scoping(nil) { instance_exec(...) || self }
     ensure
       @delegate_to_klass = false
     end
