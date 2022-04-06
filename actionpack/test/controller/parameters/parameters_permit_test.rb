@@ -444,7 +444,6 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_instance_of Hash, params.to_hash
     assert_not_kind_of ActionController::Parameters, params.to_hash
     assert_equal({ "crab" => "Senjougahara Hitagi" }, params.to_hash)
-    assert_equal({ "crab" => "Senjougahara Hitagi" }, params)
   ensure
     ActionController::Parameters.permit_all_parameters = false
   end
