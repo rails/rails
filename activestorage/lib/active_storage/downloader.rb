@@ -8,10 +8,10 @@ module ActiveStorage
       @service = service
     end
 
-    def open(key, checksum: nil, verify: true, name: "ActiveStorage-", tmpdir: nil)
+    def open(key, checksum:, name: "ActiveStorage-", tmpdir: nil)
       open_tempfile(name, tmpdir) do |file|
         download key, file
-        verify_integrity_of(file, checksum: checksum) if verify
+        verify_integrity_of(file, checksum: checksum)
         yield file
       end
     end
@@ -34,8 +34,9 @@ module ActiveStorage
         file.rewind
       end
 
+      # If checksum is not available (due to compose, data migration, etc), skip integrity check
       def verify_integrity_of(file, checksum:)
-        unless OpenSSL::Digest::MD5.file(file).base64digest == checksum
+        if checksum.present? && OpenSSL::Digest::MD5.file(file).base64digest != checksum
           raise ActiveStorage::IntegrityError
         end
       end

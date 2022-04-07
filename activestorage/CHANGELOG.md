@@ -1,3 +1,16 @@
+*   Skip integrity check when checksum is not available in blob object.
+
+    If `ActiveStorage::Blob#checksum` is `blank?`, skip integrity check
+    and `ActiveStorage::IntegrityError` won't be raised anymore.
+
+    That is supposed to help with migration from other storage solutions
+    like Paperclip/CarrierWave. Records for previously uploaded files with
+    no checksum will skip integrity check and trust the storage service.
+    New files uploaded via ActiveStorage continue having its `checksum`
+    populated and its integrity verified as before.
+
+    *Lucas Fais*
+
 *   Fixes multiple `attach` calls within transaction not uploading files correctly.
 
     In the following example, the code failed to upload all but the last file to the configured service.

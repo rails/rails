@@ -157,6 +157,17 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "open when checksum is not available, skip integrity check" do
+    create_blob(data: "Hello, world!").tap do |blob|
+      blob.update_attribute(:checksum, nil)
+      assert blob.checksum.blank?
+
+      assert_nothing_raised do
+        blob.open { |file| assert file }
+      end
+    end
+  end
+
   test "open in a custom tmpdir" do
     create_file_blob(filename: "racecar.jpg").open(tmpdir: tmpdir = Dir.mktmpdir) do |file|
       assert file.binmode?

@@ -301,7 +301,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.open(
       key,
       checksum: checksum,
-      verify: !composed,
       name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ],
       tmpdir: tmpdir,
       &block
