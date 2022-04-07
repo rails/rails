@@ -198,6 +198,9 @@ module ActiveRecord
   singleton_class.attr_accessor :reading_role
   self.reading_role = :reading
 
+  singleton_class.attr_accessor :require_bounded_enumerables
+  self.require_bounded_enumerables = false
+
   # Sets the async_query_executor for an application. By default the thread pool executor
   # set to +nil+ which will not run queries in the background. Applications must configure
   # a thread pool executor to use this feature. Options are:

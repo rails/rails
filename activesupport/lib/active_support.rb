@@ -36,6 +36,7 @@ module ActiveSupport
   autoload :Concern
   autoload :CodeGenerator
   autoload :ActionableError
+  autoload :BoundedEnumerable
   autoload :ConfigurationFile
   autoload :CurrentAttributes
   autoload :Dependencies

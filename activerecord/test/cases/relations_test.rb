@@ -27,6 +27,7 @@ require "models/category"
 require "models/categorization"
 require "models/edge"
 require "models/subscriber"
+require "active_support/core_ext/set/bounded"
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :topics, :entrants, :developers, :people, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans
@@ -2369,6 +2370,45 @@ class RelationTest < ActiveRecord::TestCase
   test "#where with empty set" do
     authors = Author.where(name: Set.new)
     assert_empty authors
+  end
+
+  test "#where raises error when require_bounded_enumerables is enable and passing array" do
+    ActiveRecord.require_bounded_enumerables = true
+    assert_raises ActiveRecord::PredicateBuilder::BoundedEnumerableRequired do
+      Author.where(id: [1, 2])
+    end
+  ensure
+    ActiveRecord.require_bounded_enumerables = false
+  end
+
+  test "#where does not raise an error when passed a bound enumerable array" do
+    ActiveRecord.require_bounded_enumerables = true
+    sql = Author.where(id: [1, 2, 3].bound_at(2)).to_sql
+
+    assert_equal(sql.split(" IN ").last, "(1, 2)")
+  ensure
+    ActiveRecord.require_bounded_enumerables = false
+  end
+
+  test "#where allows infinite bound enumerables" do
+  end
+
+  test "#where raises error when require_bounded_enumerables is enabled and passing set" do
+    ActiveRecord.require_bounded_enumerables = true
+    sql = Author.where(id: [1, 2].bound_at(Float::INFINITY)).to_sql
+
+    assert_equal(sql.split(" IN ").last, "(1, 2)")
+  ensure
+    ActiveRecord.require_bounded_enumerables = false
+  end
+
+  test "#where does not raise an error when passed a bound enumerable set" do
+    ActiveRecord.require_bounded_enumerables = true
+    sql = Author.where(id: Set.new([1, 2, 3]).bound_at(2)).to_sql
+
+    assert_equal(sql.split(" IN ").last, "(1, 2)")
+  ensure
+    ActiveRecord.require_bounded_enumerables = false
   end
 
   (ActiveRecord::Relation::MULTI_VALUE_METHODS - [:extending]).each do |method|

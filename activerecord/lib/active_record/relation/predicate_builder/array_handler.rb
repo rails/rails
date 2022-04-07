@@ -4,12 +4,20 @@ require "active_support/core_ext/array/extract"
 
 module ActiveRecord
   class PredicateBuilder
+    BoundedEnumerableRequired = Class.new(StandardError)
+
     class ArrayHandler # :nodoc:
       def initialize(predicate_builder)
         @predicate_builder = predicate_builder
       end
 
       def call(attribute, value)
+        if value.is_a?(ActiveSupport::BoundedEnumerable)
+          value = value.enumerable
+        elsif ActiveRecord.require_bounded_enumerables
+          raise BoundedEnumerableRequired, "must be bound, please acknowledge the bounds of the passed Array using #bound_at"
+        end
+
         return attribute.in([]) if value.empty?
 
         values = value.map { |x| x.is_a?(Base) ? x.id : x }
