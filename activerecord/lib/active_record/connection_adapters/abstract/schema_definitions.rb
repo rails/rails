@@ -79,6 +79,8 @@ module ActiveRecord
 
     AddColumnDefinition = Struct.new(:column) # :nodoc:
 
+    RemoveColumnDefinition = Struct.new(:name) # :nodoc:
+
     ChangeColumnDefinition = Struct.new(:column, :name) # :nodoc:
 
     CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists) # :nodoc:
@@ -546,13 +548,14 @@ module ActiveRecord
     end
 
     class AlterTable # :nodoc:
-      attr_reader :adds
+      attr_reader :adds, :removes
       attr_reader :foreign_key_adds, :foreign_key_drops
       attr_reader :check_constraint_adds, :check_constraint_drops
 
       def initialize(td)
         @td   = td
         @adds = []
+        @removes = []
         @foreign_key_adds = []
         @foreign_key_drops = []
         @check_constraint_adds = []
@@ -581,6 +584,16 @@ module ActiveRecord
         name = name.to_s
         type = type.to_sym
         @adds << AddColumnDefinition.new(@td.new_column_definition(name, type, **options))
+      end
+
+      def remove_column(name)
+        @removes << RemoveColumnDefinition.new(name)
+      end
+
+      def remove_columns(*names)
+        names.each do |name|
+          @removes << RemoveColumnDefinition.new(name)
+        end
       end
     end
 

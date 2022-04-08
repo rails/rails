@@ -22,6 +22,7 @@ module ActiveRecord
         def visit_AlterTable(o)
           sql = +"ALTER TABLE #{quote_table_name(o.name)} "
           sql << o.adds.map { |col| accept col }.join(" ")
+          sql << o.removes.map { |remove_col| accept remove_col }.join(", ")
           sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(" ")
           sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(" ")
           sql << o.check_constraint_adds.map { |con| visit_AddCheckConstraint con }.join(" ")
@@ -37,6 +38,10 @@ module ActiveRecord
 
         def visit_AddColumnDefinition(o)
           +"ADD #{accept(o.column)}"
+        end
+
+        def visit_RemoveColumnDefinition(o)
+          +"DROP COLUMN #{quote_column_name(o.name)}"
         end
 
         def visit_TableDefinition(o)

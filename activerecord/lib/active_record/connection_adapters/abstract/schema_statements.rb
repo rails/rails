@@ -640,8 +640,9 @@ module ActiveRecord
           raise ArgumentError.new("You must specify at least one column name. Example: remove_columns(:people, :first_name)")
         end
 
-        remove_column_fragments = remove_columns_for_alter(table_name, *column_names, type: type, **options)
-        execute "ALTER TABLE #{quote_table_name(table_name)} #{remove_column_fragments.join(', ')}"
+        at = create_alter_table(table_name)
+        at.remove_columns(*column_names)
+        execute schema_creation.accept(at)
       end
 
       # Removes the column from the table definition.
@@ -662,7 +663,9 @@ module ActiveRecord
       def remove_column(table_name, column_name, type = nil, **options)
         return if options[:if_exists] == true && !column_exists?(table_name, column_name)
 
-        execute "ALTER TABLE #{quote_table_name(table_name)} #{remove_column_for_alter(table_name, column_name, type, **options)}"
+        at = create_alter_table(table_name)
+        at.remove_column(column_name)
+        execute schema_creation.accept(at)
       end
 
       # Changes the column's definition according to the new options.
