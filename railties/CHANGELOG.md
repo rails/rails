@@ -1,3 +1,11 @@
+*   Upgrading Rails apps no longer regenerate default initializers that have been previously deleted
+
+    If you have moved or deleted `assets.rb`, `inflections.rb`, `permissions_policy.rb`,
+    `filter_parameter_logging.rb`, `content_security_policy.rb`, or `cors.rb`, it will not
+    be recreated when running `rails app:update`.
+
+    *Alex Ghiculescu*
+
 *   Add Docker files by default to new apps: Dockerfile, .dockerignore, bin/docker-entrypoint.
     These files can be skipped with `--skip-docker`. They're intended as a starting point for
     a production deploy of the application. Not intended for development (see Docked Rails for that).

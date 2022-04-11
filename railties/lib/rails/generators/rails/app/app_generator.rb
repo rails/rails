@@ -122,14 +122,16 @@ module Rails
     end
 
     def config_when_updating
-      action_cable_config_exist       = File.exist?("config/cable.yml")
-      active_storage_config_exist     = File.exist?("config/storage.yml")
-      rack_cors_config_exist          = File.exist?("config/initializers/cors.rb")
-      assets_config_exist             = File.exist?("config/initializers/assets.rb")
-      asset_manifest_exist            = File.exist?("app/assets/config/manifest.js")
-      asset_app_stylesheet_exist      = File.exist?("app/assets/stylesheets/application.css")
-      csp_config_exist                = File.exist?("config/initializers/content_security_policy.rb")
-      permissions_policy_config_exist = File.exist?("config/initializers/permissions_policy.rb")
+      action_cable_config_exist             = File.exist?("config/cable.yml")
+      active_storage_config_exist           = File.exist?("config/storage.yml")
+      rack_cors_config_exist                = File.exist?("config/initializers/cors.rb")
+      assets_config_exist                   = File.exist?("config/initializers/assets.rb")
+      asset_manifest_exist                  = File.exist?("app/assets/config/manifest.js")
+      asset_app_stylesheet_exist            = File.exist?("app/assets/stylesheets/application.css")
+      csp_config_exist                      = File.exist?("config/initializers/content_security_policy.rb")
+      permissions_policy_config_exist       = File.exist?("config/initializers/permissions_policy.rb")
+      filter_parameter_logging_config_exist = File.exist?("config/initializers/filter_parameter_logging.rb")
+      inflections_config_exist              = File.exist?("config/initializers/inflections.rb")
 
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
@@ -143,10 +145,6 @@ module Rails
         template "config/storage.yml"
       end
 
-      if skip_sprockets? && skip_propshaft? && !assets_config_exist
-        remove_file "config/initializers/assets.rb"
-      end
-
       if skip_sprockets? && !asset_manifest_exist
         remove_file "app/assets/config/manifest.js"
       end
@@ -155,19 +153,15 @@ module Rails
         remove_file "app/assets/stylesheets/application.css"
       end
 
-      unless rack_cors_config_exist
-        remove_file "config/initializers/cors.rb"
-      end
-
-      if options[:api]
-        unless csp_config_exist
-          remove_file "config/initializers/content_security_policy.rb"
-        end
-
-        unless permissions_policy_config_exist
-          remove_file "config/initializers/permissions_policy.rb"
-        end
-      end
+      # Remove initializers that were added more than one major Rails version ago,
+      # if they don't already exist. In this case, we can assume the user has deleted
+      # the initializer, and we are going to annoy them by bringing it back.
+      remove_file "config/initializers/cors.rb" unless rack_cors_config_exist
+      remove_file "config/initializers/content_security_policy.rb" unless csp_config_exist
+      remove_file "config/initializers/filter_parameter_logging.rb" unless filter_parameter_logging_config_exist
+      remove_file "config/initializers/permissions_policy.rb" unless permissions_policy_config_exist
+      remove_file "config/initializers/inflections.rb" unless inflections_config_exist
+      remove_file "config/initializers/assets.rb" unless assets_config_exist
 
       if !skip_sprockets?
         insert_into_file "config/application.rb", %(require "sprockets/railtie"), after: /require\(["']rails\/all["']\)\n/

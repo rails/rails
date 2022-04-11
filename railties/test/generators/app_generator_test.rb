@@ -188,6 +188,71 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file defaults_path
   end
 
+  def test_app_update_does_not_recreate_content_security_policy
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root]
+
+    FileUtils.rm("#{app_root}/config/initializers/content_security_policy.rb")
+
+    run_app_update app_root
+
+    assert_no_file "#{app_root}/config/initializers/content_security_policy.rb"
+  end
+
+  def test_app_update_does_not_remove_content_security_policy_if_already_present
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root]
+
+    FileUtils.touch("#{app_root}/config/initializers/content_security_policy.rb")
+
+    run_app_update app_root
+
+    assert_file "#{app_root}/config/initializers/content_security_policy.rb"
+  end
+
+  def test_app_update_does_not_recreate_filter_parameter_logging
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root]
+
+    FileUtils.rm("#{app_root}/config/initializers/filter_parameter_logging.rb")
+
+    run_app_update app_root
+    assert_no_file "#{app_root}/config/initializers/filter_parameter_logging.rb"
+  end
+
+  def test_app_update_does_not_remove_filter_parameter_logging_if_already_present
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root]
+
+    FileUtils.touch("#{app_root}/config/initializers/filter_parameter_logging.rb")
+
+    run_app_update app_root
+
+    assert_file "#{app_root}/config/initializers/filter_parameter_logging.rb"
+  end
+
+  def test_app_update_does_not_recreate_inflections
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root]
+
+    FileUtils.rm("#{app_root}/config/initializers/inflections.rb")
+
+    run_app_update app_root
+
+    assert_no_file "#{app_root}/config/initializers/inflections.rb"
+  end
+
+  def test_app_update_does_not_remove_inflections_if_already_present
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root]
+
+    FileUtils.touch("#{app_root}/config/initializers/inflections.rb")
+
+    run_app_update app_root
+
+    assert_file "#{app_root}/config/initializers/inflections.rb"
+  end
+
   def test_app_update_does_not_create_rack_cors
     run_generator
     run_app_update
