@@ -67,6 +67,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.before_committed_on_all_records`](#config-active-record-before-committed-on-all-records): `true`
 - [`config.active_record.belongs_to_required_validates_foreign_key`](#config-active-record-belongs-to-required-validates-foreign-key): `false`
 - [`config.active_record.default_column_serializer`](#config-active-record-default-column-serializer): `nil`
+- [`config.active_record.encryption.hash_digest_class`](#config-active-record-encryption-hash-digest-class): `OpenSSL::Digest::SHA256`
 - [`config.active_record.query_log_tags_format`](#config-active-record-query-log-tags-format): `:sqlcommenter`
 - [`config.active_record.raise_on_assign_to_attr_readonly`](#config-active-record-raise-on-assign-to-attr-readonly): `true`
 - [`config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`](#config-active-record-run-commit-callbacks-on-first-saved-instances-in-transaction): `false`
@@ -1461,6 +1462,17 @@ Allows setting a different regular expression that will be used to decide
 whether a foreign key's name should be dumped to db/schema.rb or not. By
 default, foreign key names starting with `fk_rails_` are not exported to the
 database schema dump. Defaults to `/^fk_rails_[0-9a-f]{10}$/`.
+
+ #### `config.active_record.encryption.hash_digest_class`
+
+ Sets the digest algorithm used by Active Record Encryption.
+
+ The default value depends on the `config.load_defaults` target version:
+
+ | Starting with version | The default value is      |
+ |-----------------------|---------------------------|
+ | (original)            | `OpenSSL::Digest::SHA1`   |
+ | 7.1                   | `OpenSSL::Digest::SHA256` |
 
 ### Configuring Action Controller
 

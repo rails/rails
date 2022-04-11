@@ -475,6 +475,10 @@ The salt used when deriving keys. It's preferred to configure it via the `active
 
 The default encoding for attributes encrypted deterministically. You can disable forced encoding by setting this option to `nil`. It's `Encoding::UTF_8` by default.
 
+#### `config.active_record.encryption.hash_digest_class`
+
+The digest algorithm used to derive keys. `OpenSSL::Digest::SHA1` by default.
+
 ### Encryption Contexts
 
 An encryption context defines the encryption components that are used in a given moment. There is a default encryption context based on your global configuration, but you can configure a custom context for a given attribute or when running a specific block of code.
