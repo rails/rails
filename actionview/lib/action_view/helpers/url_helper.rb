@@ -302,13 +302,25 @@ module ActionView
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"  autocomplete="off"/>
       #   #    </form>"
       #
-      # ==== Deprecated: Rails UJS attributes
+      # ==== Deprecated: Rails UJS Attributes
       #
-      # Prior to Rails 7, Rails shipped with a JavaScript library called @rails/ujs on by default. Following Rails 7,
+      # Prior to Rails 7, Rails shipped with a JavaScript library called <tt>@rails/ujs</tt> on by default. Following Rails 7,
       # this library is no longer on by default. This library integrated with the following options:
       #
-      # * <tt>:remote</tt> -  If set to true, will allow @rails/ujs to control the
-      #   submit behavior. By default this behavior is an ajax submit.
+      # * <tt>:remote</tt> -  If set to true, will allow <tt>@rails/ujs</tt> to control the
+      #   submit behavior. By default this behavior is an Ajax submit.
+      #
+      # <tt>@rails/ujs</tt> also integrated with the following +:data+ options:
+      #
+      # * <tt>confirm: "question?"</tt> - This will allow <tt>@rails/ujs</tt>
+      #   to prompt with the question specified (in this case, the
+      #   resulting text would be <tt>question?</tt>). If the user accepts, the
+      #   button is processed normally, otherwise no action is taken.
+      # * <tt>:disable_with</tt> - Value of this parameter will be
+      #   used as the value for a disabled version of the submit
+      #   button when the form is submitted.
+      #
+      # ===== Rails UJS Examples
       #
       #   <%= button_to "Create", { action: "create" }, remote: true, form: { "data-type" => "json" } %>
       #   # => "<form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
@@ -316,15 +328,6 @@ module ActionView
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"  autocomplete="off"/>
       #   #    </form>"
       #
-      # @rails/ujs also integrated with the following +:data+ options:
-      #
-      # * <tt>confirm: 'question?'</tt> - This will allow @rails/ujs
-      #   to prompt with the question specified (in this case, the
-      #   resulting text would be <tt>question?</tt>). If the user accepts, the
-      #   button is processed normally, otherwise no action is taken.
-      # * <tt>:disable_with</tt> - Value of this parameter will be
-      #   used as the value for a disabled version of the submit
-      #   button when the form is submitted.
       def button_to(name = nil, options = nil, html_options = nil, &block)
         html_options, options = options, name if block_given?
         html_options ||= {}
