@@ -170,16 +170,11 @@ module ActionView
       #   link_to "External link", "http://www.rubyonrails.org/", target: "_blank", rel: "nofollow"
       #   # => <a href="http://www.rubyonrails.org/" target="_blank" rel="nofollow">External link</a>
       #
-      # ==== Deprecated: Rails UJS attributes
+      # ==== Deprecated: Rails UJS Attributes
       #
-      # Prior to Rails 7, Rails shipped with a JavaScript library called @rails/ujs on by default. Following Rails 7,
+      # Prior to Rails 7, Rails shipped with a JavaScript library called <tt>@rails/ujs</tt> on by default. Following Rails 7,
       # this library is no longer on by default. This library integrated with the following options:
       #
-      # * <tt>remote: true</tt> - This will allow @rails/ujs
-      #   to make an Ajax request to the URL in question instead of following
-      #   the link. The drivers each provide mechanisms for listening for the
-      #   completion of the Ajax request and performing JavaScript operations once
-      #   they're complete
       # * <tt>method: symbol of HTTP verb</tt> - This modifier will dynamically
       #   create an HTML form and immediately submit the form for processing using
       #   the HTTP verb specified. Useful for having links perform a POST operation
@@ -190,22 +185,27 @@ module ActionView
       #   disabled clicking the link will have no effect. If you are relying on the
       #   POST behavior, you should check for it in your controller's action by using
       #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt>, <tt>patch?</tt>, or <tt>put?</tt>.
+      # * <tt>remote: true</tt> - This will allow <tt>@rails/ujs</tt>
+      #   to make an Ajax request to the URL in question instead of following
+      #   the link.
+      #
+      # <tt>@rails/ujs</tt> also integrated with the following +:data+ options:
+      #
+      # * <tt>confirm: "question?"</tt> - This will allow <tt>@rails/ujs</tt>
+      #   to prompt with the question specified (in this case, the
+      #   resulting text would be <tt>question?</tt>). If the user accepts, the
+      #   link is processed normally, otherwise no action is taken.
+      # * <tt>:disable_with</tt> - Value of this parameter will be used as the
+      #   name for a disabled version of the link.
+      #
+      # ===== Rails UJS Examples
+      #
+      #   link_to "Remove Profile", profile_path(@profile), method: :delete
+      #   # => <a href="/profiles/1" rel="nofollow" data-method="delete">Remove Profile</a>
       #
       #   link_to "Visit Other Site", "http://www.rubyonrails.org/", data: { confirm: "Are you sure?" }
       #   # => <a href="http://www.rubyonrails.org/" data-confirm="Are you sure?">Visit Other Site</a>
       #
-      #   link_to("Destroy", "http://www.example.com", method: :delete)
-      #   # => <a href='http://www.example.com' rel="nofollow" data-method="delete">Destroy</a>
-      #
-      # @rails/ujs also integrated with the following +:data+ options:
-      #
-      # * <tt>confirm: 'question?'</tt> - This will allow the unobtrusive JavaScript
-      #   driver to prompt with the question specified (in this case, the
-      #   resulting text would be <tt>question?</tt>). If the user accepts, the
-      #   link is processed normally, otherwise no action is taken.
-      # * <tt>:disable_with</tt> - Value of this parameter will be used as the
-      #   name for a disabled version of the link. This feature is provided by
-      #   the unobtrusive JavaScript driver.
       def link_to(name = nil, options = nil, html_options = nil, &block)
         html_options, options, name = options, name, block if block_given?
         options ||= {}
