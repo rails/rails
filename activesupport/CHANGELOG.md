@@ -1,3 +1,11 @@
+*   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
+
+    Add the method `ERB::Util.xml_name_escape` to escape dangerous characters
+    in names of tags and names of attributes, following the specification of XML.
+
+    *Álvaro Martín Fraguas*
+
+
 ## Rails 5.2.7 (March 10, 2022) ##
 
 *   Restore support to Ruby 2.2.
