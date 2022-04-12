@@ -5,23 +5,6 @@ GIT
     mysql2 (0.5.3)
 
 GIT
-  remote: https://github.com/javan/blade.git
-  revision: 685be36e36b8c0b1638d6bca9021a079c930ff29
-  specs:
-    blade (0.7.2)
-      activesupport (>= 3.0.0)
-      blade-qunit_adapter (>= 2.0.1)
-      coffee-script
-      coffee-script-source
-      curses (>= 1.4.0)
-      eventmachine
-      faye
-      sprockets (>= 3.0)
-      thin (>= 1.6.0)
-      thor (>= 0.19.1)
-      useragent (>= 0.16.7)
-
-GIT
   remote: https://github.com/matthewd/websocket-client-simple.git
   revision: e161305f1a466b9398d86df3b1731b03362da91b
   branch: close-race
@@ -162,6 +145,18 @@ GEM
     bcrypt (3.1.16)
     beaneater (1.1.1)
     benchmark-ips (2.9.2)
+    blade (0.7.3)
+      activesupport (>= 3.0.0)
+      blade-qunit_adapter (>= 2.0.1)
+      coffee-script
+      coffee-script-source
+      curses (>= 1.4.0)
+      eventmachine
+      faye
+      sprockets (>= 3.0)
+      thin (>= 1.6.0)
+      thor (>= 0.19.1)
+      useragent (>= 0.16.7)
     blade-qunit_adapter (2.0.1)
     bootsnap (1.9.3)
       msgpack (~> 1.0)
@@ -577,7 +572,7 @@ DEPENDENCIES
   backburner
   bcrypt (~> 3.1.11)
   benchmark-ips
-  blade!
+  blade
   bootsnap (>= 1.4.4)
   capybara (>= 3.26)
   connection_pool
