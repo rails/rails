@@ -263,7 +263,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
   end
 
   test "reloading eager loads again, if enabled" do
-    add_to_env_config 'development', 'config.eager_load = true'
+    add_to_env_config "development", "config.eager_load = true"
 
     $zeitwerk_integration_test_eager_load_count = 0
     app_file "app/models/user.rb", "class User; end; $zeitwerk_integration_test_eager_load_count += 1"
