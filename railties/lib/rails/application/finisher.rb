@@ -68,11 +68,17 @@ module Rails
         app.reloader.prepare!
       end
 
-      initializer :eager_load! do
+      initializer :eager_load! do |app|
         if config.eager_load
           ActiveSupport.run_load_hooks(:before_eager_load, self)
           Zeitwerk::Loader.eager_load_all
           config.eager_load_namespaces.each(&:eager_load!)
+        end
+
+        unless config.cache_classes
+          app.reloader.after_class_unload do
+            Rails.autoloaders.main.eager_load
+          end
         end
       end
 

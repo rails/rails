@@ -262,6 +262,19 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_equal %i(main_autoloader), $zeitwerk_integration_reload_test
   end
 
+  test "reloading eager loads again, if enabled" do
+    add_to_env_config 'development', 'config.eager_load = true'
+
+    $zeitwerk_integration_test_eager_load_count = 0
+    app_file "app/models/user.rb", "class User; end; $zeitwerk_integration_test_eager_load_count += 1"
+
+    boot
+    assert_equal 1, $zeitwerk_integration_test_eager_load_count
+
+    Rails.application.reloader.reload!
+    assert_equal 2, $zeitwerk_integration_test_eager_load_count
+  end
+
   test "reloading clears autoloaded tracked classes" do
     eval <<~RUBY
       class Parent

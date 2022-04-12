@@ -1,3 +1,7 @@
+*   If reloading and eager loading are both enabled, after a reload Rails eager loads again the application code.
+
+    *Xavier Noria*
+
 *   Use `controller_class_path` in `Rails::Generators::NamedBase#route_url`
 
     The `route_url` method now returns the correct path when generating
