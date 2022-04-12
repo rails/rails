@@ -1615,7 +1615,7 @@ module ActiveRecord
 
             if respond_to?(method, true)
               sqls, procs = Array(send(method, table, *arguments)).partition { |v| v.is_a?(String) }
-              sql_fragments << sqls
+              sql_fragments.concat(sqls)
               non_combinable_operations.concat(procs)
             else
               execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
