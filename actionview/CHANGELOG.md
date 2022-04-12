@@ -1,3 +1,13 @@
+*   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
+
+    Escape dangerous characters in names of tags and names of attributes in the
+    tag helpers, following the XML specification. Rename the option
+    `:escape_attributes` to `:escape`, to simplify by applying the option to the
+    whole tag.
+
+    *Álvaro Martín Fraguas*
+
+
 ## Rails 6.0.4.7 (March 08, 2022) ##
 
 *   No changes.
