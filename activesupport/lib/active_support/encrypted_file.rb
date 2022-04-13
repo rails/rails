@@ -70,7 +70,12 @@ module ActiveSupport
     private
       def writing(contents)
         tmp_file = "#{Process.pid}.#{content_path.basename.to_s.chomp('.enc')}"
-        tmp_path = Pathname.new File.join(Dir.tmpdir, tmp_file)
+
+        # Windows paths can contained shortened forms, for example MyLongName can become MyLo~1
+        # This translate that shortened path into the absolute path
+        tmp_dir = Dir.glob(Dir.tmpdir)[0]
+
+        tmp_path = Pathname.new File.join(tmp_dir, tmp_file)
         tmp_path.binwrite contents
 
         yield tmp_path
