@@ -539,6 +539,7 @@ DEPENDENCIES
   kindlerb (~> 1.2.0)
   libxml-ruby
   listen (~> 3.2)!
+  minitest (< 5.15.0)
   minitest-bisect
   minitest-reporters
   minitest-retry
