@@ -80,7 +80,7 @@ PATH
       actionpack (= 6.0.4.7)
       activejob (= 6.0.4.7)
       activerecord (= 6.0.4.7)
-      marcel (~> 1.0.0)
+      marcel (~> 1.0)
     activesupport (6.0.4.7)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 0.7, < 2)
@@ -547,7 +547,7 @@ DEPENDENCIES
   pg (>= 0.18.0)
   psych (~> 3.0)
   puma
-  que
+  que (<= 0.14.3)
   queue_classic!
   qunit-selenium
   racc (>= 1.4.6)
