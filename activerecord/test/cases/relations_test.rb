@@ -1519,6 +1519,22 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_equal subscriber, Subscriber.create_or_find_by(nick: "cat")
   end
 
+  def test_create_or_find_by_with_find_first_option
+    assert_nil Subscriber.find_by(nick: "bob")
+
+    subscriber = Subscriber.create!(nick: "bob")
+
+    options = { find_first: true }
+
+    assert_not_called(Subscriber, :create) do
+      assert_equal subscriber, Subscriber.create_or_find_by(nick: "bob", options: options)
+    end
+
+    assert_called(Subscriber, :create) do
+      assert_not_equal subscriber, Subscriber.create_or_find_by(nick: "cat", options: options)
+    end
+  end
+
   def test_create_or_find_by_with_block
     assert_nil Subscriber.find_by(nick: "bob")
 
@@ -1566,6 +1582,22 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal subscriber, Subscriber.create_or_find_by!(nick: "bob")
     assert_not_equal subscriber, Subscriber.create_or_find_by!(nick: "cat")
+  end
+
+  def test_create_or_find_by_with_bang_and_find_first_option
+    assert_nil Subscriber.find_by(nick: "bob")
+
+    subscriber = Subscriber.create!(nick: "bob")
+
+    options = { find_first: true }
+
+    assert_not_called(Subscriber, :create!) do
+      assert_equal subscriber, Subscriber.create_or_find_by!(nick: "bob", options: options)
+    end
+
+    assert_called(Subscriber, :create!) do
+      assert_not_equal subscriber, Subscriber.create_or_find_by!(nick: "cat", options: options)
+    end
   end
 
   def test_create_or_find_by_with_bang_should_raise_due_to_validation_errors

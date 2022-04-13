@@ -185,6 +185,11 @@ module ActiveRecord
     # and the INSERT, as that method needs to first query the table, then attempt to insert a row
     # if none is found.
     #
+    # ==== Options
+    # * <tt>:find_first</tt> - Specifies to run a #find_by before attempting to create a record.
+    #                          This acts as a preventative measure to avoid unnecessary database commits.
+    #                          Defaults to false.
+    #
     # There are several drawbacks to #create_or_find_by, though:
     #
     # * The underlying table must have the relevant columns defined with unique database constraints.
@@ -200,13 +205,23 @@ module ActiveRecord
     # * The primary key may auto-increment on each create, even if it fails. This can accelerate
     #   the problem of running out of integers, if the underlying table is still stuck on a primary
     #   key of type int (note: All Rails apps since 5.1+ have defaulted to bigint, which is not liable
-    #   to this problem).
+    #   to this problem). To mitigate this issue, you can opt in to proactively fetching the record by
+    #   setting `find_first: true`.
     #
     # This method will return a record if all given attributes are covered by unique constraints
     # (unless the INSERT -> DELETE -> SELECT race condition is triggered), but if creation was attempted
     # and failed due to validation errors it won't be persisted, you get what #create returns in
     # such situation.
-    def create_or_find_by(attributes, &block)
+    def create_or_find_by(attributes_with_options, &block)
+      attributes = attributes_with_options.except(:options)
+      options = attributes_with_options[:options] || {}
+
+      if options[:find_first]
+        existing_record = find_by(attributes)
+
+        return existing_record if existing_record.present?
+      end
+
       transaction(requires_new: true) { create(attributes, &block) }
     rescue ActiveRecord::RecordNotUnique
       find_by!(attributes)
@@ -215,7 +230,16 @@ module ActiveRecord
     # Like #create_or_find_by, but calls
     # {create!}[rdoc-ref:Persistence::ClassMethods#create!] so an exception
     # is raised if the created record is invalid.
-    def create_or_find_by!(attributes, &block)
+    def create_or_find_by!(attributes_with_options, &block)
+      attributes = attributes_with_options.except(:options)
+      options = attributes_with_options[:options] || {}
+
+      if options[:find_first]
+        existing_record = find_by(attributes)
+
+        return existing_record if existing_record.present?
+      end
+
       transaction(requires_new: true) { create!(attributes, &block) }
     rescue ActiveRecord::RecordNotUnique
       find_by!(attributes)
