@@ -108,7 +108,7 @@ end
 
 # Action View
 group :view do
-  gem "blade", github: "javan/blade", require: false, platforms: [:ruby]
+  gem "blade", require: false, platforms: [:ruby]
   gem "sprockets-export", require: false
 end
 
