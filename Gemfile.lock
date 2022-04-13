@@ -498,7 +498,7 @@ DEPENDENCIES
   pg (>= 0.18.0)
   psych (~> 2.0)
   puma
-  que
+  que (<= 0.14.3)
   queue_classic!
   qunit-selenium
   racc (>= 1.4.6)
