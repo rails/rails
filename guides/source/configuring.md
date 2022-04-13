@@ -65,6 +65,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_support.default_message_encryptor_serializer`](#config-active-support-default-message-encryptor-serializer): `:json`
 - [`config.active_support.default_message_verifier_serializer`](#config-active-support-default-message-verifier-serializer): `:json`
 - [`config.action_controller.allow_deprecated_parameters_hash_equality`](#config-action-controller-allow-deprecated-parameters-hash-equality): `false`
+- [`config.log_file_size`](#config-log-file-size): `100.megabytes`
 
 #### Default Values for Target Version 7.0
 
@@ -272,6 +273,10 @@ Forces all requests to be served over HTTPS, and sets "https://" as the default 
 #### `config.javascript_path`
 
 Sets the path where your app's JavaScript lives relative to the `app` directory. The default is `javascript`, used by [webpacker](https://github.com/rails/webpacker). An app's configured `javascript_path` will be excluded from `autoload_paths`.
+
+#### `config.log_file_size`
+
+Defines the maximum size of the Rails log file. Defaults to 100 MB in development and test, and unlimited in all other environments.
 
 #### `config.log_formatter`
 

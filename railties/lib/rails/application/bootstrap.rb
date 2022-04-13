@@ -35,7 +35,11 @@ module Rails
       # Initialize the logger early in the stack in case we need to log some deprecation.
       initializer :initialize_logger, group: :all do
         Rails.logger ||= config.logger || begin
-          logger = ActiveSupport::Logger.new(config.default_log_file)
+          logger = if config.log_file_size
+            ActiveSupport::Logger.new(config.default_log_file, 1, config.log_file_size)
+          else
+            ActiveSupport::Logger.new(config.default_log_file)
+          end
           logger.formatter = config.log_formatter
           logger = ActiveSupport::TaggedLogging.new(logger)
           logger

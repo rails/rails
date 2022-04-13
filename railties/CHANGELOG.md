@@ -1,3 +1,11 @@
+*   Allow configuration of logger size for local and test environments
+
+    `config.log_file_size`
+
+    Defaults to `100` megabytes.
+
+    *Bernie Chiu*
+
 *   Enroll new apps in decrypted diffs of credentials by default.  This behavior
     can be opted out of with the app generator's `--skip-decrypted-diffs` flag.
 
