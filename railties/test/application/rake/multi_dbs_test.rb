@@ -1024,6 +1024,27 @@ module ApplicationTests
         end
       end
 
+      test "db:test:prepare don't raise errors when schema_dump is false" do
+        app_file "config/database.yml", <<~EOS
+          development: &development
+            primary:
+              adapter: sqlite3
+              database: dev_db
+              schema_dump: false
+            secondary:
+              adapter: sqlite3
+              database: secondary_dev_db
+              schema_dump: false
+          test:
+            <<: *development
+        EOS
+
+        Dir.chdir(app_path) do
+          output = rails("db:test:prepare", "--trace")
+          assert_match(/Execute db:test:prepare/, output)
+        end
+      end
+
       test "db:create and db:drop don't raise errors when loading YAML containing multiple ERB statements on the same line" do
         app_file "config/database.yml", <<-YAML
           development:
