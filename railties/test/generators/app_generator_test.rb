@@ -970,36 +970,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_after_bundle_callback
-    path = "http://example.org/rails_template"
-    template = %{ after_bundle { run 'echo ran after_bundle' } }.dup
-    template.instance_eval "def read; self; end" # Make the string respond to read
-
-    check_open = -> *args do
-      assert_equal [ path, "Accept" => "application/x-thor-template" ], args
-      template
-    end
-
-    sequence = ["git init", "install", "exec spring binstub --all", "echo ran after_bundle"]
-    @sequence_step ||= 0
-    ensure_bundler_first = -> command, options = nil do
-      assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
-      @sequence_step += 1
-    end
-
-    generator([destination_root], template: path).stub(:open, check_open, template) do
-      generator.stub(:bundle_command, ensure_bundler_first) do
-        generator.stub(:run, ensure_bundler_first) do
-          generator.stub(:rails_command, ensure_bundler_first) do
-            quietly { generator.invoke_all }
-          end
-        end
-      end
-    end
-
-    assert_equal 4, @sequence_step
-  end
-
   def test_gitignore
     run_generator
 
