@@ -70,6 +70,32 @@ Any class that includes `ActiveModel::API` can be used with `form_with`,
 `render` and any other Action View helper methods, just like Active Record
 objects.
 
+### Attribute Assignment
+
+The `ActiveModel::AttributeAssignment` module allows you to set all the attributes
+of a class by passing in a hash of attributes with keys matching the attribute names.
+
+```ruby
+  class Cat
+    include ActiveModel::AttributeAssignment
+    attr_accessor :name, :status
+  end
+```
+
+```irb
+irb> cat = Cat.new
+irb> cat.assign_attributes(name: "Gorby", status: "yawning")
+irb> cat.name
+=> "Gorby"
+irb> cat.status
+=> "yawning"
+irb> cat.assign_attributes(status: "sleeping")
+irb> cat.name
+=> "Gorby"
+irb> cat.status
+=> "sleeping"
+```
+
 ### Attribute Methods
 
 The `ActiveModel::AttributeMethods` module can add custom prefixes and suffixes
