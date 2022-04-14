@@ -528,8 +528,10 @@ module ActiveRecord
             SELECT conname, pg_get_constraintdef(c.oid, true) AS constraintdef, c.convalidated AS valid
             FROM pg_constraint c
             JOIN pg_class t ON c.conrelid = t.oid
+            JOIN pg_namespace n ON n.oid = c.connamespace
             WHERE c.contype = 'c'
               AND t.relname = #{scope[:name]}
+              AND n.nspname = #{scope[:schema]}
           SQL
 
           check_info.map do |row|
