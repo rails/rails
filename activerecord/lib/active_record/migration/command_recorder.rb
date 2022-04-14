@@ -38,6 +38,8 @@ module ActiveRecord
     # * remove_reference
     # * remove_timestamps
     # * rename_column
+    # * rename_enum (must supply a +:to+ option)
+    # * rename_enum_value (must supply a +:from+ and +:to+ option)
     # * rename_index
     # * rename_table
     class CommandRecorder
@@ -52,7 +54,7 @@ module ActiveRecord
         :add_check_constraint, :remove_check_constraint,
         :add_exclusion_constraint, :remove_exclusion_constraint,
         :add_unique_key, :remove_unique_key,
-        :create_enum, :drop_enum,
+        :create_enum, :drop_enum, :rename_enum, :add_enum_value, :rename_enum_value,
       ]
       include JoinTable
 
@@ -338,6 +340,26 @@ module ActiveRecord
           _enum, values = args.dup.tap(&:extract_options!)
           raise ActiveRecord::IrreversibleMigration, "drop_enum is only reversible if given a list of enum values." unless values
           super
+        end
+
+        def invert_rename_enum(args)
+          name, options = args
+
+          unless options.is_a?(Hash) && options.has_key?(:to)
+            raise ActiveRecord::IrreversibleMigration, "rename_enum is only reversible if given a :to option."
+          end
+
+          [:rename_enum, [options[:to], to: name]]
+        end
+
+        def invert_rename_enum_value(args)
+          type_name, options = args
+
+          unless options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
+            raise ActiveRecord::IrreversibleMigration, "rename_enum_value is only reversible if given a :from and :to option."
+          end
+
+          [:rename_enum_value, [type_name, from: options[:to], to: options[:from]]]
         end
 
         def respond_to_missing?(method, _)

@@ -314,25 +314,39 @@ irb> article.status = "deleted"
 ArgumentError: 'deleted' is not a valid status
 ```
 
-To add a new value (before or after an existing one) or to rename a value you should use [ALTER TYPE](https://www.postgresql.org/docs/current/static/sql-altertype.html):
+To rename the enum you can use `rename_enum` along with updating any model
+usage:
 
 ```ruby
-# db/migrate/20150720144913_add_new_state_to_articles.rb
-disable_ddl_transaction!
-
-def up
-  execute <<-SQL
-    ALTER TYPE article_status ADD VALUE IF NOT EXISTS 'deleted' AFTER 'archived';
-    ALTER TYPE article_status RENAME VALUE 'archived' TO 'hidden';
-  SQL
+# db/migrate/20150718144917_rename_article_status.rb
+def change
+  rename_enum :article_status, to: :article_state
 end
 ```
 
-NOTE: `ALTER TYPE ... ADD VALUE` cannot be executed inside of a transaction block so here we are using `disable_ddl_transaction!`
+To add a new value you can use `add_enum_value`:
 
-WARNING. Enum values [can't be dropped or reordered](https://www.postgresql.org/docs/current/datatype-enum.html). Adding a value is not easily reversed.
+```ruby
+# db/migrate/20150720144913_add_new_state_to_articles.rb
+def up
+  add_enum_value :article_state, "archived", # will be at the end after published
+  add_enum_value :article_state, "in review", before: "published"
+  add_enum_value :article_state, "approved", after: "in review"
+end
+```
 
-Hint: to show all the values of the all enums you have, you should call this query in `bin/rails db` or `psql` console:
+NOTE: Enum values can't be dropped or renamed which also means add_enum_value is irreversible. You can read why [here](https://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
+
+To rename a value you can use `rename_enum_value`:
+
+```ruby
+# db/migrate/20150722144915_rename_article_state.rb
+def change
+  rename_enum_value :article_state, from: "archived", to: "deleted"
+end
+```
+
+Hint: to show all the values of the all enums you have, you can call this query in `bin/rails db` or `psql` console:
 
 ```sql
 SELECT n.nspname AS enum_schema,

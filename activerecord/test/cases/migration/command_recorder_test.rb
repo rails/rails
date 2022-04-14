@@ -512,6 +512,40 @@ module ActiveRecord
           @recorder.inverse_of :drop_enum, [:color, if_exists: true]
         end
       end
+
+      def test_invert_rename_enum
+        enum = @recorder.inverse_of :rename_enum, [:dog_breed, to: :breed]
+        assert_equal [:rename_enum, [:breed, to: :dog_breed]], enum
+      end
+
+      def test_invert_rename_enum_without_to
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :rename_enum, [:breed]
+        end
+      end
+
+      def test_invert_add_enum_value
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :add_enum_value, [:dog_breed, :beagle]
+        end
+      end
+
+      def test_invert_rename_enum_value
+        enum_value = @recorder.inverse_of :rename_enum_value, [:dog_breed, from: :retriever, to: :beagle]
+        assert_equal [:rename_enum_value, [:dog_breed, from: :beagle, to: :retriever]], enum_value
+      end
+
+      def test_invert_rename_enum_value_without_from
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :rename_enum_value, [:dog_breed, to: :retriever]
+        end
+      end
+
+      def test_invert_rename_enum_value_without_to
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :rename_enum_value, [:dog_breed, from: :beagle]
+        end
+      end
     end
   end
 end

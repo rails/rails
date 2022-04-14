@@ -1,3 +1,25 @@
+*   Added PostgreSQL migration commands for enum rename, add value, and rename value.
+
+    `rename_enum` and `rename_enum_value` are reversible. Due to Postgres
+    limitation, `add_enum_value` is not reversible since you cannot delete enum
+    values. As an alternative you should drop and recreate the enum entirely.
+
+    ```ruby
+    rename_enum :article_status, to: :article_state
+    ```
+
+    ```ruby
+    add_enum_value :article_state, "archived" # will be at the end of existing values
+    add_enum_value :article_state, "in review", before: "published"
+    add_enum_value :article_state, "approved", after: "in review"
+    ```
+
+    ```ruby
+    rename_enum_value :article_state, from: "archived", to: "deleted"
+    ```
+
+    *Ray Faddis*
+
 *   Allow composite primary key to be derived from schema
 
     Booting an application with a schema that contains composite primary keys

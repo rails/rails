@@ -605,6 +605,18 @@ module ActiveRecord
       def drop_enum(*) # :nodoc:
       end
 
+      # This is meant to be implemented by the adapters that support custom enum types
+      def rename_enum(*) # :nodoc:
+      end
+
+      # This is meant to be implemented by the adapters that support custom enum types
+      def add_enum_value(*) # :nodoc:
+      end
+
+      # This is meant to be implemented by the adapters that support custom enum types
+      def rename_enum_value(*) # :nodoc:
+      end
+
       def advisory_locks_enabled? # :nodoc:
         supports_advisory_locks? && @advisory_locks_enabled
       end

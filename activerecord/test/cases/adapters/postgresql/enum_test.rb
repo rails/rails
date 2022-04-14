@@ -111,6 +111,34 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     assert_includes output, 't.enum "good_mood", default: "happy", null: false, enum_type: "mood"'
   end
 
+  def test_schema_dump_renamed_enum
+    @connection.rename_enum :mood, to: :feeling
+
+    output = dump_table_schema("postgresql_enums")
+
+    assert_includes output, 'create_enum "feeling", ["sad", "ok", "happy"]'
+
+    assert_includes output, 't.enum "current_mood", enum_type: "feeling"'
+  end
+
+  def test_schema_dump_added_enum_value
+    @connection.add_enum_value :mood, :angry, before: :ok
+    @connection.add_enum_value :mood, :nervous, after: :ok
+    @connection.add_enum_value :mood, :glad
+
+    output = dump_table_schema("postgresql_enums")
+
+    assert_includes output, 'create_enum "mood", ["sad", "angry", "ok", "nervous", "happy", "glad"]'
+  end
+
+  def test_schema_dump_renamed_enum_value
+    @connection.rename_enum_value :mood, from: :ok, to: :okay
+
+    output = dump_table_schema("postgresql_enums")
+
+    assert_includes output, 'create_enum "mood", ["sad", "okay", "happy"]'
+  end
+
   def test_schema_load
     original, $stdout = $stdout, StringIO.new
 
