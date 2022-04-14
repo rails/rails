@@ -64,7 +64,7 @@ module ActiveSupport
         end
 
         def clear(classes) # :nodoc:
-          raise "DescendantsTracker.clear was disabled because config.cache_classes = true" if @clear_disabled
+          raise "DescendantsTracker.clear was disabled because config.enable_reloading is false" if @clear_disabled
 
           classes.each do |klass|
             @@excluded_descendants[klass] = true
@@ -116,7 +116,7 @@ module ActiveSupport
         end
 
         def clear(classes) # :nodoc:
-          raise "DescendantsTracker.clear was disabled because config.cache_classes = true" if @clear_disabled
+          raise "DescendantsTracker.clear was disabled because config.enable_reloading is false" if @clear_disabled
 
           @@direct_descendants.each do |klass, direct_descendants_of_klass|
             if classes.member?(klass)

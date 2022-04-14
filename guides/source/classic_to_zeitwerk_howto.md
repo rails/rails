@@ -362,7 +362,7 @@ as
 
 ```ruby
 # config/initializers/country.rb
-unless Rails.application.config.cache_classes
+if Rails.application.config.reloading_enabled?
   Rails.autoloaders.main.on_unload("Country") do |klass, _abspath|
     klass.expire_redis_cache
   end
@@ -378,10 +378,23 @@ Spring reloads the application code if something changes. In the `test` environm
 config.cache_classes = false
 ```
 
-Otherwise you'll get this error:
+or, since Rails 7.1:
+
+```ruby
+# config/environments/test.rb
+config.enable_reloading = true
+```
+
+Otherwise, you'll get:
 
 ```
 reloading is disabled because config.cache_classes is true
+```
+
+or
+
+```
+reloading is disabled because config.enable_reloading is false
 ```
 
 This has no performance penalty.

@@ -1,3 +1,7 @@
+*   Define `config.enable_reloading` to be `!config.cache_classes` for a more intuitive name. While `config.enable_reloading` and `config.reloading_enabled?` are preferred from now on, `config.cache_classes` is supported for backwards compatibility.
+
+    *Xavier Noria*
+
 *   Add JavaScript dependencies installation on bin/setup
 
     Add  `yarn install` to bin/setup when using esbuild, webpack, or rollout.

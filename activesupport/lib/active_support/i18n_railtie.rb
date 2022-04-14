@@ -60,7 +60,7 @@ module I18n
       # Restore available locales check so it will take place from now on.
       I18n.enforce_available_locales = enforce_available_locales
 
-      unless app.config.cache_classes
+      if app.config.reloading_enabled?
         directories = watched_dirs_with_extensions(reloadable_paths)
         reloader = app.config.file_watcher.new(I18n.load_path.dup, directories) do
           I18n.load_path.keep_if { |p| File.exist?(p) }
