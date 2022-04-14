@@ -160,7 +160,7 @@ Sets the host for the assets. Useful when CDNs are used for hosting assets, or w
 
 #### `config.autoload_once_paths`
 
-Accepts an array of paths from which Rails will autoload constants that won't be wiped per request. Relevant if `config.cache_classes` is `false`, which is the default in the development environment. Otherwise, all autoloading happens only once. All elements of this array must also be in `autoload_paths`. Default is an empty array.
+Accepts an array of paths from which Rails will autoload constants that won't be wiped per request. Relevant if reloading is enabled, which it is by default in the `development` environment. Otherwise, all autoloading happens only once. All elements of this array must also be in `autoload_paths`. Default is an empty array.
 
 #### `config.autoload_paths`
 
@@ -177,9 +177,15 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `true`               |
 | 7.1                   | `false`              |
 
+#### `config.enable_reloading`
+
+If `config.enable_reloading` is true, application classes and modules are reloaded in between web requests if they change. Defaults to `true` in the `development` environment, and `false` in the `production` environment.
+
+The predicate `config.reloading_enabled?` is also defined.
+
 #### `config.cache_classes`
 
-Controls whether or not application classes and modules should be reloaded if they change. When the cache is enabled (`true`), reloading will not occur. Defaults to `false` in the development environment, and `true` in production. In the test environment, the default is `false` if Spring is installed, `true` otherwise.
+Old setting equivalent to `!config.enable_reloading`. Supported for backwards compatibility.
 
 #### `config.beginning_of_week`
 
@@ -225,11 +231,11 @@ Registers namespaces that are eager loaded when `config.eager_load` is set to `t
 
 #### `config.eager_load_paths`
 
-Accepts an array of paths from which Rails will eager load on boot if `config.cache_classes` is set to `true`. Defaults to every folder in the `app` directory of the application.
+Accepts an array of paths from which Rails will eager load on boot if `config.eager_load` is true. Defaults to every folder in the `app` directory of the application.
 
 #### `config.enable_dependency_loading`
 
-When `true`, enables autoloading, even if the application is eager loaded and `config.cache_classes` is set to `true`. Defaults to `false`.
+When `true`, enables autoloading, even if the application is eager loaded and `config.enable_reloading` is set to `false`. Defaults to `false`.
 
 #### `config.encoding`
 
@@ -311,7 +317,7 @@ When `true`, eager load the application when running Rake tasks. Defaults to `fa
 
 #### `config.reload_classes_only_on_change`
 
-Enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to `true`. If `config.cache_classes` is `true`, this option is ignored.
+Enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to `true`. If `config.enable_reloading` is `false`, this option is ignored.
 
 #### `config.credentials.content_path`
 
@@ -1383,7 +1389,7 @@ Takes a block of code to run after the request.
 
 #### `config.action_view.cache_template_loading`
 
-Controls whether or not templates should be reloaded on each request. Defaults to whatever is set for `config.cache_classes`.
+Controls whether or not templates should be reloaded on each request. Defaults to `!config.enable_reloading`.
 
 #### `config.action_view.field_error_proc`
 
@@ -2730,7 +2736,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `initialize_cache`: If `Rails.cache` isn't set yet, initializes the cache by referencing the value in `config.cache_store` and stores the outcome as `Rails.cache`. If this object responds to the `middleware` method, its middleware is inserted before `Rack::Runtime` in the middleware stack.
 
-* `set_clear_dependencies_hook`: This initializer - which runs only if `cache_classes` is set to `false` - uses `ActionDispatch::Callbacks.after` to remove the constants which have been referenced during the request from the object space so that they will be reloaded during the following request.
+* `set_clear_dependencies_hook`: This initializer - which runs only if `config.enable_reloading` is set to `true` - uses `ActionDispatch::Callbacks.after` to remove the constants which have been referenced during the request from the object space so that they will be reloaded during the following request.
 
 * `bootstrap_hook`: Runs all configured `before_initialize` blocks.
 
@@ -2774,7 +2780,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `active_record.log_runtime`: Includes `ActiveRecord::Railties::ControllerRuntime` which is responsible for reporting the time taken by Active Record calls for the request back to the logger.
 
-* `active_record.set_reloader_hooks`: Resets all reloadable connections to the database if `config.cache_classes` is set to `false`.
+* `active_record.set_reloader_hooks`: Resets all reloadable connections to the database if `config.enable_reloading` is set to `true`.
 
 * `active_record.add_watchable_files`: Adds `schema.rb` and `structure.sql` files to watchable files.
 
@@ -2956,8 +2962,7 @@ Evented File System Monitor
 ---------------------------
 
 If the [listen gem](https://github.com/guard/listen) is loaded Rails uses an
-evented file system monitor to detect changes when `config.cache_classes` is
-`false`:
+evented file system monitor to detect changes when reloading is enabled:
 
 ```ruby
 group :development do

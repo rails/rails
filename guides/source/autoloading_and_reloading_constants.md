@@ -174,11 +174,11 @@ Rails automatically reloads classes and modules if application files in the auto
 
 More precisely, if the web server is running and application files have been modified, Rails unloads all autoloaded constants managed by the `main` autoloader just before the next request is processed. That way, application classes or modules used during that request will be autoloaded again, thus picking up their current implementation in the file system.
 
-Reloading can be enabled or disabled. The setting that controls this behavior is [`config.cache_classes`][], which is false by default in `development` mode (reloading enabled), and true by default in `production` mode (reloading disabled).
+Reloading can be enabled or disabled. The setting that controls this behavior is [`config.enable_reloading`][], which is `true` by default in `development` mode, and `false` by default in `production` mode. For backwards compatibility, Rails also supports `config.cache_classes`, which is equivalent to `!config.enable_reloading`.
 
 Rails uses an evented file monitor to detect files changes by default.  It can be configured instead to detect file changes by walking the autoload paths. This is controlled by the [`config.file_watcher`][] setting.
 
-In a Rails console there is no file watcher active regardless of the value of `config.cache_classes`. This is because, normally, it would be confusing to have code reloaded in the middle of a console session. Similar to an individual request, you generally want a console session to be served by a consistent, non-changing set of application classes and modules.
+In a Rails console there is no file watcher active regardless of the value of `config.enable_reloading`. This is because, normally, it would be confusing to have code reloaded in the middle of a console session. Similar to an individual request, you generally want a console session to be served by a consistent, non-changing set of application classes and modules.
 
 However, you can force a reload in the console by executing `reload!`:
 
@@ -194,7 +194,7 @@ irb(main):003:0> User.object_id
 
 As you can see, the class object stored in the `User` constant is different after reloading.
 
-[`config.cache_classes`]: configuring.html#config-cache-classes
+[`config.enable_reloading`]: configuring.html#config-enable-reloading
 [`config.file_watcher`]: configuring.html#config-file-watcher
 
 ### Reloading and Stale Objects

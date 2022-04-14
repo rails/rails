@@ -26,7 +26,7 @@ module Rails
   #
   # Besides providing the same configuration as Rails::Engine and Rails::Railtie,
   # the application object has several specific configurations, for example
-  # +cache_classes+, +consider_all_requests_local+, +filter_parameters+,
+  # +enable_reloading+, +consider_all_requests_local+, +filter_parameters+,
   # +logger+, and so forth.
   #
   # Check Rails::Application::Configuration to see them all.
