@@ -1086,8 +1086,13 @@ module ActiveRecord
     def create_or_update(**, &block)
       _raise_readonly_record_error if readonly?
       return false if destroyed?
-      result = new_record? ? _create_record(&block) : _update_record(&block)
-      result != false
+      if new_record?
+        result = _create_record(&block)
+        result != false
+      else
+        result = _update_record(&block)
+        result != 0
+      end
     end
 
     # Updates the associated record with values matching those of the instance attributes.
