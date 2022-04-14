@@ -17,7 +17,7 @@ module Rails
                     :log_tags, :railties_order, :relative_url_root, :secret_key_base,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
-                    :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
+                    :beginning_of_week, :filter_redirect, :x,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
@@ -295,6 +295,22 @@ module Rails
 
       def enable_reloading=(value)
         self.cache_classes = !value
+      end
+
+      ENABLE_DEPENDENCY_LOADING_WARNING = <<~MSG
+        This flag addressed a limitation of the `classic` autoloader and has no effect nowadays.
+        To fix this deprecation, please just delete the reference.
+      MSG
+      private_constant :ENABLE_DEPENDENCY_LOADING_WARNING
+
+      def enable_dependency_loading
+        ActiveSupport::Deprecation.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
+        @enable_dependency_loading
+      end
+
+      def enable_dependency_loading=(value)
+        ActiveSupport::Deprecation.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
+        @enable_dependency_loading = value
       end
 
       def encoding=(value)

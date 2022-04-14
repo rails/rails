@@ -1343,6 +1343,13 @@ module ApplicationTests
       assert_equal false, ActionView::Resolver.caching?
     end
 
+    test "config.enable_dependency_loading is deprecated" do
+      app "development"
+
+      assert_deprecated { Rails.application.config.enable_dependency_loading }
+      assert_deprecated { Rails.application.config.enable_dependency_loading = true }
+    end
+
     test "ActionController::Base.raise_on_open_redirects is true by default for new apps" do
       app "development"
 

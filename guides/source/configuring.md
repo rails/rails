@@ -233,10 +233,6 @@ Registers namespaces that are eager loaded when `config.eager_load` is set to `t
 
 Accepts an array of paths from which Rails will eager load on boot if `config.eager_load` is true. Defaults to every folder in the `app` directory of the application.
 
-#### `config.enable_dependency_loading`
-
-When `true`, enables autoloading, even if the application is eager loaded and `config.enable_reloading` is set to `false`. Defaults to `false`.
-
 #### `config.encoding`
 
 Sets up the application-wide encoding. Defaults to UTF-8.
