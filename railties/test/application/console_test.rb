@@ -133,14 +133,16 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   end
 
   def test_sandbox
-    spawn_console("--sandbox")
+    options = "--sandbox"
+    options += " -- --singleline --nocolorize" if RUBY_VERSION >= "2.7"
+    spawn_console(options)
 
     write_prompt "Post.count", "=> 0"
     write_prompt "Post.create"
     write_prompt "Post.count", "=> 1"
     @master.puts "quit"
 
-    spawn_console("--sandbox")
+    spawn_console(options)
 
     write_prompt "Post.count", "=> 0"
     write_prompt "Post.transaction { Post.create; raise }"
@@ -149,7 +151,9 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   end
 
   def test_environment_option_and_irb_option
-    spawn_console("test -- --verbose")
+    options = "-e test -- --verbose"
+    options += " --singleline --nocolorize" if RUBY_VERSION >= "2.7"
+    spawn_console(options)
 
     write_prompt "a = 1", "a = 1"
     write_prompt "puts Rails.env", "puts Rails.env\r\ntest"

@@ -69,7 +69,7 @@ group :job do
   gem "delayed_job", require: false
   gem "queue_classic", github: "rafaelfranca/queue_classic", branch: "update-pg", require: false, platforms: :ruby
   gem "sneakers", require: false
-  gem "que", require: false
+  gem "que", "<= 0.14.3", require: false
   gem "backburner", require: false
   # TODO: add qu after it support Rails 5.1
   # gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
@@ -119,6 +119,7 @@ local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
+  gem "minitest", "< 5.15.0"
   gem "minitest-bisect"
 
   platforms :mri do

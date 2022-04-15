@@ -491,6 +491,7 @@ DEPENDENCIES
   libxml-ruby
   listen (>= 3.0.5, < 3.2)
   mini_magick
+  minitest (< 5.15.0)
   minitest-bisect
   mocha
   mysql2 (>= 0.4.4)
@@ -498,7 +499,7 @@ DEPENDENCIES
   pg (>= 0.18.0)
   psych (~> 2.0)
   puma
-  que
+  que (<= 0.14.3)
   queue_classic!
   qunit-selenium
   racc (>= 1.4.6)
