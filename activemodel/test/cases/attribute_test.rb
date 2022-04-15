@@ -227,6 +227,47 @@ module ActiveModel
 
       assert changed.changed? # Check to avoid a false positive
       assert_not_predicate forgotten, :changed?
+      assert_equal "foo", forgotten.value
+    end
+
+    class SerializingNonDeserializingType < Type::String
+      def serialize(value)
+        "serialized: #{value}"
+      end
+    end
+
+    test "forgetting assignments works when serialize/deserialize are not inverse" do
+      from_user = Attribute.from_user(:custom, "foo", SerializingNonDeserializingType.new).forgetting_assignment
+      from_db = Attribute.from_database(:custom, "foo", SerializingNonDeserializingType.new).forgetting_assignment
+      from_cast = Attribute.with_cast_value(:custom, "foo", SerializingNonDeserializingType.new).forgetting_assignment
+
+      assert_equal "foo", from_user.value
+      assert_equal "foo", from_db.value
+      assert_equal "foo", from_cast.value
+    end
+
+    test "forgetting assignments after assigning attribute" do
+      from_db = Attribute.from_database(:custom, +"bar", Type::String.new)
+      assigned = from_db.with_value_from_user("foo")
+      forgotten = assigned.forgetting_assignment
+
+      assert assigned.changed?
+      assert_not_predicate forgotten, :changed?
+      assert_equal "foo", forgotten.value
+    end
+
+    test "forgetting assignments after in-place mutation" do
+      from_user = Attribute.from_user(:custom, +"foo", Type::String.new)
+      from_db = Attribute.from_database(:custom, +"foo", Type::String.new)
+      from_cast = Attribute.with_cast_value(:custom, +"foo", Type::String.new)
+
+      from_user.value << " user"
+      from_db.value << " db"
+      from_cast.value << " cast"
+
+      assert_equal "foo user", from_user.forgetting_assignment.value
+      assert_equal "foo db", from_db.forgetting_assignment.value
+      assert_equal "foo cast", from_cast.forgetting_assignment.value
     end
 
     test "with_value_from_user validates the value" do

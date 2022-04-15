@@ -68,8 +68,16 @@ module ActiveModel
       has_been_read? && type.changed_in_place?(original_value_for_database, value)
     end
 
+    # Returns an attribute that no longer remembers previous assignments.
     def forgetting_assignment
-      with_value_from_database(value_for_database)
+      case
+      when changed_in_place?
+        with_cast_value(value)
+      when changed_from_assignment?
+        dup_with_forgetting_assignment
+      else
+        self
+      end
     end
 
     def with_value_from_user(value)
@@ -155,12 +163,23 @@ module ActiveModel
         end
       end
 
+      def dup_with_forgetting_assignment
+        self.dup.forget_original_assignment!
+      end
+
       def changed_from_assignment?
         assigned? && type.changed?(original_value, value, value_before_type_cast)
       end
 
       def _original_value_for_database
         type.serialize(original_value)
+      end
+
+    protected
+      # only used when duplicating attribute before ever returning to the user
+      def forget_original_assignment!
+        @original_attribute = nil
+        self
       end
 
       class FromDatabase < Attribute # :nodoc:
@@ -185,13 +204,22 @@ module ActiveModel
       end
 
       class WithCastValue < Attribute # :nodoc:
+        def initialize(*args, &block)
+          super
+
+          @initial_cast_value = !value_before_type_cast || value_before_type_cast.frozen? ? value_before_type_cast : value_before_type_cast.dup.freeze
+        end
+
         def type_cast(value)
           value
         end
 
         def changed_in_place?
-          false
+          initial_cast_value != value
         end
+
+        private
+          attr_reader :initial_cast_value
       end
 
       class Null < Attribute # :nodoc:
