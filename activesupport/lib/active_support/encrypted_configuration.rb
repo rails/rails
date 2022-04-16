@@ -8,8 +8,7 @@ require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
   class EncryptedConfiguration < EncryptedFile
-    delegate :[], :fetch, to: :config
-    delegate_missing_to :options
+    delegate_missing_to :config
 
     def initialize(config_path:, key_path:, env_key:, raise_if_missing_key:)
       super content_path: config_path, key_path: key_path,
@@ -30,7 +29,7 @@ module ActiveSupport
     end
 
     def config
-      @config ||= deserialize(read).deep_symbolize_keys
+      @config ||= deep_transform(deserialize(read))
     end
 
     private
@@ -42,10 +41,6 @@ module ActiveSupport
           h[k] = deep_transform(v)
         end
         h
-      end
-
-      def options
-        @options ||= ActiveSupport::InheritableOptions.new(deep_transform(config))
       end
 
       def deserialize(config)

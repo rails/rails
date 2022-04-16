@@ -55,6 +55,38 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert_equal @credentials.config, {}
   end
 
+  test "reading config from configuration" do
+    @credentials.write({ something: { good: true, bad: false, nested: { foo: "bar" } } }.to_yaml)
+    assert_equal @credentials.config, { something: { good: true, bad: false, nested: { foo: "bar" } } }
+  end
+
+  test "reading config from configuration via methods" do
+    @credentials.write({ something: { good: true, bad: false, nested: { foo: "bar" } } }.to_yaml)
+    assert_equal @credentials.config, { something: { good: true, bad: false, nested: { foo: "bar" } } }
+    assert_equal @credentials.config.something, { good: true, bad: false, nested: { foo: "bar" } }
+    assert_equal @credentials.config.something.good, true
+    assert_equal @credentials.config.something.bad, false
+    assert_equal @credentials.config.something.nested, { foo: "bar" }
+  end
+
+  test "reading config from configuration via symbols" do
+    @credentials.write({ something: { good: true, bad: false, nested: { foo: "bar" } } }.to_yaml)
+    assert_equal @credentials.config, { something: { good: true, bad: false, nested: { foo: "bar" } } }
+    assert_equal @credentials.config[:something], { good: true, bad: false, nested: { foo: "bar" } }
+    assert_equal @credentials.config[:something][:good], true
+    assert_equal @credentials.config[:something][:bad], false
+    assert_equal @credentials.config[:something][:nested], { foo: "bar" }
+  end
+
+  test "reading config from configuration via strings" do
+    @credentials.write({ something: { good: true, bad: false, nested: { foo: "bar" } } }.to_yaml)
+    assert_equal @credentials.config, { something: { good: true, bad: false, nested: { foo: "bar" } } }
+    assert_equal @credentials.config["something"], { good: true, bad: false, nested: { foo: "bar" } }
+    assert_equal @credentials.config["something"]["good"], true
+    assert_equal @credentials.config["something"]["bad"], false
+    assert_equal @credentials.config["something"]["nested"], { foo: "bar" }
+  end
+
   test "change configuration by key file" do
     @credentials.write({ something: { good: true } }.to_yaml)
     @credentials.change do |config_file|
