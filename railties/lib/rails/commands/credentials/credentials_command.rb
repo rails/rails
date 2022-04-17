@@ -92,7 +92,7 @@ module Rails
 
         def change_credentials_in_system_editor
           credentials.change do |tmp_path|
-            system("#{ENV["EDITOR"]} #{Shellwords.escape(tmp_path)}")
+            system(*Shellwords.split(ENV["EDITOR"]), tmp_path.to_s)
           end
         end
 
