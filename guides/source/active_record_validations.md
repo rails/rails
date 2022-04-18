@@ -190,7 +190,7 @@ Note that an object instantiated with `new` will not report errors
 even if it's technically invalid, because validations are automatically run
 only when the object is saved, such as with the `create` or `save` methods.
 
-```
+```ruby
 class Person < ApplicationRecord
   validates :name, presence: true
 end
