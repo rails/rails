@@ -201,6 +201,12 @@ You can also run commands that should abort application generation if they fail:
 rails_command "db:migrate", abort_on_failure: true
 ```
 
+You can also run commands with the `inline` option. This will run the command directly, instead of shelling out.
+
+```ruby
+rails_command "db:migrate", inline: true
+```
+
 ### route(routing_code)
 
 Adds a routing entry to the `config/routes.rb` file. In the steps above, we generated a person scaffold and also removed `README.rdoc`. Now, to make `PeopleController#index` the default page for the application:
