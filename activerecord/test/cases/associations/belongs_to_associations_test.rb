@@ -250,6 +250,30 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_not_equal sql, capture_sql { comment.post }
   end
 
+  def test_initial
+    david = developers(:david)
+    jamis = developers(:jamis)
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "ships"
+      def self.name; "Temp"; end
+      belongs_to :developer, initial: -> { david }, optional: true
+    end
+
+    ship = model.new
+    assert_equal david, ship.developer
+
+    ship = model.new(developer: nil)
+    assert_nil ship.developer
+
+    ship = model.new(developer: jamis)
+    assert_equal jamis, ship.developer
+
+    ship = model.create!
+    ship.update!(developer: nil)
+    assert_nil model.first.developer
+  end
+
   def test_proxy_assignment
     account = Account.find(1)
     assert_nothing_raised { account.firm = account.firm }
