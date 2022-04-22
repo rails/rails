@@ -155,6 +155,14 @@ module ActiveRecord
 
       mattr_accessor :legacy_connection_handling, instance_writer: false, default: true
 
+      # Application configurable boolean that instructs the YAML Coder to use
+      # an unsafe load if set to true.
+      mattr_accessor :use_yaml_unsafe_load, instance_writer: false, default: false
+
+      # Application configurable array that provides additional permitted classes
+      # to Psych safe_load in the YAML Coder
+      mattr_accessor :yaml_column_permitted_classes, instance_writer: false, default: []
+
       self.filter_attributes = []
 
       def self.connection_handler
