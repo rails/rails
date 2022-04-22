@@ -571,6 +571,30 @@ module ApplicationTests
       assert_no_match "create_table(:users)", output
     end
 
+    def test_run_serially_with_parallel_processes_testing
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes)
+
+      parallel_test_file_name = create_parallel_processes_test_file
+
+      serial_test_file_name = app_file("test/models/serial_test.rb", <<-RUBY)
+        require "test_helper"
+
+        class SerialTest < ActiveSupport::TestCase
+          def self.test_order
+            Minitest::Test.test_order
+          end
+
+          test "something" do
+            assert true
+          end
+        end
+      RUBY
+
+      output = run_test_command("#{parallel_test_file_name} #{serial_test_file_name}")
+
+      assert_match %r{Running \d+ tests in parallel using \d+ processes and 1 serial tests.}, output
+    end
+
     def test_parallelization_is_disabled_when_number_of_tests_is_below_threshold
       exercise_parallelization_regardless_of_machine_core_count(with: :processes, threshold: 100)
 

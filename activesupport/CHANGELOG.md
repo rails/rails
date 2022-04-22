@@ -1,3 +1,10 @@
+*   Allow some tests to run serially while using parallel testing
+
+    `ActiveSupport::TestCase` runs serially when [Minitest::Test.test_order](https://github.com/seattlerb/minitest/blob/master/lib/minitest/test.rb#L83) is not `:parallel` to respect default Minitest behaviour.
+
+    *Louis Boudreau*
+    
+
 *   Deprecate preserving the pre-Ruby 2.4 behavior of `to_time`
 
     With Ruby 2.4+ the default for +to_time+ changed from converting to the

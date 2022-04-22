@@ -84,6 +84,7 @@ module ActiveSupport
         return if workers <= 1
 
         Minitest.parallel_executor = ActiveSupport::Testing::ParallelizeExecutor.new(size: workers, with: with, threshold: threshold)
+        ActiveSupport.test_order = :parallel
       end
 
       # Set up hook for parallel testing. This can be used if you have multiple

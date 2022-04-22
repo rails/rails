@@ -45,7 +45,7 @@ module ActiveSupport
 
         def parallelize
           @parallelized = true
-          Minitest::Test.parallelize_me!
+          parallel_test_suites.map(&:parallelize_me!)
         end
 
         def parallelized?
@@ -53,11 +53,26 @@ module ActiveSupport
         end
 
         def should_parallelize?
-          ENV["PARALLEL_WORKERS"] || tests_count > threshold
+          ENV["PARALLEL_WORKERS"] || tests_count[:parallel] > threshold
+        end
+
+        def parallel_test_suites
+          Minitest::Runnable.runnables.select { |runnable| runnable.test_order == :parallel && !runnable.runnable_methods.empty? }
         end
 
         def tests_count
-          @tests_count ||= Minitest::Runnable.runnables.sum { |runnable| runnable.runnable_methods.size }
+          @tests_count ||= begin
+            suites = Minitest::Runnable.runnables.reject { |s| s.runnable_methods.empty? }
+            parallel, serial = suites.partition { |s| s.test_order == :parallel }
+            {
+              parallel: parallel.sum(&method(:runnable_tests_count)),
+              serial: serial.sum(&method(:runnable_tests_count))
+            }
+          end
+        end
+
+        def runnable_tests_count(runnable)
+          runnable.runnable_methods.size
         end
 
         def show_execution_info
@@ -66,9 +81,10 @@ module ActiveSupport
 
         def execution_info
           if parallelized?
-            "Running #{tests_count} tests in parallel using #{parallel_executor.size} #{parallelize_with}"
+            parallelized_execution_info = "Running #{tests_count[:parallel]} tests in parallel using #{parallel_executor.size} #{parallelize_with}"
+            tests_count[:serial] > 0 ? parallelized_execution_info + " and #{tests_count[:serial]} serial tests." : parallelized_execution_info
           else
-            "Running #{tests_count} tests in a single process (parallelization threshold is #{threshold})"
+            "Running #{tests_count.values.sum} tests in a single process (parallelization threshold is #{threshold})"
           end
         end
     end
