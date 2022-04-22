@@ -176,6 +176,10 @@ module ActionDispatch
   #   Default is +false+.
   # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
   #   only HTTP. Defaults to +false+.
+  # * <tt>:same_site</tt> - The value of the +SameSite+ cookie attribute, which
+  #   determines how this cookie should be restricted in cross-site contexts.
+  #   Possible values are +nil+, +:none+, +:lax+, and +:strict+. Defaults to
+  #   +:lax+.
   class Cookies
     HTTP_HEADER   = "Set-Cookie"
     GENERATOR_KEY = "action_dispatch.key_generator"
