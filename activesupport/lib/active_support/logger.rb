@@ -78,7 +78,7 @@ module ActiveSupport
 
     def initialize(*args, **kwargs)
       super
-      @formatter = SimpleFormatter.new
+      @formatter ||= SimpleFormatter.new
     end
 
     # Simple formatter which only displays the message.

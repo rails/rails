@@ -1,16 +1,25 @@
+*   Respect `ActiveSupport::Logger.new`'s `:formatter` keyword argument
+
+    The stdlib `Logger::new` allows passing a `:formatter` keyword argument to
+    set the logger's formatter. Previously `ActiveSupport::Logger.new` ignored
+    that argument by always setting the formatter to an instance of
+    `ActiveSupport::Logger::SimpleFormatter`.
+
+    *Steven Harman*
+
 *   Deprecate preserving the pre-Ruby 2.4 behavior of `to_time`
 
     With Ruby 2.4+ the default for +to_time+ changed from converting to the
     local system time to preserving the offset of the receiver. At the time Rails
     supported older versions of Ruby so a compatibility layer was added to assist
-    in the migration process. From Rails 5.0 new applications have defaulted to 
+    in the migration process. From Rails 5.0 new applications have defaulted to
     the Ruby 2.4+ behavior and since Rails 7.0 now only supports Ruby 2.7+
     this compatibility layer can be safely removed.
-    
+
     To minimize any noise generated the deprecation warning only appears when the
     setting is configured to `false` as that is the only scenario where the
     removal of the compatibility layer has any effect.
-    
+
     *Andrew White*
 
 *   `Pathname.blank?` only returns true for `Pathname.new("")`

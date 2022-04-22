@@ -71,6 +71,17 @@ class LoggerTest < ActiveSupport::TestCase
     File.unlink fname
   end
 
+  def test_defaults_to_simple_formatter
+    logger = Logger.new(@output)
+    assert_instance_of ActiveSupport::Logger::SimpleFormatter, logger.formatter
+  end
+
+  def test_formatter_can_be_set_via_keyword_arg
+    custom_formatter = ::Logger::Formatter.new
+    logger = Logger.new(@output, formatter: custom_formatter)
+    assert_same custom_formatter, logger.formatter
+  end
+
   def test_should_log_debugging_message_when_debugging
     @logger.level = Logger::DEBUG
     @logger.add(Logger::DEBUG, @message)
