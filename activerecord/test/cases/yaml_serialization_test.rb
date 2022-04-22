@@ -24,8 +24,8 @@ class YamlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_roundtrip_serialized_column
-    topic = Topic.new(content: { omg: :lol })
-    assert_equal({ omg: :lol }, YAML.load(YAML.dump(topic)).content)
+    topic = Topic.new(content: { "omg" => "lol" })
+    assert_equal({ "omg" => "lol" }, YAML.load(YAML.dump(topic)).content)
   end
 
   def test_psych_roundtrip
@@ -94,12 +94,12 @@ class YamlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_deserializing_rails_41_yaml
-    topic = YAML.load(yaml_fixture("rails_4_1"))
+    topic = YAML.load(yaml_fixture("rails_4_1_no_symbol"))
 
     assert_predicate topic, :new_record?
     assert_nil topic.id
     assert_equal "The First Topic", topic.title
-    assert_equal({ omg: :lol }, topic.content)
+    assert_equal({ "omg" => "lol" }, topic.content)
   end
 
   def test_deserializing_rails_4_2_0_yaml
