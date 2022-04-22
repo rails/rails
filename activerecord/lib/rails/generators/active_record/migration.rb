@@ -44,7 +44,7 @@ module ActiveRecord
             env_name: Rails.env,
             name: options[:database],
           )).first
-          config&.migrations_paths&.first
+          Array(config&.migrations_paths).first
         end
     end
   end
