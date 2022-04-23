@@ -1,3 +1,12 @@
+*   Allow overriding `reading_request?` in `DatabaseSelector::Resolver`
+
+    The default implementation checks if a request is a `get?` or `head?`,
+    but you can now change it to anything you like. If the method returns true,
+    `Resolver#read` gets called meaning the request could be served by the
+    replica database.
+
+    *Alex Ghiculescu*
+
 *   Remove `ActiveRecord.legacy_connection_handling`.
 
     *Eileen M. Uchitelle*

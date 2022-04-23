@@ -71,7 +71,7 @@ module ActiveRecord
           context = context_klass.call(request)
           resolver = resolver_klass.call(context, options)
 
-          response = if reading_request?(request)
+          response = if resolver.reading_request?(request)
             resolver.read(&blk)
           else
             resolver.write(&blk)
@@ -79,10 +79,6 @@ module ActiveRecord
 
           resolver.update_context(response)
           response
-        end
-
-        def reading_request?(request)
-          request.get? || request.head?
         end
     end
   end
