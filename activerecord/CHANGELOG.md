@@ -1,3 +1,16 @@
+*   Show reason for referential integrity failure
+
+    Previously, if there were any referential integrity errors in your fixtures,
+    the underlying Postgres and SQLite adapters would throw an error. However,
+    the original error message is swallowed in `all_foreign_keys_valid?` and
+    return false. This gave the developer very little information on where to
+    start debugging.
+
+    This replaces `all_foreign_keys_valid?` with `check_all_foreign_keys_valid`
+    to raise more useful errors instead of just returning false
+
+    *Danielle Smith*
+
 *   Add `timestamptz` as a time zone aware type for PostgreSQL
 
     This is required for correctly parsing `timestamp with time zone` values in your database.

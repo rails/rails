@@ -818,9 +818,10 @@ class FixturesWithForeignKeyViolationsTest < ActiveRecord::TestCase
 
     with_verify_foreign_keys_for_fixtures do
       if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
-        assert_raise RuntimeError do
+        error = assert_raises RuntimeError do
           ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
         end
+        assert_match(/fk_pointing_to_non_existent_objects/, error.message)
       else
         assert_nothing_raised do
           ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])

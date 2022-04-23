@@ -530,6 +530,12 @@ module ActiveRecord
       @connection.disable_query_cache!
     end
 
+    def test_all_foreign_keys_valid_is_deprecated
+      assert_deprecated do
+        @connection.all_foreign_keys_valid?
+      end
+    end
+
     # test resetting sequences in odd tables in PostgreSQL
     if ActiveRecord::Base.connection.respond_to?(:reset_pk_sequence!)
       require "models/movie"

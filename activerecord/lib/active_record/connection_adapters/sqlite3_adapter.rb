@@ -231,8 +231,13 @@ module ActiveRecord
         end
       end
 
-      def all_foreign_keys_valid? # :nodoc:
-        execute("PRAGMA foreign_key_check").blank?
+      def check_all_foreign_keys_valid # :nodoc:
+        sql = "PRAGMA foreign_key_check"
+        result = execute(sql)
+        return true if result.blank?
+
+        tables = result.map { |row| row["table"] }
+        raise ActiveRecord::StatementInvalid.new("Foreign key violations found: #{tables.join(", ")}", sql: sql)
       end
 
       # SCHEMA STATEMENTS ========================================
