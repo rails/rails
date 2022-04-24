@@ -86,6 +86,12 @@ class TextHelperTest < ActionView::TestCase
     assert_equal options, passed_options
   end
 
+  def test_simple_format_with_blank_wrapper_tag
+    assert_equal "<p></p>", simple_format(nil, {}, { wrapper_tag: "" })
+    assert_equal "<p></p>", simple_format(nil, {}, { wrapper_tag: :"" })
+    assert_equal "<p></p>", simple_format(nil, {}, { wrapper_tag: nil })
+  end
+
   def test_truncate
     assert_equal "Hello World!", truncate("Hello World!", length: 12)
     assert_equal "Hello Wor...", truncate("Hello World!!", length: 12)

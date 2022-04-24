@@ -304,7 +304,7 @@ module ActionView
       #   simple_format("<blink>Blinkable!</blink> It's true.", {}, sanitize: false)
       #   # => "<p><blink>Blinkable!</blink> It's true.</p>"
       def simple_format(text, html_options = {}, options = {})
-        wrapper_tag = options.fetch(:wrapper_tag, :p)
+        wrapper_tag = options.fetch(:wrapper_tag, :p).presence || :p
 
         text = sanitize(text) if options.fetch(:sanitize, true)
         paragraphs = split_paragraphs(text)
