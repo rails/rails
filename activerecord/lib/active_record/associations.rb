@@ -1734,8 +1734,6 @@ module ActiveRecord
         #   using +attr_readonly+.
         # [:polymorphic]
         #   Specify this association is a polymorphic association by passing +true+.
-        #   Note: If you've enabled the counter cache, then you may want to add the counter cache attribute
-        #   to the +attr_readonly+ list in the associated classes (e.g. <tt>class Post; attr_readonly :comments_count; end</tt>).
         # [:validate]
         #   When set to +true+, validates new objects added to association when saving the parent object. +false+ by default.
         #   If you want to ensure associated objects are revalidated on every update, use +validates_associated+.
