@@ -7,7 +7,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.valid_options(options)
-      valid = super + [:polymorphic, :counter_cache, :optional, :default]
+      valid = super + [:polymorphic, :counter_cache, :optional, :default, :initial]
       valid += [:foreign_type] if options[:polymorphic]
       valid += [:ensuring_owner_was] if options[:dependent] == :destroy_async
       valid
@@ -22,6 +22,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
       add_counter_cache_callbacks(model, reflection) if reflection.options[:counter_cache]
       add_touch_callbacks(model, reflection)         if reflection.options[:touch]
       add_default_callbacks(model, reflection)       if reflection.options[:default]
+      if reflection.options[:initial]
+        model.attribute(reflection.foreign_key,
+                        default: -> { reflection.options[:initial].call.send(reflection.association_primary_key) })
+      end
     end
 
     def self.add_counter_cache_callbacks(model, reflection)

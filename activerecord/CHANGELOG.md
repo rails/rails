@@ -1,3 +1,9 @@
+*   Add `initial` option to `belongs_to` association.
+
+    Set an initial value for `belongs_to` associations that takes affect when the owner is first instantiated.
+    Differs from `default` in being set upon instantiation rather than before validation and in allowing an association
+    to be set to nil rather than setting nil associations back to the default before validation.
+
 *   Remove `ActiveRecord.legacy_connection_handling`.
 
     *Eileen M. Uchitelle*
