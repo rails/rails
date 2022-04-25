@@ -47,6 +47,11 @@ class DelegatedTypeTest < ActiveRecord::TestCase
     assert Entry.comments.first.comment?
   end
 
+  test "negative scope" do
+    assert Entry.not_messages.first.comment?
+    assert Entry.not_comments.first.message?
+  end
+
   test "accessor" do
     assert @entry_with_message.message.is_a?(Message)
     assert_nil @entry_with_message.comment
