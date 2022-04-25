@@ -125,7 +125,7 @@ module Rails
         else
           # Default concurrency setting: enabled, but safe
 
-          if config.reloading_enabled? || !config.eager_load
+          if config.reloading_enabled?
             app.executor.register_hook(InterlockHook, outer: true)
           end
         end
