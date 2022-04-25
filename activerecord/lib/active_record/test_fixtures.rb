@@ -67,6 +67,9 @@ module ActiveRecord
         end
       end
 
+      # Prevents automatically wrapping each specified test in a transaction,
+      # to allow application logic transactions to be tested in a top-level
+      # (non-nested) context.
       def uses_transaction(*methods)
         @uses_transaction = [] unless defined?(@uses_transaction)
         @uses_transaction.concat methods.map(&:to_s)
