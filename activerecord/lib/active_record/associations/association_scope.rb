@@ -145,6 +145,7 @@ module ActiveRecord
               scope.unscope!(*item.unscope_values)
               scope.where_clause += item.where_clause
               scope.order_values = item.order_values | scope.order_values
+              scope.default_order_values = item.default_order_values | scope.default_order_values
             end
           end
 

@@ -288,6 +288,7 @@ module ActiveRecord
       def scope
         scope = super
         scope.none! if null_scope?
+        scope.default_order!(options[:default_order]) if options[:default_order].present?
         scope
       end
 
