@@ -1,3 +1,12 @@
+## Rails 6.1.5.1 (April 26, 2022) ##
+
+*   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
+
+    Add the method `ERB::Util.xml_name_escape` to escape dangerous characters
+    in names of tags and names of attributes, following the specification of XML.
+
+    *Álvaro Martín Fraguas*
+
 ## Rails 6.1.5 (March 09, 2022) ##
 
 *   Fix `ActiveSupport::Duration.build` to support negative values.

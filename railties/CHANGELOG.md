@@ -1,3 +1,8 @@
+## Rails 6.1.5.1 (April 26, 2022) ##
+
+*   No changes.
+
+
 ## Rails 6.1.5 (March 09, 2022) ##
 
 *   In `zeitwerk` mode, setup the `once` autoloader first, and the `main` autoloader after it.

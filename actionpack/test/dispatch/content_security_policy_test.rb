@@ -385,6 +385,11 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
 
     content_security_policy_report_only only: :report_only
 
+    content_security_policy only: :api do |p|
+      p.default_src :none
+      p.frame_ancestors :none
+    end
+
     def index
       head :ok
     end
@@ -413,6 +418,10 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       head :ok
     end
 
+    def api
+      render json: {}
+    end
+
     private
       def condition?
         params[:condition] == "true"
@@ -429,6 +438,7 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       get "/script-src", to: "policy#script_src"
       get "/style-src", to: "policy#style_src"
       get "/no-policy", to: "policy#no_policy"
+      get "/api", to: "policy#api"
     end
   end
 
@@ -498,6 +508,11 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
 
     assert_nil response.headers["Content-Security-Policy"]
     assert_nil response.headers["Content-Security-Policy-Report-Only"]
+  end
+
+  def test_generates_api_security_policy
+    get "/api"
+    assert_policy "default-src 'none'; frame-ancestors 'none'"
   end
 
   private

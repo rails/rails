@@ -1,3 +1,8 @@
+## Rails 6.1.5.1 (April 26, 2022) ##
+
+*   No changes.
+
+
 ## Rails 6.1.5 (March 09, 2022) ##
 
 *   Add `attachments` to the list of permitted parameters for inbound emails conductor.
