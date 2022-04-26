@@ -1,3 +1,8 @@
+## Rails 6.1.5.1 (April 26, 2022) ##
+
+*   No changes.
+
+
 ## Rails 6.1.5 (March 09, 2022) ##
 
 *   Fix `ActiveRecord::ConnectionAdapters::SchemaCache#deep_deduplicate` for Ruby 2.6.
