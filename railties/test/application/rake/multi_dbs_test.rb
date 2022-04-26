@@ -852,6 +852,28 @@ module ApplicationTests
         end
       end
 
+      test "db:prepare runs seeds once" do
+        require "#{app_path}/config/environment"
+        Dir.chdir(app_path) do
+          use_postgresql(multi_db: true)
+
+          rails "db:drop"
+          generate_models_for_animals
+          rails "generate", "model", "recipe", "title:string"
+
+          app_file "db/seeds.rb", <<-RUBY
+            Dog.create!
+          RUBY
+
+          rails("db:prepare")
+
+          assert_equal 1, Dog.count
+        ensure
+          Dog.connection.disconnect!
+          rails "db:drop" rescue nil
+        end
+      end
+
       test "db:seed uses primary database connection" do
         @old_rails_env = ENV["RAILS_ENV"]
         @old_rack_env = ENV["RACK_ENV"]
