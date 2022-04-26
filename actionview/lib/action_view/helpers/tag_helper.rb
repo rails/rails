@@ -122,7 +122,7 @@ module ActionView
             escape_attributes_option_provided = options.has_key?(:escape_attributes)
 
             if escape_attributes_option_provided
-              ActiveSupport::Deprecation.warn(<<~MSG)
+              ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
                 Use of the option :escape_attributes is deprecated. It currently \
                 escapes both names and values of tags and attributes and it is \
                 equivalent to :escape. If any of them are enabled, the escaping \
