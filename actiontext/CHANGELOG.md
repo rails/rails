@@ -9,6 +9,10 @@
 
     *Jonathan Hefner*
 
+## Rails 6.0.4.8 (April 26, 2022) ##
+
+*   No changes.
+
 
 ## Rails 6.0.4.7 (March 08, 2022) ##
 
