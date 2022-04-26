@@ -10,7 +10,7 @@ module ActionMailer
     MAJOR = 5
     MINOR = 2
     TINY  = 7
-    PRE   = nil
+    PRE   = "1"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end

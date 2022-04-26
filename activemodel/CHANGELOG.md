@@ -1,3 +1,8 @@
+## Rails 5.2.7.1 (April 26, 2022) ##
+
+*   No changes.
+
+
 ## Rails 5.2.7 (March 10, 2022) ##
 
 *   No changes.
