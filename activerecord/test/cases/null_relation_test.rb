@@ -104,4 +104,15 @@ class NullRelationTest < ActiveRecord::TestCase
     assert_operator Comment.count, :>, 0 # precondition, make sure there are comments.
     assert_equal 0, Comment.where(post_id: Post.none).count
   end
+
+  class AbstractRecord < ActiveRecord::Base
+    self.abstract_class = true
+  end
+
+  def test_abstract_model
+    # The following used to work on 6.1 even though it isn't documented or anything.
+    # It would be worth deprecating calling `#none` on an abstract model.
+    assert_not_equal Comment.none, AbstractRecord.none
+    assert_equal "", AbstractRecord.none.to_sql
+  end
 end
