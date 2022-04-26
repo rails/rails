@@ -92,6 +92,7 @@ module ActiveRecord
     autoload :AutosaveAssociation
     autoload :ConnectionAdapters
     autoload :DisableJoinsAssociationRelation
+    autoload :Promise
     autoload :FutureResult
     autoload :LegacyYamlAdapter
     autoload :NullRelation

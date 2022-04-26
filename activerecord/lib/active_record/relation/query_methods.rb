@@ -1314,7 +1314,16 @@ module ActiveRecord
       end
       alias :build_having_clause :build_where_clause
 
+      def async!
+        @async = true
+        self
+      end
+
     private
+      def async
+        spawn.async!
+      end
+
       def lookup_table_klass_from_join_dependencies(table_name)
         each_join_dependencies do |join|
           return join.base_klass if table_name == join.table_name
