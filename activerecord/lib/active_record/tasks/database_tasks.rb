@@ -186,8 +186,9 @@ module ActiveRecord
       end
 
       def prepare_all
+        seed = false
+
         each_current_configuration(env) do |db_config|
-          seed = false
           ActiveRecord::Base.establish_connection(db_config)
 
           begin
@@ -212,10 +213,10 @@ module ActiveRecord
 
             seed = true
           end
-
-          ActiveRecord::Base.establish_connection
-          load_seed if seed
         end
+
+        ActiveRecord::Base.establish_connection
+        load_seed if seed
       end
 
       def drop(configuration, *arguments)
