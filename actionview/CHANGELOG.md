@@ -1,3 +1,5 @@
+## Rails 5.2.7.1 (April 26, 2022) ##
+
 *   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
 
     Escape dangerous characters in names of tags and names of attributes in the
