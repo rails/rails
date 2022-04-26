@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 *   Don't stream responses in redirect mode
 
     Previously, both redirect mode and proxy mode streamed their
@@ -8,11 +7,10 @@
     streamed.
 
     *Luke Lau*
-=======
+
 ## Rails 7.0.2.4 (April 26, 2022) ##
 
 *   No changes.
->>>>>>> 7-0-sec
 
 
 ## Rails 7.0.2.3 (March 08, 2022) ##
