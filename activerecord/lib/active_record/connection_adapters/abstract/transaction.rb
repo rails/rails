@@ -326,10 +326,12 @@ module ActiveRecord
               )
             end
 
-          if @connection.supports_lazy_transactions? && lazy_transactions_enabled? && _lazy
-            @has_unmaterialized_transactions = true
-          else
-            transaction.materialize!
+          unless transaction.materialized?
+            if @connection.supports_lazy_transactions? && lazy_transactions_enabled? && _lazy
+              @has_unmaterialized_transactions = true
+            else
+              transaction.materialize!
+            end
           end
           @stack.push(transaction)
           transaction
