@@ -221,7 +221,7 @@ module ActionController # :nodoc:
         end
 
         def is_storage_strategy?(object)
-          object.respond_to?(:fetch) && object.respond_to?(:store)
+          object.respond_to?(:fetch) && object.respond_to?(:store) && object.respond_to?(:reset)
         end
     end
 
