@@ -380,7 +380,7 @@ The following is an example for rotator for the encrypted and the signed cookies
 # config/initializers/cookie_rotator.rb
 Rails.application.config.after_initialize do
   Rails.application.config.action_dispatch.cookies_rotations.tap do |cookies|
-    encrypted_salt = Rails.application.config.action_dispatch.authenticated_encrypted_cookie_salt
+    authenticated_encrypted_cookie_salt = Rails.application.config.action_dispatch.authenticated_encrypted_cookie_salt
     signed_cookie_salt = Rails.application.config.action_dispatch.signed_cookie_salt
 
     secret_key_base = Rails.application.secret_key_base
@@ -390,7 +390,7 @@ Rails.application.config.after_initialize do
     )
     key_len = ActiveSupport::MessageEncryptor.key_len
 
-    old_encrypted_secret = key_generator.generate_key(encrypted_salt, key_len)
+    old_encrypted_secret = key_generator.generate_key(authenticated_encrypted_cookie_salt, key_len)
     old_signed_secret = key_generator.generate_key(signed_cookie_salt)
 
     cookies.rotate :encrypted, old_encrypted_secret
