@@ -583,3 +583,23 @@ Rails also doesn't support automatic load balancing of replicas. This is very
 dependent on your infrastructure. We may implement basic, primitive load balancing
 in the future, but for an application at scale this should be something your application
 handles outside of Rails.
+
+### Working With Multiple Databases On Rails Console
+
+By default, Rails console connects solely to your default database. Consider the following configuration.
+
+```ruby
+class ApplicationRecord < ActiveRecord::Base
+  self.abstract_class = true
+
+  connects_to database: { writing: :primary, reading: :primary_replica }
+end
+```
+Despite the above, executing `ActiveRecord::Base.connected_to?(role: :reading)` returns `false`. You may, however, force additional connections by wrapping blocks in connects_to requests:
+
+```ruby
+Person.first # Queries the default database
+ApplicationRecord.connected_to(role: :reading) do
+  Person.first # Queries the replica database
+end
+```
