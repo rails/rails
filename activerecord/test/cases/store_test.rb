@@ -3,12 +3,14 @@
 require "cases/helper"
 require "models/admin"
 require "models/admin/user"
+require "models/admin/user_json"
 
 class StoreTest < ActiveRecord::TestCase
   fixtures :'admin/users'
 
   setup do
     @john = Admin::User.create!(name: "John Doe", color: "black", remember_login: true, height: "tall", is_a_good_guy: true)
+    ActiveRecord::Base.use_yaml_unsafe_load = true
   end
 
   test "reading store attributes through accessors" do
@@ -90,7 +92,7 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal "heavy", @john.json_data["weight"]
   end
 
-  test "convert store attributes from Hash to HashWithIndifferentAccess saving the data and access attributes indifferently" do
+def test_convert_store_attributes_from_Hash_to_HashWithIndifferentAccess_saving_the_data_and_access_attributes_indifferently
     user = Admin::User.find_by_name("Jamis")
     assert_equal "symbol",  user.settings[:symbol]
     assert_equal "symbol",  user.settings["symbol"]
@@ -193,5 +195,18 @@ class StoreTest < ActiveRecord::TestCase
 
     second_dump = YAML.dump(loaded)
     assert_equal @john, YAML.load(second_dump)
+  end
+end
+
+class StoreTestWithYAMLSafeLoad < StoreTest
+  fixtures :'admin/users'
+
+  setup do
+    @john = Admin::UserJson.create!(name: "Jim Doe", color: "black", remember_login: true, height: "tall", is_a_good_guy: true)
+    ActiveRecord::Base.use_yaml_unsafe_load = false
+  end
+
+  def test_convert_store_attributes_from_Hash_to_HashWithIndifferentAccess_saving_the_data_and_access_attributes_indifferently
+    skip "Symbol is not a supported class in Psych::safe_load"
   end
 end
