@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_model/attribute"
+require "concurrent/map"
 
 module ActiveModel
   class AttributeSet # :nodoc:
@@ -25,7 +26,7 @@ module ActiveModel
       @types = types
       @additional_types = additional_types
       @default_attributes = default_attributes
-      @casted_values = {}
+      @casted_values = Concurrent::Map.new
       @materialized = false
     end
 
