@@ -989,6 +989,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "web-console"
   end
 
+  def test_name_option
+    run_generator [destination_root, "--name=my-app"]
+    assert_file "config/application.rb", /^module MyApp$/
+  end
+
   private
     def stub_rails_application(root = destination_root, &block)
       Rails.application.config.root = root

@@ -24,6 +24,9 @@ module Rails
       end
 
       def self.add_shared_options_for(name)
+        class_option :name,                type: :string, aliases: "-n",
+                                           desc: "Name of the app"
+
         class_option :template,            type: :string, aliases: "-m",
                                            desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
