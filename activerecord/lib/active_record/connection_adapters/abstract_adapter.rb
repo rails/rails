@@ -504,7 +504,7 @@ module ActiveRecord
       end
 
       def generate_advisory_lock_id
-        db_name_hash = Zlib.crc32(self.current_database)
+        db_name_hash = Zlib.crc32(current_database)
         Migrator::MIGRATOR_SALT * db_name_hash
       end
 
