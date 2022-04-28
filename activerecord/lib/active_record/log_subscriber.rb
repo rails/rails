@@ -51,7 +51,14 @@ module ActiveRecord
 
         binds = []
         payload[:binds].each_with_index do |attr, i|
-          attribute_name = attr.respond_to?(:name) ? attr.name : attr[i].name
+          attribute_name = if attr.respond_to?(:name)
+            attr.name
+          elsif attr.respond_to?(:[]) && attr[i].respond_to?(:name)
+            attr[i].name
+          else
+            nil
+          end
+
           filtered_params = filter(attribute_name, casted_params[i])
 
           binds << render_bind(attr, filtered_params)
