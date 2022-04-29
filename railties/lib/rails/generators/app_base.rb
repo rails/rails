@@ -369,7 +369,7 @@ module Rails
         return unless defined?(Rubinius)
 
         comment = "Use Psych as the YAML engine, instead of Syck, so serialized " \
-                  "data can be read safely from different rubies (see https://github.com/rubysl/rubysl-yaml/pull/3)"
+                  "data can be read safely from different rubies"
         GemfileEntry.new("psych", "~> 2.0", comment, platforms: :rbx)
       end
 
