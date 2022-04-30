@@ -139,13 +139,16 @@ module ActiveSupport
     # Some implementations may not support all methods beyond the basic cache
     # methods of +fetch+, +write+, +read+, +exist?+, and +delete+.
     #
-    # ActiveSupport::Cache::Store can store any serializable Ruby object.
+    # ActiveSupport::Cache::Store can store any Ruby object that is supported by
+    # its +coder+'s +dump+ and +load+ methods.
     #
     #   cache = ActiveSupport::Cache::MemoryStore.new
     #
     #   cache.read('city')   # => nil
     #   cache.write('city', "Duckburgh")
     #   cache.read('city')   # => "Duckburgh"
+    #
+    #   cache.write('not serializable', Proc.new {}) # => TypeError
     #
     # Keys are always translated into Strings and are case sensitive. When an
     # object is specified as a key and has a +cache_key+ method defined, this
