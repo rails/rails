@@ -41,6 +41,10 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_equal "", EncryptedBook.create!(name: "").name
   end
 
+  test "works with default values" do
+    assert_equal "", EncryptedBook.create!.name
+  end
+
   test "encrypts serialized attributes" do
     states = %i[ green red ]
     traffic_light = EncryptedTrafficLight.create!(state: states, long_state: states)
