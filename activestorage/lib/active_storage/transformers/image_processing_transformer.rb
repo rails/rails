@@ -27,6 +27,15 @@ module ActiveStorage
 
         def processor
           ImageProcessing.const_get(ActiveStorage.variant_processor.to_s.camelize)
+        rescue LoadError => error
+          if error.message.match?(/libvips/)
+            raise LoadError, <<~ERROR.squish
+              Your application is configured to use vips to process variants,
+              but libvips isn't installed
+            ERROR
+          end
+
+          raise
         end
 
         def operations

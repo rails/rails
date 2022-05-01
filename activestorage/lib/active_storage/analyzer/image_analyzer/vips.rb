@@ -24,8 +24,13 @@ module ActiveStorage
             {}
           end
         end
-      rescue LoadError
-        logger.info "Skipping image analysis because the ruby-vips gem isn't installed"
+      rescue LoadError => error
+        if error.message.match?(/libvips/)
+          logger.info "Skipping image analysis because libvips isn't installed"
+        else
+          logger.info "Skipping image analysis because the ruby-vips gem isn't installed"
+        end
+
         {}
       rescue ::Vips::Error => error
         logger.error "Skipping image analysis due to an Vips error: #{error.message}"
