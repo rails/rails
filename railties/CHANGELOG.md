@@ -1,3 +1,9 @@
+*   Execute `rails runner` scripts inside the executor.
+
+    Enables error reporting, query cache, etc.
+
+    *Jean Boussier*
+
 *   Avoid booting in development then test for test tasks.
 
     Running one of the rails test subtasks (e.g. test:system, test:models) would
