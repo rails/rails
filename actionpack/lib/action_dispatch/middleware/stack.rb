@@ -20,13 +20,13 @@ module ActionDispatch
         case middleware
         when Middleware
           klass == middleware.klass
-        when Class
+        when Module
           klass == middleware
         end
       end
 
       def inspect
-        if klass.is_a?(Class)
+        if klass.is_a?(Module)
           klass.to_s
         else
           klass.class.to_s
