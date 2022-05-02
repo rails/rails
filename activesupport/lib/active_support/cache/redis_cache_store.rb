@@ -60,6 +60,11 @@ module ActiveSupport
         if logger
           logger.error { "RedisCacheStore: #{method} failed, returned #{returning.inspect}: #{exception.class}: #{exception.message}" }
         end
+        ActiveSupport.error_reporter&.report(
+          exception,
+          severity: :warning,
+          source: "redis_cache_store.active_support",
+        )
       end
 
       # The maximum number of entries to receive per SCAN call.
@@ -460,7 +465,6 @@ module ActiveSupport
         def failsafe(method, returning: nil)
           yield
         rescue ::Redis::BaseError => error
-          ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
           @error_handler&.call(method: method, exception: error, returning: returning)
           returning
         end

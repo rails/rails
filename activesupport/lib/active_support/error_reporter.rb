@@ -40,6 +40,7 @@ module ActiveSupport
   #   end
   class ErrorReporter
     SEVERITIES = %i(error warning info)
+    DEFAULT_SOURCE = "application"
 
     attr_accessor :logger
 
@@ -54,17 +55,17 @@ module ActiveSupport
     #     1 + '1'
     #   end
     #
-    def handle(error_class = StandardError, severity: :warning, context: {}, fallback: nil)
+    def handle(error_class = StandardError, severity: :warning, context: {}, fallback: nil, source: DEFAULT_SOURCE)
       yield
     rescue error_class => error
-      report(error, handled: true, severity: severity, context: context)
+      report(error, handled: true, severity: severity, context: context, source: source)
       fallback.call if fallback
     end
 
-    def record(error_class = StandardError, severity: :error, context: {})
+    def record(error_class = StandardError, severity: :error, context: {}, source: DEFAULT_SOURCE)
       yield
     rescue error_class => error
-      report(error, handled: false, severity: severity, context: context)
+      report(error, handled: false, severity: severity, context: context, source: source)
       raise
     end
 
@@ -107,7 +108,7 @@ module ActiveSupport
     # When the block based +handle+ and +record+ methods are not suitable, you can directly use +report+
     #
     #   Rails.error.report(error)
-    def report(error, handled: true, severity: handled ? :warning : :error, context: {})
+    def report(error, handled: true, severity: handled ? :warning : :error, context: {}, source: DEFAULT_SOURCE)
       unless SEVERITIES.include?(severity)
         raise ArgumentError, "severity must be one of #{SEVERITIES.map(&:inspect).join(", ")}, got: #{severity.inspect}"
       end
@@ -116,7 +117,7 @@ module ActiveSupport
       disabled_subscribers = ActiveSupport::IsolatedExecutionState[self]
       @subscribers.each do |subscriber|
         unless disabled_subscribers&.any? { |s| s === subscriber }
-          subscriber.report(error, handled: handled, severity: severity, context: full_context)
+          subscriber.report(error, handled: handled, severity: severity, context: full_context, source: source)
         end
       rescue => subscriber_error
         if logger

@@ -91,7 +91,7 @@ module ActiveSupport
       begin
         yield
       rescue => error
-        error_reporter.report(error, handled: false)
+        error_reporter.report(error, handled: false, source: "unhandled_error.active_support")
         raise
       ensure
         instance.complete!
