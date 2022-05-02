@@ -175,6 +175,18 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `ActiveRecord::DatabaseConfigurations::DatabaseConfig#spec_name`.
 
+*   Remove deprecated `ActiveRecord::Base.connection_config`.
+
+*   Remove deprecated `ActiveRecord::Base.arel_attribute`.
+
+*   Remove deprecated `ActiveRecord::Base.configurations.default_hash`.
+
+*   Remove deprecated `ActiveRecord::Base.configurations.to_h`.
+
+*   Remove deprecated `ActiveRecord::Result#map!` and `ActiveRecord::Result#collect!`.
+
+*   Remove deprecated `ActiveRecord::Base#remove_connection`.
+
 ### Deprecations
 
 *   Deprecated `Tasks::DatabaseTasks.schema_file_type`.
@@ -289,18 +301,6 @@ Please refer to the [Changelog][active-job] for detailed changes.
     previous callback was halted with `throw :abort`.
 
 *   Remove deprecated `:return_false_on_aborted_enqueue` option.
-
-*   Remove deprecated `ActiveRecord::Base.connection_config`.
-
-*   Remove deprecated `ActiveRecord::Base.arel_attribute`.
-
-*   Remove deprecated `ActiveRecord::Base.configurations.default_hash`.
-
-*   Remove deprecated `ActiveRecord::Base.configurations.to_h`.
-
-*   Remove deprecated `ActiveRecord::Result#map!` and `ActiveRecord::Result#collect!`.
-
-*   Remove deprecated `ActiveRecord::Base#remove_connection`.
 
 ### Deprecations
 
