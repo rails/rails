@@ -142,6 +142,11 @@ module ActionDispatch
       # This will redirect the user, while ignoring certain parts of the request, including query string, etc.
       # <tt>/stories</tt>, <tt>/stories?foo=bar</tt>, etc all redirect to <tt>/posts</tt>.
       #
+      # The redirect will use a <tt>301 Moved Permanently</tt> status code by
+      # default. This can be overridden with the +:status+ option:
+      #
+      #   get "/stories" => redirect("/posts", status: 307)
+      #
       # You can also use interpolation in the supplied redirect argument:
       #
       #   get 'docs/:article', to: redirect('/wiki/%{article}')
