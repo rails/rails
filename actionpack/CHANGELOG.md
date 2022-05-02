@@ -1,6 +1,6 @@
-*   Allow only String and Symbol keys in `ActionController::Parameters`.
+*   Allow only String, Symbol and Integer keys in `ActionController::Parameters`.
     Raise `ActionController::InvalidParameterKey` when initializing Parameters
-    with keys that aren't strings or symbols.
+    with keys that aren't strings, symbols or integers.
 
     *Seva Stefkin*
 
