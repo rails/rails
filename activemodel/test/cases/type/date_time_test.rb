@@ -11,6 +11,7 @@ module ActiveModel
         assert_nil type.cast("")
         assert_nil type.cast("  ")
         assert_nil type.cast("ABC")
+        assert_nil type.cast(" " * 129)
 
         datetime_string = ::Time.now.utc.strftime("%FT%T")
         assert_equal datetime_string, type.cast(datetime_string).strftime("%FT%T")
