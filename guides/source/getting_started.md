@@ -343,7 +343,7 @@ You may have noticed that `ArticlesController` inherits from `ApplicationControl
 require "application_controller" # DON'T DO THIS.
 ```
 
-Application classes and modules are available everywhere, you do not need and **should not** load anything under `app` with `require`. This feature is called _autoloading_, and you can learn more about it in [_Autoloading and Reloading Constants_](https://guides.rubyonrails.org/autoloading_and_reloading_constants.html).
+Application classes and modules are available everywhere, you do not need and **should not** load anything under `app` with `require`. This feature is called _autoloading_, and you can learn more about it in [_Autoloading and Reloading Constants_](autoloading_and_reloading_constants.html).
 
 You only need `require` calls for two use cases:
 
