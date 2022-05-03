@@ -14,7 +14,7 @@ After reading this guide, you will know:
 Other Ways to Set Up Your Environment
 -------------------------------------
 
-If you don't want to set up Rails for development on your local machine, you can use Codespaces, the VS Code Remote Plugin, or rails-dev-box. Learn more about these options [here](https://guides.rubyonrails.org/contributing_to_ruby_on_rails.html#setting-up-a-development-environment).
+If you don't want to set up Rails for development on your local machine, you can use Codespaces, the VS Code Remote Plugin, or rails-dev-box. Learn more about these options [here](contributing_to_ruby_on_rails.html#setting-up-a-development-environment).
 
 Local Development
 -----------------
