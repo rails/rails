@@ -923,7 +923,7 @@ module ActiveRecord
           preload_associations(records) unless skip_preloading_value
 
           records.each(&:readonly!) if readonly_value
-          records.each(&:strict_loading!) if strict_loading_value
+          records.each { |record| record.strict_loading!(strict_loading_value) } unless strict_loading_value.nil?
 
           records
         end
