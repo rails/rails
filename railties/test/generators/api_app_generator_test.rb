@@ -93,9 +93,9 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       { api: true, update: true }, { destination_root: destination_root, shell: @shell }
     quietly { generator.update_config_files }
 
-    assert_no_file "config/initializers/assets.rb"
-    assert_no_file "config/initializers/content_security_policy.rb"
-    assert_no_file "config/initializers/permissions_policy.rb"
+    assert_no_file "config/application/assets.rb"
+    assert_no_file "config/application/content_security_policy.rb"
+    assert_no_file "config/application/permissions_policy.rb"
   end
 
   def test_app_update_does_not_generate_unnecessary_bin_files
@@ -133,9 +133,9 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         config/environments/production.rb
         config/environments/test.rb
         config/initializers
-        config/initializers/cors.rb
-        config/initializers/filter_parameter_logging.rb
-        config/initializers/inflections.rb
+        config/application/cors.rb
+        config/application/filter_parameter_logging.rb
+        config/application/inflections.rb
         config/locales
         config/locales/en.yml
         config/puma.rb
@@ -161,9 +161,9 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          app/helpers
          app/views/layouts/application.html.erb
          bin/yarn
-         config/initializers/assets.rb
-         config/initializers/content_security_policy.rb
-         config/initializers/permissions_policy.rb
+         config/application/assets.rb
+         config/application/content_security_policy.rb
+         config/application/permissions_policy.rb
          lib/assets
          test/helpers
          tmp/cache/assets

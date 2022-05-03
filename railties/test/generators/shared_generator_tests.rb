@@ -295,7 +295,7 @@ module SharedGeneratorTests
   def test_generator_when_sprockets_is_not_used
     run_generator [destination_root, "-a", "none"]
 
-    assert_no_file "#{application_path}/config/initializers/assets.rb"
+    assert_no_file "#{application_path}/config/application/assets.rb"
     assert_no_file "#{application_path}/app/assets/config/manifest.js"
 
     assert_file "Gemfile" do |content|

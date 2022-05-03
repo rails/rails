@@ -107,6 +107,7 @@ module Rails
         template "puma.rb"   unless options[:updating]
         template "storage.yml" unless options[:updating] || skip_active_storage?
 
+        directory "application"
         directory "environments"
         directory "initializers"
         directory "locales" unless options[:updating]
@@ -116,12 +117,12 @@ module Rails
     def config_when_updating
       action_cable_config_exist       = File.exist?("config/cable.yml")
       active_storage_config_exist     = File.exist?("config/storage.yml")
-      rack_cors_config_exist          = File.exist?("config/initializers/cors.rb")
-      assets_config_exist             = File.exist?("config/initializers/assets.rb")
+      rack_cors_config_exist          = File.exist?("config/application/cors.rb")
+      assets_config_exist             = File.exist?("config/application/assets.rb")
       asset_manifest_exist            = File.exist?("app/assets/config/manifest.js")
       asset_app_stylesheet_exist      = File.exist?("app/assets/stylesheets/application.css")
-      csp_config_exist                = File.exist?("config/initializers/content_security_policy.rb")
-      permissions_policy_config_exist = File.exist?("config/initializers/permissions_policy.rb")
+      csp_config_exist                = File.exist?("config/application/content_security_policy.rb")
+      permissions_policy_config_exist = File.exist?("config/application/permissions_policy.rb")
 
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
@@ -136,7 +137,7 @@ module Rails
       end
 
       if skip_sprockets? && skip_propshaft? && !assets_config_exist
-        remove_file "config/initializers/assets.rb"
+        remove_file "config/application/assets.rb"
       end
 
       if skip_sprockets? && !asset_manifest_exist
@@ -148,16 +149,16 @@ module Rails
       end
 
       unless rack_cors_config_exist
-        remove_file "config/initializers/cors.rb"
+        remove_file "config/application/cors.rb"
       end
 
       if options[:api]
         unless csp_config_exist
-          remove_file "config/initializers/content_security_policy.rb"
+          remove_file "config/application/content_security_policy.rb"
         end
 
         unless permissions_policy_config_exist
-          remove_file "config/initializers/permissions_policy.rb"
+          remove_file "config/application/permissions_policy.rb"
         end
       end
 
@@ -438,7 +439,7 @@ module Rails
 
       def delete_assets_initializer_skipping_sprockets_and_propshaft
         if skip_sprockets? && skip_propshaft?
-          remove_file "config/initializers/assets.rb"
+          remove_file "config/application/assets.rb"
         end
 
         if skip_sprockets?
@@ -480,20 +481,20 @@ module Rails
 
       def delete_non_api_initializers_if_api_option
         if options[:api]
-          remove_file "config/initializers/content_security_policy.rb"
-          remove_file "config/initializers/permissions_policy.rb"
+          remove_file "config/application/content_security_policy.rb"
+          remove_file "config/application/permissions_policy.rb"
         end
       end
 
       def delete_api_initializers
         unless options[:api]
-          remove_file "config/initializers/cors.rb"
+          remove_file "config/application/cors.rb"
         end
       end
 
       def delete_new_framework_defaults
         unless options[:update]
-          remove_file "config/initializers/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
+          remove_file "config/application/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
         end
       end
 

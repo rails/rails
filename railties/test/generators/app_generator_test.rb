@@ -46,10 +46,10 @@ DEFAULT_APP_FILES = %w(
   config/environments/production.rb
   config/environments/test.rb
   config/initializers
-  config/initializers/assets.rb
-  config/initializers/content_security_policy.rb
-  config/initializers/filter_parameter_logging.rb
-  config/initializers/inflections.rb
+  config/application/assets.rb
+  config/application/content_security_policy.rb
+  config/application/filter_parameter_logging.rb
+  config/application/inflections.rb
   config/locales
   config/locales/en.yml
   config/puma.rb
@@ -175,12 +175,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_new_application_not_include_api_initializers
     run_generator
 
-    assert_no_file "config/initializers/cors.rb"
+    assert_no_file "config/application/cors.rb"
   end
 
   def test_new_application_doesnt_need_defaults
     run_generator
-    assert_empty Dir.glob("config/initializers/new_framework_defaults_*.rb", base: destination_root)
+    assert_empty Dir.glob("config/application/new_framework_defaults_*.rb", base: destination_root)
   end
 
   def test_new_application_load_defaults
@@ -191,7 +191,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_app_update_create_new_framework_defaults
     run_generator
-    defaults_path = "config/initializers/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
+    defaults_path = "config/application/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
 
     assert_no_file defaults_path
 
@@ -212,7 +212,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.update_config_files }
-      assert_no_file "#{app_root}/config/initializers/cors.rb"
+      assert_no_file "#{app_root}/config/application/cors.rb"
     end
   end
 
@@ -220,13 +220,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
-    FileUtils.touch("#{app_root}/config/initializers/cors.rb")
+    FileUtils.touch("#{app_root}/config/application/cors.rb")
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.update_config_files }
-      assert_file "#{app_root}/config/initializers/cors.rb"
+      assert_file "#{app_root}/config/application/cors.rb"
     end
   end
 
@@ -239,7 +239,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       generator.send(:app_const)
       quietly { generator.update_config_files }
 
-      assert_no_file "#{app_root}/config/initializers/assets.rb"
+      assert_no_file "#{app_root}/config/application/assets.rb"
       assert_no_file "#{app_root}/app/assets/config/manifest.js"
     end
   end
@@ -253,7 +253,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       generator.send(:app_const)
       quietly { generator.update_config_files }
 
-      assert_file "#{app_root}/config/initializers/assets.rb"
+      assert_file "#{app_root}/config/application/assets.rb"
       assert_no_file "#{app_root}/app/assets/config/manifest.js"
     end
   end
@@ -728,7 +728,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_gem "importmap-rails"
 
-    assert_file "config/initializers/content_security_policy.rb" do |content|
+    assert_file "config/application/content_security_policy.rb" do |content|
       assert_no_match(/policy\.connect_src/, content)
     end
 

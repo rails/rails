@@ -258,7 +258,7 @@ You can view the search path by inspecting
 [`Rails.application.config.assets.paths`][`config.assets.paths`] in the Rails console.
 
 Besides the standard `assets/*` paths, additional (fully qualified) paths can be
-added to the pipeline in `config/initializers/assets.rb`. For example:
+added to the pipeline in `config/application/assets.rb`. For example:
 
 ```ruby
 Rails.application.config.assets.paths << Rails.root.join("lib", "videoplayer", "flash")
@@ -656,7 +656,7 @@ JS/CSS is excluded, as well as raw JS/CSS files; for example, `.coffee` and
 `.scss` files are **not** automatically included as they compile to JS/CSS.
 
 If you have other manifests or individual stylesheets and JavaScript files to
-include, you can add them to the `precompile` array in `config/initializers/assets.rb`:
+include, you can add them to the `precompile` array in `config/application/assets.rb`:
 
 ```ruby
 Rails.application.config.assets.precompile += %w( admin.js admin.css )

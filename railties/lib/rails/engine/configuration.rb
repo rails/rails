@@ -55,6 +55,7 @@ module Rails
           paths.add "lib/tasks",           glob: "**/*.rake"
 
           paths.add "config"
+          paths.add "config/application",  glob: "**/*.rb"
           paths.add "config/environments", glob: -"#{Rails.env}.rb"
           paths.add "config/initializers", glob: "**/*.rb"
           paths.add "config/locales",      glob: "**/*.{rb,yml}"

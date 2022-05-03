@@ -9,12 +9,12 @@ module Rails
                                        "Override with --force-plural or setup custom inflection rules for this noun before running the generator."
       IRREGULAR_MODEL_NAME_WARN_MESSAGE = <<~WARNING
       [WARNING] Rails cannot recover singular form from its plural form '%s'.
-      Please setup custom inflection rules for this noun before running the generator in config/initializers/inflections.rb.
+      Please setup custom inflection rules for this noun before running the generator in config/application/inflections.rb.
       WARNING
       INFLECTION_IMPOSSIBLE_ERROR_MESSAGE = <<~ERROR
       Rails cannot recover the underscored form from its camelcase form '%s'.
       Please use an underscored name instead, either '%s' or '%s'.
-      Or setup custom inflection rules for this noun before running the generator in config/initializers/inflections.rb.
+      Or setup custom inflection rules for this noun before running the generator in config/application/inflections.rb.
       ERROR
       mattr_accessor :skip_warn
 

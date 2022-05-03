@@ -46,7 +46,7 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/permissions_policy.rb", <<-RUBY
+      app_file "config/application/permissions_policy.rb", <<-RUBY
         Rails.application.config.permissions_policy do |p|
           p.geolocation :none
         end
@@ -77,7 +77,7 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/permissions_policy.rb", <<-RUBY
+      app_file "config/application/permissions_policy.rb", <<-RUBY
         Rails.application.config.permissions_policy do |p|
           p.geolocation :none
         end
@@ -108,7 +108,7 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/permissions_policy.rb", <<-RUBY
+      app_file "config/application/permissions_policy.rb", <<-RUBY
         Rails.application.config.permissions_policy do |p|
           p.geolocation :none
         end
@@ -142,7 +142,7 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/permissions_policy.rb", <<-RUBY
+      app_file "config/application/permissions_policy.rb", <<-RUBY
         Rails.application.config.permissions_policy do |p|
           p.geolocation :none
         end
@@ -161,7 +161,7 @@ module ApplicationTests
     end
 
     test "global permissions policy added to rack app" do
-      app_file "config/initializers/permissions_policy.rb", <<-RUBY
+      app_file "config/application/permissions_policy.rb", <<-RUBY
         Rails.application.config.permissions_policy do |p|
           p.payment :none
         end

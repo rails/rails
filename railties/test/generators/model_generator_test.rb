@@ -105,7 +105,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_unknown_inflection_rule_are_warned
     content = run_generator ["porsche"]
-    assert_match("[WARNING] Rails cannot recover singular form from its plural form 'porsches'.\nPlease setup custom inflection rules for this noun before running the generator in config/initializers/inflections.rb.", content)
+    assert_match("[WARNING] Rails cannot recover singular form from its plural form 'porsches'.\nPlease setup custom inflection rules for this noun before running the generator in config/application/inflections.rb.", content)
     assert_file "app/models/porsche.rb", /class Porsche < ApplicationRecord/
 
     uncountable_content = run_generator ["sheep"]
@@ -120,7 +120,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     message = <<~MESSAGE
       Rails cannot recover the underscored form from its camelcase form 'BFF'.
       Please use an underscored name instead, either 'bff' or 'bf_f'.
-      Or setup custom inflection rules for this noun before running the generator in config/initializers/inflections.rb.
+      Or setup custom inflection rules for this noun before running the generator in config/application/inflections.rb.
     MESSAGE
     assert_match message, content
   end

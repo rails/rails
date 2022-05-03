@@ -1,3 +1,11 @@
+*   Introduce `config/application` directory.
+
+    All `.rb` files in this directory will be required before `config/environments/#{Rails.env}`,
+    this allow to break down `application.rb` in smaller files, and aim to replace `config/initializer`
+    files setting configuration.
+
+    *Jean Boussier*
+
 *   Deprecate `config.enable_dependency_loading`. This flag addressed a limitation of the `classic` autoloader and has no effect nowadays. To fix this deprecation, please just delete the reference.
 
     *Xavier Noria*

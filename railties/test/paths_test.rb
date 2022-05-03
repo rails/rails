@@ -91,13 +91,13 @@ class PathsTest < ActiveSupport::TestCase
   test "adding multiple physical paths using concat" do
     @root.add "app"
     @root["app"].concat ["app2", "/app3"]
-    assert_equal ["/foo/bar/app", "/foo/bar/app2", "/app3"], @root["app"].to_a
+    assert_equal ["/foo/bar/app", "/foo/bar/app2", "/app3"].sort, @root["app"].to_a
   end
 
   test "adding multiple physical paths using #unshift" do
     @root.add "app"
     @root["app"].unshift "app2"
-    assert_equal ["/foo/bar/app2", "/foo/bar/app"], @root["app"].to_a
+    assert_equal ["/foo/bar/app2", "/foo/bar/app"].sort, @root["app"].to_a
   end
 
   test "it is possible to add a path that should be autoloaded only once" do

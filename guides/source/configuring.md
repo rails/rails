@@ -255,7 +255,7 @@ Used for filtering out the parameters that you don't want shown in the logs,
 such as passwords or credit card numbers. It also filters out sensitive values
 of database columns when calling `#inspect` on an Active Record object. By
 default, Rails filters out passwords by adding the following filters in
-`config/initializers/filter_parameter_logging.rb`.
+`config/application/filter_parameter_logging.rb`.
 
 ```ruby
 Rails.application.config.filter_parameters += [

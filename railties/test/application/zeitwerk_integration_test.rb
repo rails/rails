@@ -32,7 +32,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
   end
 
   test "autoloaders inflect with Active Support" do
-    app_file "config/initializers/inflections.rb", <<-RUBY
+    app_file "config/application/inflections.rb", <<-RUBY
       ActiveSupport::Inflector.inflections(:en) do |inflect|
         inflect.acronym 'RESTful'
       end

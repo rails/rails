@@ -518,14 +518,14 @@ module ApplicationTests
       end
     end
 
-    test "filter_parameters should be able to set via config.filter_parameters in an initializer" do
-      app_file "config/initializers/filter_parameters_logging.rb", <<-RUBY
+    test "filter_parameters should be able to set via config.filter_parameters in a configurator" do
+      app_file "config/application/filter_parameters_logging.rb", <<-RUBY
         Rails.application.config.filter_parameters += [ :password, :foo, 'bar' ]
       RUBY
 
       app "development"
 
-      assert_equal [:password, :foo, "bar"], Rails.application.env_config["action_dispatch.parameter_filter"]
+      assert_equal [:password, :foo, "bar"], Rails.application.env_config["action_dispatch.parameter_filter"].last(3)
     end
 
     test "config.to_prepare is forwarded to ActionDispatch" do
@@ -1367,7 +1367,7 @@ module ApplicationTests
     test "ActionController::Base.raise_on_open_redirects can be configured in the new framework defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_6_2.rb", <<-RUBY
+      app_file "config/application/new_framework_defaults_6_2.rb", <<-RUBY
         Rails.application.config.action_controller.raise_on_open_redirects = true
       RUBY
 
@@ -2284,7 +2284,7 @@ module ApplicationTests
     test "ActiveRecord::Base.has_many_inversing can be configured via config.active_record.has_many_inversing" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_6_1.rb", <<-RUBY
+      app_file "config/application/new_framework_defaults_6_1.rb", <<-RUBY
         Rails.application.config.active_record.has_many_inversing = true
       RUBY
 
@@ -2310,7 +2310,7 @@ module ApplicationTests
     test "ActiveRecord::Base.automatic_scope_inversing can be configured via config.active_record.automatic_scope_inversing" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+      app_file "config/application/new_framework_defaults_7_0.rb", <<-RUBY
         Rails.application.config.active_record.automatic_scope_inversing = true
       RUBY
 
@@ -2336,7 +2336,7 @@ module ApplicationTests
     test "ActiveRecord.verify_foreign_keys_for_fixtures can be configured via config.active_record.verify_foreign_keys_for_fixtures" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+      app_file "config/application/new_framework_defaults_7_0.rb", <<-RUBY
         Rails.application.config.active_record.verify_foreign_keys_for_fixtures = true
       RUBY
 
@@ -2362,7 +2362,7 @@ module ApplicationTests
     test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption can be configured via config.active_support.use_authenticated_message_encryption" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
+      app_file "config/application/new_framework_defaults_6_0.rb", <<-RUBY
         Rails.application.config.active_support.use_authenticated_message_encryption = true
       RUBY
 
@@ -2524,7 +2524,7 @@ module ApplicationTests
     test "ActionView::Helpers::FormTagHelper.default_enforce_utf8 can be configured via config.action_view.default_enforce_utf8" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
+      app_file "config/application/new_framework_defaults_6_0.rb", <<-RUBY
         Rails.application.config.action_view.default_enforce_utf8 = true
       RUBY
 
@@ -2549,7 +2549,7 @@ module ApplicationTests
     test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag can be configured via config.action_view.button_to_generates_button_tag" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+      app_file "config/application/new_framework_defaults_7_0.rb", <<-RUBY
         Rails.application.config.action_view.button_to_generates_button_tag = true
       RUBY
 
@@ -2627,7 +2627,7 @@ module ApplicationTests
     test "ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default can be configured via config.action_view.apply_stylesheet_media_default" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+      app_file "config/application/new_framework_defaults_7_0.rb", <<-RUBY
         Rails.application.config.action_view.apply_stylesheet_media_default = false
       RUBY
 
@@ -2793,7 +2793,7 @@ module ApplicationTests
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "6.0"'
 
-      app_file "config/initializers/new_framework_defaults_6_1.rb", <<-RUBY
+      app_file "config/application/new_framework_defaults_6_1.rb", <<-RUBY
         Rails.application.config.action_dispatch.ssl_default_redirect_status = 308
       RUBY
 
@@ -2882,7 +2882,7 @@ module ApplicationTests
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "6.0"'
 
-      app_file "config/initializers/new_framework_defaults_6_1.rb", <<-RUBY
+      app_file "config/application/new_framework_defaults_6_1.rb", <<-RUBY
         ActiveSupport.utc_to_local_returns_utc_offset_times = true
       RUBY
 
@@ -3110,12 +3110,12 @@ module ApplicationTests
     end
 
     test "ActiveRecord::Base.filter_attributes should equal to filter_parameters" do
-      app_file "config/initializers/filter_parameters_logging.rb", <<-RUBY
+      app_file "config/application/filter_parameters_logging.rb", <<-RUBY
         Rails.application.config.filter_parameters += [ :password, :credit_card_number ]
       RUBY
       app "development"
-      assert_equal [ :password, :credit_card_number ], Rails.application.config.filter_parameters
-      assert_equal [ :password, :credit_card_number ], ActiveRecord::Base.filter_attributes
+      assert_equal [ :password, :credit_card_number ], Rails.application.config.filter_parameters.last(2)
+      assert_equal [ :password, :credit_card_number ], ActiveRecord::Base.filter_attributes.last(2)
     end
 
     test "ActiveStorage.routes_prefix can be configured via config.active_storage.routes_prefix" do
@@ -3419,7 +3419,7 @@ module ApplicationTests
     test "ActionDispatch::Request.return_only_media_type_on_content_type can be configured in the new framework defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+      app_file "config/application/new_framework_defaults_7_0.rb", <<-RUBY
         Rails.application.config.action_dispatch.return_only_request_media_type_on_content_type = false
       RUBY
 
@@ -3594,7 +3594,7 @@ module ApplicationTests
     test "ActiveSupport::TimeWithZone.name can be configured in the new framework defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+      app_file "config/application/new_framework_defaults_7_0.rb", <<-RUBY
         Rails.application.config.active_support.remove_deprecated_time_with_zone_name = false
       RUBY
 
@@ -3623,7 +3623,7 @@ module ApplicationTests
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "6.1"'
 
-      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+      app_file "config/application/new_framework_defaults_7_0.rb", <<-RUBY
         Rails.application.config.action_controller.wrap_parameters_by_default = true
       RUBY
 
@@ -3739,7 +3739,7 @@ module ApplicationTests
     test "ActionController::Base.raise_on_missing_callback_actions can be configured in the new framework defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_6_2.rb", <<-RUBY
+      app_file "config/application/new_framework_defaults_6_2.rb", <<-RUBY
         Rails.application.config.action_controller.raise_on_missing_callback_actions = true
       RUBY
 
@@ -3761,7 +3761,7 @@ module ApplicationTests
     end
 
     test "isolation_level can be set in initializer" do
-      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+      app_file "config/application/new_framework_defaults_7_0.rb", <<-RUBY
         Rails.application.config.active_support.isolation_level = :fiber
       RUBY
 

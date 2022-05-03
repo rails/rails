@@ -557,7 +557,11 @@ module Rails
       run_callbacks(:load_seed) { load(seed_file) } if seed_file
     end
 
-    initializer :load_environment_config, before: :load_environment_hook, group: :all do
+    initializer :load_environment_config, before: :load_environment_hook, group: :all do |app|
+      paths["config/application"].existent.each do |app_config|
+        require app_config
+      end
+
       paths["config/environments"].existent.each do |environment|
         require environment
       end

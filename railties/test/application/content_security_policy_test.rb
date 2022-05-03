@@ -46,7 +46,7 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+      app_file "config/application/content_security_policy.rb", <<-RUBY
         Rails.application.config.content_security_policy do |p|
         end
       RUBY
@@ -72,7 +72,7 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+      app_file "config/application/content_security_policy.rb", <<-RUBY
         Rails.application.config.content_security_policy do |p|
           p.default_src :self, :https
         end
@@ -99,7 +99,7 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+      app_file "config/application/content_security_policy.rb", <<-RUBY
         Rails.application.config.content_security_policy do |p|
           p.default_src :self, :https
         end
@@ -128,7 +128,7 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+      app_file "config/application/content_security_policy.rb", <<-RUBY
         Rails.application.config.content_security_policy do |p|
           p.default_src :self, :https
           p.script_src  :self, :https
@@ -164,7 +164,7 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+      app_file "config/application/content_security_policy.rb", <<-RUBY
         Rails.application.config.content_security_policy do |p|
           p.default_src :self, :https
         end
@@ -193,7 +193,7 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+      app_file "config/application/content_security_policy.rb", <<-RUBY
         Rails.application.config.content_security_policy do |p|
           p.default_src :self, :https
         end
@@ -212,7 +212,7 @@ module ApplicationTests
     end
 
     test "global content security policy added to rack app" do
-      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+      app_file "config/application/content_security_policy.rb", <<-RUBY
         Rails.application.config.content_security_policy do |p|
           p.default_src :self, :https
         end

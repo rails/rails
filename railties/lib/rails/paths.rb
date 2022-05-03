@@ -210,6 +210,7 @@ module Rails
         end
 
         result.uniq!
+        result.sort!
         result
       end
 

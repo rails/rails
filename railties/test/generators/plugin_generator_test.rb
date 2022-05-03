@@ -631,7 +631,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_no_gem "sprockets-rails"
-    assert_no_file "test/dummy/config/initializers/assets.rb"
+    assert_no_file "test/dummy/config/application/assets.rb"
     assert_file "test/dummy/config/environments/development.rb" do |content|
       assert_no_match "config.assets", content
     end
@@ -655,7 +655,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--mountable", "--skip-asset-pipeline"]
 
     assert_no_gem "sprockets-rails"
-    assert_no_file "test/dummy/config/initializers/assets.rb"
+    assert_no_file "test/dummy/config/application/assets.rb"
     assert_file "test/dummy/config/environments/development.rb" do |content|
       assert_no_match "config.assets", content
     end
@@ -666,7 +666,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
     assert_gem "propshaft"
     assert_no_gem "sprockets-rails"
-    assert_file "test/dummy/config/initializers/assets.rb"
+    assert_file "test/dummy/config/application/assets.rb"
     assert_file "test/dummy/config/environments/development.rb" do |content|
       assert_no_match "config.assets", content
     end

@@ -1085,7 +1085,7 @@ configure the header.
 Define the security policy in the appropriate initializer:
 
 ```ruby
-# config/initializers/content_security_policy.rb
+# config/application/content_security_policy.rb
 Rails.application.config.content_security_policy do |policy|
   policy.default_src :self, :https
   policy.font_src    :self, :https, :data
@@ -1165,7 +1165,7 @@ over 'unsafe-inline' when implementing a Content Security Policy on top
 of existing code.
 
 ```ruby
-# config/initializers/content_security_policy.rb
+# config/application/content_security_policy.rb
 Rails.application.config.content_security_policy do |policy|
   policy.script_src :self, :https
 end
@@ -1232,7 +1232,7 @@ configure the header.
 Define the policy in the appropriate initializer:
 
 ```ruby
-# config/initializers/permissions_policy.rb
+# config/application/permissions_policy.rb
 Rails.application.config.permissions_policy do |policy|
   policy.camera      :none
   policy.gyroscope   :none
