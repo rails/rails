@@ -287,6 +287,13 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_can_read_multi_entries_raw_values_from_dalli_store
+    key = "test-with-nil-value-the-way-the-dalli-store-did"
+
+    @cache.instance_variable_get(:@data).with { |c| c.set(@cache.send(:normalize_key, key, nil), nil, 0, compress: false) }
+    assert_equal({}, @cache.send(:read_multi_entries, [key]))
+  end
+
   private
     def random_string(length)
       (0...length).map { (65 + rand(26)).chr }.join
