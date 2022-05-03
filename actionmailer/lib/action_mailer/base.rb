@@ -342,6 +342,29 @@ module ActionMailer
   # using <tt>before_action</tt> rather than <tt>after_action</tt> in your
   # Action Mailer classes so that headers are parsed properly.
   #
+  # = Rescuing Errors
+  #
+  # +rescue+ blocks inside of a mailer method cannot rescue errors that occur
+  # outside of rendering -- for example, record deserialization errors in a
+  # background job, or errors from a third-party mail delivery service.
+  #
+  # To rescue errors that occur during any part of the mailing process, use
+  # {rescue_from}[rdoc-ref:ActiveSupport::Rescuable::ClassMethods#rescue_from]:
+  #
+  #   class NotifierMailer < ApplicationMailer
+  #     rescue_from ActiveJob::DeserializationError do
+  #       # ...
+  #     end
+  #
+  #     rescue_from "SomeThirdPartyService::ApiError" do
+  #       # ...
+  #     end
+  #
+  #     def notify(recipient)
+  #       mail(to: recipient, subject: "Notification")
+  #     end
+  #   end
+  #
   # = Previewing emails
   #
   # You can preview your email templates visually by adding a mailer preview file to the
