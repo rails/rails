@@ -118,7 +118,7 @@ gem "sprockets-rails"
 
 ### Applications need to run in `zeitwerk` mode
 
-Applications still running in `classic` mode have to switch to `zeitwerk` mode. Please check the [Classic to Zeitwerk HOWTO](https://guides.rubyonrails.org/classic_to_zeitwerk_howto.html) guide for details.
+Applications still running in `classic` mode have to switch to `zeitwerk` mode. Please check the [Classic to Zeitwerk HOWTO](https://guides.rubyonrails.org/v7.0/classic_to_zeitwerk_howto.html) guide for details.
 
 ### The setter `config.autoloader=` has been deleted
 
@@ -2343,7 +2343,7 @@ Rails 4.0 removes the `j` alias for `ERB::Util#json_escape` since `j` is already
 
 #### Cache
 
-The caching method changed between Rails 3.x and 4.0. You should [change the cache namespace](https://guides.rubyonrails.org/caching_with_rails.html#activesupport-cache-store) and roll out with a cold cache.
+The caching method changed between Rails 3.x and 4.0. You should [change the cache namespace](https://guides.rubyonrails.org/v4.0/caching_with_rails.html#activesupport-cache-store) and roll out with a cold cache.
 
 ### Helpers Loading Order
 
