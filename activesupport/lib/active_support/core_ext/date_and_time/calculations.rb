@@ -157,6 +157,16 @@ module DateAndTime
     end
     alias :at_end_of_quarter :end_of_quarter
 
+    # Returns the quarter for a date/time.
+    #
+    #   Date.new(2010, 1, 31).quarter  # => 1
+    #   Date.new(2010, 4, 12).quarter  # => 2
+    #   Date.new(2010, 9, 15).quarter  # => 3
+    #   Date.new(2010, 12, 25).quarter # => 4
+    def quarter
+      (month / 3.0).ceil
+    end
+
     # Returns a new date/time at the beginning of the year.
     #
     #   today = Date.today # => Fri, 10 Jul 2015

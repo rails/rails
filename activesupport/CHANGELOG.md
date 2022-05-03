@@ -1,3 +1,7 @@
+*   Add `quarter` method to date/time
+
+    *Matt Swanson*
+
 *   Add `urlsafe` option to `ActiveSupport::MessageVerifier` initializer
 
     `ActiveSupport::MessageVerifier.new` now takes optional `urlsafe` argument.
