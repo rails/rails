@@ -86,6 +86,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
   def test_strict_loading_by_default
     with_strict_loading_by_default(Developer) do
       Developer.all.each { |d| assert d.strict_loading? }
+      Developer.strict_loading(false).each { |d| assert_not d.strict_loading? }
     end
   end
 
