@@ -405,6 +405,11 @@ module ActiveRecord
       assert_equal author_addresses(:david_address), author_address
     end
 
+    def test_has_many_with_plural_association_name
+      author_address = AuthorAddress.where(authors: Author.where(name: "David")).first
+      assert_equal author_addresses(:david_address), author_address
+    end
+
     def test_where_on_association_with_select_relation
       essay = Essay.where(author: Author.where(name: "David").select(:name)).take
       assert_equal essays(:david_modest_proposal), essay

@@ -9,6 +9,7 @@ module ActiveRecord
 
     included do
       class_attribute :_reflections, instance_writer: false, default: {}
+      class_attribute :_plural_reflections, instance_writer: false, default: {}
       class_attribute :aggregate_reflections, instance_writer: false, default: {}
       class_attribute :automatic_scope_inversing, instance_writer: false, default: false
     end
@@ -23,6 +24,7 @@ module ActiveRecord
         ar.clear_reflections_cache
         name = -name.to_s
         ar._reflections = ar._reflections.except(name).merge!(name => reflection)
+        ar._plural_reflections = ar._plural_reflections.except(name).merge!(reflection.plural_name => reflection)
       end
 
       def add_aggregate_reflection(ar, name, reflection)
@@ -118,6 +120,10 @@ module ActiveRecord
 
       def _reflect_on_association(association) # :nodoc:
         _reflections[association.to_s]
+      end
+
+      def _reflect_on_association_with_plurals(association) # :nodoc:
+        _reflections[association.to_s] || _plural_reflections[association.to_s]
       end
 
       # Returns an array of AssociationReflection objects for all associations which have <tt>:autosave</tt> enabled.

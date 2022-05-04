@@ -23,11 +23,11 @@ module ActiveRecord
     end
 
     def associated_with?(table_name)
-      klass&._reflect_on_association(table_name) || klass&._reflect_on_association(table_name.singularize)
+      klass&._reflect_on_association_with_plurals(table_name)
     end
 
     def associated_table(table_name)
-      reflection = klass._reflect_on_association(table_name) || klass._reflect_on_association(table_name.singularize)
+      reflection = klass._reflect_on_association_with_plurals(table_name)
 
       if !reflection && table_name == arel_table.name
         return self
