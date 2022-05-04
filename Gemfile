@@ -140,7 +140,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
 
   group :db do
     gem "pg", "~> 1.3"
-    gem "mysql2", "~> 0.5", github: "brianmario/mysql2"
+    gem "mysql2", "~> 0.5"
   end
 end
 
