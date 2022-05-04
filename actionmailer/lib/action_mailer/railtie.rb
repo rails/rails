@@ -37,11 +37,11 @@ module ActionMailer
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes, false)
         include app.routes.mounted_helpers
 
-        register_interceptors(options.delete(:interceptors))
-        register_preview_interceptors(options.delete(:preview_interceptors))
-        register_observers(options.delete(:observers))
+        register_interceptors(options.interceptors)
+        register_preview_interceptors(options.preview_interceptors)
+        register_observers(options.observers)
 
-        if delivery_job = options.delete(:delivery_job)
+        if delivery_job = options.delivery_job
           self.delivery_job = delivery_job.constantize
         end
 
@@ -49,12 +49,14 @@ module ActionMailer
           self.smtp_settings = options.smtp_settings
         end
 
-        smtp_timeout = options.delete(:smtp_timeout)
+        smtp_timeout = options.smtp_timeout
 
         if self.smtp_settings && smtp_timeout
           self.smtp_settings[:open_timeout] ||= smtp_timeout
           self.smtp_settings[:read_timeout] ||= smtp_timeout
         end
+
+        options = options.except(:interceptors, :preview_interceptors, :observers, :delivery_job, :smtp_timeout)
 
         options.each { |k, v| send("#{k}=", v) }
       end
