@@ -23,7 +23,7 @@ module ActiveRecord
     end
 
     def associated_with?(table_name)
-      klass&._reflect_on_association(table_name) || klass&._reflect_on_association(table_name.singularize)
+      klass&._reflect_on_association(table_name)
     end
 
     def associated_table(table_name)
