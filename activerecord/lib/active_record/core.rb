@@ -213,7 +213,7 @@ module ActiveRecord
       def self.strict_loading_violation!(owner:, reflection:) # :nodoc:
         case ActiveRecord.action_on_strict_loading_violation
         when :raise
-          message = "`#{owner}` is marked for strict_loading. The `#{reflection.klass}` association named `:#{reflection.name}` cannot be lazily loaded."
+          message = reflection.strict_loading_violation_message(owner)
           raise ActiveRecord::StrictLoadingViolationError.new(message)
         when :log
           name = "strict_loading_violation.active_record"

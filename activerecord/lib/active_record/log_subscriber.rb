@@ -22,10 +22,8 @@ module ActiveRecord
     def strict_loading_violation(event)
       debug do
         owner = event.payload[:owner]
-        association = event.payload[:reflection].klass
-        name = event.payload[:reflection].name
-
-        color("Strict loading violation: #{owner} is marked for strict loading. The #{association} association named :#{name} cannot be lazily loaded.", RED)
+        reflection = event.payload[:reflection]
+        color(reflection.strict_loading_violation_message(owner), RED)
       end
     end
 
