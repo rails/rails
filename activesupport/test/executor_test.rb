@@ -13,8 +13,8 @@ class ExecutorTest < ActiveSupport::TestCase
       @events = []
     end
 
-    def report(error, handled:, severity:, context:)
-      @events << [error, handled, severity, context]
+    def report(error, handled:, severity:, source:, context:)
+      @events << [error, handled, severity, source, context]
     end
   end
 
@@ -27,7 +27,7 @@ class ExecutorTest < ActiveSupport::TestCase
         raise error
       end
     end
-    assert_equal [[error, false, :error, {}]], subscriber.events
+    assert_equal [[error, false, :error, "unhandled_error.active_support", {}]], subscriber.events
   end
 
   def test_wrap_invokes_callbacks

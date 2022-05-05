@@ -1,3 +1,10 @@
+*   `ActiveSupport::ErrorReporter` now accepts and forward a `source:` parameter.
+
+    This allow libraries to signal the origin of the errors, and reporters
+    to easily ignore some sources.
+
+    *Jean Boussier*
+
 *   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
 
     Add the method `ERB::Util.xml_name_escape` to escape dangerous characters

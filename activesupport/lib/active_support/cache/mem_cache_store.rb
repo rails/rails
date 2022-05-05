@@ -300,8 +300,12 @@ module ActiveSupport
         def rescue_error_with(fallback)
           yield
         rescue Dalli::DalliError => error
-          ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
           logger.error("DalliError (#{error}): #{error.message}") if logger
+          ActiveSupport.error_reporter&.report(
+            error,
+            severity: :warning,
+            source: "mem_cache_store.active_support",
+          )
           fallback
         end
     end
