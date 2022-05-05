@@ -125,8 +125,8 @@ module ActionDispatch
         remote_addr = ips_from(@req.remote_addr).last
 
         # Could be a CSV list and/or repeated headers that were concatenated.
-        client_ips    = ips_from(@req.client_ip).reverse
-        forwarded_ips = ips_from(@req.x_forwarded_for).reverse
+        client_ips    = ips_from(@req.client_ip).reverse!
+        forwarded_ips = ips_from(@req.x_forwarded_for).reverse!
 
         # +Client-Ip+ and +X-Forwarded-For+ should not, generally, both be set.
         # If they are both set, it means that either:
@@ -154,7 +154,8 @@ module ActionDispatch
         #   - X-Forwarded-For will be a list of IPs, one per proxy, or blank
         #   - Client-Ip is propagated from the outermost proxy, or is blank
         #   - REMOTE_ADDR will be the IP that made the request to Rack
-        ips = [forwarded_ips, client_ips].flatten.compact
+        ips = forwarded_ips + client_ips
+        ips.compact!
 
         # If every single IP option is in the trusted list, return the IP
         # that's furthest away
@@ -172,7 +173,7 @@ module ActionDispatch
         return [] unless header
         # Split the comma-separated list into an array of strings.
         ips = header.strip.split(/[,\s]+/)
-        ips.select do |ip|
+        ips.select! do |ip|
           # Only return IPs that are valid according to the IPAddr#new method.
           range = IPAddr.new(ip).to_range
           # We want to make sure nobody is sneaking a netmask in.
@@ -180,6 +181,7 @@ module ActionDispatch
         rescue ArgumentError
           nil
         end
+        ips
       end
 
       def filter_proxies(ips) # :doc:
