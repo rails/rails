@@ -162,14 +162,6 @@ module ActionController
     # If no block is given, an enumerator is returned instead.
 
     ##
-    # :method: empty?
-    #
-    # :call-seq:
-    #   empty?()
-    #
-    # Returns true if the parameters have no key/value pairs.
-
-    ##
     # :method: has_key?
     #
     # :call-seq:
@@ -232,7 +224,7 @@ module ActionController
     #   value?(value)
     #
     # Returns true if the given value is present for some key in the parameters.
-    delegate :keys, :key?, :has_key?, :member?, :has_value?, :value?, :empty?, :include?,
+    delegate :keys, :key?, :has_key?, :member?, :has_value?, :value?, :include?,
       :as_json, :to_s, :each_key, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these
@@ -414,6 +406,11 @@ module ActionController
     # Returns a new array of the values of the parameters.
     def values
       to_enum(:each_value).to_a
+    end
+
+    # Returns +true+ if the parameters have no key/value pairs.
+    def empty?
+      to_unsafe_h.empty?
     end
 
     # Attribute that keeps track of converted arrays, if any, to avoid double

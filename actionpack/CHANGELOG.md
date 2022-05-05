@@ -1,3 +1,8 @@
+*   Do not delegate `ActionController::Parameters#empty?` to underlying hash.
+    Instead, use own implementation.
+
+    *Paulo Barros*
+
 *   Allow only String and Symbol keys in `ActionController::Parameters`.
     Raise `ActionController::InvalidParameterKey` when initializing Parameters
     with keys that aren't strings or symbols.
