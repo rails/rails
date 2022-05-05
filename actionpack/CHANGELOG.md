@@ -1,3 +1,7 @@
+*   Add implementation and aliases for `ActionController::Parameters#include?`.
+
+    *Paulo Barros*
+
 *   Allow only String and Symbol keys in `ActionController::Parameters`.
     Raise `ActionController::InvalidParameterKey` when initializing Parameters
     with keys that aren't strings or symbols.

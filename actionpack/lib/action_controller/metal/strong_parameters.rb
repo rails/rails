@@ -170,44 +170,12 @@ module ActionController
     # Returns true if the parameters have no key/value pairs.
 
     ##
-    # :method: has_key?
-    #
-    # :call-seq:
-    #   has_key?(key)
-    #
-    # Returns true if the given key is present in the parameters.
-
-    ##
     # :method: has_value?
     #
     # :call-seq:
     #   has_value?(value)
     #
     # Returns true if the given value is present for some key in the parameters.
-
-    ##
-    # :method: include?
-    #
-    # :call-seq:
-    #   include?(key)
-    #
-    # Returns true if the given key is present in the parameters.
-
-    ##
-    # :method: key?
-    #
-    # :call-seq:
-    #   key?(key)
-    #
-    # Returns true if the given key is present in the parameters.
-
-    ##
-    # :method: member?
-    #
-    # :call-seq:
-    #   member?(key)
-    #
-    # Returns true if the given key is present in the parameters.
 
     ##
     # :method: keys
@@ -232,8 +200,7 @@ module ActionController
     #   value?(value)
     #
     # Returns true if the given value is present for some key in the parameters.
-    delegate :keys, :key?, :has_key?, :member?, :has_value?, :value?, :empty?, :include?,
-      :as_json, :to_s, :each_key, to: :@parameters
+    delegate :keys, :has_value?, :value?, :empty?, :as_json, :to_s, :each_key, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these
     # params are present. The default includes both 'controller' and 'action'
@@ -415,6 +382,14 @@ module ActionController
     def values
       to_enum(:each_value).to_a
     end
+
+    # Returns +true+ if the given key is present in the parameters.
+    def include?(key)
+      to_unsafe_h.include?(key)
+    end
+    alias_method :has_key?, :include?
+    alias_method :key?, :include?
+    alias_method :member?, :include?
 
     # Attribute that keeps track of converted arrays, if any, to avoid double
     # looping in the common use case permit + mass-assignment. Defined in a
