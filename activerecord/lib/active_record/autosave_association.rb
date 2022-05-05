@@ -333,11 +333,11 @@ module ActiveRecord
         context = validation_context if custom_validation_context?
 
         unless valid = record.valid?(context)
-          errors.merge!(record, {
+          errors.merge!(record,
             index: index,
             base_attribute: reflection.name,
             indexed: reflection.options[:index_errors] || ActiveRecord.index_nested_attribute_errors,
-          })
+          )
         end
         valid
       end
@@ -393,11 +393,11 @@ module ActiveRecord
                   association_saved = association.insert_record(record)
 
                   if reflection.validate?
-                    errors.merge!(record, {
+                    errors.merge!(record,
                       index: index,
                       base_attribute: reflection.name,
                       indexed: reflection.options[:index_errors] || ActiveRecord.index_nested_attribute_errors,
-                    })
+                    )
                     saved = association_saved
                   end
                 end

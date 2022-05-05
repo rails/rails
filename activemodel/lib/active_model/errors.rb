@@ -138,8 +138,8 @@ module ActiveModel
     #
     # Examples
     #
-    #   person.errors.merge!(other, options)
-    def merge!(other, options = {})
+    #   person.errors.merge!(other)
+    def merge!(other, **options)
       return errors if equal?(other)
 
       base_attribute = options[:base_attribute]

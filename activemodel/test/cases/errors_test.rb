@@ -663,7 +663,7 @@ class ErrorsTest < ActiveModel::TestCase
 
     person = Person.new
     person.errors.add(:name, :blank)
-    person.errors.merge!(errors, { base_attribute: :manager })
+    person.errors.merge!(errors, base_attribute: :manager)
 
     assert(person.errors.added?(:"manager.name", :invalid))
     assert(person.errors.added?(:name, :blank))
@@ -675,7 +675,7 @@ class ErrorsTest < ActiveModel::TestCase
 
     person = Person.new
     person.errors.add(:name, :blank)
-    person.errors.merge!(errors, { base_attribute: :manager, indexed: true, index: 1 })
+    person.errors.merge!(errors, base_attribute: :manager, indexed: true, index: 1)
 
     assert(person.errors.added?(:"manager[1].name", :invalid))
     assert(person.errors.added?(:name, :blank))
