@@ -527,9 +527,9 @@ module ActionView
 
         def extract_dimensions(size)
           size = size.to_s
-          if /\A(\d+|\d+.\d+)x(\d+|\d+.\d+)\z/.match?(size)
+          if /\A\d+(?:\.\d+)?x\d+(?:\.\d+)?\z/.match?(size)
             size.split("x")
-          elsif /\A(\d+|\d+.\d+)\z/.match?(size)
+          elsif /\A\d+(?:\.\d+)?\z/.match?(size)
             [size, size]
           end
         end
