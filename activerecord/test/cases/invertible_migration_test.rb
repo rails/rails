@@ -515,8 +515,8 @@ module ActiveRecord
       horse1.reload
       horse2 = Horse.create
 
-      assert 1, horse1.oldie # created before migration
-      assert 0, horse2.oldie # created after migration
+      assert_equal 1, horse1.oldie # created before migration
+      assert_equal 0, horse2.oldie # created after migration
 
       UpOnlyMigration.new.migrate(:down) # should be no error
       connection = ActiveRecord::Base.connection

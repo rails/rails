@@ -17,7 +17,8 @@ module ActiveRecord
       :and, :or, :annotate, :optimizer_hints, :extending,
       :having, :create_with, :distinct, :references, :none, :unscope, :merge, :except, :only,
       :count, :average, :minimum, :maximum, :sum, :calculate,
-      :pluck, :pick, :ids, :strict_loading, :excluding, :without
+      :pluck, :pick, :ids, :strict_loading, :excluding, :without,
+      :async_count, :async_average, :async_minimum, :async_maximum, :async_sum, :async_pluck, :async_pick,
     ].freeze # :nodoc:
     delegate(*QUERYING_METHODS, to: :all)
 
@@ -39,7 +40,7 @@ module ActiveRecord
     #   Post.find_by_sql "SELECT p.title, c.author FROM posts p, comments c WHERE p.id = c.post_id"
     #   # => [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "author"=>"Quentin"}>, ...]
     #
-    # You can use the same string replacement techniques as you can with <tt>ActiveRecord::QueryMethods#where</tt>:
+    # You can use the same string replacement techniques as you can with ActiveRecord::QueryMethods#where :
     #
     #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
     #   Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]
@@ -48,6 +49,13 @@ module ActiveRecord
     # injection attacks (https://guides.rubyonrails.org/security.html#sql-injection).
     def find_by_sql(sql, binds = [], preparable: nil, &block)
       _load_from_sql(_query_by_sql(sql, binds, preparable: preparable), &block)
+    end
+
+    # Same as <tt>#find_by_sql</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_find_by_sql(sql, binds = [], preparable: nil, &block)
+      _query_by_sql(sql, binds, preparable: preparable, async: true).then do |result|
+        _load_from_sql(result, &block)
+      end
     end
 
     def _query_by_sql(sql, binds = [], preparable: nil, async: false) # :nodoc:
@@ -92,6 +100,11 @@ module ActiveRecord
     # * +sql+ - An SQL statement which should return a count query from the database, see the example above.
     def count_by_sql(sql)
       connection.select_value(sanitize_sql(sql), "#{name} Count").to_i
+    end
+
+    # Same as <tt>#count_by_sql</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_count_by_sql(sql)
+      connection.select_value(sanitize_sql(sql), "#{name} Count", async: true).then(&:to_i)
     end
   end
 end

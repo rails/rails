@@ -91,7 +91,7 @@ module ApplicationTests
       app_file "config/environments/development.rb", <<-RUBY
         $initialize_test_set_from_env = 'success'
         Rails.application.configure do
-          config.cache_classes = true
+          config.enable_reloading = false
           config.time_zone = "Brasilia"
         end
       RUBY
@@ -104,7 +104,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
       assert_equal "success", $initialize_test_set_from_env
-      assert Rails.application.config.cache_classes
+      assert_not Rails.application.config.reloading_enabled?
       assert_equal "Brasilia", Rails.application.config.time_zone
     end
   end

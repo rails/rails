@@ -256,10 +256,10 @@ INFO. Additional keys may be added by the caller.
 
 #### unpermitted_parameters.action_controller
 
-| Key           | Value                                                                 |
-| ------------- | --------------------------------------------------------------------- |
-| `:keys`       | The unpermitted keys                                                  |
-| `:context`    | Hash with the following keys: :controller, :action, :params, :request |
+| Key           | Value                                                                         |
+| ------------- | ----------------------------------------------------------------------------- |
+| `:keys`       | The unpermitted keys                                                          |
+| `:context`    | Hash with the following keys: `:controller`, `:action`, `:params`, `:request` |
 
 ### Action Dispatch
 
@@ -419,12 +419,12 @@ INFO. The adapters will add their own data as well.
 
 #### cache_read.active_support
 
-| Key                | Value                                             |
-| ------------------ | ------------------------------------------------- |
-| `:key`             | Key used in the store                             |
-| `:store`           | Name of the store class                           |
-| `:hit`             | If this read is a hit                             |
-| `:super_operation` | :fetch is added when a read is used with `#fetch` |
+| Key                | Value                                               |
+| ------------------ | --------------------------------------------------- |
+| `:key`             | Key used in the store                               |
+| `:store`           | Name of the store class                             |
+| `:hit`             | If this read is a hit                               |
+| `:super_operation` | `:fetch` is added when a read is used with `#fetch` |
 
 #### cache_generate.active_support
 
@@ -685,6 +685,26 @@ INFO. The only ActiveStorage service that provides this hook so far is GCS.
 | Key          | Value                          |
 | ------------ | ------------------------------ |
 | `:analyzer`  | Name of analyzer e.g., ffprobe |
+
+### Action Mailbox
+
+#### process.action_mailbox
+
+| Key              | Value                                                             |
+| -----------------| ----------------------------------------------------------------- |
+| `:mailbox`       | Instance of the Mailbox class inheriting from ActionMailbox::Base |
+| `:inbound_email` | Hash with data about the inbound email being processed            |
+
+```ruby
+{
+  mailbox: #<RepliesMailbox:0x00007f9f7a8388>,
+  inbound_email: {
+    id: 1,
+    message_id: "0CB459E0-0336-41DA-BC88-E6E28C697DDB@37signals.com",
+    status: "processing"
+  }
+}
+```
 
 ### Railties
 

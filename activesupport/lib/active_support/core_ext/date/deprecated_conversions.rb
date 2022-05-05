@@ -7,7 +7,7 @@ class Date
   def to_s(format = NOT_SET) # :nodoc:
     if formatter = DATE_FORMATS[format]
       ActiveSupport::Deprecation.warn(
-        "Date#to_s(#{format.inspect}) is deprecated. Please use Date#to_formatted_s(#{format.inspect}) instead."
+        "Date#to_s(#{format.inspect}) is deprecated. Please use Date#to_fs(#{format.inspect}) instead."
       )
       if formatter.respond_to?(:call)
         formatter.call(self).to_s
@@ -18,7 +18,7 @@ class Date
       to_default_s
     else
       ActiveSupport::Deprecation.warn(
-        "Date#to_s(#{format.inspect}) is deprecated. Please use Date#to_formatted_s(#{format.inspect}) instead."
+        "Date#to_s(#{format.inspect}) is deprecated. Please use Date#to_fs(#{format.inspect}) instead."
       )
       to_default_s
     end

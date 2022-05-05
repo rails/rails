@@ -7,7 +7,7 @@ Description:
     or in $XDG_CONFIG_HOME/rails/railsrc if XDG_CONFIG_HOME is set.
 
     Note that the arguments specified in the .railsrc file don't affect the
-    defaults values shown above in this help message.
+    default values shown above in this help message.
 
 Example:
     rails new ~/Code/Ruby/weblog

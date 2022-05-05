@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "thread"
-
 gem "redis", ">= 3", "< 5"
 require "redis"
 

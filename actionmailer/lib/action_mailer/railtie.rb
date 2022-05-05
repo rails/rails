@@ -23,7 +23,6 @@ module ActionMailer
       options.stylesheets_dir ||= paths["public/stylesheets"].first
       options.show_previews = Rails.env.development? if options.show_previews.nil?
       options.cache_store ||= Rails.cache
-      options.smtp_settings ||= {}
 
       if options.show_previews
         options.preview_path ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
@@ -46,9 +45,15 @@ module ActionMailer
           self.delivery_job = delivery_job.constantize
         end
 
-        if smtp_timeout = options.delete(:smtp_timeout)
-          options.smtp_settings[:open_timeout] ||= smtp_timeout
-          options.smtp_settings[:read_timeout] ||= smtp_timeout
+        if options.smtp_settings
+          self.smtp_settings = options.smtp_settings
+        end
+
+        smtp_timeout = options.delete(:smtp_timeout)
+
+        if self.smtp_settings && smtp_timeout
+          self.smtp_settings[:open_timeout] ||= smtp_timeout
+          self.smtp_settings[:read_timeout] ||= smtp_timeout
         end
 
         options.each { |k, v| send("#{k}=", v) }
@@ -71,12 +76,6 @@ module ActionMailer
     initializer "action_mailer.compile_config_methods" do
       ActiveSupport.on_load(:action_mailer) do
         config.compile_methods! if config.respond_to?(:compile_methods!)
-      end
-    end
-
-    initializer "action_mailer.eager_load_actions" do
-      ActiveSupport.on_load(:after_initialize) do
-        ActionMailer::Base.descendants.each(&:action_methods) if config.eager_load
       end
     end
 

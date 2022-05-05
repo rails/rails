@@ -79,27 +79,27 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_to_formatted_s
+  def test_to_fs
     date = Date.new(2005, 2, 21)
-    assert_equal "21 Feb",              date.to_formatted_s(:short)
-    assert_equal "February 21, 2005",   date.to_formatted_s(:long)
-    assert_equal "February 21st, 2005", date.to_formatted_s(:long_ordinal)
-    assert_equal "2005-02-21",          date.to_formatted_s(:db)
-    assert_equal "2005-02-21",          date.to_formatted_s(:inspect)
-    assert_equal "21 Feb 2005",         date.to_formatted_s(:rfc822)
-    assert_equal "2005-02-21",          date.to_formatted_s(:iso8601)
     assert_equal "21 Feb",              date.to_fs(:short)
+    assert_equal "February 21, 2005",   date.to_fs(:long)
+    assert_equal "February 21st, 2005", date.to_fs(:long_ordinal)
+    assert_equal "2005-02-21",          date.to_fs(:db)
+    assert_equal "2005-02-21",          date.to_fs(:inspect)
+    assert_equal "21 Feb 2005",         date.to_fs(:rfc822)
+    assert_equal "2005-02-21",          date.to_fs(:iso8601)
+    assert_equal "21 Feb",              date.to_formatted_s(:short)
   end
 
-  def test_to_formatted_s_with_single_digit_day
+  def test_to_fs_with_single_digit_day
     date = Date.new(2005, 2, 1)
-    assert_equal "01 Feb",              date.to_formatted_s(:short)
-    assert_equal "February 01, 2005",   date.to_formatted_s(:long)
-    assert_equal "February 1st, 2005",  date.to_formatted_s(:long_ordinal)
-    assert_equal "2005-02-01",          date.to_formatted_s(:db)
-    assert_equal "2005-02-01",          date.to_formatted_s(:inspect)
-    assert_equal "01 Feb 2005",         date.to_formatted_s(:rfc822)
-    assert_equal "2005-02-01",          date.to_formatted_s(:iso8601)
+    assert_equal "01 Feb",              date.to_fs(:short)
+    assert_equal "February 01, 2005",   date.to_fs(:long)
+    assert_equal "February 1st, 2005",  date.to_fs(:long_ordinal)
+    assert_equal "2005-02-01",          date.to_fs(:db)
+    assert_equal "2005-02-01",          date.to_fs(:inspect)
+    assert_equal "01 Feb 2005",         date.to_fs(:rfc822)
+    assert_equal "2005-02-01",          date.to_fs(:iso8601)
   end
 
   def test_readable_inspect

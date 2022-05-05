@@ -261,6 +261,7 @@ module ActionController
           # Since we're processing the view in a different thread, copy the
           # thread locals from the main thread to the child thread. :'(
           locals.each { |k, v| t2[k] = v }
+          ActiveSupport::IsolatedExecutionState.share_with(t1)
 
           begin
             super(name)

@@ -40,6 +40,13 @@ module ActiveRecord
       #
       #    User.where.not(name: "Jon", role: "admin")
       #    # SELECT * FROM users WHERE NOT (name == 'Jon' AND role == 'admin')
+      #
+      # If there is a non-nil condition on a nullable column in the hash condition, the records that have
+      # nil values on the nullable column won't be returned.
+      #    User.create!(nullable_country: nil)
+      #    User.where.not(nullable_country: "UK")
+      #    # SELECT * FROM users WHERE NOT (nullable_country = 'UK')
+      #    # => []
       def not(opts, *rest)
         where_clause = @scope.send(:build_where_clause, opts, rest)
 
@@ -162,7 +169,7 @@ module ActiveRecord
     #
     #   users = User.includes(:address, friends: [:address, :followers])
     #
-    # === conditions
+    # === Conditions
     #
     # If you want to add string conditions to your included models, you'll have
     # to explicitly reference them. For example:
@@ -1307,7 +1314,16 @@ module ActiveRecord
       end
       alias :build_having_clause :build_where_clause
 
+      def async!
+        @async = true
+        self
+      end
+
     private
+      def async
+        spawn.async!
+      end
+
       def lookup_table_klass_from_join_dependencies(table_name)
         each_join_dependencies do |join|
           return join.base_klass if table_name == join.table_name
@@ -1602,7 +1618,7 @@ module ActiveRecord
           when Hash
             arg.map { |field, dir|
               case field
-              when Arel::Nodes::SqlLiteral
+              when Arel::Nodes::SqlLiteral, Arel::Nodes::Node, Arel::Attribute
                 field.public_send(dir.downcase)
               else
                 order_column(field.to_s).public_send(dir.downcase)
@@ -1626,7 +1642,9 @@ module ActiveRecord
           when String, Symbol
             arg
           when Hash
-            arg.keys
+            arg.keys.map do |key|
+              key if key.is_a?(String) || key.is_a?(Symbol)
+            end
           end
         end
         references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!

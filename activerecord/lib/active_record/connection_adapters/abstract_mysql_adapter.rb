@@ -81,6 +81,10 @@ module ActiveRecord
         true
       end
 
+      def supports_restart_db_transaction?
+        true
+      end
+
       def supports_explain?
         true
       end
@@ -222,6 +226,10 @@ module ActiveRecord
 
       def exec_rollback_db_transaction # :nodoc:
         execute("ROLLBACK", "TRANSACTION")
+      end
+
+      def exec_restart_db_transaction # :nodoc:
+        execute("ROLLBACK AND CHAIN", "TRANSACTION")
       end
 
       def empty_insert_statement_value(primary_key = nil) # :nodoc:
@@ -640,7 +648,7 @@ module ActiveRecord
 
           log(sql, name, async: async) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @connection.query(sql)
+              @raw_connection.query(sql)
             end
           end
         end
@@ -720,6 +728,10 @@ module ActiveRecord
 
           unless options.key?(:comment)
             options[:comment] = column.comment
+          end
+
+          unless options.key?(:auto_increment)
+            options[:auto_increment] = column.auto_increment?
           end
 
           td = create_table_definition(table_name)

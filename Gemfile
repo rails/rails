@@ -6,8 +6,6 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 gemspec
 
-gem "rbtree", github: "zzak/rbtree" # Ruby 3.2 compatibility
-
 gem "minitest", ">= 5.15.0"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
@@ -38,7 +36,7 @@ gem "terser", ">= 1.1.4", require: false
 gem "json", ">= 2.0.0"
 
 group :rubocop do
-  gem "rubocop", ">= 0.90", require: false
+  gem "rubocop", ">= 1.25.1", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
@@ -46,7 +44,7 @@ group :rubocop do
 end
 
 group :doc do
-  gem "sdoc", ">= 2.3.0"
+  gem "sdoc", ">= 2.3.2"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "kindlerb", "~> 1.2.0"
@@ -71,7 +69,7 @@ group :job do
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false
-  gem "queue_classic", github: "jhawthorn/queue_classic", branch: "fix-connection-pg-14", require: false, platforms: :ruby
+  gem "queue_classic", ">= 4.0.0.pre.beta1", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "que", require: false
   gem "backburner", require: false
@@ -110,7 +108,7 @@ end
 
 # Action View
 group :view do
-  gem "blade", github: "javan/blade", require: false, platforms: [:ruby]
+  gem "blade", require: false, platforms: [:ruby]
   gem "sprockets-export", require: false
 end
 
@@ -142,7 +140,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
 
   group :db do
     gem "pg", "~> 1.3"
-    gem "mysql2", "~> 0.5", github: "brianmario/mysql2"
+    gem "mysql2", "~> 0.5"
   end
 end
 

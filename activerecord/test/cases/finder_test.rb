@@ -24,8 +24,11 @@ require "models/tyre"
 require "models/subscriber"
 require "models/non_primary_key"
 require "support/stubs/strong_parameters"
+require "support/async_helper"
 
 class FinderTest < ActiveRecord::TestCase
+  include AsyncHelper
+
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :author_addresses, :customers, :categories, :categorizations, :cars
 
   def test_find_by_id_with_hash
@@ -602,6 +605,8 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_equal(1, topics.size)
     assert_equal(topics(:second).title, topics.first.title)
+
+    assert_async_equal topics,  Topic.async_find_by_sql("SELECT * FROM topics WHERE author_name = 'Mary'")
   end
 
   def test_find_with_prepared_select_statement
@@ -1321,6 +1326,8 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(0, Entrant.count_by_sql("SELECT COUNT(*) FROM entrants WHERE id > 3"))
     assert_equal(1, Entrant.count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 2]))
     assert_equal(2, Entrant.count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 1]))
+
+    assert_async_equal 2, Entrant.async_count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 1])
   end
 
   def test_find_by_one_attribute

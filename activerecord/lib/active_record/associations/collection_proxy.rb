@@ -475,7 +475,7 @@ module ActiveRecord
 
       # Deletes the records of the collection directly from the database
       # ignoring the +:dependent+ option. Records are instantiated and it
-      # invokes +before_remove+, +after_remove+ , +before_destroy+ and
+      # invokes +before_remove+, +after_remove+, +before_destroy+, and
       # +after_destroy+ callbacks.
       #
       #   class Person < ActiveRecord::Base

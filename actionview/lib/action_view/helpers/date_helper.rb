@@ -26,7 +26,7 @@ module ActionView
       MINUTES_IN_QUARTER_YEAR = 131400
       MINUTES_IN_THREE_QUARTERS_YEAR = 394200
 
-      # Reports the approximate distance in time between two Time, Date or DateTime objects or integers as seconds.
+      # Reports the approximate distance in time between two Time, Date, or DateTime objects or integers as seconds.
       # Pass <tt>include_seconds: true</tt> if you want more detailed approximations when distance < 1 min, 29 secs.
       # Distances are reported based on the following table:
       #
@@ -291,12 +291,12 @@ module ActionView
         Tags::DateSelect.new(object_name, method, self, options, html_options).render
       end
 
-      # Returns a set of select tags (one for hour, minute and optionally second) pre-selected for accessing a
+      # Returns a set of select tags (one for hour, minute, and optionally second) pre-selected for accessing a
       # specified time-based attribute (identified by +method+) on an object assigned to the template (identified by
       # +object+). You can include the seconds with <tt>:include_seconds</tt>. You can get hours in the AM/PM format
       # with <tt>:ampm</tt> option.
       #
-      # This method will also generate 3 input hidden tags, for the actual year, month and day unless the option
+      # This method will also generate 3 input hidden tags, for the actual year, month, and day unless the option
       # <tt>:ignore_date</tt> is set to +true+. If you set the <tt>:ignore_date</tt> to +true+, you must have a
       # +date_select+ on the same method within the form otherwise an exception will be raised.
       #
@@ -871,6 +871,10 @@ module ActionView
           end
         end
 
+        def prompt_text(prompt, type)
+          prompt.kind_of?(String) ? prompt : I18n.translate(:"datetime.prompts.#{type}", locale: @options[:locale])
+        end
+
         # If the day is hidden, the day should be set to the 1st so all month and year choices are
         # valid. Otherwise, February 31st or February 29th, 2011 can be selected, which are invalid.
         def set_day_if_discarded
@@ -1137,7 +1141,7 @@ module ActionView
               I18n.translate(:"datetime.prompts.#{type}", locale: @options[:locale])
             end
 
-          prompt ? content_tag("option", prompt, value: "") : ""
+          prompt ? content_tag("option", prompt_text(prompt, type), value: "") : ""
         end
 
         # Builds hidden input tag for date part and value.

@@ -214,7 +214,7 @@ class ErrorTest < ActiveModel::TestCase
     person = Person.new
     error = ActiveModel::Error.new(person, :name, foo: :bar)
 
-    assert error != person
+    assert_not_equal error, person
   end
 
   # details

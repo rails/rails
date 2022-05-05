@@ -76,7 +76,7 @@ module ActiveRecord
       @record_timestamps
     end
 
-    # TODO: Consider remaining this method, as it only conditionally extends keys, not always
+    # TODO: Consider renaming this method, as it only conditionally extends keys, not always
     def keys_including_timestamps
       @keys_including_timestamps ||= if record_timestamps?
         keys + model.all_timestamp_attributes_in_model

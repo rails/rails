@@ -92,6 +92,7 @@ module ActiveRecord
     autoload :AutosaveAssociation
     autoload :ConnectionAdapters
     autoload :DisableJoinsAssociationRelation
+    autoload :Promise
     autoload :FutureResult
     autoload :LegacyYamlAdapter
     autoload :NullRelation
@@ -177,9 +178,6 @@ module ActiveRecord
   # the schema cache will not dump tables named with an underscore.
   singleton_class.attr_accessor :schema_cache_ignored_tables
   self.schema_cache_ignored_tables = []
-
-  singleton_class.attr_accessor :legacy_connection_handling
-  self.legacy_connection_handling = true
 
   singleton_class.attr_reader :default_timezone
 

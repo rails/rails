@@ -352,6 +352,15 @@ module ApplicationTests
         end
       end
 
+      def db_schema_sql_dump
+        Dir.chdir(app_path) do
+          args = ["generate", "model", "book", "title:string"]
+          rails args
+          rails "db:migrate", "db:schema:dump"
+          assert_match(/CREATE TABLE/, File.read("db/structure.sql"))
+        end
+      end
+
       test "db:schema:dump without database_url" do
         db_schema_dump
       end
@@ -361,7 +370,29 @@ module ApplicationTests
         db_schema_dump
       end
 
-      def db_schema_cache_dump(filename = "db/schema_cache.yml")
+      test "db:schema:dump with env as ruby" do
+        add_to_config "config.active_record.schema_format = :sql"
+
+        old_env = ENV["SCHEMA_FORMAT"]
+        ENV["SCHEMA_FORMAT"] = "ruby"
+
+        db_schema_dump
+      ensure
+        ENV["SCHEMA_FORMAT"] = old_env
+      end
+
+      test "db:schema:dump with env as sql" do
+        add_to_config "config.active_record.schema_format = :ruby"
+
+        old_env = ENV["SCHEMA_FORMAT"]
+        ENV["SCHEMA_FORMAT"] = "sql"
+
+        db_schema_sql_dump
+      ensure
+        ENV["SCHEMA_FORMAT"] = old_env
+      end
+
+      def db_schema_cache_dump
         Dir.chdir(app_path) do
           rails "db:schema:cache:dump"
 
@@ -398,7 +429,7 @@ module ApplicationTests
         end
 
         db_schema_dump
-        db_schema_cache_dump("db/special_schema_cache.yml")
+        db_schema_cache_dump
       end
 
       test "db:schema:cache:dump custom env" do
@@ -407,7 +438,7 @@ module ApplicationTests
         ENV["SCHEMA_CACHE"] = filename
 
         db_schema_dump
-        db_schema_cache_dump(filename)
+        db_schema_cache_dump
       ensure
         ENV["SCHEMA_CACHE"] = @old_schema_cache_env
       end
@@ -702,6 +733,17 @@ module ApplicationTests
         end
       end
 
+      test "db:prepare creates test database if it does not exist" do
+        Dir.chdir(app_path) do
+          use_postgresql
+          rails "db:drop", "db:create"
+          rails "runner", "ActiveRecord::Base.connection.drop_database(:railties_test)"
+
+          output = rails("db:prepare")
+          assert_match(%r{Created database 'railties_test'}, output)
+        end
+      end
+
       test "lazily loaded schema cache isn't read when reading the schema migrations table" do
         Dir.chdir(app_path) do
           app_file "config/initializers/lazy_load_schema_cache.rb", <<-RUBY
@@ -721,6 +763,24 @@ module ApplicationTests
 
           repeat_output = rails "db:drop"
           assert_match(/Dropped database/, repeat_output)
+        end
+      end
+
+      test "destructive tasks are protected" do
+        add_to_config "config.active_record.protected_environments = ['development', 'test']"
+
+        require "#{app_path}/config/environment"
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+
+          destructive_tasks = ["db:drop:all", "db:drop", "db:purge:all", "db:truncate_all", "db:purge", "db:schema:load", "db:test:purge"]
+
+          destructive_tasks.each do |task|
+            error = assert_raises("#{task} did not raise ActiveRecord::ProtectedEnvironmentError") { rails task }
+            assert_match(/ActiveRecord::ProtectedEnvironmentError/, error.message)
+          end
         end
       end
     end

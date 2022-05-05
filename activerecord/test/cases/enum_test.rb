@@ -404,11 +404,38 @@ class EnumTest < ActiveRecord::TestCase
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
         self.table_name = "books"
+        enum :status
+      end
+    end
+
+    assert_match(/must not be empty\.$/, e.message)
+
+    e = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum :status, {}
+      end
+    end
+
+    assert_match(/must not be empty\.$/, e.message)
+
+    e = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum :status, []
+      end
+    end
+
+    assert_match(/must not be empty\.$/, e.message)
+
+    e = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
         enum status: [proposed: 1, written: 2, published: 3]
       end
     end
 
-    assert_match(/must be either a hash, an array of symbols, or an array of strings./, e.message)
+    assert_match(/must only contain symbols or strings\.$/, e.message)
 
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
@@ -417,7 +444,7 @@ class EnumTest < ActiveRecord::TestCase
       end
     end
 
-    assert_match(/Enum label name must not be blank/, e.message)
+    assert_match(/must not contain a blank name\.$/, e.message)
 
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
@@ -426,7 +453,16 @@ class EnumTest < ActiveRecord::TestCase
       end
     end
 
-    assert_match(/Enum label name must not be blank/, e.message)
+    assert_match(/must not contain a blank name\.$/, e.message)
+
+    e = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum status: Object.new
+      end
+    end
+
+    assert_match(/must be either a non-empty hash or an array\.$/, e.message)
   end
 
   test "reserved enum names" do

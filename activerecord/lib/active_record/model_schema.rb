@@ -617,7 +617,7 @@ module ActiveRecord
 
             "#{full_table_name_prefix}#{contained}#{undecorated_table_name(model_name)}#{full_table_name_suffix}"
           else
-            # STI subclasses always use their superclass' table.
+            # STI subclasses always use their superclass's table.
             base_class.table_name
           end
         end

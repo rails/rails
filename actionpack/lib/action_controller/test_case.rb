@@ -182,11 +182,12 @@ module ActionController
   class TestSession < Rack::Session::Abstract::PersistedSecure::SecureSessionHash # :nodoc:
     DEFAULT_OPTIONS = Rack::Session::Abstract::Persisted::DEFAULT_OPTIONS
 
-    def initialize(session = {})
+    def initialize(session = {}, id = Rack::Session::SessionId.new(SecureRandom.hex(16)))
       super(nil, nil)
-      @id = Rack::Session::SessionId.new(SecureRandom.hex(16))
+      @id = id
       @data = stringify_keys(session)
       @loaded = true
+      @initially_empty = @data.empty?
     end
 
     def exists?
@@ -218,6 +219,10 @@ module ActionController
       true
     end
 
+    def id_was
+      @id
+    end
+
     private
       def load!
         @id
@@ -241,7 +246,7 @@ module ActionController
   # == Basic example
   #
   # Functional tests are written as follows:
-  # 1. First, one uses the +get+, +post+, +patch+, +put+, +delete+ or +head+ method to simulate
+  # 1. First, one uses the +get+, +post+, +patch+, +put+, +delete+, or +head+ method to simulate
   #    an HTTP request.
   # 2. Then, one asserts whether the current state is as expected. "State" can be anything:
   #    the controller's HTTP response, the database contents, etc.
@@ -391,7 +396,7 @@ module ActionController
       #
       # You can also simulate POST, PATCH, PUT, DELETE, and HEAD requests with
       # +post+, +patch+, +put+, +delete+, and +head+.
-      # Example sending parameters, session and setting a flash message:
+      # Example sending parameters, session, and setting a flash message:
       #
       #   get :show,
       #     params: { id: 7 },
@@ -461,7 +466,7 @@ module ActionController
       #     session: { user_id: 1 },
       #     flash: { notice: 'This is flash message' }
       #
-      # To simulate +GET+, +POST+, +PATCH+, +PUT+, +DELETE+ and +HEAD+ requests
+      # To simulate +GET+, +POST+, +PATCH+, +PUT+, +DELETE+, and +HEAD+ requests
       # prefer using #get, #post, #patch, #put, #delete and #head methods
       # respectively which will make tests more expressive.
       #

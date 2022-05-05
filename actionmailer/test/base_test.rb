@@ -212,7 +212,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("certificate.pdf", email.parts[1].filename)
   end
 
-  # Defaults values
+  # Default values
   test "uses default charset from class" do
     with_default BaseMailer, charset: "US-ASCII" do
       email = BaseMailer.welcome

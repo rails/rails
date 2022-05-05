@@ -74,4 +74,10 @@ class ActionController::TestSessionTest < ActiveSupport::TestCase
     assert_instance_of String, session.id.public_id
     assert_equal(session.id.public_id, session["session_id"])
   end
+
+  def test_merge!
+    session = ActionController::TestSession.new
+    session.merge!({ key: "value" })
+    assert_equal("value", session["key"])
+  end
 end

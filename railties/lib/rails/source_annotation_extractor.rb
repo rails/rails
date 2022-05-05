@@ -70,7 +70,7 @@ module Rails
     #
     # If +options+ has a <tt>:tag</tt> flag, it will be passed to each annotation's +to_s+.
     #
-    # See <tt>#find_in</tt> for a list of file extensions that will be taken into account.
+    # See SourceAnnotationExtractor#find_in for a list of file extensions that will be taken into account.
     #
     # This class method is the single entry point for the <tt>rails notes</tt> command.
     def self.enumerate(tag = nil, options = {})

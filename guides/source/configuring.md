@@ -62,6 +62,9 @@ Below are the default values associated with each target version. In cases of co
 
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.add_autoload_paths_to_load_path`](#config-add-autoload-paths-to-load-path): `false`
+- [`config.active_support.default_message_encryptor_serializer`](#config-active-support-default-message-encryptor-serializer): `:json`
+- [`config.active_support.default_message_verifier_serializer`](#config-active-support-default-message-verifier-serializer): `:json`
+- [`config.action_controller.allow_deprecated_parameters_hash_equality`](#config-action-controller-allow-deprecated-parameters-hash-equality): `false`
 
 #### Default Values for Target Version 7.0
 
@@ -99,7 +102,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_mailer.deliver_later_queue_name`](#config-action-mailer-deliver-later-queue-name): `nil`
 - [`config.active_job.retry_jitter`](#config-active-job-retry-jitter): `0.15`
 - [`config.action_dispatch.cookies_same_site_protection`](#config-action-dispatch-cookies-same-site-protection): `:lax`
-- [`config.action_dispatch.ssl_default_redirect_status`](`config.action_dispatch.ssl_default_redirect_status`) = `308`
+- [`config.action_dispatch.ssl_default_redirect_status`](#config-action-dispatch-ssl-default-redirect-status) = `308`
 - [`ActiveSupport.utc_to_local_returns_utc_offset_times`](#activesupport-utc-to-local-returns-utc-offset-times): `true`
 - [`config.action_controller.urlsafe_csrf_tokens`](#config-action-controller-urlsafe-csrf-tokens): `true`
 - [`config.action_view.form_with_generates_remote_forms`](#config-action-view-form-with-generates-remote-forms): `false`
@@ -157,7 +160,7 @@ Sets the host for the assets. Useful when CDNs are used for hosting assets, or w
 
 #### `config.autoload_once_paths`
 
-Accepts an array of paths from which Rails will autoload constants that won't be wiped per request. Relevant if `config.cache_classes` is `false`, which is the default in the development environment. Otherwise, all autoloading happens only once. All elements of this array must also be in `autoload_paths`. Default is an empty array.
+Accepts an array of paths from which Rails will autoload constants that won't be wiped per request. Relevant if reloading is enabled, which it is by default in the `development` environment. Otherwise, all autoloading happens only once. All elements of this array must also be in `autoload_paths`. Default is an empty array.
 
 #### `config.autoload_paths`
 
@@ -174,9 +177,15 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `true`               |
 | 7.1                   | `false`              |
 
+#### `config.enable_reloading`
+
+If `config.enable_reloading` is true, application classes and modules are reloaded in between web requests if they change. Defaults to `true` in the `development` environment, and `false` in the `production` environment.
+
+The predicate `config.reloading_enabled?` is also defined.
+
 #### `config.cache_classes`
 
-Controls whether or not application classes and modules should be reloaded if they change. When the cache is enabled (`true`), reloading will not occur. Defaults to `false` in the development environment, and `true` in production. In the test environment, the default is `false` if Spring is installed, `true` otherwise.
+Old setting equivalent to `!config.enable_reloading`. Supported for backwards compatibility.
 
 #### `config.beginning_of_week`
 
@@ -210,7 +219,7 @@ end
 
 #### `config.disable_sandbox`
 
-Controls whether or not someone can start a console in sandbox mode. This is helpful to avoid a long running session of sandbox console, that could lead a database server to run out of memory. Defaults to false.
+Controls whether or not someone can start a console in sandbox mode. This is helpful to avoid a long running session of sandbox console, that could lead a database server to run out of memory. Defaults to `false`.
 
 #### `config.eager_load`
 
@@ -222,11 +231,7 @@ Registers namespaces that are eager loaded when `config.eager_load` is set to `t
 
 #### `config.eager_load_paths`
 
-Accepts an array of paths from which Rails will eager load on boot if `config.cache_classes` is set to `true`. Defaults to every folder in the `app` directory of the application.
-
-#### `config.enable_dependency_loading`
-
-When true, enables autoloading, even if the application is eager loaded and `config.cache_classes` is set to `true`. Defaults to false.
+Accepts an array of paths from which Rails will eager load on boot if `config.eager_load` is true. Defaults to every folder in the `app` directory of the application.
 
 #### `config.encoding`
 
@@ -246,8 +251,19 @@ Is the class used to detect file updates in the file system when `config.reload_
 
 #### `config.filter_parameters`
 
-Used for filtering out the parameters that you don't want shown in the logs, such as passwords or credit card
-numbers. It also filters out sensitive values of database columns when calling `#inspect` on an Active Record object. By default, Rails filters out passwords by adding `Rails.application.config.filter_parameters += [:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
+Used for filtering out the parameters that you don't want shown in the logs,
+such as passwords or credit card numbers. It also filters out sensitive values
+of database columns when calling `#inspect` on an Active Record object. By
+default, Rails filters out passwords by adding the following filters in
+`config/initializers/filter_parameter_logging.rb`.
+
+```ruby
+Rails.application.config.filter_parameters += [
+  :passw, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn
+]
+```
+
+Parameters filter works by partial matching regular expression.
 
 #### `config.force_ssl`
 
@@ -297,7 +313,7 @@ When `true`, eager load the application when running Rake tasks. Defaults to `fa
 
 #### `config.reload_classes_only_on_change`
 
-Enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to `true`. If `config.cache_classes` is `true`, this option is ignored.
+Enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to `true`. If `config.enable_reloading` is `false`, this option is ignored.
 
 #### `config.credentials.content_path`
 
@@ -307,7 +323,7 @@ Configures lookup path for encrypted credentials.
 
 Configures lookup path for encryption key.
 
-#### `secret_key_base``
+#### `secret_key_base`
 
 Is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get a random generated key in test and development environments, other environments should set one in `config/credentials.yml.enc`.
 
@@ -321,13 +337,22 @@ Configures Rails to serve static files from the public directory. This option de
 
 #### `config.session_store`
 
-Specifies what class to use to store the session. Possible values are `:cookie_store` which is the default, `:mem_cache_store`, and `:disabled`. The last one tells Rails not to deal with sessions. Defaults to a cookie store with application name as the session key. Custom session stores can also be specified:
+Specifies what class to use to store the session. Possible values are `:cache_store`, `:cookie_store`, `:mem_cache_store`, a custom store, or `:disabled`. `:disabled` tells Rails not to deal with sessions.
+
+This setting is configured via a regular method call, rather than a setter. This allows additional options to be passed:
 
 ```ruby
+config.session_store :cookie_store, key: "_your_app_session"
+```
+
+If a custom store is specified as a symbol, it will be resolved to the `ActionDispatch::Session` namespace:
+
+```ruby
+# use ActionDispatch::Session::MyCustomStore as the session store
 config.session_store :my_custom_store
 ```
 
-This custom store must be defined as `ActionDispatch::Session::MyCustomStore`.
+The default store is a cookie store with the application name as the session key.
 
 #### `config.ssl_options`
 
@@ -346,18 +371,13 @@ Sets the default time zone for the application and enables time zone awareness f
 
 ### Configuring Assets
 
-#### `config.assets.enabled`
-
-A flag that controls whether the asset pipeline is enabled. It is set to `true`
-by default.
-
 #### `config.assets.css_compressor`
 
 Defines the CSS compressor to use. It is set by default by `sass-rails`. The unique alternative value at the moment is `:yui`, which uses the `yui-compressor` gem.
 
 #### `config.assets.js_compressor`
 
-Defines the JavaScript compressor to use. Possible values are `:terser`, `:closure`, `:uglifier` and `:yui` which require the use of the `terser`, `closure-compiler`, `uglifier` or `yui-compressor` gems respectively.
+Defines the JavaScript compressor to use. Possible values are `:terser`, `:closure`, `:uglifier`, and `:yui`, which require the use of the `terser`, `closure-compiler`, `uglifier`, or `yui-compressor` gems respectively.
 
 #### `config.assets.gzip`
 
@@ -489,21 +509,21 @@ Rails.application.config.hosts << ".product.com"
 ```
 
 You can exclude certain requests from Host Authorization checks by setting
-`config.host_configuration.exclude`:
+`config.host_authorization.exclude`:
 
 ```ruby
 # Exclude requests for the /healthcheck/ path from host checking
-Rails.application.config.host_configuration = {
+Rails.application.config.host_authorization = {
   exclude: ->(request) { request.path =~ /healthcheck/ }
 }
 ```
 
 When a request comes to an unauthorized host, a default Rack application
 will run and respond with `403 Forbidden`. This can be customized by setting
-`config.host_configuration.response_app`. For example:
+`config.host_authorization.response_app`. For example:
 
 ```ruby
-Rails.application.config.host_configuration = {
+Rails.application.config.host_authorization = {
   response_app: -> env do
     [400, { "Content-Type" => "text/plain" }, ["Bad Request"]]
   end
@@ -560,11 +580,11 @@ Sets cookies for the request.
 
 #### `ActionDispatch::Session::CookieStore`
 
-Is responsible for storing the session in cookies. An alternate middleware can be used for this by changing the `config.action_controller.session_store` to an alternate value. Additionally, options passed to this can be configured by using `config.action_controller.session_options`.
+Is responsible for storing the session in cookies. An alternate middleware can be used for this by changing [`config.session_store`](#config-session-store).
 
 #### `ActionDispatch::Flash`
 
-Sets up the `flash` keys. Only available if `config.action_controller.session_store` is set to a value.
+Sets up the `flash` keys. Only available if [`config.session_store`](#config-session-store) is set to a value.
 
 #### `Rack::MethodOverride`
 
@@ -717,7 +737,7 @@ Lets you set an array of names of environments where destructive actions should 
 
 #### `config.active_record.pluralize_table_names`
 
-Specifies whether Rails will look for singular or plural table names in the database. If set to `true` (the default), then the Customer class will use the `customers` table. If set to false, then the Customer class will use the `customer` table.
+Specifies whether Rails will look for singular or plural table names in the database. If set to `true` (the default), then the Customer class will use the `customers` table. If set to `false`, then the Customer class will use the `customer` table.
 
 #### `config.active_record.default_timezone`
 
@@ -885,13 +905,17 @@ The default value depends on the `config.load_defaults` target version:
 
 Allows specifying the job that will be used to destroy the associated records in background. It defaults to `ActiveRecord::DestroyAssociationAsyncJob`.
 
+#### `config.active_record.destroy_association_async_batch_size`
+
+Allows specifying the maximum number of records that will be destroyed in a background job by the `dependent: :destroy_async` association option. All else equal, a lower batch size will enqueue more, shorter-running background jobs, while a higher batch size will enqueue fewer, longer-running background jobs. This option defaults to `nil`, which will cause all dependent records for a given association to be destroyed in the same background job.
+
 #### `config.active_record.queues.destroy`
 
 Allows specifying the Active Job queue to use for destroy jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). It defaults to `nil`.
 
 #### `config.active_record.enumerate_columns_in_select_statements`
 
-When true, will always include column names in `SELECT` statements, and avoid wildcard `SELECT * FROM ...` queries. This avoids prepared statement cache errors when adding columns to a PostgreSQL database for example. Defaults to `false`.
+When `true`, will always include column names in `SELECT` statements, and avoid wildcard `SELECT * FROM ...` queries. This avoids prepared statement cache errors when adding columns to a PostgreSQL database for example. Defaults to `false`.
 
 #### `config.active_record.verify_foreign_keys_for_fixtures`
 
@@ -959,7 +983,7 @@ should be large enough to accommodate both the foreground threads (.e.g web serv
 
 Controls whether the Active Record MySQL adapter will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
 
-#### `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_table`
+#### `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables`
 
 Controls whether database tables created by PostgreSQL should be "unlogged", which can speed
 up performance but adds a risk of data loss if the database crashes. It is
@@ -1134,11 +1158,19 @@ The default value depends on the `config.load_defaults` target version:
 Configures the [`ParamsWrapper`](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html). This can be called at
 the top level, or on individual controllers.
 
+#### `config.action_controller.allow_deprecated_parameters_hash_equality`
+
+Controls behaviour of `ActionController::Parameters#==` with `Hash` arguments.
+Value of the setting determines whether an `ActionController::Parameters` instance is equal to an equivalent `Hash`.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 7.1                   | `false`              |
+
 ### Configuring Action Dispatch
-
-#### `config.action_dispatch.session_store`
-
-Sets the name of the store for session data. The default is `:cookie_store`; other valid options include `:active_record_store`, `:mem_cache_store` or the name of your own custom class.
 
 #### `config.action_dispatch.cookies_serializer`
 
@@ -1353,7 +1385,7 @@ Takes a block of code to run after the request.
 
 #### `config.action_view.cache_template_loading`
 
-Controls whether or not templates should be reloaded on each request. Defaults to whatever is set for `config.cache_classes`.
+Controls whether or not templates should be reloaded on each request. Defaults to `!config.enable_reloading`.
 
 #### `config.action_view.field_error_proc`
 
@@ -1597,7 +1629,7 @@ Defines the delivery method and defaults to `:smtp`. See the [configuration sect
 
 #### `config.action_mailer.perform_deliveries`
 
-Specifies whether mail will actually be delivered and is true by default. It can be convenient to set it to `false` for testing.
+Specifies whether mail will actually be delivered and is `true` by default. It can be convenient to set it to `false` for testing.
 
 #### `config.action_mailer.default_options`
 
@@ -1868,6 +1900,48 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 6.1                   | `true`               |
 
+#### `config.active_support.default_message_encryptor_serializer`
+
+Specifies what serializer the `MessageEncryptor` class will use by default.
+
+Options are `:json`, `:hybrid`, and `:marshal`. `:hybrid` uses the `JsonWithMarshalFallback` class.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:marshal`           |
+| 7.1                   | `:json`              |
+
+#### `config.active_support.fallback_to_marshal_deserialization`
+
+Specifies if the `ActiveSupport::JsonWithMarshalFallback` class will fallback to `Marshal` when it encounters a `::JSON::ParserError`.
+
+Defaults to `true`.
+
+#### `config.active_support.use_marshal_serialization`
+
+Specifies if the `ActiveSupport::JsonWithMarshalFallback` class will use `Marshal` to serialize payloads.
+
+If this is set to `false`, it will use `JSON` to serialize payloads.
+
+Used to help migrate apps from `Marshal` to `JSON` as the default serializer for the `MessageEncryptor` class.
+
+Defaults to `true`.
+
+#### `config.active_support.default_message_verifier_serializer`
+
+Specifies what serializer the `MessageVerifier` class will use by default.
+
+Options are `:json`, `:hybrid`, and `:marshal`. `:hybrid` uses the `JsonWithMarshalFallback` class.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:marshal`           |
+| 7.1                   | `:json`              |
+
 ### Configuring Active Job
 
 `config.active_job` provides the following configuration options:
@@ -2001,7 +2075,7 @@ By default, this is defined as:
 config.active_storage.analyzers = [ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer]
 ```
 
-The image analyzers can extract width and height of an image blob; the video analyzer can extract width, height, duration, angle, aspect ratio and presence/absence of video/audio channels of a video blob; the audio analyzer can extract duration and bit rate of an audio blob.
+The image analyzers can extract width and height of an image blob; the video analyzer can extract width, height, duration, angle, aspect ratio, and presence/absence of video/audio channels of a video blob; the audio analyzer can extract duration and bit rate of an audio blob.
 
 #### `config.active_storage.previewers`
 
@@ -2658,7 +2732,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `initialize_cache`: If `Rails.cache` isn't set yet, initializes the cache by referencing the value in `config.cache_store` and stores the outcome as `Rails.cache`. If this object responds to the `middleware` method, its middleware is inserted before `Rack::Runtime` in the middleware stack.
 
-* `set_clear_dependencies_hook`: This initializer - which runs only if `cache_classes` is set to `false` - uses `ActionDispatch::Callbacks.after` to remove the constants which have been referenced during the request from the object space so that they will be reloaded during the following request.
+* `set_clear_dependencies_hook`: This initializer - which runs only if `config.enable_reloading` is set to `true` - uses `ActionDispatch::Callbacks.after` to remove the constants which have been referenced during the request from the object space so that they will be reloaded during the following request.
 
 * `bootstrap_hook`: Runs all configured `before_initialize` blocks.
 
@@ -2702,7 +2776,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `active_record.log_runtime`: Includes `ActiveRecord::Railties::ControllerRuntime` which is responsible for reporting the time taken by Active Record calls for the request back to the logger.
 
-* `active_record.set_reloader_hooks`: Resets all reloadable connections to the database if `config.cache_classes` is set to `false`.
+* `active_record.set_reloader_hooks`: Resets all reloadable connections to the database if `config.enable_reloading` is set to `true`.
 
 * `active_record.add_watchable_files`: Adds `schema.rb` and `structure.sql` files to watchable files.
 
@@ -2735,7 +2809,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `engines_blank_point`: Provides a point-in-initialization to hook into if you wish to do anything before engines are loaded. After this point, all railtie and engine initializers are run.
 
-* `add_generator_templates`: Finds templates for generators at `lib/templates` for the application, railties, and engines and adds these to the `config.generators.templates` setting, which will make the templates available for all generators to reference.
+* `add_generator_templates`: Finds templates for generators at `lib/templates` for the application, railties, and engines, and adds these to the `config.generators.templates` setting, which will make the templates available for all generators to reference.
 
 * `ensure_autoload_once_paths_as_subset`: Ensures that the `config.autoload_once_paths` only contains paths from `config.autoload_paths`. If it contains extra paths, then an exception will be raised.
 
@@ -2884,8 +2958,7 @@ Evented File System Monitor
 ---------------------------
 
 If the [listen gem](https://github.com/guard/listen) is loaded Rails uses an
-evented file system monitor to detect changes when `config.cache_classes` is
-`false`:
+evented file system monitor to detect changes when reloading is enabled:
 
 ```ruby
 group :development do

@@ -127,7 +127,7 @@ module Rails
         end
 
         def route_url # :doc:
-          @route_url ||= class_path.collect { |dname| "/" + dname }.join + "/" + plural_file_name
+          @route_url ||= controller_class_path.collect { |dname| "/" + dname }.join + "/" + plural_file_name
         end
 
         def url_helper_prefix # :doc:
@@ -202,7 +202,7 @@ module Rails
         end
 
         # Add a class collisions name to be checked on class initialization. You
-        # can supply a hash with a :prefix or :suffix to be tested.
+        # can supply a hash with a +:prefix+ or +:suffix+ to be tested.
         #
         # ==== Examples
         #

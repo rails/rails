@@ -188,29 +188,31 @@ module ActiveRecord
       def prepare_all
         seed = false
 
-        configs_for(env_name: env).each do |db_config|
+        each_current_configuration(env) do |db_config|
           ActiveRecord::Base.establish_connection(db_config)
 
-          # Skipped when no database
-          migrate
-
-          if ActiveRecord.dump_schema_after_migration
-            dump_schema(db_config, ActiveRecord.schema_format)
-          end
-        rescue ActiveRecord::NoDatabaseError
-          create_current(db_config.env_name, db_config.name)
-
-          if File.exist?(schema_dump_path(db_config))
-            load_schema(
-              db_config,
-              ActiveRecord.schema_format,
-              nil
-            )
-          else
+          begin
+            # Skipped when no database
             migrate
-          end
 
-          seed = true
+            if ActiveRecord.dump_schema_after_migration
+              dump_schema(db_config, ActiveRecord.schema_format)
+            end
+          rescue ActiveRecord::NoDatabaseError
+            create(db_config)
+
+            if File.exist?(schema_dump_path(db_config))
+              load_schema(
+                db_config,
+                ActiveRecord.schema_format,
+                nil
+              )
+            else
+              migrate
+            end
+
+            seed = true
+          end
         end
 
         ActiveRecord::Base.establish_connection
@@ -305,7 +307,7 @@ module ActiveRecord
       end
 
       def check_target_version
-        if target_version && !(Migration::MigrationFilenameRegexp.match?(ENV["VERSION"]) || /\A\d+\z/.match?(ENV["VERSION"]))
+        if target_version && !Migration.valid_version_format?(ENV["VERSION"])
           raise "Invalid format of target version: `VERSION=#{ENV['VERSION']}`"
         end
       end
@@ -364,6 +366,7 @@ module ActiveRecord
 
       def load_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
         file ||= schema_dump_path(db_config, format)
+        return unless file
 
         verbose_was, Migration.verbose = Migration.verbose, verbose? && ENV["VERBOSE"]
         check_schema_file(file)
@@ -389,7 +392,7 @@ module ActiveRecord
 
         file ||= schema_dump_path(db_config)
 
-        return true unless File.exist?(file)
+        return true unless file && File.exist?(file)
 
         ActiveRecord::Base.establish_connection(db_config)
 
@@ -402,7 +405,7 @@ module ActiveRecord
       def reconstruct_from_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
         file ||= schema_dump_path(db_config, format)
 
-        check_schema_file(file)
+        check_schema_file(file) if file
 
         ActiveRecord::Base.establish_connection(db_config)
 
@@ -420,6 +423,8 @@ module ActiveRecord
       def dump_schema(db_config, format = ActiveRecord.schema_format) # :nodoc:
         require "active_record/schema_dumper"
         filename = schema_dump_path(db_config, format)
+        return unless filename
+
         connection = ActiveRecord::Base.connection
 
         FileUtils.mkdir_p(db_dir)

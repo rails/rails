@@ -207,14 +207,17 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   def test_model_name_option
     run_generator ["Admin::User", "--model-name=User"]
     assert_file "app/controllers/admin/users_controller.rb" do |content|
+      assert_match "# GET /admin/users", content
       assert_instance_method :index, content do |m|
         assert_match("@users = User.all", m)
       end
 
+      assert_match "# POST /admin/users", content
       assert_instance_method :create, content do |m|
         assert_match("redirect_to [:admin, @user]", m)
       end
 
+      assert_match "# PATCH/PUT /admin/users/1", content
       assert_instance_method :update, content do |m|
         assert_match("redirect_to [:admin, @user]", m)
       end

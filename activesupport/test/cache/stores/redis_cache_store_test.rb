@@ -25,11 +25,14 @@ class SlowRedis < Redis
 end
 
 module ActiveSupport::Cache::RedisCacheStoreTests
+  REDIS_URL = ENV["REDIS_URL"] || "redis://localhost:6379/0"
+  REDIS_URLS = ENV["REDIS_URLS"]&.split(",") || %w[ redis://localhost:6379/0 redis://localhost:6379/1 ]
+
   if ENV["CI"]
     REDIS_UP = true
   else
     begin
-      redis = Redis.new(url: "redis://localhost:6379/0")
+      redis = Redis.new(url: REDIS_URL)
       redis.ping
 
       REDIS_UP = true
@@ -71,34 +74,34 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     test "singular URL uses Redis client" do
       assert_called_with Redis, :new, [
-        url: "redis://localhost:6379/0",
+        url: REDIS_URL,
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
         reconnect_attempts: 0, driver: DRIVER
       ] do
-        build url: "redis://localhost:6379/0"
+        build url: REDIS_URL
       end
     end
 
     test "one URL uses Redis client" do
       assert_called_with Redis, :new, [
-        url: "redis://localhost:6379/0",
+        url: REDIS_URL,
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
         reconnect_attempts: 0, driver: DRIVER
       ] do
-        build url: %w[ redis://localhost:6379/0 ]
+        build url: [ REDIS_URL ]
       end
     end
 
     test "multiple URLs uses Redis::Distributed client" do
       assert_called_with Redis, :new, [
-        [ url: "redis://localhost:6379/0",
+        [ url: REDIS_URLS.first,
           connect_timeout: 20, read_timeout: 1, write_timeout: 1,
           reconnect_attempts: 0, driver: DRIVER ],
-        [ url: "redis://localhost:6379/1",
+        [ url: REDIS_URLS.last,
           connect_timeout: 20, read_timeout: 1, write_timeout: 1,
           reconnect_attempts: 0, driver: DRIVER ],
       ], returns: Redis.new do
-        @cache = build url: %w[ redis://localhost:6379/0 redis://localhost:6379/1 ]
+        @cache = build url: REDIS_URLS
         assert_kind_of ::Redis::Distributed, @cache.redis
       end
     end
@@ -284,7 +287,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   class RedisDistributedConnectionPoolBehaviourTest < ConnectionPoolBehaviourTest
     private
       def store_options
-        { url: [ENV["REDIS_URL"] || "redis://localhost:6379/0"] * 2 }
+        { url: REDIS_URLS }
       end
   end
 
@@ -411,7 +414,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     test "clear all cache key with Redis::Distributed" do
       cache = ActiveSupport::Cache::RedisCacheStore.new(
-        url: %w[redis://localhost:6379/0, redis://localhost:6379/1],
+        url: REDIS_URLS,
         timeout: 0.1, namespace: @namespace, expires_in: 60, driver: DRIVER)
       cache.write("foo", "bar")
       cache.write("fu", "baz")

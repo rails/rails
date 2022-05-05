@@ -79,7 +79,7 @@ module ActiveRecord
           timestamp = max_updated_column_timestamp
 
           if timestamp
-            timestamp = timestamp.utc.to_formatted_s(cache_timestamp_format)
+            timestamp = timestamp.utc.to_fs(cache_timestamp_format)
             "#{model_name.cache_key}/#{id}-#{timestamp}"
           else
             "#{model_name.cache_key}/#{id}"
@@ -103,7 +103,7 @@ module ActiveRecord
           raw_timestamp_to_cache_version(timestamp)
 
         elsif timestamp = updated_at
-          timestamp.utc.to_formatted_s(cache_timestamp_format)
+          timestamp.utc.to_fs(cache_timestamp_format)
         end
       elsif self.class.has_attribute?("updated_at")
         raise ActiveModel::MissingAttributeError, "missing attribute: updated_at"

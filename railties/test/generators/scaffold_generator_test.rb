@@ -573,7 +573,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
         `bin/rails g scaffold User name:string age:integer;
         bin/rails db:migrate`
       end
-      assert_match(/8 runs, 10 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
+      assert_match(/8 runs, 12 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
   end
 
@@ -593,7 +593,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
         assert_match(/class UsersController < ApplicationController/, content)
       end
 
-      assert_match(/8 runs, 10 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
+      assert_match(/8 runs, 12 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
   end
 
@@ -607,7 +607,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
         `bin/rails g scaffold User name:string age:integer;
         bin/rails db:migrate`
       end
-      assert_match(/8 runs, 10 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
+      assert_match(/8 runs, 12 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
   end
 
@@ -621,7 +621,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
         `bin/rails g scaffold User name:string age:integer;
         bin/rails db:migrate`
       end
-      assert_match(/6 runs, 8 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
+      assert_match(/6 runs, 10 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
   end
 
@@ -635,7 +635,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
         `bin/rails g scaffold User name:string age:integer;
         bin/rails db:migrate`
       end
-      assert_match(/6 runs, 8 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
+      assert_match(/6 runs, 10 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
   end
 

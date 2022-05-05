@@ -1,13 +1,11 @@
 # frozen_string_literal: true
 
-require_relative "async"
-
 module ActionCable
   module SubscriptionAdapter
     # == Test adapter for Action Cable
     #
     # The test adapter should be used only in testing. Along with
-    # <tt>ActionCable::TestHelper</tt> it makes a great tool to test your Rails application.
+    # ActionCable::TestHelper it makes a great tool to test your Rails application.
     #
     # To use the test adapter set +adapter+ value to +test+ in your +config/cable.yml+ file.
     #

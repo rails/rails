@@ -623,7 +623,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     end
 
     assert_sql(%r{/\* from-scope \*/}) do
-      assert Topic.including_annotate_in_scope.to_a, Topic.all.to_a
+      assert_equal Topic.including_annotate_in_scope.to_a, Topic.all.to_a
     end
   end
 end

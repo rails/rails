@@ -31,7 +31,7 @@ module ActiveSupport
       #     perform_service(param: 'no_exception')
       #   end
       def assert_nothing_raised
-        yield
+        yield.tap { assert(true) }
       rescue => error
         raise Minitest::UnexpectedError.new(error)
       end
@@ -159,7 +159,7 @@ module ActiveSupport
       #     @object = 42
       #   end
       #
-      # The keyword arguments :from and :to can be given to specify the
+      # The keyword arguments +:from+ and +:to+ can be given to specify the
       # expected initial value and the expected value after the block was
       # executed.
       #
@@ -179,7 +179,7 @@ module ActiveSupport
         retval = _assert_nothing_raised_or_warn("assert_changes", &block)
 
         unless from == UNTRACKED
-          error = "Expected change from #{from.inspect}"
+          error = "Expected change from #{from.inspect}, got #{before}"
           error = "#{message}.\n#{error}" if message
           assert from === before, error
         end
@@ -192,7 +192,7 @@ module ActiveSupport
         refute_equal before, after, error
 
         unless to == UNTRACKED
-          error = "Expected change to #{to}\n"
+          error = "Expected change to #{to}, got #{after}\n"
           error = "#{message}.\n#{error}" if message
           assert to === after, error
         end

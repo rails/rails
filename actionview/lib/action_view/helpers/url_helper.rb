@@ -89,21 +89,6 @@ module ActionView
       #
       # ==== Options
       # * <tt>:data</tt> - This option can be used to add custom data attributes.
-      # * <tt>method: symbol of HTTP verb</tt> - This modifier will dynamically
-      #   create an HTML form and immediately submit the form for processing using
-      #   the HTTP verb specified. Useful for having links perform a POST operation
-      #   in dangerous actions like deleting a record (which search bots can follow
-      #   while spidering your site). Supported verbs are <tt>:post</tt>, <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>.
-      #   Note that if the user has JavaScript disabled, the request will fall back
-      #   to using GET. If <tt>href: '#'</tt> is used and the user has JavaScript
-      #   disabled clicking the link will have no effect. If you are relying on the
-      #   POST behavior, you should check for it in your controller's action by using
-      #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt>, <tt>patch?</tt>, or <tt>put?</tt>.
-      # * <tt>remote: true</tt> - This will allow the unobtrusive JavaScript
-      #   driver to make an Ajax request to the URL in question instead of following
-      #   the link. The drivers each provide mechanisms for listening for the
-      #   completion of the Ajax request and performing JavaScript operations once
-      #   they're complete
       #
       # ==== Examples
       #
@@ -180,28 +165,43 @@ module ActionView
       #   link_to "Nonsense search", searches_path(foo: "bar", baz: "quux")
       #   # => <a href="/searches?foo=bar&baz=quux">Nonsense search</a>
       #
-      # The only option specific to +link_to+ (<tt>:method</tt>) is used as follows:
-      #
-      #   link_to("Destroy", "http://www.example.com", method: :delete)
-      #   # => <a href='http://www.example.com' rel="nofollow" data-method="delete">Destroy</a>
-      #
-      # Also you can set any link attributes such as <tt>target</tt>, <tt>rel</tt>, <tt>type</tt>:
+      # You can set any link attributes such as <tt>target</tt>, <tt>rel</tt>, <tt>type</tt>:
       #
       #   link_to "External link", "http://www.rubyonrails.org/", target: "_blank", rel: "nofollow"
       #   # => <a href="http://www.rubyonrails.org/" target="_blank" rel="nofollow">External link</a>
       #
-      # ==== Deprecated: Rails UJS attributes
+      # ==== Deprecated: Rails UJS Attributes
       #
-      # Prior to Rails 7, Rails shipped with a JavaScript library called @rails/ujs on by default. Following Rails 7,
+      # Prior to Rails 7, Rails shipped with a JavaScript library called <tt>@rails/ujs</tt> on by default. Following Rails 7,
       # this library is no longer on by default. This library integrated with the following options:
       #
-      # * <tt>confirm: 'question?'</tt> - This will allow the unobtrusive JavaScript
-      #   driver to prompt with the question specified (in this case, the
+      # * <tt>method: symbol of HTTP verb</tt> - This modifier will dynamically
+      #   create an HTML form and immediately submit the form for processing using
+      #   the HTTP verb specified. Useful for having links perform a POST operation
+      #   in dangerous actions like deleting a record (which search bots can follow
+      #   while spidering your site). Supported verbs are <tt>:post</tt>, <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>.
+      #   Note that if the user has JavaScript disabled, the request will fall back
+      #   to using GET. If <tt>href: '#'</tt> is used and the user has JavaScript
+      #   disabled clicking the link will have no effect. If you are relying on the
+      #   POST behavior, you should check for it in your controller's action by using
+      #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt>, <tt>patch?</tt>, or <tt>put?</tt>.
+      # * <tt>remote: true</tt> - This will allow <tt>@rails/ujs</tt>
+      #   to make an Ajax request to the URL in question instead of following
+      #   the link.
+      #
+      # <tt>@rails/ujs</tt> also integrated with the following +:data+ options:
+      #
+      # * <tt>confirm: "question?"</tt> - This will allow <tt>@rails/ujs</tt>
+      #   to prompt with the question specified (in this case, the
       #   resulting text would be <tt>question?</tt>). If the user accepts, the
       #   link is processed normally, otherwise no action is taken.
       # * <tt>:disable_with</tt> - Value of this parameter will be used as the
-      #   name for a disabled version of the link. This feature is provided by
-      #   the unobtrusive JavaScript driver.
+      #   name for a disabled version of the link.
+      #
+      # ===== Rails UJS Examples
+      #
+      #   link_to "Remove Profile", profile_path(@profile), method: :delete
+      #   # => <a href="/profiles/1" rel="nofollow" data-method="delete">Remove Profile</a>
       #
       #   link_to "Visit Other Site", "http://www.rubyonrails.org/", data: { confirm: "Are you sure?" }
       #   # => <a href="http://www.rubyonrails.org/" data-confirm="Are you sure?">Visit Other Site</a>
@@ -255,8 +255,6 @@ module ActionView
       #   <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>. By default it will be <tt>:post</tt>.
       # * <tt>:disabled</tt> - If set to true, it will generate a disabled button.
       # * <tt>:data</tt> - This option can be used to add custom data attributes.
-      # * <tt>:remote</tt> -  If set to true, will allow the Unobtrusive JavaScript drivers to control the
-      #   submit behavior. By default this behavior is an ajax submit.
       # * <tt>:form</tt> - This hash will be form attributes
       # * <tt>:form_class</tt> - This controls the class of the form within which the submit button will
       #   be placed
@@ -298,25 +296,38 @@ module ActionView
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"  autocomplete="off"/>
       #   #    </form>"
       #
+      #   <%= button_to "Create", { action: "create" }, form: { "data-type" => "json" } %>
+      #   # => "<form method="post" action="/images/create" class="button_to" data-type="json">
+      #   #      <button type="submit">Create</button>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"  autocomplete="off"/>
+      #   #    </form>"
+      #
+      # ==== Deprecated: Rails UJS Attributes
+      #
+      # Prior to Rails 7, Rails shipped with a JavaScript library called <tt>@rails/ujs</tt> on by default. Following Rails 7,
+      # this library is no longer on by default. This library integrated with the following options:
+      #
+      # * <tt>:remote</tt> -  If set to true, will allow <tt>@rails/ujs</tt> to control the
+      #   submit behavior. By default this behavior is an Ajax submit.
+      #
+      # <tt>@rails/ujs</tt> also integrated with the following +:data+ options:
+      #
+      # * <tt>confirm: "question?"</tt> - This will allow <tt>@rails/ujs</tt>
+      #   to prompt with the question specified (in this case, the
+      #   resulting text would be <tt>question?</tt>). If the user accepts, the
+      #   button is processed normally, otherwise no action is taken.
+      # * <tt>:disable_with</tt> - Value of this parameter will be
+      #   used as the value for a disabled version of the submit
+      #   button when the form is submitted.
+      #
+      # ===== Rails UJS Examples
+      #
       #   <%= button_to "Create", { action: "create" }, remote: true, form: { "data-type" => "json" } %>
       #   # => "<form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
       #   #      <button type="submit">Create</button>
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"  autocomplete="off"/>
       #   #    </form>"
       #
-      # ==== Deprecated: Rails UJS attributes
-      #
-      # Prior to Rails 7, Rails shipped with a JavaScript library called @rails/ujs on by default. Following Rails 7,
-      # this library is no longer on by default. This library integrated with the following options:
-      #
-      # * <tt>confirm: 'question?'</tt> - This will allow the unobtrusive JavaScript
-      #   driver to prompt with the question specified (in this case, the
-      #   resulting text would be <tt>question?</tt>). If the user accepts, the
-      #   button is processed normally, otherwise no action is taken.
-      # * <tt>:disable_with</tt> - Value of this parameter will be
-      #   used as the value for a disabled version of the submit
-      #   button when the form is submitted. This feature is provided
-      #   by the unobtrusive JavaScript driver.
       def button_to(name = nil, options = nil, html_options = nil, &block)
         html_options, options = options, name if block_given?
         html_options ||= {}

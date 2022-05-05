@@ -286,4 +286,13 @@ module LocalCacheBehavior
       assert_equal false, @cache.read(key)
     end
   end
+
+  def test_local_cache_should_deserialize_entries_on_multi_get
+    keys = Array.new(5) { SecureRandom.uuid }
+    values = keys.index_with(true)
+    @cache.with_local_cache do
+      assert @cache.write_multi(values)
+      assert_equal values, @cache.read_multi(*keys)
+    end
+  end
 end

@@ -72,10 +72,7 @@ module Rails
 
     def version_control
       if !options[:skip_git] && !options[:pretend]
-        run "git init", capture: options[:quiet], abort_on_failure: false
-        if user_default_branch.strip.empty?
-          `git symbolic-ref HEAD refs/heads/main`
-        end
+        run git_init_command, capture: options[:quiet], abort_on_failure: false
       end
     end
 
@@ -138,7 +135,7 @@ module Rails
         template "config/storage.yml"
       end
 
-      if skip_sprockets? && !assets_config_exist
+      if skip_sprockets? && skip_propshaft? && !assets_config_exist
         remove_file "config/initializers/assets.rb"
       end
 
@@ -244,11 +241,6 @@ module Rails
     def config_target_version
       defined?(@config_target_version) ? @config_target_version : Rails::VERSION::STRING.to_f
     end
-
-    private
-      def user_default_branch
-        @user_default_branch ||= `git config init.defaultbranch`
-      end
   end
 
   module Generators
@@ -444,9 +436,12 @@ module Rails
         end
       end
 
-      def delete_assets_initializer_skipping_sprockets
-        if skip_sprockets?
+      def delete_assets_initializer_skipping_sprockets_and_propshaft
+        if skip_sprockets? && skip_propshaft?
           remove_file "config/initializers/assets.rb"
+        end
+
+        if skip_sprockets?
           remove_file "app/assets/config/manifest.js"
           remove_dir  "app/assets/config"
           remove_file "app/assets/stylesheets/application.css"

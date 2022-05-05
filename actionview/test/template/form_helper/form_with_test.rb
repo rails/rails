@@ -309,6 +309,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     @controller.singleton_class.include Routes.url_helpers
   end
 
+  RecordForm = Struct.new(:to_model, keyword_init: true)
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
     resources :posts do
@@ -377,6 +378,26 @@ class FormWithActsLikeFormForTest < FormWithTest
       "<button name='button' type='submit'>Create post</button>" \
       "<button name='button' type='submit'><span>Create post</span></button>"
     end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_with_persisted_to_model
+    post_form = RecordForm.new(to_model: @post)
+
+    form_with(model: post_form) { }
+
+    expected = whole_form("/posts/123", method: :post) { "" }
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_with_new_record_to_model
+    post_form = RecordForm.new(to_model: Post.new)
+
+    form_with(model: post_form) { }
+
+    expected = whole_form("/posts", method: :post) { "" }
 
     assert_dom_equal expected, output_buffer
   end
