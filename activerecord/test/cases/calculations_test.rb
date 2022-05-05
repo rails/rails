@@ -717,6 +717,36 @@ class CalculationsTest < ActiveRecord::TestCase
         Account.where("credit_limit > 50").from("accounts").maximum(:credit_limit)
   end
 
+  def test_no_queries_for_empty_relation_on_count
+    assert_queries(0) do
+      assert_equal 0, Post.where(id: []).count
+    end
+  end
+
+  def test_no_queries_for_empty_relation_on_sum
+    assert_queries(0) do
+      assert_equal 0, Post.where(id: []).sum(:tags_count)
+    end
+  end
+
+  def test_no_queries_for_empty_relation_on_average
+    assert_queries(0) do
+      assert_nil Post.where(id: []).average(:tags_count)
+    end
+  end
+
+  def test_no_queries_for_empty_relation_on_minimum
+    assert_queries(0) do
+      assert_nil Account.where(id: []).minimum(:id)
+    end
+  end
+
+  def test_no_queries_for_empty_relation_on_maximum
+    assert_queries(0) do
+      assert_nil Account.where(id: []).maximum(:id)
+    end
+  end
+
   def test_maximum_with_not_auto_table_name_prefix_if_column_included
     Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
 
