@@ -24,6 +24,9 @@ module Rails
       end
 
       def self.add_shared_options_for(name)
+        class_option :name,                type: :string, aliases: "-n",
+                                           desc: "Name of the app"
+
         class_option :template,            type: :string, aliases: "-m",
                                            desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
@@ -31,7 +34,7 @@ module Rails
                                            desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
         class_option :skip_git,            type: :boolean, aliases: "-G", default: false,
-                                           desc: "Skip .gitignore file"
+                                           desc: "Skip git init, .gitignore and .gitattributes"
 
         class_option :skip_keeps,          type: :boolean, default: false,
                                            desc: "Skip source control .keep files"
@@ -239,6 +242,10 @@ module Rails
         options[:skip_asset_pipeline] || options[:asset_pipeline] != "sprockets"
       end
 
+      def skip_propshaft?
+        options[:skip_asset_pipeline] || options[:asset_pipeline] != "propshaft"
+      end
+
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
         def initialize(name, version, comment, options = {}, commented_out = false)
@@ -362,7 +369,7 @@ module Rails
         return unless defined?(Rubinius)
 
         comment = "Use Psych as the YAML engine, instead of Syck, so serialized " \
-                  "data can be read safely from different rubies (see http://git.io/uuLVag)"
+                  "data can be read safely from different rubies"
         GemfileEntry.new("psych", "~> 2.0", comment, platforms: :rbx)
       end
 
@@ -475,6 +482,22 @@ module Rails
 
       def keep_file(destination)
         create_file("#{destination}/.keep") if keeps?
+      end
+
+      def user_default_branch
+        @user_default_branch ||= `git config init.defaultbranch`
+      end
+
+      def git_init_command
+        return "git init" if user_default_branch.strip.present?
+
+        git_version = `git --version`[/\d+\.\d+\.\d+/]
+
+        if Gem::Version.new(git_version) >= Gem::Version.new("2.28.0")
+          "git init -b main"
+        else
+          "git init && git symbolic-ref HEAD refs/heads/main"
+        end
       end
     end
   end

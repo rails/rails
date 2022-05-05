@@ -30,7 +30,7 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
 
     post = EncryptedPost.create!(title: "The Starfleet is here!", body: "take cover!")
     post.reload.tags_count # accessing regular attributes works
-    assert_invalid_key_cant_read_attribute(post, :title)
+    assert_invalid_key_cant_read_attribute(post, :body)
   end
 
   test "ignores nil values" do

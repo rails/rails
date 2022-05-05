@@ -66,6 +66,7 @@ module ActiveRecord
 
     test "raises Deadlocked when a deadlock is encountered" do
       with_warning_suppression do
+        connections = Concurrent::Set.new
         assert_raises(ActiveRecord::Deadlocked) do
           barrier = Concurrent::CyclicBarrier.new(2)
 
@@ -73,6 +74,7 @@ module ActiveRecord
           s2 = Sample.create value: 2
 
           thread = Thread.new do
+            connections.add Sample.connection
             Sample.transaction do
               s1.lock!
               barrier.wait
@@ -81,6 +83,7 @@ module ActiveRecord
           end
 
           begin
+            connections.add Sample.connection
             Sample.transaction do
               s2.lock!
               barrier.wait
@@ -90,6 +93,7 @@ module ActiveRecord
             thread.join
           end
         end
+        assert connections.all?(&:active?)
       end
     end
 

@@ -57,12 +57,12 @@ module ActiveJob
     # Specifies the queue adapter to use with all Active Job test helpers.
     #
     # Returns an instance of the queue adapter and defaults to
-    # <tt>ActiveJob::QueueAdapters::TestAdapter</tt>.
+    # ActiveJob::QueueAdapters::TestAdapter.
     #
     # Note: The adapter provided by this method must provide some additional
-    # methods from those expected of a standard <tt>ActiveJob::QueueAdapter</tt>
+    # methods from those expected of a standard ActiveJob::QueueAdapter
     # in order to be used with the active job test helpers. Refer to
-    # <tt>ActiveJob::QueueAdapters::TestAdapter</tt>.
+    # ActiveJob::QueueAdapters::TestAdapter.
     def queue_adapter_for_test
       ActiveJob::QueueAdapters::TestAdapter.new
     end
@@ -109,7 +109,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # +:only+ and +:except+ options accept Class, Array of Class or Proc. When passed a Proc,
+    # +:only+ and +:except+ options accept Class, Array of Class, or Proc. When passed a Proc,
     # a hash containing the job's class and it's argument are passed as argument.
     #
     # Asserts the number of times a job is enqueued to a specific queue by passing +:queue+ option.
@@ -168,7 +168,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # +:only+ and +:except+ options accept Class, Array of Class or Proc. When passed a Proc,
+    # +:only+ and +:except+ options accept Class, Array of Class, or Proc. When passed a Proc,
     # a hash containing the job's class and it's argument are passed as argument.
     #
     # Asserts that no jobs are enqueued to a specific queue by passing +:queue+ option
@@ -325,7 +325,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # +:only+ and +:except+ options accept Class, Array of Class or Proc. When passed a Proc,
+    # +:only+ and +:except+ options accept Class, Array of Class, or Proc. When passed a Proc,
     # an instance of the job will be passed as argument.
     #
     # If the +:queue+ option is specified,
@@ -579,7 +579,7 @@ module ActiveJob
     #     assert_performed_jobs 1
     #   end
     #
-    # +:only+ and +:except+ options accept Class, Array of Class or Proc. When passed a Proc,
+    # +:only+ and +:except+ options accept Class, Array of Class, or Proc. When passed a Proc,
     # an instance of the job will be passed as argument.
     #
     # If the +:queue+ option is specified,

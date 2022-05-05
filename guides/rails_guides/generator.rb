@@ -10,7 +10,6 @@ require "action_view"
 
 require "rails_guides/markdown"
 require "rails_guides/helpers"
-require "rails_guides/levenshtein"
 
 module RailsGuides
   class Generator
@@ -190,7 +189,7 @@ module RailsGuides
         anchors = Set.new
         html.scan(/<h\d\s+id="([^"]+)/).flatten.each do |anchor|
           if anchors.member?(anchor)
-            puts "*** DUPLICATE ID: #{anchor}, please make sure that there're no headings with the same name at the same level."
+            puts "*** DUPLICATE ID: #{anchor}, please make sure that there are no headings with the same name at the same level."
           else
             anchors << anchor
           end
@@ -206,9 +205,7 @@ module RailsGuides
         html.scan(/<a\s+href="#([^"]+)/).flatten.each do |fragment_identifier|
           next if fragment_identifier == "mainCol" # in layout, jumps to some DIV
           unless anchors.member?(CGI.unescape(fragment_identifier))
-            guess = anchors.min { |a, b|
-              Levenshtein.distance(fragment_identifier, a) <=> Levenshtein.distance(fragment_identifier, b)
-            }
+            guess = DidYouMean::SpellChecker.new(dictionary: anchors).correct(fragment_identifier).first
             puts "*** BROKEN LINK: ##{fragment_identifier}, perhaps you meant ##{guess}."
           end
         end

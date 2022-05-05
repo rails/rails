@@ -1163,9 +1163,9 @@ end
 module Blorgh::Concerns::Models::Article
   extend ActiveSupport::Concern
 
-  # 'included do' causes the included code to be evaluated in the
-  # context where it is included (article.rb), rather than being
-  # executed in the module's context (blorgh/concerns/models/article).
+  # `included do` causes the block to be evaluated in the context
+  # in which the module is included (i.e. Blorgh::Article),
+  # rather than in the module itself.
   included do
     attr_accessor :author_name
     belongs_to :author, class_name: "User"
@@ -1508,7 +1508,7 @@ Configuration hooks do not hook into any particular framework, but instead they 
 | ---------------------- | ---------------------------------------------------------------------------------- |
 | `before_configuration` | First configurable block to run. Called before any initializers are run.           |
 | `before_initialize`    | Second configurable block to run. Called before frameworks initialize.             |
-| `before_eager_load`    | Third configurable block to run. Does not run if `config.eager_load` set to false. |
+| `before_eager_load`    | Third configurable block to run. Does not run if [`config.eager_load`][] set to false. |
 | `after_initialize`     | Last configurable block to run. Called after frameworks initialize.                |
 
 Configuration hooks can be called in the Engine class.
@@ -1522,3 +1522,5 @@ module Blorgh
   end
 end
 ```
+
+[`config.eager_load`]: configuring.html#config-eager-load

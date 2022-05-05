@@ -7,6 +7,10 @@ module ActiveRecord
       delegate :source_reflection, to: :reflection
 
       private
+        def transaction(&block)
+          through_reflection.klass.transaction(&block)
+        end
+
         def through_reflection
           @through_reflection ||= begin
             refl = reflection.through_reflection

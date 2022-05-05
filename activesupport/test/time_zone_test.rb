@@ -402,7 +402,7 @@ class TimeZoneTest < ActiveSupport::TestCase
   end
 
   def test_parse_string_with_timezone
-    (-11..13).each do |timezone_offset|
+    (-12..13).each do |timezone_offset|
       zone = ActiveSupport::TimeZone[timezone_offset]
       twz = zone.parse("1999-12-31 19:00:00")
       assert_equal twz, zone.parse(twz.to_s)

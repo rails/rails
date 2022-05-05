@@ -1347,6 +1347,47 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal "This is a comment", column(:birthdate).comment
     end
 
+    if supports_text_column_with_default?
+      def test_default_functions_on_columns
+        with_bulk_change_table do |t|
+          if current_adapter?(:PostgreSQLAdapter)
+            t.string :name, default: -> { "gen_random_uuid()" }
+          else
+            t.string :name, default: -> { "UUID()" }
+          end
+        end
+
+        assert_nil column(:name).default
+
+        if current_adapter?(:PostgreSQLAdapter)
+          assert_equal "gen_random_uuid()", column(:name).default_function
+          Person.connection.execute("INSERT INTO delete_me DEFAULT VALUES")
+          person_data = Person.connection.execute("SELECT * FROM delete_me ORDER BY id DESC").to_a.first
+        else
+          assert_equal "uuid()", column(:name).default_function
+          Person.connection.execute("INSERT INTO delete_me () VALUES ()")
+          person_data = Person.connection.execute("SELECT * FROM delete_me ORDER BY id DESC").to_a(as: :hash).first
+        end
+
+        assert_match(/\A(.+)-(.+)-(.+)-(.+)\Z/, person_data.fetch("name"))
+      end
+    end
+
+    if current_adapter?(:Mysql2Adapter)
+      def test_updating_auto_increment
+        with_bulk_change_table do |t|
+          t.change :id, :bigint, auto_increment: true
+        end
+
+        assert column(:id).auto_increment?
+
+        with_bulk_change_table do |t|
+          t.change :id, :bigint, auto_increment: false
+        end
+        assert_not column(:id).auto_increment?
+      end
+    end
+
     def test_changing_index
       with_bulk_change_table do |t|
         t.string :username

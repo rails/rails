@@ -12,7 +12,7 @@ module ActiveSupport
       #
       #   assert_equal 5000, World::List::Import::LARGE_IMPORT_THRESHOLD = 5000
       #
-      # Using this method rather than forcing `World::List::Import::LARGE_IMPORT_THRESHOLD = 5000` prevents
+      # Using this method rather than forcing <tt>World::List::Import::LARGE_IMPORT_THRESHOLD = 5000</tt> prevents
       # warnings from being thrown, and ensures that the old value is returned after the test has completed.
       #
       # Note: Stubbing a const will stub it across all threads. So if you have concurrent threads

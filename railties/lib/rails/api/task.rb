@@ -162,7 +162,8 @@ module Rails
         end
       end
 
-      def setup_horo_variables
+      # These variables are used by the sdoc template
+      def setup_horo_variables # :nodoc:
         ENV["HORO_PROJECT_NAME"]    = "Ruby on Rails"
         ENV["HORO_PROJECT_VERSION"] = rails_version
       end

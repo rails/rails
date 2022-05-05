@@ -128,7 +128,7 @@ module ActiveRecord
           end
         end
 
-        result = value.to_formatted_s(:db)
+        result = value.to_fs(:db)
         if value.respond_to?(:usec) && value.usec > 0
           result << "." << sprintf("%06d", value.usec)
         else

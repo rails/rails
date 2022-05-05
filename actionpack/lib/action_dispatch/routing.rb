@@ -28,7 +28,7 @@ module ActionDispatch
   #
   # Resource routing allows you to quickly declare all of the common routes
   # for a given resourceful controller. Instead of declaring separate routes
-  # for your +index+, +show+, +new+, +edit+, +create+, +update+ and +destroy+
+  # for your +index+, +show+, +new+, +edit+, +create+, +update+, and +destroy+
   # actions, a resourceful route declares them in a single line of code:
   #
   #  resources :photos
@@ -65,9 +65,8 @@ module ActionDispatch
   #     resources :posts, :comments
   #   end
   #
-  # For more, see <tt>Routing::Mapper::Resources#resources</tt>,
-  # <tt>Routing::Mapper::Scoping#namespace</tt>, and
-  # <tt>Routing::Mapper::Scoping#scope</tt>.
+  # For more, see Routing::Mapper::Resources#resources,
+  # Routing::Mapper::Scoping#namespace, and Routing::Mapper::Scoping#scope.
   #
   # == Non-resourceful routes
   #
@@ -251,7 +250,9 @@ module ActionDispatch
 
     autoload :Mapper
     autoload :RouteSet
-    autoload :RoutesProxy
+    eager_autoload do
+      autoload :RoutesProxy
+    end
     autoload :UrlFor
     autoload :PolymorphicRoutes
 

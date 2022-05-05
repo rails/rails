@@ -5,7 +5,7 @@ module ActiveRecord
     module SQLite3
       module Quoting # :nodoc:
         def quote_string(s)
-          @connection.class.quote(s)
+          ::SQLite3::Database.quote(s)
         end
 
         def quote_table_name_for_assignment(table, attr)
@@ -101,6 +101,7 @@ module ActiveRecord
               # "table_name"."column_name" | function(one or no argument)
               ((?:\w+\.|"\w+"\.)?(?:\w+|"\w+")) | \w+\((?:|\g<2>)\)
             )
+            (?:\s+COLLATE\s+(?:\w+|"\w+"))?
             (?:\s+ASC|\s+DESC)?
           )
           (?:\s*,\s*\g<1>)*

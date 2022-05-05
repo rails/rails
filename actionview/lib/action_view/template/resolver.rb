@@ -19,7 +19,7 @@ module ActionView
       def build_path_regex
         handlers = Template::Handlers.extensions.map { |x| Regexp.escape(x) }.join("|")
         formats = Template::Types.symbols.map { |x| Regexp.escape(x) }.join("|")
-        locales = "[a-z]{2}(?:-[A-Z]{2})?"
+        locales = "[a-z]{2}(?:[-_][A-Z]{2})?"
         variants = "[^.]*"
 
         %r{

@@ -1,3 +1,50 @@
+*   Deprecate `config.enable_dependency_loading`. This flag addressed a limitation of the `classic` autoloader and has no effect nowadays. To fix this deprecation, please just delete the reference.
+
+    *Xavier Noria*
+
+*   Define `config.enable_reloading` to be `!config.cache_classes` for a more intuitive name. While `config.enable_reloading` and `config.reloading_enabled?` are preferred from now on, `config.cache_classes` is supported for backwards compatibility.
+
+    *Xavier Noria*
+
+*   Add JavaScript dependencies installation on bin/setup
+
+    Add  `yarn install` to bin/setup when using esbuild, webpack, or rollout.
+
+    *Carlos Ribeiro*
+
+*   Use `controller_class_path` in `Rails::Generators::NamedBase#route_url`
+
+    The `route_url` method now returns the correct path when generating
+    a namespaced controller with a top-level model using `--model-name`.
+
+    Previously, when running this command:
+
+    ``` sh
+    bin/rails generate scaffold_controller Admin/Post --model-name Post
+    ```
+
+    the comments above the controller action would look like:
+
+    ``` ruby
+    # GET /posts
+    def index
+      @posts = Post.all
+    end
+    ```
+
+    afterwards, they now look like this:
+
+    ``` ruby
+    # GET /admin/posts
+    def index
+      @posts = Post.all
+    end
+    ```
+
+    Fixes #44662.
+
+    *Andrew White*
+
 *   No longer add autoloaded paths to `$LOAD_PATH`.
 
     This means it won't be possible to load them with a manual `require` call, the class or module can be referenced instead.

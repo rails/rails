@@ -1075,6 +1075,10 @@ module ActiveRecord
       e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.migrate }
       assert_match(/Invalid format of target version/, e.message)
 
+      ENV["VERSION"] = "1__1"
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.migrate }
+      assert_match(/Invalid format of target version/, e.message)
+
       ENV["VERSION"] = "1_name"
       e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.migrate }
       assert_match(/Invalid format of target version/, e.message)
@@ -1415,13 +1419,16 @@ module ActiveRecord
       version = ENV["VERSION"]
 
       ENV["VERSION"] = "0"
-      assert_equal ENV["VERSION"].to_i, ActiveRecord::Tasks::DatabaseTasks.target_version
+      assert_equal 0, ActiveRecord::Tasks::DatabaseTasks.target_version
 
       ENV["VERSION"] = "42"
-      assert_equal ENV["VERSION"].to_i, ActiveRecord::Tasks::DatabaseTasks.target_version
+      assert_equal 42, ActiveRecord::Tasks::DatabaseTasks.target_version
 
       ENV["VERSION"] = "042"
-      assert_equal ENV["VERSION"].to_i, ActiveRecord::Tasks::DatabaseTasks.target_version
+      assert_equal 42, ActiveRecord::Tasks::DatabaseTasks.target_version
+
+      ENV["VERSION"] = "2000_01_01_000042"
+      assert_equal 20000101000042, ActiveRecord::Tasks::DatabaseTasks.target_version
     ensure
       ENV["VERSION"] = version
     end
@@ -1436,7 +1443,7 @@ module ActiveRecord
       ENV["VERSION"] = version
     end
 
-    def test_check_target_version_does_not_raise_error_if_version_is_not_setted
+    def test_check_target_version_does_not_raise_error_if_version_is_not_set
       version = ENV.delete("VERSION")
       assert_nothing_raised { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
     ensure
@@ -1487,6 +1494,9 @@ module ActiveRecord
       assert_nothing_raised { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
 
       ENV["VERSION"] = "001"
+      assert_nothing_raised { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
+
+      ENV["VERSION"] = "1_001"
       assert_nothing_raised { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
 
       ENV["VERSION"] = "001_name.rb"

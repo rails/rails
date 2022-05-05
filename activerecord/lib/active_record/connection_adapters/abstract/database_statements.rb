@@ -65,18 +65,18 @@ module ActiveRecord
 
         select(sql, name, binds, prepare: prepared_statements && preparable, async: async && FutureResult::SelectAll)
       rescue ::RangeError
-        ActiveRecord::Result.empty
+        ActiveRecord::Result.empty(async: async)
       end
 
       # Returns a record hash with the column names as keys and column values
       # as values.
-      def select_one(arel, name = nil, binds = [])
-        select_all(arel, name, binds).first
+      def select_one(arel, name = nil, binds = [], async: false)
+        select_all(arel, name, binds, async: async).then(&:first)
       end
 
       # Returns a single value from a record
-      def select_value(arel, name = nil, binds = [])
-        single_value_from_rows(select_rows(arel, name, binds))
+      def select_value(arel, name = nil, binds = [], async: false)
+        select_rows(arel, name, binds, async: async).then { |rows| single_value_from_rows(rows) }
       end
 
       # Returns an array of the values of the first column in a select:
@@ -87,8 +87,8 @@ module ActiveRecord
 
       # Returns an array of arrays containing the field values.
       # Order is the same as that returned by +columns+.
-      def select_rows(arel, name = nil, binds = [])
-        select_all(arel, name, binds).rows
+      def select_rows(arel, name = nil, binds = [], async: false)
+        select_all(arel, name, binds, async: async).then(&:rows)
       end
 
       def query_value(sql, name = nil) # :nodoc:
@@ -323,7 +323,8 @@ module ActiveRecord
 
       delegate :within_new_transaction, :open_transactions, :current_transaction, :begin_transaction,
                :commit_transaction, :rollback_transaction, :materialize_transactions,
-               :disable_lazy_transactions!, :enable_lazy_transactions!, to: :transaction_manager
+               :disable_lazy_transactions!, :enable_lazy_transactions!, :dirty_current_transaction,
+               to: :transaction_manager
 
       def mark_transaction_written_if_write(sql) # :nodoc:
         transaction = current_transaction
@@ -336,8 +337,24 @@ module ActiveRecord
         current_transaction.open?
       end
 
-      def reset_transaction # :nodoc:
+      def reset_transaction(restore: false) # :nodoc:
+        # Store the existing transaction state to the side
+        old_state = @transaction_manager if restore && @transaction_manager&.restorable?
+
         @transaction_manager = ConnectionAdapters::TransactionManager.new(self)
+
+        if block_given?
+          # Reconfigure the connection without any transaction state in the way
+          result = yield
+
+          # Now the connection's fully established, we can swap back
+          if old_state
+            @transaction_manager = old_state
+            @transaction_manager.restore_transactions
+          end
+
+          result
+        end
       end
 
       # Register a record with the current transaction so that its after_commit and after_rollback callbacks
@@ -375,6 +392,12 @@ module ActiveRecord
       end
 
       def exec_rollback_db_transaction() end # :nodoc:
+
+      def restart_db_transaction
+        exec_restart_db_transaction
+      end
+
+      def exec_restart_db_transaction() end # :nodoc:
 
       def rollback_to_savepoint(name = nil)
         exec_rollback_to_savepoint(name)
@@ -557,7 +580,12 @@ module ActiveRecord
             return future_result
           end
 
-          exec_query(sql, name, binds, prepare: prepare)
+          result = exec_query(sql, name, binds, prepare: prepare)
+          if async
+            FutureResult::Complete.new(result)
+          else
+            result
+          end
         end
 
         def sql_for_insert(sql, pk, binds)

@@ -9,9 +9,7 @@ module Rails
     # instance, pass a non-false value as the parameter.
     def app(create = false)
       @app_integration_instance = nil if create
-      @app_integration_instance ||= new_session do |sess|
-        sess.host! "www.example.com"
-      end
+      @app_integration_instance ||= new_session
     end
 
     # create a new session. If a block is given, the new session will be yielded
@@ -19,7 +17,6 @@ module Rails
     def new_session
       app = Rails.application
       session = ActionDispatch::Integration::Session.new(app)
-      yield session if block_given?
 
       # This makes app.url_for and app.foo_path available in the console
       session.extend(app.routes.url_helpers)

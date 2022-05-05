@@ -84,6 +84,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Removals
 
+* Remove support for `ActiveRecord.legacy_connection_handling`.
+
 ### Deprecations
 
 ### Notable changes

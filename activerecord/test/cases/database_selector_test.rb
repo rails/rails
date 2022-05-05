@@ -297,5 +297,22 @@ module ActiveRecord
 
       assert_equal [200, {}, ["body"]], middleware.call("REQUEST_METHOD" => "GET")
     end
+
+    class ReadonlyResolver < ActiveRecord::Middleware::DatabaseSelector::Resolver
+      def reading_request?(request)
+        true
+      end
+    end
+
+    def test_the_middleware_chooses_reading_role_with_POST_request_if_resolver_tells_it_to
+      middleware = ActiveRecord::Middleware::DatabaseSelector.new(lambda { |env|
+        assert ActiveRecord::Base.connected_to?(role: :reading)
+        [200, {}, ["body"]]
+      }, ReadonlyResolver)
+
+      cache = ActiveSupport::Cache::MemoryStore.new
+      middleware = ActionDispatch::Session::CacheStore.new(middleware, cache: cache, key: "_session_id")
+      assert_equal [200, {}, ["body"]], middleware.call("REQUEST_METHOD" => "POST")
+    end
   end
 end

@@ -21,6 +21,14 @@ module ActiveRecord
         end
       end
 
+      %w(key_derivation_salt primary_key deterministic_key).each do |key|
+        silence_redefinition_of_method key
+        define_method(key) do
+          instance_variable_get(:"@#{key}").presence or
+            raise Errors::Configuration, "Missing Active Record encryption credential: active_record_encryption.#{key}"
+        end
+      end
+
       private
         def set_defaults
           self.store_key_references = false

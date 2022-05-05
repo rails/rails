@@ -817,13 +817,8 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
 
     yaml_output = klass.new.to_yaml
 
-    # `hash-with-ivars` was introduced in 2.0.9 (https://git.io/vyUQW)
-    if Gem::Version.new(Psych::VERSION) >= Gem::Version.new("2.0.9")
-      assert_includes yaml_output, "hash-with-ivars"
-      assert_includes yaml_output, "@foo: bar"
-    else
-      assert_includes yaml_output, "hash"
-    end
+    assert_includes yaml_output, "hash-with-ivars"
+    assert_includes yaml_output, "@foo: bar"
   end
 
   def test_should_use_default_proc_for_unknown_key

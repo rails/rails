@@ -58,6 +58,22 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           end
         end
 
+        if current_adapter?(:PostgreSQLAdapter)
+          def test_check_constraints_scoped_to_schemas
+            @connection.add_check_constraint :trades, "quantity > 0"
+
+            assert_no_changes -> { @connection.check_constraints("trades").size } do
+              @connection.create_schema "test_schema"
+              @connection.create_table "test_schema.trades" do |t|
+                t.integer :quantity
+              end
+              @connection.add_check_constraint "test_schema.trades", "quantity > 0"
+            end
+          ensure
+            @connection.drop_schema "test_schema"
+          end
+        end
+
         def test_add_check_constraint
           @connection.add_check_constraint :trades, "quantity > 0"
 

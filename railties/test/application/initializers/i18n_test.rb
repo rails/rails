@@ -70,7 +70,7 @@ module ApplicationTests
 
     test "load_path is populated before eager loaded models" do
       add_to_config <<-RUBY
-        config.cache_classes = true
+        config.enable_reloading = false
       RUBY
 
       app_file "config/locales/en.yml", <<-YAML
@@ -100,7 +100,7 @@ en:
 
     test "locales are reloaded if they change between requests" do
       add_to_config <<-RUBY
-        config.cache_classes = false
+        config.enable_reloading = true
       RUBY
 
       app_file "config/locales/en.yml", <<-YAML
@@ -135,7 +135,7 @@ en:
 
     test "new locale files are loaded" do
       add_to_config <<-RUBY
-        config.cache_classes = false
+        config.enable_reloading = true
       RUBY
 
       app_file "config/locales/en.yml", <<-YAML
@@ -171,7 +171,7 @@ en:
 
     test "I18n.load_path is reloaded" do
       add_to_config <<-RUBY
-        config.cache_classes = false
+        config.enable_reloading = true
       RUBY
 
       app_file "config/locales/en.yml", <<-YAML

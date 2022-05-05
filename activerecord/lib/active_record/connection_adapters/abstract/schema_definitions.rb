@@ -220,6 +220,10 @@ module ActiveRecord
 
         def index_options(table_name)
           index_options = as_options(index).merge(conditional_options)
+
+          # legacy reference index names are used on versions 6.0 and earlier
+          return index_options if options[:_uses_legacy_reference_index_name]
+
           index_options[:name] ||= polymorphic_index_name(table_name) if polymorphic
           index_options
         end

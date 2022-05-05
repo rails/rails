@@ -892,6 +892,16 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_has_many_through_uses_the_through_model_to_create_transactions
+    post   = posts(:thinking)
+    person = people(:david)
+    other_person = people(:michael)
+
+    assert_called(Reader, :transaction) do
+      post.people = [person, other_person]
+    end
+  end
+
   def test_has_many_association_through_a_belongs_to_association_where_the_association_doesnt_exist
     post = Post.create!(title: "TITLE", body: "BODY")
     assert_equal [], post.author_favorites

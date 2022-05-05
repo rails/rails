@@ -139,7 +139,7 @@ module ActionDispatch
   #
   #   cookies.delete :user_name
   #
-  # Please note that if you specify a :domain when setting a cookie, you must also specify the domain when deleting the cookie:
+  # Please note that if you specify a +:domain+ when setting a cookie, you must also specify the domain when deleting the cookie:
   #
   #  cookies[:name] = {
   #    value: 'a yummy cookie',
@@ -176,6 +176,10 @@ module ActionDispatch
   #   Default is +false+.
   # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
   #   only HTTP. Defaults to +false+.
+  # * <tt>:same_site</tt> - The value of the +SameSite+ cookie attribute, which
+  #   determines how this cookie should be restricted in cross-site contexts.
+  #   Possible values are +nil+, +:none+, +:lax+, and +:strict+. Defaults to
+  #   +:lax+.
   class Cookies
     HTTP_HEADER   = "Set-Cookie"
     GENERATOR_KEY = "action_dispatch.key_generator"
@@ -199,7 +203,7 @@ module ActionDispatch
     # Raised when storing more than 4K of session data.
     CookieOverflow = Class.new StandardError
 
-    # Include in a cookie jar to allow chaining, e.g. cookies.permanent.signed.
+    # Include in a cookie jar to allow chaining, e.g. +cookies.permanent.signed+.
     module ChainedCookieJars
       # Returns a jar that'll automatically set the assigned cookies to have an expiration date 20 years from now. Example:
       #

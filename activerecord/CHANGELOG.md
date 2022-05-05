@@ -4,6 +4,142 @@
 
     *Christian Schmidt*
 
+*   Allow overriding `reading_request?` in `DatabaseSelector::Resolver`
+
+    The default implementation checks if a request is a `get?` or `head?`,
+    but you can now change it to anything you like. If the method returns true,
+    `Resolver#read` gets called meaning the request could be served by the
+    replica database.
+
+    *Alex Ghiculescu*
+
+*   Remove `ActiveRecord.legacy_connection_handling`.
+
+    *Eileen M. Uchitelle*
+
+*   `rails db:schema:{dump,load}` now checks `ENV["SCHEMA_FORMAT"]` before config
+
+    Since `rails db:structure:{dump,load}` was deprecated there wasn't a simple
+    way to dump a schema to both SQL and Ruby formats. You can now do this with
+    an environment variable. For example:
+
+    ```
+    SCHEMA_FORMAT=sql rake db:schema:dump
+    ```
+
+    *Alex Ghiculescu*
+
+*   Fixed MariaDB default function support.
+
+    Defaults would be written wrong in "db/schema.rb" and not work correctly
+    if using `db:schema:load`. Further more the function name would be
+    added as string content when saving new records.
+
+    *kaspernj*
+
+*   Add `active_record.destroy_association_async_batch_size` configuration
+
+    This allows applications to specify the maximum number of records that will
+    be destroyed in a single background job by the `dependent: :destroy_async`
+    association option. By default, the current behavior will remain the same:
+    when a parent record is destroyed, all dependent records will be destroyed
+    in a single background job. If the number of dependent records is greater
+    than this configuration, the records will be destroyed in multiple
+    background jobs.
+
+    *Nick Holden*
+
+*   Fix `remove_foreign_key` with `:if_exists` option when foreign key actually exists.
+
+    *fatkodima*
+
+*   Remove `--no-comments` flag in structure dumps for PostgreSQL
+
+    This broke some apps that used custom schema comments. If you don't want
+    comments in your structure dump, you can use:
+
+    ```ruby
+    ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ['--no-comments']
+    ```
+
+    *Alex Ghiculescu*
+
+*   Reduce the memory footprint of fixtures accessors.
+
+    Until now fixtures accessors were eagerly defined using `define_method`.
+    So the memory usage was directly dependent of the number of fixtures and
+    test suites.
+
+    Instead fixtures accessors are now implemented with `method_missing`,
+    so they incur much less memory and CPU overhead.
+
+    *Jean Boussier*
+
+*   Fix `config.active_record.destroy_association_async_job` configuration
+
+    `config.active_record.destroy_association_async_job` should allow
+    applications to specify the job that will be used to destroy associated
+    records in the background for `has_many` associations with the
+    `dependent: :destroy_async` option. Previously, that was ignored, which
+    meant the default `ActiveRecord::DestroyAssociationAsyncJob` always
+    destroyed records in the background.
+
+    *Nick Holden*
+
+*   Fix `change_column_comment` to preserve column's AUTO_INCREMENT in the MySQL adapter
+
+    *fatkodima*
+
+*   Fix quoting of `ActiveSupport::Duration` and `Rational` numbers in the MySQL adapter.
+
+    *Kevin McPhillips*
+
+*   Allow column name with COLLATE (e.g., title COLLATE "C") as safe SQL string
+
+    *Shugo Maeda*
+
+*   Permit underscores in the VERSION argument to database rake tasks.
+
+    *Eddie Lebow*
+
+*   Reversed the order of `INSERT` statements in `structure.sql` dumps
+
+    This should decrease the likelihood of merge conflicts. New migrations
+    will now be added at the top of the list.
+
+    For existing apps, there will be a large diff the next time `structure.sql`
+    is generated.
+
+    *Alex Ghiculescu*, *Matt Larraz*
+
+*   Fix PG.connect keyword arguments deprecation warning on ruby 2.7
+
+    Fixes #44307.
+
+    *Nikita Vasilevsky*
+
+*   Fix dropping DB connections after serialization failures and deadlocks.
+
+    Prior to 6.1.4, serialization failures and deadlocks caused rollbacks to be
+    issued for both real transactions and savepoints. This breaks MySQL which
+    disallows rollbacks of savepoints following a deadlock.
+
+    6.1.4 removed these rollbacks, for both transactions and savepoints, causing
+    the DB connection to be left in an unknown state and thus discarded.
+
+    These rollbacks are now restored, except for savepoints on MySQL.
+
+    *Thomas Morgan*
+
+*   Make `ActiveRecord::ConnectionPool` Fiber-safe
+
+    When `ActiveSupport::IsolatedExecutionState.isolation_level` is set to `:fiber`,
+    the connection pool now supports multiple Fibers from the same Thread checking
+    out connections from the pool.
+
+    *Alex Matchneer*
+>>>>>>> origin/main
+
 *   Add `update_attribute!` to `ActiveRecord::Persistence`
 
     Similar to `update_attribute`, but raises `ActiveRecord::RecordNotSaved` when a `before_*` callback throws `:abort`.

@@ -20,6 +20,8 @@ ActiveRecord::Schema.define do
     t.date :modified_date_function, default: -> { "now()" }
     t.date :fixed_date, default: "2004-01-01"
     t.datetime :modified_time, default: -> { "CURRENT_TIMESTAMP" }
+    t.datetime :modified_time_without_precision, precision: nil, default: -> { "CURRENT_TIMESTAMP" }
+    t.datetime :modified_time_with_precision_0, precision: 0, default: -> { "CURRENT_TIMESTAMP" }
     t.datetime :modified_time_function, default: -> { "now()" }
     t.datetime :fixed_time, default: "2004-01-01 00:00:00.000000-00"
     t.timestamptz :fixed_time_with_time_zone, default: "2004-01-01 01:00:00+1"

@@ -52,6 +52,10 @@ module ActionView
       assert params.is_a? ActionController::Parameters
     end
 
+    test "exposes request" do
+      assert request.is_a? ActionDispatch::Request
+    end
+
     test "exposes view as _view for backwards compatibility" do
       assert_same _view, view
     end

@@ -553,11 +553,6 @@ module ActiveRecord
       #   <tt>:datetime</tt>, and <tt>:time</tt> columns.
       # * <tt>:scale</tt> -
       #   Specifies the scale for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
-      # * <tt>:collation</tt> -
-      #   Specifies the collation for a <tt>:string</tt> or <tt>:text</tt> column. If not specified, the
-      #   column will have the same collation as the table.
-      # * <tt>:comment</tt> -
-      #   Specifies the comment for the column. This option is ignored by some backends.
       # * <tt>:if_not_exists</tt> -
       #   Specifies if the column already exists to not try to re-add it. This will avoid
       #   duplicate column errors.
@@ -1073,9 +1068,9 @@ module ActiveRecord
       # [<tt>:name</tt>]
       #   The constraint name. Defaults to <tt>fk_rails_<identifier></tt>.
       # [<tt>:on_delete</tt>]
-      #   Action that happens <tt>ON DELETE</tt>. Valid values are +:nullify+, +:cascade+ and +:restrict+
+      #   Action that happens <tt>ON DELETE</tt>. Valid values are +:nullify+, +:cascade+, and +:restrict+
       # [<tt>:on_update</tt>]
-      #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade+ and +:restrict+
+      #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade+, and +:restrict+
       # [<tt>:if_not_exists</tt>]
       #   Specifies if the foreign key already exists to not try to re-add it. This will avoid
       #   duplicate column errors.
@@ -1127,7 +1122,7 @@ module ActiveRecord
       #   The name of the table that contains the referenced primary key.
       def remove_foreign_key(from_table, to_table = nil, **options)
         return unless supports_foreign_keys?
-        return if options[:if_exists] == true && !foreign_key_exists?(from_table, to_table)
+        return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table)
 
         fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
 
@@ -1675,7 +1670,7 @@ module ActiveRecord
 
           if versions.is_a?(Array)
             sql = +"INSERT INTO #{sm_table} (version) VALUES\n"
-            sql << versions.map { |v| "(#{quote(v)})" }.join(",\n")
+            sql << versions.reverse.map { |v| "(#{quote(v)})" }.join(",\n")
             sql << ";\n\n"
             sql
           else

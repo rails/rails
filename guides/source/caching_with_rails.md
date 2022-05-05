@@ -36,12 +36,14 @@ page and action caching you will need to add `actionpack-page_caching` and
 
 By default, caching is only enabled in your production environment. You can play
 around with caching locally by running `rails dev:cache`, or by setting
-`config.action_controller.perform_caching` to `true` in `config/environments/development.rb`.
+[`config.action_controller.perform_caching`][] to `true` in `config/environments/development.rb`.
 
 NOTE: Changing the value of `config.action_controller.perform_caching` will
 only have an effect on the caching provided by Action Controller.
 For instance, it will not impact low-level caching, that we address
 [below](#low-level-caching).
+
+[`config.action_controller.perform_caching`]: configuring.html#config-action-controller-perform-caching
 
 ### Page Caching
 
@@ -276,7 +278,7 @@ simply be explicit in a comment, like:
 
 ### Low-Level Caching
 
-Sometimes you need to cache a particular value or query result instead of caching view fragments. Rails' caching mechanism works great for storing __any__ kind of information.
+Sometimes you need to cache a particular value or query result instead of caching view fragments. Rails' caching mechanism works great for storing any serializable information.
 
 The most efficient way to implement low-level caching is using the `Rails.cache.fetch` method. This method does both reading and writing to the cache. When passed only a single argument, the key is fetched and value from the cache is returned. If a block is passed, that block will be executed in the event of a cache miss. The return value of the block will be written to the cache under the given cache key, and that return value will be returned. In case of cache hit, the cached value will be returned without executing the block.
 
@@ -299,7 +301,7 @@ NOTE: Notice that in this example we used the `cache_key_with_version` method, s
 Consider this example, which stores a list of Active Record objects representing superusers in the cache:
 
 ```ruby
- # super_admins is an expensive SQL query, so don't run it too often
+# super_admins is an expensive SQL query, so don't run it too often
 Rails.cache.fetch("super_admin_users", expires_in: 12.hours) do
   User.super_admins.to_a
 end
@@ -312,7 +314,7 @@ cache stores that reload code when you make changes.
 Instead, cache the ID or some other primitive data type. For example:
 
 ```ruby
- # super_admins is an expensive SQL query, so don't run it too often
+# super_admins is an expensive SQL query, so don't run it too often
 ids = Rails.cache.fetch("super_admin_user_ids", expires_in: 12.hours) do
   User.super_admins.pluck(:id)
 end
@@ -389,7 +391,7 @@ There are some common options that can be used by all cache implementations. The
 
 * `:race_condition_ttl` - This option is used in conjunction with the `:expires_in` option. It will prevent race conditions when cache entries expire by preventing multiple processes from simultaneously regenerating the same entry (also known as the dog pile effect). This option sets the number of seconds that an expired entry can be reused while a new value is being regenerated. It's a good practice to set this value if you use the `:expires_in` option.
 
-* `:coder` - This option allows to replace the default cache entry serialization mechanism by a custom one. The `coder` must respond to `dump` and `load`, and passing a custom coder disable automatic compression.
+* `:coder` - This option replaces the default cache entry serialization mechanism with a custom one. The `coder` must respond to `dump` and `load`, and passing a custom coder disables automatic compression.
 
 #### Connection Pool Options
 

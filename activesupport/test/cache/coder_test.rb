@@ -2,6 +2,7 @@
 
 require_relative "../abstract_unit"
 require "active_support/cache"
+require "active_support/core_ext/numeric/time"
 
 class CacheCoderTest < ActiveSupport::TestCase
   def test_new_coder_can_read_legacy_payloads

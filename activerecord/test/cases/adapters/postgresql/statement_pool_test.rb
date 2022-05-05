@@ -43,7 +43,7 @@ module ActiveRecord
         end
 
         def test_prepared_statements_do_not_get_stuck_on_query_interruption
-          pg_connection = ActiveRecord::Base.connection.instance_variable_get(:@connection)
+          pg_connection = ActiveRecord::Base.connection.instance_variable_get(:@raw_connection)
           pg_connection.stub(:get_last_result, -> { raise "random error" }) do
             assert_raises(RuntimeError) do
               Developer.where(name: "David").last

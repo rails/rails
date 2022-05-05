@@ -4,7 +4,7 @@ module ActiveRecord
   module Encryption
     # Automatically expand encrypted arguments to support querying both encrypted and unencrypted data
     #
-    # Active Record Encryption supports querying the db using deterministic attributes. For example:
+    # Active Record \Encryption supports querying the db using deterministic attributes. For example:
     #
     #   Contact.find_by(email_address: "jorge@hey.com")
     #
@@ -16,10 +16,10 @@ module ActiveRecord
     #
     # This patches ActiveRecord to support this automatically. It addresses both:
     #
-    # * ActiveRecord::Base: Used in +Contact.find_by_email_address(...)+
-    # * ActiveRecord::Relation: Used in +Contact.internal.find_by_email_address(...)+
+    # * ActiveRecord::Base - Used in <tt>Contact.find_by_email_address(...)</tt>
+    # * ActiveRecord::Relation - Used in <tt>Contact.internal.find_by_email_address(...)</tt>
     #
-    # +ActiveRecord::Base+ relies on +ActiveRecord::Relation+ (+ActiveRecord::QueryMethods+) but it does
+    # ActiveRecord::Base relies on ActiveRecord::Relation (ActiveRecord::QueryMethods) but it does
     # some prepared statements caching. That's why we need to intercept +ActiveRecord::Base+ as soon
     # as it's invoked (so that the proper prepared statement is cached).
     #

@@ -3,6 +3,22 @@
 require "active_support/core_ext/object/deep_dup"
 
 module ActionDispatch # :nodoc:
+  # Configures the HTTP
+  # {Feature-Policy}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy]
+  # response header to specify which browser features the current document and
+  # its iframes can use.
+  #
+  # Example global policy:
+  #
+  #   Rails.application.config.permissions_policy do |policy|
+  #     policy.camera      :none
+  #     policy.gyroscope   :none
+  #     policy.microphone  :none
+  #     policy.usb         :none
+  #     policy.fullscreen  :self
+  #     policy.payment     :self, "https://secure.example.com"
+  #   end
+  #
   class PermissionsPolicy
     class Middleware
       CONTENT_TYPE = "Content-Type"

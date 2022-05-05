@@ -4,8 +4,6 @@ require "test_helper"
 require_relative "common"
 require_relative "channel_prefix"
 
-require "action_cable/subscription_adapter/redis"
-
 class RedisAdapterTest < ActionCable::TestCase
   include CommonSubscriptionAdapterTest
   include ChannelPrefixTest

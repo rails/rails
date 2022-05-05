@@ -192,7 +192,8 @@ class AssertionsTest < ActiveSupport::TestCase
         @object.increment
       end
     end
-    assert_equal "Expected change from nil", error.message
+
+    assert_equal "Expected change from nil, got 0", error.message
   end
 
   def test_assert_changes_with_to_option
@@ -277,7 +278,7 @@ class AssertionsTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "@object.num should be 1.\nExpected change to 1\n", error.message
+    assert_equal "@object.num should be 1.\nExpected change to 1, got -1\n", error.message
   end
 
   def test_assert_no_changes_pass

@@ -114,6 +114,10 @@ module ActionController
     class Exception < StandardError
     end
 
+    class CurrentState < ActiveSupport::CurrentAttributes
+      attribute :id
+    end
+
     class TestController < ActionController::Base
       include ActionController::Live
 
@@ -201,6 +205,10 @@ module ActionController
           response.stream.write word
         end
         response.stream.close
+      end
+
+      def isolated_state
+        render plain: CurrentState.id.inspect
       end
 
       def with_stale
@@ -443,6 +451,15 @@ module ActionController
       Thread.current[:setting]            = "aaron"
 
       get :thread_locals
+    end
+
+    def test_isolated_state_get_copied
+      @controller.tc = self
+      CurrentState.id = "isolated_state"
+
+      get :isolated_state
+      assert_equal "isolated_state".inspect, response.body
+      assert_stream_closed
     end
 
     def test_live_stream_default_header

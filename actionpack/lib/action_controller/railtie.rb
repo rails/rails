@@ -14,6 +14,7 @@ module ActionController
     config.action_controller.log_query_tags_around_actions = true
     config.action_controller.wrap_parameters_by_default = false
 
+    config.eager_load_namespaces << AbstractController
     config.eager_load_namespaces << ActionController
 
     initializer "action_controller.assets_config", group: :all do |app|
@@ -41,6 +42,11 @@ module ActionController
         end
 
         ActionController::Parameters.action_on_unpermitted_parameters = action_on_unpermitted_parameters
+
+        unless options.allow_deprecated_parameters_hash_equality.nil?
+          ActionController::Parameters.allow_deprecated_parameters_hash_equality =
+            options.allow_deprecated_parameters_hash_equality
+        end
       end
     end
 
@@ -71,7 +77,8 @@ module ActionController
           :permit_all_parameters,
           :action_on_unpermitted_parameters,
           :always_permitted_parameters,
-          :wrap_parameters_by_default
+          :wrap_parameters_by_default,
+          :allow_deprecated_parameters_hash_equality
         )
 
         filtered_options.each do |k, v|
@@ -96,12 +103,6 @@ module ActionController
         if app.config.action_controller.default_protect_from_forgery
           protect_from_forgery with: :exception
         end
-      end
-    end
-
-    initializer "action_controller.eager_load_actions" do
-      ActiveSupport.on_load(:after_initialize) do
-        ActionController::Metal.descendants.each(&:action_methods) if config.eager_load
       end
     end
 

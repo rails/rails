@@ -8,6 +8,7 @@ require "active_record"
 require "cases/test_case"
 require "active_support/dependencies"
 require "active_support/logger"
+require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/kernel/singleton_class"
 
 require "support/config"
@@ -165,19 +166,6 @@ def disable_extension!(extension, connection)
 
   connection.disable_extension extension
   connection.reconnect!
-end
-
-def clean_up_legacy_connection_handlers
-  handler = ActiveRecord::Base.default_connection_handler
-  assert_deprecated do
-    ActiveRecord::Base.connection_handlers = {}
-  end
-
-  handler.connection_pool_names.each do |name|
-    next if ["ActiveRecord::Base", "ARUnit2Model", "Contact", "ContactSti", "FirstAbstractClass", "SecondAbstractClass"].include?(name)
-
-    handler.send(:owner_to_pool_manager).delete(name)
-  end
 end
 
 def clean_up_connection_handler

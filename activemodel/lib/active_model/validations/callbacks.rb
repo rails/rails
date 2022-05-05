@@ -112,7 +112,7 @@ module ActiveModel
       end
 
     private
-      # Overwrite run validations to include callbacks.
+      # Override run_validations! to include callbacks.
       def run_validations!
         _run_validation_callbacks { super }
       end

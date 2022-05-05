@@ -30,11 +30,13 @@ require "active_model/version"
 module ActiveModel
   extend ActiveSupport::Autoload
 
+  autoload :Access
   autoload :API
   autoload :Attribute
   autoload :Attributes
   autoload :AttributeAssignment
   autoload :AttributeMethods
+  autoload :AttributeRegistration
   autoload :BlockValidator, "active_model/validator"
   autoload :Callbacks
   autoload :Conversion

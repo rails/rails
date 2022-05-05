@@ -340,16 +340,7 @@ module Rails
             abort_on_failure: options[:abort_on_failure],
           }
 
-          in_root { run("#{sudo}#{extify(executor)} #{command}", config) }
-        end
-
-        # Add an extension to the given name based on the platform.
-        def extify(name) # :doc:
-          if Gem.win_platform?
-            "#{name}.bat"
-          else
-            name
-          end
+          in_root { run("#{sudo}#{Shellwords.escape Gem.ruby} bin/#{executor} #{command}", config) }
         end
 
         # Always returns value in double quotes.

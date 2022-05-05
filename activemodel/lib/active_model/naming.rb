@@ -195,18 +195,15 @@ module ActiveModel
     #
     # Specify +options+ with additional translating options.
     def human(options = {})
-      return @human unless @klass.respond_to?(:lookup_ancestors) &&
-                           @klass.respond_to?(:i18n_scope)
+      return @human if i18n_keys.empty? || i18n_scope.empty?
 
-      defaults = @klass.lookup_ancestors.map do |klass|
-        klass.model_name.i18n_key
-      end
-
+      key, *defaults = i18n_keys
       defaults << options[:default] if options[:default]
-      defaults << @human
+      defaults << MISSING_TRANSLATION
 
-      options = { scope: [@klass.i18n_scope, :models], count: 1, default: defaults }.merge!(options.except(:default))
-      I18n.translate(defaults.shift, **options)
+      translation = I18n.translate(key, scope: i18n_scope, count: 1, **options, default: defaults)
+      translation = @human if translation == MISSING_TRANSLATION
+      translation
     end
 
     def uncountable?
@@ -214,8 +211,22 @@ module ActiveModel
     end
 
     private
+      MISSING_TRANSLATION = Object.new # :nodoc:
+
       def _singularize(string)
         ActiveSupport::Inflector.underscore(string).tr("/", "_")
+      end
+
+      def i18n_keys
+        @i18n_keys ||= if @klass.respond_to?(:lookup_ancestors)
+          @klass.lookup_ancestors.map { |klass| klass.model_name.i18n_key }
+        else
+          []
+        end
+      end
+
+      def i18n_scope
+        @i18n_scope ||= @klass.respond_to?(:i18n_scope) ? [@klass.i18n_scope, :models] : []
       end
   end
 

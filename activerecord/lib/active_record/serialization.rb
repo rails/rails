@@ -20,5 +20,10 @@ module ActiveRecord # :nodoc:
 
       super(options)
     end
+
+    private
+      def attribute_names_for_serialization
+        attribute_names
+      end
   end
 end
