@@ -178,14 +178,6 @@ module ActionController
     # Returns true if the given key is present in the parameters.
 
     ##
-    # :method: has_value?
-    #
-    # :call-seq:
-    #   has_value?(value)
-    #
-    # Returns true if the given value is present for some key in the parameters.
-
-    ##
     # :method: include?
     #
     # :call-seq:
@@ -225,14 +217,7 @@ module ActionController
     #
     # Returns the content of the parameters as a string.
 
-    ##
-    # :method: value?
-    #
-    # :call-seq:
-    #   value?(value)
-    #
-    # Returns true if the given value is present for some key in the parameters.
-    delegate :keys, :key?, :has_key?, :member?, :has_value?, :value?, :empty?, :include?,
+    delegate :keys, :key?, :has_key?, :member?, :empty?, :include?,
       :as_json, :to_s, :each_key, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these
@@ -855,6 +840,13 @@ module ActionController
     def compact_blank!
       reject! { |_k, v| v.blank? }
     end
+
+    # Returns true if the given value is present for some key in the parameters.
+    def has_value?(value)
+      each_value.include?(convert_value_to_parameters(value))
+    end
+
+    alias value? has_value?
 
     # Returns values that were assigned to the given +keys+. Note that all the
     # +Hash+ objects will be converted to <tt>ActionController::Parameters</tt>.

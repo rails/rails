@@ -1,3 +1,10 @@
+*   Reimplement `ActionController::Parameters#has_value?` and `#value?` to avoid parameters and hashes comparison.
+
+    Deprecated equality between parameters and hashes is going to be removed in Rails 7.2.
+    The new implementation takes care of conversions.
+
+    *Seva Stefkin*
+
 *   Allow only String and Symbol keys in `ActionController::Parameters`.
     Raise `ActionController::InvalidParameterKey` when initializing Parameters
     with keys that aren't strings or symbols.
