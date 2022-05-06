@@ -292,6 +292,11 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_equal Encoding::US_ASCII, book.reload.name.encoding
   end
 
+  test "support encrypted attributes defined on columns with default values" do
+    book = EncryptedBook.create!
+    assert_encrypted_attribute(book, :name, "<untitled>")
+  end
+
   private
     class FailingKeyProvider
       def decryption_key(message) end

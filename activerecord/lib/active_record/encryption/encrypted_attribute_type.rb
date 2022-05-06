@@ -40,7 +40,7 @@ module ActiveRecord
       end
 
       def changed_in_place?(raw_old_value, new_value)
-        old_value = raw_old_value.nil? ? nil : deserialize(raw_old_value)
+        old_value = raw_old_value.nil? ? nil : deserialize_previous_value_to_determine_change(raw_old_value)
         old_value != new_value
       end
 
@@ -134,6 +134,14 @@ module ActiveRecord
 
         def clean_text_scheme
           @clean_text_scheme ||= ActiveRecord::Encryption::Scheme.new(downcase: downcase?, encryptor: ActiveRecord::Encryption::NullEncryptor.new)
+        end
+
+        def deserialize_previous_value_to_determine_change(raw_old_value)
+          deserialize(raw_old_value)
+          # We tolerate unencrypted data when determining if a column changed
+          # to support default DB values in encrypted attributes
+        rescue ActiveRecord::Encryption::Errors::Decryption
+          nil
         end
     end
   end

@@ -1,3 +1,11 @@
+*   Support encrypted attributes on columns with default db values.
+
+This adds support for encrypted attributes defined on columns with default values. 
+It will encrypt those values at creation time. Before, it would raise an
+error unless `config.active_record.encryption.support_unencrypted_data` was true.
+
+*Jorge Manrubia* and *Dima Fatko*
+
 *   Allow overriding `reading_request?` in `DatabaseSelector::Resolver`
 
     The default implementation checks if a request is a `get?` or `head?`,
