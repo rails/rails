@@ -72,7 +72,7 @@ module ActionDispatch
       #   GET /posts/5.xhtml | request.format => Mime[:html]
       #   GET /posts/5       | request.format => Mime[:html] or Mime[:js], or request.accepts.first
       #
-      def format(view_path = [])
+      def format(_view_path = nil)
         formats.first || Mime::NullType.instance
       end
 
