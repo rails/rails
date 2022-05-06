@@ -171,10 +171,7 @@ module ActiveSupport
         end
       end
 
-      def inspect
-        instance = @redis || @redis_options
-        "#<#{self.class} options=#{options.inspect} redis=#{instance.inspect}>"
-      end
+      include ActiveSupport::Inspect({ "options" => :options, "redis" => -> { @redis || @redis_options } })
 
       # Cache Store API implementation.
       #

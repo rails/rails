@@ -120,6 +120,8 @@ module ActionView
     attr_reader :identifier, :handler
     attr_reader :variable, :format, :variant, :locals, :virtual_path
 
+    include ActiveSupport::Inspect(:locals) { short_identifier }
+
     def initialize(source, identifier, handler, locals:, format: nil, variant: nil, virtual_path: nil)
       @source            = source
       @identifier        = identifier
@@ -166,10 +168,6 @@ module ActionView
 
     def short_identifier
       @short_identifier ||= defined?(Rails.root) ? identifier.delete_prefix("#{Rails.root}/") : identifier
-    end
-
-    def inspect
-      "#<#{self.class.name} #{short_identifier} locals=#{@locals.inspect}>"
     end
 
     def source

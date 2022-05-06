@@ -100,6 +100,8 @@ module ActiveModel
       I18n.translate(key, **options)
     end
 
+    include ActiveSupport::Inspect(:attribute, :type, :options)
+
     def initialize(base, attribute, type = :invalid, **options)
       @base = base
       @attribute = attribute
@@ -193,10 +195,6 @@ module ActiveModel
 
     def hash # :nodoc:
       attributes_for_hash.hash
-    end
-
-    def inspect # :nodoc:
-      "#<#{self.class.name} attribute=#{@attribute}, type=#{@type}, options=#{@options.inspect}>"
     end
 
     protected

@@ -4,6 +4,8 @@ module ActionText
   class Content
     include Rendering, Serialization
 
+    include ActiveSupport::Inspect() { to_html.truncate(25).inspect }
+
     attr_reader :fragment
 
     delegate :blank?, :empty?, :html_safe, :present?, to: :to_html # Delegating to to_html to avoid including the layout
@@ -97,10 +99,6 @@ module ActionText
 
     def as_json(*)
       to_html
-    end
-
-    def inspect
-      "#<#{self.class.name} #{to_html.truncate(25).inspect}>"
     end
 
     def ==(other)

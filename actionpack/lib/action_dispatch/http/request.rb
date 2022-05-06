@@ -26,6 +26,8 @@ module ActionDispatch
     include ActionDispatch::PermissionsPolicy::Request
     include Rack::Request::Env
 
+    include ActiveSupport::Inspect() { [[method, original_url.dump], ["for", remote_ip]] }
+
     autoload :Session, "action_dispatch/request/session"
     autoload :Utils,   "action_dispatch/request/utils"
 
@@ -424,10 +426,6 @@ module ActionDispatch
     end
 
     def commit_flash
-    end
-
-    def inspect # :nodoc:
-      "#<#{self.class.name} #{method} #{original_url.dump} for #{remote_ip}>"
     end
 
     def reset_csrf_token

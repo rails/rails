@@ -216,13 +216,13 @@ module ActionDispatch
         end
       end
 
-      def inspect
+      include ActiveSupport::Inspect() {
         if loaded?
-          super
+          [id&.public_id&.inspect, -> q { q.pp(@delegate) }].compact
         else
-          "#<#{self.class}:0x#{(object_id << 1).to_s(16)} not yet loaded>"
+          "not yet loaded"
         end
-      end
+      }
 
       def exists?
         return false unless enabled?

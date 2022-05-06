@@ -47,6 +47,8 @@ module ActionText
         end
     end
 
+    include ActiveSupport::Inspect(:attachable)
+
     attr_reader :node, :attachable
 
     delegate :to_param, to: :attachable
@@ -83,10 +85,6 @@ module ActionText
 
     def to_s
       to_html
-    end
-
-    def inspect
-      "#<#{self.class.name} attachable=#{attachable.inspect}>"
     end
 
     private

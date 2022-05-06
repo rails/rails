@@ -46,6 +46,8 @@ module AbstractController
     include ActiveSupport::Configurable
     extend ActiveSupport::DescendantsTracker
 
+    include ActiveSupport::Inspect(id: true)
+
     class << self
       attr_reader :abstract
       alias_method :abstract?, :abstract
@@ -194,10 +196,6 @@ module AbstractController
     # support paths, only full URLs.
     def self.supports_path?
       true
-    end
-
-    def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
     end
 
     private

@@ -49,6 +49,8 @@ module ActionText
 
     attr_reader :node
 
+    include ActiveSupport::Inspect(:size)
+
     def initialize(node)
       @node = node
     end
@@ -61,10 +63,6 @@ module ActionText
 
     def size
       attachments.size
-    end
-
-    def inspect
-      "#<#{self.class.name} size=#{size.inspect}>"
     end
   end
 end

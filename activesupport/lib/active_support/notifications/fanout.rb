@@ -24,6 +24,8 @@ module ActiveSupport
     class Fanout
       include Mutex_m
 
+      include ActiveSupport::Inspect() { "(#{@string_subscribers.size + @other_subscribers.size} patterns)" }
+
       def initialize
         @string_subscribers = Hash.new { |h, k| h[k] = [] }
         @other_subscribers = []
@@ -66,11 +68,6 @@ module ActiveSupport
             end
           end
         end
-      end
-
-      def inspect # :nodoc:
-        total_patterns = @string_subscribers.size + @other_subscribers.size
-        "#<#{self.class} (#{total_patterns} patterns)>"
       end
 
       def start(name, id, payload)
