@@ -8,7 +8,10 @@ module ActionController
       return unless logger.info?
 
       payload = event.payload
-      params  = payload[:params].except(*INTERNAL_PARAMS)
+      params = {}
+      payload[:params].each_pair do |k, v|
+        params[k] = v unless INTERNAL_PARAMS.include?(k)
+      end
       format  = payload[:format]
       format  = format.to_s.upcase if format.is_a?(Symbol)
       format  = "*/*" if format.nil?
