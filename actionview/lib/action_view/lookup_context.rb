@@ -267,7 +267,7 @@ module ActionView
           raise ArgumentError, "Invalid formats: #{invalid_values.map(&:inspect).join(", ")}"
         end
 
-        if values == [:js]
+        if (values.length == 1) && (values[0] == :js)
           values << :html
           @html_fallback_for_js = true
         end
