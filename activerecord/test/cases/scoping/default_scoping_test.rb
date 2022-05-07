@@ -80,6 +80,23 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 50000,   wheres["salary"]
   end
 
+  def test_combined_default_scope_without_and_with_all_queries_works
+    Mentor.create!
+    klass = DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries
+
+    create_sql = capture_sql { klass.create!(name: "Steve") }.first
+
+    assert_match(/mentor_id/, create_sql)
+    assert_match(/firm_id/, create_sql)
+
+    developer = klass.find_by!(name: "Steve")
+
+    update_sql = capture_sql { developer.update(name: "Stephen") }.first
+
+    assert_no_match(/mentor_id/, update_sql)
+    assert_match(/firm_id/, update_sql)
+  end
+
   def test_default_scope_runs_on_create
     Mentor.create!
     create_sql = capture_sql { DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen") }.first
