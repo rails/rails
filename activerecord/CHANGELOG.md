@@ -1,3 +1,15 @@
+*   Allow using aliased attributes with `insert_all`/`upsert_all`.
+
+    ```ruby
+    class Book < ApplicationRecord
+      alias_attribute :title, :name
+    end
+
+    Book.insert_all [{ title: "Remote", author_id: 1 }], returning: :title
+    ```
+
+    *fatkodima*
+
 *   Support encrypted attributes on columns with default db values.
 
 This adds support for encrypted attributes defined on columns with default values. 
