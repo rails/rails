@@ -138,15 +138,13 @@ module ActionDispatch
         def cache_control_segments
           if cache_control = _cache_control
             cache_control.delete(" ").split(",")
-          else
-            []
           end
         end
 
         def cache_control_headers
           cache_control = {}
 
-          cache_control_segments.each do |segment|
+          cache_control_segments&.each do |segment|
             directive, argument = segment.split("=", 2)
 
             if SPECIAL_KEYS.include? directive
