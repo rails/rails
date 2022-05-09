@@ -3573,32 +3573,6 @@ module ApplicationTests
       end
     end
 
-    test "ActionController::Base.raise_on_missing_callback_actions is false by default for production" do
-      app "production"
-
-      assert_equal false, ActionController::Base.raise_on_missing_callback_actions
-    end
-
-    test "ActionController::Base.raise_on_missing_callback_actions is false by default for upgraded apps" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app "development"
-
-      assert_equal false, ActionController::Base.raise_on_missing_callback_actions
-    end
-
-    test "ActionController::Base.raise_on_missing_callback_actions can be configured in the new framework defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_2.rb", <<-RUBY
-        Rails.application.config.action_controller.raise_on_missing_callback_actions = true
-      RUBY
-
-      app "production"
-
-      assert_equal true, ActionController::Base.raise_on_missing_callback_actions
-    end
-
     test "isolation_level is :thread by default" do
       app "development"
       assert_equal :thread, ActiveSupport::IsolatedExecutionState.isolation_level
