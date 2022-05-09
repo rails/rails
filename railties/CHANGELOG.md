@@ -1,3 +1,8 @@
+## Rails 6.1.6 (May 09, 2022) ##
+
+*   No changes.
+
+
 ## Rails 6.1.5.1 (April 26, 2022) ##
 
 *   No changes.
