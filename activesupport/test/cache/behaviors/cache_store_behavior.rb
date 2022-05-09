@@ -536,6 +536,14 @@ module CacheStoreBehavior
     end
   end
 
+  def test_expires_in_and_expires_at
+    key = SecureRandom.uuid
+    error = assert_raises(ArgumentError) do
+      @cache.write(key, "bar", expire_in: 60, expires_at: 1.minute.from_now)
+    end
+    assert_equal "Either :expires_in or :expires_at can be supplied, but not both", error.message
+  end
+
   def test_race_condition_protection_skipped_if_not_defined
     key = SecureRandom.alphanumeric
     @cache.write(key, "bar")

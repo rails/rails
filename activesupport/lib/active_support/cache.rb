@@ -678,6 +678,13 @@ module ActiveSupport
         def merged_options(call_options)
           if call_options
             call_options = normalize_options(call_options)
+            if call_options.key?(:expires_in) && call_options.key?(:expires_at)
+              raise ArgumentError, "Either :expires_in or :expires_at can be supplied, but not both"
+            end
+
+            expires_at = call_options.delete(:expires_at)
+            call_options[:expires_in] = (expires_at - Time.now) if expires_at
+
             if options.empty?
               call_options
             else

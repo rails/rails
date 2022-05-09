@@ -179,6 +179,11 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
 
+    def test_write_expires_at
+      @cache.write "key_with_expires_at", "bar", expires_at: 30.minutes.from_now
+      assert @cache.redis.ttl("#{@namespace}:key_with_expires_at") > 0
+    end
+
     def test_increment_expires_in
       assert_called_with @cache.redis, :incrby, [ "#{@namespace}:foo", 1 ] do
         assert_called_with @cache.redis, :expire, [ "#{@namespace}:foo", 60 ] do
