@@ -1,3 +1,5 @@
+## Rails 6.0.5 (May 09, 2022) ##
+
 *   Disentangle Action Text from ApplicationController
 
     Allow Action Text to be used without having an ApplicationController
