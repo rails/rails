@@ -1,3 +1,5 @@
+## Rails 7.0.3 (May 09, 2022) ##
+
 *   The autoloading guide documents a use case for autoloading reloadable constants in `after_initialize`.
 
     *Xavier Noria*

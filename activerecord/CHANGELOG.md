@@ -1,3 +1,5 @@
+## Rails 7.0.3 (May 09, 2022) ##
+
 *   Some internal housekeeping on reloads could break custom `respond_to?`
     methods in class objects that referenced reloadable constants. See
     [#44125](https://github.com/rails/rails/issues/44125) for details.

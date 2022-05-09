@@ -1,3 +1,5 @@
+## Rails 7.0.3 (May 09, 2022) ##
+
 *   Allow relative redirects when `raise_on_open_redirects` is enabled.
 
     *Tom Hughes*

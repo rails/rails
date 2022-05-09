@@ -1,3 +1,5 @@
+## Rails 7.0.3 (May 09, 2022) ##
+
 *   Don't stream responses in redirect mode
 
     Previously, both redirect mode and proxy mode streamed their

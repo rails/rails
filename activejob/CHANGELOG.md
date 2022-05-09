@@ -1,3 +1,5 @@
+## Rails 7.0.3 (May 09, 2022) ##
+
 *   Add missing `bigdecimal` require in `ActiveJob::Arguments`
 
     Could cause `uninitialized constant ActiveJob::Arguments::BigDecimal (NameError)`

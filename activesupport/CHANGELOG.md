@@ -1,3 +1,8 @@
+## Rails 7.0.3 (May 09, 2022) ##
+
+*   No changes.
+
+
 ## Rails 7.0.2.4 (April 26, 2022) ##
 
 *   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
