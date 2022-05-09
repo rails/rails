@@ -83,7 +83,7 @@ module Rails
 
       # Loads default configuration values for a target version. This includes
       # defaults for versions prior to the target version. See the
-      # {configuration guide}[https://guides.rubyonrails.org/configuring.html]
+      # {configuration guide}[https://guides.rubyonrails.org/configuring.html#versioned-default-values]
       # for the default values associated with a particular version.
       def load_defaults(target_version)
         case target_version.to_s
