@@ -585,6 +585,11 @@ module ActiveRecord
           else
             assert_match(/Identifier name '#{long_table_name}' is too long/i, error.message)
           end
+        elsif current_adapter?(:PostgreSQLAdapter)
+          error = assert_raises(StandardError) do
+            ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          end
+          assert_match(/Index name '#{long_table_name}_pkey' on table 'more_testings' is too long/i, error.message)
         else
           ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
           assert connection.table_exists?(long_table_name)

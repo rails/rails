@@ -385,9 +385,9 @@ module ActiveRecord
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
           pk, seq = pk_and_sequence_for(new_name)
           if pk
-            idx = "#{table_name}_pkey"
+            old_idx = "#{table_name}_pkey"
             new_idx = "#{new_name}_pkey"
-            execute "ALTER INDEX #{quote_table_name(idx)} RENAME TO #{quote_table_name(new_idx)}"
+            rename_index(table_name, old_idx, new_idx)
             if seq && seq.identifier == "#{table_name}_#{pk}_seq"
               new_seq = "#{new_name}_#{pk}_seq"
               execute "ALTER TABLE #{seq.quoted} RENAME TO #{quote_table_name(new_seq)}"
