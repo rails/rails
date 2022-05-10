@@ -23,7 +23,9 @@ module ActiveRecord
       #   post = Post.create!(title: "Introducing Ruby on Rails!")
       #   post.update(title: "a different title") # change to title will be ignored
       def attr_readonly(*attributes)
-        self._attr_readonly = Set.new(attributes.map(&:to_s)) + (_attr_readonly || [])
+        attributes = attributes.map(&:to_s)
+        attributes += attributes.select { |attr| attribute_alias(attr) }.compact if respond_to?(:attribute_alias)
+        self._attr_readonly = Set.new(attributes) + (_attr_readonly || [])
       end
 
       # Returns an array of all the attributes that have been specified as readonly.
@@ -32,7 +34,7 @@ module ActiveRecord
       end
 
       def readonly_attribute?(name) # :nodoc:
-        _attr_readonly.include?(name)
+        _attr_readonly.include?(name.to_s)
       end
     end
   end

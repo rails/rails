@@ -66,6 +66,11 @@ class ReadonlyTitlePost < Post
   attr_readonly :title
 end
 
+class ReadonlyAliasedTitlePost < Post
+  attr_readonly :name
+  alias_attribute :name, :title
+end
+
 class Weird < ActiveRecord::Base; end
 
 class LintTest < ActiveRecord::TestCase
@@ -700,6 +705,19 @@ class BasicsTest < ActiveRecord::TestCase
     post.update(title: "try to change", body: "changed")
     post.reload
     assert_equal "cannot change this", post.title
+    assert_equal "changed", post.body
+  end
+
+  def test_readonly_aliased_attributes
+    assert_equal Set.new([ "name", "title", "comments_count" ]), ReadonlyAliasedTitlePost.readonly_attributes
+
+    post = ReadonlyAliasedTitlePost.create(name: "cannot change this", body: "changeable")
+    post.reload
+    assert_equal "cannot change this", post.name
+
+    post.update(name: "try to change", body: "changed")
+    post.reload
+    assert_equal "cannot change this", post.name
     assert_equal "changed", post.body
   end
 
