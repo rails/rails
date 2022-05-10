@@ -127,6 +127,16 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_write_expires_at
+    cache = lookup_store(raw: true, namespace: nil)
+
+    Time.stub(:now, Time.now) do
+      assert_called_with client(cache), :set, [ "key_with_expires_at", "bar", 30 * 60, Hash ] do
+        cache.write("key_with_expires_at", "bar", expires_at: 30.minutes.from_now)
+      end
+    end
+  end
+
   def test_increment_expires_in
     cache = lookup_store(raw: true, namespace: nil)
     assert_called_with client(cache), :incr, [ "foo", 1, 60 ] do
