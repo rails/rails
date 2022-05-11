@@ -159,7 +159,7 @@ module ActiveRecord
           end
 
           def default_type(table_name, field_name)
-            match = create_table_info(table_name).match(/`#{field_name}` (.+) DEFAULT ('|\d+|[A-z]+)/)
+            match = create_table_info(table_name)&.match(/`#{field_name}` (.+) DEFAULT ('|\d+|[A-z]+)/)
             default_pre = match[2] if match
 
             if default_pre == "'"
