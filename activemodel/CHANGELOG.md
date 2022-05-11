@@ -1,3 +1,7 @@
+*   Fix casting long strings to `Date`, `Time` or `DateTime`
+
+    *fatkodima*
+
 *   Use different cache namespace for proxy calls
 
     Models can currently have different attribute bodies for the same method
