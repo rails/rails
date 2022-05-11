@@ -263,6 +263,25 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_and_upsert_all_with_aliased_attributes
+    if supports_insert_returning?
+      assert_difference "Book.count" do
+        result = Book.insert_all [{ title: "Remote", author_id: 1 }], returning: :title
+        assert_includes result.columns, "title"
+      end
+    end
+
+    if supports_insert_on_duplicate_update?
+      Book.upsert_all [{ id: 101, title: "Perelandra", author_id: 7, isbn: "1974522598" }]
+      Book.upsert_all [{ id: 101, title: "Perelandra 2", author_id: 6, isbn: "111111" }], update_only: %i[ title isbn ]
+
+      book = Book.find(101)
+      assert_equal "Perelandra 2", book.title, "Should have updated the title"
+      assert_equal "111111", book.isbn, "Should have updated the isbn"
+      assert_equal 7, book.author_id, "Should not have updated the author_id"
+    end
+  end
+
   def test_upsert_logs_message_including_model_name
     skip unless supports_insert_on_duplicate_update?
 
