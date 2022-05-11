@@ -985,7 +985,7 @@ The `fields_for` yields a form builder. The parameters' name will be what
 }
 ```
 
-The keys of the `:addresses_attributes` hash are unimportant, they need merely be different for each address.
+The actual values of the keys in the `:addresses_attributes` hash are unimportant; however they need to be strings of integers and different for each address.
 
 If the associated object is already saved, `fields_for` autogenerates a hidden input with the `id` of the saved record. You can disable this by passing `include_id: false` to `fields_for`.
 
