@@ -288,7 +288,7 @@
       description: This guide describes the considerations needed and tools available when working directly with concurrency in a Rails application.
       work_in_progress: true
 -
-  name: Contributions
+  name: Contributing
   documents:
     -
       name: Contributing to Ruby on Rails
