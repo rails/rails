@@ -1,3 +1,14 @@
+*   Avoid queries when performing calculations on contradictory relations.
+
+    Previously calculations would make a query even when passed a
+    contradiction, such as `User.where(id: []).count`. We no longer perform a
+    query in that scenario.
+
+    This applies to the following calculations: `count`, `sum`, `average`,
+    `minimum` and `maximum`
+
+    *Luan Vieira, John Hawthorn and Daniel Colson*
+
 *   Allow using aliased attributes with `insert_all`/`upsert_all`.
 
     ```ruby
