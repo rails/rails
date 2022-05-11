@@ -489,6 +489,43 @@ module ActiveModel
       end
     end
 
+    # Returns a hash of attributes for the given keys. Provides the pattern
+    # matching interface for matching against hash patterns. For example:
+    #
+    #   class Person
+    #     include ActiveModel::AttributeMethods
+    #
+    #     attr_accessor :name
+    #     define_attribute_method :name
+    #   end
+    #
+    #   def greeting_for(person)
+    #     case person
+    #     in { name: "Mary" }
+    #       "Welcome back, Mary!"
+    #     in { name: }
+    #       "Welcome, stranger!"
+    #     end
+    #   end
+    #
+    #   person = Person.new
+    #   person.name = "Mary"
+    #   greeting_for(person) # => "Welcome back, Mary!"
+    #
+    #   person = Person.new
+    #   person.name = "Bob"
+    #   greeting_for(person) # => "Welcome, stranger!"
+    def deconstruct_keys(keys)
+      deconstructed = {}
+
+      keys.each do |key|
+        string_key = key.to_s
+        deconstructed[key] = _read_attribute(string_key) if attribute_method?(string_key)
+      end
+
+      deconstructed
+    end
+
     private
       def attribute_method?(attr_name)
         respond_to_without_attributes?(:attributes) && attributes.include?(attr_name)
