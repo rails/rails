@@ -456,7 +456,7 @@ GEM
     rubyzip (2.3.2)
     rufus-scheduler (3.6.0)
       fugit (~> 1.1, >= 1.1.6)
-    sdoc (2.3.2)
+    sdoc (2.4.0)
       rdoc (>= 5.0)
     selenium-webdriver (4.1.0)
       childprocess (>= 0.5, < 5.0)
@@ -502,7 +502,7 @@ GEM
     stackprof (0.2.17)
     stimulus-rails (1.0.2)
       railties (>= 6.0.0)
-    strscan (3.0.1)
+    strscan (3.0.2)
     sucker_punch (3.0.1)
       concurrent-ruby (~> 1.0)
     tailwindcss-rails (2.0.3)
@@ -613,7 +613,7 @@ DEPENDENCIES
   rubocop-packaging
   rubocop-performance
   rubocop-rails
-  sdoc (>= 2.3.2)
+  sdoc (>= 2.4.0)
   selenium-webdriver (>= 4.0.0)
   sequel
   sidekiq
