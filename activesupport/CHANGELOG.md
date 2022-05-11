@@ -1,3 +1,11 @@
+*   Allow #increment and #decrement methods of `ActiveSupport::Cache::Store`
+    subclasses to set new values.
+
+    Previously incrementing or decrementing an unset key would fail and return
+    nil. A default will now be assumed and the key will be created.
+
+    *Andrej Blagojević*, *Eugene Kenny*
+
 *   Add `skip_nil:` support to `RedisCacheStore`
 
     *Joey Paris*
