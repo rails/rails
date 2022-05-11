@@ -1,3 +1,26 @@
+*   Define pattern matching APIs for records and relations.
+
+    This provides the Ruby 2.7+ pattern matching interface for Active Record
+    records and relations. It allows the user to pattern match against
+    attributes and associations on records through a hash pattern. It also
+    allows the user to pattern match against relations through an array pattern.
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      has_many :comments
+    end
+
+    class Comment < ActiveRecord::Base
+      belongs_to :post
+    end
+
+    post = Post.new(title: "Welcome!", comments: [Comment.new(body: "Thanks!")])
+    post => { title: "Welcome!", comments: [Comment[body:]] }
+    body # => "Thanks!"
+    ```
+
+    *Kevin Newton*
+
 *   Avoid queries when performing calculations on contradictory relations.
 
     Previously calculations would make a query even when passed a
