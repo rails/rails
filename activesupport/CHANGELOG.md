@@ -1,3 +1,8 @@
+*   `ActiveSupport::Cache::MemoryStore#write(name, val, unless_exist:true)` now
+    correctly writes expired keys.
+
+    *Alan Savage*
+
 *   `ActiveSupport::ErrorReporter` now accepts and forward a `source:` parameter.
 
     This allow libraries to signal the origin of the errors, and reporters
