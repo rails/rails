@@ -166,7 +166,7 @@ module ActiveSupport
         def write_entry(key, entry, **options)
           payload = serialize_entry(entry, **options)
           synchronize do
-            return false if options[:unless_exist] && @data.key?(key)
+            return false if options[:unless_exist] && exist?(key)
 
             old_payload = @data[key]
             if old_payload
