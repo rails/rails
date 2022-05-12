@@ -25,7 +25,7 @@ module ActiveRecord
             from = type_cast_single extracted[:from]
             to = type_cast_single extracted[:to]
 
-            if !infinity?(from) && extracted[:exclude_start]
+            if from && extracted[:exclude_start]
               raise ArgumentError, "The Ruby Range object does not support excluding the beginning of a Range. (unsupported value: '#{value}')"
             end
             ::Range.new(from, to, extracted[:exclude_end])
@@ -59,18 +59,18 @@ module ActiveRecord
 
           private
             def type_cast_single(value)
-              infinity?(value) ? value : @subtype.deserialize(value)
+              infinity?(value) ? nil : @subtype.deserialize(value)
             end
 
             def type_cast_single_for_database(value)
-              infinity?(value) ? value : @subtype.serialize(@subtype.cast(value))
+              infinity?(value) ? nil : @subtype.serialize(@subtype.cast(value))
             end
 
             def extract_bounds(value)
               from, to = value[1..-2].split(",", 2)
               {
-                from:          (from == "" || from == "-infinity") ? infinity(negative: true) : unquote(from),
-                to:            (to == "" || to == "infinity") ? infinity : unquote(to),
+                from:          (from == "" || from == "-infinity") ? nil : unquote(from),
+                to:            (to == "" || to == "infinity") ? nil : unquote(to),
                 exclude_start: value.start_with?("("),
                 exclude_end:   value.end_with?(")")
               }
@@ -92,16 +92,6 @@ module ActiveRecord
                 unquoted_value
               else
                 value
-              end
-            end
-
-            def infinity(negative: false)
-              if subtype.respond_to?(:infinity)
-                subtype.infinity(negative: negative)
-              elsif negative
-                -::Float::INFINITY
-              else
-                ::Float::INFINITY
               end
             end
 

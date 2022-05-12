@@ -194,11 +194,7 @@ module ActiveRecord
           end
 
           def type_cast_range_value(value)
-            infinity?(value) ? "" : type_cast(value)
-          end
-
-          def infinity?(value)
-            value.respond_to?(:infinite?) && value.infinite?
+            value ? type_cast(value) : ""
           end
       end
     end
