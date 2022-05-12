@@ -139,16 +139,40 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   def test_increment_expires_in
     cache = lookup_store(raw: true, namespace: nil)
-    assert_called_with client(cache), :incr, [ "foo", 1, 60 ] do
+    assert_called_with client(cache), :incr, [ "foo", 1, 60, nil ] do
       cache.increment("foo", 1, expires_in: 60)
     end
   end
 
   def test_decrement_expires_in
     cache = lookup_store(raw: true, namespace: nil)
-    assert_called_with client(cache), :decr, [ "foo", 1, 60 ] do
+    assert_called_with client(cache), :decr, [ "foo", 1, 60, nil ] do
       cache.decrement("foo", 1, expires_in: 60)
     end
+  end
+
+  def test_increment_without_preexisting_value
+    cache = lookup_store(raw: true, namespace: nil)
+    key = SecureRandom.uuid
+
+    assert_nil cache.increment(key)
+    assert_nil cache.read(key, raw: true)
+    assert_equal 3, cache.increment(key, default: 3)
+    assert_equal 3, cache.read(key, raw: true).to_i
+    assert_equal 4, cache.increment(key, default: 3)
+    assert_equal 4, cache.read(key, raw: true).to_i
+  end
+
+  def test_decrement_without_preexisting_value
+    cache = lookup_store(raw: true, namespace: nil)
+    key = SecureRandom.uuid
+
+    assert_nil cache.decrement(key)
+    assert_nil cache.read(key, raw: true)
+    assert_equal 3, cache.decrement(key, default: 3)
+    assert_equal 3, cache.read(key, raw: true).to_i
+    assert_equal 2, cache.decrement(key, default: 3)
+    assert_equal 2, cache.read(key, raw: true).to_i
   end
 
   def test_dalli_cache_nils
