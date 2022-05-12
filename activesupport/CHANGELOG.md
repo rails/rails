@@ -1,3 +1,16 @@
+*   `ActiveSupport::Cache:Store#fetch` now passes cache options to the block.
+
+    It makes possible to override cache options:
+
+        Rails.cache.fetch("3rd-party-token") do |name, options|
+          fetch_token_from_remote.tap |token|
+            # set cache's TTL to match token's TTL
+            options[:expires_in] = token.expires_in
+          end
+        end
+
+    *Andrii Gladkyi*
+
 *   `ActiveSupport::Cache::MemoryStore#write(name, val, unless_exist:true)` now
     correctly writes expired keys.
 

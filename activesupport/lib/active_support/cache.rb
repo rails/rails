@@ -806,7 +806,7 @@ module ActiveSupport
 
         def save_block_result_to_cache(name, options)
           result = instrument(:generate, name, options) do
-            yield(name)
+            yield(name, options)
           end
 
           write(name, result, options) unless result.nil? && options[:skip_nil]

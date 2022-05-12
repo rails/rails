@@ -85,6 +85,16 @@ module CacheStoreBehavior
     assert_equal "bar", @cache.read(key)
   end
 
+  def test_fetch_with_block_modifying_options
+    key = SecureRandom.uuid
+    assert_called_with(@cache, :write, [key, "bar", @cache.options.merge(expires_in: 10)]) do
+      @cache.fetch(key) do |name, options|
+        options[:expires_in] = 10
+        "bar"
+      end
+    end
+  end
+
   def test_should_read_and_write_hash
     key = SecureRandom.uuid
     assert @cache.write(key, a: "b")
