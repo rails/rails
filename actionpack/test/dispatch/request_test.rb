@@ -1079,6 +1079,16 @@ class RequestParameters < BaseRequestTest
     assert_equal "Invalid path parameters: Invalid encoding for parameter: �", err.message
   end
 
+  test "path parameters don't re-encode frozen strings" do
+    request = stub_request
+
+    ActionDispatch::Request::Utils::CustomParamEncoder.stub(:action_encoding_template, Hash.new { Encoding::BINARY }) do
+      request.path_parameters = { foo: "frozen", bar: +"mutable", controller: "test_controller" }
+      assert_equal Encoding::BINARY, request.params[:bar].encoding
+      assert_equal Encoding::UTF_8, request.params[:foo].encoding
+    end
+  end
+
   test "parameters not accessible after rack parse error of invalid UTF8 character" do
     request = stub_request("QUERY_STRING" => "foo%81E=1")
     assert_raises(ActionController::BadRequest) { request.parameters }
