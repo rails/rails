@@ -1,3 +1,7 @@
+*   Deprecate `Rails::Generators::Testing::Behaviour` in favor of `Rails::Generators::Testing::Behavior`.
+
+    *Gannon McGibbon*
+
 *   Allow configuration of logger size for local and test environments
 
     `config.log_file_size`
