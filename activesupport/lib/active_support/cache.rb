@@ -137,7 +137,7 @@ module ActiveSupport
     # popular cache store for large production websites.
     #
     # Some implementations may not support all methods beyond the basic cache
-    # methods of +fetch+, +write+, +read+, +exist?+, and +delete+.
+    # methods of #fetch, #write, #read, #exist?, and #delete.
     #
     # ActiveSupport::Cache::Store can store any Ruby object that is supported by
     # its +coder+'s +dump+ and +load+ methods.

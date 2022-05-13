@@ -169,7 +169,7 @@ module AbstractController
       # The last two assume that <tt>"foo".camelize</tt> returns "Foo".
       #
       # When strings or symbols are passed, the method finds the actual module
-      # object using +String#constantize+. Therefore, if the module has not been
+      # object using String#constantize. Therefore, if the module has not been
       # yet loaded, it has to be autoloadable, which is normally the case.
       #
       # Namespaces are supported. The following calls include +Foo::BarHelper+:

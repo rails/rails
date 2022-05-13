@@ -1443,7 +1443,7 @@ module ActionView
       # It is also possible to override this by passing the "value" option.
       #
       # === Options
-      # * Accepts same options as time_field_tag
+      # * Accepts same options as FormTagHelper#time_field_tag
       #
       # === Example
       #   time_field("task", "started_at")
@@ -1563,7 +1563,7 @@ module ActionView
       # Returns an input tag of type "number".
       #
       # ==== Options
-      # * Accepts same options as number_field_tag
+      # * Accepts same options as FormTagHelper#number_field_tag
       def number_field(object_name, method, options = {})
         Tags::NumberField.new(object_name, method, self, options).render
       end
@@ -1571,7 +1571,7 @@ module ActionView
       # Returns an input tag of type "range".
       #
       # ==== Options
-      # * Accepts same options as range_field_tag
+      # * Accepts same options as FormTagHelper#range_field_tag
       def range_field(object_name, method, options = {})
         Tags::RangeField.new(object_name, method, self, options).render
       end
