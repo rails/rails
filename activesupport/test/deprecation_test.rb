@@ -136,7 +136,7 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_equal 4, @c.size
   end
 
-  def test_raise_behaviour
+  def test_raise_behavior
     ActiveSupport::Deprecation.behavior = :raise
 
     message   = "Revise this deprecated stuff now!"

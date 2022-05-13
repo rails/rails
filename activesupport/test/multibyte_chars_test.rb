@@ -93,7 +93,7 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   end
 end
 
-class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
+class MultibyteCharsUTF8BehaviorTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
   def setup
