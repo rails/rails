@@ -479,4 +479,37 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
       end
     end
   end
+
+  class PrimaryKeyUuidDefaultTest < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
+    class Thing < ActiveRecord::Base; end
+
+    def setup
+      super
+
+      uuid_function = if current_adapter?(:PostgreSQLAdapter)
+        "gen_random_uuid()"
+      else
+        "uuid()"
+      end
+
+      Thing.connection.create_table :things, id: { type: :string, limit: 36, default: -> { uuid_function } }, force: true do |t|
+        t.string :name
+      end
+
+      Thing.reset_column_information
+      ActiveRecord::Base.connection.schema_cache.clear!
+    end
+
+    teardown do
+      Thing.connection.drop_table(:things) if Thing.connection.table_exists?(:things)
+      Thing.reset_column_information
+    end
+
+    def test_primary_key_uuid_default
+      thing = Thing.create!(name: "test")
+      assert_match(/\A(.+)-(.+)-(.+)-(.+)\Z/, thing.id)
+    end
+  end
 end

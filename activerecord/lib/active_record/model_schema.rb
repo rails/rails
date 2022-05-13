@@ -378,15 +378,32 @@ module ActiveRecord
         @explicit_sequence_name = true
       end
 
+      def primary_column
+        @primary_column ||= columns.find { |column| column.name == primary_key.to_s }
+      end
+
+      def primary_column_uuid_default?
+        primary_column&.default_function == "uuid()"
+      end
+
       # Determines if the primary key values should be selected from their
       # corresponding sequence before the insert statement.
       def prefetch_primary_key?
+        @prefetch_primary_key = prefetch_primary_key_without_cache? if @prefetch_primary_key.nil?
+        @prefetch_primary_key
+      end
+
+      def prefetch_primary_key_without_cache?
+        return true if primary_column_uuid_default?
+
         connection.prefetch_primary_key?(table_name)
       end
 
       # Returns the next value that will be used as the primary key on
       # an insert statement.
       def next_sequence_value
+        return SecureRandom.uuid if primary_column_uuid_default?
+
         connection.next_sequence_value(sequence_name)
       end
 
@@ -526,6 +543,9 @@ module ActiveRecord
         connection.clear_cache!
         ([self] + descendants).each(&:undefine_attribute_methods)
         connection.schema_cache.clear_data_source_cache!(table_name)
+
+        @prefetch_primary_key = nil
+        @primary_column = nil
 
         reload_schema_from_cache
         initialize_find_by_cache
