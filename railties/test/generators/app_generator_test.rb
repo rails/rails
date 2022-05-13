@@ -756,6 +756,68 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "jsbundling-rails"
   end
 
+  def test_esbuild_option
+    generator([destination_root], javascript: "esbuild")
+
+    esbuild_called = 0
+    command_check = -> command, *_ do
+      case command
+      when "javascript:install:esbuild"
+        esbuild_called += 1
+      end
+    end
+
+    generator.stub(:rails_command, command_check) do
+      run_generator_instance
+    end
+
+    assert_equal 1, esbuild_called, "`javascript:install:esbuild` expected to be called once, but was called #{esbuild_called} times."
+    assert_gem "jsbundling-rails"
+  end
+
+  def test_esbuild_option_with_javacript_argument
+    run_generator [destination_root, "--javascript", "esbuild"]
+    assert_gem "jsbundling-rails"
+  end
+
+  def test_esbuild_option_with_j_argument
+    run_generator [destination_root, "-j", "esbuild"]
+    assert_gem "jsbundling-rails"
+  end
+
+  def test_esbuild_option_with_js_argument
+    run_generator [destination_root, "--js", "esbuild"]
+    assert_gem "jsbundling-rails"
+  end
+
+  def test_skip_javascript_option_with_skip_javascript_argument
+    run_generator [destination_root, "--skip-javascript"]
+    assert_no_gem "stimulus-rails"
+    assert_no_gem "turbo-rails"
+    assert_no_gem "importmap-rails"
+  end
+
+  def test_skip_javascript_option_with_J_argument
+    run_generator [destination_root, "-J"]
+    assert_no_gem "stimulus-rails"
+    assert_no_gem "turbo-rails"
+    assert_no_gem "importmap-rails"
+  end
+
+  def test_skip_javascript_option_with_skip_js_argument
+    run_generator [destination_root, "--skip-js"]
+    assert_no_gem "stimulus-rails"
+    assert_no_gem "turbo-rails"
+    assert_no_gem "importmap-rails"
+  end
+
+  def test_no_skip_javascript_option_with_no_skip_javascript_argument
+    run_generator [destination_root, "--no-skip-javascript"]
+    assert_gem "stimulus-rails"
+    assert_gem "turbo-rails"
+    assert_gem "importmap-rails"
+  end
+
   def test_hotwire
     run_generator [destination_root, "--no-skip-bundle"]
     assert_gem "turbo-rails"

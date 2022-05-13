@@ -1,3 +1,15 @@
+*   Add `--js` and `--skip-javascript` options to `rails new`
+
+    `--js` alias to `rails new --javascript ...`
+
+    Same as `-j`, e.g. `rails new --js esbuild ...`
+
+    `--skip-js` alias to `rails new --skip-javascript ...`
+
+    Same as `-J`, e.g. `rails new --skip-js ...`
+
+    *Dorian Marié*
+
 *   Allow relative paths with leading dot slash to be passed to `rails test`.
 
     Fix `rails test ./test/model/post_test.rb` to run a single test file.
