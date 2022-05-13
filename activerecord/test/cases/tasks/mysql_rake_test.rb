@@ -336,14 +336,16 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_structure_dump_with_ignore_tables
         filename = "awesome-file.sql"
-        ActiveRecord::SchemaDumper.stub(:ignore_tables, ["foo", "bar"]) do
-          assert_called_with(
-            Kernel,
-            :system,
-            ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--ignore-table=test-db.foo", "--ignore-table=test-db.bar", "test-db"],
-            returns: true
-          ) do
-            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+        ActiveRecord::Base.connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
+          ActiveRecord::SchemaDumper.stub(:ignore_tables, [/^prefix_/, "ignored_foo"]) do
+            assert_called_with(
+              Kernel,
+              :system,
+              ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--ignore-table=test-db.prefix_foo", "--ignore-table=test-db.ignored_foo", "test-db"],
+              returns: true
+            ) do
+              ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+            end
           end
         end
       end
