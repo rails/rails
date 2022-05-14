@@ -1,3 +1,11 @@
+*   Add ability to ignore tables by regexp for SQL schema dumps.
+
+    ```ruby
+    ActiveRecord::SchemaDumper.ignore_tables = [/^_/]
+    ```
+
+    *fatkodima*
+
 *   Avoid queries when performing calculations on contradictory relations.
 
     Previously calculations would make a query even when passed a
