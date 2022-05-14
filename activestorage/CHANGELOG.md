@@ -1,3 +1,18 @@
+*   Add ability to use pre-defined variants when calling `preview` or
+    `representation` on an attachment.
+
+    ```ruby
+    class User < ActiveRecord::Base
+      has_one_attached :file do |attachable|
+        attachable.variant :thumb, resize_to_limit: [100, 100]
+      end
+    end
+
+    <%= image_tag user.file.representation(:thumb) %>
+    ```
+
+    *Richard Böhme*
+
 *   Method `attach` always returns the attachments except when the record
     is persisted, unchanged, and saving it fails, in which case it returns `nil`.
 

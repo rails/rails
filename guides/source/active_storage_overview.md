@@ -441,6 +441,20 @@ Call `avatar.variant(:thumb)` to get a thumb variant of an avatar:
 <%= image_tag user.avatar.variant(:thumb) %>
 ```
 
+You can use specific variants for previews as well:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :video do |attachable|
+    attachable.variant :thumb, resize_to_limit: [100, 100]
+  end
+end
+```
+
+```erb
+<%= image_tag user.video.preview(:thumb) %>
+```
+
 [`has_one_attached`]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_one_attached
 [Attached::One#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attach
 [Attached::One#attached?]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attached-3F
