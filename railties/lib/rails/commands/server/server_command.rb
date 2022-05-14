@@ -96,6 +96,7 @@ module Rails
       # Hard-coding a bunch of handlers here as we don't have a public way of
       # querying them from the Rack::Handler registry.
       RACK_SERVERS = %w(cgi fastcgi webrick lsws scgi thin puma unicorn falcon)
+      RECOMMENDED_SERVER = "puma"
 
       DEFAULT_PORT = 3000
       DEFAULT_PIDFILE = "tmp/pids/server.pid"
@@ -253,7 +254,15 @@ module Rails
         end
 
         def rack_server_suggestion(server)
-          if server.in?(RACK_SERVERS)
+          if server.nil?
+            <<~MSG
+              Could not find a server gem. Maybe you need to add one to the Gemfile?
+
+                gem "#{RECOMMENDED_SERVER}"
+
+              Run `bin/rails server --help` for more options.
+            MSG
+          elsif server.in?(RACK_SERVERS)
             <<~MSG
               Could not load server "#{server}". Maybe you need to the add it to the Gemfile?
 
