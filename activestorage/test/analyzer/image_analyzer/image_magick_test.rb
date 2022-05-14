@@ -60,13 +60,12 @@ class ActiveStorage::Analyzer::ImageAnalyzer::ImageMagickTest < ActiveSupport::T
 
   private
     def analyze_with_image_magick
-      previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, :mini_magick
-      require "mini_magick"
+      previous_analyzers, ActiveStorage.analyzers = ActiveStorage.analyzers, [ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick]
 
       yield
     rescue LoadError
       ENV["BUILDKITE"] ? raise : skip("Variant processor image_magick is not installed")
     ensure
-      ActiveStorage.variant_processor = previous_processor
+      ActiveStorage.analyzers = previous_analyzers
     end
 end

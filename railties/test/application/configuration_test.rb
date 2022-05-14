@@ -3922,7 +3922,7 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal :mini_magick, ActiveStorage.variant_processor
+      assert_equal nil, ActiveStorage.variant_processor
     end
 
     test "ActiveStorage.variant_processor uses vips by default" do

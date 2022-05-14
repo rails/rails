@@ -12,8 +12,6 @@ require "active_storage/previewer/mupdf_previewer"
 require "active_storage/previewer/video_previewer"
 
 require "active_storage/analyzer/image_analyzer"
-require "active_storage/analyzer/image_analyzer/image_magick"
-require "active_storage/analyzer/image_analyzer/vips"
 require "active_storage/analyzer/video_analyzer"
 require "active_storage/analyzer/audio_analyzer"
 
@@ -27,7 +25,7 @@ module ActiveStorage
 
     config.active_storage = ActiveSupport::OrderedOptions.new
     config.active_storage.previewers = [ ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
-    config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer ]
+    config.active_storage.analyzers = [ ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new
     config.active_storage.precompile_assets = true
@@ -86,9 +84,43 @@ module ActiveStorage
     initializer "active_storage.configs" do
       config.after_initialize do |app|
         ActiveStorage.logger            = app.config.active_storage.logger || Rails.logger
-        ActiveStorage.variant_processor = app.config.active_storage.variant_processor || :mini_magick
+        ActiveStorage.variant_processor = app.config.active_storage.variant_processor
         ActiveStorage.previewers        = app.config.active_storage.previewers || []
-        ActiveStorage.analyzers         = app.config.active_storage.analyzers || []
+
+        begin
+          analyzer, transformer =
+            case ActiveStorage.variant_processor
+            when :vips
+              [
+                ActiveStorage::Analyzer::ImageAnalyzer::Vips,
+                ActiveStorage::Transformers::Vips
+              ]
+            when :mini_magick
+              [
+                ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick,
+                ActiveStorage::Transformers::ImageMagick
+              ]
+            end
+
+          ActiveStorage.analyzers = [analyzer].concat(app.config.active_storage.analyzers || [])
+          ActiveStorage.variant_transformer = transformer
+        rescue LoadError => error
+          case error.message
+          when /libvips/
+            ActiveStorage.logger.warn <<~WARNING.squish
+              Using vips to process variants requires the libvips library.
+              Please install libvips using the instructions on the libvips website.
+            WARNING
+          when /image_processing/
+            ActiveStorage.logger.warn <<~WARNING.squish
+              Generating image variants require the image_processing gem.
+              Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.
+            WARNING
+          else
+            raise
+          end
+        end
+
         ActiveStorage.paths             = app.config.active_storage.paths || {}
         ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || "/rails/active_storage"
         ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false
