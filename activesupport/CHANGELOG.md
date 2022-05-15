@@ -1,3 +1,7 @@
+*   Add `skip_nil:` support to `RedisCacheStore`
+
+    *Joey Paris*
+
 *   `ActiveSupport::Cache::MemoryStore#write(name, val, unless_exist:true)` now
     correctly writes expired keys.
 
