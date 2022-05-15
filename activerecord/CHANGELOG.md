@@ -1,3 +1,9 @@
+*   Fix PG.connect keyword arguments deprecation warning on ruby 2.7
+
+    Fixes #44307.
+
+    *Nikita Vasilevsky*
+
 ## Rails 6.1.6 (May 09, 2022) ##
 
 *   No changes.
