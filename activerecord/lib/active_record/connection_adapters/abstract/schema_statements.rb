@@ -1367,7 +1367,7 @@ module ActiveRecord
 
       def quoted_columns_for_index(column_names, options) # :nodoc:
         quoted_columns = column_names.each_with_object({}) do |name, result|
-          result[name.to_sym] = quote_column_name(name).dup
+          result[name.to_sym] = quote_column_for_index(name).dup
         end
         add_options_for_index_columns(quoted_columns, **options).values.join(", ")
       end
@@ -1428,6 +1428,10 @@ module ActiveRecord
           end
 
           quoted_columns
+        end
+
+        def quote_column_for_index(name)
+          quote_column_name(name)
         end
 
         def index_name_for_remove(table_name, column_name, options)

@@ -35,7 +35,7 @@ module ActiveRecord
               # Add info on sort order for columns (only desc order is explicitly specified,
               # asc is the default)
               if index_sql # index_sql can be null in case of primary key indexes
-                index_sql.scan(/"(\w+)" DESC/).flatten.each { |order_column|
+                index_sql.scan(/(['"])(\w+)\1 DESC/).each { |_, order_column|
                   orders[order_column] = :desc
                 }
               end
@@ -124,6 +124,10 @@ module ActiveRecord
 
           def validate_index_length!(table_name, new_name, internal = false)
             super unless internal
+          end
+
+          def quote_column_for_index(name)
+            "'#{name.to_s.gsub("'", "''")}'"
           end
 
           def new_column_from_field(table_name, field)

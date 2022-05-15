@@ -381,6 +381,15 @@ module ActiveRecord
         end
       end
 
+      def test_index_non_existent_column
+        with_example_table do
+          error = assert_raises(ActiveRecord::StatementInvalid) do
+            @conn.add_index "ex", "non_existent"
+          end
+          assert_match(/no such column: non_existent/, error.message)
+        end
+      end
+
       if ActiveRecord::Base.connection.supports_expression_index?
         def test_expression_index
           with_example_table do
