@@ -72,6 +72,29 @@ class Rails::Conductor::ActionMailbox::InboundEmailsControllerTest < ActionDispa
     end
   end
 
+  test "create inbound email with empty attachment" do
+    with_rails_env("development") do
+      assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
+        post rails_conductor_inbound_emails_path, params: {
+          mail: {
+            from: "",
+            to: "",
+            cc: "",
+            bcc: "",
+            x_original_to: "",
+            subject: "",
+            in_reply_to: "",
+            body: "",
+            attachments: [ "" ],
+          }
+        }
+      end
+
+      mail = ActionMailbox::InboundEmail.last.mail
+      assert_equal 0, mail.attachments.count
+    end
+  end
+
   private
     def with_rails_env(env)
       old_rails_env = Rails.env
