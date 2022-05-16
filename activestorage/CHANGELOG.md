@@ -1,3 +1,15 @@
+*   Fixes proxy downloads of files over 5mb 
+
+    Previously, trying to view and/or download files larger than 5mb stored in
+    services like S3 via proxy mode could return corrupted files at around
+    5.2mb or cause random halts in the download. Now,
+    `ActiveStorage::Blobs::ProxyController` correctly handles streaming these
+    larger files from the service to the client without any issues.
+
+    Fixes #44679
+
+    *Felipe Raul*
+
 *   Saving attachment(s) to a record returns the blob/blobs object
 
     Previously, saving attachments did not return the blob/blobs that
