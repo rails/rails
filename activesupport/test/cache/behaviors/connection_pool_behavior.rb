@@ -7,7 +7,7 @@ module ConnectionPoolBehavior
     threads = []
 
     emulating_latency do
-      cache = ActiveSupport::Cache.lookup_store(*store, { pool_size: 2, pool_timeout: 1 }.merge(store_options))
+      cache = ActiveSupport::Cache.lookup_store(*store, { pool: { size: 2, timeout: 1 } }.merge(store_options))
       cache.read("foo")
 
       assert_raises Timeout::Error do
