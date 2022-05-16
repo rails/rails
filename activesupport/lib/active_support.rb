@@ -26,10 +26,10 @@
 require "securerandom"
 require "active_support/dependencies/autoload"
 require "active_support/version"
+require "active_support/inspect"
 require "active_support/logger"
 require "active_support/lazy_load_hooks"
 require "active_support/core_ext/date_and_time/compatibility"
-require "active_support/inspect"
 
 module ActiveSupport
   extend ActiveSupport::Autoload

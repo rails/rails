@@ -102,6 +102,10 @@ module ActiveSupport
 
   class Inspect < ::Module # :nodoc:
     UNDEF = Object.new
+    BASIC_EVAL = ::BasicObject.instance_method(:instance_eval)
+    BASIC_EXEC = ::BasicObject.instance_method(:instance_exec)
+    BASIC_ID = ::BasicObject.instance_method(:__id__)
+    KERNEL_CLASS = ::Kernel.instance_method(:class)
     KERNEL_TO_S = ::Kernel.instance_method(:to_s)
     MODULE_NAME = ::Module.instance_method(:name)
     MODULE_TO_S = ::Module.instance_method(:to_s)
@@ -229,9 +233,9 @@ module ActiveSupport
         attribute_values = {}
         @attributes.each do |label, source|
           value = if source.is_a?(::Proc)
-                    obj.instance_exec(&source)
+                    BASIC_EXEC.bind_call(obj, &source)
                   else
-                    obj.instance_eval("defined?(#{source}) ? (#{source}) : ::ActiveSupport::Inspect::UNDEF")
+                    BASIC_EVAL.bind_call(obj, "defined?(#{source}) ? (#{source}) : ::ActiveSupport::Inspect::UNDEF")
                   end
           if label.is_a?(::Integer)
             attribute_values.update(value) if value
@@ -302,7 +306,7 @@ module ActiveSupport
       end
 
       def pretty_label(q, opener, obj, cycle)
-        if @label && label_content = obj.instance_exec(&@label)
+        if @label && label_content = BASIC_EXEC.bind_call(obj, &@label)
           q.text opener if opener
 
           q.group(1) do
@@ -344,10 +348,11 @@ module ActiveSupport
 
           [own_name, "(", ")"]
         else
+          klass = KERNEL_CLASS.bind_call(obj)
           leader =
             case @id
             when nil, false
-              "#<#{MODULE_NAME.bind_call(obj.class) || MODULE_TO_S.bind_call(obj.class)}"
+              "#<#{MODULE_NAME.bind_call(klass) || MODULE_TO_S.bind_call(klass)}"
             when true
               s =
                 if ::Module === obj
@@ -357,8 +362,10 @@ module ActiveSupport
                 end
               s.chomp!(">")
               s
+            when :__id__, :object_id
+              "#<#{MODULE_NAME.bind_call(klass)}:0x#{BASIC_ID.bind_call(obj).to_s(16)}"
             else
-              "#<#{MODULE_NAME.bind_call(obj.class)}:#{obj.instance_exec(&@id)}"
+              "#<#{MODULE_NAME.bind_call(klass)}:#{BASIC_EXEC.bind_call(obj, &@id)}"
             end
 
           [leader, nil, ">"]

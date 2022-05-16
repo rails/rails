@@ -48,6 +48,8 @@ module Rails
     class Root
       attr_accessor :path
 
+      include ActiveSupport::Inspect("paths" => :@root) { path.to_s.inspect }
+
       def initialize(path)
         @path = path
         @root = {}
@@ -110,6 +112,18 @@ module Rails
 
     class Path
       include Enumerable
+
+      include ActiveSupport::Inspect(-> do
+        result = {}
+        result["paths"] = @paths unless @paths == [@current]
+        result["glob"] = @glob if @glob
+        result["exclude"] = @exclude if @exclude
+        result["autoload"] = @autoload if @autoload
+        result["autoload_once"] = @autoload_once if @autoload_once
+        result["eager_load"] = @eager_load if @eager_load
+        result["load_path"] = @load_path if @load_path
+        result
+      end) { @current.inspect }
 
       attr_accessor :glob
 

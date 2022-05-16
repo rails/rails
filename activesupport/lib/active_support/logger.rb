@@ -7,6 +7,7 @@ require "logger"
 module ActiveSupport
   class Logger < ::Logger
     include LoggerSilence
+    include ActiveSupport::Inspect(:level) { log_destination_for_inspect }
 
     # Returns true if the logger destination matches one of the sources
     #
@@ -88,5 +89,18 @@ module ActiveSupport
         "#{String === msg ? msg : msg.inspect}\n"
       end
     end
+
+    private
+      def log_destination_for_inspect
+        destination = @logdev
+        destination = destination.dev if destination.respond_to?(:dev)
+        if destination.instance_of?(::IO) && [0, 1, 2].include?(destination.try(:fileno))
+          ["STDIN", "STDOUT", "STDERR"][destination.fileno]
+        else
+          destination = destination.path if destination.is_a?(::File) && destination.path
+          destination = destination.inspect if destination.is_a?(::String)
+          destination
+        end
+      end
   end
 end
