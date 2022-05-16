@@ -67,11 +67,8 @@ module ActionController
   # Raised when initializing Parameters with keys that aren't strings or symbols.
   #
   #   ActionController::Parameters.new(123 => 456)
-  #   # => ActionController::InvalidParameterKey: all keys must be Strings or Symbols
+  #   # => ActionController::InvalidParameterKey: all keys must be Strings or Symbols, got: Integer
   class InvalidParameterKey < ArgumentError
-    def initialize # :nodoc:
-      super("all keys must be Strings or Symbols")
-    end
   end
 
   # == Action Controller \Parameters
@@ -254,7 +251,11 @@ module ActionController
     #   params.permitted?  # => true
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
     def initialize(parameters = {}, logging_context = {})
-      raise InvalidParameterKey unless parameters.keys.all? { |key| key.is_a?(String) || key.is_a?(Symbol) }
+      parameters.each_key do |key|
+        unless key.is_a?(String) || key.is_a?(Symbol)
+          raise InvalidParameterKey, "all keys must be Strings or Symbols, got: #{key.class}"
+        end
+      end
 
       @parameters = parameters.with_indifferent_access
       @logging_context = logging_context

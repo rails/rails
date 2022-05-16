@@ -156,4 +156,10 @@ class MemoryStorePruningTest < ActiveSupport::TestCase
     @cache.write(1, nil)
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
   end
+
+  def test_write_expired_value_with_unless_exist
+    assert_equal true, @cache.write(1, "aaaa", expires_in: 1.second)
+    travel 2.seconds
+    assert_equal true, @cache.write(1, "bbbb", expires_in: 1.second, unless_exist: true)
+  end
 end

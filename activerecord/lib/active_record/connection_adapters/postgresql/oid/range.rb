@@ -28,7 +28,7 @@ module ActiveRecord
             if !infinity?(from) && extracted[:exclude_start]
               raise ArgumentError, "The Ruby Range object does not support excluding the beginning of a Range. (unsupported value: '#{value}')"
             end
-            ::Range.new(from, to, extracted[:exclude_end])
+            ::Range.new(*sanitize_bounds(from, to), extracted[:exclude_end])
           end
 
           def serialize(value)
@@ -74,6 +74,15 @@ module ActiveRecord
                 exclude_start: value.start_with?("("),
                 exclude_end:   value.end_with?(")")
               }
+            end
+
+            INFINITE_FLOAT_RANGE = (-::Float::INFINITY)..(::Float::INFINITY) # :nodoc:
+
+            def sanitize_bounds(from, to)
+              [
+                (from == -::Float::INFINITY && !INFINITE_FLOAT_RANGE.cover?(to)) ? nil : from,
+                (to == ::Float::INFINITY && !INFINITE_FLOAT_RANGE.cover?(from)) ? nil : to
+              ]
             end
 
             # When formatting the bound values of range types, PostgreSQL quotes

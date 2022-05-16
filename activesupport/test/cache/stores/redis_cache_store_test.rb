@@ -119,6 +119,23 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_same @cache.redis, redis_instance
     end
 
+    test "fetch caches nil" do
+      cache = build
+      cache.write("foo", nil)
+      assert_not_called(cache, :write) do
+        assert_nil cache.fetch("foo") { "baz" }
+      end
+    end
+
+    test "skip_nil is passed to ActiveSupport::Cache" do
+      cache = build(skip_nil: true)
+      cache.clear
+      assert_not_called(cache, :write) do
+        assert_nil cache.fetch("foo") { nil }
+        assert_equal false, cache.exist?("foo")
+      end
+    end
+
     private
       def build(**kwargs)
         ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs).tap(&:redis)

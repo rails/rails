@@ -1,3 +1,22 @@
+*   Add ability to ignore tables by regexp for SQL schema dumps.
+
+    ```ruby
+    ActiveRecord::SchemaDumper.ignore_tables = [/^_/]
+    ```
+
+    *fatkodima*
+
+*   Avoid queries when performing calculations on contradictory relations.
+
+    Previously calculations would make a query even when passed a
+    contradiction, such as `User.where(id: []).count`. We no longer perform a
+    query in that scenario.
+
+    This applies to the following calculations: `count`, `sum`, `average`,
+    `minimum` and `maximum`
+
+    *Luan Vieira, John Hawthorn and Daniel Colson*
+
 *   Allow using aliased attributes with `insert_all`/`upsert_all`.
 
     ```ruby
@@ -12,11 +31,11 @@
 
 *   Support encrypted attributes on columns with default db values.
 
-This adds support for encrypted attributes defined on columns with default values. 
-It will encrypt those values at creation time. Before, it would raise an
-error unless `config.active_record.encryption.support_unencrypted_data` was true.
+    This adds support for encrypted attributes defined on columns with default values. 
+    It will encrypt those values at creation time. Before, it would raise an
+    error unless `config.active_record.encryption.support_unencrypted_data` was true.
 
-*Jorge Manrubia* and *Dima Fatko*
+    *Jorge Manrubia* and *Dima Fatko*
 
 *   Allow overriding `reading_request?` in `DatabaseSelector::Resolver`
 

@@ -274,5 +274,5 @@ trigger it on submit. For example:
 This generates:
 
 ```html
-<a href="..." data-confirm="Are you sure?" data-turbo-method="delete">Delete post</a>
+<a href="..." data-turbo-confirm="Are you sure?" data-turbo-method="delete">Delete post</a>
 ```

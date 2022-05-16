@@ -198,7 +198,7 @@ namespace :db do
   namespace :mysql do
     connection_arguments = lambda do |connection_name|
       config = ARTest.config["connections"]["mysql2"][connection_name]
-      ["--user=#{config["username"]}", "--password=#{config["password"]}", ("--host=#{config["host"]}" if config["host"]), ("--socket=#{config["socket"]}" if config["socket"])].join(" ")
+      ["--user=#{config["username"]}", ("--password=#{config["password"]}" if config["password"]), ("--host=#{config["host"]}" if config["host"]), ("--socket=#{config["socket"]}" if config["socket"])].join(" ")
     end
 
     desc "Create the MySQL Rails User"

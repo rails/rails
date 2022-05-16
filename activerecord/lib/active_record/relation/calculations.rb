@@ -342,6 +342,7 @@ module ActiveRecord
           # Shortcut when limit is zero.
           return 0 if limit_value == 0
 
+          relation = self
           query_builder = build_count_subquery(spawn, column_name, distinct)
         else
           # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
@@ -356,8 +357,12 @@ module ActiveRecord
           query_builder = relation.arel
         end
 
-        query_result = skip_query_cache_if_necessary do
-          @klass.connection.select_all(query_builder, "#{@klass.name} #{operation.capitalize}", async: @async)
+        query_result = if relation.where_clause.contradiction?
+          ActiveRecord::Result.empty
+        else
+          skip_query_cache_if_necessary do
+            @klass.connection.select_all(query_builder, "#{@klass.name} #{operation.capitalize}", async: @async)
+          end
         end
 
         query_result.then do |result|
