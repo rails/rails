@@ -388,7 +388,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_query_cache_does_not_allow_sql_key_mutation
     subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-      payload[:sql].downcase!
+      payload[:sql].downcase! if payload[:name] == "Task Load"
     end
 
     ActiveRecord::Base.cache do
