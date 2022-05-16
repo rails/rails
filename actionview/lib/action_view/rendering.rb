@@ -33,8 +33,8 @@ module ActionView
       super
     end
 
-    # Overwrite process to set up I18n proxy.
-    def process(*) # :nodoc:
+    # Override process to set up I18n proxy.
+    def process(...) # :nodoc:
       old_config, I18n.config = I18n.config, I18nProxy.new(I18n.config, lookup_context)
       super
     ensure
@@ -48,7 +48,18 @@ module ActionView
       def _helpers
       end
 
+      def inherit_view_context_class?
+        superclass.respond_to?(:view_context_class) &&
+          supports_path? == superclass.supports_path? &&
+          _routes.equal?(superclass._routes) &&
+          _helpers.equal?(superclass._helpers)
+      end
+
       def build_view_context_class(klass, supports_path, routes, helpers)
+        if inherit_view_context_class?
+          return superclass.view_context_class
+        end
+
         Class.new(klass) do
           if routes
             include routes.url_helpers(supports_path)
@@ -59,6 +70,12 @@ module ActionView
             include helpers
           end
         end
+      end
+
+      def eager_load!
+        super
+        view_context_class
+        nil
       end
 
       def view_context_class
@@ -129,8 +146,8 @@ module ActionView
         lookup_context.formats = [format.to_sym] if format.to_sym
       end
 
-      # Normalize args by converting render "foo" to render :action => "foo" and
-      # render "foo/bar" to render :template => "foo/bar".
+      # Normalize args by converting render "foo" to render action: "foo" and
+      # render "foo/bar" to render template: "foo/bar".
       def _normalize_args(action = nil, options = {})
         options = super(action, options)
         case action

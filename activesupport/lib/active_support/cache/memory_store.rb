@@ -11,7 +11,7 @@ module ActiveSupport
     # to share cache data with each other and this may not be the most
     # appropriate cache in that scenario.
     #
-    # This cache has a bounded size specified by the :size options to the
+    # This cache has a bounded size specified by the +:size+ options to the
     # initializer (default is 32Mb). When the cache exceeds the allotted size,
     # a cleanup will occur which tries to prune the cache down to three quarters
     # of the maximum size by removing the least recently used entries.
@@ -166,7 +166,7 @@ module ActiveSupport
         def write_entry(key, entry, **options)
           payload = serialize_entry(entry, **options)
           synchronize do
-            return false if options[:unless_exist] && @data.key?(key)
+            return false if options[:unless_exist] && exist?(key)
 
             old_payload = @data[key]
             if old_payload

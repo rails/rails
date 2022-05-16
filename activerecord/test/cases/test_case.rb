@@ -38,8 +38,8 @@ module ActiveRecord
     end
 
     def assert_sql(*patterns_to_match, &block)
-      capture_sql(&block)
-    ensure
+      _assert_nothing_raised_or_warn("assert_sql") { capture_sql(&block) }
+
       failed_patterns = []
       patterns_to_match.each do |pattern|
         failed_patterns << pattern unless SQLCounter.log_all.any? { |sql| pattern === sql }
@@ -47,11 +47,11 @@ module ActiveRecord
       assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map(&:inspect).join(', ')} not found.#{SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{SQLCounter.log.join("\n")}"}"
     end
 
-    def assert_queries(num = 1, options = {})
+    def assert_queries(num = 1, options = {}, &block)
       ignore_none = options.fetch(:ignore_none) { num == :any }
       ActiveRecord::Base.connection.materialize_transactions
       SQLCounter.clear_log
-      x = yield
+      x = _assert_nothing_raised_or_warn("assert_queries", &block)
       the_log = ignore_none ? SQLCounter.log_all : SQLCounter.log
       if num == :any
         assert_operator the_log.size, :>=, 1, "1 or more queries expected, but none were executed."

@@ -56,7 +56,7 @@ module Rails
             middleware.use ::ActionDispatch::ActionableExceptions
           end
 
-          unless config.cache_classes
+          if config.reloading_enabled?
             middleware.use ::ActionDispatch::Reloader, app.reloader
           end
 

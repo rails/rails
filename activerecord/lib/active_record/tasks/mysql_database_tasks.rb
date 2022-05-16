@@ -49,6 +49,7 @@ module ActiveRecord
 
         ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
         if ignore_tables.any?
+          ignore_tables = connection.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
           args += ignore_tables.map { |table| "--ignore-table=#{db_config.database}.#{table}" }
         end
 

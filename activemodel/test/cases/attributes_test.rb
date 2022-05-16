@@ -24,6 +24,33 @@ module ActiveModel
       attribute :string_field, default: "default string"
     end
 
+    class ModelWithGeneratedAttributeMethods
+      include ActiveModel::Attributes
+
+      attribute :foo
+    end
+
+    class ModelWithProxiedAttributeMethods
+      include ActiveModel::AttributeMethods
+
+      attribute_method_suffix "="
+
+      define_attribute_method(:foo)
+
+      def attribute=(_, _)
+      end
+    end
+
+    test "models that proxy attributes do not conflict with models with generated methods" do
+      ModelWithGeneratedAttributeMethods.new
+
+      model = ModelWithProxiedAttributeMethods.new
+
+      assert_nothing_raised do
+        model.foo = "foo"
+      end
+    end
+
     test "properties assignment" do
       data = ModelForAttributesTest.new(
         integer_field: "2.3",
@@ -146,6 +173,15 @@ module ActiveModel
     test "unknown type error is raised" do
       assert_raise(ArgumentError) do
         ModelForAttributesTest.attribute :foo, :unknown
+      end
+    end
+
+    test "pattern matching against keys" do
+      case ModelForAttributesTest.new(integer_field: 1)
+      in { integer_field: 1 }
+        assert(true)
+      else
+        assert(false, "Failed to pattern match")
       end
     end
   end

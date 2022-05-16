@@ -22,7 +22,7 @@ module ActiveModel
   module Translation
     include ActiveModel::Naming
 
-    # Returns the +i18n_scope+ for the class. Overwrite if you want custom lookup.
+    # Returns the +i18n_scope+ for the class. Override if you want custom lookup.
     def i18n_scope
       :activemodel
     end
@@ -35,6 +35,8 @@ module ActiveModel
       ancestors.select { |x| x.respond_to?(:model_name) }
     end
 
+    MISSING_TRANSLATION = Object.new # :nodoc:
+
     # Transforms attribute names into a more human format, such as "First name"
     # instead of "first_name".
     #
@@ -42,29 +44,29 @@ module ActiveModel
     #
     # Specify +options+ with additional translating options.
     def human_attribute_name(attribute, options = {})
-      options   = { count: 1 }.merge!(options)
-      parts     = attribute.to_s.split(".")
-      attribute = parts.pop
-      namespace = parts.join("/") unless parts.empty?
-      attributes_scope = "#{i18n_scope}.attributes"
+      attribute = attribute.to_s
 
-      if namespace
+      if attribute.include?(".")
+        namespace, _, attribute = attribute.rpartition(".")
+        namespace.tr!(".", "/")
+
         defaults = lookup_ancestors.map do |klass|
-          :"#{attributes_scope}.#{klass.model_name.i18n_key}/#{namespace}.#{attribute}"
+          :"#{i18n_scope}.attributes.#{klass.model_name.i18n_key}/#{namespace}.#{attribute}"
         end
-        defaults << :"#{attributes_scope}.#{namespace}.#{attribute}"
+        defaults << :"#{i18n_scope}.attributes.#{namespace}.#{attribute}"
       else
         defaults = lookup_ancestors.map do |klass|
-          :"#{attributes_scope}.#{klass.model_name.i18n_key}.#{attribute}"
+          :"#{i18n_scope}.attributes.#{klass.model_name.i18n_key}.#{attribute}"
         end
       end
 
       defaults << :"attributes.#{attribute}"
-      defaults << options.delete(:default) if options[:default]
-      defaults << attribute.humanize
+      defaults << options[:default] if options[:default]
+      defaults << MISSING_TRANSLATION
 
-      options[:default] = defaults
-      I18n.translate(defaults.shift, **options)
+      translation = I18n.translate(defaults.shift, count: 1, **options, default: defaults)
+      translation = attribute.humanize if translation == MISSING_TRANSLATION
+      translation
     end
   end
 end

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2005-2021 David Heinemeier Hansson
+# Copyright (c) 2005-2022 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -66,6 +66,7 @@ module ActiveSupport
     autoload :Gzip
     autoload :Inflector
     autoload :JSON
+    autoload :JsonWithMarshalFallback
     autoload :KeyGenerator
     autoload :MessageEncryptor
     autoload :MessageVerifier
@@ -109,6 +110,12 @@ module ActiveSupport
   end
 
   def self.to_time_preserves_timezone=(value)
+    unless value
+      ActiveSupport::Deprecation.warn(
+        "Support for the pre-Ruby 2.4 behavior of to_time has been deprecated and will be removed in Rails 7.2."
+      )
+    end
+
     DateAndTime::Compatibility.preserve_timezone = value
   end
 

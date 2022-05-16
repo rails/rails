@@ -17,7 +17,7 @@ module Rails
                     :log_tags, :railties_order, :relative_url_root, :secret_key_base,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
-                    :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
+                    :beginning_of_week, :filter_redirect, :x,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
@@ -33,8 +33,12 @@ module Rails
         @filter_parameters                       = []
         @filter_redirect                         = []
         @helpers_paths                           = []
-        @hosts                                   = Array(([".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")] if Rails.env.development?))
-        @hosts.concat(ENV["RAILS_DEVELOPMENT_HOSTS"].to_s.split(",").map(&:strip)) if Rails.env.development?
+        if Rails.env.development?
+          @hosts = ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT +
+            ENV["RAILS_DEVELOPMENT_HOSTS"].to_s.split(",").map(&:strip)
+        else
+          @hosts = []
+        end
         @host_authorization                      = {}
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
@@ -77,7 +81,10 @@ module Rails
         @server_timing                           = false
       end
 
-      # Loads default configurations. See {the result of the method for each version}[https://guides.rubyonrails.org/configuring.html#results-of-config-load-defaults].
+      # Loads default configuration values for a target version. This includes
+      # defaults for versions prior to the target version. See the
+      # {configuration guide}[https://guides.rubyonrails.org/configuring.html#versioned-default-values]
+      # for the default values associated with a particular version.
       def load_defaults(target_version)
         case target_version.to_s
         when "5.0"
@@ -156,7 +163,9 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
-            active_record.legacy_connection_handling = false
+            if respond_to?(:legacy_connection_handling)
+              active_record.legacy_connection_handling = false
+            end
           end
 
           if respond_to?(:active_job)
@@ -166,10 +175,6 @@ module Rails
           if respond_to?(:action_dispatch)
             action_dispatch.cookies_same_site_protection = :lax
             action_dispatch.ssl_default_redirect_status = 308
-          end
-
-          if respond_to?(:action_controller)
-            action_controller.urlsafe_csrf_tokens = true
           end
 
           if respond_to?(:action_view)
@@ -236,6 +241,7 @@ module Rails
               " -frames:v 1 -f image2"
 
             active_storage.variant_processor = :vips
+            active_storage.multiple_file_field_include_hidden = true
           end
 
           if respond_to?(:active_record)
@@ -245,17 +251,66 @@ module Rails
           end
 
           if respond_to?(:action_controller)
+            action_controller.raise_on_missing_callback_actions = false
             action_controller.raise_on_open_redirects = true
-
             action_controller.wrap_parameters_by_default = true
           end
         when "7.1"
           load_defaults "7.0"
+
+          self.add_autoload_paths_to_load_path = false
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.default_headers = {
+              "X-Frame-Options" => "SAMEORIGIN",
+              "X-XSS-Protection" => "0",
+              "X-Content-Type-Options" => "nosniff",
+              "X-Permitted-Cross-Domain-Policies" => "none",
+              "Referrer-Policy" => "strict-origin-when-cross-origin"
+            }
+          end
+
+          if respond_to?(:active_support)
+            active_support.default_message_encryptor_serializer = :json
+            active_support.default_message_verifier_serializer = :json
+          end
+
+          if respond_to?(:action_controller)
+            action_controller.allow_deprecated_parameters_hash_equality = false
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
 
         @loaded_config_version = target_version
+      end
+
+      def reloading_enabled?
+        enable_reloading
+      end
+
+      def enable_reloading
+        !cache_classes
+      end
+
+      def enable_reloading=(value)
+        self.cache_classes = !value
+      end
+
+      ENABLE_DEPENDENCY_LOADING_WARNING = <<~MSG
+        This flag addressed a limitation of the `classic` autoloader and has no effect nowadays.
+        To fix this deprecation, please just delete the reference.
+      MSG
+      private_constant :ENABLE_DEPENDENCY_LOADING_WARNING
+
+      def enable_dependency_loading
+        ActiveSupport::Deprecation.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
+        @enable_dependency_loading
+      end
+
+      def enable_dependency_loading=(value)
+        ActiveSupport::Deprecation.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
+        @enable_dependency_loading = value
       end
 
       def encoding=(value)
@@ -354,6 +409,21 @@ module Rails
         generators.colorize_logging = val
       end
 
+      # Specifies what class to use to store the session. Possible values
+      # are +:cache_store+, +:cookie_store+, +:mem_cache_store+, a custom
+      # store, or +:disabled+. +:disabled+ tells Rails not to deal with
+      # sessions.
+      #
+      # Additional options will be set as +session_options+:
+      #
+      #   config.session_store :cookie_store, key: "_your_app_session"
+      #   config.session_options # => {key: "_your_app_session"}
+      #
+      # If a custom store is specified as a symbol, it will be resolved to
+      # the +ActionDispatch::Session+ namespace:
+      #
+      #   # use ActionDispatch::Session::MyCustomStore as the session store
+      #   config.session_store :my_custom_store
       def session_store(new_session_store = nil, **options)
         if new_session_store
           if new_session_store == :active_record_store
@@ -389,6 +459,7 @@ module Rails
         Rails::SourceAnnotationExtractor::Annotation
       end
 
+      # Configures the ActionDispatch::ContentSecurityPolicy.
       def content_security_policy(&block)
         if block_given?
           @content_security_policy = ActionDispatch::ContentSecurityPolicy.new(&block)
@@ -397,6 +468,7 @@ module Rails
         end
       end
 
+      # Configures the ActionDispatch::PermissionsPolicy.
       def permissions_policy(&block)
         if block_given?
           @permissions_policy = ActionDispatch::PermissionsPolicy.new(&block)

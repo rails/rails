@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "base64"
+
 module ActiveRecord
   module Encryption
     # A message serializer that serializes +Messages+ with JSON.

@@ -74,7 +74,7 @@ module ActionView
     initializer "action_view.caching" do |app|
       ActiveSupport.on_load(:action_view) do
         if app.config.action_view.cache_template_loading.nil?
-          ActionView::Resolver.caching = app.config.cache_classes
+          ActionView::Resolver.caching = !app.config.reloading_enabled?
         end
       end
     end
@@ -91,7 +91,7 @@ module ActionView
 
     config.after_initialize do |app|
       enable_caching = if app.config.action_view.cache_template_loading.nil?
-        app.config.cache_classes
+        !app.config.reloading_enabled?
       else
         app.config.action_view.cache_template_loading
       end

@@ -20,7 +20,11 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   class UnavailableDalliServer < Dalli::Protocol::Binary
-    def alive?
+    def alive? # before https://github.com/petergoldstein/dalli/pull/863
+      false
+    end
+
+    def ensure_connected! # after https://github.com/petergoldstein/dalli/pull/863
       false
     end
   end
@@ -81,7 +85,9 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def test_clear_also_clears_local_cache
     key = SecureRandom.uuid
     cache = lookup_store(raw: true)
-    client.stub(:flush_all, -> { client.delete(key) }) do
+    stub_called = false
+
+    client(cache).stub(:flush_all, -> { stub_called = true; client.delete("#{@namespace}:#{key}") }) do
       cache.with_local_cache do
         cache.write(key, SecureRandom.alphanumeric)
         cache.clear
@@ -89,6 +95,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
       end
       assert_nil cache.read(key)
     end
+    assert stub_called
   end
 
   def test_raw_values
@@ -117,6 +124,16 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     cache.with_local_cache do
       cache.write("foo", 2)
       assert_equal "2", cache.read("foo")
+    end
+  end
+
+  def test_write_expires_at
+    cache = lookup_store(raw: true, namespace: nil)
+
+    Time.stub(:now, Time.now) do
+      assert_called_with client(cache), :set, [ "key_with_expires_at", "bar", 30 * 60, Hash ] do
+        cache.write("key_with_expires_at", "bar", expires_at: 30.minutes.from_now)
+      end
     end
   end
 
@@ -280,6 +297,13 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_can_read_multi_entries_raw_values_from_dalli_store
+    key = "test-with-nil-value-the-way-the-dalli-store-did"
+
+    @cache.instance_variable_get(:@data).with { |c| c.set(@cache.send(:normalize_key, key, nil), nil, 0, compress: false) }
+    assert_equal({}, @cache.send(:read_multi_entries, [key]))
+  end
+
   private
     def random_string(length)
       (0...length).map { (65 + rand(26)).chr }.join
@@ -310,7 +334,11 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
 
     def servers(cache = @cache)
-      client(cache).instance_variable_get(:@servers)
+      if client(cache).instance_variable_defined?(:@normalized_servers)
+        client(cache).instance_variable_get(:@normalized_servers)
+      else
+        client(cache).instance_variable_get(:@servers)
+      end
     end
 
     def client(cache = @cache)

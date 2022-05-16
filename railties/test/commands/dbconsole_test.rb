@@ -271,7 +271,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
         Rails::Command.invoke(:dbconsole)
       end
 
-      assert_includes e.message, "'primary' database is not configured for 'test'."
+      assert_includes e.message, "No databases are configured for 'test'."
     end
   end
 

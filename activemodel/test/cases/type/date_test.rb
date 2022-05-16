@@ -11,6 +11,7 @@ module ActiveModel
         assert_nil type.cast("")
         assert_nil type.cast(" ")
         assert_nil type.cast("ABC")
+        assert_nil type.cast(" " * 129)
 
         now = ::Time.now.utc
         values_hash = { 1 => now.year, 2 => now.mon, 3 => now.mday }

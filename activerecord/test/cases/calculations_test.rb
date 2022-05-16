@@ -12,6 +12,7 @@ require "models/author"
 require "models/topic"
 require "models/reply"
 require "models/numeric_data"
+require "models/need_quoting"
 require "models/minivan"
 require "models/speedometer"
 require "models/ship_part"
@@ -21,26 +22,31 @@ require "models/post"
 require "models/comment"
 require "models/rating"
 require "support/stubs/strong_parameters"
+require "support/async_helper"
 
 class CalculationsTest < ActiveRecord::TestCase
+  include AsyncHelper
+
   fixtures :companies, :accounts, :authors, :author_addresses, :topics, :speedometers, :minivans, :books, :posts, :comments
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
+    assert_async_equal 318, Account.async_sum(:credit_limit)
   end
 
   def test_should_sum_arel_attribute
     assert_equal 318, Account.sum(Account.arel_table[:credit_limit])
+    assert_async_equal 318, Account.async_sum(Account.arel_table[:credit_limit])
   end
 
   def test_should_average_field
-    value = Account.average(:credit_limit)
-    assert_equal 53.0, value
+    assert_equal 53.0, Account.average(:credit_limit)
+    assert_async_equal 53.0, Account.async_average(:credit_limit)
   end
 
   def test_should_average_arel_attribute
-    value = Account.average(Account.arel_table[:credit_limit])
-    assert_equal 53.0, value
+    assert_equal 53.0, Account.average(Account.arel_table[:credit_limit])
+    assert_async_equal 53.0, Account.async_average(Account.arel_table[:credit_limit])
   end
 
   def test_should_resolve_aliased_attributes
@@ -91,14 +97,18 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_get_maximum_of_field
     assert_equal 60, Account.maximum(:credit_limit)
+    assert_async_equal 60, Account.async_maximum(:credit_limit)
   end
 
   def test_should_get_maximum_of_arel_attribute
     assert_equal 60, Account.maximum(Account.arel_table[:credit_limit])
+    assert_async_equal 60, Account.async_maximum(Account.arel_table[:credit_limit])
   end
 
   def test_should_get_maximum_of_field_with_include
-    assert_equal 55, Account.where("companies.name != 'Summit'").references(:companies).includes(:firm).maximum(:credit_limit)
+    relation = Account.where("companies.name != 'Summit'").references(:companies).includes(:firm)
+    assert_equal 55, relation.maximum(:credit_limit)
+    assert_async_equal 55, relation.async_maximum(:credit_limit)
   end
 
   def test_should_get_maximum_of_arel_attribute_with_include
@@ -107,10 +117,12 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_get_minimum_of_field
     assert_equal 50, Account.minimum(:credit_limit)
+    assert_async_equal 50, Account.async_minimum(:credit_limit)
   end
 
   def test_should_get_minimum_of_arel_attribute
     assert_equal 50, Account.minimum(Account.arel_table[:credit_limit])
+    assert_async_equal 50, Account.async_minimum(Account.arel_table[:credit_limit])
   end
 
   def test_should_group_by_field
@@ -118,6 +130,7 @@ class CalculationsTest < ActiveRecord::TestCase
     [1, 6, 2].each do |firm_id|
       assert_includes c.keys, firm_id, "Group #{c.inspect} does not contain firm_id #{firm_id}"
     end
+    assert_async_equal c, Account.group(:firm_id).async_sum(:credit_limit)
   end
 
   def test_should_group_by_arel_attribute
@@ -412,11 +425,13 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_summed_field_with_conditions_and_having
-    c = Account.where("firm_id > 1").group(:firm_id).
-     having("sum(credit_limit) > 60").sum(:credit_limit)
+    relation = Account.where("firm_id > 1").group(:firm_id).having("sum(credit_limit) > 60")
+    c = relation.sum(:credit_limit)
     assert_nil        c[1]
     assert_equal 105, c[6]
     assert_nil        c[2]
+
+    assert_async_equal c, relation.async_sum(:credit_limit)
   end
 
   def test_should_group_by_fields_with_table_alias
@@ -702,6 +717,36 @@ class CalculationsTest < ActiveRecord::TestCase
         Account.where("credit_limit > 50").from("accounts").maximum(:credit_limit)
   end
 
+  def test_no_queries_for_empty_relation_on_count
+    assert_queries(0) do
+      assert_equal 0, Post.where(id: []).count
+    end
+  end
+
+  def test_no_queries_for_empty_relation_on_sum
+    assert_queries(0) do
+      assert_equal 0, Post.where(id: []).sum(:tags_count)
+    end
+  end
+
+  def test_no_queries_for_empty_relation_on_average
+    assert_queries(0) do
+      assert_nil Post.where(id: []).average(:tags_count)
+    end
+  end
+
+  def test_no_queries_for_empty_relation_on_minimum
+    assert_queries(0) do
+      assert_nil Account.where(id: []).minimum(:id)
+    end
+  end
+
+  def test_no_queries_for_empty_relation_on_maximum
+    assert_queries(0) do
+      assert_nil Account.where(id: []).maximum(:id)
+    end
+  end
+
   def test_maximum_with_not_auto_table_name_prefix_if_column_included
     Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
 
@@ -741,12 +786,19 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck
     assert_equal [1, 2, 3, 4, 5], Topic.order(:id).pluck(:id)
+    assert_async_equal [1, 2, 3, 4, 5], Topic.order(:id).async_pluck(:id)
+  end
+
+  def test_pluck_async_on_loaded_relation
+    relation = Topic.order(:id).load
+    assert_async_equal relation.pluck(:id), relation.async_pluck(:id)
   end
 
   def test_pluck_with_empty_in
     assert_queries(0) do
       assert_equal [], Topic.where(id: []).pluck(:id)
     end
+    assert_async_equal [], Topic.where(id: []).async_pluck(:id)
   end
 
   def test_pluck_without_column_names
@@ -996,6 +1048,7 @@ class CalculationsTest < ActiveRecord::TestCase
     part.trinkets.create!
 
     assert_equal part.id, ShipPart.joins(:trinkets).sum(:id)
+    assert_async_equal part.id, ShipPart.joins(:trinkets).async_sum(:id)
   end
 
   def test_pluck_joined_with_polymorphic_relation
@@ -1003,6 +1056,7 @@ class CalculationsTest < ActiveRecord::TestCase
     part.trinkets.create!
 
     assert_equal [part.id], ShipPart.joins(:trinkets).pluck(:id)
+    assert_async_equal [part.id], ShipPart.joins(:trinkets).async_pluck(:id)
   end
 
   def test_pluck_loaded_relation
@@ -1043,6 +1097,8 @@ class CalculationsTest < ActiveRecord::TestCase
       assert_nil Topic.none.pick(:heading)
       assert_nil Topic.where(id: 9999999999999999999).pick(:heading)
     end
+
+    assert_async_equal "The First Topic", Topic.order(:id).async_pick(:heading)
   end
 
   def test_pick_two
@@ -1051,6 +1107,8 @@ class CalculationsTest < ActiveRecord::TestCase
       assert_nil Topic.none.pick(:author_name, :author_email_address)
       assert_nil Topic.where(id: 9999999999999999999).pick(:author_name, :author_email_address)
     end
+
+    assert_async_equal ["David", "david@loudthinking.com"], Topic.order(:id).async_pick(:author_name, :author_email_address)
   end
 
   def test_pick_delegate_to_all
@@ -1378,6 +1436,12 @@ class CalculationsTest < ActiveRecord::TestCase
         Account.all.skip_query_cache!.group(:firm_id).calculate(:sum, :credit_limit)
         Account.all.skip_query_cache!.group(:firm_id).calculate(:sum, :credit_limit)
       end
+    end
+  end
+
+  test "group alias is properly quoted" do
+    assert_nothing_raised do
+      NeedQuoting.group(:name).count
     end
   end
 end

@@ -166,7 +166,7 @@
       if (!allowReconnect) {
         this.monitor.stop();
       }
-      if (this.isActive()) {
+      if (this.isOpen()) {
         return this.webSocket.close();
       }
     }

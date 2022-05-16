@@ -75,6 +75,11 @@ class SanitizeTest < ActiveRecord::TestCase
     assert_equal "normal string 42", Binary.sanitize_sql_like("normal string 42", "!")
   end
 
+  def test_sanitize_sql_like_with_wildcard_as_escape_character
+    assert_equal "1__000_%", Binary.sanitize_sql_like("1_000%", "_")
+    assert_equal "1%_000%%", Binary.sanitize_sql_like("1_000%", "%")
+  end
+
   def test_sanitize_sql_like_example_use_case
     searchable_post = Class.new(Post) do
       def self.search_as_method(term)

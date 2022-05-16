@@ -101,7 +101,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = run_test_file("unit/failing_test.rb", env: { "BACKTRACE" => "1" })
+      output = run_test_file("unit/failing_test.rb")
       assert_match %r{test/unit/failing_test\.rb}, output
       assert_match %r{test/unit/failing_test\.rb:4}, output
     end
@@ -331,7 +331,7 @@ Expected: ["id", "name"]
         result
       end
 
-      def run_test_file(name, options = {})
+      def run_test_file(name)
         rails "test", "#{app_path}/test/#{name}", allow_failure: true
       end
   end

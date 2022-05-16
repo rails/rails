@@ -16,7 +16,7 @@ class Workshop
   end
 
   def to_s
-    id.to_s
+    "Workshop #{id}"
   end
 end
 
@@ -383,6 +383,13 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
+  def test_button_to_with_block_and_hash_url
+    assert_dom_equal(
+      %{<form action="/other" class="button_to" method="post"><button class="button" type="submit">Hello</button></form>},
+      button_to({ controller: "foo", action: "other" }, class: "button") { "Hello" }
+    )
+  end
+
   def test_button_to_generates_input_when_button_to_generates_button_tag_false
     old_value = ActionView::Helpers::UrlHelper.button_to_generates_button_tag
     ActionView::Helpers::UrlHelper.button_to_generates_button_tag = false
@@ -621,7 +628,13 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_link_tag_using_active_record_model
     @workshop = Workshop.new(1.to_s)
     link = link_to(@workshop)
-    assert_dom_equal %{<a href="/workshops/1">1</a>}, link
+    assert_dom_equal %{<a href="/workshops/1">Workshop 1</a>}, link
+  end
+
+  def test_link_tag_using_active_record_model_twice
+    @workshop = Workshop.new(1.to_s)
+    link = link_to(@workshop, @workshop)
+    assert_dom_equal %{<a href="/workshops/1">Workshop 1</a>}, link
   end
 
   def test_link_to_unless

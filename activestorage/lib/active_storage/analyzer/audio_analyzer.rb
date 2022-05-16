@@ -54,7 +54,7 @@ module ActiveStorage
           end
         end
       rescue Errno::ENOENT
-        logger.info "Skipping audio analysis because FFmpeg isn't installed"
+        logger.info "Skipping audio analysis because ffprobe isn't installed"
         {}
       end
 

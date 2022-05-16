@@ -28,7 +28,7 @@ module Rails
               * production - set it to true
 
           INFO
-          config.eager_load = config.cache_classes
+          config.eager_load = !config.reloading_enabled?
         end
       end
 

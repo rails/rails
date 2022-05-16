@@ -81,6 +81,10 @@ module ActiveRecord
         true
       end
 
+      def supports_restart_db_transaction?
+        true
+      end
+
       def supports_explain?
         true
       end
@@ -197,7 +201,7 @@ module ActiveRecord
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil, async: false)
-        raw_execute(sql, name, async)
+        raw_execute(sql, name, async: async)
       end
 
       # Mysql2Adapter doesn't have to free a result after using it, but we use this method
@@ -222,6 +226,10 @@ module ActiveRecord
 
       def exec_rollback_db_transaction # :nodoc:
         execute("ROLLBACK", "TRANSACTION")
+      end
+
+      def exec_restart_db_transaction # :nodoc:
+        execute("ROLLBACK AND CHAIN", "TRANSACTION")
       end
 
       def empty_insert_statement_value(primary_key = nil) # :nodoc:
@@ -561,6 +569,14 @@ module ActiveRecord
       end
 
       class << self
+        def extended_type_map(default_timezone: nil, emulate_booleans:) # :nodoc:
+          super(default_timezone: default_timezone).tap do |m|
+            if emulate_booleans
+              m.register_type %r(^tinyint\(1\))i, Type::Boolean.new
+            end
+          end
+        end
+
         private
           def initialize_type_map(m)
             super
@@ -614,13 +630,16 @@ module ActiveRecord
       end
 
       TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
-      TYPE_MAP_WITH_BOOLEAN = Type::TypeMap.new(TYPE_MAP).tap do |m|
-        m.register_type %r(^tinyint\(1\))i, Type::Boolean.new
-      end
+      EXTENDED_TYPE_MAPS = Concurrent::Map.new
+      EMULATE_BOOLEANS_TRUE = { emulate_booleans: true }.freeze
 
       private
-        def type_map
-          emulate_booleans ? TYPE_MAP_WITH_BOOLEAN : TYPE_MAP
+        def extended_type_map_key
+          if @default_timezone
+            { default_timezone: @default_timezone, emulate_booleans: emulate_booleans }
+          elsif emulate_booleans
+            EMULATE_BOOLEANS_TRUE
+          end
         end
 
         def raw_execute(sql, name, async: false)
@@ -629,7 +648,7 @@ module ActiveRecord
 
           log(sql, name, async: async) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @connection.query(sql)
+              @raw_connection.query(sql)
             end
           end
         end
@@ -709,6 +728,10 @@ module ActiveRecord
 
           unless options.key?(:comment)
             options[:comment] = column.comment
+          end
+
+          unless options.key?(:auto_increment)
+            options[:auto_increment] = column.auto_increment?
           end
 
           td = create_table_definition(table_name)

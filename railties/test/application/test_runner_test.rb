@@ -296,6 +296,16 @@ module ApplicationTests
       end
     end
 
+    def test_run_relative_path_with_leading_dot_slash
+      create_test_file :models, "account"
+      create_test_file :models, "post"
+
+      run_test_command("./test/models/account_test.rb").tap do |output|
+        assert_match "AccountTest", output
+        assert_match "1 runs, 1 assertions, 0 failures, 0 errors, 0 skips", output
+      end
+    end
+
     def test_run_windows_style_path
       create_test_file :models, "account"
       create_test_file :controllers, "accounts_controller"
@@ -671,7 +681,7 @@ module ApplicationTests
 
       output = run_test_command(file)
 
-      assert_match "DRb::DRbRemoteError: FailTest::BadError", output
+      assert_match "RuntimeError: Wrapped undumpable exception for: FailTest::BadError", output
       assert_match "1 runs, 0 assertions, 0 failures, 1 errors", output
     end
 

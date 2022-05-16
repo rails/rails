@@ -44,26 +44,5 @@ module ActiveSupport
     ensure
       self.local_level = old_local_level
     end
-
-    # Redefined to check severity against #level, and thus the thread-local level, rather than +@level+.
-    # FIXME: Remove when the minimum Ruby version supports overriding Logger#level.
-    def add(severity, message = nil, progname = nil, &block) # :nodoc:
-      severity ||= UNKNOWN
-      progname ||= @progname
-
-      return true if @logdev.nil? || severity < level
-
-      if message.nil?
-        if block_given?
-          message  = yield
-        else
-          message  = progname
-          progname = @progname
-        end
-      end
-
-      @logdev.write \
-        format_message(format_severity(severity), Time.now, progname, message)
-    end
   end
 end

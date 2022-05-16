@@ -40,7 +40,7 @@ module ActiveSupport
           end
 
           def []=(object, _present)
-            @map[object_id] = object
+            @map[object.object_id] = object
           end
         end
         WeakSet.new
@@ -51,7 +51,6 @@ module ActiveSupport
           unless @clear_disabled
             @clear_disabled = true
             remove_method(:subclasses)
-            remove_method(:descendants)
             @@excluded_descendants = nil
           end
         end
@@ -65,7 +64,7 @@ module ActiveSupport
         end
 
         def clear(classes) # :nodoc:
-          raise "DescendantsTracker.clear was disabled because config.cache_classes = true" if @clear_disabled
+          raise "DescendantsTracker.clear was disabled because config.enable_reloading is false" if @clear_disabled
 
           classes.each do |klass|
             @@excluded_descendants[klass] = true
@@ -87,9 +86,7 @@ module ActiveSupport
       end
 
       def descendants
-        descendants = super
-        descendants.reject! { |d| @@excluded_descendants[d] }
-        descendants
+        subclasses.concat(subclasses.flat_map(&:descendants))
       end
 
       def direct_descendants
@@ -119,7 +116,7 @@ module ActiveSupport
         end
 
         def clear(classes) # :nodoc:
-          raise "DescendantsTracker.clear was disabled because config.cache_classes = true" if @clear_disabled
+          raise "DescendantsTracker.clear was disabled because config.enable_reloading is false" if @clear_disabled
 
           @@direct_descendants.each do |klass, direct_descendants_of_klass|
             if classes.member?(klass)

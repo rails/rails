@@ -3,7 +3,7 @@
 require_relative "abstract_unit"
 
 class ConfigurationFileTest < ActiveSupport::TestCase
-  test "backtrace contains yaml path" do
+  test "backtrace contains YAML path" do
     Tempfile.create do |file|
       file.write("wrong: <%= foo %>")
       file.rewind
@@ -16,7 +16,7 @@ class ConfigurationFileTest < ActiveSupport::TestCase
     end
   end
 
-  test "backtrace contains yaml path (when Pathname given)" do
+  test "backtrace contains YAML path (when Pathname given)" do
     Tempfile.create do |file|
       file.write("wrong: <%= foo %>")
       file.rewind

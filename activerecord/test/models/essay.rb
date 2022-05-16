@@ -9,3 +9,5 @@ end
 
 class EssaySpecial < Essay
 end
+class TypedEssay < Essay
+end

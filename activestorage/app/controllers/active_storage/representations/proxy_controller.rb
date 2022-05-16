@@ -7,6 +7,8 @@
 # require a higher level of protection consider implementing
 # {Authenticated Controllers}[https://guides.rubyonrails.org/active_storage_overview.html#authenticated-controllers].
 class ActiveStorage::Representations::ProxyController < ActiveStorage::Representations::BaseController
+  include ActiveStorage::Streaming
+
   def show
     http_cache_forever public: true do
       send_blob_stream @representation.image, disposition: params[:disposition]

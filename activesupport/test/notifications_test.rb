@@ -185,8 +185,10 @@ module Notifications
 
       ActiveSupport::Notifications.subscribe("foo", TestSubscriber.new)
 
-      ActiveSupport::Notifications.instrument("foo") do
-        ActiveSupport::Notifications.subscribe("foo") { }
+      assert_nothing_raised do
+        ActiveSupport::Notifications.instrument("foo") do
+          ActiveSupport::Notifications.subscribe("foo") { }
+        end
       end
     ensure
       ActiveSupport::Notifications.notifier = old_notifier
@@ -226,6 +228,13 @@ module Notifications
       ActiveSupport::Notifications.instrument(event_name)
 
       assert_equal [Float, Float], [class_of_started, class_of_finished]
+    end
+  end
+
+  class InspectTest < TestCase
+    def test_inspect_output_is_small
+      expected = "#<ActiveSupport::Notifications::Fanout (2 patterns)>"
+      assert_equal expected, @notifier.inspect
     end
   end
 
@@ -451,21 +460,6 @@ module Notifications
     def test_events_consumes_information_given_as_payload
       event = event(:foo, Process.clock_gettime(Process::CLOCK_MONOTONIC), Process.clock_gettime(Process::CLOCK_MONOTONIC) + 1, random_id, payload: :bar)
       assert_equal Hash[payload: :bar], event.payload
-    end
-
-    def test_event_is_parent_based_on_children
-      time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-
-      parent    = event(:foo, Process.clock_gettime(Process::CLOCK_MONOTONIC), Process.clock_gettime(Process::CLOCK_MONOTONIC) + 100, random_id, {})
-      child     = event(:foo, time, time + 10, random_id, {})
-      not_child = event(:foo, time, time + 100, random_id, {})
-
-      parent.children << child
-
-      assert parent.parent_of?(child)
-      assert_not child.parent_of?(parent)
-      assert_not parent.parent_of?(not_child)
-      assert_not not_child.parent_of?(parent)
     end
 
     def test_subscribe_raises_error_on_non_supported_arguments

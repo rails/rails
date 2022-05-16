@@ -86,6 +86,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
   def test_strict_loading_by_default
     with_strict_loading_by_default(Developer) do
       Developer.all.each { |d| assert d.strict_loading? }
+      Developer.strict_loading(false).each { |d| assert_not d.strict_loading? }
     end
   end
 
@@ -549,8 +550,55 @@ class StrictLoadingTest < ActiveRecord::TestCase
     developer.strict_loading!
     assert_predicate developer, :strict_loading?
 
-    assert_logged("Strict loading violation: Developer is marked for strict loading. The AuditLog association named :audit_logs cannot be lazily loaded.") do
+    expected_log = <<-MSG.squish
+      `Developer` is marked for strict_loading.
+      The AuditLog association named `:audit_logs` cannot be lazily loaded.
+    MSG
+    assert_logged(expected_log) do
       developer.audit_logs.to_a
+    end
+  ensure
+    ActiveRecord.action_on_strict_loading_violation = old_value
+  end
+
+  def test_strict_loading_violation_on_polymorphic_relation
+    pirate = Pirate.create!(catchphrase: "Arrr!")
+    Treasure.create!(looter: pirate)
+
+    treasure = Treasure.last
+    treasure.strict_loading!
+    assert_predicate treasure, :strict_loading?
+
+    error = assert_raises ActiveRecord::StrictLoadingViolationError do
+      treasure.looter
+    end
+
+    expected_error_message = <<-MSG.squish
+      `Treasure` is marked for strict_loading.
+      The polymorphic association named `:looter` cannot be lazily loaded.
+    MSG
+
+    assert_equal(expected_error_message, error.message)
+  end
+
+  def test_strict_loading_violation_logs_on_polymorphic_relation
+    old_value = ActiveRecord.action_on_strict_loading_violation
+    ActiveRecord.action_on_strict_loading_violation = :log
+    assert_equal :log, ActiveRecord.action_on_strict_loading_violation
+
+    pirate = Pirate.create!(catchphrase: "Arrr!")
+    Treasure.create!(looter: pirate)
+
+    treasure = Treasure.last
+    treasure.strict_loading!
+    assert_predicate treasure, :strict_loading?
+
+    expected_log = <<-MSG.squish
+      `Treasure` is marked for strict_loading.
+      The polymorphic association named `:looter` cannot be lazily loaded.
+    MSG
+    assert_logged(expected_log) do
+      treasure.looter
     end
   ensure
     ActiveRecord.action_on_strict_loading_violation = old_value

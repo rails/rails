@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2021 David Heinemeier Hansson
+# Copyright (c) 2004-2022 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -30,11 +30,13 @@ require "active_model/version"
 module ActiveModel
   extend ActiveSupport::Autoload
 
+  autoload :Access
   autoload :API
   autoload :Attribute
   autoload :Attributes
   autoload :AttributeAssignment
   autoload :AttributeMethods
+  autoload :AttributeRegistration
   autoload :BlockValidator, "active_model/validator"
   autoload :Callbacks
   autoload :Conversion

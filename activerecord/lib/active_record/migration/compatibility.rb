@@ -33,6 +33,35 @@ module ActiveRecord
       V7_1 = Current
 
       class V7_0 < V7_1
+        module TableDefinition
+          private
+            def raise_on_if_exist_options(options)
+            end
+        end
+
+        def create_table(table_name, **options)
+          if block_given?
+            super { |t| yield compatible_table_definition(t) }
+          else
+            super
+          end
+        end
+
+        def change_table(table_name, **options)
+          if block_given?
+            super { |t| yield compatible_table_definition(t) }
+          else
+            super
+          end
+        end
+
+        private
+          def compatible_table_definition(t)
+            class << t
+              prepend TableDefinition
+            end
+            t
+          end
       end
 
       class V6_1 < V7_0
@@ -67,6 +96,14 @@ module ActiveRecord
           end
         end
 
+        def change_table(table_name, **options)
+          if block_given?
+            super { |t| yield compatible_table_definition(t) }
+          else
+            super
+          end
+        end
+
         module TableDefinition
           def new_column_definition(name, type, **options)
             type = PostgreSQLCompat.compatible_timestamp_type(type, @conn)
@@ -77,6 +114,10 @@ module ActiveRecord
             options[:precision] ||= nil
             super
           end
+
+          private
+            def raise_on_if_exist_options(options)
+            end
         end
 
         private
@@ -97,9 +138,8 @@ module ActiveRecord
 
         module TableDefinition
           def references(*args, **options)
-            args.each do |ref_name|
-              ReferenceDefinition.new(ref_name, **options).add_to(self)
-            end
+            options[:_uses_legacy_reference_index_name] = true
+            super
           end
           alias :belongs_to :references
 
@@ -107,6 +147,10 @@ module ActiveRecord
             options[:precision] ||= nil
             super
           end
+
+          private
+            def raise_on_if_exist_options(options)
+            end
         end
 
         def create_table(table_name, **options)
@@ -134,8 +178,12 @@ module ActiveRecord
         end
 
         def add_reference(table_name, ref_name, **options)
-          ReferenceDefinition.new(ref_name, **options)
-            .add_to(connection.update_table_definition(table_name, self))
+          if connection.adapter_name == "SQLite"
+            options[:type] = :integer
+          end
+
+          options[:_uses_legacy_reference_index_name] = true
+          super
         end
         alias :add_belongs_to :add_reference
 
@@ -144,7 +192,7 @@ module ActiveRecord
             class << t
               prepend TableDefinition
             end
-            t
+            super
           end
       end
 
@@ -159,6 +207,10 @@ module ActiveRecord
             options[:precision] ||= nil
             super
           end
+
+          private
+            def raise_on_if_exist_options(options)
+            end
         end
 
         module CommandRecorder
@@ -209,7 +261,7 @@ module ActiveRecord
             class << t
               prepend TableDefinition
             end
-            t
+            super
           end
 
           def command_recorder
@@ -253,6 +305,10 @@ module ActiveRecord
             super(*args, type: :integer, **options)
           end
           alias :belongs_to :references
+
+          private
+            def raise_on_if_exist_options(options)
+            end
         end
 
         def create_table(table_name, **options)
@@ -319,6 +375,10 @@ module ActiveRecord
             options[:null] = true if options[:null].nil?
             super
           end
+
+          private
+            def raise_on_if_exist_options(options)
+            end
         end
 
         def add_reference(table_name, ref_name, **options)

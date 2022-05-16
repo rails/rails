@@ -255,7 +255,7 @@ git commit: "-a -m 'Initial commit'"
 ### after_bundle(&block)
 
 Registers a callback to be executed after the gems are bundled and binstubs
-are generated. Useful for all generated files to version control:
+are generated. Useful for adding generated files to version control:
 
 ```ruby
 after_bundle do

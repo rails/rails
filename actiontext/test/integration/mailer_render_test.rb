@@ -7,7 +7,7 @@ class ActionText::MailerRenderTest < ActionMailer::TestCase
     original_default_url_options = ActionMailer::Base.default_url_options
     ActionMailer::Base.default_url_options = { host: "hoost" }
 
-    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     message = Message.new(content: ActionText::Content.new.append_attachables(blob))
 
     MessagesMailer.with(recipient: "test", message: message).notification.deliver_now

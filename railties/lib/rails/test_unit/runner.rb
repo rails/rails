@@ -89,7 +89,7 @@ module Rails
           end
 
           def path_argument?(arg)
-            %r"^[/\\]?\w+[/\\]".match?(arg)
+            %r"^\.*[/\\]?\w+[/\\]".match?(arg)
           end
 
           def list_tests(argv)

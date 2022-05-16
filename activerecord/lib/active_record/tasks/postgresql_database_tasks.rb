@@ -58,7 +58,6 @@ module ActiveRecord
           end
 
         args = ["--schema-only", "--no-privileges", "--no-owner"]
-        args << "--no-comment" if connection.database_version >= 110_000
         args.concat(["--file", filename])
 
         args.concat(Array(extra_flags)) if extra_flags
@@ -71,6 +70,7 @@ module ActiveRecord
 
         ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
         if ignore_tables.any?
+          ignore_tables = connection.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
           args += ignore_tables.flat_map { |table| ["-T", table] }
         end
 
@@ -81,7 +81,7 @@ module ActiveRecord
       end
 
       def structure_load(filename, extra_flags)
-        args = ["--set", ON_ERROR_STOP_1, "--quiet", "--no-psqlrc", "--file", filename]
+        args = ["--set", ON_ERROR_STOP_1, "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename]
         args.concat(Array(extra_flags)) if extra_flags
         args << db_config.database
         run_cmd("psql", args, "loading")

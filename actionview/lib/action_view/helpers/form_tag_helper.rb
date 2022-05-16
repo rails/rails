@@ -62,7 +62,7 @@ module ActionView
       #
       #   <%= form_tag('/posts', remote: true) %>
       #   # => <form action="/posts" method="post" data-remote="true">
-
+      #
       #   form_tag(false, method: :get)
       #   # => <form method="get">
       #
@@ -96,7 +96,7 @@ module ActionView
       # <tt>aria-describedby</tt> attribute referencing the <tt><span></tt>
       # element, sharing a common <tt>id</tt> root (<tt>post_title</tt>, in this
       # case).
-      def field_id(object_name, method_name, *suffixes, index: nil)
+      def field_id(object_name, method_name, *suffixes, index: nil, namespace: nil)
         if object_name.respond_to?(:model_name)
           object_name = object_name.model_name.singular
         end
@@ -105,16 +105,13 @@ module ActionView
 
         sanitized_method_name = method_name.to_s.delete_suffix("?")
 
-        # a little duplication to construct fewer strings
-        if sanitized_object_name.empty?
-          sanitized_method_name
-        elsif suffixes.any?
-          [sanitized_object_name, index, sanitized_method_name, *suffixes].compact.join("_")
-        elsif index
-          "#{sanitized_object_name}_#{index}_#{sanitized_method_name}"
-        else
-          "#{sanitized_object_name}_#{sanitized_method_name}"
-        end
+        [
+          namespace,
+          sanitized_object_name.presence,
+          (index unless sanitized_object_name.empty?),
+          sanitized_method_name,
+          *suffixes,
+        ].tap(&:compact!).join("_")
       end
 
       # Generate an HTML <tt>name</tt> attribute value for the given name and
@@ -297,14 +294,14 @@ module ActionView
       #
       # ==== Examples
       #   hidden_field_tag 'tags_list'
-      #   # => <input id="tags_list" name="tags_list" type="hidden" />
+      #   # => <input type="hidden" name="tags_list" id="tags_list" autocomplete="off" />
       #
       #   hidden_field_tag 'token', 'VUBJKB23UIVI1UU1VOBVI@'
-      #   # => <input id="token" name="token" type="hidden" value="VUBJKB23UIVI1UU1VOBVI@" />
+      #   # => <input type="hidden" name="token" id="token" value="VUBJKB23UIVI1UU1VOBVI@" autocomplete="off" />
       #
       #   hidden_field_tag 'collected_input', '', onchange: "alert('Input collected!')"
-      #   # => <input id="collected_input" name="collected_input" onchange="alert('Input collected!')"
-      #   #    type="hidden" value="" />
+      #   # => <input type="hidden" name="collected_input" id="collected_input"
+      #        value="" onchange="alert(&#39;Input collected!&#39;)" autocomplete="off" />
       def hidden_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :hidden, autocomplete: "off"))
       end
@@ -345,7 +342,7 @@ module ActionView
       #   file_field_tag 'file', accept: 'text/html', class: 'upload', value: 'index.html'
       #   # => <input accept="text/html" class="upload" id="file" name="file" type="file" value="index.html" />
       def file_field_tag(name, options = {})
-        text_field_tag(name, nil, convert_direct_upload_option_to_url(name, options.merge(type: :file)))
+        text_field_tag(name, nil, convert_direct_upload_option_to_url(options.merge(type: :file)))
       end
 
       # Creates a password field, a masked text field that will hide the users input behind a mask character.
@@ -987,23 +984,9 @@ module ActionView
           tag_options.delete("data-disable-with")
         end
 
-        def convert_direct_upload_option_to_url(name, options)
+        def convert_direct_upload_option_to_url(options)
           if options.delete(:direct_upload) && respond_to?(:rails_direct_uploads_url)
             options["data-direct-upload-url"] = rails_direct_uploads_url
-
-            if options[:object] && options[:object].class.respond_to?(:reflect_on_attachment)
-              attachment_reflection = options[:object].class.reflect_on_attachment(name)
-
-              class_with_attachment = "#{options[:object].class.name.underscore}##{name}"
-              options["data-direct-upload-attachment-name"] = class_with_attachment
-
-              service_name = attachment_reflection.options[:service_name] || ActiveStorage::Blob.service.name
-              options["data-direct-upload-token"] = ActiveStorage::DirectUploadToken.generate_direct_upload_token(
-                class_with_attachment,
-                service_name,
-                session
-              )
-            end
           end
           options
         end

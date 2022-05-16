@@ -85,14 +85,23 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
   end
 
   test "can be garbage collected" do
-    previous_threads = Thread.list
-    checker_ref = WeakRef.new(ActiveSupport::EventedFileUpdateChecker.new([], tmpdir => ".rb") { })
-    listener_threads = Thread.list - previous_threads
+    # Use a separate thread to isolate objects and ensure they will be garbage collected.
+    checker_ref, listener_threads = Thread.new do
+      threads_before_checker = Thread.list
+      checker = ActiveSupport::EventedFileUpdateChecker.new([], tmpdir => ".rb") { }
 
-    wait # Wait for listener thread to start processing events.
-    GC.start
+      # Wait for listener thread to start processing events.
+      wait
 
-    assert_not_predicate checker_ref, :weakref_alive?
+      [WeakRef.new(checker), Thread.list - threads_before_checker]
+    end.value
+
+    # Calling `GC.start` 4 times should trigger a full GC run.
+    4.times do
+      GC.start
+    end
+
+    assert_not checker_ref.weakref_alive?, "EventedFileUpdateChecker was not garbage collected"
     assert_empty Thread.list & listener_threads
   end
 

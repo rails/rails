@@ -8,6 +8,7 @@
 # {Authenticated Controllers}[https://guides.rubyonrails.org/active_storage_overview.html#authenticated-controllers].
 class ActiveStorage::Blobs::ProxyController < ActiveStorage::BaseController
   include ActiveStorage::SetBlob
+  include ActiveStorage::Streaming
 
   def show
     if request.headers["Range"].present?

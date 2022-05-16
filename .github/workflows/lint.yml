@@ -8,9 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: ['3.10']
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
@@ -26,8 +26,8 @@ jobs:
     name: Check spelling all files in commit with misspell
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install
-        run: wget -O - -q https://git.io/misspell | sh -s -- -b .
+        run: wget -O - -q https://raw.githubusercontent.com/client9/misspell/c0b55c8239520f6b5aa15a0207ca8b28027ba49e/install-misspell.sh | sh -s -- -b .
       - name: Misspell
         run: git ls-files --empty-directory | xargs ./misspell -i 'aircrafts,devels,invertions' -error

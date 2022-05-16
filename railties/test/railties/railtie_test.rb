@@ -21,7 +21,15 @@ module RailtiesTest
     end
 
     test "cannot instantiate a Railtie object" do
-      assert_raise(RuntimeError) { Rails::Railtie.new }
+      assert_raise(RuntimeError) { Rails::Railtie.send(:new) }
+    end
+
+    test "respond_to? works in the abstract railties" do
+      assert_not_respond_to Rails::Railtie, :something_nice
+    end
+
+    test "method_missing works in the abstract railties" do
+      assert_raise(NoMethodError) { Rails::Railtie.something_nice }
     end
 
     test "Railtie provides railtie_name" do
@@ -223,6 +231,19 @@ module RailtiesTest
     ensure
       Rails.env = original_env
       assert_equal(original_env, Rails.env)
+    end
+
+    test "Railtie object isn't output when a NoMethodError is raised" do
+      class Foo < Rails::Railtie
+        config.foo = ActiveSupport::OrderedOptions.new
+        config.foo.greetings = "hello"
+      end
+
+      error = assert_raises(NoMethodError) do
+        Foo.instance.abc
+      end
+
+      assert_equal("undefined method `abc' for #<RailtiesTest::RailtieTest::Foo>", error.original_message)
     end
   end
 end

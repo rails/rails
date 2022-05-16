@@ -43,7 +43,7 @@ module ActiveJob
       end
 
       ActiveSupport.on_load(:active_record) do
-        self.destroy_association_async_job = ActiveRecord::DestroyAssociationAsyncJob
+        self.destroy_association_async_job ||= ActiveRecord::DestroyAssociationAsyncJob
       end
     end
 

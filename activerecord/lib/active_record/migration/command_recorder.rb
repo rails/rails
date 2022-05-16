@@ -13,10 +13,10 @@ module ActiveRecord
     # * add_reference
     # * add_timestamps
     # * change_column
-    # * change_column_default (must supply a :from and :to option)
+    # * change_column_default (must supply a +:from+ and +:to+ option)
     # * change_column_null
-    # * change_column_comment (must supply a :from and :to option)
-    # * change_table_comment (must supply a :from and :to option)
+    # * change_column_comment (must supply a +:from+ and +:to+ option)
+    # * change_table_comment (must supply a +:from+ and +:to+ option)
     # * create_join_table
     # * create_table
     # * disable_extension

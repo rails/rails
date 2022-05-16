@@ -68,6 +68,11 @@ module ActiveSupport
         end
       end
 
+      def inspect # :nodoc:
+        total_patterns = @string_subscribers.size + @other_subscribers.size
+        "#<#{self.class} (#{total_patterns} patterns)>"
+      end
+
       def start(name, id, payload)
         iterate_guarding_exceptions(listeners_for(name)) { |s| s.start(name, id, payload) }
       end

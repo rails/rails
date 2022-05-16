@@ -17,7 +17,7 @@ module ActiveJob
       # Push a job onto the queue. By default the arguments must be either String,
       # Integer, Float, NilClass, TrueClass, FalseClass, BigDecimal, Symbol, Date,
       # Time, DateTime, ActiveSupport::TimeWithZone, ActiveSupport::Duration,
-      # Hash, ActiveSupport::HashWithIndifferentAccess, Array, Range or
+      # Hash, ActiveSupport::HashWithIndifferentAccess, Array, Range, or
       # GlobalID::Identification instances, although this can be extended by adding
       # custom serializers.
       #

@@ -48,6 +48,10 @@ module ActiveRecord
           context.save(response)
         end
 
+        def reading_request?(request)
+          request.get? || request.head?
+        end
+
         private
           def read_from_primary(&blk)
             ActiveRecord::Base.connected_to(role: ActiveRecord.writing_role, prevent_writes: true) do

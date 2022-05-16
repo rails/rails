@@ -30,10 +30,14 @@ module ActiveRecord
       #
       # The generated key will be salted with the value of +ActiveRecord::Encryption.key_derivation_salt+
       def derive_key_from(password, length: key_length)
-        ActiveSupport::KeyGenerator.new(password).generate_key(ActiveRecord::Encryption.config.key_derivation_salt, length)
+        ActiveSupport::KeyGenerator.new(password).generate_key(key_derivation_salt, length)
       end
 
       private
+        def key_derivation_salt
+          @key_derivation_salt ||= ActiveRecord::Encryption.config.key_derivation_salt
+        end
+
         def key_length
           @key_length ||= ActiveRecord::Encryption.cipher.key_length
         end

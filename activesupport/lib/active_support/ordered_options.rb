@@ -40,6 +40,10 @@ module ActiveSupport
       super(key.to_sym)
     end
 
+    def dig(*keys)
+      super(*keys.flatten.map(&:to_sym))
+    end
+
     def method_missing(name, *args)
       name_string = +name.to_s
       if name_string.chomp!("=")
@@ -68,7 +72,7 @@ module ActiveSupport
     end
   end
 
-  # +InheritableOptions+ provides a constructor to build an +OrderedOptions+
+  # +InheritableOptions+ provides a constructor to build an OrderedOptions
   # hash inherited from another hash.
   #
   # Use this if you already have some hash and you want to create a new one based on it.

@@ -171,13 +171,44 @@ if supports_datetime_with_precision?
       end
     end
 
-    def test_schema_dump_includes_datetime_precision
+    def test_writing_a_blank_attribute
+      @connection.create_table(:foos, force: true) do |t|
+        t.datetime :happened_at
+      end
+
+      assert_nil Foo.create!(happened_at: nil).happened_at
+      assert_nil Foo.create!(happened_at: "").happened_at
+    end
+
+    if current_adapter?(:PostgreSQLAdapter)
+      def test_writing_a_blank_attribute_timestamptz
+        with_postgresql_datetime_type(:timestamptz) do
+          @connection.create_table(:foos, force: true) do |t|
+            t.datetime :happened_at
+          end
+
+          assert_nil Foo.create!(happened_at: nil).happened_at
+          assert_nil Foo.create!(happened_at: "").happened_at
+        end
+      end
+    end
+
+    def test_schema_dump_with_default_precision_is_not_dumped
       @connection.create_table(:foos, force: true) do |t|
         t.timestamps precision: 6
       end
       output = dump_table_schema("foos")
-      assert_match %r{t\.datetime\s+"created_at",\s+precision: 6,\s+null: false$}, output
-      assert_match %r{t\.datetime\s+"updated_at",\s+precision: 6,\s+null: false$}, output
+      assert_match %r{t\.datetime\s+"created_at",\s+null: false$}, output
+      assert_match %r{t\.datetime\s+"updated_at",\s+null: false$}, output
+    end
+
+    def test_schema_dump_with_without_precision_has_precision_as_nil
+      @connection.create_table(:foos, force: true) do |t|
+        t.timestamps precision: nil
+      end
+      output = dump_table_schema("foos")
+      assert_match %r{t\.datetime\s+"created_at",\s+precision: nil,\s+null: false$}, output
+      assert_match %r{t\.datetime\s+"updated_at",\s+precision: nil,\s+null: false$}, output
     end
 
     if current_adapter?(:PostgreSQLAdapter, :SQLServerAdapter)

@@ -3,8 +3,8 @@
 require "active_support/array_inquirer"
 
 class Array
-  # Wraps the array in an +ArrayInquirer+ object, which gives a friendlier way
-  # to check its string-like contents.
+  # Wraps the array in an ActiveSupport::ArrayInquirer object, which gives a
+  # friendlier way to check its string-like contents.
   #
   #   pets = [:cat, :dog].inquiry
   #

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2014-2021 David Heinemeier Hansson
+# Copyright (c) 2014-2022 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -33,9 +33,12 @@ module ActiveJob
 
   autoload :Base
   autoload :QueueAdapters
-  autoload :Serializers
-  autoload :ConfiguredJob
+
+  eager_autoload do
+    autoload :Serializers
+    autoload :ConfiguredJob
+  end
+
   autoload :TestCase
   autoload :TestHelper
-  autoload :QueryTags
 end

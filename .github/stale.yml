@@ -20,16 +20,11 @@ markComment: >
 
   The resources of the Rails team are limited, and so we are asking for your help.
 
-  If you can still reproduce this error on the `6-1-stable` branch or on `main`,
+  If you can still reproduce this error on the `7-0-stable` branch or on `main`,
   please reply with all of the information you have about it in order to keep the issue open.
 
   Thank you for all your contributions.
 # Comment to post when closing a stale issue. Set to `false` to disable
 closeComment: false
-
-pulls:
-  markComment: >
-    This pull request has been automatically marked as stale because it has not had
-    recent activity. It will be closed if no further activity occurs.
-
-    Thank you for your contributions.
+# Limit to only `issues` or `pulls`
+only: issues

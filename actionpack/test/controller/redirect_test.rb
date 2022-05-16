@@ -88,6 +88,10 @@ class RedirectController < ActionController::Base
     redirect_back_or_to "http://www.rubyonrails.org/"
   end
 
+  def only_path_redirect
+    redirect_to action: "other_host", only_path: true
+  end
+
   def safe_redirect_with_fallback
     redirect_to url_from(params[:redirect_url]) || "/fallback"
   end
@@ -497,6 +501,14 @@ class RedirectTest < ActionController::TestCase
       end
 
       assert_equal "Unsafe redirect to \"http://www.rubyonrails.org/\", pass allow_other_host: true to redirect anyway.", error.message
+    end
+  end
+
+  def test_only_path_redirect
+    with_raise_on_open_redirects do
+      get :only_path_redirect
+      assert_response :redirect
+      assert_redirected_to "/redirect/other_host"
     end
   end
 

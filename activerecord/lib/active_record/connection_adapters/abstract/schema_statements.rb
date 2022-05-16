@@ -553,11 +553,6 @@ module ActiveRecord
       #   <tt>:datetime</tt>, and <tt>:time</tt> columns.
       # * <tt>:scale</tt> -
       #   Specifies the scale for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
-      # * <tt>:collation</tt> -
-      #   Specifies the collation for a <tt>:string</tt> or <tt>:text</tt> column. If not specified, the
-      #   column will have the same collation as the table.
-      # * <tt>:comment</tt> -
-      #   Specifies the comment for the column. This option is ignored by some backends.
       # * <tt>:if_not_exists</tt> -
       #   Specifies if the column already exists to not try to re-add it. This will avoid
       #   duplicate column errors.
@@ -986,7 +981,7 @@ module ActiveRecord
       #   add_reference(:products, :supplier, foreign_key: { to_table: :firms })
       #
       def add_reference(table_name, ref_name, **options)
-        ReferenceDefinition.new(ref_name, **options).add_to(update_table_definition(table_name, self))
+        ReferenceDefinition.new(ref_name, **options).add(table_name, self)
       end
       alias :add_belongs_to :add_reference
 
@@ -1006,19 +1001,21 @@ module ActiveRecord
       #   remove_reference(:products, :user, foreign_key: true)
       #
       def remove_reference(table_name, ref_name, foreign_key: false, polymorphic: false, **options)
+        conditional_options = options.slice(:if_exists, :if_not_exists)
+
         if foreign_key
           reference_name = Base.pluralize_table_names ? ref_name.to_s.pluralize : ref_name
           if foreign_key.is_a?(Hash)
-            foreign_key_options = foreign_key
+            foreign_key_options = foreign_key.merge(conditional_options)
           else
-            foreign_key_options = { to_table: reference_name }
+            foreign_key_options = { to_table: reference_name, **conditional_options }
           end
           foreign_key_options[:column] ||= "#{ref_name}_id"
           remove_foreign_key(table_name, **foreign_key_options)
         end
 
-        remove_column(table_name, "#{ref_name}_id")
-        remove_column(table_name, "#{ref_name}_type") if polymorphic
+        remove_column(table_name, "#{ref_name}_id", **conditional_options)
+        remove_column(table_name, "#{ref_name}_type", **conditional_options) if polymorphic
       end
       alias :remove_belongs_to :remove_reference
 
@@ -1071,9 +1068,9 @@ module ActiveRecord
       # [<tt>:name</tt>]
       #   The constraint name. Defaults to <tt>fk_rails_<identifier></tt>.
       # [<tt>:on_delete</tt>]
-      #   Action that happens <tt>ON DELETE</tt>. Valid values are +:nullify+, +:cascade+ and +:restrict+
+      #   Action that happens <tt>ON DELETE</tt>. Valid values are +:nullify+, +:cascade+, and +:restrict+
       # [<tt>:on_update</tt>]
-      #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade+ and +:restrict+
+      #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade+, and +:restrict+
       # [<tt>:if_not_exists</tt>]
       #   Specifies if the foreign key already exists to not try to re-add it. This will avoid
       #   duplicate column errors.
@@ -1125,7 +1122,7 @@ module ActiveRecord
       #   The name of the table that contains the referenced primary key.
       def remove_foreign_key(from_table, to_table = nil, **options)
         return unless supports_foreign_keys?
-        return if options[:if_exists] == true && !foreign_key_exists?(from_table, to_table)
+        return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table)
 
         fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
 
@@ -1438,7 +1435,7 @@ module ActiveRecord
 
           checks = []
 
-          if !options.key?(:name) && column_name.is_a?(String) && /\W/.match?(column_name)
+          if !options.key?(:name) && expression_column_name?(column_name)
             options[:name] = index_name(table_name, column_name)
             column_names = []
           else
@@ -1447,7 +1444,7 @@ module ActiveRecord
 
           checks << lambda { |i| i.name == options[:name].to_s } if options.key?(:name)
 
-          if column_names.present?
+          if column_names.present? && !(options.key?(:name) && expression_column_name?(column_names))
             checks << lambda { |i| index_name(table_name, i.columns) == index_name(table_name, column_names) }
           end
 
@@ -1515,7 +1512,7 @@ module ActiveRecord
         end
 
         def index_column_names(column_names)
-          if column_names.is_a?(String) && /\W/.match?(column_names)
+          if expression_column_name?(column_names)
             column_names
           else
             Array(column_names)
@@ -1523,11 +1520,16 @@ module ActiveRecord
         end
 
         def index_name_options(column_names)
-          if column_names.is_a?(String) && /\W/.match?(column_names)
+          if expression_column_name?(column_names)
             column_names = column_names.scan(/\w+/).join("_")
           end
 
           { column: column_names }
+        end
+
+        # Try to identify whether the given column name is an expression
+        def expression_column_name?(column_name)
+          column_name.is_a?(String) && /\W/.match?(column_name)
         end
 
         def strip_table_name_prefix_and_suffix(table_name)
@@ -1668,7 +1670,7 @@ module ActiveRecord
 
           if versions.is_a?(Array)
             sql = +"INSERT INTO #{sm_table} (version) VALUES\n"
-            sql << versions.map { |v| "(#{quote(v)})" }.join(",\n")
+            sql << versions.reverse.map { |v| "(#{quote(v)})" }.join(",\n")
             sql << ";\n\n"
             sql
           else

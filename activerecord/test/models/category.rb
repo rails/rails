@@ -30,6 +30,9 @@ class Category < ActiveRecord::Base
   has_many :authors, through: :categorizations
   has_many :authors_with_select, -> { select "authors.*, categorizations.post_id" }, through: :categorizations, source: :author
 
+  has_many :essays, primary_key: :name
+  has_many :human_writers_of_typed_essays, -> { where(essays: { type: TypedEssay.name }) }, through: :essays, source: :writer, source_type: "Human", primary_key: :name
+
   scope :general, -> { where(name: "General") }
 
   # Should be delegated `ast` and `locked` to `arel`.

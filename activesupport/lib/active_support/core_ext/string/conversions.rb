@@ -5,10 +5,10 @@ require "active_support/core_ext/time/calculations"
 
 class String
   # Converts a string to a Time value.
-  # The +form+ can be either :utc or :local (default :local).
+  # The +form+ can be either +:utc+ or +:local+ (default +:local+).
   #
   # The time is parsed using Time.parse method.
-  # If +form+ is :local, then the time is in the system timezone.
+  # If +form+ is +:local+, then the time is in the system timezone.
   # If the date part is missing then the current date is used and if
   # the time part is missing then it is assumed to be 00:00:00.
   #

@@ -15,6 +15,7 @@ begin
 rescue LoadError
 end
 
+require "active_support/core_ext/numeric/time"
 require "active_support/digest"
 
 module ActiveSupport
@@ -59,6 +60,11 @@ module ActiveSupport
         if logger
           logger.error { "RedisCacheStore: #{method} failed, returned #{returning.inspect}: #{exception.class}: #{exception.message}" }
         end
+        ActiveSupport.error_reporter&.report(
+          exception,
+          severity: :warning,
+          source: "redis_cache_store.active_support",
+        )
       end
 
       # The maximum number of entries to receive per SCAN call.
@@ -140,7 +146,14 @@ module ActiveSupport
       # Race condition TTL is not set by default. This can be used to avoid
       # "thundering herd" cache writes when hot cache entries are expired.
       # See <tt>ActiveSupport::Cache::Store#fetch</tt> for more.
-      def initialize(namespace: nil, compress: true, compress_threshold: 1.kilobyte, coder: default_coder, expires_in: nil, race_condition_ttl: nil, error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
+      #
+      # Setting <tt>skip_nil: true</tt> will not cache nil results:
+      #
+      #   cache.fetch('foo') { nil }
+      #   cache.fetch('bar', skip_nil: true) { nil }
+      #   cache.exist?('foo') # => true
+      #   cache.exist?('bar') # => false
+      def initialize(namespace: nil, compress: true, compress_threshold: 1.kilobyte, coder: default_coder, expires_in: nil, race_condition_ttl: nil, error_handler: DEFAULT_ERROR_HANDLER, skip_nil: false, **redis_options)
         @redis_options = redis_options
 
         @max_key_bytesize = MAX_KEY_BYTESIZE
@@ -149,7 +162,7 @@ module ActiveSupport
         super namespace: namespace,
           compress: compress, compress_threshold: compress_threshold,
           expires_in: expires_in, race_condition_ttl: race_condition_ttl,
-          coder: coder
+          coder: coder, skip_nil: skip_nil
       end
 
       def redis
@@ -225,8 +238,8 @@ module ActiveSupport
       # Cache Store API implementation.
       #
       # Increment a cached value. This method uses the Redis incr atomic
-      # operator and can only be used on values written with the :raw option.
-      # Calling it on a value not stored with :raw will initialize that value
+      # operator and can only be used on values written with the +:raw+ option.
+      # Calling it on a value not stored with +:raw+ will initialize that value
       # to zero.
       #
       # Failsafe: Raises errors.
@@ -248,8 +261,8 @@ module ActiveSupport
       # Cache Store API implementation.
       #
       # Decrement a cached value. This method uses the Redis decr atomic
-      # operator and can only be used on values written with the :raw option.
-      # Calling it on a value not stored with :raw will initialize that value
+      # operator and can only be used on values written with the +:raw+ option.
+      # Calling it on a value not stored with +:raw+ will initialize that value
       # to zero.
       #
       # Failsafe: Raises errors.
@@ -459,7 +472,6 @@ module ActiveSupport
         def failsafe(method, returning: nil)
           yield
         rescue ::Redis::BaseError => error
-          ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
           @error_handler&.call(method: method, exception: error, returning: returning)
           returning
         end

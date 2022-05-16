@@ -49,7 +49,8 @@ module ActiveSupport
       end
 
       def deserialize(config)
-        YAML.load(config).presence || {}
+        doc = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(config) : YAML.load(config)
+        doc.presence || {}
       end
   end
 end

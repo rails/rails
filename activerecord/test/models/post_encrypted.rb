@@ -7,7 +7,7 @@ class EncryptedPost < Post
 
   # We want to modify the key for testing purposes
   class MutableDerivedSecretKeyProvider < ActiveRecord::Encryption::DerivedSecretKeyProvider
-    attr_accessor :key
+    attr_accessor :keys
   end
 
   encrypts :title

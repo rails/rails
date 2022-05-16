@@ -138,15 +138,19 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert $zeitwerk_integration_test_post
   end
 
-  test "reloading is enabled if config.cache_classes is false" do
+  test "reloading is enabled if config.enable_reloading is true" do
+    add_to_env_config "development", "config.enable_reloading = true"
+
     boot
 
     assert     Rails.autoloaders.main.reloading_enabled?
     assert_not Rails.autoloaders.once.reloading_enabled?
   end
 
-  test "reloading is disabled if config.cache_classes is true" do
-    boot("production")
+  test "reloading is disabled if config.enable_reloading is false" do
+    add_to_env_config "development", "config.enable_reloading = false"
+
+    boot
 
     assert_not Rails.autoloaders.main.reloading_enabled?
     assert_not Rails.autoloaders.once.reloading_enabled?
@@ -262,32 +266,17 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_equal %i(main_autoloader), $zeitwerk_integration_reload_test
   end
 
-  test "reloading invokes before_remove_const" do
-    $before_remove_const_invoked = false
+  test "reloading eager loads again, if enabled" do
+    add_to_env_config "development", "config.eager_load = true"
 
-    app_file "app/models/foo.rb", <<~RUBY
-      # While the most common use case is classes/modules, the contract does not
-      # require values to be so. Let's weaken the test down to Object.new.
-      Foo = Object.new
-      def Foo.before_remove_const
-        $before_remove_const_invoked = true
-      end
-    RUBY
-
-    app_file "app/models/bar.rb", <<~RUBY
-      # This object does not implement before_remove_const. We define it to make
-      # sure reloading does not raise. That is, it does not blindly invoke the
-      # hook on all unloaded objects.
-      Bar = Object.new
-    RUBY
+    $zeitwerk_integration_test_eager_load_count = 0
+    app_file "app/models/user.rb", "class User; end; $zeitwerk_integration_test_eager_load_count += 1"
 
     boot
+    assert_equal 1, $zeitwerk_integration_test_eager_load_count
 
-    assert Foo
-    assert Bar
-    ActiveSupport::Dependencies.clear
-
-    assert $before_remove_const_invoked
+    Rails.application.reloader.reload!
+    assert_equal 2, $zeitwerk_integration_test_eager_load_count
   end
 
   test "reloading clears autoloaded tracked classes" do

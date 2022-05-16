@@ -73,7 +73,7 @@ module Rails
 
       # DELETE destroy
       def destroy
-        "#{name}.destroy"
+        "#{name}.destroy!"
       end
     end
   end

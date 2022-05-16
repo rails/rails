@@ -13,28 +13,28 @@ module ActionDispatch
         # to investigate changes at different points during your test. These will be
         # named with a sequential prefix (or 'failed' for failing tests)
         #
-        # The screenshot will be displayed in your console, if supported.
-        #
         # The default screenshots directory is +tmp/screenshots+ but you can set a different
         # one with +Capybara.save_path+
         #
-        # You can set the +RAILS_SYSTEM_TESTING_SCREENSHOT_HTML+ environment variable to
-        # save the HTML from the page that is being screenshotted so you can investigate the
-        # elements on the page at the time of the screenshot
+        # You can use the +html+ argument or set the +RAILS_SYSTEM_TESTING_SCREENSHOT_HTML+
+        # environment variable to save the HTML from the page that is being screenshotted
+        # so you can investigate the elements on the page at the time of the screenshot
         #
-        # You can set the +RAILS_SYSTEM_TESTING_SCREENSHOT+ environment variable to
-        # control the output. Possible values are:
+        # You can use the +screenshot+ argument or set the +RAILS_SYSTEM_TESTING_SCREENSHOT+
+        # environment variable to control the output. Possible values are:
         # * [+simple+ (default)]    Only displays the screenshot path.
         #                           This is the default value.
         # * [+inline+]              Display the screenshot in the terminal using the
         #                           iTerm image protocol (https://iterm2.com/documentation-images.html).
         # * [+artifact+]            Display the screenshot in the terminal, using the terminal
         #                           artifact format (https://buildkite.github.io/terminal-to-html/inline-images/).
-        def take_screenshot
+        def take_screenshot(html: false, screenshot: nil)
+          showing_html = html || html_from_env?
+
           increment_unique
-          save_html if save_html?
+          save_html if showing_html
           save_image
-          puts display_image
+          show display_image(html: showing_html, screenshot_output: screenshot)
         end
 
         # Takes a screenshot of the current page in the browser if the test
@@ -42,13 +42,13 @@ module ActionDispatch
         #
         # +take_failed_screenshot+ is called during system test teardown.
         def take_failed_screenshot
-          take_screenshot if failed? && supports_screenshot?
+          take_screenshot if failed? && supports_screenshot? && Capybara::Session.instance_created?
         end
 
         private
           attr_accessor :_screenshot_counter
 
-          def save_html?
+          def html_from_env?
             ENV["RAILS_SYSTEM_TESTING_SCREENSHOT_HTML"] == "1"
           end
 
@@ -109,11 +109,15 @@ module ActionDispatch
             output_type
           end
 
-          def display_image
-            message = +"[Screenshot Image]: #{image_path}\n"
-            message << +"[Screenshot HTML]: #{html_path}\n" if save_html?
+          def show(img)
+            puts img
+          end
 
-            case output_type
+          def display_image(html:, screenshot_output:)
+            message = +"[Screenshot Image]: #{image_path}\n"
+            message << +"[Screenshot HTML]: #{html_path}\n" if html
+
+            case screenshot_output || output_type
             when "artifact"
               message << "\e]1338;url=artifact://#{absolute_image_path}\a\n"
             when "inline"

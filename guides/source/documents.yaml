@@ -209,9 +209,10 @@
         CoffeeScript, Sass, and ERB.
     -
       name: Working with JavaScript in Rails
-      work_in_progress: true
       url: working_with_javascript_in_rails.html
-      description: This guide covers the built-in Ajax/JavaScript functionality of Rails.
+      description: >
+        This guide explains how to use import maps or jsbundling-rails to include
+        JavaScript in Rails applications, and covers the basics of working with Turbo in Rails.
     -
       name: The Rails Initialization Process
       work_in_progress: true
@@ -248,7 +249,6 @@
       description: This guide covers PostgreSQL specific usage of Active Record.
     -
       name: Multiple Databases with Active Record
-      work_in_progress: true
       url: active_record_multiple_databases.html
       description: This guide covers using multiple databases in your application.
     -
@@ -288,7 +288,7 @@
       description: This guide describes the considerations needed and tools available when working directly with concurrency in a Rails application.
       work_in_progress: true
 -
-  name: Contributions
+  name: Contributing
   documents:
     -
       name: Contributing to Ruby on Rails
@@ -324,10 +324,9 @@
       description: Release notes for Rails 7.1.
       work_in_progress: true
     -
-      name: Version 7.0 - ?
+      name: Version 7.0 - December 2021
       url: 7_0_release_notes.html
       description: Release notes for Rails 7.0.
-      work_in_progress: true
     -
       name: Version 6.1 - December 2020
       url: 6_1_release_notes.html

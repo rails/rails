@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/numeric/time"
+
 # Tests the base functionality that should be identical across all cache stores.
 module CacheStoreBehavior
   def test_should_read_and_write_strings
@@ -406,7 +408,7 @@ module CacheStoreBehavior
   end
 
   def test_keys_are_case_sensitive
-    key = SecureRandom.alphanumeric
+    key = "case_sensitive_key"
     @cache.write(key, "bar")
     assert_nil @cache.read(key.upcase)
   end
@@ -532,6 +534,14 @@ module CacheStoreBehavior
     Time.stub(:now, time + 21) do
       assert_nil @cache.read(key)
     end
+  end
+
+  def test_expires_in_and_expires_at
+    key = SecureRandom.uuid
+    error = assert_raises(ArgumentError) do
+      @cache.write(key, "bar", expire_in: 60, expires_at: 1.minute.from_now)
+    end
+    assert_equal "Either :expires_in or :expires_at can be supplied, but not both", error.message
   end
 
   def test_race_condition_protection_skipped_if_not_defined

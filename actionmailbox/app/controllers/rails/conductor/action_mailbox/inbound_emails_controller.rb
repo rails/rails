@@ -22,7 +22,7 @@ module Rails
       def new_mail
         Mail.new(mail_params.except(:attachments).to_h).tap do |mail|
           mail[:bcc]&.include_in_headers = true
-          mail_params[:attachments].to_a.each do |attachment|
+          mail_params[:attachments]&.select(&:present?)&.each do |attachment|
             mail.add_file(filename: attachment.original_filename, content: attachment.read)
           end
         end

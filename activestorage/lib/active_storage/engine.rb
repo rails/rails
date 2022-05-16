@@ -30,6 +30,7 @@ module ActiveStorage
     config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new
+    config.active_storage.precompile_assets = true
 
     config.active_storage.variable_content_types = %w(
       image/png
@@ -91,6 +92,21 @@ module ActiveStorage
         ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || "/rails/active_storage"
         ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false
         ActiveStorage.resolve_model_to_route = app.config.active_storage.resolve_model_to_route || :rails_storage_redirect
+
+        ActiveStorage.supported_image_processing_methods += app.config.active_storage.supported_image_processing_methods || []
+        ActiveStorage.unsupported_image_processing_arguments = app.config.active_storage.unsupported_image_processing_arguments || %w(
+          -debug
+          -display
+          -distribute-cache
+          -help
+          -path
+          -print
+          -set
+          -verbose
+          -version
+          -write
+          -write-mask
+        )
 
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
         ActiveStorage.web_image_content_types = app.config.active_storage.web_image_content_types || []
@@ -154,9 +170,23 @@ module ActiveStorage
       end
     end
 
+    initializer "action_view.configuration" do
+      config.after_initialize do |app|
+        ActiveSupport.on_load(:action_view) do
+          multiple_file_field_include_hidden = app.config.active_storage.delete(:multiple_file_field_include_hidden)
+
+          unless multiple_file_field_include_hidden.nil?
+            ActionView::Helpers::FormHelper.multiple_file_field_include_hidden = multiple_file_field_include_hidden
+          end
+        end
+      end
+    end
+
     initializer "active_storage.asset" do
-      if Rails.application.config.respond_to?(:assets)
-        Rails.application.config.assets.precompile += %w( activestorage activestorage.esm )
+      config.after_initialize do |app|
+        if app.config.respond_to?(:assets) && app.config.active_storage.precompile_assets
+          app.config.assets.precompile += %w( activestorage activestorage.esm )
+        end
       end
     end
 

@@ -333,10 +333,12 @@ on your side of the application. The InboundEmail simply stays in the system
 for the extra time to provide debugging and forensics options.
 
 The actual incineration is done via the `IncinerationJob` that's scheduled
-to run after `config.action_mailbox.incinerate_after` time. This value is
+to run after [`config.action_mailbox.incinerate_after`][] time. This value is
 by default set to `30.days`, but you can change it in your production.rb
 configuration. (Note that this far-future incineration scheduling relies on
 your job queue being able to hold jobs for that long.)
+
+[`config.action_mailbox.incinerate_after`]: configuring.html#config-action-mailbox-incinerate-after
 
 ## Working with Action Mailbox in development
 

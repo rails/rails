@@ -12,15 +12,18 @@ module ActiveRecord
     class Context
       PROPERTIES = %i[ key_provider key_generator cipher message_serializer encryptor frozen_encryption ]
 
-      PROPERTIES.each do |name|
-        attr_accessor name
-      end
+      attr_accessor(*PROPERTIES)
 
       def initialize
         set_defaults
       end
 
       alias frozen_encryption? frozen_encryption
+
+      silence_redefinition_of_method :key_provider
+      def key_provider
+        @key_provider ||= build_default_key_provider
+      end
 
       private
         def set_defaults
@@ -29,6 +32,10 @@ module ActiveRecord
           self.cipher = ActiveRecord::Encryption::Cipher.new
           self.encryptor = ActiveRecord::Encryption::Encryptor.new
           self.message_serializer = ActiveRecord::Encryption::MessageSerializer.new
+        end
+
+        def build_default_key_provider
+          ActiveRecord::Encryption::DerivedSecretKeyProvider.new(ActiveRecord::Encryption.config.primary_key)
         end
     end
   end

@@ -297,6 +297,12 @@ module ActiveRecord
         options[:strict_loading]
       end
 
+      def strict_loading_violation_message(owner)
+        message = +"`#{owner}` is marked for strict_loading."
+        message << " The #{polymorphic? ? "polymorphic association" : "#{klass} association"}"
+        message << " named `:#{name}` cannot be lazily loaded."
+      end
+
       protected
         def actual_source_reflection # FIXME: this is a horrible name
           self
@@ -1031,7 +1037,7 @@ module ActiveRecord
       end
 
       def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
-        scopes = @previous_reflection.join_scopes(table, predicate_builder, record) + super
+        scopes = @previous_reflection.join_scopes(table, predicate_builder, klass, record) + super
         scopes << build_scope(table, predicate_builder, klass).instance_exec(record, &source_type_scope)
       end
 
