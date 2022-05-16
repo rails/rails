@@ -1,3 +1,15 @@
+*   Fixes proxy downloads of files over 5MiB
+
+    Previously, trying to view and/or download files larger than 5mb stored in
+    services like S3 via proxy mode could return corrupted files at around
+    5.2mb or cause random halts in the download. Now,
+    `ActiveStorage::Blobs::ProxyController` correctly handles streaming these
+    larger files from the service to the client without any issues.
+
+    Fixes #44679
+
+    *Felipe Raul*
+
 ## Rails 7.0.3.1 (July 12, 2022) ##
 
 *   No changes.
