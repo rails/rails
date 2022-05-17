@@ -235,12 +235,21 @@ module ActiveSupport
         end
       end
 
-      # Cache Store API implementation.
+      # Increment a cached integer value using the Redis incrby atomic operator.
+      # Returns the updated value.
       #
-      # Increment a cached value. This method uses the Redis incr atomic
-      # operator and can only be used on values written with the +:raw+ option.
-      # Calling it on a value not stored with +:raw+ will initialize that value
-      # to zero.
+      # If the key is unset or has expired, it will be set to +amount+:
+      #
+      #   cache.increment("foo") # => 1
+      #   cache.increment("bar", 100) # => 100
+      #
+      # To set a specific value, call #write passing <tt>raw: true</tt>:
+      #
+      #   cache.write("baz", 5, raw: true)
+      #   cache.increment("baz") # => 6
+      #
+      # Incrementing a non-numeric value, or a value written without
+      # <tt>raw: true</tt>, will fail and return +nil+.
       #
       # Failsafe: Raises errors.
       def increment(name, amount = 1, options = nil)
@@ -258,12 +267,20 @@ module ActiveSupport
         end
       end
 
-      # Cache Store API implementation.
+      # Decrement a cached integer value using the Redis decrby atomic operator.
+      # Returns the updated value.
       #
-      # Decrement a cached value. This method uses the Redis decr atomic
-      # operator and can only be used on values written with the +:raw+ option.
-      # Calling it on a value not stored with +:raw+ will initialize that value
-      # to zero.
+      # If the key is unset or has expired, it will be set to -amount:
+      #
+      #   cache.decrement("foo") # => -1
+      #
+      # To set a specific value, call #write passing <tt>raw: true</tt>:
+      #
+      #   cache.write("baz", 5, raw: true)
+      #   cache.decrement("baz") # => 4
+      #
+      # Decrementing a non-numeric value, or a value written without
+      # <tt>raw: true</tt>, will fail and return +nil+.
       #
       # Failsafe: Raises errors.
       def decrement(name, amount = 1, options = nil)

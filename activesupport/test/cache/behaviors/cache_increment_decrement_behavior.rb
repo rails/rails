@@ -11,7 +11,9 @@ module CacheIncrementDecrementBehavior
     assert_equal 3, @cache.read(key, raw: true).to_i
 
     missing = @cache.increment(SecureRandom.alphanumeric)
-    assert(missing.nil? || missing == 1)
+    assert_equal 1, missing
+    missing = @cache.increment(SecureRandom.alphanumeric, 100)
+    assert_equal 100, missing
   end
 
   def test_decrement
@@ -24,6 +26,8 @@ module CacheIncrementDecrementBehavior
     assert_equal 1, @cache.read(key, raw: true).to_i
 
     missing = @cache.decrement(SecureRandom.alphanumeric)
-    assert(missing.nil? || missing == -1)
+    assert_equal @cache.is_a?(ActiveSupport::Cache::MemCacheStore) ? 0 : -1, missing
+    missing = @cache.decrement(SecureRandom.alphanumeric, 100)
+    assert_equal @cache.is_a?(ActiveSupport::Cache::MemCacheStore) ? 0 : -100, missing
   end
 end

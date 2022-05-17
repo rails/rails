@@ -127,6 +127,11 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_increment_unset_key
+    assert_equal 1, @cache.increment("foo")
+    assert_equal "1", @cache.read("foo", raw: true)
+  end
+
   def test_write_expires_at
     cache = lookup_store(raw: true, namespace: nil)
 
@@ -139,14 +144,19 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   def test_increment_expires_in
     cache = lookup_store(raw: true, namespace: nil)
-    assert_called_with client(cache), :incr, [ "foo", 1, 60 ] do
+    assert_called_with client(cache), :incr, [ "foo", 1, 60, 1 ] do
       cache.increment("foo", 1, expires_in: 60)
     end
   end
 
+  def test_decrement_unset_key
+    assert_equal 0, @cache.decrement("foo")
+    assert_equal "0", @cache.read("foo", raw: true)
+  end
+
   def test_decrement_expires_in
     cache = lookup_store(raw: true, namespace: nil)
-    assert_called_with client(cache), :decr, [ "foo", 1, 60 ] do
+    assert_called_with client(cache), :decr, [ "foo", 1, 60, 0 ] do
       cache.decrement("foo", 1, expires_in: 60)
     end
   end
