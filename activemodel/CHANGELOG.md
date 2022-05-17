@@ -1,3 +1,15 @@
+*   Make validators accept lambdas without record argument
+
+    ```ruby
+    # Before
+    validates_comparison_of :birth_date, less_than_or_equal_to: ->(_record) { Date.today }
+
+    # After
+    validates_comparison_of :birth_date, less_than_or_equal_to: -> { Date.today }
+    ```
+
+    *fatkodima*
+
 *   Define `deconstruct_keys` in `ActiveModel::AttributeMethods`
 
     This provides the Ruby 2.7+ pattern matching interface for hash patterns,

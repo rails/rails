@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 require "active_model/validations/comparability"
+require "active_model/validations/resolve_value"
 require "bigdecimal/util"
 
 module ActiveModel
   module Validations
     class NumericalityValidator < EachValidator # :nodoc:
       include Comparability
+      include ResolveValue
 
       RANGE_CHECKS = { in: :in? }
       NUMBER_CHECKS = { odd: :odd?, even: :even? }
@@ -64,7 +66,7 @@ module ActiveModel
 
     private
       def option_as_number(record, option_value, precision, scale)
-        parse_as_number(option_value(record, option_value), precision, scale)
+        parse_as_number(resolve_value(record, option_value), precision, scale)
       end
 
       def parse_as_number(raw_value, precision, scale)
@@ -114,14 +116,7 @@ module ActiveModel
       end
 
       def allow_only_integer?(record)
-        case options[:only_integer]
-        when Symbol
-          record.send(options[:only_integer])
-        when Proc
-          options[:only_integer].call(record)
-        else
-          options[:only_integer]
-        end
+        resolve_value(record, options[:only_integer])
       end
 
       def prepare_value_for_validation(value, record, attr_name)

@@ -7,17 +7,6 @@ module ActiveModel
         equal_to: :==, less_than: :<, less_than_or_equal_to: :<=,
         other_than: :!= }.freeze
 
-      def option_value(record, option_value)
-        case option_value
-        when Proc
-          option_value.call(record)
-        when Symbol
-          record.send(option_value)
-        else
-          option_value
-        end
-      end
-
       def error_options(value, option_value)
         options.except(*COMPARE_CHECKS.keys).merge!(
           count: option_value,

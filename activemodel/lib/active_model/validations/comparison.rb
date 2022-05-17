@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
 require "active_model/validations/comparability"
+require "active_model/validations/resolve_value"
 
 module ActiveModel
   module Validations
     class ComparisonValidator < EachValidator # :nodoc:
       include Comparability
+      include ResolveValue
 
       def check_validity!
         unless (options.keys & COMPARE_CHECKS.keys).any?
@@ -16,7 +18,7 @@ module ActiveModel
 
       def validate_each(record, attr_name, value)
         options.slice(*COMPARE_CHECKS.keys).each do |option, raw_option_value|
-          option_value = option_value(record, raw_option_value)
+          option_value = resolve_value(record, raw_option_value)
 
           if value.nil? || value.blank?
             return record.errors.add(attr_name, :blank, **error_options(value, option_value))

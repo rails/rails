@@ -1,10 +1,13 @@
 # frozen_string_literal: true
 
+require "active_model/validations/resolve_value"
 require "active_support/core_ext/range"
 
 module ActiveModel
   module Validations
     module Clusivity # :nodoc:
+      include ResolveValue
+
       ERROR_MESSAGE = "An object with the method #include? or a proc, lambda or symbol is required, " \
                       "and must be supplied as the :in (or :within) option of the configuration hash"
 
@@ -16,13 +19,7 @@ module ActiveModel
 
     private
       def include?(record, value)
-        members = if delimiter.respond_to?(:call)
-          delimiter.call(record)
-        elsif delimiter.respond_to?(:to_sym)
-          record.send(delimiter)
-        else
-          delimiter
-        end
+        members = resolve_value(record, delimiter)
 
         if value.is_a?(Array)
           value.all? { |v| members.public_send(inclusion_method(members), v) }
