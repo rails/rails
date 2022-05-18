@@ -361,7 +361,13 @@ module ActiveSupport
       # <tt>:version</tt> options, both of these conditions are applied before
       # the data is returned.
       #
-      # Options are passed to the underlying cache implementation.
+      # ==== Options
+      #
+      # * +:version+ - Specifies a version for the cache entry. If the cached
+      #   version does not match the requested version, the read will be treated
+      #   as a cache miss. This feature is used to support recyclable cache keys.
+      #
+      # Other options will be handled by the specific cache store implementation.
       def read(name, options = nil)
         options = merged_options(options)
         key     = normalize_key(name, options)
