@@ -80,7 +80,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_support.use_rfc4122_namespaced_uuids`](#config-active-support-use-rfc4122-namespaced-uuids): `true`
 - [`config.active_support.disable_to_s_conversion`](#config-active-support-disable-to-s-conversion): `true`
 - [`config.action_dispatch.return_only_request_media_type_on_content_type`](#config-action-dispatch-return-only-request-media-type-on-content-type): `false`
-- [`config.action_dispatch.cookies_serializer`](#config-action-dispatch-cookies-serializer): `:json`
+- [`config.action_dispatch.cookies_serializer`](#config-action-dispatch-cookies-serializer): `:hybrid`
 - [`config.action_mailer.smtp_timeout`](#config-action-mailer-smtp-timeout): `5`
 - [`config.active_storage.video_preview_arguments`](#config-active-storage-video-preview-arguments): `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
 - [`config.active_storage.multiple_file_field_include_hidden`](#config-active-storage-multiple-file-field-include-hidden): `true`
