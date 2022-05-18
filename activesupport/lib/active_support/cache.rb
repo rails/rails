@@ -214,9 +214,19 @@ module ActiveSupport
           end
       end
 
-      # Creates a new cache. The options will be passed to any write method calls
-      # except for <tt>:namespace</tt> which can be used to set the global
-      # namespace for the cache.
+      # Creates a new cache.
+      #
+      # ==== Options
+      #
+      # * +:namespace+ - Sets the namespace for the cache. This option is
+      #   especially useful if your application shares a cache with other
+      #   applications.
+      # * +:coder+ - Replaces the default cache entry serialization mechanism
+      #   with a custom one. The +coder+ must respond to +dump+ and +load+.
+      #   Using a custom coder disables automatic compression.
+      #
+      # Any other specified options are treated as default options for the
+      # relevant cache operations, such as #read, #write, and #fetch.
       def initialize(options = nil)
         @options = options ? normalize_options(options) : {}
         @options[:compress] = true unless @options.key?(:compress)
