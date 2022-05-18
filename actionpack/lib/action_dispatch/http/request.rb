@@ -195,9 +195,20 @@ module ActionDispatch
     # Returns the original value of the environment's REQUEST_METHOD,
     # even if it was overridden by middleware. See #request_method for
     # more information.
-    def method
-      @method ||= check_method(get_header("rack.methodoverride.original_method") || get_header("REQUEST_METHOD"))
+    #
+    # For debugging purposes, when called with arguments this method will
+    # fallback to Object#method
+    def method(*args)
+      if args.empty?
+        @method ||= check_method(
+          get_header("rack.methodoverride.original_method") ||
+          get_header("REQUEST_METHOD")
+        )
+      else
+        super
+      end
     end
+    ruby2_keywords(:method)
 
     # Returns a symbol form of the #method.
     def method_symbol

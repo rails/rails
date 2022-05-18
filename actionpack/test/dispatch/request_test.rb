@@ -783,6 +783,14 @@ class RequestMethod < BaseRequestTest
       end
     end
   end
+
+  test "delegates to Object#method if an argument is passed" do
+    request = stub_request
+
+    assert_nothing_raised do
+      request.method(:POST)
+    end
+  end
 end
 
 class RequestFormat < BaseRequestTest
