@@ -369,7 +369,7 @@ arguments to the cache store's constructor:
 config.cache_store = :memory_store, { size: 64.megabytes }
 ```
 
-NOTE: Alternatively, you can call `ActionController::Base.cache_store` outside of a configuration block.
+Alternatively, you can set `ActionController::Base.cache_store` outside of a configuration block.
 
 You can access the cache by calling `Rails.cache`.
 
@@ -726,7 +726,7 @@ $ bin/rails dev:cache
 Development mode is no longer being cached.
 ```
 
-NOTE: By default, when development mode caching is *off*, Rails uses
+By default, when development mode caching is *off*, Rails uses
 [`ActiveSupport::Cache::NullStore`](#activesupport-cache-nullstore).
 
 References
