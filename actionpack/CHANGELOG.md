@@ -1,3 +1,17 @@
+*   Allow using `helper_method`s in `content_security_policy` and `permissions_policy`
+
+    Previously you could access basic helpers (defined in helper modules), but not
+    helper methods defined using `helper_method`. Now you can use either.
+
+    ```ruby
+    content_security_policy do |p|
+      p.default_src "https://example.com"
+      p.script_src "https://example.com" if helpers.script_csp?
+    end
+    ```
+
+    *Alex Ghiculescu*
+
 *   Reimplement `ActionController::Parameters#has_value?` and `#value?` to avoid parameters and hashes comparison.
 
     Deprecated equality between parameters and hashes is going to be removed in Rails 7.2.
