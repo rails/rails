@@ -39,7 +39,7 @@ module ActiveModel
       # or DateTime ranges.
       def inclusion_method(enumerable)
         if enumerable.is_a? Range
-          case enumerable.first
+          case enumerable.begin || enumerable.end
           when Numeric, Time, DateTime, Date
             :cover?
           else
