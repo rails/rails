@@ -314,6 +314,16 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert_equal({}, @cache.send(:read_multi_entries, [key]))
   end
 
+  def test_deprecated_connection_pool_works
+    assert_deprecated do
+      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, pool_size: 2, pool_timeout: 1)
+      pool = cache.instance_variable_get(:@data) # loads 'connection_pool' gem
+      assert_kind_of ::ConnectionPool, pool
+      assert_equal 2, pool.size
+      assert_equal 1, pool.instance_variable_get(:@timeout)
+    end
+  end
+
   private
     def random_string(length)
       (0...length).map { (65 + rand(26)).chr }.join

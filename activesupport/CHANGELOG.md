@@ -1,3 +1,19 @@
+*   Deprecated `:pool_size` and `:pool_timeout` options for configuring connection pooling in cache stores.
+
+    Use `pool: true` to enable pooling with default settings:
+
+    ```ruby
+    config.cache_store = :redis_cache_store, pool: true
+    ```
+
+    Or pass individual options via `:pool` option:
+
+    ```ruby
+    config.cache_store = :redis_cache_store, pool: { size: 10, timeout: 2 }
+    ```
+
+    *fatkodima*
+
 *   Allow #increment and #decrement methods of `ActiveSupport::Cache::Store`
     subclasses to set new values.
 

@@ -183,10 +183,34 @@ module ActiveSupport
 
       class << self
         private
+          DEFAULT_POOL_OPTIONS = { size: 5, timeout: 5 }.freeze
+          private_constant :DEFAULT_POOL_OPTIONS
+
           def retrieve_pool_options(options)
-            {}.tap do |pool_options|
-              pool_options[:size] = options.delete(:pool_size) if options[:pool_size]
-              pool_options[:timeout] = options.delete(:pool_timeout) if options[:pool_timeout]
+            if (pool_options = options.delete(:pool))
+              if Hash === pool_options
+                DEFAULT_POOL_OPTIONS.merge(pool_options)
+              else
+                DEFAULT_POOL_OPTIONS
+              end
+            else
+              {}.tap do |pool_options|
+                if options[:pool_size]
+                  ActiveSupport::Deprecation.warn(<<~MSG)
+                    Using :pool_size is deprecated and will be removed in Rails 7.2.
+                    Use `pool: { size: #{options[:pool_size].inspect} }` instead.
+                  MSG
+                  pool_options[:size] = options.delete(:pool_size)
+                end
+
+                if options[:pool_timeout]
+                  ActiveSupport::Deprecation.warn(<<~MSG)
+                    Using :pool_timeout is deprecated and will be removed in Rails 7.2.
+                    Use `pool: { timeout: #{options[:pool_timeout].inspect} }` instead.
+                  MSG
+                  pool_options[:timeout] = options.delete(:pool_timeout)
+                end
+              end
             end
           end
 
