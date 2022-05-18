@@ -170,11 +170,6 @@ module ActiveSupport
     #   cache.namespace = -> { @last_mod_time }  # Set the namespace to a variable
     #   @last_mod_time = Time.now  # Invalidate the entire cache by changing namespace
     #
-    # Cached data larger than 1kB are compressed by default. To turn off
-    # compression, pass <tt>compress: false</tt> to the initializer or to
-    # individual +fetch+ or +write+ method calls. The 1kB compression
-    # threshold is configurable with the <tt>:compress_threshold</tt> option,
-    # specified in bytes.
     class Store
       cattr_accessor :logger, instance_writer: true
 
@@ -282,32 +277,6 @@ module ActiveSupport
       #   cache.fetch('bar', skip_nil: true) { nil }
       #   cache.exist?('foo') # => true
       #   cache.exist?('bar') # => false
-      #
-      #
-      # Setting <tt>compress: false</tt> disables compression of the cache entry.
-      #
-      # Setting <tt>:expires_in</tt> will set an expiration time on the cache.
-      # All caches support auto-expiring content after a specified number of
-      # seconds. This value can be specified as an option to the constructor
-      # (in which case all entries will be affected), or it can be supplied to
-      # the +fetch+ or +write+ method to affect just one entry.
-      # <tt>:expire_in</tt> and <tt>:expired_in</tt> are aliases for
-      # <tt>:expires_in</tt>.
-      #
-      #   cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 5.minutes)
-      #   cache.write(key, value, expires_in: 1.minute) # Set a lower value for one entry
-      #
-      # Setting <tt>:expires_at</tt> will set an absolute expiration time on the cache.
-      # All caches support auto-expiring content after a specified number of
-      # seconds. This value can only be supplied to the +fetch+ or +write+ method to
-      # affect just one entry.
-      #
-      #   cache = ActiveSupport::Cache::MemoryStore.new
-      #   cache.write(key, value, expires_at: Time.now.at_end_of_hour)
-      #
-      # Setting <tt>:version</tt> verifies the cache stored under <tt>name</tt>
-      # is of the same version. nil is returned on mismatches despite contents.
-      # This feature is used to support recyclable cache keys.
       #
       # Setting <tt>:race_condition_ttl</tt> is very useful in situations where
       # a cache entry is used very frequently and is under heavy load. If a
@@ -517,9 +486,39 @@ module ActiveSupport
         end
       end
 
-      # Writes the value to the cache, with the key.
+      # Writes the value to the cache with the key. The value must be supported
+      # by the +coder+'s +dump+ and +load+ methods.
       #
-      # Options are passed to the underlying cache implementation.
+      # By default, cache entries larger than 1kB are compressed. Compression
+      # allows more data to be stored in the same memory footprint, leading to
+      # fewer cache evictions and higher hit rates.
+      #
+      # ==== Options
+      #
+      # * <tt>compress: false</tt> - Disables compression of the cache entry.
+      #
+      # * +:compress_threshold+ - The compression threshold, specified in bytes.
+      #   \Cache entries larger than this threshold will be compressed. Defaults
+      #   to +1.kilobyte+.
+      #
+      # * +:expires_in+ - Sets a relative expiration time for the cache entry,
+      #   specified in seconds. +:expire_in+ and +:expired_in+ are aliases for
+      #   +:expires_in+.
+      #
+      #     cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 5.minutes)
+      #     cache.write(key, value, expires_in: 1.minute) # Set a lower value for one entry
+      #
+      # * +:expires_at+ - Sets an absolute expiration time for the cache entry.
+      #
+      #     cache = ActiveSupport::Cache::MemoryStore.new
+      #     cache.write(key, value, expires_at: Time.now.at_end_of_hour)
+      #
+      # * +:version+ - Specifies a version for the cache entry. When reading
+      #   from the cache, if the cached version does not match the requested
+      #   version, the read will be treated as a cache miss. This feature is
+      #   used to support recyclable cache keys.
+      #
+      # Other options will be handled by the specific cache store implementation.
       def write(name, value, options = nil)
         options = merged_options(options)
 
