@@ -258,85 +258,75 @@ module ActiveSupport
       #   end
       #   cache.fetch('city')   # => "Duckburgh"
       #
-      # You may also specify additional options via the +options+ argument.
-      # Setting <tt>force: true</tt> forces a cache "miss," meaning we treat
-      # the cache value as missing even if it's present. Passing a block is
-      # required when +force+ is true so this always results in a cache write.
+      # ==== Options
       #
-      #   cache.write('today', 'Monday')
-      #   cache.fetch('today', force: true) { 'Tuesday' } # => 'Tuesday'
-      #   cache.fetch('today', force: true) # => ArgumentError
+      # Internally, +fetch+ calls #read_entry, and calls #write_entry on a cache
+      # miss. Thus, +fetch+ supports the same options as #read and #write.
+      # Additionally, +fetch+ supports the following options:
       #
-      # The +:force+ option is useful when you're calling some other method to
-      # ask whether you should force a cache write. Otherwise, it's clearer to
-      # just call <tt>Cache#write</tt>.
+      # * <tt>force: true</tt> - Forces a cache "miss," meaning we treat the
+      #   cache value as missing even if it's present. Passing a block is
+      #   required when +force+ is true so this always results in a cache write.
       #
-      # Setting <tt>skip_nil: true</tt> will not cache nil result:
+      #     cache.write('today', 'Monday')
+      #     cache.fetch('today', force: true) { 'Tuesday' } # => 'Tuesday'
+      #     cache.fetch('today', force: true) # => ArgumentError
       #
-      #   cache.fetch('foo') { nil }
-      #   cache.fetch('bar', skip_nil: true) { nil }
-      #   cache.exist?('foo') # => true
-      #   cache.exist?('bar') # => false
+      #   The +:force+ option is useful when you're calling some other method to
+      #   ask whether you should force a cache write. Otherwise, it's clearer to
+      #   just call +write+.
       #
-      # Setting <tt>:race_condition_ttl</tt> is very useful in situations where
-      # a cache entry is used very frequently and is under heavy load. If a
-      # cache expires and due to heavy load several different processes will try
-      # to read data natively and then they all will try to write to cache. To
-      # avoid that case the first process to find an expired cache entry will
-      # bump the cache expiration time by the value set in <tt>:race_condition_ttl</tt>.
-      # Yes, this process is extending the time for a stale value by another few
-      # seconds. Because of extended life of the previous cache, other processes
-      # will continue to use slightly stale data for a just a bit longer. In the
-      # meantime that first process will go ahead and will write into cache the
-      # new value. After that all the processes will start getting the new value.
-      # The key is to keep <tt>:race_condition_ttl</tt> small.
+      # * <tt>skip_nil: true</tt> - Prevents caching a nil result:
       #
-      # If the process regenerating the entry errors out, the entry will be
-      # regenerated after the specified number of seconds. Also note that the
-      # life of stale cache is extended only if it expired recently. Otherwise
-      # a new value is generated and <tt>:race_condition_ttl</tt> does not play
-      # any role.
+      #     cache.fetch('foo') { nil }
+      #     cache.fetch('bar', skip_nil: true) { nil }
+      #     cache.exist?('foo') # => true
+      #     cache.exist?('bar') # => false
       #
-      #   # Set all values to expire after one minute.
-      #   cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 1.minute)
+      # * +:race_condition_ttl+ - Specifies the number of seconds during which
+      #   an expired value can be reused while a new value is being generated.
+      #   This can be used to prevent race conditions when cache entries expire,
+      #   by preventing multiple processes from simultaneously regenerating the
+      #   same entry (also known as the dog pile effect).
       #
-      #   cache.write('foo', 'original value')
-      #   val_1 = nil
-      #   val_2 = nil
-      #   sleep 60
+      #   When a process encounters a cache entry that has expired less than
+      #   +:race_condition_ttl+ seconds ago, it will bump the expiration time by
+      #   +:race_condition_ttl+ seconds before generating a new value. During
+      #   this extended time window, while the process generates a new value,
+      #   other processes will continue to use the old value. After the first
+      #   process writes the new value, other processes will then use it.
       #
-      #   Thread.new do
-      #     val_1 = cache.fetch('foo', race_condition_ttl: 10.seconds) do
-      #       sleep 1
-      #       'new value 1'
+      #   If the first process errors out while generating a new value, another
+      #   process can try to generate a new value after the extended time window
+      #   has elapsed.
+      #
+      #     # Set all values to expire after one minute.
+      #     cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 1.minute)
+      #
+      #     cache.write('foo', 'original value')
+      #     val_1 = nil
+      #     val_2 = nil
+      #     sleep 60
+      #
+      #     Thread.new do
+      #       val_1 = cache.fetch('foo', race_condition_ttl: 10.seconds) do
+      #         sleep 1
+      #         'new value 1'
+      #       end
       #     end
-      #   end
       #
-      #   Thread.new do
-      #     val_2 = cache.fetch('foo', race_condition_ttl: 10.seconds) do
-      #       'new value 2'
+      #     Thread.new do
+      #       val_2 = cache.fetch('foo', race_condition_ttl: 10.seconds) do
+      #         'new value 2'
+      #       end
       #     end
-      #   end
       #
-      #   cache.fetch('foo') # => "original value"
-      #   sleep 10 # First thread extended the life of cache by another 10 seconds
-      #   cache.fetch('foo') # => "new value 1"
-      #   val_1 # => "new value 1"
-      #   val_2 # => "original value"
+      #     cache.fetch('foo') # => "original value"
+      #     sleep 10 # First thread extended the life of cache by another 10 seconds
+      #     cache.fetch('foo') # => "new value 1"
+      #     val_1 # => "new value 1"
+      #     val_2 # => "original value"
       #
-      # Other options will be handled by the specific cache store implementation.
-      # Internally, #fetch calls #read_entry, and calls #write_entry on a cache
-      # miss. +options+ will be passed to the #read and #write calls.
-      #
-      # For example, MemCacheStore's #write method supports the +:raw+
-      # option, which tells the memcached server to store all values as strings.
-      # We can use this option with #fetch too:
-      #
-      #   cache = ActiveSupport::Cache::MemCacheStore.new
-      #   cache.fetch("foo", force: true, raw: true) do
-      #     :bar
-      #   end
-      #   cache.fetch('foo') # => "bar"
       def fetch(name, options = nil, &block)
         if block_given?
           options = merged_options(options)
