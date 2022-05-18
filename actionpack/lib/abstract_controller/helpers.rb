@@ -84,10 +84,13 @@ module AbstractController
         file, line = location.path, location.lineno
 
         methods.each do |method|
-          _helpers_for_modification.class_eval <<~ruby_eval, file, line
-            def #{method}(*args, &block)                    # def current_user(*args, &block)
-              controller.send(:'#{method}', *args, &block)  #   controller.send(:'current_user', *args, &block)
-            end                                             # end
+          # def current_user(*args, &block)
+          #   controller.send(:'current_user', *args, &block)
+          # end
+          _helpers_for_modification.class_eval <<~ruby_eval.lines.map(&:strip).join(";"), file, line
+            def #{method}(*args, &block)
+              controller.send(:'#{method}', *args, &block)
+            end
             ruby2_keywords(:'#{method}')
           ruby_eval
         end
