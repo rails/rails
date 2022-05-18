@@ -76,6 +76,13 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_valid_values(FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
   end
 
+  def test_validates_numericality_of_with_integer_only_and_lambda_as_value
+    Topic.validates_numericality_of :approved, only_integer: -> { false }
+
+    assert_invalid_values(NIL + BLANK + JUNK)
+    assert_valid_values(FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
+  end
+
   def test_validates_numericality_of_with_numeric_only
     Topic.validates_numericality_of :approved, only_numeric: true
 
@@ -245,6 +252,13 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_valid_values([5, 6])
   ensure
     Topic.remove_method :min_approved
+  end
+
+  def test_validates_numericality_with_lambda
+    Topic.validates_numericality_of :approved, greater_than_or_equal_to: -> { 5 }
+
+    assert_invalid_values([3, 4], "must be greater than or equal to 5")
+    assert_valid_values([5, 6])
   end
 
   def test_validates_numericality_with_symbol

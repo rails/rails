@@ -456,4 +456,19 @@ class LengthValidationTest < ActiveModel::TestCase
     t.title = ""
     assert_predicate t, :valid?
   end
+
+  def test_validates_length_of_using_lambda_as_maximum
+    Topic.validates_length_of :title, maximum: -> { 5 }
+
+    t = Topic.new("title" => "valid", "content" => "whatever")
+    assert_predicate t, :valid?
+
+    t.title = "notvalid"
+    assert_predicate t, :invalid?
+    assert_predicate t.errors[:title], :any?
+    assert_equal ["is too long (maximum is 5 characters)"], t.errors[:title]
+
+    t.title = ""
+    assert_predicate t, :valid?
+  end
 end

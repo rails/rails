@@ -133,6 +133,17 @@ class InclusionValidationTest < ActiveModel::TestCase
     assert_predicate t, :valid?
   end
 
+  def test_validates_inclusion_of_with_lambda_without_arguments
+    Topic.validates_inclusion_of :title, in: lambda { %w( monkey elephant ) }
+
+    t = Topic.new
+    t.title = "wasabi"
+    assert_predicate t, :invalid?
+
+    t.title = "elephant"
+    assert_predicate t, :valid?
+  end
+
   def test_validates_inclusion_of_with_symbol
     Person.validates_inclusion_of :karma, in: :available_karmas
 
