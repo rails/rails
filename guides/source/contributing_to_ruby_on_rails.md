@@ -195,7 +195,7 @@ If you're a member of an organization that has codespaces enabled, you can fork 
 
 #### Using VS Code Remote Containers
 
-If you have [Visual Studio Code](https://code.visualstudio.com) and [Docker](https://www.docker.com) installed you can use the [VS Code remote containers plugin](https://code.visualstudio.com/docs/remote/containers-tutorial). The plugin will read the [`.devcontainer`](../../.devcontainer) configuration in the repository and build the Docker container locally.
+If you have [Visual Studio Code](https://code.visualstudio.com) and [Docker](https://www.docker.com) installed, you can use the [VS Code remote containers plugin](https://code.visualstudio.com/docs/remote/containers-tutorial). The plugin will read the [`.devcontainer`](https://github.com/rails/rails/tree/main/.devcontainer) configuration in the repository and build the Docker container locally.
 
 #### Using rails-dev-box
 
