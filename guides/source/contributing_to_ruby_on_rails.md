@@ -193,7 +193,7 @@ To move on from submitting bugs to helping resolve existing issues or contributi
 
 If you're a member of an organization that has codespaces enabled, you can fork Rails into that organization and use codespaces on GitHub. The Codespace will be initialized with all required dependencies and allows you to run all tests.
 
-#### Using VS Code remote containers
+#### Using VS Code Remote Containers
 
 If you have [Visual Studio Code](https://code.visualstudio.com) and [Docker](https://www.docker.com) installed you can use the [VS Code remote containers plugin](https://code.visualstudio.com/docs/remote/containers-tutorial). The plugin will read the [`.devcontainer`](../../.devcontainer) configuration in the repository and build the Docker container locally.
 
