@@ -77,7 +77,7 @@ If you need to use `return` statements in your callbacks, it is recommended that
 use this style:
 
 ```markdown
-If `return` is needed it is recommended to explicitly define a method.
+If `return` is needed, it is recommended to explicitly define a method.
 ```
 
 That said, when using pronouns in reference to a hypothetical person, such as "a
