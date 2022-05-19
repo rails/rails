@@ -1,3 +1,7 @@
+*   Fix `touch` to raise an error for readonly columns.
+
+    *fatkodima*
+
 *   Add ability to ignore tables by regexp for SQL schema dumps.
 
     ```ruby

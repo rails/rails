@@ -1017,10 +1017,12 @@ module ActiveRecord
       _raise_readonly_record_error if readonly?
 
       attribute_names = timestamp_attributes_for_update_in_model
-      attribute_names |= names.map! do |name|
+      attribute_names = (attribute_names | names).map! do |name|
         name = name.to_s
-        self.class.attribute_aliases[name] || name
-      end unless names.empty?
+        name = self.class.attribute_aliases[name] || name
+        verify_readonly_attribute(name)
+        name
+      end
 
       unless attribute_names.empty?
         affected_rows = _touch_row(attribute_names, time)
