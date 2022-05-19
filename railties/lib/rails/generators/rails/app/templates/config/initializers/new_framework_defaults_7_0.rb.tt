@@ -83,11 +83,13 @@
 # Rails.application.config.active_storage.variant_processor = :vips
 
 # If you're upgrading and haven't set `cookies_serializer` previously, your cookie serializer
-# was `:marshal`. Convert all cookies to JSON, using the `:hybrid` formatter.
+# was `:marshal`. The default for new apps is `:json`.
 #
-# If you're confident all your cookies are JSON formatted, you can switch to the `:json` formatter.
+# You can convert all cookies to JSON using the `:hybrid` formatter. It is fine to use
+#`:hybrid` long term; you should do that unless you're confident that *all* your cookies
+# have been converted to JSON.
 #
-# Continue to use `:marshal` for backward-compatibility with old cookies.
+# You can also use `:marshal` for backward-compatibility with old cookies.
 #
 # If you have configured the serializer elsewhere, you can remove this.
 #
