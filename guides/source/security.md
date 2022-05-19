@@ -1061,7 +1061,7 @@ HTTP Security Headers
 ---------------------
 
 To improve the security of your application, Rails can be configured to return
-HTTP security headers. Some headers are configured by default, others need to
+HTTP security headers. Some headers are configured by default; others need to
 be explicitly configured.
 
 ### Default Security Headers
@@ -1096,9 +1096,9 @@ PDF clients from embedding your page on other domains.
 #### Referrer-Policy
 
 This header is set to `strict-origin-when-cross-origin` in Rails by default.
-For cross-origin request this only sends the origin in the Referer header. This
+For cross-origin requests, this only sends the origin in the Referer header. This
 prevents leaks of private data that may be accessible from other parts of the
-full URL such as the path and query string.
+full URL, such as the path and query string.
 
 #### Configuring the Default Headers
 
@@ -1294,10 +1294,10 @@ loaded inline `<script>` elements.
 NOTE: The Feature-Policy header has been renamed to Permissions-Policy.
 The Permissions-Policy requires a different implementation and isn't
 yet supported by all browsers. To avoid having to rename this
-middleware in the future we use the new name for the middleware but
+middleware in the future, we use the new name for the middleware but
 keep the old header name and implementation for now.
 
-To allow or block the use of browser features you can define a
+To allow or block the use of browser features, you can define a
 [Feature-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy)
 response header for your application. Rails provides a DSL that allows you to
 configure the header.

@@ -31,9 +31,9 @@ NOTE: Bugs in the most recent released version of Ruby on Rails will likely get 
 
 If you've found a problem in Ruby on Rails that is not a security risk, search the [Issues](https://github.com/rails/rails/issues) on GitHub, in case it has already been reported. If you cannot find any open GitHub issues addressing the problem you found, your next step will be to [open a new issue](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues.)
 
-We've provided an issue template for you so that when creating an issue you include all the information needed to determine whether there is a bug in the framework. Each issue needs to include a title and clear description of the problem. Make sure to include as much relevant information as possible including a code sample or failing test that demonstrates the expected behavior, as well as your system configuration. Your goal should be to make it easy for yourself - and others - to reproduce the bug and figure out a fix.
+We've provided an issue template for you so that when creating an issue you include all the information needed to determine whether there is a bug in the framework. Each issue needs to include a title and clear description of the problem. Make sure to include as much relevant information as possible, including a code sample or failing test that demonstrates the expected behavior, as well as your system configuration. Your goal should be to make it easy for yourself - and others - to reproduce the bug and figure out a fix.
 
-Once you open an issue it may or may not see activity right away unless it is a "Code Red, Mission Critical, the World is Coming to an End" kind of bug. That doesn't mean we don't care about your bug, just that there are a lot of issues and pull requests to get through. Other people with the same problem can find your issue and confirm the bug and may collaborate with you on fixing it. If you know how to fix the bug, go ahead and open a pull request.
+Once you open an issue, it may or may not see activity right away unless it is a "Code Red, Mission Critical, the World is Coming to an End" kind of bug. That doesn't mean we don't care about your bug, just that there are a lot of issues and pull requests to get through. Other people with the same problem can find your issue, and confirm the bug, and may collaborate with you on fixing it. If you know how to fix the bug, go ahead and open a pull request.
 
 ### Create an Executable Test Case
 
@@ -85,7 +85,7 @@ discussions new features require.
 Helping to Resolve Existing Issues
 ----------------------------------
 
-Beyond reporting issues, you can help the core team resolve existing ones by providing feedback about them. If you are new to Rails core development providing feedback will help you get familiar with the codebase and the processes.
+Beyond reporting issues, you can help the core team resolve existing ones by providing feedback about them. If you are new to Rails core development, providing feedback will help you get familiar with the codebase and the processes.
 
 If you check the [issues list](https://github.com/rails/rails/issues) in GitHub Issues, you'll find lots of issues already requiring attention. What can you do about these? Quite a bit, actually:
 
@@ -252,7 +252,7 @@ $ yarn link "@rails/activestorage"
 
 ### Write Your Code
 
-Now it's time to write some code! When making changes for Rails here are some things to keep in mind:
+Now it's time to write some code! When making changes for Rails, here are some things to keep in mind:
 
 * Follow Rails style and conventions.
 * Use Rails idioms and helpers.
@@ -675,7 +675,7 @@ pull requests and give someone else some! They'll appreciate it in
 the same way that you appreciate feedback on your patches.
 
 Note that only the Core and Committers teams are permitted to merge code changes.
-If someone gives feedback and "approves" your changes they may not have the ability
+If someone gives feedback and "approves" your changes, they may not have the ability
 or final say to merge your change.
 
 ### Iterate as Necessary

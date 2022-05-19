@@ -374,7 +374,7 @@ Allows you to configure the application's middleware. This is covered in depth i
 
 #### `config.public_file_server.enabled`
 
-Configures Rails to serve static files from the public directory. This option defaults to `true`, but in the production environment it is set to `false` because the server software (e.g. NGINX or Apache) used to run the application should serve static files instead. If you are running or testing your app in production using WEBrick (it is not recommended to use WEBrick in production) set the option to `true`. Otherwise, you won't be able to use page caching and request for files that exist under the public directory.
+Configures Rails to serve static files from the public directory. This option defaults to `true`, but in the production environment it is set to `false` because the server software (e.g. NGINX or Apache) used to run the application should serve static files instead. If you are running or testing your app in production using WEBrick (it is not recommended to use WEBrick in production), set the option to `true`. Otherwise, you won't be able to use page caching and request for files that exist under the public directory.
 
 #### `config.railties_order`
 

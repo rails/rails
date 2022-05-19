@@ -759,7 +759,7 @@ video.preview(resize_to_limit: [100, 100])
 video.preview(resize_to_fill: [100, 100])
 ```
 
-### New `ActiveModel:Errors` class
+### New `ActiveModel::Error` class
 
 Errors are now instances of a new `ActiveModel::Error` class, with changes to
 the API. Some of these changes may throw errors depending on how you manipulate
