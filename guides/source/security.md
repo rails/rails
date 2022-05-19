@@ -1069,7 +1069,7 @@ be explicitly configured.
 By default Rails is configured to return the following response headers. Your
 application returns these headers for every HTTP response.
 
-#### X-Frame-Options
+#### `X-Frame-Options`
 
 This header indicates if a browser can render the page in a `<frame>`,
 `<iframe>`, `<embed>` or `<object>` tag. This header is set to `SAMEORIGIN` by
@@ -1077,23 +1077,23 @@ default to allow framing on the same domain only. Set it to `DENY` to deny
 framing at all, or remove this header completely if you want to allow framing on
 all domains.
 
-#### X-XSS-Protection
+#### `X-XSS-Protection`
 
 A [deprecated legacy
 header](https://owasp.org/www-project-secure-headers/#x-xss-protection), set to
 `0` in Rails by default to disable problematic legacy XSS auditors.
 
-#### X-Content-Type-Options
+#### `X-Content-Type-Options`
 
 This header is set to `nosniff` in Rails by default. It stops the browser from
 guessing the MIME type of a file.
 
-#### X-Permitted-Cross-Domain-Policies
+#### `X-Permitted-Cross-Domain-Policies`
 
 This header is set to `none` in Rails by default. It disallows Adobe Flash and
 PDF clients from embedding your page on other domains.
 
-#### Referrer-Policy
+#### `Referrer-Policy`
 
 This header is set to `strict-origin-when-cross-origin` in Rails by default.
 For cross-origin requests, this only sends the origin in the Referer header. This
@@ -1127,10 +1127,10 @@ Or you can remove them:
 config.action_dispatch.default_headers.clear
 ```
 
-### Strict-Transport-Security Header
+### `Strict-Transport-Security` Header
 
 The HTTP
-[Strict-Transport-Security](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security)
+[`Strict-Transport-Security`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security)
 (HTST) response header makes sure the browser automatically upgrades to HTTPS
 for current and future connections.
 
@@ -1140,10 +1140,10 @@ The header is added to the response when enabling the `force_ssl` option:
   config.force_ssl = true
 ```
 
-### Content-Security-Policy Header
+### `Content-Security-Policy` Header
 
 To help protect against XSS and injection attacks, it is recommended to define a
-[Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
+[`Content-Security-Policy`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
 response header for your application. Rails provides a DSL that allows you to
 configure the header.
 
@@ -1196,7 +1196,7 @@ end
 #### Reporting Violations
 
 Enable the
-[report-uri](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri)
+[`report-uri`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri)
 directive to report violations to the specified URI:
 
 ```ruby
@@ -1207,7 +1207,7 @@ end
 
 When migrating legacy content, you might want to report violations without
 enforcing the policy. Set the
-[Content-Security-Policy-Report-Only](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only)
+[`Content-Security-Policy-Report-Only`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only)
 response header to only report violations:
 
 ```ruby
@@ -1224,9 +1224,9 @@ end
 
 #### Adding a Nonce
 
-If you are considering 'unsafe-inline', consider using nonces instead. [Nonces
+If you are considering `'unsafe-inline'`, consider using nonces instead. [Nonces
 provide a substantial improvement](https://www.w3.org/TR/CSP3/#security-nonces)
-over 'unsafe-inline' when implementing a Content Security Policy on top
+over `'unsafe-inline'` when implementing a Content Security Policy on top
 of existing code.
 
 ```ruby
@@ -1289,16 +1289,16 @@ for allowing inline `<script>` tags.
 This is used by the Rails UJS helper to create dynamically
 loaded inline `<script>` elements.
 
-### Feature-Policy Header
+### `Feature-Policy` Header
 
-NOTE: The Feature-Policy header has been renamed to Permissions-Policy.
-The Permissions-Policy requires a different implementation and isn't
+NOTE: The `Feature-Policy` header has been renamed to `Permissions-Policy`.
+The `Permissions-Policy` requires a different implementation and isn't
 yet supported by all browsers. To avoid having to rename this
 middleware in the future, we use the new name for the middleware but
 keep the old header name and implementation for now.
 
 To allow or block the use of browser features, you can define a
-[Feature-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy)
+[`Feature-Policy`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy)
 response header for your application. Rails provides a DSL that allows you to
 configure the header.
 

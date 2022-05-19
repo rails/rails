@@ -373,7 +373,7 @@ NOTE: Alternatively, you can call `ActionController::Base.cache_store` outside o
 
 You can access the cache by calling `Rails.cache`.
 
-### ActiveSupport::Cache::Store
+### `ActiveSupport::Cache::Store`
 
 This class provides the foundation for interacting with the cache in Rails. This is an abstract class and you cannot use it on its own. Rather you must use a concrete implementation of the class tied to a storage engine. Rails ships with several implementations documented below.
 
@@ -428,7 +428,7 @@ custom class.
 config.cache_store = MyCacheStore.new
 ```
 
-### ActiveSupport::Cache::MemoryStore
+### `ActiveSupport::Cache::MemoryStore`
 
 This cache store keeps entries in memory in the same Ruby process. The cache
 store has a bounded size specified by sending the `:size` option to the
@@ -451,7 +451,7 @@ New Rails projects are configured to use this implementation in the development 
 NOTE: Since processes will not share cache data when using `:memory_store`,
 it will not be possible to manually read, write, or expire the cache via the Rails console.
 
-### ActiveSupport::Cache::FileStore
+### `ActiveSupport::Cache::FileStore`
 
 This cache store uses the file system to store entries. The path to the directory where the store files will be stored must be specified when initializing the cache.
 
@@ -470,7 +470,7 @@ periodically clear out old entries.
 This is the default cache store implementation (at `"#{root}/tmp/cache/"`) if
 no explicit `config.cache_store` is supplied.
 
-### ActiveSupport::Cache::MemCacheStore
+### `ActiveSupport::Cache::MemCacheStore`
 
 This cache store uses Danga's `memcached` server to provide a centralized cache for your application. Rails uses the bundled `dalli` gem by default. This is currently the most popular cache store for production websites. It can be used to provide a single, shared cache cluster with very high performance and redundancy.
 
@@ -490,7 +490,7 @@ See the [`Dalli::Client` documentation](https://www.rubydoc.info/gems/dalli/Dall
 
 The `write` and `fetch` methods on this cache accept two additional options that take advantage of features specific to memcached. You can specify `:raw` to send a value directly to the server with no serialization. The value must be a string or number. You can use memcached direct operations like `increment` and `decrement` only on raw values. You can also specify `:unless_exist` if you don't want memcached to overwrite an existing entry.
 
-### ActiveSupport::Cache::RedisCacheStore
+### `ActiveSupport::Cache::RedisCacheStore`
 
 The Redis cache store takes advantage of Redis support for automatic eviction
 when it reaches max memory, allowing it to behave much like a Memcached cache server.
@@ -562,7 +562,7 @@ config.cache_store = :redis_cache_store, { url: cache_servers,
 }
 ```
 
-### ActiveSupport::Cache::NullStore
+### `ActiveSupport::Cache::NullStore`
 
 This cache store is scoped to each web request, and clears stored values at the end of a request. It is meant for use in development and test environments. It can be very useful when you have code that interacts directly with `Rails.cache` but caching interferes with seeing the results of code changes.
 
