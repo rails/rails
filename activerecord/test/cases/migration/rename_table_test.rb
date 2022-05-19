@@ -50,6 +50,22 @@ module ActiveRecord
         assert_equal "http://www.foreverflying.com/octopus-black7.jpg", connection.select_value("SELECT url FROM octopi WHERE id=1")
       end
 
+      def test_rename_table_raises_for_long_table_names
+        name_limit = connection.table_name_length
+        long_name = "a" * (name_limit + 1)
+        short_name = "a" * name_limit
+
+        error = assert_raises(ArgumentError) do
+          connection.rename_table :test_models, long_name
+        end
+        assert_equal "Table name '#{long_name}' is too long; the limit is #{name_limit} characters", error.message
+
+        connection.rename_table :test_models, short_name
+        assert connection.table_exists?(short_name)
+      ensure
+        connection.drop_table short_name, if_exists: true
+      end
+
       def test_rename_table_with_an_index
         add_index :test_models, :url
 

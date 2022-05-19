@@ -1,3 +1,9 @@
+*   Enforce limit on table names length.
+
+    Fixes #45130.
+
+    *fatkodima*
+
 *   Adjust the minimum MariaDB version for check constraints support.
 
     *Eddie Lebow*

@@ -531,6 +531,67 @@ module ActiveRecord
         connection.drop_table :more_testings rescue nil
       end
 
+      def test_create_table_on_7_0
+        long_table_name = "a" * (connection.table_name_length + 1)
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          @@long_table_name = long_table_name
+          def version; 100 end
+          def migrate(x)
+            create_table @@long_table_name
+          end
+        }.new
+
+        if current_adapter?(:Mysql2Adapter)
+          # MySQL does not allow to create table names longer than limit
+          error = assert_raises(StandardError) do
+            ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          end
+          if connection.mariadb?
+            assert_match(/Incorrect table name '#{long_table_name}'/i, error.message)
+          else
+            assert_match(/Identifier name '#{long_table_name}' is too long/i, error.message)
+          end
+        else
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          assert connection.table_exists?(long_table_name)
+        end
+      ensure
+        connection.drop_table(long_table_name) rescue nil
+      end
+
+      def test_rename_table_on_7_0
+        long_table_name = "a" * (connection.table_name_length + 1)
+        connection.create_table(:more_testings)
+
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          @@long_table_name = long_table_name
+          def version; 100 end
+          def migrate(x)
+            rename_table :more_testings, @@long_table_name
+          end
+        }.new
+
+        if current_adapter?(:Mysql2Adapter)
+          # MySQL does not allow to create table names longer than limit
+          error = assert_raises(StandardError) do
+            ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          end
+          if connection.mariadb?
+            assert_match(/Incorrect table name '#{long_table_name}'/i, error.message)
+          else
+            assert_match(/Identifier name '#{long_table_name}' is too long/i, error.message)
+          end
+        else
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          assert connection.table_exists?(long_table_name)
+          assert_not connection.table_exists?(:more_testings)
+          assert connection.table_exists?(long_table_name)
+        end
+      ensure
+        connection.drop_table(:more_testings) rescue nil
+        connection.drop_table(long_table_name) rescue nil
+      end
+
       private
         def precision_implicit_default
           if current_adapter?(:Mysql2Adapter)
