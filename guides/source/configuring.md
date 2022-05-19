@@ -2774,7 +2774,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `active_record.initialize_database`: Loads the database configuration (by default) from `config/database.yml` and establishes a connection for the current environment.
 
-* `active_record.log_runtime`: Includes `ActiveRecord::Railties::ControllerRuntime` which is responsible for reporting the time taken by Active Record calls for the request back to the logger.
+* `active_record.log_runtime`: Includes `ActiveRecord::Railties::ControllerRuntime` and `ActiveRecord::Railties::JobRuntime` which are responsible for reporting the time taken by Active Record calls for the request back to the logger.
 
 * `active_record.set_reloader_hooks`: Resets all reloadable connections to the database if `config.enable_reloading` is set to `true`.
 
