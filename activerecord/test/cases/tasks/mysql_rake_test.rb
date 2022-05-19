@@ -68,23 +68,6 @@ if current_adapter?(:Mysql2Adapter)
         end
       end
 
-      def test_establishes_connection_to_database
-        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
-
-        ActiveRecord::Base.stub(:connection, @connection) do
-          assert_called_with(
-            ActiveRecord::Base,
-            :establish_connection,
-            [
-              [adapter: "mysql2", database: nil],
-              [db_config]
-            ]
-          ) do
-            ActiveRecord::Tasks::DatabaseTasks.create(db_config)
-          end
-        end
-      end
-
       def test_when_database_created_successfully_outputs_info_to_stdout
         with_stubbed_connection_establish_connection do
           ActiveRecord::Tasks::DatabaseTasks.create @configuration
@@ -202,14 +185,14 @@ if current_adapter?(:Mysql2Adapter)
         }
       end
 
-      def test_establishes_connection_to_the_appropriate_database
+      def test_establishes_connection_without_database
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
         ActiveRecord::Base.stub(:connection, @connection) do
           assert_called_with(
             ActiveRecord::Base,
             :establish_connection,
-            [db_config]
+            [adapter: "mysql2", database: nil]
           ) do
             ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
           end

@@ -28,7 +28,7 @@ module ActiveRecord
       end
 
       def purge
-        establish_connection(db_config)
+        establish_connection(configuration_hash_without_database)
         connection.recreate_database(db_config.database, creation_options)
       end
 
