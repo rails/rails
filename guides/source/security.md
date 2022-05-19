@@ -690,8 +690,10 @@ Model.where(zip_code: entered_zip_code).where("quantity >= ?", entered_quantity)
 ```
 
 Note the previous mentioned countermeasures are only available in model instances. You can
-try `sanitize_sql()` elsewhere. _Make it a habit to think about the security consequences
+try [`sanitize_sql`][] elsewhere. _Make it a habit to think about the security consequences
 when using an external string in SQL_.
+
+[`sanitize_sql`]: https://api.rubyonrails.org/classes/ActiveRecord/Sanitization/ClassMethods.html#method-i-sanitize_sql
 
 ### Cross-Site Scripting (XSS)
 
