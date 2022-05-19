@@ -1,3 +1,29 @@
+*   Support declarative-style test name filters with `bin/rails test`.
+
+    This makes it possible to run a declarative-style test such as:
+
+    ```ruby
+    class MyTest < ActiveSupport::TestCase
+      test "does something" do
+        # ...
+      end
+    end
+    ```
+
+    Using its declared name:
+
+    ```bash
+    $ bin/rails test test/my_test.rb -n "does something"
+    ```
+
+    Instead of having to specify its expanded method name:
+
+    ```bash
+    $ bin/rails test test/my_test.rb -n test_does_something
+    ```
+
+    *Jonathan Hefner*
+
 *   Add `--js` and `--skip-javascript` options to `rails new`
 
     `--js` alias to `rails new --javascript ...`

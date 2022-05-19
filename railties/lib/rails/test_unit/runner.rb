@@ -48,6 +48,8 @@ module Rails
         end
 
         def compose_filter(runnable, filter)
+          filter = escape_declarative_test_filter(filter)
+
           if filters.any? { |_, lines| lines.any? }
             CompositeFilter.new(runnable, filter, filters)
           else
@@ -98,6 +100,14 @@ module Rails
             tests = Rake::FileList[patterns.any? ? patterns : default_test_glob]
             tests.exclude(default_test_exclude_glob) if patterns.empty?
             tests
+          end
+
+          def escape_declarative_test_filter(filter)
+            if filter.is_a?(String) && !filter.start_with?("test_")
+              filter = "test_#{filter}" unless regexp_filter?(filter)
+              filter = filter.gsub(/\s+/, "_")
+            end
+            filter
           end
       end
     end
