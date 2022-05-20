@@ -78,8 +78,8 @@ module ActionController
       end
 
       def _set_vary_header
-        if self.headers["Vary"].blank? && request.should_apply_vary_header?
-          self.headers["Vary"] = "Accept"
+        if response.headers["Vary"].blank? && request.should_apply_vary_header?
+          response.headers["Vary"] = "Accept"
         end
       end
 
