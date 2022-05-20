@@ -8,6 +8,7 @@ module ActiveRecord
       @klass = klass
       @arel_table = arel_table
       @reflection = reflection
+      @build_method = PredicateBuilder::BuildMethod.new(klass)
     end
 
     def primary_key
@@ -16,6 +17,10 @@ module ActiveRecord
 
     def type(column_name)
       arel_table.type_for_attribute(column_name)
+    end
+
+    def build_query(predicate_builder, table, key, value, attributes)
+      @build_method.build_query(predicate_builder, table, key, value, attributes)
     end
 
     def has_column?(column_name)

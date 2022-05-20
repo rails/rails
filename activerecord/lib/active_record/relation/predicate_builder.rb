@@ -8,6 +8,7 @@ module ActiveRecord
     require "active_record/relation/predicate_builder/relation_handler"
     require "active_record/relation/predicate_builder/association_query_value"
     require "active_record/relation/predicate_builder/polymorphic_array_value"
+    require "active_record/relation/predicate_builder/build_method"
 
     def initialize(table)
       @table = table
@@ -72,75 +73,32 @@ module ActiveRecord
       table.associated_table(table_name, &block).arel_table[column_name]
     end
 
-    protected
-      def expand_from_hash(attributes, &block)
-        return ["1=0"] if attributes.empty?
+    def expand_from_hash(attributes, &block)
+      return ["1=0"] if attributes.empty?
 
-        attributes.flat_map do |key, value|
-          if value.is_a?(Hash) && !table.has_column?(key)
-            table.associated_table(key, &block)
-              .predicate_builder.expand_from_hash(value.stringify_keys)
-          elsif table.associated_with?(key)
-            # Find the foreign key when using queries such as:
-            # Post.where(author: author)
-            #
-            # For polymorphic relationships, find the foreign key and type:
-            # PriceEstimate.where(estimate_of: treasure)
-            associated_table = table.associated_table(key)
-            if associated_table.polymorphic_association?
-              value = [value] unless value.is_a?(Array)
-              klass = PolymorphicArrayValue
-            elsif associated_table.through_association?
-              next associated_table.predicate_builder.expand_from_hash(
-                associated_table.primary_key => value
-              )
-            end
-
-            klass ||= AssociationQueryValue
-            queries = klass.new(associated_table, value).queries.map! do |query|
-              # If the query produced is identical to attributes don't go any deeper.
-              # Prevents stack level too deep errors when association and foreign_key are identical.
-              query == attributes ? self[key, value] : expand_from_hash(query)
-            end
-
-            grouping_queries(queries)
-          elsif table.aggregated_with?(key)
-            mapping = table.reflect_on_aggregation(key).mapping
-            values = value.nil? ? [nil] : Array.wrap(value)
-            if mapping.length == 1 || values.empty?
-              column_name, aggr_attr = mapping.first
-              values = values.map do |object|
-                object.respond_to?(aggr_attr) ? object.public_send(aggr_attr) : object
-              end
-              self[column_name, values]
-            else
-              queries = values.map do |object|
-                mapping.map do |field_attr, aggregate_attr|
-                  self[field_attr, object.try!(aggregate_attr)]
-                end
-              end
-
-              grouping_queries(queries)
-            end
-          else
-            self[key, value]
-          end
+      attributes.flat_map do |key, value|
+        if value.is_a?(Hash) && !table.has_column?(key)
+          table.associated_table(key, &block)
+            .predicate_builder.expand_from_hash(value.stringify_keys)
+        else
+          table.build_query(self, table, key, value, attributes)
         end
       end
+    end
+
+    attr_reader :table
+
+    def grouping_queries(queries)
+      if queries.one?
+        queries.first
+      else
+        queries.map! { |query| query.reduce(&:and) }
+        queries = queries.reduce { |result, query| Arel::Nodes::Or.new(result, query) }
+        Arel::Nodes::Grouping.new(queries)
+      end
+    end
 
     private
-      attr_reader :table
-
-      def grouping_queries(queries)
-        if queries.one?
-          queries.first
-        else
-          queries.map! { |query| query.reduce(&:and) }
-          queries = queries.reduce { |result, query| Arel::Nodes::Or.new(result, query) }
-          Arel::Nodes::Grouping.new(queries)
-        end
-      end
-
       def convert_dot_notation_to_hash(attributes)
         dot_notation = attributes.select do |k, v|
           k.include?(".") && !v.is_a?(Hash)
