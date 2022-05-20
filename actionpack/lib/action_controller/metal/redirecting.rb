@@ -117,7 +117,7 @@ module ActionController
     # * <tt>:allow_other_host</tt> - Allow or disallow redirection to the host that is different to the current host, defaults to true.
     #
     # All other options that can be passed to #redirect_to are accepted as
-    # options and the behavior is identical.
+    # options, and the behavior is identical.
     def redirect_back_or_to(fallback_location, allow_other_host: _allow_other_host, **options)
       if request.referer && (allow_other_host || _url_host_allowed?(request.referer))
         redirect_to request.referer, allow_other_host: allow_other_host, **options
