@@ -49,6 +49,10 @@ class Topic
     number_to_currency @price
   end
 
+  def raw_price
+    @price
+  end
+
   def attribute_before_type_cast(attr)
     instance_variable_get(:"@#{attr}")
   end

@@ -55,6 +55,26 @@ class InclusionValidationTest < ActiveModel::TestCase
     assert_predicate Topic.new(title: "aaa", created_at: range_end), :valid?
   end
 
+  def test_validates_inclusion_of_beginless_numeric_range
+    range_end = 1000
+    Topic.validates_inclusion_of(:raw_price, in: ..range_end)
+    assert_predicate Topic.new(title: "aaa", price: -100), :valid?
+    assert_predicate Topic.new(title: "aaa", price: 0), :valid?
+    assert_predicate Topic.new(title: "aaa", price: 100), :valid?
+    assert_predicate Topic.new(title: "aaa", price: 2000), :invalid?
+    assert_predicate Topic.new(title: "aaa", price: range_end), :valid?
+  end
+
+  def test_validates_inclusion_of_endless_numeric_range
+    range_begin = 0
+    Topic.validates_inclusion_of(:raw_price, in: range_begin..)
+    assert_predicate Topic.new(title: "aaa", price: -1), :invalid?
+    assert_predicate Topic.new(title: "aaa", price: -100), :invalid?
+    assert_predicate Topic.new(title: "aaa", price: 100), :valid?
+    assert_predicate Topic.new(title: "aaa", price: 2000), :valid?
+    assert_predicate Topic.new(title: "aaa", price: range_begin), :valid?
+  end
+
   def test_validates_inclusion_of
     Topic.validates_inclusion_of(:title, in: %w( a b c d e f g ))
 

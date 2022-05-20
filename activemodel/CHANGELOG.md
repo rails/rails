@@ -1,3 +1,11 @@
+*   Add support for beginless ranges to inclusivity/exclusivity validators:
+
+    ```ruby
+    validates_inclusion_of :birth_date, in: -> { (..Date.today) }
+    ```
+
+    *Bo Jeanes*
+
 *   Make validators accept lambdas without record argument
 
     ```ruby
