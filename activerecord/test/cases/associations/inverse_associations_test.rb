@@ -872,6 +872,16 @@ class InverseBelongsToTests < ActiveRecord::TestCase
       assert_equal 1, interest.human.interests.size
     end
   end
+
+  def test_dup_with_inversing_does_not_create_additional_records_when_owner_already_exists
+    with_has_many_inversing(Interest) do
+      human = Human.create!
+      interest = Interest.create!(human: human)
+      human_from_dup = interest.dup.human
+      human_from_dup.update!(name: "name")
+      assert_equal 1, human_from_dup.reload.interests.size
+    end
+  end
 end
 
 class InversePolymorphicBelongsToTests < ActiveRecord::TestCase

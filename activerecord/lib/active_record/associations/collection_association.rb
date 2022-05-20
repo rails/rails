@@ -465,7 +465,7 @@ module ActiveRecord
             target[index] = record
           elsif @_was_loaded || !loaded?
             @association_ids = nil
-            target << record
+            target << record unless new_record_inverse_of_existing_owner?(record, inversing: inversing)
           end
 
           callback(:after_add, record) unless skip_callbacks
@@ -473,6 +473,12 @@ module ActiveRecord
           record
         ensure
           @_was_loaded = nil
+        end
+
+        # This check prevents the accidental creation of duplicate child records
+        # when inverse_of is in use for an already existing owner.
+        def new_record_inverse_of_existing_owner?(record, inversing: false)
+          record.new_record? && inversing && !owner.new_record?
         end
 
         def callback(method, record)
