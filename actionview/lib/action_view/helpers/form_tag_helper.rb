@@ -887,7 +887,7 @@ module ActionView
         number_field_tag(name, value, options.merge(type: :range))
       end
 
-      # Creates the hidden UTF8 enforcer tag. Override this method in a helper
+      # Creates the hidden UTF-8 enforcer tag. Override this method in a helper
       # to customize the tag.
       def utf8_enforcer_tag
         # Use raw HTML to ensure the value is written as an HTML entity; it

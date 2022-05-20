@@ -1242,7 +1242,7 @@ module ActiveRecord
       #   remove_check_constraint :products, name: "price_check"
       #
       # To silently ignore a non-existent check constraint rather than raise an error,
-      # use the `if_exists` option.
+      # use the +if_exists+ option.
       #
       #   remove_check_constraint :products, name: "price_check", if_exists: true
       #

@@ -595,7 +595,7 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support decrement")
       end
 
-      # Cleanups the cache by removing expired entries.
+      # Cleans up the cache by removing expired entries.
       #
       # Options are passed to the underlying cache implementation.
       #
