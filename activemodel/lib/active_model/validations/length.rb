@@ -15,7 +15,8 @@ module ActiveModel
       def initialize(options)
         if range = (options.delete(:in) || options.delete(:within))
           raise ArgumentError, ":in and :within must be a Range" unless range.is_a?(Range)
-          options[:minimum], options[:maximum] = range.min, range.max
+          options[:minimum] = range.min if range.begin
+          options[:maximum] = (range.exclude_end? ? range.end - 1 : range.end) if range.end
         end
 
         if options[:allow_blank] == false && options[:minimum].nil? && options[:is].nil?
@@ -35,7 +36,9 @@ module ActiveModel
         keys.each do |key|
           value = options[key]
 
-          unless (value.is_a?(Integer) && value >= 0) || value == Float::INFINITY || value.is_a?(Symbol) || value.is_a?(Proc)
+          unless (value.is_a?(Integer) && value >= 0) ||
+                  value == Float::INFINITY || value == -Float::INFINITY ||
+                  value.is_a?(Symbol) || value.is_a?(Proc)
             raise ArgumentError, ":#{key} must be a non-negative Integer, Infinity, Symbol, or Proc"
           end
         end
