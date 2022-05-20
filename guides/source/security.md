@@ -1060,7 +1060,49 @@ config.action_dispatch.perform_deep_munge = false
 HTTP Security Headers
 ---------------------
 
-Every HTTP response from your Rails application receives the following default security headers.
+To improve the security of your application, Rails can be configured to return
+HTTP security headers. Some headers are configured by default, others need to
+be explicitly configured.
+
+### Default Security Headers
+
+By default Rails is configured to return the following response headers. Your
+application returns these headers for every HTTP response.
+
+#### X-Frame-Options
+
+This header indicates if a browser can render the page in a `<frame>`,
+`<iframe>`, `<embed>` or `<object>` tag. This header is set to `SAMEORIGIN` by
+default to allow framing on the same domain only. Set it to `DENY` to deny
+framing at all, or remove this header completely if you want to allow framing on
+all domains.
+
+#### X-XSS-Protection
+
+A [deprecated legacy
+header](https://owasp.org/www-project-secure-headers/#x-xss-protection), set to
+`0` in Rails by default to disable problematic legacy XSS auditors.
+
+#### X-Content-Type-Options
+
+This header is set to `nosniff` in Rails by default. It stops the browser from
+guessing the MIME type of a file.
+
+#### X-Permitted-Cross-Domain-Policies
+
+This header is set to `none` in Rails by default. It disallows Adobe Flash and
+PDF clients from embedding your page on other domains.
+
+#### Referrer-Policy
+
+This header is set to `strict-origin-when-cross-origin` in Rails by default.
+For cross-origin request this only sends the origin in the Referer header. This
+prevents leaks of private data that may be accessible from other parts of the
+full URL such as the path and query string.
+
+#### Configuring the Default Headers
+
+These headers are configured by default as follows:
 
 ```ruby
 config.action_dispatch.default_headers = {
@@ -1072,29 +1114,31 @@ config.action_dispatch.default_headers = {
 }
 ```
 
-You can configure default headers in `config/application.rb`.
+You can override these or add extra headers in `config/application.rb`:
 
 ```ruby
-config.action_dispatch.default_headers = {
-  'Header-Name' => 'Header-Value',
-  'X-Frame-Options' => 'DENY'
-}
+config.action_dispatch.default_headers['X-Frame-Options'] = 'DENY'
+config.action_dispatch.default_headers['Header-Name']     = 'Value'
 ```
 
-Or you can remove them.
+Or you can remove them:
 
 ```ruby
 config.action_dispatch.default_headers.clear
 ```
 
-Here is a list of common headers:
+### Strict-Transport-Security Header
 
-* **X-Frame-Options:** _`SAMEORIGIN` in Rails by default_ - allow framing on same domain. Set it to 'DENY' to deny framing at all or remove this header completely if you want to allow framing on all websites.
-* **X-XSS-Protection:** _`0` in Rails by default_ - [deprecated legacy header](https://owasp.org/www-project-secure-headers/#x-xss-protection), set to '0' to disable problematic legacy XSS auditors.
-* **X-Content-Type-Options:** _`nosniff` in Rails by default_ - stops the browser from guessing the MIME type of a file.
-* **X-Content-Security-Policy:** [A powerful mechanism for controlling which sites certain content types can be loaded from](https://w3c.github.io/webappsec-csp/)
-* **Access-Control-Allow-Origin:** Used to control which sites are allowed to bypass same origin policies and send cross-origin requests.
-* **Strict-Transport-Security:** [Used to control if the browser is allowed to only access a site over a secure connection](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security)
+The HTTP
+[Strict-Transport-Security](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security)
+(HTST) response header makes sure the browser automatically upgrades to HTTPS
+for current and future connections.
+
+The header is added to the response when enabling the `force_ssl` option:
+
+```ruby
+  config.force_ssl = true
+```
 
 ### Content-Security-Policy Header
 
@@ -1247,7 +1291,7 @@ keep the old header name and implementation for now.
 
 To allow or block the use of browser features you can define a
 [Feature-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy)
-response header for you application. Rails provides a DSL that allows you to
+response header for your application. Rails provides a DSL that allows you to
 configure the header.
 
 Define the policy in the appropriate initializer:
