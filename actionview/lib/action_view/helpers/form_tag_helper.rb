@@ -657,9 +657,11 @@ module ActionView
       # Creates a text field of type "color".
       #
       # ==== Options
-      # * Accepts the same options as #text_field_tag.
+      #
+      # Supports the same options as #text_field_tag.
       #
       # ==== Examples
+      #
       #   color_field_tag 'name'
       #   # => <input id="name" name="name" type="color" />
       #
@@ -678,9 +680,11 @@ module ActionView
       # Creates a text field of type "search".
       #
       # ==== Options
-      # * Accepts the same options as #text_field_tag.
+      #
+      # Supports the same options as #text_field_tag.
       #
       # ==== Examples
+      #
       #   search_field_tag 'name'
       #   # => <input id="name" name="name" type="search" />
       #
@@ -699,9 +703,11 @@ module ActionView
       # Creates a text field of type "tel".
       #
       # ==== Options
-      # * Accepts the same options as #text_field_tag.
+      #
+      # Supports the same options as #text_field_tag.
       #
       # ==== Examples
+      #
       #   telephone_field_tag 'name'
       #   # => <input id="name" name="name" type="tel" />
       #
@@ -721,9 +727,11 @@ module ActionView
       # Creates a text field of type "date".
       #
       # ==== Options
-      # * Accepts the same options as #text_field_tag.
+      #
+      # Supports the same options as #text_field_tag.
       #
       # ==== Examples
+      #
       #   date_field_tag 'name'
       #   # => <input id="name" name="name" type="date" />
       #
@@ -741,24 +749,28 @@ module ActionView
 
       # Creates a text field of type "time".
       #
-      # === Options
+      # ==== Options
+      #
+      # Supports the same options as #text_field_tag. Additionally, supports:
+      #
       # * <tt>:min</tt> - The minimum acceptable value.
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
       # * <tt>:include_seconds</tt> - Include seconds and ms in the output timestamp format (true by default).
-      # * Otherwise accepts the same options as #text_field_tag.
       def time_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :time))
       end
 
       # Creates a text field of type "datetime-local".
       #
-      # === Options
+      # ==== Options
+      #
+      # Supports the same options as #text_field_tag. Additionally, supports:
+      #
       # * <tt>:min</tt> - The minimum acceptable value.
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
       # * <tt>:include_seconds</tt> - Include seconds in the output timestamp format (true by default).
-      # * Otherwise accepts the same options as #text_field_tag.
       def datetime_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: "datetime-local"))
       end
@@ -767,22 +779,26 @@ module ActionView
 
       # Creates a text field of type "month".
       #
-      # === Options
+      # ==== Options
+      #
+      # Supports the same options as #text_field_tag. Additionally, supports:
+      #
       # * <tt>:min</tt> - The minimum acceptable value.
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
-      # * Otherwise accepts the same options as #text_field_tag.
       def month_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :month))
       end
 
       # Creates a text field of type "week".
       #
-      # === Options
+      # ==== Options
+      #
+      # Supports the same options as #text_field_tag. Additionally, supports:
+      #
       # * <tt>:min</tt> - The minimum acceptable value.
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
-      # * Otherwise accepts the same options as #text_field_tag.
       def week_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :week))
       end
@@ -790,9 +806,11 @@ module ActionView
       # Creates a text field of type "url".
       #
       # ==== Options
-      # * Accepts the same options as #text_field_tag.
+      #
+      # Supports the same options as #text_field_tag.
       #
       # ==== Examples
+      #
       #   url_field_tag 'name'
       #   # => <input id="name" name="name" type="url" />
       #
@@ -811,9 +829,11 @@ module ActionView
       # Creates a text field of type "email".
       #
       # ==== Options
-      # * Accepts the same options as #text_field_tag.
+      #
+      # Supports the same options as #text_field_tag.
       #
       # ==== Examples
+      #
       #   email_field_tag 'name'
       #   # => <input id="name" name="name" type="email" />
       #
@@ -832,15 +852,18 @@ module ActionView
       # Creates a number field.
       #
       # ==== Options
+      #
+      # Supports the same options as #text_field_tag. Additionally, supports:
+      #
       # * <tt>:min</tt> - The minimum acceptable value.
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:in</tt> - A range specifying the <tt>:min</tt> and
       #   <tt>:max</tt> values.
       # * <tt>:within</tt> - Same as <tt>:in</tt>.
       # * <tt>:step</tt> - The acceptable value granularity.
-      # * Otherwise accepts the same options as #text_field_tag.
       #
       # ==== Examples
+      #
       #   number_field_tag 'quantity'
       #   # => <input id="quantity" name="quantity" type="number" />
       #
@@ -882,7 +905,8 @@ module ActionView
       # Creates a range form element.
       #
       # ==== Options
-      # * Accepts the same options as #number_field_tag.
+      #
+      # Supports the same options as #number_field_tag.
       def range_field_tag(name, value = nil, options = {})
         number_field_tag(name, value, options.merge(type: :range))
       end
