@@ -339,6 +339,10 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_not_deprecated do
       create_blob(filename: "funky.jpg", content_type: "image/jpeg")
     end
+
+    assert_not_deprecated do
+      create_file_blob(filename: "colors.bmp", content_type: "image/bmp")
+    end
   end
 
   test "warning if blob is created with invalid mime type can be disabled" do
@@ -351,6 +355,10 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
     assert_not_deprecated do
       create_blob(filename: "funky.jpg", content_type: "image/jpeg")
+    end
+
+    assert_not_deprecated do
+      create_file_blob(filename: "colors.bmp", content_type: "image/bmp")
     end
 
   ensure
