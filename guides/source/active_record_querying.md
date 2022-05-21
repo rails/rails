@@ -688,13 +688,13 @@ SELECT * FROM customers WHERE (customers.orders_count NOT IN (1,3,5))
 If a query has a hash condition with non-nil values on a nullable column, the records that have `nil` values on the nullable column won't be returned. For example:
 
 ```ruby
-Customer.create!(nullable_contry: nil)
+Customer.create!(nullable_country: nil)
 Customer.where.not(nullable_country: "UK")
 => []
 # But
-Customer.create!(nullable_contry: "UK")
+Customer.create!(nullable_country: "UK")
 Customer.where.not(nullable_country: nil)
-=> [#<Customer id: 2, nullable_contry: "UK">]
+=> [#<Customer id: 2, nullable_country: "UK">]
 ```
 
 [`where.not`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods/WhereChain.html#method-i-not
