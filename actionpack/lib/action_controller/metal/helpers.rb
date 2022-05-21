@@ -104,19 +104,6 @@ module ActionController
         super(args)
       end
 
-      # Returns a list of helper names in a given path.
-      #
-      #   ActionController::Base.all_helpers_from_path 'app/helpers'
-      #   # => ["application", "chart", "rubygems"]
-      def all_helpers_from_path(path)
-        helpers = Array(path).flat_map do |_path|
-          names = Dir["#{_path}/**/*_helper.rb"].map { |file| file[_path.to_s.size + 1..-"_helper.rb".size - 1] }
-          names.sort!
-        end
-        helpers.uniq!
-        helpers
-      end
-
       private
         # Extract helper names from files in <tt>app/helpers/**/*_helper.rb</tt>
         def all_application_helpers
