@@ -1,3 +1,12 @@
+*   Avoid validating a unique field if it has not changed and is backed by a unique index.
+
+    Previously, when saving a record, ActiveRecord will perform an extra query to check for the uniqueness of
+    each attribute having a `uniqueness` validation, even if that attribute hasn't changed.
+    If the database has the corresponding unique index, then this validation can never fail for persisted records,
+    and we could safely skip it.
+
+    *fatkodima*
+
 *   Stop setting `sql_auto_is_null`
 
     Since version 5.5 the default has been off, we no longer have to manually turn it off.

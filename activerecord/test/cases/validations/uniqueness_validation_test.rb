@@ -36,6 +36,10 @@ class ReplyWithTitleObject < Reply
   def title; ReplyTitle.new; end
 end
 
+class TopicWithEvent < Topic
+  belongs_to :event, foreign_key: :parent_id
+end
+
 class TopicWithUniqEvent < Topic
   belongs_to :event, foreign_key: :parent_id
   validates :event, uniqueness: true
@@ -616,5 +620,175 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_not_predicate item2, :valid?
 
     assert_equal(["has already been taken"], item2.errors[:id])
+  end
+end
+
+class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  def setup
+    @connection = Topic.connection
+    @connection.schema_cache.clear!
+    Topic.delete_all
+    Event.delete_all
+  end
+
+  def teardown
+    Topic.clear_validators!
+    @connection.remove_index(:topics, name: :topics_index, if_exists: true)
+  end
+
+  def test_new_record
+    Topic.validates_uniqueness_of(:title)
+    @connection.add_index(:topics, :title, unique: true, name: :topics_index)
+
+    t = Topic.new(title: "abc")
+    assert_queries(1) do
+      t.valid?
+    end
+  end
+
+  def test_changing_non_unique_attribute
+    Topic.validates_uniqueness_of(:title)
+    @connection.add_index(:topics, :title, unique: true, name: :topics_index)
+
+    t = Topic.create!(title: "abc")
+    t.author_name = "John"
+    assert_no_queries(ignore_none: false) do
+      t.valid?
+    end
+  end
+
+  def test_changing_unique_attribute
+    Topic.validates_uniqueness_of(:title)
+    @connection.add_index(:topics, :title, unique: true, name: :topics_index)
+
+    t = Topic.create!(title: "abc")
+    t.title = "abc v2"
+    assert_queries(1) do
+      t.valid?
+    end
+  end
+
+  def test_changing_non_unique_attribute_and_unique_attribute_is_nil
+    Topic.validates_uniqueness_of(:title)
+    @connection.add_index(:topics, :title, unique: true, name: :topics_index)
+
+    t = Topic.create!
+    assert_nil t.title
+    t.author_name = "John"
+    assert_queries(1) do
+      t.valid?
+    end
+  end
+
+  def test_conditions
+    Topic.validates_uniqueness_of(:title, conditions: -> { where.not(author_name: nil) })
+    @connection.add_index(:topics, :title, unique: true, name: :topics_index)
+
+    t = Topic.create!(title: "abc")
+    t.title = "abc v2"
+    assert_queries(1) do
+      t.valid?
+    end
+  end
+
+  def test_case_sensitive
+    Topic.validates_uniqueness_of(:title, case_sensitive: true)
+    @connection.add_index(:topics, :title, unique: true, name: :topics_index)
+
+    t = Topic.create!(title: "abc")
+    t.title = "abc v2"
+    assert_queries(1) do
+      t.valid?
+    end
+  end
+
+  def test_partial_index
+    skip unless @connection.supports_partial_index?
+
+    Topic.validates_uniqueness_of(:title)
+    @connection.add_index(:topics, :title, unique: true, where: "approved", name: :topics_index)
+
+    t = Topic.create!(title: "abc")
+    t.author_name = "John"
+    assert_queries(1) do
+      t.valid?
+    end
+  end
+
+  def test_non_unique_index
+    Topic.validates_uniqueness_of(:title)
+    @connection.add_index(:topics, :title, name: :topics_index)
+
+    t = Topic.create!(title: "abc")
+    t.author_name = "John"
+    assert_queries(1) do
+      t.valid?
+    end
+  end
+
+  def test_scope
+    Topic.validates_uniqueness_of(:title, scope: :author_name)
+    @connection.add_index(:topics, [:author_name, :title], unique: true, name: :topics_index)
+
+    t = Topic.create!(title: "abc", author_name: "John")
+    t.content = "hello world"
+    assert_no_queries(ignore_none: false) do
+      t.valid?
+    end
+
+    t.author_name = "Amy"
+    assert_queries(1) do
+      t.valid?
+    end
+  end
+
+  def test_uniqueness_on_relation
+    TopicWithEvent.validates_uniqueness_of(:event)
+    @connection.add_index(:topics, :parent_id, unique: true, name: :topics_index)
+
+    e1 = Event.create!(title: "abc")
+    e2 = Event.create!(title: "cde")
+    t = TopicWithEvent.create!(event: e1)
+
+    t.content = "hello world"
+    assert_no_queries(ignore_none: false) do
+      t.valid?
+    end
+
+    t.event = e2
+    assert_queries(1) do
+      t.valid?
+    end
+  ensure
+    TopicWithEvent.clear_validators!
+  end
+
+  def test_index_of_sublist_of_columns
+    Topic.validates_uniqueness_of(:title, scope: :author_name)
+    @connection.add_index(:topics, :author_name, unique: true, name: :topics_index)
+
+    t = Topic.create!(title: "abc", author_name: "John")
+    t.content = "hello world"
+    assert_no_queries(ignore_none: false) do
+      t.valid?
+    end
+
+    t.author_name = "Amy"
+    assert_queries(1, ignore_none: false) do
+      t.valid?
+    end
+  end
+
+  def test_index_of_columns_list_and_extra_columns
+    Topic.validates_uniqueness_of(:title)
+    @connection.add_index(:topics, [:title, :author_name], unique: true, name: :topics_index)
+
+    t = Topic.create!(title: "abc", author_name: "John")
+    t.content = "hello world"
+    assert_queries(1) do
+      t.valid?
+    end
   end
 end
