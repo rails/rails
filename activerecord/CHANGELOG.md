@@ -1,3 +1,15 @@
+*   Allow unscoping of preload and eager_load associations
+
+    Added the ability to unscope preload and eager_load associations just like
+    includes, joins, etc. See ActiveRecord::QueryMethods::VALID_UNSCOPING_VALUES
+    for the full list of supported unscopable scopes.
+
+    ```ruby
+    query.unscope(:eager_load, :preload).group(:id).select(:id)
+    ```
+
+    *David Morehouse*
+
 *   Clear locking column on #dup
 
     This change fixes not to duplicate locking_column like id and timestamps.
