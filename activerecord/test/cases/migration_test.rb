@@ -1347,6 +1347,37 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal "This is a comment", column(:birthdate).comment
     end
 
+    def test_changing_column_null_with_default
+      with_bulk_change_table do |t|
+        t.string :name
+        t.integer :age
+        t.date :birthdate
+      end
+
+      assert_not column(:name).default
+      assert_equal :date, column(:birthdate).type
+
+      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      expected_query_count = {
+        "Mysql2Adapter"     => 7, # four queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
+        "PostgreSQLAdapter" => 5, # two queries for columns, one for bulk change, one for UPDATE, one for NOT NULL
+      }.fetch(classname) {
+        raise "need an expected query count for #{classname}"
+      }
+
+      assert_queries(expected_query_count, ignore_none: true) do
+        with_bulk_change_table do |t|
+          t.change :name, :string, default: "NONAME"
+          t.change :birthdate, :datetime
+          t.change_null :age, false, 0
+        end
+      end
+
+      assert_equal "NONAME", column(:name).default
+      assert_equal :datetime, column(:birthdate).type
+      assert_equal false, column(:age).null
+    end
+
     if supports_text_column_with_default?
       def test_default_functions_on_columns
         with_bulk_change_table do |t|

@@ -417,7 +417,7 @@ module ActiveRecord
             column = column_for(table_name, column_name)
             execute "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_expression(default, column)} WHERE #{quote_column_name(column_name)} IS NULL" if column
           end
-          execute "ALTER TABLE #{quote_table_name(table_name)} #{change_column_null_for_alter(table_name, column_name, null, default)}"
+          execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
         end
 
         # Adds comment for given table column or drops it if +comment+ is a +nil+
@@ -758,7 +758,11 @@ module ActiveRecord
           end
 
           def change_column_null_for_alter(table_name, column_name, null, default = nil)
-            "ALTER COLUMN #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
+            if default.nil?
+              "ALTER COLUMN #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
+            else
+              Proc.new { change_column_null(table_name, column_name, null, default) }
+            end
           end
 
           def add_index_opclass(quoted_columns, **options)
