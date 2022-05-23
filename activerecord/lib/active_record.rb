@@ -50,6 +50,7 @@ module ActiveRecord
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
+  autoload :LoadTree
   autoload :Migration
   autoload :Migrator, "active_record/migration"
   autoload :ModelSchema
@@ -352,6 +353,9 @@ module ActiveRecord
 
   singleton_class.attr_accessor :query_transformers
   self.query_transformers = []
+
+  singleton_class.attr_accessor :load_tree_enabled
+  self.load_tree_enabled = false
 
   def self.eager_load!
     super

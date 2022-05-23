@@ -922,10 +922,20 @@ module ActiveRecord
           end
 
           records = instantiate_records(rows, &block)
-          preload_associations(records) unless skip_preloading_value
 
-          records.each(&:readonly!) if readonly_value
-          records.each { |record| record.strict_loading!(strict_loading_value) } unless strict_loading_value.nil?
+          records.each do |record|
+            if null_relation? || !instance_variable_defined?("@association")
+              record._create_root_load_tree_node(siblings: records)
+            else
+              record._create_association_load_tree_node(
+                siblings: records,
+                parent: @association.owner,
+                child_name: @association.reflection.name)
+            end
+            record.readonly! if readonly_value
+            record.strict_loading!(strict_loading_value) unless strict_loading_value.nil?
+          end
+          preload_associations(records) unless skip_preloading_value
 
           records
         end

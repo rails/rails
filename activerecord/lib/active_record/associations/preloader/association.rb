@@ -182,16 +182,36 @@ module ActiveRecord
           # #compare_by_identity makes such owners different hash keys
           @records_by_owner = {}.compare_by_identity
           raw_records ||= loader_query.records_for([self])
+          preloaded_split_owner_association = {}
 
           @preloaded_records = raw_records.select do |record|
             assignments = false
 
             owners_by_key[convert_key(record[association_key_name])]&.each do |owner|
               entries = (@records_by_owner[owner] ||= [])
+              association_owner = preloaded_split_owner_association[owner.class.name] ||= {}
+              association_of_records = association_owner[reflection.name] ||= []
+              association_of_records << record
+
+              record._create_association_load_tree_node(
+                siblings: [],
+                parent: owner,
+                child_name: reflection.name)
 
               if reflection.collection? || entries.empty?
                 entries << record
                 assignments = true
+              end
+            end
+
+            # Some times sti can break things if the duck typing is not complete
+            # this ensures we split things up by owner name appropriately.
+            preloaded_split_owner_association.each do |klass_name, association_of_records|
+              association_of_records.each do |_, records|
+                records.each do |record|
+                  record._load_tree_node.siblings = records
+                  record._load_tree_node.set_records
+                end
               end
             end
 
