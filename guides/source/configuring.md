@@ -66,6 +66,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_support.default_message_verifier_serializer`](#config-active-support-default-message-verifier-serializer): `:json`
 - [`config.action_controller.allow_deprecated_parameters_hash_equality`](#config-action-controller-allow-deprecated-parameters-hash-equality): `false`
 - [`config.log_file_size`](#config-log-file-size): `100.megabytes`
+- [`config.action_view.prepend_content_exfiltration_prevention`](#config-action_view-prepend-content-exfiltration-prevention): `true`
 
 #### Default Values for Target Version 7.0
 
@@ -1526,6 +1527,10 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `true`               |
 | 7.0                   | `false`              |
+
+#### `config.action_view.prepend_content_exfiltration_prevention`
+
+Determines whether or not the `form_tag` and `button_to` helpers will produce HTML tags prepended with browser-safe (but technically invalid) HTML that guarantees their contents cannot be captured by any preceding unclosed tags. The default value is `false`.
 
 ### Configuring Action Mailbox
 

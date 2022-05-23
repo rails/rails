@@ -3,6 +3,7 @@
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/string/output_safety"
+require "action_view/helpers/content_exfiltration_prevention_helper"
 require "action_view/helpers/tag_helper"
 
 module ActionView
@@ -22,6 +23,7 @@ module ActionView
       extend ActiveSupport::Concern
 
       include TagHelper
+      include ContentExfiltrationPreventionHelper
 
       module ClassMethods
         def _url_for_modules
@@ -380,7 +382,8 @@ module ActionView
                                        autocomplete: "off")
           end
         end
-        content_tag("form", inner_tags, form_options)
+        html = content_tag("form", inner_tags, form_options)
+        prevent_content_exfiltration(html)
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
