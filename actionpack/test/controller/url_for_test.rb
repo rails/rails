@@ -94,6 +94,12 @@ module AbstractController
         )
       end
 
+      def test_anchor_with_hash_should_escape_unsafe_pchar_only_once
+        assert_equal("/c/a#subject=Only%20Once&tag=%23yolo",
+          W.new.url_for(only_path: true, controller: "c", action: "a", anchor: { subject: "Only Once", tag: "#yolo" })
+        )
+      end
+
       def test_default_host
         add_host!
         assert_equal("http://www.basecamphq.com/c/a/i",
