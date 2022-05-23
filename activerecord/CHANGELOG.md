@@ -1,3 +1,12 @@
+*   Add validity for PostgreSQL indexes.
+
+    ```ruby
+    connection.index_exists?(:users, :email, valid: true)
+    connection.indexes(:users).select(&:valid?)
+    ```
+
+    *fatkodima*
+
 *   Fix eager loading for models without primary keys.
 
     *Anmol Chopra*, *Matt Lawrence*, and *Jonathan Hefner*
