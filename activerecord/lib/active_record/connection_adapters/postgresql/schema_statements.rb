@@ -94,7 +94,6 @@ module ActiveRecord
             INNER JOIN pg_class i ON d.indexrelid = i.oid
             LEFT JOIN pg_namespace n ON n.oid = t.relnamespace
             WHERE i.relkind IN ('i', 'I')
-              AND d.indisvalid
               AND d.indisprimary = 'f'
               AND t.relname = #{scope[:name]}
               AND n.nspname = #{scope[:schema]}

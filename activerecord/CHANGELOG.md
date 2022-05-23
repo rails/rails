@@ -1,7 +1,3 @@
-*   Do not return invalid indexes in PostgreSQL.
-
-    *fatkodima*
-
 *   Stop setting `sql_auto_is_null`
 
     Since version 5.5 the default has been off, we no longer have to manually turn it off.
