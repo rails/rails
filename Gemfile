@@ -61,7 +61,7 @@ group :job do
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false
-  gem "queue_classic", github: "QueueClassic/queue_classic", require: false, platforms: :ruby
+  gem "queue_classic", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "que", require: false
   gem "backburner", require: false
@@ -133,7 +133,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
 
   group :db do
     gem "pg", "~> 1.1"
-    gem "mysql2", "~> 0.5", github: "brianmario/mysql2"
+    gem "mysql2", "~> 0.5", ">= 0.5.4"
   end
 end
 
