@@ -16,7 +16,7 @@ After reading this guide, you will know:
 Ruby on Rails is not "someone else's framework". Over the years, thousands of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all to make Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are various other ways that you can contribute, from reporting issues to testing patches.
 
 As mentioned in [Rails'
-README](https://github.com/rails/rails/blob/main/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://rubyonrails.org/conduct).
+README](https://github.com/rails/rails/blob/main/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, discussion boards, and mailing lists is expected to follow the Rails [code of conduct](https://rubyonrails.org/conduct).
 
 --------------------------------------------------------------------------------
 
@@ -74,8 +74,7 @@ patch your change is released with; we love feature submissions! They just
 won't get backported to maintenance branches.
 
 If you'd like feedback on an idea for a feature before doing the work to make
-a patch, please send an email to the [rails-core mailing
-list](https://discuss.rubyonrails.org/c/rubyonrails-core). You
+a patch, please start a discussion on the [rails-core discussion board](https://discuss.rubyonrails.org/c/rubyonrails-core). You
 might get no response, which means that everyone is indifferent. You might find
 someone who's also interested in building that feature. You might get a "This
 won't be accepted". But it's the proper place to discuss new ideas. GitHub
@@ -261,7 +260,7 @@ Now it's time to write some code! When making changes for Rails here are some th
 * Update the (surrounding) documentation, examples elsewhere, and the guides: whatever is affected by your contribution.
 * If the change adds, removes, or changes a feature, be sure to include a CHANGELOG entry. If your change is a bug fix, a CHANGELOG entry is not necessary.
 
-TIP: Changes that are cosmetic and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted (read more about [our rationales behind this decision](https://github.com/rails/rails/pull/13771#issuecomment-32746700)).
+TIP: Changes that are cosmetic and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted (read more about [our rationale behind this decision](https://github.com/rails/rails/pull/13771#issuecomment-32746700)).
 
 #### Follow the Coding Conventions
 
@@ -668,8 +667,7 @@ a pull request. Don't despair! Sometimes it's quick; sometimes it's slow. Such
 is the open source life.
 
 If it's been over a week, and you haven't heard anything, you might want to try
-and nudge things along. You can use the [rubyonrails-core mailing
-list](https://discuss.rubyonrails.org/c/rubyonrails-core) for this. You can also
+and nudge things along. You can use the [rubyonrails-core discussion board](https://discuss.rubyonrails.org/c/rubyonrails-core) for this. You can also
 leave another comment on the pull request.
 
 While you're waiting for feedback on your pull request, open up a few other
