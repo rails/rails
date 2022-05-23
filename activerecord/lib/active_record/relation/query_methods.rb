@@ -736,7 +736,7 @@ module ActiveRecord
     def where(*args)
       if args.empty?
         WhereChain.new(spawn)
-      elsif args.length == 1 && args.first.blank?
+      elsif args.first.blank?
         self
       else
         spawn.where!(*args)

@@ -437,5 +437,12 @@ module ActiveRecord
 
       assert_equal 1, posts.invert_where.first.id
     end
+
+    def test_where_with_empty_arguments
+      expected = Post.where("")
+      actual   = Post.where("").where("", {})
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
   end
 end
