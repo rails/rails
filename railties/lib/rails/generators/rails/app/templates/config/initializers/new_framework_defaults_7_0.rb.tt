@@ -82,20 +82,6 @@
 # The `:mini_magick` option is not deprecated; it's fine to keep using it.
 # Rails.application.config.active_storage.variant_processor = :vips
 
-# If you're upgrading and haven't set `cookies_serializer` previously, your cookie serializer
-# was `:marshal`. The default for new apps is `:json`.
-#
-# You can convert all cookies to JSON using the `:hybrid` formatter. It is fine to use
-#`:hybrid` long term; you should do that unless you're confident that *all* your cookies
-# have been converted to JSON.
-#
-# You can also use `:marshal` for backward-compatibility with old cookies.
-#
-# If you have configured the serializer elsewhere, you can remove this.
-#
-# See https://guides.rubyonrails.org/action_controller_overview.html#cookies for more information.
-# Rails.application.config.action_dispatch.cookies_serializer = :hybrid
-
 # Enable parameter wrapping for JSON.
 # Previously this was set in an initializer. It's fine to keep using that initializer if you've customized it.
 # To disable parameter wrapping entirely, set this config to `false`.
@@ -117,3 +103,29 @@
 #   "X-Permitted-Cross-Domain-Policies" => "none",
 #   "Referrer-Policy" => "strict-origin-when-cross-origin"
 # }
+
+# Cookie serializer: 2 options
+# 
+# If you're upgrading and haven't set `cookies_serializer` previously, your cookie serializer
+# is `:marshal`. The default for new apps is `:json`.
+#
+# Rails.application.config.action_dispatch.cookies_serializer = :json
+#
+#
+# To migrate an existing application to the `:json` serializer, use the `:hybrid` option.
+# 
+# Rails transparently deserializes existing (Marshal-serialized) cookies on read and
+# re-writes them in the JSON format.
+# 
+# It is fine to use `:hybrid` long term; you should do that until you're confident *all* your cookies
+# have been converted to JSON. To keep using `:hybrid` long term, move this config to its own
+# initializer or to `config/application.rb`.
+#
+# Rails.application.config.action_dispatch.cookies_serializer = :hybrid
+#
+#
+# If your cookies can't yet be serialized to JSON, keep using `:marshal` for backward-compatibility.
+#
+# If you have configured the serializer elsewhere, you can remove this section of the file.
+# 
+# See https://guides.rubyonrails.org/action_controller_overview.html#cookies for more information.
