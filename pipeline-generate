@@ -249,7 +249,7 @@ if RAILS_VERSION >= Gem::Version.new("5.x")
       if RAILS_VERSION < Gem::Version.new("6.x")
         "mariadb:10.2"
       else
-        "mariadb:latest"
+        "mariadb:10.7"
       end
   end
 end
