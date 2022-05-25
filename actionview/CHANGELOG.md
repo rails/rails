@@ -1,3 +1,10 @@
+*   Move `convert_to_model` call from `form_for` into `form_with`
+
+    Now that `form_for` is implemented in terms of `form_with`, remove the
+    `convert_to_model` call from `form_for`.
+
+    *Sean Doyle*
+
 *   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
 
     Escape dangerous characters in names of tags and names of attributes in the

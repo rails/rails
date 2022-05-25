@@ -438,7 +438,7 @@ module ActionView
           model       = nil
           object_name = record
         else
-          model       = convert_to_model(record)
+          model       = record
           object      = _object_for_form_builder(record)
           raise ArgumentError, "First argument in form cannot contain nil or be empty" unless object
           object_name = options[:as] || model_name_from_record_or_class(object).param_key
@@ -763,7 +763,7 @@ module ActionView
             end
           end
 
-          model   = _object_for_form_builder(model)
+          model   = convert_to_model(_object_for_form_builder(model))
           scope ||= model_name_from_record_or_class(model).param_key
         end
 
