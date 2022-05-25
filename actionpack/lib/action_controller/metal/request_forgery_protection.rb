@@ -139,7 +139,7 @@ module ActionController # :nodoc:
       #      end
       #
       #      def handle_unverified_request
-      #        # Custom behaviour for unverfied request
+      #        # Custom behavior for unverfied request
       #      end
       #    end
       #

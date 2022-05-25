@@ -418,7 +418,7 @@ end
 as long as they have no ordering, since the method needs to force an order
 internally to iterate.
 
-If an order is present in the receiver the behaviour depends on the flag
+If an order is present in the receiver the behavior depends on the flag
 [`config.active_record.error_on_ignored_order`][]. If true, `ArgumentError` is
 raised, otherwise the order is ignored and a warning issued, which is the
 default. This can be overridden with the option `:error_on_ignore`, explained

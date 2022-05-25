@@ -275,7 +275,7 @@ module ActionController
             comparisons between instances of `ActionController::Parameters`. If
             you need to compare to a hash, first convert it using
             `ActionController::Parameters#new`.
-            To disable the deprecated behaviour set
+            To disable the deprecated behavior set
             `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality = false`.
           WARNING
           @parameters == other

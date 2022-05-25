@@ -639,10 +639,10 @@ end
 get('my_action.csv')
 ```
 
-Previous behaviour was returning a `text/csv` response's Content-Type which is inaccurate since a JSON response is being rendered.
-Current behaviour correctly returns a `application/json` response's Content-Type.
+Previous behavior was returning a `text/csv` response's Content-Type which is inaccurate since a JSON response is being rendered.
+Current behavior correctly returns a `application/json` response's Content-Type.
 
-If your application relies on the previous incorrect behaviour, you are encouraged to specify
+If your application relies on the previous incorrect behavior, you are encouraged to specify
 which formats your action accepts, i.e.
 
 ```ruby

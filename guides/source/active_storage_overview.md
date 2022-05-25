@@ -606,7 +606,7 @@ rails_blob_path(user.avatar, disposition: "attachment")
 ```
 
 WARNING: To prevent XSS attacks, Active Storage forces the Content-Disposition header
-to "attachment" for some kind of files. To change this behaviour see the
+to "attachment" for some kind of files. To change this behavior see the
 available configuration options in [Configuring Rails Applications](configuring.html#configuring-active-storage).
 
 If you need to create a link from outside of controller/view context (Background
