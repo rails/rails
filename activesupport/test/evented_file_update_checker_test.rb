@@ -53,8 +53,9 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     assert_not_predicate checker, :updated?
 
     # Pipes used for flow control across fork.
-    boot_reader,  boot_writer  = IO.pipe
+    boot_reader, boot_writer = IO.pipe
     touch_reader, touch_writer = IO.pipe
+    result_reader, result_writer = IO.pipe
 
     pid = fork do
       assert_not_predicate checker, :updated?
@@ -68,9 +69,16 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
       IO.select([touch_reader])
 
       assert_predicate checker, :updated?
+    rescue Exception => ex
+      result_writer.write(ex.class.name)
+      raise
+    ensure
+      result_writer.close
     end
 
     assert pid
+
+    result_writer.close
 
     # Wait for fork to be booted before touching files.
     IO.select([boot_reader])
@@ -82,6 +90,8 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     assert_predicate checker, :updated?
 
     Process.wait(pid)
+
+    assert_equal "", result_reader.read
   end
 
   test "can be garbage collected" do
