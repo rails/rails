@@ -1,3 +1,7 @@
+*   Add `force:` support to `ActiveSupport::Cache::Store#fetch_multi`.
+
+    *fatkodima*
+
 *   Deprecated `:pool_size` and `:pool_timeout` options for configuring connection pooling in cache stores.
 
     Use `pool: true` to enable pooling with default settings:
