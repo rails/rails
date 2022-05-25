@@ -1009,6 +1009,17 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_uses_value_before_type_cast
+    @post = Post.new
+    def @post.category_before_type_cast; "before"; end
+    @post.category = "after"
+
+    assert_dom_equal(
+      %(<select name="post[category]" id="post_category"><option value="after">bad</option>\n<option selected="selected" value="before">good</option></select>),
+      select(:post, :category, { bad: "after", good: "before" })
+    )
+  end
+
   def test_collection_select
     @post = Post.new
     @post.author_name = "Babe"
@@ -1130,6 +1141,17 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<select id=\"post_author_name\" name=\"post[author_name]\"><option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option></select>",
       collection_select("post", "author_name", dummy_posts, "author_name", lambda { |p| p.title })
+    )
+  end
+
+  def test_collection_select_uses_value_before_type_cast
+    @post = Post.new
+    def @post.category_before_type_cast; "before"; end
+    @post.category = "after"
+
+    assert_dom_equal(
+      %(<select name="post[category]" id="post_category"><option value="after">bad</option>\n<option selected="selected" value="before">good</option></select>),
+      collection_select(:post, :category, { bad: "after", good: "before" }, :last, :first)
     )
   end
 
@@ -1505,6 +1527,17 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       %Q{<select id="post_origin" name="post[origin]"><optgroup label="&lt;Africa&gt;"><option value="&lt;sa&gt;">&lt;South Africa&gt;</option>\n<option value="so">Somalia</option></optgroup><optgroup label="Europe"><option value="dk" selected="selected">Denmark</option>\n<option value="ie">Ireland</option></optgroup></select>},
       output_buffer
+    )
+  end
+
+  def test_grouped_collection_select_uses_value_before_type_cast
+    @post = Post.new
+    def @post.category_before_type_cast; "before"; end
+    @post.category = "after"
+
+    assert_dom_equal(
+      %(<select id="post_category" name="post[category]"><optgroup label="grouped"><option value="after">bad</option>\n<option selected="selected" value="before">good</option></optgroup></select>),
+      grouped_collection_select(:post, :category, { grouped: { bad: "after", good: "before" } }, :last, :first, :last, :first)
     )
   end
 
