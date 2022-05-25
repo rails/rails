@@ -194,6 +194,18 @@ module CacheStoreBehavior
     end
   end
 
+  def test_fetch_multi_with_forced_cache_miss
+    key = SecureRandom.uuid
+    other_key = SecureRandom.uuid
+    @cache.write(key, "bar")
+
+    values = @cache.fetch_multi(key, other_key, force: true) { |value| value * 2 }
+
+    assert_equal({ key => (key * 2), other_key => (other_key * 2) }, values)
+    assert_equal(key * 2, @cache.read(key))
+    assert_equal(other_key * 2, @cache.read(other_key))
+  end
+
   # Use strings that are guaranteed to compress well, so we can easily tell if
   # the compression kicked in or not.
   SMALL_STRING = "0" * 100
@@ -600,6 +612,22 @@ module CacheStoreBehavior
         "baz"
       end
       assert_equal "baz", result
+    end
+  end
+
+  def test_fetch_multi_race_condition_protection
+    time = Time.now
+    key = SecureRandom.uuid
+    other_key = SecureRandom.uuid
+    @cache.write(key, "foo", expires_in: 60)
+    @cache.write(other_key, "bar", expires_in: 100)
+    Time.stub(:now, time + 71) do
+      result = @cache.fetch_multi(key, other_key, race_condition_ttl: 10) do
+        assert_nil @cache.read(key)
+        assert_equal "bar", @cache.read(other_key)
+        "baz"
+      end
+      assert_equal({ key => "baz", other_key => "bar" }, result)
     end
   end
 

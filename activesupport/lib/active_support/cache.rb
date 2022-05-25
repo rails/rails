@@ -480,7 +480,8 @@ module ActiveSupport
       #   # => { "bim" => "bam",
       #   #      "unknown_key" => "Fallback value for key: unknown_key" }
       #
-      # Options are passed to the underlying cache implementation. For example:
+      # You may also specify additional options via the +options+ argument. See #fetch for details.
+      # Other options are passed to the underlying cache implementation. For example:
       #
       #   cache.fetch_multi("fizz", expires_in: 5.seconds) do |key|
       #     "buzz"
@@ -498,7 +499,12 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument :read_multi, names, options do |payload|
-          reads   = read_multi_entries(names, **options)
+          if options[:force]
+            reads = {}
+          else
+            reads = read_multi_entries(names, **options)
+          end
+
           writes  = {}
           ordered = names.index_with do |name|
             reads.fetch(name) { writes[name] = yield(name) }

@@ -434,9 +434,9 @@ module ActiveSupport
         end
 
         # Nonstandard store provider API to write multiple values at once.
-        def write_multi_entries(entries, expires_in: nil, **options)
+        def write_multi_entries(entries, expires_in: nil, race_condition_ttl: nil, **options)
           if entries.any?
-            if mset_capable? && expires_in.nil?
+            if mset_capable? && expires_in.nil? && race_condition_ttl.nil?
               failsafe :write_multi_entries do
                 payload = serialize_entries(entries, **options)
                 redis.with do |c|
