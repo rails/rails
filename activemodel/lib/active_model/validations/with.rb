@@ -83,7 +83,7 @@ module ActiveModel
         options[:class] = self
 
         args.each do |klass|
-          validator = klass.new(options, &block)
+          validator = klass.new(options.dup, &block)
 
           if validator.respond_to?(:attributes) && !validator.attributes.empty?
             validator.attributes.each do |attribute|
@@ -139,7 +139,7 @@ module ActiveModel
       options[:class] = self.class
 
       args.each do |klass|
-        validator = klass.new(options, &block)
+        validator = klass.new(options.dup, &block)
         validator.validate(self)
       end
     end
