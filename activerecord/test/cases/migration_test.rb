@@ -680,6 +680,22 @@ class MigrationTest < ActiveRecord::TestCase
     migrator.up
   end
 
+  def test_internal_metadata_stores_environment_when_migration_fails
+    ActiveRecord::InternalMetadata.delete_all
+    current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+
+    migration = Class.new(ActiveRecord::Migration::Current) {
+      def version; 101 end
+      def migrate(x)
+        raise "Something broke"
+      end
+    }.new
+
+    migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 101)
+    assert_raise(StandardError) { migrator.migrate }
+    assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
+  end
+
   def test_internal_metadata_stores_environment_when_other_data_exists
     ActiveRecord::InternalMetadata.delete_all
     ActiveRecord::InternalMetadata[:foo] = "bar"

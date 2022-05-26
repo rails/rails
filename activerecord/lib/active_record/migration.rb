@@ -1325,10 +1325,9 @@ module ActiveRecord
       def run_without_lock
         migration = migrations.detect { |m| m.version == @target_version }
         raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
-        result = execute_migration_in_transaction(migration)
 
         record_environment
-        result
+        execute_migration_in_transaction(migration)
       end
 
       # Used for running multiple migrations up to or down to a certain value.
@@ -1337,9 +1336,8 @@ module ActiveRecord
           raise UnknownMigrationVersionError.new(@target_version)
         end
 
-        result = runnable.each(&method(:execute_migration_in_transaction))
         record_environment
-        result
+        runnable.each(&method(:execute_migration_in_transaction))
       end
 
       # Stores the current environment in the database.
