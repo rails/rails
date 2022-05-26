@@ -1,3 +1,53 @@
+## Rails 6.0.5 (May 09, 2022) ##
+
+*   No changes.
+
+
+## Rails 6.0.4.8 (April 26, 2022) ##
+
+*   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
+
+    Add the method `ERB::Util.xml_name_escape` to escape dangerous characters
+    in names of tags and names of attributes, following the specification of XML.
+
+    *Álvaro Martín Fraguas*
+
+
+## Rails 6.0.4.7 (March 08, 2022) ##
+
+*   No changes.
+
+
+## Rails 6.0.4.6 (February 11, 2022) ##
+
+*   Fix Reloader method signature to work with the new Executor signature
+
+
+## Rails 6.0.4.5 (February 11, 2022) ##
+
+*   No changes.
+
+
+## Rails 6.0.4.4 (December 15, 2021) ##
+
+*   No changes.
+
+
+## Rails 6.0.4.3 (December 14, 2021) ##
+
+*   No changes.
+
+
+## Rails 6.0.4.2 (December 14, 2021) ##
+
+*   No changes.
+
+
+## Rails 6.0.4.1 (August 19, 2021) ##
+
+*   No changes.
+
+
 ## Rails 6.0.4 (June 15, 2021) ##
 
 *   Fixed issue in `ActiveSupport::Cache::RedisCacheStore` not passing options

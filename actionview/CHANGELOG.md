@@ -1,3 +1,55 @@
+## Rails 6.0.5 (May 09, 2022) ##
+
+*   No changes.
+
+
+## Rails 6.0.4.8 (April 26, 2022) ##
+
+*   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
+
+    Escape dangerous characters in names of tags and names of attributes in the
+    tag helpers, following the XML specification. Rename the option
+    `:escape_attributes` to `:escape`, to simplify by applying the option to the
+    whole tag.
+
+    *Álvaro Martín Fraguas*
+
+
+## Rails 6.0.4.7 (March 08, 2022) ##
+
+*   No changes.
+
+
+## Rails 6.0.4.6 (February 11, 2022) ##
+
+*   No changes.
+
+
+## Rails 6.0.4.5 (February 11, 2022) ##
+
+*   No changes.
+
+
+## Rails 6.0.4.4 (December 15, 2021) ##
+
+*   No changes.
+
+
+## Rails 6.0.4.3 (December 14, 2021) ##
+
+*   No changes.
+
+
+## Rails 6.0.4.2 (December 14, 2021) ##
+
+*   No changes.
+
+
+## Rails 6.0.4.1 (August 19, 2021) ##
+
+*   No changes.
+
+
 ## Rails 6.0.4 (June 15, 2021) ##
 
 *   SanitizeHelper.sanitized_allowed_attributes and SanitizeHelper.sanitized_allowed_tags

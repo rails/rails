@@ -1,3 +1,55 @@
+## Rails 6.0.5 (May 09, 2022) ##
+
+*   No changes.
+
+
+## Rails 6.0.4.8 (April 26, 2022) ##
+
+*   Allow Content Security Policy DSL to generate for API responses.
+
+    *Tim Wade*
+
+## Rails 6.0.4.7 (March 08, 2022) ##
+
+*   No changes.
+
+
+## Rails 6.0.4.6 (February 11, 2022) ##
+
+*   No changes.
+
+
+## Rails 6.0.4.5 (February 11, 2022) ##
+
+*   Under certain circumstances, the middleware isn't informed that the
+    response body has been fully closed which result in request state not
+    being fully reset before the next request
+
+    [CVE-2022-23633]
+
+
+## Rails 6.0.4.4 (December 15, 2021) ##
+
+*   Fix issue with host protection not allowing host with port in development.
+
+
+## Rails 6.0.4.3 (December 14, 2021) ##
+
+*   Fix issue with host protection not allowing localhost in development.
+
+
+## Rails 6.0.4.2 (December 14, 2021) ##
+
+*   Fix X_FORWARDED_HOST protection.  [CVE-2021-44528]
+
+## Rails 6.1.4.1 (August 19, 2021) ##
+
+*   [CVE-2021-22942] Fix possible open redirect in Host Authorization middleware.
+
+    Specially crafted "X-Forwarded-Host" headers in combination with certain
+    "allowed host" formats can cause the Host Authorization middleware in Action
+    Pack to redirect users to a malicious website.
+
 ## Rails 6.0.4 (June 15, 2021) ##
 
 *   Accept base64_urlsafe CSRF tokens to make forward compatible.

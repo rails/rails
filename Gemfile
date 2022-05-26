@@ -59,7 +59,7 @@ group :job do
   gem "delayed_job", require: false
   gem "queue_classic", github: "QueueClassic/queue_classic", require: false, platforms: :ruby
   gem "sneakers", require: false
-  gem "que", require: false
+  gem "que", "<= 0.14.3", require: false
   gem "backburner", require: false
   gem "delayed_job_active_record", require: false
   gem "sequel", require: false
@@ -104,6 +104,7 @@ local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
+  gem "minitest", "< 5.15.0"
   gem "minitest-bisect"
   gem "minitest-retry"
   gem "minitest-reporters"

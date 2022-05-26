@@ -10,6 +10,17 @@ module ActionDispatch
   # application will be executed and rendered. If no +response_app+ is given, a
   # default one will run, which responds with +403 Forbidden+.
   class HostAuthorization
+    ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")]
+    PORT_REGEX = /(?::\d+)/ # :nodoc:
+    IPV4_HOSTNAME = /(?<host>\d+\.\d+\.\d+\.\d+)#{PORT_REGEX}?/ # :nodoc:
+    IPV6_HOSTNAME = /(?<host>[a-f0-9]*:[a-f0-9.:]+)/i # :nodoc:
+    IPV6_HOSTNAME_WITH_PORT = /\[#{IPV6_HOSTNAME}\]#{PORT_REGEX}/i # :nodoc:
+    VALID_IP_HOSTNAME = Regexp.union( # :nodoc:
+      /\A#{IPV4_HOSTNAME}\z/,
+      /\A#{IPV6_HOSTNAME}\z/,
+      /\A#{IPV6_HOSTNAME_WITH_PORT}\z/,
+    )
+
     class Permissions # :nodoc:
       def initialize(hosts)
         @hosts = sanitize_hosts(hosts)
@@ -21,11 +32,17 @@ module ActionDispatch
 
       def allows?(host)
         @hosts.any? do |allowed|
-          allowed === host
-        rescue
-          # IPAddr#=== raises an error if you give it a hostname instead of
-          # IP. Treat similar errors as blocked access.
-          false
+          if allowed.is_a?(IPAddr)
+            begin
+              allowed === extract_hostname(host)
+            rescue
+              # IPAddr#=== raises an error if you give it a hostname instead of
+              # IP. Treat similar errors as blocked access.
+              false
+            end
+          else
+            allowed === host
+          end
         end
       end
 
@@ -41,15 +58,19 @@ module ActionDispatch
         end
 
         def sanitize_regexp(host)
-          /\A#{host}\z/
+          /\A#{host}#{PORT_REGEX}?\z/
         end
 
         def sanitize_string(host)
           if host.start_with?(".")
-            /\A(.+\.)?#{Regexp.escape(host[1..-1])}\z/i
+            /\A([a-z0-9-]+\.)?#{Regexp.escape(host[1..-1])}#{PORT_REGEX}?\z/i
           else
-            /\A#{Regexp.escape host}\z/i
+            /\A#{Regexp.escape host}#{PORT_REGEX}?\z/i
           end
+        end
+
+        def extract_hostname(host)
+          host.slice(VALID_IP_HOSTNAME, "host") || host
         end
     end
 
@@ -87,20 +108,10 @@ module ActionDispatch
 
     private
       def authorized?(request)
-        valid_host = /
-          \A
-          (?<host>[a-z0-9.-]+|\[[a-f0-9]*:[a-f0-9.:]+\])
-          (:\d+)?
-          \z
-        /x
+        origin_host = request.get_header("HTTP_HOST")
+        forwarded_host = request.x_forwarded_host&.split(/,\s?/)&.last
 
-        origin_host = valid_host.match(
-          request.get_header("HTTP_HOST").to_s.downcase)
-        forwarded_host = valid_host.match(
-          request.x_forwarded_host.to_s.split(/,\s?/).last)
-
-        origin_host && @permissions.allows?(origin_host[:host]) && (
-          forwarded_host.nil? || @permissions.allows?(forwarded_host[:host]))
+        @permissions.allows?(origin_host) && (forwarded_host.blank? || @permissions.allows?(forwarded_host))
       end
 
       def mark_as_authorized(request)
