@@ -9,7 +9,7 @@ module ActionDispatch
     end
 
     def call(env)
-      state = @executor.run!(reset: true)
+      state = @executor.run!
       begin
         response = @app.call(env)
         returned = response << ::Rack::BodyProxy.new(response.pop) { state.complete! }

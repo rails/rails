@@ -58,7 +58,7 @@ module ActiveSupport
       prepare!
     end
 
-    def self.run!(reset: false) # :nodoc:
+    def self.run! # :nodoc:
       if check!
         super
       else
