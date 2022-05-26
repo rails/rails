@@ -11,13 +11,19 @@ class ERB
     HTML_ESCAPE_ONCE_REGEXP = /["><']|&(?!([a-zA-Z]+|(#\d+)|(#[xX][\dA-Fa-f]+));)/
     JSON_ESCAPE_REGEXP = /[\u2028\u2029&><]/u
 
-    # Following XML requirements: https://www.w3.org/TR/REC-xml/#NT-Name
-    TAG_NAME_START_REGEXP_SET = "@:A-Z_a-z\u{C0}-\u{D6}\u{D8}-\u{F6}\u{F8}-\u{2FF}\u{370}-\u{37D}\u{37F}-\u{1FFF}" \
-                                "\u{200C}-\u{200D}\u{2070}-\u{218F}\u{2C00}-\u{2FEF}\u{3001}-\u{D7FF}\u{F900}-\u{FDCF}" \
-                                "\u{FDF0}-\u{FFFD}\u{10000}-\u{EFFFF}"
-    TAG_NAME_START_REGEXP = /[^#{TAG_NAME_START_REGEXP_SET}]/
-    TAG_NAME_FOLLOWING_REGEXP = /[^#{TAG_NAME_START_REGEXP_SET}\-.0-9\u{B7}\u{0300}-\u{036F}\u{203F}-\u{2040}]/
-    TAG_NAME_REPLACEMENT_CHAR = "_"
+    HTML_ATTRIBUTE_NAME_REPLACEMENT_CHAR = "_"
+
+    # Following the HTML spec:
+    # https://html.spec.whatwg.org/multipage/syntax.html#syntax-start-tag
+    # https://html.spec.whatwg.org/multipage/syntax.html#syntax-attribute-name
+    HTML_INVALID_ATTRIBUTE_NAME_REGEXP_SET =
+      "\t\n\f\r \u{7F}-\u{9F}\"'>/=\u{FDD0}-\u{FDEF}\u{FFFE}\u{FFFF}\u{1FFFE}\u{1FFFF}\u{2FFFE}" \
+      "\u{2FFFF}\u{3FFFE}\u{3FFFF}\u{4FFFE}\u{4FFFF}\u{5FFFE}\u{5FFFF}\u{6FFFE}\u{6FFFF}\u{7FFFE}" \
+      "\u{7FFFF}\u{8FFFE}\u{8FFFF}\u{9FFFE}\u{9FFFF}\u{AFFFE}\u{AFFFF}\u{BFFFE}\u{BFFFF}\u{CFFFE}" \
+      "\u{CFFFF}\u{DFFFE}\u{DFFFF}\u{EFFFE}\u{EFFFF}\u{FFFFE}\u{FFFFF}\u{10FFFE}\u{10FFFF}"
+    HTML_INVALID_ATTRIBUTE_NAME_REGEXP = /[#{HTML_INVALID_ATTRIBUTE_NAME_REGEXP_SET}]/
+    # https://html.spec.whatwg.org/multipage/syntax.html#syntax-tag-name
+    HTML_INVALID_TAG_NAME_REGEXP = /[^a-zA-Z0-9]/
 
     # A utility method for escaping HTML tag characters.
     # This method is also aliased as <tt>h</tt>.
@@ -124,25 +130,36 @@ class ERB
 
     module_function :json_escape
 
-    # A utility method for escaping XML names of tags and names of attributes.
+    # A utility method for escaping HTML tag names.
     #
-    #   xml_name_escape('1 < 2 & 3')
-    #   # => "1___2___3"
+    #   html_tag_name_escape('@a:-A1 <> 2 & 3')
+    #   # => "aA123"
     #
-    # It follows the requirements of the specification: https://www.w3.org/TR/REC-xml/#NT-Name
-    def xml_name_escape(name)
+    # It follows the requirements of the specification:
+    # https://html.spec.whatwg.org/multipage/syntax.html#syntax-tag-name
+    def html_tag_name_escape(name)
       name = name.to_s
       return "" if name.blank?
 
-      starting_char = name[0].gsub(TAG_NAME_START_REGEXP, TAG_NAME_REPLACEMENT_CHAR)
-
-      return starting_char if name.size == 1
-
-      following_chars = name[1..-1].gsub(TAG_NAME_FOLLOWING_REGEXP, TAG_NAME_REPLACEMENT_CHAR)
-
-      starting_char + following_chars
+      name.gsub(HTML_INVALID_TAG_NAME_REGEXP, "")
     end
-    module_function :xml_name_escape
+    module_function :html_tag_name_escape
+
+    # A utility method for escaping HTML attribute names.
+    #
+    #   html_attribute_name_escape('@a:-A1 <> 2 & 3')
+    #   # => "@a:-A1_<__2_&_3"
+    #
+    # It follows the requirements of the specification:
+    # https://html.spec.whatwg.org/multipage/syntax.html#syntax-attribute-name
+    def html_attribute_name_escape(name)
+      name = name.to_s
+      return "" if name.blank?
+
+      name.gsub(HTML_INVALID_ATTRIBUTE_NAME_REGEXP,
+                HTML_ATTRIBUTE_NAME_REPLACEMENT_CHAR)
+    end
+    module_function :html_attribute_name_escape
   end
 end
 

@@ -9,8 +9,8 @@ require "action_view/helpers/output_safety_helper"
 module ActionView
   # = Action View Tag Helpers
   module Helpers # :nodoc:
-    # Provides methods to generate HTML tags programmatically both as a modern
-    # HTML5 compliant builder style and legacy XHTML compliant tags.
+    # Provides methods to generate HTML tags programmatically, following a modern
+    # HTML5 compliant builder style.
     module TagHelper
       include CaptureHelper
       include OutputSafetyHelper
@@ -69,9 +69,9 @@ module ActionView
           content = @view_context.capture(self, &block) if block_given?
           self_closing = SVG_SELF_CLOSING_ELEMENTS.include?(name)
           if (HTML_VOID_ELEMENTS.include?(name) || self_closing) && content.nil?
-            "<#{name.to_s.dasherize}#{tag_options(options, escape)}#{self_closing ? " />" : ">"}".html_safe
+            "<#{name}#{tag_options(options, escape)}#{self_closing ? " />" : ">"}".html_safe
           else
-            content_tag_string(name.to_s.dasherize, content || "", options, escape)
+            content_tag_string(name.to_s, content || "", options, escape)
           end
         end
 
@@ -79,7 +79,7 @@ module ActionView
           tag_options = tag_options(options, escape) if options
 
           if escape
-            name = ERB::Util.xml_name_escape(name)
+            name = ERB::Util.html_tag_name_escape(name)
             content = ERB::Util.unwrapped_html_escape(content)
           end
 
@@ -133,7 +133,7 @@ module ActionView
         end
 
         def tag_option(key, value, escape)
-          key = ERB::Util.xml_name_escape(key) if escape
+          key = ERB::Util.html_attribute_name_escape(key) if escape
 
           case value
           when Array, Hash
@@ -167,7 +167,7 @@ module ActionView
           end
       end
 
-      # Returns an HTML tag.
+      # Returns an HTML tag builder.
       #
       # === Building HTML tags
       #
@@ -261,56 +261,22 @@ module ActionView
       # === Legacy syntax
       #
       # The following format is for legacy syntax support. It will be deprecated in future versions of Rails.
+      # It generates an HTML5 tag as well.
       #
-      #   tag(name, options = nil, open = false, escape = true)
-      #
-      # It returns an empty HTML tag of type +name+ which by default is XHTML
-      # compliant. Set +open+ to true to create an open tag compatible
-      # with HTML 4.0 and below. Add HTML attributes by passing an attributes
-      # hash to +options+. Set +escape+ to false to disable attribute value
-      # escaping.
-      #
-      # ==== Options
-      #
-      # You can use symbols or strings for the attribute names.
-      #
-      # Use +true+ with boolean attributes that can render with no value, like
-      # +disabled+ and +readonly+.
-      #
-      # HTML5 <tt>data-*</tt> attributes can be set with a single +data+ key
-      # pointing to a hash of sub-attributes.
+      #   tag(name, options = {})
       #
       # ==== Examples
       #
       #   tag("br")
-      #   # => <br />
-      #
-      #   tag("br", nil, true)
       #   # => <br>
       #
       #   tag("input", type: 'text', disabled: true)
-      #   # => <input type="text" disabled="disabled" />
-      #
-      #   tag("input", type: 'text', class: ["strong", "highlight"])
-      #   # => <input class="strong highlight" type="text" />
-      #
-      #   tag("img", src: "open & shut.png")
-      #   # => <img src="open &amp; shut.png" />
-      #
-      #   tag("img", { src: "open &amp; shut.png" }, false, false)
-      #   # => <img src="open &amp; shut.png" />
-      #
-      #   tag("div", data: { name: 'Stephen', city_state: %w(Chicago IL) })
-      #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
-      #
-      #   tag("div", class: { highlight: current_user.admin? })
-      #   # => <div class="highlight" />
-      def tag(name = nil, options = nil, open = false, escape = true)
+      #   # => <input type="text" disabled="disabled">
+      def tag(name = nil, options = {})
         if name.nil?
           tag_builder
         else
-          name = ERB::Util.xml_name_escape(name) if escape
-          "<#{name}#{tag_builder.tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
+          tag_builder.public_send(name.to_sym, nil, **options)
         end
       end
 
