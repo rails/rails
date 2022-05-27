@@ -1,3 +1,8 @@
+*   Adds an `--application` option to the routes command to enable only 
+    showing routes defined in routes.rb
+
+    *Paul Hendrick*
+    
 *   Avoid booting in development then test for test tasks.
 
     Running one of the rails test subtasks (e.g. test:system, test:models) would

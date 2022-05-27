@@ -197,6 +197,25 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
     MESSAGE
   end
 
+  test "rails application routes only" do
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        resource :post
+      end
+    RUBY
+
+    assert_equal <<~OUTPUT, run_routes_command([ "--application" ])
+                             Prefix Verb   URI Pattern          Controller#Action
+                           new_post GET    /post/new(.:format)  posts#new
+                          edit_post GET    /post/edit(.:format) posts#edit
+                               post GET    /post(.:format)      posts#show
+                                    PATCH  /post(.:format)      posts#update
+                                    PUT    /post(.:format)      posts#update
+                                    DELETE /post(.:format)      posts#destroy
+                                    POST   /post(.:format)      posts#create
+    OUTPUT
+  end
+
   test "rails routes with expanded option" do
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do

@@ -69,7 +69,7 @@ module ActionDispatch
       end
 
       def format(formatter, filter = {})
-        routes_to_display = filter_routes(normalize_filter(filter))
+        routes_to_display = filter_routes(normalize_filter(filter), application_routes: filter[:application] == "application")
         routes = collect_routes(routes_to_display)
         if routes.none?
           formatter.no_routes(collect_routes(@routes), filter)
@@ -97,7 +97,9 @@ module ActionDispatch
           end
         end
 
-        def filter_routes(filter)
+        def filter_routes(filter, application_routes: false)
+          @routes = @routes.select { |route| route.application_set } if application_routes
+
           if filter
             @routes.select do |route|
               route_wrapper = RouteWrapper.new(route)

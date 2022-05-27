@@ -1,3 +1,10 @@
+*   Set `application_set: true` when building routes
+
+    When drawing routes that are defined from within the application, set `application_set` 
+    to true.
+
+    *Paul Hendrick*
+
 *   Allow using `helper_method`s in `content_security_policy` and `permissions_policy`
 
     Previously you could access basic helpers (defined in helper modules), but not

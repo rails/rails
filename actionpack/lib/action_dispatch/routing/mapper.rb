@@ -170,7 +170,8 @@ module ActionDispatch
           Journey::Route.new(name: name, app: application, path: path, constraints: conditions,
                              required_defaults: required_defaults, defaults: defaults,
                              request_method_match: request_method, precedence: precedence,
-                             scope_options: scope_options, internal: @internal)
+                             scope_options: scope_options, internal: @internal,
+                             application_set: @set.config.application_set)
         end
 
         def application
