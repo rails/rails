@@ -161,12 +161,7 @@ module ActiveModel
         end
 
         if options.key?(:on)
-          options = options.dup
-          options[:on] = Array(options[:on])
-          options[:if] = [
-            ->(o) { !(options[:on] & Array(o.validation_context)).empty? },
-            *options[:if]
-          ]
+          options = options.merge(if: [predicate_for_validation_context(options[:on]), *options[:if]])
         end
 
         set_callback(:validate, *args, options, &block)
@@ -277,6 +272,21 @@ module ActiveModel
         base._validators = dup.each { |k, v| dup[k] = v.dup }
         super
       end
+
+      private
+        @@predicates_for_validation_contexts = {}
+
+        def predicate_for_validation_context(context)
+          context = context.is_a?(Array) ? context.sort : Array(context)
+
+          @@predicates_for_validation_contexts[context] ||= -> (model) do
+            if model.validation_context.is_a?(Array)
+              model.validation_context.any? { |model_context| context.include?(model_context) }
+            else
+              context.include?(model.validation_context)
+            end
+          end
+        end
     end
 
     # Clean the +Errors+ object if instance is duped.
