@@ -287,7 +287,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
   end
 
-  class ConnectionPoolBehaviourTest < StoreTest
+  class ConnectionPoolBehaviorTest < StoreTest
     include ConnectionPoolBehavior
 
     def test_deprecated_connection_pool_works
@@ -316,7 +316,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
   end
 
-  class RedisDistributedConnectionPoolBehaviourTest < ConnectionPoolBehaviourTest
+  class RedisDistributedConnectionPoolBehaviorTest < ConnectionPoolBehaviorTest
     private
       def store_options
         { url: REDIS_URLS }

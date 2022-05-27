@@ -1165,7 +1165,7 @@ the top level, or on individual controllers.
 
 #### `config.action_controller.allow_deprecated_parameters_hash_equality`
 
-Controls behaviour of `ActionController::Parameters#==` with `Hash` arguments.
+Controls behavior of `ActionController::Parameters#==` with `Hash` arguments.
 Value of the setting determines whether an `ActionController::Parameters` instance is equal to an equivalent `Hash`.
 
 The default value depends on the `config.load_defaults` target version:

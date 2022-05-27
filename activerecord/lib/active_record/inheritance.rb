@@ -116,7 +116,7 @@ module ActiveRecord
       # true.
       # +ApplicationRecord+, for example, is generated as an abstract class.
       #
-      # Consider the following default behaviour:
+      # Consider the following default behavior:
       #
       #   Shape = Class.new(ActiveRecord::Base)
       #   Polygon = Class.new(Shape)

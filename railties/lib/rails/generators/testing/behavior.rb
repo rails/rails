@@ -11,7 +11,7 @@ require "rails/generators"
 module Rails
   module Generators
     module Testing
-      module Behaviour
+      module Behavior
         extend ActiveSupport::Concern
         include ActiveSupport::Testing::Stream
 
@@ -107,6 +107,8 @@ module Rails
             Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
           end
       end
+
+      Behaviour = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("behavior", "Behavior")
     end
   end
 end
