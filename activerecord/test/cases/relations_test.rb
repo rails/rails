@@ -1804,6 +1804,35 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_predicate scope, :eager_loading?
   end
 
+  if supports_database_schema?
+    class Song < ActiveRecord::Base
+      self.table_name = "music.songs"
+      has_one :album
+    end
+
+    class Album < ActiveRecord::Base
+      self.table_name = "music.albums"
+    end
+
+    def test_order_doesnt_trigger_eager_loading_when_ordering_using_the_owner_schema_and_table
+      scope = Song.includes(:album).order("music.songs.id DESC")
+      assert_not_predicate scope, :eager_loading?
+    end
+
+    def test_order_triggers_eager_loading_when_ordering_using_the_owner_schema_and_different_table
+      scope = Song.includes(:album).order("music.albums.id DESC")
+      assert_predicate scope, :eager_loading?
+    end
+
+    def test_order_triggers_eager_loading_when_ordering_using_a_different_schema
+      scope = Song.includes(:album).order("songs.id DESC")
+      assert_predicate scope, :eager_loading?
+
+      scope = Song.includes(:album).order("rock.songs.id DESC")
+      assert_predicate scope, :eager_loading?
+    end
+  end
+
   def test_automatically_added_where_references
     scope = Post.where(comments: { body: "Bla" })
     assert_equal ["comments"], scope.references_values

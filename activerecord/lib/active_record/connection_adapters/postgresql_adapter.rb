@@ -253,6 +253,10 @@ module ActiveRecord
         database_version >= 12_00_00 # >= 12.0
       end
 
+      def supports_database_schema?
+        true
+      end
+
       def index_algorithms
         { concurrently: "CONCURRENTLY" }
       end
