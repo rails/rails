@@ -15,8 +15,8 @@ module ActiveSupport
     private
       def method_missing(method, *arguments, &block)
         options = nil
-        if arguments.first.is_a?(Proc)
-          proc = arguments.pop
+        if arguments.size == 1 && arguments.first.is_a?(Proc)
+          proc = arguments.shift
           arguments << lambda { |*args| @options.deep_merge(proc.call(*args)) }
         elsif arguments.last.respond_to?(:to_hash)
           options = @options.deep_merge(arguments.pop)
