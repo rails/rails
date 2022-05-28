@@ -1,3 +1,7 @@
+*   Fix eager loading for models without primary keys.
+
+    *Anmol Chopra*, *Matt Lawrence*, and *Jonathan Hefner*
+
 *   `rails db:schema:{dump,load}` now checks `ENV["SCHEMA_FORMAT"]` before config
 
     Since `rails db:structure:{dump,load}` was deprecated there wasn't a simple
