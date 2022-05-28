@@ -406,7 +406,7 @@ module ActionDispatch
       private :make_request
 
       def draw(&block)
-        if Rails.root.present? && block_given?
+        if defined?(Rails.root) && block_given?
           config.application_set = /^#{Rails.root}/.match?(block.source_location.first)
         end
 
