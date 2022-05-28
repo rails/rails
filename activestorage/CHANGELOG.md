@@ -1,3 +1,12 @@
+*   Allow GCS service update_metadata method to set cache_control header
+
+    Previously, the update_metadata method in `ActiveStorage::Service::GCSService`
+    did not allow for updating the `"Cache-Control"` header on the service.
+    Now, update_metadata takes an argument `cache_control` that correctly
+    updates the `"Cache-Control"` header for the file on Google Cloud Storage.
+
+    *Texas Delaney*
+
 *   Fixes proxy downloads of files over 5mb 
 
     Previously, trying to view and/or download files larger than 5mb stored in

@@ -132,6 +132,22 @@ if SERVICE_CONFIGURATIONS[:gcs]
       service.delete key
     end
 
+    test "update cache_control" do
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+      @service.upload(key, StringIO.new(data), checksum: OpenSSL::Digest::MD5.base64digest(data), disposition: :attachment, filename: ActiveStorage::Filename.new("test.html"), content_type: "text/html", custom_metadata: { "foo" => "baz" })
+
+      @service.update_metadata(key, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain", cache_control: "public, max-age=2200", custom_metadata: { "foo" => "bar" })
+      url = @service.url(key, expires_in: 2.minutes, disposition: :attachment, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
+
+      response = Net::HTTP.get_response(URI(url))
+      assert_equal "text/plain", response.content_type
+      assert_match(/inline;.*test.txt/, response["Content-Disposition"])
+      assert_equal("public, max-age=2200", response["Cache-Control"])
+    ensure
+      @service.delete key
+    end
+
     test "upload with custom_metadata" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
