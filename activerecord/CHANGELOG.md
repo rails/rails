@@ -1,3 +1,7 @@
+*   Fix eager loading for models without primary keys.
+
+    *Anmol Chopra*, *Matt Lawrence*, and *Jonathan Hefner*
+
 *   Avoid validating a unique field if it has not changed and is backed by a unique index.
 
     Previously, when saving a record, ActiveRecord will perform an extra query to check for the uniqueness of
