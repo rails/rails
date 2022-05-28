@@ -52,6 +52,11 @@ module Rails
         ENV["PGSSLCERT"]      = config[:sslcert].to_s if config[:sslcert]
         ENV["PGSSLKEY"]       = config[:sslkey].to_s if config[:sslkey]
         ENV["PGSSLROOTCERT"]  = config[:sslrootcert].to_s if config[:sslrootcert]
+        if config[:variables]
+          ENV["PGOPTIONS"] = config[:variables].filter_map do |name, value|
+            "-c #{name}=#{value.to_s.gsub(/[ \\]/, '\\\\\0')}" unless value == ":default" || value == :default
+          end.join(" ")
+        end
         find_cmd_and_exec("psql", db_config.database)
 
       when "sqlite3"
