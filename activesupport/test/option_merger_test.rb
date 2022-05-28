@@ -84,10 +84,19 @@ class OptionMergerTest < ActiveSupport::TestCase
     end
   end
 
-  def test_nested_method_with_options_using_lambda
+  def test_nested_method_with_options_using_lambda_as_only_argument
     local_lambda = lambda { { lambda: true } }
     with_options(@options) do |o|
       assert_equal @options.merge(local_lambda.call), o.method_with_options(local_lambda).call
+    end
+  end
+
+  def test_proc_as_first_argument_with_other_options_should_still_merge_options
+    local_proc = proc { }
+    local_options = { "cool" => true }
+
+    with_options(@options) do |o|
+      assert_equal [local_proc, @options.merge(local_options)], o.method_with_args(local_proc, local_options)
     end
   end
 
@@ -114,6 +123,10 @@ class OptionMergerTest < ActiveSupport::TestCase
   end
 
   private
+    def method_with_args(*args)
+      args
+    end
+
     def method_with_options(options = {})
       options
     end
