@@ -8,7 +8,7 @@ module Rails
       class_option :controller, aliases: "-c", desc: "Filter by a specific controller, e.g. PostsController or Admin::PostsController."
       class_option :grep, aliases: "-g", desc: "Grep routes by a specific pattern."
       class_option :expanded, type: :boolean, aliases: "-E", desc: "Print routes expanded vertically with parts explained."
-      class_option :application, aliases: "-a", desc: "Only print routes defined in routes.rb"
+      class_option :application, aliases: "-a", type: :boolean, desc: "Only print routes defined in routes.rb"
 
       def perform(*)
         require_application_and_environment!

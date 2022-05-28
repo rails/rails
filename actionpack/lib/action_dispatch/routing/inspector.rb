@@ -69,7 +69,7 @@ module ActionDispatch
       end
 
       def format(formatter, filter = {})
-        routes_to_display = filter_routes(normalize_filter(filter), application_routes: filter[:application] == "application")
+        routes_to_display = filter_routes(normalize_filter(filter), application_routes: filter[:application])
         routes = collect_routes(routes_to_display)
         if routes.none?
           formatter.no_routes(collect_routes(@routes), filter)
