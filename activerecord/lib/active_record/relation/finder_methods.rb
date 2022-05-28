@@ -559,10 +559,10 @@ module ActiveRecord
         else
           relation = ordered_relation
 
-          if equal?(relation) || has_limit_or_offset?
+          if relation.order_values.empty? || relation.has_limit_or_offset?
             relation.records[-index]
           else
-            relation.last(index)[-index]
+            relation.reverse_order.offset(index - 1).first
           end
         end
       end
