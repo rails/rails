@@ -16,7 +16,9 @@ ruby <%= "\"#{RUBY_VERSION}\"" -%>
 <% end -%>
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
+<%# TODO: use platforms again after rubygems/rubygems#5269 is fixed -%>
+<%# gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ] -%>
+gem "tzinfo-data"
 <% if depend_on_bootsnap? -%>
 
 # Reduces boot times through caching; required in config/boot.rb
