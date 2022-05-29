@@ -1006,7 +1006,7 @@ Book.select(:title, :isbn).reselect(:created_at)
 The SQL that would be executed:
 
 ```sql
-SELECT `books`.`created_at` FROM `books`
+SELECT books.created_at FROM books
 ```
 
 Compare this to the case where the `reselect` clause is not used:
@@ -1018,7 +1018,7 @@ Book.select(:title, :isbn).select(:created_at)
 the SQL executed would be:
 
 ```sql
-SELECT `books`.`title`, `books`.`isbn`, `books`.`created_at` FROM `books`
+SELECT books.title, books.isbn, books.created_at FROM books
 ```
 
 ### `reorder`
@@ -1096,7 +1096,7 @@ Book.where(out_of_print: true).rewhere(out_of_print: false)
 The SQL that would be executed:
 
 ```sql
-SELECT * FROM books WHERE `out_of_print` = 0
+SELECT * FROM books WHERE out_of_print = 0
 ```
 
 If the `rewhere` clause is not used, the where clauses are ANDed together:
@@ -1108,7 +1108,7 @@ Book.where(out_of_print: true).where(out_of_print: false)
 the SQL executed would be:
 
 ```sql
-SELECT * FROM books WHERE `out_of_print` = 1 AND `out_of_print` = 0
+SELECT * FROM books WHERE out_of_print = 1 AND out_of_print = 0
 ```
 
 [`rewhere`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-rewhere
@@ -1214,8 +1214,8 @@ The above session produces the following SQL for a MySQL backend:
 
 ```sql
 SQL (0.2ms)   BEGIN
-Book Load (0.3ms)   SELECT * FROM `books` LIMIT 1 FOR UPDATE
-Book Update (0.4ms)   UPDATE `books` SET `updated_at` = '2009-02-07 18:05:56', `title` = 'Algorithms, second edition' WHERE `id` = 1
+Book Load (0.3ms)   SELECT * FROM books LIMIT 1 FOR UPDATE
+Book Update (0.4ms)   UPDATE books SET updated_at = '2009-02-07 18:05:56', title = 'Algorithms, second edition' WHERE id = 1
 SQL (0.8ms)   COMMIT
 ```
 
@@ -1444,9 +1444,9 @@ end
 The above code will execute just **2** queries, as opposed to the **11** queries from the original case:
 
 ```sql
-SELECT `books`.* FROM `books` LIMIT 10
-SELECT `authors`.* FROM `authors`
-  WHERE `authors`.`book_id` IN (1,2,3,4,5,6,7,8,9,10)
+SELECT books.* FROM books LIMIT 10
+SELECT authors.* FROM authors
+  WHERE authors.book_id IN (1,2,3,4,5,6,7,8,9,10)
 ```
 
 #### Eager Loading Multiple Associations
@@ -1483,7 +1483,7 @@ This would generate a query which contains a `LEFT OUTER JOIN` whereas the
 `joins` method would generate one using the `INNER JOIN` function instead.
 
 ```sql
-  SELECT authors.id AS t0_r0, ... books.updated_at AS t1_r5 FROM authors LEFT OUTER JOIN "books" ON "books"."author_id" = "authors"."id" WHERE (books.out_of_print = 1)
+  SELECT authors.id AS t0_r0, ... books.updated_at AS t1_r5 FROM authors LEFT OUTER JOIN books ON books.author_id = authors.id WHERE (books.out_of_print = 1)
 ```
 
 If there was no `where` condition, this would generate the normal set of two queries.
@@ -1521,9 +1521,9 @@ end
 The above code will execute just **2** queries, as opposed to the **11** queries from the original case:
 
 ```sql
-SELECT `books`.* FROM `books` LIMIT 10
-SELECT `authors`.* FROM `authors`
-  WHERE `authors`.`book_id` IN (1,2,3,4,5,6,7,8,9,10)
+SELECT books.* FROM books LIMIT 10
+SELECT authors.* FROM authors
+  WHERE authors.book_id IN (1,2,3,4,5,6,7,8,9,10)
 ```
 
 NOTE: The `preload` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. However, unlike the `includes` method, it is not possible to specify conditions for preloaded associations.
@@ -1545,10 +1545,10 @@ end
 The above code will execute just **2** queries, as opposed to the **11** queries from the original case:
 
 ```sql
-SELECT DISTINCT `books`.`id` FROM `books` LEFT OUTER JOIN `authors` ON `authors`.`book_id` = `books`.`id` LIMIT 10
-SELECT `books`.`id` AS t0_r0, `books`.`last_name` AS t0_r1, ...
-  FROM `books` LEFT OUTER JOIN `authors` ON `authors`.`book_id` = `books`.`id`
-  WHERE `books`.`id` IN (1,2,3,4,5,6,7,8,9,10)
+SELECT DISTINCT books.id FROM books LEFT OUTER JOIN authors ON authors.book_id = books.id LIMIT 10
+SELECT books.id AS t0_r0, books.last_name AS t0_r1, ...
+  FROM books LEFT OUTER JOIN authors ON authors.book_id = books.id
+  WHERE books.id IN (1,2,3,4,5,6,7,8,9,10)
 ```
 
 NOTE: The `eager_load` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. Also, like the `includes` method, you can specify conditions for eager loaded associations.
