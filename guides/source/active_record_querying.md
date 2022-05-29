@@ -2064,7 +2064,7 @@ irb> Customer.connection.select_all("SELECT first_name, created_at FROM customer
 
 ```irb
 irb> Book.where(out_of_print: true).pluck(:id)
-SELECT id FROM books WHERE out_of_print = false
+SELECT id FROM books WHERE out_of_print = true
 => [1, 2, 3]
 
 irb> Order.distinct.pluck(:status)
