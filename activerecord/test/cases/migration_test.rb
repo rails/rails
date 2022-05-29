@@ -1463,10 +1463,32 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert index(:username_index).unique
     end
 
+    def test_adding_and_removing_check_constraints
+      assert_queries(1) do
+        with_bulk_change_table do |t|
+          t.integer :age
+          t.check_constraint "age >= 0", name: :age_check
+        end
+      end
+
+      assert_equal 2, columns.size
+      assert check_constraint(:age_check)
+
+      assert_queries(1) do
+        with_bulk_change_table do |t|
+          t.string :name
+          t.remove_check_constraint name: :age_check
+        end
+      end
+
+      assert_equal 3, columns.size
+      assert_not check_constraint(:age_check)
+    end
+
     private
       def with_bulk_change_table(&block)
         # Reset columns/indexes cache as we're changing the table
-        @columns = @indexes = nil
+        @columns = @indexes = @check_constraints = nil
 
         Person.connection.change_table(:delete_me, bulk: true, &block)
       end
@@ -1485,6 +1507,14 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       def indexes
         @indexes ||= Person.connection.indexes("delete_me")
+      end
+
+      def check_constraint(name)
+        check_constraints.detect { |c| c.name == name.to_s }
+      end
+
+      def check_constraints
+        @check_constraints ||= Person.connection.check_constraints("delete_me")
       end
   end # AlterTableMigrationsTest
 end

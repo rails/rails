@@ -150,6 +150,9 @@ module ActiveRecord
       end
     end
 
+    AddCheckConstraint = Struct.new(:check_constraint_definition)
+    DropCheckConstraint = Struct.new(:name)
+
     class ReferenceDefinition # :nodoc:
       def initialize(
         name,
@@ -570,11 +573,11 @@ module ActiveRecord
       end
 
       def add_check_constraint(expression, options)
-        @check_constraint_adds << @td.new_check_constraint_definition(expression, options)
+        @check_constraint_adds << AddCheckConstraint.new(@td.new_check_constraint_definition(expression, options))
       end
 
       def drop_check_constraint(constraint_name)
-        @check_constraint_drops << constraint_name
+        @check_constraint_drops << DropCheckConstraint.new(constraint_name)
       end
 
       def add_column(name, type, **options)
