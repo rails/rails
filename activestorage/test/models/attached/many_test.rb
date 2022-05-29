@@ -955,6 +955,20 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal "racecar.jpg", @user.highlights.blobs.first.filename.to_s
   end
 
+  test "getting the combined byte size of persisted attachments" do
+    blobs = [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ]
+    @user.highlights.attach(blobs)
+
+    assert_equal blobs.sum(&:byte_size), @user.highlights.byte_size
+  end
+
+  test "getting the combined byte size of non persisted attachments" do
+    blobs = [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ]
+    @user.highlights = blobs
+
+    assert_equal blobs.sum(&:byte_size), @user.highlights.byte_size
+  end
+
   test "as_json returns an empty array when no attachments are present" do
     assert_equal [], @user.highlights.as_json
   end
