@@ -78,7 +78,7 @@ module ActiveStorage
     #
     #   Gallery.new.photos.bytes_size # => 2048
     def bytes_size
-      blobs.pluck(:byte_size).sum
+      blobs.sum(:byte_size)
     end
 
     private
