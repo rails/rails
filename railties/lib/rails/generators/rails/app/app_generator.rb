@@ -268,7 +268,24 @@ module Rails
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false, desc: "Don't run bundle install"
       class_option :skip_decrypted_diffs, type: :boolean, default: false, desc: "Don't configure git to show decrypted diffs of encrypted credentials"
 
-      def initialize(*args)
+      def initialize(positional_argv, option_argv, *)
+        if option_argv.include?("--minimal")
+          option_argv.insert(0, *%w[
+            --skip-action-cable
+            --skip-action-mailer
+            --skip-action-mailbox
+            --skip-action-text
+            --skip-active-job
+            --skip-active-storage
+            --skip-bootsnap
+            --skip-dev-gems
+            --skip-javascript
+            --skip-jbuilder
+            --skip-system-test
+            --skip-hotwire
+          ])
+        end
+
         super
 
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
@@ -279,22 +296,6 @@ module Rails
         # Can't modify options hash as it's frozen by default.
         if options[:api]
           self.options = options.merge(skip_asset_pipeline: true, skip_javascript: true).freeze
-        end
-
-        if options[:minimal]
-          self.options = options.merge(
-            skip_action_cable: true,
-            skip_action_mailer: true,
-            skip_action_mailbox: true,
-            skip_action_text: true,
-            skip_active_job: true,
-            skip_active_storage: true,
-            skip_bootsnap: true,
-            skip_dev_gems: true,
-            skip_javascript: true,
-            skip_jbuilder: true,
-            skip_system_test: true,
-            skip_hotwire: true).freeze
         end
 
         @after_bundle_callbacks = []

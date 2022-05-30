@@ -1,3 +1,11 @@
+*   Allow `--no-skip-*` flags with `rails new` to restore individual components
+    in a `--minimal` build.
+
+    For example, `rails new cool_app --minimal --no-skip-action-cable` will
+    create a standard minimal app with Action Cable functionality also included.
+
+    *Brad Trick*
+
 *   Deprecate `Rails::Generators::Testing::Behaviour` in favor of `Rails::Generators::Testing::Behavior`.
 
     *Gannon McGibbon*
