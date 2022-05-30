@@ -24,8 +24,8 @@ module ActiveRecord
           sql << o.adds.map { |col| accept col }.join(" ")
           sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(" ")
           sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(" ")
-          sql << o.check_constraint_adds.map { |con| visit_AddCheckConstraint con }.join(" ")
-          sql << o.check_constraint_drops.map { |con| visit_DropCheckConstraint con }.join(" ")
+          sql << o.check_constraint_adds.map { |con| accept con }.join(" ")
+          sql << o.check_constraint_drops.map { |con| accept con }.join(" ")
         end
 
         def visit_ColumnDefinition(o)
@@ -110,11 +110,11 @@ module ActiveRecord
         end
 
         def visit_AddCheckConstraint(o)
-          "ADD #{accept(o)}"
+          "ADD #{accept(o.check_constraint_definition)}"
         end
 
-        def visit_DropCheckConstraint(name)
-          "DROP CONSTRAINT #{quote_column_name(name)}"
+        def visit_DropCheckConstraint(o)
+          "DROP CONSTRAINT #{quote_column_name(o.name)}"
         end
 
         def quoted_columns(o)

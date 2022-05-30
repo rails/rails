@@ -1577,7 +1577,7 @@ module ActiveRecord
 
         def check_constraint_for(table_name, **options)
           return unless supports_check_constraints?
-          chk_name = check_constraint_name(table_name, **options)
+          chk_name = check_constraint_name(table_name, **options).to_s
           check_constraints(table_name).detect { |chk| chk.name == chk_name }
         end
 
@@ -1663,6 +1663,21 @@ module ActiveRecord
 
         def remove_timestamps_for_alter(table_name, **options)
           remove_columns_for_alter(table_name, :updated_at, :created_at)
+        end
+
+        def add_check_constraint_for_alter(table_name, expression, **options)
+          return unless supports_check_constraints?
+
+          td = create_table_definition(table_name)
+          cd = td.new_check_constraint_definition(expression, options)
+          schema_creation.accept(AddCheckConstraint.new(cd))
+        end
+
+        def remove_check_constraint_for_alter(table_name, expression = nil, **options)
+          return unless supports_check_constraints?
+
+          chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
+          schema_creation.accept(DropCheckConstraint.new(chk_name_to_delete))
         end
 
         def insert_versions_sql(versions)

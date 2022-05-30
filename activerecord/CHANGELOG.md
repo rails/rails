@@ -1,3 +1,9 @@
+*   Support adding and removing `CHECK` constraints in bulk `change_table`.
+
+    Previously, each operation generated their own `ALTER TABLE` statement.
+
+    *fatkodima*
+
 *   Fix eager loading for models without primary keys.
 
     *Anmol Chopra*, *Matt Lawrence*, and *Jonathan Hefner*
