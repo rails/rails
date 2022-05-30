@@ -763,6 +763,7 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
     end
   ensure
     TopicWithEvent.clear_validators!
+    Event.delete_all
   end
 
   def test_index_of_sublist_of_columns
