@@ -1849,6 +1849,17 @@ class TestAutosaveAssociationValidationsOnAHasManyAssociation < ActiveRecord::Te
     assert pirate.valid?
     assert_not pirate.valid?(:conference)
   end
+
+  def test_only_validations_of_matching_custom_validation_context_fire
+    prisoner = Prisoner.new
+    prisoner.build_ship
+
+    assert prisoner.save(validate: false)
+    assert_predicate prisoner.ship, :persisted?
+    assert prisoner.save(context: :whatever)
+    # NOTE: After reloading, context is honored.
+    # assert prisoner.reload.save(context: :whatever)
+  end
 end
 
 class TestAutosaveAssociationValidationsOnAHasOneAssociation < ActiveRecord::TestCase
