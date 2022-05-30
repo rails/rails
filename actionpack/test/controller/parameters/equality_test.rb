@@ -20,19 +20,45 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "deprecated comparison works" do
-    assert_kind_of Enumerator, @params.each_pair
+    @hash = @params.each_pair.to_h
     assert_deprecated do
-      assert_equal @params, @params.each_pair.to_h
+      assert_equal @params, @hash
     end
   end
 
   test "deprecated comparison disabled" do
     without_deprecated_params_hash_equality do
-      assert_kind_of Enumerator, @params.each_pair
+      @hash = @params.each_pair.to_h
       assert_not_deprecated do
-        assert_not_equal @params, @params.each_pair.to_h
+        assert_not_equal @params, @hash
       end
     end
+  end
+
+  test "not eql? to equivalent hash" do
+    @hash = {}
+    @params = ActionController::Parameters.new(@hash)
+    assert_not_deprecated do
+      assert_not @params.eql?(@hash)
+    end
+  end
+
+  test "not eql? to equivalent nested hash" do
+    @params1 = ActionController::Parameters.new({ foo: {} })
+    @params2 = ActionController::Parameters.new({ foo: ActionController::Parameters.new({}) })
+    assert_not_deprecated do
+      assert_not @params1.eql?(@params2)
+    end
+  end
+
+  test "not eql? when permitted is different" do
+    permitted = @params.permit(:person)
+    assert_not @params.eql?(permitted)
+  end
+
+  test "eql? when equivalent" do
+    permitted = @params.permit(:person)
+    assert @params.permit(:person).eql?(permitted)
   end
 
   test "has_value? converts hashes to parameters" do
