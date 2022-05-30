@@ -834,6 +834,23 @@ resp.content_type #=> "text/csv; header=present; charset=utf-16"
 resp.media_type   #=> "text/csv"
 ```
 
+### New `config.hosts` setting
+
+Rails now has a new `config.hosts` setting for security purposes. This setting
+defaults to `localhost` in development. If you use other domains in development
+you need to allow them like this:
+
+```ruby
+# config/environments/development.rb
+
+config.hosts << 'dev.myapp.com'
+config.hosts << /[a-z0-9-]+\.myapp\.com/ # Optionally, regexp is allowed as well
+```
+
+For other environments `config.hosts` is empty by default, which means Rails
+won't validate the host at all. You can optionally add them if you want to
+validate it in production.
+
 ### Autoloading
 
 The default configuration for Rails 6
