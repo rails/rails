@@ -52,7 +52,7 @@ module ActiveRecord
       ActiveRecord::QueryMethods.public_instance_methods(false).reject { |method|
         method.end_with?("=", "!", "?", "value", "values", "clause")
       } - [:reverse_order, :arel, :extensions, :construct_join_dependency] + [
-        :any?, :many?, :none?, :one?,
+        :any?, :many?, :none?, :empty?, :one?,
         :first_or_create, :first_or_create!, :first_or_initialize,
         :find_or_create_by, :find_or_create_by!, :find_or_initialize_by,
         :create_or_find_by, :create_or_find_by!,
