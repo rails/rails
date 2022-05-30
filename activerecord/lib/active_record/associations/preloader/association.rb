@@ -4,7 +4,7 @@ module ActiveRecord
   module Associations
     class Preloader
       class Association # :nodoc:
-        class LoaderQuery
+        class LoaderQuery # :nodoc:
           attr_reader :scope, :association_key_name
 
           def initialize(scope, association_key_name)
@@ -40,7 +40,7 @@ module ActiveRecord
           end
         end
 
-        class LoaderRecords
+        class LoaderRecords # :nodoc:
           def initialize(loaders, loader_query)
             @loader_query = loader_query
             @loaders = loaders

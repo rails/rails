@@ -5,8 +5,8 @@ require "active_support/core_ext/time/zones"
 
 module ActiveModel
   module Type
-    module Helpers # :nodoc: all
-      module TimeValue
+    module Helpers # :nodoc:
+      module TimeValue # :nodoc:
         def serialize(value)
           value = apply_seconds_precision(value)
 

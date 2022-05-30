@@ -148,7 +148,7 @@ module ActiveSupport
       end
 
       module Conditionals # :nodoc:
-        class Value
+        class Value # :nodoc:
           def initialize(&block)
             @block = block
           end
@@ -156,10 +156,10 @@ module ActiveSupport
         end
       end
 
-      module Filters
+      module Filters # :nodoc:
         Environment = Struct.new(:target, :halted, :value)
 
-        class Before
+        class Before # :nodoc:
           def self.build(callback_sequence, user_callback, user_conditions, chain_config, filter, name)
             halted_lambda = chain_config[:terminator]
 
@@ -209,7 +209,7 @@ module ActiveSupport
           private_class_method :halting
         end
 
-        class After
+        class After # :nodoc:
           def self.build(callback_sequence, user_callback, user_conditions, chain_config)
             if chain_config[:skip_after_callbacks_if_terminated]
               if user_conditions.any?
@@ -373,7 +373,7 @@ module ActiveSupport
       # A future invocation of user-supplied code (either as a callback,
       # or a condition filter).
       module CallTemplate # :nodoc:
-        class MethodCall
+        class MethodCall # :nodoc:
           def initialize(method)
             @method_name = method
           end
@@ -408,7 +408,7 @@ module ActiveSupport
           end
         end
 
-        class ObjectCall
+        class ObjectCall # :nodoc:
           def initialize(target, method)
             @override_target = target
             @method_name = method
@@ -431,7 +431,7 @@ module ActiveSupport
           end
         end
 
-        class InstanceExec0
+        class InstanceExec0 # :nodoc:
           def initialize(block)
             @override_block = block
           end
@@ -453,7 +453,7 @@ module ActiveSupport
           end
         end
 
-        class InstanceExec1
+        class InstanceExec1 # :nodoc:
           def initialize(block)
             @override_block = block
           end
@@ -475,7 +475,7 @@ module ActiveSupport
           end
         end
 
-        class InstanceExec2
+        class InstanceExec2 # :nodoc:
           def initialize(block)
             @override_block = block
           end
@@ -500,7 +500,7 @@ module ActiveSupport
           end
         end
 
-        class ProcCall
+        class ProcCall # :nodoc:
           def initialize(target)
             @override_target = target
           end

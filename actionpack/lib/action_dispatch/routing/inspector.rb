@@ -133,8 +133,8 @@ module ActionDispatch
         end
     end
 
-    module ConsoleFormatter
-      class Base
+    module ConsoleFormatter # :nodoc:
+      class Base # :nodoc:
         def initialize
           @buffer = []
         end
@@ -170,7 +170,7 @@ module ActionDispatch
         end
       end
 
-      class Sheet < Base
+      class Sheet < Base # :nodoc:
         def section_title(title)
           @buffer << "\n#{title}:"
         end
@@ -206,7 +206,7 @@ module ActionDispatch
           end
       end
 
-      class Expanded < Base
+      class Expanded < Base # :nodoc:
         def initialize(width: IO.console_size[1])
           @width = width
           super()
@@ -239,7 +239,7 @@ module ActionDispatch
       end
     end
 
-    class HtmlTableFormatter
+    class HtmlTableFormatter # :nodoc:
       def initialize(view)
         @view = view
         @buffer = []

@@ -15,7 +15,7 @@ module ActiveSupport
 
     # Class that will build the hash while the XML document
     # is being parsed using SAX events.
-    class HashBuilder < Nokogiri::XML::SAX::Document
+    class HashBuilder < Nokogiri::XML::SAX::Document # :nodoc:
       CONTENT_KEY   = "__content__"
       HASH_SIZE_KEY = "__hash_size__"
 

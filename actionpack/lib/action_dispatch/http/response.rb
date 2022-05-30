@@ -472,7 +472,7 @@ module ActionDispatch # :nodoc:
                        ct.charset || self.class.default_charset)
     end
 
-    class RackBody
+    class RackBody # :nodoc:
       def initialize(response)
         @response = response
       end

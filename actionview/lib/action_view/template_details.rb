@@ -2,7 +2,7 @@
 
 module ActionView
   class TemplateDetails # :nodoc:
-    class Requested
+    class Requested # :nodoc:
       attr_reader :locale, :handlers, :formats, :variants
       attr_reader :locale_idx, :handlers_idx, :formats_idx, :variants_idx
 

@@ -173,7 +173,7 @@ module ActiveSupport
             pattern === name && !exclusions.include?(name)
           end
 
-          class AllMessages
+          class AllMessages # :nodoc:
             def ===(name)
               true
             end
@@ -259,7 +259,7 @@ module ActiveSupport
           end
         end
 
-        class EventObject < Evented
+        class EventObject < Evented # :nodoc:
           def start(name, id, payload)
             stack = IsolatedExecutionState[:_event_stack] ||= []
             event = build_event name, id, payload

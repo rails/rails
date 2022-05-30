@@ -2,9 +2,9 @@
 
 module ActiveModel
   module Type
-    module Helpers # :nodoc: all
-      class AcceptsMultiparameterTime < Module
-        module InstanceMethods
+    module Helpers # :nodoc:
+      class AcceptsMultiparameterTime < Module # :nodoc:
+        module InstanceMethods # :nodoc:
           def serialize(value)
             super(cast(value))
           end

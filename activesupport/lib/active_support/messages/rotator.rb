@@ -15,7 +15,7 @@ module ActiveSupport
         @rotations << build_rotation(*secrets, @options.merge(options))
       end
 
-      module Encryptor
+      module Encryptor # :nodoc:
         include Rotator
 
         def decrypt_and_verify(*args, on_rotation: @on_rotation, **options)
@@ -30,7 +30,7 @@ module ActiveSupport
           end
       end
 
-      module Verifier
+      module Verifier # :nodoc:
         include Rotator
 
         def verified(*args, on_rotation: @on_rotation, **options)
