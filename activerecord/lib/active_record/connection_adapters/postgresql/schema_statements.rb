@@ -88,7 +88,7 @@ module ActiveRecord
 
           result = query(<<~SQL, "SCHEMA")
             SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid,
-                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment
+                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment, d.indisvalid
             FROM pg_class t
             INNER JOIN pg_index d ON t.oid = d.indrelid
             INNER JOIN pg_class i ON d.indexrelid = i.oid
@@ -107,6 +107,7 @@ module ActiveRecord
             inddef = row[3]
             oid = row[4]
             comment = row[5]
+            valid = row[6]
 
             using, expressions, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: WHERE (.+))?\z/m).flatten
 
@@ -144,7 +145,8 @@ module ActiveRecord
               opclasses: opclasses,
               where: where,
               using: using.to_sym,
-              comment: comment.presence
+              comment: comment.presence,
+              valid: valid
             )
           end
         end
