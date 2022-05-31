@@ -1,3 +1,7 @@
+*   Fix Hstore deserialize regression.
+
+    *edsharp*
+
 *   Add validity for PostgreSQL indexes.
 
     ```ruby
