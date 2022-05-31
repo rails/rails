@@ -1,3 +1,17 @@
+*   `change_column_null` raises if a non-boolean argument is provided
+
+    Previously if you provided a non-boolean argument, `change_column_null` would
+    treat it as truthy and make your column nullable. This could be surprising, so now
+    the input must be either `true` or `false`.
+
+    ```ruby
+    change_column_null :table, :column, true # good
+    change_column_null :table, :column, false # good
+    change_column_null :table, :column, from: true, to: false # raises (previously this made the column nullable)
+    ```
+
+    *Alex Ghiculescu*
+
 *   Enforce limit on table names length.
 
     Fixes #45130.

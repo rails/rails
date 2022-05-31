@@ -273,6 +273,7 @@ module ActiveRecord
       def test_change_column_default_to_null
         add_column "test_models", "first_name", :string
         connection.change_column_default "test_models", "first_name", nil
+
         assert_nil TestModel.new.first_name
       end
 
@@ -281,6 +282,32 @@ module ActiveRecord
         connection.change_column_default "test_models", "first_name", from: nil, to: "Tester"
 
         assert_equal "Tester", TestModel.new.first_name
+      end
+
+      def test_change_column_null_false
+        add_column "test_models", "first_name", :string
+        connection.change_column_null "test_models", "first_name", false
+
+        assert_raise(ActiveRecord::NotNullViolation) do
+          TestModel.create!(first_name: nil)
+        end
+      end
+
+      def test_change_column_null_true
+        add_column "test_models", "first_name", :string
+        connection.change_column_null "test_models", "first_name", true
+
+        assert_difference("TestModel.count" => 1) do
+          TestModel.create!(first_name: nil)
+        end
+      end
+
+      def test_change_column_null_with_non_boolean_arguments_raises
+        add_column "test_models", "first_name", :string
+        e = assert_raise(ArgumentError) do
+          connection.change_column_null "test_models", "first_name", from: true, to: false
+        end
+        assert_equal "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: {:from=>true, :to=>false}", e.message
       end
 
       def test_remove_column_no_second_parameter_raises_exception
