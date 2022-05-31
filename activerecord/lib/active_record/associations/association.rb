@@ -172,6 +172,8 @@ module ActiveRecord
       # ActiveRecord::RecordNotFound is rescued within the method, and it is
       # not reraised. The proxy is \reset and +nil+ is the return value.
       def load_target
+        automatically_preload! if automatic_preload?
+
         @target = find_target if (@stale_state && stale_target?) || find_target?
 
         loaded! unless loaded?
@@ -211,6 +213,16 @@ module ActiveRecord
       end
 
       private
+        def automatically_preload!
+          owner.automatic_preloader.automatically_preload(reflection.name)
+        end
+
+        def automatic_preload?
+          return false unless reflection.scope.nil? || reflection.scope.arity == 0
+
+          !loaded? && owner.persisted? && owner.automatic_preloading?
+        end
+
         # Reader and writer methods call this so that consistent errors are presented
         # when the association target class does not exist.
         def ensure_klass_exists!

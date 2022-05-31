@@ -281,6 +281,7 @@ module ActiveRecord
       autoload :HasOneThroughAssociation
 
       autoload :Preloader
+      autoload :AutomaticPreloader
       autoload :JoinDependency
       autoload :AssociationScope
       autoload :DisableJoinsAssociationScope
