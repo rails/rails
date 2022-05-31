@@ -215,6 +215,14 @@ module ActiveStorage
             ActiveStorage::Blob.services.fetch(service) do
               raise ArgumentError, "Cannot configure service :#{service} for #{name}##{association_name}"
             end
+          else
+            validate_global_service_configuration
+          end
+        end
+
+        def validate_global_service_configuration
+          if connected? && ActiveStorage::Blob.table_exists? && Rails.configuration.active_storage.service.nil?
+            raise RuntimeError, "Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config/environments/#{Rails.env}.rb"
           end
         end
     end

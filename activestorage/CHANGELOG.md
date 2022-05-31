@@ -1,4 +1,12 @@
-*   Fixes proxy downloads of files over 5mb 
+*   Raise an exception if `config.active_storage.service` is not set.
+
+    If Active Storage is configured and `config.active_storage.service` is not
+    set in the respective environment's configuration file, then an exception
+    is raised with a meaningful message when attempting to use Active Storage.
+
+    *Ghouse Mohamed*
+
+*   Fixes proxy downloads of files over 5mb
 
     Previously, trying to view and/or download files larger than 5mb stored in
     services like S3 via proxy mode could return corrupted files at around
