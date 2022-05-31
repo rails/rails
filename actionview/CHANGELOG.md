@@ -1,3 +1,13 @@
+*   Strings returned from `strip_tags` are correctly tagged `html_safe?`
+
+    Because these strings contain no HTML elements and the basic entities are escaped, they are safe
+    to be included as-is as PCDATA in HTML content. Tagging them as html-safe avoids double-escaping
+    entities when being concatenated to a SafeBuffer during rendering.
+
+    Fixes [rails/rails-html-sanitizer#124](https://github.com/rails/rails-html-sanitizer/issues/124)
+
+    *Mike Dalessio*
+
 ## Rails 7.0.3 (May 09, 2022) ##
 
 *   Ensure models passed to `form_for` attempt to call `to_model`.
