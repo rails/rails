@@ -1,8 +1,11 @@
-*   Allow `--no-skip-*` flags with `rails new` to restore individual components
-    in a `--minimal` build.
+*   When generating a new Rails app, report to the user if a component is not
+    installed because a required element is skipped. Checks the following
+    dependencies:
 
-    For example, `rails new cool_app --minimal --no-skip-action-cable` will
-    create a standard minimal app with Action Cable functionality also included.
+      * active_storage: active_record
+      * action_mailbox: active_storage
+      * action_text: active_storage
+      * hotwire: javascript
 
     *Brad Trick*
 

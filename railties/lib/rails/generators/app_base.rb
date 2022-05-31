@@ -468,6 +468,26 @@ module Rails
         end
       end
 
+      def report_dependency_issues
+        dependencies = {
+          active_storage: :active_record,
+          action_mailbox: :active_storage,
+          action_text: :active_storage,
+          hotwire: :javascript
+        }
+
+        dependencies.each do |component, requirement|
+          next if options["skip_#{component}"]
+          while requirement
+            if options["skip_#{requirement}"]
+              say "#{component} was not installed because it requires a skipped component (#{requirement}).", :red
+              break
+            end
+            requirement = dependencies[requirement]
+          end
+        end
+      end
+
       def generate_bundler_binstub
         if bundle_install?
           bundle_command("binstubs bundler")

@@ -515,6 +515,7 @@ module Rails
       public_task :run_javascript
       public_task :run_hotwire
       public_task :run_css
+      public_task :report_dependency_issues
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each(&:call)
