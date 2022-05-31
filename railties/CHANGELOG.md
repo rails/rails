@@ -1,3 +1,14 @@
+*   When generating a new Rails app, report to the user if a component is not
+    installed because a required element is skipped. Checks the following
+    dependencies:
+
+      * active_storage: active_record
+      * action_mailbox: active_storage
+      * action_text: active_storage
+      * hotwire: javascript
+
+    *Brad Trick*
+
 *   Deprecate `Rails::Generators::Testing::Behaviour` in favor of `Rails::Generators::Testing::Behavior`.
 
     *Gannon McGibbon*
