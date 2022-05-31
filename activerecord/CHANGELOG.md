@@ -1,3 +1,7 @@
+*   Fix Hstore deserialize regression.
+
+    *edsharp*
+
 ## Rails 7.0.3 (May 09, 2022) ##
 
 *   Some internal housekeeping on reloads could break custom `respond_to?`
