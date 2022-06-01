@@ -1,0 +1,66 @@
+# frozen_string_literal: true
+
+require "abstract_unit"
+require "action_controller/metal/strong_parameters"
+
+class ParametersAccessorsTest < ActiveSupport::TestCase
+  setup do
+    ActionController::Parameters.permit_all_parameters = false
+
+    @params = ActionController::Parameters.new(
+      person: {
+        age: "32",
+        name: {
+          first: "David",
+          last: "Heinemeier Hansson"
+        },
+        addresses: [{ city: "Chicago", state: "Illinois" }]
+      }
+    )
+  end
+
+  test "comparison works" do
+    @hash = @params.each_pair.to_h
+    assert_equal @params, @hash
+  end
+
+  test "not eql? to equivalent hash" do
+    @hash = {}
+    @params = ActionController::Parameters.new(@hash)
+    assert_not_deprecated do
+      assert_not @params.eql?(@hash)
+    end
+  end
+
+  test "not eql? to equivalent nested hash" do
+    @params1 = ActionController::Parameters.new({ foo: {} })
+    @params2 = ActionController::Parameters.new({ foo: ActionController::Parameters.new({}) })
+    assert_not_deprecated do
+      assert_not @params1.eql?(@params2)
+    end
+  end
+
+  test "not eql? when permitted is different" do
+    permitted = @params.permit(:person)
+    assert_not @params.eql?(permitted)
+  end
+
+  test "eql? when equivalent" do
+    permitted = @params.permit(:person)
+    assert @params.permit(:person).eql?(permitted)
+  end
+
+  test "has_value? converts hashes to parameters" do
+    assert_not_deprecated do
+      params = ActionController::Parameters.new(foo: { bar: "baz" })
+      assert params.has_value?("bar" => "baz")
+      params[:foo] # converts value to AC::Params
+      assert params.has_value?("bar" => "baz")
+    end
+  end
+
+  test "has_value? works with parameters" do
+    params = ActionController::Parameters.new(foo: { bar: "baz" })
+    assert params.has_value?(ActionController::Parameters.new("bar" => "baz"))
+  end
+end
