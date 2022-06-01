@@ -32,6 +32,8 @@ module ActiveStorage
       #
       # If the +:dependent+ option isn't set, the attachment will be purged
       # (i.e. destroyed) whenever the record is destroyed.
+      # To skip destroying attachments, you need to pass `nil` or `false` as a +:dependent+ value and make
+      # `active_storage_attachments.record_id` and `active_storage_attachments.record_type` columns to accept `NULL`s.
       #
       # If you need the attachment to use a service which differs from the globally configured one,
       # pass the +:service+ option. For instance:
@@ -67,7 +69,8 @@ module ActiveStorage
           end
         CODE
 
-        has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
+        has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record,
+            inverse_of: :record, dependent: (:destroy if dependent), strict_loading: strict_loading
         has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
 
         scope :"with_attached_#{name}", -> { includes("#{name}_attachment": :blob) }
@@ -111,6 +114,8 @@ module ActiveStorage
       #
       # If the +:dependent+ option isn't set, all the attachments will be purged
       # (i.e. destroyed) whenever the record is destroyed.
+      # To skip destroying attachments, you need to pass `nil` or `false` as a +:dependent+ value and make
+      # `active_storage_attachments.record_id` and `active_storage_attachments.record_type` columns to accept `NULL`s.
       #
       # If you need the attachment to use a service which differs from the globally configured one,
       # pass the +:service+ option. For instance:
@@ -161,7 +166,8 @@ module ActiveStorage
           end
         CODE
 
-        has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: :destroy, strict_loading: strict_loading do
+        has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment",
+            inverse_of: :record, dependent: (:destroy if dependent), strict_loading: strict_loading do
           def purge
             deprecate(:purge)
             each(&:purge)

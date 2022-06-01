@@ -1,3 +1,14 @@
+*   Support `nil` and `false` as a `:dependent` option for `has_one_attached` and `has_many_attached`.
+
+    Previously, when `nil` or `false` were set, attachments were destroyed when the associated
+    record was destroyed. Now, attachments are preserved when the record is destroyed.
+    For this to work, you need to make `active_storage_attachments.record_id` and
+    `active_storage_attachments.record_type` columns to accept `NULL`s.
+
+    Fixes #44362
+
+    *fatkodima*
+
 *   Raise an exception if `config.active_storage.service` is not set.
 
     If Active Storage is configured and `config.active_storage.service` is not

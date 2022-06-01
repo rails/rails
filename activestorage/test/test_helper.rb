@@ -153,6 +153,15 @@ class ActiveSupport::TestCase
       ActiveStorage::Blob.service = old_service
     end
 
+    def with_optional_record_columns
+      connection = ActiveRecord::Base.connection
+      connection.change_column_null(:active_storage_attachments, :record_id, true)
+      connection.change_column_null(:active_storage_attachments, :record_type, true)
+    ensure
+      connection.change_column_null(:active_storage_attachments, :record_id, false)
+      connection.change_column_null(:active_storage_attachments, :record_type, false)
+    end
+
     def subscribe_events_from(name)
       events = []
       ActiveSupport::Notifications.subscribe(name) do |*args|
