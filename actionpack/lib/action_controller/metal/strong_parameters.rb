@@ -284,10 +284,15 @@ module ActionController
         end
       end
     end
-    alias eql? ==
+
+    def eql?(other)
+      self.class == other.class &&
+        permitted? == other.permitted? &&
+        parameters.eql?(other.parameters)
+    end
 
     def hash
-      [@parameters.hash, @permitted].hash
+      [self.class, @parameters, @permitted].hash
     end
 
     # Returns a safe <tt>ActiveSupport::HashWithIndifferentAccess</tt>
