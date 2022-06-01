@@ -322,6 +322,20 @@ class AssociationProxyTest < ActiveRecord::TestCase
 
     assert_not_empty member.favorite_memberships.to_a
   end
+
+  def test_size_differentiates_between_new_and_persisted_in_memory_records_when_loaded_records_are_empty
+    member = members(:blarpy_winkup)
+    assert_empty member.favorite_memberships
+
+    membership = member.favorite_memberships.create!
+    membership.update!(favorite: false)
+
+    # CollectionAssociation#size has different behavior when loaded vs. non-loaded
+    # the first call will mark the association as loaded and the second call will
+    # take a different code path, so it's important to keep both assertions
+    assert_equal 0, member.favorite_memberships.size
+    assert_equal 0, member.favorite_memberships.size
+  end
 end
 
 class OverridingAssociationsTest < ActiveRecord::TestCase
