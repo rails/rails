@@ -1,3 +1,20 @@
+*   Fix Hstore deserialize regression.
+
+    *edsharp*
+
+*   Add validity for PostgreSQL indexes.
+
+    ```ruby
+    connection.index_exists?(:users, :email, valid: true)
+    connection.indexes(:users).select(&:valid?)
+    ```
+
+    *fatkodima*
+
+*   Fix eager loading for models without primary keys.
+
+    *Anmol Chopra*, *Matt Lawrence*, and *Jonathan Hefner*
+
 *   Avoid validating a unique field if it has not changed and is backed by a unique index.
 
     Previously, when saving a record, ActiveRecord will perform an extra query to check for the uniqueness of

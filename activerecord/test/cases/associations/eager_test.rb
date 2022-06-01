@@ -30,6 +30,9 @@ require "models/categorization"
 require "models/sponsor"
 require "models/mentor"
 require "models/contract"
+require "models/pirate"
+require "models/matey"
+require "models/parrot"
 
 class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
   fixtures :citations
@@ -47,7 +50,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :essays, :author_addresses, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :ratings, :people, :readers, :categorizations,
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
-            :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors
+            :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors,
+            :pirates, :mateys
 
   def test_eager_with_has_one_through_join_model_with_conditions_on_the_through
     member = Member.all.merge!(includes: :favorite_club).find(members(:some_other_guy).id)
@@ -197,6 +201,27 @@ class EagerAssociationTest < ActiveRecord::TestCase
     authors = Author.includes(:post).references(:post).to_a
     assert authors.count > 0
     assert_no_queries { authors.map(&:post) }
+  end
+
+  def test_eager_loaded_has_one_association_without_primary_key
+    pirate = pirates(:redbeard)
+    attacker_matey = pirate.attacker_matey
+    eager_loaded = Pirate.eager_load(:attacker_matey).where(id: pirate).first
+
+    assert_no_queries do
+      assert_equal attacker_matey.attributes, eager_loaded.attacker_matey.attributes
+    end
+  end
+
+  def test_eager_loaded_has_many_association_without_primary_key
+    pirate = pirates(:blackbeard)
+    mateys = pirate.mateys.to_a
+    eager_loaded = Pirate.eager_load(:mateys).where(id: pirate).first
+
+    assert_not_empty mateys
+    assert_no_queries do
+      assert_equal mateys.map(&:attributes), eager_loaded.mateys.map(&:attributes)
+    end
   end
 
   def test_type_cast_in_where_references_association_name

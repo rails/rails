@@ -545,7 +545,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_if_skip_active_job_is_given
     run_generator [destination_root, "--skip-active-job"]
-    assert_no_file "app/jobs/application.rb"
+    assert_no_file "app/jobs/application_job.rb"
     assert_file "config/environments/production.rb" do |content|
       assert_no_match(/config\.active_job/, content)
     end
@@ -1036,8 +1036,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file "config/storage.yml"
     assert_no_file "config/cable.yml"
-    assert_no_file "views/layouts/mailer.html.erb"
-    assert_no_file "app/jobs/application.rb"
+    assert_no_file "app/views/layouts/mailer.html.erb"
+    assert_no_file "app/jobs/application_job.rb"
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_no_match(/data-turbo-track/, content)
     end

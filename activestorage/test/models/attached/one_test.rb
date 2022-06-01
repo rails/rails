@@ -667,6 +667,18 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "raises error when global service configuration is missing" do
+    Rails.configuration.active_storage.stub(:service, nil) do
+      error = assert_raises RuntimeError do
+        User.class_eval do
+          has_one_attached :featured_photos
+        end
+      end
+
+      assert_match(/Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config\/environments\/test.rb/, error.message)
+    end
+  end
+
   test "raises error when misconfigured service is passed" do
     error = assert_raises ArgumentError do
       User.class_eval do

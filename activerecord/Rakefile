@@ -246,8 +246,8 @@ namespace :db do
     desc "Drop the PostgreSQL test databases"
     task :drop do
       config = ARTest.config["connections"]["postgresql"]
-      %x( dropdb #{config["arunit"]["database"]} )
-      %x( dropdb #{config["arunit2"]["database"]} )
+      %x( dropdb --if-exists #{config["arunit"]["database"]} )
+      %x( dropdb --if-exists #{config["arunit2"]["database"]} )
     end
 
     desc "Rebuild the PostgreSQL test databases"

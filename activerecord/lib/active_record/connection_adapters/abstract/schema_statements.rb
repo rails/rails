@@ -96,18 +96,11 @@ module ActiveRecord
       #   # Check an index with a custom name exists
       #   index_exists?(:suppliers, :company_id, name: "idx_company_id")
       #
+      #   # Check a valid index exists (PostgreSQL only)
+      #   index_exists?(:suppliers, :company_id, valid: true)
+      #
       def index_exists?(table_name, column_name, **options)
-        checks = []
-
-        if column_name.present?
-          column_names = Array(column_name).map(&:to_s)
-          checks << lambda { |i| Array(i.columns) == column_names }
-        end
-
-        checks << lambda { |i| i.unique } if options[:unique]
-        checks << lambda { |i| i.name == options[:name].to_s } if options[:name]
-
-        indexes(table_name).any? { |i| checks.all? { |check| check[i] } }
+        indexes(table_name).any? { |i| i.defined_for?(column_name, **options) }
       end
 
       # Returns an array of +Column+ objects for the table specified by +table_name+.

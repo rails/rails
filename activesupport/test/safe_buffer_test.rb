@@ -25,7 +25,8 @@ class SafeBufferTest < ActiveSupport::TestCase
 
   test "Should NOT escape a safe value passed to it" do
     @buffer << "<script>".html_safe
-    assert_equal "<script>", @buffer
+    @buffer << "hello &amp; goodbye".html_safe
+    assert_equal("<script>hello &amp; goodbye", @buffer)
   end
 
   test "Should not mess with an innocuous string" do

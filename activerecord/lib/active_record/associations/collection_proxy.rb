@@ -218,7 +218,7 @@ module ActiveRecord
       # :call-seq:
       #   third_to_last()
       #
-      # Same as #first except returns only the third-to-last record.
+      # Same as #last except returns only the third-to-last record.
 
       ##
       # :method: second_to_last
@@ -226,7 +226,7 @@ module ActiveRecord
       # :call-seq:
       #   second_to_last()
       #
-      # Same as #first except returns only the second-to-last record.
+      # Same as #last except returns only the second-to-last record.
 
       # Returns the last record, or the last +n+ records, from the collection.
       # If the collection is empty, the first form returns +nil+, and the second
