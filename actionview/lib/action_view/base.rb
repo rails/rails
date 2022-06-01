@@ -139,6 +139,7 @@ module ActionView # :nodoc:
   # For more information on Builder please consult the {source
   # code}[https://github.com/jimweirich/builder].
   class Base
+    extend ActionView::Helpers::TagHelper
     include Helpers, ::ERB::Util, Context
 
     # Specify the proc used to decorate input tags that refer to attributes with errors.
