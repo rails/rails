@@ -396,12 +396,12 @@ module ActionDispatch
         end
 
         assert_equal ["",
-                      "\e[1;94m     GET \e[0m      /custom/assets(.:format) \e[1;90m................custom_assets_path > custom_assets#show     \e[0m",
-                      "\e[1;94m     GET \e[0m      /custom/furnitures(.:format) \e[1;90m....custom_furnitures_path > custom_furnitures#show     \e[0m",
-                      "               /blog \e[1;90m..................................................blog_path > Blog::Engine     \e[0m",
+                      "\e[1;94m     GET\e[0m      /custom/assets(.:format) \e[1;90m................ custom_assets_path > custom_assets#show     \e[0m",
+                      "\e[1;94m     GET\e[0m      /custom/furnitures(.:format) \e[1;90m.... custom_furnitures_path > custom_furnitures#show     \e[0m",
+                      "              /blog \e[1;90m.................................................. blog_path > Blog::Engine     \e[0m",
                       "",
                       "Routes for Blog::Engine:",
-                      "\e[1;94m     GET \e[0m      /cart(.:format) \e[1;90m...........................................cart_path > cart#show     \e[0m"], output
+                      "\e[1;94m     GET\e[0m      /cart(.:format) \e[1;90m........................................... cart_path > cart#show     \e[0m"], output
       end
 
       def test_no_routes_matched_filter_when_colorized
@@ -434,14 +434,14 @@ module ActionDispatch
         end
 
         assert_equal ["",
-                      "\e[1;94m     GET \e[0m      /posts(.:format) \e[1;90m.........posts_path > posts#index     \e[0m",
-                      "\e[1;93m     POST \e[0m     /posts(.:format) \e[1;90m.....................posts#create     \e[0m",
-                      "\e[1;94m     GET \e[0m      /posts/new(.:format) \e[1;90m....new_post_path > posts#new     \e[0m",
-                      "\e[1;94m     GET \e[0m      /posts/\e[1;93m:id\e[0m/edit(.:format) \e[1;90medit_post_path > posts#edit     \e[0m",
-                      "\e[1;94m     GET \e[0m      /posts/\e[1;93m:id\e[0m(.:format) \e[1;90m.......post_path > posts#show     \e[0m",
-                      "\e[1;93m     PATCH \e[0m    /posts/\e[1;93m:id\e[0m(.:format) \e[1;90m.................posts#update     \e[0m",
-                      "\e[1;93m     PUT \e[0m      /posts/\e[1;93m:id\e[0m(.:format) \e[1;90m.................posts#update     \e[0m",
-                      "\e[1;91m     DELETE \e[0m   /posts/\e[1;93m:id\e[0m(.:format) \e[1;90m................posts#destroy     \e[0m"], output
+                      "\e[1;94m     GET\e[0m      /posts(.:format) \e[1;90m......... posts_path > posts#index     \e[0m",
+                      "\e[1;93m     POST\e[0m     /posts(.:format) \e[1;90m..................... posts#create     \e[0m",
+                      "\e[1;94m     GET\e[0m      /posts/new(.:format) \e[1;90m.... new_post_path > posts#new     \e[0m",
+                      "\e[1;94m     GET\e[0m      /posts/\e[1;93m:id\e[0m/edit(.:format) \e[1;90m edit_post_path > posts#edit     \e[0m",
+                      "\e[1;94m     GET\e[0m      /posts/\e[1;93m:id\e[0m(.:format) \e[1;90m....... post_path > posts#show     \e[0m",
+                      "\e[1;93m     PATCH\e[0m    /posts/\e[1;93m:id\e[0m(.:format) \e[1;90m................. posts#update     \e[0m",
+                      "\e[1;93m     PUT\e[0m      /posts/\e[1;93m:id\e[0m(.:format) \e[1;90m................. posts#update     \e[0m",
+                      "\e[1;91m     DELETE\e[0m   /posts/\e[1;93m:id\e[0m(.:format) \e[1;90m................ posts#destroy     \e[0m"], output
       end
 
       def test_routes_can_be_filtered_with_namespaced_controllers

@@ -236,7 +236,7 @@ module ActionDispatch
         private
           def draw_section(routes)
             routes.map do |route|
-              verb = "     #{route[:verb]} "
+              verb = "     #{route[:verb]}"
               path = "#{route[:path]} ".rjust(10 - route[:verb].size + route[:path].size)
               name_and_reqs = " #{name_and_reqs(route)}     ".rjust(@width - verb.size - path.size, ".")
 
