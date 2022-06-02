@@ -98,6 +98,45 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert stub_called
   end
 
+  def test_short_key_normalization
+    short_key = "a" * 250
+    assert_equal short_key, @cache.send(:normalize_key, short_key, { namespace: nil })
+  end
+
+  def test_long_key_normalization
+    long_key = "b" * 251
+    normalized_key = @cache.send(:normalize_key, long_key, { namespace: nil })
+    assert_equal 250, normalized_key.size
+    assert_match(/^b+:hash:/, normalized_key)
+  end
+
+  def test_namespaced_key_normalization
+    short_key = "a" * 250
+    normalized_key = @cache.send(:normalize_key, short_key, { namespace: "ns" })
+    assert_equal 250, normalized_key.size
+    assert_match(/^ns:a+:hash:/, normalized_key)
+  end
+
+  def test_multibyte_string_key_normalization
+    multibyte_key = "c" * 100 + ["01F60F".to_i(16)].pack("U*") + "c" * 149
+    assert_equal 250, multibyte_key.size
+    assert_equal 253, multibyte_key.bytes.size
+    normalized_key = @cache.send(:normalize_key, multibyte_key, { namespace: nil })
+    assert_equal 250, normalized_key.bytes.size
+    assert_match(/^c{100}%F0%9F%98%8Fc+:hash:[[:print:]]+$/, normalized_key)
+  end
+
+  def test_whole_key_digest_on_normalization
+    key_one = "d" * 1000 + "a"
+    key_two = "d" * 1000 + "b"
+    normalized_one = @cache.send(:normalize_key, key_one, { namespace: nil })
+    normalized_two = @cache.send(:normalize_key, key_two, { namespace: nil })
+
+    assert_equal 250, normalized_one.bytes.size
+    assert_equal 250, normalized_two.bytes.size
+    assert_not_equal normalized_one, normalized_two
+  end
+
   def test_raw_values
     cache = lookup_store(raw: true)
     cache.write("foo", 2)
