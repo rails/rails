@@ -9,7 +9,7 @@ Caching means to store content generated during the request-response cycle and
 to reuse it when responding to similar requests.
 
 Caching is often the most effective way to boost an application's performance.
-Through caching, web sites running on a single server with a single database
+Through caching, websites running on a single server with a single database
 can sustain a load of thousands of concurrent users.
 
 Rails provides a set of caching features out of the box. This guide will teach
@@ -34,19 +34,16 @@ fragment caching. By default Rails provides fragment caching. In order to use
 page and action caching you will need to add `actionpack-page_caching` and
 `actionpack-action_caching` to your `Gemfile`.
 
-By default, caching is only enabled in your production environment. To play
-around with caching locally you'll want to enable caching in your local
-environment by setting `config.action_controller.perform_caching` to `true` in
-the relevant `config/environments/*.rb` file:
-
-```ruby
-config.action_controller.perform_caching = true
-```
+By default, caching is only enabled in your production environment. You can play
+around with caching locally by running `rails dev:cache`, or by setting
+[`config.action_controller.perform_caching`][] to `true` in `config/environments/development.rb`.
 
 NOTE: Changing the value of `config.action_controller.perform_caching` will
-only have an effect on the caching provided by the Action Controller component.
+only have an effect on the caching provided by Action Controller.
 For instance, it will not impact low-level caching, that we address
 [below](#low-level-caching).
+
+[`config.action_controller.perform_caching`]: configuring.html#config-action-controller-perform-caching
 
 ### Page Caching
 
@@ -124,7 +121,6 @@ templates at once instead of one by one. This is done by passing `cached: true` 
 All cached templates from previous renders will be fetched at once with much
 greater speed. Additionally, the templates that haven't yet been cached will be
 written to cache and multi fetched on the next render.
-
 
 ### Russian Doll Caching
 
@@ -282,7 +278,7 @@ simply be explicit in a comment, like:
 
 ### Low-Level Caching
 
-Sometimes you need to cache a particular value or query result instead of caching view fragments. Rails' caching mechanism works great for storing __any__ kind of information.
+Sometimes you need to cache a particular value or query result instead of caching view fragments. Rails' caching mechanism works great for storing any serializable information.
 
 The most efficient way to implement low-level caching is using the `Rails.cache.fetch` method. This method does both reading and writing to the cache. When passed only a single argument, the key is fetched and value from the cache is returned. If a block is passed, that block will be executed in the event of a cache miss. The return value of the block will be written to the cache under the given cache key, and that return value will be returned. In case of cache hit, the cached value will be returned without executing the block.
 
@@ -298,7 +294,32 @@ class Product < ApplicationRecord
 end
 ```
 
-NOTE: Notice that in this example we used the `cache_key_with_version` method, so the resulting cache key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key_with_version` generates a string based on the model's class name, `id`, and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching for instance level information, you need to generate a cache key.
+NOTE: Notice that in this example we used the `cache_key_with_version` method, so the resulting cache key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key_with_version` generates a string based on the model's class name, `id`, and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching, you need to generate a cache key.
+
+#### Avoid caching instances of Active Record objects
+
+Consider this example, which stores a list of Active Record objects representing superusers in the cache:
+
+```ruby
+# super_admins is an expensive SQL query, so don't run it too often
+Rails.cache.fetch("super_admin_users", expires_in: 12.hours) do
+  User.super_admins.to_a
+end
+```
+
+You should __avoid__ this pattern. Why? Because the instance could change. In production, attributes
+on it could differ, or the record could be deleted. And in development, it works unreliably with
+cache stores that reload code when you make changes.
+
+Instead, cache the ID or some other primitive data type. For example:
+
+```ruby
+# super_admins is an expensive SQL query, so don't run it too often
+ids = Rails.cache.fetch("super_admin_user_ids", expires_in: 12.hours) do
+  User.super_admins.pluck(:id)
+end
+User.where(id: ids).to_a
+```
 
 ### SQL Caching
 
@@ -316,7 +337,7 @@ class ProductsController < ApplicationController
     # Run a find query
     @products = Product.all
 
-    ...
+    # ...
 
     # Run the same query again
     @products = Product.all
@@ -330,7 +351,7 @@ The second time the same query is run against the database, it's not actually go
 However, it's important to note that query caches are created at the start of
 an action and destroyed at the end of that action and thus persist only for the
 duration of the action. If you'd like to store query results in a more
-persistent fashion, you can with low level caching.
+persistent fashion, you can with low-level caching.
 
 Cache Stores
 ------------
@@ -369,6 +390,35 @@ There are some common options that can be used by all cache implementations. The
 * `:expires_in` - This option sets an expiration time in seconds for the cache entry, if the cache store supports it, when it will be automatically removed from the cache.
 
 * `:race_condition_ttl` - This option is used in conjunction with the `:expires_in` option. It will prevent race conditions when cache entries expire by preventing multiple processes from simultaneously regenerating the same entry (also known as the dog pile effect). This option sets the number of seconds that an expired entry can be reused while a new value is being regenerated. It's a good practice to set this value if you use the `:expires_in` option.
+
+* `:coder` - This option replaces the default cache entry serialization mechanism with a custom one. The `coder` must respond to `dump` and `load`, and passing a custom coder disables automatic compression.
+
+#### Connection Pool Options
+
+By default the `MemCacheStore` and `RedisCacheStore` use a single connection
+per process. This means that if you're using Puma, or another threaded server,
+you can have multiple threads waiting for the connection to become available.
+To increase the number of available connections you can enable connection
+pooling.
+
+First, add the `connection_pool` gem to your Gemfile:
+
+```ruby
+gem 'connection_pool'
+```
+
+Next, set `:pool` option to `true` when configuring the cache store:
+
+```ruby
+config.cache_store = :mem_cache_store, "cache.example.com", pool: true
+```
+
+You can also override default pool settings by providing individual options
+instead of `true` to this option.
+
+* `:size` - This option sets the number of connections per process (defaults to 5).
+
+* `:timeout` - This option sets the number of seconds to wait for a connection (defaults to 5). If no connection is available within the timeout, a `Timeout::Error` will be raised.
 
 #### Custom Cache Stores
 
@@ -429,16 +479,21 @@ no explicit `config.cache_store` is supplied.
 
 This cache store uses Danga's `memcached` server to provide a centralized cache for your application. Rails uses the bundled `dalli` gem by default. This is currently the most popular cache store for production websites. It can be used to provide a single, shared cache cluster with very high performance and redundancy.
 
-When initializing the cache, you need to specify the addresses for all
-memcached servers in your cluster. If none are specified, it will assume
-memcached is running on localhost on the default port, but this is not an ideal
-setup for larger sites.
-
-The `write` and `fetch` methods on this cache accept two additional options that take advantage of features specific to memcached. You can specify `:raw` to send a value directly to the server with no serialization. The value must be a string or number. You can use memcached direct operations like `increment` and `decrement` only on raw values. You can also specify `:unless_exist` if you don't want memcached to overwrite an existing entry.
+When initializing the cache, you should specify the addresses for all memcached servers in your cluster, or ensure the `MEMCACHE_SERVERS` environment variable has been set appropriately.
 
 ```ruby
 config.cache_store = :mem_cache_store, "cache-1.example.com", "cache-2.example.com"
 ```
+
+If neither are specified, it will assume memcached is running on localhost on the default port (`127.0.0.1:11211`), but this is not an ideal setup for larger sites.
+
+```ruby
+config.cache_store = :mem_cache_store # Will fallback to $MEMCACHE_SERVERS, then 127.0.0.1:11211
+```
+
+See the [`Dalli::Client` documentation](https://www.rubydoc.info/github/mperham/dalli/Dalli%2FClient:initialize) for supported address types.
+
+The `write` and `fetch` methods on this cache accept two additional options that take advantage of features specific to memcached. You can specify `:raw` to send a value directly to the server with no serialization. The value must be a string or number. You can use memcached direct operations like `increment` and `decrement` only on raw values. You can also specify `:unless_exist` if you don't want memcached to overwrite an existing entry.
 
 ### ActiveSupport::Cache::RedisCacheStore
 
@@ -484,7 +539,7 @@ connection library by additionally adding its ruby wrapper to your Gemfile:
 gem 'hiredis'
 ```
 
-Redis cache store will automatically require & use hiredis if available. No further
+Redis cache store will automatically require and use hiredis if available. No further
 configuration is needed.
 
 Finally, add the configuration in the relevant `config/environments/*.rb` file:
@@ -514,7 +569,7 @@ config.cache_store = :redis_cache_store, { url: cache_servers,
 
 ### ActiveSupport::Cache::NullStore
 
-This cache store implementation is meant to be used only in development or test environments and it never stores anything. This can be very useful in development when you have code that interacts directly with `Rails.cache` but caching may interfere with being able to see the results of code changes. With this cache store, all `fetch` and `read` operations will result in a miss.
+This cache store is scoped to each web request, and clears stored values at the end of a request. It is meant for use in development and test environments. It can be very useful when you have code that interacts directly with `Rails.cache` but caching interferes with seeing the results of code changes.
 
 ```ruby
 config.cache_store = :null_store
@@ -547,7 +602,7 @@ Conditional GET support
 
 Conditional GETs are a feature of the HTTP specification that provide a way for web servers to tell browsers that the response to a GET request hasn't changed since the last request and can be safely pulled from the browser cache.
 
-They work by using the `HTTP_IF_NONE_MATCH` and `HTTP_IF_MODIFIED_SINCE` headers to pass back and forth both a unique content identifier and the timestamp of when the content was last changed. If the browser makes a request where the content identifier (etag) or last modified since timestamp matches the server's version then the server only needs to send back an empty response with a not modified status.
+They work by using the `HTTP_IF_NONE_MATCH` and `HTTP_IF_MODIFIED_SINCE` headers to pass back and forth both a unique content identifier and the timestamp of when the content was last changed. If the browser makes a request where the content identifier (ETag) or last modified since timestamp matches the server's version then the server only needs to send back an empty response with a not modified status.
 
 It is the server's (i.e. our) responsibility to look for a last modified timestamp and the if-none-match header and determine whether or not to send back the full response. With conditional-get support in Rails this is a pretty easy task:
 
@@ -638,8 +693,8 @@ response body.
 Weak ETags have a leading `W/` to differentiate them from strong ETags.
 
 ```
-  W/"618bbc92e2d35ea1945008b42799b0e7" → Weak ETag
-  "618bbc92e2d35ea1945008b42799b0e7" → Strong ETag
+W/"618bbc92e2d35ea1945008b42799b0e7" → Weak ETag
+"618bbc92e2d35ea1945008b42799b0e7" → Strong ETag
 ```
 
 Unlike weak ETag, strong ETag implies that response should be exactly the same
@@ -648,18 +703,18 @@ large video or PDF file. Some CDNs support only strong ETags, like Akamai.
 If you absolutely need to generate a strong ETag, it can be done as follows.
 
 ```ruby
-  class ProductsController < ApplicationController
-    def show
-      @product = Product.find(params[:id])
-      fresh_when last_modified: @product.published_at.utc, strong_etag: @product
-    end
+class ProductsController < ApplicationController
+  def show
+    @product = Product.find(params[:id])
+    fresh_when last_modified: @product.published_at.utc, strong_etag: @product
   end
+end
 ```
 
 You can also set the strong ETag directly on the response.
 
 ```ruby
-  response.strong_etag = response.body # => "618bbc92e2d35ea1945008b42799b0e7"
+response.strong_etag = response.body # => "618bbc92e2d35ea1945008b42799b0e7"
 ```
 
 Caching in Development
@@ -670,11 +725,14 @@ in development mode. Rails provides the rails command `dev:cache` to
 easily toggle caching on/off.
 
 ```bash
-$ rails dev:cache
+$ bin/rails dev:cache
 Development mode is now being cached.
-$ rails dev:cache
+$ bin/rails dev:cache
 Development mode is no longer being cached.
 ```
+
+NOTE: By default, when development mode caching is *off*, Rails uses
+[`ActiveSupport::Cache::NullStore`](#activesupport-cache-nullstore).
 
 References
 ----------

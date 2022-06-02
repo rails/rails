@@ -25,6 +25,10 @@ module ActionCable
       def shutdown
         raise NotImplementedError
       end
+
+      def identifier
+        @server.config.cable[:id] ||= "ActionCable-PID-#{$$}"
+      end
     end
   end
 end

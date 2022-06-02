@@ -27,7 +27,7 @@ module ActionMailbox
   #
   # 2. Generate a strong password that Action Mailbox can use to authenticate requests to the SendGrid ingress.
   #
-  #    Use <tt>rails credentials:edit</tt> to add the password to your application's encrypted credentials under
+  #    Use <tt>bin/rails credentials:edit</tt> to add the password to your application's encrypted credentials under
   #    +action_mailbox.ingress_password+, where Action Mailbox will automatically find it:
   #
   #        action_mailbox:
@@ -48,7 +48,21 @@ module ActionMailbox
     before_action :authenticate_by_password
 
     def create
-      ActionMailbox::InboundEmail.create_and_extract_message_id! params.require(:email)
+      ActionMailbox::InboundEmail.create_and_extract_message_id! mail
+    rescue JSON::ParserError => error
+      logger.error error.message
+      head :unprocessable_entity
     end
+
+    private
+      def mail
+        params.require(:email).tap do |raw_email|
+          envelope["to"].each { |to| raw_email.prepend("X-Original-To: ", to, "\n") } if params.key?(:envelope)
+        end
+      end
+
+      def envelope
+        JSON.parse(params.require(:envelope))
+      end
   end
 end

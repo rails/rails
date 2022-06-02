@@ -107,8 +107,8 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     }
     topic = Topic.find(1)
     topic.attributes = attributes
-    # testing against to_s(:db) representation because either a Time or a DateTime might be returned, depending on platform
-    assert_equal "1850-06-24 16:24:00", topic.written_on.to_s(:db)
+    # testing against to_fs(:db) representation because either a Time or a DateTime might be returned, depending on platform
+    assert_equal "1850-06-24 16:24:00", topic.written_on.to_fs(:db)
   end
 
   def test_multiparameter_attributes_on_time_will_raise_on_big_time_if_missing_date_parts

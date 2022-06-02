@@ -19,7 +19,7 @@ module ActiveSupport
 
     # This module decorates files deserialized using Hash.from_xml with
     # the <tt>original_filename</tt> and <tt>content_type</tt> methods.
-    module FileLike #:nodoc:
+    module FileLike # :nodoc:
       attr_writer :original_filename, :content_type
 
       def original_filename
@@ -50,10 +50,11 @@ module ActiveSupport
         "Hash"       => "hash"
       }
     end
+    TYPE_NAMES["ActiveSupport::TimeWithZone"] = TYPE_NAMES["Time"]
 
     FORMATTING = {
       "symbol"   => Proc.new { |symbol| symbol.to_s },
-      "date"     => Proc.new { |date| date.to_s(:db) },
+      "date"     => Proc.new { |date| date.to_fs(:db) },
       "dateTime" => Proc.new { |time| time.xmlschema },
       "binary"   => Proc.new { |binary| ::Base64.encode64(binary) },
       "yaml"     => Proc.new { |yaml| yaml.to_yaml }
@@ -180,11 +181,11 @@ module ActiveSupport
       end
 
       def current_thread_backend
-        Thread.current[:xml_mini_backend]
+        IsolatedExecutionState[:xml_mini_backend]
       end
 
       def current_thread_backend=(name)
-        Thread.current[:xml_mini_backend] = name && cast_backend_name_to_module(name)
+        IsolatedExecutionState[:xml_mini_backend] = name && cast_backend_name_to_module(name)
       end
 
       def cast_backend_name_to_module(name)

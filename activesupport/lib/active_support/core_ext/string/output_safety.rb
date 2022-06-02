@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "erb"
-require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/module/redefine_method"
 require "active_support/multibyte/unicode"
 
@@ -11,6 +10,14 @@ class ERB
     JSON_ESCAPE = { "&" => '\u0026', ">" => '\u003e', "<" => '\u003c', "\u2028" => '\u2028', "\u2029" => '\u2029' }
     HTML_ESCAPE_ONCE_REGEXP = /["><']|&(?!([a-zA-Z]+|(#\d+)|(#[xX][\dA-Fa-f]+));)/
     JSON_ESCAPE_REGEXP = /[\u2028\u2029&><]/u
+
+    # Following XML requirements: https://www.w3.org/TR/REC-xml/#NT-Name
+    TAG_NAME_START_REGEXP_SET = "@:A-Z_a-z\u{C0}-\u{D6}\u{D8}-\u{F6}\u{F8}-\u{2FF}\u{370}-\u{37D}\u{37F}-\u{1FFF}" \
+                                "\u{200C}-\u{200D}\u{2070}-\u{218F}\u{2C00}-\u{2FEF}\u{3001}-\u{D7FF}\u{F900}-\u{FDCF}" \
+                                "\u{FDF0}-\u{FFFD}\u{10000}-\u{EFFFF}"
+    TAG_NAME_START_REGEXP = /[^#{TAG_NAME_START_REGEXP_SET}]/
+    TAG_NAME_FOLLOWING_REGEXP = /[^#{TAG_NAME_START_REGEXP_SET}\-.0-9\u{B7}\u{0300}-\u{036F}\u{203F}-\u{2040}]/
+    TAG_NAME_REPLACEMENT_CHAR = "_"
 
     # A utility method for escaping HTML tag characters.
     # This method is also aliased as <tt>h</tt>.
@@ -85,7 +92,7 @@ class ERB
     # use inside HTML attributes.
     #
     # If your JSON is being used downstream for insertion into the DOM, be aware of
-    # whether or not it is being inserted via +html()+. Most jQuery plugins do this.
+    # whether or not it is being inserted via <tt>html()</tt>. Most jQuery plugins do this.
     # If that is the case, be sure to +html_escape+ or +sanitize+ any user-generated
     # content returned by your JSON.
     #
@@ -98,7 +105,7 @@ class ERB
     # WARNING: this helper only works with valid JSON. Using this on non-JSON values
     # will open up serious XSS vulnerabilities. For example, if you replace the
     # +current_user.to_json+ in the example above with user input instead, the browser
-    # will happily eval() that string as JavaScript.
+    # will happily <tt>eval()</tt> that string as JavaScript.
     #
     # The escaping performed in this method is identical to those performed in the
     # Active Support JSON encoder when +ActiveSupport.escape_html_entities_in_json+ is
@@ -116,6 +123,26 @@ class ERB
     end
 
     module_function :json_escape
+
+    # A utility method for escaping XML names of tags and names of attributes.
+    #
+    #   xml_name_escape('1 < 2 & 3')
+    #   # => "1___2___3"
+    #
+    # It follows the requirements of the specification: https://www.w3.org/TR/REC-xml/#NT-Name
+    def xml_name_escape(name)
+      name = name.to_s
+      return "" if name.blank?
+
+      starting_char = name[0].gsub(TAG_NAME_START_REGEXP, TAG_NAME_REPLACEMENT_CHAR)
+
+      return starting_char if name.size == 1
+
+      following_chars = name[1..-1].gsub(TAG_NAME_FOLLOWING_REGEXP, TAG_NAME_REPLACEMENT_CHAR)
+
+      starting_char + following_chars
+    end
+    module_function :xml_name_escape
   end
 end
 
@@ -131,11 +158,11 @@ class Numeric
   end
 end
 
-module ActiveSupport #:nodoc:
+module ActiveSupport # :nodoc:
   class SafeBuffer < String
     UNSAFE_STRING_METHODS = %w(
       capitalize chomp chop delete delete_prefix delete_suffix
-      downcase lstrip next reverse rstrip slice squeeze strip
+      downcase lstrip next reverse rstrip scrub slice squeeze strip
       succ swapcase tr tr_s unicode_normalize upcase
     )
 
@@ -144,7 +171,7 @@ module ActiveSupport #:nodoc:
     alias_method :original_concat, :concat
     private :original_concat
 
-    # Raised when <tt>ActiveSupport::SafeBuffer#safe_concat</tt> is called on unsafe buffers.
+    # Raised when ActiveSupport::SafeBuffer#safe_concat is called on unsafe buffers.
     class SafeConcatError < StandardError
       def initialize
         super "Could not concatenate to the buffer because it is not html safe."
@@ -153,12 +180,12 @@ module ActiveSupport #:nodoc:
 
     def [](*args)
       if html_safe?
-        new_safe_buffer = super
+        new_string = super
 
-        if new_safe_buffer
-          new_safe_buffer.instance_variable_set :@html_safe, true
-        end
+        return unless new_string
 
+        new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
+        new_safe_buffer.instance_variable_set :@html_safe, true
         new_safe_buffer
       else
         to_str[*args]
@@ -185,27 +212,30 @@ module ActiveSupport #:nodoc:
     end
 
     def concat(value)
-      super(html_escape_interpolated_argument(value))
+      unless value.nil?
+        super(implicit_html_escape_interpolated_argument(value))
+      end
+      self
     end
     alias << concat
 
     def insert(index, value)
-      super(index, html_escape_interpolated_argument(value))
+      super(index, implicit_html_escape_interpolated_argument(value))
     end
 
     def prepend(value)
-      super(html_escape_interpolated_argument(value))
+      super(implicit_html_escape_interpolated_argument(value))
     end
 
     def replace(value)
-      super(html_escape_interpolated_argument(value))
+      super(implicit_html_escape_interpolated_argument(value))
     end
 
     def []=(*args)
       if args.length == 3
-        super(args[0], args[1], html_escape_interpolated_argument(args[2]))
+        super(args[0], args[1], implicit_html_escape_interpolated_argument(args[2]))
       else
-        super(args[0], html_escape_interpolated_argument(args[1]))
+        super(args[0], implicit_html_escape_interpolated_argument(args[1]))
       end
     end
 
@@ -214,7 +244,8 @@ module ActiveSupport #:nodoc:
     end
 
     def *(*)
-      new_safe_buffer = super
+      new_string = super
+      new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
       new_safe_buffer.instance_variable_set(:@html_safe, @html_safe)
       new_safe_buffer
     end
@@ -222,9 +253,9 @@ module ActiveSupport #:nodoc:
     def %(args)
       case args
       when Hash
-        escaped_args = Hash[args.map { |k, arg| [k, html_escape_interpolated_argument(arg)] }]
+        escaped_args = args.transform_values { |arg| explicit_html_escape_interpolated_argument(arg) }
       else
-        escaped_args = Array(args).map { |arg| html_escape_interpolated_argument(arg) }
+        escaped_args = Array(args).map { |arg| explicit_html_escape_interpolated_argument(arg) }
       end
 
       self.class.new(super(escaped_args))
@@ -262,37 +293,58 @@ module ActiveSupport #:nodoc:
     end
 
     UNSAFE_STRING_METHODS_WITH_BACKREF.each do |unsafe_method|
-      if unsafe_method.respond_to?(unsafe_method)
-        class_eval <<-EOT, __FILE__, __LINE__ + 1
-          def #{unsafe_method}(*args, &block)             # def gsub(*args, &block)
-            if block                                      #   if block
-              to_str.#{unsafe_method}(*args) { |*params|  #     to_str.gsub(*args) { |*params|
-                set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
-                block.call(*params)                       #       block.call(*params)
-              }                                           #     }
-            else                                          #   else
-              to_str.#{unsafe_method}(*args)              #     to_str.gsub(*args)
-            end                                           #   end
-          end                                             # end
+      class_eval <<-EOT, __FILE__, __LINE__ + 1
+        def #{unsafe_method}(*args, &block)             # def gsub(*args, &block)
+          if block                                      #   if block
+            to_str.#{unsafe_method}(*args) { |*params|  #     to_str.gsub(*args) { |*params|
+              set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
+              block.call(*params)                       #       block.call(*params)
+            }                                           #     }
+          else                                          #   else
+            to_str.#{unsafe_method}(*args)              #     to_str.gsub(*args)
+          end                                           #   end
+        end                                             # end
 
-          def #{unsafe_method}!(*args, &block)            # def gsub!(*args, &block)
-            @html_safe = false                            #   @html_safe = false
-            if block                                      #   if block
-              super(*args) { |*params|                    #     super(*args) { |*params|
-                set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
-                block.call(*params)                       #       block.call(*params)
-              }                                           #     }
-            else                                          #   else
-              super                                       #     super
-            end                                           #   end
-          end                                             # end
-        EOT
-      end
+        def #{unsafe_method}!(*args, &block)            # def gsub!(*args, &block)
+          @html_safe = false                            #   @html_safe = false
+          if block                                      #   if block
+            super(*args) { |*params|                    #     super(*args) { |*params|
+              set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
+              block.call(*params)                       #       block.call(*params)
+            }                                           #     }
+          else                                          #   else
+            super                                       #     super
+          end                                           #   end
+        end                                             # end
+      EOT
     end
 
     private
-      def html_escape_interpolated_argument(arg)
+      def explicit_html_escape_interpolated_argument(arg)
         (!html_safe? || arg.html_safe?) ? arg : CGI.escapeHTML(arg.to_s)
+      end
+
+      def implicit_html_escape_interpolated_argument(arg)
+        if !html_safe? || arg.html_safe?
+          arg
+        else
+          arg_string = begin
+            arg.to_str
+          rescue NoMethodError => error
+            if error.name == :to_str
+              str = arg.to_s
+              ActiveSupport::Deprecation.warn <<~MSG.squish
+                Implicit conversion of #{arg.class} into String by ActiveSupport::SafeBuffer
+                is deprecated and will be removed in Rails 7.1.
+                You must explicitly cast it to a String.
+              MSG
+              str
+            else
+              raise
+            end
+          end
+          CGI.escapeHTML(arg_string)
+        end
       end
 
       def set_block_back_references(block, match_data)

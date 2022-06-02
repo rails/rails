@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/per_thread_registry"
 require "active_support/notifications"
 
 module ActiveSupport
@@ -31,15 +30,16 @@ module ActiveSupport
   class Subscriber
     class << self
       # Attach the subscriber to a namespace.
-      def attach_to(namespace, subscriber = new, notifier = ActiveSupport::Notifications)
+      def attach_to(namespace, subscriber = new, notifier = ActiveSupport::Notifications, inherit_all: false)
         @namespace  = namespace
         @subscriber = subscriber
         @notifier   = notifier
+        @inherit_all = inherit_all
 
         subscribers << subscriber
 
         # Add event subscribers for all existing methods on the class.
-        subscriber.public_methods(false).each do |event|
+        fetch_public_methods(subscriber, inherit_all).each do |event|
           add_event_subscriber(event)
         end
       end
@@ -55,7 +55,7 @@ module ActiveSupport
         subscribers.delete(subscriber)
 
         # Remove event subscribers of all existing methods on the class.
-        subscriber.public_methods(false).each do |event|
+        fetch_public_methods(subscriber, true).each do |event|
           remove_event_subscriber(event)
         end
 
@@ -117,53 +117,27 @@ module ActiveSupport
         def pattern_subscribed?(pattern)
           subscriber.patterns.key?(pattern)
         end
+
+        def fetch_public_methods(subscriber, inherit_all)
+          subscriber.public_methods(inherit_all) - Subscriber.public_instance_methods(true)
+        end
     end
 
     attr_reader :patterns # :nodoc:
 
     def initialize
-      @queue_key = [self.class.name, object_id].join "-"
       @patterns  = {}
       super
     end
 
-    def start(name, id, payload)
-      event = ActiveSupport::Notifications::Event.new(name, nil, nil, id, payload)
-      event.start!
-      parent = event_stack.last
-      parent << event if parent
-
-      event_stack.push event
-    end
-
-    def finish(name, id, payload)
-      event = event_stack.pop
-      event.finish!
-      event.payload.merge!(payload)
-
-      method = name.split(".").first
+    def call(event)
+      method = event.name.split(".").first
       send(method, event)
     end
 
-    private
-      def event_stack
-        SubscriberQueueRegistry.instance.get_queue(@queue_key)
-      end
-  end
-
-  # This is a registry for all the event stacks kept for subscribers.
-  #
-  # See the documentation of <tt>ActiveSupport::PerThreadRegistry</tt>
-  # for further details.
-  class SubscriberQueueRegistry # :nodoc:
-    extend PerThreadRegistry
-
-    def initialize
-      @registry = {}
-    end
-
-    def get_queue(queue_key)
-      @registry[queue_key] ||= []
+    def publish_event(event) # :nodoc:
+      method = event.name.split(".").first
+      send(method, event)
     end
   end
 end

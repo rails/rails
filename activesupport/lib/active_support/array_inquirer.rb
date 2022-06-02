@@ -34,11 +34,11 @@ module ActiveSupport
 
     private
       def respond_to_missing?(name, include_private = false)
-        (name[-1] == "?") || super
+        name.end_with?("?") || super
       end
 
       def method_missing(name, *args)
-        if name[-1] == "?"
+        if name.end_with?("?")
           any?(name[0..-2])
         else
           super

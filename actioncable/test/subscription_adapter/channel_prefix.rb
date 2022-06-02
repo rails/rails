@@ -5,7 +5,7 @@ require "test_helper"
 module ChannelPrefixTest
   def test_channel_prefix
     server2 = ActionCable::Server::Base.new(config: ActionCable::Server::Configuration.new)
-    server2.config.cable = alt_cable_config
+    server2.config.cable = alt_cable_config.with_indifferent_access
     server2.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
     adapter_klass = server2.config.pubsub_adapter

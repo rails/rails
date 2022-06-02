@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/logger"
 require "active_support/tagged_logging"
 
@@ -83,6 +83,15 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_equal "Dull story\n[OMG] Cool story\n[BCX] Funky time\n", @output.string
   end
 
+  test "keeps each tag in their own thread even when pushed directly" do
+    Thread.new do
+      @logger.push_tags("OMG")
+      @logger.info "Cool story"
+    end.join
+    @logger.info "Funky time"
+    assert_equal "[OMG] Cool story\nFunky time\n", @output.string
+  end
+
   test "keeps each tag in their own instance" do
     other_output = StringIO.new
     other_logger = ActiveSupport::TaggedLogging.new(MyLogger.new(other_output))
@@ -127,5 +136,152 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     end
 
     assert_equal "[BCX] [Jason] Funky time\n[BCX] Junky time!\n", @output.string
+  end
+end
+
+class TaggedLoggingWithoutBlockTest < ActiveSupport::TestCase
+  setup do
+    @output = StringIO.new
+    @logger = ActiveSupport::TaggedLogging.new(Logger.new(@output))
+  end
+
+  test "tagged once" do
+    @logger.tagged("BCX").info "Funky time"
+    assert_equal "[BCX] Funky time\n", @output.string
+  end
+
+  test "tagged twice" do
+    @logger.tagged("BCX").tagged("Jason").info "Funky time"
+    assert_equal "[BCX] [Jason] Funky time\n", @output.string
+  end
+
+  test "tagged thrice at once" do
+    @logger.tagged("BCX", "Jason", "New").info "Funky time"
+    assert_equal "[BCX] [Jason] [New] Funky time\n", @output.string
+  end
+
+  test "tagged are flattened" do
+    @logger.tagged("BCX", %w(Jason New)).info "Funky time"
+    assert_equal "[BCX] [Jason] [New] Funky time\n", @output.string
+  end
+
+  test "tagged once with blank and nil" do
+    @logger.tagged(nil, "", "New").info "Funky time"
+    assert_equal "[New] Funky time\n", @output.string
+  end
+
+  test "shares tags across threads" do
+    logger = @logger.tagged("BCX")
+
+    Thread.new do
+      logger.info "Dull story"
+      logger.tagged("OMG").info "Cool story"
+    end.join
+
+    logger.info "Funky time"
+
+    assert_equal "[BCX] Dull story\n[BCX] [OMG] Cool story\n[BCX] Funky time\n", @output.string
+  end
+
+  test "keeps each tag in their own instance" do
+    other_output = StringIO.new
+    other_logger = ActiveSupport::TaggedLogging.new(Logger.new(other_output))
+
+    tagged_logger = @logger.tagged("OMG")
+    other_tagged_logger = other_logger.tagged("BCX")
+    tagged_logger.info "Cool story"
+    other_tagged_logger.info "Funky time"
+
+    assert_equal "[OMG] Cool story\n", @output.string
+    assert_equal "[BCX] Funky time\n", other_output.string
+  end
+
+  test "does not share the same formatter instance of the original logger" do
+    other_logger = ActiveSupport::TaggedLogging.new(@logger)
+
+    tagged_logger = @logger.tagged("OMG")
+    other_tagged_logger = other_logger.tagged("BCX")
+    tagged_logger.info "Cool story"
+    other_tagged_logger.info "Funky time"
+
+    assert_equal "[OMG] Cool story\n[BCX] Funky time\n", @output.string
+  end
+
+  test "mixed levels of tagging" do
+    logger = @logger.tagged("BCX")
+    logger.tagged("Jason").info "Funky time"
+    logger.info "Junky time!"
+
+    assert_equal "[BCX] [Jason] Funky time\n[BCX] Junky time!\n", @output.string
+  end
+
+  test "keeps broadcasting functionality" do
+    broadcast_output = StringIO.new
+    broadcast_logger = ActiveSupport::TaggedLogging.new(Logger.new(broadcast_output))
+    @logger.extend(ActiveSupport::Logger.broadcast(broadcast_logger))
+
+    tagged_logger = @logger.tagged("OMG")
+    tagged_logger.info "Broadcasting..."
+
+    assert_equal "[OMG] Broadcasting...\n", @output.string
+    assert_equal "[OMG] Broadcasting...\n", broadcast_output.string
+  end
+
+  test "keeps broadcasting functionality when passed a block" do
+    broadcast_output = StringIO.new
+    broadcast_logger = ActiveSupport::TaggedLogging.new(Logger.new(broadcast_output))
+    @logger.extend(ActiveSupport::Logger.broadcast(broadcast_logger))
+
+    @logger.tagged("OMG") { |logger| logger.info "Broadcasting..." }
+
+    assert_equal "[OMG] Broadcasting...\n", @output.string
+    assert_equal "[OMG] Broadcasting...\n", broadcast_output.string
+  end
+
+  test "broadcasting when passing a block works and  keeps formatter untouched" do
+    broadcast_output = StringIO.new
+    broadcast_logger = ActiveSupport::TaggedLogging.new(Logger.new(broadcast_output))
+    my_formatter = Class.new do
+      def call(_, _, _, msg)
+        ActiveSupport::JSON.encode(message: msg, tags: current_tags)
+      end
+    end
+    broadcast_logger.formatter = my_formatter.new
+
+    @logger.extend(ActiveSupport::Logger.broadcast(broadcast_logger))
+    @logger.tagged("OMG") { |logger| logger.info "Broadcasting..." }
+
+    assert_equal "[OMG] Broadcasting...\n", @output.string
+    assert_equal "{\"message\":\"Broadcasting...\",\"tags\":[\"OMG\"]}", broadcast_output.string
+  end
+
+  test "broadcasting without passing a block works and keeps formatter untouched" do
+    broadcast_output = StringIO.new
+    broadcast_logger = ActiveSupport::TaggedLogging.new(Logger.new(broadcast_output))
+    my_formatter = Class.new do
+      def call(_, _, _, msg)
+        ActiveSupport::JSON.encode(message: msg, tags: current_tags)
+      end
+    end
+    broadcast_logger.formatter = my_formatter.new
+
+    @logger.extend(ActiveSupport::Logger.broadcast(broadcast_logger))
+    tagger_logger1 = @logger.tagged("OMG")
+    tagger_logger2 = tagger_logger1.tagged("FOO")
+    tagger_logger2.info("Broadcasting...")
+
+    assert_equal "[OMG] [FOO] Broadcasting...\n", @output.string
+    assert_equal "{\"message\":\"Broadcasting...\",\"tags\":[\"OMG\",\"FOO\"]}", broadcast_output.string
+  end
+
+  test "broadcasting on a non tagged logger" do
+    broadcast_output = StringIO.new
+    broadcast_logger = ActiveSupport::Logger.new(broadcast_output)
+
+    @logger.extend(ActiveSupport::Logger.broadcast(broadcast_logger))
+    @logger.tagged("OMG") { |logger| logger.info "Broadcasting..." }
+
+    assert_equal "[OMG] Broadcasting...\n", @output.string
+    assert_equal "Broadcasting...\n", broadcast_output.string
   end
 end

@@ -12,19 +12,17 @@ module ActiveRecord
           end
 
           def type_cast_for_schema(value)
-            subnet_mask = value.instance_variable_get(:@mask_addr)
-
             # If the subnet mask is equal to /32, don't output it
-            if subnet_mask == (2**32 - 1)
+            if value.prefix == 32
               "\"#{value}\""
             else
-              "\"#{value}/#{subnet_mask.to_s(2).count('1')}\""
+              "\"#{value}/#{value.prefix}\""
             end
           end
 
           def serialize(value)
             if IPAddr === value
-              "#{value}/#{value.instance_variable_get(:@mask_addr).to_s(2).count('1')}"
+              "#{value}/#{value.prefix}"
             else
               value
             end

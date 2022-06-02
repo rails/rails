@@ -1,11 +1,5 @@
 # frozen_string_literal: true
 
-ensure_zeitwerk_mode = ->() do
-  unless Rails.autoloaders.zeitwerk_enabled?
-    abort "Please, enable :zeitwerk mode in config/application.rb and try again."
-  end
-end
-
 eager_load = ->() do
   puts "Hold on, I am eager loading the application."
   Zeitwerk::Loader.eager_load_all
@@ -14,8 +8,8 @@ end
 report_not_checked = ->(not_checked) do
   puts
   puts <<~EOS
-    WARNING: The files in these directories cannot be checked because they
-    are not eager loaded:
+    WARNING: The following directories will only be checked if you configure
+    them to be eager loaded:
   EOS
   puts
 
@@ -41,8 +35,6 @@ end
 namespace :zeitwerk do
   desc "Checks project structure for Zeitwerk compatibility"
   task check: :environment do
-    ensure_zeitwerk_mode[]
-
     begin
       eager_load[]
     rescue NameError => e
@@ -54,11 +46,11 @@ namespace :zeitwerk do
     end
 
     require "active_support/core_ext/object/try"
-    eager_load_paths = Rails.configuration.eager_load_namespaces.map do |eln|
+    eager_load_paths = Rails.configuration.eager_load_namespaces.filter_map do |eln|
       # Quick regression fix for 6.0.3 to support namespaces that do not have
       # eager load paths, like the recently added i18n. I'll rewrite this task.
       eln.try(:config).try(:eager_load_paths)
-    end.compact.flatten
+    end.flatten
 
     not_checked = ActiveSupport::Dependencies.autoload_paths - eager_load_paths
     not_checked.select! { |dir| Dir.exist?(dir) }

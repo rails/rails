@@ -16,5 +16,18 @@ module ActiveRecord::Associations
         attrs[reflection.type] = nil if reflection.type.present?
       end
     end
+
+    private
+      # Sets the owner attributes on the given record
+      def set_owner_attributes(record)
+        return if options[:through]
+
+        key = owner._read_attribute(reflection.join_foreign_key)
+        record._write_attribute(reflection.join_primary_key, key)
+
+        if reflection.type
+          record._write_attribute(reflection.type, owner.class.polymorphic_name)
+        end
+      end
   end
 end

@@ -9,7 +9,7 @@ module ActiveRecord
       end
 
       def queries
-        [associated_table.association_join_foreign_key.to_s => ids]
+        [ associated_table.join_foreign_key => ids ]
       end
 
       private
@@ -27,13 +27,12 @@ module ActiveRecord
         end
 
         def primary_key
-          associated_table.association_join_primary_key
+          associated_table.join_primary_key
         end
 
         def convert_to_id(value)
-          case value
-          when Base
-            value._read_attribute(primary_key)
+          if value.respond_to?(primary_key)
+            value.public_send(primary_key)
           else
             value
           end

@@ -3,7 +3,7 @@
 require "active_support/core_ext/string/output_safety"
 
 module ActionView
-  class OutputFlow #:nodoc:
+  class OutputFlow # :nodoc:
     attr_reader :content
 
     def initialize
@@ -17,17 +17,17 @@ module ActionView
 
     # Called by each renderer object to set the layout contents.
     def set(key, value)
-      @content[key] = ActiveSupport::SafeBuffer.new(value)
+      @content[key] = ActiveSupport::SafeBuffer.new(value.to_s)
     end
 
     # Called by content_for
     def append(key, value)
-      @content[key] << value
+      @content[key] << value.to_s
     end
     alias_method :append!, :append
   end
 
-  class StreamingFlow < OutputFlow #:nodoc:
+  class StreamingFlow < OutputFlow # :nodoc:
     def initialize(view, fiber)
       @view    = view
       @parent  = nil

@@ -15,7 +15,7 @@ module ActiveModel
   #     attr_accessor :first_name, :last_name
   #
   #     validates_each :first_name, :last_name do |record, attr, value|
-  #       record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
+  #       record.errors.add attr, "starts with z." if value.start_with?("z")
   #     end
   #   end
   #
@@ -32,7 +32,7 @@ module ActiveModel
   #   person.errors.messages          # => {first_name:["starts with z."]}
   #
   # Note that <tt>ActiveModel::Validations</tt> automatically adds an +errors+
-  # method to your instances initialized with a new <tt>ActiveModel::Errors</tt>
+  # method to your instances initialized with a new ActiveModel::Errors
   # object, so there is no need for you to do this manually.
   module Validations
     extend ActiveSupport::Concern
@@ -61,7 +61,7 @@ module ActiveModel
       #     attr_accessor :first_name, :last_name
       #
       #     validates_each :first_name, :last_name, allow_blank: true do |record, attr, value|
-      #       record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
+      #       record.errors.add attr, "starts with z." if value.start_with?("z")
       #     end
       #   end
       #
@@ -73,14 +73,14 @@ module ActiveModel
       #   <tt>on: [:create, :custom_validation_context]</tt>)
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
-      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
+      # * <tt>:if</tt> - Specifies a method, proc, or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
-      # * <tt>:unless</tt> - Specifies a method, proc or string to call to
+      # * <tt>:unless</tt> - Specifies a method, proc, or string to call to
       #   determine if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
-      #   method, proc or string should return or evaluate to a +true+ or +false+
+      #   method, proc, or string should return or evaluate to a +true+ or +false+
       #   value.
       def validates_each(*attr_names, &block)
         validates_with BlockValidator, _merge_attributes(attr_names), &block
@@ -118,7 +118,7 @@ module ActiveModel
       #     end
       #   end
       #
-      # Or with a block where self points to the current record to be validated:
+      # Or with a block where +self+ points to the current record to be validated:
       #
       #   class Comment
       #     include ActiveModel::Validations
@@ -137,14 +137,14 @@ module ActiveModel
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
-      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
+      # * <tt>:if</tt> - Specifies a method, proc, or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
-      # * <tt>:unless</tt> - Specifies a method, proc or string to call to
+      # * <tt>:unless</tt> - Specifies a method, proc, or string to call to
       #   determine if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
-      #   method, proc or string should return or evaluate to a +true+ or +false+
+      #   method, proc, or string should return or evaluate to a +true+ or +false+
       #   value.
       #
       # NOTE: Calling +validate+ multiple times on the same method will overwrite previous definitions.
@@ -152,7 +152,7 @@ module ActiveModel
       def validate(*args, &block)
         options = args.extract_options!
 
-        if args.all? { |arg| arg.is_a?(Symbol) }
+        if args.all?(Symbol)
           options.each_key do |k|
             unless VALID_OPTIONS_FOR_VALIDATE.include?(k)
               raise ArgumentError.new("Unknown key: #{k.inspect}. Valid keys are: #{VALID_OPTIONS_FOR_VALIDATE.map(&:inspect).join(', ')}. Perhaps you meant to call `validates` instead of `validate`?")
@@ -161,12 +161,7 @@ module ActiveModel
         end
 
         if options.key?(:on)
-          options = options.dup
-          options[:on] = Array(options[:on])
-          options[:if] = Array(options[:if])
-          options[:if].unshift ->(o) {
-            !(options[:on] & Array(o.validation_context)).empty?
-          }
+          options = options.merge(if: [predicate_for_validation_context(options[:on]), *options[:if]])
         end
 
         set_callback(:validate, *args, options, &block)
@@ -241,7 +236,7 @@ module ActiveModel
       #   class Person
       #     include ActiveModel::Validations
       #
-      #     attr_accessor :name , :age
+      #     attr_accessor :name, :age
       #
       #     validates_presence_of :name
       #     validates_inclusion_of :age, in: 0..99
@@ -272,15 +267,30 @@ module ActiveModel
       end
 
       # Copy validators on inheritance.
-      def inherited(base) #:nodoc:
+      def inherited(base) # :nodoc:
         dup = _validators.dup
         base._validators = dup.each { |k, v| dup[k] = v.dup }
         super
       end
+
+      private
+        @@predicates_for_validation_contexts = {}
+
+        def predicate_for_validation_context(context)
+          context = context.is_a?(Array) ? context.sort : Array(context)
+
+          @@predicates_for_validation_contexts[context] ||= -> (model) do
+            if model.validation_context.is_a?(Array)
+              model.validation_context.any? { |model_context| context.include?(model_context) }
+            else
+              context.include?(model.validation_context)
+            end
+          end
+        end
     end
 
     # Clean the +Errors+ object if instance is duped.
-    def initialize_dup(other) #:nodoc:
+    def initialize_dup(other) # :nodoc:
       @errors = nil
       super
     end

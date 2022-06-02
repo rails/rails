@@ -93,7 +93,7 @@ Handled at the Action Pack layer:
   means not having to spend time thinking about how to model your API in terms
   of HTTP.
 - URL Generation: The flip side of routing is URL generation. A good API based
-  on HTTP includes URLs (see [the GitHub Gist API](https://developer.github.com/v3/gists/)
+  on HTTP includes URLs (see [the GitHub Gist API](https://docs.github.com/en/rest/reference/gists)
   for an example).
 - Header and Redirection Responses: `head :no_content` and
   `redirect_to user_url(current_user)` come in handy. Sure, you could manually
@@ -156,14 +156,14 @@ This will do three main things for you:
 If you want to take an existing application and make it an API one, read the
 following steps.
 
-In `config/application.rb` add the following line at the top of the `Application`
+In `config/application.rb`, add the following line at the top of the `Application`
 class definition:
 
 ```ruby
 config.api_only = true
 ```
 
-In `config/environments/development.rb`, set `config.debug_exception_response_format`
+In `config/environments/development.rb`, set [`config.debug_exception_response_format`][]
 to configure the format used in responses when errors occur in development mode.
 
 To render an HTML page with debugging information, use the value `:default`.
@@ -194,14 +194,18 @@ class ApplicationController < ActionController::API
 end
 ```
 
+[`config.debug_exception_response_format`]: configuring.html#config-debug-exception-response-format
+
 Choosing Middleware
 --------------------
 
 An API application comes with the following middleware by default:
 
+- `ActionDispatch::HostAuthorization`
 - `Rack::Sendfile`
 - `ActionDispatch::Static`
 - `ActionDispatch::Executor`
+- `ActionDispatch::ServerTiming`
 - `ActiveSupport::Cache::Strategy::LocalCache::Middleware`
 - `Rack::Runtime`
 - `ActionDispatch::RequestId`
@@ -209,6 +213,7 @@ An API application comes with the following middleware by default:
 - `Rails::Rack::Logger`
 - `ActionDispatch::ShowExceptions`
 - `ActionDispatch::DebugExceptions`
+- `ActionDispatch::ActionableExceptions`
 - `ActionDispatch::Reloader`
 - `ActionDispatch::Callbacks`
 - `ActiveRecord::Migration::CheckPending`
@@ -226,7 +231,7 @@ building, and make sense in an API-only Rails application.
 You can get a list of all middleware in your application via:
 
 ```bash
-$ rails middleware
+$ bin/rails middleware
 ```
 
 ### Using the Cache Middleware
@@ -282,7 +287,7 @@ If your front-end server supports accelerated file sending, `Rack::Sendfile`
 will offload the actual file sending work to the front-end server.
 
 You can configure the name of the header that your front-end server uses for
-this purpose using `config.action_dispatch.x_sendfile_header` in the appropriate
+this purpose using [`config.action_dispatch.x_sendfile_header`][] in the appropriate
 environment's configuration file.
 
 You can learn more about how to use `Rack::Sendfile` with popular
@@ -303,6 +308,8 @@ config.action_dispatch.x_sendfile_header = "X-Accel-Redirect"
 Make sure to configure your server to support these options following the
 instructions in the `Rack::Sendfile` documentation.
 
+[`config.action_dispatch.x_sendfile_header`]: configuring.html#config-action-dispatch-x-sendfile-header
+
 ### Using ActionDispatch::Request
 
 `ActionDispatch::Request#params` will take parameters from the client in the JSON
@@ -313,7 +320,7 @@ and specify the `Content-Type` as `application/json`.
 
 Here's an example in jQuery:
 
-```javascript
+```js
 jQuery.ajax({
   type: 'POST',
   url: '/people',
@@ -331,6 +338,32 @@ will be:
 { :person => { :firstName => "Yehuda", :lastName => "Katz" } }
 ```
 
+### Using Session Middlewares
+
+The following middlewares, used for session management, are excluded from API apps since they normally don't need sessions.  If one of your API clients is a browser, you might want to add one of these back in:
+
+- `ActionDispatch::Session::CacheStore`
+- `ActionDispatch::Session::CookieStore`
+- `ActionDispatch::Session::MemCacheStore`
+
+The trick to adding these back in is that, by default, they are passed `session_options`
+when added (including the session key), so you can't just add a `session_store.rb` initializer, add
+`use ActionDispatch::Session::CookieStore` and have sessions functioning as usual.  (To be clear: sessions
+may work, but your session options will be ignored - i.e. the session key will default to `_session_id`)
+
+Instead of the initializer, you'll have to set the relevant options somewhere before your middleware is
+built (like `config/application.rb`) and pass them to your preferred middleware, like this:
+
+```ruby
+# This also configures session_options for use below
+config.session_store :cookie_store, key: '_interslice_session'
+
+# Required for all session management (regardless of session_store)
+config.middleware.use ActionDispatch::Cookies
+
+config.middleware.use config.session_store, config.session_options
+```
+
 ### Other Middleware
 
 Rails ships with a number of other middleware that you might want to use in an
@@ -339,10 +372,6 @@ API application, especially if one of your API clients is the browser:
 - `Rack::MethodOverride`
 - `ActionDispatch::Cookies`
 - `ActionDispatch::Flash`
-- For session management
-    * `ActionDispatch::Session::CacheStore`
-    * `ActionDispatch::Session::CookieStore`
-    * `ActionDispatch::Session::MemCacheStore`
 
 Any of these middleware can be added via:
 
@@ -385,14 +414,13 @@ controller modules by default:
 more information regarding this).
 - `ActionController::ParamsWrapper`: Wraps the parameters hash into a nested hash,
   so that you don't have to specify root elements sending POST requests for instance.
-- `ActionController::Head`: Support for returning a response with no content, only headers
+- `ActionController::Head`: Support for returning a response with no content, only headers.
 
 Other plugins may add additional modules. You can get a list of all modules
 included into `ActionController::API` in the rails console:
 
-```bash
-$ rails c
->> ActionController::API.ancestors - ActionController::Metal.ancestors
+```irb
+irb> ActionController::API.ancestors - ActionController::Metal.ancestors
 => [ActionController::API,
     ActiveRecord::Railties::ControllerRuntime,
     ActionDispatch::Routing::RouteSet::MountedHelpers,
@@ -413,21 +441,22 @@ Some common modules you might want to add:
 - `AbstractController::Translation`: Support for the `l` and `t` localization
   and translation methods.
 - Support for basic, digest, or token HTTP authentication:
-  * `ActionController::HttpAuthentication::Basic::ControllerMethods`,
-  * `ActionController::HttpAuthentication::Digest::ControllerMethods`,
+  * `ActionController::HttpAuthentication::Basic::ControllerMethods`
+  * `ActionController::HttpAuthentication::Digest::ControllerMethods`
   * `ActionController::HttpAuthentication::Token::ControllerMethods`
 - `ActionView::Layouts`: Support for layouts when rendering.
 - `ActionController::MimeResponds`: Support for `respond_to`.
 - `ActionController::Cookies`: Support for `cookies`, which includes
   support for signed and encrypted cookies. This requires the cookies middleware.
-- `ActionController::Caching`: Support view caching for the API controller. Please notice that
-  you will need to manually specify cache store inside the controller like:
-  ```ruby
-  class ApplicationController < ActionController::API
-    include ::ActionController::Caching
-    self.cache_store = :mem_cache_store
-  end
-  ```
+- `ActionController::Caching`: Support view caching for the API controller. Please note
+  that you will need to manually specify the cache store inside the controller like this:
+
+    ```ruby
+    class ApplicationController < ActionController::API
+      include ::ActionController::Caching
+      self.cache_store = :mem_cache_store
+    end
+    ```
   Rails does *not* pass this configuration automatically.
 
 The best place to add a module is in your `ApplicationController`, but you can

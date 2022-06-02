@@ -4,23 +4,6 @@ module Arel # :nodoc: all
   ###
   # FIXME hopefully we can remove this
   module Crud
-    def compile_update(values, pk)
-      um = UpdateManager.new
-
-      if Nodes::SqlLiteral === values
-        relation = @ctx.from
-      else
-        relation = values.first.first.relation
-      end
-      um.key = pk
-      um.table relation
-      um.set values
-      um.take @ast.limit.expr if @ast.limit
-      um.order(*@ast.orders)
-      um.wheres = @ctx.wheres
-      um
-    end
-
     def compile_insert(values)
       im = create_insert
       im.insert values
@@ -31,11 +14,34 @@ module Arel # :nodoc: all
       InsertManager.new
     end
 
-    def compile_delete
-      dm = DeleteManager.new
-      dm.take @ast.limit.expr if @ast.limit
-      dm.wheres = @ctx.wheres
-      dm.from @ctx.froms
+    def compile_update(
+      values,
+      key = nil,
+      having_clause = nil,
+      group_values_columns = []
+    )
+      um = UpdateManager.new(source)
+      um.set(values)
+      um.take(limit)
+      um.offset(offset)
+      um.order(*orders)
+      um.wheres = constraints
+      um.key = key
+
+      um.group(group_values_columns) unless group_values_columns.empty?
+      um.having(having_clause) unless having_clause.nil?
+      um
+    end
+
+    def compile_delete(key = nil, having_clause = nil, group_values_columns = [])
+      dm = DeleteManager.new(source)
+      dm.take(limit)
+      dm.offset(offset)
+      dm.order(*orders)
+      dm.wheres = constraints
+      dm.key = key
+      dm.group(group_values_columns) unless group_values_columns.empty?
+      dm.having(having_clause) unless having_clause.nil?
       dm
     end
   end

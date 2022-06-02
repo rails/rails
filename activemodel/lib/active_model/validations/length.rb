@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
+require "active_model/validations/resolve_value"
+
 module ActiveModel
   module Validations
     class LengthValidator < EachValidator # :nodoc:
+      include ResolveValue
+
       MESSAGES  = { is: :wrong_length, minimum: :too_short, maximum: :too_long }.freeze
       CHECKS    = { is: :==, minimum: :>=, maximum: :<= }.freeze
 
@@ -11,7 +15,8 @@ module ActiveModel
       def initialize(options)
         if range = (options.delete(:in) || options.delete(:within))
           raise ArgumentError, ":in and :within must be a Range" unless range.is_a?(Range)
-          options[:minimum], options[:maximum] = range.min, range.max
+          options[:minimum] = range.min if range.begin
+          options[:maximum] = (range.exclude_end? ? range.end - 1 : range.end) if range.end
         end
 
         if options[:allow_blank] == false && options[:minimum].nil? && options[:is].nil?
@@ -31,7 +36,9 @@ module ActiveModel
         keys.each do |key|
           value = options[key]
 
-          unless (value.is_a?(Integer) && value >= 0) || value == Float::INFINITY || value.is_a?(Symbol) || value.is_a?(Proc)
+          unless (value.is_a?(Integer) && value >= 0) ||
+                  value == Float::INFINITY || value == -Float::INFINITY ||
+                  value.is_a?(Symbol) || value.is_a?(Proc)
             raise ArgumentError, ":#{key} must be a non-negative Integer, Infinity, Symbol, or Proc"
           end
         end
@@ -45,13 +52,8 @@ module ActiveModel
           next unless check_value = options[key]
 
           if !value.nil? || skip_nil_check?(key)
-            case check_value
-            when Proc
-              check_value = check_value.call(record)
-            when Symbol
-              check_value = record.send(check_value)
-            end
-            next if value_length.send(validity_check, check_value)
+            check_value = resolve_value(record, check_value)
+            next if value_length.public_send(validity_check, check_value)
           end
 
           errors_options[:count] = check_value
@@ -117,8 +119,8 @@ module ActiveModel
       #   <tt>too_long</tt>/<tt>too_short</tt>/<tt>wrong_length</tt> message.
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+ and +:strict+.
-      # See <tt>ActiveModel::Validations#validates</tt> for more information
+      # +:if+, +:unless+, +:on+, and +:strict+.
+      # See ActiveModel::Validations::ClassMethods#validates for more information.
       def validates_length_of(*attr_names)
         validates_with LengthValidator, _merge_attributes(attr_names)
       end

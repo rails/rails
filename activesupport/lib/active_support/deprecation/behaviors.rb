@@ -3,7 +3,7 @@
 require "active_support/notifications"
 
 module ActiveSupport
-  # Raised when <tt>ActiveSupport::Deprecation::Behavior#behavior</tt> is set with <tt>:raise</tt>.
+  # Raised when ActiveSupport::Deprecation::Behavior#behavior is set with <tt>:raise</tt>.
   # You would set <tt>:raise</tt>, as a behavior to raise errors and proactively report exceptions from deprecations.
   class DeprecationException < StandardError
   end
@@ -51,10 +51,10 @@ module ActiveSupport
     # constant. Available behaviors are:
     #
     # [+raise+]   Raise <tt>ActiveSupport::DeprecationException</tt>.
-    # [+stderr+]  Log all deprecation warnings to +$stderr+.
+    # [+stderr+]  Log all deprecation warnings to <tt>$stderr</tt>.
     # [+log+]     Log all deprecation warnings to +Rails.logger+.
     # [+notify+]  Use +ActiveSupport::Notifications+ to notify +deprecation.rails+.
-    # [+silence+] Do nothing.
+    # [+silence+] Do nothing. On Rails, set <tt>config.active_support.report_deprecations = false</tt> to disable all behaviors.
     #
     # Setting behaviors only affects deprecations that happen after boot time.
     # For more information you can read the documentation of the +behavior=+ method.
@@ -67,13 +67,18 @@ module ActiveSupport
         @behavior ||= [DEFAULT_BEHAVIORS[:stderr]]
       end
 
+      # Returns the current behavior for disallowed deprecations or if one isn't set, defaults to +:raise+.
+      def disallowed_behavior
+        @disallowed_behavior ||= [DEFAULT_BEHAVIORS[:raise]]
+      end
+
       # Sets the behavior to the specified value. Can be a single value, array,
       # or an object that responds to +call+.
       #
       # Available behaviors:
       #
       # [+raise+]   Raise <tt>ActiveSupport::DeprecationException</tt>.
-      # [+stderr+]  Log all deprecation warnings to +$stderr+.
+      # [+stderr+]  Log all deprecation warnings to <tt>$stderr</tt>.
       # [+log+]     Log all deprecation warnings to +Rails.logger+.
       # [+notify+]  Use +ActiveSupport::Notifications+ to notify +deprecation.rails+.
       # [+silence+] Do nothing.
@@ -88,8 +93,19 @@ module ActiveSupport
       #   ActiveSupport::Deprecation.behavior = ->(message, callstack, deprecation_horizon, gem_name) {
       #     # custom stuff
       #   }
+      #
+      # If you are using Rails, you can set <tt>config.active_support.report_deprecations = false</tt> to disable
+      # all deprecation behaviors. This is similar to the +silence+ option but more performant.
       def behavior=(behavior)
         @behavior = Array(behavior).map { |b| DEFAULT_BEHAVIORS[b] || arity_coerce(b) }
+      end
+
+      # Sets the behavior for disallowed deprecations (those configured by
+      # ActiveSupport::Deprecation.disallowed_warnings=) to the specified
+      # value. As with +behavior=+, this can be a single value, array, or an
+      # object that responds to +call+.
+      def disallowed_behavior=(behavior)
+        @disallowed_behavior = Array(behavior).map { |b| DEFAULT_BEHAVIORS[b] || arity_coerce(b) }
       end
 
       private

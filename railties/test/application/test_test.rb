@@ -21,7 +21,7 @@ module ApplicationTests
 
     test "simple successful test" do
       app_file "test/unit/foo_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class FooTest < ActiveSupport::TestCase
           def test_truth
@@ -35,7 +35,7 @@ module ApplicationTests
 
     test "after_run" do
       app_file "test/unit/foo_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         Minitest.after_run { puts "WORLD" }
         Minitest.after_run { puts "HELLO" }
@@ -53,7 +53,7 @@ module ApplicationTests
 
     test "simple failed test" do
       app_file "test/unit/foo_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class FooTest < ActiveSupport::TestCase
           def test_truth
@@ -76,7 +76,7 @@ module ApplicationTests
       HTML
 
       app_file "test/integration/posts_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class PostsTest < ActionDispatch::IntegrationTest
           def test_index
@@ -92,7 +92,7 @@ module ApplicationTests
 
     test "enable full backtraces on test failures" do
       app_file "test/unit/failing_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class FailingTest < ActiveSupport::TestCase
           def test_failure
@@ -101,7 +101,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = run_test_file("unit/failing_test.rb", env: { "BACKTRACE" => "1" })
+      output = run_test_file("unit/failing_test.rb")
       assert_match %r{test/unit/failing_test\.rb}, output
       assert_match %r{test/unit/failing_test\.rb:4}, output
     end
@@ -111,7 +111,7 @@ module ApplicationTests
       version = output.match(/(\d+)_create_users\.rb/)[1]
 
       app_file "test/models/user_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class UserTest < ActiveSupport::TestCase
           test "user" do
@@ -148,7 +148,7 @@ module ApplicationTests
       version = output.match(/(\d+)_create_users\.rb/)[1]
 
       app_file "test/models/user_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class UserTest < ActiveSupport::TestCase
           test "user" do
@@ -187,7 +187,7 @@ module ApplicationTests
       version_1 = output_1.match(/(\d+)_create_users\.rb/)[1]
 
       app_file "test/models/user_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
         class UserTest < ActiveSupport::TestCase
           test "user" do
             User.create! name: "Jon"
@@ -212,7 +212,7 @@ module ApplicationTests
       version_2 = output_2.match(/(\d+)_add_email_to_users\.rb/)[1]
 
       app_file "test/models/user_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class UserTest < ActiveSupport::TestCase
           test "user" do
@@ -237,7 +237,7 @@ module ApplicationTests
       version = output.match(/(\d+)_create_users\.rb/)[1]
 
       app_file "test/models/user_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class UserTest < ActiveSupport::TestCase
           test "user" do
@@ -291,7 +291,7 @@ Expected: ["id", "name"]
         end
       RUBY
       app_file "test/models/user_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
         class UserTest < ActiveSupport::TestCase
           test "user" do
             User.create! name: "Jon"
@@ -331,7 +331,7 @@ Expected: ["id", "name"]
         result
       end
 
-      def run_test_file(name, options = {})
+      def run_test_file(name)
         rails "test", "#{app_path}/test/#{name}", allow_failure: true
       end
   end

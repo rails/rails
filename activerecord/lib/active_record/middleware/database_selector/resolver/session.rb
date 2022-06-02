@@ -38,6 +38,9 @@ module ActiveRecord
           def update_last_write_timestamp
             session[:last_write] = self.class.convert_time_to_timestamp(Time.now)
           end
+
+          def save(response)
+          end
         end
       end
     end

@@ -53,7 +53,7 @@ class File
   end
 
   # Private utility method.
-  def self.probe_stat_in(dir) #:nodoc:
+  def self.probe_stat_in(dir) # :nodoc:
     basename = [
       ".permissions_check",
       Thread.current.object_id,
@@ -64,6 +64,8 @@ class File
     file_name = join(dir, basename)
     FileUtils.touch(file_name)
     stat(file_name)
+  rescue Errno::ENOENT
+    file_name = nil
   ensure
     FileUtils.rm_f(file_name) if file_name
   end

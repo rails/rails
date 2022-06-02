@@ -2,7 +2,7 @@
 
 require "abstract_controller/collector"
 
-module ActionController #:nodoc:
+module ActionController # :nodoc:
   module MimeResponds
     # Without web-service support, an action which collects the data for displaying a list of people
     # might look something like this:
@@ -103,7 +103,7 @@ module ActionController #:nodoc:
     # If you need to use a MIME type which isn't supported by default, you can register your own handlers in
     # +config/initializers/mime_types.rb+ as follows.
     #
-    #   Mime::Type.register "image/jpg", :jpg
+    #   Mime::Type.register "image/jpeg", :jpg
     #
     # +respond_to+ also allows you to specify a common block for different formats by using +any+:
     #
@@ -289,7 +289,7 @@ module ActionController #:nodoc:
         @format = request.negotiate_mime(@responses.keys)
       end
 
-      class VariantCollector #:nodoc:
+      class VariantCollector # :nodoc:
         def initialize(variant = nil)
           @variant = variant
           @variants = {}

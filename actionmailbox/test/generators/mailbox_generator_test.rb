@@ -49,7 +49,7 @@ class MailboxGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_check_class_collision
-    Object.send :const_set, :InboxMailbox, Class.new
+    Object.const_set :InboxMailbox, Class.new
     content = capture(:stderr) { run_generator }
     assert_match(/The name 'InboxMailbox' is either already used in your application or reserved/, content)
   ensure

@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Inbound email handling framework."
   s.description = "Receive and process incoming emails in Rails applications."
 
-  s.required_ruby_version = ">= 2.5.0"
+  s.required_ruby_version = ">= 2.7.0"
 
   s.license  = "MIT"
 
@@ -24,8 +24,9 @@ Gem::Specification.new do |s|
     "bug_tracker_uri"   => "https://github.com/rails/rails/issues",
     "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/actionmailbox/CHANGELOG.md",
     "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
-    "mailing_list_uri"  => "https://groups.google.com/forum/#!forum/rubyonrails-talk",
+    "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
     "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/actionmailbox",
+    "rubygems_mfa_required" => "true",
   }
 
   # NOTE: Please read our dependency guidelines before updating versions:
@@ -38,4 +39,7 @@ Gem::Specification.new do |s|
   s.add_dependency "actionpack",    version
 
   s.add_dependency "mail", ">= 2.7.1"
+  s.add_dependency "net-imap"
+  s.add_dependency "net-pop"
+  s.add_dependency "net-smtp"
 end

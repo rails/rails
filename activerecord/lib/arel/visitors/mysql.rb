@@ -58,11 +58,17 @@ module Arel # :nodoc: all
           infix_value o, collector, " NOT REGEXP "
         end
 
+        # no-op
+        def visit_Arel_Nodes_NullsFirst(o, collector)
+          visit o.expr, collector
+        end
+
         # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
         # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
         # these, we must use a subquery.
         def prepare_update_statement(o)
-          if o.offset || has_join_sources?(o) && has_limit_or_offset_or_orders?(o)
+          if o.offset || has_group_by_and_having?(o) ||
+            has_join_sources?(o) && has_limit_or_offset_or_orders?(o)
             super
           else
             o
@@ -70,7 +76,7 @@ module Arel # :nodoc: all
         end
         alias :prepare_delete_statement :prepare_update_statement
 
-        # MySQL is too stupid to create a temporary table for use subquery, so we have
+        # MySQL doesn't automatically create a temporary table for use subquery, so we have
         # to give it some prompting in the form of a subsubquery.
         def build_subselect(key, o)
           subselect = super

@@ -16,11 +16,11 @@ module ActiveRecord
       @abort, Thread.abort_on_exception = Thread.abort_on_exception, false
       Thread.report_on_exception, @original_report_on_exception = false, Thread.report_on_exception
 
-      @connection = ActiveRecord::Base.connection
+      connection = ActiveRecord::Base.connection
 
-      @connection.transaction do
-        @connection.drop_table "samples", if_exists: true
-        @connection.create_table("samples") do |t|
+      connection.transaction do
+        connection.drop_table "samples", if_exists: true
+        connection.create_table("samples") do |t|
           t.integer "value"
         end
       end
@@ -29,7 +29,7 @@ module ActiveRecord
     end
 
     teardown do
-      @connection.drop_table "samples", if_exists: true
+      ActiveRecord::Base.connection.drop_table "samples", if_exists: true
 
       Thread.abort_on_exception = @abort
       Thread.report_on_exception = @original_report_on_exception
@@ -66,6 +66,7 @@ module ActiveRecord
 
     test "raises Deadlocked when a deadlock is encountered" do
       with_warning_suppression do
+        connections = Concurrent::Set.new
         assert_raises(ActiveRecord::Deadlocked) do
           barrier = Concurrent::CyclicBarrier.new(2)
 
@@ -73,6 +74,7 @@ module ActiveRecord
           s2 = Sample.create value: 2
 
           thread = Thread.new do
+            connections.add Sample.connection
             Sample.transaction do
               s1.lock!
               barrier.wait
@@ -81,6 +83,7 @@ module ActiveRecord
           end
 
           begin
+            connections.add Sample.connection
             Sample.transaction do
               s2.lock!
               barrier.wait
@@ -90,6 +93,7 @@ module ActiveRecord
             thread.join
           end
         end
+        assert connections.all?(&:active?)
       end
     end
 
@@ -176,12 +180,32 @@ module ActiveRecord
       end
     end
 
+    test "raises Interrupt when canceling statement via interrupt" do
+      start_time = Time.now
+      thread = Thread.new do
+        Sample.transaction do
+          Sample.connection.execute("SELECT pg_sleep(10)")
+        end
+      rescue Exception => e
+        e
+      end
+
+      sleep(0.5)
+      thread.raise Interrupt
+      thread.join
+      duration = Time.now - start_time
+
+      assert_instance_of Interrupt, thread.value
+      assert_operator duration, :<, 5
+    end
+
     private
       def with_warning_suppression
         log_level = ActiveRecord::Base.connection.client_min_messages
         ActiveRecord::Base.connection.client_min_messages = "error"
         yield
       ensure
+        ActiveRecord::Base.clear_active_connections!
         ActiveRecord::Base.connection.client_min_messages = log_level
       end
   end

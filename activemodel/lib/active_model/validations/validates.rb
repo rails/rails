@@ -12,6 +12,7 @@ module ActiveModel
       #
       # Examples of using the default rails validators:
       #
+      #   validates :username, absence: true
       #   validates :terms, acceptance: true
       #   validates :password, confirmation: true
       #   validates :username, exclusion: { in: %w(admin superuser) }
@@ -63,7 +64,7 @@ module ActiveModel
       # and strings in shortcut form.
       #
       #   validates :email, format: /@/
-      #   validates :role, inclusion: %(admin contributor)
+      #   validates :role, inclusion: %w(admin contributor)
       #   validates :password, length: 6..20
       #
       # When using shortcut form, ranges and arrays are passed to your
@@ -77,14 +78,14 @@ module ActiveModel
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
-      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
+      # * <tt>:if</tt> - Specifies a method, proc, or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
-      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine
+      # * <tt>:unless</tt> - Specifies a method, proc, or string to call to determine
       #   if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
-      #   method, proc or string should return or evaluate to a +true+ or
+      #   method, proc, or string should return or evaluate to a +true+ or
       #   +false+ value.
       # * <tt>:allow_nil</tt> - Skip validation if the attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if the attribute is blank.

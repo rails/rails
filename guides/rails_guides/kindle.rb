@@ -17,7 +17,7 @@ module Kindle
       puts "=> Arranging html pages in document order"
       toc = File.read("toc.ncx")
       doc = Nokogiri::XML(toc).xpath("//ncx:content", "ncx" => "http://www.daisy.org/z3986/2005/ncx/")
-      html_pages = doc.select { |c| c[:src] }.map { |c| c[:src] }.uniq
+      html_pages = doc.filter_map { |c| c[:src] }.uniq
 
       generate_front_matter(html_pages)
 

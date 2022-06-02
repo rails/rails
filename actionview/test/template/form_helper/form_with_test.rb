@@ -39,11 +39,11 @@ class FormWithActsLikeFormTagTest < FormWithTest
 
     (+"").tap do |txt|
       unless skip_enforcing_utf8
-        txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
+        txt << %{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off" />}
       end
 
       if method && !%w(get post).include?(method.to_s)
-        txt << %{<input name="_method" type="hidden" value="#{method}" />}
+        txt << %{<input name="_method" type="hidden" value="#{method}" autocomplete="off" />}
       end
     end
   end
@@ -53,7 +53,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
 
     method = method.to_s == "get" ? "get" : "post"
 
-    txt =  +%{<form accept-charset="UTF-8" action="#{action}"}
+    txt =  +%{<form accept-charset="UTF-8"} + (action ? %{ action="#{action}"} : "")
     txt << %{ enctype="multipart/form-data"} if enctype
     txt << %{ data-remote="true"} unless local
     txt << %{ class="#{html_class}"} if html_class
@@ -104,6 +104,22 @@ class FormWithActsLikeFormTagTest < FormWithTest
     actual = form_with(method: :delete)
 
     expected = whole_form("http://www.example.com", method: :delete)
+    assert_dom_equal expected, actual
+  end
+
+  def test_form_with_false_url
+    actual = form_with(url: false)
+
+    expected = whole_form(false)
+
+    assert_dom_equal expected, actual
+  end
+
+  def test_form_with_false_action
+    actual = form_with(html: { action: false })
+
+    expected = whole_form(false)
+
     assert_dom_equal expected, actual
   end
 
@@ -293,6 +309,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     @controller.singleton_class.include Routes.url_helpers
   end
 
+  RecordForm = Struct.new(:to_model, keyword_init: true)
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
     resources :posts do
@@ -354,12 +371,44 @@ class FormWithActsLikeFormForTest < FormWithTest
       "<label for='post_title'>The Title</label>" \
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' />" \
       "<select name='post[category]' id='post_category'><option value='animal'>animal</option>\n<option value='economy'>economy</option>\n<option value='sports'>sports</option></select>" \
       "<input name='commit' data-disable-with='Create post' type='submit' value='Create post' />" \
       "<button name='button' type='submit'>Create post</button>" \
       "<button name='button' type='submit'><span>Create post</span></button>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_with_persisted_to_model
+    post_form = RecordForm.new(to_model: @post)
+
+    form_with(model: post_form) { }
+
+    expected = whole_form("/posts/123", method: :patch) { "" }
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_with_new_record_to_model
+    post_form = RecordForm.new(to_model: Post.new)
+
+    form_with(model: post_form) { }
+
+    expected = whole_form("/posts", method: :post) { "" }
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_button_yields_translation
+    form_with(model: @post) do |f|
+      concat(f.button { |value| concat content_tag(:span, value) })
+    end
+
+    expected = whole_form("/posts/123", method: :patch) do
+      "<button name='button' type='submit'><span>Update Post</span></button>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -382,7 +431,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       "<label>The Title</label>" \
       "<input name='post[title]' type='text' value='Hello World' />" \
       "<textarea name='post[body]'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' value='1' />" \
       "<select name='post[category]'><option value='animal'>animal</option>\n<option value='economy'>economy</option>\n<option value='sports'>sports</option></select>" \
       "<input name='commit' data-disable-with='Create post' type='submit' value='Create post' />"
@@ -433,6 +482,22 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_with_false_url
+    form_with(url: false)
+
+    expected = whole_form(false)
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_model_and_false_url
+    form_with(model: Post.new, url: false)
+
+    expected = whole_form(false)
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_with_attribute_not_on_model
     form_with(model: @post) do |f|
       concat f.text_field :this_dont_exist_on_post
@@ -459,8 +524,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     end.new
 
     form_with(model: obj, scope: "other_name", url: "/", id: "edit-other-name") do |f|
-      assert_dom_equal '<input type="hidden" name="other_name[private_property]" id="other_name_private_property">', f.hidden_field(:private_property)
-      assert_dom_equal '<input type="hidden" name="other_name[protected_property]"  id="other_name_protected_property">', f.hidden_field(:protected_property)
+      assert_dom_equal '<input type="hidden" name="other_name[private_property]" id="other_name_private_property" autocomplete="off">', f.hidden_field(:private_property)
+      assert_dom_equal '<input type="hidden" name="other_name[protected_property]"  id="other_name_protected_property" autocomplete="off">', f.hidden_field(:protected_property)
     end
   end
 
@@ -489,7 +554,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     expected = whole_form("/posts") do
-      "<input type='hidden' name='post[active]' value='' />" \
+      "<input type='hidden' name='post[active]' value='' autocomplete='off' />" \
       "<input name='post[active]' type='radio' value='true' id='post_active_true' />" \
       "<label for='post_active_true'>true</label>" \
       "<input checked='checked' name='post[active]' type='radio' value='false' id='post_active_false' />" \
@@ -511,7 +576,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     expected = whole_form("/posts") do
-      "<input type='hidden' name='post[active]' value='' />" \
+      "<input type='hidden' name='post[active]' value='' autocomplete='off' />" \
       "<label for='post_active_true'>" \
       "<input name='post[active]' type='radio' value='true' id='post_active_true' />" \
       "true</label>" \
@@ -537,14 +602,14 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     expected = whole_form("/posts") do
-      "<input type='hidden' name='post[active]' value='' />" \
+      "<input type='hidden' name='post[active]' value='' autocomplete='off' />" \
       "<label for='post_active_true'>" \
       "<input name='post[active]' type='radio' value='true' id='post_active_true' />" \
       "true</label>" \
       "<label for='post_active_false'>" \
       "<input checked='checked' name='post[active]' type='radio' value='false' id='post_active_false' />" \
       "false</label>" \
-      "<input name='post[id]' type='hidden' value='1' id='post_id' />"
+      "<input name='post[id]' type='hidden' value='1' id='post_id' autocomplete='off' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -559,7 +624,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     expected = whole_form("/posts") do
-      "<input type='hidden' name='post[1][active]' value='' />" \
+      "<input type='hidden' name='post[1][active]' value='' autocomplete='off' />" \
       "<input name='post[1][active]' type='radio' value='true' id='post_1_active_true' />" \
       "<label for='post_1_active_true'>true</label>" \
       "<input checked='checked' name='post[1][active]' type='radio' value='false' id='post_1_active_false' />" \
@@ -578,7 +643,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     expected = whole_form("/posts") do
-      "<input name='post[tag_ids][]' type='hidden' value='' />" \
+      "<input name='post[tag_ids][]' type='hidden' value='' autocomplete='off' />" \
       "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='1' id='post_tag_ids_1' />" \
       "<label for='post_tag_ids_1'>Tag 1</label>" \
       "<input name='post[tag_ids][]' type='checkbox' value='2' id='post_tag_ids_2' />" \
@@ -602,7 +667,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     expected = whole_form("/posts") do
-      "<input name='post[tag_ids][]' type='hidden' value='' />" \
+      "<input name='post[tag_ids][]' type='hidden' value='' autocomplete='off' />" \
       "<label for='post_tag_ids_1'>" \
       "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='1' id='post_tag_ids_1' />" \
       "Tag 1</label>" \
@@ -632,7 +697,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     expected = whole_form("/posts") do
-      "<input name='post[tag_ids][]' type='hidden' value='' />" \
+      "<input name='post[tag_ids][]' type='hidden' value='' autocomplete='off' />" \
       "<label for='post_tag_ids_1'>" \
       "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='1' id='post_tag_ids_1' />" \
       "Tag 1</label>" \
@@ -642,7 +707,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       "<label for='post_tag_ids_3'>" \
       "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='3' id='post_tag_ids_3' />" \
       "Tag 3</label>" \
-      "<input name='post[id]' type='hidden' value='1' id='post_id' />"
+      "<input name='post[id]' type='hidden' value='1' id='post_id' autocomplete='off' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -658,7 +723,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     expected = whole_form("/posts") do
-      "<input name='post[1][tag_ids][]' type='hidden' value='' />" \
+      "<input name='post[1][tag_ids][]' type='hidden' value='' autocomplete='off' />" \
       "<input checked='checked' name='post[1][tag_ids][]' type='checkbox' value='1' id='post_1_tag_ids_1' />" \
       "<label for='post_1_tag_ids_1'>Tag 1</label>"
     end
@@ -745,7 +810,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       "<label for='other_name_title' class='post_title'>Title</label>" \
       "<input name='other_name[title]' value='Hello World' type='text' id='other_name_title' />" \
       "<textarea name='other_name[body]' id='other_name_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='other_name[secret]' value='0' type='hidden' />" \
+      "<input name='other_name[secret]' value='0' type='hidden' autocomplete='off' />" \
       "<input name='other_name[secret]' checked='checked' value='1' type='checkbox' id='other_name_secret' />" \
       "<input name='commit' value='Create post' data-disable-with='Create post' type='submit' />"
     end
@@ -763,7 +828,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/", "create-post", method: "delete") do
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret'/>"
     end
 
@@ -780,7 +845,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/", "create-post", method: "delete") do
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body' >\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' />"
     end
 
@@ -811,7 +876,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/", "create-post", method: "patch") do
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body' >\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' />"
     end
 
@@ -831,7 +896,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/", "create-post", method: "patch", local: true) do
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' />"
     end
 
@@ -902,7 +967,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/", "create-post") do
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body' >\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' />"
     end
 
@@ -921,7 +986,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       "<label for='post_123_title'>Title</label>" \
       "<input name='post[123][title]' type='text' value='Hello World' id='post_123_title' />" \
       "<textarea name='post[123][body]' id='post_123_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[123][secret]' type='hidden' value='0' />" \
+      "<input name='post[123][secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[123][secret]' checked='checked' type='checkbox' value='1' id='post_123_secret' />"
     end
 
@@ -938,8 +1003,56 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123", method: "patch") do
       "<input name='post[][title]' type='text' value='Hello World' id='post__title' />" \
       "<textarea name='post[][body]' id='post__body' >\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[][secret]' type='hidden' value='0' />" \
+      "<input name='post[][secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[][secret]' checked='checked' type='checkbox' value='1' id='post__secret' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_label_passes_translation_to_block_version
+    form_with(model: Post.new) do |f|
+      concat(
+        f.label(:title) do |label|
+          concat content_tag(:span, label)
+        end
+      )
+    end
+
+    expected = whole_form("/posts") do
+      %(<label for="post_title"><span>Title</span></label>)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_label_passes_label_tag_builder_to_block_version
+    form_with(model: Post.new) do |f|
+      concat(
+        f.label(:title) do |builder|
+          concat content_tag(:span, builder.translation)
+        end
+      )
+    end
+
+    expected = whole_form("/posts") do
+      %(<label for="post_title"><span>Title</span></label>)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_label_accesses_object_through_label_tag_builder
+    form_with(model: Post.new) do |f|
+      concat(
+        f.label(:title) do |builder|
+          concat tag.span(builder, class: ("new_record" unless builder.object.persisted?))
+        end
+      )
+    end
+
+    expected = whole_form("/posts") do
+      %(<label for="post_title"><span class="new_record">Title</span></label>)
     end
 
     assert_dom_equal expected, output_buffer
@@ -1300,7 +1413,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[author_attributes][name]" type="text" value="author #321" id="post_author_attributes_name" />' \
-      '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" />'
+      '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -1319,7 +1432,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[author_attributes][name]" type="text" value="author #321" id="post_author_attributes_name" />' \
-      '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" />'
+      '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -1374,7 +1487,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[author_attributes][name]" type="text" value="author #321" id="post_author_attributes_name" />' \
-      '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" />'
+      '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -1393,7 +1506,7 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
-      '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" />' \
+      '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" autocomplete="off" />' \
       '<input name="post[author_attributes][name]" type="text" value="author #321" id="post_author_attributes_name" />'
     end
 
@@ -1415,9 +1528,9 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #1" id="post_comments_attributes_0_name" />' \
-      '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" />' \
+      '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" autocomplete="off" />' \
       '<input name="post[comments_attributes][1][name]" type="text" value="comment #2" id="post_comments_attributes_1_name" />' \
-      '<input name="post[comments_attributes][1][id]" type="hidden" value="2" id="post_comments_attributes_1_id" />'
+      '<input name="post[comments_attributes][1][id]" type="hidden" value="2" id="post_comments_attributes_1_id" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -1442,7 +1555,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[author_attributes][name]" type="text" value="author #321" id="post_author_attributes_name" />' \
-      '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" />' \
+      '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" autocomplete="off" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #1" id="post_comments_attributes_0_name" />' \
       '<input name="post[comments_attributes][1][name]" type="text" value="comment #2" id="post_comments_attributes_1_name" />'
     end
@@ -1495,7 +1608,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[author_attributes][name]" type="text" value="author #321" id="post_author_attributes_name" />' \
-      '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" />' \
+      '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" autocomplete="off" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #1" id="post_comments_attributes_0_name" />' \
       '<input name="post[comments_attributes][1][name]" type="text" value="comment #2" id="post_comments_attributes_1_name" />'
     end
@@ -1518,9 +1631,9 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #1" id="post_comments_attributes_0_name" />' \
-      '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" />' \
+      '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" autocomplete="off" />' \
       '<input name="post[comments_attributes][1][name]" type="text" value="comment #2" id="post_comments_attributes_1_name" />' \
-      '<input name="post[comments_attributes][1][id]" type="hidden" value="2" id="post_comments_attributes_1_id" />'
+      '<input name="post[comments_attributes][1][id]" type="hidden" value="2" id="post_comments_attributes_1_id" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -1541,9 +1654,9 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
-      '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" />' \
+      '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" autocomplete="off" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #1" id="post_comments_attributes_0_name" />' \
-      '<input name="post[comments_attributes][1][id]" type="hidden" value="2" id="post_comments_attributes_1_id" />' \
+      '<input name="post[comments_attributes][1][id]" type="hidden" value="2" id="post_comments_attributes_1_id" autocomplete="off" />' \
       '<input name="post[comments_attributes][1][name]" type="text" value="comment #2" id="post_comments_attributes_1_name" />'
     end
 
@@ -1586,7 +1699,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #321" id="post_comments_attributes_0_name" />' \
-      '<input name="post[comments_attributes][0][id]" type="hidden" value="321" id="post_comments_attributes_0_id"/>' \
+      '<input name="post[comments_attributes][0][id]" type="hidden" value="321" id="post_comments_attributes_0_id" autocomplete="off"/>' \
       '<input name="post[comments_attributes][1][name]" type="text" value="new comment" id="post_comments_attributes_1_name" />'
     end
 
@@ -1621,9 +1734,9 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #1" id="post_comments_attributes_0_name" />' \
-      '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" />' \
+      '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" autocomplete="off" />' \
       '<input name="post[comments_attributes][1][name]" type="text" value="comment #2" id="post_comments_attributes_1_name" />' \
-      '<input name="post[comments_attributes][1][id]" type="hidden" value="2" id="post_comments_attributes_1_id" />'
+      '<input name="post[comments_attributes][1][id]" type="hidden" value="2" id="post_comments_attributes_1_id" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -1642,9 +1755,9 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #1" id="post_comments_attributes_0_name" />' \
-      '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" />' \
+      '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" autocomplete="off" />' \
       '<input name="post[comments_attributes][1][name]" type="text" value="comment #2" id="post_comments_attributes_1_name" />' \
-      '<input name="post[comments_attributes][1][id]" type="hidden" value="2" id="post_comments_attributes_1_id" />'
+      '<input name="post[comments_attributes][1][id]" type="hidden" value="2" id="post_comments_attributes_1_id" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -1677,9 +1790,9 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #1" id="post_comments_attributes_0_name" />' \
-      '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" />' \
+      '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" autocomplete="off" />' \
       '<input name="post[comments_attributes][1][name]" type="text" value="comment #2" id="post_comments_attributes_1_name" />' \
-      '<input name="post[comments_attributes][1][id]" type="hidden" value="2" id="post_comments_attributes_1_id" />'
+      '<input name="post[comments_attributes][1][id]" type="hidden" value="2" id="post_comments_attributes_1_id" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -1700,7 +1813,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #321" id="post_comments_attributes_0_name" />' \
-      '<input name="post[comments_attributes][0][id]" type="hidden" value="321" id="post_comments_attributes_0_id" />' \
+      '<input name="post[comments_attributes][0][id]" type="hidden" value="321" id="post_comments_attributes_0_id" autocomplete="off" />' \
       '<input name="post[comments_attributes][1][name]" type="text" value="new comment" id="post_comments_attributes_1_name" />'
     end
 
@@ -1719,7 +1832,7 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[comments_attributes][abc][name]" type="text" value="comment #321" id="post_comments_attributes_abc_name" />' \
-      '<input name="post[comments_attributes][abc][id]" type="hidden" value="321" id="post_comments_attributes_abc_id" />'
+      '<input name="post[comments_attributes][abc][id]" type="hidden" value="321" id="post_comments_attributes_abc_id" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -1736,7 +1849,7 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[comments_attributes][abc][name]" type="text" value="comment #321" id="post_comments_attributes_abc_name" />' \
-      '<input name="post[comments_attributes][abc][id]" type="hidden" value="321" id="post_comments_attributes_abc_id" />'
+      '<input name="post[comments_attributes][abc][id]" type="hidden" value="321" id="post_comments_attributes_abc_id" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -1759,7 +1872,7 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[comments_attributes][abc][name]" type="text" value="comment #321" id="post_comments_attributes_abc_name" />' \
-      '<input name="post[comments_attributes][abc][id]" type="hidden" value="321" id="post_comments_attributes_abc_id" />'
+      '<input name="post[comments_attributes][abc][id]" type="hidden" value="321" id="post_comments_attributes_abc_id" autocomplete="off" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -1846,16 +1959,16 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123", method: "patch") do
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #321" id="post_comments_attributes_0_name" />' \
       '<input name="post[comments_attributes][0][relevances_attributes][0][value]" type="text" value="commentrelevance #314" id="post_comments_attributes_0_relevances_attributes_0_value" />' \
-      '<input name="post[comments_attributes][0][relevances_attributes][0][id]" type="hidden" value="314" id="post_comments_attributes_0_relevances_attributes_0_id"/>' \
-      '<input name="post[comments_attributes][0][id]" type="hidden" value="321" id="post_comments_attributes_0_id"/>' \
+      '<input name="post[comments_attributes][0][relevances_attributes][0][id]" type="hidden" value="314" id="post_comments_attributes_0_relevances_attributes_0_id" autocomplete="off"/>' \
+      '<input name="post[comments_attributes][0][id]" type="hidden" value="321" id="post_comments_attributes_0_id" autocomplete="off"/>' \
       '<input name="post[tags_attributes][0][value]" type="text" value="tag #123" id="post_tags_attributes_0_value"/>' \
       '<input name="post[tags_attributes][0][relevances_attributes][0][value]" type="text" value="tagrelevance #3141" id="post_tags_attributes_0_relevances_attributes_0_value"/>' \
-      '<input name="post[tags_attributes][0][relevances_attributes][0][id]" type="hidden" value="3141" id="post_tags_attributes_0_relevances_attributes_0_id"/>' \
-      '<input name="post[tags_attributes][0][id]" type="hidden" value="123" id="post_tags_attributes_0_id"/>' \
+      '<input name="post[tags_attributes][0][relevances_attributes][0][id]" type="hidden" value="3141" id="post_tags_attributes_0_relevances_attributes_0_id" autocomplete="off"/>' \
+      '<input name="post[tags_attributes][0][id]" type="hidden" value="123" id="post_tags_attributes_0_id" autocomplete="off"/>' \
       '<input name="post[tags_attributes][1][value]" type="text" value="tag #456" id="post_tags_attributes_1_value"/>' \
       '<input name="post[tags_attributes][1][relevances_attributes][0][value]" type="text" value="tagrelevance #31415" id="post_tags_attributes_1_relevances_attributes_0_value"/>' \
-      '<input name="post[tags_attributes][1][relevances_attributes][0][id]" type="hidden" value="31415" id="post_tags_attributes_1_relevances_attributes_0_id"/>' \
-      '<input name="post[tags_attributes][1][id]" type="hidden" value="456" id="post_tags_attributes_1_id"/>'
+      '<input name="post[tags_attributes][1][relevances_attributes][0][id]" type="hidden" value="31415" id="post_tags_attributes_1_relevances_attributes_0_id" autocomplete="off"/>' \
+      '<input name="post[tags_attributes][1][id]" type="hidden" value="456" id="post_tags_attributes_1_id" autocomplete="off"/>'
     end
 
     assert_dom_equal expected, output_buffer
@@ -1887,7 +2000,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected =
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' />"
 
     assert_dom_equal expected, output_buffer
@@ -1903,7 +2016,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected =
       "<input name='post[123][title]' type='text' value='Hello World' id='post_123_title' />" \
       "<textarea name='post[123][body]' id='post_123_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[123][secret]' type='hidden' value='0' />" \
+      "<input name='post[123][secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[123][secret]' checked='checked' type='checkbox' value='1' id='post_123_secret' />"
 
     assert_dom_equal expected, output_buffer
@@ -1919,7 +2032,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected =
       "<input name='post[][title]' type='text' value='Hello World' id='post__title' />" \
       "<textarea name='post[][body]' id='post__body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[][secret]' type='hidden' value='0' />" \
+      "<input name='post[][secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[][secret]' checked='checked' type='checkbox' value='1' id='post__secret' />"
 
     assert_dom_equal expected, output_buffer
@@ -1935,7 +2048,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected =
       "<input name='post[abc][title]' type='text' value='Hello World' id='post_abc_title' />" \
       "<textarea name='post[abc][body]' id='post_abc_body'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[abc][secret]' type='hidden' value='0' />" \
+      "<input name='post[abc][secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[abc][secret]' checked='checked' type='checkbox' value='1' id='post_abc_secret' />"
 
     assert_dom_equal expected, output_buffer
@@ -1951,7 +2064,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected =
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body' >\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' />"
 
     assert_dom_equal expected, output_buffer
@@ -1967,8 +2080,18 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected =
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body' >\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' />"
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_fields_with_only_object_array
+    output_buffer = fields(model: [@post, @comment]) do |f|
+      concat f.text_field(:name)
+    end
+
+    expected = %(<input type="text" value="new comment" name="comment[name]" id="comment_name" />)
 
     assert_dom_equal expected, output_buffer
   end
@@ -2012,7 +2135,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123", "create-post", method: "patch") do
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body' >\nBack to the hill and over it again!</textarea>" \
-      "<input name='parent_post[secret]' type='hidden' value='0' />" \
+      "<input name='parent_post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='parent_post[secret]' checked='checked' type='checkbox' value='1' id='parent_post_secret' />"
     end
 
@@ -2060,6 +2183,7 @@ class FormWithActsLikeFormForTest < FormWithTest
         end
       RUBY_EVAL
     end
+    ruby2_keywords(:fields)
   end
 
   def test_form_with_with_labelled_builder
@@ -2072,7 +2196,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123", method: "patch") do
       "<label for='title'>Title:</label> <input name='post[title]' type='text' value='Hello World' id='post_title'/><br/>" \
       "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea><br/>" \
-      "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' /><br/>"
+      "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' autocomplete='off' /><input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' /><br/>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -2091,7 +2215,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123", method: "patch") do
       "<label for='title'>Title:</label> <input name='post[title]' type='text' value='Hello World' id='post_title' /><br/>" \
       "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea><br/>" \
-      "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' /><br/>"
+      "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' autocomplete='off' /><input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' /><br/>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -2150,7 +2274,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected =
       "<label for='title'>Title:</label> <input name='post[title]' type='text' value='Hello World' id='post_title'/><br/>" \
       "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea><br/>" \
-      "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' /><br/>"
+      "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' autocomplete='off' /><input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' /><br/>"
 
     assert_dom_equal expected, output_buffer
   end
@@ -2326,18 +2450,18 @@ class FormWithActsLikeFormForTest < FormWithTest
       if options.fetch(:skip_enforcing_utf8, false)
         txt = +""
       else
-        txt = +%{<input name="utf8" type="hidden" value="&#x2713;" />}
+        txt = +%{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off" />}
       end
 
       if method && !%w(get post).include?(method.to_s)
-        txt << %{<input name="_method" type="hidden" value="#{method}" />}
+        txt << %{<input name="_method" type="hidden" value="#{method}" autocomplete="off" />}
       end
 
       txt
     end
 
     def form_text(action = "/", id = nil, html_class = nil, local = nil, multipart = nil, method = nil)
-      txt =  +%{<form accept-charset="UTF-8" action="#{action}"}
+      txt =  +%{<form accept-charset="UTF-8"} + (action ? %{ action="#{action}"} : "")
       txt << %{ enctype="multipart/form-data"} if multipart
       txt << %{ data-remote="true"} unless local
       txt << %{ class="#{html_class}"} if html_class

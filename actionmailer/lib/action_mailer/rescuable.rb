@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module ActionMailer #:nodoc:
+module ActionMailer # :nodoc:
   # Provides +rescue_from+ for mailers. Wraps mailer action processing,
   # mail job processing, and mail delivery.
   module Rescuable
@@ -8,19 +8,19 @@ module ActionMailer #:nodoc:
     include ActiveSupport::Rescuable
 
     class_methods do
-      def handle_exception(exception) #:nodoc:
+      def handle_exception(exception) # :nodoc:
         rescue_with_handler(exception) || raise(exception)
       end
     end
 
-    def handle_exceptions #:nodoc:
+    def handle_exceptions # :nodoc:
       yield
     rescue => exception
       rescue_with_handler(exception) || raise
     end
 
     private
-      def process(*)
+      def process(...)
         handle_exceptions do
           super
         end

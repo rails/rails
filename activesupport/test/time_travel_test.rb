@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/core_ext/date_time"
 require "active_support/core_ext/numeric/time"
-require "time_zone_test_helpers"
+require "active_support/core_ext/string/conversions"
+require_relative "time_zone_test_helpers"
 
 class TimeTravelTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
@@ -17,9 +18,9 @@ class TimeTravelTest < ActiveSupport::TestCase
       expected_time = Time.now + 1.day
       travel 1.day
 
-      assert_equal expected_time.to_s(:db), Time.now.to_s(:db)
+      assert_equal expected_time.to_fs(:db), Time.now.to_fs(:db)
       assert_equal expected_time.to_date, Date.today
-      assert_equal expected_time.to_datetime.to_s(:db), DateTime.now.to_s(:db)
+      assert_equal expected_time.to_datetime.to_fs(:db), DateTime.now.to_fs(:db)
     ensure
       travel_back
     end
@@ -30,20 +31,20 @@ class TimeTravelTest < ActiveSupport::TestCase
       expected_time = Time.now + 1.day
 
       travel 1.day do
-        assert_equal expected_time.to_s(:db), Time.now.to_s(:db)
+        assert_equal expected_time.to_fs(:db), Time.now.to_fs(:db)
         assert_equal expected_time.to_date, Date.today
-        assert_equal expected_time.to_datetime.to_s(:db), DateTime.now.to_s(:db)
+        assert_equal expected_time.to_datetime.to_fs(:db), DateTime.now.to_fs(:db)
       end
 
-      assert_not_equal expected_time.to_s(:db), Time.now.to_s(:db)
+      assert_not_equal expected_time.to_fs(:db), Time.now.to_fs(:db)
       assert_not_equal expected_time.to_date, Date.today
-      assert_not_equal expected_time.to_datetime.to_s(:db), DateTime.now.to_s(:db)
+      assert_not_equal expected_time.to_datetime.to_fs(:db), DateTime.now.to_fs(:db)
     end
   end
 
   def test_time_helper_travel_to
     Time.stub(:now, Time.now) do
-      expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+      expected_time = Time.new(2004, 11, 24, 1, 4, 44)
       travel_to expected_time
 
       assert_equal expected_time, Time.now
@@ -56,7 +57,7 @@ class TimeTravelTest < ActiveSupport::TestCase
 
   def test_time_helper_travel_to_with_block
     Time.stub(:now, Time.now) do
-      expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+      expected_time = Time.new(2004, 11, 24, 1, 4, 44)
 
       travel_to expected_time do
         assert_equal expected_time, Time.now
@@ -77,7 +78,21 @@ class TimeTravelTest < ActiveSupport::TestCase
           expected_time = 5.minutes.ago
 
           travel_to 5.minutes.ago do
-            assert_equal expected_time.to_s(:db), Time.zone.now.to_s(:db)
+            assert_equal expected_time.to_fs(:db), Time.zone.now.to_fs(:db)
+          end
+        end
+      end
+    end
+  end
+
+  def test_time_helper_travel_to_with_string_for_time_zone
+    with_env_tz "US/Eastern" do
+      with_tz_default ActiveSupport::TimeZone["UTC"] do
+        Time.stub(:now, Time.now) do
+          expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+
+          travel_to "2004-11-24 01:04:44" do
+            assert_equal expected_time.to_fs(:db), Time.zone.now.to_fs(:db)
           end
         end
       end
@@ -86,7 +101,7 @@ class TimeTravelTest < ActiveSupport::TestCase
 
   def test_time_helper_travel_back
     Time.stub(:now, Time.now) do
-      expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+      expected_time = Time.new(2004, 11, 24, 1, 4, 44)
 
       travel_to expected_time
       assert_equal expected_time, Time.now
@@ -104,7 +119,7 @@ class TimeTravelTest < ActiveSupport::TestCase
 
   def test_time_helper_travel_back_with_block
     Time.stub(:now, Time.now) do
-      expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+      expected_time = Time.new(2004, 11, 24, 1, 4, 44)
 
       travel_to expected_time
       assert_equal expected_time, Time.now
@@ -127,8 +142,8 @@ class TimeTravelTest < ActiveSupport::TestCase
 
   def test_time_helper_travel_to_with_nested_calls_with_blocks
     Time.stub(:now, Time.now) do
-      outer_expected_time = Time.new(2004, 11, 24, 01, 04, 44)
-      inner_expected_time = Time.new(2004, 10, 24, 01, 04, 44)
+      outer_expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+      inner_expected_time = Time.new(2004, 10, 24, 1, 4, 44)
       travel_to outer_expected_time do
         e = assert_raises(RuntimeError) do
           travel_to(inner_expected_time) do
@@ -142,8 +157,8 @@ class TimeTravelTest < ActiveSupport::TestCase
 
   def test_time_helper_travel_to_with_nested_calls
     Time.stub(:now, Time.now) do
-      outer_expected_time = Time.new(2004, 11, 24, 01, 04, 44)
-      inner_expected_time = Time.new(2004, 10, 24, 01, 04, 44)
+      outer_expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+      inner_expected_time = Time.new(2004, 10, 24, 1, 4, 44)
       travel_to outer_expected_time do
         assert_nothing_raised do
           travel_to(inner_expected_time)
@@ -156,8 +171,8 @@ class TimeTravelTest < ActiveSupport::TestCase
 
   def test_time_helper_travel_to_with_subsequent_calls
     Time.stub(:now, Time.now) do
-      initial_expected_time = Time.new(2004, 11, 24, 01, 04, 44)
-      subsequent_expected_time = Time.new(2004, 10, 24, 01, 04, 44)
+      initial_expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+      subsequent_expected_time = Time.new(2004, 10, 24, 1, 4, 44)
       assert_nothing_raised do
         travel_to initial_expected_time
         travel_to subsequent_expected_time
@@ -166,6 +181,61 @@ class TimeTravelTest < ActiveSupport::TestCase
 
         travel_back
       end
+    ensure
+      travel_back
+    end
+  end
+
+  def test_time_helper_travel_to_with_usec
+    Time.stub(:now, Time.now) do
+      duration_usec = 0.1.seconds
+      traveled_time = Time.new(2004, 11, 24, 1, 4, 44) + duration_usec
+      expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+
+      assert_nothing_raised do
+        travel_to traveled_time
+
+        assert_equal expected_time, Time.now
+
+        travel_back
+      end
+    ensure
+      travel_back
+    end
+  end
+
+  def test_time_helper_travel_to_with_usec_true
+    Time.stub(:now, Time.now) do
+      duration_usec = 0.1.seconds
+      expected_time = Time.new(2004, 11, 24, 1, 4, 44) + duration_usec
+
+      assert_nothing_raised do
+        travel_to expected_time, with_usec: true
+
+        assert_equal expected_time.to_f, Time.now.to_f
+
+        travel_back
+      end
+    ensure
+      travel_back
+    end
+  end
+
+  def test_time_helper_travel_with_subsequent_block
+    Time.stub(:now, Time.now) do
+      outer_expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+      inner_expected_time = Time.new(2004, 10, 24, 1, 4, 44)
+      travel_to outer_expected_time
+
+      assert_equal outer_expected_time, Time.now
+
+      assert_nothing_raised do
+        travel_to(inner_expected_time) do
+          assert_equal inner_expected_time, Time.now
+        end
+      end
+
+      assert_equal outer_expected_time, Time.now
     ensure
       travel_back
     end
@@ -202,7 +272,7 @@ class TimeTravelTest < ActiveSupport::TestCase
     freeze_time
     sleep(1)
 
-    assert_equal expected_time.to_s(:db), Time.now.to_s(:db)
+    assert_equal expected_time.to_fs(:db), Time.now.to_fs(:db)
   ensure
     travel_back
   end
@@ -213,10 +283,10 @@ class TimeTravelTest < ActiveSupport::TestCase
     freeze_time do
       sleep(1)
 
-      assert_equal expected_time.to_s(:db), Time.now.to_s(:db)
+      assert_equal expected_time.to_fs(:db), Time.now.to_fs(:db)
     end
 
-    assert_operator expected_time.to_s(:db), :<, Time.now.to_s(:db)
+    assert_operator expected_time.to_fs(:db), :<, Time.now.to_fs(:db)
   end
 
   def test_time_helper_unfreeze_time

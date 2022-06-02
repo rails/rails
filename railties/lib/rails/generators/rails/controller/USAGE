@@ -1,5 +1,5 @@
 Description:
-    Stubs out a new controller and its views. Pass the controller name, either
+    Generates a new controller and its views. Pass the controller name, either
     CamelCased or under_scored, and a list of views as arguments.
 
     To create a controller within a module, specify the controller name as a
@@ -9,7 +9,7 @@ Description:
     template engine, assets, and test framework generators.
 
 Example:
-    `rails generate controller CreditCards open debit credit close`
+    `bin/rails generate controller CreditCards open debit credit close`
 
     CreditCards controller with URLs like /credit_cards/debit.
         Controller: app/controllers/credit_cards_controller.rb

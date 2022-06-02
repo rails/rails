@@ -144,10 +144,10 @@ module ActiveRecord
           assert_equal "integer", four.sql_type
           assert_equal "bigint", eight.sql_type
         elsif current_adapter?(:Mysql2Adapter)
-          assert_match "int(11)", default.sql_type
-          assert_match "tinyint", one.sql_type
-          assert_match "int", four.sql_type
-          assert_match "bigint", eight.sql_type
+          assert_match %r/\Aint/, default.sql_type
+          assert_match %r/\Atinyint/, one.sql_type
+          assert_match %r/\Aint/, four.sql_type
+          assert_match %r/\Abigint/, eight.sql_type
         elsif current_adapter?(:OracleAdapter)
           assert_equal "NUMBER(38)", default.sql_type
           assert_equal "NUMBER(1)", one.sql_type
@@ -287,6 +287,62 @@ module ActiveRecord
           assert_equal "TIMESTAMP(6)", column.sql_type
         else
           assert_equal connection.type_to_sql("datetime"), column.sql_type
+        end
+      end
+
+      def test_add_column_with_postgresql_datetime_type
+        connection.create_table :testings do |t|
+          t.column :foo, :datetime
+        end
+
+        column = connection.columns(:testings).find { |c| c.name == "foo" }
+
+        assert_equal :datetime, column.type
+
+        if current_adapter?(:PostgreSQLAdapter)
+          assert_equal "timestamp(6) without time zone", column.sql_type
+        elsif current_adapter?(:Mysql2Adapter)
+          sql_type = supports_datetime_with_precision? ? "datetime(6)" : "datetime"
+          assert_equal sql_type, column.sql_type
+        else
+          assert_equal connection.type_to_sql("datetime(6)"), column.sql_type
+        end
+      end
+
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_add_column_with_datetime_in_timestamptz_mode
+          with_postgresql_datetime_type(:timestamptz) do
+            connection.create_table :testings do |t|
+              t.column :foo, :datetime
+            end
+
+            column = connection.columns(:testings).find { |c| c.name == "foo" }
+
+            assert_equal :datetime, column.type
+            assert_equal "timestamp(6) with time zone", column.sql_type
+          end
+        end
+      end
+
+      def test_change_column_with_timestamp_type
+        connection.create_table :testings do |t|
+          t.column :foo, :datetime, null: false
+        end
+
+        connection.change_column :testings, :foo, :timestamp
+
+        column = connection.columns(:testings).find { |c| c.name == "foo" }
+
+        assert_equal :datetime, column.type
+
+        if current_adapter?(:PostgreSQLAdapter)
+          assert_equal "timestamp without time zone", column.sql_type
+        elsif current_adapter?(:Mysql2Adapter)
+          assert_equal "timestamp", column.sql_type
+        elsif current_adapter?(:OracleAdapter)
+          assert_equal "TIMESTAMP(6)", column.sql_type
+        else
+          assert_equal connection.type_to_sql("datetime(6)"), column.sql_type
         end
       end
 

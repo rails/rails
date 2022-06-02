@@ -115,16 +115,11 @@ module ActionMailer
             super
           end
         end
+        ruby2_keywords(:method_missing)
 
         def respond_to_missing?(method, include_all = false)
           @mailer.respond_to?(method, include_all)
         end
-    end
-
-    class DeliveryJob < ActionMailer::DeliveryJob # :nodoc:
-      def perform(mailer, mail_method, delivery_method, params, *args)
-        mailer.constantize.with(params).public_send(mail_method, *args).send(delivery_method)
-      end
     end
 
     class MessageDelivery < ActionMailer::MessageDelivery # :nodoc:
@@ -132,6 +127,7 @@ module ActionMailer
         super(mailer_class, action, *args)
         @params = params
       end
+      ruby2_keywords(:initialize)
 
       private
         def processed_mailer
@@ -145,25 +141,8 @@ module ActionMailer
           if processed?
             super
           else
-            job  = delivery_job_class
-            args = arguments_for(job, delivery_method)
-            job.set(options).perform_later(*args)
-          end
-        end
-
-        def delivery_job_class
-          if @mailer_class.delivery_job <= MailDeliveryJob
-            @mailer_class.delivery_job
-          else
-            Parameterized::DeliveryJob
-          end
-        end
-
-        def arguments_for(delivery_job, delivery_method)
-          if delivery_job <= MailDeliveryJob
-            [@mailer_class.name, @action.to_s, delivery_method.to_s, params: @params, args: @args]
-          else
-            [@mailer_class.name, @action.to_s, delivery_method.to_s, @params, *@args]
+            @mailer_class.delivery_job.set(options).perform_later(
+              @mailer_class.name, @action.to_s, delivery_method.to_s, params: @params, args: @args)
           end
         end
     end

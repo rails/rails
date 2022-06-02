@@ -70,8 +70,8 @@ module RailsGuides
       end
 
       def extract_raw_header_and_body
-        if /^\-{40,}$/.match?(@raw_body)
-          @raw_header, _, @raw_body = @raw_body.partition(/^\-{40,}$/).map(&:strip)
+        if /^-{40,}$/.match?(@raw_body)
+          @raw_header, _, @raw_body = @raw_body.partition(/^-{40,}$/).map(&:strip)
         end
       end
 

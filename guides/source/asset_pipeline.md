@@ -27,43 +27,33 @@ from other gems.
 The asset pipeline is implemented by the
 [sprockets-rails](https://github.com/rails/sprockets-rails) gem,
 and is enabled by default. You can disable it while creating a new application by
-passing the `--skip-sprockets` option.
+passing the `--skip-asset-pipeline` option.
 
 ```bash
-rails new appname --skip-sprockets
+$ rails new appname --skip-asset-pipeline
 ```
 
-Rails automatically adds the `sass-rails` gem to your `Gemfile`, which is used
-by Sprockets for asset compression:
+Rails can easily work with Sass by adding the [`sassc-rails`](https://github.com/sass/sassc-rails)
+gem to your `Gemfile`, which is used by Sprockets for [Sass](https://sass-lang.com) compilation:
 
 ```ruby
-gem 'sass-rails'
-```
-
-Using the `--skip-sprockets` option will prevent Rails from adding
-them to your `Gemfile`, so if you later want to enable
-the asset pipeline you will have to add those gems to your `Gemfile`. Also,
-creating an application with the `--skip-sprockets` option will generate
-a slightly different `config/application.rb` file, with a require statement
-for the sprockets railtie that is commented-out. You will have to remove
-the comment operator on that line to later enable the asset pipeline:
-
-```ruby
-# require "sprockets/railtie"
+gem 'sassc-rails'
 ```
 
 To set asset compression methods, set the appropriate configuration options
-in `production.rb` - `config.assets.css_compressor` for your CSS and
-`config.assets.js_compressor` for your JavaScript:
+in `production.rb` - [`config.assets.css_compressor`][] for your CSS and
+[`config.assets.js_compressor`][] for your JavaScript:
 
 ```ruby
 config.assets.css_compressor = :yui
-config.assets.js_compressor = :uglifier
+config.assets.js_compressor = :terser
 ```
 
-NOTE: The `sass-rails` gem is automatically used for CSS compression if included
+NOTE: The `sassc-rails` gem is automatically used for CSS compression if included
 in the `Gemfile` and no `config.assets.css_compressor` option is set.
 
+[`config.assets.css_compressor`]: configuring.html#config-assets-css-compressor
+[`config.assets.js_compressor`]: configuring.html#config-assets-js-compressor
 
 ### Main Features
 
@@ -125,7 +115,7 @@ The query string strategy has several disadvantages:
 query parameters**
 
     [Steve Souders recommends](https://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/),
- "...avoiding a querystring for cacheable resources". He found that in this
+"...avoiding a querystring for cacheable resources". He found that in this
 case 5-20% of requests will not be cached. Query strings in particular do not
 work at all with some CDNs for cache invalidation.
 
@@ -147,12 +137,14 @@ that filenames are consistent based on their content.
 
 Fingerprinting is enabled by default for both the development and production
 environments. You can enable or disable it in your configuration through the
-`config.assets.digest` option.
+[`config.assets.digest`][] option.
 
 More reading:
 
 * [Optimize caching](https://developers.google.com/speed/docs/insights/LeverageBrowserCaching)
 * [Revving Filenames: don't use querystring](http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/)
+
+[`config.assets.digest`]: configuring.html#config-assets-digest
 
 
 How to Use the Asset Pipeline
@@ -165,12 +157,14 @@ directory. Files in this directory are served by the Sprockets middleware.
 
 Assets can still be placed in the `public` hierarchy. Any assets under `public`
 will be served as static files by the application or web server when
-`config.public_file_server.enabled` is set to true. You should use `app/assets` for
+[`config.public_file_server.enabled`][] is set to true. You should use `app/assets` for
 files that must undergo some pre-processing before they are served.
 
 In production, Rails precompiles these files to `public/assets` by default. The
 precompiled copies are then served as static assets by the web server. The files
 in `app/assets` are never served directly in production.
+
+[`config.public_file_server.enabled`]: configuring.html#config-public-file-server-enabled
 
 ### Controller Specific Assets
 
@@ -204,15 +198,6 @@ precompiling works.
 NOTE: You must have an ExecJS supported runtime in order to use CoffeeScript.
 If you are using macOS or Windows, you have a JavaScript runtime installed in
 your operating system. Check [ExecJS](https://github.com/rails/execjs#readme) documentation to know all supported JavaScript runtimes.
-
-You can also disable generation of controller specific asset files by adding the
-following to your `config/application.rb` configuration:
-
-```ruby
-  config.generators do |g|
-    g.assets false
-  end
-```
 
 ### Asset Organization
 
@@ -270,7 +255,7 @@ is referenced as:
 ```
 
 You can view the search path by inspecting
-`Rails.application.config.assets.paths` in the Rails console.
+[`Rails.application.config.assets.paths`][`config.assets.paths`] in the Rails console.
 
 Besides the standard `assets/*` paths, additional (fully qualified) paths can be
 added to the pipeline in `config/initializers/assets.rb`. For example:
@@ -286,6 +271,8 @@ corresponding paths in `lib` and `vendor`.
 It is important to note that files you want to reference outside a manifest must
 be added to the precompile array or they will not be available in the production
 environment.
+
+[`config.assets.paths`]: configuring.html#config-assets-paths
 
 #### Using Index Files
 
@@ -317,12 +304,12 @@ familiar `javascript_include_tag` and `stylesheet_link_tag`:
 ```
 
 If using the turbolinks gem, which is included by default in Rails, then
-include the 'data-turbolinks-track' option which causes turbolinks to check if
+include the 'data-turbo-track' option which causes Turbo to check if
 an asset has been updated and if so loads it into the page:
 
 ```erb
-<%= stylesheet_link_tag "application", media: "all", "data-turbolinks-track" => "reload" %>
-<%= javascript_include_tag "application", "data-turbolinks-track" => "reload" %>
+<%= stylesheet_link_tag "application", media: "all", "data-turbo-track" => "reload" %>
+<%= javascript_include_tag "application", "data-turbo-track" => "reload" %>
 ```
 
 In regular views you can access images in the `app/assets/images` directory
@@ -341,7 +328,7 @@ Alternatively, a request for a file with an SHA256 hash such as
 is treated the same way. How these hashes are generated is covered in the [In
 Production](#in-production) section later on in this guide.
 
-Sprockets will also look through the paths specified in `config.assets.paths`,
+Sprockets will also look through the paths specified in [`config.assets.paths`][],
 which includes the standard application paths and any paths added by Rails
 engines.
 
@@ -407,17 +394,10 @@ If you add an `erb` extension to a JavaScript asset, making it something such as
 JavaScript code:
 
 ```js
-$('#logo').attr({ src: "<%= asset_path('logo.png') %>" });
+document.getElementById('logo').src = "<%= asset_path('logo.png') %>"
 ```
 
 This writes the path to the particular asset being referenced.
-
-Similarly, you can use the `asset_path` helper in CoffeeScript files with `erb`
-extension (e.g., `application.coffee.erb`):
-
-```js
-$('#logo').attr src: "<%= asset_path('logo.png') %>"
-```
 
 ### Manifest Files and Directives
 
@@ -467,13 +447,13 @@ which contains these lines:
 
 ```css
 /* ...
-*= require_self
-*= require_tree .
-*/
+ *= require_self
+ *= require_tree .
+ */
 ```
 
-Rails create `app/assets/stylesheets/application.css` regardless of whether the
---skip-sprockets option is used when creating a new Rails application. This is
+Rails creates `app/assets/stylesheets/application.css` regardless of whether the
+`--skip-asset-pipeline` option is used when creating a new Rails application. This is
 so you can easily add asset pipelining later if you like.
 
 The directives that work in JavaScript files also work in stylesheets
@@ -500,26 +480,25 @@ might concatenate three CSS files together this way:
 
 ```js
 /* ...
-*= require reset
-*= require layout
-*= require chrome
-*/
+ *= require reset
+ *= require layout
+ *= require chrome
+ */
 ```
 
 ### Preprocessing
 
 The file extensions used on an asset determine what preprocessing is applied.
-When a controller or a scaffold is generated with the default Rails gemset, a
-CoffeeScript file and a SCSS file are generated in place of a regular JavaScript
-and CSS file. The example used before was a controller called "projects", which
-generated an `app/assets/stylesheets/projects.scss` file.
+When a controller or a scaffold is generated with the default Rails gemset, an
+SCSS file is generated in place of a regular CSS file. The example used before
+was a controller called "projects", which generated an
+`app/assets/stylesheets/projects.scss` file.
 
-In development mode, or if the asset pipeline is disabled, when these files are
-requested they are processed by the processors provided by the `coffee-script`
-and `sass` gems and then sent back to the browser as JavaScript and CSS
-respectively. When asset pipelining is enabled, these files are preprocessed and
-placed in the `public/assets` directory for serving by either the Rails app or
-web server.
+In development mode, or if the asset pipeline is disabled, when this file is
+requested it is processed by the processor provided by the `sass-rails` gem and
+then sent back to the browser as CSS. When asset pipelining is enabled, this
+file is preprocessed and placed in the `public/assets` directory for serving by
+either the Rails app or web server.
 
 Additional layers of preprocessing can be requested by adding other extensions,
 where each extension is processed in a right-to-left manner. These should be
@@ -538,8 +517,7 @@ wouldn't understand ERB and therefore you would run into problems.
 In Development
 --------------
 
-In development mode, assets are served as separate files in the order they are
-specified in the manifest file.
+In development mode, assets are served as a concatenated file.
 
 This manifest `app/assets/javascripts/application.js`:
 
@@ -552,12 +530,8 @@ This manifest `app/assets/javascripts/application.js`:
 would generate this HTML:
 
 ```html
-<script src="/assets/core.js?body=1"></script>
-<script src="/assets/projects.js?body=1"></script>
-<script src="/assets/tickets.js?body=1"></script>
+<script src="/assets/application-728742f3b9daa182fe7c831f6a3b8fa87609b4007fdc2f87c134a07b19ad93fb.js"></script>
 ```
-
-The `body` param is required by Sprockets.
 
 ### Raise an Error When an Asset is Not Found
 
@@ -583,42 +557,25 @@ config.assets.digest = false
 
 When this option is true, digests will be generated for asset URLs.
 
-### Turning Debugging Off
+### Turning Source Maps On
 
-You can turn off debug mode by updating `config/environments/development.rb` to
+You can turn on source maps by updating `config/environments/development.rb` to
 include:
 
 ```ruby
-config.assets.debug = false
+config.assets.debug = true
 ```
 
-When debug mode is off, Sprockets concatenates and runs the necessary
-preprocessors on all files. With debug mode turned off the manifest above would
-generate instead:
-
-```html
-<script src="/assets/application.js"></script>
-```
+When debug mode is on, Sprockets will generate a Source Map for each asset. This
+allows you to debug each file individually in your browser's developer tools.
 
 Assets are compiled and cached on the first request after the server is started.
 Sprockets sets a `must-revalidate` Cache-Control HTTP header to reduce request
 overhead on subsequent requests - on these the browser gets a 304 (Not Modified)
 response.
 
-If any of the files in the manifest have changed between requests, the server
+If any of the files in the manifest change between requests, the server
 responds with a new compiled file.
-
-Debug mode can also be enabled in Rails helper methods:
-
-```erb
-<%= stylesheet_link_tag "application", debug: true %>
-<%= javascript_include_tag "application", debug: true %>
-```
-
-The `:debug` option is redundant if debug mode is already on.
-
-You can also enable compression in development mode as a sanity check, and
-disable it on-demand as required for debugging.
 
 In Production
 -------------
@@ -643,15 +600,14 @@ generates something like this:
 
 ```html
 <script src="/assets/application-908e25f4bf641868d8683022a5b62f54.js"></script>
-<link href="/assets/application-4dd5b109ee3439da54f5bdfd78a80473.css" media="screen"
-rel="stylesheet" />
+<link href="/assets/application-4dd5b109ee3439da54f5bdfd78a80473.css" rel="stylesheet" />
 ```
 
 NOTE: with the Asset Pipeline the `:cache` and `:concat` options aren't used
 anymore, delete these options from the `javascript_include_tag` and
 `stylesheet_link_tag`.
 
-The fingerprinting behavior is controlled by the `config.assets.digest`
+The fingerprinting behavior is controlled by the [`config.assets.digest`][]
 initialization option (which defaults to `true`).
 
 NOTE: Under normal circumstances the default `config.assets.digest` option
@@ -664,7 +620,7 @@ content changes.
 Rails comes bundled with a command to compile the asset manifests and other
 files in the pipeline.
 
-Compiled assets are written to the location specified in `config.assets.prefix`.
+Compiled assets are written to the location specified in [`config.assets.prefix`][].
 By default, this is the `/assets` directory.
 
 You can call this command on the server during deployment to create compiled
@@ -736,6 +692,8 @@ NOTE: If there are missing precompiled files in production you will get a
 `Sprockets::Helpers::RailsHelper::AssetPaths::AssetNotPrecompiledError`
 exception indicating the name of the missing file(s).
 
+[`config.assets.prefix`]: configuring.html#config-assets-prefix
+
 #### Far-future Expires Header
 
 Precompiled assets exist on the file system and are served directly by your web
@@ -771,38 +729,45 @@ location ~ ^/assets/ {
 
 ### Local Precompilation
 
-There are several reasons why you might want to precompile your assets locally.
-Among them are:
+Sometimes, you may not want or be able to compile assets on the production
+server. For instance, you may have limited write access to your production
+filesystem, or you may plan to deploy frequently without making any changes to
+your assets.
 
-* You may not have write access to your production file system.
-* You may be deploying to more than one server, and want to avoid
-duplication of work.
-* You may be doing frequent deploys that do not include asset changes.
+In such cases, you can precompile assets _locally_ — that is, add a finalized
+set of compiled, production-ready assets to your source code repository before
+pushing to production. This way, they do not need to be precompiled separately
+on the production server upon each deployment.
 
-Local compilation allows you to commit the compiled files into source control,
-and deploy as normal.
+As above, you can perform this step using
 
-There are two caveats:
-
-* You must ensure any necessary compressors or minifiers are
-available on your development system.
-* You must change the following application configuration setting:
-
-In `config/environments/development.rb`, place the following line:
-
-```ruby
-config.assets.prefix = "/dev-assets"
+```bash
+$ RAILS_ENV=production rails assets:precompile
 ```
 
-The `prefix` change makes Sprockets use a different URL for serving assets in
-development mode, and pass all requests to Sprockets. The prefix is still set to
-`/assets` in the production environment. Without this change, the application
-would serve the precompiled assets from `/assets` in development, and you would
-not see any local changes until you compile assets again.
+Note the following caveats:
 
-In practice, this will allow you to precompile locally, have those files in your
-working tree, and commit those files to source control when needed.  Development
-mode will work as expected.
+*   If precompiled assets are available, they will be served — even if they no
+    longer match the original (uncompiled) assets, _even on the development
+    server._
+
+    To ensure that the development server always compiles assets on-the-fly (and
+    thus always reflects the most recent state of the code), the development
+    environment _must be configured to keep precompiled assets in a different
+    location than production does._ Otherwise, any assets precompiled for use in
+    production will clobber requests for them in development (_i.e.,_ subsequent
+    changes you make to assets will not be reflected in the browser).
+
+    You can do this by adding the following line to
+    `config/environments/development.rb`:
+
+    ```ruby
+    config.assets.prefix = "/dev-assets"
+    ```
+* The asset precompile task in your deployment tool (_e.g.,_ Capistrano) should
+  be disabled.
+* Any necessary compressors or minifiers must be available on your development
+  system.
 
 ### Live Compilation
 
@@ -815,9 +780,9 @@ To enable this option set:
 config.assets.compile = true
 ```
 
-On the first request the assets are compiled and cached as outlined in
-development above, and the manifest names used in the helpers are altered to
-include the SHA256 hash.
+On the first request the assets are compiled and cached as outlined in [Assets
+Cache Store](#assets-cache-store), and the manifest names used in the helpers
+are altered to include the SHA256 hash.
 
 Sprockets also sets the `Cache-Control` HTTP header to `max-age=31536000`. This
 signals all caches between your server and the client browser that this content
@@ -875,11 +840,11 @@ valid CDN provider at the time of this writing). Now that you have configured
 your CDN server, you need to tell browsers to use your CDN to grab assets
 instead of your Rails server directly. You can do this by configuring Rails to
 set your CDN as the asset host instead of using a relative path. To set your
-asset host in Rails, you need to set `config.action_controller.asset_host` in
+asset host in Rails, you need to set [`config.asset_host`][] in
 `config/environments/production.rb`:
 
 ```ruby
-config.action_controller.asset_host = 'mycdnsubdomain.fictional-cdn.com'
+config.asset_host = 'mycdnsubdomain.fictional-cdn.com'
 ```
 
 NOTE: You only need to provide the "host", this is the subdomain and root
@@ -891,8 +856,8 @@ You can also set this value through an [environment
 variable](https://en.wikipedia.org/wiki/Environment_variable) to make running a
 staging copy of your site easier:
 
-```
-config.action_controller.asset_host = ENV['CDN_HOST']
+```ruby
+config.asset_host = ENV['CDN_HOST']
 ```
 
 
@@ -900,32 +865,31 @@ config.action_controller.asset_host = ENV['CDN_HOST']
 NOTE: You would need to set `CDN_HOST` on your server to `mycdnsubdomain
 .fictional-cdn.com` for this to work.
 
-Once you have configured your server and your CDN when you serve a webpage that
-has an asset:
+Once you have configured your server and your CDN, asset paths from helpers such
+as:
 
 ```erb
 <%= asset_path('smile.png') %>
 ```
 
-Instead of returning a path such as `/assets/smile.png` (digests are left out
-for readability). The URL generated will have the full path to your CDN.
+Will be rendered as full CDN URLs like `http://mycdnsubdomain.fictional-cdn.com/assets/smile.png`
+(digest omitted for readability).
 
-```
-http://mycdnsubdomain.fictional-cdn.com/assets/smile.png
-```
-
-If the CDN has a copy of `smile.png` it will serve it to the browser and your
-server doesn't even know it was requested. If the CDN does not have a copy it
-will try to find it at the "origin" `example.com/assets/smile.png` and then store
+If the CDN has a copy of `smile.png`, it will serve it to the browser, and your
+server doesn't even know it was requested. If the CDN does not have a copy, it
+will try to find it at the "origin" `example.com/assets/smile.png`, and then store
 it for future use.
 
 If you want to serve only some assets from your CDN, you can use custom `:host`
 option your asset helper, which overwrites value set in
-`config.action_controller.asset_host`.
+[`config.action_controller.asset_host`][].
 
 ```erb
 <%= asset_path 'image.png', host: 'mycdnsubdomain.fictional-cdn.com' %>
 ```
+
+[`config.action_controller.asset_host`]: configuring.html#config-action-controller-asset-host
+[`config.asset_host`]: configuring.html#config-asset-host
 
 #### Customize CDN Caching Behavior
 
@@ -951,7 +915,7 @@ https://explainshell.com/explain?cmd=curl+-I+http%3A%2F%2Fwww.example.com). You
 can request the headers from both your server and your CDN to verify they are
 the same:
 
-```
+```bash
 $ curl -I http://www.example/assets/application-
 d0e099e021c95eb0de3615fd1d8c4d83.css
 HTTP/1.1 200 OK
@@ -967,7 +931,7 @@ Via: 1.1 vegur
 
 Versus the CDN copy.
 
-```
+```bash
 $ curl -I http://mycdnsubdomain.fictional-cdn.com/application-
 d0e099e021c95eb0de3615fd1d8c4d83.css
 HTTP/1.1 200 OK Server: Cowboy Last-
@@ -1006,7 +970,7 @@ the cache will store the object before invalidating the cache. The `max-age`
 value is set to seconds with a maximum possible value of `31536000` which is one
 year. You can do this in your Rails application by setting
 
-```
+```ruby
 config.public_file_server.headers = {
   'Cache-Control' => 'public, max-age=31536000'
 }
@@ -1018,7 +982,7 @@ asset for up to a year. Since most CDNs also cache headers of the request, this
 the browser then knows that it can store this asset for a very long time before
 needing to re-request it.
 
-##### CDNs and URL based Cache Invalidation
+##### CDNs and URL-based Cache Invalidation
 
 Most CDNs will cache contents of an asset based on the complete URL. This means
 that a request to
@@ -1057,6 +1021,7 @@ gem.
 ```ruby
 config.assets.css_compressor = :yui
 ```
+
 The other option for compressing CSS if you have the sass-rails gem installed is
 
 ```ruby
@@ -1065,27 +1030,25 @@ config.assets.css_compressor = :sass
 
 ### JavaScript Compression
 
-Possible options for JavaScript compression are `:closure`, `:uglifier` and
-`:yui`. These require the use of the `closure-compiler`, `uglifier` or
+Possible options for JavaScript compression are `:terser`, `:closure` and
+`:yui`. These require the use of the `terser`, `closure-compiler` or
 `yui-compressor` gems, respectively.
 
-Take the `uglifier` gem, for example.
-This gem wraps [UglifyJS](https://github.com/mishoo/UglifyJS) (written for
-NodeJS) in Ruby. It compresses your code by removing white space and comments,
+Take the `terser` gem, for example.
+This gem wraps [Terser](https://github.com/terser/terser) (written for
+Node.js) in Ruby. It compresses your code by removing white space and comments,
 shortening local variable names, and performing other micro-optimizations such
 as changing `if` and `else` statements to ternary operators where possible.
 
-The following line invokes `uglifier` for JavaScript compression.
+The following line invokes `terser` for JavaScript compression.
 
 ```ruby
-config.assets.js_compressor = :uglifier
+config.assets.js_compressor = :terser
 ```
 
 NOTE: You will need an [ExecJS](https://github.com/rails/execjs#readme)
-supported runtime in order to use `uglifier`. If you are using macOS or
+supported runtime in order to use `terser`. If you are using macOS or
 Windows you have a JavaScript runtime installed in your operating system.
-
-
 
 ### GZipping your assets
 
@@ -1118,7 +1081,6 @@ To enable this, pass a new object to the config option in `application.rb`:
 ```ruby
 config.assets.css_compressor = Transformer.new
 ```
-
 
 ### Changing the _assets_ Path
 

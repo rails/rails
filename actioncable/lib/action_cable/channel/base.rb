@@ -186,7 +186,7 @@ module ActionCable
       end
 
       # Called by the cable connection when it's cut, so the channel has a chance to cleanup with callbacks.
-      # This method is not intended to be called directly by the user. Instead, overwrite the #unsubscribed callback.
+      # This method is not intended to be called directly by the user. Instead, override the #unsubscribed callback.
       def unsubscribe_from_channel # :nodoc:
         run_callbacks :unsubscribe do
           unsubscribed
@@ -194,7 +194,7 @@ module ActionCable
       end
 
       private
-        # Called once a consumer has become a subscriber of the channel. Usually the place to setup any streams
+        # Called once a consumer has become a subscriber of the channel. Usually the place to set up any streams
         # you want this channel to be sending to the subscriber.
         def subscribed # :doc:
           # Override in subclasses

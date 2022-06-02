@@ -1,154 +1,41 @@
-*   Remove unused `disposition` and `content_type` query parameters for `DiskService`.
+*   Raise an exception if `config.active_storage.service` is not set.
 
-    *Peter Zhu*
+    If Active Storage is configured and `config.active_storage.service` is not
+    set in the respective environment's configuration file, then an exception
+    is raised with a meaningful message when attempting to use Active Storage.
 
-*   Use `DiskController` for both public and private files.
+    *Ghouse Mohamed*
 
-    `DiskController` is able to handle multiple services by adding a
-    `service_name` field in the generated URL in `DiskService`.
+*   Fixes proxy downloads of files over 5mb
 
-    *Peter Zhu*
+    Previously, trying to view and/or download files larger than 5mb stored in
+    services like S3 via proxy mode could return corrupted files at around
+    5.2mb or cause random halts in the download. Now,
+    `ActiveStorage::Blobs::ProxyController` correctly handles streaming these
+    larger files from the service to the client without any issues.
 
-*   Variants are tracked in the database to avoid existence checks in the storage service.
+    Fixes #44679
 
-    *George Claghorn*
+    *Felipe Raul*
 
-*   Deprecate `service_url` methods in favour of `url`.
+*   Saving attachment(s) to a record returns the blob/blobs object
 
-    Deprecate `Variant#service_url` and `Preview#service_url` to instead use
-    `#url` method to be consistent with `Blob`.
+    Previously, saving attachments did not return the blob/blobs that
+    were attached. Now, saving attachments to a record with `#attach`
+    method returns the blob or array of blobs that were attached to
+    the record. If it fails to save the attachment(s), then it returns
+    `false`.
 
-    *Peter Zhu*
+    *Ghouse Mohamed*
 
-*   Permanent URLs for public storage blobs.
+*   Don't stream responses in redirect mode
 
-    Services can be configured in `config/storage.yml` with a new key
-    `public: true | false` to indicate whether a service holds public
-    blobs or private blobs. Public services will always return a permanent URL.
+    Previously, both redirect mode and proxy mode streamed their
+    responses which caused a new thread to be created, and could end
+    up leaking connections in the connection pool. But since redirect
+    mode doesn't actually send any data, it doesn't need to be
+    streamed.
 
-    Deprecates `Blob#service_url` in favor of `Blob#url`.
+    *Luke Lau*
 
-    *Peter Zhu*
-
-*   Make services aware of configuration names.
-
-    *Gannon McGibbon*
-
-*   The `Content-Type` header is set on image variants when they're uploaded to third-party storage services.
-
-    *Kyle Ribordy*
-
-*   Allow storage services to be configured per attachment.
-
-    ```ruby
-    class User < ActiveRecord::Base
-      has_one_attached :avatar, service: :s3
-    end
-
-    class Gallery < ActiveRecord::Base
-      has_many_attached :photos, service: :s3
-    end
-    ```
-
-    *Dmitry Tsepelev*
-
-*   You can optionally provide a custom blob key when attaching a new file:
-
-    ```ruby
-    user.avatar.attach key: "avatars/#{user.id}.jpg",
-      io: io, content_type: "image/jpeg", filename: "avatar.jpg"
-    ```
-
-    Active Storage will store the blob's data on the configured service at the provided key.
-
-    *George Claghorn*
-
-*   Replace `Blob.create_after_upload!` with `Blob.create_and_upload!` and deprecate the former.
-
-    `create_after_upload!` has been removed since it could lead to data
-    corruption by uploading to a key on the storage service which happened to
-    be already taken. Creating the record would then correctly raise a
-    database uniqueness exception but the stored object would already have
-    overwritten another. `create_and_upload!` swaps the order of operations
-    so that the key gets reserved up-front or the uniqueness error gets raised,
-    before the upload to a key takes place.
-
-    *Julik Tarkhanov*
-
-*   Set content disposition in direct upload using `filename` and `disposition` parameters to `ActiveStorage::Service#headers_for_direct_upload`.
-
-    *Peter Zhu*
-
-*   Allow record to be optionally passed to blob finders to make sharding
-    easier.
-
-    *Gannon McGibbon*
-
-*   Switch from `azure-storage` gem to `azure-storage-blob` gem for Azure service.
-
-    *Peter Zhu*
-
-*   Add `config.active_storage.draw_routes` to disable Active Storage routes.
-
-    *Gannon McGibbon*
-
-*   Image analysis is skipped if ImageMagick returns an error.
-
-    `ActiveStorage::Analyzer::ImageAnalyzer#metadata` would previously raise a
-    `MiniMagick::Error`, which caused persistent `ActiveStorage::AnalyzeJob`
-    failures. It now logs the error and returns `{}`, resulting in no metadata
-    being added to the offending image blob.
-
-    *George Claghorn*
-
-*   Method calls on singular attachments return `nil` when no file is attached.
-
-    Previously, assuming the following User model, `user.avatar.filename` would
-    raise a `Module::DelegationError` if no avatar was attached:
-
-    ```ruby
-    class User < ApplicationRecord
-      has_one_attached :avatar
-    end
-    ```
-
-    They now return `nil`.
-
-    *Matthew Tanous*
-
-*   The mirror service supports direct uploads.
-
-    New files are directly uploaded to the primary service. When a
-    directly-uploaded file is attached to a record, a background job is enqueued
-    to copy it to each secondary service.
-
-    Configure the queue used to process mirroring jobs by setting
-    `config.active_storage.queues.mirror`. The default is `:active_storage_mirror`.
-
-    *George Claghorn*
-
-*   The S3 service now permits uploading files larger than 5 gigabytes.
-
-    When uploading a file greater than 100 megabytes in size, the service
-    transparently switches to [multipart uploads](https://docs.aws.amazon.com/AmazonS3/latest/dev/mpuoverview.html)
-    using a part size computed from the file's total size and S3's part count limit.
-
-    No application changes are necessary to take advantage of this feature. You
-    can customize the default 100 MB multipart upload threshold in your S3
-    service's configuration:
-
-    ```yaml
-    production:
-      service: s3
-      access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-      secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
-      region: us-east-1
-      bucket: my-bucket
-      upload:
-        multipart_threshold: <%= 250.megabytes %>
-    ```
-
-    *George Claghorn*
-
-
-Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activestorage/CHANGELOG.md) for previous changes.
+Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/activestorage/CHANGELOG.md) for previous changes.

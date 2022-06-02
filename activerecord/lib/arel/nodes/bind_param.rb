@@ -24,6 +24,14 @@ module Arel # :nodoc: all
         value.nil?
       end
 
+      def value_before_type_cast
+        if value.respond_to?(:value_before_type_cast)
+          value.value_before_type_cast
+        else
+          value
+        end
+      end
+
       def infinite?
         value.respond_to?(:infinite?) && value.infinite?
       end

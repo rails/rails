@@ -16,6 +16,7 @@ require "models/friendship"
 require "models/subscriber"
 require "models/subscription"
 require "models/book"
+require "active_support/core_ext/enumerable"
 
 class CounterCacheTest < ActiveRecord::TestCase
   fixtures :topics, :categories, :categorizations, :cars, :dogs, :dog_lovers, :people, :friendships, :subscribers, :subscriptions, :books
@@ -110,6 +111,27 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
     assert_difference "david.reload.trained_dogs_count", -1 do
       DogLover.reset_counters(david.id, :trained_dogs)
+    end
+  end
+
+  test "reset counter skips query for correct counter" do
+    Topic.reset_counters(@topic.id, :replies_count)
+
+    # SELECT "topics".* FROM "topics" WHERE "topics"."id" = ? LIMIT ?
+    # SELECT COUNT(*) FROM "topics" WHERE "topics"."type" IN (?, ?, ?, ?, ?) AND "topics"."parent_id" = ?
+    assert_queries(2) do
+      Topic.reset_counters(@topic.id, :replies_count)
+    end
+  end
+
+  test "reset counter performs query for correct counter with touch: true" do
+    Topic.reset_counters(@topic.id, :replies_count)
+
+    # SELECT "topics".* FROM "topics" WHERE "topics"."id" = ? LIMIT ?
+    # SELECT COUNT(*) FROM "topics" WHERE "topics"."type" IN (?, ?, ?, ?, ?) AND "topics"."parent_id" = ?
+    # UPDATE "topics" SET "updated_at" = ? WHERE "topics"."id" = ?
+    assert_queries(3) do
+      Topic.reset_counters(@topic.id, :replies_count, touch: true)
     end
   end
 
@@ -263,7 +285,7 @@ class CounterCacheTest < ActiveRecord::TestCase
   test "reset multiple counters with touch: true" do
     assert_touching @topic, :updated_at do
       Topic.update_counters(@topic.id, replies_count: 1, unique_replies_count: 1)
-      Topic.reset_counters(@topic.id, :replies, :unique_replies, touch: true)
+      Topic.reset_counters(@topic.id, :replies, :unique_replies, touch: { time: Time.now.utc })
     end
   end
 
@@ -355,8 +377,8 @@ class CounterCacheTest < ActiveRecord::TestCase
 
   private
     def assert_touching(record, *attributes)
-      record.update_columns attributes.map { |attr| [ attr, 5.minutes.ago ] }.to_h
-      touch_times = attributes.map { |attr| [ attr, record.public_send(attr) ] }.to_h
+      record.update_columns attributes.index_with(5.minutes.ago)
+      touch_times = attributes.index_with { |attr| record.public_send(attr) }
 
       yield
 

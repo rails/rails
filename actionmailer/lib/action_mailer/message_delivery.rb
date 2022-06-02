@@ -15,7 +15,7 @@ module ActionMailer
   #   Notifier.welcome(User.first).deliver_later # enqueue email delivery as a job through Active Job
   #   Notifier.welcome(User.first).message       # a Mail::Message object
   class MessageDelivery < Delegator
-    def initialize(mailer_class, action, *args) #:nodoc:
+    def initialize(mailer_class, action, *args) # :nodoc:
       @mailer_class, @action, @args = mailer_class, action, args
 
       # The mail is only processed if we try to call any methods on it.
@@ -23,14 +23,15 @@ module ActionMailer
       @processed_mailer = nil
       @mail_message = nil
     end
+    ruby2_keywords(:initialize)
 
     # Method calls are delegated to the Mail::Message that's ready to deliver.
-    def __getobj__ #:nodoc:
+    def __getobj__ # :nodoc:
       @mail_message ||= processed_mailer.message
     end
 
     # Unused except for delegator internals (dup, marshalling).
-    def __setobj__(mail_message) #:nodoc:
+    def __setobj__(mail_message) # :nodoc:
       @mail_message = mail_message
     end
 
@@ -52,15 +53,17 @@ module ActionMailer
     #   Notifier.welcome(User.first).deliver_later!
     #   Notifier.welcome(User.first).deliver_later!(wait: 1.hour)
     #   Notifier.welcome(User.first).deliver_later!(wait_until: 10.hours.from_now)
+    #   Notifier.welcome(User.first).deliver_later!(priority: 10)
     #
     # Options:
     #
     # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay
     # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time
     # * <tt>:queue</tt> - Enqueue the email on the specified queue
+    # * <tt>:priority</tt> - Enqueues the email with the specified priority
     #
-    # By default, the email will be enqueued using <tt>ActionMailer::DeliveryJob</tt>. Each
-    # <tt>ActionMailer::Base</tt> class can specify the job to use by setting the class variable
+    # By default, the email will be enqueued using <tt>ActionMailer::MailDeliveryJob</tt>. Each
+    # ActionMailer::Base class can specify the job to use by setting the class variable
     # +delivery_job+.
     #
     #   class AccountRegistrationMailer < ApplicationMailer
@@ -76,15 +79,17 @@ module ActionMailer
     #   Notifier.welcome(User.first).deliver_later
     #   Notifier.welcome(User.first).deliver_later(wait: 1.hour)
     #   Notifier.welcome(User.first).deliver_later(wait_until: 10.hours.from_now)
+    #   Notifier.welcome(User.first).deliver_later(priority: 10)
     #
     # Options:
     #
     # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay.
     # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time.
     # * <tt>:queue</tt> - Enqueue the email on the specified queue.
+    # * <tt>:priority</tt> - Enqueues the email with the specified priority
     #
-    # By default, the email will be enqueued using <tt>ActionMailer::DeliveryJob</tt>. Each
-    # <tt>ActionMailer::Base</tt> class can specify the job to use by setting the class variable
+    # By default, the email will be enqueued using <tt>ActionMailer::MailDeliveryJob</tt>. Each
+    # ActionMailer::Base class can specify the job to use by setting the class variable
     # +delivery_job+.
     #
     #   class AccountRegistrationMailer < ApplicationMailer
@@ -135,17 +140,8 @@ module ActionMailer
             "#deliver_later, 2. only touch the message *within your mailer " \
             "method*, or 3. use a custom Active Job instead of #deliver_later."
         else
-          job = @mailer_class.delivery_job
-          args = arguments_for(job, delivery_method)
-          job.set(options).perform_later(*args)
-        end
-      end
-
-      def arguments_for(delivery_job, delivery_method)
-        if delivery_job <= MailDeliveryJob
-          [@mailer_class.name, @action.to_s, delivery_method.to_s, args: @args]
-        else
-          [@mailer_class.name, @action.to_s, delivery_method.to_s, *@args]
+          @mailer_class.delivery_job.set(options).perform_later(
+            @mailer_class.name, @action.to_s, delivery_method.to_s, args: @args)
         end
       end
   end

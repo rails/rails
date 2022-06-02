@@ -6,7 +6,7 @@ export class BlobRecord {
 
     this.attributes = {
       filename: file.name,
-      content_type: file.type,
+      content_type: file.type || "application/octet-stream",
       byte_size: file.size,
       checksum: checksum
     }

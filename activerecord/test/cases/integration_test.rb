@@ -108,12 +108,12 @@ class IntegrationTest < ActiveRecord::TestCase
 
   def test_cache_key_format_for_existing_record_with_updated_at
     dev = Developer.first
-    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:usec)}", dev.cache_key
+    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_fs(:usec)}", dev.cache_key
   end
 
   def test_cache_key_format_for_existing_record_with_updated_at_and_custom_cache_timestamp_format
     dev = CachedDeveloper.first
-    assert_equal "cached_developers/#{dev.id}-#{dev.updated_at.utc.to_s(:number)}", dev.cache_key
+    assert_equal "cached_developers/#{dev.id}-#{dev.updated_at.utc.to_fs(:number)}", dev.cache_key
   end
 
   def test_cache_key_changes_when_child_touched
@@ -138,23 +138,23 @@ class IntegrationTest < ActiveRecord::TestCase
   def test_cache_key_for_updated_on
     dev = Developer.first
     dev.updated_at = nil
-    assert_equal "developers/#{dev.id}-#{dev.updated_on.utc.to_s(:usec)}", dev.cache_key
+    assert_equal "developers/#{dev.id}-#{dev.updated_on.utc.to_fs(:usec)}", dev.cache_key
   end
 
   def test_cache_key_for_newer_updated_at
     dev = Developer.first
     dev.updated_at += 3600
-    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:usec)}", dev.cache_key
+    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_fs(:usec)}", dev.cache_key
   end
 
   def test_cache_key_for_newer_updated_on
     dev = Developer.first
     dev.updated_on += 3600
-    assert_equal "developers/#{dev.id}-#{dev.updated_on.utc.to_s(:usec)}", dev.cache_key
+    assert_equal "developers/#{dev.id}-#{dev.updated_on.utc.to_fs(:usec)}", dev.cache_key
   end
 
   def test_cache_key_format_is_precise_enough
-    skip("Subsecond precision is not supported") unless subsecond_precision_supported?
+    skip("Subsecond precision is not supported") unless supports_datetime_with_precision?
     dev = Developer.first
     key = dev.cache_key
     travel_to dev.updated_at + 0.000001 do
@@ -171,7 +171,7 @@ class IntegrationTest < ActiveRecord::TestCase
   end
 
   def test_cache_version_format_is_precise_enough
-    skip("Subsecond precision is not supported") unless subsecond_precision_supported?
+    skip("Subsecond precision is not supported") unless supports_datetime_with_precision?
     with_cache_versioning do
       dev = Developer.first
       version = dev.cache_version.to_param

@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "models/man"
+require "models/human"
 require "models/face"
 require "models/interest"
 require "models/speedometer"
 require "models/dashboard"
 
 class PresenceValidationTest < ActiveRecord::TestCase
-  class Boy < Man; end
+  class Boy < Human; end
 
   repair_validations(Boy)
 

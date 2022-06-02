@@ -3,7 +3,7 @@
 module ActiveRecord
   module Associations
     # = Active Record Has One Through Association
-    class HasOneThroughAssociation < HasOneAssociation #:nodoc:
+    class HasOneThroughAssociation < HasOneAssociation # :nodoc:
       include ThroughAssociation
 
       private

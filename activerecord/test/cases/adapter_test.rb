@@ -12,7 +12,6 @@ module ActiveRecord
     def setup
       @connection = ActiveRecord::Base.connection
       @connection.materialize_transactions
-      @connection_handler = ActiveRecord::Base.connection_handler
     end
 
     ##
@@ -117,7 +116,7 @@ module ActiveRecord
 
     def test_current_database
       if @connection.respond_to?(:current_database)
-        assert_equal ARTest.connection_config["arunit"]["database"], @connection.current_database
+        assert_equal ARTest.test_configuration_hashes["arunit"]["database"], @connection.current_database
       end
     end
 
@@ -145,9 +144,10 @@ module ActiveRecord
 
       def test_not_specifying_database_name_for_cross_database_selects
         assert_nothing_raised do
-          ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"].except(:database))
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+          ActiveRecord::Base.establish_connection(db_config.configuration_hash.except(:database))
 
-          config = ARTest.connection_config
+          config = ARTest.test_configuration_hashes
           ActiveRecord::Base.connection.execute(
             "SELECT #{config['arunit']['database']}.pirates.*, #{config['arunit2']['database']}.courses.* " \
             "FROM #{config['arunit']['database']}.pirates, #{config['arunit2']['database']}.courses"
@@ -172,79 +172,6 @@ module ActiveRecord
       class << @connection
         remove_method :table_alias_length
         alias_method :table_alias_length, :old_table_alias_length
-      end
-    end
-
-    def test_preventing_writes_predicate
-      assert_not_predicate @connection, :preventing_writes?
-
-      @connection_handler.while_preventing_writes do
-        assert_predicate @connection, :preventing_writes?
-      end
-
-      assert_not_predicate @connection, :preventing_writes?
-    end
-
-    def test_errors_when_an_insert_query_is_called_while_preventing_writes
-      assert_no_queries do
-        assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection_handler.while_preventing_writes do
-            @connection.transaction do
-              @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
-            end
-          end
-        end
-      end
-    end
-
-    def test_errors_when_an_update_query_is_called_while_preventing_writes
-      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
-
-      assert_no_queries do
-        assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection_handler.while_preventing_writes do
-            @connection.transaction do
-              @connection.update("UPDATE subscribers SET nick = '9989' WHERE nick = '138853948594'")
-            end
-          end
-        end
-      end
-    end
-
-    def test_errors_when_a_delete_query_is_called_while_preventing_writes
-      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
-
-      assert_no_queries do
-        assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection_handler.while_preventing_writes do
-            @connection.transaction do
-              @connection.delete("DELETE FROM subscribers WHERE nick = '138853948594'")
-            end
-          end
-        end
-      end
-    end
-
-    def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
-      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
-
-      @connection_handler.while_preventing_writes do
-        result = @connection.select_all("SELECT subscribers.* FROM subscribers WHERE nick = '138853948594'")
-        assert_equal 1, result.length
-      end
-    end
-
-    if ActiveRecord::Base.connection.supports_common_table_expressions?
-      def test_doesnt_error_when_a_read_query_with_a_cte_is_called_while_preventing_writes
-        @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
-
-        @connection_handler.while_preventing_writes do
-          result = @connection.select_all(<<~SQL)
-            WITH matching_subscribers AS (SELECT subscribers.* FROM subscribers WHERE nick = '138853948594')
-            SELECT * FROM matching_subscribers
-          SQL
-          assert_equal 1, result.length
-        end
       end
     end
 
@@ -289,7 +216,6 @@ module ActiveRecord
       actual_error = assert_raises(StandardError) do
         @connection.execute("SELECT * FROM posts")
       end
-
       assert_equal original_error, actual_error
 
     ensure
@@ -311,41 +237,42 @@ module ActiveRecord
     end
 
     if ActiveRecord::Base.connection.prepared_statements
-      def test_select_all_with_legacy_binds
-        post = Post.create!(title: "foo", body: "bar")
-        expected = @connection.select_all("SELECT * FROM posts WHERE id = #{post.id}")
-        result = @connection.select_all("SELECT * FROM posts WHERE id = #{Arel::Nodes::BindParam.new(nil).to_sql}", nil, [[nil, post.id]])
-        assert_equal expected.to_a, result.to_a
-      end
-
-      def test_insert_update_delete_with_legacy_binds
-        binds = [[nil, 1]]
+      def test_select_all_insert_update_delete_with_casted_binds
+        binds = [Event.type_for_attribute("id").serialize(1)]
         bind_param = Arel::Nodes::BindParam.new(nil)
 
         id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
         assert_equal 1, id
 
-        @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal 1, updated
+
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal({ "id" => 1, "title" => "foo" }, result.first)
 
-        @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal 1, deleted
+
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_nil result.first
       end
 
-      def test_insert_update_delete_with_binds
-        binds = [Relation::QueryAttribute.new("id", 1, Type.default_value)]
+      def test_select_all_insert_update_delete_with_binds
+        binds = [Relation::QueryAttribute.new("id", 1, Event.type_for_attribute("id"))]
         bind_param = Arel::Nodes::BindParam.new(nil)
 
         id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
         assert_equal 1, id
 
-        @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal 1, updated
+
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal({ "id" => 1, "title" => "foo" }, result.first)
 
-        @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal 1, deleted
+
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_nil result.first
       end
@@ -372,42 +299,6 @@ module ActiveRecord
 
     test "type_to_sql returns a String for unmapped types" do
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
-    end
-
-    def test_supports_foreign_keys_in_create_is_deprecated
-      assert_deprecated { @connection.supports_foreign_keys_in_create? }
-    end
-
-    def test_supports_multi_insert_is_deprecated
-      assert_deprecated { @connection.supports_multi_insert? }
-    end
-
-    def test_column_name_length_is_deprecated
-      assert_deprecated { @connection.column_name_length }
-    end
-
-    def test_table_name_length_is_deprecated
-      assert_deprecated { @connection.table_name_length }
-    end
-
-    def test_columns_per_table_is_deprecated
-      assert_deprecated { @connection.columns_per_table }
-    end
-
-    def test_indexes_per_table_is_deprecated
-      assert_deprecated { @connection.indexes_per_table }
-    end
-
-    def test_columns_per_multicolumn_index_is_deprecated
-      assert_deprecated { @connection.columns_per_multicolumn_index }
-    end
-
-    def test_sql_query_length_is_deprecated
-      assert_deprecated { @connection.sql_query_length }
-    end
-
-    def test_joins_per_query_is_deprecated
-      assert_deprecated { @connection.joins_per_query }
     end
   end
 
@@ -493,21 +384,96 @@ module ActiveRecord
         assert_predicate @connection, :active?
       end
 
-      test "transaction state is reset after a reconnect" do
+      test "materialized transaction state is reset after a reconnect" do
         @connection.begin_transaction
         assert_predicate @connection, :transaction_open?
+        @connection.materialize_transactions
+        assert raw_transaction_open?(@connection)
+        @connection.reconnect!
+        assert_not_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+      end
+
+      test "materialized transaction state can be restored after a reconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        # +materialize_transactions+ currently automatically dirties the
+        # connection, which would make it unrestorable
+        @connection.transaction_manager.stub(:dirty_current_transaction, nil) do
+          @connection.materialize_transactions
+        end
+        assert raw_transaction_open?(@connection)
+        @connection.reconnect!(restore_transactions: true)
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+      ensure
         @connection.reconnect!
         assert_not_predicate @connection, :transaction_open?
       end
 
-      test "transaction state is reset after a disconnect" do
+      test "materialized transaction state is reset after a disconnect" do
         @connection.begin_transaction
         assert_predicate @connection, :transaction_open?
+        @connection.materialize_transactions
+        assert raw_transaction_open?(@connection)
         @connection.disconnect!
         assert_not_predicate @connection, :transaction_open?
       ensure
         @connection.reconnect!
+        assert_not raw_transaction_open?(@connection)
       end
+
+      test "unmaterialized transaction state is reset after a reconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.reconnect!
+        assert_not_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.materialize_transactions
+        assert_not raw_transaction_open?(@connection)
+      end
+
+      test "unmaterialized transaction state can be restored after a reconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.reconnect!(restore_transactions: true)
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.materialize_transactions
+        assert raw_transaction_open?(@connection)
+      ensure
+        @connection.reconnect!
+        assert_not_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+      end
+
+      test "unmaterialized transaction state is reset after a disconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.disconnect!
+        assert_not_predicate @connection, :transaction_open?
+      ensure
+        @connection.reconnect!
+        assert_not raw_transaction_open?(@connection)
+        @connection.materialize_transactions
+        assert_not raw_transaction_open?(@connection)
+      end
+    end
+
+    def test_create_with_query_cache
+      @connection.enable_query_cache!
+
+      count = Post.count
+
+      @connection.create("INSERT INTO posts(title, body) VALUES ('', '')")
+
+      assert_equal count + 1, Post.count
+    ensure
+      reset_fixtures("posts")
+      @connection.disable_query_cache!
     end
 
     def test_truncate
@@ -585,6 +551,31 @@ module ActiveRecord
     end
 
     private
+      def raw_transaction_open?(connection)
+        case connection.class::ADAPTER_NAME
+        when "PostgreSQL"
+          connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
+        when "Mysql2"
+          begin
+            connection.instance_variable_get(:@raw_connection).query("SAVEPOINT transaction_test")
+            connection.instance_variable_get(:@raw_connection).query("RELEASE SAVEPOINT transaction_test")
+
+            true
+          rescue
+            false
+          end
+        when "SQLite"
+          begin
+            connection.instance_variable_get(:@raw_connection).transaction { nil }
+            false
+          rescue
+            true
+          end
+        else
+          skip
+        end
+      end
+
       def reset_fixtures(*fixture_names)
         ActiveRecord::FixtureSet.reset_cache
 

@@ -1,0 +1,7 @@
+<% module_namespacing do -%>
+class <%= abstract_class_name %> < ApplicationRecord
+  self.abstract_class = true
+
+  connects_to database: { <%= ActiveRecord.writing_role %>: :<%= database -%> }
+end
+<% end -%>

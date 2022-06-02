@@ -28,11 +28,11 @@ class FormTagHelperTest < ActionView::TestCase
 
     (+"").tap do |txt|
       if enforce_utf8
-        txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
+        txt << %{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off" />}
       end
 
       if method && !%w(get post).include?(method.to_s)
-        txt << %{<input name="_method" type="hidden" value="#{method}" />}
+        txt << %{<input name="_method" type="hidden" value="#{method}" autocomplete="off" />}
       end
     end
   end
@@ -42,7 +42,7 @@ class FormTagHelperTest < ActionView::TestCase
 
     method = method.to_s == "get" ? "get" : "post"
 
-    txt =  +%{<form accept-charset="UTF-8" action="#{action}"}
+    txt =  +%{<form accept-charset="UTF-8"} + (action ? %{ action="#{action}"} : "")
     txt << %{ enctype="multipart/form-data"} if enctype
     txt << %{ data-remote="true"} if remote
     txt << %{ class="#{html_class}"} if html_class
@@ -138,6 +138,20 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_form_tag_with_false_url_for_options
+    actual = form_tag(false)
+
+    expected = whole_form(false)
+    assert_dom_equal expected, actual
+  end
+
+  def test_form_tag_with_false_action
+    actual = form_tag({}, action: false)
+
+    expected = whole_form(false)
+    assert_dom_equal expected, actual
+  end
+
   def test_form_tag_enforce_utf8_true
     actual = form_tag({}, { enforce_utf8: true })
     expected = whole_form("http://www.example.com", enforce_utf8: true)
@@ -187,9 +201,93 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_field_id_without_suffixes_or_index
+    value = field_id(:post, :title)
+
+    assert_equal "post_title", value
+  end
+
+  def test_field_id_with_suffixes
+    value = field_id(:post, :title, :error)
+
+    assert_equal "post_title_error", value
+  end
+
+  def test_field_id_with_suffixes_and_index
+    value = field_id(:post, :title, :error, index: 1)
+
+    assert_equal "post_1_title_error", value
+  end
+
+  def test_field_id_with_nested_object_name
+    value = field_id("post[author]", :name)
+
+    assert_equal "post_author_name", value
+  end
+
+  def test_field_name_without_object_name
+    value = field_name("", :title)
+
+    assert_equal "title", value
+  end
+
+  def test_field_name_without_object_name_and_multiple
+    value = field_name("", :title, multiple: true)
+
+    assert_equal "title[]", value
+  end
+
+  def test_field_name_without_method_names_or_multiple_or_index
+    value = field_name(:post, :title)
+
+    assert_equal "post[title]", value
+  end
+
+  def test_field_name_without_method_names_and_multiple
+    value = field_name(:post, :title, multiple: true)
+
+    assert_equal "post[title][]", value
+  end
+
+  def test_field_name_without_method_names_and_index
+    value = field_name(:post, :title, index: 1)
+
+    assert_equal "post[1][title]", value
+  end
+
+  def test_field_name_without_method_names_and_index_and_multiple
+    value = field_name(:post, :title, index: 1, multiple: true)
+
+    assert_equal "post[1][title][]", value
+  end
+
+  def test_field_name_with_method_names
+    value = field_name(:post, :title, :subtitle)
+
+    assert_equal "post[title][subtitle]", value
+  end
+
+  def test_field_name_with_method_names_and_index
+    value = field_name(:post, :title, :subtitle, index: 1)
+
+    assert_equal "post[1][title][subtitle]", value
+  end
+
+  def test_field_name_with_method_names_and_multiple
+    value = field_name(:post, :title, :subtitle, multiple: true)
+
+    assert_equal "post[title][subtitle][]", value
+  end
+
+  def test_field_name_with_method_names_and_multiple_and_index
+    value = field_name(:post, :title, :subtitle, index: 1, multiple: true)
+
+    assert_equal "post[1][title][subtitle][]", value
+  end
+
   def test_hidden_field_tag
     actual = hidden_field_tag "id", 3
-    expected = %(<input id="id" name="id" type="hidden" value="3" />)
+    expected = %(<input id="id" name="id" type="hidden" value="3" autocomplete="off" />)
     assert_dom_equal expected, actual
   end
 
@@ -533,6 +631,16 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(
       %(<input name='commit' type="submit" value="Save" />),
       submit_tag("Save")
+    )
+  ensure
+    ActionView::Base.automatically_disable_submit_tag = true
+  end
+
+  def test_empty_submit_tag_with_opt_out_and_explicit_disabling
+    ActionView::Base.automatically_disable_submit_tag = false
+    assert_dom_equal(
+      %(<input name='commit' type="submit" value="Save" />),
+      submit_tag("Save", data: { disable_with: false })
     )
   ensure
     ActionView::Base.automatically_disable_submit_tag = true

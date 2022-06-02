@@ -1,83 +1,134 @@
-*  Deprecate `Rails::DBConsole#config`
+*   Avoid booting in development then test for test tasks.
 
-  `Rails::DBConsole#config` is deprecated without replacement. Use `Rails::DBConsole.db_config.configuration_hash` instead.
-
-    *Eileen M. Uchitelle*, *John Crepezzi*
-
-* `Rails.application.config_for` merges shared configuration deeply.
-
-    ```yaml
-    # config/example.yml
-    shared:
-      foo:
-        bar:
-          baz: 1
-    development:
-      foo:
-        bar:
-          qux: 2
-    ```
-
-    ```ruby
-    # Previously
-    Rails.application.config_for(:example)[:foo][:bar] #=> { qux: 2 }
-
-    # Now
-    Rails.application.config_for(:example)[:foo][:bar] #=> { baz: 1, qux: 2 }
-    ```
-
-    *Yuhei Kiriyama*
-
-*   Remove access to values in nested hashes returned by `Rails.application.config_for` via String keys.
-
-    ```yaml
-    # config/example.yml
-    development:
-      options:
-        key: value
-    ```
-
-    ```ruby
-    Rails.application.config_for(:example).options
-    ```
-
-    This used to return a Hash on which you could access values with String keys. This was deprecated in 6.0, and now doesn't work anymore.
+    Running one of the rails test subtasks (e.g. test:system, test:models) would
+    go through Rake and cause the app to be booted twice. Now all the test:*
+    subtasks are defined as Thor tasks and directly load the test environment.
 
     *Étienne Barrié*
 
-*   Configuration files for environments (`config/environments/*.rb`) are
-    now able to modify `autoload_paths`, `autoload_once_paths`, and
-    `eager_load_paths`.
+*   Deprecate `Rails::Generators::Testing::Behaviour` in favor of `Rails::Generators::Testing::Behavior`.
 
-    As a consequence, applications cannnot autoload within those files. Before, they technnically could, but changes in autoloaded classes or modules had no effect anyway in the configuration because reloading does not reboot.
+    *Gannon McGibbon*
 
-    Ways to use application code in these files:
+*   Allow configuration of logger size for local and test environments
 
-    * Define early in the boot process a class that is not reloadable, from which the application takes configuration values that get passed to the framework.
+    `config.log_file_size`
 
-        ```ruby
-        # In config/application.rb, for example.
-        require "#{Rails.root}/lib/my_app/config"
+    Defaults to `100` megabytes.
 
-        # In config/environments/development.rb, for example.
-        config.foo = MyApp::Config.foo
-        ```
+    *Bernie Chiu*
 
-    * If the class has to be reloadable, then wrap the configuration code in a `to_prepare` block:
+*   Enroll new apps in decrypted diffs of credentials by default.  This behavior
+    can be opted out of with the app generator's `--skip-decrypted-diffs` flag.
 
-        ```ruby
-        config.to_prepare do
-          config.foo = MyModel.foo
-        end
-        ```
+    *Jonathan Hefner*
 
-      That assigns the latest `MyModel.foo` to `config.foo` when the application boots, and each time there is a reload. But whether that has an effect or not depends on the configuration point, since it is not uncommon for engines to read the application configuration during initialization and set their own state from them. That process happens only on boot, not on reloads, and if that is how `config.foo` worked, resetting it would have no effect in the state of the engine.
+*   Support declarative-style test name filters with `bin/rails test`.
 
-    *Allen Hsu* & *Xavier Noria*
+    This makes it possible to run a declarative-style test such as:
 
-*   Support using environment variable to set pidfile.
+    ```ruby
+    class MyTest < ActiveSupport::TestCase
+      test "does something" do
+        # ...
+      end
+    end
+    ```
 
-    *Ben Thorner*
+    Using its declared name:
 
+    ```bash
+    $ bin/rails test test/my_test.rb -n "does something"
+    ```
 
-Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/railties/CHANGELOG.md) for previous changes.
+    Instead of having to specify its expanded method name:
+
+    ```bash
+    $ bin/rails test test/my_test.rb -n test_does_something
+    ```
+
+    *Jonathan Hefner*
+
+*   Add `--js` and `--skip-javascript` options to `rails new`
+
+    `--js` alias to `rails new --javascript ...`
+
+    Same as `-j`, e.g. `rails new --js esbuild ...`
+
+    `--skip-js` alias to `rails new --skip-javascript ...`
+
+    Same as `-J`, e.g. `rails new --skip-js ...`
+
+    *Dorian Marié*
+
+*   Allow relative paths with leading dot slash to be passed to `rails test`.
+
+    Fix `rails test ./test/model/post_test.rb` to run a single test file.
+
+    *Shouichi Kamiya* and *oljfte*
+
+*   Deprecate `config.enable_dependency_loading`. This flag addressed a limitation of the `classic` autoloader and has no effect nowadays. To fix this deprecation, please just delete the reference.
+
+    *Xavier Noria*
+
+*   Define `config.enable_reloading` to be `!config.cache_classes` for a more intuitive name. While `config.enable_reloading` and `config.reloading_enabled?` are preferred from now on, `config.cache_classes` is supported for backwards compatibility.
+
+    *Xavier Noria*
+
+*   Add JavaScript dependencies installation on bin/setup
+
+    Add  `yarn install` to bin/setup when using esbuild, webpack, or rollout.
+
+    *Carlos Ribeiro*
+
+*   Use `controller_class_path` in `Rails::Generators::NamedBase#route_url`
+
+    The `route_url` method now returns the correct path when generating
+    a namespaced controller with a top-level model using `--model-name`.
+
+    Previously, when running this command:
+
+    ``` sh
+    bin/rails generate scaffold_controller Admin/Post --model-name Post
+    ```
+
+    the comments above the controller action would look like:
+
+    ``` ruby
+    # GET /posts
+    def index
+      @posts = Post.all
+    end
+    ```
+
+    afterwards, they now look like this:
+
+    ``` ruby
+    # GET /admin/posts
+    def index
+      @posts = Post.all
+    end
+    ```
+
+    Fixes #44662.
+
+    *Andrew White*
+
+*   No longer add autoloaded paths to `$LOAD_PATH`.
+
+    This means it won't be possible to load them with a manual `require` call, the class or module can be referenced instead.
+
+    Reducing the size of `$LOAD_PATH` speed-up `require` calls for apps not using `bootsnap`, and reduce the
+    size of the `bootsnap` cache for the others.
+
+    *Jean Boussier*
+
+*   Remove default `X-Download-Options` header
+
+    This header is currently only used by Internet Explorer which
+    will be discontinued in 2022 and since Rails 7 does not fully
+    support Internet Explorer this header should not be a default one.
+
+    *Harun Sabljaković*
+
+Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/railties/CHANGELOG.md) for previous changes.

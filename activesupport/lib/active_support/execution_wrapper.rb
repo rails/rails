@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/error_reporter"
 require "active_support/callbacks"
 require "concurrent/hash"
 
@@ -63,18 +64,21 @@ module ActiveSupport
     # after the work has been performed.
     #
     # Where possible, prefer +wrap+.
-    def self.run!
-      if active?
-        Null
+    def self.run!(reset: false)
+      if reset
+        lost_instance = IsolatedExecutionState.delete(active_key)
+        lost_instance&.complete!
       else
-        new.tap do |instance|
-          success = nil
-          begin
-            instance.run!
-            success = true
-          ensure
-            instance.complete! unless success
-          end
+        return Null if active?
+      end
+
+      new.tap do |instance|
+        success = nil
+        begin
+          instance.run!
+          success = true
+        ensure
+          instance.complete! unless success
         end
       end
     end
@@ -86,28 +90,42 @@ module ActiveSupport
       instance = run!
       begin
         yield
+      rescue => error
+        error_reporter.report(error, handled: false, source: "unhandled_error.active_support")
+        raise
       ensure
         instance.complete!
       end
     end
 
-    class << self # :nodoc:
-      attr_accessor :active
+    def self.perform # :nodoc:
+      instance = new
+      instance.run
+      begin
+        yield
+      ensure
+        instance.complete
+      end
     end
 
-    def self.inherited(other) # :nodoc:
-      super
-      other.active = Concurrent::Hash.new
+    def self.error_reporter
+      @error_reporter ||= ActiveSupport::ErrorReporter.new
     end
 
-    self.active = Concurrent::Hash.new
+    def self.active_key # :nodoc:
+      @active_key ||= :"active_execution_wrapper_#{object_id}"
+    end
 
     def self.active? # :nodoc:
-      @active[Thread.current]
+      IsolatedExecutionState.key?(active_key)
     end
 
     def run! # :nodoc:
-      self.class.active[Thread.current] = true
+      IsolatedExecutionState[self.class.active_key] = self
+      run
+    end
+
+    def run # :nodoc:
       run_callbacks(:run)
     end
 
@@ -116,9 +134,13 @@ module ActiveSupport
     #
     # Where possible, prefer +wrap+.
     def complete!
-      run_callbacks(:complete)
+      complete
     ensure
-      self.class.active.delete Thread.current
+      IsolatedExecutionState.delete(self.class.active_key)
+    end
+
+    def complete # :nodoc:
+      run_callbacks(:complete)
     end
 
     private

@@ -138,6 +138,14 @@ class IntegrationTestTest < ActiveSupport::TestCase
     assert_not session1.equal?(session2)
   end
 
+  def test_child_session_assertions_bubble_up_to_root
+    assertions_before = @test.assertions
+    @test.open_session.assert(true)
+    assertions_after = @test.assertions
+
+    assert_equal 1, assertions_after - assertions_before
+  end
+
   # RSpec mixes Matchers (which has a #method_missing) into
   # IntegrationTest's superclass.  Make sure IntegrationTest does not
   # try to delegate these methods to the session object.
@@ -162,9 +170,10 @@ end
 class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
   def test_integration_methods_called
     reset!
+    headers = { "Origin" => "*" }
 
-    %w( get post head patch put delete ).each do |verb|
-      assert_nothing_raised { __send__(verb, "/") }
+    %w( get post head patch put delete options ).each do |verb|
+      assert_nothing_raised { __send__(verb, "/", headers: headers) }
     end
   end
 end
@@ -224,6 +233,10 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
     def redirect_307
       redirect_to action_url("post"), status: 307
+    end
+
+    def redirect_308
+      redirect_to action_url("post"), status: 308
     end
 
     def remove_header
@@ -336,7 +349,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response 302
       assert_response :redirect
       assert_response :found
-      assert_equal "<html><body>You are being <a href=\"http://www.example.com/get\">redirected</a>.</body></html>", response.body
+      assert_equal "", response.body
       assert_kind_of Nokogiri::HTML::Document, html_document
       assert_equal 1, request_count
 
@@ -354,6 +367,15 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       post "/redirect_307"
       assert_equal 307, status
+      follow_redirect!
+      assert_equal "POST", request.method
+    end
+  end
+
+  def test_308_redirect_uses_the_same_http_verb
+    with_test_route_set do
+      post "/redirect_308"
+      assert_equal 308, status
       follow_redirect!
       assert_equal "POST", request.method
     end
@@ -696,6 +718,12 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
 end
 
 class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
+  class MetalController < ActionController::Metal
+    def new
+      self.status = 200
+    end
+  end
+
   class TestController < ActionController::Base
     def index
       render plain: "index"
@@ -725,6 +753,8 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
 
   routes.draw do
     get "",    to: "application_integration_test/test#index", as: :empty_string
+
+    get "metal", to: "application_integration_test/metal#new", as: :new_metal
 
     get "foo", to: "application_integration_test/test#index", as: :foo
     get "bar", to: "application_integration_test/test#index", as: :bar
@@ -763,6 +793,11 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
 
     get "/bar"
     assert_equal "/bar", bar_path
+  end
+
+  test "route helpers after metal controller access" do
+    get "/metal"
+    assert_equal "/foo?q=solution", foo_path(q: "solution")
   end
 
   test "missing route helper before controller access" do
@@ -812,6 +847,30 @@ class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal "cjolly", request.filtered_parameters["username"]
     assert_equal "[FILTERED]", request.filtered_parameters["password"]
     assert_equal "[FILTERED]", request.filtered_env["rack.request.form_vars"]
+  end
+end
+
+class ControllerWithHeadersMethodIntegrationTest < ActionDispatch::IntegrationTest
+  class TestController < ActionController::Base
+    def index
+      render plain: "ok"
+    end
+
+    def headers
+      {}.freeze
+    end
+  end
+
+  test "doesn't call controller's headers method" do
+    with_routing do |routes|
+      routes.draw do
+        get "/ok" => "controller_with_headers_method_integration_test/test#index"
+      end
+
+      get "/ok"
+
+      assert_response 200
+    end
   end
 end
 
@@ -1183,7 +1242,7 @@ class IntegrationFileUploadTest < ActionDispatch::IntegrationTest
     self.class
   end
 
-  def self.fixture_path
+  def self.file_fixture_path
     File.expand_path("../fixtures/multipart", __dir__)
   end
 
@@ -1194,7 +1253,7 @@ class IntegrationFileUploadTest < ActionDispatch::IntegrationTest
   def test_fixture_file_upload
     post "/test_file_upload",
       params: {
-        file: fixture_file_upload("/ruby_on_rails.jpg", "image/jpg")
+        file: fixture_file_upload("/ruby_on_rails.jpg", "image/jpeg")
       }
     assert_equal "45142", @response.body
   end

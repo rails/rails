@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/core_ext/module/delegation"
 
 module Notifications
@@ -79,6 +79,32 @@ module Notifications
       assert_operator event.allocations, :>=, 100
     ensure
       ActiveSupport::Notifications.notifier = old_notifier
+    end
+
+    def test_subscribe_with_a_single_arity_lambda_listener
+      event_name = nil
+      listener = ->(event) do
+        event_name = event.name
+      end
+
+      @notifier.subscribe(&listener)
+      ActiveSupport::Notifications.instrument("event_name")
+
+      assert_equal "event_name", event_name
+    end
+
+    def test_subscribe_with_a_single_arity_callable_listener
+      event_name = nil
+      listener = Class.new do
+        define_method :call do |event|
+          event_name = event.name
+        end
+      end
+
+      @notifier.subscribe(nil, listener.new)
+      ActiveSupport::Notifications.instrument("event_name")
+
+      assert_equal "event_name", event_name
     end
   end
 
@@ -159,8 +185,10 @@ module Notifications
 
       ActiveSupport::Notifications.subscribe("foo", TestSubscriber.new)
 
-      ActiveSupport::Notifications.instrument("foo") do
-        ActiveSupport::Notifications.subscribe("foo") { }
+      assert_nothing_raised do
+        ActiveSupport::Notifications.instrument("foo") do
+          ActiveSupport::Notifications.subscribe("foo") { }
+        end
       end
     ensure
       ActiveSupport::Notifications.notifier = old_notifier
@@ -200,6 +228,13 @@ module Notifications
       ActiveSupport::Notifications.instrument(event_name)
 
       assert_equal [Float, Float], [class_of_started, class_of_finished]
+    end
+  end
+
+  class InspectTest < TestCase
+    def test_inspect_output_is_small
+      expected = "#<ActiveSupport::Notifications::Fanout (2 patterns)>"
+      assert_equal expected, @notifier.inspect
     end
   end
 
@@ -408,12 +443,11 @@ module Notifications
 
   class EventTest < TestCase
     def test_events_are_initialized_with_details
-      time = Time.now
+      time = Time.now.to_f
       event = event(:foo, time, time + 0.01, random_id, {})
 
       assert_equal :foo, event.name
-      assert_equal time, event.time
-      assert_in_delta 10.0, event.duration, 0.00001
+      assert_in_epsilon 10.0, event.duration, 0.01
     end
 
     def test_event_cpu_time_does_not_raise_error_when_start_or_finished_not_called
@@ -424,23 +458,19 @@ module Notifications
     end
 
     def test_events_consumes_information_given_as_payload
-      event = event(:foo, Concurrent.monotonic_time, Concurrent.monotonic_time + 1, random_id, payload: :bar)
+      event = event(:foo, Process.clock_gettime(Process::CLOCK_MONOTONIC), Process.clock_gettime(Process::CLOCK_MONOTONIC) + 1, random_id, payload: :bar)
       assert_equal Hash[payload: :bar], event.payload
     end
 
-    def test_event_is_parent_based_on_children
-      time = Concurrent.monotonic_time
+    def test_subscribe_raises_error_on_non_supported_arguments
+      notifier = ActiveSupport::Notifications::Fanout.new
 
-      parent    = event(:foo, Concurrent.monotonic_time, Concurrent.monotonic_time + 100, random_id, {})
-      child     = event(:foo, time, time + 10, random_id, {})
-      not_child = event(:foo, time, time + 100, random_id, {})
-
-      parent.children << child
-
-      assert parent.parent_of?(child)
-      assert_not child.parent_of?(parent)
-      assert_not parent.parent_of?(not_child)
-      assert_not not_child.parent_of?(parent)
+      assert_raises ArgumentError do
+        notifier.subscribe(:symbol) { |*_| }
+      end
+      assert_raises ArgumentError do
+        notifier.subscribe(Object.new) { |*_| }
+      end
     end
 
     private

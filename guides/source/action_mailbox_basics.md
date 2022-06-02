@@ -15,8 +15,8 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-Introduction
-------------
+What is Action Mailbox?
+-----------------------
 
 Action Mailbox routes incoming emails to controller-like mailboxes for
 processing in Rails. It ships with ingresses for Mailgun, Mandrill, Postmark,
@@ -37,8 +37,8 @@ with the rest of your domain model.
 Install migrations needed for `InboundEmail` and ensure Active Storage is set up:
 
 ```bash
-$ rails action_mailbox:install
-$ rails db:migrate
+$ bin/rails action_mailbox:install
+$ bin/rails db:migrate
 ```
 
 ## Configuration
@@ -54,7 +54,7 @@ config.action_mailbox.ingress = :relay
 
 Generate a strong password that Action Mailbox can use to authenticate requests to the relay ingress.
 
-Use `rails credentials:edit` to add the password to your application's encrypted credentials under
+Use `bin/rails credentials:edit` to add the password to your application's encrypted credentials under
 `action_mailbox.ingress_password`, where Action Mailbox will automatically find it:
 
 ```yaml
@@ -69,26 +69,26 @@ providing the `URL` of the relay ingress and the `INGRESS_PASSWORD` you
 previously generated. If your application lived at `https://example.com`, the
 full command would look like this:
 
-```shell
-bin/rails action_mailbox:ingress:exim URL=https://example.com/rails/action_mailbox/relay/inbound_emails INGRESS_PASSWORD=...
+```bash
+$ bin/rails action_mailbox:ingress:exim URL=https://example.com/rails/action_mailbox/relay/inbound_emails INGRESS_PASSWORD=...
 ```
 
 ### Mailgun
 
 Give Action Mailbox your
-[Mailgun API key](https://help.mailgun.com/hc/en-us/articles/203380100-Where-can-I-find-my-API-key-and-SMTP-credentials)
+Mailgun Signing key (which you can find under Settings -> Security & Users -> API security in Mailgun),
 so it can authenticate requests to the Mailgun ingress.
 
-Use `rails credentials:edit` to add your API key to your application's
-encrypted credentials under `action_mailbox.mailgun_api_key`,
+Use `bin/rails credentials:edit` to add your Signing key to your application's
+encrypted credentials under `action_mailbox.mailgun_signing_key`,
 where Action Mailbox will automatically find it:
 
 ```yaml
 action_mailbox:
-  mailgun_api_key: ...
+  mailgun_signing_key: ...
 ```
 
-Alternatively, provide your API key in the `MAILGUN_INGRESS_API_KEY` environment
+Alternatively, provide your Signing key in the `MAILGUN_INGRESS_SIGNING_KEY` environment
 variable.
 
 Tell Action Mailbox to accept emails from Mailgun:
@@ -105,10 +105,10 @@ fully-qualified URL `https://example.com/rails/action_mailbox/mailgun/inbound_em
 
 ### Mandrill
 
-Give Action Mailbox your Mandrill API key so it can authenticate requests to
+Give Action Mailbox your Mandrill API key, so it can authenticate requests to
 the Mandrill ingress.
 
-Use `rails credentials:edit` to add your API key to your application's
+Use `bin/rails credentials:edit` to add your API key to your application's
 encrypted credentials under `action_mailbox.mandrill_api_key`,
 where Action Mailbox will automatically find it:
 
@@ -143,7 +143,7 @@ config.action_mailbox.ingress = :relay
 
 Generate a strong password that Action Mailbox can use to authenticate requests to the relay ingress.
 
-Use `rails credentials:edit` to add the password to your application's encrypted credentials under
+Use `bin/rails credentials:edit` to add the password to your application's encrypted credentials under
 `action_mailbox.ingress_password`, where Action Mailbox will automatically find it:
 
 ```yaml
@@ -159,7 +159,7 @@ the `URL` of the Postfix ingress and the `INGRESS_PASSWORD` you previously
 generated. If your application lived at `https://example.com`, the full command
 would look like this:
 
-```shell
+```bash
 $ bin/rails action_mailbox:ingress:postfix URL=https://example.com/rails/action_mailbox/relay/inbound_emails INGRESS_PASSWORD=...
 ```
 
@@ -175,7 +175,7 @@ config.action_mailbox.ingress = :postmark
 Generate a strong password that Action Mailbox can use to authenticate
 requests to the Postmark ingress.
 
-Use `rails credentials:edit` to add the password to your application's
+Use `bin/rails credentials:edit` to add the password to your application's
 encrypted credentials under `action_mailbox.ingress_password`,
 where Action Mailbox will automatically find it:
 
@@ -210,7 +210,7 @@ config.action_mailbox.ingress = :relay
 
 Generate a strong password that Action Mailbox can use to authenticate requests to the relay ingress.
 
-Use `rails credentials:edit` to add the password to your application's encrypted credentials under
+Use `bin/rails credentials:edit` to add the password to your application's encrypted credentials under
 `action_mailbox.ingress_password`, where Action Mailbox will automatically find it:
 
 ```yaml
@@ -225,8 +225,8 @@ providing the `URL` of the relay ingress and the `INGRESS_PASSWORD` you
 previously generated. If your application lived at `https://example.com`, the
 full command would look like this:
 
-```shell
-bin/rails action_mailbox:ingress:qmail URL=https://example.com/rails/action_mailbox/relay/inbound_emails INGRESS_PASSWORD=...
+```bash
+$ bin/rails action_mailbox:ingress:qmail URL=https://example.com/rails/action_mailbox/relay/inbound_emails INGRESS_PASSWORD=...
 ```
 
 ### SendGrid
@@ -241,7 +241,7 @@ config.action_mailbox.ingress = :sendgrid
 Generate a strong password that Action Mailbox can use to authenticate
 requests to the SendGrid ingress.
 
-Use `rails credentials:edit` to add the password to your application's
+Use `bin/rails credentials:edit` to add the password to your application's
 encrypted credentials under `action_mailbox.ingress_password`,
 where Action Mailbox will automatically find it:
 
@@ -279,7 +279,7 @@ end
 
 Then set up a mailbox:
 
-```ruby
+```bash
 # Generate new mailbox
 $ bin/rails generate mailbox forwards
 ```
@@ -333,10 +333,12 @@ on your side of the application. The InboundEmail simply stays in the system
 for the extra time to provide debugging and forensics options.
 
 The actual incineration is done via the `IncinerationJob` that's scheduled
-to run after `config.action_mailbox.incinerate_after` time. This value is
+to run after [`config.action_mailbox.incinerate_after`][] time. This value is
 by default set to `30.days`, but you can change it in your production.rb
 configuration. (Note that this far-future incineration scheduling relies on
 your job queue being able to hold jobs for that long.)
+
+[`config.action_mailbox.incinerate_after`]: configuring.html#config-action-mailbox-incinerate-after
 
 ## Working with Action Mailbox in development
 
@@ -373,3 +375,5 @@ class ForwardsMailboxTest < ActionMailbox::TestCase
   end
 end
 ```
+
+Please refer to the [ActionMailbox::TestHelper API](https://api.rubyonrails.org/classes/ActionMailbox/TestHelper.html) for further test helper methods.

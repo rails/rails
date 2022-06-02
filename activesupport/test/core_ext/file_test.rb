@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/core_ext/file"
 
 class AtomicWriteTest < ActiveSupport::TestCase
@@ -83,9 +83,13 @@ class AtomicWriteTest < ActiveSupport::TestCase
     File.unlink(file_name) rescue nil
   end
 
+  def test_probe_stat_in_when_no_dir
+    assert_nil File.probe_stat_in("/dir/does/not/exist")
+  end
+
   private
     def file_name
-      "atomic.file"
+      "atomic-#{Process.pid}.file"
     end
 
     def file_mode

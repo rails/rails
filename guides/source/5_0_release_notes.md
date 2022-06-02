@@ -15,7 +15,7 @@ Highlights in Rails 5.0:
 * Ruby 2.2.2+ required
 
 These release notes cover only the major changes. To learn about various bug
-fixes and changes, please refer to the change logs or check out the [list of
+fixes and changes, please refer to the changelogs or check out the [list of
 commits](https://github.com/rails/rails/commits/5-0-stable) in the main Rails
 repository on GitHub.
 
@@ -56,7 +56,7 @@ information.
 
 Rails can now be used to create slimmed down API only applications.
 This is useful for creating and serving APIs similar to [Twitter](https://dev.twitter.com) or [GitHub](https://developer.github.com) API,
-that can be used to serve public facing, as well as, for custom applications.
+that can be used to serve public-facing, as well as, for custom applications.
 
 You can generate a new api Rails app using:
 
@@ -86,7 +86,7 @@ information.
 
 Defines an attribute with a type on a model. It will override the type of existing attributes if needed.
 This allows control over how values are converted to and from SQL when assigned to a model.
-It also changes the behavior of values passed to `ActiveRecord::Base.where`, which lets use our domain objects across much of Active Record,
+It also changes the behavior of values passed to `ActiveRecord::Base.where`, which let's use our domain objects across much of Active Record,
 without having to rely on implementation details or monkey patching.
 
 Some things that you can achieve with this:
@@ -96,17 +96,20 @@ Some things that you can achieve with this:
 - Attributes do not need to be backed by a database column.
 
 ```ruby
-
 # db/schema.rb
 create_table :store_listings, force: true do |t|
   t.decimal :price_in_cents
   t.string :my_string, default: "original default"
 end
+```
 
+```ruby
 # app/models/store_listing.rb
 class StoreListing < ActiveRecord::Base
 end
+```
 
+```ruby
 store_listing = StoreListing.new(price_in_cents: '10.1')
 
 # before
@@ -146,7 +149,7 @@ This gives the objects ability to specify, how to convert values when performing
 
 **Dirty Tracking:**
 
-The type of an attribute is given the opportunity to change how dirty
+The type of an attribute is allowed to change how dirty
 tracking is performed.
 
 See its
@@ -159,7 +162,7 @@ for a detailed write up.
 A new test runner has been introduced to enhance the capabilities of running tests from Rails.
 To use this test runner simply type `bin/rails test`.
 
-Test Runner is inspired from `RSpec`, `minitest-reporters`, `maxitest` and others.
+Test Runner is inspired by `RSpec`, `minitest-reporters`, `maxitest` and others.
 It includes some of these notable advancements:
 
 - Run a single test using line number of test.
@@ -251,7 +254,7 @@ Please refer to the [Changelog][railties] for detailed changes.
     using the environment variable `RAILS_LOG_TO_STDOUT`.
     ([Pull Request](https://github.com/rails/rails/pull/23734))
 
-*   Enable HSTS with IncludeSudomains header for new applications.
+*   Enable HSTS with IncludeSubdomains header for new applications.
     ([Pull Request](https://github.com/rails/rails/pull/23852))
 
 *   The application generator writes a new file `config/spring.rb`, which tells
@@ -394,7 +397,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Added the ability to override default form builder for a controller.
     ([Pull Request](https://github.com/rails/rails/pull/19736))
 
-*   Added support for API only apps.
+*   Added support for API-only apps.
     `ActionController::API` is added as a replacement of
     `ActionController::Base` for this kind of applications.
     ([Pull Request](https://github.com/rails/rails/pull/19832))

@@ -3,51 +3,223 @@
 module ActiveRecord
   module Associations
     class Preloader
-      class Association #:nodoc:
-        def initialize(klass, owners, reflection, preload_scope)
+      class Association # :nodoc:
+        class LoaderQuery
+          attr_reader :scope, :association_key_name
+
+          def initialize(scope, association_key_name)
+            @scope = scope
+            @association_key_name = association_key_name
+          end
+
+          def eql?(other)
+            association_key_name == other.association_key_name &&
+              scope.table_name == other.scope.table_name &&
+              scope.values_for_queries == other.scope.values_for_queries
+          end
+
+          def hash
+            [association_key_name, scope.table_name, scope.values_for_queries].hash
+          end
+
+          def records_for(loaders)
+            LoaderRecords.new(loaders, self).records
+          end
+
+          def load_records_in_batch(loaders)
+            raw_records = records_for(loaders)
+
+            loaders.each do |loader|
+              loader.load_records(raw_records)
+              loader.run
+            end
+          end
+
+          def load_records_for_keys(keys, &block)
+            scope.where(association_key_name => keys).load(&block)
+          end
+        end
+
+        class LoaderRecords
+          def initialize(loaders, loader_query)
+            @loader_query = loader_query
+            @loaders = loaders
+            @keys_to_load = Set.new
+            @already_loaded_records_by_key = {}
+
+            populate_keys_to_load_and_already_loaded_records
+          end
+
+          def records
+            load_records + already_loaded_records
+          end
+
+          private
+            attr_reader :loader_query, :loaders, :keys_to_load, :already_loaded_records_by_key
+
+            def populate_keys_to_load_and_already_loaded_records
+              loaders.each do |loader|
+                loader.owners_by_key.each do |key, owners|
+                  if loaded_owner = owners.find { |owner| loader.loaded?(owner) }
+                    already_loaded_records_by_key[key] = loader.target_for(loaded_owner)
+                  else
+                    keys_to_load << key
+                  end
+                end
+              end
+
+              @keys_to_load.subtract(already_loaded_records_by_key.keys)
+            end
+
+            def load_records
+              loader_query.load_records_for_keys(keys_to_load) do |record|
+                loaders.each { |l| l.set_inverse(record) }
+              end
+            end
+
+            def already_loaded_records
+              already_loaded_records_by_key.values.flatten
+            end
+        end
+
+        attr_reader :klass
+
+        def initialize(klass, owners, reflection, preload_scope, reflection_scope, associate_by_default)
           @klass         = klass
-          @owners        = owners
+          @owners        = owners.uniq(&:__id__)
           @reflection    = reflection
           @preload_scope = preload_scope
+          @reflection_scope = reflection_scope
+          @associate     = associate_by_default || !preload_scope || preload_scope.empty_scope?
           @model         = owners.first && owners.first.class
+          @run = false
+        end
+
+        def table_name
+          @klass.table_name
+        end
+
+        def future_classes
+          if run?
+            []
+          else
+            [@klass]
+          end
+        end
+
+        def runnable_loaders
+          [self]
+        end
+
+        def run?
+          @run
         end
 
         def run
-          if !preload_scope || preload_scope.empty_scope?
-            owners.each do |owner|
-              associate_records_to_owner(owner, records_by_owner[owner] || [])
-            end
-          else
-            # Custom preload scope is used and
-            # the association can not be marked as loaded
-            # Loading into a Hash instead
-            records_by_owner
-          end
+          return self if run?
+          @run = true
+
+          records = records_by_owner
+
+          owners.each do |owner|
+            associate_records_to_owner(owner, records[owner] || [])
+          end if @associate
+
           self
         end
 
         def records_by_owner
+          load_records unless defined?(@records_by_owner)
+
+          @records_by_owner
+        end
+
+        def preloaded_records
+          load_records unless defined?(@preloaded_records)
+
+          @preloaded_records
+        end
+
+        # The name of the key on the associated records
+        def association_key_name
+          reflection.join_primary_key(klass)
+        end
+
+        def loader_query
+          LoaderQuery.new(scope, association_key_name)
+        end
+
+        def owners_by_key
+          @owners_by_key ||= owners.each_with_object({}) do |owner, result|
+            key = convert_key(owner[owner_key_name])
+            (result[key] ||= []) << owner if key
+          end
+        end
+
+        def loaded?(owner)
+          owner.association(reflection.name).loaded?
+        end
+
+        def target_for(owner)
+          Array.wrap(owner.association(reflection.name).target)
+        end
+
+        def scope
+          @scope ||= build_scope
+        end
+
+        def set_inverse(record)
+          if owners = owners_by_key[convert_key(record[association_key_name])]
+            # Processing only the first owner
+            # because the record is modified but not an owner
+            association = owners.first.association(reflection.name)
+            association.set_inverse_instance(record)
+          end
+        end
+
+        def load_records(raw_records = nil)
           # owners can be duplicated when a relation has a collection association join
           # #compare_by_identity makes such owners different hash keys
-          @records_by_owner ||= preloaded_records.each_with_object({}.compare_by_identity) do |record, result|
-            owners_by_key[convert_key(record[association_key_name])].each do |owner|
-              (result[owner] ||= []) << record
+          @records_by_owner = {}.compare_by_identity
+          raw_records ||= loader_query.records_for([self])
+
+          @preloaded_records = raw_records.select do |record|
+            assignments = false
+
+            owners_by_key[convert_key(record[association_key_name])]&.each do |owner|
+              entries = (@records_by_owner[owner] ||= [])
+
+              if reflection.collection? || entries.empty?
+                entries << record
+                assignments = true
+              end
+            end
+
+            assignments
+          end
+        end
+
+        def associate_records_from_unscoped(unscoped_records)
+          return if unscoped_records.nil? || unscoped_records.empty?
+          return if !reflection_scope.empty_scope?
+          return if preload_scope && !preload_scope.empty_scope?
+          return if reflection.collection?
+
+          unscoped_records.select { |r| r[association_key_name].present? }.each do |record|
+            owners = owners_by_key[convert_key(record[association_key_name])]
+            owners&.each_with_index do |owner, i|
+              association = owner.association(reflection.name)
+              association.target = record
+
+              if i == 0 # Set inverse on first owner
+                association.set_inverse_instance(record)
+              end
             end
           end
         end
 
-        def preloaded_records
-          return @preloaded_records if defined?(@preloaded_records)
-          @preloaded_records = owner_keys.empty? ? [] : records_for(owner_keys)
-        end
-
         private
-          attr_reader :owners, :reflection, :preload_scope, :model, :klass
-
-          # The name of the key on the associated records
-          def association_key_name
-            reflection.join_primary_key(klass)
-          end
+          attr_reader :owners, :reflection, :preload_scope, :model
 
           # The name of the key on the model which declares the association
           def owner_key_name
@@ -55,22 +227,14 @@ module ActiveRecord
           end
 
           def associate_records_to_owner(owner, records)
+            return if loaded?(owner)
+
             association = owner.association(reflection.name)
+
             if reflection.collection?
               association.target = records
             else
               association.target = records.first
-            end
-          end
-
-          def owner_keys
-            @owner_keys ||= owners_by_key.keys
-          end
-
-          def owners_by_key
-            @owners_by_key ||= owners.each_with_object({}) do |owner, result|
-              key = convert_key(owner[owner_key_name])
-              (result[key] ||= []) << owner if key
             end
           end
 
@@ -98,22 +262,8 @@ module ActiveRecord
             @model.type_for_attribute(owner_key_name).type
           end
 
-          def records_for(ids)
-            scope.where(association_key_name => ids).load do |record|
-              # Processing only the first owner
-              # because the record is modified but not an owner
-              owner = owners_by_key[convert_key(record[association_key_name])].first
-              association = owner.association(reflection.name)
-              association.set_inverse_instance(record)
-            end
-          end
-
-          def scope
-            @scope ||= build_scope
-          end
-
           def reflection_scope
-            @reflection_scope ||= reflection.scope ? reflection.scope_for(klass.unscoped) : klass.unscoped
+            @reflection_scope ||= reflection.join_scopes(klass.arel_table, klass.predicate_builder, klass).inject(klass.unscoped, &:merge!)
           end
 
           def build_scope
@@ -123,9 +273,17 @@ module ActiveRecord
               scope.where!(reflection.type => model.polymorphic_name)
             end
 
-            scope.merge!(reflection_scope) if reflection.scope
-            scope.merge!(preload_scope) if preload_scope
-            scope
+            scope.merge!(reflection_scope) unless reflection_scope.empty_scope?
+
+            if preload_scope && !preload_scope.empty_scope?
+              scope.merge!(preload_scope)
+            end
+
+            cascade_strict_loading(scope)
+          end
+
+          def cascade_strict_loading(scope)
+            preload_scope&.strict_loading_value ? scope.strict_loading : scope
           end
       end
     end

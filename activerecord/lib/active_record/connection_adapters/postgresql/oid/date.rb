@@ -10,10 +10,18 @@ module ActiveRecord
             when "infinity" then ::Float::INFINITY
             when "-infinity" then -::Float::INFINITY
             when / BC$/
-              astronomical_year = format("%04d", -value[/^\d+/].to_i + 1)
-              super(value.sub(/ BC$/, "").sub(/^\d+/, astronomical_year))
+              value = value.sub(/^\d+/) { |year| format("%04d", -year.to_i + 1) }
+              super(value.delete_suffix!(" BC"))
             else
               super
+            end
+          end
+
+          def type_cast_for_schema(value)
+            case value
+            when ::Float::INFINITY then "::Float::INFINITY"
+            when -::Float::INFINITY then "-::Float::INFINITY"
+            else super
             end
           end
         end

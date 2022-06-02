@@ -6,52 +6,51 @@ module ActionDispatch
   module Journey # :nodoc:
     module GTG # :nodoc:
       class Builder # :nodoc:
-        DUMMY = Nodes::Dummy.new
+        DUMMY_END_NODE = Nodes::Dummy.new
 
         attr_reader :root, :ast, :endpoints
 
         def initialize(root)
           @root      = root
-          @ast       = Nodes::Cat.new root, DUMMY
-          @followpos = nil
+          @ast       = Nodes::Cat.new root, DUMMY_END_NODE
+          @followpos = build_followpos
         end
 
         def transition_table
           dtrans   = TransitionTable.new
-          marked   = {}
-          state_id = Hash.new { |h, k| h[k] = h.length }
+          marked   = {}.compare_by_identity
+          state_id = Hash.new { |h, k| h[k] = h.length }.compare_by_identity
+          dstates  = [firstpos(root)]
 
-          start   = firstpos(root)
-          dstates = [start]
           until dstates.empty?
             s = dstates.shift
             next if marked[s]
             marked[s] = true # mark s
 
             s.group_by { |state| symbol(state) }.each do |sym, ps|
-              u = ps.flat_map { |l| followpos(l) }
+              u = ps.flat_map { |l| @followpos[l] }.uniq
               next if u.empty?
 
-              if u.uniq == [DUMMY]
-                from = state_id[s]
-                to   = state_id[Object.new]
-                dtrans[from, to] = sym
+              from = state_id[s]
 
+              if u.all? { |pos| pos == DUMMY_END_NODE }
+                to = state_id[Object.new]
+                dtrans[from, to] = sym
                 dtrans.add_accepting(to)
+
                 ps.each { |state| dtrans.add_memo(to, state.memo) }
               else
-                dtrans[state_id[s], state_id[u]] = sym
+                to = state_id[u]
+                dtrans[from, to] = sym
 
-                if u.include?(DUMMY)
-                  to = state_id[u]
+                if u.include?(DUMMY_END_NODE)
+                  ps.each do |state|
+                    if @followpos[state].include?(DUMMY_END_NODE)
+                      dtrans.add_memo(to, state.memo)
+                    end
+                  end
 
-                  accepting = ps.find_all { |l| followpos(l).include?(DUMMY) }
-
-                  accepting.each { |accepting_state|
-                    dtrans.add_memo(to, accepting_state.memo)
-                  }
-
-                  dtrans.add_accepting(state_id[u])
+                  dtrans.add_accepting(to)
                 end
               end
 
@@ -67,7 +66,10 @@ module ActionDispatch
           when Nodes::Group
             true
           when Nodes::Star
-            true
+            # the default star regex is /(.+)/ which is NOT nullable
+            # but since different constraints can be provided we must
+            # actually check if this is the case or not.
+            node.regexp.match?("")
           when Nodes::Or
             node.children.any? { |c| nullable?(c) }
           when Nodes::Cat
@@ -92,7 +94,7 @@ module ActionDispatch
               firstpos(node.left)
             end
           when Nodes::Or
-            node.children.flat_map { |c| firstpos(c) }.uniq
+            node.children.flat_map { |c| firstpos(c) }.tap(&:uniq!)
           when Nodes::Unary
             firstpos(node.left)
           when Nodes::Terminal
@@ -105,9 +107,9 @@ module ActionDispatch
         def lastpos(node)
           case node
           when Nodes::Star
-            firstpos(node.left)
+            lastpos(node.left)
           when Nodes::Or
-            node.children.flat_map { |c| lastpos(c) }.uniq
+            node.children.flat_map { |c| lastpos(c) }.tap(&:uniq!)
           when Nodes::Cat
             if nullable?(node.right)
               lastpos(node.left) | lastpos(node.right)
@@ -123,26 +125,14 @@ module ActionDispatch
           end
         end
 
-        def followpos(node)
-          followpos_table[node]
-        end
-
         private
-          def followpos_table
-            @followpos ||= build_followpos
-          end
-
           def build_followpos
-            table = Hash.new { |h, k| h[k] = [] }
+            table = Hash.new { |h, k| h[k] = [] }.compare_by_identity
             @ast.each do |n|
               case n
               when Nodes::Cat
                 lastpos(n.left).each do |i|
                   table[i] += firstpos(n.right)
-                end
-              when Nodes::Star
-                lastpos(n).each do |i|
-                  table[i] += firstpos(n)
                 end
               end
             end
@@ -150,12 +140,7 @@ module ActionDispatch
           end
 
           def symbol(edge)
-            case edge
-            when Journey::Nodes::Symbol
-              edge.regexp
-            else
-              edge.left
-            end
+            edge.symbol? ? edge.regexp : edge.left
           end
       end
     end

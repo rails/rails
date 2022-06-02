@@ -1,211 +1,143 @@
-*   Add SameSite protection to every written cookie.
+*   Allow using `helper_method`s in `content_security_policy` and `permissions_policy`
 
-    Enabling `SameSite` cookie protection is an addition to CSRF protection,
-    where cookies won't be sent by browsers in cross-site POST requests when set to `:lax`.
-
-    `:strict` disables cookies being sent in cross-site GET or POST requests.
-
-    Passing `:none` disables this protection and is the same as previous versions albeit a `; SameSite=None` is appended to the cookie.
-
-    See upgrade instructions in config/initializers/new_framework_defaults_6_1.rb.
-
-    More info [here](https://tools.ietf.org/html/draft-west-first-party-cookies-07)
-
-    _NB: Technically already possible as Rack supports SameSite protection, this is to ensure it's applied to all cookies_
-
-    *Cédric Fabianski*
-
-*   Bring back the feature that allows loading external route files from the router.
-
-    This feature existed back in 2012 but got reverted with the incentive that
-    https://github.com/rails/routing_concerns was a better approach. Turned out
-    that this wasn't fully the case and loading external route files from the router
-    can be helpful for applications with a really large set of routes.
-    Without this feature, application needs to implement routes reloading
-    themselves and it's not straightforward.
+    Previously you could access basic helpers (defined in helper modules), but not
+    helper methods defined using `helper_method`. Now you can use either.
 
     ```ruby
-    # config/routes.rb
-
-    Rails.application.routes.draw do
-      draw(:admin)
+    content_security_policy do |p|
+      p.default_src "https://example.com"
+      p.script_src "https://example.com" if helpers.script_csp?
     end
-
-    # config/routes/admin.rb
-
-    get :foo, to: 'foo#bar'
     ```
 
-    *Yehuda Katz*, *Edouard Chin*
+    *Alex Ghiculescu*
 
-*   Fix system test driver option initialization for non-headless browsers.
+*   Reimplement `ActionController::Parameters#has_value?` and `#value?` to avoid parameters and hashes comparison.
 
-    *glaszig*
+    Deprecated equality between parameters and hashes is going to be removed in Rails 7.2.
+    The new implementation takes care of conversions.
 
-*   `redirect_to.action_controller` notifications now include the `ActionDispatch::Request` in
-    their payloads as `:request`.
+    *Seva Stefkin*
 
-    *Austin Story*
+*   Allow only String and Symbol keys in `ActionController::Parameters`.
+    Raise `ActionController::InvalidParameterKey` when initializing Parameters
+    with keys that aren't strings or symbols.
 
-*   `respond_to#any` no longer returns a response's Content-Type based on the
-    request format but based on the block given.
+    *Seva Stefkin*
 
-    Example:
+*   Add the ability to use custom logic for storing and retrieving CSRF tokens.
+
+    By default, the token will be stored in the session.  Custom classes can be
+    defined to specify arbitrary behavior, but the ability to store them in
+    encrypted cookies is built in.
+
+    *Andrew Kowpak*
+
+*   Make ActionController::Parameters#values cast nested hashes into parameters.
+
+    *Gannon McGibbon*
+
+*   Introduce `html:` and `screenshot:` kwargs for system test screenshot helper
+
+    Use these as an alternative to the already-available environment variables.
+
+    For example, this will display a screenshot in iTerm, save the HTML, and output
+    its path.
 
     ```ruby
-      def my_action
-        respond_to do |format|
-          format.any { render(json: { foo: 'bar' }) }
-        end
-      end
-
-      get('my_action.csv')
+    take_screenshot(html: true, screenshot: "inline")
     ```
 
-    The previous behaviour was to respond with a `text/csv` Content-Type which
-    is inaccurate since a JSON response is being rendered.
+    *Alex Ghiculescu*
 
-    Now it correctly returns a `application/json` Content-Type.
+*   Allow `ActionController::Parameters#to_h` to receive a block.
+
+    *Bob Farrell*
+
+*   Allow relative redirects when `raise_on_open_redirects` is enabled
+
+    *Tom Hughes*
+
+*   Allow Content Security Policy DSL to generate for API responses.
+
+    *Tim Wade*
+
+*   Fix `authenticate_with_http_basic` to allow for missing password.
+
+    Before Rails 7.0 it was possible to handle basic authentication with only a username.
+
+    ```ruby
+    authenticate_with_http_basic do |token, _|
+      ApiClient.authenticate(token)
+    end
+    ```
+
+    This ability is restored.
+
+    *Jean Boussier*
+
+*   Fix `content_security_policy` returning invalid directives.
+
+    Directives such as `self`, `unsafe-eval` and few others were not
+    single quoted when the directive was the result of calling a lambda
+    returning an array.
+
+    ```ruby
+    content_security_policy do |policy|
+      policy.frame_ancestors lambda { [:self, "https://example.com"] }
+    end
+    ```
+
+    With this fix the policy generated from above will now be valid.
 
     *Edouard Chin*
 
-*   Replaces (back)slashes in failure screenshot image paths with dashes.
+*   Fix `skip_forgery_protection` to run without raising an error if forgery
+    protection has not been enabled / `verify_authenticity_token` is not a
+    defined callback.
 
-    If a failed test case contained a slash or a backslash, a screenshot would be created in a
-    nested directory, causing issues with `tmp:clear`.
+    This fix prevents the Rails 7.0 Welcome Page (`/`) from raising an
+    `ArgumentError` if `default_protect_from_forgery` is false.
 
-    *Damir Zekic*
+    *Brad Trick*
 
-*   Add `params.member?` to mimic Hash behavior.
+*   Make `redirect_to` return an empty response body.
 
-    *Younes Serraj*
+    Application controllers that wish to add a response body after calling
+    `redirect_to` can continue to do so.
 
-*   `process_action.action_controller` notifications now include the following in their payloads:
+    *Jon Dufresne*
 
-    * `:request` - the `ActionDispatch::Request`
-    * `:response` - the `ActionDispatch::Response`
+*   Use non-capturing group for subdomain matching in `ActionDispatch::HostAuthorization`
 
-    *George Claghorn*
+    Since we do nothing with the captured subdomain group, we can use a non-capturing group instead.
 
-*   Updated `ActionDispatch::Request.remote_ip` setter to clear set the instance
-    `remote_ip` to `nil` before setting the header that the value is derived
-    from.
+    *Sam Bostock*
 
-    Fixes #37383.
+*   Fix `ActionController::Live` to copy the IsolatedExecutionState in the ephemeral thread.
 
-    *Norm Provost*
+    Since its inception `ActionController::Live` has been copying thread local variables
+    to keep things such as `CurrentAttributes` set from middlewares working in the controller action.
 
-*   `ActionController::Base.log_at` allows setting a different log level per request.
+    With the introduction of `IsolatedExecutionState` in 7.0, some of that global state was lost in
+    `ActionController::Live` controllers.
 
-    ```ruby
-    # Use the debug level if a particular cookie is set.
-    class ApplicationController < ActionController::Base
-      log_at :debug, if: -> { cookies[:debug] }
-    end
-    ```
+    *Jean Boussier*
 
-    *George Claghorn*
-
-*   Allow system test screen shots to be taken more than once in
-    a test by prefixing the file name with an incrementing counter.
-
-    Add an environment variable `RAILS_SYSTEM_TESTING_SCREENSHOT_HTML` to
-    enable saving of HTML during a screenshot in addition to the image.
-    This uses the same image name, with the extension replaced with `.html`
-
-    *Tom Fakes*
-
-*   Add `Vary: Accept` header when using `Accept` header for response
-
-    For some requests like `/users/1`, Rails uses requests' `Accept`
-    header to determine what to return. And if we don't add `Vary`
-    in the response header, browsers might accidentally cache different
-    types of content, which would cause issues: e.g. javascript got displayed
-    instead of html content. This PR fixes these issues by adding `Vary: Accept`
-    in these types of requests. For more detailed problem description, please read:
-
-    https://github.com/rails/rails/pull/36213
-
-    Fixes #25842.
-
-    *Stan Lo*
-
-*   Fix IntegrationTest `follow_redirect!` to follow redirection using the same HTTP verb when following
-    a 307 redirection.
-
-    *Edouard Chin*
-
-*   System tests require Capybara 3.26 or newer.
-
-    *George Claghorn*
-
-*   Reduced log noise handling ActionController::RoutingErrors.
-
-    *Alberto Fernández-Capel*
-
-*   Add DSL for configuring HTTP Feature Policy.
-
-    This new DSL provides a way to configure an HTTP Feature Policy at a
-    global or per-controller level. Full details of HTTP Feature Policy
-    specification and guidelines can be found at MDN:
-
-    https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy
-
-    Example global policy:
+*   Fix setting `trailing_slash: true` in route definition.
 
     ```ruby
-    Rails.application.config.feature_policy do |f|
-      f.camera      :none
-      f.gyroscope   :none
-      f.microphone  :none
-      f.usb         :none
-      f.fullscreen  :self
-      f.payment     :self, "https://secure.example.com"
-    end
+    get '/test' => "test#index", as: :test, trailing_slash: true
+
+    test_path() # => "/test/"
     ```
 
-    Example controller level policy:
+    *Jean Boussier*
 
-    ```ruby
-    class PagesController < ApplicationController
-      feature_policy do |p|
-        p.geolocation "https://example.com"
-      end
-    end
-    ```
+*   Make `Session#merge!` stringify keys.
 
-    *Jacob Bednarz*
+    Previously `Session#update` would, but `merge!` wouldn't.
 
-*   Add the ability to set the CSP nonce only to the specified directives.
+    *Drew Bragg*
 
-    Fixes #35137.
-
-    *Yuji Yaginuma*
-
-*   Keep part when scope option has value.
-
-    When a route was defined within an optional scope, if that route didn't
-    take parameters the scope was lost when using path helpers. This commit
-    ensures scope is kept both when the route takes parameters or when it
-    doesn't.
-
-    Fixes #33219.
-
-    *Alberto Almagro*
-
-*   Added `deep_transform_keys` and `deep_transform_keys!` methods to ActionController::Parameters.
-
-    *Gustavo Gutierrez*
-
-*   Calling `ActionController::Parameters#transform_keys`/`!` without a block now returns
-    an enumerator for the parameters instead of the underlying hash.
-
-    *Eugene Kenny*
-
-*   Fix strong parameters blocks all attributes even when only some keys are invalid (non-numerical).
-    It should only block invalid key's values instead.
-
-    *Stan Lo*
-
-
-Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/actionpack/CHANGELOG.md) for previous changes.
+Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/actionpack/CHANGELOG.md) for previous changes.

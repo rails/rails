@@ -33,19 +33,9 @@ module ActionDispatch
       def preload
         case type
         when :chrome
-          if ::Selenium::WebDriver::Service.respond_to? :driver_path=
-            ::Selenium::WebDriver::Chrome::Service.driver_path&.call
-          else
-            # Selenium <= v3.141.0
-            ::Selenium::WebDriver::Chrome.driver_path
-          end
+          ::Selenium::WebDriver::Chrome::Service.driver_path&.call
         when :firefox
-          if ::Selenium::WebDriver::Service.respond_to? :driver_path=
-            ::Selenium::WebDriver::Firefox::Service.driver_path&.call
-          else
-            # Selenium <= v3.141.0
-            ::Selenium::WebDriver::Firefox.driver_path
-          end
+          ::Selenium::WebDriver::Firefox::Service.driver_path&.call
         end
       end
 
@@ -71,14 +61,14 @@ module ActionDispatch
 
         def set_headless_chrome_browser_options
           configure do |capabilities|
-            capabilities.args << "--headless"
-            capabilities.args << "--disable-gpu" if Gem.win_platform?
+            capabilities.add_argument("--headless")
+            capabilities.add_argument("--disable-gpu") if Gem.win_platform?
           end
         end
 
         def set_headless_firefox_browser_options
           configure do |capabilities|
-            capabilities.args << "-headless"
+            capabilities.add_argument("-headless")
           end
         end
     end

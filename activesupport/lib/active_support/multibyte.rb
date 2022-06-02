@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module ActiveSupport #:nodoc:
+module ActiveSupport # :nodoc:
   module Multibyte
     autoload :Chars, "active_support/multibyte/chars"
     autoload :Unicode, "active_support/multibyte/unicode"

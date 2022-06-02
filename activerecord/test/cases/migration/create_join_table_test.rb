@@ -126,6 +126,13 @@ module ActiveRecord
         assert_not connection.table_exists?("catalog")
       end
 
+      def test_drop_join_table_with_drop_table_options
+        assert_not connection.table_exists?("artists_musics")
+        assert_nothing_raised do
+          connection.drop_join_table :artists, :musics, if_exists: true
+        end
+      end
+
       def test_drop_join_table_with_column_options
         connection.create_join_table :artists, :musics, column_options: { null: true }
         connection.drop_join_table :artists, :musics, column_options: { null: true }

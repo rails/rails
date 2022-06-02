@@ -140,12 +140,28 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     assert_not_equal "q1w2e3", ENV["PGPASSWORD"]
   end
 
+  def test_postgresql_with_ssl
+    start(adapter: "postgresql", database: "db", sslmode: "verify-full", sslcert: "client.crt", sslkey: "client.key", sslrootcert: "root.crt")
+    assert_not aborted
+    assert_equal ["psql", "db"], dbconsole.find_cmd_and_exec_args
+    assert_equal "verify-full", ENV["PGSSLMODE"]
+    assert_equal "client.crt", ENV["PGSSLCERT"]
+    assert_equal "client.key", ENV["PGSSLKEY"]
+    assert_equal "root.crt", ENV["PGSSLROOTCERT"]
+  end
+
   def test_postgresql_include_password
     start({ adapter: "postgresql", database: "db", username: "user", password: "q1w2e3" }, ["-p"])
     assert_not aborted
     assert_equal ["psql", "db"], dbconsole.find_cmd_and_exec_args
     assert_equal "user", ENV["PGUSER"]
     assert_equal "q1w2e3", ENV["PGPASSWORD"]
+  end
+
+  def test_postgresql_include_variables
+    start(adapter: "postgresql", database: "db", variables: { search_path: "my_schema, default, \\my_schema", statement_timeout: 5000, lock_timeout: ":default" })
+    assert_not aborted
+    assert_equal "-c search_path=my_schema,\\ default,\\ \\\\my_schema -c statement_timeout=5000", ENV["PGOPTIONS"]
   end
 
   def test_sqlite3
@@ -194,7 +210,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   def test_sqlserver
     start(adapter: "sqlserver", database: "db", username: "user", password: "secret", host: "localhost", port: 1433)
     assert_not aborted
-    assert_equal ["sqsh", "-D", "db", "-U", "user", "-P", "secret", "-S", "localhost:1433"], dbconsole.find_cmd_and_exec_args
+    assert_equal ["sqlcmd", "-d", "db", "-U", "user", "-P", "secret", "-S", "tcp:localhost,1433"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_unknown_command_line_client
@@ -226,6 +242,25 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     end
   end
 
+  def test_specifying_a_replica_database
+    options = {
+      database: "primary_replica",
+    }
+
+    sample_config = {
+      "test" => {
+        "primary" => {},
+        "primary_replica" => {
+          "replica" => true
+        }
+      }
+    }
+
+    app_db_config(sample_config) do
+      assert_equal "primary_replica", Rails::DBConsole.new(options).db_config.name
+    end
+  end
+
   def test_specifying_a_missing_database
     app_db_config({}) do
       e = assert_raises(ActiveRecord::AdapterNotSpecified) do
@@ -242,20 +277,8 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
         Rails::Command.invoke(:dbconsole)
       end
 
-      assert_includes e.message, "'primary' database is not configured for 'test'."
+      assert_includes e.message, "No databases are configured for 'test'."
     end
-  end
-
-  def test_connection_options_is_deprecate
-    command = Rails::Command::DbconsoleCommand.new([], ["-c", "custom"])
-    Rails::DBConsole.stub(:start, nil) do
-      assert_deprecated("`connection` option is deprecated") do
-        command.perform
-      end
-    end
-
-    assert_equal "custom", command.options["connection"]
-    assert_equal "custom", command.options["database"]
   end
 
   def test_print_help_short
@@ -276,10 +299,8 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   private :aborted, :output
 
   private
-    def app_db_config(results)
-      Rails.application.config.stub(:database_configuration, results || {}) do
-        yield
-      end
+    def app_db_config(results, &block)
+      Rails.application.config.stub(:database_configuration, results || {}, &block)
     end
 
     def make_dbconsole

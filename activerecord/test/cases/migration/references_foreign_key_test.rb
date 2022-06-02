@@ -169,18 +169,31 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           @connection.drop_table "testing", if_exists: true
         end
 
+        test "remove_reference responds to if_exists option" do
+          @connection.create_table :testings
+
+          assert_nothing_raised do
+            @connection.remove_reference :testings, :nonexistent, foreign_key: true, if_exists: true
+          end
+        end
+
+        test "add_reference responds to if_not_exists option" do
+          @connection.create_table :testings do |t|
+            t.references :testing, foreign_key: true
+          end
+
+          assert_nothing_raised do
+            @connection.add_reference :testings, :testing, foreign_key: true, if_not_exists: true
+          end
+        end
+
         class CreateDogsMigration < ActiveRecord::Migration::Current
-          def up
+          def change
             create_table :dog_owners
 
             create_table :dogs do |t|
               t.references :dog_owner, foreign_key: true
             end
-          end
-
-          def down
-            drop_table :dogs, if_exists: true
-            drop_table :dog_owners, if_exists: true
           end
         end
 
@@ -208,13 +221,15 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           @connection.create_table :testings do |t|
             t.references :parent1, foreign_key: { to_table: :testing_parents }
             t.references :parent2, foreign_key: { to_table: :testing_parents }
+            t.references :self_join, foreign_key: { to_table: :testings }
           end
 
           fks = @connection.foreign_keys("testings").sort_by(&:column)
 
           fk_definitions = fks.map { |fk| [fk.from_table, fk.to_table, fk.column] }
           assert_equal([["testings", "testing_parents", "parent1_id"],
-                        ["testings", "testing_parents", "parent2_id"]], fk_definitions)
+                        ["testings", "testing_parents", "parent2_id"],
+                        ["testings", "testings", "self_join_id"]], fk_definitions)
         end
 
         test "multiple foreign keys can be removed to the selected one" do

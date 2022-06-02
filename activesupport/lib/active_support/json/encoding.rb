@@ -18,12 +18,15 @@ module ActiveSupport
     #
     #   ActiveSupport::JSON.encode({ team: 'rails', players: '36' })
     #   # => "{\"team\":\"rails\",\"players\":\"36\"}"
-    def self.encode(value, options = nil)
-      Encoding.json_encoder.new(options).encode(value)
+    class << self
+      def encode(value, options = nil)
+        Encoding.json_encoder.new(options).encode(value)
+      end
+      alias_method :dump, :encode
     end
 
-    module Encoding #:nodoc:
-      class JSONGemEncoder #:nodoc:
+    module Encoding # :nodoc:
+      class JSONGemEncoder # :nodoc:
         attr_reader :options
 
         def initialize(options = nil)
@@ -51,7 +54,7 @@ module ActiveSupport
           ESCAPE_REGEX_WITHOUT_HTML_ENTITIES = /[\u2028\u2029]/u
 
           # This class wraps all the strings we see and does the extra escaping
-          class EscapedString < String #:nodoc:
+          class EscapedString < String # :nodoc:
             def to_json(*)
               if Encoding.escape_html_entities_in_json
                 s = super
@@ -93,7 +96,11 @@ module ActiveSupport
             when Numeric, NilClass, TrueClass, FalseClass
               value.as_json
             when Hash
-              Hash[value.map { |k, v| [jsonify(k), jsonify(v)] }]
+              result = {}
+              value.each do |k, v|
+                result[jsonify(k)] = jsonify(v)
+              end
+              result
             when Array
               value.map { |v| jsonify(v) }
             else

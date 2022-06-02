@@ -60,7 +60,7 @@ class Rails::Conductor::ActionMailbox::InboundEmailsControllerTest < ActionDispa
             to: "Replies <replies@example.com>",
             subject: "Let's debate some attachments",
             body: "Let's talk about these images:",
-            attachments: [ fixture_file_upload("files/avatar1.jpeg"), fixture_file_upload("files/avatar2.jpeg") ]
+            attachments: [ fixture_file_upload("avatar1.jpeg"), fixture_file_upload("avatar2.jpeg") ]
           }
         }
       end
@@ -69,6 +69,29 @@ class Rails::Conductor::ActionMailbox::InboundEmailsControllerTest < ActionDispa
       assert_equal "Let's talk about these images:", mail.text_part.decoded
       assert_equal 2, mail.attachments.count
       assert_equal %w[ avatar1.jpeg avatar2.jpeg ], mail.attachments.collect(&:filename)
+    end
+  end
+
+  test "create inbound email with empty attachment" do
+    with_rails_env("development") do
+      assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
+        post rails_conductor_inbound_emails_path, params: {
+          mail: {
+            from: "",
+            to: "",
+            cc: "",
+            bcc: "",
+            x_original_to: "",
+            subject: "",
+            in_reply_to: "",
+            body: "",
+            attachments: [ "" ],
+          }
+        }
+      end
+
+      mail = ActionMailbox::InboundEmail.last.mail
+      assert_equal 0, mail.attachments.count
     end
   end
 

@@ -57,10 +57,6 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     end
   end
 
-  def encode(text, charset = "UTF-8")
-    quoted_printable(text, charset)
-  end
-
   def new_mail(charset = "UTF-8")
     mail = Mail.new
     mail.mime_version = "1.0"

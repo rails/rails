@@ -3,11 +3,13 @@
 require "shellwords"
 require "method_source"
 require "rake/file_list"
+require "active_support"
 require "active_support/core_ext/module/attribute_accessors"
 
 module Rails
   module TestUnit
     class Runner
+      TEST_FOLDERS = [:models, :helpers, :channels, :controllers, :mailers, :integration, :jobs, :mailboxes]
       mattr_reader :filters, default: []
 
       class << self
@@ -30,9 +32,9 @@ module Rails
         end
 
         def rake_run(argv = [])
-          ARGV.replace Shellwords.split(ENV["TESTOPTS"] || "")
-
-          run(argv)
+          # Ensure the tests run during the Rake Task action, not when the process exits
+          success = system("rails", "test", *argv, *Shellwords.split(ENV["TESTOPTS"] || ""))
+          success || exit(false)
         end
 
         def run(argv = [])
@@ -42,15 +44,13 @@ module Rails
         end
 
         def load_tests(argv)
-          patterns = extract_filters(argv)
-
-          tests = Rake::FileList[patterns.any? ? patterns : "test/**/*_test.rb"]
-          tests.exclude("test/system/**/*", "test/dummy/**/*") if patterns.empty?
-
+          tests = list_tests(argv)
           tests.to_a.each { |path| require File.expand_path(path) }
         end
 
         def compose_filter(runnable, filter)
+          filter = escape_declarative_test_filter(filter)
+
           if filters.any? { |_, lines| lines.any? }
             CompositeFilter.new(runnable, filter, filters)
           else
@@ -61,7 +61,10 @@ module Rails
         private
           def extract_filters(argv)
             # Extract absolute and relative paths but skip -n /.*/ regexp filters.
-            argv.select { |arg| %r%^/?\w+/%.match?(arg) && !arg.end_with?("/") }.map do |path|
+            argv.filter_map do |path|
+              next unless path_argument?(path) && !regexp_filter?(path)
+
+              path = path.tr("\\", "/")
               case
               when /(:\d+)+$/.match?(path)
                 file, *lines = path.split(":")
@@ -74,6 +77,38 @@ module Rails
                 path
               end
             end
+          end
+
+          def default_test_glob
+            ENV["DEFAULT_TEST"] || "test/**/*_test.rb"
+          end
+
+          def default_test_exclude_glob
+            ENV["DEFAULT_TEST_EXCLUDE"] || "test/{system,dummy}/**/*_test.rb"
+          end
+
+          def regexp_filter?(arg)
+            arg.start_with?("/") && arg.end_with?("/")
+          end
+
+          def path_argument?(arg)
+            %r"^\.*[/\\]?\w+[/\\]".match?(arg)
+          end
+
+          def list_tests(argv)
+            patterns = extract_filters(argv)
+
+            tests = Rake::FileList[patterns.any? ? patterns : default_test_glob]
+            tests.exclude(default_test_exclude_glob) if patterns.empty?
+            tests
+          end
+
+          def escape_declarative_test_filter(filter)
+            if filter.is_a?(String) && !filter.start_with?("test_")
+              filter = "test_#{filter}" unless regexp_filter?(filter)
+              filter = filter.gsub(/\s+/, "_")
+            end
+            filter
           end
       end
     end

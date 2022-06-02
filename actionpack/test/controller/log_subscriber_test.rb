@@ -64,6 +64,10 @@ module Another
       render inline: "<%= cache_unless(true, 'foo') { 'bar' } %>"
     end
 
+    def with_throw
+      throw :halt
+    end
+
     def with_exception
       raise Exception
     end
@@ -121,6 +125,20 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_equal "Processing by Another::LogSubscribersController#show as HTML", logs.first
   end
 
+  def test_start_processing_as_json
+    get :show, format: "json"
+    wait
+    assert_equal 2, logs.size
+    assert_equal "Processing by Another::LogSubscribersController#show as JSON", logs.first
+  end
+
+  def test_start_processing_as_non_exten
+    get :show, format: "noext"
+    wait
+    assert_equal 2, logs.size
+    assert_equal "Processing by Another::LogSubscribersController#show as */*", logs.first
+  end
+
   def test_halted_callback
     get :never_executed
     wait
@@ -176,6 +194,14 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_match(/Completed 200 OK in \d+ms/, logs[1])
   end
 
+  def test_process_action_with_throw
+    catch(:halt) do
+      get :with_throw
+      wait
+    end
+    assert_match(/Completed   in \d+ms/, logs[1])
+  end
+
   def test_append_info_to_payload_is_called_even_with_exception
     begin
       get :with_exception
@@ -212,6 +238,7 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     assert_equal 3, logs.size
     assert_equal "Redirected to http://foo.bar/", logs[1]
+    assert_match(/Completed 302/, logs.last)
   end
 
   def test_filter_redirect_url_by_string

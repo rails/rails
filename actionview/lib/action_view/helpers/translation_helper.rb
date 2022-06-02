@@ -1,16 +1,18 @@
 # frozen_string_literal: true
 
 require "action_view/helpers/tag_helper"
-require "active_support/core_ext/string/access"
-require "i18n/exceptions"
+require "active_support/html_safe_translation"
 
 module ActionView
   # = Action View Translation Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     module TranslationHelper
       extend ActiveSupport::Concern
 
       include TagHelper
+
+      # Specify whether an error should be raised for missing translations
+      singleton_class.attr_accessor :raise_on_missing_translations
 
       included do
         mattr_accessor :debug_missing_translation, default: true
@@ -38,7 +40,7 @@ module ActionView
       #
       # If you would prefer missing translations to raise an error, you can
       # opt out of span-wrapping behavior globally by setting
-      # <tt>ActionView::Base.raise_on_missing_translations = true</tt> or
+      # <tt>config.i18n.raise_on_missing_translations = true</tt> or
       # individually by passing <tt>raise: true</tt> as an option to
       # <tt>translate</tt>.
       #
@@ -57,58 +59,53 @@ module ActionView
       # that include HTML tags so that you know what kind of output to expect
       # when you call translate in a template and translators know which keys
       # they can provide HTML values for.
-      def translate(key, options = {})
-        options = options.dup
-        if options.has_key?(:default)
-          remaining_defaults = Array.wrap(options.delete(:default)).compact
-          options[:default] = remaining_defaults unless remaining_defaults.first.kind_of?(Symbol)
+      #
+      # To access the translated text along with the fully resolved
+      # translation key, <tt>translate</tt> accepts a block:
+      #
+      #     <%= translate(".relative_key") do |translation, resolved_key| %>
+      #       <span title="<%= resolved_key %>"><%= translation %></span>
+      #     <% end %>
+      #
+      # This enables annotate translated text to be aware of the scope it was
+      # resolved against.
+      #
+      def translate(key, **options)
+        return key.map { |k| translate(k, **options) } if key.is_a?(Array)
+        key = key&.to_s unless key.is_a?(Symbol)
+
+        alternatives = if options.key?(:default)
+          options[:default].is_a?(Array) ? options.delete(:default).compact : [options.delete(:default)]
         end
 
-        # If the user has explicitly decided to NOT raise errors, pass that option to I18n.
-        # Otherwise, tell I18n to raise an exception, which we rescue further in this method.
-        # Note: `raise_error` refers to us re-raising the error in this method. I18n is forced to raise by default.
-        if options[:raise] == false
-          raise_error = false
-          i18n_raise = false
-        else
-          raise_error = options[:raise] || ActionView::Base.raise_on_missing_translations
-          i18n_raise = true
-        end
+        options[:raise] = true if options[:raise].nil? && TranslationHelper.raise_on_missing_translations
+        default = MISSING_TRANSLATION
 
-        if html_safe_translation_key?(key)
-          html_safe_options = options.dup
-          options.except(*I18n::RESERVED_KEYS).each do |name, value|
-            unless name == :count && value.is_a?(Numeric)
-              html_safe_options[name] = ERB::Util.html_escape(value.to_s)
-            end
-          end
-          translation = I18n.translate(scope_key_by_partial(key), **html_safe_options.merge(raise: i18n_raise))
-          if translation.respond_to?(:map)
-            translation.map { |element| element.respond_to?(:html_safe) ? element.html_safe : element }
-          else
-            translation.respond_to?(:html_safe) ? translation.html_safe : translation
-          end
-        else
-          I18n.translate(scope_key_by_partial(key), **options.merge(raise: i18n_raise))
-        end
-      rescue I18n::MissingTranslationData => e
-        if remaining_defaults.present?
-          translate remaining_defaults.shift, options.merge(default: remaining_defaults)
-        else
-          raise e if raise_error
-
-          keys = I18n.normalize_keys(e.locale, e.key, e.options[:scope])
-          title = +"translation missing: #{keys.join('.')}"
-
-          interpolations = options.except(:default, :scope)
-          if interpolations.any?
-            title << ", " << interpolations.map { |k, v| "#{k}: #{ERB::Util.html_escape(v)}" }.join(", ")
+        translation = while key || alternatives.present?
+          if alternatives.blank? && !options[:raise].nil?
+            default = NO_DEFAULT # let I18n handle missing translation
           end
 
-          return title unless ActionView::Base.debug_missing_translation
+          key = scope_key_by_partial(key)
 
-          content_tag("span", keys.last.to_s.titleize, class: "translation_missing", title: title)
+          translated = ActiveSupport::HtmlSafeTranslation.translate(key, **options, default: default)
+
+          break translated unless translated.equal?(MISSING_TRANSLATION)
+
+          if alternatives.present? && !alternatives.first.is_a?(Symbol)
+            break alternatives.first && I18n.translate(**options, default: alternatives)
+          end
+
+          first_key ||= key
+          key = alternatives&.shift
         end
+
+        if key.nil? && !first_key.nil?
+          translation = missing_translation(first_key, options)
+          key = first_key
+        end
+
+        block_given? ? yield(translation, key) : translation
       end
       alias :t :translate
 
@@ -116,19 +113,24 @@ module ActionView
       #
       # See https://www.rubydoc.info/github/svenfuchs/i18n/master/I18n/Backend/Base:localize
       # for more information.
-      def localize(*args)
-        I18n.localize(*args)
+      def localize(object, **options)
+        I18n.localize(object, **options)
       end
       alias :l :localize
 
       private
+        MISSING_TRANSLATION = Object.new
+        private_constant :MISSING_TRANSLATION
+
+        NO_DEFAULT = [].freeze
+        private_constant :NO_DEFAULT
+
         def scope_key_by_partial(key)
-          stringified_key = key.to_s
-          if stringified_key.first == "."
+          if key&.start_with?(".")
             if @virtual_path
               @_scope_key_by_partial_cache ||= {}
               @_scope_key_by_partial_cache[@virtual_path] ||= @virtual_path.gsub(%r{/_?}, ".")
-              "#{@_scope_key_by_partial_cache[@virtual_path]}#{stringified_key}"
+              "#{@_scope_key_by_partial_cache[@virtual_path]}#{key}"
             else
               raise "Cannot use t(#{key.inspect}) shortcut because path is not available"
             end
@@ -137,8 +139,22 @@ module ActionView
           end
         end
 
-        def html_safe_translation_key?(key)
-          /(?:_|\b)html\z/.match?(key.to_s)
+        def missing_translation(key, options)
+          keys = I18n.normalize_keys(options[:locale] || I18n.locale, key, options[:scope])
+
+          title = +"translation missing: #{keys.join(".")}"
+
+          options.each do |name, value|
+            unless name == :scope
+              title << ", " << name.to_s << ": " << ERB::Util.html_escape(value)
+            end
+          end
+
+          if ActionView::Base.debug_missing_translation
+            content_tag("span", keys.last.to_s.titleize, class: "translation_missing", title: title)
+          else
+            title
+          end
         end
     end
   end

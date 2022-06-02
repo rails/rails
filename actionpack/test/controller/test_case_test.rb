@@ -7,6 +7,7 @@ require "rails/engine"
 
 class TestCaseTest < ActionController::TestCase
   def self.fixture_path; end
+  self.file_fixture_path = File.expand_path("../fixtures/multipart", __dir__)
 
   class TestController < ActionController::Base
     def no_op
@@ -164,6 +165,12 @@ XML
       raise "boom!"
     end
 
+    def increment_count
+      @counter ||= 0
+      @counter += 1
+      render plain: @counter
+    end
+
     private
       def generate_url(opts)
         url_for(opts.merge(action: "test_uri"))
@@ -245,7 +252,6 @@ XML
 
     assert_equal JSON.parse(@response.body)["foo"], "bar"
   end
-
 
   def test_body_stream
     params = Hash[:page, { name: "page name" }, "some key", 123]
@@ -596,14 +602,26 @@ XML
     post :render_body, params: { bool_value: true, str_value: "string", num_value: 2 }, as: :json
 
     assert_equal "application/json", @request.headers["CONTENT_TYPE"]
-    assert_equal true, @request.request_parameters[:bool_value]
-    assert_equal "string", @request.request_parameters[:str_value]
-    assert_equal 2, @request.request_parameters[:num_value]
+    assert_equal true, @request.request_parameters["bool_value"]
+    assert_equal "string", @request.request_parameters["str_value"]
+    assert_equal 2, @request.request_parameters["num_value"]
   end
 
   def test_using_as_json_sets_format_json
     post :render_body, params: { bool_value: true, str_value: "string", num_value: 2 }, as: :json
     assert_equal "json", @request.format
+  end
+
+  def test_using_as_json_with_empty_params
+    post :test_params, params: { foo: { bar: [] } }, as: :json
+
+    assert_equal({ "bar" => [] }, JSON.load(response.body)["foo"])
+  end
+
+  def test_using_as_json_with_path_parameters
+    post :test_params, params: { id: "12345" }, as: :json
+
+    assert_equal("12345", @request.path_parameters[:id])
   end
 
   def test_mutating_content_type_headers_for_plain_text_files_sets_the_header
@@ -871,13 +889,6 @@ XML
     assert_equal new_content_type, file.content_type
   end
 
-  def test_fixture_path_is_accessed_from_self_instead_of_active_support_test_case
-    TestCaseTest.stub :fixture_path, FILES_DIR do
-      uploaded_file = fixture_file_upload("/ruby_on_rails.jpg", "image/png")
-      assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
-    end
-  end
-
   def test_test_uploaded_file_with_binary
     filename = "ruby_on_rails.jpg"
     path = "#{FILES_DIR}/#{filename}"
@@ -893,7 +904,7 @@ XML
   def test_fixture_file_upload_with_binary
     filename = "ruby_on_rails.jpg"
     path = "#{FILES_DIR}/#{filename}"
-    content_type = "image/jpg"
+    content_type = "image/jpeg"
 
     binary_file_upload = fixture_file_upload(path, content_type, :binary)
     assert_equal File.open(path, READ_BINARY).read, binary_file_upload.read
@@ -903,34 +914,27 @@ XML
   end
 
   def test_fixture_file_upload_should_be_able_access_to_tempfile
-    file = fixture_file_upload(FILES_DIR + "/ruby_on_rails.jpg", "image/jpg")
+    file = fixture_file_upload(FILES_DIR + "/ruby_on_rails.jpg", "image/jpeg")
     assert_respond_to file, :tempfile
   end
 
   def test_fixture_file_upload
     post :test_file_upload,
       params: {
-        file: fixture_file_upload(FILES_DIR + "/ruby_on_rails.jpg", "image/jpg")
+        file: fixture_file_upload(FILES_DIR + "/ruby_on_rails.jpg", "image/jpeg")
       }
     assert_equal "45142", @response.body
   end
 
-  def test_fixture_file_upload_relative_to_fixture_path
-    TestCaseTest.stub :fixture_path, FILES_DIR do
-      uploaded_file = fixture_file_upload("ruby_on_rails.jpg", "image/jpg")
-      assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
-    end
-  end
-
   def test_fixture_file_upload_ignores_fixture_path_given_full_path
     TestCaseTest.stub :fixture_path, __dir__ do
-      uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpg")
+      uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpeg")
       assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
     end
   end
 
   def test_fixture_file_upload_ignores_nil_fixture_path
-    uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpg")
+    uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpeg")
     assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
   end
 
@@ -938,7 +942,7 @@ XML
     filename = "ruby_on_rails.jpg"
     path = "#{FILES_DIR}/#{filename}"
     post :test_file_upload, params: {
-      file: Rack::Test::UploadedFile.new(path, "image/jpg", true)
+      file: Rack::Test::UploadedFile.new(path, "image/jpeg", true)
     }
     assert_equal "45142", @response.body
   end
@@ -989,6 +993,56 @@ XML
   def test_parsed_body_with_as_option
     post :render_json, body: { foo: "heyo" }.to_json, as: :json
     assert_equal({ "foo" => "heyo" }, response.parsed_body)
+  end
+
+  def test_reset_instance_variables_after_each_request
+    get :increment_count
+    assert_equal "1", response.body
+
+    get :increment_count
+    assert_equal "1", response.body
+  end
+
+  def test_can_read_instance_variables_before_and_after_request
+    silence_warnings do
+      assert_nil @controller.instance_variable_get(:@counter)
+    end
+
+    get :increment_count
+    assert_equal "1", response.body
+    assert_equal 1, @controller.instance_variable_get(:@counter)
+
+    get :increment_count
+    assert_equal "1", response.body
+    assert_equal 1, @controller.instance_variable_get(:@counter)
+  end
+
+  def test_ivars_are_not_reset_if_they_are_given_a_value_before_any_requests
+    @controller.instance_variable_set(:@counter, 3)
+
+    get :increment_count
+    assert_equal "4", response.body
+    assert_equal 4, @controller.instance_variable_get(:@counter)
+
+    get :increment_count
+    assert_equal "5", response.body
+    assert_equal 5, @controller.instance_variable_get(:@counter)
+
+    get :increment_count
+    assert_equal "6", response.body
+    assert_equal 6, @controller.instance_variable_get(:@counter)
+  end
+
+  def test_ivars_are_reset_if_they_are_given_a_value_after_some_requests
+    get :increment_count
+    assert_equal "1", response.body
+    assert_equal 1, @controller.instance_variable_get(:@counter)
+
+    @controller.instance_variable_set(:@counter, 3)
+
+    get :increment_count
+    assert_equal "1", response.body
+    assert_equal 1, @controller.instance_variable_get(:@counter)
   end
 end
 
@@ -1105,7 +1159,7 @@ class InferringClassNameTest < ActionController::TestCase
     end
 end
 
-class CrazyNameTest < ActionController::TestCase
+class ManuallySetNameTest < ActionController::TestCase
   tests ContentController
 
   def test_controller_class_can_be_set_manually_not_just_inferred
@@ -1113,7 +1167,7 @@ class CrazyNameTest < ActionController::TestCase
   end
 end
 
-class CrazySymbolNameTest < ActionController::TestCase
+class ManuallySetSymbolNameTest < ActionController::TestCase
   tests :content
 
   def test_set_controller_class_using_symbol
@@ -1121,7 +1175,7 @@ class CrazySymbolNameTest < ActionController::TestCase
   end
 end
 
-class CrazyStringNameTest < ActionController::TestCase
+class ManuallySetStringNameTest < ActionController::TestCase
   tests "content"
 
   def test_set_controller_class_using_string

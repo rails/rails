@@ -9,7 +9,7 @@ module ActiveModel
       end
 
       def validate_each(record, attribute, value)
-        unless (confirmed = record.send("#{attribute}_confirmation")).nil?
+        unless (confirmed = record.public_send("#{attribute}_confirmation")).nil?
           unless confirmation_value_equal?(record, attribute, value, confirmed)
             human_attribute_name = record.class.human_attribute_name(attribute)
             record.errors.add(:"#{attribute}_confirmation", :confirmation, **options.except(:case_sensitive).merge!(attribute: human_attribute_name))
@@ -19,13 +19,13 @@ module ActiveModel
 
       private
         def setup!(klass)
-          klass.attr_reader(*attributes.map do |attribute|
+          klass.attr_reader(*attributes.filter_map do |attribute|
             :"#{attribute}_confirmation" unless klass.method_defined?(:"#{attribute}_confirmation")
-          end.compact)
+          end)
 
-          klass.attr_writer(*attributes.map do |attribute|
+          klass.attr_writer(*attributes.filter_map do |attribute|
             :"#{attribute}_confirmation" unless klass.method_defined?(:"#{attribute}_confirmation=")
-          end.compact)
+          end)
         end
 
         def confirmation_value_equal?(record, attribute, value, confirmed)
@@ -71,7 +71,7 @@ module ActiveModel
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.
-      # See <tt>ActiveModel::Validations#validates</tt> for more information
+      # See ActiveModel::Validations::ClassMethods#validates for more information.
       def validates_confirmation_of(*attr_names)
         validates_with ConfirmationValidator, _merge_attributes(attr_names)
       end

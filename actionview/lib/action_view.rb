@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2019 David Heinemeier Hansson
+# Copyright (c) 2004-2022 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -44,6 +44,8 @@ module ActionView
     autoload :Rendering
     autoload :RoutingUrlFor
     autoload :Template
+    autoload :TemplateDetails
+    autoload :TemplatePath
     autoload :UnboundTemplate
     autoload :ViewPaths
 
@@ -51,15 +53,15 @@ module ActionView
       autoload :Renderer
       autoload :AbstractRenderer
       autoload :PartialRenderer
+      autoload :CollectionRenderer
+      autoload :ObjectRenderer
       autoload :TemplateRenderer
       autoload :StreamingTemplateRenderer
     end
 
     autoload_at "action_view/template/resolver" do
       autoload :Resolver
-      autoload :PathResolver
-      autoload :OptimizedFileSystemResolver
-      autoload :FallbackFileSystemResolver
+      autoload :FileSystemResolver
     end
 
     autoload_at "action_view/buffers" do

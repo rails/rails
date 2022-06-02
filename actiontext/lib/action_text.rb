@@ -13,9 +13,12 @@ module ActionText
   autoload :Attachment
   autoload :Attribute
   autoload :Content
+  autoload :Encryption
   autoload :Fragment
+  autoload :FixtureSet
   autoload :HtmlConversion
   autoload :PlainTextConversion
+  autoload :Rendering
   autoload :Serialization
   autoload :TrixAttachment
 

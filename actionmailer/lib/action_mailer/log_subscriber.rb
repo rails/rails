@@ -20,12 +20,6 @@ module ActionMailer
       debug { event.payload[:mail] }
     end
 
-    # An email was received.
-    def receive(event)
-      info { "Received mail (#{event.duration.round(1)}ms)" }
-      debug { event.payload[:mail] }
-    end
-
     # An email was generated.
     def process(event)
       debug do

@@ -51,16 +51,16 @@ module ActiveModel
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
-      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
+      # * <tt>:if</tt> - Specifies a method, proc, or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>).
-      #   The method, proc or string should return or evaluate to a +true+ or
+      #   The method, proc, or string should return or evaluate to a +true+ or
       #   +false+ value.
-      # * <tt>:unless</tt> - Specifies a method, proc or string to call to
+      # * <tt>:unless</tt> - Specifies a method, proc, or string to call to
       #   determine if the validation should not occur
       #   (e.g. <tt>unless: :skip_validation</tt>, or
       #   <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>).
-      #   The method, proc or string should return or evaluate to a +true+ or
+      #   The method, proc, or string should return or evaluate to a +true+ or
       #   +false+ value.
       # * <tt>:strict</tt> - Specifies whether validation should be strict.
       #   See <tt>ActiveModel::Validations#validates!</tt> for more information.
@@ -83,7 +83,7 @@ module ActiveModel
         options[:class] = self
 
         args.each do |klass|
-          validator = klass.new(options, &block)
+          validator = klass.new(options.dup, &block)
 
           if validator.respond_to?(:attributes) && !validator.attributes.empty?
             validator.attributes.each do |attribute|
@@ -139,7 +139,7 @@ module ActiveModel
       options[:class] = self.class
 
       args.each do |klass|
-        validator = klass.new(options, &block)
+        validator = klass.new(options.dup, &block)
         validator.validate(self)
       end
     end

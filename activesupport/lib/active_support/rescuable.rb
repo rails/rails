@@ -14,12 +14,12 @@ module ActiveSupport
     end
 
     module ClassMethods
-      # Rescue exceptions raised in controller actions.
+      # Registers exception classes with a handler to be called by <tt>rescue_with_handler</tt>.
       #
       # <tt>rescue_from</tt> receives a series of exception classes or class
-      # names, and a trailing <tt>:with</tt> option with the name of a method
-      # or a Proc object to be called to handle them. Alternatively a block can
-      # be given.
+      # names, and an exception handler specified by a trailing <tt>:with</tt>
+      # option containing the name of a method or a Proc object. Alternatively, a block
+      # can be given as the handler.
       #
       # Handlers that take one argument will be called with the exception, so
       # that the exception can be inspected when dealing with it.
@@ -74,7 +74,7 @@ module ActiveSupport
       # Matches an exception to a handler based on the exception class.
       #
       # If no handler matches the exception, check for a handler matching the
-      # (optional) exception.cause. If no handler matches the exception or its
+      # (optional) +exception.cause+. If no handler matches the exception or its
       # cause, this returns +nil+, so you can deal with unhandled exceptions.
       # Be sure to re-raise unhandled exceptions if this is what you expect.
       #
@@ -100,7 +100,7 @@ module ActiveSupport
         end
       end
 
-      def handler_for_rescue(exception, object: self) #:nodoc:
+      def handler_for_rescue(exception, object: self) # :nodoc:
         case rescuer = find_rescue_handler(exception)
         when Symbol
           method = object.method(rescuer)
@@ -160,14 +160,14 @@ module ActiveSupport
     end
 
     # Delegates to the class method, but uses the instance as the subject for
-    # rescue_from handlers (method calls, instance_exec blocks).
+    # rescue_from handlers (method calls, +instance_exec+ blocks).
     def rescue_with_handler(exception)
       self.class.rescue_with_handler exception, object: self
     end
 
     # Internal handler lookup. Delegates to class method. Some libraries call
     # this directly, so keeping it around for compatibility.
-    def handler_for_rescue(exception) #:nodoc:
+    def handler_for_rescue(exception) # :nodoc:
       self.class.handler_for_rescue exception, object: self
     end
   end

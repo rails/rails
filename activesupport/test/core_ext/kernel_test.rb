@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/core_ext/kernel"
 
 class KernelTest < ActiveSupport::TestCase
@@ -45,9 +45,11 @@ class KernelSuppressTest < ActiveSupport::TestCase
   end
 
   def test_suppression
-    suppress(ArgumentError) { raise ArgumentError }
-    suppress(LoadError) { raise LoadError }
-    suppress(LoadError, ArgumentError) { raise LoadError }
-    suppress(LoadError, ArgumentError) { raise ArgumentError }
+    assert_nothing_raised do
+      suppress(ArgumentError) { raise ArgumentError }
+      suppress(LoadError) { raise LoadError }
+      suppress(LoadError, ArgumentError) { raise LoadError }
+      suppress(LoadError, ArgumentError) { raise ArgumentError }
+    end
   end
 end

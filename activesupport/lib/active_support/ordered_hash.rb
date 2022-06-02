@@ -17,11 +17,11 @@ module ActiveSupport
   #
   # Also, maps the +omap+ feature for YAML files
   # (See https://yaml.org/type/omap.html) to support ordered items
-  # when loading from yaml.
+  # when loading from YAML.
   #
   # <tt>ActiveSupport::OrderedHash</tt> is namespaced to prevent conflicts
   # with other implementations.
-  class OrderedHash < ::Hash
+  class OrderedHash < ::Hash # :nodoc:
     def to_yaml_type
       "!tag:yaml.org,2002:omap"
     end

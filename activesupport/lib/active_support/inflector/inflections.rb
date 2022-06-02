@@ -16,13 +16,13 @@ module ActiveSupport
     #     inflect.plural /^(ox)$/i, '\1\2en'
     #     inflect.singular /^(ox)en/i, '\1'
     #
-    #     inflect.irregular 'octopus', 'octopi'
+    #     inflect.irregular 'cactus', 'cacti'
     #
     #     inflect.uncountable 'equipment'
     #   end
     #
     # New rules are added at the top. So in the example above, the irregular
-    # rule for octopus will now be the first of the pluralization and
+    # rule for cactus will now be the first of the pluralization and
     # singularization rules that is runs. This guarantees that your rules run
     # before any of the rules that may already have been loaded.
     class Inflections
@@ -64,6 +64,13 @@ module ActiveSupport
         @__instance__[locale] ||= new
       end
 
+      def self.instance_or_fallback(locale)
+        I18n.fallbacks[locale].each do |k|
+          return @__instance__[k] if @__instance__.key?(k)
+        end
+        instance(locale)
+      end
+
       attr_reader :plurals, :singulars, :uncountables, :humans, :acronyms
 
       attr_reader :acronyms_camelize_regex, :acronyms_underscore_regex # :nodoc:
@@ -76,7 +83,7 @@ module ActiveSupport
       # Private, for the test suite.
       def initialize_dup(orig) # :nodoc:
         %w(plurals singulars uncountables humans acronyms).each do |scope|
-          instance_variable_set("@#{scope}", orig.send(scope).dup)
+          instance_variable_set("@#{scope}", orig.public_send(scope).dup)
         end
         define_acronym_regex_patterns
       end
@@ -160,7 +167,7 @@ module ActiveSupport
       # regular expressions. You simply pass the irregular in singular and
       # plural form.
       #
-      #   irregular 'octopus', 'octopi'
+      #   irregular 'cactus', 'cacti'
       #   irregular 'person', 'people'
       def irregular(singular, plural)
         @uncountables.delete(singular)
@@ -215,15 +222,24 @@ module ActiveSupport
       # Clears the loaded inflections within a given scope (default is
       # <tt>:all</tt>). Give the scope as a symbol of the inflection type, the
       # options are: <tt>:plurals</tt>, <tt>:singulars</tt>, <tt>:uncountables</tt>,
-      # <tt>:humans</tt>.
+      # <tt>:humans</tt>, <tt>:acronyms</tt>.
       #
       #   clear :all
       #   clear :plurals
       def clear(scope = :all)
         case scope
         when :all
-          @plurals, @singulars, @uncountables, @humans = [], [], Uncountables.new, []
-        else
+          clear(:acronyms)
+          clear(:plurals)
+          clear(:singulars)
+          clear(:uncountables)
+          clear(:humans)
+        when :acronyms
+          @acronyms = {}
+          define_acronym_regex_patterns
+        when :uncountables
+          @uncountables = Uncountables.new
+        when :plurals, :singulars, :humans
           instance_variable_set "@#{scope}", []
         end
       end
@@ -248,7 +264,7 @@ module ActiveSupport
       if block_given?
         yield Inflections.instance(locale)
       else
-        Inflections.instance(locale)
+        Inflections.instance_or_fallback(locale)
       end
     end
   end

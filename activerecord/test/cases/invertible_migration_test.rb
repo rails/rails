@@ -18,6 +18,16 @@ module ActiveRecord
         create_table("horses") do |t|
           t.column :content, :text
           t.column :remind_at, :datetime
+          t.column :place_id, :integer
+        end
+      end
+    end
+
+    class InvertibleChangeTableMigration < SilentMigration
+      def change
+        change_table("horses") do |t|
+          t.column :name, :string
+          t.remove :remind_at, type: :datetime
         end
       end
     end
@@ -77,6 +87,7 @@ module ActiveRecord
           t.column :name, :string
           t.column :color, :string
           t.index [:name, :color]
+          t.index [:color]
         end
       end
     end
@@ -85,6 +96,7 @@ module ActiveRecord
       def change
         change_table("horses") do |t|
           t.remove_index [:name, :color]
+          t.remove_index [:color] if t.index_exists?(:color)
         end
       end
     end
@@ -187,6 +199,12 @@ module ActiveRecord
       end
     end
 
+    class RevertNonNamedExpressionIndexMigration < SilentMigration
+      def change
+        add_index :horses, "remind_at, place_id"
+      end
+    end
+
     class RevertCustomForeignKeyTable < SilentMigration
       def change
         change_table(:horses) do |t|
@@ -262,6 +280,15 @@ module ActiveRecord
       assert migration.connection.table_exists?("horses")
       migration.migrate :down
       assert_not migration.connection.table_exists?("horses")
+    end
+
+    def test_migrate_revert_change_table
+      InvertibleMigration.new.migrate :up
+      migration = InvertibleChangeTableMigration.new
+      migration.migrate :up
+      assert_not migration.connection.column_exists?(:horses, :remind_at)
+      migration.migrate :down
+      assert migration.connection.column_exists?(:horses, :remind_at)
     end
 
     def test_migrate_revert_by_part
@@ -465,6 +492,20 @@ module ActiveRecord
       end
     end
 
+    def test_migrate_revert_add_index_without_name_on_expression
+      InvertibleMigration.new.migrate(:up)
+      RevertNonNamedExpressionIndexMigration.new.migrate(:up)
+
+      connection = ActiveRecord::Base.connection
+      assert connection.index_exists?(:horses, [:remind_at, :place_id]),
+             "index on remind_at and place_id should exist"
+
+      RevertNonNamedExpressionIndexMigration.new.migrate(:down)
+
+      assert_not connection.index_exists?(:horses, [:remind_at, :place_id]),
+             "index on remind_at and place_id should not exist"
+    end
+
     def test_up_only
       InvertibleMigration.new.migrate(:up)
       horse1 = Horse.create
@@ -474,8 +515,8 @@ module ActiveRecord
       horse1.reload
       horse2 = Horse.create
 
-      assert 1, horse1.oldie # created before migration
-      assert 0, horse2.oldie # created after migration
+      assert_equal 1, horse1.oldie # created before migration
+      assert_equal 0, horse2.oldie # created after migration
 
       UpOnlyMigration.new.migrate(:down) # should be no error
       connection = ActiveRecord::Base.connection

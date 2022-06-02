@@ -194,6 +194,75 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
     assert_filtered_out permitted[:book][:authors_attributes]["-1"], :age_of_death
   end
 
+  test "nested params with numeric keys addressing individual numeric keys" do
+    params = ActionController::Parameters.new(
+      book: {
+        authors_attributes: {
+          '0': { name: "William Shakespeare", age_of_death: "52" },
+          '1': { name: "Unattributed Assistant" },
+          '2': { name: %w(injected names) }
+        }
+      })
+    permitted = params.permit book: { authors_attributes: { '1': [ :name ], '0': [ :name, :age_of_death ] } }
+
+    assert_equal(
+      { "book" => { "authors_attributes" => { "0" => { "name" => "William Shakespeare", "age_of_death" => "52" }, "1" => { "name" => "Unattributed Assistant" } } } },
+      permitted.to_h
+    )
+  end
+
+  test "nested params with numeric keys addressing individual numeric keys using require first" do
+    params = ActionController::Parameters.new(
+      book: {
+        authors_attributes: {
+          '0': { name: "William Shakespeare", age_of_death: "52" },
+          '1': { name: "Unattributed Assistant" },
+          '2': { name: %w(injected names) }
+        }
+      })
+
+    permitted = params.require(:book).permit(authors_attributes: { '1': [:name] })
+
+    assert_equal(
+      { "authors_attributes" => { "1" => { "name" => "Unattributed Assistant" } } },
+      permitted.to_h
+    )
+  end
+
+  test "nested params with numeric keys addressing individual numeric keys to arrays" do
+    params = ActionController::Parameters.new(
+      book: {
+        authors_attributes: {
+          '0': ["draft 1", "draft 2", "draft 3"],
+          '1': ["final draft"],
+          '2': { name: %w(injected names) }
+        }
+      })
+    permitted = params.permit book: { authors_attributes: { '2': [ :name ], '0': [] } }
+
+    assert_equal(
+      { "book" => { "authors_attributes" => { "2" => {}, "0" => ["draft 1", "draft 2", "draft 3"] } } },
+      permitted.to_h
+    )
+  end
+
+  test "nested params with numeric keys addressing individual numeric keys to more nested params" do
+    params = ActionController::Parameters.new(
+      book: {
+        authors_attributes: {
+          '0': ["draft 1", "draft 2", "draft 3"],
+          '1': ["final draft"],
+          '2': { name: { "projects" => [ "hamlet", "Othello" ] } }
+        }
+      })
+    permitted = params.permit book: { authors_attributes: { '2': { name: { projects: [] } }, '0': [] } }
+
+    assert_equal(
+      { "book" => { "authors_attributes" => { "2" => { "name" => { "projects" => ["hamlet", "Othello"] } }, "0" => ["draft 1", "draft 2", "draft 3"] } } },
+      permitted.to_h
+    )
+  end
+
   test "nested number as key" do
     params = ActionController::Parameters.new(
       product: {

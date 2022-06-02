@@ -782,11 +782,11 @@ class ResourcesTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :products do
-           resources :product_reviews, path: "reviews", controller: "messages"
-         end
+          resources :product_reviews, path: "reviews", controller: "messages"
+        end
         resources :tutors do
-           resources :tutor_reviews, path: "reviews", controller: "comments"
-         end
+          resources :tutor_reviews, path: "reviews", controller: "comments"
+        end
       end
 
       assert_simply_restful_for :product_reviews, controller: "messages", as: "reviews", name_prefix: "product_", path_prefix: "products/1/", options: { product_id: "1" }
@@ -1124,7 +1124,7 @@ class ResourcesTest < ActionController::TestCase
               if collection_methods
                 collection do
                   collection_methods.each do |name, method|
-                    send(method, name)
+                    public_send(method, name)
                   end
                 end
               end
@@ -1132,7 +1132,7 @@ class ResourcesTest < ActionController::TestCase
               if member_methods
                 member do
                   member_methods.each do |name, method|
-                    send(method, name)
+                    public_send(method, name)
                   end
                 end
               end
@@ -1326,7 +1326,7 @@ class ResourcesTest < ActionController::TestCase
     end
 
     def assert_named_route(expected, route, options)
-      actual = @controller.send(route, options) rescue $!.class.name
+      actual = @controller.public_send(route, options) rescue $!.class.name
       assert_equal expected, actual, "Error on route: #{route}(#{options.inspect})"
     end
 

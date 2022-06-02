@@ -26,10 +26,8 @@ module ActionController
     included do
       class_attribute :etag_with_template_digest, default: true
 
-      ActiveSupport.on_load :action_view, yield: true do
-        etag do |options|
-          determine_template_etag(options) if etag_with_template_digest
-        end
+      etag do |options|
+        determine_template_etag(options) if etag_with_template_digest
       end
     end
 
@@ -46,7 +44,7 @@ module ActionController
       # template digest from the ETag.
       def pick_template_for_etag(options)
         unless options[:template] == false
-          options[:template] || "#{controller_path}/#{action_name}"
+          options[:template] || lookup_context.find_all(action_name, _prefixes).first&.virtual_path
         end
       end
 

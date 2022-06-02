@@ -8,8 +8,6 @@ require "mysql2"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
-    ER_BAD_DB_ERROR = 1049
-
     # Establishes a connection to the database that's used by all Active Record objects.
     def mysql2_connection(config)
       config = config.symbolize_keys
@@ -21,27 +19,46 @@ module ActiveRecord
         config[:flags] |= Mysql2::Client::FOUND_ROWS
       end
 
-      client = Mysql2::Client.new(config)
-      ConnectionAdapters::Mysql2Adapter.new(client, logger, nil, config)
-    rescue Mysql2::Error => error
-      if error.error_number == ER_BAD_DB_ERROR
-        raise ActiveRecord::NoDatabaseError
-      else
-        raise
-      end
+      ConnectionAdapters::Mysql2Adapter.new(
+        ConnectionAdapters::Mysql2Adapter.new_client(config),
+        logger,
+        nil,
+        config,
+      )
     end
   end
 
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
+      ER_BAD_DB_ERROR        = 1049
+      ER_ACCESS_DENIED_ERROR = 1045
+      ER_CONN_HOST_ERROR     = 2003
+      ER_UNKNOWN_HOST_ERROR  = 2005
+
       ADAPTER_NAME = "Mysql2"
 
       include MySQL::DatabaseStatements
 
+      class << self
+        def new_client(config)
+          Mysql2::Client.new(config)
+        rescue Mysql2::Error => error
+          if error.error_number == ConnectionAdapters::Mysql2Adapter::ER_BAD_DB_ERROR
+            raise ActiveRecord::NoDatabaseError.db_error(config[:database])
+          elsif error.error_number == ConnectionAdapters::Mysql2Adapter::ER_ACCESS_DENIED_ERROR
+            raise ActiveRecord::DatabaseConnectionError.username_error(config[:username])
+          elsif [ConnectionAdapters::Mysql2Adapter::ER_CONN_HOST_ERROR, ConnectionAdapters::Mysql2Adapter::ER_UNKNOWN_HOST_ERROR].include?(error.error_number)
+            raise ActiveRecord::DatabaseConnectionError.hostname_error(config[:host])
+          else
+            raise ActiveRecord::ConnectionNotEstablished, error.message
+          end
+        end
+      end
+
       def initialize(connection, logger, connection_options, config)
+        check_prepared_statements_deprecation(config)
         superclass_config = config.reverse_merge(prepared_statements: false)
         super(connection, logger, connection_options, superclass_config)
-        configure_connection
       end
 
       def self.database_exists?(config)
@@ -66,17 +83,19 @@ module ActiveRecord
         true
       end
 
+      def savepoint_errors_invalidate_transactions?
+        true
+      end
+
       def supports_lazy_transactions?
         true
       end
 
       # HELPER METHODS ===========================================
 
-      def each_hash(result) # :nodoc:
+      def each_hash(result, &block) # :nodoc:
         if block_given?
-          result.each(as: :hash, symbolize_keys: true) do |row|
-            yield row
-          end
+          result.each(as: :hash, symbolize_keys: true, &block)
         else
           to_enum(:each_hash, result)
         end
@@ -91,7 +110,9 @@ module ActiveRecord
       #++
 
       def quote_string(string)
-        @connection.escape(string)
+        @raw_connection.escape(string)
+      rescue Mysql2::Error => error
+        raise translate_exception(error, message: error.message, sql: "<escape>", binds: [])
       end
 
       #--
@@ -99,13 +120,15 @@ module ActiveRecord
       #++
 
       def active?
-        @connection.ping
+        @raw_connection.ping
       end
 
-      def reconnect!
-        super
-        disconnect!
-        connect
+      def reconnect!(restore_transactions: false)
+        @lock.synchronize do
+          @raw_connection.close
+          connect
+          super
+        end
       end
       alias :reset! :reconnect!
 
@@ -113,23 +136,30 @@ module ActiveRecord
       # Otherwise, this method does nothing.
       def disconnect!
         super
-        @connection.close
+        @raw_connection.close
       end
 
       def discard! # :nodoc:
         super
-        @connection.automatic_close = false
-        @connection = nil
+        @raw_connection.automatic_close = false
+        @raw_connection = nil
       end
 
       private
+        def check_prepared_statements_deprecation(config)
+          if !config.key?(:prepared_statements)
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              The default value of `prepared_statements` for the mysql2 adapter will be changed from +false+ to +true+ in Rails 7.2.
+            MSG
+          end
+        end
+
         def connect
-          @connection = Mysql2::Client.new(@config)
-          configure_connection
+          @raw_connection = self.class.new_client(@config)
         end
 
         def configure_connection
-          @connection.query_options[:as] = :array
+          @raw_connection.query_options[:as] = :array
           super
         end
 
@@ -138,7 +168,7 @@ module ActiveRecord
         end
 
         def get_full_version
-          @connection.server_info[:version]
+          @raw_connection.server_info[:version]
         end
 
         def translate_exception(exception, message:, sql:, binds:)

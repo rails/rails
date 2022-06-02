@@ -2,7 +2,7 @@
 
 require "date"
 
-class DateTime #:nodoc:
+class DateTime # :nodoc:
   # No DateTime is ever blank:
   #
   #   DateTime.now.blank? # => false

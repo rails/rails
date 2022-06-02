@@ -1,9 +1,33 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 
 class ExecutorTest < ActiveSupport::TestCase
   class DummyError < RuntimeError
+  end
+
+  class ErrorSubscriber
+    attr_reader :events
+
+    def initialize
+      @events = []
+    end
+
+    def report(error, handled:, severity:, source:, context:)
+      @events << [error, handled, severity, source, context]
+    end
+  end
+
+  def test_wrap_report_errors
+    subscriber = ErrorSubscriber.new
+    executor.error_reporter.subscribe(subscriber)
+    error = DummyError.new("Oops")
+    assert_raises DummyError do
+      executor.wrap do
+        raise error
+      end
+    end
+    assert_equal [[error, false, :error, "unhandled_error.active_support", {}]], subscriber.events
   end
 
   def test_wrap_invokes_callbacks
@@ -207,6 +231,9 @@ class ExecutorTest < ActiveSupport::TestCase
     end.new
 
     executor.register_hook(hook)
+
+    # Warm-up to trigger any pending autoloads
+    executor.wrap { }
 
     before = RubyVM.stat(:class_serial)
     executor.wrap { }

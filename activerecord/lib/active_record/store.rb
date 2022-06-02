@@ -59,7 +59,7 @@ module ActiveRecord
   #   u.color = 'green'
   #   u.color_changed? # => true
   #   u.color_was # => 'black'
-  #   u.color_change # => ['black', 'red']
+  #   u.color_change # => ['black', 'green']
   #
   #   # Add additional accessors to an existing store through store_accessor
   #   class SuperUser < User
@@ -251,7 +251,7 @@ module ActiveRecord
           attribute = object.send(store_attribute)
           unless attribute.is_a?(ActiveSupport::HashWithIndifferentAccess)
             attribute = IndifferentCoder.as_indifferent_hash(attribute)
-            object.send :"#{store_attribute}=", attribute
+            object.public_send :"#{store_attribute}=", attribute
           end
           attribute
         end

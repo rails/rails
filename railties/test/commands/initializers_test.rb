@@ -25,7 +25,6 @@ class Rails::Command::InitializersTest < ActiveSupport::TestCase
     assert final_output.include?("set_added_test_module")
   end
 
-
   test "prints out initializers only specified in environment option" do
     add_to_config <<-RUBY
       initializer(:set_added_development_module) { } if Rails.env.development?

@@ -253,12 +253,25 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_not_predicate permitted[:users].last, :permitted?
   end
 
-  test "fetch doesnt raise ParameterMissing exception if there is a default" do
+  test "grow until set rehashes" do
+    params = ActionController::Parameters.new(users: [{ id: 1 }])
+
+    permitted = params.permit(users: [:id])
+    permitted[:users] << { injected: 1 }
+    20.times { |i|
+      list = ["foo#{i}"]
+      permitted[:xx] = list
+      assert_equal permitted[:xx], list
+    }
+    assert_not_predicate permitted[:users].last, :permitted?
+  end
+
+  test "fetch doesn't raise ParameterMissing exception if there is a default" do
     assert_equal "monkey", @params.fetch(:foo, "monkey")
     assert_equal "monkey", @params.fetch(:foo) { "monkey" }
   end
 
-  test "fetch doesnt raise ParameterMissing exception if there is a default that is nil" do
+  test "fetch doesn't raise ParameterMissing exception if there is a default that is nil" do
     assert_nil @params.fetch(:foo, nil)
     assert_nil @params.fetch(:foo) { nil }
   end
@@ -431,7 +444,6 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_instance_of Hash, params.to_hash
     assert_not_kind_of ActionController::Parameters, params.to_hash
     assert_equal({ "crab" => "Senjougahara Hitagi" }, params.to_hash)
-    assert_equal({ "crab" => "Senjougahara Hitagi" }, params)
   ensure
     ActionController::Parameters.permit_all_parameters = false
   end
@@ -506,5 +518,11 @@ class ParametersPermitTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new
 
     assert_equal false, params.permitted?
+  end
+
+  test "only String and Symbol keys are allowed" do
+    assert_raises(ActionController::InvalidParameterKey) do
+      ActionController::Parameters.new({ foo: 1 } => :bar)
+    end
   end
 end

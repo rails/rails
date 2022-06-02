@@ -5,7 +5,7 @@ class Parrot < ActiveRecord::Base
 
   has_and_belongs_to_many :pirates
   has_and_belongs_to_many :treasures
-  has_many :loots, as: :looter
+  has_many :loots, as: :looter, class_name: "Treasure"
   alias_attribute :title, :name
 
   validates_presence_of :name
@@ -29,6 +29,7 @@ class Parrot < ActiveRecord::Base
 end
 
 class LiveParrot < Parrot
+  enum breed: { african: 0, australian: 1 }
 end
 
 class DeadParrot < Parrot

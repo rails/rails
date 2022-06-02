@@ -2,10 +2,6 @@
 
 require "rails/test_unit/line_filtering"
 
-if defined?(Rake.application) && Rake.application.top_level_tasks.grep(/^(default$|test(:|$))/).any?
-  ENV["RAILS_ENV"] ||= Rake.application.options.show_tasks ? "development" : "test"
-end
-
 module Rails
   class TestUnitRailtie < Rails::Railtie
     config.app_generators do |c|

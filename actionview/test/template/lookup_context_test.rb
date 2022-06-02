@@ -17,16 +17,6 @@ class LookupContextTest < ActiveSupport::TestCase
     I18n.locale = :en
   end
 
-  test "rendered_format is deprecated" do
-    assert_deprecated do
-      @lookup_context.rendered_format = "foo"
-    end
-
-    assert_deprecated do
-      assert_equal "foo", @lookup_context.rendered_format
-    end
-  end
-
   test "allows to override default_formats with ActionView::Base.default_formats" do
     formats = ActionView::Base.default_formats
     ActionView::Base.default_formats = [:foo, :bar]
@@ -137,37 +127,6 @@ class LookupContextTest < ActiveSupport::TestCase
     end
   end
 
-  test "adds fallbacks to view paths when required" do
-    assert_equal 1, @lookup_context.view_paths.size
-
-    assert_deprecated do
-      @lookup_context.with_fallbacks do
-        assert_equal 3, @lookup_context.view_paths.size
-        assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.instances[0]
-        assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.instances[1]
-      end
-    end
-
-    @lookup_context = @lookup_context.with_fallbacks
-
-    assert_equal 3, @lookup_context.view_paths.size
-    assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.instances[0]
-    assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.instances[1]
-  end
-
-  test "add fallbacks just once in nested fallbacks calls" do
-    assert_deprecated do
-      @lookup_context.with_fallbacks do
-        @lookup_context.with_fallbacks do
-          assert_equal 3, @lookup_context.view_paths.size
-        end
-      end
-    end
-
-    @lookup_context = @lookup_context.with_fallbacks.with_fallbacks
-    assert_equal 3, @lookup_context.view_paths.size
-  end
-
   test "generates a new details key for each details hash" do
     keys = []
     keys << @lookup_context.details_key
@@ -190,33 +149,30 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal 3, keys.uniq.size
   end
 
-  test "gives the key forward to the resolver, so it can be used as cache key" do
-    @lookup_context = build_lookup_context(ActionView::FixtureResolver.new("test/_foo.erb" => "Foo"), {})
+  test "uses details as part of cache key" do
+    fixtures = {
+      "test/_foo.erb" => "Foo",
+      "test/_foo.da.erb" => "Bar",
+    }
+    @lookup_context = build_lookup_context(ActionView::FixtureResolver.new(fixtures), {})
+
     template = @lookup_context.find("foo", %w(test), true)
+    original_template = template
     assert_equal "Foo", template.source
 
-    # Now we are going to change the template, but it won't change the returned template
-    # since we will hit the cache.
-    @lookup_context.view_paths.first.data["test/_foo.erb"] = "Bar"
+    # We should get the same template
     template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Foo", template.source
+    assert_same original_template, template
 
-    # This time we will change the locale. The updated template should be picked since
-    # lookup_context generated a new key after we changed the locale.
+    # Using a different locale we get a different view
     @lookup_context.locale = :da
     template = @lookup_context.find("foo", %w(test), true)
     assert_equal "Bar", template.source
 
-    # Now we will change back the locale and it will still pick the old template.
-    # This is expected because lookup_context will reuse the previous key for :en locale.
+    # Using en we get the original view
     @lookup_context.locale = :en
     template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Foo", template.source
-
-    # Finally, we can expire the cache. And the expected template will be used.
-    @lookup_context.view_paths.first.clear_cache
-    template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Bar", template.source
+    assert_same original_template, template
   end
 
   test "can disable the cache on demand" do
@@ -252,21 +208,21 @@ class TestMissingTemplate < ActiveSupport::TestCase
     e = assert_raise ActionView::MissingTemplate do
       @lookup_context.find("foo", %w(parent child))
     end
-    assert_match %r{Missing template parent/foo, child/foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
+    assert_match %r{Missing template parent/foo, child/foo with .*\n\nSearched in:\n  \* "/Path/to/views"\n}, e.message
   end
 
   test "if no partial was found we get a helpful error message including the inheritance chain" do
     e = assert_raise ActionView::MissingTemplate do
       @lookup_context.find("foo", %w(parent child), true)
     end
-    assert_match %r{Missing partial parent/_foo, child/_foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
+    assert_match %r{Missing partial parent/_foo, child/_foo with .*\n\nSearched in:\n  \* "/Path/to/views"\n}, e.message
   end
 
   test "if a single prefix is passed as a string and the lookup fails, MissingTemplate accepts it" do
     e = assert_raise ActionView::MissingTemplate do
       details = { handlers: [], formats: [], variants: [], locale: [] }
-      @lookup_context.view_paths.find("foo", "parent", true, details)
+      @lookup_context.view_paths.find("foo", "parent", true, details, nil, [])
     end
-    assert_match %r{Missing partial parent/_foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
+    assert_match %r{Missing partial parent/_foo with .*\n\nSearched in:\n  \* "/Path/to/views"\n}, e.message
   end
 end

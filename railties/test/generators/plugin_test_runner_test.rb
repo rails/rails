@@ -1,18 +1,26 @@
 # frozen_string_literal: true
 
 require "generators/plugin_test_helper"
+require "env_helpers"
 
 class PluginTestRunnerTest < ActiveSupport::TestCase
   include PluginTestHelper
+  include EnvHelpers
 
   def setup
     @destination_root = Dir.mktmpdir("bukkits")
     Dir.chdir(@destination_root) { `bundle exec rails plugin new bukkits --skip-bundle` }
+    fill_in_gemspec_fields
+    resolve_rails_gem_to_repository
     plugin_file "test/dummy/db/schema.rb", ""
   end
 
   def teardown
     FileUtils.rm_rf(@destination_root)
+  end
+
+  def test_run_default
+    assert_match "0 failures, 0 errors", run_test_command
   end
 
   def test_run_single_file
@@ -30,7 +38,7 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
   def test_mix_files_and_line_filters
     create_test_file "account"
     plugin_file "test/post_test.rb", <<-RUBY
-      require 'test_helper'
+      require "test_helper"
 
       class PostTest < ActiveSupport::TestCase
         def test_post
@@ -96,7 +104,7 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
 
   def test_warnings_option
     plugin_file "test/models/warnings_test.rb", <<-RUBY
-      require 'test_helper'
+      require "test_helper"
       def test_warnings
         a = 1
       end
@@ -105,18 +113,14 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
       capture(:stderr) { run_test_command("test/models/warnings_test.rb -w") })
   end
 
-  def test_run_rake_test
-    create_test_file "foo"
-    result = Dir.chdir(plugin_path) { `rake test TEST=test/foo_test.rb` }
-    assert_match "1 runs, 1 assertions, 0 failures", result
-  end
-
   private
     def plugin_path
       "#{@destination_root}/bukkits"
     end
 
-    def run_test_command(arguments)
-      Dir.chdir(plugin_path) { `bin/test #{arguments}` }
+    def run_test_command(arguments = "")
+      Dir.chdir(plugin_path) do
+        switch_env("BUNDLE_GEMFILE", "") { `bin/test #{arguments}` }
+      end
     end
 end

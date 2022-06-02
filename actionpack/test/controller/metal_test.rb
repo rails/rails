@@ -15,7 +15,7 @@ class MetalControllerInstanceTests < ActiveSupport::TestCase
     ActionDispatch::Response.default_headers = {
       "X-Frame-Options" => "DENY",
       "X-Content-Type-Options" => "nosniff",
-      "X-XSS-Protection" => "1;"
+      "X-XSS-Protection" => "0"
     }
 
     response_headers = SimpleController.action("hello").call(
@@ -28,5 +28,10 @@ class MetalControllerInstanceTests < ActiveSupport::TestCase
     assert_not response_headers.key?("X-XSS-Protection")
   ensure
     ActionDispatch::Response.default_headers = original_default_headers
+  end
+
+  def test_inspect
+    controller = SimpleController.new
+    assert_match(/\A#<MetalControllerInstanceTests::SimpleController:0x[0-9a-f]+>\z/, controller.inspect)
   end
 end

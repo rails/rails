@@ -47,6 +47,9 @@ module ActionView
     #   <%= url_for(action: 'jump', anchor: 'tax&ship') %>
     #   # => /testing/jump/#tax&ship
     #
+    #   <%= url_for(Workshop) %>
+    #   # => /workshops
+    #
     #   <%= url_for(Workshop.new) %>
     #   # relies on Workshop answering a persisted? call (and in this case returning false)
     #   # => /workshops
@@ -105,7 +108,7 @@ module ActionView
         end
       else
         method = _generate_paths_by_default ? :path : :url
-        builder = ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.send(method)
+        builder = ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.public_send(method)
 
         case options
         when Symbol
@@ -118,7 +121,7 @@ module ActionView
       end
     end
 
-    def url_options #:nodoc:
+    def url_options # :nodoc:
       return super unless controller.respond_to?(:url_options)
       controller.url_options
     end

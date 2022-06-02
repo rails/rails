@@ -88,6 +88,16 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_equal "HTTP Token: Access denied.\n", @response.body, "Authentication header was not properly parsed"
   end
 
+  test "authentication request with evil header" do
+    @request.env["HTTP_AUTHORIZATION"] = "Token ." + " " * (1024 * 80 - 8) + "."
+    Timeout.timeout(1) do
+      get :index
+    end
+
+    assert_response :unauthorized
+    assert_equal "HTTP Token: Access denied.\n", @response.body, "Authentication header was not properly parsed"
+  end
+
   test "successful authentication request with Bearer instead of Token" do
     @request.env["HTTP_AUTHORIZATION"] = "Bearer lifo"
     get :index
@@ -155,7 +165,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_equal(expected, actual)
   end
 
-  test "token_and_options returns correct token with nounce option" do
+  test "token_and_options returns correct token with nonce option" do
     token = "rcHu+HzSFw89Ypyhn/896A="
     nonce_hash = { nonce: "123abc" }
     actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token, nonce_hash))
@@ -174,6 +184,20 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     auth = sample_request("rcHu+HzSFw89Ypyhn/896A=").authorization.to_s
     actual = ActionController::HttpAuthentication::Token.raw_params(auth)
     expected = ["token=\"rcHu+HzSFw89Ypyhn/896A=\"", "nonce=\"def\""]
+    assert_equal(expected, actual)
+  end
+
+  test "raw_params returns a tuple of key value pair strings when auth does not contain a token key" do
+    auth = sample_request_without_token_key("rcHu+HzSFw89Ypyhn/896A=").authorization.to_s
+    actual = ActionController::HttpAuthentication::Token.raw_params(auth)
+    expected = ["token=rcHu+HzSFw89Ypyhn/896A="]
+    assert_equal(expected, actual)
+  end
+
+  test "raw_params returns a tuple of key strings when auth does not contain a token key and value" do
+    auth = sample_request_without_token_key(nil).authorization.to_s
+    actual = ActionController::HttpAuthentication::Token.raw_params(auth)
+    expected = ["token="]
     assert_equal(expected, actual)
   end
 

@@ -3,7 +3,7 @@ witty_retort:
   topic_id: 1
   developer_id: 1
   content: Birdman is better!
-  created_at: <%= 6.hours.ago.to_s(:db) %>
+  created_at: <%= 6.hours.ago.to_fs(:db) %>
   updated_at: nil
 
 another:
@@ -11,5 +11,5 @@ another:
   topic_id: 2
   developer_id: 1
   content: Nuh uh!
-  created_at: <%= 1.hour.ago.to_s(:db) %>
+  created_at: <%= 1.hour.ago.to_fs(:db) %>
   updated_at: nil

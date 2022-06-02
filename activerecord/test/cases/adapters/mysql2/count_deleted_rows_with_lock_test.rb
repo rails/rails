@@ -4,6 +4,7 @@ require "cases/helper"
 require "support/connection_helper"
 require "models/author"
 require "models/bulb"
+require "models/car"
 
 module ActiveRecord
   class CountDeletedRowsWithLockTest < ActiveRecord::Mysql2TestCase

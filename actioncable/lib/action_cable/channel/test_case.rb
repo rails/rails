@@ -15,9 +15,9 @@ module ActionCable
       end
     end
 
-    # Stub `stream_from` to track streams for the channel.
-    # Add public aliases for `subscription_confirmation_sent?` and
-    # `subscription_rejected?`.
+    # Stub +stream_from+ to track streams for the channel.
+    # Add public aliases for +subscription_confirmation_sent?+ and
+    # +subscription_rejected?+.
     module ChannelStub
       def confirmed?
         subscription_confirmation_sent?
@@ -62,6 +62,21 @@ module ActionCable
       def transmit(cable_message)
         transmissions << cable_message.with_indifferent_access
       end
+
+      def connection_identifier
+        @connection_identifier ||= connection_gid(identifiers.filter_map { |id| send(id.to_sym) if id })
+      end
+
+      private
+        def connection_gid(ids)
+          ids.map do |o|
+            if o.respond_to?(:to_gid_param)
+              o.to_gid_param
+            else
+              o.to_s
+            end
+          end.sort.join(":")
+        end
     end
 
     # Superclass for Action Cable channel functional tests.
@@ -123,7 +138,7 @@ module ActionCable
     # <b>connection</b>::
     #      An ActionCable::Channel::ConnectionStub, representing the current HTTP connection.
     # <b>subscription</b>::
-    #      An instance of the current channel, created when you call `subscribe`.
+    #      An instance of the current channel, created when you call +subscribe+.
     # <b>transmissions</b>::
     #      A list of all messages that have been transmitted into the channel.
     #
@@ -209,7 +224,7 @@ module ActionCable
           end
         end
 
-        # Setup test connection with the specified identifiers:
+        # Set up test connection with the specified identifiers:
         #
         #   class ApplicationCable < ActionCable::Connection::Base
         #     identified_by :user, :token
@@ -246,7 +261,7 @@ module ActionCable
         # Returns messages transmitted into channel
         def transmissions
           # Return only directly sent message (via #transmit)
-          connection.transmissions.map { |data| data["message"] }.compact
+          connection.transmissions.filter_map { |data| data["message"] }
         end
 
         # Enhance TestHelper assertions to handle non-String

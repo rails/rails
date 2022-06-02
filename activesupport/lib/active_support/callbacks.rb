@@ -5,6 +5,7 @@ require "active_support/descendants_tracker"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/string/filters"
+require "active_support/core_ext/object/blank"
 require "thread"
 
 module ActiveSupport
@@ -15,19 +16,19 @@ module ActiveSupport
   # needing to override or redefine methods of the base class.
   #
   # Mixing in this module allows you to define the events in the object's
-  # life cycle that will support callbacks (via +ClassMethods.define_callbacks+),
+  # life cycle that will support callbacks (via ClassMethods#define_callbacks),
   # set the instance methods, procs, or callback objects to be called (via
-  # +ClassMethods.set_callback+), and run the installed callbacks at the
+  # ClassMethods#set_callback), and run the installed callbacks at the
   # appropriate times (via +run_callbacks+).
   #
   # By default callbacks are halted by throwing +:abort+.
-  # See +ClassMethods.define_callbacks+ for details.
+  # See ClassMethods#define_callbacks for details.
   #
   # Three kinds of callbacks are supported: before callbacks, run before a
   # certain event; after callbacks, run after the event; and around callbacks,
   # blocks that surround the event, triggering it when they yield. Callback code
   # can be contained in instance methods, procs or lambdas, or callback objects
-  # that respond to certain predetermined methods. See +ClassMethods.set_callback+
+  # that respond to certain predetermined methods. See ClassMethods#set_callback
   # for details.
   #
   #   class Record
@@ -100,32 +101,6 @@ module ActiveSupport
         env = Filters::Environment.new(self, false, nil)
         next_sequence = callbacks.compile
 
-        invoke_sequence = Proc.new do
-          skipped = nil
-          while true
-            current = next_sequence
-            current.invoke_before(env)
-            if current.final?
-              env.value = !env.halted && (!block_given? || yield)
-            elsif current.skip?(env)
-              (skipped ||= []) << current
-              next_sequence = next_sequence.nested
-              next
-            else
-              next_sequence = next_sequence.nested
-              begin
-                target, block, method, *arguments = current.expand_call_template(env, invoke_sequence)
-                target.send(method, *arguments, &block)
-              ensure
-                next_sequence = current
-              end
-            end
-            current.invoke_after(env)
-            skipped.pop.invoke_after(env) while skipped && skipped.first
-            break env.value
-          end
-        end
-
         # Common case: no 'around' callbacks defined
         if next_sequence.final?
           next_sequence.invoke_before(env)
@@ -133,6 +108,33 @@ module ActiveSupport
           next_sequence.invoke_after(env)
           env.value
         else
+          invoke_sequence = Proc.new do
+            skipped = nil
+
+            while true
+              current = next_sequence
+              current.invoke_before(env)
+              if current.final?
+                env.value = !env.halted && (!block_given? || yield)
+              elsif current.skip?(env)
+                (skipped ||= []) << current
+                next_sequence = next_sequence.nested
+                next
+              else
+                next_sequence = next_sequence.nested
+                begin
+                  target, block, method, *arguments = current.expand_call_template(env, invoke_sequence)
+                  target.send(method, *arguments, &block)
+                ensure
+                  next_sequence = current
+                end
+              end
+              current.invoke_after(env)
+              skipped.pop.invoke_after(env) while skipped&.first
+              break env.value
+            end
+          end
+
           invoke_sequence.call
         end
       end
@@ -142,7 +144,7 @@ module ActiveSupport
       # A hook invoked every time a before callback is halted.
       # This can be overridden in ActiveSupport::Callbacks implementors in order
       # to provide better debugging/logging.
-      def halted_callback_hook(filter)
+      def halted_callback_hook(filter, name)
       end
 
       module Conditionals # :nodoc:
@@ -158,17 +160,17 @@ module ActiveSupport
         Environment = Struct.new(:target, :halted, :value)
 
         class Before
-          def self.build(callback_sequence, user_callback, user_conditions, chain_config, filter)
+          def self.build(callback_sequence, user_callback, user_conditions, chain_config, filter, name)
             halted_lambda = chain_config[:terminator]
 
             if user_conditions.any?
-              halting_and_conditional(callback_sequence, user_callback, user_conditions, halted_lambda, filter)
+              halting_and_conditional(callback_sequence, user_callback, user_conditions, halted_lambda, filter, name)
             else
-              halting(callback_sequence, user_callback, halted_lambda, filter)
+              halting(callback_sequence, user_callback, halted_lambda, filter, name)
             end
           end
 
-          def self.halting_and_conditional(callback_sequence, user_callback, user_conditions, halted_lambda, filter)
+          def self.halting_and_conditional(callback_sequence, user_callback, user_conditions, halted_lambda, filter, name)
             callback_sequence.before do |env|
               target = env.target
               value  = env.value
@@ -178,7 +180,7 @@ module ActiveSupport
                 result_lambda = -> { user_callback.call target, value }
                 env.halted = halted_lambda.call(target, result_lambda)
                 if env.halted
-                  target.send :halted_callback_hook, filter
+                  target.send :halted_callback_hook, filter, name
                 end
               end
 
@@ -187,7 +189,7 @@ module ActiveSupport
           end
           private_class_method :halting_and_conditional
 
-          def self.halting(callback_sequence, user_callback, halted_lambda, filter)
+          def self.halting(callback_sequence, user_callback, halted_lambda, filter, name)
             callback_sequence.before do |env|
               target = env.target
               value  = env.value
@@ -196,9 +198,8 @@ module ActiveSupport
               unless halted
                 result_lambda = -> { user_callback.call target, value }
                 env.halted = halted_lambda.call(target, result_lambda)
-
                 if env.halted
-                  target.send :halted_callback_hook, filter
+                  target.send :halted_callback_hook, filter, name
                 end
               end
 
@@ -276,7 +277,7 @@ module ActiveSupport
         end
       end
 
-      class Callback #:nodoc:#
+      class Callback # :nodoc:#
         def self.build(chain, filter, kind, options)
           if filter.is_a?(String)
             raise ArgumentError, <<-MSG.squish
@@ -289,20 +290,16 @@ module ActiveSupport
         end
 
         attr_accessor :kind, :name
-        attr_reader :chain_config
+        attr_reader :chain_config, :filter
 
         def initialize(name, filter, kind, options, chain_config)
           @chain_config = chain_config
           @name    = name
           @kind    = kind
           @filter  = filter
-          @key     = compute_identifier filter
-          @if      = check_conditionals(Array(options[:if]))
-          @unless  = check_conditionals(Array(options[:unless]))
+          @if      = check_conditionals(options[:if])
+          @unless  = check_conditionals(options[:unless])
         end
-
-        def filter; @key; end
-        def raw_filter; @filter; end
 
         def merge_conditional_options(chain, if_option:, unless_option:)
           options = {
@@ -336,7 +333,7 @@ module ActiveSupport
 
           case kind
           when :before
-            Filters::Before.build(callback_sequence, user_callback.make_lambda, user_conditions, chain_config, @filter)
+            Filters::Before.build(callback_sequence, user_callback.make_lambda, user_conditions, chain_config, @filter, name)
           when :after
             Filters::After.build(callback_sequence, user_callback.make_lambda, user_conditions, chain_config)
           when :around
@@ -349,8 +346,14 @@ module ActiveSupport
         end
 
         private
+          EMPTY_ARRAY = [].freeze
+          private_constant :EMPTY_ARRAY
+
           def check_conditionals(conditionals)
-            if conditionals.any? { |c| c.is_a?(String) }
+            return EMPTY_ARRAY if conditionals.blank?
+
+            conditionals = Array(conditionals)
+            if conditionals.any?(String)
               raise ArgumentError, <<-MSG.squish
                 Passing string to be evaluated in :if and :unless conditional
                 options is not supported. Pass a symbol for an instance method,
@@ -358,16 +361,7 @@ module ActiveSupport
               MSG
             end
 
-            conditionals
-          end
-
-          def compute_identifier(filter)
-            case filter
-            when ::Proc
-              filter.object_id
-            else
-              filter
-            end
+            conditionals.freeze
           end
 
           def conditions_lambdas
@@ -378,60 +372,153 @@ module ActiveSupport
 
       # A future invocation of user-supplied code (either as a callback,
       # or a condition filter).
-      class CallTemplate # :nodoc:
-        def initialize(target, method, arguments, block)
-          @override_target = target
-          @method_name = method
-          @arguments = arguments
-          @override_block = block
-        end
+      module CallTemplate # :nodoc:
+        class MethodCall
+          def initialize(method)
+            @method_name = method
+          end
 
-        # Return the parts needed to make this call, with the given
-        # input values.
-        #
-        # Returns an array of the form:
-        #
-        #   [target, block, method, *arguments]
-        #
-        # This array can be used as such:
-        #
-        #   target.send(method, *arguments, &block)
-        #
-        # The actual invocation is left up to the caller to minimize
-        # call stack pollution.
-        def expand(target, value, block)
-          result = @arguments.map { |arg|
-            case arg
-            when :value; value
-            when :target; target
-            when :block; block || raise(ArgumentError)
+          # Return the parts needed to make this call, with the given
+          # input values.
+          #
+          # Returns an array of the form:
+          #
+          #   [target, block, method, *arguments]
+          #
+          # This array can be used as such:
+          #
+          #   target.send(method, *arguments, &block)
+          #
+          # The actual invocation is left up to the caller to minimize
+          # call stack pollution.
+          def expand(target, value, block)
+            [target, block, @method_name]
+          end
+
+          def make_lambda
+            lambda do |target, value, &block|
+              target.send(@method_name, &block)
             end
-          }
+          end
 
-          result.unshift @method_name
-          result.unshift @override_block || block
-          result.unshift @override_target || target
-
-          # target, block, method, *arguments = result
-          # target.send(method, *arguments, &block)
-          result
-        end
-
-        # Return a lambda that will make this call when given the input
-        # values.
-        def make_lambda
-          lambda do |target, value, &block|
-            target, block, method, *arguments = expand(target, value, block)
-            target.send(method, *arguments, &block)
+          def inverted_lambda
+            lambda do |target, value, &block|
+              !target.send(@method_name, &block)
+            end
           end
         end
 
-        # Return a lambda that will make this call when given the input
-        # values, but then return the boolean inverse of that result.
-        def inverted_lambda
-          lambda do |target, value, &block|
-            target, block, method, *arguments = expand(target, value, block)
-            ! target.send(method, *arguments, &block)
+        class ObjectCall
+          def initialize(target, method)
+            @override_target = target
+            @method_name = method
+          end
+
+          def expand(target, value, block)
+            [@override_target || target, block, @method_name, target]
+          end
+
+          def make_lambda
+            lambda do |target, value, &block|
+              (@override_target || target).send(@method_name, target, &block)
+            end
+          end
+
+          def inverted_lambda
+            lambda do |target, value, &block|
+              !(@override_target || target).send(@method_name, target, &block)
+            end
+          end
+        end
+
+        class InstanceExec0
+          def initialize(block)
+            @override_block = block
+          end
+
+          def expand(target, value, block)
+            [target, @override_block, :instance_exec]
+          end
+
+          def make_lambda
+            lambda do |target, value, &block|
+              target.instance_exec(&@override_block)
+            end
+          end
+
+          def inverted_lambda
+            lambda do |target, value, &block|
+              !target.instance_exec(&@override_block)
+            end
+          end
+        end
+
+        class InstanceExec1
+          def initialize(block)
+            @override_block = block
+          end
+
+          def expand(target, value, block)
+            [target, @override_block, :instance_exec, target]
+          end
+
+          def make_lambda
+            lambda do |target, value, &block|
+              target.instance_exec(target, &@override_block)
+            end
+          end
+
+          def inverted_lambda
+            lambda do |target, value, &block|
+              !target.instance_exec(target, &@override_block)
+            end
+          end
+        end
+
+        class InstanceExec2
+          def initialize(block)
+            @override_block = block
+          end
+
+          def expand(target, value, block)
+            raise ArgumentError unless block
+            [target, @override_block || block, :instance_exec, target, block]
+          end
+
+          def make_lambda
+            lambda do |target, value, &block|
+              raise ArgumentError unless block
+              target.instance_exec(target, block, &@override_block)
+            end
+          end
+
+          def inverted_lambda
+            lambda do |target, value, &block|
+              raise ArgumentError unless block
+              !target.instance_exec(target, block, &@override_block)
+            end
+          end
+        end
+
+        class ProcCall
+          def initialize(target)
+            @override_target = target
+          end
+
+          def expand(target, value, block)
+            [@override_target || target, block, :call, target, value]
+          end
+
+          def make_lambda
+            lambda do |target, value, &block|
+              (@override_target || target).call(target, value, &block)
+            end
+          end
+
+          def inverted_lambda
+            lambda do |target, value, &block|
+              !(@override_target || target).call(target, value, &block)
+            end
           end
         end
 
@@ -446,21 +533,19 @@ module ActiveSupport
         def self.build(filter, callback)
           case filter
           when Symbol
-            new(nil, filter, [], nil)
+            MethodCall.new(filter)
           when Conditionals::Value
-            new(filter, :call, [:target, :value], nil)
+            ProcCall.new(filter)
           when ::Proc
             if filter.arity > 1
-              new(nil, :instance_exec, [:target, :block], filter)
+              InstanceExec2.new(filter)
             elsif filter.arity > 0
-              new(nil, :instance_exec, [:target], filter)
+              InstanceExec1.new(filter)
             else
-              new(nil, :instance_exec, [], filter)
+              InstanceExec0.new(filter)
             end
           else
-            method_to_call = callback.current_scopes.join("_")
-
-            new(filter, method_to_call, [:target], nil)
+            ObjectCall.new(filter, callback.current_scopes.join("_").to_sym)
           end
         end
       end
@@ -515,7 +600,7 @@ module ActiveSupport
         end
       end
 
-      class CallbackChain #:nodoc:#
+      class CallbackChain # :nodoc:
         include Enumerable
 
         attr_reader :name, :config
@@ -617,8 +702,8 @@ module ActiveSupport
 
         # This is used internally to append, prepend and skip callbacks to the
         # CallbackChain.
-        def __update_callbacks(name) #:nodoc:
-          ([self] + ActiveSupport::DescendantsTracker.descendants(self)).reverse_each do |target|
+        def __update_callbacks(name) # :nodoc:
+          ([self] + self.descendants).reverse_each do |target|
             chain = target.get_callbacks name
             yield target, chain.dup
           end
@@ -686,9 +771,31 @@ module ActiveSupport
         # <tt>:unless</tt> options may be passed in order to control when the
         # callback is skipped.
         #
-        #   class Writer < Person
-        #      skip_callback :validate, :before, :check_membership, if: -> { age > 18 }
+        #   class Writer < PersonRecord
+        #     attr_accessor :age
+        #     skip_callback :save, :before, :saving_message, if: -> { age > 18 }
         #   end
+        #
+        # When if option returns true, callback is skipped.
+        #
+        #   writer = Writer.new
+        #   writer.age = 20
+        #   writer.save
+        #
+        # Output:
+        #   - save
+        #   saved
+        #
+        # When if option returns false, callback is NOT skipped.
+        #
+        #   young_writer = Writer.new
+        #   young_writer.age = 17
+        #   young_writer.save
+        #
+        # Output:
+        #   saving...
+        #   - save
+        #   saved
         #
         # An <tt>ArgumentError</tt> will be raised if the callback has not
         # already been set (unless the <tt>:raise</tt> option is set to <tt>false</tt>).
@@ -720,7 +827,7 @@ module ActiveSupport
         def reset_callbacks(name)
           callbacks = get_callbacks name
 
-          ActiveSupport::DescendantsTracker.descendants(self).each do |target|
+          self.descendants.each do |target|
             chain = target.get_callbacks(name).dup
             callbacks.each { |c| chain.delete(c) }
             target.set_callbacks name, chain
@@ -813,7 +920,7 @@ module ActiveSupport
           names.each do |name|
             name = name.to_sym
 
-            ([self] + ActiveSupport::DescendantsTracker.descendants(self)).each do |target|
+            ([self] + self.descendants).each do |target|
               target.set_callbacks name, CallbackChain.new(name, options)
             end
 
@@ -843,7 +950,11 @@ module ActiveSupport
           end
 
           def set_callbacks(name, callbacks) # :nodoc:
-            self.__callbacks = __callbacks.merge(name.to_sym => callbacks)
+            unless singleton_class.method_defined?(:__callbacks, false)
+              self.__callbacks = __callbacks.dup
+            end
+            self.__callbacks[name.to_sym] = callbacks
+            self.__callbacks
           end
       end
   end

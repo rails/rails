@@ -14,14 +14,11 @@ class PostgresqlRenameTableTest < ActiveRecord::PostgreSQLTestCase
   end
 
   test "renaming a table also renames the primary key index" do
-    # sanity check
-    assert_equal 1, num_indices_named("before_rename_pkey")
-    assert_equal 0, num_indices_named("after_rename_pkey")
-
-    @connection.rename_table :before_rename, :after_rename
-
-    assert_equal 0, num_indices_named("before_rename_pkey")
-    assert_equal 1, num_indices_named("after_rename_pkey")
+    assert_changes(-> { num_indices_named("before_rename_pkey") }, from: 1, to: 0) do
+      assert_changes(-> { num_indices_named("after_rename_pkey") }, from: 0, to: 1) do
+        @connection.rename_table :before_rename, :after_rename
+      end
+    end
   end
 
   private

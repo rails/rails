@@ -10,7 +10,7 @@ module Rails
       end
 
       # Expose the eager_load_namespaces at "module" level for convenience.
-      def self.eager_load_namespaces #:nodoc:
+      def self.eager_load_namespaces # :nodoc:
         @@eager_load_namespaces ||= []
       end
 
@@ -88,8 +88,8 @@ module Rails
 
     private
       def method_missing(name, *args, &blk)
-        if name.to_s =~ /=$/
-          @@options[$`.to_sym] = args.first
+        if name.end_with?("=")
+          @@options[:"#{name[0..-2]}"] = args.first
         elsif @@options.key?(name)
           @@options[name]
         else

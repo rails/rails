@@ -2,7 +2,7 @@
 
 module ActiveSupport
   module Testing
-    module Stream #:nodoc:
+    module Stream # :nodoc:
       private
         def silence_stream(stream)
           old_stream = stream.dup
@@ -14,11 +14,9 @@ module ActiveSupport
           old_stream.close
         end
 
-        def quietly
+        def quietly(&block)
           silence_stream(STDOUT) do
-            silence_stream(STDERR) do
-              yield
-            end
+            silence_stream(STDERR, &block)
           end
         end
 

@@ -145,6 +145,7 @@ module ActionDispatch
 
       %w(edit new).each do |action|
         module_eval <<-EOT, __FILE__, __LINE__ + 1
+          # frozen_string_literal: true
           def #{action}_polymorphic_url(record_or_hash, options = {})
             polymorphic_url_for_action("#{action}", record_or_hash, options)
           end
@@ -227,9 +228,9 @@ module ActionDispatch
             end
 
             if options.empty?
-              recipient.send(method, *args)
+              recipient.public_send(method, *args)
             else
-              recipient.send(method, *args, options)
+              recipient.public_send(method, *args, options)
             end
           end
 
@@ -246,7 +247,7 @@ module ActionDispatch
           end
 
           def handle_string_call(target, str)
-            target.send get_method_for_string str
+            target.public_send get_method_for_string str
           end
 
           def handle_class(klass)
@@ -254,7 +255,7 @@ module ActionDispatch
           end
 
           def handle_class_call(target, klass)
-            target.send get_method_for_class klass
+            target.public_send get_method_for_class klass
           end
 
           def handle_model(record)
@@ -276,7 +277,7 @@ module ActionDispatch
               mapping.call(target, [record], suffix == "path")
             else
               method, args = handle_model(record)
-              target.send(method, *args)
+              target.public_send(method, *args)
             end
           end
 
@@ -286,10 +287,12 @@ module ActionDispatch
 
             args = []
 
-            route = record_list.map { |parent|
+            route = record_list.map do |parent|
               case parent
-              when Symbol, String
+              when Symbol
                 parent.to_s
+              when String
+                raise(ArgumentError, "Please use symbols for polymorphic route arguments.")
               when Class
                 args << parent
                 parent.model_name.singular_route_key
@@ -297,12 +300,14 @@ module ActionDispatch
                 args << parent.to_model
                 parent.to_model.model_name.singular_route_key
               end
-            }
+            end
 
             route <<
             case record
-            when Symbol, String
+            when Symbol
               record.to_s
+            when String
+              raise(ArgumentError, "Please use symbols for polymorphic route arguments.")
             when Class
               @key_strategy.call record.model_name
             else

@@ -25,6 +25,21 @@
 
     h2 { padding-left: 10px; }
 
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #222;
+        color: #ececec;
+      }
+
+      pre {
+        background-color: #333;
+      }
+
+      a { color: #fff; }
+      a:visited { color: #999; }
+      a:hover { color: #000; background-color: #fff; }
+    }
+
     <%= yield :style %>
   </style>
 </head>

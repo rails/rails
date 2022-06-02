@@ -9,8 +9,8 @@ m = Element.prototype.matches or
 # element::
 #   native DOM element
 # selector::
-#   css selector string or
-#   a javascript object with `selector` and `exclude` properties
+#   CSS selector string or
+#   a JavaScript object with `selector` and `exclude` properties
 #   Examples: "form", { selector: "form", exclude: "form[data-remote='true']"}
 Rails.matches = (element, selector) ->
   if selector.exclude?

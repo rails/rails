@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "shellwords"
 require "rake/testtask"
 
 task default: :test
@@ -12,29 +13,37 @@ task test: "test:isolated"
 namespace :test do
   task :isolated do
     estimated_duration = {
-      "test/application/test_runner_test.rb" => 201,
-      "test/application/assets_test.rb" => 131,
-      "test/application/rake/migrations_test.rb" => 65,
-      "test/generators/scaffold_generator_test.rb" => 57,
-      "test/generators/plugin_test_runner_test.rb" => 57,
-      "test/application/test_test.rb" => 52,
-      "test/application/configuration_test.rb" => 49,
-      "test/generators/app_generator_test.rb" => 43,
-      "test/application/rake/dbs_test.rb" => 43,
+      "test/application/test_runner_test.rb" => 179,
+      "test/application/assets_test.rb" => 20,
+      "test/application/rake/migrations_test.rb" => 90,
+      "test/generators/scaffold_generator_test.rb" => 78,
+      "test/generators/plugin_test_runner_test.rb" => 73,
+      "test/application/test_test.rb" => 25,
+      "test/application/configuration_test.rb" => 106,
+      "test/generators/app_generator_test.rb" => 150,
+      "test/application/rake/dbs_test.rb" => 82,
       "test/application/rake_test.rb" => 33,
-      "test/generators/plugin_generator_test.rb" => 30,
-      "test/railties/engine_test.rb" => 27,
-      "test/generators/scaffold_controller_generator_test.rb" => 23,
-      "test/railties/generators_test.rb" => 19,
-      "test/application/console_test.rb" => 16,
-      "test/engine/commands_test.rb" => 15,
-      "test/application/routing_test.rb" => 15,
-      "test/application/mailer_previews_test.rb" => 15,
-      "test/application/rake/multi_dbs_test.rb" => 13,
-      "test/application/asset_debugging_test.rb" => 12,
-      "test/application/bin_setup_test.rb" => 11,
-      "test/engine/test_test.rb" => 10,
-      "test/application/runner_test.rb" => 10,
+      "test/generators/plugin_generator_test.rb" => 37,
+      "test/railties/engine_test.rb" => 39,
+      "test/generators/scaffold_controller_generator_test.rb" => 27,
+      "test/railties/generators_test.rb" => 25,
+      "test/application/console_test.rb" => 20,
+      "test/engine/commands_test.rb" => 17,
+      "test/application/routing_test.rb" => 21,
+      "test/application/mailer_previews_test.rb" => 20,
+      "test/application/rake/multi_dbs_test.rb" => 100,
+      "test/application/asset_debugging_test.rb" => 5,
+      "test/application/bin_setup_test.rb" => 13,
+      "test/engine/test_test.rb" => 16,
+      "test/application/runner_test.rb" => 13,
+      "test/commands/routes_test.rb" => 7,
+      "test/application/initializers/i18n_test.rb" => 8,
+      "test/application/middleware/cache_test.rb" => 7,
+      "test/application/middleware_test.rb" => 10,
+      "test/generators/test_runner_in_engine_test.rb" => 7,
+      "test/application/initializers/frameworks_test.rb" => 18,
+      "test/application/middleware/exceptions_test.rb" => 12,
+      "test/application/content_security_policy_test.rb" => 5,
     }
     estimated_duration.default = 1
 

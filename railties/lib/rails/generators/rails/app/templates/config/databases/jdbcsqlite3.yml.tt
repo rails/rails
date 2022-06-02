@@ -1,8 +1,8 @@
 # SQLite. Versions 3.8.0 and up are supported.
-#   gem 'activerecord-jdbcsqlite3-adapter'
+#   gem "activerecord-jdbcsqlite3-adapter"
 #
 # Configure Using Gemfile
-# gem 'activerecord-jdbcsqlite3-adapter'
+# gem "activerecord-jdbcsqlite3-adapter"
 #
 default: &default
   adapter: sqlite3

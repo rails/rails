@@ -8,6 +8,7 @@ module ApplicationTests
   class MailerPreviewsTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
+    include ERB::Util
 
     def setup
       build_app
@@ -299,7 +300,7 @@ module ApplicationTests
       app("development")
       get "/rails/mailers/notifier"
       assert_predicate last_response, :not_found?
-      assert_match "Mailer preview &#39;notifier&#39; not found", last_response.body
+      assert_match "Mailer preview &#39;notifier&#39; not found", h(last_response.body)
     end
 
     test "mailer preview email not found" do
@@ -329,7 +330,7 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/bar"
       assert_predicate last_response, :not_found?
-      assert_match "Email &#39;bar&#39; not found in NotifierPreview", last_response.body
+      assert_match "Email &#39;bar&#39; not found in NotifierPreview", h(last_response.body)
     end
 
     test "mailer preview NullMail" do
@@ -385,7 +386,7 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo?part=text%2Fhtml"
       assert_predicate last_response, :not_found?
-      assert_match "Email part &#39;text/html&#39; not found in NotifierPreview#foo", last_response.body
+      assert_match "Email part &#39;text/html&#39; not found in NotifierPreview#foo", h(last_response.body)
     end
 
     test "message header uses full display names" do
@@ -584,7 +585,7 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo.txt"
       assert_equal 200, last_response.status
-      assert_match '<iframe seamless name="messageBody" src="?part=text%2Fplain">', last_response.body
+      assert_match '<iframe name="messageBody" src="?part=text%2Fplain">', last_response.body
       assert_match '<option selected value="part=text%2Fplain">', last_response.body
       assert_match '<option  value="part=text%2Fhtml">', last_response.body
 
@@ -594,7 +595,7 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo.html?name=Ruby"
       assert_equal 200, last_response.status
-      assert_match '<iframe seamless name="messageBody" src="?name=Ruby&amp;part=text%2Fhtml">', last_response.body
+      assert_match '<iframe name="messageBody" src="?name=Ruby&amp;part=text%2Fhtml">', last_response.body
       assert_match '<option selected value="name=Ruby&amp;part=text%2Fhtml">', last_response.body
       assert_match '<option  value="name=Ruby&amp;part=text%2Fplain">', last_response.body
 
@@ -611,7 +612,7 @@ module ApplicationTests
           default from: "from@example.com"
 
           def foo
-            attachments['pixel.png'] = File.read("#{app_path}/public/images/pixel.png", mode: 'rb')
+            attachments['pixel.png'] = File.binread("#{app_path}/public/images/pixel.png")
             mail to: "to@example.org"
           end
         end
@@ -633,7 +634,7 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo"
       assert_equal 200, last_response.status
-      assert_match %r[<iframe seamless name="messageBody"], last_response.body
+      assert_match %r[<iframe name="messageBody"], last_response.body
 
       get "/rails/mailers/notifier/foo?part=text/plain"
       assert_equal 200, last_response.status
@@ -648,7 +649,7 @@ module ApplicationTests
           default from: "from@example.com"
 
           def foo
-            attachments['pixel.png'] = File.read("#{app_path}/public/images/pixel.png", mode: 'rb')
+            attachments['pixel.png'] = File.binread("#{app_path}/public/images/pixel.png")
             mail to: "to@example.org"
           end
         end
@@ -674,7 +675,7 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo"
       assert_equal 200, last_response.status
-      assert_match %r[<iframe seamless name="messageBody"], last_response.body
+      assert_match %r[<iframe name="messageBody"], last_response.body
 
       get "/rails/mailers/notifier/foo?part=text/plain"
       assert_equal 200, last_response.status
@@ -693,7 +694,7 @@ module ApplicationTests
           default from: "from@example.com"
 
           def foo
-            attachments['pixel.png'] = File.read("#{app_path}/public/images/pixel.png", mode: 'rb')
+            attachments['pixel.png'] = File.binread("#{app_path}/public/images/pixel.png")
             mail to: "to@example.org"
           end
         end
@@ -720,7 +721,7 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo"
       assert_equal 200, last_response.status
-      assert_match %r[<iframe seamless name="messageBody"], last_response.body
+      assert_match %r[<iframe name="messageBody"], last_response.body
 
       get "/rails/mailers/notifier/foo?part=text/plain"
       assert_equal 200, last_response.status
@@ -778,7 +779,7 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo"
       assert_equal 200, last_response.status
-      assert_match %r[<iframe seamless name="messageBody"], last_response.body
+      assert_match %r[<iframe name="messageBody"], last_response.body
 
       get "/rails/mailers/notifier/foo?part=text/plain"
       assert_equal 200, last_response.status

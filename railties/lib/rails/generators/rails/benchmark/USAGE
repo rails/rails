@@ -1,0 +1,19 @@
+Description:
+    Generate benchmarks to compare performance optimizations.
+
+    Makes use of the `benchmark-ips` gem as it provides a number of benefits like:
+     - Simple significance test
+     - Automatic warmup
+     - No need to specify the number of iterations
+
+Example:
+    `bin/rails generate benchmark opt_compare`
+
+    This will create:
+        script/benchmarks/opt_compare.rb
+
+    You can run the generated benchmark file using:
+        `ruby script/benchmarks/opt_compare.rb`
+
+    You can specify different reports:
+        `bin/rails generate benchmark opt_compare patch1 patch2 patch3`

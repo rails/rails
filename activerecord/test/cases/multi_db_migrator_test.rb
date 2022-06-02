@@ -67,6 +67,11 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
     end
   end
 
+  def test_schema_migration_class_names
+    assert_equal "ActiveRecord::SchemaMigration", @schema_migration_a.name
+    assert_equal "ARUnit2Model::SchemaMigration", @schema_migration_b.name
+  end
+
   def test_finds_migrations
     @migrations_a_list.each_with_index do |pair, i|
       assert_equal @migrations_a[i].version, pair.first

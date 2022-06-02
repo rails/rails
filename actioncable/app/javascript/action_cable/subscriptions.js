@@ -1,4 +1,6 @@
 import Subscription from "./subscription"
+import SubscriptionGuarantor from "./subscription_guarantor"
+import logger from "./logger"
 
 // Collection class for creating (and internally managing) channel subscriptions.
 // The only method intended to be triggered by the user is ActionCable.Subscriptions#create,
@@ -13,6 +15,7 @@ import Subscription from "./subscription"
 export default class Subscriptions {
   constructor(consumer) {
     this.consumer = consumer
+    this.guarantor = new SubscriptionGuarantor(this)
     this.subscriptions = []
   }
 
@@ -29,7 +32,7 @@ export default class Subscriptions {
     this.subscriptions.push(subscription)
     this.consumer.ensureActiveConnection()
     this.notify(subscription, "initialized")
-    this.sendCommand(subscription, "subscribe")
+    this.subscribe(subscription)
     return subscription
   }
 
@@ -50,6 +53,7 @@ export default class Subscriptions {
   }
 
   forget(subscription) {
+    this.guarantor.forget(subscription)
     this.subscriptions = (this.subscriptions.filter((s) => s !== subscription))
     return subscription
   }
@@ -60,7 +64,7 @@ export default class Subscriptions {
 
   reload() {
     return this.subscriptions.map((subscription) =>
-      this.sendCommand(subscription, "subscribe"))
+      this.subscribe(subscription))
   }
 
   notifyAll(callbackName, ...args) {
@@ -78,6 +82,18 @@ export default class Subscriptions {
 
     return subscriptions.map((subscription) =>
       (typeof subscription[callbackName] === "function" ? subscription[callbackName](...args) : undefined))
+  }
+
+  subscribe(subscription) {
+    if (this.sendCommand(subscription, "subscribe")) {
+      this.guarantor.guarantee(subscription)
+    }
+  }
+
+  confirmSubscription(identifier) {
+    logger.log(`Subscription confirmed ${identifier}`)
+    this.findAll(identifier).map((subscription) =>
+      this.guarantor.forget(subscription))
   }
 
   sendCommand(subscription, command) {

@@ -9,6 +9,7 @@ module ActionCable
       attr_accessor :connection_class, :worker_pool_size
       attr_accessor :disable_request_forgery_protection, :allowed_request_origins, :allow_same_origin_as_host
       attr_accessor :cable, :url, :mount_path
+      attr_accessor :precompile_assets
 
       def initialize
         @log_tags = []

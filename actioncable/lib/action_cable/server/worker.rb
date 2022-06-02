@@ -18,6 +18,7 @@ module ActionCable
 
       def initialize(max_size: 5)
         @executor = Concurrent::ThreadPoolExecutor.new(
+          name: "ActionCable",
           min_threads: 1,
           max_threads: max_size,
           max_queue: 0,
@@ -34,12 +35,10 @@ module ActionCable
         @executor.shuttingdown?
       end
 
-      def work(connection)
+      def work(connection, &block)
         self.connection = connection
 
-        run_callbacks :work do
-          yield
-        end
+        run_callbacks :work, &block
       ensure
         self.connection = nil
       end

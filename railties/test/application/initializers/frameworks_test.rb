@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
+require "env_helpers"
 
 module ApplicationTests
   class FrameworksTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
+    include EnvHelpers
 
     def setup
       build_app
@@ -50,17 +52,6 @@ module ApplicationTests
       assert_equal "test.rails", ActionMailer::Base.default_url_options[:host]
     end
 
-    test "Default to HTTPS for ActionMailer URLs when force_ssl is on" do
-      app_file "config/environments/development.rb", <<-RUBY
-        Rails.application.configure do
-          config.force_ssl = true
-        end
-      RUBY
-
-      require "#{app_path}/config/environment"
-      assert_equal "https", ActionMailer::Base.default_url_options[:protocol]
-    end
-
     test "includes URL helpers as action methods" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
@@ -91,11 +82,11 @@ module ApplicationTests
       app_file "app/controllers/foo_controller.rb", <<-RUBY
         class FooController < ApplicationController
           def included_helpers
-            render :inline => "<%= from_app_helper -%> <%= from_foo_helper %>"
+            render inline: "<%= from_app_helper -%> <%= from_foo_helper %>"
           end
 
           def not_included_helper
-            render :inline => "<%= respond_to?(:from_bar_helper) -%>"
+            render inline: "<%= respond_to?(:from_bar_helper) -%>"
           end
         end
       RUBY
@@ -183,6 +174,17 @@ module ApplicationTests
       assert_equal charset, ActionDispatch::Response.default_charset
     end
 
+    test "URL builder is configured to use HTTPS when force_ssl is on" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.force_ssl = true
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert_equal true, ActionDispatch::Http::URL.secure_protocol
+    end
+
     # AS
     test "if there's no config.active_support.bare, all of ActiveSupport is required" do
       use_frameworks []
@@ -214,10 +216,24 @@ module ApplicationTests
       assert !defined?(ActiveRecord::Base) || ActiveRecord.autoload?(:Base)
     end
 
+    test "can boot with an unhealthy database" do
+      rails %w(generate model post title:string)
+
+      switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
+        require "#{app_path}/config/environment"
+      end
+    end
+
     test "use schema cache dump" do
       rails %w(generate model post title:string)
       rails %w(db:migrate db:schema:cache:dump)
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+      RUBY
+
       require "#{app_path}/config/environment"
+
       assert ActiveRecord::Base.connection.schema_cache.data_sources("posts")
     ensure
       ActiveRecord::Base.connection.drop_table("posts", if_exists: true) # force drop posts table for test.
@@ -226,8 +242,63 @@ module ApplicationTests
     test "expire schema cache dump" do
       rails %w(generate model post title:string)
       rails %w(db:migrate db:schema:cache:dump db:rollback)
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+      RUBY
+
       require "#{app_path}/config/environment"
       assert_not ActiveRecord::Base.connection.schema_cache.data_sources("posts")
+    end
+
+    test "expire schema cache dump if the version can't be checked because the database is unhealthy" do
+      rails %w(generate model post title:string)
+      rails %w(db:migrate db:schema:cache:dump)
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+      RUBY
+
+      switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
+        require "#{app_path}/config/environment"
+
+        assert_nil ActiveRecord::Base.connection_pool.schema_cache
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          ActiveRecord::Base.connection.execute("SELECT 1")
+        end
+      end
+    end
+
+    test "does not expire schema cache dump if check_schema_cache_dump_version is false" do
+      rails %w(generate model post title:string)
+      rails %w(db:migrate db:schema:cache:dump db:rollback)
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.active_record.check_schema_cache_dump_version = false
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert ActiveRecord::Base.connection_pool.schema_cache.data_sources("posts")
+    end
+
+    test "does not expire schema cache dump if check_schema_cache_dump_version is false and the database unhealthy" do
+      rails %w(generate model post title:string)
+      rails %w(db:migrate db:schema:cache:dump db:rollback)
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.active_record.check_schema_cache_dump_version = false
+      RUBY
+
+      switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
+        require "#{app_path}/config/environment"
+
+        assert ActiveRecord::Base.connection_pool.schema_cache.data_sources("posts")
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          ActiveRecord::Base.connection.execute("SELECT 1")
+        end
+      end
     end
 
     test "active record establish_connection uses Rails.env if DATABASE_URL is not set" do
@@ -236,7 +307,9 @@ module ApplicationTests
       orig_rails_env, Rails.env = Rails.env, "development"
       ActiveRecord::Base.establish_connection
       assert ActiveRecord::Base.connection
-      assert_match(/#{ActiveRecord::Base.configurations[Rails.env]['database']}/, ActiveRecord::Base.connection_config[:database])
+      assert_match(/#{ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary").database}/, ActiveRecord::Base.connection_db_config.database)
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
+      assert_match(/#{db_config.database}/, ActiveRecord::Base.connection_db_config.database)
     ensure
       ActiveRecord::Base.remove_connection
       ENV["DATABASE_URL"] = orig_database_url if orig_database_url
@@ -251,7 +324,7 @@ module ApplicationTests
       ENV["DATABASE_URL"] = "sqlite3:#{database_url_db_name}"
       ActiveRecord::Base.establish_connection
       assert ActiveRecord::Base.connection
-      assert_match(/#{database_url_db_name}/, ActiveRecord::Base.connection_config[:database])
+      assert_match(/#{database_url_db_name}/, ActiveRecord::Base.connection_db_config.database)
     ensure
       ActiveRecord::Base.remove_connection
       ENV["DATABASE_URL"] = orig_database_url if orig_database_url
@@ -264,6 +337,36 @@ module ApplicationTests
       RUBY
       require "#{app_path}/config/environment"
       assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
+    end
+
+    test "Current scopes in AR models are reset on reloading" do
+      rails %w(generate model post)
+      rails %w(db:migrate)
+
+      app_file "app/models/a.rb", "A = 1"
+      app_file "app/models/m.rb", "module M; end"
+      app_file "app/models/post.rb", <<~RUBY
+        class Post < ActiveRecord::Base
+          def self.is_a?(_)
+            false
+          end
+
+          def self.<(_)
+            false
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      A
+      M
+      Post.current_scope = Post
+      assert_not_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(Post) # precondition
+
+      ActiveSupport::Dependencies.clear
+
+      assert_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(Post)
     end
   end
 end

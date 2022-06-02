@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/time"
-require "time_zone_test_helpers"
+require_relative "../time_zone_test_helpers"
 
 class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
@@ -270,6 +270,26 @@ class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
         assert_equal @system_offset, time.utc_offset
         assert_not_predicate time, :frozen?
       end
+    end
+  end
+
+  def test_to_time_preserves_timezone_is_deprecated
+    current_preserve_tz = ActiveSupport.to_time_preserves_timezone
+
+    assert_not_deprecated do
+      ActiveSupport.to_time_preserves_timezone
+    end
+
+    assert_not_deprecated do
+      ActiveSupport.to_time_preserves_timezone = true
+    end
+
+    assert_deprecated do
+      ActiveSupport.to_time_preserves_timezone = false
+    end
+  ensure
+    ActiveSupport::Deprecation.silence do
+      ActiveSupport.to_time_preserves_timezone = current_preserve_tz
     end
   end
 end

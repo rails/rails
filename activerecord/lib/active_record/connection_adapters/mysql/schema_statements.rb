@@ -57,9 +57,9 @@ module ActiveRecord
               orders = options.delete(:orders)
               lengths = options.delete(:lengths)
 
-              columns = index[-1].map { |name|
+              columns = index[-1].to_h { |name|
                 [ name.to_sym, expressions[name] || +quote_column_name(name) ]
-              }.to_h
+              }
 
               index[-1] = add_options_for_index_columns(
                 columns, order: orders, length: lengths
@@ -70,7 +70,7 @@ module ActiveRecord
           end
         end
 
-        def remove_column(table_name, column_name, type = nil, options = {})
+        def remove_column(table_name, column_name, type = nil, **options)
           if foreign_key_exists?(table_name, column: column_name)
             remove_foreign_key(table_name, column: column_name)
           end
@@ -154,18 +154,40 @@ module ActiveRecord
             MySQL::SchemaCreation.new(self)
           end
 
-          def create_table_definition(*args, **options)
-            MySQL::TableDefinition.new(self, *args, **options)
+          def create_table_definition(name, **options)
+            MySQL::TableDefinition.new(self, name, **options)
+          end
+
+          def default_type(table_name, field_name)
+            match = create_table_info(table_name)&.match(/`#{field_name}` (.+) DEFAULT ('|\d+|[A-z]+)/)
+            default_pre = match[2] if match
+
+            if default_pre == "'"
+              :string
+            elsif default_pre&.match?(/^\d+$/)
+              :integer
+            elsif default_pre&.match?(/^[A-z]+$/)
+              :function
+            end
           end
 
           def new_column_from_field(table_name, field)
+            field_name = field.fetch(:Field)
             type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
             default, default_function = field[:Default], nil
 
             if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(default)
+              default = "#{default} ON UPDATE #{default}" if /on update CURRENT_TIMESTAMP/i.match?(field[:Extra])
               default, default_function = nil, default
             elsif type_metadata.extra == "DEFAULT_GENERATED"
               default = +"(#{default})" unless default.start_with?("(")
+              default, default_function = nil, default
+            elsif type_metadata.type == :text && default&.start_with?("'")
+              # strip and unescape quotes
+              default = default[1...-1].gsub("\\'", "'")
+            elsif default&.match?(/\A\d/)
+              # Its a number so we can skip the query to check if it is a function
+            elsif default && default_type(table_name, field_name) == :function
               default, default_function = nil, default
             end
 
@@ -203,10 +225,14 @@ module ActiveRecord
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
 
-            sql = +"SELECT table_name FROM information_schema.tables"
-            sql << " WHERE table_schema = #{scope[:schema]}"
-            sql << " AND table_name = #{scope[:name]}" if scope[:name]
-            sql << " AND table_type = #{scope[:type]}" if scope[:type]
+            sql = +"SELECT table_name FROM (SELECT table_name, table_type FROM information_schema.tables "
+            sql << " WHERE table_schema = #{scope[:schema]}) _subquery"
+            if scope[:type] || scope[:name]
+              conditions = []
+              conditions << "_subquery.table_type = #{scope[:type]}" if scope[:type]
+              conditions << "_subquery.table_name = #{scope[:name]}" if scope[:name]
+              sql << " WHERE #{conditions.join(" AND ")}"
+            end
             sql
           end
 

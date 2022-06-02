@@ -19,14 +19,22 @@ module ActiveRecord
     # that informs the application when to read from a primary or read from a
     # replica.
     #
-    # To use the DatabaseSelector in your application with default settings add
-    # the following options to your environment config:
+    # To use the DatabaseSelector in your application with default settings,
+    # run the provided generator.
     #
-    #   config.active_record.database_selector = { delay: 2.seconds }
-    #   config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
-    #   config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+    #   bin/rails g active_record:multi_db
     #
-    # New applications will include these lines commented out in the production.rb.
+    # This will create a file named +config/initializers/multi_db.rb+ with the
+    # following contents:
+    #
+    #   Rails.application.configure do
+    #     config.active_record.database_selector = { delay: 2.seconds }
+    #     config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+    #     config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+    #   end
+    #
+    # Alternatively you can set the options in your environment config or
+    # any other config file loaded on boot.
     #
     # The default behavior can be changed by setting the config options to a
     # custom class:
@@ -34,6 +42,10 @@ module ActiveRecord
     #   config.active_record.database_selector = { delay: 2.seconds }
     #   config.active_record.database_resolver = MyResolver
     #   config.active_record.database_resolver_context = MyResolver::MySession
+    #
+    # Note: If you are using `rails new my_app --minimal` you will need to call
+    # `require "active_support/core_ext/integer/time"` to load the libraries
+    # for +Time+.
     class DatabaseSelector
       def initialize(app, resolver_klass = nil, context_klass = nil, options = {})
         @app = app
@@ -59,15 +71,14 @@ module ActiveRecord
           context = context_klass.call(request)
           resolver = resolver_klass.call(context, options)
 
-          if reading_request?(request)
+          response = if resolver.reading_request?(request)
             resolver.read(&blk)
           else
             resolver.write(&blk)
           end
-        end
 
-        def reading_request?(request)
-          request.get? || request.head?
+          resolver.update_context(response)
+          response
         end
     end
   end

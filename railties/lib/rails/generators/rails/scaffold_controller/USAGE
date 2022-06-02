@@ -1,5 +1,5 @@
 Description:
-    Stubs out a scaffolded controller, its seven RESTful actions and related
+    Generates a scaffolded controller, its seven RESTful actions and related
     views. Pass the model name, either CamelCased or under_scored. The
     controller name is retrieved as a pluralized version of the model name.
 
@@ -10,7 +10,7 @@ Description:
     template engine and test framework generators.
 
 Example:
-    `rails generate scaffold_controller CreditCard`
+    `bin/rails generate scaffold_controller CreditCard`
 
     Credit card controller with URLs like /credit_cards.
         Controller: app/controllers/credit_cards_controller.rb

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 
 class ForkTrackerTest < ActiveSupport::TestCase
   def test_object_fork

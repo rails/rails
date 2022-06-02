@@ -18,7 +18,7 @@ module ActionView
   #   sbuf << 5
   #   puts sbuf # => "hello\u0005"
   #
-  class OutputBuffer < ActiveSupport::SafeBuffer #:nodoc:
+  class OutputBuffer < ActiveSupport::SafeBuffer # :nodoc:
     def initialize(*)
       super
       encode!
@@ -38,7 +38,7 @@ module ActionView
     alias :safe_append= :safe_concat
   end
 
-  class StreamingBuffer #:nodoc:
+  class StreamingBuffer # :nodoc:
     def initialize(block)
       @block = block
     end

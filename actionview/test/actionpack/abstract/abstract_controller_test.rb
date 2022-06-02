@@ -52,6 +52,10 @@ module AbstractController
         render "index.erb"
       end
 
+      def with_final_newline
+        render "with_final_newline.erb"
+      end
+
       def index_to_string
         self.response_body = render_to_string "index"
       end
@@ -82,6 +86,14 @@ module AbstractController
       test "rendering templates works" do
         @controller.process(:index)
         assert_equal "Hello from index.erb", @controller.response_body
+      end
+
+      test "stripping final newline works" do
+        ActionView::Template::Handlers::ERB.strip_trailing_newlines = true
+        @controller.process(:with_final_newline)
+        assert_equal "Hello from with_final_newline.erb", @controller.response_body
+      ensure
+        ActionView::Template::Handlers::ERB.strip_trailing_newlines = false
       end
 
       test "render_to_string works with a String as an argument" do

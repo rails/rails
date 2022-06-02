@@ -14,7 +14,7 @@ require "active_job/instrumentation"
 require "active_job/timezones"
 require "active_job/translation"
 
-module ActiveJob #:nodoc:
+module ActiveJob # :nodoc:
   # = Active Job
   #
   # Active Job objects can be configured to work with different backend
@@ -69,8 +69,8 @@ module ActiveJob #:nodoc:
     include Execution
     include Callbacks
     include Exceptions
-    include Logging
     include Instrumentation
+    include Logging
     include Timezones
     include Translation
 

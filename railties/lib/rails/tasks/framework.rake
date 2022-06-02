@@ -8,7 +8,7 @@ namespace :app do
   task template: :environment do
     template = ENV["LOCATION"]
     raise "No LOCATION value given. Please set LOCATION either as path to a file or a URL" if template.blank?
-    template = File.expand_path(template) unless %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}.match?(template)
+    template = File.expand_path(template) unless %r{\A[A-Za-z][A-Za-z0-9+\-.]*://}.match?(template)
     require "rails/generators"
     require "rails/generators/rails/app/app_generator"
     generator = Rails::Generators::AppGenerator.new [Rails.root], {}, { destination_root: Rails.root }
@@ -22,7 +22,7 @@ namespace :app do
       project_templates = "#{Rails.root}/lib/templates"
 
       default_templates = { "erb"   => %w{controller mailer scaffold},
-                            "rails" => %w{controller helper scaffold_controller assets} }
+                            "rails" => %w{controller helper scaffold_controller} }
 
       default_templates.each do |type, names|
         local_template_type_dir = File.join(project_templates, type)

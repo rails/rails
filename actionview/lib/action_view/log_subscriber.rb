@@ -32,39 +32,76 @@ module ActionView
       end
     end
 
+    def render_layout(event)
+      info do
+        message = +"  Rendered layout #{from_rails_root(event.payload[:identifier])}"
+        message << " (Duration: #{event.duration.round(1)}ms | Allocations: #{event.allocations})"
+      end
+    end
+
     def render_collection(event)
       identifier = event.payload[:identifier] || "templates"
 
       debug do
-        "  Rendered collection of #{from_rails_root(identifier)}" \
-        " #{render_count(event.payload)} (Duration: #{event.duration.round(1)}ms | Allocations: #{event.allocations})"
+        message = +"  Rendered collection of #{from_rails_root(identifier)}"
+        message << " within #{from_rails_root(event.payload[:layout])}" if event.payload[:layout]
+        message << " #{render_count(event.payload)} (Duration: #{event.duration.round(1)}ms | Allocations: #{event.allocations})"
+        message
       end
     end
 
-    def start(name, id, payload)
-      if name == "render_template.action_view"
-        log_rendering_start(payload)
+    module Utils # :nodoc:
+      def logger
+        ActionView::Base.logger
       end
+
+    private
+      def from_rails_root(string)
+        string = string.sub(rails_root, "")
+        string.sub!(VIEWS_PATTERN, "")
+        string
+      end
+
+      def rails_root # :doc:
+        @root ||= "#{Rails.root}/"
+      end
+    end
+
+    include Utils
+
+    class Start # :nodoc:
+      include Utils
+
+      def start(name, id, payload)
+        return unless logger
+        logger.debug do
+          qualifier =
+            if name == "render_template.action_view"
+              ""
+            elsif name == "render_layout.action_view"
+              "layout "
+            end
+
+          return unless qualifier
+
+          message = +"  Rendering #{qualifier}#{from_rails_root(payload[:identifier])}"
+          message << " within #{from_rails_root(payload[:layout])}" if payload[:layout]
+          message
+        end
+      end
+
+      def finish(name, id, payload)
+      end
+    end
+
+    def self.attach_to(*)
+      ActiveSupport::Notifications.subscribe("render_template.action_view", ActionView::LogSubscriber::Start.new)
+      ActiveSupport::Notifications.subscribe("render_layout.action_view", ActionView::LogSubscriber::Start.new)
 
       super
     end
 
-    def logger
-      ActionView::Base.logger
-    end
-
   private
-    EMPTY = ""
-    def from_rails_root(string) # :doc:
-      string = string.sub(rails_root, EMPTY)
-      string.sub!(VIEWS_PATTERN, EMPTY)
-      string
-    end
-
-    def rails_root # :doc:
-      @root ||= "#{Rails.root}/"
-    end
-
     def render_count(payload) # :doc:
       if payload[:cache_hits]
         "[#{payload[:cache_hits]} / #{payload[:count]} cache hits]"
@@ -79,14 +116,6 @@ module ActionView
         "[cache hit]"
       when :miss
         "[cache miss]"
-      end
-    end
-
-    def log_rendering_start(payload)
-      debug do
-        message = +"  Rendering #{from_rails_root(payload[:identifier])}"
-        message << " within #{from_rails_root(payload[:layout])}" if payload[:layout]
-        message
       end
     end
   end

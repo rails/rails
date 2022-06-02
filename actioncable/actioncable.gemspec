@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "WebSocket framework for Rails."
   s.description = "Structure many real-time application concerns into channels over a single WebSocket connection."
 
-  s.required_ruby_version = ">= 2.5.0"
+  s.required_ruby_version = ">= 2.7.0"
 
   s.license = "MIT"
 
@@ -17,15 +17,16 @@ Gem::Specification.new do |s|
   s.email    = ["pratiknaik@gmail.com", "david@loudthinking.com"]
   s.homepage = "https://rubyonrails.org"
 
-  s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.md", "lib/**/*", "app/assets/javascripts/action_cable.js"]
+  s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.md", "lib/**/*", "app/assets/javascripts/*.js"]
   s.require_path = "lib"
 
   s.metadata = {
     "bug_tracker_uri"   => "https://github.com/rails/rails/issues",
     "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/actioncable/CHANGELOG.md",
     "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
-    "mailing_list_uri"  => "https://groups.google.com/forum/#!forum/rubyonrails-talk",
+    "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
     "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/actioncable",
+    "rubygems_mfa_required" => "true",
   }
 
   # NOTE: Please read our dependency guidelines before updating versions:
@@ -36,4 +37,5 @@ Gem::Specification.new do |s|
 
   s.add_dependency "nio4r",            "~> 2.0"
   s.add_dependency "websocket-driver", ">= 0.6.1"
+  s.add_dependency "zeitwerk",         "~> 2.5"
 end

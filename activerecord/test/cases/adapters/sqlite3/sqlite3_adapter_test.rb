@@ -35,10 +35,10 @@ module ActiveRecord
           "expected non_extant_db to not exist"
       end
 
-      def test_database_exists_returns_true_when_databae_exists
-        config = ActiveRecord::Base.configurations["arunit"]
-        assert SQLite3Adapter.database_exists?(config),
-          "expected #{config[:database]} to exist"
+      def test_database_exists_returns_true_when_database_exists
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        assert SQLite3Adapter.database_exists?(db_config.configuration_hash),
+          "expected #{db_config.database} to exist"
       end
 
       unless in_memory_db?
@@ -324,6 +324,14 @@ module ActiveRecord
         end
       end
 
+      def test_add_column_with_not_null
+        with_example_table "id integer PRIMARY KEY AUTOINCREMENT, number integer not null" do
+          assert_nothing_raised { @conn.add_column :ex, :name, :string, null: false }
+          column = @conn.columns("ex").find { |x| x.name == "name" }
+          assert_not column.null, "column should not be null"
+        end
+      end
+
       def test_indexes_logs
         with_example_table do
           assert_logged [["PRAGMA index_list(\"ex\")", "SCHEMA", []]] do
@@ -344,6 +352,16 @@ module ActiveRecord
           assert_equal "ex", index.table
           assert index.unique, "index is unique"
           assert_equal ["id"], index.columns
+        end
+      end
+
+      def test_index_with_if_not_exists
+        with_example_table do
+          @conn.add_index "ex", "id"
+
+          assert_nothing_raised do
+            @conn.add_index "ex", "id", if_not_exists: true
+          end
         end
       end
 
@@ -507,19 +525,29 @@ module ActiveRecord
         Barcode.reset_column_information
       end
 
-      def test_remove_column_preserves_partial_indexes
+      def test_remove_column_preserves_index_options
         connection = Barcode.connection
         connection.create_table :barcodes, force: true do |t|
           t.string :code
           t.string :region
           t.boolean :bool_attr
 
-          t.index :code, unique: true, where: :bool_attr, name: "partial"
+          t.index :code, unique: true, name: "unique"
+          t.index :code, where: :bool_attr, name: "partial"
+          t.index :code, name: "ordered", order: { code: :desc }
         end
         connection.remove_column :barcodes, :region
 
-        index = connection.indexes("barcodes").find { |idx| idx.name == "partial" }
-        assert_equal "bool_attr", index.where
+        indexes = connection.indexes("barcodes")
+
+        partial_index = indexes.find { |idx| idx.name == "partial" }
+        assert_equal "bool_attr", partial_index.where
+
+        unique_index = indexes.find { |idx| idx.name == "unique" }
+        assert unique_index.unique
+
+        ordered_index = indexes.find { |idx| idx.name == "ordered" }
+        assert_equal :desc, ordered_index.orders
       ensure
         Barcode.reset_column_information
       end
@@ -537,7 +565,9 @@ module ActiveRecord
       end
 
       def test_statement_closed
-        db = ::SQLite3::Database.new(ActiveRecord::Base.configurations["arunit"][:database])
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        db = ::SQLite3::Database.new(db_config.database)
+
         statement = ::SQLite3::Statement.new(db,
                                            "CREATE TABLE statement_test (number integer not null)")
         statement.stub(:step, -> { raise ::SQLite3::BusyException.new("busy") }) do
@@ -583,72 +613,6 @@ module ActiveRecord
 
         assert_raises(ActiveRecord::StatementInvalid, /SQLite3::ReadOnlyException/) do
           conn.execute("CREATE TABLE test(id integer)")
-        end
-      end
-
-      def test_errors_when_an_insert_query_is_called_while_preventing_writes
-        with_example_table "id int, data string" do
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection_handler.while_preventing_writes do
-              @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-            end
-          end
-        end
-      end
-
-      def test_errors_when_an_update_query_is_called_while_preventing_writes
-        with_example_table "id int, data string" do
-          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection_handler.while_preventing_writes do
-              @conn.execute("UPDATE ex SET data = '9989' WHERE data = '138853948594'")
-            end
-          end
-        end
-      end
-
-      def test_errors_when_a_delete_query_is_called_while_preventing_writes
-        with_example_table "id int, data string" do
-          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection_handler.while_preventing_writes do
-              @conn.execute("DELETE FROM ex where data = '138853948594'")
-            end
-          end
-        end
-      end
-
-      def test_errors_when_a_replace_query_is_called_while_preventing_writes
-        with_example_table "id int, data string" do
-          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection_handler.while_preventing_writes do
-              @conn.execute("REPLACE INTO ex (data) VALUES ('249823948')")
-            end
-          end
-        end
-      end
-
-      def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
-        with_example_table "id int, data string" do
-          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-
-          @connection_handler.while_preventing_writes do
-            assert_equal 1, @conn.execute("SELECT data from ex WHERE data = '138853948594'").count
-          end
-        end
-      end
-
-      def test_doesnt_error_when_a_read_query_with_leading_chars_is_called_while_preventing_writes
-        with_example_table "id int, data string" do
-          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-
-          @connection_handler.while_preventing_writes do
-            assert_equal 1, @conn.execute("  SELECT data from ex WHERE data = '138853948594'").count
-          end
         end
       end
 

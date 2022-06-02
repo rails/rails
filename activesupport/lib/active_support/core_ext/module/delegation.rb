@@ -199,7 +199,7 @@ class Module
 
       # Attribute writer methods only accept one argument. Makes sure []=
       # methods still accept two arguments.
-      definition = /[^\]]=$/.match?(method) ? "arg" : "*args, &block"
+      definition = /[^\]]=\z/.match?(method) ? "arg" : "..."
 
       # The following generated method calls the target exactly once, storing
       # the returned value in a dummy variable.
@@ -318,6 +318,7 @@ class Module
           end
         end
       end
+      ruby2_keywords(:method_missing)
     RUBY
   end
 end

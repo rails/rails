@@ -18,6 +18,8 @@ require "arel/nodes/false"
 # unary
 require "arel/nodes/unary"
 require "arel/nodes/grouping"
+require "arel/nodes/homogeneous_in"
+require "arel/nodes/ordering"
 require "arel/nodes/ascending"
 require "arel/nodes/descending"
 require "arel/nodes/unqualified_column"
@@ -26,7 +28,8 @@ require "arel/nodes/with"
 # binary
 require "arel/nodes/binary"
 require "arel/nodes/equality"
-require "arel/nodes/in" # Why is this subclassed from equality?
+require "arel/nodes/filter"
+require "arel/nodes/in"
 require "arel/nodes/join_source"
 require "arel/nodes/delete_statement"
 require "arel/nodes/table_alias"

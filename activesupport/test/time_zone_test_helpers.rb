@@ -18,10 +18,16 @@ module TimeZoneTestHelpers
 
   def with_preserve_timezone(value)
     old_preserve_tz = ActiveSupport.to_time_preserves_timezone
-    ActiveSupport.to_time_preserves_timezone = value
+
+    ActiveSupport::Deprecation.silence do
+      ActiveSupport.to_time_preserves_timezone = value
+    end
+
     yield
   ensure
-    ActiveSupport.to_time_preserves_timezone = old_preserve_tz
+    ActiveSupport::Deprecation.silence do
+      ActiveSupport.to_time_preserves_timezone = old_preserve_tz
+    end
   end
 
   def with_tz_mappings(mappings)
@@ -35,5 +41,13 @@ module TimeZoneTestHelpers
     ActiveSupport::TimeZone.clear
     ActiveSupport::TimeZone::MAPPING.clear
     ActiveSupport::TimeZone::MAPPING.merge!(old_mappings)
+  end
+
+  def with_utc_to_local_returns_utc_offset_times(value)
+    old_tzinfo2_format = ActiveSupport.utc_to_local_returns_utc_offset_times
+    ActiveSupport.utc_to_local_returns_utc_offset_times = value
+    yield
+  ensure
+    ActiveSupport.utc_to_local_returns_utc_offset_times = old_tzinfo2_format
   end
 end

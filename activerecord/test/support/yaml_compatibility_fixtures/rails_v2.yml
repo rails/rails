@@ -1,0 +1,55 @@
+--- !ruby/object:Topic
+concise_attributes:
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: id
+  value_before_type_cast: 1
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: title
+  value_before_type_cast: The First Topic
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: author_name
+  value_before_type_cast: David
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: author_email_address
+  value_before_type_cast: david@loudthinking.com
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: written_on
+  value_before_type_cast: '2003-07-16 14:28:11.223300'
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: bonus_time
+  value_before_type_cast: '2000-01-01 14:28:00'
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: last_read
+  value_before_type_cast: '2004-04-15'
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: content
+  value_before_type_cast: |
+    --- Have a nice day
+    ...
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: important
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: approved
+  value_before_type_cast: 0
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: replies_count
+  value_before_type_cast: 1
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: unique_replies_count
+  value_before_type_cast: 0
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: parent_id
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: parent_title
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: type
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: group
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: created_at
+  value_before_type_cast: '2020-06-25 09:52:17.503713'
+- !ruby/object:ActiveModel::Attribute::FromDatabase
+  name: updated_at
+  value_before_type_cast: '2020-06-25 09:52:17.503713'
+new_record: false
+active_record_yaml_version: 2

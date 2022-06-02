@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/core_ext/array"
 
 class ArrayInquirerTest < ActiveSupport::TestCase
@@ -55,7 +55,7 @@ class ArrayInquirerTest < ActiveSupport::TestCase
   ensure
     Array.class_eval do
       undef_method :respond_to_missing?
-      def respond_to_missing?(name, include_private = false)
+      def respond_to_missing?(name, include_private = false) # rubocop:disable Lint/DuplicateMethods
         super
       end
     end

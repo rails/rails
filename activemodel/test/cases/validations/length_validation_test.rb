@@ -124,6 +124,31 @@ class LengthValidationTest < ActiveModel::TestCase
     assert_predicate t, :valid?
   end
 
+  def test_validates_length_of_using_within_with_infinite_ranges
+    [
+      [-Float::INFINITY..10, 11],
+      [-Float::INFINITY...11, 11],
+      [-Float::INFINITY.., nil],
+      [10..Float::INFINITY, 9],
+      [10...Float::INFINITY, 9],
+      [10.., 9],
+      [..10, 11],
+      [...11, 11],
+      [-Float::INFINITY..Float::INFINITY, nil],
+    ].each do |range, invalid_length|
+      Topic.clear_validators!
+      Topic.validates_length_of(:title, within: range)
+
+      t = Topic.new("title" => "a" * 10)
+      assert_predicate t, :valid?
+
+      if invalid_length
+        t.title = "a" * invalid_length
+        assert_predicate t, :invalid?
+      end
+    end
+  end
+
   def test_optionally_validates_length_of_using_within
     Topic.validates_length_of :title, :content, within: 3..5, allow_nil: true
 
@@ -411,6 +436,21 @@ class LengthValidationTest < ActiveModel::TestCase
     assert_predicate Topic.new("title" => "david2"), :invalid?
   end
 
+  def test_validates_length_of_using_symbol_as_maximum
+    Topic.validates_length_of :title, maximum: :five
+
+    t = Topic.new("title" => "valid", "content" => "whatever")
+    assert_predicate t, :valid?
+
+    t.title = "notvalid"
+    assert_predicate t, :invalid?
+    assert_predicate t.errors[:title], :any?
+    assert_equal ["is too long (maximum is 5 characters)"], t.errors[:title]
+
+    t.title = ""
+    assert_predicate t, :valid?
+  end
+
   def test_validates_length_of_using_proc_as_maximum
     Topic.validates_length_of :title, maximum: ->(model) { 5 }
 
@@ -429,6 +469,21 @@ class LengthValidationTest < ActiveModel::TestCase
   def test_validates_length_of_using_proc_as_maximum_with_model_method
     Topic.define_method(:max_title_length) { 5 }
     Topic.validates_length_of :title, maximum: Proc.new(&:max_title_length)
+
+    t = Topic.new("title" => "valid", "content" => "whatever")
+    assert_predicate t, :valid?
+
+    t.title = "notvalid"
+    assert_predicate t, :invalid?
+    assert_predicate t.errors[:title], :any?
+    assert_equal ["is too long (maximum is 5 characters)"], t.errors[:title]
+
+    t.title = ""
+    assert_predicate t, :valid?
+  end
+
+  def test_validates_length_of_using_lambda_as_maximum
+    Topic.validates_length_of :title, maximum: -> { 5 }
 
     t = Topic.new("title" => "valid", "content" => "whatever")
     assert_predicate t, :valid?

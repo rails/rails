@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/notifications/instrumenter"
 
 module ActiveSupport
@@ -60,6 +60,47 @@ module ActiveSupport
         instrumenter.finish("foo", payload)
         assert_equal [["foo", instrumenter.id, payload]], notifier.finishes
         assert_empty notifier.starts
+      end
+
+      def test_record
+        called = false
+        event = instrumenter.new_event("foo", payload)
+        event.record {
+          called = true
+        }
+
+        assert called
+      end
+
+      def test_record_yields_the_payload_for_further_modification
+        event = instrumenter.new_event("awesome")
+        event.record { |p| p[:result] = 1 + 1 }
+        assert_equal 2, event.payload[:result]
+
+        assert_equal "awesome", event.name
+        assert_equal Hash[result: 2], event.payload
+        assert_equal instrumenter.id, event.transaction_id
+        assert_not_nil event.time
+        assert_not_nil event.end
+      end
+
+      def test_record_works_without_a_block
+        event = instrumenter.new_event("no.block", payload)
+        event.record
+
+        assert_equal "no.block", event.name
+        assert_equal payload, event.payload
+        assert_equal instrumenter.id, event.transaction_id
+        assert_not_nil event.time
+        assert_not_nil event.end
+      end
+
+      def test_record_with_exception
+        event = instrumenter.new_event("crash", payload)
+        assert_raises RuntimeError do
+          event.record { raise "Oopsies" }
+        end
+        assert_equal "Oopsies", event.payload[:exception_object].message
       end
     end
   end

@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/time/conversions"
-require "active_support/core_ext/object/blank"
 require "active_support/log_subscriber"
-require "action_dispatch/http/request"
 require "rack/body_proxy"
 
 module Rails
@@ -32,13 +30,17 @@ module Rails
       private
         def call_app(request, env) # :doc:
           instrumenter = ActiveSupport::Notifications.instrumenter
-          instrumenter.start "request.action_dispatch", request: request
+          instrumenter_state = instrumenter.start "request.action_dispatch", request: request
+          instrumenter_finish = -> () {
+            instrumenter.finish_with_state(instrumenter_state, "request.action_dispatch", request: request)
+          }
+
           logger.info { started_request_message(request) }
           status, headers, body = @app.call(env)
-          body = ::Rack::BodyProxy.new(body) { finish(request) }
+          body = ::Rack::BodyProxy.new(body, &instrumenter_finish)
           [status, headers, body]
         rescue Exception
-          finish(request)
+          instrumenter_finish.call
           raise
         ensure
           ActiveSupport::LogSubscriber.flush_all!
@@ -47,7 +49,7 @@ module Rails
         # Started GET "/session/new" for 127.0.0.1 at 2012-09-26 14:51:42 -0700
         def started_request_message(request) # :doc:
           'Started %s "%s" for %s at %s' % [
-            request.request_method,
+            request.raw_request_method,
             request.filtered_path,
             request.remote_ip,
             Time.now.to_default_s ]
@@ -64,11 +66,6 @@ module Rails
               tag
             end
           end
-        end
-
-        def finish(request)
-          instrumenter = ActiveSupport::Notifications.instrumenter
-          instrumenter.finish "request.action_dispatch", request: request
         end
 
         def logger

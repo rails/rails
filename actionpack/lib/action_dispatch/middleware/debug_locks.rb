@@ -9,9 +9,9 @@ module ActionDispatch
   #     config.middleware.insert_before Rack::Sendfile, ActionDispatch::DebugLocks
   #
   # After restarting the application and re-triggering the deadlock condition,
-  # <tt>/rails/locks</tt> will show a summary of all threads currently known to
-  # the interlock, which lock level they are holding or awaiting, and their
-  # current backtrace.
+  # the route <tt>/rails/locks</tt> will show a summary of all threads currently
+  # known to the interlock, which lock level they are holding or awaiting, and
+  # their current backtrace.
   #
   # Generally a deadlock will be caused by the interlock conflicting with some
   # other external lock or blocking I/O call. These cannot be automatically

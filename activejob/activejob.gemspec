@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Job framework with pluggable queues."
   s.description = "Declare job classes that can be run by a variety of queuing backends."
 
-  s.required_ruby_version = ">= 2.5.0"
+  s.required_ruby_version = ">= 2.7.0"
 
   s.license = "MIT"
 
@@ -24,8 +24,9 @@ Gem::Specification.new do |s|
     "bug_tracker_uri"   => "https://github.com/rails/rails/issues",
     "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/activejob/CHANGELOG.md",
     "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
-    "mailing_list_uri"  => "https://groups.google.com/forum/#!forum/rubyonrails-talk",
+    "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
     "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/activejob",
+    "rubygems_mfa_required" => "true",
   }
 
   # NOTE: Please read our dependency guidelines before updating versions:

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-module ActionView #:nodoc:
+module ActionView # :nodoc:
   # = Action View Text Template
-  class Template #:nodoc:
-    class Text #:nodoc:
+  class Template # :nodoc:
+    class Text # :nodoc:
       attr_accessor :type
 
       def initialize(string)
@@ -27,9 +27,6 @@ module ActionView #:nodoc:
       def format
         :text
       end
-
-      def formats; Array(format); end
-      deprecate :formats
     end
   end
 end

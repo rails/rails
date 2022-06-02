@@ -66,6 +66,6 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
     end
 
     def attachable
-      @attachment ||= create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+      @attachment ||= create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     end
 end

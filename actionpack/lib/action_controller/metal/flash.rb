@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module ActionController #:nodoc:
+module ActionController # :nodoc:
   module Flash
     extend ActiveSupport::Concern
 
@@ -41,10 +41,14 @@ module ActionController #:nodoc:
           self._flash_types += [type]
         end
       end
+
+      def action_methods # :nodoc:
+        @action_methods ||= super - _flash_types.map(&:to_s).to_set
+      end
     end
 
     private
-      def redirect_to(options = {}, response_options_and_flash = {}) #:doc:
+      def redirect_to(options = {}, response_options_and_flash = {}) # :doc:
         self.class._flash_types.each do |flash_type|
           if type = response_options_and_flash.delete(flash_type)
             flash[flash_type] = type

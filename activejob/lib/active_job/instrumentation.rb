@@ -1,29 +1,40 @@
 # frozen_string_literal: true
 
 module ActiveJob
-  module Instrumentation #:nodoc:
+  module Instrumentation # :nodoc:
     extend ActiveSupport::Concern
 
     included do
       around_enqueue do |_, block|
         scheduled_at ? instrument(:enqueue_at, &block) : instrument(:enqueue, &block)
       end
+    end
 
-      around_perform do |_, block|
-        instrument :perform_start
-        instrument :perform, &block
-      end
+    def perform_now
+      instrument(:perform) { super }
     end
 
     private
-      def instrument(operation, payload = {}, &block)
-        enhanced_block = ->(event_payload) do
-          aborted = !block.call if block
-          event_payload[:aborted] = true if aborted
-        end
+      def _perform_job
+        instrument(:perform_start)
+        super
+      end
 
-        ActiveSupport::Notifications.instrument \
-          "#{operation}.active_job", payload.merge(adapter: queue_adapter, job: self), &enhanced_block
+      def instrument(operation, payload = {}, &block)
+        payload[:job] = self
+        payload[:adapter] = queue_adapter
+
+        ActiveSupport::Notifications.instrument("#{operation}.active_job", payload) do
+          value = block.call if block
+          payload[:aborted] = @_halted_callback_hook_called if defined?(@_halted_callback_hook_called)
+          @_halted_callback_hook_called = nil
+          value
+        end
+      end
+
+      def halted_callback_hook(*)
+        super
+        @_halted_callback_hook_called = true
       end
   end
 end

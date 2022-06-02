@@ -14,7 +14,7 @@ There are two major changes in the architecture of Rails applications: complete 
 
 ### Rack Integration
 
-Rails has now broken with its CGI past, and uses Rack everywhere. This required and resulted in a tremendous number of internal changes (but if you use CGI, don't worry; Rails now supports CGI through a proxy interface.) Still, this is a major change to Rails internals. After upgrading to 2.3, you should test on your local environment and your production environment. Some things to test:
+Rails has now broken with its CGI past, and uses Rack everywhere. This required and resulted in a tremendous number of internal changes (but if you use CGI, don't worry; Rails now supports CGI through a proxy interface). Still, this is a major change to Rails internals. After upgrading to 2.3, you should test on your local environment and your production environment. Some things to test:
 
 * Sessions
 * Cookies
@@ -227,6 +227,7 @@ render 'other_controller/action'
 render 'show'
 render :show
 ```
+
 Rails chooses between file, template, and action depending on whether there is a leading slash, an embedded slash, or no slash at all in what's to be rendered. Note that you can also use a symbol instead of a string when rendering an action. Other rendering styles (`:inline`, `:text`, `:update`, `:nothing`, `:json`, `:xml`, `:js`) still require an explicit option.
 
 ### Application Controller Renamed
@@ -265,7 +266,7 @@ end
 
 ### More Efficient Routing
 
-There are a couple of significant routing changes in Rails 2.3. The `formatted_` route helpers are gone, in favor just passing in `:format` as an option. This cuts down the route generation process by 50% for any resource - and can save a substantial amount of memory (up to 100MB on large applications). If your code uses the `formatted_` helpers, it will still work for the time being - but that behavior is deprecated and your application will be more efficient if you rewrite those routes using the new standard. Another big change is that Rails now supports multiple routing files, not just `routes.rb`. You can use `RouteSet#add_configuration_file` to bring in more routes at any time - without clearing the currently-loaded routes. While this change is most useful for Engines, you can use it in any application that needs to load routes in batches.
+There are a couple of significant routing changes in Rails 2.3. The `formatted_` route helpers are gone, in favor just passing in `:format` as an option. This cuts down the route generation process by 50% for any resource - and can save a substantial amount of memory (up to 100MB on large applications). If your code uses the `formatted_` helpers, it will still work for the time being - but that behavior is deprecated and your application will be more efficient if you rewrite those routes using the new standard. Another big change is that Rails now supports multiple routing files, not just `routes.rb`. You can use `RouteSet#add_configuration_file` to bring in more routes at any time - without clearing the currently loaded routes. While this change is most useful for Engines, you can use it in any application that needs to load routes in batches.
 
 * Lead Contributors: [Aaron Batalion](http://blog.hungrymachine.com/)
 
@@ -434,7 +435,7 @@ grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]],
 
 returns
 
-```ruby
+```html
 <option value="">Choose a product...</option>
 <optgroup label="Hats">
   <option value="Baseball Cap">Baseball Cap</option>
@@ -520,8 +521,7 @@ XmlMini.backend = 'LibXML'
 The `Time` and `TimeWithZone` classes include an `xmlschema` method to return the time in an XML-friendly string. As of Rails 2.3, `TimeWithZone` supports the same argument for specifying the number of digits in the fractional second part of the returned string that `Time` does:
 
 ```ruby
->> Time.zone.now.xmlschema(6)
-=> "2009-01-16T13:00:06.13653Z"
+Time.zone.now.xmlschema(6) # => "2009-01-16T13:00:06.13653Z"
 ```
 
 * Lead Contributor: [Nicholas Dainty](http://www.workingwithrails.com/person/13536-nicholas-dainty)
@@ -561,8 +561,8 @@ Rails Metal is a new mechanism that provides superfast endpoints inside of your 
 
 Rails 2.3 incorporates Jeremy McAnally's [rg](https://github.com/jm/rg) application generator. What this means is that we now have template-based application generation built right into Rails; if you have a set of plugins you include in every application (among many other use cases), you can just set up a template once and use it over and over again when you run the `rails` command. There's also a rake task to apply a template to an existing application:
 
-```
-rake rails:template LOCATION=~/template.rb
+```bash
+$ rake rails:template LOCATION=~/template.rb
 ```
 
 This will layer the changes from the template on top of whatever code the project already contains.

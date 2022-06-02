@@ -47,12 +47,7 @@ class FiberedTest < SetupFiberedBase
   end
 
   def test_render_file
-    assert_equal "Hello world!", assert_deprecated { buffered_render(file: "test/hello_world") }
-  end
-
-  def test_render_file_with_locals
-    locals = { secret: "in the sauce" }
-    assert_equal "The secret is in the sauce\n", assert_deprecated { buffered_render(file: "test/render_file_with_locals", locals: locals) }
+    assert_equal "Hello world!", buffered_render(file: File.absolute_path("../fixtures/test/hello_world.erb", __dir__))
   end
 
   def test_render_partial

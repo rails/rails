@@ -1,8 +1,6 @@
 (function() {
   "use strict";
 
-  this.syntaxhighlighterConfig = { autoLinks: false };
-
   this.wrap = function(elem, wrapper) {
     elem.parentNode.insertBefore(wrapper, elem);
     wrapper.appendChild(elem);
@@ -43,6 +41,12 @@
       });
     });
 
+    document.addEventListener("keyup", function(e) {
+      if (e.key === "Escape" && guides.classList.contains("visible")) {
+        guides.classList.remove("visible");
+      }
+    });
+
     var guidesIndexItem   = document.querySelector("select.guides-index-item");
     var currentGuidePath  = window.location.pathname;
     guidesIndexItem.value = currentGuidePath.substring(currentGuidePath.lastIndexOf("/") + 1);
@@ -68,6 +72,17 @@
         moreInfoLinks.classList.add("s-hidden");
         unwrap(moreInfoLinks);
       }
+    });
+
+    var clipboard = new ClipboardJS('.clipboard-button');
+    clipboard.on('success', function(e) {
+      var trigger = e.trigger;
+      var triggerLabel = trigger.innerHTML;
+      trigger.innerHTML = 'Copied!';
+      setTimeout(function(){
+        trigger.innerHTML = triggerLabel;
+      }, 3000);
+      e.clearSelection();
     });
   });
 }).call(this);

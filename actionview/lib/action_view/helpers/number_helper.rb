@@ -6,16 +6,16 @@ require "active_support/number_helper"
 
 module ActionView
   # = Action View Number Helpers
-  module Helpers #:nodoc:
+  module Helpers # :nodoc:
     # Provides methods for converting numbers into formatted strings.
     # Methods are provided for phone numbers, currency, percentage,
-    # precision, positional notation, file size and pretty printing.
+    # precision, positional notation, file size, and pretty printing.
     #
     # Most methods expect a +number+ argument, and will return it
     # unchanged if can't be converted into a valid number.
     module NumberHelper
       # Raised when argument +number+ param given to the helpers is invalid and
-      # the option :raise is set to  +true+.
+      # the option +:raise+ is set to  +true+.
       class InvalidNumberError < StandardError
         attr_accessor :number
         def initialize(number)
@@ -114,6 +114,8 @@ module ActionView
       #
       #   number_to_currency("123a456", raise: true)           # => InvalidNumberError
       #
+      #   number_to_currency(-0.456789, precision: 0)
+      #   # => "$0"
       #   number_to_currency(-1234567890.50, negative_format: "(%u%n)")
       #   # => ($1,234,567,890.50)
       #   number_to_currency(1234567890.50, unit: "R$", separator: ",", delimiter: "")
@@ -423,9 +425,9 @@ module ActionView
         end
 
         def escape_units(units)
-          Hash[units.map do |k, v|
-            [k, ERB::Util.html_escape(v)]
-          end]
+          units.transform_values do |v|
+            ERB::Util.html_escape(v)
+          end
         end
 
         def wrap_with_output_safety_handling(number, raise_on_invalid, &block)
@@ -446,9 +448,9 @@ module ActionView
         end
 
         def parse_float(number, raise_error)
-          Float(number)
-        rescue ArgumentError, TypeError
-          raise InvalidNumberError, number if raise_error
+          result = Float(number, exception: false)
+          raise InvalidNumberError, number if result.nil? && raise_error
+          result
         end
     end
   end

@@ -70,6 +70,13 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Welcome", email.body.encoded)
   end
 
+  test "mail() doesn't set the mailer as a controller in the execution context" do
+    ActiveSupport::ExecutionContext.clear
+    assert_nil ActiveSupport::ExecutionContext.to_h[:controller]
+    BaseMailer.welcome(from: "someone@example.com", to: "another@example.org").to
+    assert_nil ActiveSupport::ExecutionContext.to_h[:controller]
+  end
+
   test "can pass in :body to the mail method hash" do
     email = BaseMailer.welcome(body: "Hello there")
     assert_equal("text/plain", email.mime_type)
@@ -87,6 +94,11 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.with_name
     assert_equal("Sunny <sunny@example.com>", email["To"].value)
     assert_equal("Mikel <mikel@test.lindsaar.net>", email["Reply-To"].value)
+  end
+
+  test "mail() using email_address_with_name with blank string as name" do
+    email = BaseMailer.with_blank_name
+    assert_equal("sunny@example.com", email["To"].value)
   end
 
   # Custom headers
@@ -186,7 +198,21 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("logo.png", email.parts[1].filename)
   end
 
-  # Defaults values
+  test "can embed an inline attachment and other attachments" do
+    email = BaseMailer.inline_and_other_attachments
+    # Need to call #encoded to force the JIT sort on parts
+    email.encoded
+    assert_equal(2, email.parts.length)
+    assert_equal("multipart/mixed", email.mime_type)
+    assert_equal("multipart/related", email.parts[0].mime_type)
+    assert_equal("multipart/alternative", email.parts[0].parts[0].mime_type)
+    assert_equal("text/plain", email.parts[0].parts[0].parts[0].mime_type)
+    assert_equal("text/html",  email.parts[0].parts[0].parts[1].mime_type)
+    assert_equal("logo.png", email.parts[0].parts[1].filename)
+    assert_equal("certificate.pdf", email.parts[1].filename)
+  end
+
+  # Default values
   test "uses default charset from class" do
     with_default BaseMailer, charset: "US-ASCII" do
       email = BaseMailer.welcome
@@ -819,6 +845,14 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Thanks for signing up this afternoon", mail.subject)
   end
 
+  test "proc default values are not evaluated when overridden" do
+    with_default BaseMailer, from: -> { flunk }, to: -> { flunk } do
+      email = BaseMailer.welcome(from: "overridden-from@example.com", to: "overridden-to@example.com")
+      assert_equal ["overridden-from@example.com"], email.from
+      assert_equal ["overridden-to@example.com"], email.to
+    end
+  end
+
   test "modifying the mail message with a before_action" do
     class BeforeActionMailer < ActionMailer::Base
       before_action :add_special_header!
@@ -967,13 +1001,13 @@ class BaseTest < ActiveSupport::TestCase
     def swap(klass, new_values)
       old_values = {}
       new_values.each do |key, value|
-        old_values[key] = klass.send key
-        klass.send :"#{key}=", value
+        old_values[key] = klass.public_send key
+        klass.public_send :"#{key}=", value
       end
       yield
     ensure
       old_values.each do |key, value|
-        klass.send :"#{key}=", value
+        klass.public_send :"#{key}=", value
       end
     end
 

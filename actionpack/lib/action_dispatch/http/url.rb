@@ -9,6 +9,7 @@ module ActionDispatch
       HOST_REGEXP     = /(^[^:]+:\/\/)?(\[[^\]]+\]|[^:]+)(?::(\d+$))?/
       PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
 
+      mattr_accessor :secure_protocol, default: false
       mattr_accessor :tld_length, default: 1
 
       class << self
@@ -70,7 +71,8 @@ module ActionDispatch
           path = options[:script_name].to_s.chomp("/")
           path << options[:path] if options.key?(:path)
 
-          add_trailing_slash(path) if options[:trailing_slash]
+          path = "/" if options[:trailing_slash] && path.blank?
+
           add_params(path, options[:params]) if options.key?(:params)
           add_anchor(path, options[:anchor]) if options.key?(:anchor)
 
@@ -98,14 +100,6 @@ module ActionDispatch
           def extract_subdomains_from(host, tld_length)
             parts = host.split(".")
             parts[0..-(tld_length + 2)]
-          end
-
-          def add_trailing_slash(path)
-            if path.include?("?")
-              path.sub!(/\?/, '/\&')
-            elsif !path.include?(".")
-              path.sub!(/[^\/]\z|\A\z/, '\&/')
-            end
           end
 
           def build_host_url(host, port, protocol, options, path)
@@ -139,7 +133,7 @@ module ActionDispatch
           def normalize_protocol(protocol)
             case protocol
             when nil
-              "http://"
+              secure_protocol ? "https://" : "http://"
             when false, "//"
               "//"
             when PROTOCOL_REGEXP
@@ -221,7 +215,7 @@ module ActionDispatch
         if forwarded = x_forwarded_host.presence
           forwarded.split(/,\s?/).last
         else
-          get_header("HTTP_HOST") || "#{server_name || server_addr}:#{get_header('SERVER_PORT')}"
+          get_header("HTTP_HOST") || "#{server_name}:#{get_header('SERVER_PORT')}"
         end
       end
 
@@ -257,12 +251,10 @@ module ActionDispatch
       #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.port # => 8080
       def port
-        @port ||= begin
-          if raw_host_with_port =~ /:(\d+)$/
-            $1.to_i
-          else
-            standard_port
-          end
+        @port ||= if raw_host_with_port =~ /:(\d+)$/
+          $1.to_i
+        else
+          standard_port
         end
       end
 
@@ -271,9 +263,10 @@ module ActionDispatch
       #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.standard_port # => 80
       def standard_port
-        case protocol
-        when "https://" then 443
-        else 80
+        if "https://" == protocol
+          443
+        else
+          80
         end
       end
 

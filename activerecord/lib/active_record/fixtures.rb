@@ -12,7 +12,7 @@ require "active_record/fixture_set/table_rows"
 require "active_record/test_fixtures"
 
 module ActiveRecord
-  class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
+  class FixtureClassNotFound < ActiveRecord::ActiveRecordError # :nodoc:
   end
 
   # \Fixtures are a way of organizing data that you want to test against; in short, sample data.
@@ -35,7 +35,7 @@ module ActiveRecord
   #     name: Google
   #     url: http://www.google.com
   #
-  # This fixture file includes two fixtures. Each YAML fixture (ie. record) is given a name and
+  # This fixture file includes two fixtures. Each YAML fixture (i.e. record) is given a name and
   # is followed by an indented list of key/value pairs in the "key: value" format. Records are
   # separated by a blank line for your viewing pleasure.
   #
@@ -59,7 +59,7 @@ module ActiveRecord
   # Since fixtures are a testing construct, we use them in our unit and functional tests. There
   # are two ways to use the fixtures, but first let's take a look at a sample unit test:
   #
-  #   require 'test_helper'
+  #   require "test_helper"
   #
   #   class WebSiteTest < ActiveSupport::TestCase
   #     test "web_site_count" do
@@ -152,7 +152,7 @@ module ActiveRecord
   # - define a helper method in <tt>test_helper.rb</tt>
   #     module FixtureFileHelpers
   #       def file_sha(path)
-  #         Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
+  #         OpenSSL::Digest::SHA256.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
   #       end
   #     end
   #     ActiveRecord::FixtureSet.context_class.include FixtureFileHelpers
@@ -181,7 +181,7 @@ module ActiveRecord
   #     end
   #   end
   #
-  # If you preload your test database with all fixture data (probably by running `rails db:fixtures:load`)
+  # If you preload your test database with all fixture data (probably by running <tt>bin/rails db:fixtures:load</tt>)
   # and use transactional tests, then you may omit all fixtures declarations in your test cases since
   # all the data's already there and every case rolls back its changes.
   #
@@ -241,13 +241,13 @@ module ActiveRecord
   # The generated ID for a given label is constant, so we can discover
   # any fixture's ID without loading anything, as long as we know the label.
   #
-  # == Label references for associations (belongs_to, has_one, has_many)
+  # == Label references for associations (+belongs_to+, +has_one+, +has_many+)
   #
   # Specifying foreign keys in fixtures can be very fragile, not to
   # mention difficult to read. Since Active Record can figure out the ID of
   # any fixture from its label, you can specify FK's by label instead of ID.
   #
-  # === belongs_to
+  # === +belongs_to+
   #
   # Let's break out some more monkeys and pirates.
   #
@@ -286,7 +286,7 @@ module ActiveRecord
   # a target *label* for the *association* (monkey: george) rather than
   # a target *id* for the *FK* (<tt>monkey_id: 1</tt>).
   #
-  # ==== Polymorphic belongs_to
+  # ==== Polymorphic +belongs_to+
   #
   # Supporting polymorphic relationships is a little bit more complicated, since
   # Active Record needs to know what type your association is pointing at. Something
@@ -311,7 +311,7 @@ module ActiveRecord
   #
   # Just provide the polymorphic target type and Active Record will take care of the rest.
   #
-  # === has_and_belongs_to_many
+  # === +has_and_belongs_to_many+ or <tt>has_many :through</tt>
   #
   # Time to give our monkey some fruit.
   #
@@ -407,7 +407,7 @@ module ActiveRecord
   # defaults:
   #
   #   DEFAULTS: &DEFAULTS
-  #     created_on: <%= 3.weeks.ago.to_s(:db) %>
+  #     created_on: <%= 3.weeks.ago.to_fs(:db) %>
   #
   #   first:
   #     name: Smurf
@@ -426,7 +426,7 @@ module ActiveRecord
   #   _fixture:
   #     ignore:
   #       - base
-  #     # or use "ignore: base" when there is only one fixture needs to be ignored.
+  #     # or use "ignore: base" when there is only one fixture that needs to be ignored.
   #
   #   base: &base
   #     admin: false
@@ -447,7 +447,7 @@ module ActiveRecord
   # It's possible to set the fixture's model class directly in the YAML file.
   # This is helpful when fixtures are loaded outside tests and
   # +set_fixture_class+ is not available (e.g.
-  # when running <tt>rails db:fixtures:load</tt>).
+  # when running <tt>bin/rails db:fixtures:load</tt>).
   #
   #   _fixture:
   #     model_class: User
@@ -629,6 +629,10 @@ module ActiveRecord
 
             conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
 
+            if ActiveRecord.verify_foreign_keys_for_fixtures && !conn.all_foreign_keys_valid?
+              raise "Foreign key violations found in your fixture data. Ensure you aren't referring to labels that don't exist on associations."
+            end
+
             # Cap primary key sequences to max(pk).
             if conn.respond_to?(:reset_pk_sequence!)
               set.each { |fs| conn.reset_pk_sequence!(fs.table_name) }
@@ -681,7 +685,6 @@ module ActiveRecord
         table_name,
         model_class: model_class,
         fixtures: fixtures,
-        config: config,
       ).to_hash
     end
 
@@ -733,13 +736,13 @@ module ActiveRecord
       end
   end
 
-  class Fixture #:nodoc:
+  class Fixture # :nodoc:
     include Enumerable
 
-    class FixtureError < StandardError #:nodoc:
+    class FixtureError < StandardError # :nodoc:
     end
 
-    class FormatError < FixtureError #:nodoc:
+    class FormatError < FixtureError # :nodoc:
     end
 
     attr_reader :model_class, :fixture
@@ -753,8 +756,8 @@ module ActiveRecord
       model_class.name if model_class
     end
 
-    def each
-      fixture.each { |item| yield item }
+    def each(&block)
+      fixture.each(&block)
     end
 
     def [](key)
@@ -765,9 +768,14 @@ module ActiveRecord
 
     def find
       raise FixtureClassNotFound, "No class attached to find." unless model_class
-      model_class.unscoped do
+      object = model_class.unscoped do
         model_class.find(fixture[model_class.primary_key])
       end
+      # Fixtures can't be eagerly loaded
+      object.instance_variable_set(:@strict_loading, false)
+      object
     end
   end
 end
+
+ActiveSupport.run_load_hooks :active_record_fixture_set, ActiveRecord::FixtureSet

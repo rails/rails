@@ -30,6 +30,57 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal title_change, topic.changes["title"]
   end
 
+  if !in_memory_db?
+    def test_rollback_dirty_changes_even_with_raise_during_rollback_removes_from_pool
+      topic = topics(:fifth)
+
+      connection = Topic.connection
+
+      Topic.connection.class_eval do
+        alias :real_exec_rollback_db_transaction :exec_rollback_db_transaction
+        define_method(:exec_rollback_db_transaction) do
+          raise
+        end
+      end
+
+      ActiveRecord::Base.transaction do
+        topic.update(title: "Rails is broken")
+        raise ActiveRecord::Rollback
+      end
+
+      assert_not connection.active?
+      assert_not Topic.connection_pool.connections.include?(connection)
+    ensure
+      ActiveRecord::Base.clear_all_connections!
+    end
+
+    def test_rollback_dirty_changes_even_with_raise_during_rollback_doesnt_commit_transaction
+      topic = topics(:fifth)
+
+      Topic.connection.class_eval do
+        alias :real_exec_rollback_db_transaction :exec_rollback_db_transaction
+        define_method(:exec_rollback_db_transaction) do
+          raise
+        end
+      end
+
+      ActiveRecord::Base.transaction do
+        topic.update(title: "Rails is broken")
+        raise ActiveRecord::Rollback
+      end
+
+      topic.reload
+
+      ActiveRecord::Base.transaction do
+        topic.update(content: "Ruby on Rails - modified")
+      end
+
+      assert_equal "The Fifth Topic of the day", topic.reload.title
+    ensure
+      ActiveRecord::Base.clear_all_connections!
+    end
+  end
+
   def test_rollback_dirty_changes_multiple_saves
     topic = topics(:fifth)
 
@@ -77,6 +128,20 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal topic.title, topic.reload.title
   end
 
+  def test_rollback_dirty_changes_then_retry_save_on_new_record_with_autosave_association
+    author = Author.new(name: "DHH")
+    book = Book.create!
+    author.books << book
+
+    author.transaction do
+      author.save!
+      raise ActiveRecord::Rollback
+    end
+
+    author.save!
+    assert_equal author, book.reload.author
+  end
+
   def test_persisted_in_a_model_with_custom_primary_key_after_failed_save
     movie = Movie.create
     assert_not_predicate movie, :persisted?
@@ -85,13 +150,11 @@ class TransactionTest < ActiveRecord::TestCase
   def test_raise_after_destroy
     assert_not_predicate @first, :frozen?
 
-    assert_not_called(@first, :rolledback!) do
-      assert_raises(RuntimeError) do
-        Topic.transaction do
-          @first.destroy
-          assert_predicate @first, :frozen?
-          raise
-        end
+    assert_raises(RuntimeError) do
+      Topic.transaction do
+        @first.destroy
+        assert_predicate @first, :frozen?
+        raise
       end
     end
 
@@ -99,13 +162,11 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_successful
-    assert_not_called(@first, :committed!) do
-      Topic.transaction do
-        @first.approved  = true
-        @second.approved = false
-        @first.save
-        @second.save
-      end
+    Topic.transaction do
+      @first.approved  = true
+      @second.approved = false
+      @first.save
+      @second.save
     end
 
     assert_predicate Topic.find(1), :approved?, "First should have been approved"
@@ -122,12 +183,24 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def transaction_with_shallow_return
+    Topic.transaction do
+      Topic.transaction(requires_new: true) do
+        @first.approved  = true
+        @second.approved = false
+        @first.save
+        @second.save
+      end
+      return
+    end
+  end
+
   def test_add_to_null_transaction
     topic = Topic.new
     topic.send(:add_to_transaction)
   end
 
-  def test_successful_with_return
+  def test_successful_with_return_outside_inner_transaction
     committed = false
 
     Topic.connection.class_eval do
@@ -138,8 +211,8 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert_not_called(@first, :committed!) do
-      transaction_with_return
+    assert_deprecated do
+      transaction_with_shallow_return
     end
     assert committed
 
@@ -149,6 +222,67 @@ class TransactionTest < ActiveRecord::TestCase
     Topic.connection.class_eval do
       remove_method :commit_db_transaction
       alias :commit_db_transaction :real_commit_db_transaction rescue nil
+    end
+  end
+
+  def test_deprecation_on_ruby_timeout_outside_inner_transaction
+    assert_deprecated do
+      catch do |timeout|
+        Topic.transaction do
+          Topic.transaction(requires_new: true) do
+            @first.approved = true
+            @first.save!
+          end
+
+          throw timeout
+        end
+      end
+    end
+
+    assert Topic.find(1).approved?, "First should have been approved"
+  end
+
+  def test_rollback_with_return
+    committed = false
+
+    Topic.connection.class_eval do
+      alias :real_commit_db_transaction :commit_db_transaction
+      define_method(:commit_db_transaction) do
+        committed = true
+        real_commit_db_transaction
+      end
+    end
+
+    transaction_with_return
+    assert_not committed
+
+    assert_not_predicate Topic.find(1), :approved?
+    assert_predicate Topic.find(2), :approved?
+  ensure
+    Topic.connection.class_eval do
+      remove_method :commit_db_transaction
+      alias :commit_db_transaction :real_commit_db_transaction rescue nil
+    end
+  end
+
+  def test_rollback_on_ruby_timeout
+    catch do |timeout|
+      Topic.transaction do
+        @first.approved = true
+        @first.save!
+
+        throw timeout
+      end
+    end
+
+    assert_not_predicate Topic.find(1), :approved?
+  end
+
+  def test_early_return_from_transaction
+    assert_not_deprecated do
+      @first.with_lock do
+        break
+      end
     end
   end
 
@@ -163,11 +297,9 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert_not_called(@first, :committed!) do
-      Topic.transaction do
-        @first.approved = true
-        @first.save!
-      end
+    Topic.transaction do
+      @first.approved = true
+      @first.save!
     end
 
     assert_equal 0, num
@@ -179,13 +311,11 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_successful_with_instance_method
-    assert_not_called(@first, :committed!) do
-      @first.transaction do
-        @first.approved  = true
-        @second.approved = false
-        @first.save
-        @second.save
-      end
+    @first.transaction do
+      @first.approved  = true
+      @second.approved = false
+      @first.save
+      @second.save
     end
 
     assert_predicate Topic.find(1), :approved?, "First should have been approved"
@@ -193,7 +323,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_failing_on_exception
-    assert_not_called(@first, :rolledback!) do
+    begin
       Topic.transaction do
         @first.approved  = true
         @second.approved = false
@@ -218,10 +348,8 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     @first.approved = true
-    assert_not_called(@first, :rolledback!) do
-      e = assert_raises(RuntimeError) { @first.save }
-      assert_equal "Make the transaction rollback", e.message
-    end
+    e = assert_raises(RuntimeError) { @first.save }
+    assert_equal "Make the transaction rollback", e.message
     assert_not_predicate Topic.find(1), :approved?
   end
 
@@ -247,10 +375,8 @@ class TransactionTest < ActiveRecord::TestCase
       raise "Make the transaction rollback"
     end
 
-    assert_not_called(topic, :rolledback!) do
-      assert_raises(RuntimeError) do
-        Topic.transaction { topic.save }
-      end
+    assert_raises(RuntimeError) do
+      Topic.transaction { topic.save }
     end
 
     assert_predicate topic, :new_record?, "#{topic.inspect} should be new record"
@@ -495,7 +621,7 @@ class TransactionTest < ActiveRecord::TestCase
 
       begin
         Topic.transaction requires_new: true do
-          @first.happy = false
+          @first.approved = false
           @first.save!
           raise
         end
@@ -516,7 +642,7 @@ class TransactionTest < ActiveRecord::TestCase
 
       begin
         @second.transaction requires_new: true do
-          @first.happy = false
+          @first.approved = false
           @first.save!
           raise
         end
@@ -625,10 +751,14 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_savepoints_name
     Topic.transaction do
+      Topic.delete_all # Dirty the transaction to force a savepoint below
+
       assert_nil Topic.connection.current_savepoint_name
       assert_nil Topic.connection.current_transaction.savepoint_name
 
       Topic.transaction(requires_new: true) do
+        Topic.delete_all # Dirty the transaction to force a savepoint below
+
         assert_equal "active_record_1", Topic.connection.current_savepoint_name
         assert_equal "active_record_1", Topic.connection.current_transaction.savepoint_name
 
@@ -780,6 +910,18 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert_predicate topic, :persisted?
     assert_not_predicate topic, :new_record?
+  end
+
+  def test_restore_previously_new_record_after_double_save
+    topic = Topic.create!
+
+    Topic.transaction do
+      topic.save!
+      topic.save!
+      raise ActiveRecord::Rollback
+    end
+
+    assert_predicate topic, :previously_new_record?
   end
 
   def test_restore_id_after_rollback
@@ -1018,6 +1160,81 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_nested_transactions_skip_excess_savepoints
+    capture_sql do
+      # RealTransaction (begin..commit)
+      Topic.transaction(requires_new: true) do
+        # ResetParentTransaction (no queries)
+        Topic.transaction(requires_new: true) do
+          Topic.delete_all
+          # SavepointTransaction (savepoint..release)
+          Topic.transaction(requires_new: true) do
+            # ResetParentTransaction (no queries)
+            Topic.transaction(requires_new: true) do
+              Topic.delete_all
+            end
+          end
+        end
+        Topic.delete_all
+      end
+    end
+
+    actual_queries = ActiveRecord::SQLCounter.log_all
+
+    expected_queries = [
+      /BEGIN/i,
+      /DELETE/i,
+      /^SAVEPOINT/i,
+      /DELETE/i,
+      /^RELEASE/i,
+      /DELETE/i,
+      /COMMIT/i,
+    ]
+
+    assert_equal expected_queries.size, actual_queries.size
+    expected_queries.zip(actual_queries) do |expected, actual|
+      assert_match expected, actual
+    end
+  end
+
+  def test_nested_transactions_after_disable_lazy_transactions
+    Topic.connection.disable_lazy_transactions!
+
+    capture_sql do
+      # RealTransaction (begin..commit)
+      Topic.transaction(requires_new: true) do
+        # ResetParentTransaction (no queries)
+        Topic.transaction(requires_new: true) do
+          Topic.delete_all
+          # SavepointTransaction (savepoint..release)
+          Topic.transaction(requires_new: true) do
+            # ResetParentTransaction (no queries)
+            Topic.transaction(requires_new: true) do
+              # no-op
+            end
+          end
+        end
+        Topic.delete_all
+      end
+    end
+
+    actual_queries = ActiveRecord::SQLCounter.log_all
+
+    expected_queries = [
+      /BEGIN/i,
+      /DELETE/i,
+      /^SAVEPOINT/i,
+      /^RELEASE/i,
+      /DELETE/i,
+      /COMMIT/i,
+    ]
+
+    assert_equal expected_queries.size, actual_queries.size
+    expected_queries.zip(actual_queries) do |expected, actual|
+      assert_match expected, actual
+    end
+  end
+
   if ActiveRecord::Base.connection.prepared_statements
     def test_prepared_statement_materializes_transaction
       Topic.first
@@ -1037,9 +1254,9 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_raising_does_not_materialize_transaction
-    assert_raise(RuntimeError) do
-      assert_no_queries do
-        Topic.transaction { raise }
+    assert_no_queries do
+      assert_raise(RuntimeError) do
+        Topic.transaction { raise "Expected" }
       end
     end
   end
@@ -1080,7 +1297,7 @@ class TransactionTest < ActiveRecord::TestCase
     %w(validation save destroy).each do |filter|
       define_method("add_cancelling_before_#{filter}_with_db_side_effect_to_topic") do |topic|
         meta = class << topic; self; end
-        meta.send("define_method", "before_#{filter}_for_transaction") do
+        meta.define_method "before_#{filter}_for_transaction" do
           Book.create
           throw(:abort)
         end
@@ -1127,7 +1344,7 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
   end
 end if Topic.connection.supports_savepoints?
 
-if ActiveRecord::Base.connection.supports_transaction_isolation?
+if ActiveRecord::Base.connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
   class ConcurrentTransactionTest < TransactionTest
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.

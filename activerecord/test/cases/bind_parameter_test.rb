@@ -27,7 +27,6 @@ if ActiveRecord::Base.connection.prepared_statements
         super
         @connection = ActiveRecord::Base.connection
         @subscriber = LogListener.new
-        @pk = Topic.columns_hash[Topic.primary_key]
         @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
       end
 
@@ -64,11 +63,11 @@ if ActiveRecord::Base.connection.prepared_statements
         assert_equal 1, Topic.find(1).id
         assert_raises(RecordNotFound) { SillyReply.find(2) }
 
-        topic_sql = cached_statement(Topic, Topic.primary_key)
+        topic_sql = cached_statement(Topic, [Topic.primary_key])
         assert_includes statement_cache, to_sql_key(topic_sql)
 
-        e = assert_raise { cached_statement(SillyReply, SillyReply.primary_key) }
-        assert_equal "SillyReply has no cached statement by \"id\"", e.message
+        reply_sql = cached_statement(SillyReply, [SillyReply.primary_key])
+        assert_includes statement_cache, to_sql_key(reply_sql)
 
         replies = SillyReply.where(id: 2).limit(1)
         assert_includes statement_cache, to_sql_key(replies.arel)
@@ -80,11 +79,11 @@ if ActiveRecord::Base.connection.prepared_statements
         assert_equal 1, Topic.find_by!(id: 1).id
         assert_raises(RecordNotFound) { SillyReply.find_by!(id: 2) }
 
-        topic_sql = cached_statement(Topic, [:id])
+        topic_sql = cached_statement(Topic, ["id"])
         assert_includes statement_cache, to_sql_key(topic_sql)
 
-        e = assert_raise { cached_statement(SillyReply, [:id]) }
-        assert_equal "SillyReply has no cached statement by [:id]", e.message
+        reply_sql = cached_statement(SillyReply, ["id"])
+        assert_includes statement_cache, to_sql_key(reply_sql)
 
         replies = SillyReply.where(id: 2).limit(1)
         assert_includes statement_cache, to_sql_key(replies.arel)
@@ -157,12 +156,88 @@ if ActiveRecord::Base.connection.prepared_statements
         assert_logs_binds(binds)
       end
 
-      def test_logs_legacy_binds_after_type_cast
-        binds = [[@pk, "10"]]
-        assert_logs_binds(binds)
+      def test_logs_unnamed_binds
+        binds = ["abcd"]
+        assert_logs_unnamed_binds(binds)
+      end
+
+      def test_bind_params_to_sql_with_prepared_statements
+        assert_bind_params_to_sql
+      end
+
+      def test_bind_params_to_sql_with_unprepared_statements
+        @connection.unprepared_statement do
+          assert_bind_params_to_sql
+        end
+      end
+
+      def test_nested_unprepared_statements
+        assert_predicate @connection, :prepared_statements?
+
+        @connection.unprepared_statement do
+          assert_not_predicate @connection, :prepared_statements?
+
+          @connection.unprepared_statement do
+            assert_not_predicate @connection, :prepared_statements?
+          end
+
+          assert_not_predicate @connection, :prepared_statements?
+        end
+
+        assert_predicate @connection, :prepared_statements?
+      end
+
+      def test_binds_with_filtered_attributes
+        ActiveRecord::Base.filter_attributes = [:auth]
+
+        binds = [Relation::QueryAttribute.new("auth_token", "abcd", Type::String.new)]
+
+        assert_filtered_log_binds(binds)
+
+        ActiveRecord::Base.filter_attributes = []
       end
 
       private
+        def assert_bind_params_to_sql
+          table = Author.quoted_table_name
+          pk = "#{table}.#{Author.quoted_primary_key}"
+
+          # prepared_statements: true
+          #
+          #   SELECT `authors`.* FROM `authors` WHERE (`authors`.`id` IN (?, ?, ?) OR `authors`.`id` IS NULL)
+          #
+          # prepared_statements: false
+          #
+          #   SELECT `authors`.* FROM `authors` WHERE (`authors`.`id` IN (1, 2, 3) OR `authors`.`id` IS NULL)
+          #
+          sql = "SELECT #{table}.* FROM #{table} WHERE (#{pk} IN (#{bind_params(1..3)}) OR #{pk} IS NULL)"
+
+          authors = Author.where(id: [1, 2, 3, nil])
+          assert_equal sql, @connection.to_sql(authors.arel)
+          assert_sql(sql) { assert_equal 3, authors.length }
+
+          # prepared_statements: true
+          #
+          #   SELECT `authors`.* FROM `authors` WHERE `authors`.`id` IN (?, ?, ?)
+          #
+          # prepared_statements: false
+          #
+          #   SELECT `authors`.* FROM `authors` WHERE `authors`.`id` IN (1, 2, 3)
+          #
+          sql = "SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{bind_params(1..3)})"
+
+          authors = Author.where(id: [1, 2, 3, 9223372036854775808])
+          assert_equal sql, @connection.to_sql(authors.arel)
+          assert_sql(sql) { assert_equal 3, authors.length }
+        end
+
+        def bind_params(ids)
+          collector = @connection.send(:collector)
+          bind_params = ids.map { |i| Arel::Nodes::BindParam.new(i) }
+          sql, _ = @connection.visitor.compile(bind_params, collector)
+          sql
+        end
+
         def to_sql_key(arel)
           sql = @connection.to_sql(arel)
           @connection.respond_to?(:sql_key, true) ? @connection.send(:sql_key, sql) : sql
@@ -208,7 +283,71 @@ if ActiveRecord::Base.connection.prepared_statements
           }.new
 
           logger.sql(event)
-          assert_match([[@pk.name, 10]].inspect, logger.debugs.first)
+          assert_match %r(\[\["id", 10\]\]\z), logger.debugs.first
+        end
+
+        def assert_logs_unnamed_binds(binds)
+          payload = {
+            name: "SQL",
+            sql: "select * from topics where title = $1",
+            binds: binds,
+            type_casted_binds: @connection.send(:type_casted_binds, binds)
+          }
+
+          event = ActiveSupport::Notifications::Event.new(
+            "foo",
+            Time.now,
+            Time.now,
+            123,
+            payload)
+
+          logger = Class.new(ActiveRecord::LogSubscriber) {
+            attr_reader :debugs
+
+            def initialize
+              super
+              @debugs = []
+            end
+
+            def debug(str)
+              @debugs << str
+            end
+          }.new
+
+          logger.sql(event)
+          assert_match %r(\[\[nil, "abcd"\]\]\z), logger.debugs.first
+        end
+
+        def assert_filtered_log_binds(binds)
+          payload = {
+            name: "SQL",
+            sql: "select * from users where auth_token = ?",
+            binds: binds,
+            type_casted_binds: @connection.send(:type_casted_binds, binds)
+          }
+
+          event = ActiveSupport::Notifications::Event.new(
+            "foo",
+            Time.now,
+            Time.now,
+            123,
+            payload)
+
+          logger = Class.new(ActiveRecord::LogSubscriber) {
+            attr_reader :debugs
+
+            def initialize
+              super
+              @debugs = []
+            end
+
+            def debug(str)
+              @debugs << str
+            end
+          }.new
+
+          logger.sql(event)
+          assert_match %r/#{Regexp.escape '[["auth_token", "[FILTERED]"]]'}/, logger.debugs.first
         end
     end
   end

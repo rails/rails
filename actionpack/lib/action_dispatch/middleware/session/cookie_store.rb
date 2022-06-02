@@ -10,8 +10,8 @@ module ActionDispatch
     # dramatically faster than the alternatives.
     #
     # Sessions typically contain at most a user_id and flash message; both fit
-    # within the 4K cookie size limit. A CookieOverflow exception is raised if
-    # you attempt to store more than 4K of data.
+    # within the 4096 bytes cookie size limit. A CookieOverflow exception is raised if
+    # you attempt to store more than 4096 bytes of data.
     #
     # The cookie jar used for storage is automatically configured to be the
     # best possible option given your application's configuration.
@@ -44,9 +44,18 @@ module ActionDispatch
     #   Rails.application.config.session_store :cookie_store, expire_after: 14.days
     #
     # would set the session cookie to expire automatically 14 days after creation.
-    # Other useful options include <tt>:key</tt>, <tt>:secure</tt> and
-    # <tt>:httponly</tt>.
-    class CookieStore < AbstractStore
+    # Other useful options include <tt>:key</tt>, <tt>:secure</tt>,
+    # <tt>:httponly</tt>, and <tt>:same_site</tt>.
+    class CookieStore < AbstractSecureStore
+      class SessionId < DelegateClass(Rack::Session::SessionId)
+        attr_reader :cookie_value
+
+        def initialize(session_id, cookie_value = {})
+          super(session_id)
+          @cookie_value = cookie_value
+        end
+      end
+
       def initialize(app, options = {})
         super(app, options.merge!(cookie_only: true))
       end
@@ -54,7 +63,7 @@ module ActionDispatch
       def delete_session(req, session_id, options)
         new_sid = generate_sid unless options[:drop]
         # Reset hash and Assign the new session id
-        req.set_header("action_dispatch.request.unsigned_session_cookie", new_sid ? { "session_id" => new_sid } : {})
+        req.set_header("action_dispatch.request.unsigned_session_cookie", new_sid ? { "session_id" => new_sid.public_id } : {})
         new_sid
       end
 
@@ -62,14 +71,15 @@ module ActionDispatch
         stale_session_check! do
           data = unpacked_cookie_data(req)
           data = persistent_session_id!(data)
-          [data["session_id"], data]
+          [Rack::Session::SessionId.new(data["session_id"]), data]
         end
       end
 
       private
         def extract_session_id(req)
           stale_session_check! do
-            unpacked_cookie_data(req)["session_id"]
+            sid = unpacked_cookie_data(req)["session_id"]
+            sid && Rack::Session::SessionId.new(sid)
           end
         end
 
@@ -87,13 +97,13 @@ module ActionDispatch
 
         def persistent_session_id!(data, sid = nil)
           data ||= {}
-          data["session_id"] ||= sid || generate_sid
+          data["session_id"] ||= sid || generate_sid.public_id
           data
         end
 
         def write_session(req, sid, session_data, options)
-          session_data["session_id"] = sid
-          session_data
+          session_data["session_id"] = sid.public_id
+          SessionId.new(sid, session_data)
         end
 
         def set_cookie(request, session_id, cookie)

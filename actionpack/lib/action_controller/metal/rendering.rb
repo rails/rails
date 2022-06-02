@@ -24,19 +24,13 @@ module ActionController
       end
     end
 
-    # Before processing, set the request formats in current controller formats.
-    def process_action(*) #:nodoc:
-      self.formats = request.formats.map(&:ref).compact
-      super
-    end
-
     # Check for double render errors and set the content_type after rendering.
-    def render(*args) #:nodoc:
+    def render(*args) # :nodoc:
       raise ::AbstractController::DoubleRenderError if response_body
       super
     end
 
-    # Overwrite render_to_string because body can now be set to a Rack body.
+    # Override render_to_string because body can now be set to a Rack body.
     def render_to_string(*)
       result = super
       if result.respond_to?(:each)
@@ -53,6 +47,12 @@ module ActionController
     end
 
     private
+      # Before processing, set the request formats in current controller formats.
+      def process_action(*) # :nodoc:
+        self.formats = request.formats.filter_map(&:ref)
+        super
+      end
+
       def _process_variant(options)
         if defined?(request) && !request.nil? && request.variant.present?
           options[:variant] = request.variant
@@ -78,8 +78,8 @@ module ActionController
       end
 
       def _set_vary_header
-        if self.headers["Vary"].blank? && request.should_apply_vary_header?
-          self.headers["Vary"] = "Accept"
+        if response.headers["Vary"].blank? && request.should_apply_vary_header?
+          response.headers["Vary"] = "Accept"
         end
       end
 

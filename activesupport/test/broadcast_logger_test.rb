@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 
 module ActiveSupport
   class BroadcastLoggerTest < TestCase
@@ -18,7 +18,7 @@ module ActiveSupport
       level = Logger::Severity.const_get(level_name)
 
       test "##{method} adds the message to all loggers" do
-        logger.send(method, "msg")
+        logger.public_send(method, "msg")
 
         assert_equal [level, "msg", nil], log1.adds.first
         assert_equal [level, "msg", nil], log2.adds.first
@@ -53,14 +53,6 @@ module ActiveSupport
 
       assert_equal ::Logger::FATAL, log1.progname
       assert_equal ::Logger::FATAL, log2.progname
-    end
-
-    test "#formatter= assigns to all the loggers" do
-      assert_nil logger.formatter
-      logger.formatter = ::Logger::FATAL
-
-      assert_equal ::Logger::FATAL, log1.formatter
-      assert_equal ::Logger::FATAL, log2.formatter
     end
 
     test "#local_level= assigns the local_level to all loggers" do
@@ -112,14 +104,6 @@ module ActiveSupport
 
       assert_equal [[::Logger::FATAL, "seen", nil]], log1.adds
       assert_equal [[::Logger::FATAL, "seen", nil]], log2.adds
-    end
-
-    test "Including top constant LoggerSilence is deprecated" do
-      assert_deprecated("Please use `ActiveSupport::LoggerSilence`") do
-        Class.new(CustomLogger) do
-          include ::LoggerSilence
-        end
-      end
     end
 
     class CustomLogger

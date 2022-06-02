@@ -7,7 +7,7 @@ default: &default
   cache_path: tmp/cache/webpacker
   check_yarn_integrity: false
 
-  # Additional paths webpack should lookup modules
+  # Additional paths webpack should look up modules
   # ['app/assets', 'engine/foo/app/assets']
   resolved_paths: []
 

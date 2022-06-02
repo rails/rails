@@ -16,6 +16,11 @@ module ActiveSupport
   #   ActiveSupport::ParameterFilter.new([:foo, "bar"])
   #   => replaces the value to all keys matching /foo|bar/i with "[FILTERED]"
   #
+  #   ActiveSupport::ParameterFilter.new([/\Apin\z/i, /\Apin_/i])
+  #   => replaces the value for the exact (case-insensitive) key 'pin' and all
+  #   (case-insensitive) keys beginning with 'pin_', with "[FILTERED]".
+  #   Does not match keys with 'pin' as a substring, such as 'shipping_id'.
+  #
   #   ActiveSupport::ParameterFilter.new(["credit_card.code"])
   #   => replaces { credit_card: {code: "xxxx"} } with "[FILTERED]", does not
   #   change { file: { code: "xxxx"} }
@@ -33,7 +38,7 @@ module ActiveSupport
     #
     # ==== Options
     #
-    # * <tt>:mask</tt> - A replaced object when filtered. Defaults to +"[FILTERED]"+
+    # * <tt>:mask</tt> - A replaced object when filtered. Defaults to <tt>"[FILTERED]"</tt>.
     def initialize(filters = [], mask: FILTERED)
       @filters = filters
       @mask = mask
@@ -107,7 +112,7 @@ module ActiveSupport
 
       def value_for_key(key, value, parents = [], original_params = nil)
         parents.push(key) if deep_regexps
-        if regexps.any? { |r| r.match?(key) }
+        if regexps.any? { |r| r.match?(key.to_s) }
           value = @mask
         elsif deep_regexps && (joined = parents.join(".")) && deep_regexps.any? { |r| r.match?(joined) }
           value = @mask

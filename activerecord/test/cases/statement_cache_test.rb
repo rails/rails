@@ -96,7 +96,7 @@ module ActiveRecord
       end
 
       additional_books = cache.execute([], Book.connection)
-      assert first_books != additional_books
+      assert_not_equal first_books, additional_books
     end
 
     def test_unprepared_statements_dont_share_a_cache_with_prepared_statements
@@ -135,6 +135,19 @@ module ActiveRecord
       end
     ensure
       Book.table_name = :books
+    end
+
+    def test_find_association_does_not_use_statement_cache_if_table_name_is_changed
+      salty = Liquid.create(name: "salty")
+      molecule = salty.molecules.create(name: "dioxane")
+
+      assert_equal salty, molecule.liquid
+
+      Liquid.table_name = :birds
+
+      assert_nil molecule.reload_liquid
+    ensure
+      Liquid.table_name = :liquid
     end
   end
 end

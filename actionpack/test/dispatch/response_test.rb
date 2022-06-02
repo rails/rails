@@ -153,7 +153,7 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "content length" do
-    [100, 101, 102, 204].each do |c|
+    [100, 101, 102, 103, 204].each do |c|
       @response = ActionDispatch::Response.new
       @response.status = c.to_s
       @response.set_header "Content-Length", "0"
@@ -163,7 +163,7 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "does not contain a message-body" do
-    [100, 101, 102, 204, 304].each do |c|
+    [100, 101, 102, 103, 204, 304].each do |c|
       @response = ActionDispatch::Response.new
       @response.status = c.to_s
       @response.body = "Body must not be included"
@@ -238,7 +238,7 @@ class ResponseTest < ActiveSupport::TestCase
     @response.set_cookie("user_name", value: "david", path: "/")
     @response.set_cookie("login", value: "foo&bar", path: "/", expires: Time.utc(2005, 10, 10, 5))
     _status, headers, _body = @response.to_a
-    assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000", headers["Set-Cookie"]
+    assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT", headers["Set-Cookie"]
     assert_equal({ "login" => "foo&bar", "user_name" => "david" }, @response.cookies)
   end
 
@@ -295,6 +295,28 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal("application/xml; charset=utf-16", resp.headers["Content-Type"])
   end
 
+  test "respect no-store cache-control" do
+    resp = ActionDispatch::Response.new.tap { |response|
+      response.cache_control[:public] = true
+      response.cache_control[:no_store] = true
+      response.body = "Hello"
+    }
+    resp.to_a
+
+    assert_equal("no-store", resp.headers["Cache-Control"])
+  end
+
+  test "respect private, no-store cache-control" do
+    resp = ActionDispatch::Response.new.tap { |response|
+      response.cache_control[:private] = true
+      response.cache_control[:no_store] = true
+      response.body = "Hello"
+    }
+    resp.to_a
+
+    assert_equal("private, no-store", resp.headers["Cache-Control"])
+  end
+
   test "read content type with default charset utf-8" do
     resp = ActionDispatch::Response.new(200, "Content-Type" => "text/xml")
     assert_equal("utf-8", resp.charset)
@@ -311,14 +333,13 @@ class ResponseTest < ActiveSupport::TestCase
     end
   end
 
-  test "read x_frame_options, x_content_type_options, x_xss_protection, x_download_options and x_permitted_cross_domain_policies, referrer_policy" do
+  test "read x_frame_options, x_content_type_options, x_xss_protection, x_permitted_cross_domain_policies and referrer_policy" do
     original_default_headers = ActionDispatch::Response.default_headers
     begin
       ActionDispatch::Response.default_headers = {
         "X-Frame-Options" => "DENY",
         "X-Content-Type-Options" => "nosniff",
-        "X-XSS-Protection" => "1;",
-        "X-Download-Options" => "noopen",
+        "X-XSS-Protection" => "0",
         "X-Permitted-Cross-Domain-Policies" => "none",
         "Referrer-Policy" => "strict-origin-when-cross-origin"
       }
@@ -329,8 +350,7 @@ class ResponseTest < ActiveSupport::TestCase
 
       assert_equal("DENY", resp.headers["X-Frame-Options"])
       assert_equal("nosniff", resp.headers["X-Content-Type-Options"])
-      assert_equal("1;", resp.headers["X-XSS-Protection"])
-      assert_equal("noopen", resp.headers["X-Download-Options"])
+      assert_equal("0", resp.headers["X-XSS-Protection"])
       assert_equal("none", resp.headers["X-Permitted-Cross-Domain-Policies"])
       assert_equal("strict-origin-when-cross-origin", resp.headers["Referrer-Policy"])
     ensure
@@ -592,34 +612,5 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal('text/csv; header=present; charset="utf-16"', @response.content_type)
     assert_equal("text/csv; header=present", @response.media_type)
     assert_equal("utf-16", @response.charset)
-  end
-
-  test "`content type` returns header that excludes `charset` when specified `return_only_media_type_on_content_type`" do
-    original = ActionDispatch::Response.return_only_media_type_on_content_type
-    ActionDispatch::Response.return_only_media_type_on_content_type = true
-
-    @app = lambda { |env|
-      if env["PATH_INFO"] == "/with_parameters"
-        [200, { "Content-Type" => "text/csv; header=present; charset=utf-16" }, [""]]
-      else
-        [200, { "Content-Type" => "text/csv; charset=utf-16" }, [""]]
-      end
-    }
-
-    get "/"
-    assert_response :success
-
-    assert_deprecated do
-      assert_equal("text/csv", @response.content_type)
-    end
-
-    get "/with_parameters"
-    assert_response :success
-
-    assert_deprecated do
-      assert_equal("text/csv; header=present", @response.content_type)
-    end
-  ensure
-    ActionDispatch::Response.return_only_media_type_on_content_type = original
   end
 end

@@ -5,7 +5,7 @@ require "abstract_unit"
 module TestFileUtils
   def file_name() File.basename(__FILE__) end
   def file_path() __FILE__ end
-  def file_data() @data ||= File.open(file_path, "rb") { |f| f.read } end
+  def file_data() @data ||= File.binread(file_path) end
 end
 
 class SendFileController < ActionController::Base
@@ -146,7 +146,6 @@ class SendFileTest < ActionController::TestCase
       assert_equal "image/png", response.content_type
       assert_equal %(disposition; filename="filename"; filename*=UTF-8''filename), response.get_header("Content-Disposition")
       assert_equal "binary", response.get_header("Content-Transfer-Encoding")
-      assert_equal "private", response.get_header("Cache-Control")
     end
   end
 

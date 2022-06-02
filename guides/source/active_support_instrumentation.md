@@ -70,7 +70,7 @@ ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*a
 end
 ```
 
-You may also pass block with only one argument, it will yield an event object to the block:
+You may also pass a block that accepts only one argument, and it will receive an event object:
 
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
@@ -106,22 +106,9 @@ Rails framework hooks
 
 Within the Ruby on Rails framework, there are a number of hooks provided for common events. These are detailed below.
 
-Action Controller
------------------
+### Action Controller
 
-### write_fragment.action_controller
-
-| Key    | Value            |
-| ------ | ---------------- |
-| `:key` | The complete key |
-
-```ruby
-{
-  key: 'posts/1-dashboard-view'
-}
-```
-
-### read_fragment.action_controller
+#### write_fragment.action_controller
 
 | Key    | Value            |
 | ------ | ---------------- |
@@ -133,7 +120,7 @@ Action Controller
 }
 ```
 
-### expire_fragment.action_controller
+#### read_fragment.action_controller
 
 | Key    | Value            |
 | ------ | ---------------- |
@@ -145,7 +132,7 @@ Action Controller
 }
 ```
 
-### exist_fragment?.action_controller
+#### expire_fragment.action_controller
 
 | Key    | Value            |
 | ------ | ---------------- |
@@ -157,31 +144,19 @@ Action Controller
 }
 ```
 
-### write_page.action_controller
+#### exist_fragment?.action_controller
 
-| Key     | Value             |
-| ------- | ----------------- |
-| `:path` | The complete path |
-
-```ruby
-{
-  path: '/users/1'
-}
-```
-
-### expire_page.action_controller
-
-| Key     | Value             |
-| ------- | ----------------- |
-| `:path` | The complete path |
+| Key    | Value            |
+| ------ | ---------------- |
+| `:key` | The complete key |
 
 ```ruby
 {
-  path: '/users/1'
+  key: 'posts/1-dashboard-view'
 }
 ```
 
-### start_processing.action_controller
+#### start_processing.action_controller
 
 | Key           | Value                                                     |
 | ------------- | --------------------------------------------------------- |
@@ -205,7 +180,7 @@ Action Controller
 }
 ```
 
-### process_action.action_controller
+#### process_action.action_controller
 
 | Key             | Value                                                     |
 | --------------- | --------------------------------------------------------- |
@@ -217,8 +192,8 @@ Action Controller
 | `:method`       | HTTP request verb                                         |
 | `:path`         | Request path                                              |
 | `:request`      | The `ActionDispatch::Request`                             |
+| `:response`     | The `ActionDispatch::Response`                            |
 | `:status`       | HTTP status code                                          |
-| `:location`     | Location response header                                  |
 | `:view_runtime` | Amount spent in view in ms                                |
 | `:db_runtime`   | Amount spent executing database queries in ms             |
 
@@ -232,13 +207,14 @@ Action Controller
   method: "GET",
   path: "/posts",
   request: #<ActionDispatch::Request:0x00007ff1cb9bd7b8>,
+  response: #<ActionDispatch::Response:0x00007f8521841ec8>,
   status: 200,
   view_runtime: 46.848,
   db_runtime: 0.157
 }
 ```
 
-### send_file.action_controller
+#### send_file.action_controller
 
 | Key     | Value                     |
 | ------- | ------------------------- |
@@ -246,11 +222,11 @@ Action Controller
 
 INFO. Additional keys may be added by the caller.
 
-### send_data.action_controller
+#### send_data.action_controller
 
 `ActionController` does not add any specific information to the payload. All options are passed through to the payload.
 
-### redirect_to.action_controller
+#### redirect_to.action_controller
 
 | Key         | Value                         |
 | ----------- | ----------------------------- |
@@ -266,7 +242,7 @@ INFO. Additional keys may be added by the caller.
 }
 ```
 
-### halted_callback.action_controller
+#### halted_callback.action_controller
 
 | Key       | Value                         |
 | --------- | ----------------------------- |
@@ -278,25 +254,24 @@ INFO. Additional keys may be added by the caller.
 }
 ```
 
-### unpermitted_parameters.action_controller
+#### unpermitted_parameters.action_controller
 
-| Key     | Value            |
-| ------- | ---------------- |
-| `:keys` | Unpermitted keys |
+| Key           | Value                                                                         |
+| ------------- | ----------------------------------------------------------------------------- |
+| `:keys`       | The unpermitted keys                                                          |
+| `:context`    | Hash with the following keys: `:controller`, `:action`, `:params`, `:request` |
 
-Action Dispatch
----------------
+### Action Dispatch
 
-### process_middleware.action_dispatch
+#### process_middleware.action_dispatch
 
 | Key           | Value                  |
 | ------------- | ---------------------- |
 | `:middleware` | Name of the middleware |
 
-Action View
------------
+### Action View
 
-### render_template.action_view
+#### render_template.action_view
 
 | Key           | Value                 |
 | ------------- | --------------------- |
@@ -310,7 +285,7 @@ Action View
 }
 ```
 
-### render_partial.action_view
+#### render_partial.action_view
 
 | Key           | Value                 |
 | ------------- | --------------------- |
@@ -322,7 +297,7 @@ Action View
 }
 ```
 
-### render_collection.action_view
+#### render_collection.action_view
 
 | Key           | Value                                 |
 | ------------- | ------------------------------------- |
@@ -340,16 +315,27 @@ Action View
 }
 ```
 
-Active Record
-------------
+#### render_layout.action_view
 
-### sql.active_record
+| Key           | Value                 |
+| ------------- | --------------------- |
+| `:identifier` | Full path to template |
+
+
+```ruby
+{
+  identifier: "/Users/adam/projects/notifications/app/views/layouts/application.html.erb"
+}
+```
+
+### Active Record
+
+#### sql.active_record
 
 | Key                  | Value                                    |
 | -------------------- | ---------------------------------------- |
 | `:sql`               | SQL statement                            |
 | `:name`              | Name of the operation                    |
-| `:connection_id`     | Object ID of the connection object       |
 | `:connection`        | Connection object                        |
 | `:binds`             | Bind parameters                          |
 | `:type_casted_binds` | Typecasted bind parameters               |
@@ -362,7 +348,6 @@ INFO. The adapters will add their own data as well.
 {
   sql: "SELECT \"posts\".* FROM \"posts\" ",
   name: "Post Load",
-  connection_id: 70307250813140,
   connection: #<ActiveRecord::ConnectionAdapters::SQLite3Adapter:0x00007f9f7a838850>,
   binds: [#<ActiveModel::Attribute::WithCastValue:0x00007fe19d15dc00>],
   type_casted_binds: [11],
@@ -370,7 +355,7 @@ INFO. The adapters will add their own data as well.
 }
 ```
 
-### instantiation.active_record
+#### instantiation.active_record
 
 | Key              | Value                                     |
 | ---------------- | ----------------------------------------- |
@@ -384,10 +369,9 @@ INFO. The adapters will add their own data as well.
 }
 ```
 
-Action Mailer
--------------
+### Action Mailer
 
-### deliver.action_mailer
+#### deliver.action_mailer
 
 | Key                   | Value                                                |
 | --------------------- | ---------------------------------------------------- |
@@ -415,7 +399,7 @@ Action Mailer
 }
 ```
 
-### process.action_mailer
+#### process.action_mailer
 
 | Key           | Value                    |
 | ------------- | ------------------------ |
@@ -431,106 +415,114 @@ Action Mailer
 }
 ```
 
-Active Support
---------------
+### Active Support
 
-### cache_read.active_support
+#### cache_read.active_support
 
-| Key                | Value                                             |
-| ------------------ | ------------------------------------------------- |
-| `:key`             | Key used in the store                             |
-| `:hit`             | If this read is a hit                             |
-| `:super_operation` | :fetch is added when a read is used with `#fetch` |
+| Key                | Value                                               |
+| ------------------ | --------------------------------------------------- |
+| `:key`             | Key used in the store                               |
+| `:store`           | Name of the store class                             |
+| `:hit`             | If this read is a hit                               |
+| `:super_operation` | `:fetch` is added when a read is used with `#fetch` |
 
-### cache_generate.active_support
+#### cache_generate.active_support
 
 This event is only used when `#fetch` is called with a block.
 
-| Key    | Value                 |
-| ------ | --------------------- |
-| `:key` | Key used in the store |
+| Key      | Value                   |
+| -------- | ----------------------- |
+| `:key`   | Key used in the store   |
+| `:store` | Name of the store class |
 
 INFO. Options passed to fetch will be merged with the payload when writing to the store
 
 ```ruby
 {
-  key: 'name-of-complicated-computation'
+  key: "name-of-complicated-computation",
+  store: "ActiveSupport::Cache::MemCacheStore"
 }
 ```
 
-
-### cache_fetch_hit.active_support
+#### cache_fetch_hit.active_support
 
 This event is only used when `#fetch` is called with a block.
 
-| Key    | Value                 |
-| ------ | --------------------- |
-| `:key` | Key used in the store |
+| Key      | Value                   |
+| -------- | ----------------------- |
+| `:key`   | Key used in the store   |
+| `:store` | Name of the store class |
 
 INFO. Options passed to fetch will be merged with the payload.
 
 ```ruby
 {
-  key: 'name-of-complicated-computation'
+  key: "name-of-complicated-computation",
+  store: "ActiveSupport::Cache::MemCacheStore"
 }
 ```
 
-### cache_write.active_support
+#### cache_write.active_support
 
-| Key    | Value                 |
-| ------ | --------------------- |
-| `:key` | Key used in the store |
+| Key      | Value                   |
+| -------- | ----------------------- |
+| `:key`   | Key used in the store   |
+| `:store` | Name of the store class |
 
 INFO. Cache stores may add their own keys
 
 ```ruby
 {
-  key: 'name-of-complicated-computation'
+  key: "name-of-complicated-computation",
+  store: "ActiveSupport::Cache::MemCacheStore"
 }
 ```
 
-### cache_delete.active_support
+#### cache_delete.active_support
 
-| Key    | Value                 |
-| ------ | --------------------- |
-| `:key` | Key used in the store |
+| Key      | Value                   |
+| -------- | ----------------------- |
+| `:key`   | Key used in the store   |
+| `:store` | Name of the store class |
 
 ```ruby
 {
-  key: 'name-of-complicated-computation'
+  key: "name-of-complicated-computation",
+  store: "ActiveSupport::Cache::MemCacheStore"
 }
 ```
 
-### cache_exist?.active_support
+#### cache_exist?.active_support
 
-| Key    | Value                 |
-| ------ | --------------------- |
-| `:key` | Key used in the store |
+| Key      | Value                   |
+| -------- | ----------------------- |
+| `:key`   | Key used in the store   |
+| `:store` | Name of the store class |
 
 ```ruby
 {
-  key: 'name-of-complicated-computation'
+  key: "name-of-complicated-computation",
+  store: "ActiveSupport::Cache::MemCacheStore"
 }
 ```
 
-Active Job
-----------
+### Active Job
 
-### enqueue_at.active_job
+#### enqueue_at.active_job
 
 | Key          | Value                                  |
 | ------------ | -------------------------------------- |
 | `:adapter`   | QueueAdapter object processing the job |
 | `:job`       | Job object                             |
 
-### enqueue.active_job
+#### enqueue.active_job
 
 | Key          | Value                                  |
 | ------------ | -------------------------------------- |
 | `:adapter`   | QueueAdapter object processing the job |
 | `:job`       | Job object                             |
 
-### enqueue_retry.active_job
+#### enqueue_retry.active_job
 
 | Key          | Value                                  |
 | ------------ | -------------------------------------- |
@@ -539,21 +531,22 @@ Active Job
 | `:error`     | The error that caused the retry        |
 | `:wait`      | The delay of the retry                 |
 
-### perform_start.active_job
+#### perform_start.active_job
 
 | Key          | Value                                  |
 | ------------ | -------------------------------------- |
 | `:adapter`   | QueueAdapter object processing the job |
 | `:job`       | Job object                             |
 
-### perform.active_job
+#### perform.active_job
 
-| Key          | Value                                  |
-| ------------ | -------------------------------------- |
-| `:adapter`   | QueueAdapter object processing the job |
-| `:job`       | Job object                             |
+| Key           | Value                                         |
+| ------------- | --------------------------------------------- |
+| `:adapter`    | QueueAdapter object processing the job        |
+| `:job`        | Job object                                    |
+| `:db_runtime` | Amount spent executing database queries in ms |
 
-### retry_stopped.active_job
+#### retry_stopped.active_job
 
 | Key          | Value                                  |
 | ------------ | -------------------------------------- |
@@ -561,7 +554,7 @@ Active Job
 | `:job`       | Job object                             |
 | `:error`     | The error that caused the retry        |
 
-### discard.active_job
+#### discard.active_job
 
 | Key          | Value                                  |
 | ------------ | -------------------------------------- |
@@ -569,10 +562,9 @@ Active Job
 | `:job`       | Job object                             |
 | `:error`     | The error that caused the discard      |
 
-Action Cable
-------------
+### Action Cable
 
-### perform_action.action_cable
+#### perform_action.action_cable
 
 | Key              | Value                     |
 | ---------------- | ------------------------- |
@@ -580,7 +572,7 @@ Action Cable
 | `:action`        | The action                |
 | `:data`          | A hash of data            |
 
-### transmit.action_cable
+#### transmit.action_cable
 
 | Key              | Value                     |
 | ---------------- | ------------------------- |
@@ -588,19 +580,19 @@ Action Cable
 | `:data`          | A hash of data            |
 | `:via`           | Via                       |
 
-### transmit_subscription_confirmation.action_cable
+#### transmit_subscription_confirmation.action_cable
 
 | Key              | Value                     |
 | ---------------- | ------------------------- |
 | `:channel_class` | Name of the channel class |
 
-### transmit_subscription_rejection.action_cable
+#### transmit_subscription_rejection.action_cable
 
 | Key              | Value                     |
 | ---------------- | ------------------------- |
 | `:channel_class` | Name of the channel class |
 
-### broadcast.action_cable
+#### broadcast.action_cable
 
 | Key             | Value                |
 | --------------- | -------------------- |
@@ -608,10 +600,9 @@ Action Cable
 | `:message`      | A hash of message    |
 | `:coder`        | The coder            |
 
-Active Storage
---------------
+### Active Storage
 
-### service_upload.active_storage
+#### service_upload.active_storage
 
 | Key          | Value                        |
 | ------------ | ---------------------------- |
@@ -619,14 +610,14 @@ Active Storage
 | `:service`   | Name of the service          |
 | `:checksum`  | Checksum to ensure integrity |
 
-### service_streaming_download.active_storage
+#### service_streaming_download.active_storage
 
 | Key          | Value               |
 | ------------ | ------------------- |
 | `:key`       | Secure token        |
 | `:service`   | Name of the service |
 
-### service_download_chunk.active_storage
+#### service_download_chunk.active_storage
 
 | Key          | Value                           |
 | ------------ | ------------------------------- |
@@ -634,28 +625,28 @@ Active Storage
 | `:service`   | Name of the service             |
 | `:range`     | Byte range attempted to be read |
 
-### service_download.active_storage
+#### service_download.active_storage
 
 | Key          | Value               |
 | ------------ | ------------------- |
 | `:key`       | Secure token        |
 | `:service`   | Name of the service |
 
-### service_delete.active_storage
+#### service_delete.active_storage
 
 | Key          | Value               |
 | ------------ | ------------------- |
 | `:key`       | Secure token        |
 | `:service`   | Name of the service |
 
-### service_delete_prefixed.active_storage
+#### service_delete_prefixed.active_storage
 
 | Key          | Value               |
 | ------------ | ------------------- |
 | `:prefix`    | Key prefix          |
 | `:service`   | Name of the service |
 
-### service_exist.active_storage
+#### service_exist.active_storage
 
 | Key          | Value                       |
 | ------------ | --------------------------- |
@@ -663,7 +654,7 @@ Active Storage
 | `:service`   | Name of the service         |
 | `:exist`     | File or blob exists or not  |
 
-### service_url.active_storage
+#### service_url.active_storage
 
 | Key          | Value               |
 | ------------ | ------------------- |
@@ -671,7 +662,7 @@ Active Storage
 | `:service`   | Name of the service |
 | `:url`       | Generated URL       |
 
-### service_update_metadata.active_storage
+#### service_update_metadata.active_storage
 
 | Key             | Value                          |
 | --------------- | ------------------------------ |
@@ -682,30 +673,67 @@ Active Storage
 
 INFO. The only ActiveStorage service that provides this hook so far is GCS.
 
-### preview.active_storage
+#### preview.active_storage
 
 | Key          | Value               |
 | ------------ | ------------------- |
 | `:key`       | Secure token        |
 
-Railties
---------
+#### transform.active_storage
 
-### load_config_initializer.railties
+#### analyze.active_storage
+
+| Key          | Value                          |
+| ------------ | ------------------------------ |
+| `:analyzer`  | Name of analyzer e.g., ffprobe |
+
+### Action Mailbox
+
+#### process.action_mailbox
+
+| Key              | Value                                                             |
+| -----------------| ----------------------------------------------------------------- |
+| `:mailbox`       | Instance of the Mailbox class inheriting from ActionMailbox::Base |
+| `:inbound_email` | Hash with data about the inbound email being processed            |
+
+```ruby
+{
+  mailbox: #<RepliesMailbox:0x00007f9f7a8388>,
+  inbound_email: {
+    id: 1,
+    message_id: "0CB459E0-0336-41DA-BC88-E6E28C697DDB@37signals.com",
+    status: "processing"
+  }
+}
+```
+
+### Railties
+
+#### load_config_initializer.railties
 
 | Key            | Value                                                 |
 | -------------- | ----------------------------------------------------- |
 | `:initializer` | Path to loaded initializer from `config/initializers` |
 
-Rails
------
+### Rails
 
-### deprecation.rails
+#### deprecation.rails
 
 | Key          | Value                           |
 | ------------ | ------------------------------- |
 | `:message`   | The deprecation warning         |
 | `:callstack` | Where the deprecation came from |
+
+Exceptions
+----------
+
+If an exception happens during any instrumentation the payload will include
+information about it.
+
+| Key                 | Value                                                          |
+| ------------------- | -------------------------------------------------------------- |
+| `:exception`        | An array of two elements. Exception class name and the message |
+| `:exception_object` | The exception object                                           |
 
 Creating custom events
 ----------------------

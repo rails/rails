@@ -325,7 +325,7 @@ module ApplicationTests
       # Load app env
       app "development"
 
-      get "/assets/#{URI.parser.escape(asset_path)}"
+      get "/assets/#{URI::DEFAULT_PARSER.escape(asset_path)}"
       assert_match "not an image really", last_response.body
       assert_file_exists("#{app_path}/public/assets/#{asset_path}")
     end
@@ -472,9 +472,9 @@ module ApplicationTests
       class ::PostsController < ActionController::Base; end
 
       get "/posts", {}, { "HTTPS" => "off" }
-      assert_match('src="http://example.com/assets/application.debug.js', last_response.body)
+      assert_match('src="http://example.com/assets/application.js', last_response.body)
       get "/posts", {}, { "HTTPS" => "on" }
-      assert_match('src="https://example.com/assets/application.debug.js', last_response.body)
+      assert_match('src="https://example.com/assets/application.js', last_response.body)
     end
 
     test "asset URLs should be protocol-relative if no request is in scope" do

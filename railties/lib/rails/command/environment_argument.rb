@@ -5,7 +5,7 @@ require "active_support/core_ext/class/attribute"
 
 module Rails
   module Command
-    module EnvironmentArgument #:nodoc:
+    module EnvironmentArgument # :nodoc:
       extend ActiveSupport::Concern
 
       included do

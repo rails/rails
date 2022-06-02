@@ -6,9 +6,9 @@ module Arel # :nodoc: all
       attr_accessor :projections, :wheres, :groups, :windows, :comment
       attr_accessor :havings, :source, :set_quantifier, :optimizer_hints
 
-      def initialize
+      def initialize(relation = nil)
         super()
-        @source = JoinSource.new nil
+        @source = JoinSource.new(relation)
 
         # https://ronsavage.github.io/SQL/sql-92.bnf.html#set%20quantifier
         @set_quantifier  = nil

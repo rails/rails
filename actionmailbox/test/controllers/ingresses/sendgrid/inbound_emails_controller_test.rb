@@ -18,6 +18,22 @@ class ActionMailbox::Ingresses::Sendgrid::InboundEmailsControllerTest < ActionDi
     assert_equal "0CB459E0-0336-41DA-BC88-E6E28C697DDB@37signals.com", inbound_email.message_id
   end
 
+  test "add X-Original-To to email from Sendgrid" do
+    assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
+      post rails_sendgrid_inbound_emails_url,
+        headers: { authorization: credentials }, params: {
+          email: file_fixture("../files/welcome.eml").read,
+          envelope: "{\"to\":[\"replies@example.com\"],\"from\":\"jason@37signals.com\"}",
+        }
+    end
+
+    assert_response :no_content
+
+    inbound_email = ActionMailbox::InboundEmail.last
+    mail = Mail.from_source(inbound_email.raw_email.download)
+    assert_equal "replies@example.com", mail.header["X-Original-To"].decoded
+  end
+
   test "rejecting an unauthorized inbound email from Sendgrid" do
     assert_no_difference -> { ActionMailbox::InboundEmail.count } do
       post rails_sendgrid_inbound_emails_url, params: { email: file_fixture("../files/welcome.eml").read }

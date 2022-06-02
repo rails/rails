@@ -102,6 +102,16 @@ class CallbacksTest < ActiveModel::TestCase
     assert_not_respond_to ModelCallbacks, :after_empty
   end
 
+  test "the :if option array should not be mutated by an after callback" do
+    opts = []
+
+    Class.new(ModelCallbacks) do
+      after_create(if: opts) { }
+    end
+
+    assert_empty opts
+  end
+
   class Violin
     attr_reader :history
     def initialize

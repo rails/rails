@@ -11,7 +11,7 @@ module ActiveRecord
           else
             super
           end
-          @connection.abandon_results!
+          @raw_connection.abandon_results!
           result
         end
 
@@ -20,60 +20,57 @@ module ActiveRecord
         end
 
         READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
-          :begin, :commit, :explain, :select, :set, :show, :release, :savepoint, :rollback, :describe, :desc, :with
+          :desc, :describe, :set, :show, :use
         ) # :nodoc:
         private_constant :READ_QUERY
 
         def write_query?(sql) # :nodoc:
           !READ_QUERY.match?(sql)
+        rescue ArgumentError # Invalid encoding
+          !READ_QUERY.match?(sql.b)
         end
 
         def explain(arel, binds = [])
           sql     = "EXPLAIN #{to_sql(arel, binds)}"
-          start   = Concurrent.monotonic_time
+          start   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           result  = exec_query(sql, "EXPLAIN", binds)
-          elapsed = Concurrent.monotonic_time - start
+          elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
 
           MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
         end
 
         # Executes the SQL statement in the context of this connection.
-        def execute(sql, name = nil)
-          if preventing_writes? && write_query?(sql)
-            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
-          end
+        def execute(sql, name = nil, async: false)
+          sql = transform_query(sql)
+          check_if_write_query(sql)
 
-          # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
-          # made since we established the connection
-          @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
-
-          super
+          raw_execute(sql, name, async: async)
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false)
+        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
           if without_prepared_statement?(binds)
-            execute_and_free(sql, name) do |result|
+            execute_and_free(sql, name, async: async) do |result|
               if result
-                ActiveRecord::Result.new(result.fields, result.to_a)
+                build_result(columns: result.fields, rows: result.to_a)
               else
-                ActiveRecord::Result.new([], [])
+                build_result(columns: [], rows: [])
               end
             end
           else
-            exec_stmt_and_free(sql, name, binds, cache_stmt: prepare) do |_, result|
+            exec_stmt_and_free(sql, name, binds, cache_stmt: prepare, async: async) do |_, result|
               if result
-                ActiveRecord::Result.new(result.fields, result.to_a)
+                build_result(columns: result.fields, rows: result.to_a)
               else
-                ActiveRecord::Result.new([], [])
+                build_result(columns: [], rows: [])
               end
             end
           end
         end
 
-        def exec_delete(sql, name = nil, binds = [])
+        def exec_delete(sql, name = nil, binds = []) # :nodoc:
           if without_prepared_statement?(binds)
             @lock.synchronize do
-              execute_and_free(sql, name) { @connection.affected_rows }
+              execute_and_free(sql, name) { @raw_connection.affected_rows }
             end
           else
             exec_stmt_and_free(sql, name, binds) { |stmt| stmt.affected_rows }
@@ -81,12 +78,30 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
+        # https://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html#function_current-timestamp
+        # https://dev.mysql.com/doc/refman/5.7/en/date-and-time-type-syntax.html
+        HIGH_PRECISION_CURRENT_TIMESTAMP = Arel.sql("CURRENT_TIMESTAMP(6)").freeze # :nodoc:
+        private_constant :HIGH_PRECISION_CURRENT_TIMESTAMP
+
+        def high_precision_current_timestamp
+          HIGH_PRECISION_CURRENT_TIMESTAMP
+        end
+
         private
+          def raw_execute(sql, name, async: false)
+            # make sure we carry over any changes to ActiveRecord.default_timezone that have been
+            # made since we established the connection
+            @raw_connection.query_options[:database_timezone] = default_timezone
+
+            super
+          end
+
           def execute_batch(statements, name = nil)
+            statements = statements.map { |sql| transform_query(sql) }
             combine_multi_statements(statements).each do |statement|
-              execute(statement, name)
+              raw_execute(statement, name)
+              @raw_connection.abandon_results!
             end
-            @connection.abandon_results!
           end
 
           def default_insert_value(column)
@@ -94,42 +109,30 @@ module ActiveRecord
           end
 
           def last_inserted_id(result)
-            @connection.last_id
+            @raw_connection.last_id
           end
 
-          def supports_set_server_option?
-            @connection.respond_to?(:set_server_option)
-          end
+          def multi_statements_enabled?
+            flags = @config[:flags]
 
-          def multi_statements_enabled?(flags)
             if flags.is_a?(Array)
               flags.include?("MULTI_STATEMENTS")
             else
-              (flags & Mysql2::Client::MULTI_STATEMENTS) != 0
+              flags.anybits?(Mysql2::Client::MULTI_STATEMENTS)
             end
           end
 
           def with_multi_statements
-            previous_flags = @config[:flags]
+            multi_statements_was = multi_statements_enabled?
 
-            unless multi_statements_enabled?(previous_flags)
-              if supports_set_server_option?
-                @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
-              else
-                @config[:flags] = Mysql2::Client::MULTI_STATEMENTS
-                reconnect!
-              end
+            unless multi_statements_was
+              @raw_connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
             end
 
             yield
           ensure
-            unless multi_statements_enabled?(previous_flags)
-              if supports_set_server_option?
-                @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
-              else
-                @config[:flags] = previous_flags
-                reconnect!
-              end
+            unless multi_statements_was
+              @raw_connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
             end
           end
 
@@ -160,24 +163,24 @@ module ActiveRecord
             @max_allowed_packet ||= show_variable("max_allowed_packet")
           end
 
-          def exec_stmt_and_free(sql, name, binds, cache_stmt: false)
-            if preventing_writes? && write_query?(sql)
-              raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
-            end
+          def exec_stmt_and_free(sql, name, binds, cache_stmt: false, async: false)
+            sql = transform_query(sql)
+            check_if_write_query(sql)
 
             materialize_transactions
+            mark_transaction_written_if_write(sql)
 
-            # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
+            # make sure we carry over any changes to ActiveRecord.default_timezone that have been
             # made since we established the connection
-            @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
+            @raw_connection.query_options[:database_timezone] = default_timezone
 
             type_casted_binds = type_casted_binds(binds)
 
-            log(sql, name, binds, type_casted_binds) do
+            log(sql, name, binds, type_casted_binds, async: async) do
               if cache_stmt
-                stmt = @statements[sql] ||= @connection.prepare(sql)
+                stmt = @statements[sql] ||= @raw_connection.prepare(sql)
               else
-                stmt = @connection.prepare(sql)
+                stmt = @raw_connection.prepare(sql)
               end
 
               begin

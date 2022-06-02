@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  module DynamicMatchers #:nodoc:
+  module DynamicMatchers # :nodoc:
     private
       def respond_to_missing?(name, _)
         if self == Base

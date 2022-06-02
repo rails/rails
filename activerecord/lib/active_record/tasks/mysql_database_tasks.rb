@@ -28,7 +28,7 @@ module ActiveRecord
       end
 
       def purge
-        establish_connection(db_config)
+        establish_connection(configuration_hash_without_database)
         connection.recreate_database(db_config.database, creation_options)
       end
 
@@ -49,6 +49,7 @@ module ActiveRecord
 
         ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
         if ignore_tables.any?
+          ignore_tables = connection.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
           args += ignore_tables.map { |table| "--ignore-table=#{db_config.database}.#{table}" }
         end
 
@@ -94,7 +95,7 @@ module ActiveRecord
             sslcapath: "--ssl-capath",
             sslcipher: "--ssl-cipher",
             sslkey:    "--ssl-key"
-          }.map { |opt, arg| "#{arg}=#{configuration_hash[opt]}" if configuration_hash[opt] }.compact
+          }.filter_map { |opt, arg| "#{arg}=#{configuration_hash[opt]}" if configuration_hash[opt] }
 
           args
         end

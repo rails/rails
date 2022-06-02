@@ -2,7 +2,7 @@ Description:
     Explain the generator
 
 Example:
-    rails generate <%= file_name %> Thing
+    bin/rails generate <%= file_name %> Thing
 
     This will create:
         what/will/it/create

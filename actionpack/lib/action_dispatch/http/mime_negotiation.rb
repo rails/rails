@@ -7,6 +7,8 @@ module ActionDispatch
     module MimeNegotiation
       extend ActiveSupport::Concern
 
+      class InvalidType < ::Mime::Type::InvalidMimeType; end
+
       RESCUABLE_MIME_FORMAT_ERRORS = [
         ActionController::BadRequest,
         ActionDispatch::Http::Parameters::ParseError,
@@ -14,22 +16,34 @@ module ActionDispatch
 
       included do
         mattr_accessor :ignore_accept_header, default: false
+        cattr_accessor :return_only_media_type_on_content_type, default: false
       end
 
       # The MIME type of the HTTP request, such as Mime[:xml].
       def content_mime_type
         fetch_header("action_dispatch.request.content_type") do |k|
-          v = if get_header("CONTENT_TYPE") =~ /^([^,\;]*)/
+          v = if get_header("CONTENT_TYPE") =~ /^([^,;]*)/
             Mime::Type.lookup($1.strip.downcase)
           else
             nil
           end
           set_header k, v
+        rescue ::Mime::Type::InvalidMimeType => e
+          raise InvalidType, e.message
         end
       end
 
       def content_type
-        content_mime_type && content_mime_type.to_s
+        if self.class.return_only_media_type_on_content_type
+          ActiveSupport::Deprecation.warn(
+            "Rails 7.1 will return Content-Type header without modification." \
+            " If you want just the MIME type, please use `#media_type` instead."
+          )
+
+          content_mime_type&.to_s
+        else
+          super
+        end
       end
 
       def has_content_type? # :nodoc:
@@ -47,6 +61,8 @@ module ActionDispatch
             Mime::Type.parse(header)
           end
           set_header k, v
+        rescue ::Mime::Type::InvalidMimeType => e
+          raise InvalidType, e.message
         end
       end
 
@@ -86,7 +102,7 @@ module ActionDispatch
       def variant=(variant)
         variant = Array(variant)
 
-        if variant.all? { |v| v.is_a?(Symbol) }
+        if variant.all?(Symbol)
           @variant = ActiveSupport::ArrayInquirer.new(variant)
         else
           raise ArgumentError, "request.variant must be set to a Symbol or an Array of Symbols."
@@ -116,8 +132,8 @@ module ActionDispatch
       # Sets the \formats by string extensions. This differs from #format= by allowing you
       # to set multiple, ordered formats, which is useful when you want to have a fallback.
       #
-      # In this example, the :iphone format will be used if it's available, otherwise it'll fallback
-      # to the :html format.
+      # In this example, the +:iphone+ format will be used if it's available, otherwise it'll fallback
+      # to the +:html+ format.
       #
       #   class ApplicationController < ActionController::Base
       #     before_action :adjust_format_for_iphone_with_html_fallback
@@ -156,22 +172,22 @@ module ActionDispatch
         # in which case we assume you're a browser and send HTML.
         BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
 
-        def params_readable? # :doc:
+        def params_readable?
           parameters[:format]
         rescue *RESCUABLE_MIME_FORMAT_ERRORS
           false
         end
 
-        def valid_accept_header # :doc:
+        def valid_accept_header
           (xhr? && (accept.present? || content_mime_type)) ||
             (accept.present? && !accept.match?(BROWSER_LIKE_ACCEPTS))
         end
 
-        def use_accept_header # :doc:
+        def use_accept_header
           !self.class.ignore_accept_header
         end
 
-        def format_from_path_extension # :doc:
+        def format_from_path_extension
           path = get_header("action_dispatch.original_path") || get_header("PATH_INFO")
           if match = path && path.match(/\.(\w+)\z/)
             Mime[match.captures.first]

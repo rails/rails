@@ -1,11 +1,11 @@
 trusting:
   description: trusting
-  man: gordon
+  human: gordon
 
 weather_beaten:
   description: weather beaten
-  man: steve
+  human: steve
 
 confused:
   description: confused
-  polymorphic_man: gordon (Man)
+  polymorphic_human: gordon (Human)

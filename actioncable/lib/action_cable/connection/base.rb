@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "action_dispatch"
+require "active_support/rescuable"
 
 module ActionCable
   module Connection
@@ -46,6 +47,8 @@ module ActionCable
       include Identification
       include InternalChannel
       include Authorization
+      include Callbacks
+      include ActiveSupport::Rescuable
 
       attr_reader :server, :env, :subscriptions, :logger, :worker_pool, :protocol
       delegate :event_loop, :pubsub, to: :server
@@ -66,7 +69,7 @@ module ActionCable
 
       # Called by the server when a new WebSocket connection is established. This configures the callbacks intended for overwriting by the user.
       # This method should not be called directly -- instead rely upon on the #connect (and #disconnect) callbacks.
-      def process #:nodoc:
+      def process # :nodoc:
         logger.info started_request_message
 
         if websocket.possible? && allow_request_origin?
@@ -78,15 +81,21 @@ module ActionCable
 
       # Decodes WebSocket messages and dispatches them to subscribed channels.
       # WebSocket message transfer encoding is always JSON.
-      def receive(websocket_message) #:nodoc:
+      def receive(websocket_message) # :nodoc:
         send_async :dispatch_websocket_message, websocket_message
       end
 
-      def dispatch_websocket_message(websocket_message) #:nodoc:
+      def dispatch_websocket_message(websocket_message) # :nodoc:
         if websocket.alive?
-          subscriptions.execute_command decode(websocket_message)
+          handle_channel_command decode(websocket_message)
         else
           logger.error "Ignoring message processed after the WebSocket was closed: #{websocket_message.inspect})"
+        end
+      end
+
+      def handle_channel_command(payload)
+        run_callbacks :command do
+          subscriptions.execute_command payload
         end
       end
 

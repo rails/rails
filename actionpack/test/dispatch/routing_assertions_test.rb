@@ -14,11 +14,22 @@ class QueryBooksController < BooksController; end
 
 class RoutingAssertionsTest < ActionController::TestCase
   def setup
+    root_engine = Class.new(Rails::Engine) do
+      def self.name
+        "root_engine"
+      end
+    end
+
+    root_engine.routes.draw do
+      root to: "books#index"
+    end
+
     engine = Class.new(Rails::Engine) do
       def self.name
         "blog_engine"
       end
     end
+
     engine.routes.draw do
       resources :books
 
@@ -52,6 +63,8 @@ class RoutingAssertionsTest < ActionController::TestCase
       end
 
       mount engine => "/shelf"
+
+      mount root_engine => "/"
 
       get "/shelf/foo", controller: "query_articles", action: "index"
     end
@@ -118,6 +131,10 @@ class RoutingAssertionsTest < ActionController::TestCase
     assert_recognizes({ controller: "books", action: "show", id: "1" }, "/shelf/books/1")
   end
 
+  def test_assert_recognizes_with_engine_at_root
+    assert_recognizes({ controller: "books", action: "index" }, "/")
+  end
+
   def test_assert_recognizes_with_engine_and_extras
     assert_recognizes({ controller: "books", action: "index", page: "1" }, "/shelf/books", page: "1")
   end
@@ -156,7 +173,7 @@ class RoutingAssertionsTest < ActionController::TestCase
     assert_match err.message, "This is a really bad msg"
   end
 
-  def test_assert_recognizes_continue_to_recoginize_after_it_tried_engines
+  def test_assert_recognizes_continue_to_recognize_after_it_tried_engines
     assert_recognizes({ controller: "query_articles", action: "index" }, "/shelf/foo")
   end
 

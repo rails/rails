@@ -1,19 +1,32 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../../abstract_unit"
 require "active_support/cache"
 require_relative "../behaviors"
 
 class MemoryStoreTest < ActiveSupport::TestCase
   def setup
-    @cache = ActiveSupport::Cache.lookup_store(:memory_store, expires_in: 60)
+    @cache = lookup_store(expires_in: 60)
+  end
+
+  def lookup_store(options = {})
+    ActiveSupport::Cache.lookup_store(:memory_store, options)
   end
 
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
+  include CacheStoreCoderBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
+
+  def test_large_string_with_default_compression_settings
+    assert_uncompressed(LARGE_STRING)
+  end
+
+  def test_large_object_with_default_compression_settings
+    assert_uncompressed(LARGE_OBJECT)
+  end
 end
 
 class MemoryStorePruningTest < ActiveSupport::TestCase
@@ -142,5 +155,11 @@ class MemoryStorePruningTest < ActiveSupport::TestCase
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
     @cache.write(1, nil)
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
+  end
+
+  def test_write_expired_value_with_unless_exist
+    assert_equal true, @cache.write(1, "aaaa", expires_in: 1.second)
+    travel 2.seconds
+    assert_equal true, @cache.write(1, "bbbb", expires_in: 1.second, unless_exist: true)
   end
 end

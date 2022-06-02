@@ -19,7 +19,7 @@ module ApplicationTests
       rails "generate", "mailer", "BaseMailer", "welcome"
 
       app_file "test/integration/mailer_integration_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class MailerIntegrationTest < ActionDispatch::IntegrationTest
           setup do
@@ -59,7 +59,7 @@ module ApplicationTests
 
     test "app method of integration tests returns test_app by default" do
       app_file "test/integration/default_app_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class DefaultAppIntegrationTest < ActionDispatch::IntegrationTest
           def test_app_returns_action_dispatch_test_app_by_default

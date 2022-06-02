@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "active_support/core_ext/hash"
+require_relative "abstract_unit"
 require "bigdecimal"
+require "yaml"
+require "active_support/core_ext/hash"
 require "active_support/core_ext/string/access"
-require "active_support/ordered_hash"
 require "active_support/core_ext/object/conversions"
 require "active_support/core_ext/object/deep_dup"
 require "active_support/inflections"
@@ -433,6 +433,19 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
+  def test_indifferent_deep_transform_keys
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@nested_strings).deep_transform_keys { |k| k * 2 }
+
+    assert_equal({ "aa" => { "bb" => { "cc" => 3 } } }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@nested_strings).deep_transform_keys { |k| k.to_sym }
+
+    assert_equal(3, hash[:a][:b][:c])
+    assert_equal(3, hash["a"]["b"]["c"])
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
   def test_indifferent_transform_keys_bang
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
     indifferent_strings.transform_keys! { |k| k * 2 }
@@ -446,6 +459,21 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal(1, indifferent_strings[:a])
     assert_equal(1, indifferent_strings["a"])
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
+  end
+
+  def test_indifferent_deep_transform_keys_bang
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@nested_strings)
+    hash.deep_transform_keys! { |k| k * 2 }
+
+    assert_equal({ "aa" => { "bb" => { "cc" => 3 } } }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@nested_strings)
+    hash.deep_transform_keys! { |k| k.to_sym }
+
+    assert_equal(3, hash[:a][:b][:c])
+    assert_equal(3, hash["a"]["b"]["c"])
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
   def test_indifferent_transform_values
@@ -789,13 +817,8 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
 
     yaml_output = klass.new.to_yaml
 
-    # `hash-with-ivars` was introduced in 2.0.9 (https://git.io/vyUQW)
-    if Gem::Version.new(Psych::VERSION) >= Gem::Version.new("2.0.9")
-      assert_includes yaml_output, "hash-with-ivars"
-      assert_includes yaml_output, "@foo: bar"
-    else
-      assert_includes yaml_output, "hash"
-    end
+    assert_includes yaml_output, "hash-with-ivars"
+    assert_includes yaml_output, "@foo: bar"
   end
 
   def test_should_use_default_proc_for_unknown_key

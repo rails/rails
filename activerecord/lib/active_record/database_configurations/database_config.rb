@@ -6,22 +6,28 @@ module ActiveRecord
     # UrlConfig respectively. It will never return a DatabaseConfig object,
     # as this is the parent class for the types of database configuration objects.
     class DatabaseConfig # :nodoc:
-      attr_reader :env_name, :spec_name
+      attr_reader :env_name, :name
 
-      def initialize(env_name, spec_name)
+      attr_accessor :owner_name
+
+      def initialize(env_name, name)
         @env_name = env_name
-        @spec_name = spec_name
-      end
-
-      def config
-        raise NotImplementedError
+        @name = name
       end
 
       def adapter_method
         "#{adapter}_connection"
       end
 
+      def host
+        raise NotImplementedError
+      end
+
       def database
+        raise NotImplementedError
+      end
+
+      def _database=(database)
         raise NotImplementedError
       end
 
@@ -30,6 +36,18 @@ module ActiveRecord
       end
 
       def pool
+        raise NotImplementedError
+      end
+
+      def min_threads
+        raise NotImplementedError
+      end
+
+      def max_threads
+        raise NotImplementedError
+      end
+
+      def max_queue
         raise NotImplementedError
       end
 
@@ -55,6 +73,10 @@ module ActiveRecord
 
       def for_current_env?
         env_name == ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+      end
+
+      def schema_cache_path
+        raise NotImplementedError
       end
     end
   end

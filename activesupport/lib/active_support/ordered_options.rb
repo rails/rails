@@ -3,7 +3,9 @@
 require "active_support/core_ext/object/blank"
 
 module ActiveSupport
-  # Usually key value pairs are handled something like this:
+  # +OrderedOptions+ inherits from +Hash+ and provides dynamic accessor methods.
+  #
+  # With a +Hash+, key-value pairs are typically managed like this:
   #
   #   h = {}
   #   h[:boy] = 'John'
@@ -12,7 +14,7 @@ module ActiveSupport
   #   h[:girl] # => 'Mary'
   #   h[:dog]  # => nil
   #
-  # Using +OrderedOptions+, the above code could be reduced to:
+  # Using +OrderedOptions+, the above code can be written as:
   #
   #   h = ActiveSupport::OrderedOptions.new
   #   h.boy = 'John'
@@ -38,6 +40,10 @@ module ActiveSupport
       super(key.to_sym)
     end
 
+    def dig(*keys)
+      super(*keys.flatten.map(&:to_sym))
+    end
+
     def method_missing(name, *args)
       name_string = +name.to_s
       if name_string.chomp!("=")
@@ -60,9 +66,13 @@ module ActiveSupport
     def extractable_options?
       true
     end
+
+    def inspect
+      "#<#{self.class.name} #{super}>"
+    end
   end
 
-  # +InheritableOptions+ provides a constructor to build an +OrderedOptions+
+  # +InheritableOptions+ provides a constructor to build an OrderedOptions
   # hash inherited from another hash.
   #
   # Use this if you already have some hash and you want to create a new one based on it.

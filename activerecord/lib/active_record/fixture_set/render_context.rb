@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "base64"
+
 # NOTE: This class has to be defined in compact style in
 # order for rendering context subclassing to work correctly.
 class ActiveRecord::FixtureSet::RenderContext # :nodoc:
@@ -10,7 +12,7 @@ class ActiveRecord::FixtureSet::RenderContext # :nodoc:
       end
 
       def binary(path)
-        %(!!binary "#{Base64.strict_encode64(File.read(path))}")
+        %(!!binary "#{Base64.strict_encode64(File.binread(path))}")
       end
     end
   end

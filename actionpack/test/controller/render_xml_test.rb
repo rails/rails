@@ -98,13 +98,4 @@ class RenderXmlTest < ActionController::TestCase
     get :implicit_content_type, format: "atom"
     assert_equal Mime[:atom], @response.media_type
   end
-
-  def test_should_not_trigger_content_type_deprecation
-    original = ActionDispatch::Response.return_only_media_type_on_content_type
-    ActionDispatch::Response.return_only_media_type_on_content_type = true
-
-    assert_not_deprecated { get :render_with_to_xml }
-  ensure
-    ActionDispatch::Response.return_only_media_type_on_content_type = original
-  end
 end

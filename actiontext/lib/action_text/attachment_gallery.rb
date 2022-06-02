@@ -4,6 +4,9 @@ module ActionText
   class AttachmentGallery
     include ActiveModel::Model
 
+    TAG_NAME = "div"
+    private_constant :TAG_NAME
+
     class << self
       def fragment_by_canonicalizing_attachment_galleries(content)
         fragment_by_replacing_attachment_gallery_nodes(content) do |node|
@@ -20,12 +23,12 @@ module ActionText
       end
 
       def find_attachment_gallery_nodes(content)
-        Fragment.wrap(content).find_all(SELECTOR).select do |node|
+        Fragment.wrap(content).find_all(selector).select do |node|
           node.children.all? do |child|
             if child.text?
               /\A(\n|\ )*\z/.match?(child.text)
             else
-              child.matches? ATTACHMENT_SELECTOR
+              child.matches? attachment_selector
             end
           end
         end
@@ -33,6 +36,14 @@ module ActionText
 
       def from_node(node)
         new(node)
+      end
+
+      def attachment_selector
+        "#{ActionText::Attachment.tag_name}[presentation=gallery]"
+      end
+
+      def selector
+        "#{TAG_NAME}:has(#{attachment_selector} + #{attachment_selector})"
       end
     end
 
@@ -43,7 +54,7 @@ module ActionText
     end
 
     def attachments
-      @attachments ||= node.css(ATTACHMENT_SELECTOR).map do |node|
+      @attachments ||= node.css(ActionText::AttachmentGallery.attachment_selector).map do |node|
         ActionText::Attachment.from_node(node).with_full_attributes
       end
     end
@@ -55,11 +66,5 @@ module ActionText
     def inspect
       "#<#{self.class.name} size=#{size.inspect}>"
     end
-
-    TAG_NAME = "div"
-    ATTACHMENT_SELECTOR = "#{ActionText::Attachment::SELECTOR}[presentation=gallery]"
-    SELECTOR = "#{TAG_NAME}:has(#{ATTACHMENT_SELECTOR} + #{ATTACHMENT_SELECTOR})"
-
-    private_constant :TAG_NAME, :ATTACHMENT_SELECTOR, :SELECTOR
   end
 end

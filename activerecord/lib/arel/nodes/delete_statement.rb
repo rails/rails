@@ -3,17 +3,14 @@
 module Arel # :nodoc: all
   module Nodes
     class DeleteStatement < Arel::Nodes::Node
-      attr_accessor :left, :right, :orders, :limit, :offset, :key
-
-      alias :relation :left
-      alias :relation= :left=
-      alias :wheres :right
-      alias :wheres= :right=
+      attr_accessor :relation, :wheres, :groups, :havings, :orders, :limit, :offset, :key
 
       def initialize(relation = nil, wheres = [])
         super()
-        @left = relation
-        @right = wheres
+        @relation = relation
+        @wheres = wheres
+        @groups = []
+        @havings = []
         @orders = []
         @limit = nil
         @offset = nil
@@ -22,19 +19,21 @@ module Arel # :nodoc: all
 
       def initialize_copy(other)
         super
-        @left  = @left.clone if @left
-        @right = @right.clone if @right
+        @relation = @relation.clone if @relation
+        @wheres = @wheres.clone if @wheres
       end
 
       def hash
-        [self.class, @left, @right, @orders, @limit, @offset, @key].hash
+        [self.class, @relation, @wheres, @orders, @limit, @offset, @key].hash
       end
 
       def eql?(other)
         self.class == other.class &&
-          self.left == other.left &&
-          self.right == other.right &&
+          self.relation == other.relation &&
+          self.wheres == other.wheres &&
           self.orders == other.orders &&
+          self.groups == other.groups &&
+          self.havings == other.havings &&
           self.limit == other.limit &&
           self.offset == other.offset &&
           self.key == other.key

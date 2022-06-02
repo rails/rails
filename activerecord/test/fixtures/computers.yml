@@ -3,8 +3,10 @@ workstation:
   system: 'Linux'
   developer: 1
   extendedWarranty: 1
+  timezone: 1
 
 laptop:
   system: 'MacOS 1'
   developer: 1
   extendedWarranty: 1
+  timezone: 1

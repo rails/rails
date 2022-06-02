@@ -6,7 +6,6 @@ require "active_support/logger"
 class CaptureController < ActionController::Base
   self.view_paths = [ File.expand_path("../../fixtures/actionpack", __dir__) ]
 
-  def self.controller_name; "test"; end
   def self.controller_path; "test"; end
 
   def content_for

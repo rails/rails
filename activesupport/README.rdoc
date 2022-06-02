@@ -15,7 +15,7 @@ The latest version of Active Support can be installed with RubyGems:
 
 Source code can be downloaded as part of the Rails project on GitHub:
 
-* https://github.com/rails/rails/tree/master/activesupport
+* https://github.com/rails/rails/tree/main/activesupport
 
 
 == License
@@ -37,4 +37,4 @@ Bug reports for the Ruby on Rails project can be filed here:
 
 Feature requests should be discussed on the rails-core mailing list here:
 
-* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+* https://discuss.rubyonrails.org/c/rubyonrails-core

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "active_support/callbacks"
+require "active_support/core_ext/enumerable"
+require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
   # Abstract super class that provides a thread-isolated attributes singleton, which resets automatically
@@ -96,25 +98,37 @@ module ActiveSupport
 
       # Declares one or more attributes that will be given both class and instance accessor methods.
       def attribute(*names)
-        generated_attribute_methods.module_eval do
+        ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
           names.each do |name|
-            define_method(name) do
-              attributes[name.to_sym]
+            owner.define_cached_method(name, namespace: :current_attributes) do |batch|
+              batch <<
+                "def #{name}" <<
+                "attributes[:#{name}]" <<
+                "end"
             end
-
-            define_method("#{name}=") do |attribute|
-              attributes[name.to_sym] = attribute
+            owner.define_cached_method("#{name}=", namespace: :current_attributes) do |batch|
+              batch <<
+                "def #{name}=(value)" <<
+                "attributes[:#{name}] = value" <<
+                "end"
             end
           end
         end
 
-        names.each do |name|
-          define_singleton_method(name) do
-            instance.public_send(name)
-          end
-
-          define_singleton_method("#{name}=") do |attribute|
-            instance.public_send("#{name}=", attribute)
+        ActiveSupport::CodeGenerator.batch(singleton_class, __FILE__, __LINE__) do |owner|
+          names.each do |name|
+            owner.define_cached_method(name, namespace: :current_attributes_delegation) do |batch|
+              batch <<
+                "def #{name}" <<
+                "instance.#{name}" <<
+                "end"
+            end
+            owner.define_cached_method("#{name}=", namespace: :current_attributes_delegation) do |batch|
+              batch <<
+                "def #{name}=(value)" <<
+                "instance.#{name} = value" <<
+                "end"
+            end
           end
         end
       end
@@ -147,7 +161,7 @@ module ActiveSupport
         end
 
         def current_instances
-          Thread.current[:current_attributes_instances] ||= {}
+          IsolatedExecutionState[:current_attributes_instances] ||= {}
         end
 
         def current_instances_key
@@ -161,6 +175,11 @@ module ActiveSupport
           singleton_class.delegate name, to: :instance
 
           send(name, *args, &block)
+        end
+        ruby2_keywords(:method_missing)
+
+        def respond_to_missing?(name, _)
+          super || instance.respond_to?(name)
         end
     end
 
@@ -201,7 +220,7 @@ module ActiveSupport
       end
 
       def compute_attributes(keys)
-        keys.collect { |key| [ key, public_send(key) ] }.to_h
+        keys.index_with { |key| public_send(key) }
       end
   end
 end

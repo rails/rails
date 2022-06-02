@@ -214,6 +214,37 @@ class ErrorTest < ActiveModel::TestCase
     person = Person.new
     error = ActiveModel::Error.new(person, :name, foo: :bar)
 
-    assert error != person
+    assert_not_equal error, person
+  end
+
+  # details
+
+  test "details which ignores callback and message options" do
+    person = Person.new
+    error = ActiveModel::Error.new(
+      person,
+      :name,
+      :too_short,
+      foo: :bar,
+      if: :foo,
+      unless: :bar,
+      on: :baz,
+      allow_nil: false,
+      allow_blank: false,
+      strict: true,
+      message: "message"
+    )
+
+    assert_equal(
+      error.details,
+      { error: :too_short, foo: :bar }
+    )
+  end
+
+  test "details which has no raw_type" do
+    person = Person.new
+    error = ActiveModel::Error.new(person, :name, foo: :bar)
+
+    assert_equal(error.details, { error: :invalid, foo: :bar })
   end
 end

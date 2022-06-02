@@ -9,6 +9,10 @@ module Arel # :nodoc: all
       include Arel::OrderPredications
       include Arel::Math
 
+      def type_caster
+        relation.type_for_attribute(name)
+      end
+
       ###
       # Create a node for lowering this attribute
       def lower
@@ -23,14 +27,6 @@ module Arel # :nodoc: all
         relation.able_to_type_cast?
       end
     end
-
-    class String    < Attribute; end
-    class Time      < Attribute; end
-    class Boolean   < Attribute; end
-    class Decimal   < Attribute; end
-    class Float     < Attribute; end
-    class Integer   < Attribute; end
-    class Undefined < Attribute; end
   end
 
   Attribute = Attributes::Attribute

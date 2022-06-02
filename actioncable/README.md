@@ -21,4 +21,4 @@ Bug reports for the Ruby on Rails project can be filed here:
 
 Feature requests should be discussed on the rails-core mailing list here:
 
-* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+* https://discuss.rubyonrails.org/c/rubyonrails-core

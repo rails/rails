@@ -12,8 +12,8 @@ module RenderTemplate
       "with_raw.html.erb"          => "Hello <%=raw '<strong>this is raw</strong>' %>",
       "with_implicit_raw.html.erb" => "Hello <%== '<strong>this is also raw</strong>' %> in an html template",
       "with_implicit_raw.text.erb" => "Hello <%== '<strong>this is also raw</strong>' %> in a text template",
-      "test/with_json.html.erb"    => "<%= render :template => 'test/with_json', :formats => [:json] %>",
-      "test/with_json.json.erb"    => "<%= render :template => 'test/final', :formats => [:json]  %>",
+      "test/with_json.html.erb"    => "<%= render template: 'test/with_json', formats: [:json] %>",
+      "test/with_json.json.erb"    => "<%= render template: 'test/final', formats: [:json]  %>",
       "test/final.json.erb"        => "{ final: json }",
       "test/with_error.html.erb"   => "<%= raise 'i do not exist' %>"
     )]

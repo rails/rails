@@ -19,7 +19,7 @@ class Array
   #   ["1", "2"]
   #   ["3", "4"]
   #   ["5"]
-  def in_groups_of(number, fill_with = nil)
+  def in_groups_of(number, fill_with = nil, &block)
     if number.to_i <= 0
       raise ArgumentError,
         "Group size must be a positive integer, was #{number.inspect}"
@@ -36,7 +36,7 @@ class Array
     end
 
     if block_given?
-      collection.each_slice(number) { |slice| yield(slice) }
+      collection.each_slice(number, &block)
     else
       collection.each_slice(number).to_a
     end
@@ -59,7 +59,7 @@ class Array
   #   ["1", "2", "3"]
   #   ["4", "5"]
   #   ["6", "7"]
-  def in_groups(number, fill_with = nil)
+  def in_groups(number, fill_with = nil, &block)
     # size.div number gives minor group size;
     # size % number gives how many objects need extra accommodation;
     # each group hold either division or division + 1 items.
@@ -79,7 +79,7 @@ class Array
     end
 
     if block_given?
-      groups.each { |g| yield(g) }
+      groups.each(&block)
     else
       groups
     end
@@ -90,11 +90,11 @@ class Array
   #
   #   [1, 2, 3, 4, 5].split(3)              # => [[1, 2], [4, 5]]
   #   (1..10).to_a.split { |i| i % 3 == 0 } # => [[1, 2], [4, 5], [7, 8], [10]]
-  def split(value = nil)
+  def split(value = nil, &block)
     arr = dup
     result = []
     if block_given?
-      while (idx = arr.index { |i| yield i })
+      while (idx = arr.index(&block))
         result << arr.shift(idx)
         arr.shift
       end

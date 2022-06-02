@@ -36,6 +36,10 @@ class ReplyWithTitleObject < Reply
   def title; ReplyTitle.new; end
 end
 
+class TopicWithEvent < Topic
+  belongs_to :event, foreign_key: :parent_id
+end
+
 class TopicWithUniqEvent < Topic
   belongs_to :event, foreign_key: :parent_id
   validates :event, uniqueness: true
@@ -156,6 +160,25 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert r3.valid?, "Saving r3"
   end
 
+  def test_validate_uniqueness_with_aliases
+    Reply.validates_uniqueness_of(:new_content, scope: :new_parent_id)
+
+    t = Topic.create(title: "I'm unique!")
+
+    r1 = t.replies.create(title: "r1", content: "hello world")
+    assert_predicate r1, :valid?, "Saving r1"
+
+    r2 = t.replies.create(title: "r2", content: "hello world")
+    assert_not_predicate r2, :valid?, "Saving r2 first time"
+
+    r2.content = "something else"
+    assert r2.save, "Saving r2 second time"
+
+    t2 = Topic.create("title" => "I'm unique too!")
+    r3 = t2.replies.create(title: "r3", content: "hello world")
+    assert_predicate r3, :valid?, "Saving r3"
+  end
+
   def test_validate_uniqueness_with_scope_invalid_syntax
     error = assert_raises(ArgumentError) do
       Reply.validates_uniqueness_of(:content, scope: { parent_id: false })
@@ -176,16 +199,18 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_uniqueness_with_polymorphic_object_scope
-    Essay.validates_uniqueness_of(:name, scope: :writer)
+    repair_validations(Essay) do
+      Essay.validates_uniqueness_of(:name, scope: :writer)
 
-    a = Author.create(name: "Sergey")
-    p = Person.create(first_name: "Sergey")
+      a = Author.create(name: "Sergey")
+      p = Person.create(first_name: "Sergey")
 
-    e1 = a.essays.create(name: "Essay")
-    assert e1.valid?, "Saving e1"
+      e1 = a.essays.create(name: "Essay")
+      assert e1.valid?, "Saving e1"
 
-    e2 = p.essays.create(name: "Essay")
-    assert e2.valid?, "Saving e2"
+      e2 = p.essays.create(name: "Essay")
+      assert e2.valid?, "Saving e2"
+    end
   end
 
   def test_validate_uniqueness_with_composed_attribute_scope
@@ -228,10 +253,10 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
     t = Topic.create("title" => "The earth is actually flat!")
 
-    r1 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy@rubyonrails.com", "title" => "You're crazy!", "content" => "Crazy reply"
+    r1 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy@rubyonrails.com", "title" => "You're joking!", "content" => "Silly reply"
     assert r1.valid?, "Saving r1"
 
-    r2 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy@rubyonrails.com", "title" => "You're crazy!", "content" => "Crazy reply again..."
+    r2 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy@rubyonrails.com", "title" => "You're joking!", "content" => "Silly reply again..."
     assert_not r2.valid?, "Saving r2. Double reply by same author."
 
     r2.author_email_address = "jeremy_alt_email@rubyonrails.com"
@@ -314,28 +339,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert t3.save, "Should save t3 as unique"
   end
 
-  if current_adapter?(:Mysql2Adapter)
-    def test_deprecate_validate_uniqueness_mismatched_collation
-      Topic.validates_uniqueness_of(:author_email_address)
-
-      topic1 = Topic.new(author_email_address: "david@loudthinking.com")
-      topic2 = Topic.new(author_email_address: "David@loudthinking.com")
-
-      assert_equal 1, Topic.where(author_email_address: "david@loudthinking.com").count
-
-      assert_deprecated do
-        assert_not topic1.valid?
-        assert_not topic1.save
-        assert topic2.valid?
-        assert topic2.save
-      end
-
-      assert_equal 2, Topic.where(author_email_address: "david@loudthinking.com").count
-      assert_equal 2, Topic.where(author_email_address: "David@loudthinking.com").count
-    end
-  end
-
-  def test_validate_case_sensitive_uniqueness_by_default
+  def test_validate_uniqueness_by_default_database_collation
     Topic.validates_uniqueness_of(:author_email_address)
 
     topic1 = Topic.new(author_email_address: "david@loudthinking.com")
@@ -343,20 +347,21 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
     assert_equal 1, Topic.where(author_email_address: "david@loudthinking.com").count
 
-    ActiveSupport::Deprecation.silence do
-      assert_not topic1.valid?
-      assert_not topic1.save
+    assert_not topic1.valid?
+    assert_not topic1.save
+
+    if current_adapter?(:Mysql2Adapter)
+      # Case insensitive collation (utf8mb4_0900_ai_ci) by default.
+      # Should not allow "David" if "david" exists.
+      assert_not topic2.valid?
+      assert_not topic2.save
+    else
       assert topic2.valid?
       assert topic2.save
     end
 
-    if current_adapter?(:Mysql2Adapter)
-      assert_equal 2, Topic.where(author_email_address: "david@loudthinking.com").count
-      assert_equal 2, Topic.where(author_email_address: "David@loudthinking.com").count
-    else
-      assert_equal 1, Topic.where(author_email_address: "david@loudthinking.com").count
-      assert_equal 1, Topic.where(author_email_address: "David@loudthinking.com").count
-    end
+    assert_equal 1, Topic.where(author_email_address: "david@loudthinking.com").count
+    assert_equal 1, Topic.where(author_email_address: "David@loudthinking.com").count
   end
 
   def test_validate_case_sensitive_uniqueness
@@ -503,6 +508,23 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     }
   end
 
+  def test_validate_uniqueness_with_conditions_with_record_arg
+    Topic.validates_uniqueness_of :title, conditions: ->(record) {
+      where(written_on: record.written_on.beginning_of_day..record.written_on.end_of_day)
+    }
+
+    today_midday = Time.current.midday
+
+    todays_topic = Topic.new(title: "Highlights of the Day", written_on: today_midday)
+    assert todays_topic.save, "1st topic written today with this title should save"
+
+    todays_topic_duplicate = Topic.new(title: "Highlights of the Day", written_on: today_midday + 1.minute)
+    assert todays_topic_duplicate.invalid?, "2nd topic written today with this title should be invalid"
+
+    tomorrows_topic = Topic.new(title: "Highlights of the Day", written_on: today_midday + 1.day)
+    assert tomorrows_topic.valid?, "1st topic written tomorrow with this title should be valid"
+  end
+
   def test_validate_uniqueness_on_existing_relation
     event = Event.create
     assert_predicate TopicWithUniqEvent.create(event: event), :valid?
@@ -598,5 +620,176 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_not_predicate item2, :valid?
 
     assert_equal(["has already been taken"], item2.errors[:id])
+  end
+end
+
+class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  def setup
+    @connection = Topic.connection
+    @connection.schema_cache.clear!
+    Topic.delete_all
+    Event.delete_all
+  end
+
+  def teardown
+    Topic.clear_validators!
+    @connection.remove_index(:topics, name: :topics_index, if_exists: true)
+  end
+
+  def test_new_record
+    Topic.validates_uniqueness_of(:title)
+    @connection.add_index(:topics, :title, unique: true, name: :topics_index)
+
+    t = Topic.new(title: "abc")
+    assert_queries(1) do
+      t.valid?
+    end
+  end
+
+  def test_changing_non_unique_attribute
+    Topic.validates_uniqueness_of(:title)
+    @connection.add_index(:topics, :title, unique: true, name: :topics_index)
+
+    t = Topic.create!(title: "abc")
+    t.author_name = "John"
+    assert_no_queries(ignore_none: false) do
+      t.valid?
+    end
+  end
+
+  def test_changing_unique_attribute
+    Topic.validates_uniqueness_of(:title)
+    @connection.add_index(:topics, :title, unique: true, name: :topics_index)
+
+    t = Topic.create!(title: "abc")
+    t.title = "abc v2"
+    assert_queries(1) do
+      t.valid?
+    end
+  end
+
+  def test_changing_non_unique_attribute_and_unique_attribute_is_nil
+    Topic.validates_uniqueness_of(:title)
+    @connection.add_index(:topics, :title, unique: true, name: :topics_index)
+
+    t = Topic.create!
+    assert_nil t.title
+    t.author_name = "John"
+    assert_queries(1) do
+      t.valid?
+    end
+  end
+
+  def test_conditions
+    Topic.validates_uniqueness_of(:title, conditions: -> { where.not(author_name: nil) })
+    @connection.add_index(:topics, :title, unique: true, name: :topics_index)
+
+    t = Topic.create!(title: "abc")
+    t.title = "abc v2"
+    assert_queries(1) do
+      t.valid?
+    end
+  end
+
+  def test_case_sensitive
+    Topic.validates_uniqueness_of(:title, case_sensitive: true)
+    @connection.add_index(:topics, :title, unique: true, name: :topics_index)
+
+    t = Topic.create!(title: "abc")
+    t.title = "abc v2"
+    assert_queries(1) do
+      t.valid?
+    end
+  end
+
+  def test_partial_index
+    skip unless @connection.supports_partial_index?
+
+    Topic.validates_uniqueness_of(:title)
+    @connection.add_index(:topics, :title, unique: true, where: "approved", name: :topics_index)
+
+    t = Topic.create!(title: "abc")
+    t.author_name = "John"
+    assert_queries(1) do
+      t.valid?
+    end
+  end
+
+  def test_non_unique_index
+    Topic.validates_uniqueness_of(:title)
+    @connection.add_index(:topics, :title, name: :topics_index)
+
+    t = Topic.create!(title: "abc")
+    t.author_name = "John"
+    assert_queries(1) do
+      t.valid?
+    end
+  end
+
+  def test_scope
+    Topic.validates_uniqueness_of(:title, scope: :author_name)
+    @connection.add_index(:topics, [:author_name, :title], unique: true, name: :topics_index)
+
+    t = Topic.create!(title: "abc", author_name: "John")
+    t.content = "hello world"
+    assert_no_queries(ignore_none: false) do
+      t.valid?
+    end
+
+    t.author_name = "Amy"
+    assert_queries(1) do
+      t.valid?
+    end
+  end
+
+  def test_uniqueness_on_relation
+    TopicWithEvent.validates_uniqueness_of(:event)
+    @connection.add_index(:topics, :parent_id, unique: true, name: :topics_index)
+
+    e1 = Event.create!(title: "abc")
+    e2 = Event.create!(title: "cde")
+    t = TopicWithEvent.create!(event: e1)
+
+    t.content = "hello world"
+    assert_no_queries(ignore_none: false) do
+      t.valid?
+    end
+
+    t.event = e2
+    assert_queries(1) do
+      t.valid?
+    end
+  ensure
+    TopicWithEvent.clear_validators!
+    Event.delete_all
+  end
+
+  def test_index_of_sublist_of_columns
+    Topic.validates_uniqueness_of(:title, scope: :author_name)
+    @connection.add_index(:topics, :author_name, unique: true, name: :topics_index)
+
+    t = Topic.create!(title: "abc", author_name: "John")
+    t.content = "hello world"
+    assert_no_queries(ignore_none: false) do
+      t.valid?
+    end
+
+    t.author_name = "Amy"
+    assert_queries(1, ignore_none: false) do
+      t.valid?
+    end
+  end
+
+  def test_index_of_columns_list_and_extra_columns
+    Topic.validates_uniqueness_of(:title)
+    @connection.add_index(:topics, [:title, :author_name], unique: true, name: :topics_index)
+
+    t = Topic.create!(title: "abc", author_name: "John")
+    t.content = "hello world"
+    assert_queries(1) do
+      t.valid?
+    end
   end
 end

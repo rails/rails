@@ -4,12 +4,12 @@ module ActiveModel
   module Type
     module Helpers # :nodoc: all
       class AcceptsMultiparameterTime < Module
-        def initialize(defaults: {})
-          define_method(:serialize) do |value|
+        module InstanceMethods
+          def serialize(value)
             super(cast(value))
           end
 
-          define_method(:cast) do |value|
+          def cast(value)
             if value.is_a?(Hash)
               value_from_multiparameter_assignment(value)
             else
@@ -17,7 +17,7 @@ module ActiveModel
             end
           end
 
-          define_method(:assert_valid_value) do |value|
+          def assert_valid_value(value)
             if value.is_a?(Hash)
               value_from_multiparameter_assignment(value)
             else
@@ -25,17 +25,21 @@ module ActiveModel
             end
           end
 
-          define_method(:value_constructed_by_mass_assignment?) do |value|
+          def value_constructed_by_mass_assignment?(value)
             value.is_a?(Hash)
           end
+        end
+
+        def initialize(defaults: {})
+          include InstanceMethods
 
           define_method(:value_from_multiparameter_assignment) do |values_hash|
             defaults.each do |k, v|
               values_hash[k] ||= v
             end
             return unless values_hash[1] && values_hash[2] && values_hash[3]
-            values = values_hash.sort.map(&:last)
-            ::Time.send(default_timezone, *values)
+            values = values_hash.sort.map!(&:last)
+            ::Time.public_send(default_timezone, *values)
           end
           private :value_from_multiparameter_assignment
         end

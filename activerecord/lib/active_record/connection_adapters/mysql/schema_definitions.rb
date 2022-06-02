@@ -60,6 +60,14 @@ module ActiveRecord
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
+        attr_reader :charset, :collation
+
+        def initialize(conn, name, charset: nil, collation: nil, **)
+          super
+          @charset = charset
+          @collation = collation
+        end
+
         def new_column_definition(name, type, **options) # :nodoc:
           case type
           when :virtual

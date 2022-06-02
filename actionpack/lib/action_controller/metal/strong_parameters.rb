@@ -19,11 +19,20 @@ module ActionController
   #   params.require(:a)
   #   # => ActionController::ParameterMissing: param is missing or the value is empty: a
   class ParameterMissing < KeyError
-    attr_reader :param # :nodoc:
+    attr_reader :param, :keys # :nodoc:
 
-    def initialize(param) # :nodoc:
+    def initialize(param, keys = nil) # :nodoc:
       @param = param
+      @keys  = keys
       super("param is missing or the value is empty: #{param}")
+    end
+
+    if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
+      include DidYouMean::Correctable # :nodoc:
+
+      def corrections # :nodoc:
+        @corrections ||= DidYouMean::SpellChecker.new(dictionary: keys).correct(param.to_s)
+      end
     end
   end
 
@@ -55,6 +64,13 @@ module ActionController
     end
   end
 
+  # Raised when initializing Parameters with keys that aren't strings or symbols.
+  #
+  #   ActionController::Parameters.new(123 => 456)
+  #   # => ActionController::InvalidParameterKey: all keys must be Strings or Symbols, got: Integer
+  class InvalidParameterKey < ArgumentError
+  end
+
   # == Action Controller \Parameters
   #
   # Allows you to choose which attributes should be permitted for mass updating
@@ -72,7 +88,7 @@ module ActionController
   #   })
   #
   #   permitted = params.require(:person).permit(:name, :age)
-  #   permitted            # => <ActionController::Parameters {"name"=>"Francesco", "age"=>22} permitted: true>
+  #   permitted            # => #<ActionController::Parameters {"name"=>"Francesco", "age"=>22} permitted: true>
   #   permitted.permitted? # => true
   #
   #   Person.first.update!(permitted)
@@ -82,11 +98,13 @@ module ActionController
   #
   # * +permit_all_parameters+ - If it's +true+, all the parameters will be
   #   permitted by default. The default is +false+.
-  # * +action_on_unpermitted_parameters+ - Allow to control the behavior when parameters
-  #   that are not explicitly permitted are found. The values can be +false+ to just filter them
-  #   out, <tt>:log</tt> to additionally write a message on the logger, or <tt>:raise</tt> to raise
-  #   ActionController::UnpermittedParameters exception. The default value is <tt>:log</tt>
-  #   in test and development environments, +false+ otherwise.
+  # * +action_on_unpermitted_parameters+ - Controls behavior when parameters that are not explicitly
+  #   permitted are found. The default value is <tt>:log</tt> in test and development environments,
+  #   +false+ otherwise. The values can be:
+  #   * +false+ to take no action.
+  #   * <tt>:log</tt> to emit an <tt>ActiveSupport::Notifications.instrument</tt> event on the
+  #     <tt>unpermitted_parameters.action_controller</tt> topic and log at the DEBUG level.
+  #   * <tt>:raise</tt> to raise a <tt>ActionController::UnpermittedParameters</tt> exception.
   #
   # Examples:
   #
@@ -100,7 +118,7 @@ module ActionController
   #
   #   params = ActionController::Parameters.new(a: "123", b: "456")
   #   params.permit(:c)
-  #   # => <ActionController::Parameters {} permitted: true>
+  #   # => #<ActionController::Parameters {} permitted: true>
   #
   #   ActionController::Parameters.action_on_unpermitted_parameters = :raise
   #
@@ -157,14 +175,6 @@ module ActionController
     # Returns true if the given key is present in the parameters.
 
     ##
-    # :method: has_value?
-    #
-    # :call-seq:
-    #   has_value?(value)
-    #
-    # Returns true if the given value is present for some key in the parameters.
-
-    ##
     # :method: include?
     #
     # :call-seq:
@@ -204,32 +214,19 @@ module ActionController
     #
     # Returns the content of the parameters as a string.
 
-    ##
-    # :method: value?
-    #
-    # :call-seq:
-    #   value?(value)
-    #
-    # Returns true if the given value is present for some key in the parameters.
-
-    ##
-    # :method: values
-    #
-    # :call-seq:
-    #   values()
-    #
-    # Returns a new array of the values of the parameters.
-    delegate :keys, :key?, :has_key?, :member?, :values, :has_value?, :value?, :empty?, :include?,
+    delegate :keys, :key?, :has_key?, :member?, :empty?, :include?,
       :as_json, :to_s, :each_key, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these
     # params are present. The default includes both 'controller' and 'action'
     # because they are added by Rails and should be of no concern. One way
-    # to change these is to specify `always_permitted_parameters` in your
+    # to change these is to specify +always_permitted_parameters+ in your
     # config. For instance:
     #
-    #    config.always_permitted_parameters = %w( controller action format )
+    #    config.action_controller.always_permitted_parameters = %w( controller action format )
     cattr_accessor :always_permitted_parameters, default: %w( controller action )
+
+    cattr_accessor :allow_deprecated_parameters_hash_equality, default: true, instance_accessor: false
 
     class << self
       def nested_attribute?(key, value) # :nodoc:
@@ -253,8 +250,15 @@ module ActionController
     #   params = ActionController::Parameters.new(name: "Francesco")
     #   params.permitted?  # => true
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
-    def initialize(parameters = {})
+    def initialize(parameters = {}, logging_context = {})
+      parameters.each_key do |key|
+        unless key.is_a?(String) || key.is_a?(Symbol)
+          raise InvalidParameterKey, "all keys must be Strings or Symbols, got: #{key.class}"
+        end
+      end
+
       @parameters = parameters.with_indifferent_access
+      @logging_context = logging_context
       @permitted = self.class.permit_all_parameters
     end
 
@@ -264,13 +268,31 @@ module ActionController
       if other.respond_to?(:permitted?)
         permitted? == other.permitted? && parameters == other.parameters
       else
-        @parameters == other
+        if self.class.allow_deprecated_parameters_hash_equality && Hash === other
+          ActiveSupport::Deprecation.warn <<-WARNING.squish
+            Comparing equality between `ActionController::Parameters` and a
+            `Hash` is deprecated and will be removed in Rails 7.2. Please only do
+            comparisons between instances of `ActionController::Parameters`. If
+            you need to compare to a hash, first convert it using
+            `ActionController::Parameters#new`.
+            To disable the deprecated behavior set
+            `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality = false`.
+          WARNING
+          @parameters == other
+        else
+          super
+        end
       end
     end
-    alias eql? ==
+
+    def eql?(other)
+      self.class == other.class &&
+        permitted? == other.permitted? &&
+        parameters.eql?(other.parameters)
+    end
 
     def hash
-      [@parameters.hash, @permitted].hash
+      [self.class, @parameters, @permitted].hash
     end
 
     # Returns a safe <tt>ActiveSupport::HashWithIndifferentAccess</tt>
@@ -285,9 +307,9 @@ module ActionController
     #
     #   safe_params = params.permit(:name)
     #   safe_params.to_h # => {"name"=>"Senjougahara Hitagi"}
-    def to_h
+    def to_h(&block)
       if permitted?
-        convert_parameters_to_hashes(@parameters, :to_h)
+        convert_parameters_to_hashes(@parameters, :to_h, &block)
       else
         raise UnfilteredParameters
       end
@@ -360,18 +382,29 @@ module ActionController
     # Convert all hashes in values into parameters, then yield each pair in
     # the same way as <tt>Hash#each_pair</tt>.
     def each_pair(&block)
+      return to_enum(__callee__) unless block_given?
       @parameters.each_pair do |key, value|
         yield [key, convert_hashes_to_parameters(key, value)]
       end
+
+      self
     end
     alias_method :each, :each_pair
 
     # Convert all hashes in values into parameters, then yield each value in
     # the same way as <tt>Hash#each_value</tt>.
     def each_value(&block)
+      return to_enum(:each_value) unless block_given?
       @parameters.each_pair do |key, value|
         yield convert_hashes_to_parameters(key, value)
       end
+
+      self
+    end
+
+    # Returns a new array of the values of the parameters.
+    def values
+      to_enum(:each_value).to_a
     end
 
     # Attribute that keeps track of converted arrays, if any, to avoid double
@@ -424,7 +457,7 @@ module ActionController
     # either present or the singleton +false+, returns said value:
     #
     #   ActionController::Parameters.new(person: { name: "Francesco" }).require(:person)
-    #   # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
+    #   # => #<ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #
     # Otherwise raises <tt>ActionController::ParameterMissing</tt>:
     #
@@ -474,7 +507,7 @@ module ActionController
       if value.present? || value == false
         value
       else
-        raise ParameterMissing.new(key)
+        raise ParameterMissing.new(key, @parameters.keys)
       end
     end
 
@@ -552,13 +585,48 @@ module ActionController
     #   })
     #
     #   params.require(:person).permit(:contact)
-    #   # => <ActionController::Parameters {} permitted: true>
+    #   # => #<ActionController::Parameters {} permitted: true>
     #
     #   params.require(:person).permit(contact: :phone)
-    #   # => <ActionController::Parameters {"contact"=><ActionController::Parameters {"phone"=>"555-1234"} permitted: true>} permitted: true>
+    #   # => #<ActionController::Parameters {"contact"=>#<ActionController::Parameters {"phone"=>"555-1234"} permitted: true>} permitted: true>
     #
     #   params.require(:person).permit(contact: [ :email, :phone ])
-    #   # => <ActionController::Parameters {"contact"=><ActionController::Parameters {"email"=>"none@test.com", "phone"=>"555-1234"} permitted: true>} permitted: true>
+    #   # => #<ActionController::Parameters {"contact"=>#<ActionController::Parameters {"email"=>"none@test.com", "phone"=>"555-1234"} permitted: true>} permitted: true>
+    #
+    # If your parameters specify multiple parameters indexed by a number,
+    # you can permit each set of parameters under the numeric key to be the same using the same syntax as permitting a single item.
+    #
+    #   params = ActionController::Parameters.new({
+    #     person: {
+    #       '0': {
+    #         email: "none@test.com",
+    #         phone: "555-1234"
+    #       },
+    #       '1': {
+    #         email: "nothing@test.com",
+    #         phone: "555-6789"
+    #       },
+    #     }
+    #   })
+    #   params.permit(person: [:email]).to_h
+    #   # => {"person"=>{"0"=>{"email"=>"none@test.com"}, "1"=>{"email"=>"nothing@test.com"}}}
+    #
+    # If you want to specify what keys you want from each numeric key, you can instead specify each one individually
+    #
+    #   params = ActionController::Parameters.new({
+    #     person: {
+    #       '0': {
+    #         email: "none@test.com",
+    #         phone: "555-1234"
+    #       },
+    #       '1': {
+    #         email: "nothing@test.com",
+    #         phone: "555-6789"
+    #       },
+    #     }
+    #   })
+    #   params.permit(person: { '0': [:email], '1': [:phone]}).to_h
+    #   # => {"person"=>{"0"=>{"email"=>"none@test.com"}, "1"=>{"phone"=>"555-6789"}}}
     def permit(*filters)
       params = self.class.new
 
@@ -580,7 +648,7 @@ module ActionController
     # returns +nil+.
     #
     #   params = ActionController::Parameters.new(person: { name: "Francesco" })
-    #   params[:person] # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
+    #   params[:person] # => #<ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #   params[:none]   # => nil
     def [](key)
       convert_hashes_to_parameters(key, @parameters[key])
@@ -600,9 +668,9 @@ module ActionController
     # is given, then that will be run and its result returned.
     #
     #   params = ActionController::Parameters.new(person: { name: "Francesco" })
-    #   params.fetch(:person)               # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
+    #   params.fetch(:person)               # => #<ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #   params.fetch(:none)                 # => ActionController::ParameterMissing: param is missing or the value is empty: none
-    #   params.fetch(:none, {})             # => <ActionController::Parameters {} permitted: false>
+    #   params.fetch(:none, {})             # => #<ActionController::Parameters {} permitted: false>
     #   params.fetch(:none, "Francesco")    # => "Francesco"
     #   params.fetch(:none) { "Francesco" } # => "Francesco"
     def fetch(key, *args)
@@ -611,7 +679,7 @@ module ActionController
           if block_given?
             yield
           else
-            args.fetch(0) { raise ActionController::ParameterMissing.new(key) }
+            args.fetch(0) { raise ActionController::ParameterMissing.new(key, @parameters.keys) }
           end
         }
       )
@@ -636,8 +704,8 @@ module ActionController
     # don't exist, returns an empty hash.
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
-    #   params.slice(:a, :b) # => <ActionController::Parameters {"a"=>1, "b"=>2} permitted: false>
-    #   params.slice(:d)     # => <ActionController::Parameters {} permitted: false>
+    #   params.slice(:a, :b) # => #<ActionController::Parameters {"a"=>1, "b"=>2} permitted: false>
+    #   params.slice(:d)     # => #<ActionController::Parameters {} permitted: false>
     def slice(*keys)
       new_instance_with_inherited_permitted_status(@parameters.slice(*keys))
     end
@@ -653,8 +721,8 @@ module ActionController
     # filters out the given +keys+.
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
-    #   params.except(:a, :b) # => <ActionController::Parameters {"c"=>3} permitted: false>
-    #   params.except(:d)     # => <ActionController::Parameters {"a"=>1, "b"=>2, "c"=>3} permitted: false>
+    #   params.except(:a, :b) # => #<ActionController::Parameters {"c"=>3} permitted: false>
+    #   params.except(:d)     # => #<ActionController::Parameters {"a"=>1, "b"=>2, "c"=>3} permitted: false>
     def except(*keys)
       new_instance_with_inherited_permitted_status(@parameters.except(*keys))
     end
@@ -662,8 +730,8 @@ module ActionController
     # Removes and returns the key/value pairs matching the given keys.
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
-    #   params.extract!(:a, :b) # => <ActionController::Parameters {"a"=>1, "b"=>2} permitted: false>
-    #   params                  # => <ActionController::Parameters {"c"=>3} permitted: false>
+    #   params.extract!(:a, :b) # => #<ActionController::Parameters {"a"=>1, "b"=>2} permitted: false>
+    #   params                  # => #<ActionController::Parameters {"c"=>3} permitted: false>
     def extract!(*keys)
       new_instance_with_inherited_permitted_status(@parameters.extract!(*keys))
     end
@@ -673,7 +741,7 @@ module ActionController
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
     #   params.transform_values { |x| x * 2 }
-    #   # => <ActionController::Parameters {"a"=>2, "b"=>4, "c"=>6} permitted: false>
+    #   # => #<ActionController::Parameters {"a"=>2, "b"=>4, "c"=>6} permitted: false>
     def transform_values
       return to_enum(:transform_values) unless block_given?
       new_instance_with_inherited_permitted_status(
@@ -725,7 +793,7 @@ module ActionController
 
     # Deletes a key-value pair from +Parameters+ and returns the value. If
     # +key+ is not found, returns +nil+ (or, with optional code block, yields
-    # +key+ and returns the result). Cf. +#extract!+, which returns the
+    # +key+ and returns the result). Cf. #extract!, which returns the
     # corresponding +ActionController::Parameters+ object.
     def delete(key, &block)
       convert_value_to_parameters(@parameters.delete(key, &block))
@@ -757,6 +825,16 @@ module ActionController
     end
     alias_method :delete_if, :reject!
 
+    # Returns a new instance of <tt>ActionController::Parameters</tt> with +nil+ values removed.
+    def compact
+      new_instance_with_inherited_permitted_status(@parameters.compact)
+    end
+
+    # Removes all +nil+ values in place and returns +self+, or +nil+ if no changes were made.
+    def compact!
+      self if @parameters.compact!
+    end
+
     # Returns a new instance of <tt>ActionController::Parameters</tt> without the blank values.
     # Uses Object#blank? for determining if a value is blank.
     def compact_blank
@@ -768,6 +846,13 @@ module ActionController
     def compact_blank!
       reject! { |_k, v| v.blank? }
     end
+
+    # Returns true if the given value is present for some key in the parameters.
+    def has_value?(value)
+      each_value.include?(convert_value_to_parameters(value))
+    end
+
+    alias value? has_value?
 
     # Returns values that were assigned to the given +keys+. Note that all the
     # +Hash+ objects will be converted to <tt>ActionController::Parameters</tt>.
@@ -815,7 +900,7 @@ module ActionController
     end
 
     def inspect
-      "<#{self.class} #{@parameters} permitted: #{@permitted}>"
+      "#<#{self.class} #{@parameters} permitted: #{@permitted}>"
     end
 
     def self.hook_into_yaml_loading # :nodoc:
@@ -845,9 +930,13 @@ module ActionController
       end
     end
 
+    def encode_with(coder) # :nodoc:
+      coder.map = { "parameters" => @parameters, "permitted" => @permitted }
+    end
+
     # Returns duplicate of object including all parameters.
     def deep_dup
-      self.class.new(@parameters.deep_dup).tap do |duplicate|
+      self.class.new(@parameters.deep_dup, @logging_context).tap do |duplicate|
         duplicate.permitted = @permitted
       end
     end
@@ -869,19 +958,20 @@ module ActionController
 
     private
       def new_instance_with_inherited_permitted_status(hash)
-        self.class.new(hash).tap do |new_instance|
+        self.class.new(hash, @logging_context).tap do |new_instance|
           new_instance.permitted = @permitted
         end
       end
 
-      def convert_parameters_to_hashes(value, using)
+      def convert_parameters_to_hashes(value, using, &block)
         case value
         when Array
           value.map { |v| convert_parameters_to_hashes(v, using) }
         when Hash
-          value.transform_values do |v|
+          transformed = value.transform_values do |v|
             convert_parameters_to_hashes(v, using)
-          end.with_indifferent_access
+          end
+          (block_given? ? transformed.to_h(&block) : transformed).with_indifferent_access
         when Parameters
           value.send(using)
         else
@@ -900,21 +990,27 @@ module ActionController
         when Array
           return value if converted_arrays.member?(value)
           converted = value.map { |_| convert_value_to_parameters(_) }
-          converted_arrays << converted
+          converted_arrays << converted.dup
           converted
         when Hash
-          self.class.new(value)
+          self.class.new(value, @logging_context)
         else
           value
         end
       end
 
-      def each_element(object, &block)
+      def specify_numeric_keys?(filter)
+        if filter.respond_to?(:keys)
+          filter.keys.any? { |key| /\A-?\d+\z/.match?(key) }
+        end
+      end
+
+      def each_element(object, filter, &block)
         case object
         when Array
-          object.grep(Parameters).map { |el| yield el }.compact
+          object.grep(Parameters).filter_map(&block)
         when Parameters
-          if object.nested_attributes?
+          if object.nested_attributes? && !specify_numeric_keys?(filter)
             object.each_nested_attribute(&block)
           else
             yield object
@@ -928,7 +1024,7 @@ module ActionController
           case self.class.action_on_unpermitted_parameters
           when :log
             name = "unpermitted_parameters.action_controller"
-            ActiveSupport::Notifications.instrument(name, keys: unpermitted_keys)
+            ActiveSupport::Notifications.instrument(name, keys: unpermitted_keys, context: @logging_context)
           when :raise
             raise ActionController::UnpermittedParameters.new(unpermitted_keys)
           end
@@ -943,7 +1039,7 @@ module ActionController
       # --- Filtering ----------------------------------------------------------
       #
 
-      # This is a white list of permitted scalar types that includes the ones
+      # This is a list of permitted scalar types that includes the ones
       # supported in XML and JSON requests.
       #
       # This list is in particular used to filter ordinary requests, String goes
@@ -1027,7 +1123,7 @@ module ActionController
             end
           elsif non_scalar?(value)
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
-            params[key] = each_element(value) do |element|
+            params[key] = each_element(value, filter[key]) do |element|
               element.permit(*Array.wrap(filter[key]))
             end
           end
@@ -1144,7 +1240,15 @@ module ActionController
     # Returns a new ActionController::Parameters object that
     # has been instantiated with the <tt>request.parameters</tt>.
     def params
-      @_params ||= Parameters.new(request.parameters)
+      @_params ||= begin
+        context = {
+          controller: self.class.name,
+          action: action_name,
+          request: request,
+          params: request.filtered_parameters
+        }
+        Parameters.new(request.parameters, context)
+      end
     end
 
     # Assigns the given +value+ to the +params+ hash. If +value+

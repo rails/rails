@@ -25,6 +25,47 @@ module ApplicationTests
       assert $task_loaded
     end
 
+    test "framework tasks are evaluated only once" do
+      assert_equal ["Rails version"], rails("about").scan(/^Rails version/)
+    end
+
+    test "tasks can invoke framework tasks via Rails::Command.invoke" do
+      add_to_config <<~RUBY
+        rake_tasks do
+          task :invoke_about do
+            Rails::Command.invoke :about
+          end
+        end
+      RUBY
+
+      assert_match(/^Rails version/, rails("invoke_about"))
+    end
+
+    test "help arguments describe rake tasks" do
+      task_description = <<~DESC
+          rails db:migrate
+              Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog).
+      DESC
+
+      assert_match task_description, rails("db:migrate", "-h")
+    end
+
+    test "task backtrace is silenced" do
+      add_to_config <<-RUBY
+        rake_tasks do
+          task :boom do
+            raise "boom"
+          end
+        end
+      RUBY
+
+      backtrace = rails("boom", allow_failure: true).lines.grep(/:\d+:in /)
+      app_lines, framework_lines = backtrace.partition { |line| line.start_with?(app_path) }
+
+      assert_not_empty app_lines
+      assert_empty framework_lines
+    end
+
     test "task is protected when previous migration was production" do
       with_rails_env "production" do
         rails "generate", "model", "product", "name:string"
@@ -96,7 +137,7 @@ module ApplicationTests
       assert_match "Hello world", output
     end
 
-    def test_should_not_eager_load_model_for_rake
+    def test_should_not_eager_load_model_for_rake_when_rake_eager_load_is_false
       add_to_config <<-RUBY
         rake_tasks do
           task do_nothing: :environment do
@@ -117,8 +158,31 @@ module ApplicationTests
       assert_match "There is nothing", output
     end
 
-    def test_code_statistics_sanity
-      assert_match "Code LOC: 32     Test LOC: 0     Code to Test Ratio: 1:0.0",
+    def test_should_eager_load_model_for_rake_when_rake_eager_load_is_true
+      add_to_config <<-RUBY
+        rake_tasks do
+          task do_something: :environment do
+            puts "Answer: " + Hello::TEST.to_s
+          end
+        end
+      RUBY
+
+      add_to_env_config "production", <<-RUBY
+        config.rake_eager_load = true
+      RUBY
+
+      app_file "app/models/hello.rb", <<-RUBY
+        class Hello
+          TEST = 42
+        end
+      RUBY
+
+      output = Dir.chdir(app_path) { `bin/rails do_something RAILS_ENV=production` }
+      assert_equal "Answer: 42\n", output
+    end
+
+    def test_code_statistics
+      assert_match "Code LOC: 62     Test LOC: 5     Code to Test Ratio: 1:0.1",
         rails("stats")
     end
 
@@ -165,7 +229,7 @@ module ApplicationTests
       end
       output = rails("test")
 
-      assert_match(/7 runs, 9 assertions, 0 failures, 0 errors/, output)
+      assert_match(/7 runs, 11 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
     end
 
@@ -183,7 +247,7 @@ module ApplicationTests
       with_rails_env("test") { rails("db:migrate") }
       output = rails("test")
 
-      assert_match(/5 runs, 7 assertions, 0 failures, 0 errors/, output)
+      assert_match(/5 runs, 9 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
     end
 
@@ -196,7 +260,7 @@ module ApplicationTests
       end
       output = rails("test")
 
-      assert_match(/7 runs, 9 assertions, 0 failures, 0 errors/, output)
+      assert_match(/7 runs, 11 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
     end
 
@@ -205,13 +269,7 @@ module ApplicationTests
       rails "generate", "scaffold", "user", "username:string"
       rails "db:migrate"
       output = rails("db:test:prepare", "--trace")
-      assert_match(/Execute db:test:load_structure/, output)
-    end
-
-    def test_rake_dump_structure_should_respect_db_structure_env_variable
-      # ensure we have a schema_migrations table to dump
-      rails "db:migrate", "db:structure:dump", "SCHEMA=db/my_structure.sql"
-      assert File.exist?(File.join(app_path, "db", "my_structure.sql"))
+      assert_match(/Execute db:test:load_schema/, output)
     end
 
     def test_rake_dump_structure_should_be_called_twice_when_migrate_redo
@@ -241,7 +299,7 @@ module ApplicationTests
       %w(controller mailer scaffold).each do |dir|
         assert File.exist?(File.join(app_path, "lib", "templates", "erb", dir))
       end
-      %w(controller helper scaffold_controller assets).each do |dir|
+      %w(controller helper scaffold_controller).each do |dir|
         assert File.exist?(File.join(app_path, "lib", "templates", "rails", dir))
       end
     end

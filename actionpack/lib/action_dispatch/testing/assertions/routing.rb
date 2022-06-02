@@ -18,8 +18,8 @@ module ActionDispatch
       # match +path+. Basically, it asserts that \Rails recognizes the route given by +expected_options+.
       #
       # Pass a hash in the second argument (+path+) to specify the request method. This is useful for routes
-      # requiring a specific HTTP method. The hash should contain a :path with the incoming request path
-      # and a :method containing the required HTTP verb.
+      # requiring a specific HTTP method. The hash should contain a +:path+ with the incoming request path
+      # and a +:method+ containing the required HTTP verb.
       #
       #   # Asserts that POSTing to /items will call the create action on ItemsController
       #   assert_recognizes({controller: 'items', action: 'create'}, {path: 'items', method: :post})
@@ -89,9 +89,8 @@ module ActionDispatch
             expected_path = uri.path.to_s.empty? ? "/" : uri.path
           end
         else
-          expected_path = "/#{expected_path}" unless expected_path.first == "/"
+          expected_path = "/#{expected_path}" unless expected_path.start_with?("/")
         end
-        # Load routes.rb if it hasn't been loaded.
 
         options = options.clone
         generated_path, query_string_keys = @routes.generate_extras(options, defaults)
@@ -183,11 +182,12 @@ module ActionDispatch
       # ROUTES TODO: These assertions should really work in an integration context
       def method_missing(selector, *args, &block)
         if defined?(@controller) && @controller && defined?(@routes) && @routes && @routes.named_routes.route_defined?(selector)
-          @controller.send(selector, *args, &block)
+          @controller.public_send(selector, *args, &block)
         else
           super
         end
       end
+      ruby2_keywords(:method_missing)
 
       private
         # Recognizes the route for a given path.
@@ -199,7 +199,8 @@ module ActionDispatch
             method = :get
           end
 
-          request = ActionController::TestRequest.create @controller.class
+          controller = @controller if defined?(@controller)
+          request = ActionController::TestRequest.create controller&.class
 
           if %r{://}.match?(path)
             fail_on(URI::InvalidURIError, msg) do
@@ -210,7 +211,7 @@ module ActionDispatch
               request.path = uri.path.to_s.empty? ? "/" : uri.path
             end
           else
-            path = "/#{path}" unless path.first == "/"
+            path = "/#{path}" unless path.start_with?("/")
             request.path = path
           end
 

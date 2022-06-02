@@ -5,9 +5,16 @@ require "io/console/size"
 
 module ActionDispatch
   module Routing
-    class RouteWrapper < SimpleDelegator
+    class RouteWrapper < SimpleDelegator # :nodoc:
       def endpoint
-        app.dispatcher? ? "#{controller}##{action}" : rack_app.inspect
+        case
+        when app.dispatcher?
+          "#{controller}##{action}"
+        when rack_app.is_a?(Proc)
+          "Inline handler (Proc/Lambda)"
+        else
+          rack_app.inspect
+        end
       end
 
       def constraints
@@ -53,7 +60,7 @@ module ActionDispatch
 
     ##
     # This class is just used for displaying route information when someone
-    # executes `rails routes` or looks at the RoutingError page.
+    # executes `bin/rails routes` or looks at the RoutingError page.
     # People should not use this class.
     class RoutesInspector # :nodoc:
       def initialize(routes)
@@ -200,7 +207,7 @@ module ActionDispatch
       end
 
       class Expanded < Base
-        def initialize(width: IO.console_size.second)
+        def initialize(width: IO.console_size[1])
           @width = width
           super()
         end

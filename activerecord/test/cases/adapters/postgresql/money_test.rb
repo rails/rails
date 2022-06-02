@@ -48,6 +48,8 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
     second_money = PostgresqlMoney.find(2)
     assert_equal 567.89, first_money.wealth
     assert_equal(-567.89, second_money.wealth)
+    assert_equal 567.89, @connection.query_value("SELECT wealth FROM postgresql_moneys WHERE id = 1")
+    assert_equal(-567.89, @connection.query_value("SELECT wealth FROM postgresql_moneys WHERE id = 2"))
   end
 
   def test_money_type_cast
@@ -60,6 +62,26 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
     assert_equal(-2.25, type.cast(+"($2.25)"))
     assert_equal(-1.15, type.cast(+"-1.15"))
     assert_equal(-2.25, type.cast(+"(2.25)"))
+  end
+
+  def test_money_regex_backtracking
+    type = PostgresqlMoney.type_for_attribute("wealth")
+    Timeout.timeout(0.1) do
+      assert_equal(0.0, type.cast("$" + "," * 100000 + ".11!"))
+      assert_equal(0.0, type.cast("$" + "." * 100000 + ",11!"))
+    end
+  end
+
+  def test_sum_with_type_cast
+    @connection.execute("INSERT INTO postgresql_moneys (id, wealth) VALUES (1, '123.45'::money)")
+
+    assert_equal BigDecimal("123.45"), PostgresqlMoney.sum("id * wealth")
+  end
+
+  def test_pluck_with_type_cast
+    @connection.execute("INSERT INTO postgresql_moneys (id, wealth) VALUES (1, '123.45'::money)")
+
+    assert_equal [BigDecimal("123.45")], PostgresqlMoney.pluck(Arel.sql("id * wealth"))
   end
 
   def test_schema_dumping

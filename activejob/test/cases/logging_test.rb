@@ -49,11 +49,9 @@ class LoggingTest < ActiveSupport::TestCase
     ActiveJob::Base.logger = logger
   end
 
-  def subscribed
+  def subscribed(&block)
     [].tap do |events|
-      ActiveSupport::Notifications.subscribed(-> (*args) { events << args }, /enqueue.*\.active_job/) do
-        yield
-      end
+      ActiveSupport::Notifications.subscribed(-> (*args) { events << args }, /enqueue.*\.active_job/, &block)
     end
   end
 
@@ -150,6 +148,35 @@ class LoggingTest < ActiveSupport::TestCase
     assert_match(/Error performing AbortBeforeEnqueueJob.* a before_perform callback halted/, @logger.messages)
   end
 
+  def test_perform_job_doesnt_log_error_when_job_returns_falsy_value
+    job = Class.new(ActiveJob::Base) do
+      def perform
+        nil
+      end
+    end
+
+    subscribed { job.perform_now }
+    assert_no_match(/Error performing AbortBeforeEnqueueJob.* a before_perform callback halted/, @logger.messages)
+  end
+
+  def test_perform_job_doesnt_log_error_when_job_is_performed_multiple_times_and_fail_the_first_time
+    job = Class.new(ActiveJob::Base) do
+      before_perform do
+        throw(:abort) if arguments[0].pop == :abort
+      end
+
+      def perform(_)
+      end
+    end.new([:dont_abort, :abort])
+
+    subscribed do
+      job.perform_now
+      job.perform_now
+    end
+
+    assert_equal(1, @logger.messages.scan(/a before_perform callback halted the job execution/).size)
+  end
+
   def test_perform_disabled_job_logging
     perform_enqueued_jobs do
       DisableLogJob.perform_later "Dummy"
@@ -231,22 +258,28 @@ class LoggingTest < ActiveSupport::TestCase
     end
   end
 
+  def test_job_no_error_logging_on_rescuable_job
+    perform_enqueued_jobs { RescueJob.perform_later "david" }
+    assert_match(/Performing RescueJob \(Job ID: .*?\) from .*? with arguments:.*david/, @logger.messages)
+    assert_no_match(/Error performing RescueJob \(Job ID: .*?\) from .*? in .*ms: ArgumentError \(Hair too good\):\n.*\brescue_job\.rb:\d+:in `perform'/, @logger.messages)
+  end
+
   def test_enqueue_retry_logging
     perform_enqueued_jobs do
       RetryJob.perform_later "DefaultsError", 2
-      assert_match(/Retrying RetryJob in 3 seconds, due to a DefaultsError\./, @logger.messages)
+      assert_match(/Retrying RetryJob \(Job ID: .*?\) after \d+ attempts in 3 seconds, due to a DefaultsError.*\./, @logger.messages)
     end
   end
 
   def test_enqueue_retry_logging_on_retry_job
     perform_enqueued_jobs { RescueJob.perform_later "david" }
-    assert_match(/Retrying RescueJob in 0 seconds\./, @logger.messages)
+    assert_match(/Retrying RescueJob \(Job ID: .*?\) after \d+ attempts in 0 seconds\./, @logger.messages)
   end
 
   def test_retry_stopped_logging
     perform_enqueued_jobs do
       RetryJob.perform_later "CustomCatchError", 6
-      assert_match(/Stopped retrying RetryJob due to a CustomCatchError, which reoccurred on \d+ attempts\./, @logger.messages)
+      assert_match(/Stopped retrying RetryJob \(Job ID: .*?\) due to a CustomCatchError.*, which reoccurred on \d+ attempts\./, @logger.messages)
     end
   end
 
@@ -254,14 +287,14 @@ class LoggingTest < ActiveSupport::TestCase
     perform_enqueued_jobs do
       RetryJob.perform_later "DefaultsError", 6
     rescue DefaultsError
-      assert_match(/Stopped retrying RetryJob due to a DefaultsError, which reoccurred on \d+ attempts\./, @logger.messages)
+      assert_match(/Stopped retrying RetryJob \(Job ID: .*?\) due to a DefaultsError.*, which reoccurred on \d+ attempts\./, @logger.messages)
     end
   end
 
   def test_discard_logging
     perform_enqueued_jobs do
       RetryJob.perform_later "DiscardableError", 2
-      assert_match(/Discarded RetryJob due to a DiscardableError\./, @logger.messages)
+      assert_match(/Discarded RetryJob \(Job ID: .*?\) due to a DiscardableError.*\./, @logger.messages)
     end
   end
 end

@@ -76,7 +76,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       connection = open_connection
       connection.process
 
-      # Setup the connection
+      # Set up the connection
       connection.send :handle_open
       assert connection.connected
 

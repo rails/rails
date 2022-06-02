@@ -68,6 +68,10 @@ module JSONTest
                      [ :this,  %("this") ],
                      [ :"a b", %("a b")  ]]
 
+    ModuleTests   = [[ Module, %("Module") ],
+                     [ Class,  %("Class")  ],
+                     [ ActiveSupport,                   %("ActiveSupport")                   ],
+                     [ ActiveSupport::MessageEncryptor, %("ActiveSupport::MessageEncryptor") ]]
     ObjectTests   = [[ Foo.new(1, 2), %({\"a\":1,\"b\":2}) ]]
     HashlikeTests = [[ Hashlike.new, %({\"bar\":\"world\",\"foo\":\"hello\"}) ]]
     StructTests   = [[ MyStruct.new(:foo, "bar"), %({\"name\":\"foo\",\"value\":\"bar\"}) ],
@@ -85,6 +89,8 @@ module JSONTest
     URITests      = [[ URI.parse("http://example.com"), %("http://example.com") ]]
 
     PathnameTests = [[ Pathname.new("lib/index.rb"), %("lib/index.rb") ]]
+
+    IPAddrTests   = [[  IPAddr.new("127.0.0.1"), %("127.0.0.1") ]]
 
     DateTests     = [[ Date.new(2005, 2, 1), %("2005/02/01") ]]
     TimeTests     = [[ Time.utc(2005, 2, 1, 15, 15, 10), %("2005/02/01 15:15:10 +0000") ]]

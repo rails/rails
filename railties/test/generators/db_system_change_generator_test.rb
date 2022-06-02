@@ -11,9 +11,10 @@ module Rails
           include GeneratorsTestHelper
 
           setup do
-            copy_gemfile(
-              GemfileEntry.new("sqlite3", nil, "Use sqlite3 as the database for Active Record")
-            )
+            copy_gemfile <<~ENTRY
+              # Use sqlite3 as the database for Active Record
+              gem 'sqlite3'
+            ENTRY
           end
 
           test "change to invalid database" do
@@ -24,8 +25,8 @@ module Rails
             assert_match <<~MSG.squish, output
               Invalid value for --to option.
               Supported preconfigurations are:
-              mysql, postgresql, sqlite3, oracle, frontbase,
-              ibm_db, sqlserver, jdbcmysql, jdbcsqlite3,
+              mysql, postgresql, sqlite3, oracle,
+              sqlserver, jdbcmysql, jdbcsqlite3,
               jdbcpostgresql, jdbc.
             MSG
           end
@@ -40,7 +41,7 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use pg as the database for Active Record", content
-              assert_match "gem 'pg', '>= 0.18', '< 2.0'", content
+              assert_match 'gem "pg", "~> 1.1"', content
             end
           end
 
@@ -54,7 +55,7 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use mysql2 as the database for Active Record", content
-              assert_match "gem 'mysql2', '~> 0.5'", content
+              assert_match 'gem "mysql2", "~> 0.5"', content
             end
           end
 
@@ -68,7 +69,7 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use sqlite3 as the database for Active Record", content
-              assert_match "gem 'sqlite3', '~> 1.4'", content
+              assert_match 'gem "sqlite3", "~> 1.4"', content
             end
           end
 
@@ -83,7 +84,7 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use mysql2 as the database for Active Record", content
-              assert_match "gem 'mysql2', '~> 0.5'", content
+              assert_match 'gem "mysql2", "~> 0.5"', content
             end
           end
         end

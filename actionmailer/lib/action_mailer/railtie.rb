@@ -18,11 +18,6 @@ module ActionMailer
       paths   = app.config.paths
       options = app.config.action_mailer
 
-      if app.config.force_ssl
-        options.default_url_options ||= {}
-        options.default_url_options[:protocol] ||= "https"
-      end
-
       options.assets_dir      ||= paths["public"].first
       options.javascripts_dir ||= paths["public/javascripts"].first
       options.stylesheets_dir ||= paths["public/stylesheets"].first
@@ -50,6 +45,17 @@ module ActionMailer
           self.delivery_job = delivery_job.constantize
         end
 
+        if options.smtp_settings
+          self.smtp_settings = options.smtp_settings
+        end
+
+        smtp_timeout = options.delete(:smtp_timeout)
+
+        if self.smtp_settings && smtp_timeout
+          self.smtp_settings[:open_timeout] ||= smtp_timeout
+          self.smtp_settings[:read_timeout] ||= smtp_timeout
+        end
+
         options.each { |k, v| send("#{k}=", v) }
       end
 
@@ -70,12 +76,6 @@ module ActionMailer
     initializer "action_mailer.compile_config_methods" do
       ActiveSupport.on_load(:action_mailer) do
         config.compile_methods! if config.respond_to?(:compile_methods!)
-      end
-    end
-
-    initializer "action_mailer.eager_load_actions" do
-      ActiveSupport.on_load(:after_initialize) do
-        ActionMailer::Base.descendants.each(&:action_methods) if config.eager_load
       end
     end
 

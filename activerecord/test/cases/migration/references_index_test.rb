@@ -57,7 +57,15 @@ module ActiveRecord
             t.references :foo, polymorphic: true, index: true
           end
 
-          assert connection.index_exists?(table_name, [:foo_type, :foo_id], name: :index_testings_on_foo_type_and_foo_id)
+          assert connection.index_exists?(table_name, [:foo_type, :foo_id], name: :index_testings_on_foo)
+        end
+
+        def test_creates_polymorphic_index_with_custom_name
+          connection.create_table table_name do |t|
+            t.references :foo, polymorphic: true, index: { name: :testings_foo_index }
+          end
+
+          assert connection.index_exists?(table_name, [:foo_type, :foo_id], name: :testings_foo_index)
         end
       end
 
@@ -95,7 +103,16 @@ module ActiveRecord
             t.references :foo, polymorphic: true, index: true
           end
 
-          assert connection.index_exists?(table_name, [:foo_type, :foo_id], name: :index_testings_on_foo_type_and_foo_id)
+          assert connection.index_exists?(table_name, [:foo_type, :foo_id], name: :index_testings_on_foo)
+        end
+
+        def test_creates_polymorphic_index_for_existing_table_with_custom_name
+          connection.create_table table_name
+          connection.change_table table_name do |t|
+            t.references :foo, polymorphic: true, index: { name: :testings_foo_index }
+          end
+
+          assert connection.index_exists?(table_name, [:foo_type, :foo_id], name: :testings_foo_index)
         end
       end
     end

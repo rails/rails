@@ -209,6 +209,21 @@ module ActiveModel
       assert_equal "value from user", attributes.fetch_value(:foo)
     end
 
+    class MySerializedType < ::ActiveModel::Type::Value
+      def serialize(value)
+        value + " serialized"
+      end
+    end
+
+    test "values_for_database" do
+      builder = AttributeSet::Builder.new(foo: MySerializedType.new)
+      attributes = builder.build_from_database
+
+      attributes.write_from_user(:foo, "value")
+
+      assert_equal({ foo: "value serialized" }, attributes.values_for_database)
+    end
+
     test "freezing doesn't prevent the set from materializing" do
       builder = AttributeSet::Builder.new(foo: Type::String.new)
       attributes = builder.build_from_database(foo: "1")
@@ -217,19 +232,18 @@ module ActiveModel
       assert_equal({ foo: "1" }, attributes.to_hash)
     end
 
-    test "marshalling dump/load legacy materialized attribute hash" do
+    test "marshalling dump/load materialized attribute hash" do
       builder = AttributeSet::Builder.new(foo: Type::String.new)
-      attributes = builder.build_from_database(foo: "1")
 
-      attributes.instance_variable_get(:@attributes).instance_eval do
-        class << self
-          def marshal_dump
-            materialize
-          end
-        end
+      def builder.build_from_database(values = {}, additional_types = {})
+        attributes = LazyAttributeHash.new(types, values, additional_types, default_attributes)
+        AttributeSet.new(attributes)
       end
 
-      attributes = Marshal.load(Marshal.dump(attributes))
+      attributes = builder.build_from_database(foo: "1")
+
+      data = Marshal.dump(attributes)
+      attributes = Marshal.load(data)
       assert_equal({ foo: "1" }, attributes.to_hash)
     end
 

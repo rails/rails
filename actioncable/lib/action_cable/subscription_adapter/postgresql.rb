@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
-gem "pg", ">= 0.18", "< 2.0"
+gem "pg", "~> 1.1"
 require "pg"
-require "thread"
-require "digest/sha1"
+require "openssl"
 
 module ActionCable
   module SubscriptionAdapter
@@ -42,6 +41,7 @@ module ActionCable
         pg_conn = ar_conn.raw_connection
 
         verify!(pg_conn)
+        pg_conn.exec("SET application_name = #{pg_conn.escape_identifier(identifier)}")
         yield pg_conn
       ensure
         ar_conn.disconnect!
@@ -57,7 +57,7 @@ module ActionCable
 
       private
         def channel_identifier(channel)
-          channel.size > 63 ? Digest::SHA1.hexdigest(channel) : channel
+          channel.size > 63 ? OpenSSL::Digest::SHA1.hexdigest(channel) : channel
         end
 
         def listener

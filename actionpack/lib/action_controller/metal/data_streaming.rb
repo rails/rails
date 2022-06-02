@@ -3,7 +3,7 @@
 require "action_controller/metal/exceptions"
 require "action_dispatch/http/content_disposition"
 
-module ActionController #:nodoc:
+module ActionController # :nodoc:
   # Methods for sending arbitrary data and for streaming files to the browser,
   # instead of rendering.
   module DataStreaming
@@ -11,8 +11,8 @@ module ActionController #:nodoc:
 
     include ActionController::Rendering
 
-    DEFAULT_SEND_FILE_TYPE        = "application/octet-stream" #:nodoc:
-    DEFAULT_SEND_FILE_DISPOSITION = "attachment" #:nodoc:
+    DEFAULT_SEND_FILE_TYPE        = "application/octet-stream" # :nodoc:
+    DEFAULT_SEND_FILE_DISPOSITION = "attachment" # :nodoc:
 
     private
       # Sends the file. This uses a server-appropriate method (such as X-Sendfile)
@@ -66,7 +66,7 @@ module ActionController #:nodoc:
       # https://www.mnot.net/cache_docs/ for an overview of web caching and
       # https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
       # for the Cache-Control header spec.
-      def send_file(path, options = {}) #:doc:
+      def send_file(path, options = {}) # :doc:
         raise MissingFile, "Cannot read file #{path}" unless File.file?(path) && File.readable?(path)
 
         options[:filename] ||= File.basename(path) unless options[:url_based_filename]
@@ -106,7 +106,7 @@ module ActionController #:nodoc:
       #   send_data image.data, type: image.content_type, disposition: 'inline'
       #
       # See +send_file+ for more information on HTTP Content-* headers and caching.
-      def send_data(data, options = {}) #:doc:
+      def send_data(data, options = {}) # :doc:
         send_file_headers! options
         render options.slice(:status, :content_type).merge(body: data)
       end
@@ -138,14 +138,6 @@ module ActionController #:nodoc:
         end
 
         headers["Content-Transfer-Encoding"] = "binary"
-
-        # Fix a problem with IE 6.0 on opening downloaded files:
-        # If Cache-Control: no-cache is set (which Rails does by default),
-        # IE removes the file it just downloaded from its cache immediately
-        # after it displays the "open/save" dialog, which means that if you
-        # hit "open" the file isn't there anymore when the application that
-        # is called for handling the download is run, so let's workaround that
-        response.cache_control[:public] ||= false
       end
   end
 end

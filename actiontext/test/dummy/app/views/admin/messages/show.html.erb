@@ -1,0 +1,16 @@
+<dl>
+  <dt>Subject</dt>
+  <dd>
+    <span id="subject"><%= @message.subject %></span>
+  </dd>
+
+  <dt>Content (Plain Text)</dt>
+  <dd>
+    <pre id="content-plain"><%= @message.content.to_plain_text %></pre>
+  </dd>
+
+  <dt>Content (HTML)</dt>
+  <dd>
+    <div id="content-html"><%= @message.content %></div>
+  </dd>
+</dl>

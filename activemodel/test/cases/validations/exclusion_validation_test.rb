@@ -66,6 +66,17 @@ class ExclusionValidationTest < ActiveModel::TestCase
     assert_predicate t, :valid?
   end
 
+  def test_validates_exclusion_of_with_lambda_without_arguments
+    Topic.validates_exclusion_of :title, in: lambda { %w( monkey elephant ) }
+
+    t = Topic.new
+    t.title = "monkey"
+    assert_predicate t, :invalid?
+
+    t.title = "wasabi"
+    assert_predicate t, :valid?
+  end
+
   def test_validates_exclusion_of_with_range
     Topic.validates_exclusion_of :content, in: ("a".."g")
 

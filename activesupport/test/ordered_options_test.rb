@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/ordered_options"
 
 class OrderedOptionsTest < ActiveSupport::TestCase
@@ -34,6 +34,16 @@ class OrderedOptionsTest < ActiveSupport::TestCase
       assert_equal test[index].first, key
       assert_equal test[index].last, value
     end
+  end
+
+  def test_string_dig
+    a = ActiveSupport::OrderedOptions.new
+
+    a[:test_key] = 56
+    assert_equal 56, a.test_key
+    assert_equal 56, a["test_key"]
+    assert_equal 56, a.dig(:test_key)
+    assert_equal 56, a.dig("test_key")
   end
 
   def test_method_access
@@ -114,5 +124,15 @@ class OrderedOptionsTest < ActiveSupport::TestCase
       a.foo!
     end
     assert_raises(KeyError) { a.non_existing_key! }
+  end
+
+  def test_inspect
+    a = ActiveSupport::OrderedOptions.new
+    assert_equal "#<ActiveSupport::OrderedOptions {}>", a.inspect
+
+    a.foo   = :bar
+    a[:baz] = :quz
+
+    assert_equal "#<ActiveSupport::OrderedOptions {:foo=>:bar, :baz=>:quz}>", a.inspect
   end
 end

@@ -37,23 +37,21 @@ class TestFixturesTest < ActiveRecord::TestCase
 
         fixtures :all
 
-        def test_run_successfuly
+        def test_run_successfully
           assert_equal("Hello", Zine.first.title)
           assert_equal("Hello", zines(:going_out).title)
         end
       end
 
-      old_handlers = ActiveRecord::Base.connection_handlers
       old_handler = ActiveRecord::Base.connection_handler
       ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-      ActiveRecord::Base.connection_handlers = {}
       ActiveRecord::Base.establish_connection(:arunit)
 
-      test_result = klass.new("test_run_successfuly").run
+      test_result = klass.new("test_run_successfully").run
       assert_predicate(test_result, :passed?)
     ensure
       ActiveRecord::Base.connection_handler = old_handler
-      ActiveRecord::Base.connection_handlers = old_handlers
+      clean_up_connection_handler
       FileUtils.rm_r(tmp_dir)
     end
   end

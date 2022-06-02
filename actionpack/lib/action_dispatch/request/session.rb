@@ -6,6 +6,7 @@ module ActionDispatch
   class Request
     # Session is responsible for lazily loading the session from store.
     class Session # :nodoc:
+      DisabledSessionError    = Class.new(StandardError)
       ENV_SESSION_KEY         = Rack::RACK_SESSION # :nodoc:
       ENV_SESSION_OPTIONS_KEY = Rack::RACK_SESSION_OPTIONS # :nodoc:
 
@@ -23,6 +24,12 @@ module ActionDispatch
         session
       end
 
+      def self.disabled(req)
+        new(nil, req, enabled: false).tap do
+          Session::Options.set(req, Session::Options.new(nil, { id: nil }))
+        end
+      end
+
       def self.find(req)
         req.get_header ENV_SESSION_KEY
       end
@@ -31,7 +38,11 @@ module ActionDispatch
         req.set_header ENV_SESSION_KEY, session
       end
 
-      class Options #:nodoc:
+      def self.delete(req)
+        req.delete_header ENV_SESSION_KEY
+      end
+
+      class Options # :nodoc:
         def self.set(req, options)
           req.set_header ENV_SESSION_OPTIONS_KEY, options
         end
@@ -60,16 +71,23 @@ module ActionDispatch
         def values_at(*args); @delegate.values_at(*args); end
       end
 
-      def initialize(by, req)
+      def initialize(by, req, enabled: true)
         @by       = by
         @req      = req
         @delegate = {}
         @loaded   = false
         @exists   = nil # We haven't checked yet.
+        @enabled  = enabled
+        @id_was = nil
+        @id_was_initialized = false
       end
 
       def id
         options.id(@req)
+      end
+
+      def enabled?
+        @enabled
       end
 
       def options
@@ -78,19 +96,28 @@ module ActionDispatch
 
       def destroy
         clear
-        options = self.options || {}
-        @by.send(:delete_session, @req, options.id(@req), options)
 
-        # Load the new sid to be written with the response.
-        @loaded = false
-        load_for_write!
+        if enabled?
+          options = self.options || {}
+          @by.send(:delete_session, @req, options.id(@req), options)
+
+          # Load the new sid to be written with the response.
+          @loaded = false
+          load_for_write!
+        end
       end
 
       # Returns value of the key stored in the session or
       # +nil+ if the given key is not found in the session.
       def [](key)
         load_for_read!
-        @delegate[key.to_s]
+        key = key.to_s
+
+        if key == "session_id"
+          id&.public_id
+        else
+          @delegate[key]
+        end
       end
 
       # Returns the nested value specified by the sequence of keys, returning
@@ -129,7 +156,7 @@ module ActionDispatch
 
       # Clears the session.
       def clear
-        load_for_write!
+        load_for_delete!
         @delegate.clear
       end
 
@@ -151,13 +178,18 @@ module ActionDispatch
       #   session.to_hash
       #   # => {"session_id"=>"e29b9ea315edf98aad94cc78c34cc9b2", "foo" => "bar"}
       def update(hash)
+        unless hash.respond_to?(:to_hash)
+          raise TypeError, "no implicit conversion of #{hash.class.name} into Hash"
+        end
+
         load_for_write!
-        @delegate.update stringify_keys(hash)
+        @delegate.update hash.to_hash.stringify_keys
       end
+      alias :merge! :update
 
       # Deletes given key from the session.
       def delete(key)
-        load_for_write!
+        load_for_delete!
         @delegate.delete key.to_s
       end
 
@@ -193,6 +225,7 @@ module ActionDispatch
       end
 
       def exists?
+        return false unless enabled?
         return @exists unless @exists.nil?
         @exists = @by.send(:session_exists?, @req)
       end
@@ -206,13 +239,13 @@ module ActionDispatch
         @delegate.empty?
       end
 
-      def merge!(other)
-        load_for_write!
-        @delegate.merge!(other)
-      end
-
       def each(&block)
         to_hash.each(&block)
+      end
+
+      def id_was
+        load_for_read!
+        @id_was
       end
 
       private
@@ -221,20 +254,27 @@ module ActionDispatch
         end
 
         def load_for_write!
-          load! unless loaded?
+          if enabled?
+            load! unless loaded?
+          else
+            raise DisabledSessionError, "Your application has sessions disabled. To write to the session you must first configure a session store"
+          end
+        end
+
+        def load_for_delete!
+          load! if enabled? && !loaded?
         end
 
         def load!
-          id, session = @by.load_session @req
-          options[:id] = id
-          @delegate.replace(stringify_keys(session))
+          if enabled?
+            @id_was_initialized = true unless exists?
+            id, session = @by.load_session @req
+            options[:id] = id
+            @delegate.replace(session.stringify_keys)
+            @id_was = id unless @id_was_initialized
+          end
+          @id_was_initialized = true
           @loaded = true
-        end
-
-        def stringify_keys(other)
-          other.each_with_object({}) { |(key, value), hash|
-            hash[key.to_s] = value
-          }
         end
     end
   end

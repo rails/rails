@@ -32,5 +32,6 @@ en:
       less_than: "must be less than %{count}"
       less_than_or_equal_to: "must be less than or equal to %{count}"
       other_than: "must be other than %{count}"
+      in: "must be in %{count}"
       odd: "must be odd"
       even: "must be even"

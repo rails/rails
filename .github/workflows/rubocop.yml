@@ -2,30 +2,23 @@ name: RuboCop
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      BUNDLE_WITHOUT: default doc job cable storage ujs test db
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Set up Ruby 2.6
-      uses: actions/setup-ruby@v1
+    - uses: actions/checkout@v3
+
+    - name: Set up Ruby 2.7
+      uses: ruby/setup-ruby@v1
       with:
-        ruby-version: 2.6.x
-    - name: Install required package
-      run: |
-        sudo apt-get update
-        sudo apt-get install libmysqlclient-dev libpq-dev libsqlite3-dev libncurses5-dev
-    - name: Cache gems
-      uses: actions/cache@v1
-      with:
-        path: vendor/bundle
-        key: ${{ runner.os }}-gem-${{ hashFiles('**/Gemfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-gem-
-    - name: Install gems
-      run: |
-        bundle config path vendor/bundle
-        bundle install --jobs 4 --retry 3
+        ruby-version: 2.7
+        bundler-cache: true
+
     - name: Run RuboCop
       run: bundle exec rubocop --parallel

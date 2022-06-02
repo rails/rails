@@ -5,7 +5,7 @@ require "active_support/core_ext/object/blank"
 require "stringio"
 
 module ActiveSupport
-  module XmlMini_LibXMLSAX #:nodoc:
+  module XmlMini_LibXMLSAX # :nodoc:
     extend self
 
     # Class that will build the hash while the XML document

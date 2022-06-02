@@ -8,11 +8,22 @@ namespace :yarn do
     node_env = ENV.fetch("NODE_ENV") do
       valid_node_envs.include?(Rails.env) ? Rails.env : "production"
     end
-    system({ "NODE_ENV" => node_env }, "#{Rails.root}/bin/yarn install --no-progress --frozen-lockfile")
-  end
-end
 
-# Run Yarn prior to Sprockets assets precompilation, so dependencies are available for use.
-if Rake::Task.task_defined?("assets:precompile")
-  Rake::Task["assets:precompile"].enhance [ "yarn:install" ]
+    yarn_flags =
+      if `yarn --version`.start_with?("1")
+        "--no-progress --frozen-lockfile"
+      else
+        "--immutable"
+      end
+
+    system(
+      { "NODE_ENV" => node_env },
+      "yarn install #{yarn_flags}",
+      exception: true
+    )
+  rescue Errno::ENOENT
+    $stderr.puts "yarn install failed to execute."
+    $stderr.puts "Ensure yarn is installed and `yarn --version` runs without errors."
+    exit 1
+  end
 end

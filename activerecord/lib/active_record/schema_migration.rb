@@ -10,10 +10,6 @@ module ActiveRecord
   # to be executed the next time.
   class SchemaMigration < ActiveRecord::Base # :nodoc:
     class << self
-      def _internal?
-        true
-      end
-
       def primary_key
         "version"
       end
@@ -23,11 +19,9 @@ module ActiveRecord
       end
 
       def create_table
-        unless table_exists?
-          version_options = connection.internal_string_options_for_primary_key
-
+        unless connection.table_exists?(table_name)
           connection.create_table(table_name, id: false) do |t|
-            t.string :version, **version_options
+            t.string :version, **connection.internal_string_options_for_primary_key
           end
         end
       end
@@ -46,6 +40,10 @@ module ActiveRecord
 
       def all_versions
         order(:version).pluck(:version)
+      end
+
+      def table_exists?
+        connection.data_source_exists?(table_name)
       end
     end
 

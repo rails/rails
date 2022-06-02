@@ -34,12 +34,23 @@ module ActiveSupport
     end
 
     private
+      def deep_transform(hash)
+        return hash unless hash.is_a?(Hash)
+
+        h = ActiveSupport::InheritableOptions.new
+        hash.each do |k, v|
+          h[k] = deep_transform(v)
+        end
+        h
+      end
+
       def options
-        @options ||= ActiveSupport::InheritableOptions.new(config)
+        @options ||= ActiveSupport::InheritableOptions.new(deep_transform(config))
       end
 
       def deserialize(config)
-        YAML.load(config).presence || {}
+        doc = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(config) : YAML.load(config)
+        doc.presence || {}
       end
   end
 end

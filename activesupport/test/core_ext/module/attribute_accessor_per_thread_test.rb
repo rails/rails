@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../../abstract_unit"
 require "active_support/core_ext/module/attribute_accessors_per_thread"
 
 class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
@@ -18,6 +18,27 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
     @class = MyClass
     @subclass = SubMyClass
     @object = @class.new
+  end
+
+  def test_is_shared_between_fibers
+    @class.foo = 42
+    enumerator = Enumerator.new do |yielder|
+      yielder.yield @class.foo
+    end
+    assert_equal 42, enumerator.next
+  end
+
+  def test_is_not_shared_between_fibers_if_isolation_level_is_fiber
+    previous_level = ActiveSupport::IsolatedExecutionState.isolation_level
+    ActiveSupport::IsolatedExecutionState.isolation_level = :fiber
+
+    @class.foo = 42
+    enumerator = Enumerator.new do |yielder|
+      yielder.yield @class.foo
+    end
+    assert_nil enumerator.next
+  ensure
+    ActiveSupport::IsolatedExecutionState.isolation_level = previous_level
   end
 
   def test_can_initialize_with_default_value
@@ -100,28 +121,28 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
         thread_cattr_reader "1nvalid"
       end
     end
-    assert_equal "invalid attribute name: 1nvalid", exception.message
+    assert_match "invalid attribute name: 1nvalid", exception.message
 
     exception = assert_raises NameError do
       Class.new do
         thread_cattr_writer "1nvalid"
       end
     end
-    assert_equal "invalid attribute name: 1nvalid", exception.message
+    assert_match "invalid attribute name: 1nvalid", exception.message
 
     exception = assert_raises NameError do
       Class.new do
         thread_mattr_reader "1valid_part"
       end
     end
-    assert_equal "invalid attribute name: 1valid_part", exception.message
+    assert_match "invalid attribute name: 1valid_part", exception.message
 
     exception = assert_raises NameError do
       Class.new do
         thread_mattr_writer "2valid_part"
       end
     end
-    assert_equal "invalid attribute name: 2valid_part", exception.message
+    assert_match "invalid attribute name: 2valid_part", exception.message
   end
 
   def test_should_return_same_value_by_class_or_instance_accessor

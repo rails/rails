@@ -7,7 +7,7 @@ This unobtrusive scripting support file is developed for the Ruby on Rails frame
 - make forms or hyperlinks submit data asynchronously with Ajax;
 - have submit buttons become automatically disabled on form submit to prevent double-clicking.
 
-These features are achieved by adding certain [`data` attributes][data] to your HTML markup. In Rails, they are added by the framework's template helpers.
+These features are achieved by adding certain [`data` attributes][data] to your HTML markup. Documentation about the various supported `data` attributes is [available here][ujsdocs]. In Rails, they are added by the framework's template helpers.
 
 ## Optional prerequisites
 
@@ -40,7 +40,8 @@ In a conventional Rails application that uses the asset pipeline, require `rails
 If you're using the Webpacker gem or some other JavaScript bundler, add the following to your main JS file:
 
 ```javascript
-require("@rails/ujs").start()
+import Rails from "@rails/ujs"
+Rails.start()
 ```
 
 ## How to run tests
@@ -54,3 +55,4 @@ rails-ujs is released under the [MIT License](MIT-LICENSE).
 [data]: https://www.w3.org/TR/html5/dom.html#embedding-custom-non-visible-data-with-the-data-attributes "Embedding custom non-visible data with the data-* attributes"
 [validator]: https://validator.w3.org/
 [csrf]: https://api.rubyonrails.org/classes/ActionController/RequestForgeryProtection.html
+[ujsdocs]: https://github.com/rails/jquery-ujs/wiki

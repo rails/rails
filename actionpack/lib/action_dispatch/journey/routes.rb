@@ -41,7 +41,7 @@ module ActionDispatch
       end
 
       def partition_route(route)
-        if route.path.anchored && route.ast.grep(Nodes::Symbol).all?(&:default_regexp?)
+        if route.path.anchored && route.path.requirements_anchored?
           anchored_routes << route
         else
           custom_routes << route
@@ -50,8 +50,8 @@ module ActionDispatch
 
       def ast
         @ast ||= begin
-          asts = anchored_routes.map(&:ast)
-          Nodes::Or.new(asts)
+          nodes = anchored_routes.map(&:ast)
+          Nodes::Or.new(nodes)
         end
       end
 

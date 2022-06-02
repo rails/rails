@@ -1,69 +1,51 @@
-*   Added `class_names` helper to create a CSS class value with conditional classes.
+*   Strings returned from `strip_tags` are correctly tagged `html_safe?`
 
-    *Joel Hawksley*, *Aaron Patterson*
+    Because these strings contain no HTML elements and the basic entities are escaped, they are safe
+    to be included as-is as PCDATA in HTML content. Tagging them as html-safe avoids double-escaping
+    entities when being concatenated to a SafeBuffer during rendering.
 
-*   Add support for conditional values to TagBuilder.
+    Fixes [rails/rails-html-sanitizer#124](https://github.com/rails/rails-html-sanitizer/issues/124)
 
-    *Joel Hawksley*
+    *Mike Dalessio*
 
-*   `ActionView::Helpers::FormOptionsHelper#select` should mark option for `nil` as selected.
+*   Move `convert_to_model` call from `form_for` into `form_with`
+
+    Now that `form_for` is implemented in terms of `form_with`, remove the
+    `convert_to_model` call from `form_for`.
+
+    *Sean Doyle*
+
+*   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
+
+    Escape dangerous characters in names of tags and names of attributes in the
+    tag helpers, following the XML specification. Rename the option
+    `:escape_attributes` to `:escape`, to simplify by applying the option to the
+    whole tag.
+
+    *Álvaro Martín Fraguas*
+
+*   Extend audio_tag and video_tag to accept Active Storage attachments.
+
+    Now it's possible to write
 
     ```ruby
-    @post = Post.new
-    @post.category = nil
-
-    # Before
-    select("post", "category", none: nil, programming: 1, economics: 2)
-    # =>
-    # <select name="post[category]" id="post_category">
-    #   <option value="">none</option>
-    #  <option value="1">programming</option>
-    #  <option value="2">economics</option>
-    # </select>
-
-    # After
-    select("post", "category", none: nil, programming: 1, economics: 2)
-    # =>
-    # <select name="post[category]" id="post_category">
-    #   <option selected="selected" value="">none</option>
-    #  <option value="1">programming</option>
-    #  <option value="2">economics</option>
-    # </select>
+    audio_tag(user.audio_file)
+    video_tag(user.video_file)
     ```
 
-    *bogdanvlviv*
+    Instead of
 
-*   Log lines for partial renders and started template renders are now
-    emitted at the `DEBUG` level instead of `INFO`.
+    ```ruby
+    audio_tag(polymorphic_path(user.audio_file))
+    video_tag(polymorphic_path(user.video_file))
+    ```
 
-    Completed template renders are still logged at the `INFO` level.
+    `image_tag` already supported that, so this follows the same pattern.
 
-    *DHH*
+    *Matheus Richard*
 
-*   ActionView::Helpers::SanitizeHelper: support rails-html-sanitizer 1.1.0.
+*   Ensure models passed to `form_for` attempt to call `to_model`.
 
-    *Juanito Fatas*
+    *Sean Doyle*
 
-*   Added `phone_to` helper method to create a link from mobile numbers.
-
-    *Pietro Moro*
-
-*   annotated_source_code returns an empty array so TemplateErrors without a
-    template in the backtrace are surfaced properly by DebugExceptions.
-
-    *Guilherme Mansur*, *Kasper Timm Hansen*
-
-*   Add autoload for SyntaxErrorInTemplate so syntax errors are correctly raised by DebugExceptions.
-
-    *Guilherme Mansur*, *Gannon McGibbon*
-
-*   `RenderingHelper` supports rendering objects that `respond_to?` `:render_in`.
-
-    *Joel Hawksley*, *Natasha Umer*, *Aaron Patterson*, *Shawn Allen*, *Emily Plummer*, *Diana Mounter*, *John Hawthorn*, *Nathan Herald*, *Zaid Zawaideh*, *Zach Ahn*
-
-*   Fix `select_tag` so that it doesn't change `options` when `include_blank` is present.
-
-    *Younes SERRAJ*
-
-
-Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/actionview/CHANGELOG.md) for previous changes.
+Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/actionview/CHANGELOG.md) for previous changes.

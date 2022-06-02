@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveJob
-  module Timezones #:nodoc:
+  module Timezones # :nodoc:
     extend ActiveSupport::Concern
 
     included do

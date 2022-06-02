@@ -70,6 +70,15 @@ module ActiveRecord
         end
       end
 
+      def test_wrong_config_row
+        tmp_yaml ["empty", "yml"], { "_fixture" => { "class_name" => "Foo" } }.to_yaml do |t|
+          error = assert_raises(ActiveRecord::Fixture::FormatError) do
+            File.open(t.path) { |fh| fh.model_class }
+          end
+          assert_includes error.message, "Invalid `_fixture` section"
+        end
+      end
+
       def test_render_context_helper
         ActiveRecord::FixtureSet.context_class.class_eval do
           def fixture_helper
@@ -135,12 +144,6 @@ END
         File.open(::File.join(FIXTURES_ROOT, "other_posts.yml")) do |fh|
           assert_equal "Post", fh.model_class
         end
-      end
-
-      def test_erb_filename
-        filename = "filename.yaml"
-        erb = File.new(filename).send(:prepare_erb, "<% Rails.env %>\n")
-        assert_equal erb.filename, filename
       end
 
       private

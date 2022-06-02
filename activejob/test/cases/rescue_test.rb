@@ -12,7 +12,7 @@ class RescueTest < ActiveSupport::TestCase
   test "rescue perform exception with retry" do
     job = RescueJob.new("david")
     job.perform_now
-    assert_equal [ "rescued from ArgumentError", "performed beautifully" ], JobBuffer.values
+    assert_equal [ "rescued from ArgumentError", "performed beautifully", "Retried job DIFFERENT!" ], JobBuffer.values
   end
 
   test "let through unhandled perform exception" do
@@ -32,5 +32,10 @@ class RescueTest < ActiveSupport::TestCase
   test "should not wrap DeserializationError in DeserializationError" do
     RescueJob.perform_later [Person.new(404)]
     assert_includes JobBuffer.values, "DeserializationError original exception was Person::RecordNotFound"
+  end
+
+  test "rescue from exceptions that don't inherit from StandardError" do
+    RescueJob.perform_later("rafael")
+    assert_equal ["rescued from NotImplementedError"], JobBuffer.values
   end
 end

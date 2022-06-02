@@ -22,6 +22,13 @@ module ActiveRecord
         assert column_exists?(table_name, :user_id, :integer)
       end
 
+      def test_primary_key_and_references_columns_should_be_identical_type
+        add_reference table_name, :user
+        pk = connection.send(:column_for, :users, :id)
+        ref = connection.send(:column_for, table_name, :user_id)
+        assert_equal pk.sql_type, ref.sql_type
+      end
+
       def test_does_not_create_reference_type_column
         add_reference table_name, :taggable
         assert_not column_exists?(table_name, :taggable_type, :string)
@@ -123,6 +130,22 @@ module ActiveRecord
       def test_remove_belongs_to_alias
         remove_belongs_to table_name, :supplier
         assert_not column_exists?(table_name, :supplier_id, :integer)
+      end
+
+      def test_responds_to_if_exists_option
+        with_polymorphic_column do
+          assert_nothing_raised do
+            remove_reference table_name, :nonexistent, polymorphic: true, if_exists: true
+          end
+        end
+      end
+
+      def test_responds_to_if_not_exists_option
+        with_polymorphic_column do
+          assert_nothing_raised do
+            add_reference table_name, :supplier, polymorphic: true, if_not_exists: true
+          end
+        end
       end
 
       private

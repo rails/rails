@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-module ActionView #:nodoc:
+module ActionView # :nodoc:
   # = Action View RawFile Template
-  class Template #:nodoc:
-    class RawFile #:nodoc:
+  class Template # :nodoc:
+    class RawFile # :nodoc:
       attr_accessor :type, :format
 
       def initialize(filename)
@@ -20,9 +20,6 @@ module ActionView #:nodoc:
       def render(*args)
         ::File.read(@filename)
       end
-
-      def formats; Array(format); end
-      deprecate :formats
     end
   end
 end

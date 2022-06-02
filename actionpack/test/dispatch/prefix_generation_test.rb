@@ -126,12 +126,19 @@ module TestGenerationPrefix
       end
     end
 
+    module KwObject
+      def initialize(kw:)
+      end
+    end
+
     class EngineObject
+      include KwObject
       include ActionDispatch::Routing::UrlFor
       include BlogEngine.routes.url_helpers
     end
 
     class AppObject
+      include KwObject
       include ActionDispatch::Routing::UrlFor
       include RailsApplication.routes.url_helpers
     end
@@ -144,8 +151,8 @@ module TestGenerationPrefix
 
     def setup
       RailsApplication.routes.default_url_options = {}
-      @engine_object = EngineObject.new
-      @app_object = AppObject.new
+      @engine_object = EngineObject.new(kw: 1)
+      @app_object = AppObject.new(kw: 2)
     end
 
     include BlogEngine.routes.mounted_helpers
@@ -324,11 +331,7 @@ module TestGenerationPrefix
       def verify_redirect(url, status = 301)
         assert_equal status, response.status
         assert_equal url, response.headers["Location"]
-        assert_equal expected_redirect_body(url), response.body
-      end
-
-      def expected_redirect_body(url)
-        %(<html><body>You are being <a href="#{url}">redirected</a>.</body></html>)
+        assert_equal "", response.body
       end
   end
 
@@ -453,11 +456,7 @@ module TestGenerationPrefix
       def verify_redirect(url, status = 301)
         assert_equal status, response.status
         assert_equal url, response.headers["Location"]
-        assert_equal expected_redirect_body(url), response.body
-      end
-
-      def expected_redirect_body(url)
-        %(<html><body>You are being <a href="#{url}">redirected</a>.</body></html>)
+        assert_equal "", response.body
       end
   end
 end

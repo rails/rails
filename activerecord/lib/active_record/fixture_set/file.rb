@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-require "erb"
-require "yaml"
+require "active_support/configuration_file"
 
 module ActiveRecord
   class FixtureSet
@@ -42,7 +41,7 @@ module ActiveRecord
           @config_row ||= begin
             row = raw_rows.find { |fixture_name, _| fixture_name == "_fixture" }
             if row
-              row.last
+              validate_config_row(row.last)
             else
               { 'model_class': nil, 'ignore': nil }
             end
@@ -51,22 +50,26 @@ module ActiveRecord
 
         def raw_rows
           @raw_rows ||= begin
-            data = YAML.load(render(IO.read(@file)))
+            data = ActiveSupport::ConfigurationFile.parse(@file, context:
+              ActiveRecord::FixtureSet::RenderContext.create_subclass.new.get_binding)
             data ? validate(data).to_a : []
-          rescue ArgumentError, Psych::SyntaxError => error
-            raise Fixture::FormatError, "a YAML error occurred parsing #{@file}. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Please have a look at https://www.yaml.org/faq.html\nThe exact error was:\n  #{error.class}: #{error}", error.backtrace
+          rescue RuntimeError => error
+            raise Fixture::FormatError, error.message
           end
         end
 
-        def prepare_erb(content)
-          erb = ERB.new(content)
-          erb.filename = @file
-          erb
-        end
+        def validate_config_row(data)
+          unless Hash === data
+            raise Fixture::FormatError, "Invalid `_fixture` section: `_fixture` must be a hash: #{@file}"
+          end
 
-        def render(content)
-          context = ActiveRecord::FixtureSet::RenderContext.create_subclass.new
-          prepare_erb(content).result(context.get_binding)
+          begin
+            data.assert_valid_keys("model_class", "ignore")
+          rescue ArgumentError => error
+            raise Fixture::FormatError, "Invalid `_fixture` section: #{error.message}: #{@file}"
+          end
+
+          data
         end
 
         # Validate our unmarshalled data.

@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../../abstract_unit"
 require "active_support/core_ext/array"
 require "active_support/core_ext/hash"
+require "active_support/ordered_options"
 
 class ExtractOptionsTest < ActiveSupport::TestCase
   class HashSubclass < Hash
@@ -43,5 +44,14 @@ class ExtractOptionsTest < ActiveSupport::TestCase
     array = [{ foo: 1 }.with_indifferent_access]
     options = array.extract_options!
     assert_equal(1, options[:foo])
+  end
+
+  def test_extract_options_extracts_ordered_options
+    hash = ActiveSupport::OrderedOptions.new
+    hash.foo = 1
+    array = [hash]
+    options = array.extract_options!
+    assert_equal({ foo: 1 }, options)
+    assert_equal([], array)
   end
 end

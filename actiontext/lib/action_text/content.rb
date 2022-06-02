@@ -1,12 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/attribute_accessors_per_thread"
-
 module ActionText
   class Content
-    include Serialization
-
-    thread_cattr_accessor :renderer
+    include Rendering, Serialization
 
     attr_reader :fragment
 
@@ -62,7 +58,7 @@ module ActionText
     end
 
     def render_attachments(**options, &block)
-      content = fragment.replace(ActionText::Attachment::SELECTOR) do |node|
+      content = fragment.replace(ActionText::Attachment.tag_name) do |node|
         block.call(attachment_for_node(node, **options))
       end
       self.class.new(content, canonicalize: false)
@@ -88,7 +84,11 @@ module ActionText
     end
 
     def to_rendered_html_with_layout
-      renderer.render(partial: "action_text/content/layout", locals: { content: self })
+      render layout: "action_text/contents/content", partial: to_partial_path, formats: :html, locals: { content: self }
+    end
+
+    def to_partial_path
+      "action_text/contents/content"
     end
 
     def to_s
@@ -100,18 +100,20 @@ module ActionText
     end
 
     def inspect
-      "#<#{self.class.name} #{to_s.truncate(25).inspect}>"
+      "#<#{self.class.name} #{to_html.truncate(25).inspect}>"
     end
 
     def ==(other)
-      if other.is_a?(self.class)
+      if self.class == other.class
+        to_html == other.to_html
+      elsif other.is_a?(self.class)
         to_s == other.to_s
       end
     end
 
     private
       def attachment_nodes
-        @attachment_nodes ||= fragment.find_all(ActionText::Attachment::SELECTOR)
+        @attachment_nodes ||= fragment.find_all(ActionText::Attachment.tag_name)
       end
 
       def attachment_gallery_nodes

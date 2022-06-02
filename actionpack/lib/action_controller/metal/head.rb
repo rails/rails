@@ -35,12 +35,15 @@ module ActionController
       self.status = status
       self.location = url_for(location) if location
 
-      self.response_body = ""
-
       if include_content?(response_code)
-        self.content_type = content_type || (Mime[formats.first] if formats) || Mime[:html]
+        unless self.media_type
+          self.content_type = content_type || (Mime[formats.first] if formats) || Mime[:html]
+        end
+
         response.charset = false
       end
+
+      self.response_body = ""
 
       true
     end

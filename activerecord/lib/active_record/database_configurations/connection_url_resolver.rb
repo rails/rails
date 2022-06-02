@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
+require "uri"
 require "active_support/core_ext/enumerable"
+require "active_support/core_ext/hash/reverse_merge"
 
 module ActiveRecord
   class DatabaseConfigurations
@@ -67,7 +69,7 @@ module ActiveRecord
               database: uri.opaque
             )
           else
-            query_hash.merge(
+            query_hash.reverse_merge(
               adapter: @adapter,
               username: uri.user,
               password: uri.password,
@@ -90,7 +92,7 @@ module ActiveRecord
             # Only SQLite uses a filename as the "database" name; for
             # anything else, a leading slash would be silly.
 
-            uri.path.sub(%r{^/}, "")
+            uri.path.delete_prefix("/")
           end
         end
     end

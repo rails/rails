@@ -1,156 +1,110 @@
-*   Add block support to `ActiveSupport::Testing::TimeHelpers#travel_back`.
+*   Add `force:` support to `ActiveSupport::Cache::Store#fetch_multi`.
 
-    *Tim Masliuchenko*
+    *fatkodima*
 
-*   Update `ActiveSupport::Messages::Metadata#fresh?` to work for cookies with expiry set when
-    `ActiveSupport.parse_json_times = true`.
+*   Deprecated `:pool_size` and `:pool_timeout` options for configuring connection pooling in cache stores.
 
-    *Christian Gregg*
+    Use `pool: true` to enable pooling with default settings:
 
-*   Support symbolic links for `content_path` in `ActiveSupport::EncryptedFile`.
+    ```ruby
+    config.cache_store = :redis_cache_store, pool: true
+    ```
 
-    *Takumi Shotoku*
+    Or pass individual options via `:pool` option:
 
-*   Improve `Range#===`, `Range#include?`, and `Range#cover?` to work with beginless (startless)
-    and endless range targets.
+    ```ruby
+    config.cache_store = :redis_cache_store, pool: { size: 10, timeout: 2 }
+    ```
 
-    *Allen Hsu*, *Andrew Hodgkinson*
+    *fatkodima*
 
-*   Don't use `Process#clock_gettime(CLOCK_THREAD_CPUTIME_ID)` on Solaris.
+*   Allow #increment and #decrement methods of `ActiveSupport::Cache::Store`
+    subclasses to set new values.
 
-    *Iain Beeston*
+    Previously incrementing or decrementing an unset key would fail and return
+    nil. A default will now be assumed and the key will be created.
 
-*   Prevent `ActiveSupport::Duration.build(value)` from creating instances of
-    `ActiveSupport::Duration` unless `value` is of type `Numeric`.
+    *Andrej Blagojević*, *Eugene Kenny*
 
-    Addresses the errant set of behaviours described in #37012 where
-    `ActiveSupport::Duration` comparisons would fail confusingly
-    or return unexpected results when comparing durations built from instances of `String`.
+*   Add `skip_nil:` support to `RedisCacheStore`
 
-    Before:
+    *Joey Paris*
 
-        small_duration_from_string = ActiveSupport::Duration.build('9')
-        large_duration_from_string = ActiveSupport::Duration.build('100000000000000')
-        small_duration_from_int = ActiveSupport::Duration.build(9)
+*   `ActiveSupport::Cache::MemoryStore#write(name, val, unless_exist:true)` now
+    correctly writes expired keys.
 
-        large_duration_from_string > small_duration_from_string
-        # => false
+    *Alan Savage*
 
-        small_duration_from_string == small_duration_from_int
-        # => false
+*   `ActiveSupport::ErrorReporter` now accepts and forward a `source:` parameter.
 
-        small_duration_from_int < large_duration_from_string
-        # => ArgumentError (comparison of ActiveSupport::Duration::Scalar with ActiveSupport::Duration failed)
+    This allow libraries to signal the origin of the errors, and reporters
+    to easily ignore some sources.
 
-        large_duration_from_string > small_duration_from_int
-        # => ArgumentError (comparison of String with ActiveSupport::Duration failed)
+    *Jean Boussier*
 
-    After:
+*   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
 
-        small_duration_from_string = ActiveSupport::Duration.build('9')
-        # => TypeError (can't build an ActiveSupport::Duration from a String)
+    Add the method `ERB::Util.xml_name_escape` to escape dangerous characters
+    in names of tags and names of attributes, following the specification of XML.
 
-    *Alexei Emam*
+    *Álvaro Martín Fraguas*
 
-*   Add `ActiveSupport::Cache::Store#delete_multi` method to delete multiple keys from the cache store.
+*   Respect `ActiveSupport::Logger.new`'s `:formatter` keyword argument
 
-    *Peter Zhu*
+    The stdlib `Logger::new` allows passing a `:formatter` keyword argument to
+    set the logger's formatter. Previously `ActiveSupport::Logger.new` ignored
+    that argument by always setting the formatter to an instance of
+    `ActiveSupport::Logger::SimpleFormatter`.
 
-*   Support multiple arguments in `HashWithIndifferentAccess` for `merge` and `update` methods, to
-    follow Ruby 2.6 addition.
+    *Steven Harman*
 
-    *Wojciech Wnętrzak*
+*   Deprecate preserving the pre-Ruby 2.4 behavior of `to_time`
 
-*   Allow initializing `thread_mattr_*` attributes via `:default` option.
+    With Ruby 2.4+ the default for +to_time+ changed from converting to the
+    local system time to preserving the offset of the receiver. At the time Rails
+    supported older versions of Ruby so a compatibility layer was added to assist
+    in the migration process. From Rails 5.0 new applications have defaulted to
+    the Ruby 2.4+ behavior and since Rails 7.0 now only supports Ruby 2.7+
+    this compatibility layer can be safely removed.
 
-        class Scraper
-          thread_mattr_reader :client, default: Api::Client.new
-        end
+    To minimize any noise generated the deprecation warning only appears when the
+    setting is configured to `false` as that is the only scenario where the
+    removal of the compatibility layer has any effect.
 
-    *Guilherme Mansur*
+    *Andrew White*
 
-*   Add `compact_blank` for those times when you want to remove #blank? values from
-    an Enumerable (also `compact_blank!` on Hash, Array, ActionController::Parameters).
+*   `Pathname.blank?` only returns true for `Pathname.new("")`
 
-    *Dana Sherson*
+    Previously it would end up calling `Pathname#empty?` which returned true
+    if the path existed and was an empty directory or file.
 
-*   Make ActiveSupport::Logger Fiber-safe.
+    That behavior was unlikely to be expected.
 
-    Use `Fiber.current.__id__` in `ActiveSupport::Logger#local_level=` in order
-    to make log level local to Ruby Fibers in addition to Threads.
+    *Jean Boussier*
 
-    Example:
+*   Deprecate `Notification::Event`'s `#children` and `#parent_of?`
 
-        logger = ActiveSupport::Logger.new(STDOUT)
-        logger.level = 1
-        puts "Main is debug? #{logger.debug?}"
+*   Change default serialization format of `MessageEncryptor` from `Marshal` to `JSON` for Rails 7.1.
 
-        Fiber.new {
-          logger.local_level = 0
-          puts "Thread is debug? #{logger.debug?}"
-        }.resume
+    Existing apps are provided with an upgrade path to migrate to `JSON` as described in `guides/source/upgrading_ruby_on_rails.md`
 
-        puts "Main is debug? #{logger.debug?}"
+    *Zack Deveau* and *Martin Gingras*
 
-    Before:
+*   Add `ActiveSupport::TestCase#stub_const` to stub a constant for the duration of a yield.
 
-        Main is debug? false
-        Thread is debug? true
-        Main is debug? true
+    *DHH*
 
-    After:
+*   Fix `ActiveSupport::EncryptedConfiguration` to be compatible with Psych 4
 
-        Main is debug? false
-        Thread is debug? true
-        Main is debug? false
+    *Stephen Sugden*
 
-    Fixes #36752.
+*   Improve `File.atomic_write` error handling
 
-    *Alexander Varnin*
+*   Fix `Class#descendants` and `DescendantsTracker#descendants` compatibility with Ruby 3.1.
 
-*   Allow the `on_rotation` proc used when decrypting/verifying a message to be
-    passed at the constructor level.
+    [The native `Class#descendants` was reverted prior to Ruby 3.1 release](https://bugs.ruby-lang.org/issues/14394#note-33),
+    but `Class#subclasses` was kept, breaking the feature detection.
 
-    Before:
+    *Jean Boussier*
 
-        crypt = ActiveSupport::MessageEncryptor.new('long_secret')
-        crypt.decrypt_and_verify(encrypted_message, on_rotation: proc { ... })
-        crypt.decrypt_and_verify(another_encrypted_message, on_rotation: proc { ... })
-
-    After:
-
-        crypt = ActiveSupport::MessageEncryptor.new('long_secret', on_rotation: proc { ... })
-        crypt.decrypt_and_verify(encrypted_message)
-        crypt.decrypt_and_verify(another_encrypted_message)
-
-    *Edouard Chin*
-
-*   `delegate_missing_to` would raise a `DelegationError` if the object
-    delegated to was `nil`. Now the `allow_nil` option has been added to enable
-    the user to specify they want `nil` returned in this case.
-
-    *Matthew Tanous*
-
-*   `truncate` would return the original string if it was too short to be truncated
-    and a frozen string if it were long enough to be truncated. Now truncate will
-    consistently return an unfrozen string regardless. This behavior is consistent
-    with `gsub` and `strip`.
-
-    Before:
-
-        'foobar'.truncate(5).frozen?
-        # => true
-        'foobar'.truncate(6).frozen?
-        # => false
-
-    After:
-
-        'foobar'.truncate(5).frozen?
-        # => false
-        'foobar'.truncate(6).frozen?
-        # => false
-
-    *Jordan Thomas*
-
-
-Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activesupport/CHANGELOG.md) for previous changes.
+Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/activesupport/CHANGELOG.md) for previous changes.

@@ -29,6 +29,13 @@ class ValidatesWithTest < ActiveModel::TestCase
     end
   end
 
+  class ValidatorThatClearsOptions < ValidatorThatDoesNotAddErrors
+    def initialize(options)
+      super
+      options.clear
+    end
+  end
+
   class ValidatorThatValidatesOptions < ActiveModel::Validator
     def validate(record)
       if options[:field] == :first_name
@@ -75,8 +82,7 @@ class ValidatesWithTest < ActiveModel::TestCase
     validator = Minitest::Mock.new
     validator.expect(:new, validator, [{ foo: :bar, if: :condition_is_true, class: Topic }])
     validator.expect(:validate, nil, [topic])
-    validator.expect(:is_a?, false, [Symbol])
-    validator.expect(:is_a?, false, [String])
+    validator.expect(:is_a?, false, [String]) # Call run by ActiveSupport::Callbacks::Callback.build
 
     Topic.validates_with(validator, if: :condition_is_true, foo: :bar)
     assert_predicate topic, :valid?
@@ -88,6 +94,25 @@ class ValidatesWithTest < ActiveModel::TestCase
     topic = Topic.new
     assert_predicate topic, :invalid?
     assert_includes topic.errors[:base], ERROR_MESSAGE
+  end
+
+  test "validates_with preserves standard options" do
+    Topic.validates_with(ValidatorThatClearsOptions, ValidatorThatAddsErrors, on: :specific_context)
+    topic = Topic.new
+    assert topic.invalid?(:specific_context), "validation should work"
+    assert topic.valid?, "Standard options should be preserved"
+  end
+
+  test "validates_with preserves validator options" do
+    Topic.validates_with(ValidatorThatClearsOptions, ValidatorThatValidatesOptions, field: :first_name)
+    topic = Topic.new
+    assert topic.invalid?, "Validator options should be preserved"
+  end
+
+  test "instance validates_with method preserves validator options" do
+    topic = Topic.new
+    topic.validates_with(ValidatorThatClearsOptions, ValidatorThatValidatesOptions, field: :first_name)
+    assert_includes topic.errors[:base], ERROR_MESSAGE, "Validator options should be preserved"
   end
 
   test "validates_with each validator" do

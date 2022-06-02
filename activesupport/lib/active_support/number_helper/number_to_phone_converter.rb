@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/blank"
 require "active_support/number_helper/number_converter"
 
 module ActiveSupport
   module NumberHelper
-    class NumberToPhoneConverter < NumberConverter #:nodoc:
+    class NumberToPhoneConverter < NumberConverter # :nodoc:
       def convert
         str = country_code(opts[:country_code]).dup
         str << convert_to_phone_number(number.to_s.strip)

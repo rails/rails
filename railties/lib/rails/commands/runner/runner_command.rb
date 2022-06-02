@@ -38,8 +38,9 @@ module Rails
         if code_or_file == "-"
           eval($stdin.read, TOPLEVEL_BINDING, "stdin")
         elsif File.exist?(code_or_file)
-          $0 = code_or_file
-          Kernel.load code_or_file
+          expanded_file_path = File.expand_path code_or_file
+          $0 = expanded_file_path
+          Kernel.load expanded_file_path
         else
           begin
             eval(code_or_file, TOPLEVEL_BINDING, __FILE__, __LINE__)
