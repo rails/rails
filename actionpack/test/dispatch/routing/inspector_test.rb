@@ -392,12 +392,14 @@ module ActionDispatch
         output = draw(formatter: ActionDispatch::Routing::ConsoleFormatter::Colorized.new(width: 100)) do
           get "/custom/assets", to: "custom_assets#show"
           get "/custom/furnitures", to: "custom_furnitures#show"
+          get "/post/:post_id/comments/:comment_ID_2", to: "custom_furnitures#show"
           mount engine => "/blog", :as => "blog"
         end
 
         assert_equal ["",
                       "\e[1;94m     GET\e[0m      /custom/assets(.:format) \e[1;90m................ custom_assets_path > custom_assets#show     \e[0m",
                       "\e[1;94m     GET\e[0m      /custom/furnitures(.:format) \e[1;90m.... custom_furnitures_path > custom_furnitures#show     \e[0m",
+                      "\e[1;94m     GET\e[0m      /post/\e[1;93m:post_id\e[0m/comments/\e[1;93m:comment_ID_2\e[0m(.:format) \e[1;90m.......... custom_furnitures#show     \e[0m",
                       "              /blog \e[1;90m.................................................. blog_path > Blog::Engine     \e[0m",
                       "",
                       "Routes for Blog::Engine:",
@@ -427,7 +429,7 @@ module ActionDispatch
         ], output
       end
 
-      def test_routes_can_be_filtered_when_colorize
+      def test_routes_can_be_filtered_when_colorized
         output = draw(grep: "posts", formatter: ActionDispatch::Routing::ConsoleFormatter::Colorized.new(width: 70)) do
           resources :articles
           resources :posts

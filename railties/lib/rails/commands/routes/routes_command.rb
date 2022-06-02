@@ -26,7 +26,7 @@ module Rails
           if options.key?("expanded")
             ActionDispatch::Routing::ConsoleFormatter::Expanded.new
           elsif options.key?("colorized")
-            ActionDispatch::Routing::ConsoleFormatter::Colorized.new
+            ActionDispatch::Routing::ConsoleFormatter::Colorized.new(width: 100)
           else
             ActionDispatch::Routing::ConsoleFormatter::Sheet.new
           end

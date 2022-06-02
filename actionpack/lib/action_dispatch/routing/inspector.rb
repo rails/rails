@@ -264,7 +264,7 @@ module ActionDispatch
           end
 
           def colorize_path(path)
-            path.gsub(/\/(:[a-z]*)/, "/#{YELLOW}\\1#{CLEAR}")
+            path.gsub(/\/(:[\w\d]*)/, "/#{YELLOW}\\1#{CLEAR}")
           end
 
           def name_and_reqs(route)
