@@ -151,9 +151,7 @@ module ActiveSupport
         end
       end
 
-      def inspect # :nodoc:
-        "#<#{self.class.name} entries=#{@data.size}, size=#{@cache_size}, options=#{@options.inspect}>"
-      end
+      include ActiveSupport::Inspect({ "entries" => -> { @data.size }, "size" => :@cache_size, "options" => :@options })
 
       # Synchronize calls to the cache. This should be called wherever the underlying cache implementation
       # is not thread safe.

@@ -105,6 +105,18 @@ module ActiveRecord
       include QueryCache::ConnectionPoolConfiguration
       include ConnectionAdapters::AbstractPool
 
+      include ActiveSupport::Inspect(-> {
+        result = {}
+        result["shard"] = @shard unless @shard == :default
+        result
+      }) {
+        name_parts = []
+        name_parts << db_config.env_name
+        name_parts << db_config.name unless db_config.name == "primary"
+        name_parts << @role
+        name_parts.map(&:inspect)
+      }
+
       attr_accessor :automatic_reconnect, :checkout_timeout
       attr_reader :db_config, :size, :reaper, :pool_config, :connection_class, :async_executor, :role, :shard
 

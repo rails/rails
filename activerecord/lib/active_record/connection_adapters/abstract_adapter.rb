@@ -35,6 +35,18 @@ module ActiveRecord
       include QueryCache
       include Savepoints
 
+      include ActiveSupport::Inspect(-> {
+        result = {}
+        result["shard"] = shard unless shard == :default
+        result
+      }, id: :__id__) {
+        name_parts = []
+        name_parts << pool.db_config.env_name
+        name_parts << pool.db_config.name unless pool.db_config.name == "primary"
+        name_parts << role
+        name_parts.map(&:inspect)
+      }
+
       SIMPLE_INT = /\A\d+\z/
       COMMENT_REGEX = %r{(?:--.*\n)|/\*(?:[^*]|\*[^/])*\*/}
 

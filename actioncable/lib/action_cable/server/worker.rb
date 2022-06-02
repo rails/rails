@@ -14,6 +14,8 @@ module ActionCable
       define_callbacks :work
       include ActiveRecordConnectionManagement
 
+      include ActiveSupport::Inspect({ "queue" => -> { @executor.queue_length }, "threads" => -> { @executor.length } })
+
       attr_reader :executor
 
       def initialize(max_size: 5)

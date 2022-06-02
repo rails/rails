@@ -5,6 +5,8 @@ require "nio"
 module ActionCable
   module Connection
     class StreamEventLoop
+      include ActiveSupport::Inspect({ "attached" => -> { @map.size }, "loop" => :@thread, "post_queue" => -> { @executor&.queue_length }, "post_threads" => -> { @executor&.length } })
+
       def initialize
         @nio = @executor = @thread = nil
         @map = {}

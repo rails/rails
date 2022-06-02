@@ -4,6 +4,8 @@ module ActiveRecord
   class Promise < BasicObject
     undef_method :==, :!, :!=
 
+    include ActiveSupport::Inspect { status }
+
     def initialize(future_result, block) # :nodoc:
       @future_result = future_result
       @block = block
@@ -39,14 +41,6 @@ module ActiveRecord
 
     [:class, :respond_to?, :is_a?].each do |method|
       define_method(method, ::Object.instance_method(method))
-    end
-
-    def inspect # :nodoc:
-      "#<ActiveRecord::Promise status=#{status}>"
-    end
-
-    def pretty_print(q) # :nodoc:
-      q.text(inspect)
     end
 
     private

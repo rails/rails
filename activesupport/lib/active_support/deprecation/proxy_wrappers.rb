@@ -18,6 +18,11 @@ module ActiveSupport
         target.inspect
       end
 
+      # Same for pretty_print: it's used by the console.
+      def pretty_print(pp)
+        target.pretty_print(pp)
+      end
+
       private
         def method_missing(called, *args, &block)
           warn caller_locations, called, args
@@ -143,6 +148,11 @@ module ActiveSupport
       # logs rely on it for diagnostics.
       def inspect
         target.inspect
+      end
+
+      # Same for pretty_print: it's used by the console.
+      def pretty_print(pp)
+        target.pretty_print(pp)
       end
 
       # Don't give a deprecation warning on methods that IRB may invoke

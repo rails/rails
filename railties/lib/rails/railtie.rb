@@ -249,9 +249,7 @@ module Rails
       end
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name}>"
-    end
+    include ActiveSupport::Inspect(id: false)
 
     def configure(&block) # :nodoc:
       instance_eval(&block)

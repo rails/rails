@@ -82,6 +82,8 @@ module ActiveModel
     attr_reader :errors
     alias :objects :errors
 
+    include ActiveSupport::Inspect() { -> q { q.pp(@errors) } }
+
     # Pass in the instance of the object that is using the errors object.
     #
     #   class Person
@@ -453,12 +455,6 @@ module ActiveModel
     # * <tt>errors.messages.blank</tt>
     def generate_message(attribute, type = :invalid, options = {})
       Error.generate_message(attribute, type, @base, options)
-    end
-
-    def inspect # :nodoc:
-      inspection = @errors.inspect
-
-      "#<#{self.class.name} #{inspection}>"
     end
 
     private
