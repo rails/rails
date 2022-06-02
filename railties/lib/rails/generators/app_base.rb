@@ -4,10 +4,10 @@ require "fileutils"
 require "digest/md5"
 require "rails/version" unless defined?(Rails::VERSION)
 require "open-uri"
+require "tsort"
 require "uri"
 require "rails/generators"
 require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/enumerable"
 
 module Rails
   module Generators
@@ -136,6 +136,48 @@ module Rails
 
       def build(meth, *args) # :doc:
         builder.public_send(meth, *args) if builder.respond_to?(meth)
+      end
+
+      IMPLIED_OPTIONS = { # :nodoc:
+        skip_active_storage: [:skip_active_record],
+        skip_action_mailbox: [:skip_active_storage],
+        skip_action_text: [:skip_active_storage],
+        skip_hotwire: [:skip_javascript],
+      }
+
+      def implied_options
+        implied_options = {}
+
+        order_of_implication = TSort.tsort(
+          ->(&block) { IMPLIED_OPTIONS.each_key(&block) },
+          ->(key, &block) { IMPLIED_OPTIONS[key]&.each(&block) }
+        )
+
+        order_of_implication.each do |option|
+          if IMPLIED_OPTIONS[option] && !options[option]
+            implied_options[option] = IMPLIED_OPTIONS[option].select do |reason|
+              options[reason] || implied_options[reason]
+            end.presence
+          end
+        end
+
+        implied_options.compact
+      end
+
+      def confirm_implied_options
+        unless (implied_options = self.implied_options).empty?
+          say "Based on the specified options, the following options will also be activated:"
+          say ""
+          implied_options.each do |option, reasons|
+            due_to = reasons.map { |reason| "--#{reason.to_s.tr("_", "-")}" }.join(" ")
+            say "  --#{option.to_s.tr("_", "-")} [due to: #{due_to}]"
+          end
+          say ""
+
+          self.options = options.merge(implied_options.transform_values { true }).freeze
+
+          exit if no?("Continue? [Y/n]")
+        end
       end
 
       def create_root # :doc:
@@ -467,58 +509,6 @@ module Rails
           rails_command "tailwindcss:install"
         else
           rails_command "css:install:#{options[:css]}"
-        end
-      end
-
-      def confirm_implied_options
-        option_implicators = {
-          active_storage: [:active_record],
-          action_mailbox: [:active_storage],
-          action_text: [:active_storage],
-          hotwire: [:javascript]
-        }
-
-        expand_implied_options!(option_implicators)
-
-        selected_option_implicators = option_implicators.select do |implicator, _|
-          !options["skip_#{implicator}"]
-        end.compact_blank
-
-        skipped_implieds = selected_option_implicators.transform_values do |implieds|
-          implieds.select { |implied| options["skip_#{implied}"] }
-        end.compact_blank
-
-        unless skipped_implieds.empty?
-          implied_options = Hash.new { |h, k| h[k] = [] }
-          skipped_implieds.each do |implicator, implieds|
-            implieds.each { |implied| implied_options[implied] << implicator }
-          end
-
-          say "Based on the specified options, the following options will also be activated:"
-          implied_options.each do |implied, implicators|
-            due_to = implicators.map { |implicator| "--#{implicator.to_s.tr("_", "-")}" }.join(", ")
-            say "* --#{implied.to_s.tr("_", "-")} (due to: #{due_to})"
-          end
-
-          if yes?("Proceed?")
-            self.options = options.merge(implied_options.to_h { |implied, _| ["skip_#{implied}", false] }).freeze
-          else
-            exit(0)
-          end
-        end
-      end
-
-      def expand_implied_options!(option_implicators)
-        option_implicators.each do |implicator, implieds|
-          i = 0
-          while i < implieds.length
-            new_implieds = option_implicators[implieds[i]]
-            if new_implieds
-              unique_new_implieds = new_implieds.select { |implied| !implieds.include?(implied) }
-              implieds.push(*unique_new_implieds)
-            end
-            i += 1
-          end
         end
       end
 
