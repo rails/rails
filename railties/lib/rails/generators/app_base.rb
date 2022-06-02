@@ -167,7 +167,7 @@ module Rails
         implied_options.compact
       end
 
-      def confirm_implied_options
+      def report_implied_options
         unless (implied_options = self.implied_options).empty?
           say "Based on the specified options, the following options will also be activated:"
           say ""
@@ -178,8 +178,6 @@ module Rails
           say ""
 
           self.options = options.merge(implied_options.transform_values { true }).freeze
-
-          exit if no?("Continue? [Y/n]")
         end
       end
 
