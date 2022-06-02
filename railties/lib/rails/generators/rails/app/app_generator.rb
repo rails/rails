@@ -300,7 +300,7 @@ module Rails
         @after_bundle_callbacks = []
       end
 
-      public_task :confirm_implied_options
+      public_task :report_implied_options
       public_task :set_default_accessors!
       public_task :create_root
       public_task :target_rails_prerelease
