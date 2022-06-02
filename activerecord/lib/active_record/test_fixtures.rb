@@ -181,14 +181,15 @@ module ActiveRecord
         handler.connection_pool_names.each do |name|
           pool_manager = handler.send(:owner_to_pool_manager)[name]
           pool_manager.shard_names.each do |shard_name|
-            writing_pool_config = pool_manager.get_pool_config(ActiveRecord.writing_role, shard_name)
-            @saved_pool_configs[name][shard_name] ||= {}
-            pool_manager.role_names.each do |role|
-              next unless pool_config = pool_manager.get_pool_config(role, shard_name)
-              next if pool_config == writing_pool_config
+            if writing_pool_config = pool_manager.get_pool_config(ActiveRecord.writing_role, shard_name)
+              @saved_pool_configs[name][shard_name] ||= {}
+              pool_manager.role_names.each do |role|
+                next unless pool_config = pool_manager.get_pool_config(role, shard_name)
+                next if pool_config == writing_pool_config
 
-              @saved_pool_configs[name][shard_name][role] = pool_config
-              pool_manager.set_pool_config(role, shard_name, writing_pool_config)
+                @saved_pool_configs[name][shard_name][role] = pool_config
+                pool_manager.set_pool_config(role, shard_name, writing_pool_config)
+              end
             end
           end
         end
