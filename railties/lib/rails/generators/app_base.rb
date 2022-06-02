@@ -7,6 +7,7 @@ require "open-uri"
 require "uri"
 require "rails/generators"
 require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/enumerable"
 
 module Rails
   module Generators
@@ -469,22 +470,54 @@ module Rails
         end
       end
 
-      def report_dependency_issues
-        dependencies = {
-          active_storage: :active_record,
-          action_mailbox: :active_storage,
-          action_text: :active_storage,
-          hotwire: :javascript
+      def confirm_implied_options
+        option_implicators = {
+          active_storage: [:active_record],
+          action_mailbox: [:active_storage],
+          action_text: [:active_storage],
+          hotwire: [:javascript]
         }
 
-        dependencies.each do |component, requirement|
-          next if options["skip_#{component}"]
-          while requirement
-            if options["skip_#{requirement}"]
-              say "#{component} was not installed because it requires a skipped component (#{requirement}).", :red
-              break
+        expand_implied_options!(option_implicators)
+
+        selected_option_implicators = option_implicators.select do |implicator, _|
+          !options["skip_#{implicator}"]
+        end.compact_blank
+
+        skipped_implieds = selected_option_implicators.transform_values do |implieds|
+          implieds.select { |implied| options["skip_#{implied}"] }
+        end.compact_blank
+
+        unless skipped_implieds.empty?
+          implied_options = Hash.new { |h, k| h[k] = [] }
+          skipped_implieds.each do |implicator, implieds|
+            implieds.each { |implied| implied_options[implied] << implicator }
+          end
+
+          say "Based on the specified options, the following options will also be activated:"
+          implied_options.each do |implied, implicators|
+            due_to = implicators.map { |implicator| "--#{implicator.to_s.tr("_", "-")}" }.join(", ")
+            say "* --#{implied.to_s.tr("_", "-")} (due to: #{due_to})"
+          end
+
+          if yes?("Proceed?")
+            self.options = options.merge(implied_options.to_h { |implied, _| ["skip_#{implied}", false] }).freeze
+          else
+            exit(0)
+          end
+        end
+      end
+
+      def expand_implied_options!(option_implicators)
+        option_implicators.each do |implicator, implieds|
+          i = 0
+          while i < implieds.length
+            new_implieds = option_implicators[implieds[i]]
+            if new_implieds
+              unique_new_implieds = new_implieds.select { |implied| !implieds.include?(implied) }
+              implieds.push(*unique_new_implieds)
             end
-            requirement = dependencies[requirement]
+            i += 1
           end
         end
       end
