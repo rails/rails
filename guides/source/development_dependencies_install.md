@@ -160,7 +160,7 @@ use MariaDB instead (see [this announcement](https://www.archlinux.org/news/mari
 To install all run:
 
 ```bash
-$ pkg install sqlite3 mysql80-client mysql80-server postgresql11-client postgresql11-server memcached imagemagick ffmpeg mupdf yarn libxml2 vips poppler-utils
+$ sudo pkg install sqlite3 mysql80-client mysql80-server postgresql11-client postgresql11-server memcached imagemagick6 ffmpeg mupdf yarn libxml2 vips poppler-utils
 # portmaster databases/redis
 ```
 
