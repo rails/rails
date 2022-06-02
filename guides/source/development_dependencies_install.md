@@ -43,8 +43,8 @@ Here's the list of each gems' additional dependencies:
 * Action Cable depends on Redis
 * Active Record depends on SQLite3, MySQL and PostgreSQL
 * Active Storage depends on Yarn (additionally Yarn depends on
-  [Node.js](https://nodejs.org/)), ImageMagick, libvips, FFmpeg, muPDF, and on
-  macOS also XQuartz and Poppler.
+  [Node.js](https://nodejs.org/)), ImageMagick, libvips, FFmpeg, muPDF,
+  Poppler, and on macOS also XQuartz.
 * Active Support depends on memcached and Redis
 * Railties depend on a JavaScript runtime environment, such as having
   [Node.js](https://nodejs.org/) installed.
@@ -119,7 +119,7 @@ To install all run:
 
 ```bash
 $ sudo apt-get update
-$ sudo apt-get install sqlite3 libsqlite3-dev mysql-server libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev libvips42
+$ sudo apt-get install sqlite3 libsqlite3-dev mysql-server libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev libvips42 poppler-utils
 
 # Install Yarn
 $ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
@@ -132,7 +132,7 @@ $ sudo apt-get install yarn
 To install all run:
 
 ```bash
-$ sudo dnf install sqlite-devel sqlite-libs mysql-server mysql-devel postgresql-server postgresql-devel redis memcached imagemagick ffmpeg mupdf libxml2-devel vips
+$ sudo dnf install sqlite-devel sqlite-libs mysql-server mysql-devel postgresql-server postgresql-devel redis memcached imagemagick ffmpeg mupdf libxml2-devel vips poppler-utils
 
 # Install Yarn
 # Use this command if you do not have Node.js installed
@@ -147,7 +147,7 @@ $ sudo dnf install yarn
 To install all run:
 
 ```bash
-$ sudo pacman -S sqlite mariadb libmariadbclient mariadb-clients postgresql postgresql-libs redis memcached imagemagick ffmpeg mupdf mupdf-tools poppler yarn libxml2 libvips
+$ sudo pacman -S sqlite mariadb libmariadbclient mariadb-clients postgresql postgresql-libs redis memcached imagemagick ffmpeg mupdf mupdf-tools poppler yarn libxml2 libvips poppler
 $ sudo mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
 $ sudo systemctl start redis mariadb memcached
 ```
@@ -160,7 +160,7 @@ use MariaDB instead (see [this announcement](https://www.archlinux.org/news/mari
 To install all run:
 
 ```bash
-$ pkg install sqlite3 mysql80-client mysql80-server postgresql11-client postgresql11-server memcached imagemagick ffmpeg mupdf yarn libxml2 vips
+$ sudo pkg install sqlite3 mysql80-client mysql80-server postgresql11-client postgresql11-server memcached imagemagick6 ffmpeg mupdf yarn libxml2 vips poppler-utils
 # portmaster databases/redis
 ```
 
