@@ -158,6 +158,21 @@ module ActiveSupport
         target.class
       end
 
+      def append_features(base)
+        @deprecator.warn(@message, caller_locations)
+        base.include(target)
+      end
+
+      def prepend_features(base)
+        @deprecator.warn(@message, caller_locations)
+        base.prepend(target)
+      end
+
+      def extended(base)
+        @deprecator.warn(@message, caller_locations)
+        base.extend(target)
+      end
+
       private
         def target
           ActiveSupport::Inflector.constantize(@new_const.to_s)
