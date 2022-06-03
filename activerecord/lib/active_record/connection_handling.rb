@@ -55,9 +55,8 @@ module ActiveRecord
     # Connects a model to the databases specified. The +database+ keyword
     # takes a hash consisting of a +role+ and a +database_key+.
     #
-    # This will create a connection handler for switching between connections,
-    # look up the config hash using the +database_key+ and finally
-    # establishes a connection to that config.
+    # This will look up the database config using the +database_key+ and
+    # establish a connection to that config.
     #
     #   class AnimalsModel < ApplicationRecord
     #     self.abstract_class = true
@@ -66,7 +65,7 @@ module ActiveRecord
     #   end
     #
     # +connects_to+ also supports horizontal sharding. The horizontal sharding API
-    # also supports read replicas. Connect a model to a list of shards like this:
+    # supports read replicas as well. You can connect a model to a list of shards like this:
     #
     #   class AnimalsModel < ApplicationRecord
     #     self.abstract_class = true
@@ -89,19 +88,17 @@ module ActiveRecord
 
       database.each do |role, database_key|
         db_config, owner_name = resolve_config_for_connection(database_key)
-        handler = lookup_connection_handler(role.to_sym)
 
         self.connection_class = true
-        connections << handler.establish_connection(db_config, owner_name: owner_name, role: role)
+        connections << connection_handler.establish_connection(db_config, owner_name: owner_name, role: role)
       end
 
       shards.each do |shard, database_keys|
         database_keys.each do |role, database_key|
           db_config, owner_name = resolve_config_for_connection(database_key)
-          handler = lookup_connection_handler(role.to_sym)
 
           self.connection_class = true
-          connections << handler.establish_connection(db_config, owner_name: owner_name, role: role, shard: shard.to_sym)
+          connections << connection_handler.establish_connection(db_config, owner_name: owner_name, role: role, shard: shard.to_sym)
         end
       end
 
@@ -225,23 +222,27 @@ module ActiveRecord
       connected_to(role: current_role, prevent_writes: enabled, &block)
     end
 
-    # Returns true if role is the current connected role.
+    # Returns true if role and/or is the current connected role and/or
+    # current connected shard. If no shard is passed the default will be
+    # used.
     #
     #   ActiveRecord::Base.connected_to(role: :writing) do
     #     ActiveRecord::Base.connected_to?(role: :writing) #=> true
     #     ActiveRecord::Base.connected_to?(role: :reading) #=> false
     #   end
+    #
+    #   ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
+    #     ActiveRecord::Base.connected_to?(role: :reading, shard: :shard_one) #=> true
+    #     ActiveRecord::Base.connected_to?(role: :reading, shard: :default) #=> false
+    #     ActiveRecord::Base.connected_to?(role: :writing, shard: :shard_one) #=> true
+    #   end
     def connected_to?(role:, shard: ActiveRecord::Base.default_shard)
       current_role == role.to_sym && current_shard == shard.to_sym
     end
 
-    def lookup_connection_handler(handler_key) # :nodoc:
-      ActiveRecord::Base.connection_handler
-    end
-
     # Clears the query cache for all connections associated with the current thread.
     def clear_query_caches_for_current_thread
-      ActiveRecord::Base.connection_handler.all_connection_pools.each do |pool|
+      connection_handler.all_connection_pools.each do |pool|
         pool.connection.clear_query_cache if pool.active_connection?
       end
     end
@@ -321,11 +322,6 @@ module ActiveRecord
         [db_config, self]
       end
 
-      def with_handler(handler_key, &blk)
-        handler = lookup_connection_handler(handler_key)
-        swap_connection_handler(handler, &blk)
-      end
-
       def with_role_and_shard(role, shard, prevent_writes)
         prevent_writes = true if role == ActiveRecord.reading_role
 
@@ -343,15 +339,6 @@ module ActiveRecord
         end
 
         connected_to_stack << entry
-      end
-
-      def swap_connection_handler(handler, &blk) # :nodoc:
-        old_handler, ActiveRecord::Base.connection_handler = ActiveRecord::Base.connection_handler, handler
-        return_value = yield
-        return_value.load if return_value.is_a? ActiveRecord::Relation
-        return_value
-      ensure
-        ActiveRecord::Base.connection_handler = old_handler
       end
   end
 end
