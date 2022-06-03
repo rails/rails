@@ -1472,6 +1472,7 @@ So first, we'll wire up the Article show template
                     turbo_method: :delete,
                     turbo_confirm: "Are you sure?"
                   } %></li>
+                  <%= turbo_include_tags %>
 </ul>
 
 <h2>Add a comment:</h2>
