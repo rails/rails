@@ -241,7 +241,9 @@ module ActiveRecord
 
     # Clears the query cache for all connections associated with the current thread.
     def clear_query_caches_for_current_thread
-      clear_on_handler(ActiveRecord::Base.connection_handler)
+      ActiveRecord::Base.connection_handler.all_connection_pools.each do |pool|
+        pool.connection.clear_query_cache if pool.active_connection?
+      end
     end
 
     # Returns the connection currently associated with the class. This can
@@ -309,12 +311,6 @@ module ActiveRecord
       :clear_all_connections!, :flush_idle_connections!, to: :connection_handler
 
     private
-      def clear_on_handler(handler)
-        handler.all_connection_pools.each do |pool|
-          pool.connection.clear_query_cache if pool.active_connection?
-        end
-      end
-
       def resolve_config_for_connection(config_or_env)
         raise "Anonymous class is not allowed." unless name
 
