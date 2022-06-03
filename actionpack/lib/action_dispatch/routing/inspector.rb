@@ -69,7 +69,7 @@ module ActionDispatch
       end
 
       def format(formatter, filter = {})
-        routes_to_display = filter_routes(normalize_filter(filter), application_routes: filter[:application])
+        routes_to_display = filter_routes(normalize_filter(filter))
         routes = collect_routes(routes_to_display)
         if routes.none?
           formatter.no_routes(collect_routes(@routes), filter)
@@ -89,24 +89,36 @@ module ActionDispatch
 
       private
         def normalize_filter(filter)
+          routes_filter = {}
+
           if filter[:controller]
-            { controller: /#{filter[:controller].underscore.sub(/_?controller\z/, "")}/ }
+            routes_filter = { controller: /#{filter[:controller].underscore.sub(/_?controller\z/, "")}/ }
           elsif filter[:grep]
-            { controller: /#{filter[:grep]}/, action: /#{filter[:grep]}/,
+            routes_filter = { controller: /#{filter[:grep]}/, action: /#{filter[:grep]}/,
               verb: /#{filter[:grep]}/, name: /#{filter[:grep]}/, path: /#{filter[:grep]}/ }
           end
+
+          if filter[:application]
+            routes_filter[:application_set] = true
+          end
+
+          routes_filter
         end
 
-        def filter_routes(filter, application_routes: false)
-          @routes = @routes.select { |route| route.application_set } if application_routes
+        def filter_routes(filter)
+          application_route_sets = filter.delete(:application_set)
 
-          if filter
-            @routes.select do |route|
+          routes = @routes.select do |route|
+            application_route_sets ? route.application_set : route
+          end
+
+          if filter.keys.any?
+            routes.select do |route|
               route_wrapper = RouteWrapper.new(route)
               filter.any? { |default, value| value.match?(route_wrapper.send(default)) }
             end
           else
-            @routes
+            routes
           end
         end
 
