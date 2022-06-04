@@ -56,7 +56,11 @@ module ActiveSupport
       end
 
       def verify(purpose)
-        @message if match?(purpose) && fresh?
+        if match?(purpose) && fresh?
+          @message
+        else
+          raise(ActiveSupport::MessageVerifier::InvalidSignature)
+        end
       end
 
       private

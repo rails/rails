@@ -20,8 +20,8 @@ module ActiveSupport
 
         def decrypt_and_verify(*args, on_rotation: @on_rotation, **options)
           super
-        rescue MessageEncryptor::InvalidMessage, MessageVerifier::InvalidSignature
-          run_rotations(on_rotation) { |encryptor| encryptor.decrypt_and_verify(*args, **options) } || raise
+        rescue MessageEncryptor::InvalidMessage, MessageVerifier::InvalidSignature => error
+          run_rotations(on_rotation, error) { |encryptor| encryptor.decrypt_and_verify(*args, **options) }
         end
 
         private
@@ -34,7 +34,9 @@ module ActiveSupport
         include Rotator
 
         def verified(*args, on_rotation: @on_rotation, **options)
-          super || run_rotations(on_rotation) { |verifier| verifier.verified(*args, **options) }
+          super
+        rescue MessageEncryptor::InvalidMessage, MessageVerifier::InvalidSignature => error
+          run_rotations(on_rotation, error) { |verifier| verifier.verified(*args, **options) }
         end
 
         private
@@ -44,13 +46,14 @@ module ActiveSupport
       end
 
       private
-        def run_rotations(on_rotation)
-          @rotations.find do |rotation|
-            if message = yield(rotation) rescue next
-              on_rotation&.call
-              return message
-            end
+        def run_rotations(on_rotation, error = MessageVerifier::InvalidSignature)
+          @rotations.each_with_index do |rotation, index|
+            (message = yield(rotation)) rescue next
+            on_rotation&.call
+            return message
           end
+
+          raise(error)
         end
     end
   end

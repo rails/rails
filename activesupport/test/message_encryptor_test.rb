@@ -157,6 +157,28 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_equal "older", encryptor.decrypt_and_verify(older_message)
   end
 
+  def test_rotations_with_nil
+    old_message = ActiveSupport::MessageEncryptor.new(secrets[:old], "old sign").encrypt_and_sign(nil)
+
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret)
+    encryptor.rotate secrets[:old], "old sign"
+
+    assert_nil encryptor.decrypt_and_verify(encryptor.encrypt_and_sign(nil))
+    assert_nil encryptor.decrypt_and_verify(old_message)
+  end
+
+  def test_rotations_without_passing_expected_secret
+    older_message = ActiveSupport::MessageEncryptor.new(secrets[:older], "older sign").encrypt_and_sign("older")
+    old_message = ActiveSupport::MessageEncryptor.new(secrets[:old], "old sign").encrypt_and_sign("old")
+
+    @encryptor = ActiveSupport::MessageEncryptor.new(@secret)
+    @encryptor.rotate secrets[:old], "old sign"
+
+    assert_equal "new",   @encryptor.decrypt_and_verify(@encryptor.encrypt_and_sign("new"))
+    assert_equal "old",   @encryptor.decrypt_and_verify(old_message)
+    assert_not_verified(older_message)
+  end
+
   def test_on_rotation_is_called_and_returns_modified_messages
     older_message = ActiveSupport::MessageEncryptor.new(secrets[:older], "older sign").encrypt_and_sign({ encoded: "message" })
 

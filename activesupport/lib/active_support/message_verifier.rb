@@ -171,12 +171,18 @@ module ActiveSupport
       if digest_matches_data?(digest, data)
         begin
           message = Messages::Metadata.verify(decode(data), purpose)
-          @serializer.load(message) if message
+          if message
+            return @serializer.load(message)
+          else
+            return message
+          end
         rescue ArgumentError => argument_error
           return if argument_error.message.include?("invalid base64")
           raise
         end
       end
+
+      raise(InvalidSignature)
     end
 
     # Decodes the signed message using the +MessageVerifier+'s secret.
@@ -192,7 +198,7 @@ module ActiveSupport
     #   other_verifier = ActiveSupport::MessageVerifier.new("different_secret")
     #   other_verifier.verify(signed_message) # => ActiveSupport::MessageVerifier::InvalidSignature
     def verify(*args, **options)
-      verified(*args, **options) || raise(InvalidSignature)
+      verified(*args, **options)
     end
 
     # Generates a signed message for the provided value.

@@ -20,10 +20,16 @@ module SharedMessageMetadataTests
     assert_equal data, parse(generate(data, purpose: :registration), purpose: :registration)
   end
 
-  def test_encryption_and_decryption_with_different_purposes_returns_nil
-    assert_nil parse(generate(data, purpose: "payment"), purpose: "sign up")
-    assert_nil parse(generate(data, purpose: "payment"))
-    assert_nil parse(generate(data), purpose: "sign up")
+  def test_encryption_and_decryption_with_different_purposes_returns_exception
+    assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
+      parse(generate(data, purpose: "payment"), purpose: "sign up")
+    end
+    assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
+      parse(generate(data, purpose: "payment"))
+    end
+    assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
+      parse(generate(data), purpose: "sign up")
+    end
   end
 
   def test_purpose_using_symbols
@@ -39,7 +45,9 @@ module SharedMessageMetadataTests
     assert_equal data, parse(encrypted_message)
 
     travel 2.minutes
-    assert_nil parse(encrypted_message)
+    assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
+      parse(encrypted_message)
+    end
   end
 
   def test_set_relative_expiration_date_by_passing_expires_in
@@ -49,7 +57,9 @@ module SharedMessageMetadataTests
     assert_equal data, parse(encrypted_message)
 
     travel 1.hour + 1.second
-    assert_nil parse(encrypted_message)
+    assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
+      assert_nil parse(encrypted_message)
+    end
   end
 
   def test_passing_expires_in_less_than_a_second_is_not_expired
@@ -60,7 +70,9 @@ module SharedMessageMetadataTests
       assert_equal data, parse(encrypted_message)
 
       travel 1.second
-      assert_nil parse(encrypted_message)
+      assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
+        parse(encrypted_message)
+      end
     end
   end
 
@@ -71,7 +83,9 @@ module SharedMessageMetadataTests
     assert_equal data, parse(payment_related_message, purpose: :payment)
 
     travel 1.year + 1.day
-    assert_nil parse(payment_related_message, purpose: "payment")
+    assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
+      parse(payment_related_message, purpose: "payment")
+    end
   end
 
   def test_skip_expires_at_and_expires_in_to_disable_expiration_check

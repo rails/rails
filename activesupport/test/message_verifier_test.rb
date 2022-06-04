@@ -39,8 +39,10 @@ class MessageVerifierTest < ActiveSupport::TestCase
     assert_equal @data, @verifier.verify(message)
   end
 
-  def test_verified_returns_false_on_invalid_message
-    assert_not @verifier.verified("purejunk")
+  def test_verified_returns_exception_on_invalid_message
+    assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
+      @verifier.verified("purejunk")
+    end
   end
 
   def test_verify_exception_on_invalid_message

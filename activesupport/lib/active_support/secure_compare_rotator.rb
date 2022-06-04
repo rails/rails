@@ -39,8 +39,7 @@ module ActiveSupport
 
     def secure_compare!(other_value, on_rotation: @on_rotation)
       secure_compare(@value, other_value) ||
-        run_rotations(on_rotation) { |wrapper| wrapper.secure_compare!(other_value) } ||
-        raise(InvalidMatch)
+        run_rotations(on_rotation, InvalidMatch) { |wrapper| wrapper.secure_compare!(other_value) }
     end
 
     private
