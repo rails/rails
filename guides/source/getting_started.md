@@ -1681,7 +1681,7 @@ Then you make the `app/views/articles/show.html.erb` look like the following:
 <%= render @article.comments %>
 
 <h2>Add a comment:</h2>
-<%= render 'comments/form' %>
+<%= render "comments/form" %>
 ```
 
 The second render just defines the partial template we want to render,
@@ -1753,12 +1753,12 @@ class Article < ApplicationRecord
   validates :title, presence: true
   validates :body, presence: true, length: { minimum: 10 }
 
-  VALID_STATUSES = ['public', 'private', 'archived']
+  VALID_STATUSES = ["public", "private", "archived"]
 
   validates :status, inclusion: { in: VALID_STATUSES }
 
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1769,12 +1769,12 @@ and in the `Comment` model:
 class Comment < ApplicationRecord
   belongs_to :article
 
-  VALID_STATUSES = ['public', 'private', 'archived']
+  VALID_STATUSES = ["public", "private", "archived"]
 
   validates :status, inclusion: { in: VALID_STATUSES }
 
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1822,7 +1822,7 @@ A concern is only responsible for a focused subset of the model's responsibility
 ```ruby
 module Visible
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1833,14 +1833,14 @@ We can add our status validation to the concern, but this is slightly more compl
 module Visible
   extend ActiveSupport::Concern
 
-  VALID_STATUSES = ['public', 'private', 'archived']
+  VALID_STATUSES = ["public", "private", "archived"]
 
   included do
     validates :status, inclusion: { in: VALID_STATUSES }
   end
 
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1877,7 +1877,7 @@ Class methods can also be added to concerns. If we want to display a count of pu
 module Visible
   extend ActiveSupport::Concern
 
-  VALID_STATUSES = ['public', 'private', 'archived']
+  VALID_STATUSES = ["public", "private", "archived"]
 
   included do
     validates :status, inclusion: { in: VALID_STATUSES }
@@ -1885,12 +1885,12 @@ module Visible
 
   class_methods do
     def public_count
-      where(status: 'public').count
+      where(status: "public").count
     end
   end
 
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1920,7 +1920,7 @@ To finish up, we will add a select box to the forms, and let the user select the
 ```html+erb
 <div>
   <%= form.label :status %><br>
-  <%= form.select :status, ['public', 'private', 'archived'], selected: 'public' %>
+  <%= form.select :status, ["public", "private", "archived"], selected: "public" %>
 </div>
 ```
 
@@ -1929,7 +1929,7 @@ and in `app/views/comments/_form.html.erb`:
 ```html+erb
 <p>
   <%= form.label :status %><br>
-  <%= form.select :status, ['public', 'private', 'archived'], selected: 'public' %>
+  <%= form.select :status, ["public", "private", "archived"], selected: "public" %>
 </p>
 ```
 
