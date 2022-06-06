@@ -49,7 +49,7 @@
 
     var guidesIndexItem   = document.querySelector("select.guides-index-item");
     var currentGuidePath  = window.location.pathname;
-    guidesIndexItem.value = currentGuidePath.substring(currentGuidePath.lastIndexOf("/") + 1);
+    guidesIndexItem.value = currentGuidePath.substring(currentGuidePath.lastIndexOf("/") + 1) || 'index.html';
 
     guidesIndexItem.addEventListener("change", function(e) {
       if (Turbolinks.supported) {
