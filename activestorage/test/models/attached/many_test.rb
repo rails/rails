@@ -196,17 +196,19 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   end
 
   test "replacing existing, independent attachments on an existing record via assign and attach" do
-    @user.vlogs.attach create_blob(filename: "funky.mp4"), create_blob(filename: "town.mp4")
+    with_optional_record_columns do
+      @user.vlogs.attach create_blob(filename: "funky.mp4"), create_blob(filename: "town.mp4")
 
-    @user.vlogs = []
-    assert_not @user.vlogs.attached?
+      @user.vlogs = []
+      assert_not @user.vlogs.attached?
 
-    assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
-      @user.vlogs.attach create_blob(filename: "whenever.mp4"), create_blob(filename: "wherever.mp4")
+      assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
+        @user.vlogs.attach create_blob(filename: "whenever.mp4"), create_blob(filename: "wherever.mp4")
+      end
+
+      assert_equal "whenever.mp4", @user.vlogs.first.filename.to_s
+      assert_equal "wherever.mp4", @user.vlogs.second.filename.to_s
     end
-
-    assert_equal "whenever.mp4", @user.vlogs.first.filename.to_s
-    assert_equal "wherever.mp4", @user.vlogs.second.filename.to_s
   end
 
   test "replacing attachments with an empty list" do
@@ -243,14 +245,16 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   end
 
   test "successfully updating an existing record to replace existing, independent attachments" do
-    @user.vlogs.attach create_blob(filename: "funky.mp4"), create_blob(filename: "town.mp4")
+    with_optional_record_columns do
+      @user.vlogs.attach create_blob(filename: "funky.mp4"), create_blob(filename: "town.mp4")
 
-    assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
-      @user.update! vlogs: [ create_blob(filename: "whenever.mp4"), create_blob(filename: "wherever.mp4") ]
+      assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
+        @user.update! vlogs: [ create_blob(filename: "whenever.mp4"), create_blob(filename: "wherever.mp4") ]
+      end
+
+      assert_equal "whenever.mp4", @user.vlogs.first.filename.to_s
+      assert_equal "wherever.mp4", @user.vlogs.second.filename.to_s
     end
-
-    assert_equal "whenever.mp4", @user.vlogs.first.filename.to_s
-    assert_equal "wherever.mp4", @user.vlogs.second.filename.to_s
   end
 
   test "unsuccessfully updating an existing record to replace existing attachments" do
@@ -297,14 +301,16 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   end
 
   test "updating an existing record to remove independent attachments" do
-    [ create_blob(filename: "funky.mp4"), create_blob(filename: "town.mp4") ].tap do |blobs|
-      @user.vlogs.attach blobs
+    with_optional_record_columns do
+      [ create_blob(filename: "funky.mp4"), create_blob(filename: "town.mp4") ].tap do |blobs|
+        @user.vlogs.attach blobs
 
-      assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
-        @user.update! vlogs: []
+        assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
+          @user.update! vlogs: []
+        end
+
+        assert_not @user.vlogs.attached?
       end
-
-      assert_not @user.vlogs.attached?
     end
   end
 
@@ -678,9 +684,13 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     [ create_blob(filename: "funky.mp4"), create_blob(filename: "town.mp4") ].tap do |blobs|
       @user.vlogs.attach blobs
 
+      attachments = @user.vlogs_attachments
+
       assert_no_enqueued_jobs do
         @user.destroy!
       end
+
+      assert attachments.all? { |attachment| ActiveStorage::Attachment.exists?(attachment.id) }
     end
   end
 
