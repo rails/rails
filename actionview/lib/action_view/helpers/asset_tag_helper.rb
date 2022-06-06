@@ -460,7 +460,7 @@ module ActionView
       # Active Storage blobs (videos that are uploaded by the users of your app):
       #
       #   video_tag(user.intro_video)
-      #   # => <img src="/rails/active_storage/blobs/.../intro_video.mp4" />
+      #   # => <video src="/rails/active_storage/blobs/.../intro_video.mp4"></video>
       def video_tag(*sources)
         options = sources.extract_options!.symbolize_keys
         public_poster_folder = options.delete(:poster_skip_pipeline)
@@ -492,7 +492,7 @@ module ActionView
       # Active Storage blobs (audios that are uploaded by the users of your app):
       #
       #   audio_tag(user.name_pronunciation_audio)
-      #   # => <img src="/rails/active_storage/blobs/.../name_pronunciation_audio.mp4" />
+      #   # => <audio src="/rails/active_storage/blobs/.../name_pronunciation_audio.mp3"></audio>
       def audio_tag(*sources)
         multiple_sources_tag_builder("audio", sources)
       end
