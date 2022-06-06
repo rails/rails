@@ -1,3 +1,12 @@
+*   Allow GCS service update_metadata method to set cache_control header
+
+    Previously, the update_metadata method in `ActiveStorage::Service::GCSService`
+    did not allow for updating the `"Cache-Control"` header on the service.
+    Now, update_metadata takes an argument `cache_control` that correctly
+    updates the `"Cache-Control"` header for the file on Google Cloud Storage.
+
+    *Texas Delaney*
+
 *   Raise an exception if `config.active_storage.service` is not set.
 
     If Active Storage is configured and `config.active_storage.service` is not

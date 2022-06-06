@@ -43,11 +43,12 @@ module ActiveStorage
       end
     end
 
-    def update_metadata(key, content_type:, disposition: nil, filename: nil, custom_metadata: {})
+    def update_metadata(key, content_type:, disposition: nil, filename: nil, cache_control: nil, custom_metadata: {})
       instrument :update_metadata, key: key, content_type: content_type, disposition: disposition do
         file_for(key).update do |file|
           file.content_type = content_type
           file.content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
+          file.cache_control = cache_control if cache_control
           file.metadata = custom_metadata
         end
       end
