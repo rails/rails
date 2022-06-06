@@ -86,6 +86,13 @@ module ActiveStorage
       end
     end
 
+    def move(source_key, target_key)
+      instrument :move, source_key: source_key, target_key: target_key do
+        client.copy_blob(container, target_key, container, source_key)
+        client.delete_blob(container, source_key)
+      end
+    end
+
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:, custom_metadata: {})
       instrument :url, key: key do |payload|
         generated_url = signer.signed_uri(

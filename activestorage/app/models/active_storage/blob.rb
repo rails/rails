@@ -158,6 +158,16 @@ class ActiveStorage::Blob < ActiveStorage::Record
         combined_blob.save!
       end
     end
+
+    # Interpolates the custom storage key if needed and appends to it a unique_secure_token
+    def generate_unique_interpolated_secure_key(key:, record:, blob:, length: MINIMUM_TOKEN_LENGTH)
+      interpolated_key = key.gsub(/:(\w+)/) do |key_part|
+        key_part = key_part.delete_prefix(":")
+        ActiveStorage.key_interpolation_procs[key_part.to_sym].call(record, blob)
+      end
+
+      interpolated_key.concat("/", generate_unique_secure_token(length: length))
+    end
   end
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
@@ -310,6 +320,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   def mirror_later # :nodoc:
     ActiveStorage::MirrorJob.perform_later(key, checksum: checksum) if service.respond_to?(:mirror)
+  end
+
+  def move_to!(target_key)
+    service.move(key, target_key)
+    update_columns(key: target_key)
   end
 
   # Deletes the files on the service associated with the blob. This should only be done if the blob is going to be

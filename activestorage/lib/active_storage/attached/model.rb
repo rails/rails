@@ -47,8 +47,17 @@ module ActiveStorage
       #     has_one_attached :avatar, strict_loading: true
       #   end
       #
-      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
+      # If you need the attachment to have a specific storage path, on a Model level (other than the global 'route_prefix'),
+      # pass the +:key+ option. For instance:
+      #
+      #   class User < ActiveRecord::Base
+      #     has_one_attached :avatar, key: 'tenant/:tenant_subdomain/users/:record_id/avatar'
+      #   end
+      #
+      #
+      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false, key: nil)
         validate_service_configuration(name, service)
+        validate_key_interpolations(name, key)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           # frozen_string_literal: true
@@ -62,7 +71,7 @@ module ActiveStorage
               if attachable.nil?
                 ActiveStorage::Attached::Changes::DeleteOne.new("#{name}", self)
               else
-                ActiveStorage::Attached::Changes::CreateOne.new("#{name}", self, attachable)
+                ActiveStorage::Attached::Changes::CreateOne.new("#{name}", self, attachable, "#{key}")
               end
           end
         CODE
@@ -126,8 +135,16 @@ module ActiveStorage
       #     has_many_attached :photos, strict_loading: true
       #   end
       #
-      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
+      # If you need the attachments to have a specific storage path, on a Model level (other than the global 'route_prefix'),
+      # pass the +:key+ option. For instance:
+      #
+      #   class User < ActiveRecord::Base
+      #     has_many_attached :photos, key: 'tenant/:tenant_subdomain/users/:record_id/photos'
+      #   end
+      #
+      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false, key: nil)
         validate_service_configuration(name, service)
+        validate_key_interpolations(name, key)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           # frozen_string_literal: true
@@ -144,7 +161,7 @@ module ActiveStorage
                 if attachables.none?
                   ActiveStorage::Attached::Changes::DeleteMany.new("#{name}", self)
                 else
-                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables)
+                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables, "#{key}")
                 end
             else
               ActiveSupport::Deprecation.warn \
@@ -155,7 +172,7 @@ module ActiveStorage
 
               if attachables.any?
                 attachment_changes["#{name}"] =
-                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, #{name}.blobs + attachables)
+                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, #{name}.blobs + attachables, "#{key}")
               end
             end
           end
@@ -223,6 +240,17 @@ module ActiveStorage
         def validate_global_service_configuration
           if connected? && ActiveStorage::Blob.table_exists? && Rails.configuration.active_storage.service.nil?
             raise RuntimeError, "Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config/environments/#{Rails.env}.rb"
+          end
+        end
+
+        def validate_key_interpolations(association_name, key)
+          return if key.blank?
+
+          key.scan(/:(\w+)/) do
+            key_part = $1.to_sym
+            unless ActiveStorage.key_interpolation_procs.keys.include?(key_part)
+              raise ArgumentError, "Cannot configure #{key_part} in interpolation key '#{key}' for #{name}##{association_name}"
+            end
           end
         end
     end
