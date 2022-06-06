@@ -108,7 +108,7 @@ module Rails
           end
       end
 
-      Behaviour = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("behavior", "Behavior")
+      Behaviour = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Behaviour", "Behavior")
     end
   end
 end
