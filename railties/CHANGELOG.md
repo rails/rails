@@ -1,3 +1,11 @@
+*   Fixed `config.active_support.cache_format_version` never being applied.
+
+    Rails 7.0 shipped with a new serializer for Rails.cache, but the associated config
+    wasn't working properly. Note that even after this fix, it can only be applied from
+    the `application.rb` file.
+
+    *Alex Ghiculescu*
+
 ## Rails 7.0.3 (May 09, 2022) ##
 
 *   If reloading and eager loading are both enabled, after a reload Rails eager loads again the application code.

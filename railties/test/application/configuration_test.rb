@@ -1712,6 +1712,24 @@ module ApplicationTests
       assert_equal Rails.application.config.paths["log"].first, app.config.default_log_file.path
     end
 
+    test "config.log_file_size returns a 100MB size number in development" do
+      app "development"
+
+      assert_equal 100.megabytes, app.config.log_file_size
+    end
+
+    test "config.log_file_size returns a 100MB size number in test" do
+      app "test"
+
+      assert_equal 100.megabytes, app.config.log_file_size
+    end
+
+    test "config.log_file_size returns no limit in production" do
+      app "production"
+
+      assert_nil app.config.log_file_size
+    end
+
     test "rake_tasks block works at instance level" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
@@ -3592,6 +3610,52 @@ module ApplicationTests
 
       app "development"
       assert_equal :fiber, ActiveSupport::IsolatedExecutionState.isolation_level
+    end
+
+    test "cache_format_version in a new app" do
+      add_to_config <<-RUBY
+        config.cache_store = :null_store
+      RUBY
+      app "development"
+
+      assert_equal ActiveSupport::Cache::Coders::Rails70Coder, Rails.cache.instance_variable_get(:@coder)
+    end
+
+    test "cache_format_version with explicit 7.0 defaults" do
+      add_to_config <<-RUBY
+        config.cache_store = :null_store
+      RUBY
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app "development"
+
+      assert_equal ActiveSupport::Cache::Coders::Rails70Coder, Rails.cache.instance_variable_get(:@coder)
+    end
+
+    test "cache_format_version with 6.1 defaults" do
+      add_to_config <<-RUBY
+        config.cache_store = :null_store
+      RUBY
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+      app "development"
+
+      assert_equal ActiveSupport::Cache::Coders::Rails61Coder, Rails.cache.instance_variable_get(:@coder)
+    end
+
+    test "cache_format_version **cannot** be set via new framework defaults" do
+      add_to_config <<-RUBY
+        config.cache_store = :null_store
+      RUBY
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+        Rails.application.config.active_support.cache_format_version = 7.0
+      RUBY
+
+      app "development"
+
+      assert_equal ActiveSupport::Cache::Coders::Rails61Coder, Rails.cache.instance_variable_get(:@coder)
     end
 
     private
