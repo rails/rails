@@ -30,6 +30,14 @@ class ClientTest < ActionCable::TestCase
   WAIT_WHEN_EXPECTING_EVENT = 2
   WAIT_WHEN_NOT_EXPECTING_EVENT = 0.5
 
+  class Connection < ActionCable::Connection::Base
+    identified_by :id
+
+    def connect
+      self.id = request.params["id"] || SecureRandom.hex(4)
+    end
+  end
+
   class EchoChannel < ActionCable::Channel::Base
     def subscribed
       stream_from "global"
@@ -59,6 +67,7 @@ class ClientTest < ActionCable::TestCase
     server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
     server.config.cable = ActiveSupport::HashWithIndifferentAccess.new(adapter: "async")
+    server.config.connection_class = -> { ClientTest::Connection }
 
     # and now the "real" setup for our test:
     server.config.disable_request_forgery_protection = true
@@ -102,7 +111,7 @@ class ClientTest < ActionCable::TestCase
   class SyncClient
     attr_reader :pings
 
-    def initialize(port)
+    def initialize(port, path = "/")
       messages = @messages = Queue.new
       closed = @closed = Concurrent::Event.new
       has_messages = @has_messages = Concurrent::Semaphore.new(0)
@@ -110,7 +119,7 @@ class ClientTest < ActionCable::TestCase
 
       open = Concurrent::Promise.new
 
-      @ws = WebSocket::Client::Simple.connect("ws://127.0.0.1:#{port}/") do |ws|
+      @ws = WebSocket::Client::Simple.connect("ws://127.0.0.1:#{port}#{path}") do |ws|
         ws.on(:error) do |event|
           event = RuntimeError.new(event.message) unless event.is_a?(Exception)
 
@@ -196,8 +205,8 @@ class ClientTest < ActionCable::TestCase
     end
   end
 
-  def websocket_client(port)
-    SyncClient.new(port)
+  def websocket_client(*args)
+    SyncClient.new(*args)
   end
 
   def concurrently(enum)
@@ -284,7 +293,6 @@ class ClientTest < ActionCable::TestCase
       c.send_message command: "subscribe", identifier: identifier
       assert_equal({ "identifier" => "{\"channel\":\"ClientTest::EchoChannel\"}", "type" => "confirm_subscription" }, c.read_message)
       assert_equal(1, app.connections.count)
-      assert(app.remote_connections.where(identifier: identifier))
 
       subscriptions = app.connections.first.subscriptions.send(:subscriptions)
       assert_not_equal 0, subscriptions.size, "Missing EchoChannel subscription"
@@ -296,6 +304,40 @@ class ClientTest < ActionCable::TestCase
 
       # All data is removed: No more connection or subscription information!
       assert_equal(0, app.connections.count)
+    end
+  end
+
+  def test_remote_disconnect_client
+    with_puma_server do |port|
+      app = ActionCable.server
+
+      c = websocket_client(port, "/?id=1")
+      assert_equal({ "type" => "welcome" }, c.read_message)
+
+      sleep 0.1 # make sure connections is registered
+      app.remote_connections.where(id: "1").disconnect
+
+      assert_equal({ "type" => "disconnect", "reason" => "remote", "reconnect" => true }, c.read_message)
+
+      c.wait_for_close
+      assert(c.closed?)
+    end
+  end
+
+  def test_remote_disconnect_client_with_reconnect
+    with_puma_server do |port|
+      app = ActionCable.server
+
+      c = websocket_client(port, "/?id=2")
+      assert_equal({ "type" => "welcome" }, c.read_message)
+
+      sleep 0.1 # make sure connections is registered
+      app.remote_connections.where(id: "2").disconnect(reconnect: false)
+
+      assert_equal({ "type" => "disconnect", "reason" => "remote", "reconnect" => false }, c.read_message)
+
+      c.wait_for_close
+      assert(c.closed?)
     end
   end
 

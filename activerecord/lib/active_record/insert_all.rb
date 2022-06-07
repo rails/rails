@@ -10,14 +10,17 @@ module ActiveRecord
     def initialize(model, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
-      @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s)
+      @model, @connection, @inserts = model, model.connection, inserts
       @on_duplicate, @update_only, @returning, @unique_by = on_duplicate, update_only, returning, unique_by
       @record_timestamps = record_timestamps.nil? ? model.record_timestamps : record_timestamps
 
       disallow_raw_sql!(on_duplicate)
       disallow_raw_sql!(returning)
 
+      resolve_attribute_aliases
       configure_on_duplicate_update_logic
+
+      @keys = @inserts.first.keys.map(&:to_s)
 
       if model.scope_attributes?
         @scope_attributes = model.scope_attributes
@@ -28,7 +31,7 @@ module ActiveRecord
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
 
-      @unique_by = find_unique_index_for(unique_by)
+      @unique_by = find_unique_index_for(@unique_by)
       @on_duplicate = :skip if @on_duplicate == :update && updatable_columns.empty?
 
       ensure_valid_options_for_connection!
@@ -87,6 +90,25 @@ module ActiveRecord
 
     private
       attr_reader :scope_attributes
+
+      def has_attribute_aliases?(attributes)
+        attributes.keys.any? { |attribute| model.attribute_alias?(attribute) }
+      end
+
+      def resolve_attribute_aliases
+        return unless has_attribute_aliases?(@inserts.first)
+
+        @inserts = @inserts.map do |insert|
+          insert.transform_keys { |attribute| resolve_attribute_alias(attribute) }
+        end
+
+        @update_only = Array(@update_only).map { |attribute| resolve_attribute_alias(attribute) } if @update_only
+        @unique_by = Array(@unique_by).map { |attribute| resolve_attribute_alias(attribute) } if @unique_by
+      end
+
+      def resolve_attribute_alias(attribute)
+        model.attribute_alias(attribute) || attribute
+      end
 
       def configure_on_duplicate_update_logic
         if custom_update_sql_provided? && update_only.present?
@@ -212,7 +234,13 @@ module ActiveRecord
           if insert_all.returning.is_a?(String)
             insert_all.returning
           else
-            format_columns(insert_all.returning)
+            Array(insert_all.returning).map do |attribute|
+              if model.attribute_alias?(attribute)
+                "#{quote_column(model.attribute_alias(attribute))} AS #{quote_column(attribute)}"
+              else
+                quote_column(attribute)
+              end
+            end.join(",")
           end
         end
 
@@ -271,7 +299,11 @@ module ActiveRecord
           end
 
           def quote_columns(columns)
-            columns.map(&connection.method(:quote_column_name))
+            columns.map { |column| quote_column(column) }
+          end
+
+          def quote_column(column)
+            connection.quote_column_name(column)
           end
       end
   end

@@ -21,7 +21,7 @@ module Rails
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
-                    :rake_eager_load, :server_timing
+                    :rake_eager_load, :server_timing, :log_file_size
 
       attr_reader :encoding, :api_only, :loaded_config_version
 
@@ -49,6 +49,7 @@ module Rails
         @time_zone                               = "UTC"
         @beginning_of_week                       = :monday
         @log_level                               = :debug
+        @log_file_size                           = nil
         @generators                              = app_generators
         @cache_store                             = [ :file_store, "#{root}/tmp/cache/" ]
         @railties_order                          = [:all]
@@ -83,7 +84,7 @@ module Rails
 
       # Loads default configuration values for a target version. This includes
       # defaults for versions prior to the target version. See the
-      # {configuration guide}[https://guides.rubyonrails.org/configuring.html]
+      # {configuration guide}[https://guides.rubyonrails.org/configuring.html#versioned-default-values]
       # for the default values associated with a particular version.
       def load_defaults(target_version)
         case target_version.to_s
@@ -259,6 +260,10 @@ module Rails
           load_defaults "7.0"
 
           self.add_autoload_paths_to_load_path = false
+
+          if Rails.env.development? || Rails.env.test?
+            self.log_file_size = (100 * 1024 * 1024)
+          end
 
           if respond_to?(:action_dispatch)
             action_dispatch.default_headers = {

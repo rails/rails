@@ -96,18 +96,11 @@ module ActiveRecord
       #   # Check an index with a custom name exists
       #   index_exists?(:suppliers, :company_id, name: "idx_company_id")
       #
+      #   # Check a valid index exists (PostgreSQL only)
+      #   index_exists?(:suppliers, :company_id, valid: true)
+      #
       def index_exists?(table_name, column_name, **options)
-        checks = []
-
-        if column_name.present?
-          column_names = Array(column_name).map(&:to_s)
-          checks << lambda { |i| Array(i.columns) == column_names }
-        end
-
-        checks << lambda { |i| i.unique } if options[:unique]
-        checks << lambda { |i| i.name == options[:name].to_s } if options[:name]
-
-        indexes(table_name).any? { |i| checks.all? { |check| check[i] } }
+        indexes(table_name).any? { |i| i.defined_for?(column_name, **options) }
       end
 
       # Returns an array of +Column+ objects for the table specified by +table_name+.
@@ -396,14 +389,14 @@ module ActiveRecord
       end
 
       # Drops the join table specified by the given arguments.
-      # See #create_join_table for details.
+      # See #create_join_table and #drop_table for details.
       #
       # Although this command ignores the block if one is given, it can be helpful
       # to provide one in a migration's +change+ method so it can be reverted.
       # In that case, the block will be used by #create_join_table.
       def drop_join_table(table_1, table_2, **options)
         join_table_name = find_join_table_name(table_1, table_2, options)
-        drop_table(join_table_name)
+        drop_table(join_table_name, **options)
       end
 
       # A block for changing columns in +table+.
@@ -1615,7 +1608,7 @@ module ActiveRecord
 
             if respond_to?(method, true)
               sqls, procs = Array(send(method, table, *arguments)).partition { |v| v.is_a?(String) }
-              sql_fragments << sqls
+              sql_fragments.concat(sqls)
               non_combinable_operations.concat(procs)
             else
               execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?

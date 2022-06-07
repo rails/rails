@@ -120,6 +120,17 @@ class FormatValidationTest < ActiveModel::TestCase
     assert_predicate t, :valid?
   end
 
+  def test_validates_format_of_with_lambda_without_arguments
+    Topic.validates_format_of :title, with: lambda { /\A[A-Z]/ }
+
+    t = Topic.new
+    t.title = "lowercase"
+    assert_predicate t, :invalid?
+
+    t.title = "Titleized"
+    assert_predicate t, :valid?
+  end
+
   def test_validates_format_of_without_lambda
     Topic.validates_format_of :content, without: lambda { |topic| topic.title == "characters" ? /\A\d+\z/ : /\A\S+\z/ }
 
@@ -129,6 +140,17 @@ class FormatValidationTest < ActiveModel::TestCase
     assert_predicate t, :invalid?
 
     t.content = "Pixies"
+    assert_predicate t, :valid?
+  end
+
+  def test_validates_format_of_without_lambda_without_arguments
+    Topic.validates_format_of :title, without: lambda { /\d/ }
+
+    t = Topic.new
+    t.title = "With number 123"
+    assert_predicate t, :invalid?
+
+    t.title = "Without number"
     assert_predicate t, :valid?
   end
 

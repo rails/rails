@@ -4,6 +4,81 @@
 
     *Christian Schmidt*
 
+*   Fix Hstore deserialize regression.
+
+    *edsharp*
+
+*   Add validity for PostgreSQL indexes.
+
+    ```ruby
+    connection.index_exists?(:users, :email, valid: true)
+    connection.indexes(:users).select(&:valid?)
+    ```
+
+    *fatkodima*
+
+*   Fix eager loading for models without primary keys.
+
+    *Anmol Chopra*, *Matt Lawrence*, and *Jonathan Hefner*
+
+*   Avoid validating a unique field if it has not changed and is backed by a unique index.
+
+    Previously, when saving a record, ActiveRecord will perform an extra query to check for the uniqueness of
+    each attribute having a `uniqueness` validation, even if that attribute hasn't changed.
+    If the database has the corresponding unique index, then this validation can never fail for persisted records,
+    and we could safely skip it.
+
+    *fatkodima*
+
+*   Stop setting `sql_auto_is_null`
+
+    Since version 5.5 the default has been off, we no longer have to manually turn it off.
+
+    *Adam Hess*
+
+*   Fix `touch` to raise an error for readonly columns.
+
+    *fatkodima*
+
+*   Add ability to ignore tables by regexp for SQL schema dumps.
+
+    ```ruby
+    ActiveRecord::SchemaDumper.ignore_tables = [/^_/]
+    ```
+
+    *fatkodima*
+
+*   Avoid queries when performing calculations on contradictory relations.
+
+    Previously calculations would make a query even when passed a
+    contradiction, such as `User.where(id: []).count`. We no longer perform a
+    query in that scenario.
+
+    This applies to the following calculations: `count`, `sum`, `average`,
+    `minimum` and `maximum`
+
+    *Luan Vieira, John Hawthorn and Daniel Colson*
+
+*   Allow using aliased attributes with `insert_all`/`upsert_all`.
+
+    ```ruby
+    class Book < ApplicationRecord
+      alias_attribute :title, :name
+    end
+
+    Book.insert_all [{ title: "Remote", author_id: 1 }], returning: :title
+    ```
+
+    *fatkodima*
+
+*   Support encrypted attributes on columns with default db values.
+
+    This adds support for encrypted attributes defined on columns with default values.
+    It will encrypt those values at creation time. Before, it would raise an
+    error unless `config.active_record.encryption.support_unencrypted_data` was true.
+
+    *Jorge Manrubia* and *Dima Fatko*
+
 *   Allow overriding `reading_request?` in `DatabaseSelector::Resolver`
 
     The default implementation checks if a request is a `get?` or `head?`,
@@ -138,7 +213,6 @@
     out connections from the pool.
 
     *Alex Matchneer*
->>>>>>> origin/main
 
 *   Add `update_attribute!` to `ActiveRecord::Persistence`
 

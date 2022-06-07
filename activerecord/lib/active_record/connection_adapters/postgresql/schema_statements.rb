@@ -88,7 +88,7 @@ module ActiveRecord
 
           result = query(<<~SQL, "SCHEMA")
             SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid,
-                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment
+                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment, d.indisvalid
             FROM pg_class t
             INNER JOIN pg_index d ON t.oid = d.indrelid
             INNER JOIN pg_class i ON d.indexrelid = i.oid
@@ -107,6 +107,7 @@ module ActiveRecord
             inddef = row[3]
             oid = row[4]
             comment = row[5]
+            valid = row[6]
 
             using, expressions, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: WHERE (.+))?\z/m).flatten
 
@@ -125,7 +126,7 @@ module ActiveRecord
 
               # add info on sort order (only desc order is explicitly specified, asc is the default)
               # and non-default opclasses
-              expressions.scan(/(?<column>\w+)"?\s?(?<opclass>\w+_ops)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/).each do |column, opclass, desc, nulls|
+              expressions.scan(/(?<column>\w+)"?\s?(?<opclass>\w+_ops(_\w+)?)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/).each do |column, opclass, desc, nulls|
                 opclasses[column] = opclass.to_sym if opclass
                 if nulls
                   orders[column] = [desc, nulls].compact.join(" ")
@@ -144,7 +145,8 @@ module ActiveRecord
               opclasses: opclasses,
               where: where,
               using: using.to_sym,
-              comment: comment.presence
+              comment: comment.presence,
+              valid: valid
             )
           end
         end
@@ -417,7 +419,7 @@ module ActiveRecord
             column = column_for(table_name, column_name)
             execute "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_expression(default, column)} WHERE #{quote_column_name(column_name)} IS NULL" if column
           end
-          execute "ALTER TABLE #{quote_table_name(table_name)} #{change_column_null_for_alter(table_name, column_name, null, default)}"
+          execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
         end
 
         # Adds comment for given table column or drops it if +comment+ is a +nil+
@@ -758,7 +760,11 @@ module ActiveRecord
           end
 
           def change_column_null_for_alter(table_name, column_name, null, default = nil)
-            "ALTER COLUMN #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
+            if default.nil?
+              "ALTER COLUMN #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
+            else
+              Proc.new { change_column_null(table_name, column_name, null, default) }
+            end
           end
 
           def add_index_opclass(quoted_columns, **options)

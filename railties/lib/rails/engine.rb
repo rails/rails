@@ -494,8 +494,7 @@ module Rails
     def helpers
       @helpers ||= begin
         helpers = Module.new
-        all = ActionController::Base.all_helpers_from_path(helpers_paths)
-        ActionController::Base.modules_for_helpers(all).each do |mod|
+        AbstractController::Helpers.helper_modules_from_paths(helpers_paths).each do |mod|
           helpers.include(mod)
         end
         helpers

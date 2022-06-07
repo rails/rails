@@ -639,10 +639,10 @@ end
 get('my_action.csv')
 ```
 
-Previous behaviour was returning a `text/csv` response's Content-Type which is inaccurate since a JSON response is being rendered.
-Current behaviour correctly returns a `application/json` response's Content-Type.
+Previous behavior was returning a `text/csv` response's Content-Type which is inaccurate since a JSON response is being rendered.
+Current behavior correctly returns a `application/json` response's Content-Type.
 
-If your application relies on the previous incorrect behaviour, you are encouraged to specify
+If your application relies on the previous incorrect behavior, you are encouraged to specify
 which formats your action accepts, i.e.
 
 ```ruby
@@ -833,6 +833,23 @@ resp = ActionDispatch::Response.new(200, "Content-Type" => "text/csv; header=pre
 resp.content_type #=> "text/csv; header=present; charset=utf-16"
 resp.media_type   #=> "text/csv"
 ```
+
+### New `config.hosts` setting
+
+Rails now has a new `config.hosts` setting for security purposes. This setting
+defaults to `localhost` in development. If you use other domains in development
+you need to allow them like this:
+
+```ruby
+# config/environments/development.rb
+
+config.hosts << 'dev.myapp.com'
+config.hosts << /[a-z0-9-]+\.myapp\.com/ # Optionally, regexp is allowed as well
+```
+
+For other environments `config.hosts` is empty by default, which means Rails
+won't validate the host at all. You can optionally add them if you want to
+validate it in production.
 
 ### Autoloading
 

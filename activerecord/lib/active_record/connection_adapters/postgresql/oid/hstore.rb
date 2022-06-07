@@ -26,7 +26,7 @@ module ActiveRecord
                 raise(ArgumentError, ERROR % scanner.string.inspect)
               end
 
-              unless key = scanner.scan_until(/(?<!\\)(?=")/)
+              unless key = scanner.scan(/^(\\[\\"]|[^\\"])*?(?=")/)
                 raise(ArgumentError, ERROR % scanner.string.inspect)
               end
 
@@ -41,7 +41,7 @@ module ActiveRecord
                   raise(ArgumentError, ERROR % scanner.string.inspect)
                 end
 
-                unless value = scanner.scan_until(/(?<!\\)(?=")/)
+                unless value = scanner.scan(/^(\\[\\"]|[^\\"])*?(?=")/)
                   raise(ArgumentError, ERROR % scanner.string.inspect)
                 end
 

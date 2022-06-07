@@ -1,3 +1,24 @@
+*   Allow using `helper_method`s in `content_security_policy` and `permissions_policy`
+
+    Previously you could access basic helpers (defined in helper modules), but not
+    helper methods defined using `helper_method`. Now you can use either.
+
+    ```ruby
+    content_security_policy do |p|
+      p.default_src "https://example.com"
+      p.script_src "https://example.com" if helpers.script_csp?
+    end
+    ```
+
+    *Alex Ghiculescu*
+
+*   Reimplement `ActionController::Parameters#has_value?` and `#value?` to avoid parameters and hashes comparison.
+
+    Deprecated equality between parameters and hashes is going to be removed in Rails 7.2.
+    The new implementation takes care of conversions.
+
+    *Seva Stefkin*
+
 *   Allow only String and Symbol keys in `ActionController::Parameters`.
     Raise `ActionController::InvalidParameterKey` when initializing Parameters
     with keys that aren't strings or symbols.
@@ -7,7 +28,7 @@
 *   Add the ability to use custom logic for storing and retrieving CSRF tokens.
 
     By default, the token will be stored in the session.  Custom classes can be
-    defined to specify arbitrary behaviour, but the ability to store them in
+    defined to specify arbitrary behavior, but the ability to store them in
     encrypted cookies is built in.
 
     *Andrew Kowpak*

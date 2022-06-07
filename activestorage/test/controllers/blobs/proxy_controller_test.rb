@@ -85,6 +85,14 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
       )
     end
   end
+
+  test "uses a Live::Response" do
+    # This tests for a regression of #45102. If the controller doesn't respond
+    # with a ActionController::Live::Response, it will serve corrupted files
+    # over 5mb when using S3 services.
+    request = ActionController::TestRequest.create({})
+    assert_instance_of ActionController::Live::Response, ActiveStorage::Blobs::ProxyController.make_response!(request)
+  end
 end
 
 class ActiveStorage::Blobs::ExpiringProxyControllerTest < ActionDispatch::IntegrationTest

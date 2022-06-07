@@ -753,6 +753,20 @@ module ApplicationTests
         db_migrate_and_schema_cache_dump
       end
 
+      test "db:prepare setup the database even if schema does not exist" do
+        Dir.chdir(app_path) do
+          use_postgresql(multi_db: true) # bug doesn't exist with sqlite3
+          output = rails("db:drop")
+          assert_match(/Dropped database/, output)
+
+          rails "generate", "model", "recipe", "title:string"
+          output = rails("db:prepare")
+          assert_match(/CreateRecipes: migrated/, output)
+        end
+      ensure
+        rails "db:drop" rescue nil
+      end
+
       # Note that schema cache loader depends on the connection and
       # does not work for all connections.
       test "schema_cache is loaded on primary db in multi-db app" do

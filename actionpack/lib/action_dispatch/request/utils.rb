@@ -83,6 +83,9 @@ module ActionDispatch
           return params unless controller && controller.valid_encoding? && encoding_template = action_encoding_template(request, controller, action)
           params.except(:controller, :action).each do |key, value|
             ActionDispatch::Request::Utils.each_param_value(value) do |param|
+              # If `param` is frozen, it comes from the router defaults
+              next if param.frozen?
+
               if encoding_template[key.to_s]
                 param.force_encoding(encoding_template[key.to_s])
               end

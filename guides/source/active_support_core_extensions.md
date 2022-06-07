@@ -1691,8 +1691,8 @@ To preserve the case of the string, set the `preserve_case` argument to true. By
 To use a custom separator, override the `separator` argument.
 
 ```ruby
-"John Smith".parameterize(separator: "_") # => "john\_smith"
-"Kurt Gödel".parameterize(separator: "_") # => "kurt\_godel"
+"John Smith".parameterize(separator: "_") # => "john_smith"
+"Kurt Gödel".parameterize(separator: "_") # => "kurt_godel"
 ```
 
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.

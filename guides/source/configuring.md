@@ -65,6 +65,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_support.default_message_encryptor_serializer`](#config-active-support-default-message-encryptor-serializer): `:json`
 - [`config.active_support.default_message_verifier_serializer`](#config-active-support-default-message-verifier-serializer): `:json`
 - [`config.action_controller.allow_deprecated_parameters_hash_equality`](#config-action-controller-allow-deprecated-parameters-hash-equality): `false`
+- [`config.log_file_size`](#config-log-file-size): `100.megabytes`
 
 #### Default Values for Target Version 7.0
 
@@ -272,6 +273,10 @@ Forces all requests to be served over HTTPS, and sets "https://" as the default 
 #### `config.javascript_path`
 
 Sets the path where your app's JavaScript lives relative to the `app` directory. The default is `javascript`, used by [webpacker](https://github.com/rails/webpacker). An app's configured `javascript_path` will be excluded from `autoload_paths`.
+
+#### `config.log_file_size`
+
+Defines the maximum size of the Rails log file. Defaults to 100 MB in development and test, and unlimited in all other environments.
 
 #### `config.log_formatter`
 
@@ -1160,7 +1165,7 @@ the top level, or on individual controllers.
 
 #### `config.action_controller.allow_deprecated_parameters_hash_equality`
 
-Controls behaviour of `ActionController::Parameters#==` with `Hash` arguments.
+Controls behavior of `ActionController::Parameters#==` with `Hash` arguments.
 Value of the setting determines whether an `ActionController::Parameters` instance is equal to an equivalent `Hash`.
 
 The default value depends on the `config.load_defaults` target version:
@@ -2107,7 +2112,7 @@ can transform through ImageMagick.
 By default, this is defined as:
 
 ```ruby
-config.active_storage.variable_content_types = %w(image/png image/gif image/jpeg image/tiff image/vnd.adobe.photoshop image/vnd.microsoft.icon image/webp image/avif image/heic image/heif)
+config.active_storage.variable_content_types = %w(image/png image/gif image/jpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon image/webp image/avif image/heic image/heif)
 ```
 
 #### `config.active_storage.web_image_content_types`
@@ -2774,7 +2779,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `active_record.initialize_database`: Loads the database configuration (by default) from `config/database.yml` and establishes a connection for the current environment.
 
-* `active_record.log_runtime`: Includes `ActiveRecord::Railties::ControllerRuntime` which is responsible for reporting the time taken by Active Record calls for the request back to the logger.
+* `active_record.log_runtime`: Includes `ActiveRecord::Railties::ControllerRuntime` and `ActiveRecord::Railties::JobRuntime` which are responsible for reporting the time taken by Active Record calls for the request back to the logger.
 
 * `active_record.set_reloader_hooks`: Resets all reloadable connections to the database if `config.enable_reloading` is set to `true`.
 

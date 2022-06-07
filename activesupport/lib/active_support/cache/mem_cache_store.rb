@@ -129,28 +129,50 @@ module ActiveSupport
         end
       end
 
-      # Increment a cached value. This method uses the memcached incr atomic
-      # operator and can only be used on values written with the +:raw+ option.
-      # Calling it on a value not stored with +:raw+ will initialize that value
-      # to zero.
+      # Increment a cached integer value using the memcached incr atomic operator.
+      # Returns the updated value.
+      #
+      # If the key is unset or has expired, it will be set to +amount+:
+      #
+      #   cache.increment("foo") # => 1
+      #   cache.increment("bar", 100) # => 100
+      #
+      # To set a specific value, call #write passing <tt>raw: true</tt>:
+      #
+      #   cache.write("baz", 5, raw: true)
+      #   cache.increment("baz") # => 6
+      #
+      # Incrementing a non-numeric value, or a value written without
+      # <tt>raw: true</tt>, will fail and return +nil+.
       def increment(name, amount = 1, options = nil)
         options = merged_options(options)
         instrument(:increment, name, amount: amount) do
           rescue_error_with nil do
-            @data.with { |c| c.incr(normalize_key(name, options), amount, options[:expires_in]) }
+            @data.with { |c| c.incr(normalize_key(name, options), amount, options[:expires_in], amount) }
           end
         end
       end
 
-      # Decrement a cached value. This method uses the memcached decr atomic
-      # operator and can only be used on values written with the +:raw+ option.
-      # Calling it on a value not stored with +:raw+ will initialize that value
-      # to zero.
+      # Decrement a cached integer value using the memcached decr atomic operator.
+      # Returns the updated value.
+      #
+      # If the key is unset or has expired, it will be set to 0. Memcached
+      # does not support negative counters.
+      #
+      #   cache.decrement("foo") # => 0
+      #
+      # To set a specific value, call #write passing <tt>raw: true</tt>:
+      #
+      #   cache.write("baz", 5, raw: true)
+      #   cache.decrement("baz") # => 4
+      #
+      # Decrementing a non-numeric value, or a value written without
+      # <tt>raw: true</tt>, will fail and return +nil+.
       def decrement(name, amount = 1, options = nil)
         options = merged_options(options)
         instrument(:decrement, name, amount: amount) do
           rescue_error_with nil do
-            @data.with { |c| c.decr(normalize_key(name, options), amount, options[:expires_in]) }
+            @data.with { |c| c.decr(normalize_key(name, options), amount, options[:expires_in], 0) }
           end
         end
       end

@@ -67,11 +67,8 @@ module ActionController
   # Raised when initializing Parameters with keys that aren't strings or symbols.
   #
   #   ActionController::Parameters.new(123 => 456)
-  #   # => ActionController::InvalidParameterKey: all keys must be Strings or Symbols
+  #   # => ActionController::InvalidParameterKey: all keys must be Strings or Symbols, got: Integer
   class InvalidParameterKey < ArgumentError
-    def initialize # :nodoc:
-      super("all keys must be Strings or Symbols")
-    end
   end
 
   # == Action Controller \Parameters
@@ -178,14 +175,6 @@ module ActionController
     # Returns true if the given key is present in the parameters.
 
     ##
-    # :method: has_value?
-    #
-    # :call-seq:
-    #   has_value?(value)
-    #
-    # Returns true if the given value is present for some key in the parameters.
-
-    ##
     # :method: include?
     #
     # :call-seq:
@@ -225,14 +214,7 @@ module ActionController
     #
     # Returns the content of the parameters as a string.
 
-    ##
-    # :method: value?
-    #
-    # :call-seq:
-    #   value?(value)
-    #
-    # Returns true if the given value is present for some key in the parameters.
-    delegate :keys, :key?, :has_key?, :member?, :has_value?, :value?, :empty?, :include?,
+    delegate :keys, :key?, :has_key?, :member?, :empty?, :include?,
       :as_json, :to_s, :each_key, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these
@@ -269,7 +251,11 @@ module ActionController
     #   params.permitted?  # => true
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
     def initialize(parameters = {}, logging_context = {})
-      raise InvalidParameterKey unless parameters.keys.all? { |key| key.is_a?(String) || key.is_a?(Symbol) }
+      parameters.each_key do |key|
+        unless key.is_a?(String) || key.is_a?(Symbol)
+          raise InvalidParameterKey, "all keys must be Strings or Symbols, got: #{key.class}"
+        end
+      end
 
       @parameters = parameters.with_indifferent_access
       @logging_context = logging_context
@@ -289,7 +275,7 @@ module ActionController
             comparisons between instances of `ActionController::Parameters`. If
             you need to compare to a hash, first convert it using
             `ActionController::Parameters#new`.
-            To disable the deprecated behaviour set
+            To disable the deprecated behavior set
             `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality = false`.
           WARNING
           @parameters == other
@@ -298,10 +284,15 @@ module ActionController
         end
       end
     end
-    alias eql? ==
+
+    def eql?(other)
+      self.class == other.class &&
+        permitted? == other.permitted? &&
+        parameters.eql?(other.parameters)
+    end
 
     def hash
-      [@parameters.hash, @permitted].hash
+      [self.class, @parameters, @permitted].hash
     end
 
     # Returns a safe <tt>ActiveSupport::HashWithIndifferentAccess</tt>
@@ -855,6 +846,13 @@ module ActionController
     def compact_blank!
       reject! { |_k, v| v.blank? }
     end
+
+    # Returns true if the given value is present for some key in the parameters.
+    def has_value?(value)
+      each_value.include?(convert_value_to_parameters(value))
+    end
+
+    alias value? has_value?
 
     # Returns values that were assigned to the given +keys+. Note that all the
     # +Hash+ objects will be converted to <tt>ActionController::Parameters</tt>.

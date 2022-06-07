@@ -44,7 +44,7 @@ group :rubocop do
 end
 
 group :doc do
-  gem "sdoc", ">= 2.3.2"
+  gem "sdoc", ">= 2.4.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "kindlerb", "~> 1.2.0"
@@ -69,7 +69,7 @@ group :job do
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false
-  gem "queue_classic", ">= 4.0.0.pre.beta1", require: false, platforms: :ruby
+  gem "queue_classic", ">= 4.0.0", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "que", require: false
   gem "backburner", require: false

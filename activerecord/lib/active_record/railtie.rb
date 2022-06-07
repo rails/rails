@@ -276,11 +276,16 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
-    # Expose database runtime to controller for logging.
+    # Expose database runtime for logging.
     initializer "active_record.log_runtime" do
       require "active_record/railties/controller_runtime"
       ActiveSupport.on_load(:action_controller) do
         include ActiveRecord::Railties::ControllerRuntime
+      end
+
+      require "active_record/railties/job_runtime"
+      ActiveSupport.on_load(:active_job) do
+        include ActiveRecord::Railties::JobRuntime
       end
     end
 

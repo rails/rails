@@ -1328,11 +1328,25 @@ You can also pass in arbitrary local variables to any partial you are rendering 
 
 In this case, the partial will have access to a local variable `title` with the value "Products Page".
 
-TIP: Rails also makes a counter variable available within a partial called by the collection, named after the title of the partial followed by `_counter`. For example, when rendering a collection `@products` the partial `_product.html.erb` can access the variable `product_counter` which indexes the number of times it has been rendered within the enclosing view. Note that it also applies for when the partial name was changed by using the `as:` option. For example, the counter variable for the code above would be `item_counter`.
+#### Counter Variables
 
-You can also specify a second partial to be rendered between instances of the main partial by using the `:spacer_template` option:
+Rails also makes a counter variable available within a partial called by the collection. The variable is named after the title of the partial followed by `_counter`. For example, when rendering a collection `@products` the partial `_product.html.erb` can access the variable `product_counter`. The variable indexes the number of times the partial has been rendered within the enclosing view, starting with a value of `0` on the first render.
+
+```erb
+# index.html.erb
+<%= render partial: "product", collection: @products %>
+```
+
+```erb
+# _product.html.erb
+<%= product_counter %> # 0 for the first product, 1 for the second product...
+```
+
+This also works when the partial name is changed using the `as:` option. So if you did `as: :item`, the counter variable would be `item_counter`.
 
 #### Spacer Templates
+
+You can also specify a second partial to be rendered between instances of the main partial by using the `:spacer_template` option:
 
 ```erb
 <%= render partial: @products, spacer_template: "product_ruler" %>

@@ -326,7 +326,7 @@ module ActiveRecord
         assert_not_predicate @pool, :active_connection?
       end
 
-      def test_checkout_behaviour
+      def test_checkout_behavior
         pool = ConnectionPool.new(@pool_config)
         main_connection = pool.connection
         assert_not_nil main_connection

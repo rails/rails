@@ -479,48 +479,56 @@ module ActiveRecord
         assert connection.column_exists?(:testings, :widget_id)
       end
 
-      if current_adapter?(:SQLite3Adapter)
-        def test_references_stays_as_integer_column_on_create_table_with_reference_6_0
-          migration = Class.new(ActiveRecord::Migration[6.0]) {
-            def migrate(x)
-              create_table :more_testings do |t|
-                t.references :testings
-              end
+      def test_references_on_create_table_on_6_0
+        migration = Class.new(ActiveRecord::Migration[6.0]) {
+          def migrate(x)
+            create_table :more_testings do |t|
+              t.references :testings
             end
-          }.new
+          end
+        }.new
 
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
 
-          testings_id_column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
-          assert_match(/integer/i, testings_id_column.sql_type)
-        ensure
-          connection.drop_table :more_testings rescue nil
+        column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
+
+        if current_adapter?(:SQLite3Adapter)
+          assert_match(/integer/i, column.sql_type)
+        else
+          assert_predicate(column, :bigint?)
         end
+      ensure
+        connection.drop_table :more_testings rescue nil
+      end
 
-        def test_references_stays_as_integer_column_on_add_reference_6_0
-          create_migration = Class.new(ActiveRecord::Migration[6.0]) {
-            def version; 100 end
-            def migrate(x)
-              create_table :more_testings do |t|
-                t.string :test
-              end
+      def test_add_reference_on_6_0
+        create_migration = Class.new(ActiveRecord::Migration[6.0]) {
+          def version; 100 end
+          def migrate(x)
+            create_table :more_testings do |t|
+              t.string :test
             end
-          }.new
+          end
+        }.new
 
-          migration = Class.new(ActiveRecord::Migration[6.0]) {
-            def version; 101 end
-            def migrate(x)
-              add_reference :more_testings, :testings
-            end
-          }.new
+        migration = Class.new(ActiveRecord::Migration[6.0]) {
+          def version; 101 end
+          def migrate(x)
+            add_reference :more_testings, :testings
+          end
+        }.new
 
-          ActiveRecord::Migrator.new(:up, [create_migration, migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [create_migration, migration], @schema_migration).migrate
 
-          testings_id_column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
-          assert_match(/integer/i, testings_id_column.sql_type)
-        ensure
-          connection.drop_table :more_testings rescue nil
+        column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
+
+        if current_adapter?(:SQLite3Adapter)
+          assert_match(/integer/i, column.sql_type)
+        else
+          assert_predicate(column, :bigint?)
         end
+      ensure
+        connection.drop_table :more_testings rescue nil
       end
 
       private

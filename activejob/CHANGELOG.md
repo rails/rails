@@ -1,3 +1,9 @@
+*   `perform.active_job` notification payloads now include `:db_runtime`, which
+    is the total time (in ms) taken by database queries while performing a job.
+    This value can be used to better understand how a job's time is spent.
+
+    *Jonathan Hefner*
+
 *   Update `ActiveJob::QueueAdapters::QueAdapter` te remove deprecation warning
 
     Remove a deprecation warning introduced in que 1.2 to prepare for changes in
@@ -18,7 +24,7 @@
     was called before calling `perform_now`. When a record no longer exists
     and is serialized using GlobalID this led to raising
     an `ActiveJob::DeserializationError` before reaching `perform_now` call.
-    This behaviour makes difficult testing the job `discard_on/retry_on` logic.
+    This behavior makes difficult testing the job `discard_on/retry_on` logic.
 
     Now `deserialize_arguments_if_needed` call is postponed to when `perform_now`
     is called.

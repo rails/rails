@@ -201,6 +201,8 @@ class TagHelperTest < ActionView::TestCase
                  content_tag(:p, "<script>evil_js</script>")
     assert_equal "<p><script>evil_js</script></p>",
                  content_tag(:p, "<script>evil_js</script>", nil, false)
+    assert_equal "<div @click=\"triggerNav()\">test</div>",
+                 content_tag(:div, "test", "@click": "triggerNav()")
   end
 
   def test_tag_builder_with_content

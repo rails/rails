@@ -153,6 +153,33 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     @conn.execute("ALTER TABLE engines DROP COLUMN old_car_id") rescue nil
   end
 
+  def test_errors_for_multiple_fks_on_mismatched_types_for_pk_table_in_alter_table
+    skip "MariaDB does not return mismatched foreign key in error message" if @conn.mariadb?
+
+    begin
+      error = assert_raises(ActiveRecord::MismatchedForeignKey) do
+        # we should add matched foreign key first to properly test error parsing
+        @conn.add_reference :engines, :person, foreign_key: true
+
+        # table old_cars has primary key of integer
+        @conn.add_reference :engines, :old_car, foreign_key: true
+      end
+
+      assert_match(
+        %r/Column `old_car_id` on table `engines` does not match column `id` on `old_cars`, which has type `int(\(11\))?`\./,
+        error.message
+      )
+      assert_match(
+        %r/To resolve this issue, change the type of the `old_car_id` column on `engines` to be :integer\. \(For example `t.integer :old_car_id`\)\./,
+        error.message
+      )
+      assert_not_nil error.cause
+    ensure
+      @conn.remove_reference(:engines, :person)
+      @conn.remove_reference(:engines, :old_car)
+    end
+  end
+
   def test_errors_for_bigint_fks_on_integer_pk_table_in_create_table
     # table old_cars has primary key of integer
 

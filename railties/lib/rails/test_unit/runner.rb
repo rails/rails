@@ -9,6 +9,7 @@ require "active_support/core_ext/module/attribute_accessors"
 module Rails
   module TestUnit
     class Runner
+      TEST_FOLDERS = [:models, :helpers, :channels, :controllers, :mailers, :integration, :jobs, :mailboxes]
       mattr_reader :filters, default: []
 
       class << self
@@ -48,6 +49,8 @@ module Rails
         end
 
         def compose_filter(runnable, filter)
+          filter = escape_declarative_test_filter(filter)
+
           if filters.any? { |_, lines| lines.any? }
             CompositeFilter.new(runnable, filter, filters)
           else
@@ -89,7 +92,7 @@ module Rails
           end
 
           def path_argument?(arg)
-            %r"^[/\\]?\w+[/\\]".match?(arg)
+            %r"^\.*[/\\]?\w+[/\\]".match?(arg)
           end
 
           def list_tests(argv)
@@ -98,6 +101,14 @@ module Rails
             tests = Rake::FileList[patterns.any? ? patterns : default_test_glob]
             tests.exclude(default_test_exclude_glob) if patterns.empty?
             tests
+          end
+
+          def escape_declarative_test_filter(filter)
+            if filter.is_a?(String) && !filter.start_with?("test_")
+              filter = "test_#{filter}" unless regexp_filter?(filter)
+              filter = filter.gsub(/\s+/, "_")
+            end
+            filter
           end
       end
     end

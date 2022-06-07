@@ -119,6 +119,23 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_same @cache.redis, redis_instance
     end
 
+    test "fetch caches nil" do
+      cache = build
+      cache.write("foo", nil)
+      assert_not_called(cache, :write) do
+        assert_nil cache.fetch("foo") { "baz" }
+      end
+    end
+
+    test "skip_nil is passed to ActiveSupport::Cache" do
+      cache = build(skip_nil: true)
+      cache.clear
+      assert_not_called(cache, :write) do
+        assert_nil cache.fetch("foo") { nil }
+        assert_equal false, cache.exist?("foo")
+      end
+    end
+
     private
       def build(**kwargs)
         ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs).tap(&:redis)
@@ -177,6 +194,11 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_not_called(@cache.redis, :mget) do
         @cache.fetch_multi() { }
       end
+    end
+
+    def test_write_expires_at
+      @cache.write "key_with_expires_at", "bar", expires_at: 30.minutes.from_now
+      assert @cache.redis.ttl("#{@namespace}:key_with_expires_at") > 0
     end
 
     def test_increment_expires_in
@@ -265,8 +287,18 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
   end
 
-  class ConnectionPoolBehaviourTest < StoreTest
+  class ConnectionPoolBehaviorTest < StoreTest
     include ConnectionPoolBehavior
+
+    def test_deprecated_connection_pool_works
+      assert_deprecated do
+        cache = ActiveSupport::Cache.lookup_store(:redis_cache_store, pool_size: 2, pool_timeout: 1)
+        pool = cache.redis # loads 'connection_pool' gem
+        assert_kind_of ::ConnectionPool, pool
+        assert_equal 2, pool.size
+        assert_equal 1, pool.instance_variable_get(:@timeout)
+      end
+    end
 
     private
       def store
@@ -284,7 +316,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
   end
 
-  class RedisDistributedConnectionPoolBehaviourTest < ConnectionPoolBehaviourTest
+  class RedisDistributedConnectionPoolBehaviorTest < ConnectionPoolBehaviorTest
     private
       def store_options
         { url: REDIS_URLS }

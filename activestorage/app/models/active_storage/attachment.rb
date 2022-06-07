@@ -27,7 +27,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   after_create_commit :mirror_blob_later, :analyze_blob_later
   after_destroy_commit :purge_dependent_blob_later
 
-  scope :with_all_variant_records, -> { includes(blob: :variant_records) }
+  scope :with_all_variant_records, -> { includes(blob: { variant_records: { image_attachment: :blob } }) }
 
   # Synchronously deletes the attachment and {purges the blob}[rdoc-ref:ActiveStorage::Blob#purge].
   def purge

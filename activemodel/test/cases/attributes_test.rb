@@ -175,5 +175,14 @@ module ActiveModel
         ModelForAttributesTest.attribute :foo, :unknown
       end
     end
+
+    test "pattern matching against keys" do
+      case ModelForAttributesTest.new(integer_field: 1)
+      in { integer_field: 1 }
+        assert(true)
+      else
+        assert(false, "Failed to pattern match")
+      end
+    end
   end
 end

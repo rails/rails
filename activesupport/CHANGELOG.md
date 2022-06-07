@@ -1,3 +1,40 @@
+*   Add `force:` support to `ActiveSupport::Cache::Store#fetch_multi`.
+
+    *fatkodima*
+
+*   Deprecated `:pool_size` and `:pool_timeout` options for configuring connection pooling in cache stores.
+
+    Use `pool: true` to enable pooling with default settings:
+
+    ```ruby
+    config.cache_store = :redis_cache_store, pool: true
+    ```
+
+    Or pass individual options via `:pool` option:
+
+    ```ruby
+    config.cache_store = :redis_cache_store, pool: { size: 10, timeout: 2 }
+    ```
+
+    *fatkodima*
+
+*   Allow #increment and #decrement methods of `ActiveSupport::Cache::Store`
+    subclasses to set new values.
+
+    Previously incrementing or decrementing an unset key would fail and return
+    nil. A default will now be assumed and the key will be created.
+
+    *Andrej Blagojević*, *Eugene Kenny*
+
+*   Add `skip_nil:` support to `RedisCacheStore`
+
+    *Joey Paris*
+
+*   `ActiveSupport::Cache::MemoryStore#write(name, val, unless_exist:true)` now
+    correctly writes expired keys.
+
+    *Alan Savage*
+
 *   `ActiveSupport::ErrorReporter` now accepts and forward a `source:` parameter.
 
     This allow libraries to signal the origin of the errors, and reporters

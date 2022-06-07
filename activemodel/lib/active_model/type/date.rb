@@ -53,7 +53,12 @@ module ActiveModel
         end
 
         def fallback_string_to_date(string)
-          new_date(*::Date._parse(string, false).values_at(:year, :mon, :mday))
+          parts = begin
+            ::Date._parse(string, false)
+          rescue ArgumentError
+          end
+
+          new_date(*parts.values_at(:year, :mon, :mday)) if parts
         end
 
         def new_date(year, mon, mday)

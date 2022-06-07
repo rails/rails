@@ -59,7 +59,7 @@ module ActiveRecord
   #   u.color = 'green'
   #   u.color_changed? # => true
   #   u.color_was # => 'black'
-  #   u.color_change # => ['black', 'red']
+  #   u.color_change # => ['black', 'green']
   #
   #   # Add additional accessors to an existing store through store_accessor
   #   class SuperUser < User

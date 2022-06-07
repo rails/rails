@@ -872,6 +872,17 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_nth_to_last_with_order_uses_limit
+    c = Topic.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC LIMIT/i) do
+      Topic.second_to_last
+    end
+
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.updated_at"))} DESC LIMIT/i) do
+      Topic.order(:updated_at).second_to_last
+    end
+  end
+
   def test_last_bang_present
     assert_nothing_raised do
       assert_equal topics(:second), Topic.where("title = 'The Second Topic of the day'").last!

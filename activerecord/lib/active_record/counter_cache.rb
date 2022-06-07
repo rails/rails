@@ -48,7 +48,9 @@ module ActiveRecord
           reflection   = child_class._reflections.values.find { |e| e.belongs_to? && e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
           counter_name = reflection.counter_cache_column
 
-          updates[counter_name] = object.send(counter_association).count(:all)
+          count_was = object.send(counter_name)
+          count = object.send(counter_association).count(:all)
+          updates[counter_name] = count if count != count_was
         end
 
         if touch
@@ -59,7 +61,7 @@ module ActiveRecord
           updates.merge!(touch_updates)
         end
 
-        unscoped.where(primary_key => object.id).update_all(updates)
+        unscoped.where(primary_key => object.id).update_all(updates) if updates.any?
 
         true
       end

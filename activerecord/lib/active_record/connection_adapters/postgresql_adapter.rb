@@ -462,13 +462,17 @@ module ActiveRecord
         query = <<~SQL
           SELECT
             type.typname AS name,
+            type.OID AS oid,
             string_agg(enum.enumlabel, ',' ORDER BY enum.enumsortorder) AS value
           FROM pg_enum AS enum
           JOIN pg_type AS type
             ON (type.oid = enum.enumtypid)
-          GROUP BY type.typname;
+          GROUP BY type.OID, type.typname;
         SQL
-        exec_query(query, "SCHEMA").cast_values
+
+        exec_query(query, "SCHEMA").cast_values.each_with_object({}) do |row, memo|
+          memo[row.first] = row.last
+        end.to_a
       end
 
       # Given a name and an array of values, creates an enum type.
@@ -478,8 +482,11 @@ module ActiveRecord
           DO $$
           BEGIN
               IF NOT EXISTS (
-                SELECT 1 FROM pg_type t
+                SELECT 1
+                FROM pg_type t
+                #{ "JOIN pg_namespace n ON (t.typnamespace = n.oid)" if schema_exists?(current_schema) }
                 WHERE t.typname = '#{name}'
+                  #{ "AND n.nspname = '#{current_schema}'" if schema_exists?(current_schema) }
               ) THEN
                   CREATE TYPE \"#{name}\" AS ENUM (#{sql_values});
               END IF;

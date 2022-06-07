@@ -64,7 +64,6 @@ module Rails
 
           say credentials.read.presence || credentials.content_path.read
         else
-          require_application!
           disenroll_project_from_credentials_diffing if options[:disenroll]
           enroll_project_in_credentials_diffing if options[:enroll]
         end
@@ -92,7 +91,7 @@ module Rails
 
         def change_credentials_in_system_editor
           credentials.change do |tmp_path|
-            system("#{ENV["EDITOR"]} #{Shellwords.escape(tmp_path)}")
+            system(*Shellwords.split(ENV["EDITOR"]), tmp_path.to_s)
           end
         end
 

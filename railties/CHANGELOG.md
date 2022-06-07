@@ -1,3 +1,72 @@
+*   Avoid booting in development then test for test tasks.
+
+    Running one of the rails test subtasks (e.g. test:system, test:models) would
+    go through Rake and cause the app to be booted twice. Now all the test:*
+    subtasks are defined as Thor tasks and directly load the test environment.
+
+    *Étienne Barrié*
+
+*   Deprecate `Rails::Generators::Testing::Behaviour` in favor of `Rails::Generators::Testing::Behavior`.
+
+    *Gannon McGibbon*
+
+*   Allow configuration of logger size for local and test environments
+
+    `config.log_file_size`
+
+    Defaults to `100` megabytes.
+
+    *Bernie Chiu*
+
+*   Enroll new apps in decrypted diffs of credentials by default.  This behavior
+    can be opted out of with the app generator's `--skip-decrypted-diffs` flag.
+
+    *Jonathan Hefner*
+
+*   Support declarative-style test name filters with `bin/rails test`.
+
+    This makes it possible to run a declarative-style test such as:
+
+    ```ruby
+    class MyTest < ActiveSupport::TestCase
+      test "does something" do
+        # ...
+      end
+    end
+    ```
+
+    Using its declared name:
+
+    ```bash
+    $ bin/rails test test/my_test.rb -n "does something"
+    ```
+
+    Instead of having to specify its expanded method name:
+
+    ```bash
+    $ bin/rails test test/my_test.rb -n test_does_something
+    ```
+
+    *Jonathan Hefner*
+
+*   Add `--js` and `--skip-javascript` options to `rails new`
+
+    `--js` alias to `rails new --javascript ...`
+
+    Same as `-j`, e.g. `rails new --js esbuild ...`
+
+    `--skip-js` alias to `rails new --skip-javascript ...`
+
+    Same as `-J`, e.g. `rails new --skip-js ...`
+
+    *Dorian Marié*
+
+*   Allow relative paths with leading dot slash to be passed to `rails test`.
+
+    Fix `rails test ./test/model/post_test.rb` to run a single test file.
+
+    *Shouichi Kamiya* and *oljfte*
+
 *   Deprecate `config.enable_dependency_loading`. This flag addressed a limitation of the `classic` autoloader and has no effect nowadays. To fix this deprecation, please just delete the reference.
 
     *Xavier Noria*

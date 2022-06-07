@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/module/delegation"
 require "securerandom"
 
 module ActiveSupport
@@ -9,8 +10,41 @@ module ActiveSupport
       attr_reader :id
 
       def initialize(notifier)
+        unless notifier.respond_to?(:build_handle)
+          notifier = LegacyHandle::Wrapper.new(notifier)
+        end
+
         @id       = unique_id
         @notifier = notifier
+      end
+
+      class LegacyHandle # :nodoc:
+        class Wrapper # :nodoc:
+          def initialize(notifier)
+            @notifier = notifier
+          end
+
+          def build_handle(name, id, payload)
+            LegacyHandle.new(@notifier, name, id, payload)
+          end
+
+          delegate :start, :finish, to: :@notifier
+        end
+
+        def initialize(notifier, name, id, payload)
+          @notifier = notifier
+          @name = name
+          @id = id
+          @payload = payload
+        end
+
+        def start
+          @listener_state = @notifier.start @name, @id, @payload
+        end
+
+        def finish
+          @notifier.finish(@name, @id, @payload, @listener_state)
+        end
       end
 
       # Given a block, instrument it by measuring the time taken to execute
@@ -18,8 +52,8 @@ module ActiveSupport
       # notifier. Notice that events get sent even if an error occurs in the
       # passed-in block.
       def instrument(name, payload = {})
-        # some of the listeners might have state
-        listeners_state = start name, payload
+        handle = build_handle(name, payload)
+        handle.start
         begin
           yield payload if block_given?
         rescue Exception => e
@@ -27,8 +61,22 @@ module ActiveSupport
           payload[:exception_object] = e
           raise e
         ensure
-          finish_with_state listeners_state, name, payload
+          handle.finish
         end
+      end
+
+      # Returns a "handle" for an event with the given +name+ and +payload+
+      #
+      # +#start+ and +#finish+ must each be called exactly once on the returned object.
+      #
+      # Where possible, it's best to use +#instrument+, which will record the
+      # start and finish of the event and correctly handle any exceptions.
+      # +build_handle+ is a low-level API intended for cases where using
+      # +#instrument+ isn't possible.
+      #
+      # See ActiveSupport::Notifications::Fanout::Handle
+      def build_handle(name, payload)
+        @notifier.build_handle(name, @id, payload)
       end
 
       def new_event(name, payload = {}) # :nodoc:

@@ -514,6 +514,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^# gem "redis"/
   end
 
+  def test_generator_configures_decrypted_diffs_by_default
+    run_generator
+    assert_file ".gitattributes", /\.enc diff=/
+  end
+
+  def test_generator_does_not_configure_decrypted_diffs_when_skip_decrypted_diffs_is_given
+    run_generator [destination_root, "--skip-decrypted-diffs"]
+    assert_file ".gitattributes" do |content|
+      assert_no_match %r/\.enc diff=/, content
+    end
+  end
+
   def test_generator_if_skip_test_is_given
     run_generator [destination_root, "--skip-test"]
 
@@ -533,7 +545,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_if_skip_active_job_is_given
     run_generator [destination_root, "--skip-active-job"]
-    assert_no_file "app/jobs/application.rb"
+    assert_no_file "app/jobs/application_job.rb"
     assert_file "config/environments/production.rb" do |content|
       assert_no_match(/config\.active_job/, content)
     end
@@ -756,6 +768,68 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "jsbundling-rails"
   end
 
+  def test_esbuild_option
+    generator([destination_root], javascript: "esbuild")
+
+    esbuild_called = 0
+    command_check = -> command, *_ do
+      case command
+      when "javascript:install:esbuild"
+        esbuild_called += 1
+      end
+    end
+
+    generator.stub(:rails_command, command_check) do
+      run_generator_instance
+    end
+
+    assert_equal 1, esbuild_called, "`javascript:install:esbuild` expected to be called once, but was called #{esbuild_called} times."
+    assert_gem "jsbundling-rails"
+  end
+
+  def test_esbuild_option_with_javacript_argument
+    run_generator [destination_root, "--javascript", "esbuild"]
+    assert_gem "jsbundling-rails"
+  end
+
+  def test_esbuild_option_with_j_argument
+    run_generator [destination_root, "-j", "esbuild"]
+    assert_gem "jsbundling-rails"
+  end
+
+  def test_esbuild_option_with_js_argument
+    run_generator [destination_root, "--js", "esbuild"]
+    assert_gem "jsbundling-rails"
+  end
+
+  def test_skip_javascript_option_with_skip_javascript_argument
+    run_generator [destination_root, "--skip-javascript"]
+    assert_no_gem "stimulus-rails"
+    assert_no_gem "turbo-rails"
+    assert_no_gem "importmap-rails"
+  end
+
+  def test_skip_javascript_option_with_J_argument
+    run_generator [destination_root, "-J"]
+    assert_no_gem "stimulus-rails"
+    assert_no_gem "turbo-rails"
+    assert_no_gem "importmap-rails"
+  end
+
+  def test_skip_javascript_option_with_skip_js_argument
+    run_generator [destination_root, "--skip-js"]
+    assert_no_gem "stimulus-rails"
+    assert_no_gem "turbo-rails"
+    assert_no_gem "importmap-rails"
+  end
+
+  def test_no_skip_javascript_option_with_no_skip_javascript_argument
+    run_generator [destination_root, "--no-skip-javascript"]
+    assert_gem "stimulus-rails"
+    assert_gem "turbo-rails"
+    assert_gem "importmap-rails"
+  end
+
   def test_hotwire
     run_generator [destination_root, "--no-skip-bundle"]
     assert_gem "turbo-rails"
@@ -962,8 +1036,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file "config/storage.yml"
     assert_no_file "config/cable.yml"
-    assert_no_file "views/layouts/mailer.html.erb"
-    assert_no_file "app/jobs/application.rb"
+    assert_no_file "app/views/layouts/mailer.html.erb"
+    assert_no_file "app/jobs/application_job.rb"
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_no_match(/data-turbo-track/, content)
     end

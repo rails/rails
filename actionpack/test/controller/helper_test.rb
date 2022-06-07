@@ -98,6 +98,9 @@ class HelperTest < ActiveSupport::TestCase
     def delegate_method() end
     def delegate_method_arg(arg); arg; end
     def delegate_method_kwarg(hi:); hi; end
+    def method_that_raises
+      raise "an error occurred"
+    end
   end
 
   def setup
@@ -143,6 +146,16 @@ class HelperTest < ActiveSupport::TestCase
     assert_nothing_raised { @controller_class.helper_method :delegate_method_kwarg }
 
     assert_equal(:there, @controller_class.new.helpers.delegate_method_kwarg(hi: :there))
+  end
+
+  def test_helper_method_with_error_has_correct_backgrace
+    @controller_class.helper_method :method_that_raises
+    expected_backtrace_pattern = "#{__FILE__}:#{__LINE__ - 1}"
+
+    error = assert_raises(RuntimeError) do
+      @controller_class.new.helpers.method_that_raises
+    end
+    assert_not_nil error.backtrace.find { |line| line.include?(expected_backtrace_pattern) }
   end
 
   def test_helper_attr
