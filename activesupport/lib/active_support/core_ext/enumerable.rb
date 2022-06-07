@@ -118,11 +118,17 @@ module Enumerable
   #   %i( title body ).index_with { |attr_name| post.public_send(attr_name) }
   #   # => { title: "hey there", body: "what's up?" }
   #
-  # If an argument is passed instead of a block, it will be used as the value
+  # If an argument is passed instead of a block, the same instance will be used as the value
   # for all elements:
   #
   #   %i( created_at updated_at ).index_with(Time.now)
   #   # => { created_at: 2020-03-09 22:31:47, updated_at: 2020-03-09 22:31:47 }
+  #   %i( a_key a_second_key ).index_with({})
+  #   # => { a_key: {}, a_second_key: {} }
+  #
+  # In the latter example, `index_with` is using the same object instance as the value of both keys.
+  # A change to one of the hashes is a change on both. If this is not desired, use the block
+  # variant instead.
   def index_with(default = (no_default = true))
     if block_given?
       result = {}
