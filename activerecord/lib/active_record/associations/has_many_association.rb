@@ -27,24 +27,26 @@ module ActiveRecord
           load_target.each { |t| t.destroyed_by_association = reflection }
           destroy_all
         when :destroy_async
-          load_target.each do |t|
-            t.destroyed_by_association = reflection
-          end
-
-          unless target.empty?
-            association_class = target.first.class
-            primary_key_column = association_class.primary_key.to_sym
-
-            ids = target.collect do |assoc|
-              assoc.public_send(primary_key_column)
+          # If a batch size is set, batch the association queries, otherwise load the target
+          (owner.class.destroy_association_async_batch_size ?
+           scope.in_batches(of: owner.class.destroy_association_async_batch_size) : [load_target]).each do |target|
+            target.each do |t|
+              t.destroyed_by_association = reflection
             end
 
-            ids.each_slice(owner.class.destroy_association_async_batch_size || ids.size) do |ids_batch|
+            unless target.empty?
+              association_class = target.first.class
+              primary_key_column = association_class.primary_key.to_sym
+
+              ids = target.collect do |assoc|
+                assoc.public_send(primary_key_column)
+              end
+
               enqueue_destroy_association(
                 owner_model_name: owner.class.to_s,
                 owner_id: owner.id,
                 association_class: reflection.klass.to_s,
-                association_ids: ids_batch,
+                association_ids: ids,
                 association_primary_key_column: primary_key_column,
                 ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)
               )
