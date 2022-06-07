@@ -395,26 +395,21 @@ There are some common options that can be used by all cache implementations. The
 
 #### Connection Pool Options
 
-By default the `MemCacheStore` and `RedisCacheStore` use a single connection
-per process. This means that if you're using Puma, or another threaded server,
-you can have multiple threads waiting for the connection to become available.
-To increase the number of available connections you can enable connection
-pooling.
+By default the `MemCacheStore` and `RedisCacheStore` are configured to use
+connection pooling. This means that if you're using Puma, or another threaded server,
+you can have multiple threads performing queries to the cache store at the same time.
 
-First, add the `connection_pool` gem to your Gemfile:
+If you want to disable connection pooling, set `:pool` option to `false` when configuring the cache store:
 
 ```ruby
-gem 'connection_pool'
+config.cache_store = :mem_cache_store, "cache.example.com", pool: false
 ```
 
-Next, set `:pool` option to `true` when configuring the cache store:
+You can also override default pool settings by providing individual options to the `:pool` option:
 
 ```ruby
-config.cache_store = :mem_cache_store, "cache.example.com", pool: true
+config.cache_store = :mem_cache_store, "cache.example.com", pool: { size: 32, timeout: 1 }
 ```
-
-You can also override default pool settings by providing individual options
-instead of `true` to this option.
 
 * `:size` - This option sets the number of connections per process (defaults to 5).
 

@@ -44,8 +44,8 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
-  def lookup_store(options = {})
-    cache = ActiveSupport::Cache.lookup_store(*store, { namespace: @namespace }.merge(options))
+  def lookup_store(*addresses, **options)
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, *addresses, { namespace: @namespace, pool: false }.merge(options))
     (@_stores ||= []) << cache
     cache
   end
@@ -220,28 +220,28 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def test_unless_exist_expires_when_configured
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+    cache = lookup_store(namespace: nil)
     assert_called_with client(cache), :add, [ "foo", Object, 1, Hash ] do
       cache.write("foo", "bar", expires_in: 1, unless_exist: true)
     end
   end
 
   def test_uses_provided_dalli_client_if_present
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, Dalli::Client.new("custom_host"))
+    cache = lookup_store(Dalli::Client.new("custom_host"))
 
     assert_equal ["custom_host"], servers(cache)
   end
 
   def test_forwards_string_addresses_if_present
     expected_addresses = ["first", "second"]
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, expected_addresses)
+    cache = lookup_store(expected_addresses)
 
     assert_equal expected_addresses, servers(cache)
   end
 
   def test_falls_back_to_localhost_if_no_address_provided_and_memcache_servers_undefined
     with_memcache_servers_environment_variable(nil) do
-      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+      cache = lookup_store
 
       assert_equal ["127.0.0.1:11211"], servers(cache)
     end
@@ -249,7 +249,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   def test_falls_back_to_localhost_if_address_provided_as_nil
     with_memcache_servers_environment_variable(nil) do
-      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, nil)
+      cache = lookup_store(nil)
 
       assert_equal ["127.0.0.1:11211"], servers(cache)
     end
@@ -257,7 +257,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   def test_falls_back_to_localhost_if_no_address_provided_and_memcache_servers_defined
     with_memcache_servers_environment_variable("custom_host") do
-      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+      cache = lookup_store
 
       assert_equal ["custom_host"], servers(cache)
     end
@@ -322,6 +322,14 @@ class MemCacheStoreTest < ActiveSupport::TestCase
       assert_equal 2, pool.size
       assert_equal 1, pool.instance_variable_get(:@timeout)
     end
+  end
+
+  def test_connection_pooling_by_default
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+    pool = cache.instance_variable_get(:@data)
+    assert_kind_of ::ConnectionPool, pool
+    assert_equal 5, pool.size
+    assert_equal 5, pool.instance_variable_get(:@timeout)
   end
 
   private

@@ -15,6 +15,7 @@ begin
 rescue LoadError
 end
 
+require "connection_pool"
 require "active_support/core_ext/numeric/time"
 require "active_support/digest"
 
@@ -170,7 +171,6 @@ module ActiveSupport
           pool_options = self.class.send(:retrieve_pool_options, redis_options)
 
           if pool_options.any?
-            self.class.send(:ensure_connection_pool_added!)
             ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
           else
             self.class.build_redis(**redis_options)

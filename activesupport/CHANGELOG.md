@@ -1,3 +1,13 @@
+*   Enable connection pooling by default for `MemCacheStore` and `RedisCacheStore`.
+
+    If you want to disable connection pooling, set `:pool` option to `false` when configuring the cache store:
+
+    ```ruby
+    config.cache_store = :mem_cache_store, "cache.example.com", pool: false
+    ```
+
+    *fatkodima*
+
 *   Add `force:` support to `ActiveSupport::Cache::Store#fetch_multi`.
 
     *fatkodima*

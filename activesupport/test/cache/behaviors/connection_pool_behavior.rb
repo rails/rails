@@ -32,7 +32,7 @@ module ConnectionPoolBehavior
     threads = []
 
     emulating_latency do
-      cache = ActiveSupport::Cache.lookup_store(*store, store_options)
+      cache = ActiveSupport::Cache.lookup_store(*store, store_options.merge(pool: false))
 
       assert_nothing_raised do
         # Default connection pool size is 5, assuming 10 will make sure that

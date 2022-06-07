@@ -138,7 +138,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     private
       def build(**kwargs)
-        ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs).tap(&:redis)
+        ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs.merge(pool: false)).tap(&:redis)
       end
   end
 
@@ -156,7 +156,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
 
     def lookup_store(options = {})
-      ActiveSupport::Cache.lookup_store(:redis_cache_store, { timeout: 0.1, namespace: @namespace, driver: DRIVER }.merge(options))
+      ActiveSupport::Cache.lookup_store(:redis_cache_store, { timeout: 0.1, namespace: @namespace, driver: DRIVER, pool: false }.merge(options))
     end
 
     teardown do
@@ -298,6 +298,14 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         assert_equal 2, pool.size
         assert_equal 1, pool.instance_variable_get(:@timeout)
       end
+    end
+
+    def test_connection_pooling_by_default
+      cache = ActiveSupport::Cache.lookup_store(:redis_cache_store)
+      pool = cache.redis
+      assert_kind_of ::ConnectionPool, pool
+      assert_equal 5, pool.size
+      assert_equal 5, pool.instance_variable_get(:@timeout)
     end
 
     private

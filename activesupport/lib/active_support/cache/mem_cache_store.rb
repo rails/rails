@@ -7,6 +7,7 @@ rescue LoadError => e
   raise e
 end
 
+require "connection_pool"
 require "delegate"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/extract_options"
@@ -94,7 +95,6 @@ module ActiveSupport
         if pool_options.empty?
           Dalli::Client.new(addresses, options)
         else
-          ensure_connection_pool_added!
           ConnectionPool.new(pool_options) { Dalli::Client.new(addresses, options.merge(threadsafe: false)) }
         end
       end
