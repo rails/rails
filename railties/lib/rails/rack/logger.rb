@@ -30,17 +30,15 @@ module Rails
       private
         def call_app(request, env) # :doc:
           instrumenter = ActiveSupport::Notifications.instrumenter
-          instrumenter_state = instrumenter.start "request.action_dispatch", request: request
-          instrumenter_finish = -> () {
-            instrumenter.finish_with_state(instrumenter_state, "request.action_dispatch", request: request)
-          }
+          handle = instrumenter.build_handle("request.action_dispatch", { request: request })
+          handle.start
 
           logger.info { started_request_message(request) }
           status, headers, body = @app.call(env)
-          body = ::Rack::BodyProxy.new(body, &instrumenter_finish)
+          body = ::Rack::BodyProxy.new(body, &handle.method(:finish))
           [status, headers, body]
         rescue Exception
-          instrumenter_finish.call
+          handle.finish
           raise
         ensure
           ActiveSupport::LogSubscriber.flush_all!
