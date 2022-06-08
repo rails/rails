@@ -22,9 +22,10 @@ module ActionText
         trix_attachment_attributes = attributes.except(*COMPOSED_ATTRIBUTES)
         trix_attributes = attributes.slice(*COMPOSED_ATTRIBUTES)
 
-        node = ActionText::HtmlConversion.create_element(TAG_NAME)
-        node["data-trix-attachment"] = JSON.generate(trix_attachment_attributes)
-        node["data-trix-attributes"] = JSON.generate(trix_attributes) if trix_attributes.any?
+        node = ActionText::Document.create_element(TAG_NAME)
+        ActionText::Document.set_attributes(node,
+          "data-trix-attachment" => JSON.generate(trix_attachment_attributes),
+          "data-trix-attributes" => trix_attributes.any? ? JSON.generate(trix_attributes) : nil)
 
         new(node)
       end
@@ -57,7 +58,7 @@ module ActionText
     end
 
     def to_html
-      ActionText::HtmlConversion.node_to_html(node)
+      ActionText::Document.node_to_html(node)
     end
 
     def to_s
@@ -78,7 +79,7 @@ module ActionText
       end
 
       def read_json_attribute(name)
-        if value = node[name]
+        if value = Document.node_attribute(node, name)
           begin
             JSON.parse(value)
           rescue => e

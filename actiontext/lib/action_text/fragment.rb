@@ -7,15 +7,17 @@ module ActionText
         case fragment_or_html
         when self
           fragment_or_html
-        when Nokogiri::HTML::DocumentFragment
-          new(fragment_or_html)
         else
-          from_html(fragment_or_html)
+          if ActionText::Document.is_fragment?(fragment_or_html)
+            new(fragment_or_html)
+          else
+            from_html(fragment_or_html)
+          end
         end
       end
 
       def from_html(html)
-        new(ActionText::HtmlConversion.fragment_for_html(html.to_s.strip))
+        new(ActionText::Document.fragment_for_html(html.to_s.strip))
       end
     end
 
@@ -26,28 +28,28 @@ module ActionText
     end
 
     def find_all(selector)
-      source.css(selector)
+      ActionText::Document.find(source, selector)
     end
 
     def update
-      yield source = self.source.clone
+      yield source = ActionText::Document.clone_node(self.source)
       self.class.new(source)
     end
 
     def replace(selector)
       update do |source|
-        source.css(selector).each do |node|
-          node.replace(yield(node).to_s)
+        ActionText::Document.find(source, selector).each do |node|
+          ActionText::Document.replace_node(node, yield(node))
         end
       end
     end
 
     def to_plain_text
-      @plain_text ||= PlainTextConversion.node_to_plain_text(source)
+      @plain_text ||= ActionText::Document.node_to_text(source)
     end
 
     def to_html
-      @html ||= HtmlConversion.node_to_html(source)
+      @html ||= ActionText::Document.node_to_html(source)
     end
 
     def to_s

@@ -10,26 +10,23 @@ module ActionText
     class << self
       def fragment_by_canonicalizing_attachment_galleries(content)
         fragment_by_replacing_attachment_gallery_nodes(content) do |node|
-          "<#{TAG_NAME}>#{node.inner_html}</#{TAG_NAME}>"
+          Document.rename_node(node, TAG_NAME)
         end
       end
 
       def fragment_by_replacing_attachment_gallery_nodes(content)
         Fragment.wrap(content).update do |source|
           find_attachment_gallery_nodes(source).each do |node|
-            node.replace(yield(node).to_s)
+            Document.replace_node(node, yield(node))
           end
         end
       end
 
       def find_attachment_gallery_nodes(content)
         Fragment.wrap(content).find_all(selector).select do |node|
-          node.children.all? do |child|
-            if child.text?
-              /\A(\n|\ )*\z/.match?(child.text)
-            else
-              child.matches? attachment_selector
-            end
+          Document.node_children(node).all? do |child|
+            Document.is_whitespace?(child) ||
+              Document.node_matches?(child, attachment_selector)
           end
         end
       end
@@ -54,7 +51,7 @@ module ActionText
     end
 
     def attachments
-      @attachments ||= node.css(ActionText::AttachmentGallery.attachment_selector).map do |node|
+      @attachments ||= Document.find(node, ActionText::AttachmentGallery.attachment_selector).map do |node|
         ActionText::Attachment.from_node(node).with_full_attributes
       end
     end

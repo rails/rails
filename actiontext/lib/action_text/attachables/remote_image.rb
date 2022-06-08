@@ -7,7 +7,10 @@ module ActionText
 
       class << self
         def from_node(node)
-          if node["url"] && content_type_is_image?(node["content-type"])
+          url = Document.node_attribute(node, "url")
+          content_type = Document.node_attribute(node, "content-type")
+
+          if url && content_type_is_image?(content_type)
             new(attributes_from_node(node))
           end
         end
@@ -18,10 +21,10 @@ module ActionText
           end
 
           def attributes_from_node(node)
-            { url: node["url"],
-              content_type: node["content-type"],
-              width: node["width"],
-              height: node["height"] }
+            { url: Document.node_attribute(node, "url"),
+              content_type: Document.node_attribute(node, "content-type"),
+              width: Document.node_attribute(node, "width"),
+              height: Document.node_attribute(node, "height") }
           end
       end
 

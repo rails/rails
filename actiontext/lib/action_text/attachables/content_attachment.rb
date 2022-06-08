@@ -6,8 +6,8 @@ module ActionText
       include ActiveModel::Model
 
       def self.from_node(node)
-        if node["content-type"]
-          if matches = node["content-type"].match(/vnd\.rubyonrails\.(.+)\.html/)
+        if Document.node_attribute(node, "content-type")
+          if matches = Document.node_attribute(node, "content-type").match(/vnd\.rubyonrails\.(.+)\.html/)
             attachment = new(name: matches[1])
             attachment if attachment.valid?
           end

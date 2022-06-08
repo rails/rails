@@ -3,8 +3,6 @@
 require "active_support"
 require "active_support/rails"
 
-require "nokogiri"
-
 module ActionText
   extend ActiveSupport::Autoload
 
@@ -13,11 +11,10 @@ module ActionText
   autoload :Attachment
   autoload :Attribute
   autoload :Content
+  autoload :Document
   autoload :Encryption
   autoload :Fragment
   autoload :FixtureSet
-  autoload :HtmlConversion
-  autoload :PlainTextConversion
   autoload :Rendering
   autoload :Serialization
   autoload :TrixAttachment

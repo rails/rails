@@ -27,7 +27,7 @@ module ActionText
     end
 
     def links
-      @links ||= fragment.find_all("a[href]").map { |a| a["href"] }.uniq
+      @links ||= fragment.find_all("a[href]").map { |a| Document.node_attribute(a, "href") }.uniq
     end
 
     def attachments

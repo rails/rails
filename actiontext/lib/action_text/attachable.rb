@@ -8,7 +8,7 @@ module ActionText
 
     class << self
       def from_node(node)
-        if attachable = attachable_from_sgid(node["sgid"])
+        if attachable = attachable_from_sgid(Document.node_attribute(node, "sgid"))
           attachable
         elsif attachable = ActionText::Attachables::ContentAttachment.from_node(node)
           attachable

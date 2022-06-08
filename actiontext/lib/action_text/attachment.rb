@@ -38,7 +38,7 @@ module ActionText
       private
         def node_from_attributes(attributes)
           if attributes = process_attributes(attributes).presence
-            ActionText::HtmlConversion.create_element(tag_name, attributes)
+            ActionText::Document.create_element(tag_name, attributes)
           end
         end
 
@@ -78,7 +78,7 @@ module ActionText
     end
 
     def to_html
-      HtmlConversion.node_to_html(node)
+      Document.node_to_html(node)
     end
 
     def to_s
@@ -91,7 +91,7 @@ module ActionText
 
     private
       def node_attributes
-        @node_attributes ||= ATTRIBUTES.to_h { |name| [ name.underscore, node[name] ] }.compact
+        @node_attributes ||= ATTRIBUTES.to_h { |name| [ name.underscore, Document.node_attribute(node, name) ] }.compact
       end
 
       def attachable_attributes
