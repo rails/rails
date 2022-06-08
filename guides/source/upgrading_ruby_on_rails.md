@@ -248,6 +248,20 @@ Alternatively, you could load defaults for 7.1
 config.load_defaults 7.1
 ```
 
+### `MemCacheStore` and `RedisCacheStore` now use connection pooling by default
+
+The `connection_pool` gem has been added as a dependency of the `activesupport` gem,
+and the `MemCacheStore` and `RedisCacheStore` now use connection pooling by default.
+
+If you don't want to use connection pooling, set `:pool` option to `false` when
+configuring your cache store:
+
+```ruby
+config.cache_store = :mem_cache_store, "cache.example.com", pool: false
+```
+
+See the [caching with Rails](https://guides.rubyonrails.org/caching_with_rails.html#connection-pool-options) guide for more information.
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 
