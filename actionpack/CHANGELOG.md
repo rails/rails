@@ -1,3 +1,16 @@
+*   Add the ability to test requests with binary data
+
+    Previously it was not possible to test a POST request with an empty Content-Type.
+    The request would default to a Content-Type of `application/x-www-form-urlencoded`,
+    which could cause errors with request parameter decoding. Now you can supply an
+    `input` parameter that can be a String or an IO-like object:
+
+    ```ruby
+    post "/test_upload", input: ActiveSupport::Gzip.compress("hello world")
+    ```
+
+    *Stan Hu*
+
 *   Allow using `helper_method`s in `content_security_policy` and `permissions_policy`
 
     Previously you could access basic helpers (defined in helper modules), but not
