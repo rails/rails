@@ -9,7 +9,7 @@ require "action_view/railtie"
 
 module ActionController
   class Railtie < Rails::Railtie # :nodoc:
-    config.action_controller = ActiveSupport::OrderedOptions.new
+    config.action_controller = ActiveSupport::ConfigurationOptions.new
     config.action_controller.raise_on_open_redirects = false
     config.action_controller.log_query_tags_around_actions = true
     config.action_controller.wrap_parameters_by_default = false
@@ -30,12 +30,11 @@ module ActionController
 
       ActiveSupport.on_load(:action_controller, run_once: true) do
         ActionController::Parameters.permit_all_parameters = options.permit_all_parameters || false
-        if app.config.action_controller[:always_permitted_parameters]
-          ActionController::Parameters.always_permitted_parameters =
-            app.config.action_controller.always_permitted_parameters
+        if always_permitted_parameters = app.config.action_controller.consume(:always_permitted_parameters)
+          ActionController::Parameters.always_permitted_parameters = always_permitted_parameters
         end
 
-        action_on_unpermitted_parameters = options.action_on_unpermitted_parameters
+        action_on_unpermitted_parameters = options.consume(:action_on_unpermitted_parameters)
 
         if action_on_unpermitted_parameters.nil?
           action_on_unpermitted_parameters = (Rails.env.test? || Rails.env.development?) ? :log : false
@@ -43,9 +42,9 @@ module ActionController
 
         ActionController::Parameters.action_on_unpermitted_parameters = action_on_unpermitted_parameters
 
-        unless options.allow_deprecated_parameters_hash_equality.nil?
-          ActionController::Parameters.allow_deprecated_parameters_hash_equality =
-            options.allow_deprecated_parameters_hash_equality
+        deprecated_equality = options.consume(:allow_deprecated_parameters_hash_equality)
+        unless deprecated_equality.nil?
+          ActionController::Parameters.allow_deprecated_parameters_hash_equality = deprecated_equality
         end
       end
     end
@@ -69,10 +68,10 @@ module ActionController
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
         extend ::ActionController::Railties::Helpers
 
-        wrap_parameters format: [:json] if options.wrap_parameters_by_default && respond_to?(:wrap_parameters)
+        wrap_parameters format: [:json] if options.consume(:wrap_parameters_by_default) && respond_to?(:wrap_parameters)
 
         # Configs used in other initializers
-        filtered_options = options.except(
+        filtered_options = options.remaining.except(
           :log_query_tags_around_actions,
           :permit_all_parameters,
           :action_on_unpermitted_parameters,
@@ -82,10 +81,11 @@ module ActionController
         )
 
         filtered_options.each do |k, v|
-          k = "#{k}="
-          if respond_to?(k)
-            send(k, v)
-          elsif !Base.respond_to?(k)
+          setter = "#{k}="
+          if respond_to?(setter)
+            options.consume(k)
+            send(setter, v)
+          elsif !Base.respond_to?(setter)
             raise "Invalid option key: #{k}"
           end
         end
@@ -100,7 +100,7 @@ module ActionController
 
     initializer "action_controller.request_forgery_protection" do |app|
       ActiveSupport.on_load(:action_controller_base) do
-        if app.config.action_controller.default_protect_from_forgery
+        if app.config.action_controller.consume(:default_protect_from_forgery)
           protect_from_forgery with: :exception
         end
       end
@@ -109,7 +109,7 @@ module ActionController
     initializer "action_controller.query_log_tags" do |app|
       query_logs_tags_enabled = app.config.respond_to?(:active_record) &&
         app.config.active_record.query_log_tags_enabled &&
-        app.config.action_controller.log_query_tags_around_actions
+        app.config.action_controller.consume(:log_query_tags_around_actions)
 
       if query_logs_tags_enabled
         app.config.active_record.query_log_tags += [:controller, :action]
