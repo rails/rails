@@ -495,6 +495,9 @@ module ActiveRecord
 
                 begin
                   commit_transaction
+                rescue ActiveRecord::ConnectionFailed
+                  transaction.state.invalidate! unless transaction.state.completed?
+                  raise
                 rescue Exception
                   rollback_transaction(transaction) unless transaction.state.completed?
                   raise

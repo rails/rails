@@ -941,6 +941,12 @@ module ActiveRecord
                 end
               end
 
+              if retryable_connection_error?(translated_exception)
+                # There's a problem with the connection, but we couldn't attempt to
+                # reconnect. The connection is going to stay broken, so un-verify it.
+                @verified = false
+              end
+
               raise translated_exception
             ensure
               dirty_current_transaction if uses_transaction
