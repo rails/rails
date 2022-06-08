@@ -4,68 +4,64 @@ require_relative "abstract_unit"
 require "active_support/ordered_options"
 
 class ConfigurationOptionsTest < ActiveSupport::TestCase
+  def setup
+    @options = ActiveSupport::ConfigurationOptions.new("config.framework")
+  end
+
   def test_usage
-    a = ActiveSupport::ConfigurationOptions.new
+    assert_nil @options[:not_set]
 
-    assert_nil a[:not_set]
+    @options[:allow_concurrency] = true
+    assert_equal 1, @options.size
+    assert @options[:allow_concurrency]
 
-    a[:allow_concurrency] = true
-    assert_equal 1, a.size
-    assert a[:allow_concurrency]
+    @options[:allow_concurrency] = false
+    assert_equal 1, @options.size
+    assert_not @options[:allow_concurrency]
 
-    a[:allow_concurrency] = false
-    assert_equal 1, a.size
-    assert_not a[:allow_concurrency]
-
-    a["else_where"] = 56
-    assert_equal 2, a.size
-    assert_equal 56, a[:else_where]
+    @options["else_where"] = 56
+    assert_equal 2, @options.size
+    assert_equal 56, @options[:else_where]
   end
 
   def test_looping
-    a = ActiveSupport::ConfigurationOptions.new
-
-    a[:allow_concurrency] = true
-    a["else_where"] = 56
+    @options[:allow_concurrency] = true
+    @options["else_where"] = 56
 
     test = [[:allow_concurrency, true], [:else_where, 56]]
 
-    a.each_with_index do |(key, value), index|
+    @options.each_with_index do |(key, value), index|
       assert_equal test[index].first, key
       assert_equal test[index].last, value
     end
   end
 
   def test_string_dig
-    a = ActiveSupport::ConfigurationOptions.new
-
-    a[:test_key] = 56
-    assert_equal 56, a.test_key
-    assert_equal 56, a["test_key"]
-    assert_equal 56, a.dig(:test_key)
-    assert_equal 56, a.dig("test_key")
+    @options[:test_key] = 56
+    assert_equal 56, @options.test_key
+    assert_equal 56, @options["test_key"]
+    assert_equal 56, @options.dig(:test_key)
+    assert_equal 56, @options.dig("test_key")
   end
 
   def test_method_access
-    a = ActiveSupport::ConfigurationOptions.new
+    assert_nil @options.not_set
 
-    assert_nil a.not_set
+    @options.allow_concurrency = true
+    assert_equal 1, @options.size
+    assert @options.allow_concurrency
 
-    a.allow_concurrency = true
-    assert_equal 1, a.size
-    assert a.allow_concurrency
+    @options.allow_concurrency = false
+    assert_equal 1, @options.size
+    assert_not @options.allow_concurrency
 
-    a.allow_concurrency = false
-    assert_equal 1, a.size
-    assert_not a.allow_concurrency
-
-    a.else_where = 56
-    assert_equal 2, a.size
-    assert_equal 56, a.else_where
+    @options.else_where = 56
+    assert_equal 2, @options.size
+    assert_equal 56, @options.else_where
   end
 
   def test_inheritable_options_continues_lookup_in_parent
-    parent = ActiveSupport::ConfigurationOptions.new
+    parent = @options
     parent[:foo] = true
 
     child = ActiveSupport::InheritableOptions.new(parent)
@@ -73,7 +69,7 @@ class ConfigurationOptionsTest < ActiveSupport::TestCase
   end
 
   def test_inheritable_options_can_override_parent
-    parent = ActiveSupport::ConfigurationOptions.new
+    parent = @options
     parent[:foo] = :bar
 
     child = ActiveSupport::InheritableOptions.new(parent)
@@ -82,73 +78,63 @@ class ConfigurationOptionsTest < ActiveSupport::TestCase
     assert_equal :baz, child.foo
   end
 
-  def test_inheritable_options_inheritable_copy
-    original = ActiveSupport::InheritableOptions.new
-    copy     = original.inheritable_copy
-
-    assert copy.kind_of?(original.class)
-    assert_not_equal copy.object_id, original.object_id
-  end
-
   def test_introspection
-    a = ActiveSupport::ConfigurationOptions.new
-    assert_respond_to a, :blah
-    assert_respond_to a, :blah=
-    assert_equal 42, a.method(:blah=).call(42)
-    assert_equal 42, a.method(:blah).call
+    assert_respond_to @options, :blah
+    assert_respond_to @options, :blah=
+    assert_equal 42, @options.method(:blah=).call(42)
+    assert_equal 42, @options.method(:blah).call
   end
 
   def test_raises_with_bang
-    a = ActiveSupport::ConfigurationOptions.new
-    a[:foo] = :bar
-    assert_respond_to a, :foo!
+    @options[:foo] = :bar
+    assert_respond_to @options, :foo!
 
-    assert_nothing_raised { a.foo! }
-    assert_equal a.foo, a.foo!
+    assert_nothing_raised { @options.foo! }
+    assert_equal @options.foo, @options.foo!
 
     assert_raises(KeyError) do
-      a.foo = nil
-      a.foo!
+      @options.foo = nil
+      @options.foo!
     end
-    assert_raises(KeyError) { a.non_existing_key! }
+    assert_raises(KeyError) { @options.non_existing_key! }
   end
 
   def test_inheritable_options_with_bang
-    a = ActiveSupport::InheritableOptions.new(foo: :bar)
+    @options[:foo] = :bar
 
-    assert_nothing_raised { a.foo! }
-    assert_equal a.foo, a.foo!
+    assert_nothing_raised { @options.foo! }
+    assert_equal @options.foo, @options.foo!
 
     assert_raises(KeyError) do
-      a.foo = nil
-      a.foo!
+      @options.foo = nil
+      @options.foo!
     end
-    assert_raises(KeyError) { a.non_existing_key! }
+    assert_raises(KeyError) { @options.non_existing_key! }
   end
 
   def test_inspect
-    a = ActiveSupport::ConfigurationOptions.new
-    assert_equal "#<ActiveSupport::ConfigurationOptions {}>", a.inspect
+    assert_equal "#<ActiveSupport::ConfigurationOptions {}>", @options.inspect
 
-    a.foo   = :bar
-    a[:baz] = :quz
+    @options.foo   = :bar
+    @options[:baz] = :quz
 
-    assert_equal "#<ActiveSupport::ConfigurationOptions {:foo=>:bar, :baz=>:quz}>", a.inspect
+    assert_equal "#<ActiveSupport::ConfigurationOptions {:foo=>:bar, :baz=>:quz}>", @options.inspect
   end
 
   def test_consume_values
-    a = ActiveSupport::ConfigurationOptions.new
-    a.foo = :bar
-    a.foo = :plop
-    assert_equal :plop, a.consume(:foo)
-    assert_equal :plop, a.consume(:foo)
+    @options.foo = :bar
+    @options.foo = :plop
+    assert_equal :plop, @options.consume(:foo)
+    assert_equal :plop, @options.consume(:foo)
 
-    assert_raises do
-      a.foo = :bar
+    error = assert_raises(KeyError) do
+      @options.foo = :bar
     end
+    assert_includes error.message, "config.framework.foo was already used."
 
-    assert_raises do
-      a[:foo] = :bar
+    error = assert_raises do
+      @options[:foo] = :bar
     end
+    assert_includes error.message, "config.framework.foo was already used."
   end
 end

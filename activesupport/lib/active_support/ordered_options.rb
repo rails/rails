@@ -112,7 +112,8 @@ module ActiveSupport
       :transform_values!,
     ].to_set
 
-    def initialize
+    def initialize(path)
+      @path = path
       @options = OrderedOptions.new
       @consumed_keys = Set.new
     end
@@ -126,7 +127,7 @@ module ActiveSupport
     def []=(key, value)
       key = key.to_sym
       if @consumed_keys.include?(key)
-        raise "#{key} was already used"
+        raise KeyError, "#{@path}.#{key} was already used. Changing it now would have no effect."
       else
         @options[key] = value
       end

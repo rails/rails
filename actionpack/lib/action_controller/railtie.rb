@@ -9,7 +9,7 @@ require "action_view/railtie"
 
 module ActionController
   class Railtie < Rails::Railtie # :nodoc:
-    config.action_controller = ActiveSupport::ConfigurationOptions.new
+    config.action_controller = ActiveSupport::ConfigurationOptions.new("config.action_controller")
     config.action_controller.raise_on_open_redirects = false
     config.action_controller.log_query_tags_around_actions = true
     config.action_controller.wrap_parameters_by_default = false
