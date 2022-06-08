@@ -734,6 +734,15 @@ video.preview(resize_to_limit: [100, 100])
 video.preview(resize_to_fill: [100, 100])
 ```
 
+### New `ActiveModel:Errors` class
+
+Errors are now instances of a new `ActiveModel::Error` class, with changes to
+the API. Some of these changes may throw errors depending on how you manipulate
+errors, while others will print deprecation warnings to be fixed for Rails 7.0.
+
+More information about this change and details about the API changes can be
+found [in this PR](https://github.com/rails/rails/pull/32313).
+
 Upgrading from Rails 5.2 to Rails 6.0
 -------------------------------------
 
