@@ -65,8 +65,8 @@ module ActionText
       end
 
       # either returns a new node, or an HTML string representing the new
-      # node.
-      def rename_node(node, name)
+      # node, with the new name, and all attributes removed.
+      def canonicalize_node(node, name)
         "<#{name}>#{node.inner_html}</#{name}>"
       end
 

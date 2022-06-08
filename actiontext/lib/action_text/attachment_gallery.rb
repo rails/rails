@@ -10,7 +10,7 @@ module ActionText
     class << self
       def fragment_by_canonicalizing_attachment_galleries(content)
         fragment_by_replacing_attachment_gallery_nodes(content) do |node|
-          Document.rename_node(node, TAG_NAME)
+          Document.canonicalize_node(node, TAG_NAME)
         end
       end
 
