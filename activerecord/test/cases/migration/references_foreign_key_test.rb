@@ -289,6 +289,17 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           fk_definitions = fks.map { |fk| [fk.from_table, fk.to_table, fk.column] }
           assert_equal([["testings", "testing_parents", "parent2_id"]], fk_definitions)
         end
+
+        if current_adapter?(:PostgreSQLAdapter)
+          test "add_reference combines adding column and foreign key" do
+            @connection.create_table :testings
+            assert_queries_count(1) do
+              @connection.add_reference :testings, :parent1, foreign_key: { to_table: :testing_parents }, index: false
+            end
+
+            assert @connection.foreign_key_exists?(:testings, :testing_parents)
+          end
+        end
       end
     end
   end

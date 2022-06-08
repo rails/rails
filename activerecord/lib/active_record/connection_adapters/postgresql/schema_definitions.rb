@@ -235,6 +235,21 @@ module ActiveRecord
         end
       end
 
+      class ReferenceDefinition < ActiveRecord::ConnectionAdapters::ReferenceDefinition
+        def add(table_name, connection)
+          columns.each do |name, type, options|
+            if foreign_key
+              options = options.merge(foreign_key: foreign_key_options.merge(to_table: foreign_table_name))
+            end
+            connection.add_column(table_name, name, type, **options)
+          end
+
+          if index
+            connection.add_index(table_name, column_names, **index_options(table_name))
+          end
+        end
+      end
+
       # = Active Record PostgreSQL Adapter \Table Definition
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods

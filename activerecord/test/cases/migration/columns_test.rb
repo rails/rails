@@ -421,6 +421,26 @@ module ActiveRecord
       ensure
         connection.drop_table :my_table, if_exists: true
       end
+
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_add_column_with_foreign_key
+          assert_queries_count(1) do
+            add_column :test_models, :user_id, :integer, foreign_key: { to_table: :users }
+          end
+
+          assert connection.foreign_key_exists?(:test_models, :users)
+        end
+
+        def test_column_with_foreign_key
+          connection.create_table :my_table, force: true do |t|
+            t.integer :user_id, foreign_key: { to_table: :users }
+          end
+
+          assert connection.foreign_key_exists?(:my_table, :users)
+        ensure
+          connection.drop_table(:my_table, if_exists: true)
+        end
+      end
     end
   end
 end

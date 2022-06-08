@@ -22,6 +22,7 @@ module ActiveRecord
 
       private
         def visit_AlterTable(o)
+          set_current_table(o.name)
           sql = +"ALTER TABLE #{quote_table_name(o.name)} "
           sql << o.adds.map { |col| accept col }.join(" ")
           sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(" ")
@@ -42,6 +43,7 @@ module ActiveRecord
         end
 
         def visit_TableDefinition(o)
+          set_current_table(o.name)
           create_sql = +"CREATE#{table_modifier_in_create(o)} TABLE "
           create_sql << "IF NOT EXISTS " if o.if_not_exists
           create_sql << "#{quote_table_name(o.name)} "
@@ -129,6 +131,10 @@ module ActiveRecord
 
         def visit_DropCheckConstraint(name)
           "DROP CONSTRAINT #{quote_column_name(name)}"
+        end
+
+        def set_current_table(table_name)
+          @table_name = table_name
         end
 
         def quoted_columns(o)

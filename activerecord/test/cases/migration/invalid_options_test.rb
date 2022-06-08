@@ -8,7 +8,7 @@ module ActiveRecord
       include ActiveRecord::Migration::TestHelper
 
       def invalid_add_column_option_exception_message(key)
-        default_keys = [":limit", ":precision", ":scale", ":default", ":null", ":collation", ":comment", ":primary_key", ":if_exists", ":if_not_exists"]
+        default_keys = [":limit", ":precision", ":scale", ":default", ":null", ":collation", ":comment", ":primary_key", ":foreign_key", ":if_exists", ":if_not_exists"]
 
         if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           default_keys.concat([":auto_increment", ":charset", ":as", ":size", ":unsigned", ":first", ":after", ":type", ":stored"])

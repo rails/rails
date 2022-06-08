@@ -562,6 +562,9 @@ module ActiveRecord
       #   <tt>:datetime</tt>, and <tt>:time</tt> columns.
       # * <tt>:scale</tt> -
       #   Specifies the scale for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
+      # [<tt>:foreign_key</tt>]
+      #   (PostgreSQL only) Add a foreign key to the specified table. This setting allows to add
+      #   the foreign key in the same SQL statement as adding a column and avoids costly foreign key validation.
       # * <tt>:if_not_exists</tt> -
       #   Specifies if the column already exists to not try to re-add it. This will avoid
       #   duplicate column errors.
@@ -614,6 +617,12 @@ module ActiveRecord
       #  # Defines a column with a database-specific type.
       #  add_column(:shapes, :triangle, 'polygon')
       #  # ALTER TABLE "shapes" ADD "triangle" polygon
+      #
+      #  # Defines a column and a foreign key.
+      #  add_column(:pictures, :user_id, :bigint, foreign_key: { to_table: :users })
+      #  # ALTER TABLE "pictures" ADD "user_id" bigint CONSTRAINT "fk_rails_3268570edc" REFERENCES "users" ("id")
+      #
+      #  Note: only supported by PostgreSQL.
       #
       #  # Ignores the method call if the column exists
       #  add_column(:shapes, :triangle, 'polygon', if_not_exists: true)

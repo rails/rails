@@ -16,22 +16,31 @@ module ActiveRecord
             sql << o.unique_constraint_drops.map { |con| visit_DropUniqueConstraint con }.join(" ")
           end
 
+          def visit_ColumnDefinition(o)
+            super.dup.tap do |sql|
+              if o.foreign_key
+                fk = new_foreign_key_definition(o.foreign_key.fetch(:to_table), o.foreign_key)
+                sql << " " << visit_ForeignKeyDefinition(fk, false)
+              end
+            end
+          end
+
+          def visit_ForeignKeyDefinition(o, table = true)
+            quoted_columns = Array(o.column).map { |c| quote_column_name(c) }
+            quoted_primary_keys = Array(o.primary_key).map { |c| quote_column_name(c) }
+            sql = +"CONSTRAINT #{quote_column_name(o.name)}"
+            sql << " FOREIGN KEY (#{quoted_columns.join(', ')})" if table
+            sql << " REFERENCES #{quote_table_name(o.to_table)} (#{quoted_primary_keys.join(', ')})"
+            sql << " #{action_sql('DELETE', o.on_delete)}" if o.on_delete
+            sql << " #{action_sql('UPDATE', o.on_update)}" if o.on_update
+            sql << " DEFERRABLE INITIALLY #{o.deferrable.to_s.upcase}" if o.deferrable
+            sql
+          end
+
           def visit_AddForeignKey(o)
-            super.dup.tap do |sql|
-              sql << " DEFERRABLE INITIALLY #{o.options[:deferrable].to_s.upcase}" if o.deferrable
-              sql << " NOT VALID" unless o.validate?
-            end
-          end
-
-          def visit_ForeignKeyDefinition(o)
-            super.dup.tap do |sql|
-              sql << " DEFERRABLE INITIALLY #{o.deferrable.to_s.upcase}" if o.deferrable
-            end
-          end
-
-          def visit_CheckConstraintDefinition(o)
             super.dup.tap { |sql| sql << " NOT VALID" unless o.validate? }
           end
+          alias :visit_AddCheckConstraint :visit_AddForeignKey
 
           def visit_ValidateConstraint(name)
             "VALIDATE CONSTRAINT #{quote_column_name(name)}"
@@ -163,6 +172,14 @@ module ActiveRecord
             elsif o.unlogged
               " UNLOGGED"
             end
+          end
+
+          def new_foreign_key_definition(to_table, options)
+            prefix = ActiveRecord::Base.table_name_prefix
+            suffix = ActiveRecord::Base.table_name_suffix
+            to_table = "#{prefix}#{to_table}#{suffix}"
+            options = @conn.foreign_key_options(@table_name, to_table, options)
+            ForeignKeyDefinition.new(@table_name, to_table, options)
           end
       end
     end
