@@ -42,18 +42,8 @@ module ActionText
         node[attr_name]
       end
 
-      def set_attributes(node, map)
-        map.each do |key, value|
-          node[key] = value if value
-        end
-      end
-
       def node_children(node)
         node.children
-      end
-
-      def node_ancestors(node)
-        node.ancestors
       end
 
       def node_matches?(node, css_selector)
@@ -65,9 +55,9 @@ module ActionText
       end
 
       # returns the node; if the model is immutable, it might return a
-      # clone of the node instead, with the inner HTML set as requested.
-      def set_inner_html(node, value)
-        node.tap { |n| n.inner_html = value }
+      # clone of the node instead, with the children removed as requested.
+      def remove_children(node)
+        node.tap { |n| n.inner_html = "" }
       end
 
       def create_element(tag_name, attributes = {})

@@ -22,8 +22,7 @@ module ActionText
         trix_attachment_attributes = attributes.except(*COMPOSED_ATTRIBUTES)
         trix_attributes = attributes.slice(*COMPOSED_ATTRIBUTES)
 
-        node = ActionText::Document.create_element(TAG_NAME)
-        ActionText::Document.set_attributes(node,
+        node = ActionText::Document.create_element(TAG_NAME,
           "data-trix-attachment" => JSON.generate(trix_attachment_attributes),
           "data-trix-attributes" => trix_attributes.any? ? JSON.generate(trix_attributes) : nil)
 
