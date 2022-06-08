@@ -1758,7 +1758,7 @@ module ApplicationTests
     test "config.log_file_size returns no limit in production" do
       app "production"
 
-      assert_equal nil, app.config.log_file_size
+      assert_nil app.config.log_file_size
     end
 
     test "rake_tasks block works at instance level" do
