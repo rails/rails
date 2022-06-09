@@ -189,6 +189,13 @@ module Rails
             class_option(name, defaults.merge!(options))
           end
 
+          klass = self
+
+          singleton_class.define_method("#{name}_generator") do
+            value = class_options[name].default
+            Rails::Generators.find_by_namespace(klass.generator_name, value)
+          end
+
           hooks[name] = [ in_base, as_hook ]
           invoke_from_option(name, options, &block)
         end

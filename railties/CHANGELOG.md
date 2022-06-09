@@ -1,3 +1,7 @@
+*   Delegate model generator description to orm hooked generator.
+
+    *Gannon McGibbon*
+
 *   Execute `rails runner` scripts inside the executor.
 
     Enables error reporting, query cache, etc.
