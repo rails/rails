@@ -92,8 +92,10 @@ module ActiveRecord
       def initialize(config_or_deprecated_connection, deprecated_logger = nil, deprecated_connection_options = nil, deprecated_config = nil) # :nodoc:
         super()
 
+        @raw_connection = nil
+        @unconfigured_connection = nil
+
         if config_or_deprecated_connection.is_a?(Hash)
-          @raw_connection = nil
           @config = config_or_deprecated_connection.symbolize_keys
           @logger = ActiveRecord::Base.logger
 
@@ -103,7 +105,7 @@ module ActiveRecord
         else
           # Soft-deprecated for now; we'll probably warn in future.
 
-          @raw_connection = config_or_deprecated_connection
+          @unconfigured_connection = config_or_deprecated_connection
           @logger = deprecated_logger || ActiveRecord::Base.logger
           if deprecated_config
             @config = (deprecated_config || {}).symbolize_keys
@@ -683,7 +685,22 @@ module ActiveRecord
       # This is done under the hood by calling #active?. If the connection
       # is no longer active, then this method will reconnect to the database.
       def verify!
-        reconnect!(restore_transactions: true) unless active?
+        unless active?
+          if @unconfigured_connection
+            @lock.synchronize do
+              if @unconfigured_connection
+                @raw_connection = @unconfigured_connection
+                @unconfigured_connection = nil
+                configure_connection
+                @verified = true
+                return
+              end
+            end
+          end
+
+          reconnect!(restore_transactions: true)
+        end
+
         @verified = true
       end
 
