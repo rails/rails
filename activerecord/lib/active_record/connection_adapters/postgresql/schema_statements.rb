@@ -482,6 +482,11 @@ module ActiveRecord
           execute "ALTER INDEX #{quote_column_name(old_name)} RENAME TO #{quote_table_name(new_name)}"
         end
 
+        def index_name(table_name, options) # :nodoc:
+          table_name = Utils.extract_schema_qualified_name(table_name.to_s).identifier
+          super
+        end
+
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
           fk_info = exec_query(<<~SQL, "SCHEMA")

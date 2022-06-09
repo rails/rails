@@ -1164,6 +1164,26 @@ class ExplicitlyNamedIndexMigrationTest < ActiveRecord::TestCase
   end
 end
 
+if current_adapter?(:PostgreSQLAdapter)
+  class IndexForTableWithSchemaMigrationTest < ActiveRecord::TestCase
+    def test_add_and_remove_index
+      connection = Person.connection
+      connection.create_schema("my_schema")
+      connection.create_table("my_schema.values", force: true) do |t|
+        t.integer :value
+      end
+
+      connection.add_index("my_schema.values", :value)
+      assert connection.index_exists?("my_schema.values", :value)
+
+      connection.remove_index("my_schema.values", :value)
+      assert_not connection.index_exists?("my_schema.values", :value)
+    ensure
+      connection.drop_schema("my_schema")
+    end
+  end
+end
+
 if ActiveRecord::Base.connection.supports_bulk_alter?
   class BulkAlterTableMigrationsTest < ActiveRecord::TestCase
     def setup
