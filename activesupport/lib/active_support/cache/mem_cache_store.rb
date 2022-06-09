@@ -75,6 +75,7 @@ module ActiveSupport
       end
       prepend DupLocalCache
 
+      KEY_MAX_SIZE = 250
       ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
       # Creates a new Dalli::Client instance with specified addresses and options.
@@ -306,7 +307,13 @@ module ActiveSupport
           if key
             key = key.dup.force_encoding(Encoding::ASCII_8BIT)
             key = key.gsub(ESCAPE_KEY_CHARS) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
-            key = "#{key[0, 212]}:hash:#{ActiveSupport::Digest.hexdigest(key)}" if key.size > 250
+
+            if key.size > KEY_MAX_SIZE
+              key_separator = ":hash:"
+              key_hash = ActiveSupport::Digest.hexdigest(key)
+              key_trim_size = KEY_MAX_SIZE - key_separator.size - key_hash.size
+              key = "#{key[0, key_trim_size]}#{key_separator}#{key_hash}"
+            end
           end
           key
         end
