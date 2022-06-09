@@ -613,6 +613,12 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
 
+      # Reads an entry from the cache implementation. Subclasses must implement
+      # this method.
+      def read_entry(key, **options)
+        raise NotImplementedError.new
+      end
+
       private
         def default_coder
           Coders[Cache.format_version]
@@ -635,12 +641,6 @@ module ActiveSupport
           else
             pattern
           end
-        end
-
-        # Reads an entry from the cache implementation. Subclasses must implement
-        # this method.
-        def read_entry(key, **options)
-          raise NotImplementedError.new
         end
 
         # Writes an entry to the cache implementation. Subclasses must implement

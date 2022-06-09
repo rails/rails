@@ -335,6 +335,12 @@ module ActiveSupport
         @mset_capable
       end
 
+      # Store provider interface:
+      # Read an entry from the cache.
+      def read_entry(key, **options)
+        deserialize_entry(read_serialized_entry(key, **options), **options)
+      end
+
       private
         def set_redis_capabilities
           case redis
@@ -345,12 +351,6 @@ module ActiveSupport
             @mget_capable = true
             @mset_capable = true
           end
-        end
-
-        # Store provider interface:
-        # Read an entry from the cache.
-        def read_entry(key, **options)
-          deserialize_entry(read_serialized_entry(key, **options), **options)
         end
 
         def read_serialized_entry(key, raw: false, **options)

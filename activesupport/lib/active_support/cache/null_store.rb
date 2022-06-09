@@ -32,11 +32,11 @@ module ActiveSupport
       def delete_matched(matcher, options = nil)
       end
 
-      private
-        def read_entry(key, **s)
-          deserialize_entry(read_serialized_entry(key))
-        end
+      def read_entry(key, **s)
+        deserialize_entry(read_serialized_entry(key))
+      end
 
+      private
         def read_serialized_entry(_key, **)
         end
 

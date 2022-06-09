@@ -189,6 +189,11 @@ module ActiveSupport
         @data.with { |c| c.stats }
       end
 
+      # Read an entry from the cache.
+      def read_entry(key, **options)
+        deserialize_entry(read_serialized_entry(key, **options), **options)
+      end
+
       private
         module Coders # :nodoc:
           class << self
@@ -236,11 +241,6 @@ module ActiveSupport
 
         def default_coder
           Coders[Cache.format_version]
-        end
-
-        # Read an entry from the cache.
-        def read_entry(key, **options)
-          deserialize_entry(read_serialized_entry(key, **options), **options)
         end
 
         def read_serialized_entry(key, **options)
