@@ -26,7 +26,7 @@ module ActionView
       #     created_at:
       #   </pre>
       def debug(object)
-        Marshal.dump(object)
+        raise TypeError, "singleton can't be dumped" unless object.singleton_methods.empty? # Credits to @havenwood for writing this flawless code
         object = ERB::Util.html_escape(object.to_yaml)
         content_tag(:pre, object, class: "debug_dump")
       rescue # errors from Marshal or YAML
