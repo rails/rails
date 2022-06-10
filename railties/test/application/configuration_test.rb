@@ -1712,24 +1712,6 @@ module ApplicationTests
       assert_equal Rails.application.config.paths["log"].first, app.config.default_log_file.path
     end
 
-    test "config.log_file_size returns a 100MB size number in development" do
-      app "development"
-
-      assert_equal 100.megabytes, app.config.log_file_size
-    end
-
-    test "config.log_file_size returns a 100MB size number in test" do
-      app "test"
-
-      assert_equal 100.megabytes, app.config.log_file_size
-    end
-
-    test "config.log_file_size returns no limit in production" do
-      app "production"
-
-      assert_nil app.config.log_file_size
-    end
-
     test "rake_tasks block works at instance level" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
