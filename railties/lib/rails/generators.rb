@@ -266,8 +266,14 @@ module Rails
           options = sorted_groups.flat_map(&:last)
           error   = Command::Base::CorrectableError.new("Could not find generator '#{namespace}'.", namespace, options)
 
+          if error.respond_to?(:detailed_message)
+            formatted_message = error.detailed_message
+          else
+            formatted_message = error.message
+          end
+
           puts <<~MSG
-            #{error.message}
+            #{formatted_message}
             Run `bin/rails generate --help` for more options.
           MSG
         end
