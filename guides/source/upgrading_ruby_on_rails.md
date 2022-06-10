@@ -605,6 +605,13 @@ ActiveRecord::Schema[6.1].define(version: 2022_01_28_123512) do
 NOTE: The first time you dump the schema with Rails 7.0, you will see many changes to that file, including
 some column information. Make sure to review the new schema file content and commit it to your repository.
 
+### Date and Time `#to_s` no longer use the `:default` format
+
+When a Date or Time is converted to a string using `#to_s` (e.g. in an ERB
+template) the result will no longer use the `:default` format defined in
+`Date::DATE_FORMATS` and `Time::DATE_FORMATS`. To achieve the previous
+behavior, use the `#to_fs` method instead.
+
 Upgrading from Rails 6.0 to Rails 6.1
 -------------------------------------
 
