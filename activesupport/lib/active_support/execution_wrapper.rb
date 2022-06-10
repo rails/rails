@@ -84,14 +84,14 @@ module ActiveSupport
     end
 
     # Perform the work in the supplied block as an execution.
-    def self.wrap
+    def self.wrap(source: "application.active_support")
       return yield if active?
 
       instance = run!
       begin
         yield
       rescue => error
-        error_reporter.report(error, handled: false, source: "unhandled_error.active_support")
+        error_reporter.report(error, handled: false, source: source)
         raise
       ensure
         instance.complete!
