@@ -1,3 +1,7 @@
+*   Adjust the minimum MariaDB version for check constraints support.
+
+    *Eddie Lebow*
+
 *   Fix Hstore deserialize regression.
 
     *edsharp*

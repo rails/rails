@@ -99,7 +99,7 @@ module ActiveRecord
 
       def supports_check_constraints?
         if mariadb?
-          database_version >= "10.2.1"
+          database_version >= "10.3.10" || (database_version < "10.3" && database_version >= "10.2.22")
         else
           database_version >= "8.0.16"
         end
