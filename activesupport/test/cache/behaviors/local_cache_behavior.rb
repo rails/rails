@@ -40,6 +40,17 @@ module LocalCacheBehavior
     assert_nil @cache.read(key)
   end
 
+  def test_clear_with_nil_options
+    key = SecureRandom.uuid
+    @cache.with_local_cache do
+      @cache.write(key, SecureRandom.alphanumeric)
+      @cache.clear(nil)
+      assert_nil @cache.read(key)
+    end
+
+    assert_nil @cache.read(key)
+  end
+
   def test_cleanup_clears_local_cache_but_not_remote_cache
     begin
       @cache.cleanup
