@@ -870,7 +870,7 @@ module ActiveSupport
           when 7.0
             Rails70Coder
           else
-            raise ArgumentError, "Unknown ActiveSupport::Cache.format_version #{Cache.format_version.inspect}"
+            raise ArgumentError, "Unknown ActiveSupport::Cache.format_version: #{Cache.format_version.inspect}"
           end
         end
       end

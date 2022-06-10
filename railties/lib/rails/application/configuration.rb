@@ -164,9 +164,6 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
-            if respond_to?(:legacy_connection_handling)
-              active_record.legacy_connection_handling = false
-            end
           end
 
           if respond_to?(:active_job)
@@ -387,8 +384,14 @@ module Rails
         config = if yaml&.exist?
           loaded_yaml = ActiveSupport::ConfigurationFile.parse(yaml)
           if (shared = loaded_yaml.delete("shared"))
-            loaded_yaml.each do |_k, values|
-              values.reverse_merge!(shared)
+            loaded_yaml.each do |env, config|
+              if config.is_a?(Hash) && config.values.all?(Hash)
+                config.map do |name, sub_config|
+                  sub_config.reverse_merge!(shared)
+                end
+              else
+                config.reverse_merge!(shared)
+              end
             end
           end
           Hash.new(shared).merge(loaded_yaml)
