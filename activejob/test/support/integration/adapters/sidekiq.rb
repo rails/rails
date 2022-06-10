@@ -53,10 +53,21 @@ module SidekiqJobsManager
 
       require "sidekiq/cli"
       require "sidekiq/launcher"
-      sidekiq = Sidekiq::Launcher.new(queues: ["integration_tests"],
-                                       environment: "test",
-                                       concurrency: 1,
-                                       timeout: 1)
+      if Sidekiq.respond_to?(:[]=)
+        config = Sidekiq
+        config[:queues] = ["integration_tests"]
+        config[:environment] = "test"
+        config[:concurrency] = 1
+        config[:timeout] = 1
+      else
+        config = {
+          queues: ["integration_tests"],
+          environment: "test",
+          concurrency: 1,
+          timeout: 1
+        }
+      end
+      sidekiq = Sidekiq::Launcher.new(config)
       Sidekiq.average_scheduled_poll_interval = 0.5
       Sidekiq.options[:poll_interval_average] = 1
       begin
