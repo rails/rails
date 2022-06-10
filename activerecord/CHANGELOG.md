@@ -1,3 +1,11 @@
+*   Introduce strategy pattern for executing migrations.
+
+    By default, migrations will use a strategy object that delegates the method
+    to the connection adapter. Consumers can implement custom strategy objects
+    to change how their migrations run.
+
+    *Adrianna Chang*
+
 *   Add adapter option disallowing foreign keys
 
     This adds a new option to be added to `database.yml` which enables skipping

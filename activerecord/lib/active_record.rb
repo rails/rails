@@ -304,6 +304,12 @@ module ActiveRecord
 
   ##
   # :singleton-method:
+  # Specify strategy to use for executing migrations.
+  singleton_class.attr_accessor :migration_strategy
+  self.migration_strategy = Migration::DefaultStrategy
+
+  ##
+  # :singleton-method:
   # Specify whether schema dump should happen at the end of the
   # bin/rails db:migrate command. This is true by default, which is useful for the
   # development environment. This should ideally be false in the production
