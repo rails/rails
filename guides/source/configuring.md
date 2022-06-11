@@ -148,6 +148,17 @@ Below are the default values associated with each target version. In cases of co
 
 The following configuration methods are to be called on a `Rails::Railtie` object, such as a subclass of `Rails::Engine` or `Rails::Application`.
 
+#### `config.add_autoload_paths_to_load_path`
+
+Says whether autoload paths have to be added to `$LOAD_PATH`. It is recommended to be set to `false` in `:zeitwerk` mode early, in `config/application.rb`. Zeitwerk uses absolute paths internally, and applications running in `:zeitwerk` mode do not need `require_dependency`, so models, controllers, jobs, etc. do not need to be in `$LOAD_PATH`. Setting this to `false` saves Ruby from checking these directories when resolving `require` calls with relative paths, and saves Bootsnap work and RAM, since it does not need to build an index for them.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 7.1                   | `false`              |
+
 #### `config.after_initialize`
 
 Takes a block which will be run _after_ Rails has finished initializing the application. That includes the initialization of the framework itself, engines, and all the application's initializers in `config/initializers`. Note that this block _will_ be run for rake tasks. Useful for configuring values set up by other initializers:
@@ -170,31 +181,14 @@ Accepts an array of paths from which Rails will autoload constants that won't be
 
 Accepts an array of paths from which Rails will autoload constants. Default is an empty array. Since [Rails 6](upgrading_ruby_on_rails.html#autoloading), it is not recommended to adjust this. See [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html#autoload-paths).
 
-#### `config.add_autoload_paths_to_load_path`
-
-Says whether autoload paths have to be added to `$LOAD_PATH`. It is recommended to be set to `false` in `:zeitwerk` mode early, in `config/application.rb`. Zeitwerk uses absolute paths internally, and applications running in `:zeitwerk` mode do not need `require_dependency`, so models, controllers, jobs, etc. do not need to be in `$LOAD_PATH`. Setting this to `false` saves Ruby from checking these directories when resolving `require` calls with relative paths, and saves Bootsnap work and RAM, since it does not need to build an index for them.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `true`               |
-| 7.1                   | `false`              |
-
-#### `config.enable_reloading`
-
-If `config.enable_reloading` is true, application classes and modules are reloaded in between web requests if they change. Defaults to `true` in the `development` environment, and `false` in the `production` environment.
-
-The predicate `config.reloading_enabled?` is also defined.
-
-#### `config.cache_classes`
-
-Old setting equivalent to `!config.enable_reloading`. Supported for backwards compatibility.
-
 #### `config.beginning_of_week`
 
 Sets the default beginning of week for the
 application. Accepts a valid day of week as a symbol (e.g. `:monday`).
+
+#### `config.cache_classes`
+
+Old setting equivalent to `!config.enable_reloading`. Supported for backwards compatibility.
 
 #### `config.cache_store`
 
@@ -221,6 +215,18 @@ console do
 end
 ```
 
+#### `config.credentials.content_path`
+
+Configures lookup path for encrypted credentials.
+
+#### `config.credentials.key_path`
+
+Configures lookup path for encryption key.
+
+#### `config.debug_exception_response_format`
+
+Sets the format used in responses when errors occur in the development environment. Defaults to `:api` for API only apps and `:default` for normal apps.
+
 #### `config.disable_sandbox`
 
 Controls whether or not someone can start a console in sandbox mode. This is helpful to avoid a long running session of sandbox console, that could lead a database server to run out of memory. Defaults to `false`.
@@ -237,6 +243,12 @@ Registers namespaces that are eager loaded when `config.eager_load` is set to `t
 
 Accepts an array of paths from which Rails will eager load on boot if `config.eager_load` is true. Defaults to every folder in the `app` directory of the application.
 
+#### `config.enable_reloading`
+
+If `config.enable_reloading` is true, application classes and modules are reloaded in between web requests if they change. Defaults to `true` in the `development` environment, and `false` in the `production` environment.
+
+The predicate `config.reloading_enabled?` is also defined.
+
 #### `config.encoding`
 
 Sets up the application-wide encoding. Defaults to UTF-8.
@@ -244,10 +256,6 @@ Sets up the application-wide encoding. Defaults to UTF-8.
 #### `config.exceptions_app`
 
 Sets the exceptions application invoked by the `ShowException` middleware when an exception happens. Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`.
-
-#### `config.debug_exception_response_format`
-
-Sets the format used in responses when errors occur in the development environment. Defaults to `:api` for API only apps and `:default` for normal apps.
 
 #### `config.file_watcher`
 
@@ -315,6 +323,10 @@ config.logger      = ActiveSupport::TaggedLogging.new(mylogger)
 
 Allows you to configure the application's middleware. This is covered in depth in the [Configuring Middleware](#configuring-middleware) section below.
 
+#### `config.public_file_server.enabled`
+
+Configures Rails to serve static files from the public directory. This option defaults to `true`, but in the production environment it is set to `false` because the server software (e.g. NGINX or Apache) used to run the application should serve static files instead. If you are running or testing your app in production using WEBrick (it is not recommended to use WEBrick in production) set the option to `true`. Otherwise, you won't be able to use page caching and request for files that exist under the public directory.
+
 #### `config.rake_eager_load`
 
 When `true`, eager load the application when running Rake tasks. Defaults to `false`.
@@ -323,13 +335,9 @@ When `true`, eager load the application when running Rake tasks. Defaults to `fa
 
 Enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to `true`. If `config.enable_reloading` is `false`, this option is ignored.
 
-#### `config.credentials.content_path`
+#### `config.require_master_key`
 
-Configures lookup path for encrypted credentials.
-
-#### `config.credentials.key_path`
-
-Configures lookup path for encryption key.
+Causes the app to not boot if a master key hasn't been made available through `ENV["RAILS_MASTER_KEY"]` or the `config/master.key` file.
 
 #### `config.secret_key_base`
 
@@ -338,14 +346,6 @@ It is recommended to leave this unset, and instead to specify a `secret_key_base
 in `config/credentials.yml.enc`. See the [`secret_key_base` API documentation](
 https://api.rubyonrails.org/classes/Rails/Application.html#method-i-secret_key_base)
 for more information and alternative configuration methods.
-
-#### `config.require_master_key`
-
-Causes the app to not boot if a master key hasn't been made available through `ENV["RAILS_MASTER_KEY"]` or the `config/master.key` file.
-
-#### `config.public_file_server.enabled`
-
-Configures Rails to serve static files from the public directory. This option defaults to `true`, but in the production environment it is set to `false` because the server software (e.g. NGINX or Apache) used to run the application should serve static files instead. If you are running or testing your app in production using WEBrick (it is not recommended to use WEBrick in production) set the option to `true`. Otherwise, you won't be able to use page caching and request for files that exist under the public directory.
 
 #### `config.session_store`
 
