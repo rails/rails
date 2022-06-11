@@ -427,27 +427,44 @@ module ActiveRecord
         if supports_check_constraints?
           scope = quoted_scope(table_name)
 
-          sql = <<~SQL
-            SELECT cc.constraint_name AS 'name',
-                  cc.check_clause AS 'expression'
-            FROM information_schema.check_constraints cc
-            JOIN information_schema.table_constraints tc
-            USING (constraint_schema, constraint_name)
-            WHERE tc.table_schema = #{scope[:schema]}
-              AND tc.table_name = #{scope[:name]}
-              AND cc.constraint_schema = #{scope[:schema]}
-          SQL
-          sql += " AND cc.table_name = #{scope[:name]}" if mariadb?
+          # "information_schema.check_constraints" table was added in MariaDB 10.2.22.
+          if mariadb? && database_version < "10.2.22"
+            check_names = query_values(<<~SQL, "SCHEMA")
+              SELECT constraint_name
+              FROM information_schema.table_constraints
+              WHERE table_schema = #{scope[:schema]}
+                AND table_name = #{scope[:name]}
+                AND constraint_type = 'CHECK'
+            SQL
 
-          chk_info = exec_query(sql, "SCHEMA")
+            check_names.map do |check_name|
+              create_table_info = create_table_info(table_name)
+              /CONSTRAINT `#{check_name}` CHECK \((.+)\)/ =~ create_table_info
+              CheckConstraintDefinition.new(table_name, $1, { name: check_name })
+            end
+          else
+            sql = <<~SQL
+              SELECT cc.constraint_name AS 'name',
+                    cc.check_clause AS 'expression'
+              FROM information_schema.check_constraints cc
+              JOIN information_schema.table_constraints tc
+              USING (constraint_schema, constraint_name)
+              WHERE tc.table_schema = #{scope[:schema]}
+                AND tc.table_name = #{scope[:name]}
+                AND cc.constraint_schema = #{scope[:schema]}
+            SQL
+            sql += " AND cc.table_name = #{scope[:name]}" if mariadb?
 
-          chk_info.map do |row|
-            options = {
-              name: row["name"]
-            }
-            expression = row["expression"]
-            expression = expression[1..-2] unless mariadb? # remove parentheses added by mysql
-            CheckConstraintDefinition.new(table_name, expression, options)
+            chk_info = exec_query(sql, "SCHEMA")
+
+            chk_info.map do |row|
+              options = {
+                name: row["name"]
+              }
+              expression = row["expression"]
+              expression = expression[1..-2] unless mariadb? # remove parentheses added by mysql
+              CheckConstraintDefinition.new(table_name, expression, options)
+            end
           end
         else
           raise NotImplementedError
