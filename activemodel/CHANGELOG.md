@@ -1,3 +1,11 @@
+*   `ActiveModel::Lint` now tests that `#to_key` returns `nil` when model's `#id` returns `nil`.
+
+    This change is done to make `ActiveModel::Conversion` compliant with the ActiveModel API
+    tested by `ActiveModel::Lint`.
+
+    *Santiago Bartesaghi*
+
+
 *   Support infinite ranges for `LengthValidator`s `:in`/`:within` options
 
     ```ruby

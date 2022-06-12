@@ -9,7 +9,34 @@ class LintTest < ActiveModel::TestCase
     extend ActiveModel::Naming
     include ActiveModel::Conversion
 
-    def persisted?() false end
+    def persisted?
+      false
+    end
+
+    def errors
+      Hash.new([])
+    end
+  end
+
+  def setup
+    @model = CompliantModel.new
+  end
+end
+
+class PersistedLintTest < ActiveModel::TestCase
+  include ActiveModel::Lint::Tests
+
+  class CompliantModel
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
+
+    def persisted?
+      true
+    end
+
+    def id
+      1
+    end
 
     def errors
       Hash.new([])

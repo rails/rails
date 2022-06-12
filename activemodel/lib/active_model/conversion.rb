@@ -43,7 +43,7 @@ module ActiveModel
     end
 
     # Returns an Array of all key attributes if any of the attributes is set, whether or not
-    # the object is persisted. Returns +nil+ if there are no key attributes.
+    # the object is persisted. Returns +nil+ if there are no key attributes set.
     #
     #   class Person
     #     include ActiveModel::Conversion
