@@ -203,12 +203,13 @@ module ActiveRecord
     # other processes are modifying the database.
     def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil, order: :asc)
       relation = self
-      unless block_given?
-        return BatchEnumerator.new(of: of, start: start, finish: finish, relation: self)
-      end
 
       unless [:asc, :desc].include?(order)
         raise ArgumentError, ":order must be :asc or :desc, got #{order.inspect}"
+      end
+
+      unless block_given?
+        return BatchEnumerator.new(of: of, start: start, finish: finish, relation: self, order: order)
       end
 
       if arel.orders.present?

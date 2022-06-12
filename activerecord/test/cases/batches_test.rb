@@ -172,6 +172,12 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_without_block_should_raise_if_order_is_invalid
+    assert_raise(ArgumentError) do
+      Post.select(:title).in_batches(order: :invalid)
+    end
+  end
+
   def test_find_in_batches_should_not_use_records_after_yielding_them_in_case_original_array_is_modified
     not_a_post = +"not a post"
     def not_a_post.id; end
@@ -461,6 +467,24 @@ class EachTest < ActiveRecord::TestCase
       Post.in_batches(of: 1, order: :desc) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
         assert_kind_of Post, relation.first
+      end
+    end
+  end
+
+  def test_in_batches_enumerator_should_quote_batch_order_with_desc_order
+    c = Post.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
+      relation = Post.in_batches(of: 1, order: :desc).first
+      assert_kind_of ActiveRecord::Relation, relation
+      assert_kind_of Post, relation.first
+    end
+  end
+
+  def test_in_batches_enumerator_each_record_should_quote_batch_order_with_desc_order
+    c = Post.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
+      Post.in_batches(of: 1, order: :desc).each_record do |record|
+        assert_kind_of Post, record
       end
     end
   end
