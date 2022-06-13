@@ -328,9 +328,13 @@ Configures lookup path for encrypted credentials.
 
 Configures lookup path for encryption key.
 
-#### `secret_key_base`
+#### `config.secret_key_base`
 
-Is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get a random generated key in test and development environments, other environments should set one in `config/credentials.yml.enc`.
+The fallback for specifying the input secret for an application's key generator.
+It is recommended to leave this unset, and instead to specify a `secret_key_base`
+in `config/credentials.yml.enc`. See the [`secret_key_base` API documentation](
+https://api.rubyonrails.org/classes/Rails/Application.html#method-i-secret_key_base)
+for more information and alternative configuration methods.
 
 #### `config.require_master_key`
 
