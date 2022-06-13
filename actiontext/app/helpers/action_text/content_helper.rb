@@ -4,7 +4,7 @@ require "rails-html-sanitizer"
 
 module ActionText
   module ContentHelper
-    mattr_accessor(:sanitizer) { Rails::Html::Sanitizer.safe_list_sanitizer.new }
+    mattr_accessor(:sanitizer) { ActionText::Document.default_sanitizer }
     mattr_accessor(:allowed_tags) { sanitizer.class.allowed_tags + [ ActionText::Attachment.tag_name, "figure", "figcaption" ] }
     mattr_accessor(:allowed_attributes) { sanitizer.class.allowed_attributes + ActionText::Attachment::ATTRIBUTES }
     mattr_accessor(:scrubber)
@@ -15,21 +15,21 @@ module ActionText
     end
 
     def sanitize_action_text_content(content)
-      sanitizer.sanitize(content.to_html, tags: allowed_tags, attributes: allowed_attributes, scrubber: scrubber).html_safe
+      content = content.to_html unless sanitizer.try(:accepts_nodes?)
+      sanitizer.sanitize(content, tags: allowed_tags, attributes: allowed_attributes, scrubber: scrubber).html_safe
     end
 
     def render_action_text_attachments(content)
       content.render_attachments do |attachment|
         unless attachment.in?(content.gallery_attachments)
-          attachment.node.tap do |node|
-            node.inner_html = render_action_text_attachment attachment, locals: { in_gallery: false }
-          end
+          new_children = render_action_text_attachment attachment, locals: { in_gallery: false }
+          ActionText::Document.replace_children(attachment.node, new_children)
         end
       end.render_attachment_galleries do |attachment_gallery|
         render(layout: attachment_gallery, object: attachment_gallery) do
           attachment_gallery.attachments.map do |attachment|
-            attachment.node.inner_html = render_action_text_attachment attachment, locals: { in_gallery: true }
-            attachment.to_html
+            new_children = render_action_text_attachment attachment, locals: { in_gallery: true }
+            ActionText::Document.replace_children(attachment.node, new_children).to_html
           end.join.html_safe
         end.chomp
       end

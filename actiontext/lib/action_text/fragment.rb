@@ -31,17 +31,18 @@ module ActionText
       ActionText::Document.find(source, selector)
     end
 
-    def update
-      yield source = ActionText::Document.clone_node(self.source)
-      self.class.new(source)
+    def update(node = nil)
+      if block_given?
+        node = yield(ActionText::Document.clone_node(source))
+      elsif node.nil?
+        raise ArgumentError, "you must specify either a node or a block"
+      end
+
+      node.equal?(source) ? self : self.class.new(node)
     end
 
-    def replace(selector)
-      update do |source|
-        ActionText::Document.find(source, selector).each do |node|
-          ActionText::Document.replace_node(node, yield(node))
-        end
-      end
+    def replace(selector, &replacer)
+      update(ActionText::Document.search_and_replace(ActionText::Document.clone_node(source), selector, &replacer))
     end
 
     def to_plain_text

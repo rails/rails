@@ -7,7 +7,7 @@ module ActionText
 
     autoload :Nokogiri
 
-    attr_accessor :adapter
+    attr_writer :adapter
     delegate_missing_to :adapter
 
     def adapter

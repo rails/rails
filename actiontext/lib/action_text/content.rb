@@ -117,7 +117,7 @@ module ActionText
       end
 
       def attachment_gallery_nodes
-        @attachment_gallery_nodes ||= ActionText::AttachmentGallery.find_attachment_gallery_nodes(fragment)
+        @attachment_gallery_nodes ||= fragment.find_all(ActionText::AttachmentGallery.selector)
       end
 
       def attachment_for_node(node, with_full_attributes: true)

@@ -52,4 +52,9 @@ ActiveRecord::Encryption.configure \
   key_derivation_salt: "testing key derivation salt",
   support_unencrypted_data: true
 
+# Some tests require ActionController::Base to be loaded, so that (e.g.) the default
+# renderer can be initialized. Not usually a problem when running all the tests together,
+# but for running specific tests, we need to make sure to explicitly load this class.
+ActionController::Base
+
 require_relative "../../tools/test_common"

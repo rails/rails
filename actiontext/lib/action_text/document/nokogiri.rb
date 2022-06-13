@@ -8,6 +8,10 @@ module ActionText
     module Nokogiri
       extend self
 
+      def default_sanitizer
+        Rails::Html::Sanitizer.safe_list_sanitizer.new
+      end
+
       def is_fragment?(node)
         node.respond_to?(:fragment?) && node.fragment?
       end
@@ -73,7 +77,26 @@ module ActionText
       # returns the replaced node. It may be `node` mutated in place, or
       # a new node instance.
       def replace_node(node, replacement)
+        # #to_s here ensures we don't try to reparent nodes that can't be
+        # reparented by Nokogiri...
         node.replace(replacement.to_s)
+      end
+
+      # returns the node; if the model is immutable, it might return a
+      # clone of the node instead, with the children replaced as requested.
+      def replace_children(node, replacement)
+        node.tap { |n| n.inner_html = replacement.to_s }
+      end
+
+      # searches `node`` for descendants matching `css_selector``, and replaces
+      # them with the result of `replacer`. Returns `node` (or, if `node` is
+      # e.g. immutable, may return a new node representing the updated tree).
+      def search_and_replace(node, css_selector, &replacer)
+        node.css(css_selector).each do |node|
+          node.replace(replacer[node].to_s)
+        end
+
+        node
       end
 
       private

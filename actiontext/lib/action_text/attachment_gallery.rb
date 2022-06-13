@@ -14,21 +14,8 @@ module ActionText
         end
       end
 
-      def fragment_by_replacing_attachment_gallery_nodes(content)
-        Fragment.wrap(content).update do |source|
-          find_attachment_gallery_nodes(source).each do |node|
-            Document.replace_node(node, yield(node))
-          end
-        end
-      end
-
-      def find_attachment_gallery_nodes(content)
-        Fragment.wrap(content).find_all(selector).select do |node|
-          Document.node_children(node).all? do |child|
-            Document.is_whitespace?(child) ||
-              Document.node_matches?(child, attachment_selector)
-          end
-        end
+      def fragment_by_replacing_attachment_gallery_nodes(content, &replacer)
+        Fragment.wrap(content).replace(selector, &replacer)
       end
 
       def from_node(node)
