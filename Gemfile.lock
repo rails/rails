@@ -15,7 +15,7 @@ PATH
       activesupport (= 7.1.0.alpha)
       nio4r (~> 2.0)
       websocket-driver (>= 0.6.1)
-      zeitwerk (~> 2.5)
+      zeitwerk (~> 2.6)
     actionmailbox (7.1.0.alpha)
       actionpack (= 7.1.0.alpha)
       activejob (= 7.1.0.alpha)
@@ -97,7 +97,7 @@ PATH
       method_source
       rake (>= 12.2)
       thor (~> 1.0)
-      zeitwerk (~> 2.5)
+      zeitwerk (~> 2.6)
 
 GEM
   remote: https://rubygems.org/
@@ -551,7 +551,7 @@ GEM
     websocket-extensions (0.1.5)
     xpath (3.2.0)
       nokogiri (~> 1.8)
-    zeitwerk (2.5.3)
+    zeitwerk (2.6.0)
 
 PLATFORMS
   ruby
