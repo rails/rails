@@ -345,6 +345,44 @@ module ApplicationTests
       assert_equal "/foo/?something", env["ORIGINAL_FULLPATH"]
     end
 
+    test "database selector middleware is installed from application.rb" do
+      add_to_config "config.active_record.database_selector = { delay: 10 }"
+
+      boot!
+
+      assert_includes middleware, "ActiveRecord::Middleware::DatabaseSelector"
+    end
+
+    test "database selector middleware is installed from config/initializers" do
+      app_file "config/initializers/multi_db.rb", <<-RUBY
+        Rails.application.configure do
+          options = { delay: 2.seconds }
+          resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+          context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+
+          config.middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, context, options
+        end
+      RUBY
+
+      boot!
+
+      assert_includes middleware, "ActiveRecord::Middleware::DatabaseSelector"
+    end
+
+    test "database selector config options from config/initializers raises" do
+      app_file "config/initializers/multi_db.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_record.database_selector = { delay: 15.seconds }
+          config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+          config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+        end
+      RUBY
+
+      boot!
+
+      assert_raises ArgumentError, lambda { rails("runner", "ActiveRecord::Base.connection") }
+    end
+
     test "shard selector middleware is installed by config option" do
       add_to_config "config.active_record.shard_resolver = ->(*) { }"
 
@@ -352,6 +390,37 @@ module ApplicationTests
 
       assert_includes middleware, "ActiveRecord::Middleware::ShardSelector"
     end
+
+    test "shard selector middleware is installed from config/initializers" do
+      app_file "config/initializers/multi_db.rb", <<-RUBY
+        Rails.application.configure do
+          options = { lock: true }
+          resolver = ->(request) { Tenant.find_by!(host: request.host).shard }
+
+          config.middleware.use ActiveRecord::Middleware::ShardSelector, resolver, options
+        end
+      RUBY
+
+      boot!
+
+      assert_includes middleware, "ActiveRecord::Middleware::ShardSelector"
+    end
+
+    test "shard selector config options from config/initializers raises" do
+      app_file "config/initializers/multi_db.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_record.shard_selector = { lock: true }
+          config.active_record.shard_resolver = ->(request) { Tenant.find_by!(host: request.host).shard }
+        end
+      RUBY
+
+      boot!
+
+      message = lambda { rails("runner", "ActiveRecord::Base.connection") }
+
+      assert_raises ArgumentError, message.call
+    end
+
 
     private
       def boot!

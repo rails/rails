@@ -14,18 +14,33 @@ module ActiveRecord
     # For tenant based sharding, +lock+ should always be true to prevent application
     # code from mistakenly switching between tenants.
     #
-    # Options can be set in the config:
+    # To use the ShardSelector in your application with default settings,
+    # run the provided generator.
     #
-    #   config.active_record.shard_selector = { lock: true }
+    #   bin/rails g active_record:multi_db
+    #
+    # This will create a file named +config/initializers/multi_db.rb+. Find the following
+    # code and uncomment it.
+    #
+    #   Rails.application.configure do
+    #     options = { lock: true }
+    #     resolver = ->(request) { Tenant.find_by!(host: request.host).shard }
+    #
+    #     config.middleware.use ActiveRecord::Middleware::ShardSelector, resolver, options
+    #   end
     #
     # Applications must also provide the code for the resolver as it depends on application
     # specific models. An example resolver would look like this:
     #
-    #   config.active_record.shard_resolver = ->(request) {
-    #     subdomain = request.subdomain
-    #     tenant = Tenant.find_by_subdomain!(subdomain)
-    #     tenant.shard
-    #   }
+    #   Rails.application.configure do
+    #     resolver = ->(request) {
+    #       subdomain = request.subdomain
+    #       tenant = Tenant.find_by_subdomain!(subdomain)
+    #       tenant.shard
+    #     }
+    #
+    #     config.middleware.use ActiveRecord::Middleware::ShardSelector, resolver
+    #   end
     class ShardSelector
       def initialize(app, resolver, options = {})
         @app = app

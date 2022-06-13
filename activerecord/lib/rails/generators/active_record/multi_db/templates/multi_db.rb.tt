@@ -23,9 +23,11 @@
 # these configuration options.
 #
 # Rails.application.configure do
-#   config.active_record.database_selector = { delay: 2.seconds }
-#   config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
-#   config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+#   options = { delay: 2.seconds }
+#   resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+#   context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+#
+#   config.middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, context, options
 # end
 #
 # Enable Shard Selector
@@ -39,6 +41,8 @@
 # in a proc. See guides for an example.
 #
 # Rails.application.configure do
-#   config.active_record.shard_selector = { lock: true }
-#   config.active_record.shard_resolver = ->(request) { Tenant.find_by!(host: request.host).shard }
+#   options = { lock: true }
+#   resolver = ->(request) { Tenant.find_by!(host: request.host).shard }
+#
+#   config.middleware.use ActiveRecord::Middleware::ShardSelector, resolver, options
 # end

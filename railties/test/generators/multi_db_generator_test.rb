@@ -11,8 +11,8 @@ class MultiDbGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "config/initializers/multi_db.rb" do |record|
       assert_match(/Multi-db Configuration/, record)
-      assert_match(/config.active_record.database_resolver/, record)
-      assert_match(/config.active_record.shard_resolver/, record)
+      assert_match(/middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, context, options/, record)
+      assert_match(/middleware.use ActiveRecord::Middleware::ShardSelector, resolver, options/, record)
     end
   end
 end

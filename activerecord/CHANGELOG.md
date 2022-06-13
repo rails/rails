@@ -1,3 +1,49 @@
+*   Update the multi-db initializer and remove old options.
+
+    Due to the way initializers work it, the multi-db options in `config/initializers/multi_db.rb` won't work because they are loaded too late. Instead of using the options like `config.active_record.database_selector`, applications should install the middleware directly from the initializer.
+
+    Database Selector Example:
+
+    ```ruby
+    # before
+    Rails.application.configure do
+      config.active_record.database_selector = { delay: 2.seconds }
+      config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+      config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+    end
+
+    # after
+    Rails.application.configure do
+      options = { delay: 2.seconds }
+      resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+      context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+
+      config.middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, context, options
+    end
+    ```
+
+    Shard Selector:
+
+    ```ruby
+    # before
+
+    Rails.application.configure do
+      config.active_record.shard_selector = { lock: true }
+      config.active_record.shard_resolver = ->(request) { Tenant.find_by!(host: request.host).shard }
+    end
+
+    # after
+
+    Rails.application.configure do
+      options = { lock: true }
+      resolver = ->(request) { Tenant.find_by!(host: request.host).shard }
+
+      config.middleware.use ActiveRecord::Middleware::ShardSelector, resolver, options
+    end
+    ```
+
+    *Eileen M. Uchitelle*
+
 *   Resolve issue where a relation cache_version could be left stale.
 
     Previously, when `reset` was called on a relation object it did not reset the cache_versions

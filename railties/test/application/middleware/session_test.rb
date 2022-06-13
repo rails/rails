@@ -449,9 +449,11 @@ module ApplicationTests
         config.session_store :cookie_store, key: "_random_key"
         config.middleware.use ActionDispatch::Cookies
         config.middleware.use config.session_store, config.session_options
-        config.active_record.database_selector = { delay: 2.seconds }
-        config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
-        config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+
+	config.middleware.use ActiveRecord::Middleware::DatabaseSelector,
+			      ActiveRecord::Middleware::DatabaseSelector::Resolver,
+			      ActiveRecord::Middleware::DatabaseSelector::Resolver::Session,
+			      { delay: 15.seconds }
       RUBY
 
       controller :test, <<-RUBY

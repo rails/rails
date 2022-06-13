@@ -95,9 +95,17 @@ module ActiveRecord
     end
 
     initializer "active_record.database_selector" do
-      if options = config.active_record.database_selector
-        resolver = config.active_record.database_resolver
-        operations = config.active_record.database_resolver_context
+      if options = config.active_record.delete(:database_selector)
+        ActiveSupport::Deprecation.warn <<-MSG
+          Using config options for database or shard selection has been removed.
+
+          Due to the way that initializers work, these config options will not work when set
+          in config/intitializers/multi_db.rb. Rather than have two ways of setting these values,
+          you should set up the options and install the middleware directly. See documentation
+          for examples.
+        MSG
+        resolver = config.active_record.delete(:database_resolver)
+        operations = config.active_record.delete(:database_resolver_context)
         config.app_middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, operations, options
       end
     end
@@ -234,14 +242,18 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
 
       ActiveSupport.on_load(:active_record) do
-        # Configs used in other initializers
-        configs = configs.except(
-          :migration_error,
+        # Deprecated configs from other initializers
+        deprecated_keys = [
           :database_selector,
           :database_resolver,
           :database_resolver_context,
           :shard_selector,
-          :shard_resolver,
+          :shard_resolver
+        ]
+
+        # Configs used in other initializers
+        configs = configs.except(
+          :migration_error,
           :query_log_tags_enabled,
           :query_log_tags,
           :cache_query_log_tags,
@@ -253,6 +265,19 @@ To keep using the current cache store, you can turn off cache versioning entirel
         configs.each do |k, v|
           next if k == :encryption
           setter = "#{k}="
+
+          if deprecated_keys.include?(k)
+            raise ArgumentError, <<-MSG.squish
+              Using config.active_record.#{k} for database or shard selection has been removed.
+
+              Due to the way that initializers work, these config options will not work when set
+              in config/intitializers/multi_db.rb. Instead, you should set up the options
+              and install the middleware directly. See documentation or regenerate multi_db.rb
+              for examples.
+            MSG
+            next
+          end
+
           # Some existing initializers might rely on Active Record configuration
           # being copied from the config object to their actual destination when
           # `ActiveRecord::Base` is loaded.

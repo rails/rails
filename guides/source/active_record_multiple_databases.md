@@ -298,9 +298,11 @@ And then uncomment the following lines:
 
 ```ruby
 Rails.application.configure do
-  config.active_record.database_selector = { delay: 2.seconds }
-  config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
-  config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+  resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+  context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+  options = { delay: 2.seconds }
+
+  config.middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, context, options
 end
 ```
 
@@ -327,9 +329,13 @@ end
 And then pass it to the middleware:
 
 ```ruby
-config.active_record.database_selector = { delay: 2.seconds }
-config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
-config.active_record.database_resolver_context = MyCookieResolver
+Rails.application.configure do
+  resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+  context = MyCookieResolver
+  options = { delay: 2.seconds }
+
+  config.middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, context, options
+end
 ```
 
 ## Using manual connection switching
@@ -460,8 +466,10 @@ Then in the file uncomment the following:
 
 ```ruby
 Rails.application.configure do
-  config.active_record.shard_selector = { lock: true }
-  config.active_record.shard_resolver = ->(request) { Tenant.find_by!(host: request.host).shard }
+  resolver = ->(request) { Tenant.find_by!(host: request.host).shard }
+  options = { lock: true }
+
+  config.middleware.use ActiveRecord::Middleware::ShardSelector, resolver, options
 end
 ```
 
@@ -469,7 +477,7 @@ Applications must provide the code for the resolver as it depends on application
 specific models. An example resolver would look like this:
 
 ```ruby
-config.active_record.shard_resolver = ->(request) {
+resolver = ->(request) {
   subdomain = request.subdomain
   tenant = Tenant.find_by_subdomain!(subdomain)
   tenant.shard

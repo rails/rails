@@ -24,13 +24,15 @@ module ActiveRecord
     #
     #   bin/rails g active_record:multi_db
     #
-    # This will create a file named +config/initializers/multi_db.rb+ with the
-    # following contents:
+    # This will create a file named +config/initializers/multi_db.rb+. Find the following
+    # code and uncomment it.
     #
     #   Rails.application.configure do
-    #     config.active_record.database_selector = { delay: 2.seconds }
-    #     config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
-    #     config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+    #     options = { delay: 2.seconds }
+    #     resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+    #     context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+    #
+    #     config.middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, context, options
     #   end
     #
     # Alternatively you can set the options in your environment config or
@@ -39,9 +41,13 @@ module ActiveRecord
     # The default behavior can be changed by setting the config options to a
     # custom class:
     #
-    #   config.active_record.database_selector = { delay: 2.seconds }
-    #   config.active_record.database_resolver = MyResolver
-    #   config.active_record.database_resolver_context = MyResolver::MySession
+    #   Rails.application.configure do
+    #     options = { delay: 2.seconds }
+    #     resolver = MyResolver
+    #     context = MyResolver::MySession
+    #
+    #     config.middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, context, options
+    #   end
     #
     # Note: If you are using `rails new my_app --minimal` you will need to call
     # `require "active_support/core_ext/integer/time"` to load the libraries
