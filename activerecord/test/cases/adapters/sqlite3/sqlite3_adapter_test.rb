@@ -141,7 +141,7 @@ module ActiveRecord
           assert_equal 2, result.columns.length
           assert_equal %w{ id data }, result.columns
 
-          @conn.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
+          @conn.exec_query("INSERT INTO ex (id, data) VALUES (1, 'foo')")
           result = @conn.exec_query("SELECT id, data FROM ex")
           assert_equal 1, result.rows.length
           assert_equal 2, result.columns.length
@@ -152,7 +152,7 @@ module ActiveRecord
 
       def test_exec_query_with_binds
         with_example_table "id int, data string" do
-          @conn.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
+          @conn.exec_query("INSERT INTO ex (id, data) VALUES (1, 'foo')")
           result = @conn.exec_query(
             "SELECT id, data FROM ex WHERE id = ?", nil, [Relation::QueryAttribute.new(nil, 1, Type::Value.new)])
 
@@ -165,7 +165,7 @@ module ActiveRecord
 
       def test_exec_query_typecasts_bind_vals
         with_example_table "id int, data string" do
-          @conn.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
+          @conn.exec_query("INSERT INTO ex (id, data) VALUES (1, 'foo')")
 
           result = @conn.exec_query(
             "SELECT id, data FROM ex WHERE id = ?", nil, [Relation::QueryAttribute.new("id", "1-fuu", Type::Integer.new)])
@@ -616,6 +616,25 @@ module ActiveRecord
         end
       end
 
+      def test_strict_strings_by_default
+        conn = Base.sqlite3_connection(database: ":memory:", adapter: "sqlite3")
+        conn.create_table :testings
+
+        assert_nothing_raised do
+          conn.add_index :testings, :non_existent
+        end
+
+        with_strict_strings_by_default do
+          conn = Base.sqlite3_connection(database: ":memory:", adapter: "sqlite3")
+          conn.create_table :testings
+
+          error = assert_raises(StandardError) do
+            conn.add_index :testings, :non_existent2
+          end
+          assert_match(/no such column: non_existent2/, error.message)
+        end
+      end
+
       private
         def assert_logged(logs)
           subscriber = SQLSubscriber.new
@@ -632,6 +651,13 @@ module ActiveRecord
             number integer
           SQL
           super(@conn, table_name, definition, &block)
+        end
+
+        def with_strict_strings_by_default
+          SQLite3Adapter.strict_strings_by_default = true
+          yield
+        ensure
+          SQLite3Adapter.strict_strings_by_default = false
         end
     end
   end

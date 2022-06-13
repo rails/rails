@@ -220,6 +220,14 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    initializer "active_record.sqlite3_adapter_strict_strings_by_default" do
+      if config.active_record.sqlite3_adapter_strict_strings_by_default
+        ActiveSupport.on_load(:active_record_sqlite3adapter) do
+          self.strict_strings_by_default = true
+        end
+      end
+    end
+
     initializer "active_record.set_configs" do |app|
       configs = app.config.active_record
 
@@ -246,6 +254,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :query_log_tags,
           :cache_query_log_tags,
           :sqlite3_production_warning,
+          :sqlite3_adapter_strict_strings_by_default,
           :check_schema_cache_dump_version,
           :use_schema_cache_dump
         )
