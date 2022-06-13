@@ -243,7 +243,8 @@ module ActiveRecord
       #
       # Example:
       #   rename_table('octopuses', 'octopi')
-      def rename_table(table_name, new_name)
+      def rename_table(table_name, new_name, **options)
+        validate_table_length!(new_name) unless options[:_uses_legacy_table_name]
         schema_cache.clear_data_source_cache!(table_name.to_s)
         schema_cache.clear_data_source_cache!(new_name.to_s)
         exec_query "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"

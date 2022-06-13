@@ -40,6 +40,7 @@ module ActiveRecord
         end
 
         def create_table(table_name, **options)
+          options[:_uses_legacy_table_name] = true
           if block_given?
             super { |t| yield compatible_table_definition(t) }
           else
@@ -53,6 +54,11 @@ module ActiveRecord
           else
             super
           end
+        end
+
+        def rename_table(table_name, new_name, **options)
+          options[:_uses_legacy_table_name] = true
+          super
         end
 
         private

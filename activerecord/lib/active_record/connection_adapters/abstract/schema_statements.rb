@@ -290,6 +290,7 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options)
+        validate_table_length!(table_name) unless options[:_uses_legacy_table_name]
         td = create_table_definition(table_name, **extract_table_options!(options))
 
         if id && !td.as
@@ -491,7 +492,7 @@ module ActiveRecord
       #
       #   rename_table('octopuses', 'octopi')
       #
-      def rename_table(table_name, new_name)
+      def rename_table(table_name, new_name, **)
         raise NotImplementedError, "rename_table is not implemented"
       end
 
@@ -1582,6 +1583,12 @@ module ActiveRecord
         def validate_index_length!(table_name, new_name, internal = false)
           if new_name.length > index_name_length
             raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters"
+          end
+        end
+
+        def validate_table_length!(table_name)
+          if table_name.length > table_name_length
+            raise ArgumentError, "Table name '#{table_name}' is too long; the limit is #{table_name_length} characters"
           end
         end
 

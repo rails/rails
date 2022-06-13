@@ -178,6 +178,23 @@ class MigrationTest < ActiveRecord::TestCase
     connection.drop_table :testings, if_exists: true
   end
 
+  def test_create_table_raises_for_long_table_names
+    connection = Person.connection
+    name_limit = connection.table_name_length
+    long_name = "a" * (name_limit + 1)
+    short_name = "a" * name_limit
+
+    error = assert_raises(ArgumentError) do
+      connection.create_table(long_name)
+    end
+    assert_equal "Table name '#{long_name}' is too long; the limit is #{name_limit} characters", error.message
+
+    connection.create_table(short_name)
+    assert connection.table_exists?(short_name)
+  ensure
+    connection.drop_table short_name, if_exists: true
+  end
+
   def test_create_table_with_indexes_and_if_not_exists_true
     connection = Person.connection
     connection.create_table :testings, force: true do |t|
