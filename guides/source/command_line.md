@@ -42,13 +42,13 @@ $ rails new commandsapp
         run  bundle install
 ```
 
-Rails will set you up with what seems like a huge amount of stuff for such a tiny command! You've got the entire Rails directory structure now with all the code you need to run our simple application right out of the box.
+Rails will set up what seems like a huge amount of stuff for such a tiny command! We've got the entire Rails directory structure now with all the code we need to run our simple application right out of the box.
 
-If you wish to skip some files or components from being generated, you can append the following arguments to your `rails new` command:
+If you wish to skip some files from being generated or skip some libraries, you can append any of the following arguments to your `rails new` command:
 
 | Argument                | Description                                                 |
 | ----------------------- | ----------------------------------------------------------- |
-| `--skip-git`            | Skip .gitignore file                                        |
+| `--skip-git`            | Skip git init, .gitignore, and .gitattributes               |
 | `--skip-keeps`          | Skip source control .keep files                             |
 | `--skip-action-mailer`  | Skip Action Mailer files                                    |
 | `--skip-action-mailbox` | Skip Action Mailbox gem                                     |
@@ -64,6 +64,8 @@ If you wish to skip some files or components from being generated, you can appen
 | `--skip-test`           | Skip test files                                             |
 | `--skip-system-test`    | Skip system test files                                      |
 | `--skip-bootsnap`       | Skip bootsnap gem                                           |
+
+These are just some of the options you can append to `rails new`. For a comprehensive list of options, type `rails new --help`.
 
 Command Line Basics
 -------------------
