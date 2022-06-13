@@ -1395,6 +1395,12 @@ module ActiveRecord
       end
 
       private
+        def validate_change_column_null_argument!(value)
+          unless value == true || value == false
+            raise ArgumentError, "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: #{value.inspect}"
+          end
+        end
+
         def column_options_keys
           [:limit, :precision, :scale, :default, :null, :collation, :comment]
         end

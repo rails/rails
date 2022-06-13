@@ -9,6 +9,10 @@ module ActiveRecord
       attr_reader :connection
       self.use_transactional_tests = false
 
+      class TestModel < ActiveRecord::Base
+        self.table_name = :testings
+      end
+
       def setup
         super
         @connection = ActiveRecord::Base.connection
@@ -590,6 +594,49 @@ module ActiveRecord
       ensure
         connection.drop_table(:more_testings) rescue nil
         connection.drop_table(long_table_name) rescue nil
+      end
+
+      def test_change_column_null_with_non_boolean_arguments_raises_in_a_migration
+        migration = Class.new(ActiveRecord::Migration[7.1]) do
+          def up
+            add_column :testings, :name, :string
+            change_column_null :testings, :name, from: true, to: false
+          end
+        end
+        e = assert_raise(StandardError) do
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        end
+        assert_includes e.message, "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: {:from=>true, :to=>false}"
+      end
+
+      def test_change_column_null_with_non_boolean_arguments_does_not_raise_in_old_rails_versions
+        migration = Class.new(ActiveRecord::Migration[7.0]) do
+          def up
+            add_column :testings, :name, :string
+            change_column_null :testings, :name, from: true, to: false
+          end
+        end
+        assert_nothing_raised do
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        end
+        assert_difference("TestModel.count" => 1) do
+          TestModel.create!(name: nil)
+        end
+      end
+
+      def test_change_column_null_with_boolean_arguments_does_not_raise_in_old_rails_versions
+        migration = Class.new(ActiveRecord::Migration[7.0]) do
+          def up
+            add_column :testings, :name, :string
+            change_column_null :testings, :name, false
+          end
+        end
+        assert_nothing_raised do
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        end
+        assert_raise(ActiveRecord::NotNullViolation) do
+          TestModel.create!(name: nil)
+        end
       end
 
       private

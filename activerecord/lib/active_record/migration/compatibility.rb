@@ -61,6 +61,10 @@ module ActiveRecord
           super
         end
 
+        def change_column_null(table_name, column_name, null, default = nil)
+          super(table_name, column_name, !!null, default)
+        end
+
         private
           def compatible_table_definition(t)
             class << t
