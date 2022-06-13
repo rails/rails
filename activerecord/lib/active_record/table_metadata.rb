@@ -23,7 +23,16 @@ module ActiveRecord
     end
 
     def associated_with?(table_name)
-      klass&._reflect_on_association(table_name)
+      if reflection = klass&._reflect_on_association(table_name)
+        reflection
+      elsif ActiveRecord.allow_deprecated_singular_associations_name && reflection = klass&._reflect_on_association(table_name.singularize)
+        ActiveSupport::Deprecation.warn(<<~MSG)
+          In Rails 7.2, referring to singular associations by their plural name will be deprecated.
+          To continue querying `#{table_name.singularize}` use `#{table_name}` instead.
+          You can get the new more performant behavior now by setting config.active_record.allow_deprecated_singular_associations_name = false
+        MSG
+        reflection
+      end
     end
 
     def associated_table(table_name)
