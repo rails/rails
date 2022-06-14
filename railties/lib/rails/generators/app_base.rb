@@ -190,12 +190,12 @@ module Rails
         [
           options.values_at(
             :skip_active_record,
-            :skip_action_mailer,
             :skip_test,
             :skip_action_cable,
             :skip_active_job
           ),
           skip_active_storage?,
+          skip_action_mailer?,
           skip_action_mailbox?,
           skip_action_text?
         ].flatten.none?
@@ -223,7 +223,11 @@ module Rails
       end
 
       def skip_active_storage? # :doc:
-        options[:skip_active_storage] || options[:skip_active_record]
+        options[:skip_active_storage] || options[:skip_active_record] || options[:skip_active_job]
+      end
+
+      def skip_action_mailer? # :doc:
+        options[:skip_action_mailer] || options[:skip_active_job]
       end
 
       def skip_action_mailbox? # :doc:
