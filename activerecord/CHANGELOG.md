@@ -1,3 +1,16 @@
+*   Fix supporting timezone awareness for `tsrange` and `tstzrange` array columns.
+
+    ```ruby
+    # In database migrations
+    add_column :shops, :open_hours, :tsrange, array: true
+    # In app config
+    ActiveRecord::Base.time_zone_aware_types += [:tsrange]
+    # In the code times are properly converted to app time zone
+    Shop.create!(open_hours: [Time.current..8.hour.from_now])
+    ```
+
+    *Wojciech Wnętrzak*
+
 *   Introduce strategy pattern for executing migrations.
 
     By default, migrations will use a strategy object that delegates the method
