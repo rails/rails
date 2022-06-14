@@ -284,6 +284,10 @@ module Rails
           if respond_to?(:action_controller)
             action_controller.allow_deprecated_parameters_hash_equality = false
           end
+
+          if respond_to?(:active_record)
+            active_record.sqlite3_adapter_strict_strings_by_default = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

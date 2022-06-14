@@ -2408,6 +2408,40 @@ module ApplicationTests
       assert_equal false, ActiveRecord::Base.run_commit_callbacks_on_first_saved_instances_in_transaction
     end
 
+    test "SQLite3Adapter.strict_strings_by_default is true by default for new apps" do
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::ConnectionAdapters::SQLite3Adapter.strict_strings_by_default
+    end
+
+    test "SQLite3Adapter.strict_strings_by_default is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActiveRecord::ConnectionAdapters::SQLite3Adapter.strict_strings_by_default
+    end
+
+    test "SQLite3Adapter.strict_strings_by_default can be configured via config.active_record.sqlite3_adapter_strict_strings_by_default" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config "config.active_record.sqlite3_adapter_strict_strings_by_default = true"
+
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::ConnectionAdapters::SQLite3Adapter.strict_strings_by_default
+    end
+
     test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption is true by default for new apps" do
       app "development"
 

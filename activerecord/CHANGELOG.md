@@ -29,6 +29,27 @@
 
     *Cameron Bothner and Mitch Vollebregt*
 
+*   Enable strict strings mode for `SQLite3Adapter`.
+
+    Configures SQLite with a strict strings mode, which disables double-quoted string literals.
+
+    SQLite has some quirks around double-quoted string literals.
+    It first tries to consider double-quoted strings as identifier names, but if they don't exist
+    it then considers them as string literals. Because of this, typos can silently go unnoticed.
+    For example, it is possible to create an index for a non existing column.
+    See [SQLite documentation](https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted) for more details.
+
+    If you don't want this behavior, you can disable it via:
+
+    ```ruby
+    # config/application.rb
+    config.active_record.sqlite3_adapter_strict_strings_by_default = false
+    ```
+
+    Fixes #27782.
+
+    *fatkodima*, *Jean Boussier*
+
 *   Resolve issue where a relation cache_version could be left stale.
 
     Previously, when `reset` was called on a relation object it did not reset the cache_versions

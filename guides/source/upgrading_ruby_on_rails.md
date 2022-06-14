@@ -262,6 +262,23 @@ config.cache_store = :mem_cache_store, "cache.example.com", pool: false
 
 See the [caching with Rails](https://guides.rubyonrails.org/caching_with_rails.html#connection-pool-options) guide for more information.
 
+### `SQLite3Adapter` now configured to be used in a strict strings mode
+
+The use of a strict strings mode disables double-quoted string literals.
+
+SQLite has some quirks around double-quoted string literals.
+It first tries to consider double-quoted strings as identifier names, but if they don't exist
+it then considers them as string literals. Because of this, typos can silently go unnoticed.
+For example, it is possible to create an index for a non existing column.
+See [SQLite documentation](https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted) for more details.
+
+If you don't want to use `SQLite3Adapter` in a strict mode, you can disable this behavior:
+
+```ruby
+# config/application.rb
+config.active_record.sqlite3_adapter_strict_strings_by_default = false
+```
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 

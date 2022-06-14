@@ -34,7 +34,7 @@ module ActiveRecord
 
       db = SQLite3::Database.new(
         config[:database].to_s,
-        config.merge(results_as_hash: true)
+        config.merge(results_as_hash: true, strict: ConnectionAdapters::SQLite3Adapter.strict_strings_by_default)
       )
 
       ConnectionAdapters::SQLite3Adapter.new(db, logger, nil, config)
@@ -60,6 +60,16 @@ module ActiveRecord
       include SQLite3::Quoting
       include SQLite3::SchemaStatements
       include SQLite3::DatabaseStatements
+
+      ##
+      # :singleton-method:
+      # Configure the SQLite3Adapter to be used in a strict strings mode.
+      # This will disable double-quoted string literals, because otherwise typos can silently go unnoticed.
+      # For example, it is possible to create an index for a non existing column.
+      # If you wish to enable this mode you can add the following line to your application.rb file:
+      #
+      #   config.active_record.sqlite3_adapter_strict_strings_by_default = true
+      class_attribute :strict_strings_by_default, default: false
 
       NATIVE_DATABASE_TYPES = {
         primary_key:  "integer PRIMARY KEY AUTOINCREMENT NOT NULL",
