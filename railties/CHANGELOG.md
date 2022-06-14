@@ -1,3 +1,7 @@
+*   Correctly check if frameworks are disabled when running app:update.
+
+    *Étienne Barrié* and *Paulo Barros*
+
 *   Delegate model generator description to orm hooked generator.
 
     *Gannon McGibbon*
