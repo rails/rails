@@ -23,7 +23,7 @@ module Rails
           options = { api: !!Rails.application.config.api_only, update: true }
           options[:skip_active_job]     = !defined?(ActiveJob::Railtie)
           options[:skip_active_record]  = !defined?(ActiveRecord::Railtie)
-          options[:skip_active_storage] = !defined?(ActiveStorage::Engine) || !defined?(ActiveRecord::Railtie)
+          options[:skip_active_storage] = !defined?(ActiveStorage::Engine)
           options[:skip_action_mailer]  = !defined?(ActionMailer::Railtie)
           options[:skip_action_mailbox] = !defined?(ActionMailbox::Engine)
           options[:skip_action_text]    = !defined?(ActionText::Engine)
