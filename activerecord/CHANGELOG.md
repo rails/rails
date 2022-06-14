@@ -1,3 +1,26 @@
+*   Resolve issue where a relation cache_version could be left stale.
+
+    Previously, when `reset` was called on a relation object it did not reset the cache_versions
+    ivar. This led to a confusing situation where despite having the correct data the relation
+    still reported a stale cache_version.
+
+    Usage:
+
+    ```ruby
+    developers = Developer.all
+    developers.cache_version
+
+    Developer.update_all(updated_at: Time.now.utc + 1.second)
+
+    developers.cache_version # Stale cache_version
+    developers.reset
+    developers.cache_version # Returns the current correct cache_version
+    ```
+
+    Fixes #45341.
+
+    *Austen Madden*
+
 *   Add support for exclusion constraints (PostgreSQL-only).
 
     ```ruby
