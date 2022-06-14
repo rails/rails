@@ -1,3 +1,14 @@
+*   Add support for exclusion constraints (PostgreSQL-only).
+
+    ```ruby
+    add_exclusion_constraint :invoices, "daterange(start_date, end_date) WITH &&", using: :gist, name: "invoices_date_overlap"
+    remove_exclusion_constraint :invoices, name: "invoices_date_overlap"
+    ```
+
+    See PostgreSQL's [`CREATE TABLE ... EXCLUDE ...`](https://www.postgresql.org/docs/12/sql-createtable.html#SQL-CREATETABLE-EXCLUDE) documentation for more on exclusion constraints.
+
+    *Alex Robbin*
+
 *   `change_column_null` raises if a non-boolean argument is provided
 
     Previously if you provided a non-boolean argument, `change_column_null` would

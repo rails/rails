@@ -28,6 +28,12 @@ module ActiveRecord
     # should not be dumped to db/schema.rb.
     cattr_accessor :chk_ignore_pattern, default: /^chk_rails_[0-9a-f]{10}$/
 
+    ##
+    # :singleton-method:
+    # Specify a custom regular expression matching exclusion constraints which name
+    # should not be dumped to db/schema.rb.
+    cattr_accessor :excl_ignore_pattern, default: /^excl_rails_[0-9a-f]{10}$/
+
     class << self
       def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
         connection.create_schema_dumper(generate_options(config)).dump(stream)
@@ -170,6 +176,7 @@ module ActiveRecord
 
           indexes_in_create(table, tbl)
           check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
+          exclusion_constraints_in_create(table, tbl) if @connection.supports_exclusion_constraints?
 
           tbl.puts "  end"
           tbl.puts
@@ -200,6 +207,12 @@ module ActiveRecord
 
       def indexes_in_create(table, stream)
         if (indexes = @connection.indexes(table)).any?
+          if @connection.supports_exclusion_constraints? && (exclusion_constraints = @connection.exclusion_constraints(table)).any?
+            exclusion_constraint_names = exclusion_constraints.collect(&:name)
+
+            indexes = indexes.reject { |index| exclusion_constraint_names.include?(index.name) }
+          end
+
           index_statements = indexes.map do |index|
             "    t.index #{index_parts(index).join(', ')}"
           end

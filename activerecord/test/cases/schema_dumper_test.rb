@@ -222,6 +222,15 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
+  if ActiveRecord::Base.connection.supports_exclusion_constraints?
+    def test_schema_dumps_exclusion_constraints
+      constraint_definitions = dump_table_schema("test_exclusion_constraints").split(/\n/).grep(/test_exclusion_constraints_date_overlap/)
+
+      assert_equal 1, constraint_definitions.size
+      assert_equal 't.exclusion_constraint "daterange(start_date, end_date) WITH &&", where: "(start_date IS NOT NULL) AND (end_date IS NOT NULL)", using: :gist, name: "test_exclusion_constraints_date_overlap"', constraint_definitions.first.strip
+    end
+  end
+
   def test_schema_dump_should_honor_nonstandard_primary_keys
     output = standard_dump
     match = output.match(%r{create_table "movies"(.*)do})

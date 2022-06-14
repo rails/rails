@@ -555,6 +555,78 @@ module ActiveRecord
           end
         end
 
+        # Returns an array of exclusion constraints for the given table.
+        # The exclusion constraints are represented as ExclusionConstraintDefinition objects.
+        def exclusion_constraints(table_name)
+          scope = quoted_scope(table_name)
+
+          exclusion_info = exec_query(<<-SQL, "SCHEMA")
+            SELECT conname, pg_get_constraintdef(c.oid) AS constraintdef
+            FROM pg_constraint c
+            JOIN pg_class t ON c.conrelid = t.oid
+            JOIN pg_namespace n ON n.oid = c.connamespace
+            WHERE c.contype = 'x'
+              AND t.relname = #{scope[:name]}
+              AND n.nspname = #{scope[:schema]}
+          SQL
+
+          exclusion_info.map do |row|
+            method_and_elements, predicate = row["constraintdef"].split(" WHERE ")
+            method_and_elements_parts = method_and_elements.match(/EXCLUDE(?: USING (?<using>\S+))? \((?<expression>.+)\)/)
+            predicate = predicate.from(2).to(-3) if predicate # strip 2 opening and closing parentheses
+
+            options = {
+              name: row["conname"],
+              using: method_and_elements_parts["using"].to_sym,
+              where: predicate
+            }
+
+            ExclusionConstraintDefinition.new(table_name, method_and_elements_parts["expression"], options)
+          end
+        end
+
+        # Adds a new exclusion constraint to the table. +expression+ is a String
+        # representation of a list of exclusion elements and operators.
+        #
+        #   add_exclusion_constraint :products, "price WITH =, availability_range WITH &&", using: :gist, name: "price_check"
+        #
+        # generates:
+        #
+        #   ALTER TABLE "products" ADD CONSTRAINT price_check EXCLUDE USING gist (price WITH =, availability_range WITH &&)
+        #
+        # The +options+ hash can include the following keys:
+        # [<tt>:name</tt>]
+        #   The constraint name. Defaults to <tt>excl_rails_<identifier></tt>.
+        def add_exclusion_constraint(table_name, expression, **options)
+          options = exclusion_constraint_options(table_name, expression, options)
+          at = create_alter_table(table_name)
+          at.add_exclusion_constraint(expression, options)
+
+          execute schema_creation.accept(at)
+        end
+
+        def exclusion_constraint_options(table_name, expression, options) # :nodoc:
+          options = options.dup
+          options[:name] ||= exclusion_constraint_name(table_name, expression: expression, **options)
+          options
+        end
+
+        # Removes the given exclusion constraint from the table.
+        #
+        #   remove_exclusion_constraint :products, name: "price_check"
+        #
+        # The +expression+ parameter will be ignored if present. It can be helpful
+        # to provide this in a migration's +change+ method so it can be reverted.
+        # In that case, +expression+ will be used by #add_exclusion_constraint.
+        def remove_exclusion_constraint(table_name, expression = nil, **options)
+          excl_name_to_delete = exclusion_constraint_for!(table_name, expression: expression, **options).name
+
+          at = create_alter_table(table_name)
+          at.drop_exclusion_constraint(excl_name_to_delete)
+
+          execute schema_creation.accept(at)
+        end
+
         # Maps logical Rails types to PostgreSQL-specific data types.
         def type_to_sql(type, limit: nil, precision: nil, scale: nil, array: nil, enum_type: nil, **) # :nodoc:
           sql = \
@@ -785,6 +857,26 @@ module ActiveRecord
           def add_options_for_index_columns(quoted_columns, **options)
             quoted_columns = add_index_opclass(quoted_columns, **options)
             super
+          end
+
+          def exclusion_constraint_name(table_name, **options)
+            options.fetch(:name) do
+              expression = options.fetch(:expression)
+              identifier = "#{table_name}_#{expression}_excl"
+              hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
+
+              "excl_rails_#{hashed_identifier}"
+            end
+          end
+
+          def exclusion_constraint_for(table_name, **options)
+            excl_name = exclusion_constraint_name(table_name, **options)
+            exclusion_constraints(table_name).detect { |excl| excl.name == excl_name }
+          end
+
+          def exclusion_constraint_for!(table_name, expression: nil, **options)
+            exclusion_constraint_for(table_name, expression: expression, **options) ||
+              raise(ArgumentError, "Table '#{table_name}' has no exclusion constraint for #{expression || options}")
           end
 
           def data_source_sql(name = nil, type: nil)
