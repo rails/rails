@@ -344,6 +344,8 @@ Processing by PostsController#index as HTML
 (rdbg)
 ```
 
+You can exit the debugging session at any time and continue your application execution with the `continue` (or `c`) command.  Or, to exit both the debugging session and your application, use the `quit` (or `q`) command.
+
 ### The Context
 
 After entering the debugging session, you can type in Ruby code as you're in a Rails console or IRB.
