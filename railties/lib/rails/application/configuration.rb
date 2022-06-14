@@ -262,6 +262,10 @@ module Rails
             self.log_file_size = (100 * 1024 * 1024)
           end
 
+          if respond_to?(:active_record)
+            active_record.run_commit_callbacks_on_first_saved_instances_in_transaction = false
+          end
+
           if respond_to?(:action_dispatch)
             action_dispatch.default_headers = {
               "X-Frame-Options" => "SAMEORIGIN",
