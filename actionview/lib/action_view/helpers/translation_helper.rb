@@ -11,8 +11,23 @@ module ActionView
 
       include TagHelper
 
-      # Specify whether an error should be raised for missing translations
-      singleton_class.attr_accessor :raise_on_missing_translations
+      class << self
+        def raise_on_missing_translations
+          ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
+            `ActionView::Helpers::TranslationHelper.raise_on_missing_translations` is deprecated and will be removed in Rails 7.2.
+            Please use `ActionView::Base.raise_on_missing_translations`.
+          MESSAGE
+          ActionView::Base.raise_on_missing_translations
+        end
+
+        def raise_on_missing_translations=(value)
+          ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
+            `ActionView::Helpers::TranslationHelper.raise_on_missing_translations` is deprecated and will be removed in Rails 7.2.
+            Please use `ActionView::Base.raise_on_missing_translations`.
+          MESSAGE
+          ActionView::Base.raise_on_missing_translations = value
+        end
+      end
 
       included do
         mattr_accessor :debug_missing_translation, default: true
@@ -78,7 +93,7 @@ module ActionView
           options[:default].is_a?(Array) ? options.delete(:default).compact : [options.delete(:default)]
         end
 
-        options[:raise] = true if options[:raise].nil? && TranslationHelper.raise_on_missing_translations
+        options[:raise] = true if options[:raise].nil? && ActionView::Base.raise_on_missing_translations
         default = MISSING_TRANSLATION
 
         translation = while key || alternatives.present?

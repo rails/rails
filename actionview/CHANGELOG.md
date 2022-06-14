@@ -1,3 +1,8 @@
+*   Moved `ActionView::Helpers::TranslationHelper.raise_on_missing_translations` to
+    `ActionView::Base.raise_on_missing_translations` to correctly execute the `on_load` hook in the `I18n::Railtie`.
+
+    *Kevin McPhillips* and *Gannon McGibbon*
+
 *   Strings returned from `strip_tags` are correctly tagged `html_safe?`
 
     Because these strings contain no HTML elements and the basic entities are escaped, they are safe

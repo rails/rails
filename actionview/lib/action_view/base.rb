@@ -162,6 +162,9 @@ module ActionView # :nodoc:
     # Annotate rendered view with file names
     cattr_accessor :annotate_rendered_view_with_filenames, default: false
 
+    # Specify whether an error should be raised for missing translations
+    cattr_accessor :raise_on_missing_translations, default: false
+
     class_attribute :_routes
     class_attribute :logger
 
