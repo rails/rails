@@ -74,13 +74,14 @@ module ActionController
           #
           # See ActionController::HttpAuthentication::Basic for example usage.
           def http_basic_authenticate_with(name:, password:, realm: nil, **options)
-            raise ArgumentError, "Expected name: to be a String, got #{name.class}" unless name.is_a?(String)
-            raise ArgumentError, "Expected password: to be a String, got #{password.class}" unless password.is_a?(String)
             before_action(options) { http_basic_authenticate_or_request_with name: name, password: password, realm: realm }
           end
         end
 
         def http_basic_authenticate_or_request_with(name:, password:, realm: nil, message: nil)
+          raise ArgumentError, "Expected name to be a String, got #{name.inspect}" unless name.is_a?(String)
+          raise ArgumentError, "Expected password to be a String, got #{password.inspect}" unless password.is_a?(String)
+
           authenticate_or_request_with_http_basic(realm, message) do |given_name, given_password|
             # This comparison uses & so that it doesn't short circuit and
             # uses `secure_compare` so that length information isn't leaked.

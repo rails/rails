@@ -197,3 +197,57 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
       "Basic #{::Base64.encode64("#{username}:#{password}")}"
     end
 end
+
+class HttpConditionalBasicAuthenticationConfiguredTest < ActionController::TestCase
+  class DummyController < ActionController::Base
+    class_attribute :auth_credentials, default: { name: "David", password: "Goliath" }
+    http_basic_authenticate_with(
+      name: auth_credentials[:name],
+      password: auth_credentials[:password],
+      if: :auth_credentials_present?
+    )
+
+    def index
+      render plain: "Hello Secret"
+    end
+
+    private
+      def auth_credentials_present?
+        self.class.auth_credentials.present?
+      end
+  end
+
+  tests DummyController
+
+  test "authentication request" do
+    get :index
+    assert_response :unauthorized
+  end
+end
+
+class HttpConditionalBasicAuthenticationNotConfiguredTest < ActionController::TestCase
+  class DummyController < ActionController::Base
+    class_attribute :auth_credentials, default: {}
+    http_basic_authenticate_with(
+      name: auth_credentials[:name],
+      password: auth_credentials[:password],
+      if: :auth_credentials_present?
+    )
+
+    def index
+      render plain: "Hello Secret"
+    end
+
+    private
+      def auth_credentials_present?
+        self.class.auth_credentials.present?
+      end
+  end
+
+  tests DummyController
+
+  test "authentication is skipped" do
+    get :index
+    assert_response :success
+  end
+end
