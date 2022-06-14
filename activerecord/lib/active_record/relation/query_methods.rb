@@ -10,10 +10,10 @@ module ActiveRecord
   module QueryMethods
     include ActiveModel::ForbiddenAttributesProtection
 
-    # WhereChain objects act as placeholder for queries in which #where does not have any parameter.
-    # In this case, #where must be chained with #not to return a new relation.
+    # WhereChain objects act as placeholder for queries in which +where+ does not have any parameter.
+    # In this case, +where+ can be chained to return a new relation.
     class WhereChain
-      def initialize(scope)
+      def initialize(scope) # :nodoc:
         @scope = scope
       end
 
@@ -722,12 +722,26 @@ module ActiveRecord
     # === no argument
     #
     # If no argument is passed, #where returns a new instance of WhereChain, that
-    # can be chained with #not to return a new relation that negates the where clause.
+    # can be chained with WhereChain#not, WhereChain#missing, or WhereChain#associated.
+    #
+    # Chaining with WhereChain#not:
     #
     #    User.where.not(name: "Jon")
     #    # SELECT * FROM users WHERE name != 'Jon'
     #
-    # See WhereChain for more details on #not.
+    # Chaining with WhereChain#associated:
+    #
+    #    Post.where.associated(:author)
+    #    # SELECT "posts".* FROM "posts"
+    #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+    #    # WHERE "authors"."id" IS NOT NULL
+    #
+    # Chaining with WhereChain#missing:
+    #
+    #    Post.where.missing(:author)
+    #    # SELECT "posts".* FROM "posts"
+    #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+    #    # WHERE "authors"."id" IS NULL
     #
     # === blank condition
     #
