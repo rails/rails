@@ -1,3 +1,7 @@
+*   Correctly check if frameworks are disabled when running app:update.
+
+    *Étienne Barrié* and *Paulo Barros*
+
 *   Fixed `config.active_support.cache_format_version` never being applied.
 
     Rails 7.0 shipped with a new serializer for Rails.cache, but the associated config
@@ -5,6 +9,7 @@
     the `application.rb` file.
 
     *Alex Ghiculescu*
+
 
 ## Rails 7.0.3 (May 09, 2022) ##
 
