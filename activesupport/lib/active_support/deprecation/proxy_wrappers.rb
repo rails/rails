@@ -104,7 +104,7 @@ module ActiveSupport
     end
 
     # DeprecatedConstantProxy transforms a constant into a deprecated one. It
-    # takes the names of an old (deprecated) constant and of a new constant
+    # takes the full names of an old (deprecated) constant and of a new constant
     # (both in string form) and optionally a deprecator. The deprecator defaults
     # to +ActiveSupport::Deprecator+ if none is specified. The deprecated constant
     # now returns the value of the new one.
