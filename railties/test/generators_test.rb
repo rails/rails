@@ -253,4 +253,10 @@ class GeneratorsTest < Rails::Generators::TestCase
     Rails::Generators.hide_namespace("special:namespace")
     assert_includes Rails::Generators.hidden_namespaces, "special:namespace"
   end
+
+  def test_behaviour_aliases_behavior
+    assert_deprecated do
+      assert_same Rails::Generators::Testing::Behavior, Rails::Generators::Testing::Behaviour.itself
+    end
+  end
 end
