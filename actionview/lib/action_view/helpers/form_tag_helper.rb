@@ -131,7 +131,7 @@ module ActionView
 
         # a little duplication to construct fewer strings
         case
-        when object_name.empty?
+        when object_name.blank?
           "#{method_name}#{names}#{multiple ? "[]" : ""}"
         when index
           "#{object_name}[#{index}][#{method_name}]#{names}#{multiple ? "[]" : ""}"

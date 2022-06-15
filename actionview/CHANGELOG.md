@@ -1,3 +1,14 @@
+*   Guard against `ActionView::Helpers::FormTagHelper#field_name` calls with nil
+    `object_name` arguments. For example:
+
+    ```erb
+    <%= fields do |f| %>
+      <%= f.field_name :body %>
+    <% end %>
+    ```
+
+    *Sean Doyle*
+
 *   Strings returned from `strip_tags` are correctly tagged `html_safe?`
 
     Because these strings contain no HTML elements and the basic entities are escaped, they are safe

@@ -225,7 +225,13 @@ class FormTagHelperTest < ActionView::TestCase
     assert_equal "post_author_name", value
   end
 
-  def test_field_name_without_object_name
+  def test_field_name_with_nil_object_name
+    value = field_name(nil, :title)
+
+    assert_equal "title", value
+  end
+
+  def test_field_name_with_blank_object_name
     value = field_name("", :title)
 
     assert_equal "title", value
