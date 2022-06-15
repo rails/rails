@@ -2442,6 +2442,32 @@ module ApplicationTests
       assert_equal true, ActiveRecord::ConnectionAdapters::SQLite3Adapter.strict_strings_by_default
     end
 
+    test "SQLite3Adapter.strict_strings_by_default can be configured via config.active_record.sqlite3_adapter_strict_strings_by_default in an initializer" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.1"'
+      app_file "config/initializers/new_framework_defaults_7_1.rb", <<-RUBY
+        Rails.application.config.active_record.sqlite3_adapter_strict_strings_by_default = true
+      RUBY
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::ConnectionAdapters::SQLite3Adapter.strict_strings_by_default
+
+      Post.connection.create_table :posts
+      error = assert_raises(StandardError) do
+        Post.connection.add_index :posts, :non_existent
+      end
+      assert_match(/no such column: non_existent/, error.message)
+    end
+
     test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption is true by default for new apps" do
       app "development"
 
@@ -2456,8 +2482,9 @@ module ApplicationTests
       assert_equal false, ActiveSupport::MessageEncryptor.use_authenticated_message_encryption
     end
 
-    test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption can be configured via config.active_support.use_authenticated_message_encryption" do
+    test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption can be configured via config.active_support.use_authenticated_message_encryption from 7.1" do
       remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.1"'
 
       app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
         Rails.application.config.active_support.use_authenticated_message_encryption = true
@@ -3858,6 +3885,18 @@ module ApplicationTests
     end
 
     test "isolation_level can be set in initializer" do
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+        Rails.application.config.active_support.isolation_level = :fiber
+      RUBY
+
+      app "development"
+      assert_equal :fiber, ActiveSupport::IsolatedExecutionState.isolation_level
+    end
+
+    test "isolation_level can be set in initializer in 7.1" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.1"'
+
       app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
         Rails.application.config.active_support.isolation_level = :fiber
       RUBY

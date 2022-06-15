@@ -11,10 +11,8 @@ module ActiveSupport
     config.eager_load_namespaces << ActiveSupport
 
     initializer "active_support.isolation_level" do |app|
-      config.after_initialize do
-        if level = app.config.active_support.delete(:isolation_level)
-          ActiveSupport::IsolatedExecutionState.isolation_level = level
-        end
+      if level = app.config.active_support.delete(:isolation_level)
+        ActiveSupport::IsolatedExecutionState.isolation_level = level
       end
     end
 
@@ -28,11 +26,9 @@ module ActiveSupport
     end
 
     initializer "active_support.set_authenticated_message_encryption" do |app|
-      config.after_initialize do
-        unless app.config.active_support.use_authenticated_message_encryption.nil?
-          ActiveSupport::MessageEncryptor.use_authenticated_message_encryption =
-            app.config.active_support.use_authenticated_message_encryption
-        end
+      unless app.config.active_support.use_authenticated_message_encryption.nil?
+        ActiveSupport::MessageEncryptor.use_authenticated_message_encryption =
+          app.config.active_support.use_authenticated_message_encryption
       end
     end
 

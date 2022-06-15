@@ -556,9 +556,14 @@ module Rails
       run_callbacks(:load_seed) { load(seed_file) } if seed_file
     end
 
-    initializer :load_environment_config, before: :load_environment_hook, group: :all do
+    initializer :load_environment_config, before: :load_environment_hook, group: :all do |app|
       paths["config/environments"].existent.each do |environment|
         require environment
+      end
+      if app.config.eager_load_initializers
+        paths["config/initializers"].existent.select { |f| f.match(config.eager_load_initializers) }.each do |initializer|
+          require initializer
+        end
       end
     end
 
