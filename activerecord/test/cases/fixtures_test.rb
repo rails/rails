@@ -995,7 +995,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def lock_thread=(lock_thread); end
     end.new
 
-    assert_called_with(connection, :begin_transaction, [joinable: false, _lazy: false]) do
+    assert_called_with(connection, :begin_transaction, [], joinable: false, _lazy: false) do
       fire_connection_notification(connection)
     end
   end
@@ -1035,14 +1035,14 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def lock_thread=(lock_thread); end
     end.new
 
-    assert_called_with(connection, :begin_transaction, [joinable: false, _lazy: false]) do
+    assert_called_with(connection, :begin_transaction, [], joinable: false, _lazy: false) do
       fire_connection_notification(connection, shard: :shard_two)
     end
   end
 
   private
     def fire_connection_notification(connection, shard: ActiveRecord::Base.default_shard)
-      assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book", { shard: shard }], returns: connection) do
+      assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book"], returns: connection, shard: shard) do
         message_bus = ActiveSupport::Notifications.instrumenter
         payload = {
           spec_name: "book",

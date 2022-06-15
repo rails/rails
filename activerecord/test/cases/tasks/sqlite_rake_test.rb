@@ -221,8 +221,9 @@ if current_adapter?(:SQLite3Adapter)
         assert_called_with(
           Kernel,
           :system,
-          ["sqlite3", "--noop", "db_create.sqlite3", ".schema", out: "awesome-file.sql"],
-          returns: nil
+          ["sqlite3", "--noop", "db_create.sqlite3", ".schema"],
+          returns: nil,
+          out: "awesome-file.sql"
         ) do
           e = assert_raise(RuntimeError) do
             with_structure_dump_flags(["--noop"]) do

@@ -3302,7 +3302,7 @@ class FormHelperTest < ActionView::TestCase
 
     mock = Minitest::Mock.new
     @post.comments.each do
-      mock.expect(:call, "body", ["post.comments.body", default: [:"comment.body", ""], scope: "helpers.label"])
+      expect_called_with(mock, ["post.comments.body"], default: [:"comment.body", ""], scope: "helpers.label", returns: "body")
     end
 
     I18n.stub(:t, mock) do

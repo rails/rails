@@ -65,7 +65,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_delegates_localize_to_i18n
     @time = Time.utc(2008, 7, 8, 12, 18, 38)
-    assert_called_with(I18n, :localize, [@time, locale: "en"]) do
+    assert_called_with(I18n, :localize, [@time], locale: "en") do
       localize @time, locale: "en"
     end
     assert_equal "Tue, 08 Jul 2008 12:18:38 +0000", localize(@time, locale: "en")
