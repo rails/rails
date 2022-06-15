@@ -635,6 +635,44 @@ module ActiveRecord
         end
       end
 
+      def test_strict_strings_by_default_and_true_in_database_yml
+        conn = Base.sqlite3_connection(database: ":memory:", adapter: "sqlite3", strict: true)
+        conn.create_table :testings
+
+        error = assert_raises(StandardError) do
+          conn.add_index :testings, :non_existent
+        end
+        assert_match(/no such column: non_existent/, error.message)
+
+        with_strict_strings_by_default do
+          conn = Base.sqlite3_connection(database: ":memory:", adapter: "sqlite3", strict: true)
+          conn.create_table :testings
+
+          error = assert_raises(StandardError) do
+            conn.add_index :testings, :non_existent2
+          end
+          assert_match(/no such column: non_existent2/, error.message)
+        end
+      end
+
+      def test_strict_strings_by_default_and_false_in_database_yml
+        conn = Base.sqlite3_connection(database: ":memory:", adapter: "sqlite3", strict: false)
+        conn.create_table :testings
+
+        assert_nothing_raised do
+          conn.add_index :testings, :non_existent
+        end
+
+        with_strict_strings_by_default do
+          conn = Base.sqlite3_connection(database: ":memory:", adapter: "sqlite3", strict: false)
+          conn.create_table :testings
+
+          assert_nothing_raised do
+            conn.add_index :testings, :non_existent
+          end
+        end
+      end
+
       private
         def assert_logged(logs)
           subscriber = SQLSubscriber.new
