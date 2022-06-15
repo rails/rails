@@ -94,22 +94,6 @@ module ActiveRecord
       end
     end
 
-    initializer "active_record.database_selector" do
-      if options = config.active_record.database_selector
-        resolver = config.active_record.database_resolver
-        operations = config.active_record.database_resolver_context
-        config.app_middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, operations, options
-      end
-    end
-
-    initializer "active_record.shard_selector" do
-      if resolver = config.active_record.shard_resolver
-        options = config.active_record.shard_selector || {}
-
-        config.app_middleware.use ActiveRecord::Middleware::ShardSelector, resolver, options
-      end
-    end
-
     initializer "Check for cache versioning support" do
       config.after_initialize do |app|
         ActiveSupport.on_load(:active_record) do
