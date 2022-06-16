@@ -958,9 +958,10 @@ module ActiveRecord
                 end
               end
 
-              if retryable_connection_error?(translated_exception)
-                # There's a problem with the connection, but we couldn't attempt to
-                # reconnect. The connection is going to stay broken, so un-verify it.
+              unless retryable_query_error?(translated_exception)
+                # Barring a known-retryable error inside the query (regardless of
+                # whether we were in a _position_ to retry it), we should infer that
+                # there's likely a real problem with the connection.
                 @verified = false
               end
 
