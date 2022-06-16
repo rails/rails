@@ -67,6 +67,8 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.allow_deprecated_parameters_hash_equality`](#config-action-controller-allow-deprecated-parameters-hash-equality): `false`
 - [`config.log_file_size`](#config-log-file-size): `100.megabytes`
 - [`config.active_record.sqlite3_adapter_strict_strings_by_default`](#config-active-record-sqlite3-adapter-strict-strings-by-default): `false`
+- [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `true`
+
 
 #### Default Values for Target Version 7.0
 
@@ -1026,6 +1028,25 @@ Defaults to `4`.
 
 This number must be considered in accordance with the database pool size configured in `database.yml`. The connection pool
 should be large enough to accommodate both the foreground threads (.e.g web server or job worker threads) and background threads.
+
+#### `config.active_record.allow_deprecated_singular_associations_name`
+
+This maintains the deprecated associations behavior where singular associations can be referred to in where clauses by their plural name. Enable this configuration option to opt into the new behavior.
+
+before,
+
+```ruby
+class Post
+  self.table_name = "blog_posts"
+end
+
+class Comment
+  belongs_to :post
+end
+
+Comment.join(:post).where(posts: { id: 1 }) # deprecated if the table name is not `posts`
+Comment.join(:post).where(post: { id: 1 }) # instead use the relation's name
+```
 
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans`
 

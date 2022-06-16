@@ -1,3 +1,10 @@
+*   Add configurable deprecation warning for singular associations
+
+    This adds a deprecation warning when using the plural name of a singular associations in `where`.
+    It is possible to opt into the new more performant behavior with `config.active_record.allow_deprecated_singular_associations_name = false`
+
+    *Adam Hess*
+
 *   Run transactional callbacks on the freshest instance to save a given 
     record within a transaction.
 

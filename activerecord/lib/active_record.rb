@@ -336,6 +336,13 @@ module ActiveRecord
   singleton_class.attr_accessor :verify_foreign_keys_for_fixtures
   self.verify_foreign_keys_for_fixtures = false
 
+  ##
+  # :singleton-method:
+  # If true, Rails will continue allowing plural association names in where clauses on singular associations
+  # This behavior will be removed in Rails 7.2.
+  singleton_class.attr_accessor :allow_deprecated_singular_associations_name
+  self.allow_deprecated_singular_associations_name = true
+
   singleton_class.attr_accessor :query_transformers
   self.query_transformers = []
 
