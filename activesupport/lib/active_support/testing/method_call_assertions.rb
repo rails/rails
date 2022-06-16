@@ -19,12 +19,7 @@ module ActiveSupport
 
         def assert_called_with(object, method_name, args, returns: nil, &block)
           mock = Minitest::Mock.new
-
-          if !args.empty? && args.all?(Array)
-            args.each { |argv| mock.expect(:call, returns, argv) }
-          else
-            mock.expect(:call, returns, args)
-          end
+          mock.expect(:call, returns, args)
 
           object.stub(method_name, mock, &block)
 
