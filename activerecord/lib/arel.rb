@@ -28,28 +28,35 @@ require "arel/nodes"
 module Arel
   VERSION = "10.0.0"
 
-  # Wrap a known-safe SQL string for passing to query methods, e.g.
-  #
-  #   Post.order(Arel.sql("REPLACE(title, 'misc', 'zzzz') asc")).pluck(:id)
-  #
-  # Great caution should be taken to avoid SQL injection vulnerabilities.
-  # This method should not be used with unsafe values such as request
-  # parameters or model attributes.
-  def self.sql(raw_sql)
-    Arel::Nodes::SqlLiteral.new raw_sql
-  end
+  class << self
+    # Wrap a known-safe SQL string for passing to query methods, e.g.
+    #
+    #   Post.order(Arel.sql("REPLACE(title, 'misc', 'zzzz') asc")).pluck(:id)
+    #
+    # Wrap a known-save value to bypass sanitization, e.g.
+    #
+    #   Post.sanitize_sql_for_order([Arel.sql("field(id, ?)"), [Arel.sql(1)]])
+    #
+    # Great caution should be taken to avoid SQL injection vulnerabilities.
+    # This method should not be used with unsafe values such as request
+    # parameters or model attributes.
+    def sql(raw)
+      Arel::Nodes::SqlLiteral.new(raw.to_s)
+    end
+    alias :safe :sql
 
-  def self.star # :nodoc:
-    sql "*"
-  end
+    def star # :nodoc:
+      sql "*"
+    end
 
-  def self.arel_node?(value) # :nodoc:
-    value.is_a?(Arel::Nodes::Node) || value.is_a?(Arel::Attribute) || value.is_a?(Arel::Nodes::SqlLiteral)
-  end
+    def arel_node?(value) # :nodoc:
+      value.is_a?(Arel::Nodes::Node) || value.is_a?(Arel::Attribute) || value.is_a?(Arel::Nodes::SqlLiteral)
+    end
 
-  def self.fetch_attribute(value, &block) # :nodoc:
-    unless String === value
-      value.fetch_attribute(&block)
+    def fetch_attribute(value, &block) # :nodoc:
+      unless String === value
+        value.fetch_attribute(&block)
+      end
     end
   end
 end

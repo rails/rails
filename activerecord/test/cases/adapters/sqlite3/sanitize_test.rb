@@ -48,6 +48,10 @@ class SQLite3SanitizeTest < ActiveRecord::SQLite3TestCase
     actual = Post.sanitize_sql_for_order("id ASC")
     expected = "id ASC"
     assert_equal expected, actual
+
+    actual = Post.sanitize_sql_for_order([Arel.sql("field(val, ?)"), Arel.sql(999)])
+    expected = "field(val, 999)"
+    assert_equal expected, actual
   end
 
   def test_sanitize_sql_hash_for_assignment

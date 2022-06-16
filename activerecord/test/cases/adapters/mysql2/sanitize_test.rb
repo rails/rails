@@ -41,13 +41,20 @@ class Mysql2SanitizeTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_sanitize_sql_for_order
-    skip "See https://github.com/rails/rails/issues/44312"
     actual = Post.sanitize_sql_for_order([Arel.sql("field(id, ?)"), [1, 3, 2]])
+    expected = "field(id, '1','3','2')" # this is invalid SQL but expected behaviour
+    assert_equal expected, actual
+
+    actual = Post.sanitize_sql_for_order([Arel.sql("field(id, ?)"), [Arel.sql(1), Arel.sql(3), Arel.sql(2)]])
     expected = "field(id, 1,3,2)"
     assert_equal expected, actual
 
     actual = Post.sanitize_sql_for_order("id ASC")
     expected = "id ASC"
+    assert_equal expected, actual
+
+    actual = Post.sanitize_sql_for_order([Arel.sql("field(val, ?)"), Arel.sql(999)])
+    expected = "field(val, 999)"
     assert_equal expected, actual
   end
 

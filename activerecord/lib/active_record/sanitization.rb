@@ -59,6 +59,12 @@ module ActiveRecord
       #
       #   sanitize_sql_for_order("id ASC")
       #   # => "id ASC"
+      #
+      # For cases where a value is being quoted for safety and it should not be, it can be marked
+      # as `Arel.safe`. This should only be used in cases where the data is known to be safe.
+      #
+      #   sanitize_sql_for_order([Arel.sql("field(val, ?)"), Arel.sql(999)])
+      #   # => "field(val, 999)"
       def sanitize_sql_for_order(condition)
         if condition.is_a?(Array) && condition.first.to_s.include?("?")
           disallow_raw_sql!(
