@@ -28,7 +28,7 @@ INFO: You can install the rails gem by typing `gem install rails`, if you don't 
 The first argument we'll pass to the `rails new` command is the application name.
 
 ```bash
-$ rails new commandsapp
+$ rails new my_app
      create
      create  README.md
      create  Rakefile
@@ -65,7 +65,7 @@ If you wish to skip some files from being generated or skip some libraries, you 
 | `--skip-system-test`    | Skip system test files                                      |
 | `--skip-bootsnap`       | Skip bootsnap gem                                           |
 
-These are just some of the options you can append to `rails new`. For a comprehensive list of options, type `rails new --help`.
+These are just some of the options that `rails new` accepts. For a full list of options, type `rails new --help`.
 
 ### Preconfigure a Different Database
 
@@ -178,7 +178,7 @@ The `bin/rails server` command launches a web server named Puma which comes bund
 With no further work, `bin/rails server` will run our new shiny Rails app:
 
 ```bash
-$ cd commandsapp
+$ cd my_app
 $ bin/rails server
 => Booting Puma
 => Rails 7.0.0 application starting in development
@@ -510,7 +510,7 @@ RubyGems version          2.7.3
 Rack version              2.0.4
 JavaScript Runtime        Node.js (V8)
 Middleware:               Rack::Sendfile, ActionDispatch::Static, ActionDispatch::Executor, ActiveSupport::Cache::Strategy::LocalCache::Middleware, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, ActionDispatch::RemoteIp, Sprockets::Rails::QuietAssets, Rails::Rack::Logger, ActionDispatch::ShowExceptions, WebConsole::Middleware, ActionDispatch::DebugExceptions, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, Rack::Head, Rack::ConditionalGet, Rack::ETag
-Application root          /home/foobar/commandsapp
+Application root          /home/foobar/my_app
 Environment               development
 Database adapter          sqlite3
 Database schema version   20180205173523
