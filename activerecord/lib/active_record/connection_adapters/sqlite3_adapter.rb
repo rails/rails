@@ -32,9 +32,10 @@ module ActiveRecord
         Dir.mkdir(dirname) unless File.directory?(dirname)
       end
 
+      config[:strict] = ConnectionAdapters::SQLite3Adapter.strict_strings_by_default unless config.key?(:strict)
       db = SQLite3::Database.new(
         config[:database].to_s,
-        config.merge(results_as_hash: true, strict: ConnectionAdapters::SQLite3Adapter.strict_strings_by_default)
+        config.merge(results_as_hash: true)
       )
 
       ConnectionAdapters::SQLite3Adapter.new(db, logger, nil, config)
