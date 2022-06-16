@@ -82,13 +82,6 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_assert_called_with_multiple_expected_arguments
-    assert_called_with(@object, :<<, [ [ 1 ], [ 2 ] ]) do
-      @object << 1
-      @object << 2
-    end
-  end
-
   def test_assert_called_on_instance_of_with_defaults_to_expect_once
     assert_called_on_instance_of Level, :increment do
       @object.increment

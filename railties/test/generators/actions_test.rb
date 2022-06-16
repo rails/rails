@@ -734,15 +734,19 @@ class ActionsTest < Rails::Generators::TestCase
       config_matcher = ->(actual_config) do
         assert_equal config, actual_config.slice(*config.keys)
       end if config
-      args = Array(commands).map do |command|
+
+      mock = Minitest::Mock.new
+
+      Array(commands).each do |command|
         command_matcher = Regexp.escape(command)
         command_matcher = command_matcher.sub(/^sudo\\ /, '\A\1.*')
-        [/#{command_matcher}\z/, *config_matcher]
+        args = [/#{command_matcher}\z/, *config_matcher]
+        mock.expect(:call, nil, args)
       end
 
-      assert_called_with(generator, :run, args) do
-        block.call
-      end
+      generator.stub(:run, mock, &block)
+
+      assert_mock(mock)
     end
 
     def assert_routes(*route_commands)

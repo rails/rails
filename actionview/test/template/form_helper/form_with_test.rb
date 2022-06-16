@@ -1766,14 +1766,20 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_nested_fields_label_translation_with_more_than_10_records
     @post.comments = Array.new(11) { |id| Comment.new(id + 1) }
 
-    params = 11.times.map { ["post.comments.body", default: [:"comment.body", ""], scope: "helpers.label"] }
-    assert_called_with(I18n, :t, params, returns: "Write body here") do
+    mock = Minitest::Mock.new
+    @post.comments.each do
+      mock.expect(:call, "body", ["post.comments.body", default: [:"comment.body", ""], scope: "helpers.label"])
+    end
+
+    I18n.stub(:t, mock) do
       form_with(model: @post) do |f|
         f.fields(:comments) do |cf|
           concat cf.label(:body)
         end
       end
     end
+
+    assert_mock(mock)
   end
 
   def test_nested_fields_with_existing_records_on_a_supplied_nested_attributes_collection_different_from_record_one
