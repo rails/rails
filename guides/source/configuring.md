@@ -169,9 +169,19 @@ config.after_initialize do
 end
 ```
 
+#### `config.allow_concurrency`
+
+Controls whether requests should be handled concurrently. This should only
+be set to `false` if application code is not thread safe. Defaults to `true`.
+
 #### `config.asset_host`
 
 Sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints built-in in browsers using different domain aliases. Shorter version of `config.action_controller.asset_host`.
+
+#### `config.autoflush_log`
+
+Enables writing log file output immediately instead of buffering. Defaults to
+`true`.
 
 #### `config.autoload_once_paths`
 
@@ -214,6 +224,19 @@ console do
   config.console = Pry
 end
 ```
+
+#### `config.content_security_policy_nonce_directives`
+
+See [Adding a Nonce](security.html#adding-a-nonce) in the Security Guide
+
+#### `config.content_security_policy_nonce_generator`
+
+See [Adding a Nonce](security.html#adding-a-nonce) in the Security Guide
+
+#### `config.content_security_policy_report_only`
+
+See [Reporting Violations](security.html#reporting-violations) in the Security
+Guide
 
 #### `config.credentials.content_path`
 
@@ -277,9 +300,36 @@ Rails.application.config.filter_parameters += [
 
 Parameters filter works by partial matching regular expression.
 
+#### `config.filter_redirect`
+
+Used for filtering out redirect urls from application logs.
+
+```ruby
+Rails.application.config.filter_redirect += ['s3.amazonaws.com', /private-match/]
+```
+
+The redirect filter works by testing that urls include strings or match regular
+expressions.
+
 #### `config.force_ssl`
 
 Forces all requests to be served over HTTPS, and sets "https://" as the default protocol when generating URLs. Enforcement of HTTPS is handled by the `ActionDispatch::SSL` middleware, which can be configured via `config.ssl_options`.
+
+#### `config.helpers_paths`
+
+Defines an array of additional paths to load view helpers.
+
+#### `config.host_authorization`
+
+Accepts a hash of options to configure the [HostAuthorization
+middleware](#actiondispatch-hostauthorization)
+
+#### `config.hosts`
+
+An array of strings, regular expressions, or `IPAddr` used to validate the
+`Host` header. Used by the [HostAuthorization
+middleware](#actiondispatch-hostauthorization) to help prevent DNS rebinding
+attacks.
 
 #### `config.javascript_path`
 
@@ -327,9 +377,32 @@ Allows you to configure the application's middleware. This is covered in depth i
 
 Configures Rails to serve static files from the public directory. This option defaults to `true`, but in the production environment it is set to `false` because the server software (e.g. NGINX or Apache) used to run the application should serve static files instead. If you are running or testing your app in production using WEBrick (it is not recommended to use WEBrick in production) set the option to `true`. Otherwise, you won't be able to use page caching and request for files that exist under the public directory.
 
+#### `config.railties_order`
+
+Allows manually specifying the order that Railties/Engines are loaded. The
+default value is `[:all]`.
+
+```ruby
+config.railties_order = [Blog::Engine, :main_app, :all]
+```
+
 #### `config.rake_eager_load`
 
 When `true`, eager load the application when running Rake tasks. Defaults to `false`.
+
+#### `config.read_encrypted_secrets`
+
+*DEPRECATED*: You should be using
+[credentials](https://guides.rubyonrails.org/security.html#custom-credentials)
+instead of encrypted secrets.
+
+When `true`, will try to read encrypted secrets from `config/secrets.yml.enc`
+
+#### `config.relative_url_root`
+
+Can be used to tell Rails that you are [deploying to a subdirectory](
+configuring.html#deploy-to-a-subdirectory-relative-url-root). The default
+is `ENV['RAILS_RELATIVE_URL_ROOT']`.
 
 #### `config.reload_classes_only_on_change`
 
@@ -346,6 +419,21 @@ It is recommended to leave this unset, and instead to specify a `secret_key_base
 in `config/credentials.yml.enc`. See the [`secret_key_base` API documentation](
 https://api.rubyonrails.org/classes/Rails/Application.html#method-i-secret_key_base)
 for more information and alternative configuration methods.
+
+#### `config.server_timing`
+
+When `true`, adds the [ServerTiming middleware](#actiondispatch-servertiming)
+to the middleware stack
+
+#### `config.session_options`
+
+Additional options passed to `config.session_store`. You should use
+`config.session_store` to set this instead of modifying it yourself.
+
+```ruby
+config.session_store :cookie_store, key: "_your_app_session"
+config.session_options # => {key: "_your_app_session"}
+```
 
 #### `config.session_store`
 
@@ -380,6 +468,17 @@ The default value depends on the `config.load_defaults` target version:
 #### `config.time_zone`
 
 Sets the default time zone for the application and enables time zone awareness for Active Record.
+
+#### `config.x`
+
+Used to easily add nested custom configuration to the application config object
+
+  ```ruby
+  config.x.payment_processing.schedule = :daily
+  Rails.configuration.x.payment_processing.schedule # => :daily
+  ```
+
+See [Custom Configuration](#custom-configuration)
 
 ### Configuring Assets
 
@@ -541,6 +640,11 @@ Rails.application.config.host_authorization = {
   end
 }
 ```
+
+#### `ActionDispatch::ServerTiming`
+
+Adds metrics to the `Server-Timing` header to be viewed in the dev tools of a
+browser.
 
 #### `ActionDispatch::SSL`
 
@@ -1158,7 +1262,9 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_controller.relative_url_root`
 
-Can be used to tell Rails that you are [deploying to a subdirectory](configuring.html#deploy-to-a-subdirectory-relative-url-root). The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
+Can be used to tell Rails that you are [deploying to a subdirectory](
+configuring.html#deploy-to-a-subdirectory-relative-url-root). The default is
+[`config.relative_url_root`](#config-relative-url-root).
 
 #### `config.action_controller.permit_all_parameters`
 
