@@ -11,6 +11,7 @@ module ActionController
   class Railtie < Rails::Railtie # :nodoc:
     config.action_controller = ActiveSupport::OrderedOptions.new
     config.action_controller.raise_on_open_redirects = false
+    config.action_controller.redirect_code_for_unsafe_http_methods = 302
     config.action_controller.log_query_tags_around_actions = true
     config.action_controller.wrap_parameters_by_default = false
 

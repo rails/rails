@@ -312,6 +312,7 @@ module Rails
 
           if respond_to?(:action_controller)
             action_controller.allow_deprecated_parameters_hash_equality = false
+            action_controller.redirect_code_for_unsafe_http_methods = 303
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"

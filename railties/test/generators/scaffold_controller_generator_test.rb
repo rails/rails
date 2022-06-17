@@ -44,7 +44,6 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :destroy, content do |m|
         assert_match(/@user\.destroy/, m)
         assert_match(/User was successfully destroyed/, m)
-        assert_match(/status: :see_other/, m)
       end
 
       assert_instance_method :set_user, content do |m|

@@ -29,6 +29,13 @@
 # as equal to an equivalent `Hash` by default.
 # Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality = false
 
+# Use HTTP 303 as the default response code when redirecting a request made with
+# an unsafe HTTP method, such as `POST` or `DELETE`.
+#
+# Note that using a 303 response code in a previously-deployed application could
+# break any non-browser HTTP clients that expect the old 302 response code.
+# Rails.application.config.action_controller.redirect_code_for_unsafe_http_methods = 303
+
 # No longer run after_commit callbacks on the first of multiple Active Record
 # instances to save changes to the same database row within a transaction.
 # Instead, run these callbacks on the instance most likely to have internal

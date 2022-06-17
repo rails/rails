@@ -1247,7 +1247,7 @@ class ArticlesController < ApplicationController
     @article = Article.find(params[:id])
     @article.destroy
 
-    redirect_to root_path, status: :see_other
+    redirect_to root_path
   end
 
   private
@@ -1259,8 +1259,7 @@ end
 
 The `destroy` action fetches the article from the database, and calls [`destroy`](
 https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-destroy)
-on it. Then, it redirects the browser to the root path with status code
-[303 See Other](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/303).
+on it. Then, it redirects the browser to the root path.
 
 We have chosen to redirect to the root path because that is our main access
 point for articles. But, in other circumstances, you might choose to redirect to
@@ -1981,7 +1980,7 @@ class CommentsController < ApplicationController
     @article = Article.find(params[:article_id])
     @comment = @article.comments.find(params[:id])
     @comment.destroy
-    redirect_to article_path(@article), status: :see_other
+    redirect_to article_path(@article)
   end
 
   private

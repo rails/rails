@@ -297,6 +297,39 @@ Option `config.action_mailer.preview_path` is deprecated in favor of `config.act
 config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
 ```
 
+### `redirect_code_for_unsafe_http_methods` setting
+
+[`config.action_controller.redirect_code_for_unsafe_http_methods`][] allows you
+to set the default HTTP response code that Rails will send when redirecting a
+request made with an [unsafe HTTP method](https://developer.mozilla.org/en-US/docs/Glossary/Safe/HTTP),
+such as `POST` or `DELETE`.
+
+Previously, the default HTTP response code was always `302`. With
+`config.load_defaults 7.1` (or higher), the default HTTP response code for
+unsafe HTTP methods is `303`.
+
+Note that using a `303` response code in a previously-deployed application
+**could break any non-browser HTTP clients that expect the old `302` response
+code.** If you need to continue supporting such clients, you can set
+`redirect_code_for_unsafe_http_methods` explicitly:
+
+```ruby
+# config/application.rb
+config.load_defaults 7.1
+config.action_controller.redirect_code_for_unsafe_http_methods = 302
+```
+
+Alternatively, you can set `redirect_code_for_unsafe_http_methods` on a
+per-controller basis:
+
+```ruby
+class PostsController < ApplicationController
+  self.redirect_code_for_unsafe_http_methods = 302
+end
+```
+
+[`config.action_controller.redirect_code_for_unsafe_http_methods`]: configuring.html#config-action-controller-redirect-code-for-unsafe-http-methods
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 
