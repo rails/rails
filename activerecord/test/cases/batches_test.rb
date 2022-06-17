@@ -15,7 +15,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_each_should_execute_one_query_per_batch
-    assert_queries(@total + 1) do
+    assert_queries(@total) do
       Post.find_each(batch_size: 1) do |post|
         assert_kind_of Post, post
       end
@@ -45,7 +45,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_each_enumerator_should_execute_one_query_per_batch
-    assert_queries(@total + 1) do
+    assert_queries(@total) do
       Post.find_each(batch_size: 1).with_index do |post, index|
         assert_kind_of Post, post
         assert_kind_of Integer, index
@@ -54,11 +54,12 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_each_should_raise_if_select_is_set_without_id
-    assert_raise(ArgumentError) do
+    error = assert_raise(ArgumentError) do
       Post.select(:title).find_each(batch_size: 1) { |post|
         flunk "should not call this block"
       }
     end
+    assert_equal "Primary key not included in the custom select clause", error.message
   end
 
   def test_each_should_execute_if_id_is_in_select
@@ -108,7 +109,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_return_batches
-    assert_queries(@total + 1) do
+    assert_queries(@total) do
       Post.find_in_batches(batch_size: 1) do |batch|
         assert_kind_of Array, batch
         assert_kind_of Post, batch.first
@@ -117,7 +118,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_start_from_the_start_option
-    assert_queries(@total) do
+    assert_queries(@total - 1) do
       Post.find_in_batches(batch_size: 1, start: 2) do |batch|
         assert_kind_of Array, batch
         assert_kind_of Post, batch.first
@@ -126,7 +127,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_end_at_the_finish_option
-    assert_queries(6) do
+    assert_queries(5) do
       Post.find_in_batches(batch_size: 1, finish: 5) do |batch|
         assert_kind_of Array, batch
         assert_kind_of Post, batch.first
@@ -135,7 +136,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_shouldnt_execute_query_unless_needed
-    assert_queries(2) do
+    assert_queries(1) do
       Post.find_in_batches(batch_size: @total) { |batch| assert_kind_of Array, batch }
     end
 
@@ -263,7 +264,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_use_any_column_as_primary_key_when_start_is_not_specified
-    assert_queries(Subscriber.count + 1) do
+    assert_queries(Subscriber.count) do
       Subscriber.find_in_batches(batch_size: 1) do |batch|
         assert_kind_of Array, batch
         assert_kind_of Subscriber, batch.first
@@ -410,7 +411,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_if_not_loaded_executes_more_queries
-    assert_queries(@total + 1) do
+    assert_queries(@total) do
       Post.in_batches(of: 1, load: false) do |relation|
         assert_not_predicate relation, :loaded?
       end
@@ -418,7 +419,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_return_relations
-    assert_queries(@total + 1) do
+    assert_queries(@total) do
       Post.in_batches(of: 1) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
       end
@@ -435,14 +436,14 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_should_end_at_the_finish_option
     post = Post.order("id DESC").where("id <= ?", 5).first
-    assert_queries(7) do
+    assert_queries(6) do
       relation = Post.in_batches(of: 1, finish: 5, load: true).reverse_each.first
       assert_equal post, relation.last
     end
   end
 
   def test_in_batches_shouldnt_execute_query_unless_needed
-    assert_queries(2) do
+    assert_queries(1) do
       Post.in_batches(of: @total) { |relation| assert_kind_of ActiveRecord::Relation, relation }
     end
 
@@ -527,7 +528,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_use_any_column_as_primary_key_when_start_is_not_specified
-    assert_queries(Subscriber.count + 1) do
+    assert_queries(Subscriber.count) do
       Subscriber.in_batches(of: 1, load: true) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
         assert_kind_of Subscriber, relation.first
