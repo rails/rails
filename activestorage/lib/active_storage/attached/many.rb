@@ -47,16 +47,9 @@ module ActiveStorage
     #   document.images.attach(io: File.open("/path/to/racecar.jpg"), filename: "racecar.jpg", content_type: "image/jpeg")
     #   document.images.attach([ first_blob, second_blob ])
     def attach(*attachables)
-      if record.persisted? && !record.changed?
-        record.public_send("#{name}=", blobs + attachables.flatten)
-        if record.save
-          record.public_send("#{name}")
-        else
-          false
-        end
-      else
-        record.public_send("#{name}=", (change&.attachables || blobs) + attachables.flatten)
-      end
+      record.public_send("#{name}=", blobs + attachables.flatten)
+      return false if record.persisted? && !record.changed? && !record.save
+      record.public_send("#{name}")
     end
 
     # Returns true if any attachments have been made.
