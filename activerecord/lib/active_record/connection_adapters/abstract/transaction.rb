@@ -439,8 +439,12 @@ module ActiveRecord
 
       def rollback_transaction(transaction = nil)
         @connection.lock.synchronize do
-          transaction ||= @stack.pop
-          transaction.rollback
+          transaction ||= @stack.last
+          begin
+            transaction.rollback
+          ensure
+            @stack.pop if @stack.last == transaction
+          end
           transaction.rollback_records
         end
       end
