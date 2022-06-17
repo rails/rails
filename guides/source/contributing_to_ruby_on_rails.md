@@ -198,7 +198,7 @@ If you have [Visual Studio Code](https://code.visualstudio.com) and [Docker](htt
 
 #### Using rails-dev-box
 
-It's also possible to use the [rails-dev-box](https://github.com/rails/rails-dev-box) to get a development environment ready. However, the rails-dev-box uses Vagrant and Virtual Box which will not work with the M1 processors.
+It's also possible to use the [rails-dev-box](https://github.com/rails/rails-dev-box) to get a development environment ready. However, the rails-dev-box uses Vagrant and Virtual Box which will not work on Macs with Apple silicon.
 
 #### Local Development
 
