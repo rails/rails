@@ -338,7 +338,9 @@ config.generators do |g|
 end
 ```
 
-If you generate another resource, you can see that we get exactly the same result! This is useful if you want to customize your scaffold templates and/or layout by just creating `edit.html.erb`, `index.html.erb` and so on inside `lib/templates/erb/scaffold`.
+Now, if you generate another resource, you will see a similar result!
+
+Another common use of custom templates is overriding the [default scaffold view templates](https://github.com/rails/rails/tree/main/railties/lib/rails/generators/erb/scaffold/templates). You can override any of these by creating the appropriate file (e.g. `index.html.erb`, `show.html.erb`, etc) in `lib/templates/erb/scaffold`.
 
 Scaffold templates in Rails frequently use ERB tags; these tags need to be
 escaped so that the generated output is valid ERB code.
