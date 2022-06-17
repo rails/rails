@@ -83,6 +83,10 @@ module ActionText
       fragment.to_html
     end
 
+    def to_node
+      fragment.to_node
+    end
+
     def to_rendered_html_with_layout
       render layout: "action_text/contents/content", partial: to_partial_path, formats: :html, locals: { content: self }
     end

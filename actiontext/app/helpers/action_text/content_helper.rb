@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rails-html-sanitizer"
+require "action_text/document"
 
 module ActionText
   module ContentHelper
@@ -15,7 +15,7 @@ module ActionText
     end
 
     def sanitize_action_text_content(content)
-      content = content.to_html unless sanitizer.try(:accepts_nodes?)
+      content = sanitizer.try(:accepts_nodes?) ? content.to_node : content.to_html
       sanitizer.sanitize(content, tags: allowed_tags, attributes: allowed_attributes, scrubber: scrubber).html_safe
     end
 

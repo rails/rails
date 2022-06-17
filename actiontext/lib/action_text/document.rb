@@ -15,3 +15,5 @@ module ActionText
     end
   end
 end
+
+ActiveSupport.run_load_hooks :action_text_document, ActionText::Document

@@ -53,6 +53,10 @@ module ActionText
       @html ||= ActionText::Document.node_to_html(source)
     end
 
+    def to_node
+      source
+    end
+
     def to_s
       to_html
     end
