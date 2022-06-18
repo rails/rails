@@ -100,7 +100,8 @@ The `MessageEncryptor` offers the ability to migrate the default serializer from
 If you would like to ignore this change in existing applications, set the following: `config.active_support.default_message_encryptor_serializer = :marshal`.
 
 In order to roll out the new default when upgrading from `7.0` to `7.1`, there are three configuration variables to keep in mind.
-```
+
+```ruby
 config.active_support.default_message_encryptor_serializer
 config.active_support.fallback_to_marshal_deserialization
 config.active_support.use_marshal_serialization
@@ -109,6 +110,7 @@ config.active_support.use_marshal_serialization
 `default_message_encryptor_serializer` defaults to `:json` as of `7.1` but it offers both a `:hybrid` and `:marshal` option.
 
 In order to migrate an older deployment to `:json`, first ensure that the `default_message_encryptor_serializer` is set to `:marshal`.
+
 ```ruby
 # config/application.rb
 config.load_defaults 7.0
@@ -137,6 +139,7 @@ config.active_support.use_marshal_serialization = false
 Allow this configuration to run on all processes for a considerable amount of time.
 `ActiveSupport::JsonWithMarshalFallback` logs the following each time the `Marshal` fallback
 is used:
+
 ```
 JsonWithMarshalFallback: Marshal load fallback occurred.
 ```
@@ -164,6 +167,7 @@ config.active_support.default_message_encryptor_serializer = :json
 ```
 
 Alternatively, you could load defaults for 7.1
+
 ```ruby
 # config/application.rb
 config.load_defaults 7.1
@@ -179,7 +183,8 @@ The `MessageVerifier` offers the ability to migrate the default serializer from 
 If you would like to ignore this change in existing applications, set the following: `config.active_support.default_message_verifier_serializer = :marshal`.
 
 In order to roll out the new default when upgrading from `7.0` to `7.1`, there are three configuration variables to keep in mind.
-```
+
+```ruby
 config.active_support.default_verifier_serializer
 config.active_support.fallback_to_marshal_deserialization
 config.active_support.use_marshal_serialization
@@ -188,6 +193,7 @@ config.active_support.use_marshal_serialization
 `default_message_verifier_serializer` defaults to `:json` as of `7.1` but it offers both a `:hybrid` and `:marshal` option.
 
 In order to migrate an older deployment to `:json`, first ensure that the `default_message_verifier_serializer` is set to `:marshal`.
+
 ```ruby
 # config/application.rb
 config.load_defaults 7.0
@@ -216,6 +222,7 @@ config.active_support.use_marshal_serialization = false
 Allow this configuration to run on all processes for a considerable amount of time.
 `ActiveSupport::JsonWithMarshalFallback` logs the following each time the `Marshal` fallback
 is used:
+
 ```
 JsonWithMarshalFallback: Marshal load fallback occurred.
 ```
@@ -243,6 +250,7 @@ config.active_support.default_message_verifier_serializer = :json
 ```
 
 Alternatively, you could load defaults for 7.1
+
 ```ruby
 # config/application.rb
 config.load_defaults 7.1
