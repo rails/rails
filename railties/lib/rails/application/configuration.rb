@@ -428,7 +428,7 @@ module Rails
 
       # Specifies what class to use to store the session. Possible values
       # are +:cache_store+, +:cookie_store+, +:mem_cache_store+, a custom
-      # store, or +:disabled+. +:disabled+ tells Rails not to deal with
+      # store, or +:disabled+. +:disabled+ tells \Rails not to deal with
       # sessions.
       #
       # Additional options will be set as +session_options+:
@@ -443,25 +443,14 @@ module Rails
       #   config.session_store :my_custom_store
       def session_store(new_session_store = nil, **options)
         if new_session_store
-          if new_session_store == :active_record_store
-            begin
-              ActionDispatch::Session::ActiveRecordStore
-            rescue NameError
-              raise "`ActiveRecord::SessionStore` is extracted out of Rails into a gem. " \
-                "Please add `activerecord-session_store` to your Gemfile to use it."
-            end
-          end
-
           @session_store = new_session_store
           @session_options = options || {}
         else
           case @session_store
           when :disabled
             nil
-          when :active_record_store
-            ActionDispatch::Session::ActiveRecordStore
           when Symbol
-            ActionDispatch::Session.const_get(@session_store.to_s.camelize)
+            ActionDispatch::Session.resolve_store(@session_store)
           else
             @session_store
           end
