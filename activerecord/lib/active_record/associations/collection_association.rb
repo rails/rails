@@ -85,7 +85,7 @@ module ActiveRecord
       def reset
         super
         @target = []
-        @replaced_or_added_targets = Set.new.compare_by_identity
+        @implicit_target_records = nil
         @association_ids = nil
       end
 
@@ -116,7 +116,7 @@ module ActiveRecord
         if attributes.is_a?(Array)
           attributes.collect { |attr| build(attr, &block) }
         else
-          add_to_target(build_record(attributes, &block), replace: true)
+          add_to_target(build_record(attributes, &block))
         end
       end
 
@@ -274,21 +274,19 @@ module ActiveRecord
         target
       end
 
-      def add_to_target(record, skip_callbacks: false, replace: false, &block)
-        replace_on_target(record, skip_callbacks, replace: replace || association_scope.distinct_value, &block)
+      def add_to_target(record, skip_callbacks: false, &block)
+        add_record(record, replace: association_scope.distinct_value, skip_callbacks: skip_callbacks, &block)
       end
 
-      def target=(record)
-        return super unless reflection.klass.has_many_inversing
+      def inversed_from(record)
+        # When removing a record from an inverse association, `inversed_from` is
+        # called with nil. But we need the record itself in order to remove it,
+        # so instead we ignore.
+        add_record(record, implicit: true, skip_callbacks: true) if record
+      end
 
-        case record
-        when nil
-          # It's not possible to remove the record from the inverse association.
-        when Array
-          super
-        else
-          replace_on_target(record, true, replace: true, inversing: true)
-        end
+      def inversed_from_queries(record)
+        inversed_from(record) if inversable?(record)
       end
 
       def scope
@@ -395,6 +393,7 @@ module ActiveRecord
 
           delete_records(existing_records, method) if existing_records.any?
           @target -= records
+          @implicit_target_records -= records if @implicit_target_records
           @association_ids = nil
 
           records.each { |record| callback(:after_remove, record) }
@@ -422,8 +421,7 @@ module ActiveRecord
         def replace_common_records_in_memory(new_target, original_target)
           common_records = intersection(new_target, original_target)
           common_records.each do |record|
-            skip_callbacks = true
-            replace_on_target(record, skip_callbacks, replace: true)
+            add_record(record, replace: true, skip_callbacks: true)
           end
         end
 
@@ -446,11 +444,7 @@ module ActiveRecord
           records
         end
 
-        def replace_on_target(record, skip_callbacks, replace:, inversing: false)
-          if replace && (!record.new_record? || @replaced_or_added_targets.include?(record))
-            index = @target.index(record)
-          end
-
+        def add_record(record, replace: false, implicit: false, skip_callbacks: false)
           catch(:abort) do
             callback(:before_add, record)
           end || return unless skip_callbacks
@@ -461,13 +455,10 @@ module ActiveRecord
 
           yield(record) if block_given?
 
-          if !index && @replaced_or_added_targets.include?(record)
-            index = @target.index(record)
-          end
+          was_implicit = @implicit_target_records&.delete(record)
+          (@implicit_target_records ||= []) << record if implicit
 
-          @replaced_or_added_targets << record if inversing || index || record.new_record?
-
-          if index
+          if (replace || was_implicit) && index = target.index(record)
             target[index] = record
           elsif @_was_loaded || !loaded?
             @association_ids = nil
