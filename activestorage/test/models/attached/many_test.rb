@@ -846,19 +846,33 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
-  test "attaching blobs to a record returns the attachments" do
+  test "attaching blobs to a persisted, unchanged, and valid record, returns the attachments" do
     @user.highlights.attach create_blob(filename: "racecar.jpg")
-    highlights = @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
-    assert_instance_of ActiveStorage::Attached::Many, highlights
-    assert_equal 3, @user.highlights.count
-    assert_equal 3, highlights.count
-    assert_equal highlights.name.to_s, @user.highlights.name.to_s
-    assert_equal highlights.first.key.to_s, @user.highlights.first.key.to_s
-    assert_equal highlights.first.filename.to_s, @user.highlights.first.filename.to_s
-    assert_equal highlights.second.key.to_s, @user.highlights.second.key.to_s
-    assert_equal highlights.second.filename.to_s, @user.highlights.second.filename.to_s
-    assert_equal highlights.third.key.to_s, @user.highlights.third.key.to_s
-    assert_equal highlights.third.filename.to_s, @user.highlights.third.filename.to_s
+    return_value = @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+    assert_equal @user.highlights, return_value
+  end
+
+  test "attaching blobs to a persisted, unchanged, and invalid record, returns nil" do
+    @user.update_attribute(:name, nil)
+    assert_not @user.valid?
+
+    @user.highlights.attach create_blob(filename: "racecar.jpg")
+    return_value = @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+    assert_nil return_value
+  end
+
+  test "attaching blobs to a changed record, returns the attachments" do
+    @user.name = "Tina"
+    @user.highlights.attach create_blob(filename: "racecar.jpg")
+    return_value = @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+    assert_equal @user.highlights, return_value
+  end
+
+  test "attaching blobs to a non persisted record, returns the attachments" do
+    user = User.new(name: "John")
+    user.highlights.attach create_blob(filename: "racecar.jpg")
+    return_value = user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+    assert_equal user.highlights, return_value
   end
 
   test "raises error when global service configuration is missing" do

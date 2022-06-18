@@ -54,16 +54,11 @@ module ActiveStorage
     #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpeg")
     #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
     def attach(attachable)
+      record.public_send("#{name}=", attachable)
       if record.persisted? && !record.changed?
-        record.public_send("#{name}=", attachable)
-        if record.save
-          record.public_send("#{name}")
-        else
-          false
-        end
-      else
-        record.public_send("#{name}=", attachable)
+        return if !record.save
       end
+      record.public_send("#{name}")
     end
 
     # Returns +true+ if an attachment has been made.
