@@ -436,13 +436,12 @@ It's also possible to use these options together: `backtrace [num] /pattern/`.
 
 #### The outline command
 
-This command is similar to `pry` and `irb`'s `ls` command. It will show you what's accessible from you current scope, including:
+This command is similar to `pry` and `irb`'s `ls` command. It will show you what's accessible from the current scope, including:
 
 - Local variables
 - Instance variables
 - Class variables
 - Methods & their sources
-- ...etc.
 
 ```rb
 ActiveSupport::Configurable#methods: config
@@ -472,7 +471,7 @@ class variables: @@raise_on_missing_translations  @@raise_on_open_redirects
 
 ### Breakpoints
 
-There are many ways to insert and trigger a breakpoint in the debugger. In additional to adding debugging statements (e.g. `debugger`) directly in your code, you can also insert breakpoints with commands:
+There are many ways to insert and trigger a breakpoint in the debugger. In addition to adding debugging statements (e.g. `debugger`) directly in your code, you can also insert breakpoints with commands:
 
 - `break` (or `b`)
   - `break` - list all breakpoints
@@ -491,7 +490,7 @@ And to remove them, you can use:
 
 #### The break command
 
-**Set a breakpoint with specified line number - e.g. `b 28`**
+**Set a breakpoint on a specified line number - e.g. `b 28`**
 
 ```rb
 [20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
@@ -787,9 +786,7 @@ See [ruby/debug#408](https://github.com/ruby/debug/issues/408) for details.
 Debugging with the `web-console` gem
 ------------------------------------
 
-Web Console is a bit like `debug`, but it runs in the browser. In any page you
-are developing, you can request a console in the context of a view or a
-controller. The console would be rendered next to your HTML content.
+Web Console is a bit like `debug`, but it runs in the browser. You can request a console in the context of a view or a controller on any page. The console would be rendered next to your HTML content.
 
 ### Console
 
