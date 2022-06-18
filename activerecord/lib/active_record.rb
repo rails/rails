@@ -77,6 +77,7 @@ module ActiveRecord
   autoload :TestDatabases
   autoload :TestFixtures, "active_record/fixtures"
   autoload :Timestamp
+  autoload :TokenFor
   autoload :TouchLater
   autoload :Transactions
   autoload :Translation
