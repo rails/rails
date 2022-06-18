@@ -21,6 +21,10 @@ module ActionDispatch
         def write_session(env, sid, session, options)
           @sessions[sid] = session
         end
+
+        def session_exists?(req)
+          true
+        end
       end
 
       def test_session_is_set
@@ -46,6 +50,17 @@ module ActionDispatch
 
         assert_not_equal session, session1
         assert_equal session.to_hash, session1.to_hash
+      end
+
+      def test_update_raises_an_exception_if_arg_not_hashable
+        env = {}
+        as = MemoryStore.new app
+        as.call(env)
+        session = Request::Session.find ActionDispatch::Request.new env
+
+        assert_raise TypeError do
+          session.update("Not hashable")
+        end
       end
 
       private

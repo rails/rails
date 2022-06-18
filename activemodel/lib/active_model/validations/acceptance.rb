@@ -90,7 +90,7 @@ module ActiveModel
       #
       # If the database column does not exist, the +terms_of_service+ attribute
       # is entirely virtual. This check is performed only if +terms_of_service+
-      # is not +nil+ and by default on save.
+      # is not +nil+.
       #
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "must be
@@ -104,7 +104,7 @@ module ActiveModel
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.
-      # See <tt>ActiveModel::Validations#validates</tt> for more information.
+      # See ActiveModel::Validations::ClassMethods#validates for more information.
       def validates_acceptance_of(*attr_names)
         validates_with AcceptanceValidator, _merge_attributes(attr_names)
       end

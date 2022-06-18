@@ -18,7 +18,7 @@ class CoreTest < ActiveRecord::TestCase
 
   def test_inspect_instance
     topic = topics(:first)
-    assert_equal %(#<Topic id: 1, title: "The First Topic", author_name: "David", author_email_address: "david@loudthinking.com", written_on: "#{topic.written_on.to_s(:inspect)}", bonus_time: "#{topic.bonus_time.to_s(:inspect)}", last_read: "#{topic.last_read.to_s(:inspect)}", content: "Have a nice day", important: nil, approved: false, replies_count: 1, unique_replies_count: 0, parent_id: nil, parent_title: nil, type: nil, group: nil, created_at: "#{topic.created_at.to_s(:inspect)}", updated_at: "#{topic.updated_at.to_s(:inspect)}">), topic.inspect
+    assert_equal %(#<Topic id: 1, title: "The First Topic", author_name: "David", author_email_address: "david@loudthinking.com", written_on: "#{topic.written_on.to_fs(:inspect)}", bonus_time: "#{topic.bonus_time.to_fs(:inspect)}", last_read: "#{topic.last_read.to_fs(:inspect)}", content: "Have a nice day", important: nil, approved: false, replies_count: 1, unique_replies_count: 0, parent_id: nil, parent_title: nil, type: nil, group: nil, created_at: "#{topic.created_at.to_fs(:inspect)}", updated_at: "#{topic.updated_at.to_fs(:inspect)}">), topic.inspect
   end
 
   def test_inspect_instance_with_lambda_date_formatter
@@ -48,6 +48,11 @@ class CoreTest < ActiveRecord::TestCase
 
   def test_inspect_class_without_table
     assert_equal "NonExistentTable(Table doesn't exist)", NonExistentTable.inspect
+  end
+
+  def test_inspect_relation_with_virtual_field
+    relation = Topic.limit(1).select("1 as virtual_field")
+    assert_match(/virtual_field: 1/, relation.inspect)
   end
 
   def test_pretty_print_new
@@ -132,5 +137,18 @@ class CoreTest < ActiveRecord::TestCase
     actual = +""
     PP.pp(topic, StringIO.new(actual))
     assert_match(/id: 1/, actual)
+  end
+
+  def test_find_by_cache_does_not_duplicate_entries
+    Topic.initialize_find_by_cache
+    using_prepared_statements = Topic.connection.prepared_statements
+    topic_find_by_cache = Topic.instance_variable_get("@find_by_statement_cache")[using_prepared_statements]
+
+    assert_difference -> { topic_find_by_cache.size }, +1 do
+      Topic.find(1)
+    end
+    assert_no_difference -> { topic_find_by_cache.size } do
+      Topic.find_by(id: 1)
+    end
   end
 end

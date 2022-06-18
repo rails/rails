@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/per_thread_registry"
+require "active_support/core_ext/module/delegation"
 
 module ActiveRecord
   module Scoping
@@ -57,8 +57,8 @@ module ActiveRecord
     end
 
     # This class stores the +:current_scope+ and +:ignore_default_scope+ values
-    # for different classes. The registry is stored as a thread local, which is
-    # accessed through +ScopeRegistry.current+.
+    # for different classes. The registry is stored as either a thread or fiber
+    # local depending on the application configuration.
     #
     # This class allows you to store and get the scope values on different
     # classes and different types of scopes. For example, if you are attempting
@@ -66,22 +66,22 @@ module ActiveRecord
     # following code:
     #
     #   registry = ActiveRecord::Scoping::ScopeRegistry
-    #   registry.set_value_for(:current_scope, Board, some_new_scope)
+    #   registry.set_current_scope(Board, some_new_scope)
     #
     # Now when you run:
     #
-    #   registry.value_for(:current_scope, Board)
+    #   registry.current_scope(Board)
     #
-    # You will obtain whatever was defined in +some_new_scope+. The #value_for
-    # and #set_value_for methods are delegated to the current ScopeRegistry
-    # object, so the above example code can also be called as:
-    #
-    #   ActiveRecord::Scoping::ScopeRegistry.set_value_for(:current_scope,
-    #       Board, some_new_scope)
+    # You will obtain whatever was defined in +some_new_scope+.
     class ScopeRegistry # :nodoc:
-      extend ActiveSupport::PerThreadRegistry
+      class << self
+        delegate :current_scope, :set_current_scope, :ignore_default_scope, :set_ignore_default_scope,
+          :global_current_scope, :set_global_current_scope, to: :instance
 
-      VALID_SCOPE_TYPES = [:current_scope, :ignore_default_scope, :global_current_scope]
+        def instance
+          ActiveSupport::IsolatedExecutionState[:active_record_scope_registry] ||= new
+        end
+      end
 
       def initialize
         @current_scope        = {}
@@ -89,16 +89,28 @@ module ActiveRecord
         @global_current_scope = {}
       end
 
-      VALID_SCOPE_TYPES.each do |type|
-        class_eval <<-eorb, __FILE__, __LINE__
-        def #{type}(model, skip_inherited_scope = false)
-          value_for(@#{type}, model, skip_inherited_scope)
-        end
+      def current_scope(model, skip_inherited_scope = false)
+        value_for(@current_scope, model, skip_inherited_scope)
+      end
 
-        def set_#{type}(model, value)
-          set_value_for(@#{type}, model, value)
-        end
-        eorb
+      def set_current_scope(model, value)
+        set_value_for(@current_scope, model, value)
+      end
+
+      def ignore_default_scope(model, skip_inherited_scope = false)
+        value_for(@ignore_default_scope, model, skip_inherited_scope)
+      end
+
+      def set_ignore_default_scope(model, value)
+        set_value_for(@ignore_default_scope, model, value)
+      end
+
+      def global_current_scope(model, skip_inherited_scope = false)
+        value_for(@global_current_scope, model, skip_inherited_scope)
+      end
+
+      def set_global_current_scope(model, value)
+        set_value_for(@global_current_scope, model, value)
       end
 
       private

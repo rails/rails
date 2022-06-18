@@ -46,6 +46,6 @@ module Rails::Command::CredentialsCommand::Diffing # :nodoc:
     end
 
     def gitattributes
-      Rails.root.join(".gitattributes")
+      @gitattributes ||= (Rails::Command.root || Pathname.pwd).join(".gitattributes")
     end
 end

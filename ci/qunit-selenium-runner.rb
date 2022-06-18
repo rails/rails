@@ -4,14 +4,16 @@ require "webdrivers"
 require_relative "test_run"
 
 driver = if ARGV[1]
-  ::Selenium::WebDriver.for(:remote, url: ARGV[1], desired_capabilities: :chrome)
+  capability = ::Selenium::WebDriver::Remote::Capabilities.chrome
+
+  ::Selenium::WebDriver.for(:remote, url: ARGV[1], capabilities: [capability])
 else
   driver_options = Selenium::WebDriver::Chrome::Options.new
   driver_options.add_argument("--headless")
   driver_options.add_argument("--disable-gpu")
   driver_options.add_argument("--no-sandbox")
 
-  ::Selenium::WebDriver.for(:chrome, options: driver_options)
+  ::Selenium::WebDriver.for(:chrome, capabilities: [driver_options])
 end
 
 driver.get(ARGV[0])

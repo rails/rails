@@ -38,8 +38,12 @@ module ActiveRecord
             {}
           end
 
+          def escape(query)
+            PG::Connection.escape(query)
+          end
+
           def reset
-            raise PG::ConnectionBad
+            raise PG::ConnectionBad, "I'll be rescued by the reconnect method"
           end
 
           def close
@@ -53,8 +57,13 @@ module ActiveRecord
           { host: File::NULL }
         )
 
-        assert_raises ActiveRecord::ConnectionNotEstablished do
-          @conn.reconnect!
+        connect_raises_error = proc { |**_conn_params| raise(PG::ConnectionBad, "actual bad connection error") }
+        PG.stub(:connect, connect_raises_error) do
+          error = assert_raises ActiveRecord::ConnectionNotEstablished do
+            @conn.reconnect!
+          end
+
+          assert_equal("actual bad connection error", error.message)
         end
       end
 
@@ -310,6 +319,20 @@ module ActiveRecord
 
           @connection.remove_index "ex", "data"
           assert_not @connection.indexes("ex").find { |idx| idx.name == "index_ex_on_data" }
+        end
+      end
+
+      def test_invalid_index
+        with_example_table do
+          @connection.exec_query("INSERT INTO ex (number) VALUES (1), (1)")
+          error = assert_raises(ActiveRecord::RecordNotUnique) do
+            @connection.add_index(:ex, :number, unique: true, algorithm: :concurrently, name: :invalid_index)
+          end
+          assert_match(/could not create unique index/, error.message)
+
+          assert @connection.index_exists?(:ex, :number, name: :invalid_index)
+          assert_not @connection.index_exists?(:ex, :number, name: :invalid_index, valid: true)
+          assert @connection.index_exists?(:ex, :number, name: :invalid_index, valid: false)
         end
       end
 

@@ -180,7 +180,9 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     p1 = Person.find(1)
     assert_equal 0, p1.lock_version
 
+    sleep 1.0 unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
     p1.touch
+
     assert_equal 1, p1.lock_version
     assert_not_predicate p1, :changed?, "Changes should have been cleared"
     assert_predicate p1, :saved_changes?
@@ -297,6 +299,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, t1.lock_version
     assert_nil t1.lock_version_before_type_cast
 
+    sleep 1.0 unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
     t1.touch
 
     assert_equal 1, t1.lock_version
@@ -673,7 +676,7 @@ unless in_memory_db?
     end
 
     # Test typical find.
-    def test_sane_find_with_lock
+    def test_typical_find_with_lock
       assert_nothing_raised do
         Person.transaction do
           Person.lock.find(1)
@@ -703,9 +706,10 @@ unless in_memory_db?
     def test_lock_raises_when_the_record_is_dirty
       person = Person.find 1
       person.first_name = "fooman"
-      assert_raises(RuntimeError) do
+      error = assert_raises(RuntimeError) do
         person.lock!
       end
+      assert_match(/Changed attributes: "first_name"/, error.message)
     end
 
     def test_locking_in_after_save_callback

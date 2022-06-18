@@ -10,7 +10,7 @@ namespace :yarn do
     end
 
     yarn_flags =
-      if `#{RbConfig.ruby} "#{Rails.root}/bin/yarn" --version`.start_with?("1")
+      if `yarn --version`.start_with?("1")
         "--no-progress --frozen-lockfile"
       else
         "--immutable"
@@ -18,17 +18,12 @@ namespace :yarn do
 
     system(
       { "NODE_ENV" => node_env },
-      "#{RbConfig.ruby} \"#{Rails.root}/bin/yarn\" install #{yarn_flags}",
+      "yarn install #{yarn_flags}",
       exception: true
     )
   rescue Errno::ENOENT
-    $stderr.puts "bin/yarn was not found."
-    $stderr.puts "Please run `bundle exec rails app:update:bin` to create it."
+    $stderr.puts "yarn install failed to execute."
+    $stderr.puts "Ensure yarn is installed and `yarn --version` runs without errors."
     exit 1
   end
-end
-
-# Run Yarn prior to Sprockets assets precompilation, so dependencies are available for use.
-if Rake::Task.task_defined?("assets:precompile") && File.exist?(Rails.root.join("bin", "yarn"))
-  Rake::Task["assets:precompile"].enhance [ "yarn:install" ]
 end

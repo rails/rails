@@ -124,7 +124,7 @@
 </header>
 
 <% if @part && @part.mime_type %>
-  <iframe seamless name="messageBody" src="?<%= part_query(@part.mime_type) %>"></iframe>
+  <iframe name="messageBody" src="?<%= part_query(@part.mime_type) %>"></iframe>
 <% else %>
   <p>
     You are trying to preview an email that does not have any content.

@@ -241,13 +241,13 @@ module ActiveRecord
   # The generated ID for a given label is constant, so we can discover
   # any fixture's ID without loading anything, as long as we know the label.
   #
-  # == Label references for associations (belongs_to, has_one, has_many)
+  # == Label references for associations (+belongs_to+, +has_one+, +has_many+)
   #
   # Specifying foreign keys in fixtures can be very fragile, not to
   # mention difficult to read. Since Active Record can figure out the ID of
   # any fixture from its label, you can specify FK's by label instead of ID.
   #
-  # === belongs_to
+  # === +belongs_to+
   #
   # Let's break out some more monkeys and pirates.
   #
@@ -286,7 +286,7 @@ module ActiveRecord
   # a target *label* for the *association* (monkey: george) rather than
   # a target *id* for the *FK* (<tt>monkey_id: 1</tt>).
   #
-  # ==== Polymorphic belongs_to
+  # ==== Polymorphic +belongs_to+
   #
   # Supporting polymorphic relationships is a little bit more complicated, since
   # Active Record needs to know what type your association is pointing at. Something
@@ -311,7 +311,7 @@ module ActiveRecord
   #
   # Just provide the polymorphic target type and Active Record will take care of the rest.
   #
-  # === has_and_belongs_to_many or has_many :through
+  # === +has_and_belongs_to_many+ or <tt>has_many :through</tt>
   #
   # Time to give our monkey some fruit.
   #
@@ -407,7 +407,7 @@ module ActiveRecord
   # defaults:
   #
   #   DEFAULTS: &DEFAULTS
-  #     created_on: <%= 3.weeks.ago.to_s(:db) %>
+  #     created_on: <%= 3.weeks.ago.to_fs(:db) %>
   #
   #   first:
   #     name: Smurf
@@ -583,14 +583,6 @@ module ActiveRecord
         else
           Zlib.crc32(label.to_s) % MAX_ID
         end
-      end
-
-      def signed_global_id(fixture_set_name, label, column_type: :integer, **options)
-        identifier = identify(label, column_type)
-        model_name = default_fixture_model_name(fixture_set_name)
-        uri = URI::GID.build([GlobalID.app, model_name, identifier, {}])
-
-        SignedGlobalID.new(uri, **options)
       end
 
       # Superclass for the evaluation contexts used by ERB fixtures.

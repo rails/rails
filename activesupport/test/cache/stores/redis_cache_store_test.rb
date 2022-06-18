@@ -25,6 +25,23 @@ class SlowRedis < Redis
 end
 
 module ActiveSupport::Cache::RedisCacheStoreTests
+  REDIS_URL = ENV["REDIS_URL"] || "redis://localhost:6379/0"
+  REDIS_URLS = ENV["REDIS_URLS"]&.split(",") || %w[ redis://localhost:6379/0 redis://localhost:6379/1 ]
+
+  if ENV["CI"]
+    REDIS_UP = true
+  else
+    begin
+      redis = Redis.new(url: REDIS_URL)
+      redis.ping
+
+      REDIS_UP = true
+    rescue Redis::BaseConnectionError
+      $stderr.puts "Skipping redis tests. Start redis and try again."
+      REDIS_UP = false
+    end
+  end
+
   DRIVER = %w[ ruby hiredis ].include?(ENV["REDIS_DRIVER"]) ? ENV["REDIS_DRIVER"] : "hiredis"
 
   class LookupTest < ActiveSupport::TestCase
@@ -57,36 +74,43 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     test "singular URL uses Redis client" do
       assert_called_with Redis, :new, [
-        url: "redis://localhost:6379/0",
+        url: REDIS_URL,
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
         reconnect_attempts: 0, driver: DRIVER
       ] do
-        build url: "redis://localhost:6379/0"
+        build url: REDIS_URL
       end
     end
 
     test "one URL uses Redis client" do
       assert_called_with Redis, :new, [
-        url: "redis://localhost:6379/0",
+        url: REDIS_URL,
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
         reconnect_attempts: 0, driver: DRIVER
       ] do
-        build url: %w[ redis://localhost:6379/0 ]
+        build url: [ REDIS_URL ]
       end
     end
 
     test "multiple URLs uses Redis::Distributed client" do
-      assert_called_with Redis, :new, [
-        [ url: "redis://localhost:6379/0",
-          connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-          reconnect_attempts: 0, driver: DRIVER ],
-        [ url: "redis://localhost:6379/1",
-          connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-          reconnect_attempts: 0, driver: DRIVER ],
-      ], returns: Redis.new do
-        @cache = build url: %w[ redis://localhost:6379/0 redis://localhost:6379/1 ]
+      default_args = {
+        connect_timeout: 20,
+        read_timeout: 1,
+        write_timeout: 1,
+        reconnect_attempts: 0,
+        driver: DRIVER
+      }
+
+      mock = Minitest::Mock.new
+      mock.expect(:call, Redis.new, [{ url: REDIS_URLS.first }.merge(default_args)])
+      mock.expect(:call, Redis.new, [{ url: REDIS_URLS.last }.merge(default_args)])
+
+      Redis.stub(:new, mock) do
+        @cache = build url: REDIS_URLS
         assert_kind_of ::Redis::Distributed, @cache.redis
       end
+
+      assert_mock(mock)
     end
 
     test "block argument uses yielded client" do
@@ -102,14 +126,33 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_same @cache.redis, redis_instance
     end
 
+    test "fetch caches nil" do
+      cache = build
+      cache.write("foo", nil)
+      assert_not_called(cache, :write) do
+        assert_nil cache.fetch("foo") { "baz" }
+      end
+    end
+
+    test "skip_nil is passed to ActiveSupport::Cache" do
+      cache = build(skip_nil: true)
+      cache.clear
+      assert_not_called(cache, :write) do
+        assert_nil cache.fetch("foo") { nil }
+        assert_equal false, cache.exist?("foo")
+      end
+    end
+
     private
       def build(**kwargs)
-        ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs).tap(&:redis)
+        ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs.merge(pool: false)).tap(&:redis)
       end
   end
 
   class StoreTest < ActiveSupport::TestCase
     setup do
+      @cache = nil
+      skip "redis server is not up" unless REDIS_UP
       @namespace = "test-#{SecureRandom.hex}"
 
       @cache = lookup_store(expires_in: 60)
@@ -120,7 +163,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
 
     def lookup_store(options = {})
-      ActiveSupport::Cache.lookup_store(:redis_cache_store, { timeout: 0.1, namespace: @namespace, driver: DRIVER }.merge(options))
+      ActiveSupport::Cache.lookup_store(:redis_cache_store, { timeout: 0.1, namespace: @namespace, driver: DRIVER, pool: false }.merge(options))
     end
 
     teardown do
@@ -158,6 +201,11 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_not_called(@cache.redis, :mget) do
         @cache.fetch_multi() { }
       end
+    end
+
+    def test_write_expires_at
+      @cache.write "key_with_expires_at", "bar", expires_at: 30.minutes.from_now
+      assert @cache.redis.ttl("#{@namespace}:key_with_expires_at") > 0
     end
 
     def test_increment_expires_in
@@ -222,8 +270,10 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       @old_store = lookup_store
       ActiveSupport::Cache.format_version = previous_format
 
-      @old_store.write("foo", "bar")
-      assert_equal "bar", @cache.read("foo")
+      key = SecureRandom.uuid
+      value = SecureRandom.alphanumeric
+      @old_store.write(key, value)
+      assert_equal value, @cache.read(key)
     end
 
     def test_backward_compatibility
@@ -232,8 +282,10 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       @old_store = lookup_store
       ActiveSupport::Cache.format_version = previous_format
 
-      @cache.write("foo", "bar")
-      assert_equal "bar", @old_store.read("foo")
+      key = SecureRandom.uuid
+      value = SecureRandom.alphanumeric
+      @cache.write(key, value)
+      assert_equal value, @old_store.read(key)
     end
 
     def after_teardown
@@ -242,8 +294,26 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
   end
 
-  class ConnectionPoolBehaviourTest < StoreTest
+  class ConnectionPoolBehaviorTest < StoreTest
     include ConnectionPoolBehavior
+
+    def test_deprecated_connection_pool_works
+      assert_deprecated do
+        cache = ActiveSupport::Cache.lookup_store(:redis_cache_store, pool_size: 2, pool_timeout: 1)
+        pool = cache.redis # loads 'connection_pool' gem
+        assert_kind_of ::ConnectionPool, pool
+        assert_equal 2, pool.size
+        assert_equal 1, pool.instance_variable_get(:@timeout)
+      end
+    end
+
+    def test_connection_pooling_by_default
+      cache = ActiveSupport::Cache.lookup_store(:redis_cache_store)
+      pool = cache.redis
+      assert_kind_of ::ConnectionPool, pool
+      assert_equal 5, pool.size
+      assert_equal 5, pool.instance_variable_get(:@timeout)
+    end
 
     private
       def store
@@ -261,10 +331,10 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
   end
 
-  class RedisDistributedConnectionPoolBehaviourTest < ConnectionPoolBehaviourTest
+  class RedisDistributedConnectionPoolBehaviorTest < ConnectionPoolBehaviorTest
     private
       def store_options
-        { url: [ENV["REDIS_URL"] || "redis://localhost:6379/0"] * 2 }
+        { url: REDIS_URLS }
       end
   end
 
@@ -347,11 +417,15 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
   class DeleteMatchedTest < StoreTest
     test "deletes keys matching glob" do
-      @cache.write("foo", "bar")
-      @cache.write("fu", "baz")
-      @cache.delete_matched("foo*")
-      assert_not @cache.exist?("foo")
-      assert @cache.exist?("fu")
+      prefix = SecureRandom.alphanumeric
+      key = "#{prefix}#{SecureRandom.uuid}"
+      @cache.write(key, "bar")
+
+      other_key = SecureRandom.uuid
+      @cache.write(other_key, SecureRandom.alphanumeric)
+      @cache.delete_matched("#{prefix}*")
+      assert_not @cache.exist?(key)
+      assert @cache.exist?(other_key)
     end
 
     test "fails with regexp matchers" do
@@ -363,24 +437,31 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
   class ClearTest < StoreTest
     test "clear all cache key" do
-      @cache.write("foo", "bar")
-      @cache.write("fu", "baz")
+      key = SecureRandom.uuid
+      other_key = SecureRandom.uuid
+      @cache.write(key, SecureRandom.uuid)
+      @cache.write(other_key, SecureRandom.uuid)
       @cache.clear
-      assert_not @cache.exist?("foo")
-      assert_not @cache.exist?("fu")
+      assert_not @cache.exist?(key)
+      assert_not @cache.exist?(other_key)
     end
 
     test "only clear namespace cache key" do
-      @cache.write("foo", "bar")
-      @cache.redis.set("fu", "baz")
+      key = SecureRandom.uuid
+      other_key = SecureRandom.uuid
+
+      @cache.write(key, SecureRandom.alphanumeric)
+      @cache.redis.set(other_key, SecureRandom.alphanumeric)
       @cache.clear
-      assert_not @cache.exist?("foo")
-      assert @cache.redis.exists?("fu")
+
+      assert_not @cache.exist?(key)
+      assert @cache.redis.exists?(other_key)
+      @cache.redis.del(other_key)
     end
 
     test "clear all cache key with Redis::Distributed" do
       cache = ActiveSupport::Cache::RedisCacheStore.new(
-        url: %w[redis://localhost:6379/0, redis://localhost:6379/1],
+        url: REDIS_URLS,
         timeout: 0.1, namespace: @namespace, expires_in: 60, driver: DRIVER)
       cache.write("foo", "bar")
       cache.write("fu", "baz")

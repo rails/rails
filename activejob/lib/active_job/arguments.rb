@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "bigdecimal"
 require "active_support/core_ext/hash"
 
 module ActiveJob
@@ -17,7 +18,7 @@ module ActiveJob
   # currently support String, Integer, Float, NilClass, TrueClass, FalseClass,
   # BigDecimal, Symbol, Date, Time, DateTime, ActiveSupport::TimeWithZone,
   # ActiveSupport::Duration, Hash, ActiveSupport::HashWithIndifferentAccess,
-  # Array, Range or GlobalID::Identification instances, although this can be
+  # Array, Range, or GlobalID::Identification instances, although this can be
   # extended by adding custom serializers.
   # Raised if you set the key for a Hash something else than a string or
   # a symbol. Also raised when trying to serialize an object which can't be
@@ -68,28 +69,6 @@ module ActiveJob
       ]
       private_constant :PERMITTED_TYPES, :RESERVED_KEYS, :GLOBALID_KEY,
         :SYMBOL_KEYS_KEY, :RUBY2_KEYWORDS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
-
-      unless Hash.respond_to?(:ruby2_keywords_hash?) && Hash.respond_to?(:ruby2_keywords_hash)
-        using Module.new {
-          refine Hash do
-            class << Hash
-              def ruby2_keywords_hash?(hash)
-                !new(*[hash]).default.equal?(hash)
-              end
-
-              def ruby2_keywords_hash(hash)
-                _ruby2_keywords_hash(**hash)
-              end
-
-              private
-                def _ruby2_keywords_hash(*args)
-                  args.last
-                end
-                ruby2_keywords(:_ruby2_keywords_hash)
-            end
-          end
-        }
-      end
 
       def serialize_argument(argument)
         case argument

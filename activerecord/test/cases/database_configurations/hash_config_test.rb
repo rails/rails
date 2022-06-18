@@ -105,12 +105,12 @@ module ActiveRecord
 
       def test_default_schema_dump_value
         config = HashConfig.new("default_env", "primary", {})
-        assert_equal true, config.schema_dump
+        assert_equal "schema.rb", config.schema_dump
       end
 
-      def test_schema_dump_value_set_to_true
-        config = HashConfig.new("default_env", "primary", { schema_dump: true })
-        assert_equal true, config.schema_dump
+      def test_schema_dump_value_set_to_filename
+        config = HashConfig.new("default_env", "primary", { schema_dump: "my_schema.rb" })
+        assert_equal "my_schema.rb", config.schema_dump
       end
 
       def test_schema_dump_value_set_to_nil
@@ -120,7 +120,7 @@ module ActiveRecord
 
       def test_schema_dump_value_set_to_false
         config = HashConfig.new("default_env", "primary", { schema_dump: false })
-        assert_equal false, config.schema_dump
+        assert_nil config.schema_dump
       end
 
       def test_database_tasks_defaults_to_true
@@ -134,6 +134,16 @@ module ActiveRecord
 
         config = HashConfig.new("default_env", "primary", database_tasks: "str")
         assert_equal true, config.database_tasks?
+      end
+
+      def test_schema_cache_path_default_for_primary
+        config = HashConfig.new("default_env", "primary", {})
+        assert_equal "db/schema_cache.yml", config.default_schema_cache_path
+      end
+
+      def test_schema_cache_path_configuration_hash
+        config = HashConfig.new("default_env", "primary", { schema_cache_path: "db/config_schema_cache.yml" })
+        assert_equal "db/config_schema_cache.yml", config.schema_cache_path
       end
     end
   end

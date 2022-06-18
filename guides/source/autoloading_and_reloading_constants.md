@@ -56,11 +56,7 @@ In a Rails application file names have to match the constants they define, with 
 
 For example, the file `app/helpers/users_helper.rb` should define `UsersHelper` and the file `app/controllers/admin/payments_controller.rb` should define `Admin::PaymentsController`.
 
-By default, Rails configures Zeitwerk to inflect file names with `String#camelize`. For example, it expects that `app/controllers/users_controller.rb` defines the constant `UsersController` because
-
-```ruby
-"users_controller".camelize # => UsersController
-```
+By default, Rails configures Zeitwerk to inflect file names with `String#camelize`. For example, it expects that `app/controllers/users_controller.rb` defines the constant `UsersController` because that is what `"users_controller".camelize` returns.
 
 The section _Customizing Inflections_ below documents ways to override this default.
 
@@ -100,14 +96,14 @@ Also, engines can push in body of the engine class and in their own `config/envi
 
 WARNING. Please do not mutate `ActiveSupport::Dependencies.autoload_paths`; the public interface to change autoload paths is `config.autoload_paths`.
 
-WARNING: You cannot autoload code in the autoload paths while the application boots. It particular, directly in `config/initializers/*.rb`. Please check [_Autoloading when the application boots_](#autoloading-when-the-application-boots) down below for valid ways to do that.
+WARNING: You cannot autoload code in the autoload paths while the application boots. In particular, directly in `config/initializers/*.rb`. Please check [_Autoloading when the application boots_](#autoloading-when-the-application-boots) down below for valid ways to do that.
 
 The autoload paths are managed by the `Rails.autoloaders.main` autoloader.
 
 config.autoload_once_paths
 --------------------------
 
-You may want to be able to autoload classes and modules without reloading them. The autoload once paths store code that can be autoloaded, but won't be reloaded.
+You may want to be able to autoload classes and modules without reloading them. The `autoload_once_paths` configuration stores code that can be autoloaded, but won't be reloaded.
 
 By default, this collection is empty, but you can extend it pushing to `config.autoload_once_paths`. You can do so in `config/application.rb` or `config/environments/*.rb`. For example:
 
@@ -136,7 +132,7 @@ and Active Job itself is not reloaded when there's a reload, only application an
 
 Making `MoneySerializer` reloadable would be confusing, because reloading an edited version would have no effect on that class object stored in Active Job. Indeed, if `MoneySerializer` was reloadable, starting with Rails 7 such initializer would raise a `NameError`.
 
-Another use case are engines decorating framework classes:
+Another use case is when engines decorate framework classes:
 
 ```ruby
 initializer "decorate ActionController::Base" do
@@ -168,7 +164,7 @@ Autoload paths are added to `$LOAD_PATH` by default. However, Zeitwerk uses abso
 config.add_autoload_paths_to_load_path = false
 ```
 
-That may speed up legitimate `require` calls a bit since there are fewer lookups. Also, if your application uses [Bootsnap](https://github.com/Shopify/bootsnap), that saves the library from building unnecessary indexes, and saves the RAM they would need.
+That may speed up legitimate `require` calls a bit since there are fewer lookups. Also, if your application uses [Bootsnap](https://github.com/Shopify/bootsnap), that saves the library from building unnecessary indexes, leading to lower memory usage.
 
 
 Reloading
@@ -178,11 +174,11 @@ Rails automatically reloads classes and modules if application files in the auto
 
 More precisely, if the web server is running and application files have been modified, Rails unloads all autoloaded constants managed by the `main` autoloader just before the next request is processed. That way, application classes or modules used during that request will be autoloaded again, thus picking up their current implementation in the file system.
 
-Reloading can be enabled or disabled. The setting that controls this behavior is `config.cache_classes`, which is false by default in `development` mode (reloading enabled), and true by default in `production` mode (reloading disabled).
+Reloading can be enabled or disabled. The setting that controls this behavior is [`config.enable_reloading`][], which is `true` by default in `development` mode, and `false` by default in `production` mode. For backwards compatibility, Rails also supports `config.cache_classes`, which is equivalent to `!config.enable_reloading`.
 
-Rails uses an evented file monitor to detect files changes by default.  It can be configured instead to detect file changes by walking the autoload paths. This is controlled by the `config.file_watcher` setting.
+Rails uses an evented file monitor to detect files changes by default.  It can be configured instead to detect file changes by walking the autoload paths. This is controlled by the [`config.file_watcher`][] setting.
 
-In a Rails console there is no file watcher active regardless of the value of `config.cache_classes`. This is because, normally, it would be confusing to have code reloaded in the middle of a console session. Similar to an individual request, you generally want a console session to be served by a consistent, non-changing set of application classes and modules.
+In a Rails console there is no file watcher active regardless of the value of `config.enable_reloading`. This is because, normally, it would be confusing to have code reloaded in the middle of a console session. Similar to an individual request, you generally want a console session to be served by a consistent, non-changing set of application classes and modules.
 
 However, you can force a reload in the console by executing `reload!`:
 
@@ -197,6 +193,9 @@ irb(main):003:0> User.object_id
 ```
 
 As you can see, the class object stored in the `User` constant is different after reloading.
+
+[`config.enable_reloading`]: configuring.html#config-enable-reloading
+[`config.file_watcher`]: configuring.html#config-file-watcher
 
 ### Reloading and Stale Objects
 
@@ -226,7 +225,7 @@ if `User` is reloaded, since `VipUser` is not, the superclass of `VipUser` is th
 
 Bottom line: **do not cache reloadable classes or modules**.
 
-## Autoloading when the application boots
+## Autoloading When the Application Boots
 
 While booting, applications can autoload from the autoload once paths, which are managed by the `once` autoloader. Please check the section [`config.autoload_once_paths`](#config-autoload-once-paths) above.
 
@@ -235,6 +234,8 @@ However, you cannot autoload from the autoload paths, which are managed by the `
 Why? Initializers only run once, when the application boots. If you reboot the server, they run again in a new process, but reloading does not reboot the server, and initializers don't run again. Let's see the two main use cases.
 
 ### Use case 1: During boot, load reloadable code
+
+#### Autoload on boot and on each reload
 
 Let's imagine `ApiGateway` is a reloadable class from `app/services` managed by the `main` autoloader and you need to configure its endpoint while the application boots:
 
@@ -245,7 +246,7 @@ ApiGateway.endpoint = "https://example.com" # DO NOT DO THIS
 
 a reloaded `ApiGateway` would have a `nil` endpoint, because the code above does not run again.
 
-You can still set things up during boot, but you need to wrap them in a `to_prepare` block, which is runs on boot, and after each reload:
+You can still set things up during boot, but you need to wrap them in a `to_prepare` block, which runs on boot, and after each reload:
 
 ```ruby
 # config/initializers/api_gateway_setup.rb
@@ -255,6 +256,21 @@ end
 ```
 
 NOTE: For historical reasons, this callback may run twice. The code it executes must be idempotent.
+
+#### Autoload on boot only
+
+Reloadable classes and modules can be autoloaded in `after_initialize` blocks too. These run on boot, but do not run again on reload. In some exceptional cases this may be what you want.
+
+Preflight checks are a use case for this:
+
+```ruby
+# config/initializers/check_admin_presence.rb
+Rails.application.config.after_initialize do
+  unless Role.where(name: "admin").exists?
+    abort "The admin role is not present, please seed the database."
+  end
+end
+```
 
 ### Use case 2: During boot, load code that remains cached
 
@@ -300,58 +316,86 @@ Eager Loading
 
 In production-like environments it is generally better to load all the application code when the application boots. Eager loading puts everything in memory ready to serve requests right away, and it is also [CoW](https://en.wikipedia.org/wiki/Copy-on-write)-friendly.
 
-Eager loading is controlled by the flag `config.eager_load`, which is enabled by default in `production` mode.
+Eager loading is controlled by the flag [`config.eager_load`][], which is enabled by default in `production` mode.
 
 The order in which files are eager-loaded is undefined.
 
-If the `Zeitwerk` constant is defined, Rails invokes `Zeitwerk::Loader.eager_load_all` regardless of the application autoloading mode. That ensures dependencies managed by Zeitwerk are eager-loaded.
+During eager loading, Rails invokes `Zeitwerk::Loader.eager_load_all`. That ensures all gem dependencies managed by Zeitwerk are eager-loaded too.
 
+[`config.eager_load`]: configuring.html#config-eager-load
 
 Single Table Inheritance
 ------------------------
 
-Single Table Inheritance is a feature that doesn't play well with lazy loading. The reason is: its API generally needs to be able to enumerate the STI hierarchy to work correctly, whereas lazy loading defers loading classes until they are referenced. You can't enumerate what you haven't referenced yet.
+Single Table Inheritance is a feature that doesn't play well with lazy loading. The reason is that its API generally needs to be able to enumerate the STI hierarchy to work correctly, whereas lazy loading defers loading classes until they are referenced. You can't enumerate what you haven't referenced yet.
 
 In a sense, applications need to eager load STI hierarchies regardless of the loading mode.
 
-Of course, if the application eager loads on boot, that is already accomplished. When it does not, there are two options.
-
-### Enumerate the leaves of the hierarchy
-
-Since the leaves of the hierarchy connect all the hiearchy nodes upwards, following super classes, as soon as the root of the hierarchy is loaded, you can force loading them all:
+Of course, if the application eager loads on boot, that is already accomplished. When it does not, it is in practice enough to instantiate the existing types in the database, which in development or test modes is usually fine. One way to do that is to include an STI preloading module in your `lib` directory:
 
 ```ruby
-unless Rails.application.config.eager_load
-  Rails.autoloaders.main.on_load("RootSTIModel") do
-    Leaf1
-    Leaf2
-    Leaf3
+module StiPreload
+  unless Rails.application.config.eager_load
+    extend ActiveSupport::Concern
+
+    included do
+      cattr_accessor :preloaded, instance_accessor: false
+    end
+
+    class_methods do
+      def descendants
+        preload_sti unless preloaded
+        super
+      end
+
+      # Constantizes all types present in the database. There might be more on
+      # disk, but that does not matter in practice as far as the STI API is
+      # concerned.
+      #
+      # Assumes store_full_sti_class is true, the default.
+      def preload_sti
+        types_in_db = \
+          base_class.
+            unscoped.
+            select(inheritance_column).
+            distinct.
+            pluck(inheritance_column).
+            compact
+
+        types_in_db.each do |type|
+          logger.debug("Preloading STI type #{type}")
+          type.constantize
+        end
+
+        self.preloaded = true
+      end
+    end
   end
 end
 ```
 
-This approach is easy and loads the entire STI hierarchy, but you need to maintain this list by hand. This may be OK.
-
-### Load what's in the database
-
-As far as Active Record is concerned, in practice it may be enough to load what's in the database. Normally, in the environments where eager load is disabled, you can afford this query:
+and then include it in the STI root classes of your project:
 
 ```ruby
-# config/initializers/preload_stis.rb
-unless Rails.application.config.eager_load
-  Rails.autoloaders.main.on_load("RootSTIModel") do |klass|
-    klass.connection.select_values(<<~SQL).each(&:constantize)
-      SELECT DISTINCT("#{klass.inheritance_column}")
-      FROM "#{klass.table_name}"
-      WHERE "#{klass.inheritance_column}" IS NOT NULL
-    SQL
-  end
+# app/models/shape.rb
+require "sti_preload"
+
+class Shape < ApplicationRecord
+  include StiPreload # Only in the root class.
 end
 ```
 
-This approach does not need manual maintenance. However, if you need an exhaustive enumeration to fill a dropdown or something, and the database does not have rows for all types, you'll miss some.
+```ruby
+# app/models/polygon.rb
+class Polygon < Shape
+end
+```
 
-Both approaches have compromises.
+```ruby
+# app/models/triangle.rb
+class Triangle < Polygon
+end
+```
 
 Customizing Inflections
 -----------------------
@@ -403,7 +447,7 @@ Autoloading and Engines
 
 Engines run in the context of a parent application, and their code is autoloaded, reloaded, and eager loaded by the parent application. If the application runs in `zeitwerk` mode, the engine code is loaded by `zeitwerk` mode. If the application runs in `classic` mode, the engine code is loaded by `classic` mode.
 
-When Rails boots, engine directories are added to the autoload paths, and from the point of view of the autoloader, there's no difference. Autoloaders' main input are the autoload paths, and whether they belong to the application source tree or to some engine source tree is irrelevant.
+When Rails boots, engine directories are added to the autoload paths, and from the point of view of the autoloader, there's no difference. Autoloaders' main inputs are the autoload paths, and whether they belong to the application source tree or to some engine source tree is irrelevant.
 
 For example, this application uses [Devise](https://github.com/heartcombo/devise):
 
@@ -427,7 +471,28 @@ However, if an engine supports Rails 6 or Rails 6.1 and does not control its par
 
 2. `classic` mode underscores constant names ("User" -> "user.rb"), and `zeitwerk` mode camelizes file names ("user.rb" -> "User"). They coincide in most cases, but they don't if there are series of consecutive uppercase letters as in "HTMLParser". The easiest way to be compatible is to avoid such names. In this case, pick "HtmlParser".
 
-3. In `classic` mode, a file `app/model/concerns/foo.rb` is allowed to define both `Foo` and `Concerns::Foo`. In `zeitwerk` mode, there's only one option: it has to define `Foo`. In order to be compatible, define `Foo`.
+3. In `classic` mode, the file `app/model/concerns/foo.rb` is allowed to define both `Foo` and `Concerns::Foo`. In `zeitwerk` mode, there's only one option: it has to define `Foo`. In order to be compatible, define `Foo`.
+
+Testing
+-------
+
+### Manual Testing
+
+The task `zeitwerk:check` checks if the project tree follows the expected naming conventions and it is handy for manual checks. For example, if you're migrating from `classic` to `zeitwerk` mode, or if you're fixing something:
+
+```
+% bin/rails zeitwerk:check
+Hold on, I am eager loading the application.
+All is good!
+```
+
+There can be additional output depending on the application configuration, but the last "All is good!" is what you are looking for.
+
+### Automated Testing
+
+It is a good practice to verify in the test suite that the project eager loads correctly.
+
+That covers Zeitwerk naming compliance and other possible error conditions. Please check the [section about testing eager loading](testing.html#testing-eager-loading) in the [_Testing Rails Applications_](testing.html) guide.
 
 Troubleshooting
 ---------------

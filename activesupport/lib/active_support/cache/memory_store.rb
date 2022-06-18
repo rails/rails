@@ -11,7 +11,7 @@ module ActiveSupport
     # to share cache data with each other and this may not be the most
     # appropriate cache in that scenario.
     #
-    # This cache has a bounded size specified by the :size options to the
+    # This cache has a bounded size specified by the +:size+ options to the
     # initializer (default is 32Mb). When the cache exceeds the allotted size,
     # a cleanup will occur which tries to prune the cache down to three quarters
     # of the maximum size by removing the least recently used entries.
@@ -89,13 +89,13 @@ module ActiveSupport
         return if pruning?
         @pruning = true
         begin
-          start_time = Concurrent.monotonic_time
+          start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           cleanup
           instrument(:prune, target_size, from: @cache_size) do
             keys = synchronize { @data.keys }
             keys.each do |key|
               delete_entry(key, **options)
-              return if @cache_size <= target_size || (max_time && Concurrent.monotonic_time - start_time > max_time)
+              return if @cache_size <= target_size || (max_time && Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time > max_time)
             end
           end
         ensure
@@ -108,12 +108,33 @@ module ActiveSupport
         @pruning
       end
 
-      # Increment an integer value in the cache.
+      # Increment a cached integer value. Returns the updated value.
+      #
+      # If the key is unset, it will be set to +amount+:
+      #
+      #   cache.increment("foo") # => 1
+      #   cache.increment("bar", 100) # => 100
+      #
+      # To set a specific value, call #write:
+      #
+      #   cache.write("baz", 5)
+      #   cache.increment("baz") # => 6
+      #
       def increment(name, amount = 1, options = nil)
         modify_value(name, amount, options)
       end
 
-      # Decrement an integer value in the cache.
+      # Decrement a cached integer value. Returns the updated value.
+      #
+      # If the key is unset or has expired, it will be set to +-amount+.
+      #
+      #   cache.decrement("foo") # => -1
+      #
+      # To set a specific value, call #write:
+      #
+      #   cache.write("baz", 5)
+      #   cache.decrement("baz") # => 4
+      #
       def decrement(name, amount = 1, options = nil)
         modify_value(name, -amount, options)
       end
@@ -166,7 +187,7 @@ module ActiveSupport
         def write_entry(key, entry, **options)
           payload = serialize_entry(entry, **options)
           synchronize do
-            return false if options[:unless_exist] && @data.key?(key)
+            return false if options[:unless_exist] && exist?(key)
 
             old_payload = @data[key]
             if old_payload
@@ -188,6 +209,8 @@ module ActiveSupport
           end
         end
 
+        # Modifies the amount of an integer value that is stored in the cache.
+        # If the key is not found it is created and set to +amount+.
         def modify_value(name, amount, options)
           options = merged_options(options)
           synchronize do
@@ -195,6 +218,9 @@ module ActiveSupport
               num = num.to_i + amount
               write(name, num, options)
               num
+            else
+              write(name, Integer(amount), options)
+              amount
             end
           end
         end

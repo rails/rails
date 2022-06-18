@@ -11,6 +11,14 @@ class ERB
     HTML_ESCAPE_ONCE_REGEXP = /["><']|&(?!([a-zA-Z]+|(#\d+)|(#[xX][\dA-Fa-f]+));)/
     JSON_ESCAPE_REGEXP = /[\u2028\u2029&><]/u
 
+    # Following XML requirements: https://www.w3.org/TR/REC-xml/#NT-Name
+    TAG_NAME_START_REGEXP_SET = "@:A-Z_a-z\u{C0}-\u{D6}\u{D8}-\u{F6}\u{F8}-\u{2FF}\u{370}-\u{37D}\u{37F}-\u{1FFF}" \
+                                "\u{200C}-\u{200D}\u{2070}-\u{218F}\u{2C00}-\u{2FEF}\u{3001}-\u{D7FF}\u{F900}-\u{FDCF}" \
+                                "\u{FDF0}-\u{FFFD}\u{10000}-\u{EFFFF}"
+    TAG_NAME_START_REGEXP = /[^#{TAG_NAME_START_REGEXP_SET}]/
+    TAG_NAME_FOLLOWING_REGEXP = /[^#{TAG_NAME_START_REGEXP_SET}\-.0-9\u{B7}\u{0300}-\u{036F}\u{203F}-\u{2040}]/
+    TAG_NAME_REPLACEMENT_CHAR = "_"
+
     # A utility method for escaping HTML tag characters.
     # This method is also aliased as <tt>h</tt>.
     #
@@ -97,7 +105,7 @@ class ERB
     # WARNING: this helper only works with valid JSON. Using this on non-JSON values
     # will open up serious XSS vulnerabilities. For example, if you replace the
     # +current_user.to_json+ in the example above with user input instead, the browser
-    # will happily eval() that string as JavaScript.
+    # will happily <tt>eval()</tt> that string as JavaScript.
     #
     # The escaping performed in this method is identical to those performed in the
     # Active Support JSON encoder when +ActiveSupport.escape_html_entities_in_json+ is
@@ -115,6 +123,26 @@ class ERB
     end
 
     module_function :json_escape
+
+    # A utility method for escaping XML names of tags and names of attributes.
+    #
+    #   xml_name_escape('1 < 2 & 3')
+    #   # => "1___2___3"
+    #
+    # It follows the requirements of the specification: https://www.w3.org/TR/REC-xml/#NT-Name
+    def xml_name_escape(name)
+      name = name.to_s
+      return "" if name.blank?
+
+      starting_char = name[0].gsub(TAG_NAME_START_REGEXP, TAG_NAME_REPLACEMENT_CHAR)
+
+      return starting_char if name.size == 1
+
+      following_chars = name[1..-1].gsub(TAG_NAME_FOLLOWING_REGEXP, TAG_NAME_REPLACEMENT_CHAR)
+
+      starting_char + following_chars
+    end
+    module_function :xml_name_escape
   end
 end
 
@@ -143,7 +171,7 @@ module ActiveSupport # :nodoc:
     alias_method :original_concat, :concat
     private :original_concat
 
-    # Raised when <tt>ActiveSupport::SafeBuffer#safe_concat</tt> is called on unsafe buffers.
+    # Raised when ActiveSupport::SafeBuffer#safe_concat is called on unsafe buffers.
     class SafeConcatError < StandardError
       def initialize
         super "Could not concatenate to the buffer because it is not html safe."

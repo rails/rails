@@ -182,11 +182,12 @@ module ActionController
   class TestSession < Rack::Session::Abstract::PersistedSecure::SecureSessionHash # :nodoc:
     DEFAULT_OPTIONS = Rack::Session::Abstract::Persisted::DEFAULT_OPTIONS
 
-    def initialize(session = {})
+    def initialize(session = {}, id = Rack::Session::SessionId.new(SecureRandom.hex(16)))
       super(nil, nil)
-      @id = Rack::Session::SessionId.new(SecureRandom.hex(16))
+      @id = id
       @data = stringify_keys(session)
       @loaded = true
+      @initially_empty = @data.empty?
     end
 
     def exists?
@@ -218,6 +219,10 @@ module ActionController
       true
     end
 
+    def id_was
+      @id
+    end
+
     private
       def load!
         @id
@@ -241,7 +246,7 @@ module ActionController
   # == Basic example
   #
   # Functional tests are written as follows:
-  # 1. First, one uses the +get+, +post+, +patch+, +put+, +delete+ or +head+ method to simulate
+  # 1. First, one uses the +get+, +post+, +patch+, +put+, +delete+, or +head+ method to simulate
   #    an HTTP request.
   # 2. Then, one asserts whether the current state is as expected. "State" can be anything:
   #    the controller's HTTP response, the database contents, etc.
@@ -333,6 +338,8 @@ module ActionController
   #
   #  assert_redirected_to page_url(title: 'foo')
   class TestCase < ActiveSupport::TestCase
+    singleton_class.attr_accessor :executor_around_each_request
+
     module Behavior
       extend ActiveSupport::Concern
       include ActionDispatch::TestProcess
@@ -389,7 +396,7 @@ module ActionController
       #
       # You can also simulate POST, PATCH, PUT, DELETE, and HEAD requests with
       # +post+, +patch+, +put+, +delete+, and +head+.
-      # Example sending parameters, session and setting a flash message:
+      # Example sending parameters, session, and setting a flash message:
       #
       #   get :show,
       #     params: { id: 7 },
@@ -459,13 +466,19 @@ module ActionController
       #     session: { user_id: 1 },
       #     flash: { notice: 'This is flash message' }
       #
-      # To simulate +GET+, +POST+, +PATCH+, +PUT+, +DELETE+ and +HEAD+ requests
+      # To simulate +GET+, +POST+, +PATCH+, +PUT+, +DELETE+, and +HEAD+ requests
       # prefer using #get, #post, #patch, #put, #delete and #head methods
       # respectively which will make tests more expressive.
+      #
+      # It's not recommended to make more than one request in the same test. Instance
+      # variables that are set in one request will not persist to the next request,
+      # but it's not guaranteed that all Rails internal state will be reset. Prefer
+      # ActionDispatch::IntegrationTest for making multiple requests in the same test.
       #
       # Note that the request method is not verified.
       def process(action, method: "GET", params: nil, session: nil, body: nil, flash: {}, format: nil, xhr: false, as: nil)
         check_required_ivars
+        @controller.clear_instance_variables_between_requests
 
         action = +action.to_s
         http_method = method.to_s.upcase
@@ -578,10 +591,19 @@ module ActionController
           end
         end
 
+        def wrap_execution(&block)
+          if ActionController::TestCase.executor_around_each_request && defined?(Rails.application) && Rails.application
+            Rails.application.executor.wrap(&block)
+          else
+            yield
+          end
+        end
+
         def process_controller_response(action, cookies, xhr)
           begin
             @controller.recycle!
-            @controller.dispatch(action, @request, @response)
+
+            wrap_execution { @controller.dispatch(action, @request, @response) }
           ensure
             @request = @controller.request
             @response = @controller.response
@@ -627,7 +649,7 @@ module ActionController
         end
 
         def check_required_ivars
-          # Sanity check for required instance variables so we can give an
+          # Check for required instance variables so we can give an
           # understandable error message.
           [:@routes, :@controller, :@request, :@response].each do |iv_name|
             if !instance_variable_defined?(iv_name) || instance_variable_get(iv_name).nil?

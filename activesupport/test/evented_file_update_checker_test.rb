@@ -53,8 +53,9 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     assert_not_predicate checker, :updated?
 
     # Pipes used for flow control across fork.
-    boot_reader,  boot_writer  = IO.pipe
+    boot_reader, boot_writer = IO.pipe
     touch_reader, touch_writer = IO.pipe
+    result_reader, result_writer = IO.pipe
 
     pid = fork do
       assert_not_predicate checker, :updated?
@@ -68,9 +69,16 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
       IO.select([touch_reader])
 
       assert_predicate checker, :updated?
+    rescue Exception => ex
+      result_writer.write(ex.class.name)
+      raise
+    ensure
+      result_writer.close
     end
 
     assert pid
+
+    result_writer.close
 
     # Wait for fork to be booted before touching files.
     IO.select([boot_reader])
@@ -82,17 +90,28 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     assert_predicate checker, :updated?
 
     Process.wait(pid)
+
+    assert_equal "", result_reader.read
   end
 
   test "can be garbage collected" do
-    previous_threads = Thread.list
-    checker_ref = WeakRef.new(ActiveSupport::EventedFileUpdateChecker.new([], tmpdir => ".rb") { })
-    listener_threads = Thread.list - previous_threads
+    # Use a separate thread to isolate objects and ensure they will be garbage collected.
+    checker_ref, listener_threads = Thread.new do
+      threads_before_checker = Thread.list
+      checker = ActiveSupport::EventedFileUpdateChecker.new([], tmpdir => ".rb") { }
 
-    wait # Wait for listener thread to start processing events.
-    GC.start
+      # Wait for listener thread to start processing events.
+      wait
 
-    assert_not_predicate checker_ref, :weakref_alive?
+      [WeakRef.new(checker), Thread.list - threads_before_checker]
+    end.value
+
+    # Calling `GC.start` 4 times should trigger a full GC run.
+    4.times do
+      GC.start
+    end
+
+    assert_not checker_ref.weakref_alive?, "EventedFileUpdateChecker was not garbage collected"
     assert_empty Thread.list & listener_threads
   end
 

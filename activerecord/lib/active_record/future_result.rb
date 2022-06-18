@@ -2,6 +2,27 @@
 
 module ActiveRecord
   class FutureResult # :nodoc:
+    class Complete
+      attr_reader :result
+      delegate :empty?, :to_a, to: :result
+
+      def initialize(result)
+        @result = result
+      end
+
+      def pending?
+        false
+      end
+
+      def canceled?
+        false
+      end
+
+      def then(&block)
+        Promise::Complete.new(@result.then(&block))
+      end
+    end
+
     class EventBuffer
       def initialize(future_result, instrumenter)
         @future_result = future_result
@@ -43,6 +64,10 @@ module ActiveRecord
       @result = nil
       @instrumenter = ActiveSupport::Notifications.instrumenter
       @event_buffer = nil
+    end
+
+    def then(&block)
+      Promise.new(self, block)
     end
 
     def schedule!(session)
@@ -95,19 +120,19 @@ module ActiveRecord
       @pending && (!@session || @session.active?)
     end
 
-    private
-      def canceled?
-        @session && !@session.active?
-      end
+    def canceled?
+      @session && !@session.active?
+    end
 
+    private
       def execute_or_wait
         if pending?
-          start = Concurrent.monotonic_time
+          start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_millisecond)
           @mutex.synchronize do
             if pending?
               execute_query(@pool.connection)
             else
-              @lock_wait = (Concurrent.monotonic_time - start) * 1_000
+              @lock_wait = (Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_millisecond) - start)
             end
           end
         else

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "zeitwerk"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/array/conversions"
 require "active_support/descendants_tracker"
@@ -27,7 +26,7 @@ module Rails
           autoloader.do_not_eager_load(path) unless ActiveSupport::Dependencies.eager_load?(path)
         end
 
-        unless config.cache_classes
+        if config.reloading_enabled?
           autoloader.enable_reloading
           ActiveSupport::Dependencies.autoloader = autoloader
 
@@ -35,10 +34,6 @@ module Rails
             if value.is_a?(Class) && value.singleton_class < ActiveSupport::DescendantsTracker
               ActiveSupport::Dependencies._autoloaded_tracked_classes << value
             end
-          end
-
-          autoloader.on_unload do |_cpath, value, _abspath|
-            value.before_remove_const if value.respond_to?(:before_remove_const)
           end
         end
 
@@ -73,11 +68,17 @@ module Rails
         app.reloader.prepare!
       end
 
-      initializer :eager_load! do
+      initializer :eager_load! do |app|
         if config.eager_load
           ActiveSupport.run_load_hooks(:before_eager_load, self)
           Zeitwerk::Loader.eager_load_all
           config.eager_load_namespaces.each(&:eager_load!)
+
+          if config.reloading_enabled?
+            app.reloader.after_class_unload do
+              Rails.autoloaders.main.eager_load
+            end
+          end
         end
       end
 
@@ -124,10 +125,7 @@ module Rails
         else
           # Default concurrency setting: enabled, but safe
 
-          unless config.cache_classes && config.eager_load
-            # Without cache_classes + eager_load, the load interlock
-            # is required for proper operation
-
+          if config.reloading_enabled?
             app.executor.register_hook(InterlockHook, outer: true)
           end
         end
@@ -176,44 +174,46 @@ module Rails
       initializer :set_clear_dependencies_hook, group: :all do |app|
         callback = lambda do
           # Order matters.
-          ActiveSupport::DescendantsTracker.clear(
-            only: ActiveSupport::Dependencies._autoloaded_tracked_classes
-          )
+          ActiveSupport::DescendantsTracker.clear(ActiveSupport::Dependencies._autoloaded_tracked_classes)
           ActiveSupport::Dependencies.clear
         end
 
-        if config.cache_classes
-          app.reloader.check = lambda { false }
-        elsif config.reload_classes_only_on_change
-          app.reloader.check = lambda do
-            app.reloaders.map(&:updated?).any?
+        if config.reloading_enabled?
+          if config.reload_classes_only_on_change
+            app.reloader.check = lambda do
+              app.reloaders.map(&:updated?).any?
+            end
+          else
+            app.reloader.check = lambda { true }
           end
         else
-          app.reloader.check = lambda { true }
+          app.reloader.check = lambda { false }
         end
 
-        if config.cache_classes
-          # No reloader
-        elsif config.reload_classes_only_on_change
-          reloader = config.file_watcher.new(*watchable_args, &callback)
-          reloaders << reloader
+        if config.reloading_enabled?
+          if config.reload_classes_only_on_change
+            reloader = config.file_watcher.new(*watchable_args, &callback)
+            reloaders << reloader
 
-          # Prepend this callback to have autoloaded constants cleared before
-          # any other possible reloading, in case they need to autoload fresh
-          # constants.
-          app.reloader.to_run(prepend: true) do
-            # In addition to changes detected by the file watcher, if routes
-            # or i18n have been updated we also need to clear constants,
-            # that's why we run #execute rather than #execute_if_updated, this
-            # callback has to clear autoloaded constants after any update.
-            class_unload! do
-              reloader.execute
+            # Prepend this callback to have autoloaded constants cleared before
+            # any other possible reloading, in case they need to autoload fresh
+            # constants.
+            app.reloader.to_run(prepend: true) do
+              # In addition to changes detected by the file watcher, if routes
+              # or i18n have been updated we also need to clear constants,
+              # that's why we run #execute rather than #execute_if_updated, this
+              # callback has to clear autoloaded constants after any update.
+              class_unload! do
+                reloader.execute
+              end
+            end
+          else
+            app.reloader.to_complete do
+              class_unload!(&callback)
             end
           end
         else
-          app.reloader.to_complete do
-            class_unload!(&callback)
-          end
+          ActiveSupport::DescendantsTracker.disable_clear!
         end
       end
     end

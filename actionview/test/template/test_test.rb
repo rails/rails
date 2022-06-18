@@ -69,7 +69,7 @@ class PeopleHelperTest < ActionView::TestCase
     end
 end
 
-class CrazyHelperTest < ActionView::TestCase
+class ManuallySetHelperTest < ActionView::TestCase
   tests PeopleHelper
 
   def test_helper_class_can_be_set_manually_not_just_inferred
@@ -77,7 +77,7 @@ class CrazyHelperTest < ActionView::TestCase
   end
 end
 
-class CrazySymbolHelperTest < ActionView::TestCase
+class ManuallySetSymbolHelperTest < ActionView::TestCase
   tests :people
 
   def test_set_helper_class_using_symbol
@@ -85,7 +85,7 @@ class CrazySymbolHelperTest < ActionView::TestCase
   end
 end
 
-class CrazyStringHelperTest < ActionView::TestCase
+class ManuallySetStringHelperTest < ActionView::TestCase
   tests "people"
 
   def test_set_helper_class_using_string

@@ -88,6 +88,14 @@ class RedirectController < ActionController::Base
     redirect_back_or_to "http://www.rubyonrails.org/"
   end
 
+  def only_path_redirect
+    redirect_to action: "other_host", only_path: true
+  end
+
+  def safe_redirect_with_fallback
+    redirect_to url_from(params[:redirect_url]) || "/fallback"
+  end
+
   def redirect_back_with_explicit_fallback_kwarg
     redirect_back(fallback_location: "/things/stuff", status: 307)
   end
@@ -478,27 +486,49 @@ class RedirectTest < ActionController::TestCase
 
   def test_unsafe_redirect
     with_raise_on_open_redirects do
-      error = assert_raise(ArgumentError) do
+      error = assert_raise(ActionController::Redirecting::UnsafeRedirectError) do
         get :unsafe_redirect
       end
 
-      assert_equal(<<~MSG.squish, error.message)
-        Unsafe redirect \"http://www.rubyonrails.org/\",
-        use :allow_other_host to redirect anyway.
-      MSG
+      assert_equal "Unsafe redirect to \"http://www.rubyonrails.org/\", pass allow_other_host: true to redirect anyway.", error.message
     end
   end
 
   def test_unsafe_redirect_back
     with_raise_on_open_redirects do
-      error = assert_raise(ArgumentError) do
+      error = assert_raise(ActionController::Redirecting::UnsafeRedirectError) do
         get :unsafe_redirect_back
       end
 
-      assert_equal(<<~MSG.squish, error.message)
-        Unsafe redirect \"http://www.rubyonrails.org/\",
-        use :allow_other_host to redirect anyway.
-      MSG
+      assert_equal "Unsafe redirect to \"http://www.rubyonrails.org/\", pass allow_other_host: true to redirect anyway.", error.message
+    end
+  end
+
+  def test_only_path_redirect
+    with_raise_on_open_redirects do
+      get :only_path_redirect
+      assert_response :redirect
+      assert_redirected_to "/redirect/other_host"
+    end
+  end
+
+  def test_url_from
+    with_raise_on_open_redirects do
+      get :safe_redirect_with_fallback, params: { redirect_url: "http://test.host/app" }
+      assert_response :redirect
+      assert_redirected_to "http://test.host/app"
+    end
+  end
+
+  def test_url_from_fallback
+    with_raise_on_open_redirects do
+      get :safe_redirect_with_fallback, params: { redirect_url: "http://www.rubyonrails.org/" }
+      assert_response :redirect
+      assert_redirected_to "http://test.host/fallback"
+
+      get :safe_redirect_with_fallback, params: { redirect_url: "" }
+      assert_response :redirect
+      assert_redirected_to "http://test.host/fallback"
     end
   end
 

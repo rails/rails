@@ -154,6 +154,126 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_equal "Custom", body
   end
 
+  test "localhost works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "localhost:3000",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "localhost using IPV4 works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "127.0.0.1",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "localhost using IPV4 with port works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "127.0.0.1:3000",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "localhost using IPV4 binding in all addresses works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "0.0.0.0",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "localhost using IPV4 with port binding in all addresses works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "0.0.0.0:3000",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "localhost using IPV6 works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "::1",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "localhost using IPV6 with port works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "[::1]:3000",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "localhost using IPV6 binding in all addresses works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "::",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "localhost using IPV6 with port binding in all addresses works in dev" do
+    @app = ActionDispatch::HostAuthorization.new(App, ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT)
+
+    get "/", env: {
+      "HOST" => "[::]:3000",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "hosts with port works" do
+    @app = ActionDispatch::HostAuthorization.new(App, ["host.test"])
+
+    get "/", env: {
+      "HOST" => "host.test:3000",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
   test "blocks requests with spoofed X-FORWARDED-HOST" do
     @app = ActionDispatch::HostAuthorization.new(App, [IPAddr.new("127.0.0.1")])
 
@@ -165,6 +285,44 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
 
     assert_response :forbidden
     assert_match "Blocked host: 127.0.0.1", response.body
+  end
+
+  test "blocks requests with spoofed relative X-FORWARDED-HOST" do
+    @app = ActionDispatch::HostAuthorization.new(App, ["www.example.com"])
+
+    get "/", env: {
+      "HTTP_X_FORWARDED_HOST" => "//randomhost.com",
+      "HOST" => "www.example.com",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :forbidden
+    assert_match "Blocked host: //randomhost.com", response.body
+  end
+
+  test "forwarded secondary hosts are allowed when permitted" do
+    @app = ActionDispatch::HostAuthorization.new(App, ".domain.com")
+
+    get "/", env: {
+      "HTTP_X_FORWARDED_HOST" => "example.com, my-sub.domain.com",
+      "HOST" => "domain.com",
+    }
+
+    assert_response :ok
+    assert_equal "Success", body
+  end
+
+  test "forwarded secondary hosts are blocked when mismatch" do
+    @app = ActionDispatch::HostAuthorization.new(App, "domain.com")
+
+    get "/", env: {
+      "HTTP_X_FORWARDED_HOST" => "domain.com, evil.com",
+      "HOST" => "domain.com",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :forbidden
+    assert_match "Blocked host: evil.com", response.body
   end
 
   test "does not consider IP addresses in X-FORWARDED-HOST spoofed when disabled" do
@@ -205,16 +363,65 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_match "Blocked host: sub.domain.com", response.body
   end
 
+  test "sub-sub domains should not be permitted" do
+    @app = ActionDispatch::HostAuthorization.new(App, ".domain.com")
+
+    get "/", env: {
+      "HOST" => "secondary.sub.domain.com",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :forbidden
+    assert_match "Blocked host: secondary.sub.domain.com", response.body
+  end
+
   test "forwarded hosts are allowed when permitted" do
     @app = ActionDispatch::HostAuthorization.new(App, ".domain.com")
 
     get "/", env: {
-      "HTTP_X_FORWARDED_HOST" => "sub.domain.com",
+      "HTTP_X_FORWARDED_HOST" => "my-sub.domain.com",
       "HOST" => "domain.com",
     }
 
     assert_response :ok
     assert_equal "Success", body
+  end
+
+  test "lots of NG hosts" do
+    ng_hosts = [
+      "hacker%E3%80%82com",
+      "hacker%00.com",
+      "www.theirsite.com@yoursite.com",
+      "hacker.com/test/",
+      "hacker%252ecom",
+      ".hacker.com",
+      "/\/\/hacker.com/",
+      "/hacker.com",
+      "../hacker.com",
+      ".hacker.com",
+      "@hacker.com",
+      "hacker.com",
+      "hacker.com%23@example.com",
+      "hacker.com/.jpg",
+      "hacker.com\texample.com/",
+      "hacker.com/example.com",
+      "hacker.com\@example.com",
+      "hacker.com/example.com",
+      "hacker.com/"
+    ]
+
+    @app = ActionDispatch::HostAuthorization.new(App, "example.com")
+
+    ng_hosts.each do |host|
+      get "/", env: {
+        "HTTP_X_FORWARDED_HOST" => host,
+        "HOST" => "example.com",
+        "action_dispatch.show_detailed_exceptions" => true
+      }
+
+      assert_response :forbidden
+      assert_match "Blocked host: #{host}", response.body
+    end
   end
 
   test "exclude matches allow any host" do
@@ -257,12 +464,6 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
 
     assert_response :forbidden
     assert_match "Blocked host: sub-example.com", response.body
-  end
-
-  test "config setting action_dispatch.hosts_response_app is deprecated" do
-    assert_deprecated do
-      ActionDispatch::HostAuthorization.new(App, "example.com", ->(env) { true })
-    end
   end
 
   test "uses logger from the env" do

@@ -1,171 +1,152 @@
-## Rails 7.0.0.alpha2 (September 15, 2021) ##
+*   Skip Active Storage and Action Mailer if Active Job is skipped.
 
-*   Fix activestorage dependency in the npm package.
+    *Étienne Barrié*
 
-    *Rafael Mendonça França*
+*   Correctly check if frameworks are disabled when running app:update.
 
-## Rails 7.0.0.alpha1 (September 15, 2021) ##
+    *Étienne Barrié* and *Paulo Barros*
 
-*   New and upgraded Rails apps no longer generate `config/initializers/application_controller_renderer.rb`
-    or `config/initializers/cookies_serializer.rb`
+*   Delegate model generator description to orm hooked generator.
 
-    The default value for `cookies_serializer` (`:json`) has been moved to `config.load_defaults("7.0")`.
-    The new framework defaults file can be used to upgrade the serializer.
+    *Gannon McGibbon*
 
-    *Alex Ghiculescu*
+*   Execute `rails runner` scripts inside the executor.
 
-*   New applications get a dependency on the new `debug` gem, replacing `byebug`.
-
-    *Xavier Noria*
-
-*   Add SSL support for postgresql in `bin/rails dbconsole`.
-
-    Fixes #43114.
-
-    *Michael Bayucot*
-
-*   Add support for comments above gem declaration in Rails application templates, e.g. `gem("nokogiri", comment: "For XML")`.
-
-    *Linas Juškevičius*
-
-*   The setter `config.autoloader=` has been deleted. `zeitwerk` is the only
-    available autoloading mode.
-
-    *Xavier Noria*
-
-*   `config.autoload_once_paths` can be configured in the body of the
-    application class defined in `config/application.rb` or in the configuration
-    for environments in `config/environments/*`.
-
-    Similarly, engines can configure that collection in the class body of the
-    engine class or in the configuration for environments.
-
-    After that, the collection is frozen, and you can autoload from those paths.
-    They are managed by the `Rails.autoloaders.once` autoloader, which does not
-    reload, only autoloads/eager loads.
-
-    *Xavier Noria*
-
-*   During initialization, you cannot autoload reloadable classes or modules
-    like application models, unless they are wrapped in a `to_prepare` block.
-    For example, from `config/initializers/*`, or in application, engines, or
-    railties initializers.
-
-    Please check the [autoloading
-    guide](https://guides.rubyonrails.org/v7.0/autoloading_and_reloading_constants.html#autoloading-when-the-application-boots)
-    for details.
-
-    *Xavier Noria*
-
-*   While they are allowed to have elements in common, it is no longer required
-    that `config.autoload_once_paths` is a subset of `config.autoload_paths`.
-    The former are managed by the `once` autoloader. The `main` autoloader
-    manages the latter minus the former.
-
-    *Xavier Noria*
-
-*   Show Rake task description if command is run with `-h`.
-
-    Adding `-h` (or `--help`) to a Rails command that's a Rake task now outputs
-    the task description instead of the general Rake help.
-
-    *Petrik de Heus*
-
-*   Add missing `plugin new` command to help.
-
-    *Petrik de Heus
-
-*   Fix `config_for` error when there's only a shared root array.
-
-    *Loïc Delmaire*
-
-*   Raise an error in generators if an index type is invalid.
-
-    *Petrik de Heus*
-
-*   `package.json` now uses a strict version constraint for Rails JavaScript packages on new Rails apps.
-
-    *Zachary Scott*, *Alex Ghiculescu*
-
-*   Modified scaffold generator template so that running
-    `rails g scaffold Author` no longer generates tests called "creating
-    a Author", "updating a Author", and "destroying a Author".
-
-    Fixes #40744.
-
-    *Michael Duchemin*
-
-*   Raise an error in generators if a field type is invalid.
-
-    *Petrik de Heus*
-
-*   `bin/rails tmp:clear` deletes also files and directories in `tmp/storage`.
-
-    *George Claghorn*
-
-*   Fix compatibility with `psych >= 4`.
-
-    Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility
-    `Rails.application.config_for` now uses `YAML.unsafe_load` if available.
+    Enables error reporting, query cache, etc.
 
     *Jean Boussier*
 
-*   Allow loading nested locales in engines.
+*   Avoid booting in development then test for test tasks.
+
+    Running one of the rails test subtasks (e.g. test:system, test:models) would
+    go through Rake and cause the app to be booted twice. Now all the test:*
+    subtasks are defined as Thor tasks and directly load the test environment.
+
+    *Étienne Barrié*
+
+*   Deprecate `Rails::Generators::Testing::Behaviour` in favor of `Rails::Generators::Testing::Behavior`.
 
     *Gannon McGibbon*
 
-*   Ensure `Rails.application.config_for` always cast hashes to `ActiveSupport::OrderedOptions`.
+*   Allow configuration of logger size for local and test environments
+
+    `config.log_file_size`
+
+    Defaults to `100` megabytes.
+
+    *Bernie Chiu*
+
+*   Enroll new apps in decrypted diffs of credentials by default.  This behavior
+    can be opted out of with the app generator's `--skip-decrypted-diffs` flag.
+
+    *Jonathan Hefner*
+
+*   Support declarative-style test name filters with `bin/rails test`.
+
+    This makes it possible to run a declarative-style test such as:
+
+    ```ruby
+    class MyTest < ActiveSupport::TestCase
+      test "does something" do
+        # ...
+      end
+    end
+    ```
+
+    Using its declared name:
+
+    ```bash
+    $ bin/rails test test/my_test.rb -n "does something"
+    ```
+
+    Instead of having to specify its expanded method name:
+
+    ```bash
+    $ bin/rails test test/my_test.rb -n test_does_something
+    ```
+
+    *Jonathan Hefner*
+
+*   Add `--js` and `--skip-javascript` options to `rails new`
+
+    `--js` alias to `rails new --javascript ...`
+
+    Same as `-j`, e.g. `rails new --js esbuild ...`
+
+    `--skip-js` alias to `rails new --skip-javascript ...`
+
+    Same as `-J`, e.g. `rails new --skip-js ...`
+
+    *Dorian Marié*
+
+*   Allow relative paths with leading dot slash to be passed to `rails test`.
+
+    Fix `rails test ./test/model/post_test.rb` to run a single test file.
+
+    *Shouichi Kamiya* and *oljfte*
+
+*   Deprecate `config.enable_dependency_loading`. This flag addressed a limitation of the `classic` autoloader and has no effect nowadays. To fix this deprecation, please just delete the reference.
+
+    *Xavier Noria*
+
+*   Define `config.enable_reloading` to be `!config.cache_classes` for a more intuitive name. While `config.enable_reloading` and `config.reloading_enabled?` are preferred from now on, `config.cache_classes` is supported for backwards compatibility.
+
+    *Xavier Noria*
+
+*   Add JavaScript dependencies installation on bin/setup
+
+    Add  `yarn install` to bin/setup when using esbuild, webpack, or rollout.
+
+    *Carlos Ribeiro*
+
+*   Use `controller_class_path` in `Rails::Generators::NamedBase#route_url`
+
+    The `route_url` method now returns the correct path when generating
+    a namespaced controller with a top-level model using `--model-name`.
+
+    Previously, when running this command:
+
+    ``` sh
+    bin/rails generate scaffold_controller Admin/Post --model-name Post
+    ```
+
+    the comments above the controller action would look like:
+
+    ``` ruby
+    # GET /posts
+    def index
+      @posts = Post.all
+    end
+    ```
+
+    afterwards, they now look like this:
+
+    ``` ruby
+    # GET /admin/posts
+    def index
+      @posts = Post.all
+    end
+    ```
+
+    Fixes #44662.
+
+    *Andrew White*
+
+*   No longer add autoloaded paths to `$LOAD_PATH`.
+
+    This means it won't be possible to load them with a manual `require` call, the class or module can be referenced instead.
+
+    Reducing the size of `$LOAD_PATH` speed-up `require` calls for apps not using `bootsnap`, and reduce the
+    size of the `bootsnap` cache for the others.
 
     *Jean Boussier*
 
-*   Remove `Rack::Runtime` from the default middleware stack and deprecate
-    referencing it in middleware operations without adding it back.
+*   Remove default `X-Download-Options` header
 
-    *Hartley McGuire*
+    This header is currently only used by Internet Explorer which
+    will be discontinued in 2022 and since Rails 7 does not fully
+    support Internet Explorer this header should not be a default one.
 
-*   Allow adding additional authorized hosts in development via `ENV['RAILS_DEVELOPMENT_HOSTS']`.
+    *Harun Sabljaković*
 
-    *Josh Abernathy*, *Debbie Milburn*
-
-*   Add app concern and test keepfiles to generated engine plugins.
-
-    *Gannon McGibbon*
-
-*   Stop generating a license for in-app plugins.
-
-    *Gannon McGibbon*
-
-*   `rails app:update` no longer prompts you to overwrite files that are generally modified in the
-    course of developing a Rails app. See [#41083](https://github.com/rails/rails/pull/41083) for
-    the full list of changes.
-
-    *Alex Ghiculescu*
-
-*   Change default branch for new Rails projects and plugins to `main`.
-
-    *Prateek Choudhary*
-
-*   The new method `Rails.benchmark` gives you a quick way to measure and log the execution time taken by a block:
-
-        def test_expensive_stuff
-          Rails.benchmark("test_expensive_stuff") { ... }
-        end
-
-    This functionality was available in some contexts only before.
-
-    *Simon Perepelitsa*
-
-*   Applications generated with `--skip-sprockets` no longer get `app/assets/config/manifest.js` and `app/assets/stylesheets/application.css`.
-
-    *Cindy Gao*
-
-*   Add support for stylesheets and ERB views to `rails stats`.
-
-    *Joel Hawksley*
-
-*   Allow appended root routes to take precedence over internal welcome controller.
-
-    *Gannon McGibbon*
-
-
-Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/railties/CHANGELOG.md) for previous changes.
+Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/railties/CHANGELOG.md) for previous changes.

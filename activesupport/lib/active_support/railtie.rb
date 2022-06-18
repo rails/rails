@@ -6,8 +6,17 @@ require "active_support/i18n_railtie"
 module ActiveSupport
   class Railtie < Rails::Railtie # :nodoc:
     config.active_support = ActiveSupport::OrderedOptions.new
+    config.active_support.disable_to_s_conversion = false
 
     config.eager_load_namespaces << ActiveSupport
+
+    initializer "active_support.isolation_level" do |app|
+      config.after_initialize do
+        if level = app.config.active_support.delete(:isolation_level)
+          ActiveSupport::IsolatedExecutionState.isolation_level = level
+        end
+      end
+    end
 
     initializer "active_support.remove_deprecated_time_with_zone_name" do |app|
       config.after_initialize do
@@ -27,14 +36,28 @@ module ActiveSupport
       end
     end
 
+    initializer "active_support.reset_execution_context" do |app|
+      app.reloader.before_class_unload { ActiveSupport::ExecutionContext.clear }
+      app.executor.to_run              { ActiveSupport::ExecutionContext.clear }
+      app.executor.to_complete         { ActiveSupport::ExecutionContext.clear }
+    end
+
     initializer "active_support.reset_all_current_attributes_instances" do |app|
       app.reloader.before_class_unload { ActiveSupport::CurrentAttributes.clear_all }
       app.executor.to_run              { ActiveSupport::CurrentAttributes.reset_all }
       app.executor.to_complete         { ActiveSupport::CurrentAttributes.reset_all }
 
       ActiveSupport.on_load(:active_support_test_case) do
-        require "active_support/current_attributes/test_helper"
-        include ActiveSupport::CurrentAttributes::TestHelper
+        if app.config.active_support.executor_around_test_case
+          require "active_support/executor/test_helper"
+          include ActiveSupport::Executor::TestHelper
+        else
+          require "active_support/current_attributes/test_helper"
+          include ActiveSupport::CurrentAttributes::TestHelper
+
+          require "active_support/execution_context/test_helper"
+          include ActiveSupport::ExecutionContext::TestHelper
+        end
       end
     end
 
@@ -90,6 +113,10 @@ module ActiveSupport
       end
     end
 
+    initializer "active_support.set_error_reporter" do |app|
+      ActiveSupport.error_reporter = app.executor.error_reporter
+    end
+
     initializer "active_support.set_configs" do |app|
       app.config.active_support.each do |k, v|
         k = "#{k}="
@@ -99,15 +126,6 @@ module ActiveSupport
 
     initializer "active_support.set_hash_digest_class" do |app|
       config.after_initialize do
-        if app.config.active_support.use_sha1_digests
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            config.active_support.use_sha1_digests is deprecated and will
-            be removed from Rails 7.0. Use
-            config.active_support.hash_digest_class = OpenSSL::Digest::SHA1 instead.
-          MSG
-          ActiveSupport::Digest.hash_digest_class = OpenSSL::Digest::SHA1
-        end
-
         if klass = app.config.active_support.hash_digest_class
           ActiveSupport::Digest.hash_digest_class = klass
         end
@@ -118,6 +136,51 @@ module ActiveSupport
       config.after_initialize do
         if klass = app.config.active_support.key_generator_hash_digest_class
           ActiveSupport::KeyGenerator.hash_digest_class = klass
+        end
+      end
+    end
+
+    initializer "active_support.set_rfc4122_namespaced_uuids" do |app|
+      config.after_initialize do
+        if app.config.active_support.use_rfc4122_namespaced_uuids
+          require "active_support/core_ext/digest"
+          ::Digest::UUID.use_rfc4122_namespaced_uuids = app.config.active_support.use_rfc4122_namespaced_uuids
+        end
+      end
+    end
+
+    initializer "active_support.set_fallback_to_marshal_deserialization" do |app|
+      config.after_initialize do
+        unless app.config.active_support.fallback_to_marshal_deserialization.nil?
+          ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization =
+            app.config.active_support.fallback_to_marshal_deserialization
+        end
+      end
+    end
+
+    initializer "active_support.set_default_message_encryptor_serializer" do |app|
+      config.after_initialize do
+        unless app.config.active_support.default_message_encryptor_serializer.nil?
+          ActiveSupport::MessageEncryptor.default_message_encryptor_serializer =
+            app.config.active_support.default_message_encryptor_serializer
+        end
+      end
+    end
+
+    initializer "active_support.set_default_message_verifier_serializer" do |app|
+      config.after_initialize do
+        unless app.config.active_support.default_message_verifier_serializer.nil?
+          ActiveSupport::MessageVerifier.default_message_verifier_serializer =
+            app.config.active_support.default_message_verifier_serializer
+        end
+      end
+    end
+
+    initializer "active_support.set_marshal_serialization" do |app|
+      config.after_initialize do
+        unless app.config.active_support.use_marshal_serialization.nil?
+          ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization =
+            app.config.active_support.use_marshal_serialization
         end
       end
     end

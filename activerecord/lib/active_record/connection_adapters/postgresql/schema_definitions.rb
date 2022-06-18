@@ -189,14 +189,42 @@ module ActiveRecord
         end
       end
 
+      ExclusionConstraintDefinition = Struct.new(:table_name, :expression, :options) do
+        def name
+          options[:name]
+        end
+
+        def using
+          options[:using]
+        end
+
+        def where
+          options[:where]
+        end
+
+        def export_name_on_schema_dump?
+          !ActiveRecord::SchemaDumper.excl_ignore_pattern.match?(name) if name
+        end
+      end
+
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
-        attr_reader :unlogged
+        attr_reader :exclusion_constraints, :unlogged
 
         def initialize(*, **)
           super
+          @exclusion_constraints = []
           @unlogged = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
+        end
+
+        def exclusion_constraint(expression, **options)
+          exclusion_constraints << new_exclusion_constraint_definition(expression, options)
+        end
+
+        def new_exclusion_constraint_definition(expression, options) # :nodoc:
+          options = @conn.exclusion_constraint_options(name, expression, options)
+          ExclusionConstraintDefinition.new(name, expression, options)
         end
 
         def new_column_definition(name, type, **options) # :nodoc:
@@ -224,18 +252,46 @@ module ActiveRecord
 
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
+
+        # Adds an exclusion constraint.
+        #
+        #  t.exclusion_constraint("price WITH =, availability_range WITH &&", using: :gist, name: "price_check")
+        #
+        # See {connection.add_exclusion_constraint}[rdoc-ref:SchemaStatements#add_exclusion_constraint]
+        def exclusion_constraint(*args)
+          @base.add_exclusion_constraint(name, *args)
+        end
+
+        # Removes the given exclusion constraint from the table.
+        #
+        #  t.remove_exclusion_constraint(name: "price_check")
+        #
+        # See {connection.remove_exclusion_constraint}[rdoc-ref:SchemaStatements#remove_exclusion_constraint]
+        def remove_exclusion_constraint(*args)
+          @base.remove_exclusion_constraint(name, *args)
+        end
       end
 
       class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable
-        attr_reader :constraint_validations
+        attr_reader :constraint_validations, :exclusion_constraint_adds, :exclusion_constraint_drops
 
         def initialize(td)
           super
           @constraint_validations = []
+          @exclusion_constraint_adds = []
+          @exclusion_constraint_drops = []
         end
 
         def validate_constraint(name)
           @constraint_validations << name
+        end
+
+        def add_exclusion_constraint(expression, options)
+          @exclusion_constraint_adds << @td.new_exclusion_constraint_definition(expression, options)
+        end
+
+        def drop_exclusion_constraint(constraint_name)
+          @exclusion_constraint_drops << constraint_name
         end
       end
     end

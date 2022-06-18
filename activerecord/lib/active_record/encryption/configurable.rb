@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Encryption
-    # Configuration API for +ActiveRecord::Encryption+
+    # Configuration API for ActiveRecord::Encryption
     module Configurable
       extend ActiveSupport::Concern
 
@@ -17,12 +17,10 @@ module ActiveRecord
           delegate name, to: :context
         end
 
-        def configure(primary_key:, deterministic_key:, key_derivation_salt:, **properties) # :nodoc:
+        def configure(primary_key: nil, deterministic_key: nil, key_derivation_salt: nil, **properties) # :nodoc:
           config.primary_key = primary_key
           config.deterministic_key = deterministic_key
           config.key_derivation_salt = key_derivation_salt
-
-          context.key_provider = ActiveRecord::Encryption::DerivedSecretKeyProvider.new(primary_key)
 
           properties.each do |name, value|
             [:context, :config].each do |configurable_object_name|
@@ -50,11 +48,17 @@ module ActiveRecord
           end
         end
 
-        def install_auto_filtered_parameters(application) # :nodoc:
+        def install_auto_filtered_parameters_hook(application) # :nodoc:
           ActiveRecord::Encryption.on_encrypted_attribute_declared do |klass, encrypted_attribute_name|
-            application.config.filter_parameters << encrypted_attribute_name unless ActiveRecord::Encryption.config.excluded_from_filter_parameters.include?(name)
+            filter_parameter = [("#{klass.model_name.element}" if klass.name), encrypted_attribute_name.to_s].compact.join(".")
+            application.config.filter_parameters << filter_parameter unless excluded_from_filter_parameters?(filter_parameter)
           end
         end
+
+        private
+          def excluded_from_filter_parameters?(filter_parameter)
+            ActiveRecord::Encryption.config.excluded_from_filter_parameters.find { |excluded_filter| excluded_filter.to_s == filter_parameter }
+          end
       end
     end
   end

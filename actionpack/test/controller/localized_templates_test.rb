@@ -45,4 +45,11 @@ class LocalizedTemplatesTest < ActionController::TestCase
     assert_equal "Ciao Mondo", @response.body
     assert_equal "text/html",  @response.media_type
   end
+
+  def test_use_locale_with_lowdash
+    I18n.locale = :"de_AT"
+
+    get :hello_world
+    assert_equal "Guten Morgen", @response.body
+  end
 end

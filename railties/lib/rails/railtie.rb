@@ -24,7 +24,7 @@ module Rails
   # * creating initializers
   # * configuring a Rails framework for the application, like setting a generator
   # * adding <tt>config.*</tt> keys to the environment
-  # * setting up a subscriber with <tt>ActiveSupport::Notifications</tt>
+  # * setting up a subscriber with ActiveSupport::Notifications
   # * adding Rake tasks
   #
   # == Creating a Railtie
@@ -129,7 +129,7 @@ module Rails
   # == Application and Engine
   #
   # An engine is nothing more than a railtie with some initializers already set. And since
-  # <tt>Rails::Application</tt> is an engine, the same configuration described here can be
+  # Rails::Application is an engine, the same configuration described here can be
   # used in both.
   #
   # Be sure to look at the documentation of those specific classes for more information.
@@ -146,7 +146,7 @@ module Rails
       delegate :config, to: :instance
 
       def subclasses
-        super.reject(&:abstract_railtie?)
+        super.reject(&:abstract_railtie?).sort
       end
 
       def rake_tasks(&blk)
@@ -191,19 +191,38 @@ module Rails
         instance.configure(&block)
       end
 
+      def <=>(other) # :nodoc:
+        load_index <=> other.load_index
+      end
+
+      def inherited(subclass)
+        subclass.increment_load_index
+        super
+      end
+
+      protected
+        attr_reader :load_index
+
+        def increment_load_index
+          @@load_counter ||= 0
+          @load_index = (@@load_counter += 1)
+        end
+
       private
         def generate_railtie_name(string)
           ActiveSupport::Inflector.underscore(string).tr("/", "_")
         end
 
         def respond_to_missing?(name, _)
+          return super if abstract_railtie?
+
           instance.respond_to?(name) || super
         end
 
         # If the class method does not have a method, then send the method call
         # to the Railtie instance.
         def method_missing(name, *args, &block)
-          if instance.respond_to?(name)
+          if !abstract_railtie? && instance.respond_to?(name)
             instance.public_send(name, *args, &block)
           else
             super
@@ -228,6 +247,10 @@ module Rails
       if self.class.abstract_railtie?
         raise "#{self.class.name} is abstract, you cannot instantiate it directly."
       end
+    end
+
+    def inspect # :nodoc:
+      "#<#{self.class.name}>"
     end
 
     def configure(&block) # :nodoc:

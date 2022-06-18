@@ -159,6 +159,9 @@ Style/FrozenStringLiteralComment:
     - 'actionmailbox/db/migrate/**/*.rb'
     - 'actiontext/db/migrate/**/*.rb'
 
+Style/MapToHash:
+  Enabled: true
+
 Style/RedundantFreeze:
   Enabled: true
 
@@ -208,7 +211,13 @@ Lint/AmbiguousRegexpLiteral:
 Lint/DuplicateRequire:
   Enabled: true
 
+Lint/DuplicateMethods:
+  Enabled: true
+
 Lint/ErbNewArguments:
+  Enabled: true
+
+Lint/EnsureReturn:
   Enabled: true
 
 # Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
@@ -294,6 +303,9 @@ Performance/DeletePrefix:
   Enabled: true
 
 Performance/DeleteSuffix:
+  Enabled: true
+
+Performance/OpenStruct:
   Enabled: true
 
 Minitest/UnreachableAssertion:

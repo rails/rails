@@ -6,7 +6,7 @@ module ActiveRecord
     # this type are typically created and returned by methods in database
     # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
     class IndexDefinition # :nodoc:
-      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :comment
+      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :comment, :valid
 
       def initialize(
         table, name,
@@ -18,7 +18,8 @@ module ActiveRecord
         where: nil,
         type: nil,
         using: nil,
-        comment: nil
+        comment: nil,
+        valid: true
       )
         @table = table
         @name = name
@@ -31,6 +32,11 @@ module ActiveRecord
         @type = type
         @using = using
         @comment = comment
+        @valid = valid
+      end
+
+      def valid?
+        @valid
       end
 
       def column_options
@@ -39,6 +45,13 @@ module ActiveRecord
           order: orders,
           opclass: opclasses,
         }
+      end
+
+      def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, **options)
+        (columns.nil? || Array(self.columns) == Array(columns).map(&:to_s)) &&
+          (name.nil? || self.name == name.to_s) &&
+          (unique.nil? || self.unique == unique) &&
+          (valid.nil? || self.valid == valid)
       end
 
       private
@@ -171,6 +184,20 @@ module ActiveRecord
         end
       end
 
+      def add(table_name, connection)
+        columns.each do |name, type, options|
+          connection.add_column(table_name, name, type, **options)
+        end
+
+        if index
+          connection.add_index(table_name, column_names, **index_options(table_name))
+        end
+
+        if foreign_key
+          connection.add_foreign_key(table_name, foreign_table_name, **foreign_key_options)
+        end
+      end
+
       def add_to(table)
         columns.each do |name, type, options|
           table.column(name, type, **options)
@@ -192,8 +219,12 @@ module ActiveRecord
           value.is_a?(Hash) ? value : {}
         end
 
+        def conditional_options
+          options.slice(:if_exists, :if_not_exists)
+        end
+
         def polymorphic_options
-          as_options(polymorphic).merge(options.slice(:null, :first, :after))
+          as_options(polymorphic).merge(conditional_options).merge(options.slice(:null, :first, :after))
         end
 
         def polymorphic_index_name(table_name)
@@ -201,13 +232,17 @@ module ActiveRecord
         end
 
         def index_options(table_name)
-          index_options = as_options(index)
+          index_options = as_options(index).merge(conditional_options)
+
+          # legacy reference index names are used on versions 6.0 and earlier
+          return index_options if options[:_uses_legacy_reference_index_name]
+
           index_options[:name] ||= polymorphic_index_name(table_name) if polymorphic
           index_options
         end
 
         def foreign_key_options
-          as_options(foreign_key).merge(column: column_name)
+          as_options(foreign_key).merge(column: column_name, **conditional_options)
         end
 
         def columns
@@ -282,7 +317,7 @@ module ActiveRecord
     # Inside migration files, the +t+ object in {create_table}[rdoc-ref:SchemaStatements#create_table]
     # is actually of this type:
     #
-    #   class SomeMigration < ActiveRecord::Migration[7.0]
+    #   class SomeMigration < ActiveRecord::Migration[7.1]
     #     def up
     #       create_table :foo do |t|
     #         puts t.class  # => "ActiveRecord::ConnectionAdapters::TableDefinition"
@@ -622,6 +657,7 @@ module ActiveRecord
       #
       # See TableDefinition#column for details of the options you can use.
       def column(column_name, type, index: nil, **options)
+        raise_on_if_exist_options(options)
         @base.add_column(name, column_name, type, **options)
         if index
           index_options = index.is_a?(Hash) ? index : {}
@@ -647,6 +683,7 @@ module ActiveRecord
       #
       # See {connection.add_index}[rdoc-ref:SchemaStatements#add_index] for details of the options you can use.
       def index(column_name, **options)
+        raise_on_if_exist_options(options)
         @base.add_index(name, column_name, **options)
       end
 
@@ -657,8 +694,8 @@ module ActiveRecord
       #  end
       #
       # See {connection.index_exists?}[rdoc-ref:SchemaStatements#index_exists?]
-      def index_exists?(column_name, options = {})
-        @base.index_exists?(name, column_name, options)
+      def index_exists?(column_name, **options)
+        @base.index_exists?(name, column_name, **options)
       end
 
       # Renames the given index on the table.
@@ -676,6 +713,7 @@ module ActiveRecord
       #
       # See {connection.add_timestamps}[rdoc-ref:SchemaStatements#add_timestamps]
       def timestamps(**options)
+        raise_on_if_exist_options(options)
         @base.add_timestamps(name, **options)
       end
 
@@ -686,6 +724,7 @@ module ActiveRecord
       #
       # See TableDefinition#column for details of the options you can use.
       def change(column_name, type, **options)
+        raise_on_if_exist_options(options)
         @base.change_column(name, column_name, type, **options)
       end
 
@@ -717,6 +756,7 @@ module ActiveRecord
       #
       # See {connection.remove_columns}[rdoc-ref:SchemaStatements#remove_columns]
       def remove(*column_names, **options)
+        raise_on_if_exist_options(options)
         @base.remove_columns(name, *column_names, **options)
       end
 
@@ -729,6 +769,7 @@ module ActiveRecord
       #
       # See {connection.remove_index}[rdoc-ref:SchemaStatements#remove_index]
       def remove_index(column_name = nil, **options)
+        raise_on_if_exist_options(options)
         @base.remove_index(name, column_name, **options)
       end
 
@@ -757,6 +798,7 @@ module ActiveRecord
       #
       # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference] for details of the options you can use.
       def references(*args, **options)
+        raise_on_if_exist_options(options)
         args.each do |ref_name|
           @base.add_reference(name, ref_name, **options)
         end
@@ -770,6 +812,7 @@ module ActiveRecord
       #
       # See {connection.remove_reference}[rdoc-ref:SchemaStatements#remove_reference]
       def remove_references(*args, **options)
+        raise_on_if_exist_options(options)
         args.each do |ref_name|
           @base.remove_reference(name, ref_name, **options)
         end
@@ -783,6 +826,7 @@ module ActiveRecord
       #
       # See {connection.add_foreign_key}[rdoc-ref:SchemaStatements#add_foreign_key]
       def foreign_key(*args, **options)
+        raise_on_if_exist_options(options)
         @base.add_foreign_key(name, *args, **options)
       end
 
@@ -793,6 +837,7 @@ module ActiveRecord
       #
       # See {connection.remove_foreign_key}[rdoc-ref:SchemaStatements#remove_foreign_key]
       def remove_foreign_key(*args, **options)
+        raise_on_if_exist_options(options)
         @base.remove_foreign_key(name, *args, **options)
       end
 
@@ -810,8 +855,8 @@ module ActiveRecord
       #  t.check_constraint("price > 0", name: "price_check")
       #
       # See {connection.add_check_constraint}[rdoc-ref:SchemaStatements#add_check_constraint]
-      def check_constraint(*args)
-        @base.add_check_constraint(name, *args)
+      def check_constraint(*args, **options)
+        @base.add_check_constraint(name, *args, **options)
       end
 
       # Removes the given check constraint from the table.
@@ -819,9 +864,25 @@ module ActiveRecord
       #  t.remove_check_constraint(name: "price_check")
       #
       # See {connection.remove_check_constraint}[rdoc-ref:SchemaStatements#remove_check_constraint]
-      def remove_check_constraint(*args)
-        @base.remove_check_constraint(name, *args)
+      def remove_check_constraint(*args, **options)
+        @base.remove_check_constraint(name, *args, **options)
       end
+
+      private
+        def raise_on_if_exist_options(options)
+          unrecognized_option = options.keys.find do |key|
+            key == :if_exists || key == :if_not_exists
+          end
+          if unrecognized_option
+            conditional = unrecognized_option == :if_exists ? "if" : "unless"
+            message = <<~TXT
+              Option #{unrecognized_option} will be ignored. If you are calling an expression like
+              `t.column(.., #{unrecognized_option}: true)` from inside a change_table block, try a
+              conditional clause instead, as in `t.column(..) #{conditional} t.column_exists?(..)`
+            TXT
+            raise ArgumentError.new(message)
+          end
+        end
     end
   end
 end

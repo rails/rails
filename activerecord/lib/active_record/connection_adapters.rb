@@ -11,7 +11,6 @@ module ActiveRecord
     autoload :Column
     autoload :PoolConfig
     autoload :PoolManager
-    autoload :LegacyPoolManager
     autoload :SchemaCache
     autoload :Deduplicable
 

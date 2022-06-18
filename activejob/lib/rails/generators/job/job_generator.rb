@@ -5,8 +5,6 @@ require "rails/generators/named_base"
 module Rails # :nodoc:
   module Generators # :nodoc:
     class JobGenerator < Rails::Generators::NamedBase # :nodoc:
-      desc "This generator creates an active job file at app/jobs"
-
       class_option :queue, type: :string, default: "default", desc: "The queue name for the generated job"
 
       check_class_collision suffix: "Job"

@@ -8,6 +8,10 @@ ActiveRecord::Schema.define do
   #                                                                     #
   # ------------------------------------------------------------------- #
 
+  create_table :"1_need_quoting", force: true do |t|
+    t.string :name
+  end
+
   create_table :accounts, force: true do |t|
     t.references :firm, index: false
     t.string  :firm_name
@@ -38,6 +42,7 @@ ActiveRecord::Schema.define do
     t.string :name
     t.integer :wheels_count, default: 0, null: false
     t.datetime :wheels_owned_at
+    t.timestamp :manufactured_at, default: -> { "CURRENT_TIMESTAMP" }
   end
 
   create_table :articles, force: true do |t|
@@ -51,6 +56,10 @@ ActiveRecord::Schema.define do
   create_table :articles_tags, force: true do |t|
     t.references :article
     t.references :tag
+  end
+
+  create_table :attachments, force: true do |t|
+    t.references :record, polymorphic: true, null: false
   end
 
   create_table :audit_logs, force: true do |t|
@@ -132,7 +141,7 @@ ActiveRecord::Schema.define do
   create_table :encrypted_books, id: :integer, force: true do |t|
     t.references :author
     t.string :format
-    t.column :name, :string
+    t.column :name, :string, default: "<untitled>"
     t.column :original_name, :string
 
     t.datetime :created_at
@@ -142,6 +151,10 @@ ActiveRecord::Schema.define do
   create_table :booleans, force: true do |t|
     t.boolean :value
     t.boolean :has_fun, null: false, default: false
+  end
+
+  create_table :branches, force: true do |t|
+    t.references :branch
   end
 
   create_table :bulbs, primary_key: "ID", force: true do |t|
@@ -729,6 +742,7 @@ ActiveRecord::Schema.define do
   disable_referential_integrity do
     create_table :parrots, force: :cascade do |t|
       t.string :name
+      t.integer :breed, default: 0
       t.string :color
       t.string :parrot_sti_class
       t.integer :killer_id
@@ -1097,6 +1111,13 @@ ActiveRecord::Schema.define do
     t.datetime :updated_at
   end
 
+  create_table :translations, force: true do |t|
+    t.string :locale, null: false
+    t.string :key, null: false
+    t.string :value, null: false
+    t.references :attachment
+  end
+
   create_table :tuning_pegs, force: true do |t|
     t.integer :guitar_id
     t.float :pitch
@@ -1268,6 +1289,8 @@ ActiveRecord::Schema.define do
   create_table :users, force: true do |t|
     t.string :token
     t.string :auth_token
+    t.string :password_digest
+    t.string :recovery_password_digest
   end
 
   create_table :test_with_keyword_column_name, force: true do |t|

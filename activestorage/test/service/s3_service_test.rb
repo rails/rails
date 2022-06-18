@@ -125,6 +125,26 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.delete key
     end
 
+    test "upload with custom_metadata" do
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+      @service.upload(
+        key,
+        StringIO.new(data),
+        checksum: Digest::MD5.base64digest(data),
+        content_type: "text/plain",
+        custom_metadata: { "foo" => "baz" },
+        filename: "custom_metadata.txt"
+      )
+
+      url = @service.url(key, expires_in: 2.minutes, disposition: :inline, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
+
+      response = Net::HTTP.get_response(URI(url))
+      assert_equal("baz", response["x-amz-meta-foo"])
+    ensure
+      @service.delete key
+    end
+
     test "upload with content disposition" do
       key  = SecureRandom.base58(24)
       data = "Something else entirely!"

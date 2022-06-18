@@ -26,10 +26,10 @@ module ActionText
       #   Message.all.with_rich_text_content_and_embeds # Avoids N+1 queries when you just want the body and attachments.
       #   Message.all.with_all_rich_text # Loads all rich text associations.
       #
-      #  === Options
+      # ==== Options
       #
-      #  * <tt>:encrypted</tt> - Pass true to encrypt the rich text attribute. The encryption will be non-deterministic. See
-      #  +ActiveRecord::Encryption::EncryptableRecord.encrypts+. Default: false.
+      # * <tt>:encrypted</tt> - Pass true to encrypt the rich text attribute. The encryption will be non-deterministic. See
+      #   +ActiveRecord::Encryption::EncryptableRecord.encrypts+. Default: false.
       def has_rich_text(name, encrypted: false)
         class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}

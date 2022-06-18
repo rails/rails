@@ -10,10 +10,13 @@ module ActiveRecord
 
         def records_by_owner
           return @records_by_owner if defined?(@records_by_owner)
-          source_records_by_owner = source_preloaders.map(&:records_by_owner).reduce(:merge)
-          through_records_by_owner = through_preloaders.map(&:records_by_owner).reduce(:merge)
 
           @records_by_owner = owners.each_with_object({}) do |owner, result|
+            if loaded?(owner)
+              result[owner] = target_for(owner)
+              next
+            end
+
             through_records = through_records_by_owner[owner] || []
 
             if owners.first.association(through_reflection.name).loaded?
@@ -35,12 +38,6 @@ module ActiveRecord
           end
         end
 
-        def data_available?
-          return true if super()
-          through_preloaders.all?(&:run?) &&
-            source_preloaders.all?(&:run?)
-        end
-
         def runnable_loaders
           if data_available?
             [self]
@@ -52,7 +49,7 @@ module ActiveRecord
         end
 
         def future_classes
-          if run? || data_available?
+          if run?
             []
           elsif through_preloaders.all?(&:run?)
             source_preloaders.flat_map(&:future_classes).uniq
@@ -67,6 +64,11 @@ module ActiveRecord
         end
 
         private
+          def data_available?
+            owners.all? { |owner| loaded?(owner) } ||
+              through_preloaders.all?(&:run?) && source_preloaders.all?(&:run?)
+          end
+
           def source_preloaders
             @source_preloaders ||= ActiveRecord::Associations::Preloader.new(records: middle_records, associations: source_reflection.name, scope: scope, associate_by_default: false).loaders
           end
@@ -85,6 +87,14 @@ module ActiveRecord
 
           def source_reflection
             reflection.source_reflection
+          end
+
+          def source_records_by_owner
+            @source_records_by_owner ||= source_preloaders.map(&:records_by_owner).reduce(:merge)
+          end
+
+          def through_records_by_owner
+            @through_records_by_owner ||= through_preloaders.map(&:records_by_owner).reduce(:merge)
           end
 
           def preload_index

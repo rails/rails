@@ -92,7 +92,7 @@ module ActionDispatch
         scope = Mapper::Scope.new({})
         ast = Journey::Parser.parse "/store/:name(*rest)"
         m = Mapper::Mapping.build(scope, FakeSet.new, ast, "foo", "bar", nil, [:get], nil, {}, true, options)
-        assert_equal(/.+?/, m.requirements[:rest])
+        assert_equal(/.+?/m, m.requirements[:rest])
       end
 
       def test_via_scope
@@ -137,7 +137,7 @@ module ActionDispatch
         mapper = Mapper.new fakeset
         mapper.get "/*path", to: "pages#show"
         assert_equal "/*path(.:format)", fakeset.asts.first.to_s
-        assert_equal(/.+?/, fakeset.requirements.first[:path])
+        assert_equal(/.+?/m, fakeset.requirements.first[:path])
       end
 
       def test_map_wildcard_with_other_element
@@ -145,7 +145,7 @@ module ActionDispatch
         mapper = Mapper.new fakeset
         mapper.get "/*path/foo/:bar", to: "pages#show"
         assert_equal "/*path/foo/:bar(.:format)", fakeset.asts.first.to_s
-        assert_equal(/.+?/, fakeset.requirements.first[:path])
+        assert_equal(/.+?/m, fakeset.requirements.first[:path])
       end
 
       def test_map_wildcard_with_multiple_wildcard
@@ -153,8 +153,8 @@ module ActionDispatch
         mapper = Mapper.new fakeset
         mapper.get "/*foo/*bar", to: "pages#show"
         assert_equal "/*foo/*bar(.:format)", fakeset.asts.first.to_s
-        assert_equal(/.+?/, fakeset.requirements.first[:foo])
-        assert_equal(/.+?/, fakeset.requirements.first[:bar])
+        assert_equal(/.+?/m, fakeset.requirements.first[:foo])
+        assert_equal(/.+?/m, fakeset.requirements.first[:bar])
       end
 
       def test_map_wildcard_with_format_false

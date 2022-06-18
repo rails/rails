@@ -2,11 +2,9 @@
 
 require "zlib"
 require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/numeric/bytes"
-require "active_support/core_ext/numeric/time"
 require "active_support/core_ext/object/to_param"
 require "active_support/core_ext/object/try"
 require "active_support/core_ext/string/inflections"
@@ -141,13 +139,16 @@ module ActiveSupport
     # Some implementations may not support all methods beyond the basic cache
     # methods of +fetch+, +write+, +read+, +exist?+, and +delete+.
     #
-    # ActiveSupport::Cache::Store can store any serializable Ruby object.
+    # ActiveSupport::Cache::Store can store any Ruby object that is supported by
+    # its +coder+'s +dump+ and +load+ methods.
     #
     #   cache = ActiveSupport::Cache::MemoryStore.new
     #
     #   cache.read('city')   # => nil
     #   cache.write('city', "Duckburgh")
     #   cache.read('city')   # => "Duckburgh"
+    #
+    #   cache.write('not serializable', Proc.new {}) # => TypeError
     #
     # Keys are always translated into Strings and are case sensitive. When an
     # object is specified as a key and has a +cache_key+ method defined, this
@@ -182,18 +183,39 @@ module ActiveSupport
 
       class << self
         private
-          def retrieve_pool_options(options)
-            {}.tap do |pool_options|
-              pool_options[:size] = options.delete(:pool_size) if options[:pool_size]
-              pool_options[:timeout] = options.delete(:pool_timeout) if options[:pool_timeout]
-            end
-          end
+          DEFAULT_POOL_OPTIONS = { size: 5, timeout: 5 }.freeze
+          private_constant :DEFAULT_POOL_OPTIONS
 
-          def ensure_connection_pool_added!
-            require "connection_pool"
-          rescue LoadError => e
-            $stderr.puts "You don't have connection_pool installed in your application. Please add it to your Gemfile and run bundle install"
-            raise e
+          def retrieve_pool_options(options)
+            unless options.key?(:pool) || options.key?(:pool_size) || options.key?(:pool_timeout)
+              options[:pool] = true
+            end
+
+            if (pool_options = options.delete(:pool))
+              if Hash === pool_options
+                DEFAULT_POOL_OPTIONS.merge(pool_options)
+              else
+                DEFAULT_POOL_OPTIONS
+              end
+            else
+              {}.tap do |pool_options|
+                if options[:pool_size]
+                  ActiveSupport::Deprecation.warn(<<~MSG)
+                    Using :pool_size is deprecated and will be removed in Rails 7.2.
+                    Use `pool: { size: #{options[:pool_size].inspect} }` instead.
+                  MSG
+                  pool_options[:size] = options.delete(:pool_size)
+                end
+
+                if options[:pool_timeout]
+                  ActiveSupport::Deprecation.warn(<<~MSG)
+                    Using :pool_timeout is deprecated and will be removed in Rails 7.2.
+                    Use `pool: { timeout: #{options[:pool_timeout].inspect} }` instead.
+                  MSG
+                  pool_options[:timeout] = options.delete(:pool_timeout)
+                end
+              end
+            end
           end
       end
 
@@ -455,7 +477,8 @@ module ActiveSupport
       #   # => { "bim" => "bam",
       #   #      "unknown_key" => "Fallback value for key: unknown_key" }
       #
-      # Options are passed to the underlying cache implementation. For example:
+      # You may also specify additional options via the +options+ argument. See #fetch for details.
+      # Other options are passed to the underlying cache implementation. For example:
       #
       #   cache.fetch_multi("fizz", expires_in: 5.seconds) do |key|
       #     "buzz"
@@ -473,7 +496,12 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument :read_multi, names, options do |payload|
-          reads   = read_multi_entries(names, **options)
+          if options[:force]
+            reads = {}
+          else
+            reads = read_multi_entries(names, **options)
+          end
+
           writes  = {}
           ordered = names.index_with do |name|
             reads.fetch(name) { writes[name] = yield(name) }
@@ -677,6 +705,13 @@ module ActiveSupport
         def merged_options(call_options)
           if call_options
             call_options = normalize_options(call_options)
+            if call_options.key?(:expires_in) && call_options.key?(:expires_at)
+              raise ArgumentError, "Either :expires_in or :expires_at can be supplied, but not both"
+            end
+
+            expires_at = call_options.delete(:expires_at)
+            call_options[:expires_in] = (expires_at - Time.now) if expires_at
+
             if options.empty?
               call_options
             else
@@ -835,7 +870,7 @@ module ActiveSupport
           when 7.0
             Rails70Coder
           else
-            raise ArgumentError, "Unknown ActiveSupport::Cache.format_version #{Cache.format_version.inspect}"
+            raise ArgumentError, "Unknown ActiveSupport::Cache.format_version: #{Cache.format_version.inspect}"
           end
         end
       end

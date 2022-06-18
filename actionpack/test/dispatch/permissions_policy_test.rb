@@ -140,3 +140,85 @@ class PermissionsPolicyIntegrationTest < ActionDispatch::IntegrationTest
       assert_equal expected, response.headers["Feature-Policy"]
     end
 end
+
+class PermissionsPolicyWithHelpersIntegrationTest < ActionDispatch::IntegrationTest
+  module ApplicationHelper
+    def pigs_can_fly?
+      false
+    end
+  end
+
+  class ApplicationController < ActionController::Base
+    helper_method :sky_is_blue?
+    def sky_is_blue?
+      true
+    end
+  end
+
+  class PolicyController < ApplicationController
+    permissions_policy do |f|
+      f.gyroscope :none  unless helpers.pigs_can_fly?
+      f.usb       :self  if helpers.sky_is_blue?
+    end
+
+    def index
+      head :ok
+    end
+  end
+
+  ROUTES = ActionDispatch::Routing::RouteSet.new
+  ROUTES.draw do
+    scope module: "permissions_policy_with_helpers_integration_test" do
+      get "/", to: "policy#index"
+    end
+  end
+
+  POLICY = ActionDispatch::PermissionsPolicy.new do |p|
+    p.gyroscope :self
+  end
+
+  class PolicyConfigMiddleware
+    def initialize(app)
+      @app = app
+    end
+
+    def call(env)
+      env["action_dispatch.permissions_policy"] = POLICY
+      env["action_dispatch.show_exceptions"] = false
+
+      @app.call(env)
+    end
+  end
+
+  APP = build_app(ROUTES) do |middleware|
+    middleware.use PolicyConfigMiddleware
+    middleware.use ActionDispatch::PermissionsPolicy::Middleware
+  end
+
+  def app
+    APP
+  end
+
+  def test_generates_permissions_policy_header
+    get "/"
+    assert_policy "gyroscope 'none'; usb 'self'"
+  end
+
+  private
+    def env_config
+      Rails.application.env_config
+    end
+
+    def permissions_policy
+      env_config["action_dispatch.permissions_policy"]
+    end
+
+    def permissions_policy=(policy)
+      env_config["action_dispatch.permissions_policy"] = policy
+    end
+
+    def assert_policy(expected)
+      assert_response :success
+      assert_equal expected, response.headers["Feature-Policy"]
+    end
+end

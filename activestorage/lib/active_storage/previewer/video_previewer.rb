@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "shellwords"
+
 module ActiveStorage
   class Previewer::VideoPreviewer < Previewer
     class << self

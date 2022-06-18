@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/inflections"
-require "active_support/core_ext/object/blank"
 
 module ActiveSupport
   # The Inflector transforms words from singular to plural, class names to table
@@ -97,7 +96,7 @@ module ActiveSupport
       return camel_cased_word.to_s unless /[A-Z-]|::/.match?(camel_cased_word)
       word = camel_cased_word.to_s.gsub("::", "/")
       word.gsub!(inflections.acronyms_underscore_regex) { "#{$1 && '_' }#{$2.downcase}" }
-      word.gsub!(/([A-Z\d]+)(?=[A-Z][a-z])|([a-z\d])(?=[A-Z])/) { ($1 || $2) << "_" }
+      word.gsub!(/([A-Z]+)(?=[A-Z][a-z])|([a-z\d])(?=[A-Z])/) { ($1 || $2) << "_" }
       word.tr!("-", "_")
       word.downcase!
       word
@@ -109,7 +108,7 @@ module ActiveSupport
     #
     # * Applies human inflection rules to the argument.
     # * Deletes leading underscores, if any.
-    # * Removes a "_id" suffix if present.
+    # * Removes an "_id" suffix if present.
     # * Replaces underscores with spaces, if any.
     # * Downcases all words except acronyms.
     # * Capitalizes the first word.
@@ -347,7 +346,7 @@ module ActiveSupport
       def const_regexp(camel_cased_word)
         parts = camel_cased_word.split("::")
 
-        return Regexp.escape(camel_cased_word) if parts.blank?
+        return Regexp.escape(camel_cased_word) if parts.empty?
 
         last = parts.pop
 

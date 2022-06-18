@@ -7,9 +7,6 @@ require "uri/common"
 module ActiveSupport
   module Cache
     # A cache store implementation which stores everything on the filesystem.
-    #
-    # FileStore implements the Strategy::LocalCache strategy which implements
-    # an in-memory cache inside of a block.
     class FileStore < Store
       attr_reader :cache_path
 
@@ -46,14 +43,33 @@ module ActiveSupport
         end
       end
 
-      # Increments an already existing integer value that is stored in the cache.
-      # If the key is not found nothing is done.
+      # Increment a cached integer value. Returns the updated value.
+      #
+      # If the key is unset, it starts from +0+:
+      #
+      #   cache.increment("foo") # => 1
+      #   cache.increment("bar", 100) # => 100
+      #
+      # To set a specific value, call #write:
+      #
+      #   cache.write("baz", 5)
+      #   cache.increment("baz") # => 6
+      #
       def increment(name, amount = 1, options = nil)
         modify_value(name, amount, options)
       end
 
-      # Decrements an already existing integer value that is stored in the cache.
-      # If the key is not found nothing is done.
+      # Decrement a cached integer value. Returns the updated value.
+      #
+      # If the key is unset, it will be set to +-amount+.
+      #
+      #   cache.decrement("foo") # => -1
+      #
+      # To set a specific value, call #write:
+      #
+      #   cache.write("baz", 5)
+      #   cache.decrement("baz") # => 4
+      #
       def decrement(name, amount = 1, options = nil)
         modify_value(name, -amount, options)
       end
@@ -182,8 +198,8 @@ module ActiveSupport
           end
         end
 
-        # Modifies the amount of an already existing integer value that is stored in the cache.
-        # If the key is not found nothing is done.
+        # Modifies the amount of an integer value that is stored in the cache.
+        # If the key is not found it is created and set to +amount+.
         def modify_value(name, amount, options)
           file_name = normalize_key(name, options)
 
@@ -194,6 +210,9 @@ module ActiveSupport
               num = num.to_i + amount
               write(name, num, options)
               num
+            else
+              write(name, Integer(amount), options)
+              amount
             end
           end
         end

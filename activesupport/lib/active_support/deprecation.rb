@@ -4,7 +4,7 @@ require "singleton"
 
 module ActiveSupport
   # \Deprecation specifies the API used by Rails to deprecate methods, instance
-  # variables, objects and constants.
+  # variables, objects, and constants.
   class Deprecation
     # active_support.rb sets an autoload for ActiveSupport::Deprecation.
     #
@@ -38,7 +38,7 @@ module ActiveSupport
     # and the second is a library name.
     #
     #   ActiveSupport::Deprecation.new('2.0', 'MyLibrary')
-    def initialize(deprecation_horizon = "7.1", gem_name = "Rails")
+    def initialize(deprecation_horizon = "7.2", gem_name = "Rails")
       self.gem_name = gem_name
       self.deprecation_horizon = deprecation_horizon
       # By default, warnings are not silenced and debugging is off.

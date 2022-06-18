@@ -118,13 +118,15 @@ if current_adapter?(:PostgreSQLAdapter)
       output = dump_table_schema("defaults")
       if ActiveRecord::Base.connection.database_version >= 100000
         assert_match %r/t\.date\s+"modified_date",\s+default: -> { "CURRENT_DATE" }/, output
-        assert_match %r/t\.datetime\s+"modified_time",\s+precision: 6,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+        assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       else
         assert_match %r/t\.date\s+"modified_date",\s+default: -> { "\('now'::text\)::date" }/, output
-        assert_match %r/t\.datetime\s+"modified_time",\s+precision: 6,\s+default: -> { "now\(\)" }/, output
+        assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "now\(\)" }/, output
       end
       assert_match %r/t\.date\s+"modified_date_function",\s+default: -> { "now\(\)" }/, output
-      assert_match %r/t\.datetime\s+"modified_time_function",\s+precision: 6,\s+default: -> { "now\(\)" }/, output
+      assert_match %r/t\.datetime\s+"modified_time_function",\s+default: -> { "now\(\)" }/, output
+      assert_match %r/t\.datetime\s+"modified_time_without_precision",\s+precision: nil,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+      assert_match %r/t\.datetime\s+"modified_time_with_precision_0",\s+precision: 0,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
     end
   end
 end
@@ -143,12 +145,17 @@ if current_adapter?(:Mysql2Adapter)
     if supports_datetime_with_precision?
       test "schema dump datetime includes default expression" do
         output = dump_table_schema("datetime_defaults")
-        assert_match %r/t\.datetime\s+"modified_datetime",\s+default: -> { "CURRENT_TIMESTAMP(?:\(\))?" }/i, output
+        assert_match %r/t\.datetime\s+"modified_datetime",\s+precision: nil,\s+default: -> { "CURRENT_TIMESTAMP(?:\(\))?" }/i, output
       end
 
       test "schema dump datetime includes precise default expression" do
         output = dump_table_schema("datetime_defaults")
-        assert_match %r/t\.datetime\s+"precise_datetime",.+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
+        assert_match %r/t\.datetime\s+"precise_datetime",\s+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
+      end
+
+      test "schema dump datetime includes precise default expression with on update" do
+        output = dump_table_schema("datetime_defaults")
+        assert_match %r/t\.datetime\s+"updated_datetime",\s+default: -> { "CURRENT_TIMESTAMP\(6\) ON UPDATE CURRENT_TIMESTAMP\(6\)" }/i, output
       end
 
       test "schema dump timestamp includes default expression" do
@@ -159,6 +166,11 @@ if current_adapter?(:Mysql2Adapter)
       test "schema dump timestamp includes precise default expression" do
         output = dump_table_schema("timestamp_defaults")
         assert_match %r/t\.timestamp\s+"precise_timestamp",.+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
+      end
+
+      test "schema dump timestamp includes precise default expression with on update" do
+        output = dump_table_schema("timestamp_defaults")
+        assert_match %r/t\.timestamp\s+"updated_timestamp",.+default: -> { "CURRENT_TIMESTAMP\(6\) ON UPDATE CURRENT_TIMESTAMP\(6\)" }/i, output
       end
 
       test "schema dump timestamp without default expression" do
@@ -249,6 +261,21 @@ if current_adapter?(:Mysql2Adapter)
       yield klass
     ensure
       klass.connection.drop_table(klass.table_name) rescue nil
+    end
+  end
+end
+
+if current_adapter?(:SQLite3Adapter)
+  class Sqlite3DefaultExpressionTest < ActiveRecord::TestCase
+    include SchemaDumpingHelper
+
+    test "schema dump includes default expression" do
+      output = dump_table_schema("defaults")
+      assert_match %r/t\.date\s+"modified_date",\s+default: -> { "CURRENT_DATE" }/, output
+      assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+      assert_match %r/t\.datetime\s+"modified_time_without_precision",\s+precision: nil,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+      assert_match %r/t\.datetime\s+"modified_time_with_precision_0",\s+precision: 0,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+      assert_match %r/t\.integer\s+"random_number",\s+default: -> { "random\(\)" }/, output
     end
   end
 end

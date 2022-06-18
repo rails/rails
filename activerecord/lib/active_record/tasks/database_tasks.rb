@@ -55,8 +55,7 @@ module ActiveRecord
 
       extend self
 
-      attr_writer :current_config, :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
-      deprecate :current_config=
+      attr_writer :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
       attr_accessor :database_configuration
 
       LOCAL_HOSTS = ["127.0.0.1", "localhost"]
@@ -110,11 +109,6 @@ module ActiveRecord
         @env ||= Rails.env
       end
 
-      def spec
-        @spec ||= "primary"
-      end
-      deprecate spec: "please use name instead"
-
       def name
         @name ||= "primary"
       end
@@ -122,18 +116,6 @@ module ActiveRecord
       def seed_loader
         @seed_loader ||= Rails.application
       end
-
-      def current_config(options = {})
-        if options.has_key?(:config)
-          @current_config = options[:config]
-        else
-          env_name = options[:env] || env
-          name = options[:spec] || "primary"
-
-          @current_config ||= configs_for(env_name: env_name, name: name)&.configuration_hash
-        end
-      end
-      deprecate :current_config
 
       def create(configuration, *arguments)
         db_config = resolve_configuration(configuration)
@@ -206,30 +188,31 @@ module ActiveRecord
       def prepare_all
         seed = false
 
-        configs_for(env_name: env).each do |db_config|
+        each_current_configuration(env) do |db_config|
           ActiveRecord::Base.establish_connection(db_config)
 
-          # Skipped when no database
-          migrate
-
-          if ActiveRecord.dump_schema_after_migration
-            dump_schema(db_config, ActiveRecord.schema_format)
-          end
-        rescue ActiveRecord::NoDatabaseError
-          config_name = db_config.name
-          create_current(db_config.env_name, config_name)
-
-          if File.exist?(dump_filename(config_name))
-            load_schema(
-              db_config,
-              ActiveRecord.schema_format,
-              nil
-            )
-          else
+          begin
+            # Skipped when no database
             migrate
-          end
 
-          seed = true
+            if ActiveRecord.dump_schema_after_migration
+              dump_schema(db_config, ActiveRecord.schema_format)
+            end
+          rescue ActiveRecord::NoDatabaseError
+            create(db_config)
+
+            if File.exist?(schema_dump_path(db_config))
+              load_schema(
+                db_config,
+                ActiveRecord.schema_format,
+                nil
+              )
+            else
+              migrate
+            end
+
+            seed = true
+          end
         end
 
         ActiveRecord::Base.establish_connection
@@ -276,8 +259,12 @@ module ActiveRecord
         scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose?
 
-        Base.connection.migration_context.migrate(target_version || version) do |migration|
-          scope.blank? || scope == migration.scope
+        Base.connection.migration_context.migrate(target_version) do |migration|
+          if version.blank?
+            scope.blank? || scope == migration.scope
+          else
+            migration.version == version
+          end
         end.tap do |migrations_ran|
           Migration.write("No migrations ran. (using #{scope} scope)") if scope.present? && migrations_ran.empty?
         end
@@ -320,7 +307,7 @@ module ActiveRecord
       end
 
       def check_target_version
-        if target_version && !(Migration::MigrationFilenameRegexp.match?(ENV["VERSION"]) || /\A\d+\z/.match?(ENV["VERSION"]))
+        if target_version && !Migration.valid_version_format?(ENV["VERSION"])
           raise "Invalid format of target version: `VERSION=#{ENV['VERSION']}`"
         end
       end
@@ -378,7 +365,8 @@ module ActiveRecord
       end
 
       def load_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
-        file ||= dump_filename(db_config.name, format)
+        file ||= schema_dump_path(db_config, format)
+        return unless file
 
         verbose_was, Migration.verbose = Migration.verbose, verbose? && ENV["VERBOSE"]
         check_schema_file(file)
@@ -399,18 +387,12 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def schema_up_to_date?(configuration, format = ActiveRecord.schema_format, file = nil, environment = nil, name = nil)
+      def schema_up_to_date?(configuration, format = ActiveRecord.schema_format, file = nil)
         db_config = resolve_configuration(configuration)
 
-        if environment || name
-          ActiveSupport::Deprecation.warn("`environment` and `name` will be removed as parameters in 7.0.0, you may now pass an ActiveRecord::DatabaseConfigurations::DatabaseConfig as `configuration` instead.")
-        end
+        file ||= schema_dump_path(db_config)
 
-        name ||= db_config.name
-
-        file ||= dump_filename(name, format)
-
-        return true unless File.exist?(file)
+        return true unless file && File.exist?(file)
 
         ActiveRecord::Base.establish_connection(db_config)
 
@@ -421,9 +403,9 @@ module ActiveRecord
       end
 
       def reconstruct_from_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
-        file ||= dump_filename(db_config.name, format)
+        file ||= schema_dump_path(db_config, format)
 
-        check_schema_file(file)
+        check_schema_file(file) if file
 
         ActiveRecord::Base.establish_connection(db_config)
 
@@ -440,7 +422,9 @@ module ActiveRecord
 
       def dump_schema(db_config, format = ActiveRecord.schema_format) # :nodoc:
         require "active_record/schema_dumper"
-        filename = dump_filename(db_config.name, format)
+        filename = schema_dump_path(db_config, format)
+        return unless filename
+
         connection = ActiveRecord::Base.connection
 
         FileUtils.mkdir_p(db_dir)
@@ -460,11 +444,6 @@ module ActiveRecord
         end
       end
 
-      def schema_file(format = ActiveRecord.schema_format)
-        File.join(db_dir, schema_file_type(format))
-      end
-      deprecate :schema_file
-
       def schema_file_type(format = ActiveRecord.schema_format)
         case format
         when :ruby
@@ -473,15 +452,19 @@ module ActiveRecord
           "structure.sql"
         end
       end
+      deprecate :schema_file_type
 
-      def dump_filename(db_config_name, format = ActiveRecord.schema_format)
-        filename = if ActiveRecord::Base.configurations.primary?(db_config_name)
-          schema_file_type(format)
+      def schema_dump_path(db_config, format = ActiveRecord.schema_format)
+        return ENV["SCHEMA"] if ENV["SCHEMA"]
+
+        filename = db_config.schema_dump(format)
+        return unless filename
+
+        if File.dirname(filename) == ActiveRecord::Tasks::DatabaseTasks.db_dir
+          filename
         else
-          "#{db_config_name}_#{schema_file_type(format)}"
+          File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
         end
-
-        ENV["SCHEMA"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
       end
 
       def cache_dump_filename(db_config_name, schema_cache_path: nil)

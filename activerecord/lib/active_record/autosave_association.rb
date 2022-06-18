@@ -404,6 +404,8 @@ module ActiveRecord
               saved = true
 
               if autosave != false && (new_record_before_save || record.new_record?)
+                association.set_inverse_instance(record)
+
                 if autosave
                   saved = association.insert_record(record, false)
                 elsif !reflection.nested?
@@ -444,12 +446,10 @@ module ActiveRecord
           elsif autosave != false
             key = reflection.options[:primary_key] ? public_send(reflection.options[:primary_key]) : id
 
-            if (autosave && record.changed_for_autosave?) || record_changed?(reflection, record, key)
+            if (autosave && record.changed_for_autosave?) || _record_changed?(reflection, record, key)
               unless reflection.through_reflection
                 record[reflection.foreign_key] = key
-                if inverse_reflection = reflection.inverse_of
-                  record.association(inverse_reflection.name).inversed_from(self)
-                end
+                association.set_inverse_instance(record)
               end
 
               saved = record.save(validate: !autosave)
@@ -461,7 +461,7 @@ module ActiveRecord
       end
 
       # If the record is new or it has changed, returns true.
-      def record_changed?(reflection, record, key)
+      def _record_changed?(reflection, record, key)
         record.new_record? ||
           association_foreign_key_changed?(reflection, record, key) ||
           record.will_save_change_to_attribute?(reflection.foreign_key)

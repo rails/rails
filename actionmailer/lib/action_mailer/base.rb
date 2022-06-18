@@ -107,7 +107,7 @@ module ActionMailer
   #   You got a new note!
   #   <%= truncate(@note.body, length: 25) %>
   #
-  # If you need to access the subject, from or the recipients in the view, you can do that through message object:
+  # If you need to access the subject, from, or the recipients in the view, you can do that through message object:
   #
   #   You got a new note from <%= message.from %>!
   #   <%= truncate(@note.body, length: 25) %>
@@ -150,9 +150,9 @@ module ActionMailer
   #   mail = NotifierMailer.welcome(User.first)      # => an ActionMailer::MessageDelivery object
   #   mail.deliver_now                               # generates and sends the email now
   #
-  # The <tt>ActionMailer::MessageDelivery</tt> class is a wrapper around a delegate that will call
+  # The ActionMailer::MessageDelivery class is a wrapper around a delegate that will call
   # your method to generate the mail. If you want direct access to the delegator, or <tt>Mail::Message</tt>,
-  # you can call the <tt>message</tt> method on the <tt>ActionMailer::MessageDelivery</tt> object.
+  # you can call the <tt>message</tt> method on the ActionMailer::MessageDelivery object.
   #
   #   NotifierMailer.welcome(User.first).message     # => a Mail::Message object
   #
@@ -335,13 +335,36 @@ module ActionMailer
   #   end
   #
   # Callbacks in Action Mailer are implemented using
-  # <tt>AbstractController::Callbacks</tt>, so you can define and configure
+  # AbstractController::Callbacks, so you can define and configure
   # callbacks in the same manner that you would use callbacks in classes that
-  # inherit from <tt>ActionController::Base</tt>.
+  # inherit from ActionController::Base.
   #
   # Note that unless you have a specific reason to do so, you should prefer
   # using <tt>before_action</tt> rather than <tt>after_action</tt> in your
   # Action Mailer classes so that headers are parsed properly.
+  #
+  # = Rescuing Errors
+  #
+  # +rescue+ blocks inside of a mailer method cannot rescue errors that occur
+  # outside of rendering -- for example, record deserialization errors in a
+  # background job, or errors from a third-party mail delivery service.
+  #
+  # To rescue errors that occur during any part of the mailing process, use
+  # {rescue_from}[rdoc-ref:ActiveSupport::Rescuable::ClassMethods#rescue_from]:
+  #
+  #   class NotifierMailer < ApplicationMailer
+  #     rescue_from ActiveJob::DeserializationError do
+  #       # ...
+  #     end
+  #
+  #     rescue_from "SomeThirdPartyService::ApiError" do
+  #       # ...
+  #     end
+  #
+  #     def notify(recipient)
+  #       mail(to: recipient, subject: "Notification")
+  #     end
+  #   end
   #
   # = Previewing emails
   #
@@ -403,6 +426,7 @@ module ActionMailer
   #     This is a symbol and one of <tt>:plain</tt> (will send the password Base64 encoded), <tt>:login</tt> (will
   #     send the password Base64 encoded) or <tt>:cram_md5</tt> (combines a Challenge/Response mechanism to exchange
   #     information and a cryptographic Message Digest 5 algorithm to hash important information)
+  #   * <tt>:enable_starttls</tt> - Use STARTTLS when connecting to your SMTP server and fail if unsupported. Defaults to <tt>false</tt>.
   #   * <tt>:enable_starttls_auto</tt> - Detects if STARTTLS is enabled in your SMTP server and starts
   #     to use it. Defaults to <tt>true</tt>.
   #   * <tt>:openssl_verify_mode</tt> - When using TLS, you can set how OpenSSL checks the certificate. This is
@@ -436,6 +460,9 @@ module ActionMailer
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   #
+  # * <tt>delivery_job</tt> - The job class used with <tt>deliver_later</tt>. Defaults to
+  #   +ActionMailer::MailDeliveryJob+.
+  #
   # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>.
   class Base < AbstractController::Base
     include DeliveryMethods
@@ -461,7 +488,7 @@ module ActionMailer
 
     helper ActionMailer::MailHelper
 
-    class_attribute :delivery_job, default: ::ActionMailer::DeliveryJob
+    class_attribute :delivery_job, default: ::ActionMailer::MailDeliveryJob
     class_attribute :default_params, default: {
       mime_version: "1.0",
       charset:      "UTF-8",
@@ -564,6 +591,7 @@ module ActionMailer
         @_message = NullMail.new unless @_mail_was_called
       end
     end
+    ruby2_keywords(:process)
 
     class NullMail # :nodoc:
       def body; "" end

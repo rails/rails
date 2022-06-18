@@ -81,6 +81,19 @@ if SERVICE_CONFIGURATIONS[:azure]
       @service.delete key
     end
 
+    test "upload with custom_metadata" do
+      key  = SecureRandom.base58(24)
+      data = "Foobar"
+
+      @service.upload(key, StringIO.new(data), checksum: OpenSSL::Digest::MD5.base64digest(data), filename: ActiveStorage::Filename.new("test.txt"), custom_metadata: { "foo" => "baz" })
+      url = @service.url(key, expires_in: 2.minutes, disposition: :inline, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
+
+      response = Net::HTTP.get_response(URI(url))
+      assert_equal("baz", response["x-ms-meta-foo"])
+    ensure
+      @service.delete key
+    end
+
     test "signed URL generation" do
       url = @service.url(@key, expires_in: 5.minutes,
         disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")

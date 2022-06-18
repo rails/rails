@@ -75,9 +75,9 @@ module ActiveJob
 
       info do
         if ex
-          "Retrying #{job.class} in #{wait.to_i} seconds, due to a #{ex.class}."
+          "Retrying #{job.class} (Job ID: #{job.job_id}) after #{job.executions} attempts in #{wait.to_i} seconds, due to a #{ex.class} (#{ex.message})."
         else
-          "Retrying #{job.class} in #{wait.to_i} seconds."
+          "Retrying #{job.class} (Job ID: #{job.job_id}) after #{job.executions} attempts in #{wait.to_i} seconds."
         end
       end
     end
@@ -87,7 +87,7 @@ module ActiveJob
       ex = event.payload[:error]
 
       error do
-        "Stopped retrying #{job.class} due to a #{ex.class}, which reoccurred on #{job.executions} attempts."
+        "Stopped retrying #{job.class} (Job ID: #{job.job_id}) due to a #{ex.class} (#{ex.message}), which reoccurred on #{job.executions} attempts."
       end
     end
 
@@ -96,7 +96,7 @@ module ActiveJob
       ex = event.payload[:error]
 
       error do
-        "Discarded #{job.class} due to a #{ex.class}."
+        "Discarded #{job.class} (Job ID: #{job.job_id}) due to a #{ex.class} (#{ex.message})."
       end
     end
 

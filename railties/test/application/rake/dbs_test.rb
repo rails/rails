@@ -352,6 +352,15 @@ module ApplicationTests
         end
       end
 
+      def db_schema_sql_dump
+        Dir.chdir(app_path) do
+          args = ["generate", "model", "book", "title:string"]
+          rails args
+          rails "db:migrate", "db:schema:dump"
+          assert_match(/CREATE TABLE/, File.read("db/structure.sql"))
+        end
+      end
+
       test "db:schema:dump without database_url" do
         db_schema_dump
       end
@@ -361,7 +370,29 @@ module ApplicationTests
         db_schema_dump
       end
 
-      def db_schema_cache_dump(filename = "db/schema_cache.yml")
+      test "db:schema:dump with env as ruby" do
+        add_to_config "config.active_record.schema_format = :sql"
+
+        old_env = ENV["SCHEMA_FORMAT"]
+        ENV["SCHEMA_FORMAT"] = "ruby"
+
+        db_schema_dump
+      ensure
+        ENV["SCHEMA_FORMAT"] = old_env
+      end
+
+      test "db:schema:dump with env as sql" do
+        add_to_config "config.active_record.schema_format = :ruby"
+
+        old_env = ENV["SCHEMA_FORMAT"]
+        ENV["SCHEMA_FORMAT"] = "sql"
+
+        db_schema_sql_dump
+      ensure
+        ENV["SCHEMA_FORMAT"] = old_env
+      end
+
+      def db_schema_cache_dump
         Dir.chdir(app_path) do
           rails "db:schema:cache:dump"
 
@@ -398,7 +429,7 @@ module ApplicationTests
         end
 
         db_schema_dump
-        db_schema_cache_dump("db/special_schema_cache.yml")
+        db_schema_cache_dump
       end
 
       test "db:schema:cache:dump custom env" do
@@ -407,7 +438,7 @@ module ApplicationTests
         ENV["SCHEMA_CACHE"] = filename
 
         db_schema_dump
-        db_schema_cache_dump(filename)
+        db_schema_cache_dump
       ensure
         ENV["SCHEMA_CACHE"] = @old_schema_cache_env
       end
@@ -471,64 +502,7 @@ module ApplicationTests
         assert_equal 2, Admin::Book.count
       end
 
-      def db_structure_dump_and_load(expected_database)
-        Dir.chdir(app_path) do
-          rails "generate", "model", "book", "title:string"
-          rails "db:migrate", "db:structure:dump"
-          structure_dump = File.read("db/structure.sql")
-          assert_match(/CREATE TABLE (?:IF NOT EXISTS )?"books"/, structure_dump)
-          rails "environment", "db:drop", "db:structure:load"
-          assert_match expected_database, ActiveRecord::Base.connection_db_config.database
-          require "#{app_path}/app/models/book"
-          # if structure is not loaded correctly, exception would be raised
-          assert_equal 0, Book.count
-        end
-      end
-
-      ["dump", "load"].each do |command|
-        test "db:structure:#{command} is deprecated" do
-          add_to_config("config.active_support.deprecation = :stderr")
-          stderr_output = capture(:stderr) { rails("db:structure:#{command}", stderr: true, allow_failure: true) }
-          assert_match(/DEPRECATION WARNING: Using `bin\/rails db:structure:#{command}` is deprecated and will be removed in Rails 7.0/, stderr_output)
-        end
-      end
-
-      test "db:structure:dump and db:structure:load without database_url" do
-        add_to_config "config.active_record.schema_format = :sql"
-        require "#{app_path}/config/environment"
-        db_config = ActiveRecord::Base.connection_db_config
-        db_structure_dump_and_load db_config.database
-      end
-
-      test "db:structure:dump and db:structure:load with database_url" do
-        add_to_config "config.active_record.schema_format = :sql"
-        require "#{app_path}/config/environment"
-        set_database_url
-        db_structure_dump_and_load database_url_db_name
-      end
-
-      test "db:structure:dump and db:structure:load set ar_internal_metadata" do
-        add_to_config "config.active_record.schema_format = :sql"
-        require "#{app_path}/config/environment"
-        db_config = ActiveRecord::Base.connection_db_config
-        db_structure_dump_and_load db_config.database
-
-        assert_equal "test", rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip
-        assert_equal "development", rails("runner", "puts ActiveRecord::InternalMetadata[:environment]").strip
-      end
-
-      test "db:structure:dump does not dump schema information when no migrations are used" do
-        add_to_config "config.active_record.schema_format = :sql"
-        # create table without migrations
-        rails "runner", "ActiveRecord::Base.connection.create_table(:posts) {|t| t.string :title }"
-
-        stderr_output = capture(:stderr) { rails("db:structure:dump", stderr: true, allow_failure: true) }
-        assert_empty stderr_output
-        structure_dump = File.read("#{app_path}/db/structure.sql")
-        assert_match(/CREATE TABLE (?:IF NOT EXISTS )?"posts"/, structure_dump)
-      end
-
-      test "db:schema:load and db:structure:load do not purge the existing database" do
+      test "db:schema:load does not purge the existing database" do
         rails "runner", "ActiveRecord::Base.connection.create_table(:posts) {|t| t.string :title }"
 
         app_file "db/schema.rb", <<-RUBY
@@ -548,7 +522,7 @@ module ApplicationTests
           CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar(255));
         SQL
 
-        rails "db:structure:load"
+        rails "db:schema:load"
         assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata", "users"]', list_tables[]
       end
 
@@ -581,32 +555,6 @@ module ApplicationTests
       test "db:schema:load fails if schema.rb doesn't exist yet" do
         stderr_output = capture(:stderr) { rails("db:schema:load", stderr: true, allow_failure: true) }
         assert_match(/Run `bin\/rails db:migrate` to create it/, stderr_output)
-      end
-
-      def db_test_load_structure
-        Dir.chdir(app_path) do
-          rails "generate", "model", "book", "title:string"
-          rails "db:migrate", "db:structure:dump", "db:test:load_structure"
-          ActiveRecord::Base.configurations = Rails.application.config.database_configuration
-          ActiveRecord::Base.establish_connection :test
-          require "#{app_path}/app/models/book"
-          # if structure is not loaded correctly, exception would be raised
-          assert_equal 0, Book.count
-          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", name: "primary")
-          assert_match db_config.database, ActiveRecord::Base.connection_db_config.database
-        end
-      end
-
-      test "db:test:load_structure without database_url" do
-        add_to_config "config.active_record.schema_format = :sql"
-        require "#{app_path}/config/environment"
-        db_test_load_structure
-      end
-
-      test "db:test:load_structure is deprecated" do
-        add_to_config("config.active_support.deprecation = :stderr")
-        stderr_output = capture(:stderr) { rails("db:test:load_structure", stderr: true, allow_failure: true) }
-        assert_match(/DEPRECATION WARNING: Using `bin\/rails db:test:load_structure` is deprecated and will be removed in Rails 7.0/, stderr_output)
       end
 
       test "db:setup loads schema and seeds database" do
@@ -755,20 +703,6 @@ module ApplicationTests
         end
       end
 
-      test "db:prepare setup the database even if schema does not exist" do
-        Dir.chdir(app_path) do
-          use_postgresql(multi_db: true) # bug doesn't exist with sqlite3
-          output = rails("db:drop")
-          assert_match(/Dropped database/, output)
-
-          rails "generate", "model", "recipe", "title:string"
-          output = rails("db:prepare")
-          assert_match(/CreateRecipes: migrated/, output)
-        end
-      ensure
-        rails "db:drop" rescue nil
-      end
-
       test "db:prepare does not touch schema when dumping is disabled" do
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
@@ -782,6 +716,59 @@ module ApplicationTests
           rails "db:prepare"
 
           assert_equal("Not touched", File.read("db/schema.rb").strip)
+        end
+      end
+
+      test "db:prepare creates test database if it does not exist" do
+        Dir.chdir(app_path) do
+          use_postgresql(database_name: "railties_db")
+          rails "db:drop", "db:create"
+          rails "runner", "ActiveRecord::Base.connection.drop_database(:railties_db_test)"
+
+          output = rails("db:prepare")
+          assert_match(%r{Created database 'railties_db_test'}, output)
+        end
+      ensure
+        rails "db:drop" rescue nil
+      end
+
+      test "lazily loaded schema cache isn't read when reading the schema migrations table" do
+        Dir.chdir(app_path) do
+          app_file "config/initializers/lazy_load_schema_cache.rb", <<-RUBY
+            Rails.application.config.active_record.lazily_load_schema_cache = true
+          RUBY
+
+          rails "generate", "model", "recipe", "title:string"
+          rails "db:migrate"
+          rails "db:schema:cache:dump"
+
+          file = File.read("db/schema_cache.yml")
+          assert_match(/schema_migrations: true/, file)
+          assert_match(/recipes: true/, file)
+
+          output = rails "db:drop"
+          assert_match(/Dropped database/, output)
+
+          repeat_output = rails "db:drop"
+          assert_match(/Dropped database/, repeat_output)
+        end
+      end
+
+      test "destructive tasks are protected" do
+        add_to_config "config.active_record.protected_environments = ['development', 'test']"
+
+        require "#{app_path}/config/environment"
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+
+          destructive_tasks = ["db:drop:all", "db:drop", "db:purge:all", "db:truncate_all", "db:purge", "db:schema:load", "db:test:purge"]
+
+          destructive_tasks.each do |task|
+            error = assert_raises("#{task} did not raise ActiveRecord::ProtectedEnvironmentError") { rails task }
+            assert_match(/ActiveRecord::ProtectedEnvironmentError/, error.message)
+          end
         end
       end
     end

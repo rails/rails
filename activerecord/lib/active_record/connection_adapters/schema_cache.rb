@@ -208,7 +208,7 @@ module ActiveRecord
         end
 
         def reset_version!
-          @version = connection.migration_context.current_version
+          @version = connection.schema_version
         end
 
         def derive_columns_hash_and_deduplicate_values
@@ -239,6 +239,8 @@ module ActiveRecord
         end
 
         def open(filename)
+          FileUtils.mkdir_p(File.dirname(filename))
+
           File.atomic_write(filename) do |file|
             if File.extname(filename) == ".gz"
               zipper = Zlib::GzipWriter.new file

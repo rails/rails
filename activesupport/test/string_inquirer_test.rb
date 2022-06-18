@@ -38,7 +38,7 @@ class StringInquirerTest < ActiveSupport::TestCase
   ensure
     String.class_eval do
       undef_method :respond_to_missing?
-      def respond_to_missing?(name, include_private = false)
+      def respond_to_missing?(name, include_private = false) # rubocop:disable Lint/DuplicateMethods
         super
       end
     end

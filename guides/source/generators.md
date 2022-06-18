@@ -52,7 +52,7 @@ class InitializerGenerator < Rails::Generators::Base
 end
 ```
 
-NOTE: `create_file` is a method provided by `Thor::Actions`. Documentation for `create_file` and other Thor methods can be found in [Thor's documentation](https://rdoc.info/github/erikhuda/thor/master/Thor/Actions.html)
+NOTE: `create_file` is a method provided by `Thor::Actions`. Documentation for `create_file` and other Thor methods can be found in [Thor's documentation](https://rdoc.info/gems/thor/Thor/Actions).
 
 Our new generator is quite simple: it inherits from `Rails::Generators::Base` and has one method definition. When a generator is invoked, each public method in the generator is executed sequentially in the order that it is defined. Finally, we invoke the `create_file` method that will create a file at the given destination with the given content. If you are familiar with the Rails Application Templates API, you'll feel right at home with the new generators API.
 
@@ -206,7 +206,7 @@ $ bin/rails generate scaffold User name:string
       create    test/system/users_test.rb
 ```
 
-Looking at this output, it's easy to understand how generators work in Rails 3.0 and above. The scaffold generator doesn't actually generate anything, it just invokes others to do the work. This allows us to add/replace/remove any of those invocations. For instance, the scaffold generator invokes the scaffold_controller generator, which invokes erb, test_unit and helper generators. Since each generator has a single responsibility, they are easy to reuse, avoiding code duplication.
+Looking at this output, it's easy to understand how generators work in Rails 3.0 and above. The scaffold generator doesn't actually generate anything; it just invokes others to do the work. This allows us to add/replace/remove any of those invocations. For instance, the scaffold generator invokes the `scaffold_controller` generator, which invokes `erb`, `test_unit`, and `helper` generators. Since each generator has a single responsibility, they are easy to reuse, avoiding code duplication.
 
 The next customization on the workflow will be to stop generating stylesheet and test fixture files for scaffolds altogether. We can achieve that by changing our configuration to the following:
 
@@ -338,7 +338,9 @@ config.generators do |g|
 end
 ```
 
-If you generate another resource, you can see that we get exactly the same result! This is useful if you want to customize your scaffold templates and/or layout by just creating `edit.html.erb`, `index.html.erb` and so on inside `lib/templates/erb/scaffold`.
+Now, if you generate another resource, you will see a similar result!
+
+Another common use of custom templates is overriding the [default scaffold view templates](https://github.com/rails/rails/tree/main/railties/lib/rails/generators/erb/scaffold/templates). You can override any of these by creating the appropriate file (e.g. `index.html.erb`, `show.html.erb`, etc) in `lib/templates/erb/scaffold`.
 
 Scaffold templates in Rails frequently use ERB tags; these tags need to be
 escaped so that the generated output is valid ERB code.

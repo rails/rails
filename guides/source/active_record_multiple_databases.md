@@ -10,7 +10,6 @@ After reading this guide you will know:
 * How to set up your application for multiple databases.
 * How automatic connection switching works.
 * How to use horizontal sharding for multiple databases.
-* How to migrate from `legacy_connection_handling` to the new connection handling.
 * What features are supported and what's still a work in progress.
 
 --------------------------------------------------------------------------------
@@ -31,9 +30,7 @@ databases
 
 The following features are not (yet) supported:
 
-* Automatic swapping for horizontal sharding
 * Load balancing replicas
-* Dumping schema caches for multiple databases
 
 ## Setting up your application
 
@@ -132,9 +129,9 @@ If you use a differently named class for your application record you need to
 set `primary_abstract_class` instead, so that Rails knows which class `ActiveRecord::Base`
 should share a connection with.
 
-```
+```ruby
 class PrimaryApplicationRecord < ActiveRecord::Base
-  self.primary_abstract_class
+  self.primary_abstract_class = true
 end
 ```
 
@@ -205,7 +202,7 @@ database you can run `bin/rails db:create:animals`.
 ## Connecting to Databases without Managing Schema and Migrations
 
 If you would like to connect to an external database without any database
-management tasks such as schema management, migrations, seeds, etc. you can set
+management tasks such as schema management, migrations, seeds, etc., you can set
 the per database config option `database_tasks: false`. By default it is
 set to true.
 
@@ -277,7 +274,7 @@ $ bin/rails generate scaffold Dog name:string --database animals --parent Animal
 This will skip generating `AnimalsRecord` since you've indicated to Rails that you want to
 use a different parent class.
 
-## Activating automatic connection switching
+## Activating automatic role switching
 
 Finally, in order to use the read-only replica in your application, you'll need to activate
 the middleware for automatic switching.
@@ -290,13 +287,21 @@ automatically write to the writer database. For the specified time after the wri
 application will read from the primary. For a GET or HEAD request the application will read
 from the replica unless there was a recent write.
 
-To activate the automatic connection switching middleware, add or uncomment the following
-lines in your application config.
+To activate the automatic connection switching middleware you can run the automatic swapping
+generator:
+
+```
+$ bin/rails g active_record:multi_db
+```
+
+And then uncomment the following lines:
 
 ```ruby
-config.active_record.database_selector = { delay: 2.seconds }
-config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
-config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+Rails.application.configure do
+  config.active_record.database_selector = { delay: 2.seconds }
+  config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+  config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+end
 ```
 
 Rails guarantees "read your own write" and will send your GET or HEAD request to the
@@ -427,39 +432,56 @@ ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
 end
 ```
 
-## Migrate to the new connection handling
+## Activating automatic shard switching
 
-In Rails 6.1+, Active Record provides a new internal API for connection management.
-In most cases applications will not need to make any changes except to opt-in to the
-new behavior (if upgrading from 6.0 and below) by setting
-`config.active_record.legacy_connection_handling = false`. If you have a single database
-application, no other changes will be required. If you have a multiple database application
-the following changes are required if you application is using these methods:
+Applications are able to automatically switch shards per request using the provided
+middleware.
 
-* `connection_handlers` and `connection_handlers=` no longer works in the new connection
-handling. If you were calling a method on one of the connection handlers, for example,
-`connection_handlers[:reading].retrieve_connection_pool("ActiveRecord::Base")`
-you will now need to update that call to be
-`connection_handlers.retrieve_connection_pool("ActiveRecord::Base", role: :reading)`.
-* Calls to `ActiveRecord::Base.connection_handler.prevent_writes` will need to be updated
-to `ActiveRecord::Base.connection.preventing_writes?`.
-* If you need all the pools, including writing and reading, a new method has been provided on
-the handler. Call `connection_handler.all_connection_pools` to use this. In most cases though
-you'll want writing or reading pools with `connection_handler.connection_pool_list(:writing)` or
-`connection_handler.connection_pool_list(:reading)`.
-* If you turn off `legacy_connection_handling` in your application, any method that's unsupported
-will raise an error (i.e. `connection_handlers=`).
+The `ShardSelector` Middleware provides a framework for automatically
+swapping shards. Rails provides a basic framework to determine which
+shard to switch to and allows for applications to write custom strategies
+for swapping if needed.
+
+The `ShardSelector` takes a set of options (currently only `lock` is supported)
+that can be used by the middleware to alter behavior. `lock` is
+true by default and will prohibit the request from switching shards once
+inside the block. If `lock` is false, then shard swapping will be allowed.
+For tenant based sharding, `lock` should always be true to prevent application
+code from mistakenly switching between tenants.
+
+The same generator as the database selector can be used to generate the file for
+automatic shard swapping:
+
+```
+$ bin/rails g active_record:multi_db
+```
+
+Then in the file uncomment the following:
+
+```ruby
+Rails.application.configure do
+  config.active_record.shard_selector = { lock: true }
+  config.active_record.shard_resolver = ->(request) { Tenant.find_by!(host: request.host).shard }
+end
+```
+
+Applications must provide the code for the resolver as it depends on application
+specific models. An example resolver would look like this:
+
+```ruby
+config.active_record.shard_resolver = ->(request) {
+  subdomain = request.subdomain
+  tenant = Tenant.find_by_subdomain!(subdomain)
+  tenant.shard
+}
+```
 
 ## Granular Database Connection Switching
 
 In Rails 6.1 it's possible to switch connections for one database instead of
-all databases globally. To use this feature you must first set
-`config.active_record.legacy_connection_handling` to `false` in your application
-configuration. The majority of applications should not need to make any other
-changes since the public APIs have the same behavior. See the above section for
-how to enable and migrate away from `legacy_connection_handling`.
+all databases globally.
 
-With `legacy_connection_handling` set to `false`, any abstract connection class
+With granular database connection switching, any abstract connection class
 will be able to switch connections without affecting other connections. This
 is useful for switching your `AnimalsRecord` queries to read from the replica
 while ensuring your `ApplicationRecord` queries go to the primary.
@@ -496,7 +518,7 @@ connections globally.
 ### Handling associations with joins across databases
 
 As of Rails 7.0+, Active Record has an option for handling associations that would perform
-a join across multiple databases. If you have a has many through or a has one through association 
+a join across multiple databases. If you have a has many through or a has one through association
 that you want to disable joining and perform 2 or more queries, pass the `disable_joins: true` option.
 
 For example:
@@ -506,13 +528,22 @@ class Dog < AnimalsRecord
   has_many :treats, through: :humans, disable_joins: true
   has_many :humans
 
-  belongs_to :home
+  has_one :home
   has_one :yard, through: :home, disable_joins: true
+end
+
+class Home
+  belongs_to :dog
+  has_one :yard
+end
+
+class Yard
+  belongs_to :home
 end
 ```
 
-Previously calling `@dog.treats` without `disable_joins` or `@dog.yard` without `disable_joins` 
-would raise an error because databases are unable to handle joins across clusters. With the 
+Previously calling `@dog.treats` without `disable_joins` or `@dog.yard` without `disable_joins`
+would raise an error because databases are unable to handle joins across clusters. With the
 `disable_joins` option, Rails will generate multiple select queries
 to avoid attempting joining across clusters. For the above association, `@dog.treats` would generate the
 following SQL:
@@ -540,13 +571,11 @@ order from one table cannot be applied to another table.
 Rails can't guess this for you because association loading is lazy, to load `treats` in `@dog.treats`
 Rails already needs to know what SQL should be generated.
 
+### Schema Caching
+
+If you want to load a schema cache for each database you must set a `schema_cache_path` in each database configuration and set `config.active_record.lazily_load_schema_cache = true` in your application configuration. Note that this will lazily load the cache when the database connections are established.
+
 ## Caveats
-
-### Automatic swapping for horizontal sharding
-
-While Rails now supports an API for connecting to and swapping connections of shards, it does
-not yet support an automatic swapping strategy. Any shard swapping will need to be done manually
-in your app via a middleware or `around_action`.
 
 ### Load Balancing Replicas
 
@@ -554,9 +583,3 @@ Rails also doesn't support automatic load balancing of replicas. This is very
 dependent on your infrastructure. We may implement basic, primitive load balancing
 in the future, but for an application at scale this should be something your application
 handles outside of Rails.
-
-### Schema Cache
-
-If you use a schema cache and multiple databases, you'll need to write an initializer
-that loads the schema cache from your app. This wasn't an issue we could resolve in
-time for Rails 6.0 but hope to have it in a future version soon.

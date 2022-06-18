@@ -146,7 +146,7 @@ module ActionDispatch
           end
 
           requirements, conditions = split_constraints ast.path_params, constraints
-          verify_regexp_requirements requirements.map(&:last).grep(Regexp)
+          verify_regexp_requirements requirements, ast.wildcard_options
 
           formats = normalize_format(formatted)
 
@@ -246,14 +246,18 @@ module ActionDispatch
             end
           end
 
-          def verify_regexp_requirements(requirements)
-            requirements.each do |requirement|
-              if ANCHOR_CHARACTERS_REGEX.match?(requirement.source)
+          def verify_regexp_requirements(requirements, wildcard_options)
+            requirements.each do |requirement, regex|
+              next unless regex.is_a? Regexp
+
+              if ANCHOR_CHARACTERS_REGEX.match?(regex.source)
                 raise ArgumentError, "Regexp anchor characters are not allowed in routing requirements: #{requirement.inspect}"
               end
 
-              if requirement.multiline?
-                raise ArgumentError, "Regexp multiline option is not allowed in routing requirements: #{requirement.inspect}"
+              if regex.multiline?
+                next if wildcard_options.key?(requirement)
+
+                raise ArgumentError, "Regexp multiline option is not allowed in routing requirements: #{regex.inspect}"
               end
             end
           end
@@ -386,10 +390,10 @@ module ActionDispatch
         #
         # If you want to expose your action to both GET and POST, use:
         #
-        #   # sets :controller, :action and :id in params
+        #   # sets :controller, :action, and :id in params
         #   match ':controller/:action/:id', via: [:get, :post]
         #
-        # Note that +:controller+, +:action+ and +:id+ are interpreted as URL
+        # Note that +:controller+, +:action+, and +:id+ are interpreted as URL
         # query parameters and thus available through +params+ in an action.
         #
         # If you want to expose your action to GET, use +get+ in the router:
@@ -902,7 +906,7 @@ module ActionDispatch
         #
         # === Options
         #
-        # The +:path+, +:as+, +:module+, +:shallow_path+ and +:shallow_prefix+
+        # The +:path+, +:as+, +:module+, +:shallow_path+, and +:shallow_prefix+
         # options all default to the name of the namespace.
         #
         # For options, see <tt>Base#match</tt>. For +:shallow_path+ option, see
@@ -1078,7 +1082,7 @@ module ActionDispatch
 
       # Resource routing allows you to quickly declare all of the common routes
       # for a given resourceful controller. Instead of declaring separate routes
-      # for your +index+, +show+, +new+, +edit+, +create+, +update+ and +destroy+
+      # for your +index+, +show+, +new+, +edit+, +create+, +update+, and +destroy+
       # actions, a resourceful route declares them in a single line of code:
       #
       #  resources :photos

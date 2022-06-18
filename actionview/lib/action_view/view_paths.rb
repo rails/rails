@@ -91,9 +91,9 @@ module ActionView
       self.class._prefixes
     end
 
-    # <tt>LookupContext</tt> is the object responsible for holding all
+    # LookupContext is the object responsible for holding all
     # information required for looking up templates, i.e. view paths and
-    # details. Check <tt>ActionView::LookupContext</tt> for more information.
+    # details. Check ActionView::LookupContext for more information.
     def lookup_context
       @_lookup_context ||=
         ActionView::LookupContext.new(self.class._view_paths, details_for_lookup, _prefixes)
@@ -103,7 +103,7 @@ module ActionView
       {}
     end
 
-    # Append a path to the list of view paths for the current <tt>LookupContext</tt>.
+    # Append a path to the list of view paths for the current LookupContext.
     #
     # ==== Parameters
     # * <tt>path</tt> - If a String is provided, it gets converted into
@@ -113,7 +113,7 @@ module ActionView
       lookup_context.view_paths.push(*path)
     end
 
-    # Prepend a path to the list of view paths for the current <tt>LookupContext</tt>.
+    # Prepend a path to the list of view paths for the current LookupContext.
     #
     # ==== Parameters
     # * <tt>path</tt> - If a String is provided, it gets converted into

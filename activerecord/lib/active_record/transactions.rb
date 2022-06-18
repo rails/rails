@@ -13,6 +13,8 @@ module ActiveRecord
                        scope: [:kind, :name]
     end
 
+    attr_accessor :_new_record_before_last_commit # :nodoc:
+
     # = Active Record Transactions
     #
     # \Transactions are protective blocks where SQL statements are only permanent

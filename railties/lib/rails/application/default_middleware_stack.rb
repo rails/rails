@@ -13,7 +13,7 @@ module Rails
 
       def build_stack
         ActionDispatch::MiddlewareStack.new do |middleware|
-          middleware.use ::ActionDispatch::HostAuthorization, config.hosts, config.action_dispatch.hosts_response_app, **config.host_authorization
+          middleware.use ::ActionDispatch::HostAuthorization, config.hosts, **config.host_authorization
 
           if config.force_ssl
             middleware.use ::ActionDispatch::SSL, **config.ssl_options,
@@ -56,7 +56,7 @@ module Rails
             middleware.use ::ActionDispatch::ActionableExceptions
           end
 
-          unless config.cache_classes
+          if config.reloading_enabled?
             middleware.use ::ActionDispatch::Reloader, app.reloader
           end
 
@@ -81,6 +81,21 @@ module Rails
           middleware.use ::Rack::ETag, "no-cache"
 
           middleware.use ::Rack::TempfileReaper unless config.api_only
+
+          if config.respond_to?(:active_record)
+            if selector_options = config.active_record.database_selector
+              resolver = config.active_record.database_resolver
+              context = config.active_record.database_resolver_context
+
+              middleware.use ::ActiveRecord::Middleware::DatabaseSelector, resolver, context, selector_options
+            end
+
+            if shard_resolver = config.active_record.shard_resolver
+              options = config.active_record.shard_selector || {}
+
+              middleware.use ::ActiveRecord::Middleware::ShardSelector, shard_resolver, options
+            end
+          end
         end
       end
 

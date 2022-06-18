@@ -81,6 +81,10 @@ module ActiveRecord
         true
       end
 
+      def supports_restart_db_transaction?
+        true
+      end
+
       def supports_explain?
         true
       end
@@ -95,7 +99,7 @@ module ActiveRecord
 
       def supports_check_constraints?
         if mariadb?
-          database_version >= "10.2.1"
+          database_version >= "10.3.10" || (database_version < "10.3" && database_version >= "10.2.22")
         else
           database_version >= "8.0.16"
         end
@@ -197,7 +201,7 @@ module ActiveRecord
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil, async: false)
-        raw_execute(sql, name, async)
+        raw_execute(sql, name, async: async)
       end
 
       # Mysql2Adapter doesn't have to free a result after using it, but we use this method
@@ -222,6 +226,10 @@ module ActiveRecord
 
       def exec_rollback_db_transaction # :nodoc:
         execute("ROLLBACK", "TRANSACTION")
+      end
+
+      def exec_restart_db_transaction # :nodoc:
+        execute("ROLLBACK AND CHAIN", "TRANSACTION")
       end
 
       def empty_insert_statement_value(primary_key = nil) # :nodoc:
@@ -301,7 +309,8 @@ module ActiveRecord
       #
       # Example:
       #   rename_table('octopuses', 'octopi')
-      def rename_table(table_name, new_name)
+      def rename_table(table_name, new_name, **options)
+        validate_table_length!(new_name) unless options[:_uses_legacy_table_name]
         schema_cache.clear_data_source_cache!(table_name.to_s)
         schema_cache.clear_data_source_cache!(new_name.to_s)
         execute "RENAME TABLE #{quote_table_name(table_name)} TO #{quote_table_name(new_name)}"
@@ -344,6 +353,8 @@ module ActiveRecord
       end
 
       def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
+        validate_change_column_null_argument!(null)
+
         unless null || default.nil?
           execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
@@ -561,6 +572,14 @@ module ActiveRecord
       end
 
       class << self
+        def extended_type_map(default_timezone: nil, emulate_booleans:) # :nodoc:
+          super(default_timezone: default_timezone).tap do |m|
+            if emulate_booleans
+              m.register_type %r(^tinyint\(1\))i, Type::Boolean.new
+            end
+          end
+        end
+
         private
           def initialize_type_map(m)
             super
@@ -614,13 +633,16 @@ module ActiveRecord
       end
 
       TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
-      TYPE_MAP_WITH_BOOLEAN = Type::TypeMap.new(TYPE_MAP).tap do |m|
-        m.register_type %r(^tinyint\(1\))i, Type::Boolean.new
-      end
+      EXTENDED_TYPE_MAPS = Concurrent::Map.new
+      EMULATE_BOOLEANS_TRUE = { emulate_booleans: true }.freeze
 
       private
-        def type_map
-          emulate_booleans ? TYPE_MAP_WITH_BOOLEAN : TYPE_MAP
+        def extended_type_map_key
+          if @default_timezone
+            { default_timezone: @default_timezone, emulate_booleans: emulate_booleans }
+          elsif emulate_booleans
+            EMULATE_BOOLEANS_TRUE
+          end
         end
 
         def raw_execute(sql, name, async: false)
@@ -629,7 +651,7 @@ module ActiveRecord
 
           log(sql, name, async: async) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @connection.query(sql)
+              @raw_connection.query(sql)
             end
           end
         end
@@ -711,6 +733,10 @@ module ActiveRecord
             options[:comment] = column.comment
           end
 
+          unless options.key?(:auto_increment)
+            options[:auto_increment] = column.auto_increment?
+          end
+
           td = create_table_definition(table_name)
           cd = td.new_column_definition(column.name, type, **options)
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
@@ -763,9 +789,6 @@ module ActiveRecord
 
         def configure_connection
           variables = @config.fetch(:variables, {}).stringify_keys
-
-          # By default, MySQL 'where id is null' selects the last inserted id; Turn this off.
-          variables["sql_auto_is_null"] = 0
 
           # Increase timeout so the server doesn't disconnect us.
           wait_timeout = self.class.type_cast_config_to_integer(@config[:wait_timeout])
@@ -832,9 +855,12 @@ module ActiveRecord
         end
 
         def mismatched_foreign_key(message, sql:, binds:)
+          foreign_key_pat =
+            /Referencing column '(\w+)' and referenced/i =~ message ? $1 : '\w+'
+
           match = %r/
             (?:CREATE|ALTER)\s+TABLE\s*(?:`?\w+`?\.)?`?(?<table>\w+)`?.+?
-            FOREIGN\s+KEY\s*\(`?(?<foreign_key>\w+)`?\)\s*
+            FOREIGN\s+KEY\s*\(`?(?<foreign_key>#{foreign_key_pat})`?\)\s*
             REFERENCES\s*(`?(?<target_table>\w+)`?)\s*\(`?(?<primary_key>\w+)`?\)
           /xmi.match(sql)
 

@@ -8,16 +8,18 @@ module ActiveRecord
       module Quoting # :nodoc:
         def quote_bound_value(value)
           case value
-          when Numeric
-            _quote(value.to_s)
+          when Rational
+            quote(value.to_f.to_s)
+          when Numeric, ActiveSupport::Duration
+            quote(value.to_s)
           when BigDecimal
-            _quote(value.to_s("F"))
+            quote(value.to_s("F"))
           when true
             "'1'"
           when false
             "'0'"
           else
-            _quote(value)
+            quote(value)
           end
         end
 
@@ -49,6 +51,26 @@ module ActiveRecord
           "x'#{value.hex}'"
         end
 
+        # Override +type_cast+ we pass to mysql2 Date and Time objects instead
+        # of Strings since mysql2 is able to handle those classes more efficiently.
+        def type_cast(value) # :nodoc:
+          case value
+          when ActiveSupport::TimeWithZone
+            # We need to check explicitly for ActiveSupport::TimeWithZone because
+            # we need to transform it to Time objects but we don't want to
+            # transform Time objects to themselves.
+            if default_timezone == :utc
+              value.getutc
+            else
+              value.getlocal
+            end
+          when Date, Time
+            value
+          else
+            super
+          end
+        end
+
         def column_name_matcher
           COLUMN_NAME
         end
@@ -77,6 +99,7 @@ module ActiveRecord
               # `table_name`.`column_name` | function(one or no argument)
               ((?:\w+\.|`\w+`\.)?(?:\w+|`\w+`)) | \w+\((?:|\g<2>)\)
             )
+            (?:\s+COLLATE\s+(?:\w+|"\w+"))?
             (?:\s+ASC|\s+DESC)?
           )
           (?:\s*,\s*\g<1>)*
@@ -84,27 +107,6 @@ module ActiveRecord
         /ix
 
         private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
-
-        private
-          # Override +_type_cast+ we pass to mysql2 Date and Time objects instead
-          # of Strings since mysql2 is able to handle those classes more efficiently.
-          def _type_cast(value)
-            case value
-            when ActiveSupport::TimeWithZone
-              # We need to check explicitly for ActiveSupport::TimeWithZone because
-              # we need to transform it to Time objects but we don't want to
-              # transform Time objects to themselves.
-              if ActiveRecord.default_timezone == :utc
-                value.getutc
-              else
-                value.getlocal
-              end
-            when Date, Time
-              value
-            else
-              super
-            end
-          end
       end
     end
   end

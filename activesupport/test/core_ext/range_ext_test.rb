@@ -6,24 +6,41 @@ require "active_support/core_ext/numeric"
 require "active_support/core_ext/range"
 
 class RangeTest < ActiveSupport::TestCase
-  def test_to_s_from_dates
+  def test_to_fs_from_dates
     date_range = Date.new(2005, 12, 10)..Date.new(2005, 12, 12)
-    assert_equal "BETWEEN '2005-12-10' AND '2005-12-12'", date_range.to_s(:db)
+    assert_equal "BETWEEN '2005-12-10' AND '2005-12-12'", date_range.to_fs(:db)
+    assert_equal "BETWEEN '2005-12-10' AND '2005-12-12'", date_range.to_formatted_s(:db)
   end
 
-  def test_to_s_from_times
+  def test_to_fs_from_times
     date_range = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
-    assert_equal "BETWEEN '2005-12-10 15:30:00' AND '2005-12-10 17:30:00'", date_range.to_s(:db)
+    assert_equal "BETWEEN '2005-12-10 15:30:00' AND '2005-12-10 17:30:00'", date_range.to_fs(:db)
   end
 
-  def test_to_s_with_alphabets
+  def test_to_fs_with_alphabets
     alphabet_range = ("a".."z")
-    assert_equal "BETWEEN 'a' AND 'z'", alphabet_range.to_s(:db)
+    assert_equal "BETWEEN 'a' AND 'z'", alphabet_range.to_fs(:db)
   end
 
-  def test_to_s_with_numeric
+  def test_to_fs_with_numeric
     number_range = (1..100)
-    assert_equal "BETWEEN '1' AND '100'", number_range.to_s(:db)
+    assert_equal "BETWEEN '1' AND '100'", number_range.to_fs(:db)
+  end
+
+  def test_to_s_with_format
+    number_range = (1..100)
+
+    assert_deprecated do
+      assert_equal "BETWEEN '1' AND '100'", number_range.to_s(:db)
+    end
+  end
+
+  def test_to_s_with_format_invalid_format
+    number_range = (1..100)
+
+    assert_deprecated do
+      assert_equal "1..100", number_range.to_s(:not_existent)
+    end
   end
 
   def test_date_range
@@ -46,6 +63,14 @@ class RangeTest < ActiveSupport::TestCase
 
   def test_overlaps_first_exclusive
     assert_not (5..10).overlaps?(1...5)
+  end
+
+  def test_overlaps_with_beginless_range
+    assert((1..5).overlaps?(..10))
+  end
+
+  def test_overlaps_with_two_beginless_ranges
+    assert((..5).overlaps?(..10))
   end
 
   def test_should_include_identical_inclusive
@@ -180,13 +205,6 @@ class RangeTest < ActiveSupport::TestCase
   def test_cover_on_time_with_zone
     twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
     assert ((twz - 1.hour)..twz).cover?(twz)
-  end
-
-  def test_include_on_time_with_zone
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
-    assert_deprecated do
-      ((twz - 1.hour)..twz).include?(twz)
-    end
   end
 
   def test_case_equals_on_time_with_zone

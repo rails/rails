@@ -58,7 +58,7 @@ class APITest < ActiveModel::TestCase
 
   def test_persisted_is_always_false
     object = BasicModel.new(attr: "value")
-    assert object.persisted? == false
+    assert_not object.persisted?
   end
 
   def test_mixin_inclusion_chain

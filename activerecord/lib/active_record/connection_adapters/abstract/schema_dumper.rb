@@ -3,6 +3,8 @@
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     class SchemaDumper < SchemaDumper # :nodoc:
+      DEFAULT_DATETIME_PRECISION = 6 # :nodoc:
+
       def self.create(connection, options)
         new(connection, options)
       end
@@ -63,7 +65,18 @@ module ActiveRecord
         end
 
         def schema_precision(column)
-          column.precision.inspect if column.precision
+          if column.type == :datetime
+            case column.precision
+            when nil
+              "nil"
+            when DEFAULT_DATETIME_PRECISION
+              nil
+            else
+              column.precision.inspect
+            end
+          elsif column.precision
+            column.precision.inspect
+          end
         end
 
         def schema_scale(column)

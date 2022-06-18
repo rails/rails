@@ -14,11 +14,22 @@ module QueueClassicJobsManager
 
   def start_workers
     uri = URI.parse(ENV["QC_DATABASE_URL"])
+    host = uri.host
+    port = uri.port
     user = uri.user || ENV["USER"]
     pass = uri.password
     db   = uri.path[1..-1]
-    %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -X -c 'drop database if exists "#{db}"' -U #{user} -t template1}
-    %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -X -c 'create database "#{db}"' -U #{user} -t template1}
+
+    psql = [].tap do |args|
+      args << "PGPASSWORD=\"#{pass}\"" if pass
+      args << "psql -X -U #{user} -t template1"
+      args << "-h #{host}" if host
+      args << "-p #{port}" if port
+    end.join(" ")
+
+    %x{#{psql} -c 'drop database if exists "#{db}"'}
+    %x{#{psql} -c 'create database "#{db}"'}
+
     QC::Setup.create
 
     QC.default_conn_adapter.disconnect

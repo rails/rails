@@ -36,7 +36,7 @@ module ActiveModel
         end
 
         def type_cast_for_schema(value)
-          value.to_s(:db).inspect
+          value.to_fs(:db).inspect
         end
 
         def user_input_in_time_zone(value)

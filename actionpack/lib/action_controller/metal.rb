@@ -60,7 +60,7 @@ module ActionController
 
   # <tt>ActionController::Metal</tt> is the simplest possible controller, providing a
   # valid Rack interface without the additional niceties provided by
-  # <tt>ActionController::Base</tt>.
+  # ActionController::Base.
   #
   # A sample metal controller might look like this:
   #
@@ -111,7 +111,7 @@ module ActionController
   #
   # == Other Helpers
   #
-  # You can refer to the modules included in <tt>ActionController::Base</tt> to see
+  # You can refer to the modules included in ActionController::Base to see
   # other features you can bring into your metal controller.
   #
   class Metal < AbstractController::Base
@@ -137,14 +137,30 @@ module ActionController
       false
     end
 
-    # Delegates to the class' <tt>controller_name</tt>.
+    # Delegates to the class's ::controller_name.
     def controller_name
       self.class.controller_name
     end
 
-    attr_internal :response, :request
+    ##
+    # :attr_reader: request
+    #
+    # The ActionDispatch::Request instance for the current request.
+    attr_internal :request
+
+    ##
+    # :attr_reader: response
+    #
+    # The ActionDispatch::Response instance for the current response.
+    attr_internal :response
+
     delegate :session, to: "@_request"
-    delegate :headers, :status=, :location=, :content_type=,
+
+    ##
+    # Delegates to ActionDispatch::Response#headers.
+    delegate :headers, to: "@_response"
+
+    delegate :status=, :location=, :content_type=,
              :status, :location, :content_type, :media_type, to: "@_response"
 
     def initialize

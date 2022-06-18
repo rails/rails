@@ -18,8 +18,7 @@ module ActiveSupport
     end
 
     def local_level
-      # Note: Thread#[] is fiber-local
-      Thread.current[:logger_thread_safe_level]
+      IsolatedExecutionState[:logger_thread_safe_level]
     end
 
     def local_level=(level)
@@ -31,7 +30,7 @@ module ActiveSupport
       else
         raise ArgumentError, "Invalid log level: #{level.inspect}"
       end
-      Thread.current[:logger_thread_safe_level] = level
+      IsolatedExecutionState[:logger_thread_safe_level] = level
     end
 
     def level
@@ -44,27 +43,6 @@ module ActiveSupport
       yield
     ensure
       self.local_level = old_local_level
-    end
-
-    # Redefined to check severity against #level, and thus the thread-local level, rather than +@level+.
-    # FIXME: Remove when the minimum Ruby version supports overriding Logger#level.
-    def add(severity, message = nil, progname = nil, &block) # :nodoc:
-      severity ||= UNKNOWN
-      progname ||= @progname
-
-      return true if @logdev.nil? || severity < level
-
-      if message.nil?
-        if block_given?
-          message  = yield
-        else
-          message  = progname
-          progname = @progname
-        end
-      end
-
-      @logdev.write \
-        format_message(format_severity(severity), Time.now, progname, message)
     end
   end
 end

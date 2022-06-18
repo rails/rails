@@ -8,18 +8,6 @@ module ActiveSupport
       # The Unicode version that is supported by the implementation
       UNICODE_VERSION = RbConfig::CONFIG["UNICODE_VERSION"]
 
-      def default_normalization_form
-        ActiveSupport::Deprecation.warn(
-          "ActiveSupport::Multibyte::Unicode.default_normalization_form is deprecated and will be removed in Rails 7.0."
-        )
-      end
-
-      def default_normalization_form=(_)
-        ActiveSupport::Deprecation.warn(
-          "ActiveSupport::Multibyte::Unicode.default_normalization_form= is deprecated and will be removed in Rails 7.0."
-        )
-      end
-
       # Decompose composed characters to the decomposed form.
       def decompose(type, codepoints)
         if type == :compatibility

@@ -114,6 +114,27 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "reset counter skips query for correct counter" do
+    Topic.reset_counters(@topic.id, :replies_count)
+
+    # SELECT "topics".* FROM "topics" WHERE "topics"."id" = ? LIMIT ?
+    # SELECT COUNT(*) FROM "topics" WHERE "topics"."type" IN (?, ?, ?, ?, ?) AND "topics"."parent_id" = ?
+    assert_queries(2) do
+      Topic.reset_counters(@topic.id, :replies_count)
+    end
+  end
+
+  test "reset counter performs query for correct counter with touch: true" do
+    Topic.reset_counters(@topic.id, :replies_count)
+
+    # SELECT "topics".* FROM "topics" WHERE "topics"."id" = ? LIMIT ?
+    # SELECT COUNT(*) FROM "topics" WHERE "topics"."type" IN (?, ?, ?, ?, ?) AND "topics"."parent_id" = ?
+    # UPDATE "topics" SET "updated_at" = ? WHERE "topics"."id" = ?
+    assert_queries(3) do
+      Topic.reset_counters(@topic.id, :replies_count, touch: true)
+    end
+  end
+
   test "update counter with initial null value" do
     category = categories(:general)
     assert_equal 2, category.categorizations.count

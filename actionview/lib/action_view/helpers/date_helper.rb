@@ -26,7 +26,7 @@ module ActionView
       MINUTES_IN_QUARTER_YEAR = 131400
       MINUTES_IN_THREE_QUARTERS_YEAR = 394200
 
-      # Reports the approximate distance in time between two Time, Date or DateTime objects or integers as seconds.
+      # Reports the approximate distance in time between two Time, Date, or DateTime objects or integers as seconds.
       # Pass <tt>include_seconds: true</tt> if you want more detailed approximations when distance < 1 min, 29 secs.
       # Distances are reported based on the following table:
       #
@@ -206,6 +206,7 @@ module ActionView
       #   you are creating new record. While editing existing record, <tt>:end_year</tt> defaults to
       #   the current selected year plus 5.
       # * <tt>:year_format</tt>       - Set format of years for year select. Lambda should be passed.
+      # * <tt>:day_format</tt>        - Set format of days for day select. Lambda should be passed.
       # * <tt>:discard_day</tt>       - Set to true if you don't want to show a day select. This includes the day
       #   as a hidden field instead of showing a select field. Also note that this implicitly sets the day to be the
       #   first of the given month in order to not create invalid dates like 31 February.
@@ -279,6 +280,9 @@ module ActionView
       #   # Generates a date select with custom year format.
       #   date_select("article", "written_on", year_format: ->(year) { "Heisei #{year - 1988}" })
       #
+      #   # Generates a date select with custom day format.
+      #   date_select("article", "written_on", day_format: ->(day) { day.ordinalize })
+      #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       #
       # Note: If the day is not included as an option but the month is, the day will be set to the 1st to ensure that
@@ -287,12 +291,12 @@ module ActionView
         Tags::DateSelect.new(object_name, method, self, options, html_options).render
       end
 
-      # Returns a set of select tags (one for hour, minute and optionally second) pre-selected for accessing a
+      # Returns a set of select tags (one for hour, minute, and optionally second) pre-selected for accessing a
       # specified time-based attribute (identified by +method+) on an object assigned to the template (identified by
       # +object+). You can include the seconds with <tt>:include_seconds</tt>. You can get hours in the AM/PM format
       # with <tt>:ampm</tt> option.
       #
-      # This method will also generate 3 input hidden tags, for the actual year, month and day unless the option
+      # This method will also generate 3 input hidden tags, for the actual year, month, and day unless the option
       # <tt>:ignore_date</tt> is set to +true+. If you set the <tt>:ignore_date</tt> to +true+, you must have a
       # +date_select+ on the same method within the form otherwise an exception will be raised.
       #
@@ -811,7 +815,7 @@ module ActionView
         if @options[:use_hidden] || @options[:discard_day]
           build_hidden(:day, day || 1)
         else
-          build_options_and_select(:day, day, start: 1, end: 31, leading_zeros: false, use_two_digit_numbers: @options[:use_two_digit_numbers])
+          build_select(:day, build_day_options(day))
         end
       end
 
@@ -840,14 +844,14 @@ module ActionView
         if @options[:use_hidden] || @options[:discard_year]
           build_hidden(:year, val)
         else
-          options                     = {}
-          options[:start]             = @options[:start_year] || middle_year - 5
-          options[:end]               = @options[:end_year] || middle_year + 5
-          options[:step]              = options[:start] < options[:end] ? 1 : -1
-          options[:leading_zeros]     = false
-          options[:max_years_allowed] = @options[:max_years_allowed] || 1000
+          options         = {}
+          options[:start] = @options[:start_year] || middle_year - 5
+          options[:end]   = @options[:end_year] || middle_year + 5
+          options[:step]  = options[:start] < options[:end] ? 1 : -1
 
-          if (options[:end] - options[:start]).abs > options[:max_years_allowed]
+          max_years_allowed = @options[:max_years_allowed] || 1000
+
+          if (options[:end] - options[:start]).abs > max_years_allowed
             raise ArgumentError, "There are too many years options to be built. Are you sure you haven't mistyped something? You can provide the :max_years_allowed parameter."
           end
 
@@ -865,6 +869,10 @@ module ActionView
             else @datetime.send(method)
             end
           end
+        end
+
+        def prompt_text(prompt, type)
+          prompt.kind_of?(String) ? prompt : I18n.translate(:"datetime.prompts.#{type}", locale: @options[:locale])
         end
 
         # If the day is hidden, the day should be set to the 1st so all month and year choices are
@@ -899,6 +907,27 @@ module ActionView
           I18n.translate(key, locale: @options[:locale])
         end
 
+        # Looks up day names by number.
+        #
+        #   day_name(1) # => 1
+        #
+        # If the <tt>use_two_digit_numbers: true</tt> option is passed to DateTimeSelector:
+        #
+        #   day_name(1) # => "01"
+        #
+        # If the <tt>day_format: ->(day) { day.ordinalize }</tt> option is passed to DateTimeSelector:
+        #
+        #   day_name(1) # => "1st"
+        def day_name(number)
+          if day_format_lambda = @options[:day_format]
+            day_format_lambda.call(number)
+          elsif @options[:use_two_digit_numbers]
+            "%02d" % number
+          else
+            number
+          end
+        end
+
         # Looks up month names by number (1-based):
         #
         #   month_name(1) # => "January"
@@ -907,7 +936,7 @@ module ActionView
         #
         #   month_name(1) # => 1
         #
-        # If the <tt>:use_two_month_numbers</tt> option is passed:
+        # If the <tt>:use_two_digit_numbers</tt> option is passed:
         #
         #   month_name(1) # => '01'
         #
@@ -1011,18 +1040,40 @@ module ActionView
           (select_options.join("\n") + "\n").html_safe
         end
 
+        # Build select option HTML for day.
+        #  build_day_options(2)
+        #  => "<option value="1">1</option>
+        #      <option value="2" selected="selected">2</option>
+        #      <option value="3">3</option>..."
+        #
+        # If <tt>day_format: ->(day) { day.ordinalize }</tt> option is passed to DateTimeSelector
+        #  build_day_options(2)
+        #  => "<option value="1">1st</option>
+        #      <option value="2" selected="selected">2nd</option>
+        #      <option value="3">3rd</option>..."
+        #
+        # If <tt>use_two_digit_numbers: true</tt> option is passed to DateTimeSelector
+        #  build_day_options(2)
+        #  => "<option value="1">01</option>
+        #      <option value="2" selected="selected">02</option>
+        #      <option value="3">03</option>..."
+        def build_day_options(selected)
+          select_options = []
+          (1..31).each do |value|
+            tag_options = { value: value }
+            tag_options[:selected] = "selected" if selected == value
+            text = day_name(value)
+            select_options << content_tag("option", text, tag_options)
+          end
+
+          (select_options.join("\n") + "\n").html_safe
+        end
+
         # Build select option HTML for year.
-        # If <tt>year_format</tt> option is not passed
         #  build_year_options(1998, start: 1998, end: 2000)
         #  => "<option value="1998" selected="selected">1998</option>
         #      <option value="1999">1999</option>
         #      <option value="2000">2000</option>"
-        #
-        # If <tt>year_format</tt> option is passed
-        #  build_year_options(1998, start: 1998, end: 2000, year_format: ->year { "Heisei #{ year - 1988 }" })
-        #  => "<option value="1998" selected="selected">Heisei 10</option>
-        #      <option value="1999">Heisei 11</option>
-        #      <option value="2000">Heisei 12</option>"
         def build_year_options(selected, options = {})
           start = options.delete(:start)
           stop = options.delete(:end)
@@ -1090,12 +1141,12 @@ module ActionView
               I18n.translate(:"datetime.prompts.#{type}", locale: @options[:locale])
             end
 
-          prompt ? content_tag("option", prompt, value: "") : ""
+          prompt ? content_tag("option", prompt_text(prompt, type), value: "") : ""
         end
 
         # Builds hidden input tag for date part and value.
         #  build_hidden(:year, 2008)
-        #  => "<input id="post_written_on_1i" name="post[written_on(1i)]" type="hidden" value="2008" />"
+        #  => "<input type="hidden" id="date_year" name="date[year]" value="2008" autocomplete="off" />"
         def build_hidden(type, value)
           select_options = {
             type: "hidden",

@@ -5,31 +5,41 @@ Description:
     A migration class is generated in db/migrate prefixed by a timestamp of the current date and time.
 
     You can name your migration in either of these formats to generate add/remove
-    column lines from supplied attributes: AddColumnsToTable or RemoveColumnsFromTable
+    column lines from supplied attributes: add_{columns}_to_{table} or remove_{columns}_from_{table}.
 
-Example:
-    `bin/rails generate migration AddSslFlag`
+    A migration name containing JoinTable will generate join tables for use with
+    has_and_belongs_to_many associations.
+
+    You can also name your migration create_{table} along with any attributes to generate a regular table.
+
+Examples:
+    `bin/rails generate migration add_ssl_flag`
 
     If the current date is May 14, 2008 and the current time 09:09:12, this creates the AddSslFlag migration
     db/migrate/20080514090912_add_ssl_flag.rb
 
-    `bin/rails generate migration AddTitleBodyToPost title:string body:text published:boolean`
+    `bin/rails generate migration add_title_body_published_to_post title:string body:text published:boolean`
 
-    This will create the AddTitleBodyToPost in db/migrate/20080514090912_add_title_body_to_post.rb with this in the Change migration:
+    This will create db/migrate/20080514090912_add_title_body_published_to_post.rb with this in the migration:
 
       add_column :posts, :title, :string
       add_column :posts, :body, :text
       add_column :posts, :published, :boolean
 
-Migration names containing JoinTable will generate join tables for use with
-has_and_belongs_to_many associations.
+    `bin/rails generate migration create_media_join_table artists musics:uniq`
 
-Example:
-    `bin/rails g migration CreateMediaJoinTable artists musics:uniq`
-
-    will create the migration
+    This will create a join table migration:
 
     create_join_table :artists, :musics do |t|
       # t.index [:artist_id, :music_id]
       t.index [:music_id, :artist_id], unique: true
+    end
+
+    `bin/rails generate migration create_users email:string`
+
+    This will create the migration:
+
+    create_table :users do |t|
+      t.string :email
+      t.timestamps
     end

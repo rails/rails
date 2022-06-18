@@ -783,6 +783,14 @@ class RequestMethod < BaseRequestTest
       end
     end
   end
+
+  test "delegates to Object#method if an argument is passed" do
+    request = stub_request
+
+    assert_nothing_raised do
+      request.method(:POST)
+    end
+  end
 end
 
 class RequestFormat < BaseRequestTest
@@ -908,7 +916,7 @@ class RequestFormat < BaseRequestTest
 
       assert_equal [ Mime[:html] ], request.formats
 
-      request = stub_request "HTTP_ACCEPT" => "koz-asked/something-crazy",
+      request = stub_request "HTTP_ACCEPT" => "koz-asked/something-wild",
                              "QUERY_STRING" => ""
 
       assert_equal [ Mime[:html] ], request.formats
@@ -1077,6 +1085,16 @@ class RequestParameters < BaseRequestTest
 
     assert_predicate err.message, :valid_encoding?
     assert_equal "Invalid path parameters: Invalid encoding for parameter: �", err.message
+  end
+
+  test "path parameters don't re-encode frozen strings" do
+    request = stub_request
+
+    ActionDispatch::Request::Utils::CustomParamEncoder.stub(:action_encoding_template, Hash.new { Encoding::BINARY }) do
+      request.path_parameters = { foo: "frozen", bar: +"mutable", controller: "test_controller" }
+      assert_equal Encoding::BINARY, request.params[:bar].encoding
+      assert_equal Encoding::UTF_8, request.params[:foo].encoding
+    end
   end
 
   test "parameters not accessible after rack parse error of invalid UTF8 character" do

@@ -18,8 +18,11 @@ module ActiveSupport
     #
     #   ActiveSupport::JSON.encode({ team: 'rails', players: '36' })
     #   # => "{\"team\":\"rails\",\"players\":\"36\"}"
-    def self.encode(value, options = nil)
-      Encoding.json_encoder.new(options).encode(value)
+    class << self
+      def encode(value, options = nil)
+        Encoding.json_encoder.new(options).encode(value)
+      end
+      alias_method :dump, :encode
     end
 
     module Encoding # :nodoc:

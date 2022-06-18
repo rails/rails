@@ -57,12 +57,12 @@ module ActiveJob
     # Specifies the queue adapter to use with all Active Job test helpers.
     #
     # Returns an instance of the queue adapter and defaults to
-    # <tt>ActiveJob::QueueAdapters::TestAdapter</tt>.
+    # ActiveJob::QueueAdapters::TestAdapter.
     #
     # Note: The adapter provided by this method must provide some additional
-    # methods from those expected of a standard <tt>ActiveJob::QueueAdapter</tt>
+    # methods from those expected of a standard ActiveJob::QueueAdapter
     # in order to be used with the active job test helpers. Refer to
-    # <tt>ActiveJob::QueueAdapters::TestAdapter</tt>.
+    # ActiveJob::QueueAdapters::TestAdapter.
     def queue_adapter_for_test
       ActiveJob::QueueAdapters::TestAdapter.new
     end
@@ -109,7 +109,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # +:only+ and +:except+ options accepts Class, Array of Class or Proc. When passed a Proc,
+    # +:only+ and +:except+ options accept Class, Array of Class, or Proc. When passed a Proc,
     # a hash containing the job's class and it's argument are passed as argument.
     #
     # Asserts the number of times a job is enqueued to a specific queue by passing +:queue+ option.
@@ -168,7 +168,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # +:only+ and +:except+ options accepts Class, Array of Class or Proc. When passed a Proc,
+    # +:only+ and +:except+ options accept Class, Array of Class, or Proc. When passed a Proc,
     # a hash containing the job's class and it's argument are passed as argument.
     #
     # Asserts that no jobs are enqueued to a specific queue by passing +:queue+ option
@@ -325,7 +325,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # +:only+ and +:except+ options accepts Class, Array of Class or Proc. When passed a Proc,
+    # +:only+ and +:except+ options accept Class, Array of Class, or Proc. When passed a Proc,
     # an instance of the job will be passed as argument.
     #
     # If the +:queue+ option is specified,
@@ -417,8 +417,20 @@ module ActiveJob
         end
       end
 
+      matching_class = potential_matches.select do |enqueued_job|
+        enqueued_job["job_class"] == job.to_s
+      end
+
       message = +"No enqueued job found with #{expected}"
-      message << "\n\nPotential matches: #{potential_matches.join("\n")}" if potential_matches.present?
+      if potential_matches.empty?
+        message << "\n\nNo jobs were enqueued"
+      elsif matching_class.empty?
+        message << "\n\nNo jobs of class #{expected[:job]} were enqueued, job classes enqueued: "
+        message << potential_matches.map { |job| job["job_class"] }.join(", ")
+      else
+        message << "\n\nPotential matches: #{matching_class.join("\n")}"
+      end
+
       assert matching_job, message
       instantiate_job(matching_job)
     end
@@ -507,8 +519,20 @@ module ActiveJob
         end
       end
 
+      matching_class = potential_matches.select do |enqueued_job|
+        enqueued_job["job_class"] == job.to_s
+      end
+
       message = +"No performed job found with #{expected}"
-      message << "\n\nPotential matches: #{potential_matches.join("\n")}" if potential_matches.present?
+      if potential_matches.empty?
+        message << "\n\nNo jobs were performed"
+      elsif matching_class.empty?
+        message << "\n\nNo jobs of class #{expected[:job]} were performed, job classes performed: "
+        message << potential_matches.map { |job| job["job_class"] }.join(", ")
+      else
+        message << "\n\nPotential matches: #{matching_class.join("\n")}"
+      end
+
       assert matching_job, message
 
       instantiate_job(matching_job)
@@ -555,7 +579,7 @@ module ActiveJob
     #     assert_performed_jobs 1
     #   end
     #
-    # +:only+ and +:except+ options accepts Class, Array of Class or Proc. When passed a Proc,
+    # +:only+ and +:except+ options accept Class, Array of Class, or Proc. When passed a Proc,
     # an instance of the job will be passed as argument.
     #
     # If the +:queue+ option is specified,
@@ -664,7 +688,7 @@ module ActiveJob
         enqueued_jobs_with(only: only, except: except, queue: queue, at: at) do |payload|
           queue_adapter.enqueued_jobs.delete(payload)
           queue_adapter.performed_jobs << payload
-          instantiate_job(payload).perform_now
+          instantiate_job(payload, skip_deserialize_arguments: true).perform_now
         end.count
       end
 
@@ -684,10 +708,10 @@ module ActiveJob
         end
       end
 
-      def instantiate_job(payload)
+      def instantiate_job(payload, skip_deserialize_arguments: false)
         job = payload[:job].deserialize(payload)
         job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
-        job.send(:deserialize_arguments_if_needed)
+        job.send(:deserialize_arguments_if_needed) unless skip_deserialize_arguments
         job
       end
 

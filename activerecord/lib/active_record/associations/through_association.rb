@@ -7,6 +7,10 @@ module ActiveRecord
       delegate :source_reflection, to: :reflection
 
       private
+        def transaction(&block)
+          through_reflection.klass.transaction(&block)
+        end
+
         def through_reflection
           @through_reflection ||= begin
             refl = reflection.through_reflection
@@ -74,8 +78,8 @@ module ActiveRecord
           end
         end
 
-        # Note: this does not capture all cases, for example it would be crazy to try to
-        # properly support stale-checking for nested associations.
+        # Note: this does not capture all cases, for example it would be impractical
+        # to try to properly support stale-checking for nested associations.
         def stale_state
           if through_reflection.belongs_to?
             owner[through_reflection.foreign_key] && owner[through_reflection.foreign_key].to_s

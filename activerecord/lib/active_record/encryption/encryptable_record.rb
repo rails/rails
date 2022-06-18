@@ -18,12 +18,10 @@ module ActiveRecord
         #
         # === Options
         #
-        # * <tt>:key_provider</tt> - Configure a +KeyProvider+ for serving the keys to encrypt and
-        #   decrypt this attribute. If not provided, it will default to +ActiveRecord::Encryption.key_provider+.
+        # * <tt>:key_provider</tt> - A key provider to provide encryption and decryption keys. Defaults to
+        #   +ActiveRecord::Encryption.key_provider+.
         # * <tt>:key</tt> - A password to derive the key from. It's a shorthand for a +:key_provider+ that
         #   serves derivated keys. Both options can't be used at the same time.
-        # * <tt>:key_provider</tt> - Set a +:key_provider+ to provide encryption and decryption keys. If not
-        #   provided, it will default to the key provider set with `config.key_provider`.
         # * <tt>:deterministic</tt> - By default, encryption is not deterministic. It will use a random
         #   initialization vector for each encryption operation. This means that encrypting the same content
         #   with the same key twice will generate different ciphertexts. When set to +true+, it will generate the
@@ -37,7 +35,7 @@ module ActiveRecord
         #   in preserving it.
         # * <tt>:ignore_case</tt> - When true, it behaves like +:downcase+ but, it also preserves the original case in a specially
         #   designated column +original_<name>+. When reading the encrypted content, the version with the original case is
-        #   server. But you can still execute queries that will ignore the case. This option can only be used when +:deterministic+
+        #   served. But you can still execute queries that will ignore the case. This option can only be used when +:deterministic+
         #   is true.
         # * <tt>:context_properties</tt> - Additional properties that will override +Context+ settings when this attribute is
         #   encrypted and decrypted. E.g: +encryptor:+, +cipher:+, +message_serializer:+, etc.
@@ -84,7 +82,7 @@ module ActiveRecord
           def encrypt_attribute(name, attribute_scheme)
             encrypted_attributes << name.to_sym
 
-            attribute name do |cast_type|
+            attribute name, default: -> { columns_hash[name.to_s]&.default } do |cast_type|
               ActiveRecord::Encryption::EncryptedAttributeType.new scheme: attribute_scheme, cast_type: cast_type
             end
 
@@ -190,12 +188,12 @@ module ActiveRecord
         end
 
         def build_decrypt_attribute_assignments
-          Array(self.class.encrypted_attributes).collect do |attribute_name|
+          Array(self.class.encrypted_attributes).to_h do |attribute_name|
             type = type_for_attribute(attribute_name)
             encrypted_value = ciphertext_for(attribute_name)
             new_value = type.deserialize(encrypted_value)
             [attribute_name, new_value]
-          end.to_h
+          end
         end
 
         def cant_modify_encrypted_attributes_when_frozen

@@ -29,14 +29,23 @@ module ActiveModel
       # it). When this attribute has a +nil+ value, the validation will not be
       # triggered.
       #
-      # For further customizability, it is possible to suppress the default
-      # validations by passing <tt>validations: false</tt> as an argument.
+      # Additionally, a +XXX_challenge+ attribute is created. When set to a
+      # value other than +nil+, it will validate against the currently persisted
+      # password. This validation relies on dirty tracking, as provided by
+      # ActiveModel::Dirty; if dirty tracking methods are not defined, this
+      # validation will fail.
       #
-      # Add bcrypt (~> 3.1.7) to Gemfile to use #has_secure_password:
+      # All of the above validations can be omitted by passing
+      # <tt>validations: false</tt> as an argument. This allows complete
+      # customizability of validation behavior.
+      #
+      # To use +has_secure_password+, add bcrypt (~> 3.1.7) to your Gemfile:
       #
       #   gem 'bcrypt', '~> 3.1.7'
       #
-      # Example using Active Record (which automatically includes ActiveModel::SecurePassword):
+      # ==== Examples
+      #
+      # Using Active Record, which automatically includes ActiveModel::SecurePassword:
       #
       #   # Schema: User(name:string, password_digest:string, recovery_password_digest:string)
       #   class User < ActiveRecord::Base
@@ -44,20 +53,30 @@ module ActiveModel
       #     has_secure_password :recovery_password, validations: false
       #   end
       #
-      #   user = User.new(name: 'david', password: '', password_confirmation: 'nomatch')
-      #   user.save                                                  # => false, password required
-      #   user.password = 'mUc3m00RsqyRe'
-      #   user.save                                                  # => false, confirmation doesn't match
-      #   user.password_confirmation = 'mUc3m00RsqyRe'
-      #   user.save                                                  # => true
+      #   user = User.new(name: "david", password: "", password_confirmation: "nomatch")
+      #
+      #   user.save                                                      # => false, password required
+      #   user.password = "vr00m"
+      #   user.save                                                      # => false, confirmation doesn't match
+      #   user.password_confirmation = "vr00m"
+      #   user.save                                                      # => true
+      #
+      #   user.authenticate("notright")                                  # => false
+      #   user.authenticate("vr00m")                                     # => user
+      #   User.find_by(name: "david")&.authenticate("notright")          # => false
+      #   User.find_by(name: "david")&.authenticate("vr00m")             # => user
+      #
       #   user.recovery_password = "42password"
-      #   user.recovery_password_digest                              # => "$2a$04$iOfhwahFymCs5weB3BNH/uXkTG65HR.qpW.bNhEjFP3ftli3o5DQC"
-      #   user.save                                                  # => true
-      #   user.authenticate('notright')                              # => false
-      #   user.authenticate('mUc3m00RsqyRe')                         # => user
-      #   user.authenticate_recovery_password('42password')          # => user
-      #   User.find_by(name: 'david')&.authenticate('notright')      # => false
-      #   User.find_by(name: 'david')&.authenticate('mUc3m00RsqyRe') # => user
+      #   user.recovery_password_digest                                  # => "$2a$04$iOfhwahFymCs5weB3BNH/uXkTG65HR.qpW.bNhEjFP3ftli3o5DQC"
+      #   user.save                                                      # => true
+      #
+      #   user.authenticate_recovery_password("42password")              # => user
+      #
+      #   user.update(password: "pwn3d", password_challenge: "")         # => false, challenge doesn't authenticate
+      #   user.update(password: "nohack4u", password_challenge: "vr00m") # => true
+      #
+      #   user.authenticate("vr00m")                                     # => false, old password
+      #   user.authenticate("nohack4u")                                  # => user
       def has_secure_password(attribute = :password, validations: true)
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
@@ -65,7 +84,7 @@ module ActiveModel
         begin
           require "bcrypt"
         rescue LoadError
-          $stderr.puts "You don't have bcrypt installed in your application. Please add it to your Gemfile and run bundle install"
+          $stderr.puts "You don't have bcrypt installed in your application. Please add it to your Gemfile and run bundle install."
           raise
         end
 
@@ -82,6 +101,16 @@ module ActiveModel
             record.errors.add(attribute, :blank) unless record.public_send("#{attribute}_digest").present?
           end
 
+          validate do |record|
+            if challenge = record.public_send(:"#{attribute}_challenge")
+              digest_was = record.public_send(:"#{attribute}_digest_was") if record.respond_to?(:"#{attribute}_digest_was")
+
+              unless digest_was.present? && BCrypt::Password.new(digest_was).is_password?(challenge)
+                record.errors.add(:"#{attribute}_challenge")
+              end
+            end
+          end
+
           validates_length_of attribute, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
           validates_confirmation_of attribute, allow_blank: true
         end
@@ -94,6 +123,7 @@ module ActiveModel
 
         define_method("#{attribute}=") do |unencrypted_password|
           if unencrypted_password.nil?
+            instance_variable_set("@#{attribute}", nil)
             self.public_send("#{attribute}_digest=", nil)
           elsif !unencrypted_password.empty?
             instance_variable_set("@#{attribute}", unencrypted_password)
@@ -102,9 +132,7 @@ module ActiveModel
           end
         end
 
-        define_method("#{attribute}_confirmation=") do |unencrypted_password|
-          instance_variable_set("@#{attribute}_confirmation", unencrypted_password)
-        end
+        attr_accessor :"#{attribute}_confirmation", :"#{attribute}_challenge"
 
         # Returns +self+ if the password is correct, otherwise +false+.
         #
@@ -118,7 +146,7 @@ module ActiveModel
         #   user.authenticate_password('mUc3m00RsqyRe') # => user
         define_method("authenticate_#{attribute}") do |unencrypted_password|
           attribute_digest = public_send("#{attribute}_digest")
-          BCrypt::Password.new(attribute_digest).is_password?(unencrypted_password) && self
+          attribute_digest.present? && BCrypt::Password.new(attribute_digest).is_password?(unencrypted_password) && self
         end
 
         alias_method :authenticate, :authenticate_password if attribute == :password

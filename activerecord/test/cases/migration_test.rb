@@ -178,6 +178,23 @@ class MigrationTest < ActiveRecord::TestCase
     connection.drop_table :testings, if_exists: true
   end
 
+  def test_create_table_raises_for_long_table_names
+    connection = Person.connection
+    name_limit = connection.table_name_length
+    long_name = "a" * (name_limit + 1)
+    short_name = "a" * name_limit
+
+    error = assert_raises(ArgumentError) do
+      connection.create_table(long_name)
+    end
+    assert_equal "Table name '#{long_name}' is too long; the limit is #{name_limit} characters", error.message
+
+    connection.create_table(short_name)
+    assert connection.table_exists?(short_name)
+  ensure
+    connection.drop_table short_name, if_exists: true
+  end
+
   def test_create_table_with_indexes_and_if_not_exists_true
     connection = Person.connection
     connection.create_table :testings, force: true do |t|
@@ -680,6 +697,22 @@ class MigrationTest < ActiveRecord::TestCase
     migrator.up
   end
 
+  def test_internal_metadata_stores_environment_when_migration_fails
+    ActiveRecord::InternalMetadata.delete_all
+    current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+
+    migration = Class.new(ActiveRecord::Migration::Current) {
+      def version; 101 end
+      def migrate(x)
+        raise "Something broke"
+      end
+    }.new
+
+    migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 101)
+    assert_raise(StandardError) { migrator.migrate }
+    assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
+  end
+
   def test_internal_metadata_stores_environment_when_other_data_exists
     ActiveRecord::InternalMetadata.delete_all
     ActiveRecord::InternalMetadata[:foo] = "bar"
@@ -1148,6 +1181,26 @@ class ExplicitlyNamedIndexMigrationTest < ActiveRecord::TestCase
   end
 end
 
+if current_adapter?(:PostgreSQLAdapter)
+  class IndexForTableWithSchemaMigrationTest < ActiveRecord::TestCase
+    def test_add_and_remove_index
+      connection = Person.connection
+      connection.create_schema("my_schema")
+      connection.create_table("my_schema.values", force: true) do |t|
+        t.integer :value
+      end
+
+      connection.add_index("my_schema.values", :value)
+      assert connection.index_exists?("my_schema.values", :value)
+
+      connection.remove_index("my_schema.values", :value)
+      assert_not connection.index_exists?("my_schema.values", :value)
+    ensure
+      connection.drop_schema("my_schema")
+    end
+  end
+end
+
 if ActiveRecord::Base.connection.supports_bulk_alter?
   class BulkAlterTableMigrationsTest < ActiveRecord::TestCase
     def setup
@@ -1345,6 +1398,78 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal "NONAME", column(:name).default
       assert_equal :datetime, column(:birthdate).type
       assert_equal "This is a comment", column(:birthdate).comment
+    end
+
+    def test_changing_column_null_with_default
+      with_bulk_change_table do |t|
+        t.string :name
+        t.integer :age
+        t.date :birthdate
+      end
+
+      assert_not column(:name).default
+      assert_equal :date, column(:birthdate).type
+
+      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      expected_query_count = {
+        "Mysql2Adapter"     => 7, # four queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
+        "PostgreSQLAdapter" => 5, # two queries for columns, one for bulk change, one for UPDATE, one for NOT NULL
+      }.fetch(classname) {
+        raise "need an expected query count for #{classname}"
+      }
+
+      assert_queries(expected_query_count, ignore_none: true) do
+        with_bulk_change_table do |t|
+          t.change :name, :string, default: "NONAME"
+          t.change :birthdate, :datetime
+          t.change_null :age, false, 0
+        end
+      end
+
+      assert_equal "NONAME", column(:name).default
+      assert_equal :datetime, column(:birthdate).type
+      assert_equal false, column(:age).null
+    end
+
+    if supports_text_column_with_default?
+      def test_default_functions_on_columns
+        with_bulk_change_table do |t|
+          if current_adapter?(:PostgreSQLAdapter)
+            t.string :name, default: -> { "gen_random_uuid()" }
+          else
+            t.string :name, default: -> { "UUID()" }
+          end
+        end
+
+        assert_nil column(:name).default
+
+        if current_adapter?(:PostgreSQLAdapter)
+          assert_equal "gen_random_uuid()", column(:name).default_function
+          Person.connection.execute("INSERT INTO delete_me DEFAULT VALUES")
+          person_data = Person.connection.execute("SELECT * FROM delete_me ORDER BY id DESC").to_a.first
+        else
+          assert_equal "uuid()", column(:name).default_function
+          Person.connection.execute("INSERT INTO delete_me () VALUES ()")
+          person_data = Person.connection.execute("SELECT * FROM delete_me ORDER BY id DESC").to_a(as: :hash).first
+        end
+
+        assert_match(/\A(.+)-(.+)-(.+)-(.+)\Z/, person_data.fetch("name"))
+      end
+    end
+
+    if current_adapter?(:Mysql2Adapter)
+      def test_updating_auto_increment
+        with_bulk_change_table do |t|
+          t.change :id, :bigint, auto_increment: true
+        end
+
+        assert column(:id).auto_increment?
+
+        with_bulk_change_table do |t|
+          t.change :id, :bigint, auto_increment: false
+        end
+        assert_not column(:id).auto_increment?
+      end
     end
 
     def test_changing_index

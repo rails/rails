@@ -100,11 +100,13 @@ module ActionText
     end
 
     def inspect
-      "#<#{self.class.name} #{to_s.truncate(25).inspect}>"
+      "#<#{self.class.name} #{to_html.truncate(25).inspect}>"
     end
 
     def ==(other)
-      if other.is_a?(self.class)
+      if self.class == other.class
+        to_html == other.to_html
+      elsif other.is_a?(self.class)
         to_s == other.to_s
       end
     end

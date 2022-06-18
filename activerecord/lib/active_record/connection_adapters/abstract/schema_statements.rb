@@ -96,18 +96,11 @@ module ActiveRecord
       #   # Check an index with a custom name exists
       #   index_exists?(:suppliers, :company_id, name: "idx_company_id")
       #
+      #   # Check a valid index exists (PostgreSQL only)
+      #   index_exists?(:suppliers, :company_id, valid: true)
+      #
       def index_exists?(table_name, column_name, **options)
-        checks = []
-
-        if column_name.present?
-          column_names = Array(column_name).map(&:to_s)
-          checks << lambda { |i| Array(i.columns) == column_names }
-        end
-
-        checks << lambda { |i| i.unique } if options[:unique]
-        checks << lambda { |i| i.name == options[:name].to_s } if options[:name]
-
-        indexes(table_name).any? { |i| checks.all? { |check| check[i] } }
+        indexes(table_name).any? { |i| i.defined_for?(column_name, **options) }
       end
 
       # Returns an array of +Column+ objects for the table specified by +table_name+.
@@ -124,6 +117,9 @@ module ActiveRecord
       #   column_exists?(:suppliers, :name)
       #
       #   # Check a column exists of a particular type
+      #   #
+      #   # This works for standard non-casted types (eg. string) but is unreliable
+      #   # for types that may get cast to something else (eg. char, bigint).
       #   column_exists?(:suppliers, :name, :string)
       #
       #   # Check a column exists with a specific definition
@@ -294,6 +290,7 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options)
+        validate_table_length!(table_name) unless options[:_uses_legacy_table_name]
         td = create_table_definition(table_name, **extract_table_options!(options))
 
         if id && !td.as
@@ -393,14 +390,14 @@ module ActiveRecord
       end
 
       # Drops the join table specified by the given arguments.
-      # See #create_join_table for details.
+      # See #create_join_table and #drop_table for details.
       #
       # Although this command ignores the block if one is given, it can be helpful
       # to provide one in a migration's +change+ method so it can be reverted.
       # In that case, the block will be used by #create_join_table.
       def drop_join_table(table_1, table_2, **options)
         join_table_name = find_join_table_name(table_1, table_2, options)
-        drop_table(join_table_name)
+        drop_table(join_table_name, **options)
       end
 
       # A block for changing columns in +table+.
@@ -495,7 +492,7 @@ module ActiveRecord
       #
       #   rename_table('octopuses', 'octopi')
       #
-      def rename_table(table_name, new_name)
+      def rename_table(table_name, new_name, **)
         raise NotImplementedError, "rename_table is not implemented"
       end
 
@@ -550,11 +547,6 @@ module ActiveRecord
       #   <tt>:datetime</tt>, and <tt>:time</tt> columns.
       # * <tt>:scale</tt> -
       #   Specifies the scale for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
-      # * <tt>:collation</tt> -
-      #   Specifies the collation for a <tt>:string</tt> or <tt>:text</tt> column. If not specified, the
-      #   column will have the same collation as the table.
-      # * <tt>:comment</tt> -
-      #   Specifies the comment for the column. This option is ignored by some backends.
       # * <tt>:if_not_exists</tt> -
       #   Specifies if the column already exists to not try to re-add it. This will avoid
       #   duplicate column errors.
@@ -653,7 +645,8 @@ module ActiveRecord
       # The +type+ and +options+ parameters will be ignored if present. It can be helpful
       # to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +type+ and +options+ will be used by #add_column.
-      # Indexes on the column are automatically removed.
+      # Depending on the database you're using, indexes using this column may be
+      # automatically removed or modified to remove this column from the index.
       #
       # If the options provided include an +if_exists+ key, it will be used to check if the
       # column does not exist. This will silently ignore the migration rather than raising
@@ -778,7 +771,7 @@ module ActiveRecord
       #
       #   CREATE INDEX by_name_surname ON accounts(name(10), surname(15))
       #
-      # Note: SQLite doesn't support index length.
+      # Note: only supported by MySQL
       #
       # ====== Creating an index with a sort order (desc or asc, asc is the default)
       #
@@ -982,7 +975,7 @@ module ActiveRecord
       #   add_reference(:products, :supplier, foreign_key: { to_table: :firms })
       #
       def add_reference(table_name, ref_name, **options)
-        ReferenceDefinition.new(ref_name, **options).add_to(update_table_definition(table_name, self))
+        ReferenceDefinition.new(ref_name, **options).add(table_name, self)
       end
       alias :add_belongs_to :add_reference
 
@@ -1002,19 +995,21 @@ module ActiveRecord
       #   remove_reference(:products, :user, foreign_key: true)
       #
       def remove_reference(table_name, ref_name, foreign_key: false, polymorphic: false, **options)
+        conditional_options = options.slice(:if_exists, :if_not_exists)
+
         if foreign_key
           reference_name = Base.pluralize_table_names ? ref_name.to_s.pluralize : ref_name
           if foreign_key.is_a?(Hash)
-            foreign_key_options = foreign_key
+            foreign_key_options = foreign_key.merge(conditional_options)
           else
-            foreign_key_options = { to_table: reference_name }
+            foreign_key_options = { to_table: reference_name, **conditional_options }
           end
           foreign_key_options[:column] ||= "#{ref_name}_id"
           remove_foreign_key(table_name, **foreign_key_options)
         end
 
-        remove_column(table_name, "#{ref_name}_id")
-        remove_column(table_name, "#{ref_name}_type") if polymorphic
+        remove_column(table_name, "#{ref_name}_id", **conditional_options)
+        remove_column(table_name, "#{ref_name}_type", **conditional_options) if polymorphic
       end
       alias :remove_belongs_to :remove_reference
 
@@ -1067,9 +1062,9 @@ module ActiveRecord
       # [<tt>:name</tt>]
       #   The constraint name. Defaults to <tt>fk_rails_<identifier></tt>.
       # [<tt>:on_delete</tt>]
-      #   Action that happens <tt>ON DELETE</tt>. Valid values are +:nullify+, +:cascade+ and +:restrict+
+      #   Action that happens <tt>ON DELETE</tt>. Valid values are +:nullify+, +:cascade+, and +:restrict+
       # [<tt>:on_update</tt>]
-      #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade+ and +:restrict+
+      #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade+, and +:restrict+
       # [<tt>:if_not_exists</tt>]
       #   Specifies if the foreign key already exists to not try to re-add it. This will avoid
       #   duplicate column errors.
@@ -1121,7 +1116,7 @@ module ActiveRecord
       #   The name of the table that contains the referenced primary key.
       def remove_foreign_key(from_table, to_table = nil, **options)
         return unless supports_foreign_keys?
-        return if options[:if_exists] == true && !foreign_key_exists?(from_table, to_table)
+        return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table)
 
         fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
 
@@ -1400,6 +1395,12 @@ module ActiveRecord
       end
 
       private
+        def validate_change_column_null_argument!(value)
+          unless value == true || value == false
+            raise ArgumentError, "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: #{value.inspect}"
+          end
+        end
+
         def column_options_keys
           [:limit, :precision, :scale, :default, :null, :collation, :comment]
         end
@@ -1434,7 +1435,7 @@ module ActiveRecord
 
           checks = []
 
-          if !options.key?(:name) && column_name.is_a?(String) && /\W/.match?(column_name)
+          if !options.key?(:name) && expression_column_name?(column_name)
             options[:name] = index_name(table_name, column_name)
             column_names = []
           else
@@ -1443,7 +1444,7 @@ module ActiveRecord
 
           checks << lambda { |i| i.name == options[:name].to_s } if options.key?(:name)
 
-          if column_names.present?
+          if column_names.present? && !(options.key?(:name) && expression_column_name?(column_names))
             checks << lambda { |i| index_name(table_name, i.columns) == index_name(table_name, column_names) }
           end
 
@@ -1511,7 +1512,7 @@ module ActiveRecord
         end
 
         def index_column_names(column_names)
-          if column_names.is_a?(String) && /\W/.match?(column_names)
+          if expression_column_name?(column_names)
             column_names
           else
             Array(column_names)
@@ -1519,11 +1520,16 @@ module ActiveRecord
         end
 
         def index_name_options(column_names)
-          if column_names.is_a?(String) && /\W/.match?(column_names)
+          if expression_column_name?(column_names)
             column_names = column_names.scan(/\w+/).join("_")
           end
 
           { column: column_names }
+        end
+
+        # Try to identify whether the given column name is an expression
+        def expression_column_name?(column_name)
+          column_name.is_a?(String) && /\W/.match?(column_name)
         end
 
         def strip_table_name_prefix_and_suffix(table_name)
@@ -1586,6 +1592,12 @@ module ActiveRecord
           end
         end
 
+        def validate_table_length!(table_name)
+          if table_name.length > table_name_length
+            raise ArgumentError, "Table name '#{table_name}' is too long; the limit is #{table_name_length} characters"
+          end
+        end
+
         def extract_new_default_value(default_or_changes)
           if default_or_changes.is_a?(Hash) && default_or_changes.has_key?(:from) && default_or_changes.has_key?(:to)
             default_or_changes[:to]
@@ -1609,7 +1621,7 @@ module ActiveRecord
 
             if respond_to?(method, true)
               sqls, procs = Array(send(method, table, *arguments)).partition { |v| v.is_a?(String) }
-              sql_fragments << sqls
+              sql_fragments.concat(sqls)
               non_combinable_operations.concat(procs)
             else
               execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
@@ -1664,7 +1676,7 @@ module ActiveRecord
 
           if versions.is_a?(Array)
             sql = +"INSERT INTO #{sm_table} (version) VALUES\n"
-            sql << versions.map { |v| "(#{quote(v)})" }.join(",\n")
+            sql << versions.reverse.map { |v| "(#{quote(v)})" }.join(",\n")
             sql << ";\n\n"
             sql
           else

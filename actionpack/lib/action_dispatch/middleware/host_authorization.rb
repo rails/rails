@@ -16,6 +16,18 @@ module ActionDispatch
   # responds with <tt>403 Forbidden</tt>. The body of the response contains debug info
   # if +config.consider_all_requests_local+ is set to true, otherwise the body is empty.
   class HostAuthorization
+    ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")]
+    PORT_REGEX = /(?::\d+)/ # :nodoc:
+    SUBDOMAIN_REGEX = /(?:[a-z0-9-]+\.)/i # :nodoc:
+    IPV4_HOSTNAME = /(?<host>\d+\.\d+\.\d+\.\d+)#{PORT_REGEX}?/ # :nodoc:
+    IPV6_HOSTNAME = /(?<host>[a-f0-9]*:[a-f0-9.:]+)/i # :nodoc:
+    IPV6_HOSTNAME_WITH_PORT = /\[#{IPV6_HOSTNAME}\]#{PORT_REGEX}/i # :nodoc:
+    VALID_IP_HOSTNAME = Regexp.union( # :nodoc:
+      /\A#{IPV4_HOSTNAME}\z/,
+      /\A#{IPV6_HOSTNAME}\z/,
+      /\A#{IPV6_HOSTNAME_WITH_PORT}\z/,
+    )
+
     class Permissions # :nodoc:
       def initialize(hosts)
         @hosts = sanitize_hosts(hosts)
@@ -27,11 +39,17 @@ module ActionDispatch
 
       def allows?(host)
         @hosts.any? do |allowed|
-          allowed === host
-        rescue
-          # IPAddr#=== raises an error if you give it a hostname instead of
-          # IP. Treat similar errors as blocked access.
-          false
+          if allowed.is_a?(IPAddr)
+            begin
+              allowed === extract_hostname(host)
+            rescue
+              # IPAddr#=== raises an error if you give it a hostname instead of
+              # IP. Treat similar errors as blocked access.
+              false
+            end
+          else
+            allowed === host
+          end
         end
       end
 
@@ -47,15 +65,19 @@ module ActionDispatch
         end
 
         def sanitize_regexp(host)
-          /\A#{host}\z/
+          /\A#{host}#{PORT_REGEX}?\z/
         end
 
         def sanitize_string(host)
           if host.start_with?(".")
-            /\A(.+\.)?#{Regexp.escape(host[1..-1])}\z/i
+            /\A#{SUBDOMAIN_REGEX}?#{Regexp.escape(host[1..-1])}#{PORT_REGEX}?\z/i
           else
-            /\A#{Regexp.escape host}\z/i
+            /\A#{Regexp.escape host}#{PORT_REGEX}?\z/i
           end
+        end
+
+        def extract_hostname(host)
+          host.slice(VALID_IP_HOSTNAME, "host") || host
         end
     end
 
@@ -98,19 +120,10 @@ module ActionDispatch
         end
     end
 
-    def initialize(app, hosts, deprecated_response_app = nil, exclude: nil, response_app: nil)
+    def initialize(app, hosts, exclude: nil, response_app: nil)
       @app = app
       @permissions = Permissions.new(hosts)
       @exclude = exclude
-
-      unless deprecated_response_app.nil?
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          `action_dispatch.hosts_response_app` is deprecated and will be ignored in Rails 7.0.
-          Use the Host Authorization `response_app` setting instead.
-        MSG
-
-        response_app ||= deprecated_response_app
-      end
 
       @response_app = response_app || DefaultResponseApp.new
     end
@@ -129,13 +142,9 @@ module ActionDispatch
     end
 
     private
-      HOSTNAME = /[a-z0-9.-]+|\[[a-f0-9]*:[a-f0-9.:]+\]/i
-      VALID_ORIGIN_HOST = /\A(#{HOSTNAME})(?::\d+)?\z/
-      VALID_FORWARDED_HOST = /(?:\A|,[ ]?)(#{HOSTNAME})(?::\d+)?\z/
-
       def authorized?(request)
-        origin_host = request.get_header("HTTP_HOST")&.slice(VALID_ORIGIN_HOST, 1) || ""
-        forwarded_host = request.x_forwarded_host&.slice(VALID_FORWARDED_HOST, 1) || ""
+        origin_host = request.get_header("HTTP_HOST")
+        forwarded_host = request.x_forwarded_host&.split(/,\s?/)&.last
 
         @permissions.allows?(origin_host) && (forwarded_host.blank? || @permissions.allows?(forwarded_host))
       end

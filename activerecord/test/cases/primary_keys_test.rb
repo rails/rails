@@ -321,7 +321,7 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
     test "schema typed primary key column" do
       @connection.create_table(:scheduled_logs, id: :timestamp, precision: 6, force: true)
       schema = dump_table_schema("scheduled_logs")
-      assert_match %r/create_table "scheduled_logs", id: { type: :timestamp, precision: 6.* }/, schema
+      assert_match %r/create_table "scheduled_logs", id: :timestamp.*/, schema
     end
   end
 end

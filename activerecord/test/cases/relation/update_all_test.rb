@@ -44,6 +44,20 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_equal "Empty list of attributes to change", error.message
   end
 
+  def test_update_all_with_group_by
+    minimum_comments_count = 2
+
+    Post.most_commented(minimum_comments_count).update_all(title: "ig")
+    posts = Post.most_commented(minimum_comments_count).all.to_a
+
+    assert_operator posts.length, :>, 0
+    assert posts.all? { |post| post.comments.length >= minimum_comments_count }
+    assert posts.all? { |post| "ig" == post.title }
+
+    post = Post.joins(:comments).group("posts.id").having("count(comments.id) < #{minimum_comments_count}").first
+    assert_not_equal "ig", post.title
+  end
+
   def test_update_all_with_joins
     pets = Pet.joins(:toys).where(toys: { name: "Bone" })
 

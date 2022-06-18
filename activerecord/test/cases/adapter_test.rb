@@ -216,7 +216,6 @@ module ActiveRecord
       actual_error = assert_raises(StandardError) do
         @connection.execute("SELECT * FROM posts")
       end
-
       assert_equal original_error, actual_error
 
     ensure
@@ -238,36 +237,6 @@ module ActiveRecord
     end
 
     if ActiveRecord::Base.connection.prepared_statements
-      def test_select_all_insert_update_delete_with_legacy_binds
-        binds = [[Event.column_for_attribute("id"), 1]]
-        bind_param = Arel::Nodes::BindParam.new(nil)
-
-        assert_deprecated do
-          id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
-          assert_equal 1, id
-        end
-
-        assert_deprecated do
-          updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
-          assert_equal 1, updated
-        end
-
-        assert_deprecated do
-          result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
-          assert_equal({ "id" => 1, "title" => "foo" }, result.first)
-        end
-
-        assert_deprecated do
-          deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
-          assert_equal 1, deleted
-        end
-
-        assert_deprecated do
-          result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
-          assert_nil result.first
-        end
-      end
-
       def test_select_all_insert_update_delete_with_casted_binds
         binds = [Event.type_for_attribute("id").serialize(1)]
         bind_param = Arel::Nodes::BindParam.new(nil)
@@ -330,16 +299,6 @@ module ActiveRecord
 
     test "type_to_sql returns a String for unmapped types" do
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
-    end
-
-    def test_allowed_index_name_length_is_deprecated
-      assert_deprecated { @connection.allowed_index_name_length }
-    end
-
-    unless current_adapter?(:OracleAdapter)
-      def test_in_clause_length_is_deprecated
-        assert_deprecated { @connection.in_clause_length }
-      end
     end
   end
 
@@ -425,20 +384,82 @@ module ActiveRecord
         assert_predicate @connection, :active?
       end
 
-      test "transaction state is reset after a reconnect" do
+      test "materialized transaction state is reset after a reconnect" do
         @connection.begin_transaction
         assert_predicate @connection, :transaction_open?
+        @connection.materialize_transactions
+        assert raw_transaction_open?(@connection)
+        @connection.reconnect!
+        assert_not_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+      end
+
+      test "materialized transaction state can be restored after a reconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        # +materialize_transactions+ currently automatically dirties the
+        # connection, which would make it unrestorable
+        @connection.transaction_manager.stub(:dirty_current_transaction, nil) do
+          @connection.materialize_transactions
+        end
+        assert raw_transaction_open?(@connection)
+        @connection.reconnect!(restore_transactions: true)
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+      ensure
         @connection.reconnect!
         assert_not_predicate @connection, :transaction_open?
       end
 
-      test "transaction state is reset after a disconnect" do
+      test "materialized transaction state is reset after a disconnect" do
         @connection.begin_transaction
         assert_predicate @connection, :transaction_open?
+        @connection.materialize_transactions
+        assert raw_transaction_open?(@connection)
         @connection.disconnect!
         assert_not_predicate @connection, :transaction_open?
       ensure
         @connection.reconnect!
+        assert_not raw_transaction_open?(@connection)
+      end
+
+      test "unmaterialized transaction state is reset after a reconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.reconnect!
+        assert_not_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.materialize_transactions
+        assert_not raw_transaction_open?(@connection)
+      end
+
+      test "unmaterialized transaction state can be restored after a reconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.reconnect!(restore_transactions: true)
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.materialize_transactions
+        assert raw_transaction_open?(@connection)
+      ensure
+        @connection.reconnect!
+        assert_not_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+      end
+
+      test "unmaterialized transaction state is reset after a disconnect" do
+        @connection.begin_transaction
+        assert_predicate @connection, :transaction_open?
+        assert_not raw_transaction_open?(@connection)
+        @connection.disconnect!
+        assert_not_predicate @connection, :transaction_open?
+      ensure
+        @connection.reconnect!
+        assert_not raw_transaction_open?(@connection)
+        @connection.materialize_transactions
+        assert_not raw_transaction_open?(@connection)
       end
     end
 
@@ -530,6 +551,31 @@ module ActiveRecord
     end
 
     private
+      def raw_transaction_open?(connection)
+        case connection.class::ADAPTER_NAME
+        when "PostgreSQL"
+          connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
+        when "Mysql2"
+          begin
+            connection.instance_variable_get(:@raw_connection).query("SAVEPOINT transaction_test")
+            connection.instance_variable_get(:@raw_connection).query("RELEASE SAVEPOINT transaction_test")
+
+            true
+          rescue
+            false
+          end
+        when "SQLite"
+          begin
+            connection.instance_variable_get(:@raw_connection).transaction { nil }
+            false
+          rescue
+            true
+          end
+        else
+          skip
+        end
+      end
+
       def reset_fixtures(*fixture_names)
         ActiveRecord::FixtureSet.reset_cache
 

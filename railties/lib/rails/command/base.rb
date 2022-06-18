@@ -161,7 +161,8 @@ module Rails
           end
 
           def namespaced_commands
-            commands.keys.map do |key|
+            commands.filter_map do |key, command|
+              next if command.hidden?
               if command_root_namespace.match?(/(\A|:)#{key}\z/)
                 command_root_namespace
               else

@@ -32,6 +32,7 @@ module ActiveRecord
         Dir.mkdir(dirname) unless File.directory?(dirname)
       end
 
+      config[:strict] = ConnectionAdapters::SQLite3Adapter.strict_strings_by_default unless config.key?(:strict)
       db = SQLite3::Database.new(
         config[:database].to_s,
         config.merge(results_as_hash: true)
@@ -61,6 +62,16 @@ module ActiveRecord
       include SQLite3::SchemaStatements
       include SQLite3::DatabaseStatements
 
+      ##
+      # :singleton-method:
+      # Configure the SQLite3Adapter to be used in a strict strings mode.
+      # This will disable double-quoted string literals, because otherwise typos can silently go unnoticed.
+      # For example, it is possible to create an index for a non existing column.
+      # If you wish to enable this mode you can add the following line to your application.rb file:
+      #
+      #   config.active_record.sqlite3_adapter_strict_strings_by_default = true
+      class_attribute :strict_strings_by_default, default: false
+
       NATIVE_DATABASE_TYPES = {
         primary_key:  "integer PRIMARY KEY AUTOINCREMENT NOT NULL",
         string:       { name: "varchar" },
@@ -77,6 +88,8 @@ module ActiveRecord
       }
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
+        alias reset clear
+
         private
           def dealloc(stmt)
             stmt.close unless stmt.closed?
@@ -86,7 +99,6 @@ module ActiveRecord
       def initialize(connection, logger, connection_options, config)
         @memory_database = config[:database] == ":memory:"
         super(connection, logger, config)
-        configure_connection
       end
 
       def self.database_exists?(config)
@@ -159,19 +171,27 @@ module ActiveRecord
       end
 
       def active?
-        !@connection.closed?
+        !@raw_connection.closed?
       end
 
-      def reconnect!
-        super
-        connect if @connection.closed?
+      def reconnect!(restore_transactions: false)
+        @lock.synchronize do
+          if active?
+            @raw_connection.rollback rescue nil
+          else
+            connect
+          end
+
+          super
+        end
       end
+      alias :reset! :reconnect!
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
         super
-        @connection.close rescue nil
+        @raw_connection.close rescue nil
       end
 
       def supports_index_sort_order?
@@ -184,7 +204,7 @@ module ActiveRecord
 
       # Returns the current database encoding format as a string, e.g. 'UTF-8'
       def encoding
-        @connection.encoding.to_s
+        @raw_connection.encoding.to_s
       end
 
       def supports_explain?
@@ -234,7 +254,8 @@ module ActiveRecord
       #
       # Example:
       #   rename_table('octopuses', 'octopi')
-      def rename_table(table_name, new_name)
+      def rename_table(table_name, new_name, **options)
+        validate_table_length!(new_name) unless options[:_uses_legacy_table_name]
         schema_cache.clear_data_source_cache!(table_name.to_s)
         schema_cache.clear_data_source_cache!(new_name.to_s)
         exec_query "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
@@ -277,6 +298,8 @@ module ActiveRecord
       end
 
       def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
+        validate_change_column_null_argument!(null)
+
         unless null || default.nil?
           exec_query("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
@@ -370,12 +393,9 @@ module ActiveRecord
       end
 
       TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
+      EXTENDED_TYPE_MAPS = Concurrent::Map.new
 
       private
-        def type_map
-          TYPE_MAP
-        end
-
         # See https://www.sqlite.org/limits.html,
         # the default value is 999 when not configured.
         def bind_params_length
@@ -388,6 +408,34 @@ module ActiveRecord
           table_structure_with_collation(table_name, structure)
         end
         alias column_definitions table_structure
+
+        def extract_value_from_default(default)
+          case default
+          when /^null$/i
+            nil
+          # Quoted types
+          when /^'(.*)'$/m
+            $1.gsub("''", "'")
+          # Quoted types
+          when /^"(.*)"$/m
+            $1.gsub('""', '"')
+          # Numeric types
+          when /\A-?\d+(\.\d*)?\z/
+            $&
+          else
+            # Anything else is blank or some function
+            # and we can't know the value of that, so return nil.
+            nil
+          end
+        end
+
+        def extract_default_function(default_value, default)
+          default if has_default_function?(default_value, default)
+        end
+
+        def has_default_function?(default_value, default)
+          !default_value && %r{\w+\(.*\)|CURRENT_TIME|CURRENT_DATE|CURRENT_TIMESTAMP}.match?(default)
+        end
 
         # See: https://www.sqlite.org/lang_altertable.html
         # SQLite has an additional restriction on the ALTER TABLE statement
@@ -574,15 +622,14 @@ module ActiveRecord
         end
 
         def connect
-          @connection = ::SQLite3::Database.new(
+          @raw_connection = ::SQLite3::Database.new(
             @config[:database].to_s,
             @config.merge(results_as_hash: true)
           )
-          configure_connection
         end
 
         def configure_connection
-          @connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout])) if @config[:timeout]
+          @raw_connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout])) if @config[:timeout]
 
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end

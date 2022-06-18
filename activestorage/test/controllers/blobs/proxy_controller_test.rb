@@ -21,8 +21,14 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     assert_equal "application/octet-stream", response.headers["Content-Type"]
   end
 
-  test "forcing Content-Disposition to attachment" do
+  test "forcing Content-Disposition to attachment based on type" do
     get rails_storage_proxy_url(create_blob(content_type: "application/zip"))
+    assert_match(/^attachment; /, response.headers["Content-Disposition"])
+  end
+
+  test "caller can change disposition to attachment" do
+    url = rails_storage_proxy_url(create_blob(content_type: "image/jpeg"), disposition: :attachment)
+    get url
     assert_match(/^attachment; /, response.headers["Content-Disposition"])
   end
 
@@ -78,6 +84,14 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
         response.body
       )
     end
+  end
+
+  test "uses a Live::Response" do
+    # This tests for a regression of #45102. If the controller doesn't respond
+    # with a ActionController::Live::Response, it will serve corrupted files
+    # over 5mb when using S3 services.
+    request = ActionController::TestRequest.create({})
+    assert_instance_of ActionController::Live::Response, ActiveStorage::Blobs::ProxyController.make_response!(request)
   end
 end
 

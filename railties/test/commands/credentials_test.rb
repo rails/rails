@@ -5,7 +5,6 @@ require "env_helpers"
 require "rails/command"
 require "rails/commands/credentials/credentials_command"
 require "fileutils"
-require "tempfile"
 
 class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation, EnvHelpers
@@ -37,7 +36,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   end
 
   test "edit command does not overwrite by default if credentials already exists" do
-    run_edit_command(editor: "eval echo api_key: abc >")
+    run_edit_command(editor: 'ruby -e "File.write ARGV[0], %(api_key: abc)"')
     assert_match(/api_key: abc/, run_show_command)
 
     run_edit_command
@@ -124,6 +123,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
 
 
   test "diff enroll diffing" do
+    FileUtils.rm(app_path(".gitattributes"))
     assert_match(/\benrolled project/i, run_diff_command(enroll: true))
 
     assert_includes File.read(app_path(".gitattributes")), <<~EOM

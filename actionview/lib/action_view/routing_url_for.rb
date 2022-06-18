@@ -47,6 +47,9 @@ module ActionView
     #   <%= url_for(action: 'jump', anchor: 'tax&ship') %>
     #   # => /testing/jump/#tax&ship
     #
+    #   <%= url_for(Workshop) %>
+    #   # => /workshops
+    #
     #   <%= url_for(Workshop.new) %>
     #   # relies on Workshop answering a persisted? call (and in this case returning false)
     #   # => /workshops

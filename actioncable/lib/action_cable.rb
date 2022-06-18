@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2015-2021 Basecamp, LLC
+# Copyright (c) 2015-2022 Basecamp, LLC
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -25,10 +25,25 @@
 
 require "active_support"
 require "active_support/rails"
-require "action_cable/version"
+require "zeitwerk"
+
+Zeitwerk::Loader.for_gem.tap do |loader|
+  loader.ignore(
+    "#{__dir__}/rails", # Contains generators, templates, docs, etc.
+    "#{__dir__}/action_cable/gem_version.rb"
+  )
+
+  loader.do_not_eager_load(
+    "#{__dir__}/action_cable/subscription_adapter", # Adapters are required and loaded on demand.
+    "#{__dir__}/action_cable/test_helper.rb",
+    Dir["#{__dir__}/action_cable/**/test_case.rb"]
+  )
+
+  loader.inflector.inflect("postgresql" => "PostgreSQL")
+end.setup
 
 module ActionCable
-  extend ActiveSupport::Autoload
+  require_relative "action_cable/version"
 
   INTERNAL = {
     message_types: {
@@ -41,7 +56,8 @@ module ActionCable
     disconnect_reasons: {
       unauthorized: "unauthorized",
       invalid_request: "invalid_request",
-      server_restart: "server_restart"
+      server_restart: "server_restart",
+      remote: "remote"
     },
     default_mount_path: "/cable",
     protocols: ["actioncable-v1-json", "actioncable-unsupported"].freeze
@@ -51,12 +67,4 @@ module ActionCable
   module_function def server
     @server ||= ActionCable::Server::Base.new
   end
-
-  autoload :Server
-  autoload :Connection
-  autoload :Channel
-  autoload :RemoteConnections
-  autoload :SubscriptionAdapter
-  autoload :TestHelper
-  autoload :TestCase
 end

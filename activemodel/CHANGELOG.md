@@ -1,60 +1,59 @@
-## Rails 7.0.0.alpha2 (September 15, 2021) ##
+*   Support infinite ranges for `LengthValidator`s `:in`/`:within` options
 
-*   No changes.
+    ```ruby
+    validates_length_of :first_name, in: ..30
+    ```
 
+    *fatkodima*
 
-## Rails 7.0.0.alpha1 (September 15, 2021) ##
+*   Add support for beginless ranges to inclusivity/exclusivity validators:
 
-*   Introduce `ActiveModel::API`.
+    ```ruby
+    validates_inclusion_of :birth_date, in: -> { (..Date.today) }
+    ```
 
-    Make `ActiveModel::API` the minimum API to talk with Action Pack and Action View.
-    This will allow adding more functionality to `ActiveModel::Model`.
+    *Bo Jeanes*
 
-    *Petrik de Heus*, *Nathaniel Watts*
+*   Make validators accept lambdas without record argument
 
-*   Fix dirty check for Float::NaN and BigDecimal::NaN.
+    ```ruby
+    # Before
+    validates_comparison_of :birth_date, less_than_or_equal_to: ->(_record) { Date.today }
 
-    Float::NaN and BigDecimal::NaN in Ruby are [special values](https://bugs.ruby-lang.org/issues/1720) 
-    and can't be compared with `==`.
+    # After
+    validates_comparison_of :birth_date, less_than_or_equal_to: -> { Date.today }
+    ```
 
-    *Marcelo Lauxen*
+    *fatkodima*
 
-*   Fix `to_json` for `ActiveModel::Dirty` object.
+*   Define `deconstruct_keys` in `ActiveModel::AttributeMethods`
 
-    Exclude `mutations_from_database` attribute from json as it lead to recursion.
+    This provides the Ruby 2.7+ pattern matching interface for hash patterns,
+    which allows the user to pattern match against anything that includes the
+    `ActiveModel::AttributeMethods` module (e.g., `ActiveRecord::Base`). As an
+    example, you can now:
 
-    *Anil Maurya*
+    ```ruby
+    class Person < ActiveRecord::Base
+    end
 
-*   Add `ActiveModel::AttributeSet#values_for_database`.
+    person = Person.new(name: "Mary")
+    person => { name: }
+    name # => "Mary"
+    ```
 
-    Returns attributes with values for assignment to the database.
+    *Kevin Newton*
+
+*   Fix casting long strings to `Date`, `Time` or `DateTime`
+
+    *fatkodima*
+
+*   Use different cache namespace for proxy calls
+
+    Models can currently have different attribute bodies for the same method
+    names, leading to conflicts. Adding a new namespace `:active_model_proxy`
+    fixes the issue.
 
     *Chris Salzberg*
 
-*   Fix delegation in ActiveModel::Type::Registry#lookup and ActiveModel::Type.lookup.
-
-    Passing a last positional argument `{}` would be incorrectly considered as keyword argument.
-
-    *Benoit Daloze*
-
-*   Cache and re-use generated attribute methods.
-
-    Generated methods with identical implementations will now share their instruction sequences
-    leading to reduced memory retention, and slightly faster load time.
-
-    *Jean Boussier*
-
-*   Add `in: range`  parameter to `numericality` validator.
-
-    *Michal Papis*
-
-*   Add `locale` argument to `ActiveModel::Name#initialize` to be used to generate the `singular`,
-   `plural`, `route_key` and `singular_route_key` values.
-
-    *Lukas Pokorny*
-
-*   Make ActiveModel::Errors#inspect slimmer for readability
-
-    *lulalala*
-
-Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/activemodel/CHANGELOG.md) for previous changes.
+Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/activemodel/CHANGELOG.md) for previous changes.

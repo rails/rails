@@ -33,6 +33,12 @@ module Fun
   end
 end
 
+class ValidatingPost < Post
+  include ActiveModel::Validations
+
+  validates :title, presence: true
+end
+
 class TestController < ActionController::Base
   protect_from_forgery
 
@@ -487,6 +493,14 @@ class TestController < ActionController::Base
     render partial: ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {})
   end
 
+  def partial_with_form_builder_and_invalid_model
+    post = ValidatingPost.new
+
+    post.validate
+
+    render partial: ActionView::Helpers::FormBuilder.new(:post, post, view_context, {})
+  end
+
   def partial_with_form_builder_subclass
     render partial: LabellingFormBuilder.new(:post, nil, view_context, {})
   end
@@ -680,6 +694,7 @@ class RenderTest < ActionController::TestCase
     get :partial_only, to: "test#partial_only"
     get :partial_with_counter, to: "test#partial_with_counter"
     get :partial_with_form_builder, to: "test#partial_with_form_builder"
+    get :partial_with_form_builder_and_invalid_model, to: "test#partial_with_form_builder_and_invalid_model"
     get :partial_with_form_builder_subclass, to: "test#partial_with_form_builder_subclass"
     get :partial_with_hash_object, to: "test#partial_with_hash_object"
     get :partial_with_locals, to: "test#partial_with_locals"
@@ -1298,6 +1313,44 @@ class RenderTest < ActionController::TestCase
   def test_partial_with_form_builder
     get :partial_with_form_builder
     assert_equal "<label for=\"post_title\">Title</label>\n", @response.body
+  end
+
+  def test_partial_with_form_builder_and_invalid_model
+    get :partial_with_form_builder_and_invalid_model
+
+    assert_equal <<~HTML.strip, @response.body.strip
+      <div class="field_with_errors"><label for="post_title">Title</label></div>
+    HTML
+  end
+
+  def test_partial_with_form_builder_and_invalid_model_custom_field_error_proc
+    old_proc = ActionView::Base.field_error_proc
+    ActionView::Base.field_error_proc = proc { |html| tag.div html, class: "errors" }
+
+    get :partial_with_form_builder_and_invalid_model
+
+    assert_equal <<~HTML.strip, @response.body.strip
+      <div class="errors"><label for="post_title">Title</label></div>
+    HTML
+  ensure
+    ActionView::Base.field_error_proc = old_proc if old_proc
+  end
+
+  def test_partial_with_form_builder_and_invalid_model_custom_rendering_field_error_proc
+    old_proc = ActionView::Base.field_error_proc
+    ActionView::Base.field_error_proc = proc do |html_tag, instance|
+      render inline: <<~ERB, locals: { html_tag: html_tag, instance: instance }
+        <div class="field_with_errors"><%= html_tag %> <span class="error"><%= [instance.error_message].join(', ') %></span></div>
+      ERB
+    end
+
+    get :partial_with_form_builder_and_invalid_model
+
+    assert_equal <<~HTML.strip, @response.body.strip
+      <div class="field_with_errors"><label for="post_title">Title</label> <span class="error">can&#39;t be blank</span></div>
+    HTML
+  ensure
+    ActionView::Base.field_error_proc = old_proc if old_proc
   end
 
   def test_partial_with_form_builder_subclass

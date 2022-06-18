@@ -67,7 +67,7 @@ module ActionDispatch
           ast = Ast.new(tree, true)
 
           wildcard_options = ast.wildcard_options
-          assert_equal %r{.+?}, wildcard_options[:glob]
+          assert_equal %r{.+?}m, wildcard_options[:glob]
         end
 
         def test_wildcard_options_when_false
@@ -83,7 +83,7 @@ module ActionDispatch
           ast = Ast.new(tree, nil)
 
           wildcard_options = ast.wildcard_options
-          assert_equal %r{.+?}, wildcard_options[:glob]
+          assert_equal %r{.+?}m, wildcard_options[:glob]
         end
       end
     end

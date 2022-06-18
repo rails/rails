@@ -86,7 +86,7 @@ module ActionCable
     #   end
     #
     # +connect+ accepts additional information about the HTTP request with the
-    # +params+, +headers+, +session+ and Rack +env+ options.
+    # +params+, +headers+, +session+, and Rack +env+ options.
     #
     #   def test_connect_with_headers_and_query_string
     #     connect params: { user_id: 1 }, headers: { "X-API-TOKEN" => "secret-my" }

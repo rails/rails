@@ -3,6 +3,7 @@
 require "abstract_controller"
 require "action_dispatch"
 require "action_controller/metal/strong_parameters"
+require "action_controller/metal/exceptions"
 
 module ActionController
   extend ActiveSupport::Autoload
@@ -37,7 +38,6 @@ module ActionController
     autoload :Logging
     autoload :MimeResponds
     autoload :ParamsWrapper
-    autoload :QueryTags
     autoload :Redirecting
     autoload :Renderers
     autoload :Rendering

@@ -17,6 +17,14 @@ class OverrideSeleniumSubclassToRackTestTest < DrivenBySeleniumWithChrome
   end
 end
 
+class OverrideDriverWithExplicitName < DrivenBySeleniumWithChrome
+  driven_by :selenium, options: { name: :best_driver }
+
+  test "uses specified driver name" do
+    assert_equal :best_driver, Capybara.current_driver
+  end
+end
+
 class SetDriverToSeleniumTest < DrivenBySeleniumWithChrome
   test "uses selenium" do
     assert_equal :selenium, Capybara.current_driver
@@ -32,19 +40,5 @@ end
 class SetDriverToSeleniumHeadlessFirefoxTest < DrivenBySeleniumWithHeadlessFirefox
   test "uses selenium headless firefox" do
     assert_equal :selenium, Capybara.current_driver
-  end
-end
-
-class SetHostTest < DrivenByRackTest
-  teardown do
-    Capybara.app_host = nil
-  end
-
-  test "overrides host" do
-    assert_deprecated do
-      host! "http://example.com"
-    end
-
-    assert_equal "http://example.com", Capybara.app_host
   end
 end

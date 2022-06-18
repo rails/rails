@@ -1,17 +1,19 @@
 # frozen_string_literal: true
 
 require "active_model/validations/comparability"
+require "active_model/validations/resolve_value"
 require "bigdecimal/util"
 
 module ActiveModel
   module Validations
     class NumericalityValidator < EachValidator # :nodoc:
       include Comparability
+      include ResolveValue
 
       RANGE_CHECKS = { in: :in? }
       NUMBER_CHECKS = { odd: :odd?, even: :even? }
 
-      RESERVED_OPTIONS = COMPARE_CHECKS.keys + NUMBER_CHECKS.keys + RANGE_CHECKS.keys + [:only_integer]
+      RESERVED_OPTIONS = COMPARE_CHECKS.keys + NUMBER_CHECKS.keys + RANGE_CHECKS.keys + [:only_integer, :only_numeric]
 
       INTEGER_REGEX = /\A[+-]?\d+\z/
 
@@ -64,7 +66,7 @@ module ActiveModel
 
     private
       def option_as_number(record, option_value, precision, scale)
-        parse_as_number(option_value(record, option_value), precision, scale)
+        parse_as_number(resolve_value(record, option_value), precision, scale)
       end
 
       def parse_as_number(raw_value, precision, scale)
@@ -90,6 +92,10 @@ module ActiveModel
       end
 
       def is_number?(raw_value, precision, scale)
+        if options[:only_numeric] && !raw_value.is_a?(Numeric)
+          return false
+        end
+
         !parse_as_number(raw_value, precision, scale).nil?
       rescue ArgumentError, TypeError
         false
@@ -110,14 +116,7 @@ module ActiveModel
       end
 
       def allow_only_integer?(record)
-        case options[:only_integer]
-        when Symbol
-          record.send(options[:only_integer])
-        when Proc
-          options[:only_integer].call(record)
-        else
-          options[:only_integer]
-        end
+        resolve_value(record, options[:only_integer])
       end
 
       def prepare_value_for_validation(value, record, attr_name)
@@ -162,6 +161,9 @@ module ActiveModel
       # * <tt>:message</tt> - A custom error message (default is: "is not a number").
       # * <tt>:only_integer</tt> - Specifies whether the value has to be an
       #   integer (default is +false+).
+      # * <tt>:only_numeric</tt> - Specifies whether the value has to be an
+      #   instance of Numeric (default is +false+). The default behavior is to
+      #   attempt parsing the value if it is a String.
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is
       #   +false+). Notice that for Integer and Float columns empty strings are
       #   converted to +nil+.
@@ -183,7 +185,7 @@ module ActiveModel
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+ .
-      # See <tt>ActiveModel::Validations#validates</tt> for more information
+      # See ActiveModel::Validations::ClassMethods#validates for more information.
       #
       # The following checks can also be supplied with a proc or a symbol which
       # corresponds to a method:

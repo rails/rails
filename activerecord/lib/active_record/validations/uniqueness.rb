@@ -20,6 +20,8 @@ module ActiveRecord
         finder_class = find_finder_class_for(record)
         value = map_enum_attribute(finder_class, attribute, value)
 
+        return if record.persisted? && !validation_needed?(finder_class, record, attribute)
+
         relation = build_relation(finder_class, attribute, value)
         if record.persisted?
           if finder_class.primary_key
@@ -62,6 +64,48 @@ module ActiveRecord
         end
 
         class_hierarchy.detect { |klass| !klass.abstract_class? }
+      end
+
+      def validation_needed?(klass, record, attribute)
+        return true if options[:conditions] || options.key?(:case_sensitive)
+
+        scope = Array(options[:scope])
+        attributes = scope + [attribute]
+        attributes = resolve_attributes(record, attributes)
+
+        return true if attributes.any? { |attr| record.attribute_changed?(attr) ||
+                                                record.read_attribute(attr).nil? }
+
+        !covered_by_unique_index?(klass, record, attribute, scope)
+      end
+
+      def covered_by_unique_index?(klass, record, attribute, scope)
+        @covered ||= self.attributes.map(&:to_s).select do |attr|
+          attributes = scope + [attr]
+          attributes = resolve_attributes(record, attributes)
+
+          klass.connection.schema_cache.indexes(klass.table_name).any? do |index|
+            index.unique &&
+              index.where.nil? &&
+              (index.columns - attributes).empty?
+          end
+        end
+
+        @covered.include?(attribute.to_s)
+      end
+
+      def resolve_attributes(record, attributes)
+        attributes.flat_map do |attribute|
+          reflection = record.class._reflect_on_association(attribute)
+
+          if reflection.nil?
+            attribute.to_s
+          elsif reflection.polymorphic?
+            [reflection.foreign_key, reflection.foreign_type]
+          else
+            reflection.foreign_key
+          end
+        end
       end
 
       def build_relation(klass, attribute, value)
@@ -166,14 +210,14 @@ module ActiveRecord
       #   attribute is +nil+ (default is +false+).
       # * <tt>:allow_blank</tt> - If set to +true+, skips this validation if the
       #   attribute is blank (default is +false+).
-      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
+      # * <tt>:if</tt> - Specifies a method, proc, or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
-      # * <tt>:unless</tt> - Specifies a method, proc or string to call to
+      # * <tt>:unless</tt> - Specifies a method, proc, or string to call to
       #   determine if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
-      #   method, proc or string should return or evaluate to a +true+ or +false+
+      #   method, proc, or string should return or evaluate to a +true+ or +false+
       #   value.
       #
       # === Concurrency and integrity

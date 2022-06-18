@@ -52,6 +52,11 @@ module Rails
         ENV["PGSSLCERT"]      = config[:sslcert].to_s if config[:sslcert]
         ENV["PGSSLKEY"]       = config[:sslkey].to_s if config[:sslkey]
         ENV["PGSSLROOTCERT"]  = config[:sslrootcert].to_s if config[:sslrootcert]
+        if config[:variables]
+          ENV["PGOPTIONS"] = config[:variables].filter_map do |name, value|
+            "-c #{name}=#{value.to_s.gsub(/[ \\]/, '\\\\\0')}" unless value == ":default" || value == :default
+          end.join(" ")
+        end
         find_cmd_and_exec("psql", db_config.database)
 
       when "sqlite3"
@@ -94,23 +99,21 @@ module Rails
       end
     end
 
-    def config
-      db_config.configuration_hash
-    end
-    deprecate config: "please use db_config.configuration_hash"
-
     def db_config
       return @db_config if defined?(@db_config)
 
-      # We need to check whether the user passed the database the
-      # first time around to show a consistent error message to people
-      # relying on 2-level database configuration.
-
-      @db_config = configurations.configs_for(env_name: environment, name: database, include_hidden: true)
+      # If the user provided a database, use that. Otherwise find
+      # the first config in the database.yml
+      if database
+        @db_config = configurations.configs_for(env_name: environment, name: database, include_hidden: true)
+      else
+        @db_config = configurations.find_db_config(environment)
+      end
 
       unless @db_config
+        missing_db = database ? "'#{database}' database is not" : "No databases are"
         raise ActiveRecord::AdapterNotSpecified,
-          "'#{database}' database is not configured for '#{environment}'. Available configuration: #{configurations.inspect}"
+          "#{missing_db} configured for '#{environment}'. Available configuration: #{configurations.inspect}"
       end
 
       @db_config
@@ -121,7 +124,7 @@ module Rails
     end
 
     def database
-      @options.fetch(:database, "primary")
+      @options[:database]
     end
 
     private

@@ -68,6 +68,14 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "attaching a blob to a record returns the attachment" do
+    avatar = @user.avatar.attach create_blob(filename: "funky.jpg")
+    assert_instance_of ActiveStorage::Attached::One, avatar
+    assert_equal avatar.key, @user.avatar.key
+    assert_equal avatar.name.to_s, @user.avatar.name.to_s
+    assert_equal avatar.filename.to_s, @user.avatar.filename.to_s
+  end
+
   test "attaching an existing blob to an existing, changed record" do
     @user.name = "Tina"
     assert @user.changed?
@@ -656,6 +664,18 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
       assert_instance_of ActiveStorage::Service::MirrorService, @user.avatar.service
       assert_instance_of ActiveStorage::Service::DiskService, @user.cover_photo.service
+    end
+  end
+
+  test "raises error when global service configuration is missing" do
+    Rails.configuration.active_storage.stub(:service, nil) do
+      error = assert_raises RuntimeError do
+        User.class_eval do
+          has_one_attached :featured_photos
+        end
+      end
+
+      assert_match(/Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config\/environments\/test.rb/, error.message)
     end
   end
 

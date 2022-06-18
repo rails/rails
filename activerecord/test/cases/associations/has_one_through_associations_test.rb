@@ -210,13 +210,13 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_nonpreload_eager_loading_through_polymorphic_with_more_than_one_through_record
-    Sponsor.new(sponsor_club: clubs(:crazy_club), sponsorable: members(:groucho)).save!
+    Sponsor.new(sponsor_club: clubs(:outrageous_club), sponsorable: members(:groucho)).save!
     members = assert_queries(1) do
       Member.all.merge!(includes: :sponsor_club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name DESC").to_a # force fallback
     end
     assert_equal 1, members.size
     assert_not_nil assert_no_queries { members[0].sponsor_club }
-    assert_equal clubs(:crazy_club), members[0].sponsor_club
+    assert_equal clubs(:outrageous_club), members[0].sponsor_club
   end
 
   def test_uninitialized_has_one_through_should_return_nil_for_unsaved_record

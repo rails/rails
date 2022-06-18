@@ -15,6 +15,8 @@ begin
 rescue LoadError
 end
 
+require "connection_pool"
+require "active_support/core_ext/numeric/time"
 require "active_support/digest"
 
 module ActiveSupport
@@ -59,6 +61,11 @@ module ActiveSupport
         if logger
           logger.error { "RedisCacheStore: #{method} failed, returned #{returning.inspect}: #{exception.class}: #{exception.message}" }
         end
+        ActiveSupport.error_reporter&.report(
+          exception,
+          severity: :warning,
+          source: "redis_cache_store.active_support",
+        )
       end
 
       # The maximum number of entries to receive per SCAN call.
@@ -140,7 +147,14 @@ module ActiveSupport
       # Race condition TTL is not set by default. This can be used to avoid
       # "thundering herd" cache writes when hot cache entries are expired.
       # See <tt>ActiveSupport::Cache::Store#fetch</tt> for more.
-      def initialize(namespace: nil, compress: true, compress_threshold: 1.kilobyte, coder: default_coder, expires_in: nil, race_condition_ttl: nil, error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
+      #
+      # Setting <tt>skip_nil: true</tt> will not cache nil results:
+      #
+      #   cache.fetch('foo') { nil }
+      #   cache.fetch('bar', skip_nil: true) { nil }
+      #   cache.exist?('foo') # => true
+      #   cache.exist?('bar') # => false
+      def initialize(namespace: nil, compress: true, compress_threshold: 1.kilobyte, coder: default_coder, expires_in: nil, race_condition_ttl: nil, error_handler: DEFAULT_ERROR_HANDLER, skip_nil: false, **redis_options)
         @redis_options = redis_options
 
         @max_key_bytesize = MAX_KEY_BYTESIZE
@@ -149,7 +163,7 @@ module ActiveSupport
         super namespace: namespace,
           compress: compress, compress_threshold: compress_threshold,
           expires_in: expires_in, race_condition_ttl: race_condition_ttl,
-          coder: coder
+          coder: coder, skip_nil: skip_nil
       end
 
       def redis
@@ -157,7 +171,6 @@ module ActiveSupport
           pool_options = self.class.send(:retrieve_pool_options, redis_options)
 
           if pool_options.any?
-            self.class.send(:ensure_connection_pool_added!)
             ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
           else
             self.class.build_redis(**redis_options)
@@ -222,12 +235,21 @@ module ActiveSupport
         end
       end
 
-      # Cache Store API implementation.
+      # Increment a cached integer value using the Redis incrby atomic operator.
+      # Returns the updated value.
       #
-      # Increment a cached value. This method uses the Redis incr atomic
-      # operator and can only be used on values written with the :raw option.
-      # Calling it on a value not stored with :raw will initialize that value
-      # to zero.
+      # If the key is unset or has expired, it will be set to +amount+:
+      #
+      #   cache.increment("foo") # => 1
+      #   cache.increment("bar", 100) # => 100
+      #
+      # To set a specific value, call #write passing <tt>raw: true</tt>:
+      #
+      #   cache.write("baz", 5, raw: true)
+      #   cache.increment("baz") # => 6
+      #
+      # Incrementing a non-numeric value, or a value written without
+      # <tt>raw: true</tt>, will fail and return +nil+.
       #
       # Failsafe: Raises errors.
       def increment(name, amount = 1, options = nil)
@@ -245,12 +267,20 @@ module ActiveSupport
         end
       end
 
-      # Cache Store API implementation.
+      # Decrement a cached integer value using the Redis decrby atomic operator.
+      # Returns the updated value.
       #
-      # Decrement a cached value. This method uses the Redis decr atomic
-      # operator and can only be used on values written with the :raw option.
-      # Calling it on a value not stored with :raw will initialize that value
-      # to zero.
+      # If the key is unset or has expired, it will be set to -amount:
+      #
+      #   cache.decrement("foo") # => -1
+      #
+      # To set a specific value, call #write passing <tt>raw: true</tt>:
+      #
+      #   cache.write("baz", 5, raw: true)
+      #   cache.decrement("baz") # => 4
+      #
+      # Decrementing a non-numeric value, or a value written without
+      # <tt>raw: true</tt>, will fail and return +nil+.
       #
       # Failsafe: Raises errors.
       def decrement(name, amount = 1, options = nil)
@@ -404,9 +434,9 @@ module ActiveSupport
         end
 
         # Nonstandard store provider API to write multiple values at once.
-        def write_multi_entries(entries, expires_in: nil, **options)
+        def write_multi_entries(entries, expires_in: nil, race_condition_ttl: nil, **options)
           if entries.any?
-            if mset_capable? && expires_in.nil?
+            if mset_capable? && expires_in.nil? && race_condition_ttl.nil?
               failsafe :write_multi_entries do
                 payload = serialize_entries(entries, **options)
                 redis.with do |c|
@@ -458,15 +488,9 @@ module ActiveSupport
 
         def failsafe(method, returning: nil)
           yield
-        rescue ::Redis::BaseError => e
-          handle_exception exception: e, method: method, returning: returning
+        rescue ::Redis::BaseError => error
+          @error_handler&.call(method: method, exception: error, returning: returning)
           returning
-        end
-
-        def handle_exception(exception:, method:, returning:)
-          if @error_handler
-            @error_handler.(method: method, exception: exception, returning: returning)
-          end
         end
     end
   end

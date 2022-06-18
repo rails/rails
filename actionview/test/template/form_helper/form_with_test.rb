@@ -53,7 +53,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
 
     method = method.to_s == "get" ? "get" : "post"
 
-    txt =  +%{<form accept-charset="UTF-8" action="#{action}"}
+    txt =  +%{<form accept-charset="UTF-8"} + (action ? %{ action="#{action}"} : "")
     txt << %{ enctype="multipart/form-data"} if enctype
     txt << %{ data-remote="true"} unless local
     txt << %{ class="#{html_class}"} if html_class
@@ -104,6 +104,22 @@ class FormWithActsLikeFormTagTest < FormWithTest
     actual = form_with(method: :delete)
 
     expected = whole_form("http://www.example.com", method: :delete)
+    assert_dom_equal expected, actual
+  end
+
+  def test_form_with_false_url
+    actual = form_with(url: false)
+
+    expected = whole_form(false)
+
+    assert_dom_equal expected, actual
+  end
+
+  def test_form_with_false_action
+    actual = form_with(html: { action: false })
+
+    expected = whole_form(false)
+
     assert_dom_equal expected, actual
   end
 
@@ -293,6 +309,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     @controller.singleton_class.include Routes.url_helpers
   end
 
+  RecordForm = Struct.new(:to_model, keyword_init: true)
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
     resources :posts do
@@ -361,6 +378,26 @@ class FormWithActsLikeFormForTest < FormWithTest
       "<button name='button' type='submit'>Create post</button>" \
       "<button name='button' type='submit'><span>Create post</span></button>"
     end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_with_persisted_to_model
+    post_form = RecordForm.new(to_model: @post)
+
+    form_with(model: post_form) { }
+
+    expected = whole_form("/posts/123", method: :patch) { "" }
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_with_new_record_to_model
+    post_form = RecordForm.new(to_model: Post.new)
+
+    form_with(model: post_form) { }
+
+    expected = whole_form("/posts", method: :post) { "" }
 
     assert_dom_equal expected, output_buffer
   end
@@ -441,6 +478,22 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts/123") do
       '<input type="text" name="no_model_to_back_this_badboy" id="no_model_to_back_this_badboy" >'
     end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_false_url
+    form_with(url: false)
+
+    expected = whole_form(false)
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_model_and_false_url
+    form_with(model: Post.new, url: false)
+
+    expected = whole_form(false)
 
     assert_dom_equal expected, output_buffer
   end
@@ -1713,14 +1766,20 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_nested_fields_label_translation_with_more_than_10_records
     @post.comments = Array.new(11) { |id| Comment.new(id + 1) }
 
-    params = 11.times.map { ["post.comments.body", default: [:"comment.body", ""], scope: "helpers.label"] }
-    assert_called_with(I18n, :t, params, returns: "Write body here") do
+    mock = Minitest::Mock.new
+    @post.comments.each do
+      mock.expect(:call, "body", ["post.comments.body", default: [:"comment.body", ""], scope: "helpers.label"])
+    end
+
+    I18n.stub(:t, mock) do
       form_with(model: @post) do |f|
         f.fields(:comments) do |cf|
           concat cf.label(:body)
         end
       end
     end
+
+    assert_mock(mock)
   end
 
   def test_nested_fields_with_existing_records_on_a_supplied_nested_attributes_collection_different_from_record_one
@@ -2029,6 +2088,16 @@ class FormWithActsLikeFormForTest < FormWithTest
       "<textarea name='post[body]' id='post_body' >\nBack to the hill and over it again!</textarea>" \
       "<input name='post[secret]' type='hidden' value='0' autocomplete='off' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' />"
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_fields_with_only_object_array
+    output_buffer = fields(model: [@post, @comment]) do |f|
+      concat f.text_field(:name)
+    end
+
+    expected = %(<input type="text" value="new comment" name="comment[name]" id="comment_name" />)
 
     assert_dom_equal expected, output_buffer
   end
@@ -2398,7 +2467,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     def form_text(action = "/", id = nil, html_class = nil, local = nil, multipart = nil, method = nil)
-      txt =  +%{<form accept-charset="UTF-8" action="#{action}"}
+      txt =  +%{<form accept-charset="UTF-8"} + (action ? %{ action="#{action}"} : "")
       txt << %{ enctype="multipart/form-data"} if multipart
       txt << %{ data-remote="true"} unless local
       txt << %{ class="#{html_class}"} if html_class

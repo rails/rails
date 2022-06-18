@@ -495,11 +495,11 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_scopes_batch_finders
     assert_equal 4, Topic.approved.count
 
-    assert_queries(5) do
+    assert_queries(4) do
       Topic.approved.find_each(batch_size: 1) { |t| assert t.approved? }
     end
 
-    assert_queries(3) do
+    assert_queries(2) do
       Topic.approved.find_in_batches(batch_size: 2) do |group|
         group.each { |t| assert t.approved? }
       end
@@ -594,7 +594,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_subclass_merges_scopes_properly
-    assert_equal 1, SpecialComment.where(body: "go crazy").created.count
+    assert_equal 1, SpecialComment.where(body: "go wild").created.count
   end
 
   def test_model_class_should_respond_to_extending
@@ -623,7 +623,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     end
 
     assert_sql(%r{/\* from-scope \*/}) do
-      assert Topic.including_annotate_in_scope.to_a, Topic.all.to_a
+      assert_equal Topic.including_annotate_in_scope.to_a, Topic.all.to_a
     end
   end
 end

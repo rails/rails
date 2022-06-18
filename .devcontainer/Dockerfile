@@ -8,6 +8,9 @@ FROM mcr.microsoft.com/vscode/devcontainers/ruby:0-${VARIANT}
 ARG NODE_VERSION="none"
 RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/local/share/nvm/nvm.sh && nvm install ${NODE_VERSION} 2>&1"; fi
 
+COPY .devcontainer/library-scripts/github-debian.sh /tmp/library-scripts/
+RUN apt-get update && bash /tmp/library-scripts/github-debian.sh
+
 # [Optional] Uncomment this section to install additional OS packages.
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends \
@@ -28,8 +31,6 @@ RUN wget -qO /tmp/im.tar.xz https://imagemagick.org/download/releases/ImageMagic
     && ldconfig /usr/local/lib \
     && rm -rf /tmp/*
 
-
-# [Optional] Uncomment this line to install additional gems.
 # Add the Rails main Gemfile and install the gems. This means the gem install can be done
 # during build instead of on start. When a fork or branch has different gems, we still have an
 # advantage due to caching of the other gems.
@@ -51,6 +52,3 @@ RUN cd /tmp/rails \
     && bundle install \
     && yarn install \
     && rm -rf /tmp/rails
-
-# [Optional] Uncomment this line to install global node packages.
-# RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1

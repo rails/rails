@@ -1,6 +1,6 @@
 <%%= form_with(model: <%= model_resource_name %>) do |form| %>
   <%% if <%= singular_table_name %>.errors.any? %>
-    <div id="error_explanation">
+    <div style="color: red">
       <h2><%%= pluralize(<%= singular_table_name %>.errors.count, "error") %> prohibited this <%= singular_table_name %> from being saved:</h2>
 
       <ul>
@@ -12,26 +12,26 @@
   <%% end %>
 
 <% attributes.each do |attribute| -%>
-  <div class="field">
+  <div>
 <% if attribute.password_digest? -%>
-    <%%= form.label :password %>
+    <%%= form.label :password, style: "display: block" %>
     <%%= form.password_field :password %>
   </div>
 
-  <div class="field">
-    <%%= form.label :password_confirmation %>
+  <div>
+    <%%= form.label :password_confirmation, style: "display: block" %>
     <%%= form.password_field :password_confirmation %>
 <% elsif attribute.attachments? -%>
-    <%%= form.label :<%= attribute.column_name %> %>
+    <%%= form.label :<%= attribute.column_name %>, style: "display: block" %>
     <%%= form.<%= attribute.field_type %> :<%= attribute.column_name %>, multiple: true %>
 <% else -%>
-    <%%= form.label :<%= attribute.column_name %> %>
+    <%%= form.label :<%= attribute.column_name %>, style: "display: block" %>
     <%%= form.<%= attribute.field_type %> :<%= attribute.column_name %> %>
 <% end -%>
   </div>
 
 <% end -%>
-  <div class="actions">
+  <div>
     <%%= form.submit %>
   </div>
 <%% end %>

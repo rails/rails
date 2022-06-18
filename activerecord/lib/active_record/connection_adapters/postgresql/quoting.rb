@@ -6,19 +6,44 @@ module ActiveRecord
       module Quoting
         # Escapes binary strings for bytea input to the database.
         def escape_bytea(value)
-          @connection.escape_bytea(value) if value
+          @raw_connection.escape_bytea(value) if value
         end
 
         # Unescapes bytea output from a database to the binary string it represents.
         # NOTE: This is NOT an inverse of escape_bytea! This is only to be used
         # on escaped binary output from database drive.
         def unescape_bytea(value)
-          @connection.unescape_bytea(value) if value
+          @raw_connection.unescape_bytea(value) if value
+        end
+
+        def quote(value) # :nodoc:
+          case value
+          when OID::Xml::Data
+            "xml '#{quote_string(value.to_s)}'"
+          when OID::Bit::Data
+            if value.binary?
+              "B'#{value}'"
+            elsif value.hex?
+              "X'#{value}'"
+            end
+          when Numeric
+            if value.finite?
+              super
+            else
+              "'#{value}'"
+            end
+          when OID::Array::Data
+            quote(encode_array(value))
+          when Range
+            quote(encode_range(value))
+          else
+            super
+          end
         end
 
         # Quotes strings for use in SQL input.
         def quote_string(s) # :nodoc:
-          PG::Connection.escape(s)
+          @raw_connection.escape(s)
         end
 
         # Checks the following cases:
@@ -74,6 +99,24 @@ module ActiveRecord
           end
         end
 
+        def type_cast(value) # :nodoc:
+          case value
+          when Type::Binary::Data
+            # Return a bind param hash with format as binary.
+            # See https://deveiate.org/code/pg/PG/Connection.html#method-i-exec_prepared-doc
+            # for more information
+            { value: value.to_s, format: 1 }
+          when OID::Xml::Data, OID::Bit::Data
+            value.to_s
+          when OID::Array::Data
+            encode_array(value)
+          when Range
+            encode_range(value)
+          else
+            super
+          end
+        end
+
         def lookup_cast_type_from_column(column) # :nodoc:
           type_map.lookup(column.oid, column.fmod, column.sql_type)
         end
@@ -106,6 +149,7 @@ module ActiveRecord
               # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
               ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
             )
+            (?:\s+COLLATE\s+"\w+")?
             (?:\s+ASC|\s+DESC)?
             (?:\s+NULLS\s+(?:FIRST|LAST))?
           )
@@ -118,49 +162,6 @@ module ActiveRecord
         private
           def lookup_cast_type(sql_type)
             super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
-          end
-
-          def _quote(value)
-            case value
-            when OID::Xml::Data
-              "xml '#{quote_string(value.to_s)}'"
-            when OID::Bit::Data
-              if value.binary?
-                "B'#{value}'"
-              elsif value.hex?
-                "X'#{value}'"
-              end
-            when Numeric
-              if value.finite?
-                super
-              else
-                "'#{value}'"
-              end
-            when OID::Array::Data
-              _quote(encode_array(value))
-            when Range
-              _quote(encode_range(value))
-            else
-              super
-            end
-          end
-
-          def _type_cast(value)
-            case value
-            when Type::Binary::Data
-              # Return a bind param hash with format as binary.
-              # See https://deveiate.org/code/pg/PG/Connection.html#method-i-exec_prepared-doc
-              # for more information
-              { value: value.to_s, format: 1 }
-            when OID::Xml::Data, OID::Bit::Data
-              value.to_s
-            when OID::Array::Data
-              encode_array(value)
-            when Range
-              encode_range(value)
-            else
-              super
-            end
           end
 
           def encode_array(array_data)
@@ -188,7 +189,7 @@ module ActiveRecord
           def type_cast_array(values)
             case values
             when ::Array then values.map { |item| type_cast_array(item) }
-            else _type_cast(values)
+            else type_cast(values)
             end
           end
 

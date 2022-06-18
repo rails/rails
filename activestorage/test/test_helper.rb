@@ -61,17 +61,17 @@ class ActiveSupport::TestCase
     ActiveStorage::Current.reset
   end
 
-  def assert_queries(expected_count)
+  def assert_queries(expected_count, matcher: nil, &block)
     ActiveRecord::Base.connection.materialize_transactions
 
     queries = []
     ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
-      queries << payload[:sql] unless %w[ SCHEMA TRANSACTION ].include?(payload[:name])
+      queries << payload[:sql] if %w[ SCHEMA TRANSACTION ].exclude?(payload[:name]) && (matcher.nil? || payload[:sql].match(matcher))
     end
 
-    yield.tap do
-      assert_equal expected_count, queries.size, "#{queries.size} instead of #{expected_count} queries were executed. #{queries.inspect}"
-    end
+    result = _assert_nothing_raised_or_warn("assert_queries", &block)
+    assert_equal expected_count, queries.size, "#{queries.size} instead of #{expected_count} queries were executed. Queries: #{queries.join("\n\n")}"
+    result
   end
 
   def assert_no_queries(&block)
@@ -174,6 +174,8 @@ class User < ActiveRecord::Base
   has_one_attached :avatar_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
   end
+  has_one_attached :intro_video
+  has_one_attached :name_pronunciation_audio
 
   has_many_attached :highlights
   has_many_attached :vlogs, dependent: false, service: :local

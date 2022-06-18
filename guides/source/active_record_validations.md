@@ -190,7 +190,7 @@ Note that an object instantiated with `new` will not report errors
 even if it's technically invalid, because validations are automatically run
 only when the object is saved, such as with the `create` or `save` methods.
 
-```
+```ruby
 class Person < ApplicationRecord
   validates :name, presence: true
 end
@@ -320,30 +320,6 @@ don't have a field for it, the helper will create a virtual attribute. If
 the field does exist in your database, the `accept` option must be set to
 or include `true` or else the validation will not run.
 
-### `validates_associated`
-
-You should use this helper when your model has associations with other models
-and they also need to be validated. When you try to save your object, `valid?`
-will be called upon each one of the associated objects.
-
-```ruby
-class Library < ApplicationRecord
-  has_many :books
-  validates_associated :books
-end
-```
-
-This validation will work with all of the association types.
-
-CAUTION: Don't use `validates_associated` on both ends of your associations.
-They would call each other in an infinite loop.
-
-The default error message for [`validates_associated`][] is _"is invalid"_. Note
-that each associated object will contain its own `errors` collection; errors do
-not bubble up to the calling model.
-
-[`validates_associated`]: https://api.rubyonrails.org/classes/ActiveRecord/Validations/ClassMethods.html#method-i-validates_associated
-
 ### `confirmation`
 
 You should use this helper when you have two text fields that should receive
@@ -395,7 +371,7 @@ value, proc, or symbol. Any class that includes Comparable can be compared.
 
 ```ruby
 class Promotion < ApplicationRecord
-  validates :start_date, comparison: { greater_than: :end_date }
+  validates :end_date, comparison: { greater_than: :start_date }
 end
 ```
 
@@ -701,6 +677,30 @@ WARNING. Note that some databases are configured to perform case-insensitive
 searches anyway.
 
 The default error message is _"has already been taken"_.
+
+### `validates_associated`
+
+You should use this helper when your model has associations that always need to
+be validated. Every time you try to save your object, `valid?` will be called
+on each one of the associated objects.
+
+```ruby
+class Library < ApplicationRecord
+  has_many :books
+  validates_associated :books
+end
+```
+
+This validation will work with all of the association types.
+
+CAUTION: Don't use `validates_associated` on both ends of your associations.
+They would call each other in an infinite loop.
+
+The default error message for [`validates_associated`][] is _"is invalid"_. Note
+that each associated object will contain its own `errors` collection; errors do
+not bubble up to the calling model.
+
+[`validates_associated`]: https://api.rubyonrails.org/classes/ActiveRecord/Validations/ClassMethods.html#method-i-validates_associated
 
 ### `validates_with`
 
@@ -1094,7 +1094,7 @@ instance.
 ```ruby
 class EmailValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
-    unless value =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
+    unless value =~ URI::MailTo::EMAIL_REGEXP
       record.errors.add attribute, (options[:message] || "is not an email")
     end
   end

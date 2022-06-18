@@ -6,6 +6,37 @@ class ExecutorTest < ActiveSupport::TestCase
   class DummyError < RuntimeError
   end
 
+  class ErrorSubscriber
+    attr_reader :events
+
+    def initialize
+      @events = []
+    end
+
+    def report(error, handled:, severity:, source:, context:)
+      @events << [error, handled, severity, source, context]
+    end
+  end
+
+  def test_wrap_report_errors
+    subscriber = ErrorSubscriber.new
+    executor.error_reporter.subscribe(subscriber)
+    error = DummyError.new("Oops")
+    assert_raises DummyError do
+      executor.wrap do
+        raise error
+      end
+    end
+    assert_equal [error, false, :error, "application.active_support", {}], subscriber.events.last
+
+    assert_raises DummyError do
+      executor.wrap(source: "custom") do
+        raise error
+      end
+    end
+    assert_equal [error, false, :error, "custom", {}], subscriber.events.last
+  end
+
   def test_wrap_invokes_callbacks
     called = []
     executor.to_run { called << :run }
@@ -207,6 +238,9 @@ class ExecutorTest < ActiveSupport::TestCase
     end.new
 
     executor.register_hook(hook)
+
+    # Warm-up to trigger any pending autoloads
+    executor.wrap { }
 
     before = RubyVM.stat(:class_serial)
     executor.wrap { }

@@ -14,6 +14,7 @@ module ActionController
     config.action_controller.log_query_tags_around_actions = true
     config.action_controller.wrap_parameters_by_default = false
 
+    config.eager_load_namespaces << AbstractController
     config.eager_load_namespaces << ActionController
 
     initializer "action_controller.assets_config", group: :all do |app|
@@ -41,6 +42,11 @@ module ActionController
         end
 
         ActionController::Parameters.action_on_unpermitted_parameters = action_on_unpermitted_parameters
+
+        unless options.allow_deprecated_parameters_hash_equality.nil?
+          ActionController::Parameters.allow_deprecated_parameters_hash_equality =
+            options.allow_deprecated_parameters_hash_equality
+        end
       end
     end
 
@@ -71,7 +77,8 @@ module ActionController
           :permit_all_parameters,
           :action_on_unpermitted_parameters,
           :always_permitted_parameters,
-          :wrap_parameters_by_default
+          :wrap_parameters_by_default,
+          :allow_deprecated_parameters_hash_equality
         )
 
         filtered_options.each do |k, v|
@@ -99,12 +106,6 @@ module ActionController
       end
     end
 
-    initializer "action_controller.eager_load_actions" do
-      ActiveSupport.on_load(:after_initialize) do
-        ActionController::Metal.descendants.each(&:action_methods) if config.eager_load
-      end
-    end
-
     initializer "action_controller.query_log_tags" do |app|
       query_logs_tags_enabled = app.config.respond_to?(:active_record) &&
         app.config.active_record.query_log_tags_enabled &&
@@ -113,17 +114,19 @@ module ActionController
       if query_logs_tags_enabled
         app.config.active_record.query_log_tags += [:controller, :action]
 
-        ActiveSupport.on_load(:action_controller) do
-          include ActionController::QueryTags
-        end
-
         ActiveSupport.on_load(:active_record) do
           ActiveRecord::QueryLogs.taggings.merge!(
-            controller:            ->(context) { context[:controller].controller_name },
-            action:                ->(context) { context[:controller].action_name },
-            namespaced_controller: ->(context) { context[:controller].class.name }
+            controller:            ->(context) { context[:controller]&.controller_name },
+            action:                ->(context) { context[:controller]&.action_name },
+            namespaced_controller: ->(context) { context[:controller].class.name if context[:controller] }
           )
         end
+      end
+    end
+
+    initializer "action_controller.test_case" do |app|
+      ActiveSupport.on_load(:action_controller_test_case) do
+        ActionController::TestCase.executor_around_each_request = app.config.active_support.executor_around_test_case
       end
     end
   end

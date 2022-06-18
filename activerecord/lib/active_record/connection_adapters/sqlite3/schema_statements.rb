@@ -60,7 +60,7 @@ module ActiveRecord
         end
 
         def remove_foreign_key(from_table, to_table = nil, **options)
-          return if options[:if_exists] == true && !foreign_key_exists?(from_table, to_table)
+          return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table)
 
           to_table ||= options[:to_table]
           options = options.except(:name, :to_table, :validate)
@@ -84,11 +84,11 @@ module ActiveRecord
           table_sql = query_value(<<-SQL, "SCHEMA")
             SELECT sql
             FROM sqlite_master
-            WHERE name = #{quote_table_name(table_name)} AND type = 'table'
+            WHERE name = #{quote(table_name)} AND type = 'table'
             UNION ALL
             SELECT sql
             FROM sqlite_temp_master
-            WHERE name = #{quote_table_name(table_name)} AND type = 'table'
+            WHERE name = #{quote(table_name)} AND type = 'table'
           SQL
 
           table_sql.to_s.scan(/CONSTRAINT\s+(?<name>\w+)\s+CHECK\s+\((?<expression>(:?[^()]|\(\g<expression>\))+)\)/i).map do |name, expression|
@@ -127,20 +127,20 @@ module ActiveRecord
           end
 
           def new_column_from_field(table_name, field)
-            default = \
-              case field["dflt_value"]
-              when /^null$/i
-                nil
-              when /^'(.*)'$/m
-                $1.gsub("''", "'")
-              when /^"(.*)"$/m
-                $1.gsub('""', '"')
-              else
-                field["dflt_value"]
-              end
+            default = field["dflt_value"]
 
             type_metadata = fetch_type_metadata(field["type"])
-            Column.new(field["name"], default, type_metadata, field["notnull"].to_i == 0, collation: field["collation"])
+            default_value = extract_value_from_default(default)
+            default_function = extract_default_function(default_value, default)
+
+            Column.new(
+              field["name"],
+              default_value,
+              type_metadata,
+              field["notnull"].to_i == 0,
+              default_function,
+              collation: field["collation"]
+            )
           end
 
           def data_source_sql(name = nil, type: nil)

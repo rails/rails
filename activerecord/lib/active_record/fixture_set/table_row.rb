@@ -126,7 +126,7 @@ module ActiveRecord
         end
 
         def resolve_enums
-          model_class.defined_enums.each do |name, values|
+          reflection_class.defined_enums.each do |name, values|
             if @row.include?(name)
               @row[name] = values.fetch(@row[name], @row[name])
             end

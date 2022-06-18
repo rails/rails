@@ -29,16 +29,16 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
 
   def test_field_type_returns_datetime_select
     %w(datetime timestamp).each do |attribute_type|
-      assert_field_type attribute_type, :datetime_select
+      assert_field_type attribute_type, :datetime_field
     end
   end
 
   def test_field_type_returns_time_select
-    assert_field_type :time, :time_select
+    assert_field_type :time, :time_field
   end
 
   def test_field_type_returns_date_select
-    assert_field_type :date, :date_select
+    assert_field_type :date, :date_field
   end
 
   def test_field_type_returns_text_area
@@ -91,12 +91,12 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
 
   def test_default_value_is_datetime
     %w(datetime timestamp time).each do |attribute_type|
-      assert_field_default_value attribute_type, Time.now.to_s(:db)
+      assert_field_default_value attribute_type, Time.now.to_fs(:db)
     end
   end
 
   def test_default_value_is_date
-    assert_field_default_value :date, Date.today.to_s(:db)
+    assert_field_default_value :date, Date.today.to_fs(:db)
   end
 
   def test_default_value_is_string

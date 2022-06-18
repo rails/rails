@@ -64,7 +64,7 @@ module ApplicationTests
     test "after_initialize happens after to_prepare in development" do
       $order = []
       add_to_config <<-RUBY
-        config.cache_classes = false
+        config.enable_reloading = true
         config.after_initialize { $order << :after_initialize }
         config.to_prepare { $order << :to_prepare }
       RUBY
@@ -76,7 +76,7 @@ module ApplicationTests
     test "after_initialize happens after to_prepare in production" do
       $order = []
       add_to_config <<-RUBY
-        config.cache_classes = true
+        config.enable_reloading = false
         config.after_initialize { $order << :after_initialize }
         config.to_prepare { $order << :to_prepare }
       RUBY

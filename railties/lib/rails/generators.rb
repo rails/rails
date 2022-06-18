@@ -33,7 +33,7 @@ module Rails
       rails: {
         actions: "-a",
         orm: "-o",
-        javascripts: "-j",
+        javascripts: ["-j", "--js"],
         resource_controller: "-c",
         scaffold_controller: "-c",
         stylesheets: "-y",
@@ -253,8 +253,8 @@ module Rails
         invoke_fallbacks_for(name, base) || invoke_fallbacks_for(context, name)
       end
 
-      # Receives a namespace, arguments and the behavior to invoke the generator.
-      # It's used as the default entry point for generate, destroy and update
+      # Receives a namespace, arguments, and the behavior to invoke the generator.
+      # It's used as the default entry point for generate, destroy, and update
       # commands.
       def invoke(namespace, args = ARGV, config = {})
         names = namespace.to_s.split(":")
@@ -266,8 +266,14 @@ module Rails
           options = sorted_groups.flat_map(&:last)
           error   = Command::Base::CorrectableError.new("Could not find generator '#{namespace}'.", namespace, options)
 
+          if error.respond_to?(:detailed_message)
+            formatted_message = error.detailed_message
+          else
+            formatted_message = error.message
+          end
+
           puts <<~MSG
-            #{error.message}
+            #{formatted_message}
             Run `bin/rails generate --help` for more options.
           MSG
         end

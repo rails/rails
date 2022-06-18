@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "pp"
 require "cases/helper"
 require "models/tag"
 require "models/tagging"
@@ -880,7 +881,7 @@ class RelationTest < ActiveRecord::TestCase
     ids = Author.pluck(:id)
     slugs = ids.map { |id| "#{id}-as-a-slug" }
 
-    assert_equal Author.all.to_a, Author.where(id: slugs).to_a
+    assert_equal Author.where(id: ids).to_a, Author.where(id: slugs).to_a
   end
 
   def test_find_all_using_where_with_relation
@@ -1174,10 +1175,14 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_many_with_limits
-    posts = Post.all
+    posts_with_limit = Post.limit(5)
+    posts_with_limit_one = Post.limit(1)
 
-    assert_predicate posts, :many?
-    assert_not_predicate posts.limit(1), :many?
+    assert_predicate posts_with_limit, :many?
+    assert_not_predicate posts_with_limit, :loaded?
+
+    assert_not_predicate posts_with_limit_one, :many?
+    assert_not_predicate posts_with_limit_one, :loaded?
   end
 
   def test_none?
@@ -1210,6 +1215,18 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert_predicate posts, :loaded?
+  end
+
+  def test_one_with_destroy
+    posts = Post.all
+    assert_queries(1) do
+      assert_not posts.one?
+    end
+
+    posts.where.not(id: Post.first).destroy_all
+
+    assert_equal 1, posts.size
+    assert posts.one?
   end
 
   def test_to_a_should_dup_target
@@ -1288,6 +1305,18 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ["parrot", "canary"], green_birds.map(&:name)
     assert_equal ["green", "green"], green_birds.map(&:color)
     green_birds.each { |bird| assert_predicate bird, :persisted? }
+  end
+
+  def test_create_with_block
+    sparrow = Bird.create do |bird|
+      bird.name = "sparrow"
+      bird.color = "grey"
+    end
+
+    assert_kind_of Bird, sparrow
+    assert_predicate sparrow, :persisted?
+    assert_equal "sparrow", sparrow.name
+    assert_equal "grey", sparrow.color
   end
 
   def test_create_bang_with_array
@@ -1464,6 +1493,19 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal bird, Bird.create_with(color: "blue").find_or_create_by(name: "bob")
   end
 
+  def test_find_or_create_by_with_block
+    assert_nil Bird.find_by(name: "bob")
+
+    bird = Bird.find_or_create_by(name: "bob") do |record|
+      record.color = "blue"
+    end
+    assert_predicate bird, :persisted?
+    assert_equal bird.name, "bob"
+    assert_equal bird.color, "blue"
+
+    assert_equal bird, Bird.find_or_create_by(name: "bob", color: "blue")
+  end
+
   def test_find_or_create_by!
     assert_raises(ActiveRecord::RecordInvalid) { Bird.find_or_create_by!(color: "green") }
   end
@@ -1473,6 +1515,20 @@ class RelationTest < ActiveRecord::TestCase
 
     subscriber = Subscriber.create!(nick: "bob")
 
+    assert_equal subscriber, Subscriber.create_or_find_by(nick: "bob")
+    assert_not_equal subscriber, Subscriber.create_or_find_by(nick: "cat")
+  end
+
+  def test_create_or_find_by_with_block
+    assert_nil Subscriber.find_by(nick: "bob")
+
+    subscriber = Subscriber.create_or_find_by(nick: "bob") do |record|
+      record.name = "the builder"
+    end
+
+    assert_equal "bob", subscriber.nick
+    assert_equal "the builder", subscriber.name
+    assert_predicate subscriber, :persisted?
     assert_equal subscriber, Subscriber.create_or_find_by(nick: "bob")
     assert_not_equal subscriber, Subscriber.create_or_find_by(nick: "cat")
   end
@@ -1543,6 +1599,20 @@ class RelationTest < ActiveRecord::TestCase
     bird.save!
 
     assert_equal bird, Bird.find_or_initialize_by(name: "bob")
+  end
+
+  def test_find_or_initialize_by_with_block
+    assert_nil Bird.find_by(name: "bob")
+
+    bird = Bird.find_or_initialize_by(name: "bob") do |record|
+      record.color = "blue"
+    end
+    assert_predicate bird, :new_record?
+    assert_equal bird.name, "bob"
+    assert_equal bird.color, "blue"
+    bird.save!
+
+    assert_equal bird, Bird.find_or_initialize_by(name: "bob", color: "blue")
   end
 
   def test_explicit_create_with
@@ -1821,17 +1891,14 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_reorder_with_first
+    post = nil
+
     sql_log = capture_sql do
-      message = <<~MSG.squish
-        `.reorder(nil)` with `.first` / `.first!` no longer
-        takes non-deterministic result in Rails 7.0.
-        To continue taking non-deterministic result, use `.take` / `.take!` instead.
-      MSG
-      assert_deprecated(message) do
-        assert Post.order(:title).reorder(nil).first
-      end
+      post = Post.order(:title).reorder(nil).first
     end
-    assert sql_log.all? { |sql| !/order by/i.match?(sql) }, "ORDER BY was used in the query: #{sql_log}"
+
+    assert_equal posts(:welcome), post
+    assert sql_log.any? { |sql| /order by/i.match?(sql) }, "ORDER BY was not used in the query: #{sql_log}"
   end
 
   def test_reorder_with_take
@@ -2008,6 +2075,35 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  test "relations limit the records in #pretty_print at 10" do
+    relation = Post.limit(11)
+    out = StringIO.new
+    PP.pp(relation, out)
+    assert_equal 10, out.string.scan(/#<\w*Post:/).size
+    assert out.string.end_with?("\"...\"]\n"), "Did not end with an ellipsis."
+  end
+
+  test "relations don't load all records in #pretty_print" do
+    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+      PP.pp Post.all, StringIO.new # avoid outputting.
+    end
+  end
+
+  test "loading query is annotated in #pretty_print" do
+    assert_sql(%r(/\* loading for pp \*/)) do
+      PP.pp Post.all, StringIO.new # avoid outputting.
+    end
+  end
+
+  test "already-loaded relations don't perform a new query in #pretty_print" do
+    relation = Post.limit(2)
+    relation.to_a
+
+    assert_no_queries do
+      PP.pp relation, StringIO.new # avoid outputting.
+    end
+  end
+
   test "using a custom table affects the wheres" do
     post = posts(:welcome)
 
@@ -2065,6 +2161,8 @@ class RelationTest < ActiveRecord::TestCase
   test "joins with order by custom attribute" do
     companies = Company.create!([{ name: "test1" }, { name: "test2" }])
     companies.each { |company| company.contracts.create! }
+    # In ordering by Contract#metadata, we rely on that JSON string to
+    # be consistent
     assert_equal companies, Company.joins(:contracts).order(:metadata, :count)
     assert_equal companies.reverse, Company.joins(:contracts).order(metadata: :desc, count: :desc)
   end

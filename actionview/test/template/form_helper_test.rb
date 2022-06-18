@@ -143,6 +143,7 @@ class FormHelperTest < ActionView::TestCase
     @controller.singleton_class.include Routes.url_helpers
   end
 
+  RecordForm = Struct.new(:to_model, keyword_init: true)
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
     resources :posts do
@@ -552,9 +553,36 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, file_field("import", "file", multiple: true)
   end
 
+  def test_file_field_with_multiple_behavior_configured_include_hidden
+    old_value = ActionView::Helpers::FormHelper.multiple_file_field_include_hidden
+    ActionView::Helpers::FormHelper.multiple_file_field_include_hidden = true
+
+    expected = '<input type="hidden" name="import[file][]" autocomplete="off" value="">' \
+               '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
+    assert_dom_equal expected, file_field("import", "file", multiple: true)
+  ensure
+    ActionView::Helpers::FormHelper.multiple_file_field_include_hidden = old_value
+  end
+
+  def test_file_field_with_multiple_behavior_include_hidden_false
+    expected = '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
+    assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: false)
+  end
+
   def test_file_field_with_multiple_behavior_and_explicit_name
     expected = '<input id="import_file" multiple="multiple" name="custom" type="file" />'
     assert_dom_equal expected, file_field("import", "file", multiple: true, name: "custom")
+  end
+
+  def test_file_field_with_multiple_behavior_and_explicit_name_configured_include_hidden
+    old_value = ActionView::Helpers::FormHelper.multiple_file_field_include_hidden
+    ActionView::Helpers::FormHelper.multiple_file_field_include_hidden = true
+
+    expected = '<input type="hidden" name="custom" autocomplete="off" value="">' \
+               '<input id="import_file" multiple="multiple" name="custom" type="file" />'
+    assert_dom_equal expected, file_field("import", "file", multiple: true, name: "custom")
+  ensure
+    ActionView::Helpers::FormHelper.multiple_file_field_include_hidden = old_value
   end
 
   def test_file_field_with_direct_upload_when_rails_direct_uploads_url_is_not_defined
@@ -1617,6 +1645,24 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_false_url
+    form_for(Post.new, url: false) do |form|
+    end
+
+    expected = whole_form(false, "new_post", "new_post")
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_false_action
+    form_for(Post.new, html: { action: false }) do |form|
+    end
+
+    expected = whole_form(false, "new_post", "new_post")
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_field_id_with_model
     value = field_id(Post.new, :title)
 
@@ -1654,6 +1700,156 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts", "new_post", "new_post") do
       '<input id="post_1_title" name="post[1][title]" type="text" aria-describedby="post_1_title_error">' \
       '<span id="post_1_title_error">is blank</span>'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_with_blank_as
+    form_for(Post.new, as: "") do |form|
+      concat form.text_field(:title, name: form.field_name(:title))
+    end
+
+    expected = whole_form("/posts", "new_", "new_") do
+      %(<input id="title" name="title" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_id_with_namespace
+    form_for(Post.new, namespace: :special) do |form|
+      concat form.label(:title)
+      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) })
+      concat tag.span("is blank", id: form.field_id(:title, :error))
+    end
+
+    expected = whole_form("/posts", "special_new_post", "new_post") do
+      '<label for="special_post_title">Title</label>' \
+      '<input id="special_post_title" name="post[title]" type="text" aria-describedby="special_post_title_error">' \
+      '<span id="special_post_title_error">is blank</span>'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_with_blank_as_and_multiple
+    form_for(Post.new, as: "") do |form|
+      concat form.text_field(:title, name: form.field_name(:title, multiple: true))
+    end
+
+    expected = whole_form("/posts", "new_", "new_") do
+      %(<input id="title" name="title[]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_without_method_names_or_multiple_or_index
+    form_for(Post.new) do |form|
+      concat form.text_field(:title, name: form.field_name(:title))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      %(<input id="post_title" name="post[title]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_without_method_names_and_multiple
+    form_for(Post.new) do |form|
+      concat form.text_field(:title, name: form.field_name(:title, multiple: true))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      %(<input id="post_title" name="post[title][]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_without_method_names_and_index
+    form_for(Post.new, index: 1) do |form|
+      concat form.text_field(:title, name: form.field_name(:title))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      %(<input id="post_1_title" name="post[1][title]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_without_method_names_and_index_and_multiple
+    form_for(Post.new, index: 1) do |form|
+      concat form.text_field(:title, name: form.field_name(:title, multiple: true))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      %(<input id="post_1_title" name="post[1][title][]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_with_method_names
+    form_for(Post.new) do |form|
+      concat form.text_field(:title, name: form.field_name(:title, :subtitle))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      %(<input id="post_title" name="post[title][subtitle]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_with_method_names_and_index
+    form_for(Post.new, index: 1) do |form|
+      concat form.text_field(:title, name: form.field_name(:title, :subtitle))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      %(<input id="post_1_title" name="post[1][title][subtitle]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_with_method_names_and_multiple
+    form_for(Post.new) do |form|
+      concat form.text_field(:title, name: form.field_name(:title, :subtitle, multiple: true))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      %(<input id="post_title" name="post[title][subtitle][]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_with_method_names_and_multiple_and_index
+    form_for(Post.new, index: 1) do |form|
+      concat form.text_field(:title, name: form.field_name(:title, :subtitle, multiple: true))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      %(<input id="post_1_title" name="post[1][title][subtitle][]" type="text">)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_id_with_namespace_and_index
+    form_for(Post.new, namespace: :special, index: 1) do |form|
+      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) })
+      concat tag.span("is blank", id: form.field_id(:title, :error))
+    end
+
+    expected = whole_form("/posts", "special_new_post", "new_post") do
+      '<input id="special_post_1_title" name="post[1][title]" type="text" aria-describedby="special_post_1_title_error">' \
+      '<span id="special_post_1_title_error">is blank</span>'
     end
 
     assert_dom_equal expected, output_buffer
@@ -1881,6 +2077,26 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_with_persisted_to_model
+    post_form = RecordForm.new(to_model: @post)
+
+    form_for(post_form) { }
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: :patch) { "" }
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_new_record_to_model
+    post_form = RecordForm.new(to_model: Post.new)
+
+    form_for(post_form) { }
+
+    expected = whole_form("/posts", "new_post", "new_post", method: :post) { "" }
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_with_file_field_generate_multipart
     form_for(@post, html: { id: "create-post" }) do |f|
       concat f.file_field(:file)
@@ -1913,6 +2129,18 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts/123.json", "edit_post_123", "edit_post", method: "patch") do
+      "<label for='post_title'>Title</label>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_new_form_for_without_format
+    form_for(@post, html: { id: "edit_post_123", class: "edit_post" }) do |f|
+      concat f.label(:title)
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       "<label for='post_title'>Title</label>"
     end
 
@@ -2392,6 +2620,42 @@ class FormHelperTest < ActionView::TestCase
 
       assert_dom_equal expected, output_buffer
     end
+  end
+
+  def test_button_with_method_name
+    form_for(@post) do |f|
+      concat f.button(:secret, value: true)
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      %(<button type="submit" id="post_secret" name="post[secret]" value="true">Update Post</button>)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_button_with_method_name_and_attributes
+    form_for(@post) do |f|
+      concat f.button(:secret, value: true, id: "not_generated", name: "post[not_generated]")
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      %(<button type="submit" id="not_generated" name="post[not_generated]" value="true">Update Post</button>)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_button_with_method_name_and_block
+    form_for(@post) do |f|
+      concat f.button(:secret, value: true) { "Update secret Post" }
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      %(<button type="submit" id="post_secret" name="post[secret]" value="true">Update secret Post</button>)
+    end
+
+    assert_dom_equal expected, output_buffer
   end
 
   def test_button_with_get_formmethod_attribute
@@ -3036,14 +3300,20 @@ class FormHelperTest < ActionView::TestCase
   def test_nested_fields_label_translation_with_more_than_10_records
     @post.comments = Array.new(11) { |id| Comment.new(id + 1) }
 
-    params = 11.times.map { ["post.comments.body", default: [:"comment.body", ""], scope: "helpers.label"] }
-    assert_called_with(I18n, :t, params, returns: "Write body here") do
+    mock = Minitest::Mock.new
+    @post.comments.each do
+      mock.expect(:call, "body", ["post.comments.body", default: [:"comment.body", ""], scope: "helpers.label"])
+    end
+
+    I18n.stub(:t, mock) do
       form_for(@post) do |f|
         f.fields_for(:comments) do |cf|
           concat cf.label(:body)
         end
       end
     end
+
+    assert_mock(mock)
   end
 
   def test_nested_fields_for_with_existing_records_on_a_supplied_nested_attributes_collection_different_from_record_one
@@ -3738,7 +4008,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil, method = nil)
-      txt =  +%{<form accept-charset="UTF-8" action="#{action}"}
+      txt =  +%{<form accept-charset="UTF-8"} + (action ? %{ action="#{action}"} : "")
       txt << %{ enctype="multipart/form-data"} if multipart
       txt << %{ data-remote="true"} if remote
       txt << %{ class="#{html_class}"} if html_class

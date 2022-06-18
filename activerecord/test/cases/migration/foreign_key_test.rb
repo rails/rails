@@ -668,7 +668,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           @connection.add_foreign_key :astronauts, :rockets
           assert_equal 1, @connection.foreign_keys("astronauts").size
 
-          @connection.remove_foreign_key :astronauts, :rockets
+          @connection.remove_foreign_key :astronauts, :rockets, if_exists: true
           assert_equal [], @connection.foreign_keys("astronauts")
 
           assert_nothing_raised do
@@ -692,6 +692,8 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             if current_adapter?(:Mysql2Adapter)
               if ActiveRecord::Base.connection.mariadb?
                 assert_match(/Duplicate key on write or update/, error.message)
+              elsif ActiveRecord::Base.connection.database_version < "5.6"
+                assert_match(/Can't create table/, error.message)
               else
                 assert_match(/Duplicate foreign key constraint name/, error.message)
               end

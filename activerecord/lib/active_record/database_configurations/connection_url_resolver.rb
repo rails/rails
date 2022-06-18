@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
+require "uri"
 require "active_support/core_ext/enumerable"
+require "active_support/core_ext/hash/reverse_merge"
 
 module ActiveRecord
   class DatabaseConfigurations

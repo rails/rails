@@ -133,7 +133,7 @@ class ControllerInstanceTests < ActiveSupport::TestCase
     ActionDispatch::Response.default_headers = {
       "X-Frame-Options" => "DENY",
       "X-Content-Type-Options" => "nosniff",
-      "X-XSS-Protection" => "1;"
+      "X-XSS-Protection" => "0"
     }
 
     response_headers = SimpleController.action("hello").call(
@@ -177,7 +177,11 @@ class PerformActionTest < ActionController::TestCase
     exception = assert_raise AbstractController::ActionNotFound do
       get :ello
     end
-    assert_match "Did you mean?", exception.message
+    if exception.respond_to?(:detailed_message)
+      assert_match "Did you mean?", exception.detailed_message
+    else
+      assert_match "Did you mean?", exception.message
+    end
   end
 
   def test_action_missing_should_work

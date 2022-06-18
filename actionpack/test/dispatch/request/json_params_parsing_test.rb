@@ -39,6 +39,13 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "parses json params for application problem+json" do
+    assert_parses(
+      { "person" => { "name" => "David" } },
+      "{\"person\": {\"name\": \"David\"}}", "CONTENT_TYPE" => "application/problem+json"
+    )
+  end
+
   test "does not parse unregistered media types such as application/vnd.api+json" do
     assert_parses(
       {},
@@ -147,6 +154,13 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "parses json params for application problem+json" do
+    assert_parses(
+      { "user" => { "username" => "sikachu" }, "username" => "sikachu" },
+      "{\"username\": \"sikachu\"}", "CONTENT_TYPE" => "application/problem+json"
+    )
+  end
+
   test "parses json with non-object JSON content" do
     assert_parses(
       { "user" => { "_json" => "string content" }, "_json" => "string content" },
@@ -163,7 +177,7 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     )
   ensure
     Mime::Type.unregister :json
-    Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
+    Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest application/problem+json )
   end
 
   test "parses json params after custom json mime type registered with synonym" do
@@ -175,7 +189,7 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     )
   ensure
     Mime::Type.unregister :json
-    Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
+    Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest application/problem+json )
   end
 
   private

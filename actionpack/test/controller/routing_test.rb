@@ -624,6 +624,34 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
         url_for(rs, controller: "content", action: "show_file", path: %w(pages boo))
   end
 
+  def test_escapes_newline_character_for_dynamic_path
+    rs.draw do
+      get "/dynamic/:dynamic_segment" => "subpath_books#show", as: :dynamic
+
+      ActiveSupport::Deprecation.silence do
+        get ":controller/:action/:id"
+      end
+    end
+
+    results = rs.recognize_path("/dynamic/a%0Anewline")
+    assert(results, "Recognition should have succeeded")
+    assert_equal("a\nnewline", results[:dynamic_segment])
+  end
+
+  def test_escapes_newline_character_for_wildcard_path
+    rs.draw do
+      get "/wildcard/*wildcard_segment" => "subpath_books#show", as: :wildcard
+
+      ActiveSupport::Deprecation.silence do
+        get ":controller/:action/:id"
+      end
+    end
+
+    results = rs.recognize_path("/wildcard/a%0Anewline")
+    assert(results, "Recognition should have succeeded")
+    assert_equal("a\nnewline", results[:wildcard_segment])
+  end
+
   def test_dynamic_recall_paths_allowed
     rs.draw do
       get "*path" => "content#show_file"
@@ -1888,8 +1916,6 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   include ActionDispatch::RoutingVerbs
-
-  alias :routes :set
 
   def test_generate_with_optional_params_recalls_last_request
     @set = make_set false

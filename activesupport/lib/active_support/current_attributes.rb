@@ -98,25 +98,37 @@ module ActiveSupport
 
       # Declares one or more attributes that will be given both class and instance accessor methods.
       def attribute(*names)
-        generated_attribute_methods.module_eval do
+        ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
           names.each do |name|
-            define_method(name) do
-              attributes[name.to_sym]
+            owner.define_cached_method(name, namespace: :current_attributes) do |batch|
+              batch <<
+                "def #{name}" <<
+                "attributes[:#{name}]" <<
+                "end"
             end
-
-            define_method("#{name}=") do |attribute|
-              attributes[name.to_sym] = attribute
+            owner.define_cached_method("#{name}=", namespace: :current_attributes) do |batch|
+              batch <<
+                "def #{name}=(value)" <<
+                "attributes[:#{name}] = value" <<
+                "end"
             end
           end
         end
 
-        names.each do |name|
-          define_singleton_method(name) do
-            instance.public_send(name)
-          end
-
-          define_singleton_method("#{name}=") do |attribute|
-            instance.public_send("#{name}=", attribute)
+        ActiveSupport::CodeGenerator.batch(singleton_class, __FILE__, __LINE__) do |owner|
+          names.each do |name|
+            owner.define_cached_method(name, namespace: :current_attributes_delegation) do |batch|
+              batch <<
+                "def #{name}" <<
+                "instance.#{name}" <<
+                "end"
+            end
+            owner.define_cached_method("#{name}=", namespace: :current_attributes_delegation) do |batch|
+              batch <<
+                "def #{name}=(value)" <<
+                "instance.#{name} = value" <<
+                "end"
+            end
           end
         end
       end
@@ -143,24 +155,13 @@ module ActiveSupport
         current_instances.clear
       end
 
-      def _use_thread_variables=(value) # :nodoc:
-        clear_all
-        @@use_thread_variables = value
-      end
-      @@use_thread_variables = false
-
       private
         def generated_attribute_methods
           @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
         end
 
         def current_instances
-          if @@use_thread_variables
-            Thread.current.thread_variable_get(:current_attributes_instances) ||
-              Thread.current.thread_variable_set(:current_attributes_instances, {})
-          else
-            Thread.current[:current_attributes_instances] ||= {}
-          end
+          IsolatedExecutionState[:current_attributes_instances] ||= {}
         end
 
         def current_instances_key

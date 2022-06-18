@@ -169,6 +169,24 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           @connection.drop_table "testing", if_exists: true
         end
 
+        test "remove_reference responds to if_exists option" do
+          @connection.create_table :testings
+
+          assert_nothing_raised do
+            @connection.remove_reference :testings, :nonexistent, foreign_key: true, if_exists: true
+          end
+        end
+
+        test "add_reference responds to if_not_exists option" do
+          @connection.create_table :testings do |t|
+            t.references :testing, foreign_key: true
+          end
+
+          assert_nothing_raised do
+            @connection.add_reference :testings, :testing, foreign_key: true, if_not_exists: true
+          end
+        end
+
         class CreateDogsMigration < ActiveRecord::Migration::Current
           def change
             create_table :dog_owners

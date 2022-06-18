@@ -94,20 +94,20 @@ module Rails
           singular_name == plural_name
         end
 
-        def index_helper # :doc:
-          uncountable? ? "#{plural_route_name}_index" : plural_route_name
+        def index_helper(type: nil) # :doc:
+          [plural_route_name, ("index" if uncountable?), type].compact.join("_")
         end
 
-        def show_helper # :doc:
-          "#{singular_route_name}_url(@#{singular_table_name})"
+        def show_helper(arg = "@#{singular_table_name}", type: :url) # :doc:
+          "#{singular_route_name}_#{type}(#{arg})"
         end
 
-        def edit_helper # :doc:
-          "edit_#{show_helper}"
+        def edit_helper(...) # :doc:
+          "edit_#{show_helper(...)}"
         end
 
-        def new_helper # :doc:
-          "new_#{singular_route_name}_url"
+        def new_helper(type: :url) # :doc:
+          "new_#{singular_route_name}_#{type}"
         end
 
         def singular_table_name # :doc:
@@ -127,7 +127,7 @@ module Rails
         end
 
         def route_url # :doc:
-          @route_url ||= class_path.collect { |dname| "/" + dname }.join + "/" + plural_file_name
+          @route_url ||= controller_class_path.collect { |dname| "/" + dname }.join + "/" + plural_file_name
         end
 
         def url_helper_prefix # :doc:
@@ -147,8 +147,8 @@ module Rails
           model_resource_name(prefix: "@")
         end
 
-        def model_resource_name(prefix: "") # :doc:
-          resource_name = "#{prefix}#{singular_table_name}"
+        def model_resource_name(base_name = singular_table_name, prefix: "") # :doc:
+          resource_name = "#{prefix}#{base_name}"
           if options[:model_name]
             "[#{controller_class_path.map { |name| ":" + name }.join(", ")}, #{resource_name}]"
           else
@@ -202,7 +202,7 @@ module Rails
         end
 
         # Add a class collisions name to be checked on class initialization. You
-        # can supply a hash with a :prefix or :suffix to be tested.
+        # can supply a hash with a +:prefix+ or +:suffix+ to be tested.
         #
         # ==== Examples
         #

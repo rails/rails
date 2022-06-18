@@ -3,6 +3,9 @@
 require "models/job"
 
 class User < ActiveRecord::Base
+  has_secure_password validations: false
+  has_secure_password :recovery_password, validations: false
+
   has_secure_token
   has_secure_token :auth_token, length: 36
 

@@ -21,7 +21,7 @@ module ViewBehavior
     super
     @connection = ActiveRecord::Base.connection
     create_view "ebooks'", <<~SQL
-      SELECT id, name, status FROM books WHERE format = 'ebook'
+      SELECT id, name, cover, status FROM books WHERE format = 'ebook'
     SQL
   end
 
@@ -58,11 +58,12 @@ module ViewBehavior
   def test_column_definitions
     assert_equal([["id", :integer],
                   ["name", :string],
+                  ["cover", :string],
                   ["status", :integer]], Ebook.columns.map { |c| [c.name, c.type] })
   end
 
   def test_attributes
-    assert_equal({ "id" => 2, "name" => "Ruby for Rails", "status" => 0 },
+    assert_equal({ "id" => 2, "name" => "Ruby for Rails", "cover" => "hard", "status" => 0 },
                  Ebook.first.attributes)
   end
 

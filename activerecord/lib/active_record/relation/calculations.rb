@@ -31,7 +31,7 @@ module ActiveRecord
     #
     #   Article.group(:status, :category).count
     #   # =>  {["draft", "business"]=>10, ["draft", "technology"]=>4,
-    #          ["published", "business"]=>0, ["published", "technology"]=>2}
+    #   #      ["published", "business"]=>0, ["published", "technology"]=>2}
     #
     # If #count is used with {Relation#select}[rdoc-ref:QueryMethods#select], it will count the selected columns:
     #
@@ -52,12 +52,22 @@ module ActiveRecord
       end
     end
 
+    # Same as <tt>#count</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_count(column_name = nil)
+      async.count(column_name)
+    end
+
     # Calculates the average value on a given column. Returns +nil+ if there's
     # no row. See #calculate for examples with options.
     #
     #   Person.average(:age) # => 35.8
     def average(column_name)
       calculate(:average, column_name)
+    end
+
+    # Same as <tt>#average</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_average(column_name)
+      async.average(column_name)
     end
 
     # Calculates the minimum value on a given column. The value is returned
@@ -69,6 +79,11 @@ module ActiveRecord
       calculate(:minimum, column_name)
     end
 
+    # Same as <tt>#minimum</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_minimum(column_name)
+      async.minimum(column_name)
+    end
+
     # Calculates the maximum value on a given column. The value is returned
     # with the same data type of the column, or +nil+ if there's no row. See
     # #calculate for examples with options.
@@ -76,6 +91,11 @@ module ActiveRecord
     #   Person.maximum(:age) # => 93
     def maximum(column_name)
       calculate(:maximum, column_name)
+    end
+
+    # Same as <tt>#maximum</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_maximum(column_name)
+      async.maximum(column_name)
     end
 
     # Calculates the sum of values on a given column. The value is returned
@@ -102,6 +122,11 @@ module ActiveRecord
       else
         calculate(:sum, identity_or_column)
       end
+    end
+
+    # Same as <tt>#sum</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_sum(identity_or_column = nil)
+      async.sum(identity_or_column)
     end
 
     # This calculates aggregate values in the given column. Methods for #count, #sum, #average,
@@ -155,7 +180,7 @@ module ActiveRecord
     end
 
     # Use #pluck as a shortcut to select one or more attributes without
-    # loading a bunch of records just to grab the attributes you want.
+    # loading an entire record object per row.
     #
     #   Person.pluck(:name)
     #
@@ -188,10 +213,14 @@ module ActiveRecord
     #   # => ['0', '27761', '173']
     #
     # See also #ids.
-    #
     def pluck(*column_names)
       if loaded? && all_attributes?(column_names)
-        return records.pluck(*column_names)
+        result = records.pluck(*column_names)
+        if @async
+          return Promise::Complete.new(result)
+        else
+          return result
+        end
       end
 
       if has_include?(column_names.first)
@@ -204,13 +233,20 @@ module ActiveRecord
         relation.select_values = columns
         result = skip_query_cache_if_necessary do
           if where_clause.contradiction?
-            ActiveRecord::Result.empty
+            ActiveRecord::Result.empty(async: @async)
           else
-            klass.connection.select_all(relation.arel, "#{klass.name} Pluck")
+            klass.connection.select_all(relation.arel, "#{klass.name} Pluck", async: @async)
           end
         end
-        type_cast_pluck_values(result, columns)
+        result.then do |result|
+          type_cast_pluck_values(result, columns)
+        end
       end
+    end
+
+    # Same as <tt>#pluck</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_pluck(*column_names)
+      async.pluck(*column_names)
     end
 
     # Pick the value(s) from the named column(s) in the current relation.
@@ -229,10 +265,16 @@ module ActiveRecord
     #   # => [ 'David', 'david@loudthinking.com' ]
     def pick(*column_names)
       if loaded? && all_attributes?(column_names)
-        return records.pick(*column_names)
+        result = records.pick(*column_names)
+        return @async ? Promise::Complete.new(result) : result
       end
 
-      limit(1).pluck(*column_names).first
+      limit(1).pluck(*column_names).then(&:first)
+    end
+
+    # Same as <tt>#pick</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_pick(*column_names)
+      async.pick(*column_names)
     end
 
     # Pluck all the ID's for the relation using the table's primary key
@@ -300,6 +342,7 @@ module ActiveRecord
           # Shortcut when limit is zero.
           return 0 if limit_value == 0
 
+          relation = self
           query_builder = build_count_subquery(spawn, column_name, distinct)
         else
           # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
@@ -314,29 +357,28 @@ module ActiveRecord
           query_builder = relation.arel
         end
 
-        result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder, "#{@klass.name} #{operation.capitalize}") }
-
-        if operation != "count"
-          type = column.try(:type_caster) ||
-            lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
-          type = type.subtype if Enum::EnumType === type
+        query_result = if relation.where_clause.contradiction?
+          ActiveRecord::Result.empty
+        else
+          skip_query_cache_if_necessary do
+            @klass.connection.select_all(query_builder, "#{@klass.name} #{operation.capitalize}", async: @async)
+          end
         end
 
-        type_cast_calculated_value(result.cast_values.first, operation, type)
+        query_result.then do |result|
+          if operation != "count"
+            type = column.try(:type_caster) ||
+              lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
+            type = type.subtype if Enum::EnumType === type
+          end
+
+          type_cast_calculated_value(result.cast_values.first, operation, type)
+        end
       end
 
       def execute_grouped_calculation(operation, column_name, distinct) # :nodoc:
         group_fields = group_values
         group_fields = group_fields.uniq if group_fields.size > 1
-
-        unless group_fields == group_values
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            `#{operation}` with group by duplicated fields does no longer affect to result in Rails 7.0.
-            To migrate to Rails 7.0's behavior, use `uniq!(:group)` to deduplicate group fields
-            (`#{klass.name&.tableize || klass.table_name}.uniq!(:group).#{operation}(#{column_name.inspect})`).
-          MSG
-          group_fields = group_values
-        end
 
         if group_fields.size == 1 && group_fields.first.respond_to?(:to_sym)
           association  = klass._reflect_on_association(group_fields.first)
@@ -354,12 +396,13 @@ module ActiveRecord
         column = aggregate_column(column_name)
         column_alias = column_alias_for("#{operation} #{column_name.to_s.downcase}")
         select_value = operation_over_aggregate_column(column, operation, distinct)
-        select_value.as(column_alias)
+        select_value.as(connection.quote_column_name(column_alias))
 
         select_values = [select_value]
         select_values += self.select_values unless having_clause.empty?
 
         select_values.concat group_columns.map { |aliaz, field|
+          aliaz = connection.quote_column_name(aliaz)
           if field.respond_to?(:as)
             field.as(aliaz)
           else
@@ -371,38 +414,39 @@ module ActiveRecord
         relation.group_values  = group_fields
         relation.select_values = select_values
 
-        calculated_data = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, "#{@klass.name} #{operation.capitalize}") }
-
-        if association
-          key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
-          key_records = association.klass.base_class.where(association.klass.base_class.primary_key => key_ids)
-          key_records = key_records.index_by(&:id)
-        end
-
-        key_types = group_columns.each_with_object({}) do |(aliaz, col_name), types|
-          types[aliaz] = type_for(col_name) do
-            calculated_data.column_types.fetch(aliaz, Type.default_value)
+        result = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, "#{@klass.name} #{operation.capitalize}", async: @async) }
+        result.then do |calculated_data|
+          if association
+            key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
+            key_records = association.klass.base_class.where(association.klass.base_class.primary_key => key_ids)
+            key_records = key_records.index_by(&:id)
           end
-        end
 
-        hash_rows = calculated_data.cast_values(key_types).map! do |row|
-          calculated_data.columns.each_with_object({}).with_index do |(col_name, hash), i|
-            hash[col_name] = row[i]
+          key_types = group_columns.each_with_object({}) do |(aliaz, col_name), types|
+            types[aliaz] = type_for(col_name) do
+              calculated_data.column_types.fetch(aliaz, Type.default_value)
+            end
           end
-        end
 
-        if operation != "count"
-          type = column.try(:type_caster) ||
-            lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
-          type = type.subtype if Enum::EnumType === type
-        end
+          hash_rows = calculated_data.cast_values(key_types).map! do |row|
+            calculated_data.columns.each_with_object({}).with_index do |(col_name, hash), i|
+              hash[col_name] = row[i]
+            end
+          end
 
-        hash_rows.each_with_object({}) do |row, result|
-          key = group_aliases.map { |aliaz| row[aliaz] }
-          key = key.first if key.size == 1
-          key = key_records[key] if associated
+          if operation != "count"
+            type = column.try(:type_caster) ||
+              lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
+            type = type.subtype if Enum::EnumType === type
+          end
 
-          result[key] = type_cast_calculated_value(row[column_alias], operation, type)
+          hash_rows.each_with_object({}) do |row, result|
+            key = group_aliases.map { |aliaz| row[aliaz] }
+            key = key.first if key.size == 1
+            key = key_records[key] if associated
+
+            result[key] = type_cast_calculated_value(row[column_alias], operation, type)
+          end
         end
       end
 

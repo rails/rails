@@ -126,8 +126,8 @@ class Time
   # Returns a new Time where one or more of the elements have been changed according
   # to the +options+ parameter. The time options (<tt>:hour</tt>, <tt>:min</tt>,
   # <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>) reset cascadingly, so if only
-  # the hour is passed, then minute, sec, usec and nsec is set to 0. If the hour
-  # and minute is passed, then sec, usec and nsec is set to 0. The +options+ parameter
+  # the hour is passed, then minute, sec, usec, and nsec is set to 0. If the hour
+  # and minute is passed, then sec, usec, and nsec is set to 0. The +options+ parameter
   # takes a hash with any of these keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>,
   # <tt>:hour</tt>, <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>,
   # <tt>:offset</tt>. Pass either <tt>:usec</tt> or <tt>:nsec</tt>, not both.
@@ -305,7 +305,7 @@ class Time
     other.is_a?(DateTime) ? to_f - other.to_f : minus_without_coercion(other)
   end
   alias_method :minus_without_coercion, :-
-  alias_method :-, :minus_with_coercion
+  alias_method :-, :minus_with_coercion # rubocop:disable Lint/DuplicateMethods
 
   # Layers additional behavior on Time#<=> so that DateTime and ActiveSupport::TimeWithZone instances
   # can be chronologically compared with a Time

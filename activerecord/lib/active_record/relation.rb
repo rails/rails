@@ -11,7 +11,7 @@ module ActiveRecord
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
 
     CLAUSE_METHODS = [:where, :having, :from]
-    INVALID_METHODS_FOR_DELETE_ALL = [:distinct, :group, :having]
+    INVALID_METHODS_FOR_DELETE_ALL = [:distinct]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 
@@ -33,18 +33,13 @@ module ActiveRecord
       @delegate_to_klass = false
       @future_result = nil
       @records = nil
-      @limited_count = nil
+      @async = false
     end
 
     def initialize_copy(other)
       @values = @values.dup
       reset
     end
-
-    def arel_attribute(name) # :nodoc:
-      table[name]
-    end
-    deprecate :arel_attribute
 
     def bind_attribute(name, value) # :nodoc:
       if reflection = klass._reflect_on_association(name)
@@ -295,14 +290,14 @@ module ActiveRecord
     # Returns true if there is exactly one record.
     def one?
       return super if block_given?
-      return records.one? if limit_value || loaded?
+      return records.one? if loaded?
       limited_count == 1
     end
 
     # Returns true if there is more than one record.
     def many?
       return super if block_given?
-      return records.many? if limit_value || loaded?
+      return records.many? if loaded?
       limited_count > 1
     end
 
@@ -394,7 +389,7 @@ module ActiveRecord
       end
 
       if timestamp
-        "#{size}-#{timestamp.utc.to_s(cache_timestamp_format)}"
+        "#{size}-#{timestamp.utc.to_fs(cache_timestamp_format)}"
       else
         "#{size}"
       end
@@ -435,10 +430,10 @@ module ActiveRecord
       end
     end
 
-    def _exec_scope(*args, &block) # :nodoc:
+    def _exec_scope(...) # :nodoc:
       @delegate_to_klass = true
       registry = klass.scope_registry
-      _scoping(nil, registry) { instance_exec(*args, &block) || self }
+      _scoping(nil, registry) { instance_exec(...) || self }
     ensure
       @delegate_to_klass = false
     end
@@ -485,8 +480,9 @@ module ActiveRecord
       arel = eager_loading? ? apply_join_dependency.arel : build_arel
       arel.source.left = table
 
-      stmt = arel.compile_update(values, table[primary_key])
-
+      group_values_arel_columns = arel_columns(group_values.uniq)
+      having_clause_ast = having_clause.ast unless having_clause.empty?
+      stmt = arel.compile_update(values, table[primary_key], having_clause_ast, group_values_arel_columns)
       klass.connection.update(stmt, "#{klass} Update All").tap { reset }
     end
 
@@ -615,7 +611,9 @@ module ActiveRecord
       arel = eager_loading? ? apply_join_dependency.arel : build_arel
       arel.source.left = table
 
-      stmt = arel.compile_delete(table[primary_key])
+      group_values_arel_columns = arel_columns(group_values.uniq)
+      having_clause_ast = having_clause.ast unless having_clause.empty?
+      stmt = arel.compile_delete(table[primary_key], having_clause_ast, group_values_arel_columns)
 
       klass.connection.delete(stmt, "#{klass} Delete All").tap { reset }
     end
@@ -649,6 +647,21 @@ module ActiveRecord
     # Schedule the query to be performed from a background thread pool.
     #
     #   Post.where(published: true).load_async # => #<ActiveRecord::Relation>
+    #
+    # When the +Relation+ is iterated, if the background query wasn't executed yet,
+    # it will be performed by the foreground thread.
+    #
+    # Note that {config.active_record.async_query_executor}[https://guides.rubyonrails.org/configuring.html#config-active-record-async-query-executor] must be configured
+    # for queries to actually be executed concurrently. Otherwise it defaults to
+    # executing them in the foreground.
+    #
+    # +load_async+ will also fall back to executing in the foreground in the test environment when transactional
+    # fixtures are enabled.
+    #
+    # If the query was actually executed in the background, the Active Record logs will show
+    # it by prefixing the log line with <tt>ASYNC</tt>:
+    #
+    #   ASYNC Post Load (0.0ms) (db time 2ms)  SELECT "posts".* FROM "posts" LIMIT 100
     def load_async
       return load if !connection.async_enabled?
 
@@ -700,8 +713,8 @@ module ActiveRecord
       @to_sql = @arel = @loaded = @should_eager_load = nil
       @offsets = @take = nil
       @cache_keys = nil
+      @cache_versions = nil
       @records = nil
-      @limited_count = nil
       self
     end
 
@@ -725,7 +738,7 @@ module ActiveRecord
     #
     #   User.where(name: 'Oscar').where_values_hash
     #   # => {name: "Oscar"}
-    def where_values_hash(relation_table_name = klass.table_name)
+    def where_values_hash(relation_table_name = klass.table_name) # :nodoc:
       where_clause.to_h(relation_table_name)
     end
 
@@ -745,7 +758,7 @@ module ActiveRecord
     # Joins that are also marked for preloading. In which case we should just eager load them.
     # Note that this is a naive implementation because we could have strings and symbols which
     # represent the same association, but that aren't matched by this. Also, we could have
-    # nested hashes which partially match, e.g. { a: :b } & { a: [:b, :c] }
+    # nested hashes which partially match, e.g. <tt>{ a: :b } & { a: [:b, :c] }</tt>
     def joined_includes_values
       includes_values & joins_values
     end
@@ -762,8 +775,13 @@ module ActiveRecord
       end
     end
 
-    def pretty_print(q)
-      q.pp(records)
+    def pretty_print(pp)
+      subject = loaded? ? records : annotate("loading for pp")
+      entries = subject.take([limit_value, 11].compact.min)
+
+      entries[10] = "..." if entries.size == 11
+
+      pp.pp(entries)
     end
 
     # Returns true if relation is blank.
@@ -906,7 +924,7 @@ module ActiveRecord
           preload_associations(records) unless skip_preloading_value
 
           records.each(&:readonly!) if readonly_value
-          records.each(&:strict_loading!) if strict_loading_value
+          records.each { |record| record.strict_loading!(strict_loading_value) } unless strict_loading_value.nil?
 
           records
         end
@@ -976,7 +994,7 @@ module ActiveRecord
       end
 
       def limited_count
-        @limited_count ||= limit(2).count
+        limit_value ? count : limit(2).count
       end
   end
 end

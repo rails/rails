@@ -115,7 +115,8 @@ module ActiveSupport
       #
       # Note that the usec for the time passed will be set to 0 to prevent rounding
       # errors with external services, like MySQL (which will round instead of floor,
-      # leading to off-by-one-second errors).
+      # leading to off-by-one-second errors), unless the <tt>with_usec</tt> argument
+      # is set to <tt>true</tt>.
       #
       # This method also accepts a block, which will return the current time back to its original
       # state at the end of the block:
@@ -125,7 +126,7 @@ module ActiveSupport
       #     Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
       #   end
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
-      def travel_to(date_or_time)
+      def travel_to(date_or_time, with_usec: false)
         if block_given? && in_block
           travel_to_nested_block_call = <<~MSG
 
@@ -158,12 +159,14 @@ module ActiveSupport
           now = date_or_time.midnight.to_time
         elsif date_or_time.is_a?(String)
           now = Time.zone.parse(date_or_time)
+        elsif with_usec
+          now = date_or_time.to_time
         else
           now = date_or_time.to_time.change(usec: 0)
         end
 
         stubbed_time = Time.now if simple_stubs.stubbing(Time, :now)
-        simple_stubs.stub_object(Time, :now) { at(now.to_i) }
+        simple_stubs.stub_object(Time, :now) { at(now.to_f) }
         simple_stubs.stub_object(Date, :today) { jd(now.to_date.jd) }
         simple_stubs.stub_object(DateTime, :now) { jd(now.to_date.jd, now.hour, now.min, now.sec, Rational(now.utc_offset, 86400)) }
 

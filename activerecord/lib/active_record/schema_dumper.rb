@@ -13,8 +13,7 @@ module ActiveRecord
     ##
     # :singleton-method:
     # A list of tables which should not be dumped to the schema.
-    # Acceptable values are strings as well as regexp if ActiveRecord.schema_format == :ruby.
-    # Only strings are accepted if ActiveRecord.schema_format == :sql.
+    # Acceptable values are strings and regexps.
     cattr_accessor :ignore_tables, default: []
 
     ##
@@ -28,6 +27,12 @@ module ActiveRecord
     # Specify a custom regular expression matching check constraints which name
     # should not be dumped to db/schema.rb.
     cattr_accessor :chk_ignore_pattern, default: /^chk_rails_[0-9a-f]{10}$/
+
+    ##
+    # :singleton-method:
+    # Specify a custom regular expression matching exclusion constraints which name
+    # should not be dumped to db/schema.rb.
+    cattr_accessor :excl_ignore_pattern, default: /^excl_rails_[0-9a-f]{10}$/
 
     class << self
       def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
@@ -74,22 +79,21 @@ module ActiveRecord
       end
 
       def header(stream)
-        stream.puts <<HEADER
-# This file is auto-generated from the current state of the database. Instead
-# of editing this file, please use the migrations feature of Active Record to
-# incrementally modify your database, and then regenerate this schema definition.
-#
-# This file is the source Rails uses to define your schema when running `bin/rails
-# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
-# be faster and is potentially less error prone than running all of your
-# migrations from scratch. Old migrations may fail to apply correctly if those
-# migrations use external dependencies or application code.
-#
-# It's strongly recommended that you check this file into your version control system.
+        stream.puts <<~HEADER
+          # This file is auto-generated from the current state of the database. Instead
+          # of editing this file, please use the migrations feature of Active Record to
+          # incrementally modify your database, and then regenerate this schema definition.
+          #
+          # This file is the source Rails uses to define your schema when running `bin/rails
+          # db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+          # be faster and is potentially less error prone than running all of your
+          # migrations from scratch. Old migrations may fail to apply correctly if those
+          # migrations use external dependencies or application code.
+          #
+          # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(#{define_params}) do
-
-HEADER
+          ActiveRecord::Schema[#{ActiveRecord::Migration.current_version}].define(#{define_params}) do
+        HEADER
       end
 
       def trailer(stream)
@@ -172,6 +176,7 @@ HEADER
 
           indexes_in_create(table, tbl)
           check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
+          exclusion_constraints_in_create(table, tbl) if @connection.supports_exclusion_constraints?
 
           tbl.puts "  end"
           tbl.puts
@@ -202,6 +207,12 @@ HEADER
 
       def indexes_in_create(table, stream)
         if (indexes = @connection.indexes(table)).any?
+          if @connection.supports_exclusion_constraints? && (exclusion_constraints = @connection.exclusion_constraints(table)).any?
+            exclusion_constraint_names = exclusion_constraints.collect(&:name)
+
+            indexes = indexes.reject { |index| exclusion_constraint_names.include?(index.name) }
+          end
+
           index_statements = indexes.map do |index|
             "    t.index #{index_parts(index).join(', ')}"
           end

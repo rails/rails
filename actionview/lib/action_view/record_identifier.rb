@@ -102,7 +102,7 @@ module ActionView
     # on the default implementation (which just joins all key attributes with '_') or on your own
     # overwritten version of the method. By default, this implementation passes the key string through a
     # method that replaces all characters that are invalid inside DOM ids, with valid ones. You need to
-    # make sure yourself that your dom ids are valid, in case you overwrite this method.
+    # make sure yourself that your dom ids are valid, in case you override this method.
     def record_key_for_dom_id(record) # :doc:
       key = convert_to_model(record).to_key
       key ? key.join(JOIN) : key

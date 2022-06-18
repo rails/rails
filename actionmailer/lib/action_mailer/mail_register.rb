@@ -29,7 +29,7 @@ module ActionMailer
       end
 
       # Register an Observer which will be notified when mail is delivered.
-      # Either a class, string or symbol can be passed in as the Observer.
+      # Either a class, string, or symbol can be passed in as the Observer.
       # If a string or symbol is passed in it will be camelized and constantized.
       def register_observer(observer)
         (mailers_observers[self] ||= Set.new) << observer_class_for(observer)
@@ -37,14 +37,14 @@ module ActionMailer
       end
 
       # Unregister a previously registered Observer.
-      # Either a class, string or symbol can be passed in as the Observer.
+      # Either a class, string, or symbol can be passed in as the Observer.
       # If a string or symbol is passed in it will be camelized and constantized.
       def unregister_observer(observer)
         mailers_observers[self]&.delete(observer_class_for(observer))
       end
 
       # Register an Interceptor which will be called before mail is sent.
-      # Either a class, string or symbol can be passed in as the Interceptor.
+      # Either a class, string, or symbol can be passed in as the Interceptor.
       # If a string or symbol is passed in it will be camelized and constantized.
       def register_interceptor(interceptor)
         (mailers_interceptors[self] ||= Set.new) << observer_class_for(interceptor)
@@ -52,7 +52,7 @@ module ActionMailer
       end
 
       # Unregister a previously registered Interceptor.
-      # Either a class, string or symbol can be passed in as the Interceptor.
+      # Either a class, string, or symbol can be passed in as the Interceptor.
       # If a string or symbol is passed in it will be camelized and constantized.
       def unregister_interceptor(interceptor)
         mailers_interceptors[self]&.delete(observer_class_for(interceptor))

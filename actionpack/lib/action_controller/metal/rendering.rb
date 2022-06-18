@@ -30,7 +30,7 @@ module ActionController
       super
     end
 
-    # Overwrite render_to_string because body can now be set to a Rack body.
+    # Override render_to_string because body can now be set to a Rack body.
     def render_to_string(*)
       result = super
       if result.respond_to?(:each)
@@ -78,8 +78,8 @@ module ActionController
       end
 
       def _set_vary_header
-        if self.headers["Vary"].blank? && request.should_apply_vary_header?
-          self.headers["Vary"] = "Accept"
+        if response.headers["Vary"].blank? && request.should_apply_vary_header?
+          response.headers["Vary"] = "Accept"
         end
       end
 

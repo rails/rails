@@ -233,6 +233,26 @@ module RailtiesTest
       assert_equal "Another", Another.name
     end
 
+    test "when the bootstrap hook runs, autoload paths are set" do
+      $test_autoload_once_paths = []
+      $test_autoload_paths = []
+
+      add_to_config <<~RUBY
+        # Unrealistic configuration, but keeps the test simple.
+        config.autoload_once_paths << "#{app_path}/app/helpers"
+
+        initializer "inspect autoload paths", after: :bootstrap_hook do
+          $test_autoload_once_paths += ActiveSupport::Dependencies.autoload_once_paths
+          $test_autoload_paths += ActiveSupport::Dependencies.autoload_paths
+        end
+      RUBY
+
+      boot_rails
+
+      assert_includes $test_autoload_once_paths, "#{app_path}/app/helpers"
+      assert_includes $test_autoload_paths, "#{app_path}/app/controllers"
+    end
+
     test "puts its models directory on autoload path" do
       @plugin.write "app/models/my_bukkit.rb", "class MyBukkit ; end"
       boot_rails
@@ -1227,11 +1247,11 @@ en:
       controller "main", <<-RUBY
         class MainController < ActionController::Base
           def foo
-            render inline: '<%= render :partial => "shared/foo" %>'
+            render inline: '<%= render partial: "shared/foo" %>'
           end
 
           def bar
-            render inline: '<%= render :partial => "shared/bar" %>'
+            render inline: '<%= render partial: "shared/bar" %>'
           end
         end
       RUBY
@@ -1292,9 +1312,28 @@ en:
       get("/assets/bar.js")
       assert_match "// App's bar js", last_response.body.strip
 
-      # ensure that railties are not added twice
-      railties = Rails.application.send(:ordered_railties).map(&:class)
-      assert_equal railties, railties.uniq
+      assert_equal <<~EXPECTED, Rails.application.send(:ordered_railties).flatten.map(&:class).map(&:name).join("\n") << "\n"
+        I18n::Railtie
+        ActiveSupport::Railtie
+        ActionDispatch::Railtie
+        ActiveModel::Railtie
+        ActionController::Railtie
+        ActiveRecord::Railtie
+        GlobalID::Railtie
+        ActiveJob::Railtie
+        ActionMailer::Railtie
+        Rails::TestUnitRailtie
+        Sprockets::Railtie
+        ActionView::Railtie
+        ActiveStorage::Engine
+        ActionCable::Engine
+        ActionMailbox::Engine
+        ActionText::Engine
+        Bukkits::Engine
+        Importmap::Engine
+        AppTemplate::Application
+        Blog::Engine
+      EXPECTED
     end
 
     test "railties_order adds :all with lowest priority if not given" do
@@ -1308,7 +1347,7 @@ en:
       controller "main", <<-RUBY
         class MainController < ActionController::Base
           def foo
-            render inline: '<%= render :partial => "shared/foo" %>'
+            render inline: '<%= render partial: "shared/foo" %>'
           end
         end
       RUBY
@@ -1650,7 +1689,6 @@ en:
         require "action_controller/railtie"
         require "action_mailer/railtie"
         require "action_view/railtie"
-        require "sprockets/railtie"
         require "rails/test_unit/railtie"
       RUBY
       environment = File.read("#{app_path}/config/application.rb")

@@ -10,10 +10,10 @@ module ActiveRecord
   module QueryMethods
     include ActiveModel::ForbiddenAttributesProtection
 
-    # WhereChain objects act as placeholder for queries in which #where does not have any parameter.
-    # In this case, #where must be chained with #not to return a new relation.
+    # WhereChain objects act as placeholder for queries in which +where+ does not have any parameter.
+    # In this case, +where+ can be chained to return a new relation.
     class WhereChain
-      def initialize(scope)
+      def initialize(scope) # :nodoc:
         @scope = scope
       end
 
@@ -40,6 +40,13 @@ module ActiveRecord
       #
       #    User.where.not(name: "Jon", role: "admin")
       #    # SELECT * FROM users WHERE NOT (name == 'Jon' AND role == 'admin')
+      #
+      # If there is a non-nil condition on a nullable column in the hash condition, the records that have
+      # nil values on the nullable column won't be returned.
+      #    User.create!(nullable_country: nil)
+      #    User.where.not(nullable_country: "UK")
+      #    # SELECT * FROM users WHERE NOT (nullable_country = 'UK')
+      #    # => []
       def not(opts, *rest)
         where_clause = @scope.send(:build_where_clause, opts, rest)
 
@@ -68,7 +75,7 @@ module ActiveRecord
       #    # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
       def associated(*associations)
         associations.each do |association|
-          reflection = @scope.klass._reflect_on_association(association)
+          reflection = scope_association_reflection(association)
           @scope.joins!(association)
           self.not(reflection.table_name => { reflection.association_primary_key => nil })
         end
@@ -96,13 +103,22 @@ module ActiveRecord
       #    # WHERE "authors"."id" IS NULL AND "comments"."id" IS NULL
       def missing(*associations)
         associations.each do |association|
-          reflection = @scope.klass._reflect_on_association(association)
+          reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
           @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
         end
 
         @scope
       end
+
+      private
+        def scope_association_reflection(association)
+          reflection = @scope.klass._reflect_on_association(association)
+          unless reflection
+            raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{@scope.name}`.")
+          end
+          reflection
+        end
     end
 
     FROZEN_EMPTY_ARRAY = [].freeze
@@ -153,7 +169,7 @@ module ActiveRecord
     #
     #   users = User.includes(:address, friends: [:address, :followers])
     #
-    # === conditions
+    # === Conditions
     #
     # If you want to add string conditions to your included models, you'll have
     # to explicitly reference them. For example:
@@ -172,6 +188,11 @@ module ActiveRecord
     # will work correctly:
     #
     #   User.includes(:posts).where(posts: { name: 'example' })
+    #
+    # Conditions affect both sides of an association.  For example, the above
+    # code will return only users that have a post named "example", <em>and will
+    # only include posts named "example"</em>, even when a matching user has
+    # other additional posts.
     def includes(*args)
       check_if_method_has_arguments!(__callee__, args)
       spawn.includes!(*args)
@@ -424,17 +445,23 @@ module ActiveRecord
     # adapter this will either use a CASE statement or a built-in function.
     #
     #   User.in_order_of(:id, [1, 5, 3])
-    #   # SELECT "users".* FROM "users" ORDER BY FIELD("users"."id", 1, 5, 3)
+    #   # SELECT "users".* FROM "users"
+    #   #   ORDER BY FIELD("users"."id", 1, 5, 3)
+    #   #   WHERE "users"."id" IN (1, 5, 3)
     #
     def in_order_of(column, values)
       klass.disallow_raw_sql!([column], permit: connection.column_name_with_order_matcher)
+      return spawn.none! if values.empty?
 
       references = column_references([column])
       self.references_values |= references unless references.empty?
 
-      column = order_column(column.to_s) if column.is_a?(Symbol)
+      values = values.map { |value| type_caster.type_cast_for_database(column, value) }
+      arel_column = column.is_a?(Symbol) ? order_column(column.to_s) : column
 
-      spawn.order!(connection.field_ordered_value(column, values))
+      spawn
+        .order!(connection.field_ordered_value(arel_column, values))
+        .where!(arel_column.in(values))
     end
 
     # Replaces any existing order defined on the relation with the specified order.
@@ -448,14 +475,14 @@ module ActiveRecord
     # generates a query with 'ORDER BY id ASC, name ASC'.
     def reorder(*args)
       check_if_method_has_arguments!(__callee__, args) do
-        sanitize_order_arguments(args) unless args.all?(&:blank?)
+        sanitize_order_arguments(args)
       end
       spawn.reorder!(*args)
     end
 
     # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
-      preprocess_order_args(args) unless args.all?(&:blank?)
+      preprocess_order_args(args)
       args.uniq!
       self.reordering_value = true
       self.order_values = args
@@ -695,12 +722,26 @@ module ActiveRecord
     # === no argument
     #
     # If no argument is passed, #where returns a new instance of WhereChain, that
-    # can be chained with #not to return a new relation that negates the where clause.
+    # can be chained with WhereChain#not, WhereChain#missing, or WhereChain#associated.
+    #
+    # Chaining with WhereChain#not:
     #
     #    User.where.not(name: "Jon")
     #    # SELECT * FROM users WHERE name != 'Jon'
     #
-    # See WhereChain for more details on #not.
+    # Chaining with WhereChain#associated:
+    #
+    #    Post.where.associated(:author)
+    #    # SELECT "posts".* FROM "posts"
+    #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+    #    # WHERE "authors"."id" IS NOT NULL
+    #
+    # Chaining with WhereChain#missing:
+    #
+    #    Post.where.missing(:author)
+    #    # SELECT "posts".* FROM "posts"
+    #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+    #    # WHERE "authors"."id" IS NULL
     #
     # === blank condition
     #
@@ -1287,7 +1328,16 @@ module ActiveRecord
       end
       alias :build_having_clause :build_where_clause
 
+      def async!
+        @async = true
+        self
+      end
+
     private
+      def async
+        spawn.async!
+      end
+
       def lookup_table_klass_from_join_dependencies(table_name)
         each_join_dependencies do |join|
           return join.base_klass if table_name == join.table_name
@@ -1339,14 +1389,6 @@ module ActiveRecord
         unless annotate_values.empty?
           annotates = annotate_values
           annotates = annotates.uniq if annotates.size > 1
-          unless annotates == annotate_values
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Duplicated query annotations are no longer shown in queries in Rails 7.0.
-              To migrate to Rails 7.0's behavior, use `uniq!(:annotate)` to deduplicate query annotations
-              (`#{klass.name&.tableize || klass.table_name}.uniq!(:annotate)`).
-            MSG
-            annotates = annotate_values
-          end
           arel.comment(*annotates)
         end
 
@@ -1590,7 +1632,7 @@ module ActiveRecord
           when Hash
             arg.map { |field, dir|
               case field
-              when Arel::Nodes::SqlLiteral
+              when Arel::Nodes::SqlLiteral, Arel::Nodes::Node, Arel::Attribute
                 field.public_send(dir.downcase)
               else
                 order_column(field.to_s).public_send(dir.downcase)
@@ -1606,8 +1648,6 @@ module ActiveRecord
         order_args.map! do |arg|
           klass.sanitize_sql_for_order(arg)
         end
-        order_args.flatten!
-        order_args.compact_blank!
       end
 
       def column_references(order_args)
@@ -1616,7 +1656,9 @@ module ActiveRecord
           when String, Symbol
             arg
           when Hash
-            arg.keys
+            arg.keys.map do |key|
+              key if key.is_a?(String) || key.is_a?(Symbol)
+            end
           end
         end
         references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!
@@ -1676,9 +1718,9 @@ module ActiveRecord
       def check_if_method_has_arguments!(method_name, args, message = nil)
         if args.blank?
           raise ArgumentError, message || "The method .#{method_name}() must contain arguments."
-        elsif block_given?
-          yield args
         else
+          yield args if block_given?
+
           args.flatten!
           args.compact_blank!
         end

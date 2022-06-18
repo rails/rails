@@ -26,7 +26,7 @@ module ActiveSupport
     end
 
     # DeprecatedObjectProxy transforms an object into a deprecated one. It
-    # takes an object, a deprecation message and optionally a deprecator. The
+    # takes an object, a deprecation message, and optionally a deprecator. The
     # deprecator defaults to +ActiveSupport::Deprecator+ if none is specified.
     #
     #   deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, "This object is now deprecated")
@@ -104,7 +104,7 @@ module ActiveSupport
     end
 
     # DeprecatedConstantProxy transforms a constant into a deprecated one. It
-    # takes the names of an old (deprecated) constant and of a new constant
+    # takes the full names of an old (deprecated) constant and of a new constant
     # (both in string form) and optionally a deprecator. The deprecator defaults
     # to +ActiveSupport::Deprecator+ if none is specified. The deprecated constant
     # now returns the value of the new one.
@@ -156,6 +156,21 @@ module ActiveSupport
       #   PLANETS.class # => Array
       def class
         target.class
+      end
+
+      def append_features(base)
+        @deprecator.warn(@message, caller_locations)
+        base.include(target)
+      end
+
+      def prepend_features(base)
+        @deprecator.warn(@message, caller_locations)
+        base.prepend(target)
+      end
+
+      def extended(base)
+        @deprecator.warn(@message, caller_locations)
+        base.extend(target)
       end
 
       private

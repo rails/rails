@@ -48,6 +48,11 @@ module ActionView
     end
 
     config.after_initialize do |app|
+      frozen_string_literal = app.config.action_view.delete(:frozen_string_literal)
+      ActionView::Template.frozen_string_literal = frozen_string_literal
+    end
+
+    config.after_initialize do |app|
       ActionView::Helpers::AssetTagHelper.image_loading = app.config.action_view.delete(:image_loading)
       ActionView::Helpers::AssetTagHelper.image_decoding = app.config.action_view.delete(:image_decoding)
       ActionView::Helpers::AssetTagHelper.preload_links_header = app.config.action_view.delete(:preload_links_header)
@@ -57,12 +62,6 @@ module ActionView
     config.after_initialize do |app|
       ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k, v|
-          if k == :raise_on_missing_translations
-            ActiveSupport::Deprecation.warn \
-              "action_view.raise_on_missing_translations is deprecated and will be removed in Rails 7.0. " \
-              "Set i18n.raise_on_missing_translations instead. " \
-              "Note that this new setting also affects how missing translations are handled in controllers."
-          end
           send "#{k}=", v
         end
       end
@@ -75,7 +74,7 @@ module ActionView
     initializer "action_view.caching" do |app|
       ActiveSupport.on_load(:action_view) do
         if app.config.action_view.cache_template_loading.nil?
-          ActionView::Resolver.caching = app.config.cache_classes
+          ActionView::Resolver.caching = !app.config.reloading_enabled?
         end
       end
     end
@@ -92,7 +91,7 @@ module ActionView
 
     config.after_initialize do |app|
       enable_caching = if app.config.action_view.cache_template_loading.nil?
-        app.config.cache_classes
+        !app.config.reloading_enabled?
       else
         app.config.action_view.cache_template_loading
       end

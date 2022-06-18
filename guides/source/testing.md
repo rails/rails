@@ -264,8 +264,7 @@ Notice the 'E' in the output. It denotes a test with error.
 NOTE: The execution of each test method stops as soon as any error or an
 assertion failure is encountered, and the test suite continues with the next
 method. All test methods are executed in random order. The
-[`config.active_support.test_order` option](configuring.html#configuring-active-support)
-can be used to configure test order.
+[`config.active_support.test_order`][] option can be used to configure test order.
 
 When a test fails you are presented with the corresponding backtrace. By default
 Rails filters that backtrace and will only print lines relevant to your
@@ -289,6 +288,8 @@ end
 ```
 
 This test should now pass.
+
+[`config.active_support.test_order`]: configuring.html#config-active-support-test-order
 
 ### Available Assertions
 
@@ -498,7 +499,7 @@ If the number of workers passed is 1 or fewer the processes will not be forked a
 be parallelized and the tests will use the original `test-database` database.
 
 Two hooks are provided, one runs when the process is forked, and one runs before the forked process is closed.
-These can be useful if your app uses multiple databases or perform other tasks that depend on the number of
+These can be useful if your app uses multiple databases or performs other tasks that depend on the number of
 workers.
 
 The `parallelize_setup` method is called right after the processes are forked. The `parallelize_teardown` method
@@ -859,6 +860,55 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :headless_chrome
 end
 ```
+
+If you want to use a remote browser, e.g.
+[Headless Chrome in Docker](https://github.com/SeleniumHQ/docker-selenium),
+you have to add remote `url` through `options`.
+
+```ruby
+require "test_helper"
+
+class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  options = ENV["SELENIUM_REMOTE_URL"].present? ? { url: ENV["SELENIUM_REMOTE_URL"] } : {}
+  driven_by :selenium, using: :headless_chrome, options: options
+end
+```
+
+In such a case, the gem `webdrivers` is no longer required. You could remove it
+completely or add `require:` option in `Gemfile`.
+
+```ruby
+# ...
+group :test do
+  gem "webdrivers", require: !ENV["SELENIUM_REMOTE_URL"] || ENV["SELENIUM_REMOTE_URL"].empty?
+end
+```
+
+Now you should get a connection to remote browser.
+
+```bash
+$ SELENIUM_REMOTE_URL=http://localhost:4444/wd/hub bin/rails test:system
+```
+
+If your application in test is running remote too, e.g. Docker container,
+Capybara needs more input about how to
+[call remote servers](https://github.com/teamcapybara/capybara#calling-remote-servers).
+
+```ruby
+require "test_helper"
+
+class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  def setup
+    Capybara.server_host = "0.0.0.0" # bind to all interfaces
+    Capybara.app_host = "http://#{IPSocket.getaddress(Socket.gethostname)}" if ENV["SELENIUM_REMOTE_URL"].present?
+    super
+  end
+  # ...
+end
+```
+
+Now you should get a connection to remote browser and server, regardless if it
+is running in Docker container or CI.
 
 If your Capybara configuration requires more setup than provided by Rails, this
 additional configuration could be added into the `application_system_test_case.rb`
@@ -1509,7 +1559,7 @@ One good place to store them is `test/lib` or `test/test_helpers`.
 # test/test_helpers/multiple_assertions.rb
 module MultipleAssertions
   def assert_multiple_of_forty_two(number)
-    assert (number % 42 == 0), 'expected #{number} to be a multiple of 42'
+    assert (number % 42 == 0), "expected #{number} to be a multiple of 42"
   end
 end
 ```
@@ -1949,7 +1999,7 @@ If you want to test the broadcasting made with `Channel.broadcast_to`, you shoul
 ```ruby
 # app/jobs/chat_relay_job.rb
 class ChatRelayJob < ApplicationJob
-  def perform_later(room, message)
+  def perform(room, message)
     ChatChannel.broadcast_to room, text: message
   end
 end
@@ -1968,6 +2018,54 @@ class ChatRelayJobTest < ActiveJob::TestCase
     assert_broadcast_on(ChatChannel.broadcasting_for(room), text: "Hi!") do
       ChatRelayJob.perform_now(room, "Hi!")
     end
+  end
+end
+```
+
+Testing Eager Loading
+---------------------
+
+Normally, applications do not eager load in the `development` or `test` environments to speed things up. But they do in the `production` environment.
+
+If some file in the project cannot be loaded for whatever reason, you better detect it before deploying to production, right?
+
+### Continuous Integration
+
+If your project has CI in place, eager loading in CI is an easy way to ensure the application eager loads.
+
+CIs typically set some environment variable to indicate the test suite is running there. For example, it could be `CI`:
+
+```ruby
+# config/environments/test.rb
+config.eager_load = ENV["CI"].present?
+```
+
+Starting with Rails 7, newly generated applications are configured that way by default.
+
+### Bare Test Suites
+
+If your project does not have continuous integration, you can still eager load in the test suite by calling `Rails.application.eager_load!`:
+
+#### minitest
+
+```ruby
+require "test_helper"
+
+class ZeitwerkComplianceTest < ActiveSupport::TestCase
+  test "eager loads all files without errors" do
+    assert_nothing_raised { Rails.application.eager_load! }
+  end
+end
+```
+
+#### RSpec
+
+```ruby
+require "rails_helper"
+
+RSpec.describe "Zeitwerk compliance" do
+  it "eager loads all files without errors" do
+    expect { Rails.application.eager_load! }.not_to raise_error
   end
 end
 ```

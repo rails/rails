@@ -10,7 +10,7 @@ class QueuingTest < ActiveSupport::TestCase
   test "should run jobs enqueued on a listening queue" do
     TestJob.perform_later @id
     wait_for_jobs_to_finish_for(5.seconds)
-    assert job_executed
+    assert_job_executed
   end
 
   test "should not run jobs queued on a non-listening queue" do
@@ -21,7 +21,7 @@ class QueuingTest < ActiveSupport::TestCase
       TestJob.queue_as :some_other_queue
       TestJob.perform_later @id
       wait_for_jobs_to_finish_for(2.seconds)
-      assert_not job_executed
+      assert_job_not_executed
     ensure
       TestJob.queue_name = old_queue
     end
@@ -62,7 +62,7 @@ class QueuingTest < ActiveSupport::TestCase
   test "should not run job enqueued in the future" do
     TestJob.set(wait: 10.minutes).perform_later @id
     wait_for_jobs_to_finish_for(5.seconds)
-    assert_not job_executed
+    assert_job_not_executed
   rescue NotImplementedError
     skip
   end
@@ -70,9 +70,9 @@ class QueuingTest < ActiveSupport::TestCase
   test "should run job enqueued in the future at the specified time" do
     TestJob.set(wait: 5.seconds).perform_later @id
     wait_for_jobs_to_finish_for(2.seconds)
-    assert_not job_executed
+    assert_job_not_executed
     wait_for_jobs_to_finish_for(10.seconds)
-    assert job_executed
+    assert_job_executed
   rescue NotImplementedError
     skip
   end
@@ -98,7 +98,7 @@ class QueuingTest < ActiveSupport::TestCase
 
       TestJob.perform_later @id
       wait_for_jobs_to_finish_for(5.seconds)
-      assert job_executed
+      assert_job_executed
       assert_equal "de", job_executed_in_locale
     ensure
       I18n.available_locales = [:en]
@@ -115,7 +115,7 @@ class QueuingTest < ActiveSupport::TestCase
 
       TestJob.perform_later @id
       wait_for_jobs_to_finish_for(5.seconds)
-      assert job_executed
+      assert_job_executed
       assert_equal "Hawaii", job_executed_in_timezone
     ensure
       Time.zone = current_zone
@@ -129,9 +129,9 @@ class QueuingTest < ActiveSupport::TestCase
     TestJob.set(wait_until: wait_until, priority: 20).perform_later "#{@id}.1"
     TestJob.set(wait_until: wait_until, priority: 10).perform_later "#{@id}.2"
     wait_for_jobs_to_finish_for(10.seconds)
-    assert job_executed "#{@id}.1"
-    assert job_executed "#{@id}.2"
-    assert job_executed_at("#{@id}.2") < job_executed_at("#{@id}.1")
+    assert_job_executed "#{@id}.1"
+    assert_job_executed "#{@id}.2"
+    assert_job_executed_before("#{@id}.2", "#{@id}.1")
   end
 
   test "should run job with higher priority first in Backburner" do
@@ -141,8 +141,21 @@ class QueuingTest < ActiveSupport::TestCase
     TestJob.set(priority: 20).perform_later "#{@id}.1"
     TestJob.set(priority: 10).perform_later "#{@id}.2"
     wait_for_jobs_to_finish_for(10.seconds)
-    assert job_executed "#{@id}.1"
-    assert job_executed "#{@id}.2"
-    assert job_executed_at("#{@id}.2") < job_executed_at("#{@id}.1")
+    assert_job_executed "#{@id}.1"
+    assert_job_executed "#{@id}.2"
+    assert_job_executed_before("#{@id}.2", "#{@id}.1")
   end
+
+  private
+    def assert_job_executed(id = @id)
+      assert job_executed(id), "Job #{id} was not executed"
+    end
+
+    def assert_job_not_executed(id = @id)
+      assert_not job_executed(id), "Job #{id} was executed"
+    end
+
+    def assert_job_executed_before(first_id, second_id)
+      assert job_executed_at(first_id) < job_executed_at(second_id), "Job #{first_id} was not executed before Job #{second_id}"
+    end
 end

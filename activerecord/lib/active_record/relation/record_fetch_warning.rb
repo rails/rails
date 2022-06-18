@@ -31,17 +31,15 @@ module ActiveRecord
       end
       # :startdoc:
 
-      class QueryRegistry # :nodoc:
-        extend ActiveSupport::PerThreadRegistry
+      module QueryRegistry # :nodoc:
+        extend self
 
-        attr_reader :queries
-
-        def initialize
-          @queries = []
+        def queries
+          ActiveSupport::IsolatedExecutionState[:active_record_query_registry] ||= []
         end
 
         def reset
-          @queries.clear
+          queries.clear
         end
       end
     end

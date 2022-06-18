@@ -192,7 +192,8 @@ class AssertionsTest < ActiveSupport::TestCase
         @object.increment
       end
     end
-    assert_equal "Expected change from nil", error.message
+
+    assert_equal "Expected change from nil, got 0", error.message
   end
 
   def test_assert_changes_with_to_option
@@ -277,7 +278,7 @@ class AssertionsTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "@object.num should be 1.\nExpected change to 1\n", error.message
+    assert_equal "@object.num should be 1.\nExpected change to 1, got -1\n", error.message
   end
 
   def test_assert_no_changes_pass
@@ -524,5 +525,31 @@ class TestOrderTest < ActiveSupport::TestCase
     assert_equal :random, ActiveSupport::TestCase.test_order
     assert_equal :random, self.class.test_order
     assert_equal :random, Class.new(ActiveSupport::TestCase).test_order
+  end
+end
+
+
+class ConstStubbable
+  CONSTANT = 1
+end
+
+class TestConstStubbing < ActiveSupport::TestCase
+  test "stubbing a constant temporarily replaces it with a new value" do
+    stub_const(ConstStubbable, :CONSTANT, 2) do
+      assert_equal 2, ConstStubbable::CONSTANT
+    end
+
+    assert_equal 1, ConstStubbable::CONSTANT
+  end
+
+  test "stubbed constant still reset even if exception is raised" do
+    assert_raises(RuntimeError) do
+      stub_const(ConstStubbable, :CONSTANT, 2) do
+        assert_equal 2, ConstStubbable::CONSTANT
+        raise "Exception"
+      end
+    end
+
+    assert_equal 1, ConstStubbable::CONSTANT
   end
 end

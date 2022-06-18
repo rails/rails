@@ -128,7 +128,7 @@ module SequenceNameDetectionTestCases
     def setup
       @table_name = "long_table_name_to_test_sequence_name_detection_for_serial_cols"
       @connection = ActiveRecord::Base.connection
-      @connection.create_table @table_name, force: true do |t|
+      @connection.create_table @table_name, force: true, _uses_legacy_table_name: true do |t|
         t.serial :seq
         t.bigserial :bigseq
       end

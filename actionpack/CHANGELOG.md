@@ -1,220 +1,143 @@
-*   Update `HostAuthorization` middleware to render debug info only
-    when `config.consider_all_requests_local` is set to true.
+*   Allow using `helper_method`s in `content_security_policy` and `permissions_policy`
 
-    Also, blocked host info is always logged with level `error`.
-
-    Fixes #42813
-
-    *Nikita Vyrko*
-
-*  Add Server-Timing middleware
-
-   Server-Timing specification defines how the server can communicate to browsers performance metrics
-   about the request it is responding to.
-
-   The ServerTiming middleware is enabled by default on `development` environment by default using the
-   `config.server_timing` setting and set the relevant duration metrics in the `Server-Timing` header
-
-   The full specification for Server-Timing header can be found in: https://www.w3.org/TR/server-timing/#dfn-server-timing-header-field
-
-   *Sebastian Sogamoso*, *Guillermo Iguaran*
-
-
-## Rails 7.0.0.alpha2 (September 15, 2021) ##
-
-*   No changes.
-
-
-## Rails 7.0.0.alpha1 (September 15, 2021) ##
-
-*   Use a static error message when raising `ActionDispatch::Http::Parameters::ParseError`
-    to avoid inadvertently logging the HTTP request body at the `fatal` level when it contains
-    malformed JSON.
-
-    Fixes #41145
-
-    *Aaron Lahey*
-
-*   Add `Middleware#delete!` to delete middleware or raise if not found.
-
-    `Middleware#delete!` works just like `Middleware#delete` but will
-    raise an error if the middleware isn't found.
-
-    *Alex Ghiculescu*, *Petrik de Heus*, *Junichi Sato*
-
-*   Raise error on unpermitted open redirects.
-
-    Add `allow_other_host` options to `redirect_to`.
-    Opt in to this behaviour with `ActionController::Base.raise_on_open_redirects = true`.
-
-    *Gannon McGibbon*
-
-*   Deprecate `poltergeist` and `webkit` (capybara-webkit) driver registration for system testing (they will be removed in Rails 7.1). Add `cuprite` instead.
-
-    [Poltergeist](https://github.com/teampoltergeist/poltergeist) and [capybara-webkit](https://github.com/thoughtbot/capybara-webkit) are already not maintained. These usage in Rails are removed for avoiding confusing users.
-
-    [Cuprite](https://github.com/rubycdp/cuprite) is a good alternative to Poltergeist. Some guide descriptions are replaced from Poltergeist to Cuprite.
-
-    *Yusuke Iwaki*
-
-*   Exclude additional flash types from `ActionController::Base.action_methods`.
-
-    Ensures that additional flash types defined on ActionController::Base subclasses
-    are not listed as actions on that controller.
-
-        class MyController < ApplicationController
-          add_flash_types :hype
-        end
-
-        MyController.action_methods.include?('hype') # => false
-
-    *Gavin Morrice*
-
-*   OpenSSL constants are now used for Digest computations.
-
-    *Dirkjan Bussink*
-
-*   Remove IE6-7-8 file download related hack/fix from ActionController::DataStreaming module.
-
-    Due to the age of those versions of IE this fix is no longer relevant, more importantly it creates an edge-case for unexpected Cache-Control headers.
-
-    *Tadas Sasnauskas*
-
-*   Configuration setting to skip logging an uncaught exception backtrace when the exception is
-    present in `rescued_responses`.
-
-    It may be too noisy to get all backtraces logged for applications that manage uncaught
-    exceptions via `rescued_responses` and `exceptions_app`.
-    `config.action_dispatch.log_rescued_responses` (defaults to `true`) can be set to `false` in
-    this case, so that only exceptions not found in `rescued_responses` will be logged.
-
-    *Alexander Azarov*, *Mike Dalessio*
-
-*   Ignore file fixtures on `db:fixtures:load`.
-
-    *Kevin Sjöberg*
-
-*   Fix ActionController::Live controller test deadlocks by removing the body buffer size limit for tests.
-
-    *Dylan Thacker-Smith*
-
-*   New `ActionController::ConditionalGet#no_store` method to set HTTP cache control `no-store` directive.
-
-    *Tadas Sasnauskas*
-
-*   Drop support for the `SERVER_ADDR` header.
-
-    Following up https://github.com/rack/rack/pull/1573 and https://github.com/rails/rails/pull/42349.
-
-    *Ricardo Díaz*
-
-*   Set session options when initializing a basic session.
-
-    *Gannon McGibbon*
-
-*   Add `cache_control: {}` option to `fresh_when` and `stale?`.
-
-    Works as a shortcut to set `response.cache_control` with the above methods.
-
-    *Jacopo Beschi*
-
-*   Writing into a disabled session will now raise an error.
-
-    Previously when no session store was set, writing into the session would silently fail.
-
-    *Jean Boussier*
-
-*   Add support for 'require-trusted-types-for' and 'trusted-types' headers.
-
-    Fixes #42034.
-
-    *lfalcao*
-
-*   Remove inline styles and address basic accessibility issues on rescue templates.
-
-    *Jacob Herrington*
-
-*   Add support for 'private, no-store' Cache-Control headers.
-
-    Previously, 'no-store' was exclusive; no other directives could be specified.
-
-    *Alex Smith*
-
-*   Expand payload of `unpermitted_parameters.action_controller` instrumentation to allow subscribers to
-    know which controller action received unpermitted parameters.
-
-    *bbuchalter*
-
-*   Add `ActionController::Live#send_stream` that makes it more convenient to send generated streams:
+    Previously you could access basic helpers (defined in helper modules), but not
+    helper methods defined using `helper_method`. Now you can use either.
 
     ```ruby
-    send_stream(filename: "subscribers.csv") do |stream|
-      stream.writeln "email_address,updated_at"
-
-      @subscribers.find_each do |subscriber|
-        stream.writeln [ subscriber.email_address, subscriber.updated_at ].join(",")
-      end
+    content_security_policy do |p|
+      p.default_src "https://example.com"
+      p.script_src "https://example.com" if helpers.script_csp?
     end
     ```
 
-    *DHH*
+    *Alex Ghiculescu*
 
-*   Add `ActionController::Live::Buffer#writeln` to write a line to the stream with a newline included.
+*   Reimplement `ActionController::Parameters#has_value?` and `#value?` to avoid parameters and hashes comparison.
 
-    *DHH*
+    Deprecated equality between parameters and hashes is going to be removed in Rails 7.2.
+    The new implementation takes care of conversions.
 
-*   `ActionDispatch::Request#content_type` now returned Content-Type header as it is.
+    *Seva Stefkin*
 
-    Previously, `ActionDispatch::Request#content_type` returned value does NOT contain charset part.
-    This behavior changed to returned Content-Type header containing charset part as it is.
+*   Allow only String and Symbol keys in `ActionController::Parameters`.
+    Raise `ActionController::InvalidParameterKey` when initializing Parameters
+    with keys that aren't strings or symbols.
 
-    If you want just MIME type, please use `ActionDispatch::Request#media_type` instead.
+    *Seva Stefkin*
 
-    Before:
+*   Add the ability to use custom logic for storing and retrieving CSRF tokens.
+
+    By default, the token will be stored in the session.  Custom classes can be
+    defined to specify arbitrary behavior, but the ability to store them in
+    encrypted cookies is built in.
+
+    *Andrew Kowpak*
+
+*   Make ActionController::Parameters#values cast nested hashes into parameters.
+
+    *Gannon McGibbon*
+
+*   Introduce `html:` and `screenshot:` kwargs for system test screenshot helper
+
+    Use these as an alternative to the already-available environment variables.
+
+    For example, this will display a screenshot in iTerm, save the HTML, and output
+    its path.
 
     ```ruby
-    request = ActionDispatch::Request.new("CONTENT_TYPE" => "text/csv; header=present; charset=utf-16", "REQUEST_METHOD" => "GET")
-    request.content_type #=> "text/csv"
+    take_screenshot(html: true, screenshot: "inline")
     ```
 
-    After:
+    *Alex Ghiculescu*
+
+*   Allow `ActionController::Parameters#to_h` to receive a block.
+
+    *Bob Farrell*
+
+*   Allow relative redirects when `raise_on_open_redirects` is enabled
+
+    *Tom Hughes*
+
+*   Allow Content Security Policy DSL to generate for API responses.
+
+    *Tim Wade*
+
+*   Fix `authenticate_with_http_basic` to allow for missing password.
+
+    Before Rails 7.0 it was possible to handle basic authentication with only a username.
 
     ```ruby
-    request = ActionDispatch::Request.new("Content-Type" => "text/csv; header=present; charset=utf-16", "REQUEST_METHOD" => "GET")
-    request.content_type #=> "text/csv; header=present; charset=utf-16"
-    request.media_type   #=> "text/csv"
+    authenticate_with_http_basic do |token, _|
+      ApiClient.authenticate(token)
+    end
     ```
 
-    *Rafael Mendonça França*
+    This ability is restored.
 
-*   Change `ActionDispatch::Request#media_type` to return `nil` when the request don't have a `Content-Type` header.
+    *Jean Boussier*
 
-    *Rafael Mendonça França*
+*   Fix `content_security_policy` returning invalid directives.
 
-*   Fix error in `ActionController::LogSubscriber` that would happen when throwing inside a controller action.
+    Directives such as `self`, `unsafe-eval` and few others were not
+    single quoted when the directive was the result of calling a lambda
+    returning an array.
 
-    *Janko Marohnić*
+    ```ruby
+    content_security_policy do |policy|
+      policy.frame_ancestors lambda { [:self, "https://example.com"] }
+    end
+    ```
 
-*   Allow anything with `#to_str` (like `Addressable::URI`) as a `redirect_to` location.
+    With this fix the policy generated from above will now be valid.
 
-    *ojab*
+    *Edouard Chin*
 
-*   Change the request method to a `GET` when passing failed requests down to `config.exceptions_app`.
+*   Fix `skip_forgery_protection` to run without raising an error if forgery
+    protection has not been enabled / `verify_authenticity_token` is not a
+    defined callback.
 
-    *Alex Robbin*
+    This fix prevents the Rails 7.0 Welcome Page (`/`) from raising an
+    `ArgumentError` if `default_protect_from_forgery` is false.
 
-*   Deprecate the ability to assign a single value to `config.action_dispatch.trusted_proxies`
-    as `RemoteIp` middleware behaves inconsistently depending on whether this is configured
-    with a single value or an enumerable.
+    *Brad Trick*
 
-    Fixes #40772.
+*   Make `redirect_to` return an empty response body.
 
-    *Christian Sutter*
+    Application controllers that wish to add a response body after calling
+    `redirect_to` can continue to do so.
 
-*   Add `redirect_back_or_to(fallback_location, **)` as a more aesthetically pleasing version of `redirect_back fallback_location:, **`.
-    The old method name is retained without explicit deprecation.
+    *Jon Dufresne*
 
-    *DHH*
+*   Use non-capturing group for subdomain matching in `ActionDispatch::HostAuthorization`
 
+    Since we do nothing with the captured subdomain group, we can use a non-capturing group instead.
 
-Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/actionpack/CHANGELOG.md) for previous changes.
+    *Sam Bostock*
+
+*   Fix `ActionController::Live` to copy the IsolatedExecutionState in the ephemeral thread.
+
+    Since its inception `ActionController::Live` has been copying thread local variables
+    to keep things such as `CurrentAttributes` set from middlewares working in the controller action.
+
+    With the introduction of `IsolatedExecutionState` in 7.0, some of that global state was lost in
+    `ActionController::Live` controllers.
+
+    *Jean Boussier*
+
+*   Fix setting `trailing_slash: true` in route definition.
+
+    ```ruby
+    get '/test' => "test#index", as: :test, trailing_slash: true
+
+    test_path() # => "/test/"
+    ```
+
+    *Jean Boussier*
+
+*   Make `Session#merge!` stringify keys.
+
+    Previously `Session#update` would, but `merge!` wouldn't.
+
+    *Drew Bragg*
+
+Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/actionpack/CHANGELOG.md) for previous changes.

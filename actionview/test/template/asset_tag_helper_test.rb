@@ -216,12 +216,22 @@ class AssetTagHelperTest < ActionView::TestCase
 
   ImageLinkToTag = {
     %(image_tag("xml.png")) => %(<img src="/images/xml.png" />),
-    %(image_tag("rss.gif", :alt => "rss syndication")) => %(<img alt="rss syndication" src="/images/rss.gif" />),
+    %(image_tag("rss.gif", :alt => "RSS syndication")) => %(<img alt="RSS syndication" src="/images/rss.gif" />),
     %(image_tag("gold.png", :size => "20")) => %(<img height="20" src="/images/gold.png" width="20" />),
     %(image_tag("gold.png", :size => 20)) => %(<img height="20" src="/images/gold.png" width="20" />),
+    %(image_tag("silver.png", :size => "90.9")) => %(<img height="90.9" src="/images/silver.png" width="90.9" />),
+    %(image_tag("silver.png", :size => 90.9)) => %(<img height="90.9" src="/images/silver.png" width="90.9" />),
     %(image_tag("gold.png", :size => "45x70")) => %(<img height="70" src="/images/gold.png" width="45" />),
     %(image_tag("gold.png", "size" => "45x70")) => %(<img height="70" src="/images/gold.png" width="45" />),
+    %(image_tag("silver.png", :size => "67.12x74.09")) => %(<img height="74.09" src="/images/silver.png" width="67.12" />),
+    %(image_tag("silver.png", "size" => "67.12x74.09")) => %(<img height="74.09" src="/images/silver.png" width="67.12" />),
+    %(image_tag("bronze.png", :size => "10x15.7")) => %(<img height="15.7" src="/images/bronze.png" width="10" />),
+    %(image_tag("bronze.png", "size" => "10x15.7")) => %(<img height="15.7" src="/images/bronze.png" width="10" />),
+    %(image_tag("platinum.png", :size => "4.9x20")) => %(<img height="20" src="/images/platinum.png" width="4.9" />),
+    %(image_tag("platinum.png", "size" => "4.9x20")) => %(<img height="20" src="/images/platinum.png" width="4.9" />),
     %(image_tag("error.png", "size" => "45 x 70")) => %(<img src="/images/error.png" />),
+    %(image_tag("error.png", "size" => "1,024x768")) => %(<img src="/images/error.png" />),
+    %(image_tag("error.png", "size" => "768x1,024")) => %(<img src="/images/error.png" />),
     %(image_tag("error.png", "size" => "x")) => %(<img src="/images/error.png" />),
     %(image_tag("google.com.png")) => %(<img src="/images/google.com.png" />),
     %(image_tag("slash..png")) => %(<img src="/images/slash..png" />),
@@ -238,14 +248,15 @@ class AssetTagHelperTest < ActionView::TestCase
   }
 
   FaviconLinkToTag = {
-    %(favicon_link_tag) => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/x-icon" />),
-    %(favicon_link_tag 'favicon.ico') => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/x-icon" />),
+    %(favicon_link_tag) => %(<link href="/images/favicon.ico" rel="icon" type="image/x-icon" />),
+    %(favicon_link_tag 'favicon.ico') => %(<link href="/images/favicon.ico" rel="icon" type="image/x-icon" />),
     %(favicon_link_tag 'favicon.ico', :rel => 'foo') => %(<link href="/images/favicon.ico" rel="foo" type="image/x-icon" />),
     %(favicon_link_tag 'favicon.ico', :rel => 'foo', :type => 'bar') => %(<link href="/images/favicon.ico" rel="foo" type="bar" />),
     %(favicon_link_tag 'mb-icon.png', :rel => 'apple-touch-icon', :type => 'image/png') => %(<link href="/images/mb-icon.png" rel="apple-touch-icon" type="image/png" />)
   }
 
   PreloadLinkToTag = {
+    %(preload_link_tag '/application.js', type: 'module') => %(<link rel="modulepreload" href="/application.js" as="script" type="module" >),
     %(preload_link_tag '/styles/custom_theme.css') => %(<link rel="preload" href="/styles/custom_theme.css" as="style" type="text/css" />),
     %(preload_link_tag '/videos/video.webm') => %(<link rel="preload" href="/videos/video.webm" as="video" type="video/webm" />),
     %(preload_link_tag '/posts.json', as: 'fetch') => %(<link rel="preload" href="/posts.json" as="fetch" type="application/json" />),
@@ -293,10 +304,18 @@ class AssetTagHelperTest < ActionView::TestCase
     %(video_tag("rss.m4v", :preload => 'none')) => %(<video preload="none" src="/videos/rss.m4v"></video>),
     %(video_tag("gold.m4v", :size => "160x120")) => %(<video height="120" src="/videos/gold.m4v" width="160"></video>),
     %(video_tag("gold.m4v", "size" => "320x240")) => %(<video height="240" src="/videos/gold.m4v" width="320"></video>),
+    %(video_tag("silver.m4v", :size => "100.3x200.6")) => %(<video height="200.6" src="/videos/silver.m4v" width="100.3"></video>),
+    %(video_tag("silver.m4v", "size" => "100.3x200.6")) => %(<video height="200.6" src="/videos/silver.m4v" width="100.3"></video>),
+    %(video_tag("bronze.m4v", :size => "50x12.7")) => %(<video height="12.7" src="/videos/bronze.m4v" width="50"></video>),
+    %(video_tag("bronze.m4v", "size" => "50x12.7")) => %(<video height="12.7" src="/videos/bronze.m4v" width="50"></video>),
+    %(video_tag("platinum.m4v", :size => "10.1x24")) => %(<video height="24" src="/videos/platinum.m4v" width="10.1"></video>),
+    %(video_tag("platinum.m4v", "size" => "10.1x24")) => %(<video height="24" src="/videos/platinum.m4v" width="10.1"></video>),
     %(video_tag("trailer.ogg", :poster => "screenshot.png")) => %(<video poster="/images/screenshot.png" src="/videos/trailer.ogg"></video>),
     %(video_tag("error.avi", "size" => "100")) => %(<video height="100" src="/videos/error.avi" width="100"></video>),
     %(video_tag("error.avi", "size" => 100)) => %(<video height="100" src="/videos/error.avi" width="100"></video>),
     %(video_tag("error.avi", "size" => "100 x 100")) => %(<video src="/videos/error.avi"></video>),
+    %(video_tag("error.avi", "size" => "1,024x768")) => %(<video src="/videos/error.avi"></video>),
+    %(video_tag("error.avi", "size" => "768x1,024")) => %(<video src="/videos/error.avi"></video>),
     %(video_tag("error.avi", "size" => "x")) => %(<video src="/videos/error.avi"></video>),
     %(video_tag("http://media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="http://media.rubyonrails.org/video/rails_blog_2.mov"></video>),
     %(video_tag("//media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="//media.rubyonrails.org/video/rails_blog_2.mov"></video>),
@@ -601,6 +620,14 @@ class AssetTagHelperTest < ActionView::TestCase
     with_preload_links_header do
       javascript_include_tag("http://example.com/all.js", type: "module")
       expected = "<http://example.com/all.js>; rel=modulepreload; as=script; nopush"
+      assert_equal expected, @response.headers["Link"]
+    end
+  end
+
+  def test_should_set_preload_early_hints_with_rel_modulepreload
+    with_preload_links_header do
+      preload_link_tag("http://example.com/all.js", type: "module")
+      expected = "<http://example.com/all.js>; rel=modulepreload; as=script; type=module"
       assert_equal expected, @response.headers["Link"]
     end
   end

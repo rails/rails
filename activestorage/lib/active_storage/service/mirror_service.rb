@@ -14,7 +14,7 @@ module ActiveStorage
     attr_reader :primary, :mirrors
 
     delegate :download, :download_chunk, :exist?, :url,
-      :url_for_direct_upload, :headers_for_direct_upload, :path_for, to: :primary
+      :url_for_direct_upload, :headers_for_direct_upload, :path_for, :compose, to: :primary
 
     # Stitch together from named services.
     def self.build(primary:, mirrors:, name:, configurator:, **options) # :nodoc:

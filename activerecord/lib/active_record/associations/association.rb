@@ -52,7 +52,6 @@ module ActiveRecord
         @loaded = false
         @target = nil
         @stale_state = nil
-        @inversed = false
       end
 
       def reset_negative_cache # :nodoc:
@@ -78,7 +77,6 @@ module ActiveRecord
       def loaded!
         @loaded = true
         @stale_state = stale_state
-        @inversed = false
       end
 
       # The target is stale if the target no longer points to the record(s) that the
@@ -88,7 +86,7 @@ module ActiveRecord
       #
       # Note that if the target has not been loaded, it is not considered stale.
       def stale_target?
-        !@inversed && loaded? && @stale_state != stale_state
+        loaded? && @stale_state != stale_state
       end
 
       # Sets the target of this association to <tt>\target</tt>, and the \loaded flag to +true+.
@@ -137,15 +135,11 @@ module ActiveRecord
 
       def inversed_from(record)
         self.target = record
-        @inversed = !!record
       end
 
       def inversed_from_queries(record)
         if inversable?(record)
           self.target = record
-          @inversed = true
-        else
-          @inversed = false
         end
       end
 
@@ -295,7 +289,7 @@ module ActiveRecord
 
         # Raises ActiveRecord::AssociationTypeMismatch unless +record+ is of
         # the kind of the class of the associated objects. Meant to be used as
-        # a sanity check when you are about to assign an associated record.
+        # a safety check when you are about to assign an associated record.
         def raise_on_type_mismatch!(record)
           unless record.is_a?(reflection.klass)
             fresh_class = reflection.class_name.safe_constantize

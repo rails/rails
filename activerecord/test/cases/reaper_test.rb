@@ -59,7 +59,7 @@ module ActiveRecord
 
       def test_pool_has_reaper
         config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        pool_config = PoolConfig.new(ActiveRecord::Base, config)
+        pool_config = PoolConfig.new(ActiveRecord::Base, config, :writing, :default)
         pool = ConnectionPool.new(pool_config)
 
         assert pool.reaper
@@ -171,7 +171,7 @@ module ActiveRecord
         def duplicated_pool_config(merge_config_options = {})
           old_config = ActiveRecord::Base.connection_pool.db_config.configuration_hash.merge(merge_config_options)
           db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", old_config.dup)
-          PoolConfig.new(ActiveRecord::Base, db_config)
+          PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default)
         end
 
         def new_conn_in_thread(pool)

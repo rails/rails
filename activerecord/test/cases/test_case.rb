@@ -38,8 +38,8 @@ module ActiveRecord
     end
 
     def assert_sql(*patterns_to_match, &block)
-      capture_sql(&block)
-    ensure
+      _assert_nothing_raised_or_warn("assert_sql") { capture_sql(&block) }
+
       failed_patterns = []
       patterns_to_match.each do |pattern|
         failed_patterns << pattern unless SQLCounter.log_all.any? { |sql| pattern === sql }
@@ -47,11 +47,11 @@ module ActiveRecord
       assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map(&:inspect).join(', ')} not found.#{SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{SQLCounter.log.join("\n")}"}"
     end
 
-    def assert_queries(num = 1, options = {})
+    def assert_queries(num = 1, options = {}, &block)
       ignore_none = options.fetch(:ignore_none) { num == :any }
       ActiveRecord::Base.connection.materialize_transactions
       SQLCounter.clear_log
-      x = yield
+      x = _assert_nothing_raised_or_warn("assert_queries", &block)
       the_log = ignore_none ? SQLCounter.log_all : SQLCounter.log
       if num == :any
         assert_operator the_log.size, :>=, 1, "1 or more queries expected, but none were executed."
@@ -88,6 +88,24 @@ module ActiveRecord
       model.has_many_inversing = old
       if model != ActiveRecord::Base && !old
         model.singleton_class.remove_method(:has_many_inversing) # reset the class_attribute
+      end
+    end
+
+    def with_automatic_scope_inversing(*reflections)
+      old = reflections.map { |reflection| reflection.klass.automatic_scope_inversing }
+
+      reflections.each do |reflection|
+        reflection.klass.automatic_scope_inversing = true
+        reflection.remove_instance_variable(:@inverse_name) if reflection.instance_variable_defined?(:@inverse_name)
+        reflection.remove_instance_variable(:@inverse_of) if reflection.instance_variable_defined?(:@inverse_of)
+      end
+
+      yield
+    ensure
+      reflections.each_with_index do |reflection, i|
+        reflection.klass.automatic_scope_inversing = old[i]
+        reflection.remove_instance_variable(:@inverse_name) if reflection.instance_variable_defined?(:@inverse_name)
+        reflection.remove_instance_variable(:@inverse_of) if reflection.instance_variable_defined?(:@inverse_of)
       end
     end
 

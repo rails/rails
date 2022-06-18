@@ -60,24 +60,26 @@ module I18n
       # Restore available locales check so it will take place from now on.
       I18n.enforce_available_locales = enforce_available_locales
 
-      directories = watched_dirs_with_extensions(reloadable_paths)
-      reloader = app.config.file_watcher.new(I18n.load_path.dup, directories) do
-        I18n.load_path.keep_if { |p| File.exist?(p) }
-        I18n.load_path |= reloadable_paths.flat_map(&:existent)
-      end
+      if app.config.reloading_enabled?
+        directories = watched_dirs_with_extensions(reloadable_paths)
+        reloader = app.config.file_watcher.new(I18n.load_path.dup, directories) do
+          I18n.load_path.keep_if { |p| File.exist?(p) }
+          I18n.load_path |= reloadable_paths.flat_map(&:existent)
+        end
 
-      app.reloaders << reloader
-      app.reloader.to_run do
-        reloader.execute_if_updated { require_unload_lock! }
+        app.reloaders << reloader
+        app.reloader.to_run do
+          reloader.execute_if_updated { require_unload_lock! }
+        end
+        reloader.execute
       end
-      reloader.execute
 
       @i18n_inited = true
     end
 
     def self.forward_raise_on_missing_translations_config(app)
       ActiveSupport.on_load(:action_view) do
-        self.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations
+        ActionView::Helpers::TranslationHelper.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations
       end
 
       ActiveSupport.on_load(:action_controller) do

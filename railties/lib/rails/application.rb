@@ -10,6 +10,7 @@ require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
 require "rails/engine"
 require "rails/secrets"
+require "rails/autoloaders"
 
 module Rails
   # An Engine with the responsibility of coordinating the whole boot process.
@@ -21,12 +22,12 @@ module Rails
   # Rails::Application::Bootstrap) and finishing initializers, after all the others
   # are executed (check Rails::Application::Finisher).
   #
-  # == Configuration
+  # == \Configuration
   #
   # Besides providing the same configuration as Rails::Engine and Rails::Railtie,
   # the application object has several specific configurations, for example
-  # "cache_classes", "consider_all_requests_local", "filter_parameters",
-  # "logger" and so forth.
+  # +enable_reloading+, +consider_all_requests_local+, +filter_parameters+,
+  # +logger+, and so forth.
   #
   # Check Rails::Application::Configuration to see them all.
   #
@@ -42,21 +43,21 @@ module Rails
   # == Booting process
   #
   # The application is also responsible for setting up and executing the booting
-  # process. From the moment you require "config/application.rb" in your app,
+  # process. From the moment you require <tt>config/application.rb</tt> in your app,
   # the booting process goes like this:
   #
-  #   1)  require "config/boot.rb" to set up load paths
-  #   2)  require railties and engines
-  #   3)  Define Rails.application as "class MyApp::Application < Rails::Application"
-  #   4)  Run config.before_configuration callbacks
-  #   5)  Load config/environments/ENV.rb
-  #   6)  Run config.before_initialize callbacks
-  #   7)  Run Railtie#initializer defined by railties, engines and application.
-  #       One by one, each engine sets up its load paths, routes and runs its config/initializers/* files.
-  #   8)  Custom Railtie#initializers added by railties, engines and applications are executed
-  #   9)  Build the middleware stack and run to_prepare callbacks
-  #   10) Run config.before_eager_load and eager_load! if eager_load is true
-  #   11) Run config.after_initialize callbacks
+  # 1.  <tt>require "config/boot.rb"</tt> to set up load paths.
+  # 2.  +require+ railties and engines.
+  # 3.  Define +Rails.application+ as <tt>class MyApp::Application < Rails::Application</tt>.
+  # 4.  Run +config.before_configuration+ callbacks.
+  # 5.  Load <tt>config/environments/ENV.rb</tt>.
+  # 6.  Run +config.before_initialize+ callbacks.
+  # 7.  Run <tt>Railtie#initializer</tt> defined by railties, engines, and application.
+  #     One by one, each engine sets up its load paths and routes, and runs its <tt>config/initializers/*</tt> files.
+  # 8.  Custom <tt>Railtie#initializers</tt> added by railties, engines, and applications are executed.
+  # 9.  Build the middleware stack and run +to_prepare+ callbacks.
+  # 10. Run +config.before_eager_load+ and +eager_load!+ if +eager_load+ is +true+.
+  # 11. Run +config.after_initialize+ callbacks.
   class Application < Engine
     autoload :Bootstrap,              "rails/application/bootstrap"
     autoload :Configuration,          "rails/application/configuration"
@@ -95,7 +96,7 @@ module Rails
 
     attr_accessor :assets, :sandbox
     alias_method :sandbox?, :sandbox
-    attr_reader :reloaders, :reloader, :executor
+    attr_reader :reloaders, :reloader, :executor, :autoloaders
 
     delegate :default_url_options, :default_url_options=, to: :routes
 
@@ -116,6 +117,8 @@ module Rails
       @executor          = Class.new(ActiveSupport::Executor)
       @reloader          = Class.new(ActiveSupport::Reloader)
       @reloader.executor = @executor
+
+      @autoloaders = Rails::Autoloaders.new
 
       # are these actually used?
       @initial_variable_values = initial_variable_values
@@ -172,7 +175,7 @@ module Rails
     #     Rails.application.message_verifier('sensitive_data').verify(message)
     #     # => 'my sensible data'
     #
-    # See the +ActiveSupport::MessageVerifier+ documentation for more information.
+    # See the ActiveSupport::MessageVerifier documentation for more information.
     def message_verifier(verifier_name)
       @message_verifiers[verifier_name] ||= begin
         secret = key_generator.generate_key(verifier_name.to_s)
@@ -400,13 +403,14 @@ module Rails
     attr_writer :secrets, :credentials
 
     # The secret_key_base is used as the input secret to the application's key generator, which in turn
-    # is used to create all MessageVerifiers/MessageEncryptors, including the ones that sign and encrypt cookies.
+    # is used to create all ActiveSupport::MessageVerifier and ActiveSupport::MessageEncryptor instances,
+    # including the ones that sign and encrypt cookies.
     #
     # In development and test, this is randomly generated and stored in a
     # temporary file in <tt>tmp/development_secret.txt</tt>.
     #
-    # In all other environments, we look for it first in ENV["SECRET_KEY_BASE"],
-    # then credentials.secret_key_base, and finally secrets.secret_key_base. For most applications,
+    # In all other environments, we look for it first in <tt>ENV["SECRET_KEY_BASE"]</tt>,
+    # then +credentials.secret_key_base+, and finally +secrets.secret_key_base+. For most applications,
     # the correct place to store it is in the encrypted credentials file.
     def secret_key_base
       if Rails.env.development? || Rails.env.test?

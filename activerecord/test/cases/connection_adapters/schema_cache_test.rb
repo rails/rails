@@ -39,6 +39,14 @@ module ActiveRecord
         tempfile.unlink
       end
 
+      def test_cache_path_can_be_in_directory
+        cache = SchemaCache.new @connection
+        filename = "some_dir/schema.json"
+        assert cache.dump_to(filename)
+      ensure
+        File.delete(filename)
+      end
+
       def test_yaml_dump_and_load_with_gzip
         # Create an empty cache.
         cache = SchemaCache.new @connection
@@ -317,6 +325,54 @@ module ActiveRecord
         @cache.data_source_exists?("posts")
 
         assert_not @cache.columns_hash?("posts")
+      end
+
+      unless in_memory_db?
+        def test_when_lazily_load_schema_cache_is_set_cache_is_lazily_populated_when_est_connection
+          tempfile = Tempfile.new(["schema_cache-", ".yml"])
+          original_config = ActiveRecord::Base.connection_db_config
+          new_config = original_config.configuration_hash.merge(schema_cache_path: tempfile.path)
+
+          ActiveRecord::Base.establish_connection(new_config)
+
+          # cache is empty
+          assert_empty ActiveRecord::Base.connection.schema_cache.instance_variable_get(:@primary_keys)
+          assert_empty ActiveRecord::Base.connection.schema_cache.instance_variable_get(:@data_sources)
+          assert_empty ActiveRecord::Base.connection.schema_cache.instance_variable_get(:@indexes)
+
+          # calling dump_to will load data sources, but not the rest of the cache
+          # so we need to set the cache manually. This essentially mimics the behavior
+          # of the Railtie.
+          cache = SchemaCache.new(ActiveRecord::Base.connection)
+          cache.dump_to(tempfile.path)
+          ActiveRecord::Base.connection.schema_cache = cache
+
+          assert File.exist?(tempfile)
+          assert_not_empty ActiveRecord::Base.connection.schema_cache.instance_variable_get(:@primary_keys)
+          assert_not_empty ActiveRecord::Base.connection.schema_cache.instance_variable_get(:@data_sources)
+          assert_not_empty ActiveRecord::Base.connection.schema_cache.instance_variable_get(:@indexes)
+
+          # assert cache is empty on new connection
+          ActiveRecord::Base.establish_connection(new_config)
+
+          assert File.exist?(tempfile)
+          assert_empty ActiveRecord::Base.connection.schema_cache.instance_variable_get(:@primary_keys)
+          assert_empty ActiveRecord::Base.connection.schema_cache.instance_variable_get(:@data_sources)
+          assert_empty ActiveRecord::Base.connection.schema_cache.instance_variable_get(:@indexes)
+
+          # cache is lazily loaded when lazily loading is on
+          old_config = ActiveRecord.lazily_load_schema_cache
+          ActiveRecord.lazily_load_schema_cache = true
+          ActiveRecord::Base.establish_connection(new_config)
+
+          assert File.exist?(tempfile)
+          assert_not_empty ActiveRecord::Base.connection.schema_cache.instance_variable_get(:@primary_keys)
+          assert_not_empty ActiveRecord::Base.connection.schema_cache.instance_variable_get(:@data_sources)
+          assert_not_empty ActiveRecord::Base.connection.schema_cache.instance_variable_get(:@indexes)
+        ensure
+          ActiveRecord.lazily_load_schema_cache = old_config
+          ActiveRecord::Base.establish_connection(:arunit)
+        end
       end
 
       private

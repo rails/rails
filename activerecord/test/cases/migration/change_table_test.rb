@@ -148,6 +148,20 @@ module ActiveRecord
             t.xml :foo, :bar
           end
         end
+
+        def test_exclusion_constraint_creates_exclusion_constraint
+          with_change_table do |t|
+            @connection.expect :add_exclusion_constraint, nil, [:delete_me, "daterange(start_date, end_date) WITH &&", using: :gist, where: "start_date IS NOT NULL AND end_date IS NOT NULL", name: "date_overlap"]
+            t.exclusion_constraint "daterange(start_date, end_date) WITH &&", using: :gist, where: "start_date IS NOT NULL AND end_date IS NOT NULL", name: "date_overlap"
+          end
+        end
+
+        def test_remove_exclusion_constraint_removes_exclusion_constraint
+          with_change_table do |t|
+            @connection.expect :remove_exclusion_constraint, nil, [:delete_me, name: "date_overlap"]
+            t.remove_exclusion_constraint name: "date_overlap"
+          end
+        end
       end
 
       def test_column_creates_column
@@ -188,7 +202,7 @@ module ActiveRecord
 
       def test_index_exists
         with_change_table do |t|
-          @connection.expect :index_exists?, nil, [:delete_me, :bar, {}]
+          @connection.expect :index_exists?, nil, [:delete_me, :bar]
           t.index_exists?(:bar)
         end
       end
@@ -287,6 +301,22 @@ module ActiveRecord
         with_change_table do |t|
           @connection.expect :remove_check_constraint, nil, [:delete_me, name: "price_check"]
           t.remove_check_constraint name: "price_check"
+        end
+      end
+
+      def test_remove_column_with_if_exists_raises_error
+        assert_raises(ArgumentError) do
+          with_change_table do |t|
+            t.remove :name, if_exists: true
+          end
+        end
+      end
+
+      def test_add_column_with_if_not_exists_raises_error
+        assert_raises(ArgumentError) do
+          with_change_table do |t|
+            t.string :nickname, if_not_exists: true
+          end
         end
       end
     end

@@ -2,43 +2,52 @@
 
 module FailureRaisingBehavior
   def test_fetch_read_failure_raises
-    @cache.write("foo", "bar")
+    key = SecureRandom.uuid
+    @cache.write(key, SecureRandom.alphanumeric)
 
     assert_raise Redis::BaseError do
       emulating_unavailability do |cache|
-        cache.fetch("foo")
+        cache.fetch(key)
       end
     end
   end
 
   def test_fetch_with_block_read_failure_raises
-    @cache.write("foo", "bar")
+    key = SecureRandom.uuid
+    value = SecureRandom.alphanumeric
+    @cache.write(key, value)
 
     assert_raise Redis::BaseError do
       emulating_unavailability do |cache|
-        cache.fetch("foo") { "1" }
+        cache.fetch(key) { SecureRandom.alphanumeric }
       end
     end
 
-    assert_equal "bar", @cache.read("foo")
+    assert_equal value, @cache.read(key)
   end
 
   def test_read_failure_raises
-    @cache.write("foo", "bar")
+    key = SecureRandom.uuid
+    @cache.write(key, SecureRandom.alphanumeric)
 
     assert_raise Redis::BaseError do
       emulating_unavailability do |cache|
-        cache.read("foo")
+        cache.read(key)
       end
     end
   end
 
   def test_read_multi_failure_raises
-    @cache.write_multi("foo" => "bar", "baz" => "quux")
+    key = SecureRandom.uuid
+    other_key = SecureRandom.uuid
+    @cache.write_multi(
+      key => SecureRandom.alphanumeric,
+      other_key => SecureRandom.alphanumeric
+    )
 
     assert_raise Redis::BaseError do
       emulating_unavailability do |cache|
-        cache.read_multi("foo", "baz")
+        cache.read_multi(key, other_key)
       end
     end
   end
@@ -46,7 +55,7 @@ module FailureRaisingBehavior
   def test_write_failure_raises
     assert_raise Redis::BaseError do
       emulating_unavailability do |cache|
-        cache.write("foo", "bar")
+        cache.write(SecureRandom.uuid, SecureRandom.alphanumeric)
       end
     end
   end
@@ -54,57 +63,69 @@ module FailureRaisingBehavior
   def test_write_multi_failure_raises
     assert_raise Redis::BaseError do
       emulating_unavailability do |cache|
-        cache.write_multi("foo" => "bar", "baz" => "quux")
+        cache.write_multi(
+          SecureRandom.uuid => SecureRandom.alphanumeric,
+          SecureRandom.uuid => SecureRandom.alphanumeric
+        )
       end
     end
   end
 
   def test_fetch_multi_failure_raises
-    @cache.write_multi("foo" => "bar", "baz" => "quux")
+    key = SecureRandom.uuid
+    other_key = SecureRandom.uuid
+    @cache.write_multi(
+      key => SecureRandom.alphanumeric,
+      other_key => SecureRandom.alphanumeric
+    )
 
     assert_raise Redis::BaseError do
       emulating_unavailability do |cache|
-        cache.fetch_multi("foo", "baz") { |k| "unavailable" }
+        cache.fetch_multi(key, other_key) { |k| "unavailable" }
       end
     end
   end
 
   def test_delete_failure_raises
-    @cache.write("foo", "bar")
+    key = SecureRandom.uuid
+    @cache.write(key, SecureRandom.alphanumeric)
 
     assert_raise Redis::BaseError do
       emulating_unavailability do |cache|
-        cache.delete("foo")
+        cache.delete(key)
       end
     end
   end
 
   def test_exist_failure_raises
-    @cache.write("foo", "bar")
+    key = SecureRandom.uuid
+    @cache.write(key, SecureRandom.alphanumeric)
 
     assert_raise Redis::BaseError do
       emulating_unavailability do |cache|
-        cache.exist?("foo")
+        cache.exist?(key)
       end
     end
   end
 
   def test_increment_failure_raises
-    @cache.write("foo", 1, raw: true)
+    key = SecureRandom.uuid
+    @cache.write(key, 1, raw: true)
 
     assert_raise Redis::BaseError do
       emulating_unavailability do |cache|
-        cache.increment("foo")
+        cache.increment(key)
       end
     end
   end
 
   def test_decrement_failure_raises
-    @cache.write("foo", 1, raw: true)
+    key = SecureRandom.uuid
+    @cache.write(key, 1, raw: true)
 
     assert_raise Redis::BaseError do
       emulating_unavailability do |cache|
-        cache.decrement("foo")
+        cache.decrement(key)
       end
     end
   end

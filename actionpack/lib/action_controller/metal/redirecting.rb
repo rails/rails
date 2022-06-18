@@ -7,6 +7,8 @@ module ActionController
     include AbstractController::Logger
     include ActionController::UrlFor
 
+    class UnsafeRedirectError < StandardError; end
+
     included do
       mattr_accessor :raise_on_open_redirects, default: false
     end
@@ -61,20 +63,34 @@ module ActionController
     #
     #   redirect_to post_url(@post) and return
     #
-    # Passing user input directly into +redirect_to+ is considered dangerous (e.g. `redirect_to(params[:location])`).
-    # Always use regular expressions or a permitted list when redirecting to a user specified location.
+    # === Open Redirect protection
+    #
+    # By default, Rails protects against redirecting to external hosts for your app's safety, so called open redirects.
+    # Note: this was a new default in Rails 7.0, after upgrading opt-in by uncommenting the line with +raise_on_open_redirects+ in <tt>config/initializers/new_framework_defaults_7_0.rb</tt>
+    #
+    # Here #redirect_to automatically validates the potentially-unsafe URL:
+    #
+    #   redirect_to params[:redirect_url]
+    #
+    # Raises UnsafeRedirectError in the case of an unsafe redirect.
+    #
+    # To allow any external redirects pass <tt>allow_other_host: true</tt>, though using a user-provided param in that case is unsafe.
+    #
+    #   redirect_to "https://rubyonrails.org", allow_other_host: true
+    #
+    # See #url_from for more information on what an internal and safe URL is, or how to fall back to an alternate redirect URL in the unsafe case.
     def redirect_to(options = {}, response_options = {})
-      response_options[:allow_other_host] ||= _allow_other_host unless response_options.key?(:allow_other_host)
-
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
       raise AbstractController::DoubleRenderError if response_body
 
+      allow_other_host = response_options.delete(:allow_other_host) { _allow_other_host }
+
       self.status        = _extract_redirect_to_status(options, response_options)
-      self.location      = _compute_safe_redirect_to_location(request, options, response_options)
-      self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(response.location)}\">redirected</a>.</body></html>"
+      self.location      = _enforce_open_redirect_protection(_compute_redirect_to_location(request, options), allow_other_host: allow_other_host)
+      self.response_body = ""
     end
 
-    # Soft deprecated alias for <tt>redirect_back_or_to</tt> where the fallback_location location is supplied as a keyword argument instead
+    # Soft deprecated alias for #redirect_back_or_to where the +fallback_location+ location is supplied as a keyword argument instead
     # of the first positional argument.
     def redirect_back(fallback_location:, allow_other_host: _allow_other_host, **args)
       redirect_back_or_to fallback_location, allow_other_host: allow_other_host, **args
@@ -103,23 +119,11 @@ module ActionController
     # All other options that can be passed to #redirect_to are accepted as
     # options and the behavior is identical.
     def redirect_back_or_to(fallback_location, allow_other_host: _allow_other_host, **options)
-      location = request.referer || fallback_location
-      location = fallback_location unless allow_other_host || _url_host_allowed?(request.referer)
-      allow_other_host = true if _allow_other_host && !allow_other_host # if the fallback is an open redirect
-
-      redirect_to location, allow_other_host: allow_other_host, **options
-    end
-
-    def _compute_safe_redirect_to_location(request, options, response_options)
-      location = _compute_redirect_to_location(request, options)
-
-      if response_options[:allow_other_host] || _url_host_allowed?(location)
-        location
+      if request.referer && (allow_other_host || _url_host_allowed?(request.referer))
+        redirect_to request.referer, allow_other_host: allow_other_host, **options
       else
-        raise(ArgumentError, <<~MSG.squish)
-          Unsafe redirect #{location.truncate(100).inspect},
-          use :allow_other_host to redirect anyway.
-        MSG
+        # The method level `allow_other_host` doesn't apply in the fallback case, omit and let the `redirect_to` handling take over.
+        redirect_to fallback_location, **options
       end
     end
 
@@ -143,6 +147,30 @@ module ActionController
     module_function :_compute_redirect_to_location
     public :_compute_redirect_to_location
 
+    # Verifies the passed +location+ is an internal URL that's safe to redirect to and returns it, or nil if not.
+    # Useful to wrap a params provided redirect URL and fallback to an alternate URL to redirect to:
+    #
+    #   redirect_to url_from(params[:redirect_url]) || root_url
+    #
+    # The +location+ is considered internal, and safe, if it's on the same host as <tt>request.host</tt>:
+    #
+    #   # If request.host is example.com:
+    #   url_from("https://example.com/profile") # => "https://example.com/profile"
+    #   url_from("http://example.com/profile")  # => "http://example.com/profile"
+    #   url_from("http://evil.com/profile")     # => nil
+    #
+    # Subdomains are considered part of the host:
+    #
+    #   # If request.host is on https://example.com or https://app.example.com, you'd get:
+    #   url_from("https://dev.example.com/profile") # => nil
+    #
+    # NOTE: there's a similarity with {url_for}[rdoc-ref:ActionDispatch::Routing::UrlFor#url_for], which generates an internal URL from various options from within the app, e.g. <tt>url_for(@post)</tt>.
+    # However, #url_from is meant to take an external parameter to verify as in <tt>url_from(params[:redirect_url])</tt>.
+    def url_from(location)
+      location = location.presence
+      location if location && _url_host_allowed?(location)
+    end
+
     private
       def _allow_other_host
         !raise_on_open_redirects
@@ -158,8 +186,16 @@ module ActionController
         end
       end
 
+      def _enforce_open_redirect_protection(location, allow_other_host:)
+        if allow_other_host || _url_host_allowed?(location)
+          location
+        else
+          raise UnsafeRedirectError, "Unsafe redirect to #{location.truncate(100).inspect}, pass allow_other_host: true to redirect anyway."
+        end
+      end
+
       def _url_host_allowed?(url)
-        URI(url.to_s).host == request.host
+        [request.host, nil].include?(URI(url.to_s).host)
       rescue ArgumentError, URI::Error
         false
       end

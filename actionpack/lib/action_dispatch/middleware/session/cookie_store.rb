@@ -44,8 +44,8 @@ module ActionDispatch
     #   Rails.application.config.session_store :cookie_store, expire_after: 14.days
     #
     # would set the session cookie to expire automatically 14 days after creation.
-    # Other useful options include <tt>:key</tt>, <tt>:secure</tt> and
-    # <tt>:httponly</tt>.
+    # Other useful options include <tt>:key</tt>, <tt>:secure</tt>,
+    # <tt>:httponly</tt>, and <tt>:same_site</tt>.
     class CookieStore < AbstractSecureStore
       class SessionId < DelegateClass(Rack::Session::SessionId)
         attr_reader :cookie_value

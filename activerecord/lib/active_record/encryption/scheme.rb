@@ -6,7 +6,7 @@ module ActiveRecord
     #
     # It validates and serves attribute encryption options.
     #
-    # See +EncryptedAttributeType+, +Context+
+    # See EncryptedAttributeType, Context
     class Scheme
       attr_accessor :previous_schemes
 
@@ -45,10 +45,7 @@ module ActiveRecord
       end
 
       def key_provider
-        @key_provider ||= begin
-          validate_keys!
-          @key_provider_param || build_key_provider
-        end
+        @key_provider ||= @key_provider_param || build_key_provider || default_key_provider
       end
 
       def merge(other_scheme)
@@ -74,25 +71,16 @@ module ActiveRecord
           raise Errors::Configuration, "key_provider: and key: can't be used simultaneously" if @key_provider_param && @key
         end
 
-        def validate_keys!
-          validate_credential :key_derivation_salt
-          validate_credential :primary_key, "needs to be configured to use non-deterministic encryption" unless @deterministic
-          validate_credential :deterministic_key, "needs to be configured to use deterministic encryption" if @deterministic
-        end
-
-        def validate_credential(key, error_message = "is not configured")
-          unless ActiveRecord::Encryption.config.public_send(key).present?
-            raise Errors::Configuration, "#{key} #{error_message}. Please configure it via credential"\
-              "active_record_encryption.#{key} or by setting config.active_record.encryption.#{key}"
-          end
-        end
-
         def build_key_provider
           return DerivedSecretKeyProvider.new(@key) if @key.present?
 
-          if @deterministic && (deterministic_key = ActiveRecord::Encryption.config.deterministic_key)
-            DeterministicKeyProvider.new(deterministic_key)
+          if @deterministic
+            DeterministicKeyProvider.new(ActiveRecord::Encryption.config.deterministic_key)
           end
+        end
+
+        def default_key_provider
+          ActiveRecord::Encryption.key_provider
         end
     end
   end

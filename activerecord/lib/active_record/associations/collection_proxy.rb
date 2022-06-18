@@ -218,7 +218,7 @@ module ActiveRecord
       # :call-seq:
       #   third_to_last()
       #
-      # Same as #first except returns only the third-to-last record.
+      # Same as #last except returns only the third-to-last record.
 
       ##
       # :method: second_to_last
@@ -226,7 +226,7 @@ module ActiveRecord
       # :call-seq:
       #   second_to_last()
       #
-      # Same as #first except returns only the second-to-last record.
+      # Same as #last except returns only the second-to-last record.
 
       # Returns the last record, or the last +n+ records, from the collection.
       # If the collection is empty, the first form returns +nil+, and the second
@@ -475,7 +475,7 @@ module ActiveRecord
 
       # Deletes the records of the collection directly from the database
       # ignoring the +:dependent+ option. Records are instantiated and it
-      # invokes +before_remove+, +after_remove+ , +before_destroy+ and
+      # invokes +before_remove+, +after_remove+, +before_destroy+, and
       # +after_destroy+ callbacks.
       #
       #   class Person < ActiveRecord::Base

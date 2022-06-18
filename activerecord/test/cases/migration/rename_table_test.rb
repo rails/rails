@@ -25,19 +25,20 @@ module ActiveRecord
         def test_rename_table_should_work_with_reserved_words
           renamed = false
 
-          add_column :test_models, :url, :string
           connection.rename_table :references, :old_references
           connection.rename_table :test_models, :references
 
           renamed = true
 
           # Using explicit id in insert for compatibility across all databases
-          connection.execute "INSERT INTO 'references' (url, created_at, updated_at) VALUES ('http://rubyonrails.com', 0, 0)"
-          assert_equal "http://rubyonrails.com", connection.select_value("SELECT url FROM 'references' WHERE id=1")
+          table_name = connection.quote_table_name("references")
+          connection.execute "INSERT INTO #{table_name} (id, url) VALUES (123, 'http://rubyonrails.com')"
+          assert_equal "http://rubyonrails.com", connection.select_value("SELECT url FROM #{table_name} WHERE id=123")
         ensure
-          return unless renamed
-          connection.rename_table :references, :test_models
-          connection.rename_table :old_references, :references
+          if renamed
+            connection.rename_table :references, :test_models
+            connection.rename_table :old_references, :references
+          end
         end
       end
 
@@ -47,6 +48,22 @@ module ActiveRecord
         connection.execute "INSERT INTO octopi (#{connection.quote_column_name('id')}, #{connection.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')"
 
         assert_equal "http://www.foreverflying.com/octopus-black7.jpg", connection.select_value("SELECT url FROM octopi WHERE id=1")
+      end
+
+      def test_rename_table_raises_for_long_table_names
+        name_limit = connection.table_name_length
+        long_name = "a" * (name_limit + 1)
+        short_name = "a" * name_limit
+
+        error = assert_raises(ArgumentError) do
+          connection.rename_table :test_models, long_name
+        end
+        assert_equal "Table name '#{long_name}' is too long; the limit is #{name_limit} characters", error.message
+
+        connection.rename_table :test_models, short_name
+        assert connection.table_exists?(short_name)
+      ensure
+        connection.drop_table short_name, if_exists: true
       end
 
       def test_rename_table_with_an_index

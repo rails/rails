@@ -349,7 +349,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response 302
       assert_response :redirect
       assert_response :found
-      assert_equal "<html><body>You are being <a href=\"http://www.example.com/get\">redirected</a>.</body></html>", response.body
+      assert_equal "", response.body
       assert_kind_of Nokogiri::HTML::Document, html_document
       assert_equal 1, request_count
 
@@ -847,6 +847,30 @@ class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal "cjolly", request.filtered_parameters["username"]
     assert_equal "[FILTERED]", request.filtered_parameters["password"]
     assert_equal "[FILTERED]", request.filtered_env["rack.request.form_vars"]
+  end
+end
+
+class ControllerWithHeadersMethodIntegrationTest < ActionDispatch::IntegrationTest
+  class TestController < ActionController::Base
+    def index
+      render plain: "ok"
+    end
+
+    def headers
+      {}.freeze
+    end
+  end
+
+  test "doesn't call controller's headers method" do
+    with_routing do |routes|
+      routes.draw do
+        get "/ok" => "controller_with_headers_method_integration_test/test#index"
+      end
+
+      get "/ok"
+
+      assert_response 200
+    end
   end
 end
 

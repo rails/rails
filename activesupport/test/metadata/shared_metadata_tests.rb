@@ -14,10 +14,10 @@ module SharedMessageMetadataTests
   end
 
   def test_verifies_array_when_purpose_matches
-    unless null_serializing?
-      data = [ "credit_card_no: 5012-6748-9087-5678", { "card_holder" => "Donald", "issued_on" => Time.local(2017) }, 12345 ]
-      assert_equal data, parse(generate(data, purpose: :registration), purpose: :registration)
-    end
+    skip if null_serializing?
+
+    data = [ "credit_card_no: 5012-6748-9087-5678", { "card_holder" => "Donald", "issued_on" => Time.local(2017) }, 12345 ]
+    assert_equal data, parse(generate(data, purpose: :registration), purpose: :registration)
   end
 
   def test_encryption_and_decryption_with_different_purposes_returns_nil

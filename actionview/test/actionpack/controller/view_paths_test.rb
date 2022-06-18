@@ -30,6 +30,8 @@ class ViewLoadPathsTest < ActionController::TestCase
   end
 
   def setup
+    ActionView::LookupContext::DetailsKey.clear
+
     @controller = TestController.new
     @request  = ActionController::TestRequest.create(@controller.class)
     @response = ActionDispatch::TestResponse.new

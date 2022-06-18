@@ -50,6 +50,8 @@ class TransactionTest < ActiveRecord::TestCase
 
       assert_not connection.active?
       assert_not Topic.connection_pool.connections.include?(connection)
+    ensure
+      ActiveRecord::Base.clear_all_connections!
     end
 
     def test_rollback_dirty_changes_even_with_raise_during_rollback_doesnt_commit_transaction
@@ -74,6 +76,8 @@ class TransactionTest < ActiveRecord::TestCase
       end
 
       assert_equal "The Fifth Topic of the day", topic.reload.title
+    ensure
+      ActiveRecord::Base.clear_all_connections!
     end
   end
 
@@ -179,12 +183,24 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def transaction_with_shallow_return
+    Topic.transaction do
+      Topic.transaction(requires_new: true) do
+        @first.approved  = true
+        @second.approved = false
+        @first.save
+        @second.save
+      end
+      return
+    end
+  end
+
   def test_add_to_null_transaction
     topic = Topic.new
     topic.send(:add_to_transaction)
   end
 
-  def test_successful_with_return
+  def test_successful_with_return_outside_inner_transaction
     committed = false
 
     Topic.connection.class_eval do
@@ -196,7 +212,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert_deprecated do
-      transaction_with_return
+      transaction_with_shallow_return
     end
     assert committed
 
@@ -209,12 +225,14 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
-  def test_deprecation_on_ruby_timeout
+  def test_deprecation_on_ruby_timeout_outside_inner_transaction
     assert_deprecated do
       catch do |timeout|
         Topic.transaction do
-          @first.approved = true
-          @first.save!
+          Topic.transaction(requires_new: true) do
+            @first.approved = true
+            @first.save!
+          end
 
           throw timeout
         end
@@ -222,6 +240,42 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert Topic.find(1).approved?, "First should have been approved"
+  end
+
+  def test_rollback_with_return
+    committed = false
+
+    Topic.connection.class_eval do
+      alias :real_commit_db_transaction :commit_db_transaction
+      define_method(:commit_db_transaction) do
+        committed = true
+        real_commit_db_transaction
+      end
+    end
+
+    transaction_with_return
+    assert_not committed
+
+    assert_not_predicate Topic.find(1), :approved?
+    assert_predicate Topic.find(2), :approved?
+  ensure
+    Topic.connection.class_eval do
+      remove_method :commit_db_transaction
+      alias :commit_db_transaction :real_commit_db_transaction rescue nil
+    end
+  end
+
+  def test_rollback_on_ruby_timeout
+    catch do |timeout|
+      Topic.transaction do
+        @first.approved = true
+        @first.save!
+
+        throw timeout
+      end
+    end
+
+    assert_not_predicate Topic.find(1), :approved?
   end
 
   def test_early_return_from_transaction
@@ -697,10 +751,14 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_savepoints_name
     Topic.transaction do
+      Topic.delete_all # Dirty the transaction to force a savepoint below
+
       assert_nil Topic.connection.current_savepoint_name
       assert_nil Topic.connection.current_transaction.savepoint_name
 
       Topic.transaction(requires_new: true) do
+        Topic.delete_all # Dirty the transaction to force a savepoint below
+
         assert_equal "active_record_1", Topic.connection.current_savepoint_name
         assert_equal "active_record_1", Topic.connection.current_transaction.savepoint_name
 
@@ -1102,6 +1160,81 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_nested_transactions_skip_excess_savepoints
+    capture_sql do
+      # RealTransaction (begin..commit)
+      Topic.transaction(requires_new: true) do
+        # ResetParentTransaction (no queries)
+        Topic.transaction(requires_new: true) do
+          Topic.delete_all
+          # SavepointTransaction (savepoint..release)
+          Topic.transaction(requires_new: true) do
+            # ResetParentTransaction (no queries)
+            Topic.transaction(requires_new: true) do
+              Topic.delete_all
+            end
+          end
+        end
+        Topic.delete_all
+      end
+    end
+
+    actual_queries = ActiveRecord::SQLCounter.log_all
+
+    expected_queries = [
+      /BEGIN/i,
+      /DELETE/i,
+      /^SAVEPOINT/i,
+      /DELETE/i,
+      /^RELEASE/i,
+      /DELETE/i,
+      /COMMIT/i,
+    ]
+
+    assert_equal expected_queries.size, actual_queries.size
+    expected_queries.zip(actual_queries) do |expected, actual|
+      assert_match expected, actual
+    end
+  end
+
+  def test_nested_transactions_after_disable_lazy_transactions
+    Topic.connection.disable_lazy_transactions!
+
+    capture_sql do
+      # RealTransaction (begin..commit)
+      Topic.transaction(requires_new: true) do
+        # ResetParentTransaction (no queries)
+        Topic.transaction(requires_new: true) do
+          Topic.delete_all
+          # SavepointTransaction (savepoint..release)
+          Topic.transaction(requires_new: true) do
+            # ResetParentTransaction (no queries)
+            Topic.transaction(requires_new: true) do
+              # no-op
+            end
+          end
+        end
+        Topic.delete_all
+      end
+    end
+
+    actual_queries = ActiveRecord::SQLCounter.log_all
+
+    expected_queries = [
+      /BEGIN/i,
+      /DELETE/i,
+      /^SAVEPOINT/i,
+      /^RELEASE/i,
+      /DELETE/i,
+      /COMMIT/i,
+    ]
+
+    assert_equal expected_queries.size, actual_queries.size
+    expected_queries.zip(actual_queries) do |expected, actual|
+      assert_match expected, actual
+    end
+  end
+
   if ActiveRecord::Base.connection.prepared_statements
     def test_prepared_statement_materializes_transaction
       Topic.first
@@ -1121,9 +1254,9 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_raising_does_not_materialize_transaction
-    assert_raise(RuntimeError) do
-      assert_no_queries do
-        Topic.transaction { raise }
+    assert_no_queries do
+      assert_raise(RuntimeError) do
+        Topic.transaction { raise "Expected" }
       end
     end
   end
