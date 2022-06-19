@@ -315,7 +315,7 @@ module Rails
         say "Conflicting options specified:", :red
         conflicts.each do |skip_option, no_skip_options|
           due_to = no_skip_options.map { |conflict| "--#{conflict.to_s.tr("_","-")}" }.join(", ")
-          say "  Cannot activate --#{skip_option.to_s.tr("_","-")} due to #{due_to}", :red
+          say "  Cannot enforce --#{skip_option.to_s.tr("_","-")} due to #{due_to}", :red
         end
         raise Error, "Please fix conflicting options."
       end
