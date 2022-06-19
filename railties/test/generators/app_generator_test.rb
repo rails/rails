@@ -1063,6 +1063,74 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "web-console"
   end
 
+  def test_minimal_rails_app_plus_action_cable
+    run_generator [destination_root, "--minimal", "--no-skip-action-cable"]
+    assert_file "config/cable.yml"
+  end
+
+  def test_minimal_rails_app_plus_action_mailer
+    run_generator [destination_root, "--minimal", "--no-skip-action-mailer"]
+    assert_file "app/views/layouts/mailer.html.erb"
+  end
+
+  def test_minimal_rails_app_plus_action_mailbox
+    run_generator [destination_root, "--minimal", "--no-skip-action-mailbox", "--no-skip-active-storage"]
+    assert_file "config/application.rb" do |content|
+      assert_match %r/^require\s+["']action_mailbox\/engine["']/, content
+    end
+  end
+
+  def test_minimal_rails_app_plus_action_text
+    run_generator [destination_root, "--minimal", "--no-skip-action-text", "--no-skip-active-storage"]
+    assert_file "config/application.rb" do |content|
+      assert_match %r/^require\s+["']action_text\/engine["']/, content
+    end
+  end
+
+  def test_minimal_rails_app_plus_active_job
+    run_generator [destination_root, "--minimal", "--no-skip-active-job"]
+    assert_file "app/jobs/application_job.rb"
+  end
+
+  def test_minimal_rails_app_plus_active_storage
+    run_generator [destination_root, "--minimal", "--no-skip-active-storage"]
+    assert_file "config/storage.yml"
+  end
+
+  def test_minimal_rails_app_plus_bootsnap
+    run_generator [destination_root, "--minimal", "--no-skip-bootsnap"]
+    unless defined?(JRUBY_VERSION)
+      assert_gem "bootsnap"
+    else
+      assert_no_gem "bootsnap"
+    end
+  end
+
+  def test_minimal_rails_app_plus_dev_gems
+    run_generator [destination_root, "--minimal", "--no-skip-dev-gems"]
+    assert_gem "web-console"
+  end
+
+  def test_minimal_rails_app_plus_javascript
+    run_generator [destination_root, "--minimal", "--no-skip-javascript"]
+    assert_gem "importmap-rails"
+  end
+
+  def test_minimal_rails_app_plus_jbuilder
+    run_generator [destination_root, "--minimal", "--no-skip-jbuilder"]
+    assert_gem "jbuilder"
+  end
+
+  def test_minimal_rails_app_plus_system_test
+    run_generator [destination_root, "--minimal", "--no-skip-system-test"]
+    assert_gem "capybara"
+  end
+
+  def test_minimal_rails_app_plus_hotwire
+    run_generator [destination_root, "--minimal", "--no-skip-javascript", "--no-skip-hotwire"]
+    assert_gem "turbo-rails"
+  end
+
   def test_name_option
     run_generator [destination_root, "--name=my-app"]
     assert_file "config/application.rb", /^module MyApp$/

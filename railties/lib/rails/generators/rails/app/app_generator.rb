@@ -268,7 +268,12 @@ module Rails
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false, desc: "Don't run bundle install"
       class_option :skip_decrypted_diffs, type: :boolean, default: false, desc: "Don't configure git to show decrypted diffs of encrypted credentials"
 
-      def initialize(*args)
+      def initialize(positional_argv, option_argv, *)
+        if minimal_index = option_argv.rindex("--minimal")
+          end_rc_index = option_argv.index("--end-rc-options") || -1
+          option_argv.insert(end_rc_index + 1, *MINIMAL_OPTIONS) if minimal_index > end_rc_index
+        end
+
         super
 
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
@@ -277,25 +282,9 @@ module Rails
 
         # Force sprockets and JavaScript to be skipped when generating API only apps.
         # Can't modify options hash as it's frozen by default.
-        if options[:api]
-          self.options = options.merge(skip_asset_pipeline: true, skip_javascript: true).freeze
-        end
-
-        if options[:minimal]
-          self.options = options.merge(
-            skip_action_cable: true,
-            skip_action_mailer: true,
-            skip_action_mailbox: true,
-            skip_action_text: true,
-            skip_active_job: true,
-            skip_active_storage: true,
-            skip_bootsnap: true,
-            skip_dev_gems: true,
-            skip_javascript: true,
-            skip_jbuilder: true,
-            skip_system_test: true,
-            skip_hotwire: true).freeze
-        end
+        # if options[:api]
+        #   self.options = options.merge(skip_asset_pipeline: true, skip_javascript: true).freeze
+        # end
 
         @after_bundle_callbacks = []
       end
@@ -619,7 +608,8 @@ module Rails
         def insert_railsrc_into_argv!(argv, railsrc)
           return argv unless File.exist?(railsrc)
           extra_args = read_rc_file railsrc
-          argv.take(1) + extra_args + argv.drop(1)
+          extra_args.insert(0, *AppBase::MINIMAL_OPTIONS) if extra_args.include?("--minimal")
+          argv.take(1) + extra_args + ["--end-rc-options"] + argv.drop(1)
         end
     end
   end
