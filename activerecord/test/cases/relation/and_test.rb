@@ -39,5 +39,16 @@ module ActiveRecord
         error.message
       )
     end
+
+    def test_and_with_random_ordered_multiple_values
+      assert_nothing_raised do
+        Author.includes(:posts, :comments).and(Author.includes(:comments, :posts))
+        Author.eager_load(:posts, :comments).and(Author.eager_load(:comments, :posts))
+        Author.preload(:posts, :comments).and(Author.preload(:comments, :posts))
+        Author.joins(:posts, :comments).and(Author.joins(:comments, :posts))
+        Author.left_outer_joins(:posts, :comments).and(Author.left_outer_joins(:comments, :posts))
+        Author.select(:name, :id).and(Author.select(:id, :name))
+      end
+    end
   end
 end

@@ -174,6 +174,17 @@ module ActiveRecord
         Post.from("posts").or(Post.from("posts"))
       end
     end
+
+    def test_or_with_random_ordered_multiple_values
+      assert_nothing_raised do
+        Post.includes(:author, :comments).or(Post.includes(:comments, :author))
+        Post.eager_load(:author, :comments).or(Post.eager_load(:comments, :author))
+        Post.preload(:author, :comments).or(Post.preload(:comments, :author))
+        Post.joins(:author, :comments).or(Post.joins(:comments, :author))
+        Post.left_outer_joins(:author, :comments).or(Post.left_outer_joins(:comments, :author))
+        Post.select(:body, :title).or(Post.select(:title, :body))
+      end
+    end
   end
 
   # The maximum expression tree depth is 1000 by default for SQLite3.

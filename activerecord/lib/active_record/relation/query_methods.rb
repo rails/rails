@@ -1731,6 +1731,8 @@ module ActiveRecord
         [:extending, :where, :having, :unscope, :references, :annotate, :optimizer_hints]
       ).freeze # :nodoc:
 
+      STRUCTURAL_VALUE_METHODS_TO_IGNORE_ORDER = [:eager_load, :includes, :joins, :left_outer_joins, :preload, :select].freeze # :nodoc:
+
       def structurally_incompatible_values_for(other)
         values = other.values
         STRUCTURAL_VALUE_METHODS.reject do |method|
@@ -1739,6 +1741,10 @@ module ActiveRecord
             next true unless v2.is_a?(Array)
             v1 = v1.uniq
             v2 = v2.uniq
+            if STRUCTURAL_VALUE_METHODS_TO_IGNORE_ORDER.include?(method)
+              v1 = v1.sort
+              v2 = v2.sort
+            end
           end
           v1 == v2
         end
