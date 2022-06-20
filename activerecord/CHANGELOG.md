@@ -1,3 +1,27 @@
+*   Optimize Active Record batching for whole table iterations.
+
+    Previously, `in_batches` got all the ids and constructed an `IN`-based query for each batch.
+    When iterating over the whole tables, this approach is not optimal as it loads unneeded ids and
+    `IN` queries with lots of items are slow.
+
+    Now, whole table iterations use range iteration (`id >= x AND id <= y`) by default which can make iteration
+    several times faster. E.g., tested on a PostgreSQL table with 10 million records: querying (`253s` vs `30s`),
+    updating (`288s` vs `124s`), deleting (`268s` vs `83s`).
+
+    Only whole table iterations use this style of iteration by default. You can disable this behavior by passing `use_ranges: false`.
+    If you iterate over the table and the only condition is, e.g., `archived_at: nil` (and only a tiny fraction
+    of the records are archived), it makes sense to opt in to this approach:
+
+    ```ruby
+    Project.where(archived_at: nil).in_batches(use_ranges: true) do |relation|
+      # do something
+    end
+    ```
+
+    See #45414 for more details.
+
+    *fatkodima*
+
 *   `.with` query method added. Construct common table expressions with ease and get `ActiveRecord::Relation` back.
 
     ```ruby

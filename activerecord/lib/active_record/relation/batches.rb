@@ -168,6 +168,11 @@ module ActiveRecord
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
     #   an order is present in the relation.
     # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+). Defaults to +:asc+.
+    # * <tt>:use_ranges</tt> - Specifies whether to use range iteration (id >= x AND id <= y).
+    #   It can make iterating over the whole or almost whole tables several times faster.
+    #   Only whole table iterations use this style of iteration by default. You can disable this behavior by passing +false+.
+    #   If you iterate over the table and the only condition is, e.g., `archived_at: nil` (and only a tiny fraction
+    #   of the records are archived), it makes sense to opt in to this approach.
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size, it can be less than, equal, or greater than the limit.
@@ -201,7 +206,7 @@ module ActiveRecord
     #
     # NOTE: By its nature, batch processing is subject to race conditions if
     # other processes are modifying the database.
-    def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil, order: :asc)
+    def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil, order: :asc, use_ranges: nil)
       relation = self
 
       unless [:asc, :desc].include?(order)
@@ -209,7 +214,7 @@ module ActiveRecord
       end
 
       unless block_given?
-        return BatchEnumerator.new(of: of, start: start, finish: finish, relation: self, order: order)
+        return BatchEnumerator.new(of: of, start: start, finish: finish, relation: self, order: order, use_ranges: use_ranges)
       end
 
       if arel.orders.present?
@@ -226,6 +231,7 @@ module ActiveRecord
       relation = apply_limits(relation, start, finish, order)
       relation.skip_query_cache! # Retaining the results in the query cache would undermine the point of batching
       batch_relation = relation
+      empty_scope = to_sql == klass.unscoped.all.to_sql
 
       loop do
         if load
@@ -233,6 +239,14 @@ module ActiveRecord
           ids = records.map(&:id)
           yielded_relation = where(primary_key => ids)
           yielded_relation.load_records(records)
+        elsif (empty_scope && use_ranges != false) || use_ranges
+          ids = batch_relation.pluck(primary_key)
+          finish = ids.last
+          if finish
+            yielded_relation = apply_finish_limit(batch_relation, finish, order)
+            yielded_relation = yielded_relation.except(:limit, :order)
+            yielded_relation.skip_query_cache!(false)
+          end
         else
           ids = batch_relation.pluck(primary_key)
           yielded_relation = where(primary_key => ids)
