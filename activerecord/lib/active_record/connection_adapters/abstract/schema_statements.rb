@@ -1074,7 +1074,7 @@ module ActiveRecord
       #   (PostgreSQL only) Specify whether or not the foreign key should be deferrable. Valid values are booleans or
       #   +:deferred+ or +:immediate+ to specify the default behavior. Defaults to +false+.
       def add_foreign_key(from_table, to_table, **options)
-        return unless supports_foreign_keys?
+        return unless use_foreign_keys?
         return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table)
 
         options = foreign_key_options(from_table, to_table, options)
@@ -1115,7 +1115,7 @@ module ActiveRecord
       # [<tt>:to_table</tt>]
       #   The name of the table that contains the referenced primary key.
       def remove_foreign_key(from_table, to_table = nil, **options)
-        return unless supports_foreign_keys?
+        return unless use_foreign_keys?
         return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table)
 
         fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
@@ -1394,6 +1394,10 @@ module ActiveRecord
         SchemaDumper.create(self, options)
       end
 
+      def use_foreign_keys?
+        supports_foreign_keys? && foreign_keys_enabled?
+      end
+
       private
         def validate_change_column_null_argument!(value)
           unless value == true || value == false
@@ -1548,7 +1552,7 @@ module ActiveRecord
         end
 
         def foreign_key_for(from_table, **options)
-          return unless supports_foreign_keys?
+          return unless use_foreign_keys?
           foreign_keys(from_table).detect { |fk| fk.defined_for?(**options) }
         end
 
@@ -1563,6 +1567,10 @@ module ActiveRecord
           when "SET NULL"; :nullify
           when "RESTRICT"; :restrict
           end
+        end
+
+        def foreign_keys_enabled?
+          @config.fetch(:foreign_keys, true)
         end
 
         def check_constraint_name(table_name, **options)

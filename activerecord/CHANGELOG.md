@@ -1,3 +1,18 @@
+*   Add adapter option disallowing foreign keys
+
+    This adds a new option to be added to `database.yml` which enables skipping
+    foreign key constraints usage even if the underlying database supports them.
+
+    Usage:
+    ```yaml
+    development:
+        <<: *default
+        database: db/development.sqlite3
+        foreign_keys: false
+    ```
+
+    *Paulo Barros*
+
 *   Add configurable deprecation warning for singular associations
 
     This adds a deprecation warning when using the plural name of a singular associations in `where`.
