@@ -84,6 +84,9 @@ module Rails
         class_option :skip_bootsnap,       type: :boolean, default: false,
                                            desc: "Skip bootsnap gem"
 
+        class_option :skip_dev_gems,       type: :boolean, default: false,
+                                           desc: "Skip development gems (e.g., web-console)"
+
         class_option :dev,                 type: :boolean, default: false,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
@@ -236,10 +239,6 @@ module Rails
 
       def skip_action_text? # :doc:
         options[:skip_action_text] || skip_active_storage?
-      end
-
-      def skip_dev_gems? # :doc:
-        options[:skip_dev_gems]
       end
 
       def skip_sprockets?

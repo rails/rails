@@ -1,3 +1,8 @@
+*   Add `--skip-dev-gems` option to app generator to skip adding development
+    gems (like `web-console`) to the Gemfile.
+
+    *Brad Trick*
+
 *   Skip Active Storage and Action Mailer if Active Job is skipped.
 
     *Étienne Barrié*
