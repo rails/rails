@@ -1647,13 +1647,14 @@ module ApplicationTests
       ActionDispatch::Session.send :remove_const, :ActiveRecordStore
     end
 
-    test "config.session_store with :active_record_store without activerecord-session_store gem" do
+    test "config.session_store with unknown store raises helpful error" do
       e = assert_raise RuntimeError do
         make_basic_app do |application|
-          application.config.session_store :active_record_store
+          application.config.session_store :unknown_store
         end
       end
-      assert_match(/activerecord-session_store/, e.message)
+
+      assert_match(/Unable to resolve session store :unknown_store/, e.message)
     end
 
     test "default session store initializer does not overwrite the user defined session store even if it is disabled" do
