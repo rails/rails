@@ -2787,7 +2787,7 @@ module ApplicationTests
       app "development"
 
       get "/"
-      assert_match %r[<link rel="stylesheet" href="/application.css" />], last_response.body
+      assert_match %r[<link rel="stylesheet" href="/application.css">], last_response.body
       assert_equal "</application.css>; rel=preload; as=style; nopush", last_response.headers["Link"]
     end
 
@@ -2813,7 +2813,7 @@ module ApplicationTests
       app "development"
 
       get "/"
-      assert_match %r[<link rel="stylesheet" href="/application.css" />], last_response.body
+      assert_match %r[<link rel="stylesheet" href="/application.css">], last_response.body
       assert_nil last_response.headers["Link"]
     end
 

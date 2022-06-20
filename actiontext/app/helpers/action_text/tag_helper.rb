@@ -33,6 +33,10 @@ module ActionText
       options[:data][:blob_url_template] ||= main_app.rails_service_blob_url(":signed_id", ":filename")
 
       editor_tag = content_tag("trix-editor", "", options)
+                     .gsub("<trixeditor ", "<trix-editor ") # Fix non-compliant HTML tag.
+                     .gsub("</trixeditor>", "</trix-editor>")
+                     .html_safe
+
       input_tag = hidden_field_tag(name, value.try(:to_trix_html) || value, id: options[:input], form: form)
 
       input_tag + editor_tag

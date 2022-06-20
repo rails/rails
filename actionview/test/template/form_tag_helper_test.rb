@@ -68,7 +68,7 @@ class FormTagHelperTest < ActionView::TestCase
     end
   end
 
-  VALID_HTML_ID = /^[A-Za-z][-_:.A-Za-z0-9]*$/ # see http://www.w3.org/TR/html4/types.html#type-name
+  VALID_HTML_ID = /[^\t\n\f\r ]/ # see https://html.spec.whatwg.org/#the-id-attribute
 
   def test_check_box_tag
     actual = check_box_tag "admin"
@@ -91,6 +91,11 @@ class FormTagHelperTest < ActionView::TestCase
   def test_check_box_tag_id_sanitized
     label_elem = root_elem(check_box_tag("project[2][admin]"))
     assert_match VALID_HTML_ID, label_elem["id"]
+  end
+
+  def test_id_sanitized_for_html5
+    label_elem = root_elem(check_box_tag("project[2][a(dmin]"))
+    assert_equal "project_2_a(dmin", label_elem["id"]
   end
 
   def test_form_tag
@@ -689,14 +694,14 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_submit_tag_doesnt_have_data_disable_with_twice
     assert_equal(
-      %(<input type="submit" name="commit" value="Save" data-confirm="Are you sure?" data-disable-with="Processing..." />),
+      %(<input type="submit" name="commit" value="Save" data-confirm="Are you sure?" data-disable-with="Processing...">),
       submit_tag("Save", "data-disable-with" => "Processing...", "data-confirm" => "Are you sure?")
     )
   end
 
   def test_submit_tag_doesnt_have_data_disable_with_twice_with_hash
     assert_equal(
-      %(<input type="submit" name="commit" value="Save" data-disable-with="Processing..." />),
+      %(<input type="submit" name="commit" value="Save" data-disable-with="Processing...">),
       submit_tag("Save", data: { disable_with: "Processing..." })
     )
   end

@@ -80,7 +80,7 @@ class OutputSafetyHelperTest < ActionView::TestCase
       safe_join(["<marquee>shady stuff</marquee>", tag("br")])
     end
     url = "https://example.com"
-    expected = %(<a href="#{url}">#{url}</a> and <p>&lt;marquee&gt;shady stuff&lt;/marquee&gt;<br /></p>)
+    expected = %(<a href="#{url}">#{url}</a> and <p>&lt;marquee&gt;shady stuff&lt;/marquee&gt;<br></p>)
     actual = to_sentence([link_to(url, url), ptag])
     assert_predicate actual, :html_safe?
     assert_equal(expected, actual)

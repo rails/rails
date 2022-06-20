@@ -800,7 +800,7 @@ module ActionView
               end
             tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token, autocomplete: "off")
           else
-            ""
+            "".html_safe
           end
         end
 

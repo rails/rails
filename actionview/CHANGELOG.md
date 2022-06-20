@@ -1,3 +1,13 @@
+*   Fix regression for HTML character filtering in protections for XSS in
+    `ActionView::Helpers` and `ERB::Util`. This is a complete fix for that
+    regression, related to #45027 , which was incomplete.
+
+    We would need to support XHTML, HTML4 and HTML5. But since XHTML and HTML4
+    have had a note for future deprecation in the documentation for more than
+    5 years, simplify the filtering by removing support for XHTML and HTML4.
+
+    *Álvaro Martín Fraguas*
+
 *   Guard against `ActionView::Helpers::FormTagHelper#field_name` calls with nil
     `object_name` arguments. For example:
 

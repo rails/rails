@@ -783,6 +783,9 @@ class CoreExtStringMultibyteTest < ActiveSupport::TestCase
 end
 
 class OutputSafetyTest < ActiveSupport::TestCase
+  COMMON_DANGEROUS_HTML_NAME_CHARS = ">\"'\t\n\f\r /="
+  COMMON_DANGEROUS_HTML_NAME_CHARS_ONLY_FOR_TAGS = "-@"
+
   def setup
     @string = +"hello"
     @object = Class.new(Object) do
@@ -1050,30 +1053,46 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert_equal expected, ERB::Util.html_escape_once(string)
   end
 
-  test "ERB::Util.xml_name_escape should escape unsafe characters for XML names" do
+  test "ERB::Util.html_tag_name_escape should escape unsafe characters for HTML tag names" do
     unsafe_char = ">"
-    safe_char = "Á"
-    safe_char_after_start = "3"
+    safe_char = "A"
 
-    assert_equal "_", ERB::Util.xml_name_escape(unsafe_char)
-    assert_equal "_#{safe_char}", ERB::Util.xml_name_escape(unsafe_char + safe_char)
-    assert_equal "__", ERB::Util.xml_name_escape(unsafe_char * 2)
+    assert_equal "", ERB::Util.html_tag_name_escape(unsafe_char)
+    assert_equal safe_char, ERB::Util.html_tag_name_escape(unsafe_char + safe_char)
+    assert_equal "", ERB::Util.html_tag_name_escape(unsafe_char * 2)
+
+    assert_equal safe_char,
+                 ERB::Util.html_tag_name_escape("#{unsafe_char * 2}#{safe_char}#{unsafe_char}")
+
+    assert_equal "",
+                 ERB::Util.html_tag_name_escape(COMMON_DANGEROUS_HTML_NAME_CHARS_ONLY_FOR_TAGS)
+
+    assert_equal "imgsrcnonexistentonerroralert1",
+                 ERB::Util.html_tag_name_escape("img src=nonexistent onerror=alert(1)")
+
+    assert_equal "",
+                 ERB::Util.html_tag_name_escape(COMMON_DANGEROUS_HTML_NAME_CHARS)
+  end
+
+  test "ERB::Util.html_attribute_name_escape should escape unsafe characters for HTML attribute names" do
+    unsafe_char = "="
+    safe_char = "A"
+
+    assert_equal "_", ERB::Util.html_attribute_name_escape(unsafe_char)
+    assert_equal "_#{safe_char}", ERB::Util.html_attribute_name_escape(unsafe_char + safe_char)
+    assert_equal "__", ERB::Util.html_attribute_name_escape(unsafe_char * 2)
 
     assert_equal "__#{safe_char}_",
-                 ERB::Util.xml_name_escape("#{unsafe_char * 2}#{safe_char}#{unsafe_char}")
+                 ERB::Util.html_attribute_name_escape("#{unsafe_char * 2}#{safe_char}#{unsafe_char}")
 
-    assert_equal safe_char + safe_char_after_start,
-                 ERB::Util.xml_name_escape(safe_char + safe_char_after_start)
+    assert_equal COMMON_DANGEROUS_HTML_NAME_CHARS_ONLY_FOR_TAGS,
+                 ERB::Util.html_attribute_name_escape(COMMON_DANGEROUS_HTML_NAME_CHARS_ONLY_FOR_TAGS)
 
-    assert_equal "_#{safe_char}",
-                 ERB::Util.xml_name_escape(safe_char_after_start + safe_char)
+    assert_equal "img_src_nonexistent_onerror_alert(1)",
+                 ERB::Util.html_attribute_name_escape("img src=nonexistent onerror=alert(1)")
 
-    assert_equal "img_src_nonexistent_onerror_alert_1_",
-                 ERB::Util.xml_name_escape("img src=nonexistent onerror=alert(1)")
-
-    common_dangerous_chars = "&<>\"' %*+,/;=^|"
-    assert_equal "_" * common_dangerous_chars.size,
-                 ERB::Util.xml_name_escape(common_dangerous_chars)
+    assert_equal "_" * COMMON_DANGEROUS_HTML_NAME_CHARS.size,
+                 ERB::Util.html_attribute_name_escape(COMMON_DANGEROUS_HTML_NAME_CHARS)
   end
 end
 

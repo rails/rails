@@ -77,12 +77,12 @@ module ApplicationTests
         javascript_path:        %r{/javascripts/#{contents}},
         stylesheet_path:        %r{/stylesheets/#{contents}},
         image_tag:              %r{<img src="/images/#{contents}"},
-        favicon_link_tag:       %r{<link rel="icon" type="image/x-icon" href="/images/#{contents}" />},
-        stylesheet_link_tag:    %r{<link rel="stylesheet" href="/stylesheets/#{contents}.css" />},
+        favicon_link_tag:       %r{<link rel="icon" type="image/x-icon" href="/images/#{contents}">},
+        stylesheet_link_tag:    %r{<link rel="stylesheet" href="/stylesheets/#{contents}.css">},
         javascript_include_tag: %r{<script src="/javascripts/#{contents}.js">},
         audio_tag:              %r{<audio src="/audios/#{contents}"></audio>},
         video_tag:              %r{<video src="/videos/#{contents}"></video>},
-        image_submit_tag:       %r{<input type="image" src="/images/#{contents}" />}
+        image_submit_tag:       %r{<input type="image" src="/images/#{contents}">}
       }
 
       class ::PostsController < ActionController::Base

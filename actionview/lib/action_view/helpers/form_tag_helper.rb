@@ -75,7 +75,7 @@ module ActionView
       def form_tag(url_for_options = {}, options = {}, &block)
         html_options = html_options_for_form(url_for_options, options)
         if block_given?
-          form_tag_with_body(html_options, capture(&block))
+          form_tag_html(html_options, capture(&block))
         else
           form_tag_html(html_options)
         end
@@ -647,11 +647,12 @@ module ActionView
       #     <p><%= text_field_tag 'name' %></p>
       #   <% end %>
       #   # => <fieldset class="format"><p><input id="name" name="name" type="text" /></p></fieldset>
-      def field_set_tag(legend = nil, options = nil, &block)
-        output = tag(:fieldset, options, true)
-        output.safe_concat(content_tag("legend", legend)) unless legend.blank?
-        output.concat(capture(&block)) if block_given?
-        output.safe_concat("</fieldset>")
+      def field_set_tag(legend = nil, options = {}, &block)
+        content = "".html_safe
+        content.concat(content_tag("legend", legend)) unless legend.blank?
+        content.concat(capture(&block)) if block_given?
+
+        tag.fieldset(content, **options)
       end
 
       # Creates a text field of type "color".
@@ -931,7 +932,7 @@ module ActionView
             case method
             when "get"
               html_options["method"] = "get"
-              ""
+              "".html_safe
             when "post", ""
               html_options["method"] = "post"
               token_tag(authenticity_token, form_options: {
@@ -953,20 +954,21 @@ module ActionView
           end
         end
 
-        def form_tag_html(html_options)
+        def form_tag_html(html_options, content = nil)
           extra_tags = extra_tags_for_form(html_options)
-          tag(:form, html_options, true) + extra_tags
+
+          tag.form(extra_tags + content.to_s,
+                   **html_options)
         end
 
-        def form_tag_with_body(html_options, content)
-          output = form_tag_html(html_options)
-          output << content.to_s if content
-          output.safe_concat("</form>")
-        end
-
-        # see http://www.w3.org/TR/html4/types.html#type-name
         def sanitize_to_id(name)
-          name.to_s.delete("]").tr("^-a-zA-Z0-9:.", "_")
+          # See https://html.spec.whatwg.org/#the-id-attribute
+          invalid_characters_in_html_id = "\t\n\f\r "
+
+          name
+            .to_s
+            .delete("]")
+            .gsub(/[\[#{invalid_characters_in_html_id}]/, "_")
         end
 
         def set_default_disable_with(value, tag_options)
