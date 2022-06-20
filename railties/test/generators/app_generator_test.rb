@@ -917,6 +917,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/assets/stylesheets/application.postcss.css"
   end
 
+  def test_dev_gems
+    run_generator [destination_root, "--no-skip-dev-gems"]
+    assert_gem "web-console"
+  end
+
+  def test_skip_dev_gems
+    run_generator [destination_root, "--skip-dev-gems"]
+    assert_no_gem "web-console"
+  end
+
   def test_bootsnap
     run_generator [destination_root, "--no-skip-bootsnap"]
 
