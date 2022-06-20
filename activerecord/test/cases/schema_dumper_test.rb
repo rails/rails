@@ -422,18 +422,20 @@ class SchemaDumperTest < ActiveRecord::TestCase
         skip("Can't reopen in-memory database")
       end
 
-      ActiveRecord::Base.establish_connection(
-        {
-          adapter: "sqlite3",
-          database: "test/db/test.sqlite3",
-          foreign_keys: false,
-        }
-      )
+      begin
+        ActiveRecord::Base.establish_connection(
+          {
+            adapter: "sqlite3",
+            database: "test/db/test.sqlite3",
+            foreign_keys: false,
+          }
+        )
 
-      output = perform_schema_dump
-      assert_no_match(/^\s+add_foreign_key "fk_test_has_fk"[^\n]+\n\s+add_foreign_key "lessons_students"/, output)
-    ensure
-      ActiveRecord::Base.establish_connection(:arunit)
+        output = perform_schema_dump
+        assert_no_match(/^\s+add_foreign_key "fk_test_has_fk"[^\n]+\n\s+add_foreign_key "lessons_students"/, output)
+      ensure
+        ActiveRecord::Base.establish_connection(:arunit)
+      end
     end
   end
 
