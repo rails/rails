@@ -495,11 +495,11 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_scopes_batch_finders
     assert_equal 4, Topic.approved.count
 
-    assert_queries(4) do
+    assert_queries(5) do
       Topic.approved.find_each(batch_size: 1) { |t| assert t.approved? }
     end
 
-    assert_queries(2) do
+    assert_queries(3) do
       Topic.approved.find_in_batches(batch_size: 2) do |group|
         group.each { |t| assert t.approved? }
       end
