@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-activesupport_path = File.expand_path("../../../activesupport/lib", __dir__)
-$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
-
 require "thor/group"
 require "rails/command"
 
