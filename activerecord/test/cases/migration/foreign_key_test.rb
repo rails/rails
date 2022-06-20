@@ -555,31 +555,37 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         def test_does_not_create_foreign_keys_when_bypassed_by_config
-          connection = ActiveRecord::Base.establish_connection(
-            {
-              adapter: "sqlite3",
-              database: "test/db/test.sqlite3",
-              foreign_keys: false,
-            }
-          ).connection
+          if current_adapter?(:SQLite3Adapter) && !ActiveRecord::Base.connection.supports_concurrent_connections?
+            skip("Can't reopen in-memory database")
+          else
+            begin
+              connection = ActiveRecord::Base.establish_connection(
+                {
+                  adapter: "sqlite3",
+                  database: "test/db/test.sqlite3",
+                  foreign_keys: false,
+                }
+              ).connection
 
-          connection.create_table "rockets", force: true do |t|
-            t.string :name
+              connection.create_table "rockets", force: true do |t|
+                t.string :name
+              end
+              connection.create_table "astronauts", force: true do |t|
+                t.string :name
+                t.references :rocket
+              end
+
+              connection.add_foreign_key :astronauts, :rockets
+
+              foreign_keys = connection.foreign_keys("astronauts")
+              assert_equal 0, foreign_keys.size
+            ensure
+              connection.drop_table "astronauts", if_exists: true rescue nil
+              connection.drop_table "rockets", if_exists: true rescue nil
+
+              ActiveRecord::Base.establish_connection(:arunit)
+            end
           end
-          connection.create_table "astronauts", force: true do |t|
-            t.string :name
-            t.references :rocket
-          end
-
-          connection.add_foreign_key :astronauts, :rockets
-
-          foreign_keys = connection.foreign_keys("astronauts")
-          assert_equal 0, foreign_keys.size
-        ensure
-          connection.drop_table "astronauts", if_exists: true rescue nil
-          connection.drop_table "rockets", if_exists: true rescue nil
-
-          ActiveRecord::Base.establish_connection(:arunit)
         end
 
         def test_schema_dumping
