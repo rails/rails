@@ -48,7 +48,9 @@ module ActiveStorage
     #   document.images.attach([ first_blob, second_blob ])
     def attach(*attachables)
       record.public_send("#{name}=", blobs + attachables.flatten)
-      return false if record.persisted? && !record.changed? && !record.save
+      if record.persisted? && !record.changed?
+        return if !record.save
+      end
       record.public_send("#{name}")
     end
 

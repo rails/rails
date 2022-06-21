@@ -1,3 +1,8 @@
+*   Method `attach` always returns the attachments except when the record
+    is persisted, unchanged, and saving it fails, in which case it returns `nil`.
+
+    *Santiago Bartesaghi*
+
 *   Fixes multiple `attach` calls within transaction not uploading files correctly.
 
     In the following example, the code failed to upload all but the last file to the configured service.
