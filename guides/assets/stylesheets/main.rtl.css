@@ -771,3 +771,8 @@ div.important p, div.caution p, div.warning p, div.note p, div.info p {
   z-index: 100;
   border: none;
 }
+
+#version-badge a {
+  color: inherit;
+  text-decoration: inherit;
+}
