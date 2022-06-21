@@ -353,3 +353,15 @@ class MessageEncryptorMetadataNullSerializerTest < MessageVerifierMetadataTest
       { serializer: ActiveSupport::MessageEncryptor::NullSerializer }
     end
 end
+
+class MessageVerifierUrlsafeTest < MessageVerifierMetadataTest
+  def test_urlsafe
+    message = generate(data)
+    assert_equal message, URI.encode_www_form_component(message)
+  end
+
+  private
+    def verifier_options
+      { urlsafe: true }
+    end
+end

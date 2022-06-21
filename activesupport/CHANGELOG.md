@@ -1,3 +1,17 @@
+*   Add `urlsafe` option to `ActiveSupport::MessageVerifier` initializer
+
+    `ActiveSupport::MessageVerifier.new` now takes optional `urlsafe` argument.
+    It can generate urlsafe strings by passing `urlsafe: true`.
+
+    ```ruby
+    verifier = ActiveSupport::MessageVerifier.new(urlsafe: true)
+    message = verifier.generate(data) # => "urlsafe_string"
+    ```
+
+    This option is `false` by default to be backwards compatible.
+
+    *Shouichi Kamiya*
+
 *   Enable connection pooling by default for `MemCacheStore` and `RedisCacheStore`.
 
     If you want to disable connection pooling, set `:pool` option to `false` when configuring the cache store:
