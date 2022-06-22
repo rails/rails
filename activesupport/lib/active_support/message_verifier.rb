@@ -210,7 +210,7 @@ module ActiveSupport
 
     private
       def encode(data)
-        @urlsafe ? Base64.urlsafe_encode64(data) : Base64.strict_encode64(data)
+        @urlsafe ? Base64.urlsafe_encode64(data, padding: false) : Base64.strict_encode64(data)
       end
 
       def decode(data)

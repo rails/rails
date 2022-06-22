@@ -360,6 +360,11 @@ class MessageVerifierUrlsafeTest < MessageVerifierMetadataTest
     assert_equal message, URI.encode_www_form_component(message)
   end
 
+  def test_no_padding
+    message = generate("a")
+    assert_not_includes message, "="
+  end
+
   private
     def verifier_options
       { urlsafe: true }
