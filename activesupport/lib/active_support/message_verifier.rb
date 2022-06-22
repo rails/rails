@@ -107,6 +107,17 @@ module ActiveSupport
   # Though the above would most likely be combined into one rotation:
   #
   #   verifier.rotate(old_secret, digest: "SHA256", serializer: Marshal)
+  #
+  # === Generating urlsafe strings
+  #
+  # By default MessageVerifier generates RFC 4648 complient strings which are
+  # not urlsafe. In other words, they can contain "+" and "/". If you want to
+  # generate urlsafe strings (complie with “Base 64 Encoding with URL and
+  # Filename Safe Alphabet” in RFC 4648), you can pass urlsafe upon
+  # initialization:
+  #
+  #   @verifier = ActiveSupport::MessageVerifier.new("secret", urlsafe: true)
+  #   @verifier.generate("signed message") #=> "urlsafe_string"
   class MessageVerifier
     prepend Messages::Rotator::Verifier
 
