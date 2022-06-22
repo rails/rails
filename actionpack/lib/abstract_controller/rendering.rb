@@ -113,6 +113,7 @@ module AbstractController
     # Normalize args and options.
     def _normalize_render(*args, &block) # :nodoc:
       options = _normalize_args(*args, &block)
+      options[:block] = block
       _process_variant(options)
       _normalize_options(options)
       options
