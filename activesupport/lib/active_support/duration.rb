@@ -2,6 +2,7 @@
 
 require "active_support/core_ext/array/conversions"
 require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/numeric/conversions"
 require "active_support/core_ext/object/acts_like"
 
 module ActiveSupport
@@ -29,7 +30,17 @@ module ActiveSupport
       end
 
       def <=>(other)
-        if Scalar === other || Duration === other
+        if Scalar === other
+          value <=> other.value
+        elsif Duration === other
+          ActiveSupport.deprecator.warn <<~WARNING
+            Comparing a Numeric with an ActiveSupport::Duration is deprecated and
+            will always return nil in Rails 7.2
+
+            You should call in_seconds on the Duration to explicitly treat the
+            Duration as a number of seconds.
+          WARNING
+
           value <=> other.value
         elsif Numeric === other
           value <=> other
@@ -40,6 +51,14 @@ module ActiveSupport
 
       def +(other)
         if Duration === other
+          ActiveSupport.deprecator.warn <<~WARNING
+            Adding/subtracting a Numeric to/from a Duration is deprecated and will
+            raise in Rails 7.2
+
+            You should use #{other}.seconds if you want to treat a Numeric as a
+            number of seconds
+          WARNING
+
           seconds   = value + other._parts.fetch(:seconds, 0)
           new_parts = other._parts.merge(seconds: seconds)
           new_value = value + other.value
@@ -52,6 +71,14 @@ module ActiveSupport
 
       def -(other)
         if Duration === other
+          ActiveSupport.deprecator.warn <<~WARNING
+            Adding/subtracting a Numeric to/from a Duration is deprecated and will
+            raise in Rails 7.2
+
+            You should use #{other}.seconds if you want to treat a Numeric as a
+            number of seconds
+          WARNING
+
           seconds   = value - other._parts.fetch(:seconds, 0)
           new_parts = other._parts.transform_values(&:-@)
           new_parts = new_parts.merge(seconds: seconds)
@@ -76,6 +103,14 @@ module ActiveSupport
 
       def /(other)
         if Duration === other
+          ActiveSupport.deprecator.warn <<~WARNING
+            Dividing a Numeric by a Duration is deprecated and will raise in
+            Rails 7.2
+
+            You should use #{other}.seconds if you want to treat a Numeric as a
+            number of seconds
+          WARNING
+
           value / other.value
         else
           calculate(:/, other)
@@ -84,6 +119,13 @@ module ActiveSupport
 
       def %(other)
         if Duration === other
+          ActiveSupport.deprecator.warn <<~WARNING
+            Numeric % Duration is deprecated and will raise in Rails 7.2
+
+            You should use #{other}.seconds if you want to treat a Numeric as a
+            number of seconds
+          WARNING
+
           Duration.build(value % other.value)
         else
           calculate(:%, other)
@@ -110,6 +152,7 @@ module ActiveSupport
         end
     end
 
+    MILLISECONDS_PER_SECOND = 1000
     SECONDS_PER_MINUTE = 60
     SECONDS_PER_HOUR   = 3600
     SECONDS_PER_DAY    = 86400
@@ -221,6 +264,11 @@ module ActiveSupport
         end
     end
 
+    include Comparable
+
+    delegate :integer?, :negative?, :nonzero?, :positive?, :to_d, :to_f,
+      :to_formatted_s, :to_fs, :to_r, :zero?, to: :@value
+
     def initialize(value, parts, variable = nil) # :nodoc:
       @value, @parts = value, parts
       @parts.reject! { |k, v| v.zero? } unless value == 0
@@ -254,6 +302,14 @@ module ActiveSupport
       if Duration === other
         value <=> other.value
       elsif Numeric === other
+        ActiveSupport.deprecator.warn <<~WARNING
+          Comparing an ActiveSupport::Duration with a Numeric is deprecated and
+          will always return nil in Rails 7.2
+
+          You should call in_seconds on the Duration to explicitly treat the
+          Duration as a number of seconds.
+        WARNING
+
         value <=> other
       end
     end
@@ -267,6 +323,14 @@ module ActiveSupport
         end
         Duration.new(value + other.value, parts, @variable || other.variable?)
       else
+        ActiveSupport.deprecator.warn <<~WARNING
+          Adding/subtracting a Numeric to/from a Duration is deprecated and will
+          raise in Rails 7.2
+
+          You should use #{other}.seconds if you want to treat a Numeric as a
+          number of seconds
+        WARNING
+
         seconds = @parts.fetch(:seconds, 0) + other
         Duration.new(value + other, @parts.merge(seconds: seconds), @variable)
       end
@@ -280,7 +344,15 @@ module ActiveSupport
 
     # Multiplies this Duration by a Numeric and returns a new Duration.
     def *(other)
-      if Scalar === other || Duration === other
+      if Scalar === other
+        Duration.new(value * other.value, @parts.transform_values { |number| number * other.value }, @variable || other.variable?)
+      elsif Duration === other
+        ActiveSupport.deprecator.warn <<~WARNING
+          Multiplying two Durations is deprecated and will raise in Rails 7.2
+
+          You should use #in_seconds if you want to treat a Duration as a number
+          of seconds
+        WARNING
         Duration.new(value * other.value, @parts.transform_values { |number| number * other.value }, @variable || other.variable?)
       elsif Numeric === other
         Duration.new(value * other, @parts.transform_values { |number| number * other }, @variable)
@@ -313,6 +385,63 @@ module ActiveSupport
         raise_type_error(other)
       end
     end
+    alias :modulo :%
+
+    def abs
+      Duration.new(value.abs, @parts.transform_values(&:abs), @variable)
+    end
+
+    def div(other)
+      if Scalar === other
+        Duration.new(value.div(other.value), @parts.transform_values { |number| number.div(other.value) }, @variable)
+      elsif Duration === other
+        value.div(other.value)
+      elsif Numeric === other
+        Duration.new(value.div(other), @parts.transform_values { |number| number.div(other) }, @variable)
+      else
+        raise_type_error(other)
+      end
+    end
+
+    def divmod(other)
+      [div(other), self % other]
+    end
+
+    def fdiv(other)
+      if Scalar === other
+        Duration.new(value / other.value.to_f, @parts.transform_values { |number| number / other.value.to_f }, @variable)
+      elsif Duration === other
+        value / other.value.to_f
+      elsif Numeric === other
+        Duration.new(value / other.to_f, @parts.transform_values { |number| number / other.to_f }, @variable)
+      else
+        raise_type_error(other)
+      end
+    end
+
+    def quo(other)
+      if Scalar === other
+        Duration.new(value.quo(other.value), @parts.transform_values { |number| number.quo(other.value) }, @variable)
+      elsif Duration === other
+        value.quo(other.value)
+      elsif Numeric === other
+        Duration.new(value.quo(other), @parts.transform_values { |number| number.quo(other) }, @variable)
+      else
+        raise_type_error(other)
+      end
+    end
+
+    def remainder(other)
+      if Scalar === other
+        Duration.new(value.remainder(other.value), @parts.transform_values { |number| number.remainder(other.value) }, @variable)
+      elsif Duration === other
+        value.remainder(other.value)
+      elsif Numeric === other
+        Duration.new(value.remainder(other), @parts.transform_values { |number| number.remainder(other) }, @variable)
+      else
+        raise_type_error(other)
+      end
+    end
 
     def -@ # :nodoc:
       Duration.new(-value, @parts.transform_values(&:-@), @variable)
@@ -323,12 +452,30 @@ module ActiveSupport
     end
 
     def is_a?(klass) # :nodoc:
-      Duration == klass || value.is_a?(klass)
+      return true if Duration == klass
+
+      return false unless value.is_a?(klass)
+
+      ActiveSupport.deprecator.warn <<~WARNING
+        ActiveSupport::Duration#is_a? returning true for #{klass} is deprecated,
+        and will return false in Rails 7.2
+      WARNING
+
+      true
     end
     alias :kind_of? :is_a?
 
     def instance_of?(klass) # :nodoc:
-      Duration == klass || value.instance_of?(klass)
+      return true if Duration == klass
+
+      return false unless value.instance_of?(klass)
+
+      ActiveSupport.deprecator.warn <<~WARNING
+        ActiveSupport::Duration#is_a? returning true for #{klass} is deprecated,
+        and will return false in Rails 7.2
+      WARNING
+
+      true
     end
 
     # Returns +true+ if +other+ is also a Duration instance with the
@@ -337,7 +484,16 @@ module ActiveSupport
       if Duration === other
         other.value == value
       else
-        other == value
+        if other == value
+          ActiveSupport.deprecator.warn <<~WARNING
+            ActiveSupport::Duration#== returning true for non Durations is
+            deprecated, and will return false in Rails 7.2
+          WARNING
+
+          true
+        else
+          false
+        end
       end
     end
 
@@ -347,6 +503,13 @@ module ActiveSupport
     #   1.day.to_s # => "86400"
     def to_s
       @value.to_s
+    end
+
+    # Returns the number of milliseconds that this Duration represents.
+    #
+    #   1.day.in_milliseconds # => 86400000
+    def in_milliseconds
+      in_seconds * MILLISECONDS_PER_SECOND
     end
 
     # Returns the number of seconds that this Duration represents.
@@ -505,6 +668,12 @@ module ActiveSupport
       end
 
       def method_missing(method, *args, &block)
+        ActiveSupport.deprecator.warn <<~WARNING
+          Duration##{method} is deprecated and will be removed in Rails 7.2
+
+          To get the old behavior, you should call #in_seconds first before calling #{method}
+        WARNING
+
         value.public_send(method, *args, &block)
       end
 

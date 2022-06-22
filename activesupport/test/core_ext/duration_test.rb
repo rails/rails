@@ -14,8 +14,12 @@ class DurationTest < ActiveSupport::TestCase
     d = 1.day
     assert d.is_a?(ActiveSupport::Duration)
     assert_kind_of ActiveSupport::Duration, d
-    assert_kind_of Numeric, d
-    assert_kind_of Integer, d
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_kind_of Numeric, d
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_kind_of Integer, d
+    end
     assert_not d.is_a?(Hash)
 
     k = Class.new
@@ -24,7 +28,9 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_instance_of
-    assert 1.minute.instance_of?(Integer)
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert 1.minute.instance_of?(Integer)
+    end
     assert 2.days.instance_of?(ActiveSupport::Duration)
     assert_not 3.second.instance_of?(Numeric)
   end
@@ -37,13 +43,22 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_equals
     assert 1.day == 1.day
-    assert 1.day == 1.day.to_i
-    assert 1.day.to_i == 1.day
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert 1.day == 1.day.to_i
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert 1.day.to_i == 1.day
+    end
     assert_not (1.day == "foo")
   end
 
   def test_to_s
     assert_equal "1", 1.second.to_s
+  end
+
+  def test_in_milliseconds
+    assert_equal 86400000, 1.day.in_milliseconds
+    assert_equal 60000, 1.minute.in_milliseconds
   end
 
   def test_in_seconds
@@ -105,7 +120,7 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "7 days",                          7.days.inspect
     assert_equal "1 week",                          1.week.inspect
     assert_equal "2 weeks",                         1.fortnight.inspect
-    assert_equal "0 seconds",                       (10 % 5.seconds).inspect
+    assert_equal "0 seconds",                       (10.seconds % 5.seconds).inspect
     assert_equal "10 minutes",                      (10.minutes + 0.seconds).inspect
     assert_equal "3600 seconds",                    (1.day / 24).inspect
   end
@@ -131,23 +146,38 @@ class DurationTest < ActiveSupport::TestCase
   def test_plus
     assert_equal 2.seconds, 1.second + 1.second
     assert_instance_of ActiveSupport::Duration, 1.second + 1.second
-    assert_equal 2.seconds, 1.second + 1
-    assert_instance_of ActiveSupport::Duration, 1.second + 1
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal 2.seconds, 1.second + 1
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_instance_of ActiveSupport::Duration, 1.second + 1
+    end
   end
 
   def test_minus
     assert_equal 1.second, 2.seconds - 1.second
     assert_instance_of ActiveSupport::Duration, 2.seconds - 1.second
-    assert_equal 1.second, 2.seconds - 1
-    assert_instance_of ActiveSupport::Duration, 2.seconds - 1
-    assert_equal 1.second, 2 - 1.second
-    assert_instance_of ActiveSupport::Duration, 2.seconds - 1
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal 1.second, 2.seconds - 1
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_instance_of ActiveSupport::Duration, 2.seconds - 1
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal 1.second, 2 - 1.second
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_instance_of ActiveSupport::Duration, 2.seconds - 1
+    end
   end
 
   def test_multiply
     assert_equal 7.days, 1.day * 7
     assert_instance_of ActiveSupport::Duration, 1.day * 7
-    assert_equal 86400, 1.day * 1.second
+
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal 86400, 1.day * 1.second
+    end
   end
 
   def test_divide
@@ -157,8 +187,12 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal 1.hour, 1.day / 24
     assert_instance_of ActiveSupport::Duration, 1.day / 24
 
-    assert_equal 24, 86400 / 1.hour
-    assert_kind_of Integer, 86400 / 1.hour
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal 24, 86400 / 1.hour
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_kind_of Integer, 86400 / 1.hour
+    end
 
     assert_equal 24, 1.day / 1.hour
     assert_kind_of Integer, 1.day / 1.hour
@@ -186,11 +220,40 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal 1.day, 36.days % 7.days
     assert_instance_of ActiveSupport::Duration, 36.days % 7.days
 
-    assert_equal 800.seconds, 8000 % 1.hour
-    assert_instance_of ActiveSupport::Duration, 8000 % 1.hour
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal 800.seconds, 8000 % 1.hour
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_instance_of ActiveSupport::Duration, 8000 % 1.hour
+    end
 
     assert_equal 1.month, 13.months % 1.year
     assert_instance_of ActiveSupport::Duration, 13.months % 1.year
+  end
+
+  def test_abs
+    assert_equal 1.minute, -1.minute.abs
+    assert_instance_of ActiveSupport::Duration, -1.minute.abs
+  end
+
+  def test_div
+    assert_equal 1.seconds, 3.seconds.div(2)
+    assert_equal 2, 7.seconds.div(3.seconds)
+  end
+
+  def test_fdiv
+    assert_equal 1.5.seconds, 3.seconds.fdiv(2)
+    assert_equal 2.5, 10.seconds.fdiv(4.seconds)
+  end
+
+  def test_quo
+    assert_equal 1.5.seconds, 3.seconds.quo(2)
+    assert_equal 4, 10.seconds.quo(2.5.seconds)
+  end
+
+  def test_remainder
+    assert_equal 1.second, 3.seconds.remainder(2)
+    assert_equal 0, 4.seconds.remainder(4.seconds)
   end
 
   def test_date_added_with_zero_days
@@ -219,7 +282,9 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_plus_with_time
-    assert_equal 1 + 1.second, 1.second + 1, "Duration + Numeric should == Numeric + Duration"
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal 1 + 1.second, 1.second + 1, "Duration + Numeric should == Numeric + Duration"
+    end
   end
 
   def test_time_plus_duration_returns_same_time_datatype
@@ -239,13 +304,13 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_fractional_weeks
-    assert_equal((86400 * 7) * 1.5, 1.5.weeks)
-    assert_equal((86400 * 7) * 1.7, 1.7.weeks)
+    assert_equal((86400 * 7) * 1.5.seconds, 1.5.weeks)
+    assert_equal((86400 * 7) * 1.7.seconds, 1.7.weeks)
   end
 
   def test_fractional_days
-    assert_equal 86400 * 1.5, 1.5.days
-    assert_equal 86400 * 1.7, 1.7.days
+    assert_equal 86400 * 1.5.seconds, 1.5.days
+    assert_equal 86400 * 1.7.seconds, 1.7.days
   end
 
   def test_since_and_ago
@@ -340,14 +405,6 @@ class DurationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_delegation_with_block_works
-    counter = 0
-    assert_nothing_raised do
-      1.minute.times { counter += 1 }
-    end
-    assert_equal 60, counter
-  end
-
   def test_as_json
     assert_equal 172800, 2.days.as_json
   end
@@ -377,13 +434,20 @@ class DurationTest < ActiveSupport::TestCase
   def test_comparable
     assert_equal(-1, (0.seconds <=> 1.second))
     assert_equal(-1, (1.second <=> 1.minute))
-    assert_equal(-1, (1 <=> 1.minute))
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal(-1, (1 <=> 1.minute))
+    end
     assert_equal(0, (0.seconds <=> 0.seconds))
     assert_equal(0, (0.seconds <=> 0.minutes))
     assert_equal(0, (1.second <=> 1.second))
     assert_equal(1, (1.second <=> 0.second))
     assert_equal(1, (1.minute <=> 1.second))
-    assert_equal(1, (61 <=> 1.minute))
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal(1, (61 <=> 1.minute))
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal(-1, (1.minute <=> 61))
+    end
   end
 
   def test_implicit_coercion
@@ -396,7 +460,9 @@ class DurationTest < ActiveSupport::TestCase
   def test_scalar_coerce
     scalar = ActiveSupport::Duration::Scalar.new(10)
     assert_instance_of ActiveSupport::Duration::Scalar, 10 + scalar
-    assert_instance_of ActiveSupport::Duration, 10.seconds + scalar
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_instance_of ActiveSupport::Duration, 10.seconds + scalar
+    end
   end
 
   def test_scalar_delegations
@@ -429,10 +495,18 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration::Scalar, 10 + scalar
     assert_equal 20, scalar + 10
     assert_instance_of ActiveSupport::Duration::Scalar, scalar + 10
-    assert_equal 20, 10.seconds + scalar
-    assert_instance_of ActiveSupport::Duration, 10.seconds + scalar
-    assert_equal 20, scalar + 10.seconds
-    assert_instance_of ActiveSupport::Duration, scalar + 10.seconds
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal 20, 10.seconds + scalar
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_instance_of ActiveSupport::Duration, 10.seconds + scalar
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal 20, scalar + 10.seconds
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_instance_of ActiveSupport::Duration, scalar + 10.seconds
+    end
 
     exception = assert_raises(TypeError) do
       scalar + "foo"
@@ -444,8 +518,12 @@ class DurationTest < ActiveSupport::TestCase
   def test_scalar_plus_parts
     scalar = ActiveSupport::Duration::Scalar.new(10)
 
-    assert_equal({ days: 1, seconds: 10 }, (scalar + 1.day).parts)
-    assert_equal({ days: -1, seconds: 10 }, (scalar + -1.day).parts)
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal({ days: 1, seconds: 10 }, (scalar + 1.day).parts)
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal({ days: -1, seconds: 10 }, (scalar + -1.day).parts)
+    end
   end
 
   def test_scalar_minus
@@ -455,13 +533,25 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration::Scalar, 20 - scalar
     assert_equal 5, scalar - 5
     assert_instance_of ActiveSupport::Duration::Scalar, scalar - 5
-    assert_equal 10, 20.seconds - scalar
-    assert_instance_of ActiveSupport::Duration, 20.seconds - scalar
-    assert_equal 5, scalar - 5.seconds
-    assert_instance_of ActiveSupport::Duration, scalar - 5.seconds
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal 10, 20.seconds - scalar
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_instance_of ActiveSupport::Duration, 20.seconds - scalar
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal 5, scalar - 5.seconds
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_instance_of ActiveSupport::Duration, scalar - 5.seconds
+    end
 
-    assert_equal({ days: -1, seconds: 10 }, (scalar - 1.day).parts)
-    assert_equal({ days: 1, seconds: 10 }, (scalar - -1.day).parts)
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal({ days: -1, seconds: 10 }, (scalar - 1.day).parts)
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal({ days: 1, seconds: 10 }, (scalar - -1.day).parts)
+    end
 
     exception = assert_raises(TypeError) do
       scalar - "foo"
@@ -473,8 +563,12 @@ class DurationTest < ActiveSupport::TestCase
   def test_scalar_minus_parts
     scalar = ActiveSupport::Duration::Scalar.new(10)
 
-    assert_equal({ days: -1, seconds: 10 }, (scalar - 1.day).parts)
-    assert_equal({ days: 1, seconds: 10 }, (scalar - -1.day).parts)
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal({ days: -1, seconds: 10 }, (scalar - 1.day).parts)
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal({ days: 1, seconds: 10 }, (scalar - -1.day).parts)
+    end
   end
 
   def test_scalar_multiply
@@ -484,9 +578,9 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration::Scalar, 2 * scalar
     assert_equal 10, scalar * 2
     assert_instance_of ActiveSupport::Duration::Scalar, scalar * 2
-    assert_equal 10, 2.seconds * scalar
+    assert_equal 10.seconds, 2.seconds * scalar
     assert_instance_of ActiveSupport::Duration, 2.seconds * scalar
-    assert_equal 10, scalar * 2.seconds
+    assert_equal 10.seconds, scalar * 2.seconds
     assert_instance_of ActiveSupport::Duration, scalar * 2.seconds
 
     exception = assert_raises(TypeError) do
@@ -511,10 +605,15 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration::Scalar, 100 / scalar
     assert_equal 5, scalar / 2
     assert_instance_of ActiveSupport::Duration::Scalar, scalar / 2
-    assert_equal 10, 100.seconds / scalar
+    assert_equal 10.seconds, 100.seconds / scalar
     assert_instance_of ActiveSupport::Duration, 100.seconds / scalar
-    assert_equal 5, scalar / 2.seconds
-    assert_kind_of Integer, scalar / 2.seconds
+
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal 5, scalar / 2.seconds
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_kind_of Integer, scalar / 2.seconds
+    end
 
     exception = assert_raises(TypeError) do
       scalar / "foo"
@@ -530,10 +629,14 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration::Scalar, 31 % scalar
     assert_equal 1, scalar % 3
     assert_instance_of ActiveSupport::Duration::Scalar, scalar % 3
-    assert_equal 1, 31.seconds % scalar
+    assert_equal 1.seconds, 31.seconds % scalar
     assert_instance_of ActiveSupport::Duration, 31.seconds % scalar
-    assert_equal 1, scalar % 3.seconds
-    assert_instance_of ActiveSupport::Duration, scalar % 3.seconds
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal 1.seconds, scalar % 3.seconds
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_instance_of ActiveSupport::Duration, scalar % 3.seconds
+    end
 
     exception = assert_raises(TypeError) do
       scalar % "foo"
@@ -544,8 +647,12 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_scalar_modulo_parts
     scalar = ActiveSupport::Duration::Scalar.new(82800)
-    assert_equal({ hours: 1 }, (scalar % 2.hours).parts)
-    assert_equal(3600, (scalar % 2.hours).value)
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal({ hours: 1 }, (scalar % 2.hours).parts)
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal(3600, (scalar % 2.hours).value)
+    end
   end
 
   def test_twelve_months_equals_one_year
@@ -714,7 +821,7 @@ class DurationTest < ActiveSupport::TestCase
     payload = YAML.dump(10.minutes)
     d1 = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
     assert_equal 600, d1.to_i
-    assert_equal 660, (d1 + 60).to_i
+    assert_equal 660, (d1 + 60.seconds).to_i
   end
 
   def test_string_build_raises_error
@@ -758,6 +865,63 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal expected_time, time + -ActiveSupport::Duration.build(1)
     assert_equal expected_time, time + ActiveSupport::Duration::Scalar.new(-1)
     assert_equal expected_time, time + ActiveSupport::Duration.build(-1)
+  end
+
+  def test_missing_methods_deprecated
+    original_integer_methods = 1.methods
+    require "active_support/core_ext/numeric/bytes"
+    require "active_support/core_ext/integer/multiple"
+    require "active_support/core_ext/integer/inflections"
+    require "openssl"
+
+    deprecated_methods = %i[
+      byte bytes day days exabyte exabytes fortnight fortnights gigabyte
+      gigabytes hour hours kilobyte kilobytes megabyte megabytes minute
+      minutes month months petabyte petabytes second seconds terabyte terabytes
+      week weeks year years
+
+      & ** << >> [] ^ abs2 allbits? angle anybits? arg bit_length ceil chr conj
+      conjugate denominator digits downto even? finite? floor gcd gcdlcm i imag
+      imaginary infinite? lcm magnitude multiple_of? next nobits? numerator odd?
+      ord ordinal ordinalize phase polar pow pred rationalize real real? rect
+      rectangular round size step succ times to_bn to_c to_int truncate upto | ~
+    ]
+
+    deprecated_methods.each do |method|
+      assert_deprecated(ActiveSupport.deprecator) do
+        1.year.public_send(method)
+      rescue ArgumentError, RangeError
+      end
+    end
+  ensure
+    (1.methods - original_integer_methods).each do |method|
+      Integer.undef_method(method)
+    end
+  end
+
+  def test_delegated_methods
+    duration = 1.day
+
+    assert_equal true, duration.integer?
+    assert_equal false, duration.negative?
+    assert_equal 86400, duration.nonzero?
+    assert_equal true, duration.positive?
+    assert_equal 0.864e5, duration.to_d
+    assert_equal 86400.0, duration.to_f
+    assert_equal "86400", duration.to_formatted_s
+    assert_equal "86400", duration.to_fs
+    assert_equal 86400/1r, duration.to_r
+    assert_equal false, duration.zero?
+  end
+
+  def test_durations_are_comparable
+    assert_equal false, 1.day > 2.days
+    assert_equal true, 2.days >= 1.day
+    assert_equal true, 1.day == 24.hours
+    assert_equal true, 1.day < 25.hours
+    assert_equal true, 2.days <= 48.hours
+    assert_equal false, 2.days.between?(22.hours, 47.hours)
+    assert_equal 1.day, 12.hours.clamp(1.day, 2.days)
   end
 
   private
