@@ -3,43 +3,127 @@
 The Asset Pipeline
 ==================
 
-This guide covers the asset pipeline.
+This guide covers the asset pipeline as it was implemented by Sprockets.
 
 After reading this guide, you will know:
 
-* What the asset pipeline is and what it does;
-* The benefits of the asset pipeline;
-* The four approaches implementing the asset pipeline;
-* How to decide which approach to use in your own application;
-* Where to go to read the guide for your chosen approach.
+* What the asset pipeline is and what it does.
+* How to properly organize your application assets.
+* The benefits of the asset pipeline.
+* How to package assets with a gem.
 
 --------------------------------------------------------------------------------
 
 What is the Asset Pipeline?
 ---------------------------
 
-The asset pipeline is responsible for serving javascript, css and image files
-in the most efficient manner possible, from your app, its ruby gems and its node
-packages.
+The asset pipeline provides a framework to speed-up the delivery of Javascript and 
+CSS assets. This is done by leveraging technologies like HTTP/2 and techniques like
+concatenation and minification. It also adds the ability to write these assets in 
+other languages and pre-processors, such as Sass and ERB. Finally, it allows your
+application to be automatically combined with assets from other gems.
+
+The asset pipeline is implemented by the 
+[importmaps-rails](https://github.com/rails/importmaps-rails) and 
+[sprockets-rails](https://github.com/rails/sprockets-rails) gems,
+and is enabled by default. You can disable it while creating a new application by
+passing the `--skip-asset-pipeline` option.
+
+```bash
+$ rails new appname --skip-asset-pipeline
+```
 
 ### Main Features
 
+The first feature of the asset pipeline is to insert a SHA256 fingerprinting
+into each filename so that the file is cached by the web browser and CDN. This 
+fingerprint is automatically updated when you change the file contents, which 
+invalidates the cache.
+
+The second feature of the asset pipeline is to use [import maps](https://github.com/WICG/import-maps)
+when serving JavaScript files. This lets you build modern applications using
+Javascript libraries made for ES modules (ESM) without the need for transpiling
+and bundling. In turn, this eliminates the need for Webpack, yarn, node or any
+other part of the JavaScript toolchain.
+
+The third feature of the asset pipeline is to concatenate all CSS files into 
+one main `.css` file, which is then minified or compressed. 
+As you'll learn later in this guide, you  can customize this strategy to group 
+files any way you like. In production, Rails inserts an SHA256 fingerprint into 
+each filename so that the file is cached by the web browser. You can invalidate 
+the cache by altering this fingerprint, which happens automatically whenever you 
+change the file contents.
+
+The fourth feature of the asset pipeline is it allows coding assets via a
+higher-level language, with precompilation down to the actual assets. Supported
+languages include Sass for CSS and ERB for both CSS and Javascript by default.
+
 ### What is Fingerprinting and Why Should I Care?
 
-### What is different between delivering assets in HTTP1 and HTTP2?
+Fingerprinting is a technique that makes the name of a file dependent on the
+contents of the file. When the file contents change, the filename is also
+changed. For content that is static or infrequently changed, this provides an
+easy way to tell whether two versions of a file are identical, even across
+different servers or deployment dates.
 
+When a filename is unique and based on its content, HTTP headers can be set to
+encourage caches everywhere (whether at CDNs, at ISPs, in networking equipment,
+or in web browsers) to keep their own copy of the content. When the content is
+updated, the fingerprint will change. This will cause the remote clients to
+request a new copy of the content. This is generally known as _cache busting_.
 
-The Four Approaches to the Asset Pipeline
------------------------------------------
+The technique Sprockets uses for fingerprinting is to insert a hash of the
+content into the name, usually at the end. For example a CSS file `global.css`
 
-### Sprockets
-The original asset pipeline gem, built for the HTTP/1 era and low javascript frontends. It handled the bundling and digesting of javascript, css and image files, without relying on node packages.
+```
+global-908e25f4bf641868d8683022a5b62f54.css
+```
 
-### Webpacker
-Shipped with Rails 5.2, as a wrapper around the complexity of Webpack/Node/Yarn, this gem could completely replace Sprockets or simply take over javascript transpiling and bundling. It provided Rails “out of the box” support for SPA frameworks like React.
+This is the strategy adopted by the Rails asset pipeline.
 
-### Import Maps
-Shipped with Rails 7.0, it replaces Sprockets as the default asset pipeline gem. Although it eliminates the need for node/yarn and other complex tooling, it requires the application using it to be deployed in an environment that supports HTTP/2, otherwise it causes severe performance problems.
+Rails' old strategy was to append a date-based query string to every asset linked
+with a built-in helper. In the source the generated code looked like this:
 
-### Bundling Gems
-Shipped with Rails 7.0, the multiple bundling gems provide a more traditional, if more modern, approach to the asset pipeline than import maps does. They basically break down the “all in one” approach of Sprockets into multiple smaller, specialized pieces. The main gems are propshaft, jsbundling and cssbundling.
+```
+/stylesheets/global.css?1309495796
+```
+
+The query string strategy has several disadvantages:
+
+1. **Not all caches will reliably cache content where the filename only differs by
+   query parameters**
+
+   [Steve Souders recommends](https://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/),
+   "...avoiding a querystring for cacheable resources". He found that in this
+   case 5-20% of requests will not be cached. Query strings in particular do not
+   work at all with some CDNs for cache invalidation.
+
+2. **The file name can change between nodes in multi-server environments.**
+
+   The default query string in Rails 2.x is based on the modification time of
+   the files. When assets are deployed to a cluster, there is no guarantee that the
+   timestamps will be the same, resulting in different values being used depending
+   on which server handles the request.
+
+3. **Too much cache invalidation**
+
+   When static assets are deployed with each new release of code, the mtime
+   (time of last modification) of _all_ these files changes, forcing all remote
+   clients to fetch them again, even when the content of those assets has not changed.
+
+Fingerprinting fixes these problems by avoiding query strings, and by ensuring
+that filenames are consistent based on their content.
+
+Fingerprinting is enabled by default for both the development and production
+environments. You can enable or disable it in your configuration through the
+[`config.assets.digest`][] option.
+
+More reading:
+
+* [Optimize caching](https://developers.google.com/speed/docs/insights/LeverageBrowserCaching)
+* [Revving Filenames: don't use querystring](http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/)
+
+[`config.assets.digest`]: configuring.html#config-assets-digest
+
+### What are Import Maps and Why Should I Care?
+
