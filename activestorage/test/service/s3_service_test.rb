@@ -93,6 +93,10 @@ if SERVICE_CONFIGURATIONS[:s3]
       assert_match SERVICE_CONFIGURATIONS[:s3][:bucket], url
     end
 
+    test "method_for_direct_upload generation default" do
+      assert_equal("PUT", @service.method_for_direct_upload)
+    end
+
     test "uploading with server-side encryption" do
       service = build_service(upload: { server_side_encryption: "AES256" })
 

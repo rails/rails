@@ -166,6 +166,10 @@ if SERVICE_CONFIGURATIONS[:gcs]
         @service.url(@key, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain"))
     end
 
+    test "method_for_direct_upload generation default" do
+      assert_equal("PUT", @service.method_for_direct_upload)
+    end
+
     if SERVICE_CONFIGURATIONS[:gcs].key?(:gsa_email)
       test "direct upload with IAM signing" do
         config_with_iam = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ iam: true }) }
