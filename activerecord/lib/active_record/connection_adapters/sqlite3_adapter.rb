@@ -477,8 +477,13 @@ module ActiveRecord
                  options[:rename][column.name.to_sym] ||
                  column.name) : column.name
 
+              if column.has_default?
+                type = lookup_cast_type_from_column(column)
+                default = type.deserialize(column.default)
+              end
+
               @definition.column(column_name, column.type,
-                limit: column.limit, default: column.default,
+                limit: column.limit, default: default,
                 precision: column.precision, scale: column.scale,
                 null: column.null, collation: column.collation,
                 primary_key: column_name == from_primary_key
