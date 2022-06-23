@@ -341,7 +341,7 @@ module ActiveRecord
       end
 
       def get_database_version # :nodoc:
-        SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)"))
+        SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)", "SCHEMA"))
       end
 
       def check_version # :nodoc:

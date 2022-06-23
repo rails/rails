@@ -1,3 +1,18 @@
+*   Fix `load_async` when called on an association proxy.
+
+    Calling `load_async` directly an association would schedule
+    a query but never use it.
+
+    ```ruby
+    comments = post.comments.load_async # schedule a query
+    comments.to_a # perform an entirely new sync query
+    ```
+
+    Now it does use the async query, however note that it doesn't
+    cause the association to be loaded.
+
+    *Jean Boussier*
+
 *   Fix eager loading for models without primary keys.
 
     *Anmol Chopra*, *Matt Lawrence*, and *Jonathan Hefner*

@@ -1108,7 +1108,7 @@ module ActiveRecord
       ].flat_map { |klass|
         klass.public_instance_methods(false)
       } - self.public_instance_methods(false) - [:select] + [
-        :scoping, :values, :insert, :insert_all, :insert!, :insert_all!, :upsert, :upsert_all
+        :scoping, :values, :insert, :insert_all, :insert!, :insert_all!, :upsert, :upsert_all, :load_async
       ]
 
       delegate(*delegate_methods, to: :scope)
