@@ -98,6 +98,21 @@ module ApplicationTests
       end
     end
 
+    def test_run_all_takes_options
+      create_test_file :system, "foo"
+      assert_match "FooTest", rails("test:all", "--verbose")
+    end
+
+    def test_run_system_takes_options
+      create_test_file :system, "foo"
+      assert_match "FooTest", rails("test:system", "--verbose")
+    end
+
+    def test_run_generators_takes_options
+      create_test_file "lib/generators", "foo"
+      assert_match "FooTest", rails("test:generators", "--verbose")
+    end
+
     def test_run_channels
       create_test_file :channels, "foo_channel"
       create_test_file :channels, "bar_channel"
