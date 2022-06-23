@@ -322,7 +322,7 @@ GEM
     mini_magick (4.11.0)
     mini_mime (1.1.2)
     mini_portile2 (2.8.0)
-    minitest (5.15.0)
+    minitest (5.16.1)
     minitest-bisect (1.5.1)
       minitest-server (~> 1.0)
       path_expander (~> 1.1)
@@ -586,7 +586,7 @@ DEPENDENCIES
   kindlerb (~> 1.2.0)
   libxml-ruby
   listen (~> 3.3)
-  minitest (>= 5.15.0, < 5.16.0)
+  minitest (>= 5.15.0)
   minitest-bisect
   minitest-ci
   minitest-retry
