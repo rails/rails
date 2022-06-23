@@ -417,12 +417,8 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_equal ["authors"], output.scan(/^\s*add_foreign_key "([^"]+)".+$/).flatten
     end
 
-    def test_do_not_dump_foreign_keys_when_bypassed_by_config
-      if current_adapter?(:SQLite3Adapter) && !ActiveRecord::Base.connection.supports_concurrent_connections?
-        skip("Can't reopen in-memory database")
-      end
-
-      begin
+    unless in_memory_db?
+      def test_do_not_dump_foreign_keys_when_bypassed_by_config
         ActiveRecord::Base.establish_connection(
           {
             adapter: "sqlite3",
