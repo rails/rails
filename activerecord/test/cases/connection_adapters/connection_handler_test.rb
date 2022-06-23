@@ -273,6 +273,7 @@ module ActiveRecord
         ActiveRecord::Base.connection_specification_name = "readonly"
         assert_equal "readonly", klassC.connection_specification_name
       ensure
+        ApplicationRecord.remove_connection
         Object.send :remove_const, :ApplicationRecord
         ActiveRecord::Base.connection_specification_name = "ActiveRecord::Base"
       end

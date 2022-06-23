@@ -488,7 +488,7 @@ db_namespace = namespace :db do
     namespace :load do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
         desc "Loads a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) into the #{name} database"
-        task name => [:load_config, :check_protected_environments] do
+        task name => [:load_config, :check_protected_environments, "db:test:purge:#{name}"] do
           original_db_config = ActiveRecord::Base.connection_db_config
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
           schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
@@ -604,8 +604,11 @@ db_namespace = namespace :db do
       # desc "Empty the #{name} test database"
       namespace :purge do
         task name => %w(load_config check_protected_environments) do
+          original_db_config = ActiveRecord::Base.connection_db_config
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", name: name)
           ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
+        ensure
+          ActiveRecord::Base.establish_connection(original_db_config) if original_db_config
         end
       end
 

@@ -448,6 +448,7 @@ module ActiveRecord
             end
           end
         ensure
+          ApplicationRecord.remove_connection
           ActiveRecord.application_record_class = nil
           Object.send(:remove_const, :ApplicationRecord)
           ActiveRecord::Base.establish_connection :arunit

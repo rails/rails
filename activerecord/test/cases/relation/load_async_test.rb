@@ -231,12 +231,10 @@ module ActiveRecord
       def setup
         @old_config = ActiveRecord.async_query_executor
         ActiveRecord.async_query_executor = nil
-        ActiveRecord::Base.establish_connection :arunit
       end
 
       def teardown
         ActiveRecord.async_query_executor = @old_config
-        ActiveRecord::Base.establish_connection :arunit
       end
 
       def test_scheduled?
