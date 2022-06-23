@@ -1037,15 +1037,15 @@ before,
 
 ```ruby
 class Post
-  self.table_name = "blog_posts"
 end
 
 class Comment
   belongs_to :post
 end
 
-Comment.join(:post).where(posts: { id: 1 }) # deprecated if the table name is not `posts`
-Comment.join(:post).where(post: { id: 1 }) # instead use the relation's name
+post = Post.first
+Comment.where(posts: post) # deprecated
+Comment.where(post: post) # instead use the relation's name
 ```
 
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans`
