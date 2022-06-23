@@ -165,6 +165,30 @@ end
 
 [`rescue_from`]: https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from
 
+#### Command callbacks
+
+You can define callbacks to be execute before, after or around any channel interaction (subscribing, unsubscribing or performing actions). For example:
+
+```ruby
+# app/channels/application_cable/connection.rb
+module ApplicationCable
+  class Connection < ActionCable::Connection::Base
+    identified_by :user
+
+    around_command :set_current_account
+
+    private
+
+    def set_current_account
+      # Now all channels could use Current.account
+      Current.set(account: user.account) { yield }
+    end
+  end
+end
+```
+
+There are also `#before_command` and `#after_command` callbacks available.
+
 ### Channels
 
 A *channel* encapsulates a logical unit of work, similar to what a controller does in a
