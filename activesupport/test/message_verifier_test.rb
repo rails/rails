@@ -370,3 +370,22 @@ class MessageVerifierUrlsafeTest < MessageVerifierMetadataTest
       { urlsafe: true }
     end
 end
+
+class UrlsafeMessageVerifierCompatibilityTest < ActiveSupport::TestCase
+  def setup
+    secret = "Hey, I'm a secret!"
+    @urlsafe_verifier = ActiveSupport::MessageVerifier.new(secret, urlsafe: true)
+    @non_urlsafe_verifier = ActiveSupport::MessageVerifier.new(secret, urlsafe: false)
+    @data = "hello"
+  end
+
+  def test_backward_compatibility
+    message = @non_urlsafe_verifier.generate(@data)
+    assert_equal @data, @urlsafe_verifier.verify(message)
+  end
+
+  def test_forward_compatibility
+    message = @urlsafe_verifier.generate(@data)
+    assert_equal @data, @non_urlsafe_verifier.verify(message)
+  end
+end

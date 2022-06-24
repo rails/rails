@@ -225,7 +225,18 @@ module ActiveSupport
       end
 
       def decode(data)
-        @urlsafe ? Base64.urlsafe_decode64(data) : Base64.strict_decode64(data)
+        if @urlsafe
+          # Because urlsafe_decode64 can accept strings encoded with
+          # strict_encode64, simply calling urlsafe_decode64 works.
+          # https://github.com/ruby/ruby/blob/12a5fa408bd318f8fb242e86beb225f2dcae8df9/lib/base64.rb#L98-L108
+          Base64.urlsafe_decode64(data)
+        else
+          begin
+            Base64.strict_decode64(data)
+          rescue
+            Base64.urlsafe_decode64(data)
+          end
+        end
       end
 
       def generate_digest(data)
