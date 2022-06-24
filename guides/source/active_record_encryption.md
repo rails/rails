@@ -66,7 +66,26 @@ But, under the hood, the executed SQL looks like this:
 INSERT INTO `articles` (`title`) VALUES ('{\"p\":\"n7J0/ol+a7DRMeaE\",\"h\":{\"iv\":\"DXZMDWUKfp3bg/Yu\",\"at\":\"X1/YjMHbHD4talgF9dt61A==\"}}')
 ```
 
-Because Base 64 encoding and metadata are stored with the values, encryption requires extra space in the column. You can estimate the worst-case overload at around 250 bytes when the built-in envelope encryption key provider is used. This overload is negligible for medium and large text columns, but for `string` columns of 255 bytes, you should increase their limit accordingly (510 bytes is recommended).
+#### Important: About storage and column size
+
+Encryption requires extra space because of Base64 encoding and the metadata stored along with the encrypted payloads. When using the built-in envelope encryption key provider, you can estimate the worst-case overhead at around 255 bytes. This overhead is negligible at larger sizes. Not only because it gets diluted but because the library uses compression by default, which can offer up to 30% storage savings over the unencrypted version for larger payloads.
+
+There is an important concern about string column sizes: in modern databases the column size determines the *number of characters* it can allocate, not the number of bytes. For example, with UTF-8, each character can take up to four bytes, so, potentially, a column in a database using UTF-8 can store up to four times its size in terms of *number of bytes*. Now, encrypted payloads are binary strings serialized as Base64, so they can be stored in regular `string` columns. Because they are a sequence of ASCII bytes, an encrypted column can take up to four times its clear version size. So, even if the bytes stored in the database are the same, the column must be four times bigger.
+
+In practice, this means:
+
+* When encrypting short texts written in western alphabets (mostly ASCII characters), you should account for that 255 additional overhead when defining the column size. 
+* When encrypting short texts written in non-western alphabets, such as Cyrillic, you should multiply the column size by 4. Notice that the storage overhead is 255 bytes at most.
+* When encrypting long texts, you can ignore column size concerns.
+
+Some examples:
+
+| Content to encrypt                                | Original column size | Recommended encrypted column size | Storage overhead (worst case) |
+| ------------------------------------------------- | -------------------- | --------------------------------- | ----------------------------- |
+| Email addresses                                   | string(255)          | string(510)                       | 255 bytes                     |
+| Short sequence of emojis                          | string(255)          | string(1020)                      | 255 bytes                     |
+| Summary of texts written in non-western alphabets | string(500)          | string(2000)                      | negligible                    |
+| Arbitrary long text                               | text                 | text                              | negligible                    |
 
 ### Deterministic and Non-deterministic Encryption
 
