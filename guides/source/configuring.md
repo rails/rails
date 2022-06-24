@@ -108,7 +108,6 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_dispatch.cookies_same_site_protection`](#config-action-dispatch-cookies-same-site-protection): `:lax`
 - [`config.action_dispatch.ssl_default_redirect_status`](#config-action-dispatch-ssl-default-redirect-status) = `308`
 - [`ActiveSupport.utc_to_local_returns_utc_offset_times`](#activesupport-utc-to-local-returns-utc-offset-times): `true`
-- [`config.action_controller.urlsafe_csrf_tokens`](#config-action-controller-urlsafe-csrf-tokens): `true`
 - [`config.action_view.form_with_generates_remote_forms`](#config-action-view-form-with-generates-remote-forms): `false`
 - [`config.action_view.preload_links_header`](#config-action-view-preload-links-header): `true`
 
@@ -1144,17 +1143,6 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 5.2                   | `true`               |
-
-#### `config.action_controller.urlsafe_csrf_tokens`
-
-Configures whether generated CSRF tokens are URL-safe.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `false`              |
-| 6.1                   | `true`               |
 
 #### `config.action_controller.relative_url_root`
 
