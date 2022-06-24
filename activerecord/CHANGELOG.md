@@ -1,3 +1,7 @@
+*   Add `Arel.safe()` to bypass quoting and to pass through known safe values.
+
+    *Kevin McPhillips*
+
 *   Add adapter option disallowing foreign keys
 
     This adds a new option to be added to `database.yml` which enables skipping

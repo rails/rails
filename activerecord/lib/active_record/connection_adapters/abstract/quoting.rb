@@ -10,6 +10,7 @@ module ActiveRecord
       # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
         case value
+        when Arel::Nodes::SqlLiteral then value
         when String, Symbol, ActiveSupport::Multibyte::Chars
           "'#{quote_string(value.to_s)}'"
         when true       then quoted_true
