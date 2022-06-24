@@ -767,6 +767,22 @@ Specifies if an error should be raised if the order of a query is ignored during
 
 Controls whether migrations are numbered with serial integers or with timestamps. The default is `true`, to use timestamps, which are preferred if there are multiple developers working on the same application.
 
+#### `config.active_record.migration_strategy`
+
+Controls the strategy class used to perform schema statement methods in a migration. The default class
+delegates to the connection adapter. Custom strategies should inherit from `ActiveRecord::Migration::ExecutionStrategy`,
+or may inherit from `DefaultStrategy`, which will preserve the default behaviour for methods that aren't implemented:
+
+```ruby
+class CustomMigrationStrategy < ActiveRecord::Migration::DefaultStrategy
+  def drop_table(*)
+    raise "Dropping tables is not supported!"
+  end
+end
+
+config.active_record.migration_strategy = CustomMigrationStrategy
+```
+
 #### `config.active_record.lock_optimistically`
 
 Controls whether Active Record will use optimistic locking and is `true` by default.
