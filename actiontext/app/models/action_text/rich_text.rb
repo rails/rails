@@ -12,7 +12,6 @@ module ActionText
     delegate :to_s, :nil?, to: :body
 
     belongs_to :record, polymorphic: true, touch: true
-    has_many_attached :embeds
 
     before_save do
       self.embeds = body.attachables.grep(ActiveStorage::Blob).uniq if body.present?
