@@ -788,3 +788,8 @@ code.highlight.console span.w, code.highlight.irb span.w {
   text-shadow: 2px 2px 4px #5400007d;
   background: radial-gradient(circle, rgb(255, 10, 0) 0%, rgb(200, 0, 0) 90%);
 }
+
+#version-badge a {
+  color: inherit;
+  text-decoration: inherit;
+}
