@@ -67,7 +67,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.allow_deprecated_parameters_hash_equality`](#config-action-controller-allow-deprecated-parameters-hash-equality): `false`
 - [`config.log_file_size`](#config-log-file-size): `100.megabytes`
 - [`config.active_record.sqlite3_adapter_strict_strings_by_default`](#config-active-record-sqlite3-adapter-strict-strings-by-default): `false`
-- [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `true`
+- [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `false`
 
 
 #### Default Values for Target Version 7.0
@@ -1046,22 +1046,28 @@ should be large enough to accommodate both the foreground threads (.e.g web serv
 
 #### `config.active_record.allow_deprecated_singular_associations_name`
 
-This maintains the deprecated associations behavior where singular associations can be referred to in where clauses by their plural name. Enable this configuration option to opt into the new behavior.
-
-before,
+This enables deprecated behavior wherein singular associations can be referred to by their plural name in `where` clauses. Setting this to `false` is more performant.
 
 ```ruby
-class Post
-end
-
-class Comment
+class Comment < ActiveRecord::Base
   belongs_to :post
 end
 
-post = Post.first
-Comment.where(posts: post) # deprecated
-Comment.where(post: post) # instead use the relation's name
+Comment.where(post: post_id).count  # => 5
+
+# When `allow_deprecated_singular_associations_name` is true:
+Comment.where(posts: post_id).count # => 5 (deprecation warning)
+
+# When `allow_deprecated_singular_associations_name` is false:
+Comment.where(posts: post_id).count # => error
 ```
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 7.1                   | `false`              |
 
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans`
 
