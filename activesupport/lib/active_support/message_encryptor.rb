@@ -126,7 +126,6 @@ module ActiveSupport
     AUTH_TAG_LENGTH = 16 # :nodoc:
     AUTH_TAG_LENGTH_IN_BASE64 = ((4 * AUTH_TAG_LENGTH / 3) + 3) & ~3 # :nodoc:
     SEPARATOR = "--" # :nodoc:
-    SEPARATOR_LENGTH = SEPARATOR.length # :nodoc:
 
     # Initialize a new MessageEncryptor. +secret+ must be at least as long as
     # the cipher key size. For the default 'aes-256-gcm' cipher, this is 256
@@ -149,6 +148,7 @@ module ActiveSupport
       @secret = secret
       @sign_secret = sign_secret
       @cipher = cipher || self.class.default_cipher
+      @aead_mode = new_cipher.authenticated?
       @digest = digest || "SHA1" unless aead_mode?
       @verifier = resolve_verifier
       @serializer = serializer ||
@@ -199,25 +199,20 @@ module ActiveSupport
         encrypted_data = cipher.update(Messages::Metadata.wrap(serialize(value), **metadata_options))
         encrypted_data << cipher.final
 
-        encoded_encrypted_data = ::Base64.strict_encode64(encrypted_data)
-        encoded_iv = ::Base64.strict_encode64(iv)
+        parts = [encrypted_data, iv]
+        parts << cipher.auth_tag(AUTH_TAG_LENGTH) if aead_mode?
 
-        if aead_mode?
-          encoded_auth_tag = ::Base64.strict_encode64(cipher.auth_tag(AUTH_TAG_LENGTH))
-          "#{encoded_encrypted_data}#{SEPARATOR}#{encoded_iv}#{SEPARATOR}#{encoded_auth_tag}"
-        else
-          "#{encoded_encrypted_data}#{SEPARATOR}#{encoded_iv}"
-        end
+        parts.map! { |part| ::Base64.strict_encode64(part) }.join(SEPARATOR)
       end
 
       def _decrypt(encrypted_message, purpose)
         cipher = new_cipher
-        encrypted_data, iv, auth_tag = get_encrypted_data_and_iv_and_auth_tag_from(encrypted_message)
+        encrypted_data, iv, auth_tag = extract_parts(encrypted_message)
 
         # Currently the OpenSSL bindings do not raise an error if auth_tag is
         # truncated, which would allow an attacker to easily forge it. See
         # https://github.com/ruby/openssl/issues/63
-        raise InvalidMessage if aead_mode? && (auth_tag.nil? || auth_tag.bytes.length != AUTH_TAG_LENGTH)
+        raise InvalidMessage if aead_mode? && auth_tag.bytesize != AUTH_TAG_LENGTH
 
         cipher.decrypt
         cipher.key = @secret
@@ -240,42 +235,39 @@ module ActiveSupport
         @iv_length_in_base64 ||= ((4 * new_cipher.iv_len / 3) + 3) & ~3
       end
 
-      def separator_at?(encrypted_message, index)
-        encrypted_message[index, SEPARATOR_LENGTH] == SEPARATOR
+      def extract_part(encrypted_message, rindex, length)
+        index = rindex - length
+
+        if encrypted_message[index - SEPARATOR.length, SEPARATOR.length] == SEPARATOR
+          encrypted_message[index, length]
+        else
+          raise InvalidMessage
+        end
       end
 
-      def auth_tag_and_iv_separators_indexes_for(encrypted_message)
+      def extract_parts(encrypted_message)
+        parts = []
+        rindex = encrypted_message.length
+
         if aead_mode?
-          auth_tag_separator_index = encrypted_message.length - AUTH_TAG_LENGTH_IN_BASE64 - SEPARATOR_LENGTH
-          return if auth_tag_separator_index < SEPARATOR_LENGTH || !separator_at?(encrypted_message, auth_tag_separator_index)
+          parts << extract_part(encrypted_message, rindex, AUTH_TAG_LENGTH_IN_BASE64)
+          rindex -= SEPARATOR.length + AUTH_TAG_LENGTH_IN_BASE64
         end
 
-        iv_separator_index = (auth_tag_separator_index || encrypted_message.length) - iv_length_in_base64 - SEPARATOR_LENGTH
-        return if iv_separator_index.negative? || !separator_at?(encrypted_message, iv_separator_index)
+        parts << extract_part(encrypted_message, rindex, iv_length_in_base64)
+        rindex -= SEPARATOR.length + iv_length_in_base64
 
-        [auth_tag_separator_index, iv_separator_index]
-      end
+        parts << encrypted_message[0, rindex]
 
-      def get_encrypted_data_and_iv_and_auth_tag_from(encrypted_message)
-        auth_tag_separator_index, iv_separator_index = auth_tag_and_iv_separators_indexes_for(encrypted_message)
-        return if iv_separator_index.nil? || (aead_mode? && auth_tag_separator_index.nil?)
-
-        encrypted_data = encrypted_message[0, iv_separator_index]
-        iv = encrypted_message[iv_separator_index + SEPARATOR_LENGTH, iv_length_in_base64]
-        auth_tag = encrypted_message[auth_tag_separator_index + SEPARATOR_LENGTH, AUTH_TAG_LENGTH_IN_BASE64] if aead_mode?
-
-        [encrypted_data, iv, auth_tag].map! { |v| ::Base64.strict_decode64(v) if v.present? }
+        parts.reverse!.map! { |part| ::Base64.strict_decode64(part) }
       end
 
       def new_cipher
         OpenSSL::Cipher.new(@cipher)
       end
 
-      attr_reader :verifier
-
-      def aead_mode?
-        @aead_mode ||= new_cipher.authenticated?
-      end
+      attr_reader :verifier, :aead_mode
+      alias :aead_mode? :aead_mode
 
       def resolve_verifier
         if aead_mode?
