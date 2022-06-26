@@ -75,7 +75,7 @@ module ActiveRecord
         end
 
         args << db_config.database
-        run_cmd("pg_dump", args, "dumping")
+        run_cmd("dumping", "pg_dump", *args)
         remove_sql_header_comments(filename)
         File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
       end
@@ -84,7 +84,7 @@ module ActiveRecord
         args = ["--set", ON_ERROR_STOP_1, "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename]
         args.concat(Array(extra_flags)) if extra_flags
         args << db_config.database
-        run_cmd("psql", args, "loading")
+        run_cmd("loading", "psql", *args)
       end
 
       private
@@ -114,11 +114,11 @@ module ActiveRecord
           end
         end
 
-        def run_cmd(cmd, args, action)
-          fail run_cmd_error(cmd, args, action) unless Kernel.system(psql_env, cmd, *args)
+        def run_cmd(action, cmd, *args, **kwargs)
+          fail run_cmd_error(action, cmd, args) unless Kernel.system(psql_env, cmd, *args, **kwargs)
         end
 
-        def run_cmd_error(cmd, args, action)
+        def run_cmd_error(action, cmd, args)
           msg = +"failed to execute:\n"
           msg << "#{cmd} #{args.join(' ')}\n\n"
           msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
