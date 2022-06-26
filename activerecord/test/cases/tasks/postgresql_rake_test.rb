@@ -510,6 +510,7 @@ if current_adapter?(:PostgreSQLAdapter)
           Kernel,
           :system,
           [{}, "psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename, @configuration["database"]],
+          out: File::NULL,
           returns: true
         ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
@@ -520,7 +521,7 @@ if current_adapter?(:PostgreSQLAdapter)
         filename = "awesome-file.sql"
         expected_command = [{}, "psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename, "--noop", @configuration["database"]]
 
-        assert_called_with(Kernel, :system, expected_command, returns: true) do
+        assert_called_with(Kernel, :system, expected_command, out: File::NULL, returns: true) do
           with_structure_load_flags(["--noop"]) do
             ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
           end
@@ -532,7 +533,7 @@ if current_adapter?(:PostgreSQLAdapter)
         expected_env = { "PGHOST" => "my.server.tld", "PGPORT" => "2345", "PGUSER" => "jane", "PGPASSWORD" => "s3cr3t" }
         expected_command = [expected_env, "psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename, "--noop", @configuration["database"]]
 
-        assert_called_with(Kernel, :system, expected_command, returns: true) do
+        assert_called_with(Kernel, :system, expected_command, out: File::NULL, returns: true) do
           with_structure_load_flags(["--noop"]) do
             ActiveRecord::Tasks::DatabaseTasks.structure_load(
               @configuration.merge(host: "my.server.tld", port: 2345, username: "jane", password: "s3cr3t"),
@@ -547,7 +548,7 @@ if current_adapter?(:PostgreSQLAdapter)
         expected_env = { "PGSSLMODE" => "verify-full", "PGSSLCERT" => "client.crt", "PGSSLKEY" => "client.key", "PGSSLROOTCERT" => "root.crt" }
         expected_command = [expected_env, "psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename, "--noop", @configuration["database"]]
 
-        assert_called_with(Kernel, :system, expected_command, returns: true) do
+        assert_called_with(Kernel, :system, expected_command, out: File::NULL, returns: true) do
           with_structure_load_flags(["--noop"]) do
             ActiveRecord::Tasks::DatabaseTasks.structure_load(
               @configuration.merge(sslmode: "verify-full", sslcert: "client.crt", sslkey: "client.key", sslrootcert: "root.crt"),
@@ -561,7 +562,7 @@ if current_adapter?(:PostgreSQLAdapter)
         filename = "awesome-file.sql"
         expected_command = [{}, "psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename, @configuration["database"]]
 
-        assert_called_with(Kernel, :system, expected_command, returns: true) do
+        assert_called_with(Kernel, :system, expected_command, out: File::NULL, returns: true) do
           with_structure_load_flags({ mysql2: ["--noop"] }) do
             ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
           end
@@ -572,7 +573,7 @@ if current_adapter?(:PostgreSQLAdapter)
         filename = "awesome-file.sql"
         expected_command = [{}, "psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename, "--noop", @configuration["database"]]
 
-        assert_called_with(Kernel, :system, expected_command, returns: true) do
+        assert_called_with(Kernel, :system, expected_command, out: File::NULL, returns: true) do
           with_structure_load_flags({ postgresql: ["--noop"] }) do
             ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
           end
@@ -585,6 +586,7 @@ if current_adapter?(:PostgreSQLAdapter)
           Kernel,
           :system,
           [{}, "psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename, @configuration["database"]],
+          out: File::NULL,
           returns: true
         ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)

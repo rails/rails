@@ -84,7 +84,7 @@ module ActiveRecord
         args = ["--set", ON_ERROR_STOP_1, "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename]
         args.concat(Array(extra_flags)) if extra_flags
         args << db_config.database
-        run_cmd("loading", "psql", *args)
+        run_cmd("loading", "psql", *args, out: File::NULL)
       end
 
       private
