@@ -80,6 +80,7 @@ module ActiveSupport
     autoload :TaggedLogging
     autoload :XmlMini
     autoload :ArrayInquirer
+    autoload :Processing
   end
 
   autoload :Rescuable
