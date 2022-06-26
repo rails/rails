@@ -1,3 +1,11 @@
+*   Support `:urlsafe` option for `MessageEncryptor`.
+
+    The `MessageEncryptor` constructor now accepts a `:urlsafe` option, similar
+    to the `MessageVerifier` constructor.  When enabled, this option ensures
+    that messages use a URL-safe encoding.
+
+    *Jonathan Hefner*
+
 *   Add `urlsafe` option to `ActiveSupport::MessageVerifier` initializer
 
     `ActiveSupport::MessageVerifier.new` now takes optional `urlsafe` argument.

@@ -124,7 +124,6 @@ module ActiveSupport
     OpenSSLCipherError = OpenSSL::Cipher::CipherError
 
     AUTH_TAG_LENGTH = 16 # :nodoc:
-    AUTH_TAG_LENGTH_IN_BASE64 = ((4 * AUTH_TAG_LENGTH / 3) + 3) & ~3 # :nodoc:
     SEPARATOR = "--" # :nodoc:
 
     # Initialize a new MessageEncryptor. +secret+ must be at least as long as
@@ -144,13 +143,14 @@ module ActiveSupport
     # * <tt>:digest</tt> - String of digest to use for signing. Default is
     #   +SHA1+. Ignored when using an AEAD cipher like 'aes-256-gcm'.
     # * <tt>:serializer</tt> - Object serializer to use. Default is +JSON+.
-    def initialize(secret, sign_secret = nil, cipher: nil, digest: nil, serializer: nil)
+    # * <tt>:urlsafe</tt> - Whether to encode messages using a URL-safe
+    #   encoding. Default is +false+ for backward compatibility.
+    def initialize(secret, sign_secret = nil, cipher: nil, digest: nil, serializer: nil, urlsafe: false)
       @secret = secret
       @sign_secret = sign_secret
       @cipher = cipher || self.class.default_cipher
       @aead_mode = new_cipher.authenticated?
       @digest = digest || "SHA1" unless aead_mode?
-      @verifier = resolve_verifier
       @serializer = serializer ||
         if @@default_message_encryptor_serializer.equal?(:marshal)
           Marshal
@@ -159,6 +159,8 @@ module ActiveSupport
         elsif @@default_message_encryptor_serializer.equal?(:json)
           JSON
         end
+      @urlsafe = urlsafe
+      @verifier = resolve_verifier
     end
 
     # Encrypt and sign a message. We need to sign the message in order to avoid
@@ -187,6 +189,14 @@ module ActiveSupport
         @serializer.load(value)
       end
 
+      def encode(data)
+        @urlsafe ? ::Base64.urlsafe_encode64(data, padding: false) : ::Base64.strict_encode64(data)
+      end
+
+      def decode(data)
+        @urlsafe ? ::Base64.urlsafe_decode64(data) : ::Base64.strict_decode64(data)
+      end
+
       def _encrypt(value, **metadata_options)
         cipher = new_cipher
         cipher.encrypt
@@ -202,7 +212,7 @@ module ActiveSupport
         parts = [encrypted_data, iv]
         parts << cipher.auth_tag(AUTH_TAG_LENGTH) if aead_mode?
 
-        parts.map! { |part| ::Base64.strict_encode64(part) }.join(SEPARATOR)
+        parts.map! { |part| encode(part) }.join(SEPARATOR)
       end
 
       def _decrypt(encrypted_message, purpose)
@@ -231,8 +241,20 @@ module ActiveSupport
         raise InvalidMessage
       end
 
-      def iv_length_in_base64
-        @iv_length_in_base64 ||= ((4 * new_cipher.iv_len / 3) + 3) & ~3
+      def length_after_encode(length_before_encode)
+        if @urlsafe
+          (4 * length_before_encode / 3.0).ceil # length without padding
+        else
+          4 * (length_before_encode / 3.0).ceil # length with padding
+        end
+      end
+
+      def length_of_encoded_iv
+        @length_of_encoded_iv ||= length_after_encode(new_cipher.iv_len)
+      end
+
+      def length_of_encoded_auth_tag
+        @length_of_encoded_auth_tag ||= length_after_encode(AUTH_TAG_LENGTH)
       end
 
       def extract_part(encrypted_message, rindex, length)
@@ -250,16 +272,16 @@ module ActiveSupport
         rindex = encrypted_message.length
 
         if aead_mode?
-          parts << extract_part(encrypted_message, rindex, AUTH_TAG_LENGTH_IN_BASE64)
-          rindex -= SEPARATOR.length + AUTH_TAG_LENGTH_IN_BASE64
+          parts << extract_part(encrypted_message, rindex, length_of_encoded_auth_tag)
+          rindex -= SEPARATOR.length + length_of_encoded_auth_tag
         end
 
-        parts << extract_part(encrypted_message, rindex, iv_length_in_base64)
-        rindex -= SEPARATOR.length + iv_length_in_base64
+        parts << extract_part(encrypted_message, rindex, length_of_encoded_iv)
+        rindex -= SEPARATOR.length + length_of_encoded_iv
 
         parts << encrypted_message[0, rindex]
 
-        parts.reverse!.map! { |part| ::Base64.strict_decode64(part) }
+        parts.reverse!.map! { |part| decode(part) }
       end
 
       def new_cipher
@@ -273,7 +295,7 @@ module ActiveSupport
         if aead_mode?
           NullVerifier
         else
-          MessageVerifier.new(@sign_secret || @secret, digest: @digest, serializer: NullSerializer)
+          MessageVerifier.new(@sign_secret || @secret, digest: @digest, serializer: NullSerializer, urlsafe: @urlsafe)
         end
       end
   end
