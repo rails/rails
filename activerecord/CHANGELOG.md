@@ -28,33 +28,33 @@
 
     *Adam Hess*
 
-*   Run transactional callbacks on the freshest instance to save a given 
+*   Run transactional callbacks on the freshest instance to save a given
     record within a transaction.
 
-    When multiple Active Record instances change the same record within a 
-    transaction, Rails runs `after_commit` or `after_rollback` callbacks for 
-    only one of them. `config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction` 
-    was added to specify how Rails chooses which instance receives the 
+    When multiple Active Record instances change the same record within a
+    transaction, Rails runs `after_commit` or `after_rollback` callbacks for
+    only one of them. `config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`
+    was added to specify how Rails chooses which instance receives the
     callbacks. The framework defaults were changed to use the new logic.
 
-    When `config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction` 
-    is `true`, transactional callbacks are run on the first instance to save, 
+    When `config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`
+    is `true`, transactional callbacks are run on the first instance to save,
     even though its instance state may be stale.
 
-    When it is `false`, which is the new framework default starting with version 
-    7.1, transactional callbacks are run on the instances with the freshest 
+    When it is `false`, which is the new framework default starting with version
+    7.1, transactional callbacks are run on the instances with the freshest
     instance state. Those instances are chosen as follows:
 
-    - In general, run transactional callbacks on the last instance to save a 
+    - In general, run transactional callbacks on the last instance to save a
       given record within the transaction.
     - There are two exceptions:
-        - If the record is created within the transaction, then updated by 
-          another instance, `after_create_commit` callbacks will be run on the 
-          second instance. This is instead of the `after_update_commit` 
+        - If the record is created within the transaction, then updated by
+          another instance, `after_create_commit` callbacks will be run on the
+          second instance. This is instead of the `after_update_commit`
           callbacks that would naively be run based on that instance’s state.
-        - If the record is destroyed within the transaction, then 
-          `after_destroy_commit` callbacks will be fired on the last destroyed 
-          instance, even if a stale instance subsequently performed an update 
+        - If the record is destroyed within the transaction, then
+          `after_destroy_commit` callbacks will be fired on the last destroyed
+          instance, even if a stale instance subsequently performed an update
           (which will have affected 0 rows).
 
     *Cameron Bothner and Mitch Vollebregt*
