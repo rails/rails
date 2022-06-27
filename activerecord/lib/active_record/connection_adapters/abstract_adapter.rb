@@ -493,11 +493,11 @@ module ActiveRecord
       end
 
       # This is meant to be implemented by the adapters that support extensions
-      def disable_extension(name)
+      def disable_extension(name, **)
       end
 
       # This is meant to be implemented by the adapters that support extensions
-      def enable_extension(name)
+      def enable_extension(name, **)
       end
 
       # This is meant to be implemented by the adapters that support custom enum types

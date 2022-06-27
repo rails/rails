@@ -1,3 +1,17 @@
+*   Avoid removing a PostgreSQL extension when there are dependent objects.
+
+    Previously, removing an extension also implicitly removed dependent objects. Now, this will raise an error.
+
+    You can force removing the extension:
+
+    ```ruby
+    disable_extension :citext, force: :cascade
+    ```
+
+    Fixes #29091.
+
+    *fatkodima*
+
 *   Allow nested functions as safe SQL string
 
     *Michael Siegfried*
