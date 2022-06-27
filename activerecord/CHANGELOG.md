@@ -1,3 +1,11 @@
+*   Quieter structure load for postgres
+
+    Discard noisy output from structure load via psql into /dev/null for
+    successful queries, preserving error reporting, increasing signal to noise
+    ratio for regular database rake tasks.
+
+    *Samuel Cochran*
+
 *   Introduce strategy pattern for executing migrations.
 
     By default, migrations will use a strategy object that delegates the method
