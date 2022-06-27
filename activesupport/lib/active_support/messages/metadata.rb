@@ -32,7 +32,7 @@ module ActiveSupport
             if expires_at
               expires_at.utc.iso8601(3)
             elsif expires_in
-              Time.now.utc.advance(seconds: expires_in).iso8601(3)
+              Time.now.advance(seconds: expires_in).utc.iso8601(3)
             end
           end
 
