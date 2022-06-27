@@ -234,6 +234,38 @@ class ChatChannel < ApplicationCable::Channel
 end
 ```
 
+#### Channel Callbacks
+
+`ApplicationCable::Channel` provides a number of callbacks that can be used to trigger logic
+during the life cycle of a channel. Available callbacks are:
+
+- `before_subscribe`
+- `after_subscribe` (also aliased as: `on_subscribe`)
+- `before_unsubscribe`
+- `after_unsubscribe` (also aliased as: `on_unsubscribe`)
+
+NOTE: The `after_subscribe` callback is triggered whenever the `subscribed` method is called,
+even if subscription was rejected with the `reject` method. To trigger `after_subscribe`
+only on successful subscriptions, use `after_subscribe :send_welcome_message, unless: :subscription_rejected?`
+
+```ruby
+# app/channels/chat_channel.rb
+class ChatChannel < ApplicationCable::Channel
+  after_subscribe :send_welcome_message, unless: :subscription_rejected?
+  after_subscribe :track_subscription
+
+  private
+
+  def send_welcome_message
+    broadcast_to(...)
+  end
+  
+  def track_subscription
+    # ...
+  end
+end
+```
+
 ## Client-Side Components
 
 ### Connections
