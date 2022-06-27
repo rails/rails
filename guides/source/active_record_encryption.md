@@ -84,7 +84,7 @@ Some examples:
 | ------------------------------------------------- | -------------------- | --------------------------------- | ----------------------------- |
 | Email addresses                                   | string(255)          | string(510)                       | 255 bytes                     |
 | Short sequence of emojis                          | string(255)          | string(1020)                      | 255 bytes                     |
-| Summary of texts written in non-western alphabets | string(500)          | string(2000)                      | negligible                    |
+| Summary of texts written in non-western alphabets | string(500)          | string(2000)                      | 255 bytes                     |
 | Arbitrary long text                               | text                 | text                              | negligible                    |
 
 ### Deterministic and Non-deterministic Encryption
