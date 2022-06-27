@@ -812,7 +812,52 @@ Sets fallback behavior for missing translations. Here are 3 usage examples for t
 
 #### `config.active_model.i18n_customize_full_message`
 
-Is a boolean value which controls whether the `full_message` error format can be overridden at the attribute or model level in the locale files. This is `false` by default.
+Controls whether the [`Error#full_message`][ActiveModel::Error#full_message] format can be overridden in an i18n locale file. Defaults to `false`.
+
+When set to `true`, `full_message` will look for a format at the attribute and model level of the locale files. The default format is `"%{attribute} %{message}"`, where `attribute` is the name of the attribute, and `message` is the validation-specific message. The following example overrides the format for all `Person` attributes, as well as the format for a specific `Person` attribute (`age`).
+
+```ruby
+class Person
+  include ActiveModel::Validations
+
+  attr_accessor :name, :age
+
+  validates :name, :age, presence: true
+end
+```
+
+```yml
+en:
+  activemodel: # or activerecord:
+    errors:
+      models:
+        person:
+          # Override the format for all Person attributes:
+          format: "Invalid %{attribute} (%{message})"
+          attributes:
+            age:
+              # Override the format for the age attribute:
+              format: "%{message}"
+              blank: "Please fill in your %{attribute}"
+```
+
+```irb
+irb> person = Person.new.tap(&:valid?)
+
+irb> person.errors.full_messages
+=> [
+  "Invalid Name (can't be blank)",
+  "Please fill in your Age"
+]
+
+irb> person.errors.messages
+=> {
+  :name => ["can't be blank"],
+  :age  => ["Please fill in your Age"]
+}
+```
+
+[ActiveModel::Error#full_message]: https://api.rubyonrails.org/classes/ActiveModel/Error.html#method-i-full_message
 
 ### Configuring Active Record
 

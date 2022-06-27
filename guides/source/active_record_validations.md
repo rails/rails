@@ -1275,7 +1275,7 @@ irb> error.full_message
 => "Name is too short (minimum is 3 characters)"
 ```
 
-The [`full_message`][] method generates a more user-friendly message, with the capitalized attribute name prepended.
+The [`full_message`][] method generates a more user-friendly message, with the capitalized attribute name prepended. (To customize the format that `full_message` uses, see the [I18n guide](i18n.html#active-model-methods).)
 
 [`full_message`]: https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-full_message
 [`where`]: https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-where
