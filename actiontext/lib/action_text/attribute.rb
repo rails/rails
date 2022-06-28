@@ -30,7 +30,7 @@ module ActionText
       #
       # * <tt>:encrypted</tt> - Pass true to encrypt the rich text attribute. The encryption will be non-deterministic. See
       #   +ActiveRecord::Encryption::EncryptableRecord.encrypts+. Default: false.
-      def has_rich_text(name, encrypted: false, **options)
+      def has_rich_text(name, encrypted: false, attachment_service: nil)
         class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
             rich_text_#{name} || build_rich_text_#{name}
@@ -47,14 +47,8 @@ module ActionText
 
         rich_text_class_name = encrypted ? "ActionText::EncryptedRichText" : "ActionText::RichText"
 
-        raise "Can't use strict_loading on attachment when rich text attribute is encrypted" if encrypted && options[:attachment_strict_loading]
-
         rich_text_class_name.safe_constantize.class_eval do
-          if encrypted
-            has_many_attached :embeds, service: options[:attachment_service]
-          else
-            has_many_attached :embeds, service: options[:attachment_service], strict_loading: options[:attachment_strict_loading] || false
-          end
+          has_many_attached :embeds, service: attachment_service
         end
 
         has_one :"rich_text_#{name}", -> { where(name: name) },
