@@ -354,7 +354,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [app_root, "--skip-active-storage"]
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true, skip_active_storage: true }, { destination_root: app_root, shell: @shell }
+      generator = Rails::Generators::AppGenerator.new ["rails"], [ "--update", "--skip_active_storage"], { destination_root: app_root, shell: @shell }
       generator.send(:app_const)
       quietly { generator.update_config_files }
 

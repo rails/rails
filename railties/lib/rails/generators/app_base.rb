@@ -264,14 +264,14 @@ module Rails
         [
           options.values_at(
             :skip_active_record,
+            :skip_active_storage,
             :skip_test,
             :skip_action_cable,
-            :skip_active_job
-          ),
-          skip_active_storage?,
-          skip_action_mailer?,
-          skip_action_mailbox?,
-          skip_action_text?
+            :skip_active_job,
+            :skip_action_mailer,
+            :skip_action_mailbox,
+            :skip_action_text
+          )
         ].flatten.none?
       end
 
@@ -296,21 +296,21 @@ module Rails
         !options[:skip_active_record] && options[:database] == "sqlite3"
       end
 
-      def skip_active_storage? # :doc:
-        options[:skip_active_storage] || options[:skip_active_record] || options[:skip_active_job]
-      end
+      # def skip_active_storage? # :doc:
+      #   options[:skip_active_storage] || options[:skip_active_record] || options[:skip_active_job]
+      # end
 
-      def skip_action_mailer? # :doc:
-        options[:skip_action_mailer] || options[:skip_active_job]
-      end
+      # def skip_action_mailer? # :doc:
+      #   options[:skip_action_mailer] || options[:skip_active_job]
+      # end
 
-      def skip_action_mailbox? # :doc:
-        options[:skip_action_mailbox] || skip_active_storage?
-      end
+      # def skip_action_mailbox? # :doc:
+      #   options[:skip_action_mailbox] || skip_active_storage?
+      # end
 
-      def skip_action_text? # :doc:
-        options[:skip_action_text] || skip_active_storage?
-      end
+      # def skip_action_text? # :doc:
+      #   options[:skip_action_text] || skip_active_storage?
+      # end
 
       def skip_sprockets?
         options[:skip_asset_pipeline] || options[:asset_pipeline] != "sprockets"
