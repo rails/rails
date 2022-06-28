@@ -63,6 +63,9 @@ module Rails
 
       # Initialize cache early in the stack so railties can make use of it.
       initializer :initialize_cache, group: :all do
+        cache_format_version = config.active_support.delete(:cache_format_version)
+        ActiveSupport.cache_format_version = cache_format_version if cache_format_version
+
         unless Rails.cache
           Rails.cache = ActiveSupport::Cache.lookup_store(*config.cache_store)
 

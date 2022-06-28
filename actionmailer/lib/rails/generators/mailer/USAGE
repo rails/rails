@@ -1,16 +1,20 @@
 Description:
-============
     Generates a new mailer and its views. Passes the mailer name, either
     CamelCased or under_scored, and an optional list of emails as arguments.
 
     This generates a mailer class in app/mailers and invokes your template
     engine and test framework generators.
 
-Example:
-========
-    bin/rails generate mailer Notifications signup forgot_password invoice
+Examples:
+    `bin/rails generate mailer sign_up`
 
-    creates a Notifications mailer class, views, and test:
-        Mailer:     app/mailers/notifications_mailer.rb
-        Views:      app/views/notifications_mailer/signup.text.erb [...]
-        Test:       test/mailers/notifications_mailer_test.rb
+    creates a sign up mailer class, views, and test:
+        Mailer:     app/mailers/sign_up_mailer.rb
+        Views:      app/views/sign_up_mailer/signup.text.erb [...]
+        Test:       test/mailers/sign_up_mailer_test.rb
+
+    `bin/rails generate mailer notifications sign_up forgot_password invoice`
+
+    creates a notifications mailer with sign_up, forgot_password, and invoice actions.
+
+

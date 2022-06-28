@@ -105,7 +105,7 @@ module Rails
         template "environment.rb"
         template "cable.yml" unless options[:updating] || options[:skip_action_cable]
         template "puma.rb"   unless options[:updating]
-        template "storage.yml" unless options[:updating] || skip_active_storage?
+        template "storage.yml" unless options[:updating] || options[:skip_active_storage]
 
         directory "environments"
         directory "initializers"
@@ -131,7 +131,7 @@ module Rails
         template "config/cable.yml"
       end
 
-      if !skip_active_storage? && !active_storage_config_exist
+      if !options[:skip_active_storage] && !active_storage_config_exist
         template "config/storage.yml"
       end
 
@@ -289,7 +289,7 @@ module Rails
         @after_bundle_callbacks = []
       end
 
-      public_task :report_implied_options
+      public_task :activate_implied_options
       public_task :set_default_accessors!
       public_task :create_root
       public_task :target_rails_prerelease
@@ -323,7 +323,7 @@ module Rails
       remove_task :update_bin_files
 
       def update_active_storage
-        unless skip_active_storage?
+        unless options[:skip_active_storage]
           rails_command "active_storage:update", inline: true
         end
       end
@@ -395,7 +395,7 @@ module Rails
       end
 
       def create_storage_files
-        build(:storage) unless skip_active_storage?
+        build(:storage) unless options[:skip_active_storage]
       end
 
       def delete_app_assets_if_api_option

@@ -1657,6 +1657,20 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveRecord::Base.protected_environments = previous_protected_environments
   end
 
+  test "#present? and #blank? on ActiveRecord::Base classes" do
+    assert_not_empty Topic.all
+    assert_no_queries do
+      assert Topic.present?
+      assert_not Topic.blank?
+    end
+
+    Topic.delete_all
+    assert_no_queries do
+      assert Topic.present?
+      assert_not Topic.blank?
+    end
+  end
+
   test "cannot call connects_to on non-abstract or non-ActiveRecord::Base classes" do
     error = assert_raises(NotImplementedError) do
       Bird.connects_to(database: { writing: :arunit })

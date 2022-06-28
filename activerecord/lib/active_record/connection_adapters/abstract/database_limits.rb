@@ -7,6 +7,11 @@ module ActiveRecord
         64
       end
 
+      # Returns the maximum length of a table name.
+      def table_name_length
+        max_identifier_length
+      end
+
       # Returns the maximum length of a table alias.
       def table_alias_length
         max_identifier_length

@@ -187,6 +187,10 @@ module ActiveSupport
           private_constant :DEFAULT_POOL_OPTIONS
 
           def retrieve_pool_options(options)
+            unless options.key?(:pool) || options.key?(:pool_size) || options.key?(:pool_timeout)
+              options[:pool] = true
+            end
+
             if (pool_options = options.delete(:pool))
               if Hash === pool_options
                 DEFAULT_POOL_OPTIONS.merge(pool_options)
@@ -212,13 +216,6 @@ module ActiveSupport
                 end
               end
             end
-          end
-
-          def ensure_connection_pool_added!
-            require "connection_pool"
-          rescue LoadError => e
-            $stderr.puts "You don't have connection_pool installed in your application. Please add it to your Gemfile and run bundle install"
-            raise e
           end
       end
 
@@ -873,7 +870,7 @@ module ActiveSupport
           when 7.0
             Rails70Coder
           else
-            raise ArgumentError, "Unknown ActiveSupport::Cache.format_version #{Cache.format_version.inspect}"
+            raise ArgumentError, "Unknown ActiveSupport::Cache.format_version: #{Cache.format_version.inspect}"
           end
         end
       end

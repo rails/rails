@@ -325,6 +325,7 @@ module ActiveRecord # :nodoc:
     include Serialization
     include Store
     include SecureToken
+    include TokenFor
     include SignedId
     include Suppressor
     include Encryption::EncryptableRecord

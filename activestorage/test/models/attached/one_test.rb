@@ -31,8 +31,8 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
   test "attaching an existing blob from a signed ID passes record" do
     blob = create_blob(filename: "funky.jpg")
-    arguments = [blob.signed_id, record: @user]
-    assert_called_with(ActiveStorage::Blob, :find_signed!, arguments, returns: blob) do
+
+    assert_called_with(ActiveStorage::Blob, :find_signed!, [blob.signed_id], returns: blob, record: @user) do
       @user.avatar.attach blob.signed_id
     end
   end
@@ -45,8 +45,8 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "attaching a new blob from a Hash to an existing record passes record" do
     hash = { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg" }
     blob = ActiveStorage::Blob.build_after_unfurling(**hash)
-    arguments = [hash.merge(record: @user, service_name: nil)]
-    assert_called_with(ActiveStorage::Blob, :build_after_unfurling, arguments, returns: blob) do
+    arguments = hash.merge(record: @user, service_name: nil)
+    assert_called_with(ActiveStorage::Blob, :build_after_unfurling, [], **arguments, returns: blob) do
       @user.avatar.attach hash
     end
   end
@@ -63,17 +63,34 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
     arguments = { io: upload.open, filename: upload.original_filename, content_type: upload.content_type, record: @user, service_name: nil }
     blob = ActiveStorage::Blob.build_after_unfurling(**arguments)
-    assert_called_with(ActiveStorage::Blob, :build_after_unfurling, [arguments], returns: blob) do
+    assert_called_with(ActiveStorage::Blob, :build_after_unfurling, [], returns: blob, **arguments) do
       @user.avatar.attach upload
     end
   end
 
-  test "attaching a blob to a record returns the attachment" do
-    avatar = @user.avatar.attach create_blob(filename: "funky.jpg")
-    assert_instance_of ActiveStorage::Attached::One, avatar
-    assert_equal avatar.key, @user.avatar.key
-    assert_equal avatar.name.to_s, @user.avatar.name.to_s
-    assert_equal avatar.filename.to_s, @user.avatar.filename.to_s
+  test "attaching a blob to a persisted, unchanged, and valid record, returns the attachment" do
+    return_value = @user.avatar.attach create_blob(filename: "funky.jpg")
+    assert_equal @user.avatar, return_value
+  end
+
+  test "attaching a blob to a persisted, unchanged, and invalid record, returns nil" do
+    @user.update_attribute(:name, nil)
+    assert_not @user.valid?
+
+    return_value = @user.avatar.attach create_blob(filename: "funky.jpg")
+    assert_nil return_value
+  end
+
+  test "attaching a blob to a changed record, returns the attachment" do
+    @user.name = "Tina"
+    return_value = @user.avatar.attach create_blob(filename: "funky.jpg")
+    assert_equal @user.avatar, return_value
+  end
+
+  test "attaching a blob to a non persisted record, returns the attachment" do
+    user = User.new(name: "John")
+    return_value = user.avatar.attach create_blob(filename: "funky.jpg")
+    assert_equal user.avatar, return_value
   end
 
   test "attaching an existing blob to an existing, changed record" do
@@ -664,6 +681,18 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
       assert_instance_of ActiveStorage::Service::MirrorService, @user.avatar.service
       assert_instance_of ActiveStorage::Service::DiskService, @user.cover_photo.service
+    end
+  end
+
+  test "raises error when global service configuration is missing" do
+    Rails.configuration.active_storage.stub(:service, nil) do
+      error = assert_raises RuntimeError do
+        User.class_eval do
+          has_one_attached :featured_photos
+        end
+      end
+
+      assert_match(/Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config\/environments\/test.rb/, error.message)
     end
   end
 

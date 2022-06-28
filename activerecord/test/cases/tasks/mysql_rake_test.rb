@@ -26,18 +26,17 @@ if current_adapter?(:Mysql2Adapter)
       def test_establishes_connection_without_database
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
+        mock = Minitest::Mock.new
+        mock.expect(:call, nil, [adapter: "mysql2", database: nil])
+        mock.expect(:call, nil, [db_config])
+
         ActiveRecord::Base.stub(:connection, @connection) do
-          assert_called_with(
-            ActiveRecord::Base,
-            :establish_connection,
-            [
-              [adapter: "mysql2", database: nil],
-              [db_config]
-            ]
-          ) do
+          ActiveRecord::Base.stub(:establish_connection, mock) do
             ActiveRecord::Tasks::DatabaseTasks.create(db_config)
           end
         end
+
+        assert_mock(mock)
       end
 
       def test_creates_database_with_no_default_options

@@ -36,7 +36,7 @@ module ActiveRecord
       include Savepoints
 
       SIMPLE_INT = /\A\d+\z/
-      COMMENT_REGEX = %r{(?:--.*\n)|/\*(?:[^*]|\*[^/])*\*/}m
+      COMMENT_REGEX = %r{(?:--.*\n)|/\*(?:[^*]|\*[^/])*\*/}
 
       attr_accessor :pool
       attr_reader :visitor, :owner, :logger, :lock
@@ -406,6 +406,11 @@ module ActiveRecord
 
       # Does this adapter support creating check constraints?
       def supports_check_constraints?
+        false
+      end
+
+      # Does this adapter support creating exclusion constraints?
+      def supports_exclusion_constraints?
         false
       end
 

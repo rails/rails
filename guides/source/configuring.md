@@ -66,6 +66,9 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_support.default_message_verifier_serializer`](#config-active-support-default-message-verifier-serializer): `:json`
 - [`config.action_controller.allow_deprecated_parameters_hash_equality`](#config-action-controller-allow-deprecated-parameters-hash-equality): `false`
 - [`config.log_file_size`](#config-log-file-size): `100.megabytes`
+- [`config.active_record.sqlite3_adapter_strict_strings_by_default`](#config-active-record-sqlite3-adapter-strict-strings-by-default): `false`
+- [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `false`
+
 
 #### Default Values for Target Version 7.0
 
@@ -105,7 +108,6 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_dispatch.cookies_same_site_protection`](#config-action-dispatch-cookies-same-site-protection): `:lax`
 - [`config.action_dispatch.ssl_default_redirect_status`](#config-action-dispatch-ssl-default-redirect-status) = `308`
 - [`ActiveSupport.utc_to_local_returns_utc_offset_times`](#activesupport-utc-to-local-returns-utc-offset-times): `true`
-- [`config.action_controller.urlsafe_csrf_tokens`](#config-action-controller-urlsafe-csrf-tokens): `true`
 - [`config.action_view.form_with_generates_remote_forms`](#config-action-view-form-with-generates-remote-forms): `false`
 - [`config.action_view.preload_links_header`](#config-action-view-preload-links-header): `true`
 
@@ -328,9 +330,13 @@ Configures lookup path for encrypted credentials.
 
 Configures lookup path for encryption key.
 
-#### `secret_key_base`
+#### `config.secret_key_base`
 
-Is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get a random generated key in test and development environments, other environments should set one in `config/credentials.yml.enc`.
+The fallback for specifying the input secret for an application's key generator.
+It is recommended to leave this unset, and instead to specify a `secret_key_base`
+in `config/credentials.yml.enc`. See the [`secret_key_base` API documentation](
+https://api.rubyonrails.org/classes/Rails/Application.html#method-i-secret_key_base)
+for more information and alternative configuration methods.
 
 #### `config.require_master_key`
 
@@ -760,6 +766,22 @@ Specifies if an error should be raised if the order of a query is ignored during
 
 Controls whether migrations are numbered with serial integers or with timestamps. The default is `true`, to use timestamps, which are preferred if there are multiple developers working on the same application.
 
+#### `config.active_record.migration_strategy`
+
+Controls the strategy class used to perform schema statement methods in a migration. The default class
+delegates to the connection adapter. Custom strategies should inherit from `ActiveRecord::Migration::ExecutionStrategy`,
+or may inherit from `DefaultStrategy`, which will preserve the default behaviour for methods that aren't implemented:
+
+```ruby
+class CustomMigrationStrategy < ActiveRecord::Migration::DefaultStrategy
+  def drop_table(*)
+    raise "Dropping tables is not supported!"
+  end
+end
+
+config.active_record.migration_strategy = CustomMigrationStrategy
+```
+
 #### `config.active_record.lock_optimistically`
 
 Controls whether Active Record will use optimistic locking and is `true` by default.
@@ -933,6 +955,26 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 7.0                   | `true`               |
 
+#### `config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`
+
+When multiple Active Record instances change the same record within a transaction, Rails runs `after_commit` or `after_rollback` callbacks for only one of them. This option specifies how Rails chooses which instance receives the callbacks.
+
+When `true`, transactional callbacks are run on the first instance to save, even though its instance state may be stale.
+
+When `false`, transactional callbacks are run on the instances with the freshest instance state. Those instances are chosen as follows:
+
+- In general, run transactional callbacks on the last instance to save a given record within the transaction.
+- There are two exceptions:
+    - If the record is created within the transaction, then updated by another instance, `after_create_commit` callbacks will be run on the second instance. This is instead of the `after_update_commit` callbacks that would naively be run based on that instance’s state.
+    - If the record is destroyed within the transaction, then `after_destroy_commit` callbacks will be fired on the last destroyed instance, even if a stale instance subsequently performed an update (which will have affected 0 rows).
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 7.1                   | `false`              |
+
 #### `config.active_record.query_log_tags_enabled`
 
 Specifies whether or not to enable adapter-level query comments. Defaults to
@@ -961,6 +1003,24 @@ regular expressions.
 
 Specifies if source locations of methods that call database queries should be logged below relevant queries. By default, the flag is `true` in development and `false` in all other environments.
 
+#### `config.active_record.sqlite3_adapter_strict_strings_by_default`
+
+Specifies whether the SQLite3Adapter should be used in a strict strings mode.
+The use of a strict strings mode disables double-quoted string literals.
+
+SQLite has some quirks around double-quoted string literals.
+It first tries to consider double-quoted strings as identifier names, but if they don't exist
+it then considers them as string literals. Because of this, typos can silently go unnoticed.
+For example, it is possible to create an index for a non existing column.
+See [SQLite documentation](https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted) for more details.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.1                   | `true`               |
+
 #### `config.active_record.async_query_executor`
 
 Specifies how asynchronous queries are pooled.
@@ -983,6 +1043,31 @@ Defaults to `4`.
 
 This number must be considered in accordance with the database pool size configured in `database.yml`. The connection pool
 should be large enough to accommodate both the foreground threads (.e.g web server or job worker threads) and background threads.
+
+#### `config.active_record.allow_deprecated_singular_associations_name`
+
+This enables deprecated behavior wherein singular associations can be referred to by their plural name in `where` clauses. Setting this to `false` is more performant.
+
+```ruby
+class Comment < ActiveRecord::Base
+  belongs_to :post
+end
+
+Comment.where(post: post_id).count  # => 5
+
+# When `allow_deprecated_singular_associations_name` is true:
+Comment.where(posts: post_id).count # => 5 (deprecation warning)
+
+# When `allow_deprecated_singular_associations_name` is false:
+Comment.where(posts: post_id).count # => error
+```
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 7.1                   | `false`              |
 
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans`
 
@@ -1080,17 +1165,6 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 5.2                   | `true`               |
-
-#### `config.action_controller.urlsafe_csrf_tokens`
-
-Configures whether generated CSRF tokens are URL-safe.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `false`              |
-| 6.1                   | `true`               |
 
 #### `config.action_controller.relative_url_root`
 

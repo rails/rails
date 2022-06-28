@@ -32,6 +32,7 @@ module ActiveRecord
         Dir.mkdir(dirname) unless File.directory?(dirname)
       end
 
+      config[:strict] = ConnectionAdapters::SQLite3Adapter.strict_strings_by_default unless config.key?(:strict)
       db = SQLite3::Database.new(
         config[:database].to_s,
         config.merge(results_as_hash: true)
@@ -60,6 +61,16 @@ module ActiveRecord
       include SQLite3::Quoting
       include SQLite3::SchemaStatements
       include SQLite3::DatabaseStatements
+
+      ##
+      # :singleton-method:
+      # Configure the SQLite3Adapter to be used in a strict strings mode.
+      # This will disable double-quoted string literals, because otherwise typos can silently go unnoticed.
+      # For example, it is possible to create an index for a non existing column.
+      # If you wish to enable this mode you can add the following line to your application.rb file:
+      #
+      #   config.active_record.sqlite3_adapter_strict_strings_by_default = true
+      class_attribute :strict_strings_by_default, default: false
 
       NATIVE_DATABASE_TYPES = {
         primary_key:  "integer PRIMARY KEY AUTOINCREMENT NOT NULL",
@@ -243,7 +254,8 @@ module ActiveRecord
       #
       # Example:
       #   rename_table('octopuses', 'octopi')
-      def rename_table(table_name, new_name)
+      def rename_table(table_name, new_name, **options)
+        validate_table_length!(new_name) unless options[:_uses_legacy_table_name]
         schema_cache.clear_data_source_cache!(table_name.to_s)
         schema_cache.clear_data_source_cache!(new_name.to_s)
         exec_query "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
@@ -286,6 +298,8 @@ module ActiveRecord
       end
 
       def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
+        validate_change_column_null_argument!(null)
+
         unless null || default.nil?
           exec_query("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
@@ -350,7 +364,7 @@ module ActiveRecord
       end
 
       def get_database_version # :nodoc:
-        SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)"))
+        SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)", "SCHEMA"))
       end
 
       def check_version # :nodoc:
@@ -483,8 +497,13 @@ module ActiveRecord
                  options[:rename][column.name.to_sym] ||
                  column.name) : column.name
 
+              if column.has_default?
+                type = lookup_cast_type_from_column(column)
+                default = type.deserialize(column.default)
+              end
+
               @definition.column(column_name, column.type,
-                limit: column.limit, default: column.default,
+                limit: column.limit, default: default,
                 precision: column.precision, scale: column.scale,
                 null: column.null, collation: column.collation,
                 primary_key: column_name == from_primary_key

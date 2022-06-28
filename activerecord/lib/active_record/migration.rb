@@ -548,6 +548,8 @@ module ActiveRecord
     autoload :CommandRecorder, "active_record/migration/command_recorder"
     autoload :Compatibility, "active_record/migration/compatibility"
     autoload :JoinTable, "active_record/migration/join_table"
+    autoload :ExecutionStrategy, "active_record/migration/execution_strategy"
+    autoload :DefaultStrategy, "active_record/migration/default_strategy"
 
     # This must be defined before the inherited hook, below
     class Current < Migration # :nodoc:
@@ -692,6 +694,10 @@ module ActiveRecord
       @name       = name
       @version    = version
       @connection = nil
+    end
+
+    def execution_strategy
+      @execution_strategy ||= ActiveRecord.migration_strategy.new(self)
     end
 
     self.verbose = true
@@ -881,6 +887,7 @@ module ActiveRecord
       end
     ensure
       @connection = nil
+      @execution_strategy = nil
     end
 
     def write(text = "")
@@ -935,8 +942,8 @@ module ActiveRecord
             end
           end
         end
-        return super unless connection.respond_to?(method)
-        connection.send(method, *arguments, &block)
+        return super unless execution_strategy.respond_to?(method)
+        execution_strategy.send(method, *arguments, &block)
       end
     end
     ruby2_keywords(:method_missing)

@@ -1,3 +1,24 @@
+*   Guard against `ActionView::Helpers::FormTagHelper#field_name` calls with nil
+    `object_name` arguments. For example:
+
+    ```erb
+    <%= fields do |f| %>
+      <%= f.field_name :body %>
+    <% end %>
+    ```
+
+    *Sean Doyle*
+
+*   Strings returned from `strip_tags` are correctly tagged `html_safe?`
+
+    Because these strings contain no HTML elements and the basic entities are escaped, they are safe
+    to be included as-is as PCDATA in HTML content. Tagging them as html-safe avoids double-escaping
+    entities when being concatenated to a SafeBuffer during rendering.
+
+    Fixes [rails/rails-html-sanitizer#124](https://github.com/rails/rails-html-sanitizer/issues/124)
+
+    *Mike Dalessio*
+
 *   Move `convert_to_model` call from `form_for` into `form_with`
 
     Now that `form_for` is implemented in terms of `form_with`, remove the

@@ -1,3 +1,7 @@
+*   Add more detailed description to job generator.
+
+    *Gannon McGibbon*
+
 *   `perform.active_job` notification payloads now include `:db_runtime`, which
     is the total time (in ms) taken by database queries while performing a job.
     This value can be used to better understand how a job's time is spent.

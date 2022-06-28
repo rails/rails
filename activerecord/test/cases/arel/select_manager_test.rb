@@ -338,13 +338,13 @@ module Arel
         replies            = Table.new(:replies)
         replies_id         = replies[:id]
 
-        recursive_term = Arel::SelectManager.new
-        recursive_term.from(comments).project(comments_id, comments_parent_id).where(comments_id.eq 42)
-
         non_recursive_term = Arel::SelectManager.new
-        non_recursive_term.from(comments).project(comments_id, comments_parent_id).join(replies).on(comments_parent_id.eq replies_id)
+        non_recursive_term.from(comments).project(comments_id, comments_parent_id).where(comments_id.eq 42)
 
-        union = recursive_term.union(non_recursive_term)
+        recursive_term = Arel::SelectManager.new
+        recursive_term.from(comments).project(comments_id, comments_parent_id).join(replies).on(comments_parent_id.eq replies_id)
+
+        union = non_recursive_term.union(recursive_term)
 
         as_statement = Arel::Nodes::As.new replies, union
 

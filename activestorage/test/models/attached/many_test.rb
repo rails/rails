@@ -132,6 +132,106 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
   end
 
+  test "attaching new blobs within a transaction uploads all the files" do
+    @user.highlights.attach fixture_file_upload("image.gif")
+
+    ActiveRecord::Base.transaction do
+      @user.highlights.attach fixture_file_upload("racecar.jpg")
+      @user.highlights.attach fixture_file_upload("video.mp4")
+    end
+
+    assert_equal "image.gif", @user.highlights.first.filename.to_s
+    assert_equal "racecar.jpg", @user.highlights.second.filename.to_s
+    assert_equal "video.mp4", @user.highlights.third.filename.to_s
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.third.key)
+  end
+
+  test "attaching many new blobs within a transaction uploads all the files" do
+    ActiveRecord::Base.transaction do
+      @user.highlights.attach [fixture_file_upload("image.gif"), fixture_file_upload("racecar.jpg")]
+      @user.highlights.attach fixture_file_upload("video.mp4")
+    end
+
+    assert_equal "image.gif", @user.highlights.first.filename.to_s
+    assert_equal "racecar.jpg", @user.highlights.second.filename.to_s
+    assert_equal "video.mp4", @user.highlights.third.filename.to_s
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.third.key)
+  end
+
+  test "attaching many new blobs within a transaction on a dirty record uploads all the files" do
+    @user.name = "Tina"
+
+    ActiveRecord::Base.transaction do
+      @user.highlights.attach fixture_file_upload("image.gif")
+      @user.highlights.attach fixture_file_upload("racecar.jpg")
+    end
+
+    @user.highlights.attach fixture_file_upload("video.mp4")
+    @user.save
+
+    assert_equal "image.gif", @user.highlights.first.filename.to_s
+    assert_equal "racecar.jpg", @user.highlights.second.filename.to_s
+    assert_equal "video.mp4", @user.highlights.third.filename.to_s
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.third.key)
+  end
+
+  test "attaching many new blobs within a transaction on a new record uploads all the files" do
+    user = User.create!(name: "John") do |user|
+      user.highlights.attach(io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpeg")
+      user.highlights.attach(io: StringIO.new("THINGS"), filename: "town.jpg", content_type: "image/jpeg")
+    end
+
+    assert_equal 2, user.highlights.count
+    assert_equal "funky.jpg", user.highlights.first.filename.to_s
+    assert_equal "town.jpg", user.highlights.second.filename.to_s
+    assert ActiveStorage::Blob.service.exist?(user.highlights.first.key)
+    assert ActiveStorage::Blob.service.exist?(user.highlights.second.key)
+  end
+
+  test "attaching new blobs within a transaction create the exact amount of records" do
+    assert_difference -> { ActiveStorage::Blob.count }, +2 do
+      ActiveRecord::Base.transaction do
+        @user.highlights.attach fixture_file_upload("racecar.jpg")
+        @user.highlights.attach fixture_file_upload("video.mp4")
+      end
+    end
+
+    assert_equal 2, @user.highlights.count
+  end
+
+  test "attaching new blobs within a transaction with append_on_assign config uploads all the files" do
+    append_on_assign do
+      ActiveRecord::Base.transaction do
+        @user.highlights.attach fixture_file_upload("racecar.jpg")
+        @user.highlights.attach fixture_file_upload("video.mp4")
+      end
+
+      assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
+      assert_equal "video.mp4", @user.highlights.second.filename.to_s
+      assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+      assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+    end
+  end
+
+  test "attaching new blobs within a transaction with append_on_assign config create the exact amount of records" do
+    append_on_assign do
+      assert_difference -> { ActiveStorage::Blob.count }, +2 do
+        ActiveRecord::Base.transaction do
+          @user.highlights.attach fixture_file_upload("racecar.jpg")
+          @user.highlights.attach fixture_file_upload("video.mp4")
+        end
+      end
+
+      assert_equal 2, @user.highlights.count
+    end
+  end
+
   test "attaching existing blobs to an existing record one at a time" do
     @user.highlights.attach create_blob(filename: "funky.jpg")
     @user.highlights.attach create_blob(filename: "town.jpg")
@@ -746,19 +846,45 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
-  test "attaching blobs to a record returns the attachments" do
+  test "attaching blobs to a persisted, unchanged, and valid record, returns the attachments" do
     @user.highlights.attach create_blob(filename: "racecar.jpg")
-    highlights = @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
-    assert_instance_of ActiveStorage::Attached::Many, highlights
-    assert_equal 3, @user.highlights.count
-    assert_equal 3, highlights.count
-    assert_equal highlights.name.to_s, @user.highlights.name.to_s
-    assert_equal highlights.first.key.to_s, @user.highlights.first.key.to_s
-    assert_equal highlights.first.filename.to_s, @user.highlights.first.filename.to_s
-    assert_equal highlights.second.key.to_s, @user.highlights.second.key.to_s
-    assert_equal highlights.second.filename.to_s, @user.highlights.second.filename.to_s
-    assert_equal highlights.third.key.to_s, @user.highlights.third.key.to_s
-    assert_equal highlights.third.filename.to_s, @user.highlights.third.filename.to_s
+    return_value = @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+    assert_equal @user.highlights, return_value
+  end
+
+  test "attaching blobs to a persisted, unchanged, and invalid record, returns nil" do
+    @user.update_attribute(:name, nil)
+    assert_not @user.valid?
+
+    @user.highlights.attach create_blob(filename: "racecar.jpg")
+    return_value = @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+    assert_nil return_value
+  end
+
+  test "attaching blobs to a changed record, returns the attachments" do
+    @user.name = "Tina"
+    @user.highlights.attach create_blob(filename: "racecar.jpg")
+    return_value = @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+    assert_equal @user.highlights, return_value
+  end
+
+  test "attaching blobs to a non persisted record, returns the attachments" do
+    user = User.new(name: "John")
+    user.highlights.attach create_blob(filename: "racecar.jpg")
+    return_value = user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+    assert_equal user.highlights, return_value
+  end
+
+  test "raises error when global service configuration is missing" do
+    Rails.configuration.active_storage.stub(:service, nil) do
+      error = assert_raises RuntimeError do
+        User.class_eval do
+          has_one_attached :featured_photos
+        end
+      end
+
+      assert_match(/Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config\/environments\/test.rb/, error.message)
+    end
   end
 
   test "raises error when misconfigured service is passed" do

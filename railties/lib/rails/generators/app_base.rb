@@ -142,50 +142,19 @@ module Rails
       end
 
       IMPLIED_OPTIONS = { # :nodoc:
-        skip_active_storage: [:skip_active_record],
+        skip_active_storage: [:skip_active_record, :skip_active_job],
+        skip_action_mailer: [:skip_active_job],
         skip_action_mailbox: [:skip_active_storage],
         skip_action_text: [:skip_active_storage],
         skip_hotwire: [:skip_javascript]
       }
 
-      MINIMAL_OPTIONS = %w[
-        --skip-action-cable
-        --skip-action-mailer
-        --skip-action-mailbox
-        --skip-action-text
-        --skip-active-job
-        --skip-active-storage
-        --skip-bootsnap
-        --skip-dev-gems
-        --skip-javascript
-        --skip-jbuilder
-        --skip-system-test
-        --skip-hotwire
-      ]
-
       def implied_options
-        rc_options_offset = @argv.index("--end-rc-options") || 0
-        rc_file = rc_options_offset != 0
-        minimal_offset = options["minimal"] && (@argv.rindex("--minimal") &.> rc_options_offset) ?
-          MINIMAL_OPTIONS.length : 0
-        explicit_options_offset = 1 + rc_options_offset + minimal_offset
-        
-        explicit_no_skip_options = @argv[explicit_options_offset..-1].filter_map do |option| 
-          :"#{option[2..-1].tr('-','_')}" if /^--no-skip/ =~ option 
+        explicit_skip_options = @argv.filter_map do |option|
+          option[2..-1].tr("-", "_").to_sym if option.is_a?(String) && /^--skip/.match?(option)
         end
-        explicit_skip_options = @argv[explicit_options_offset..-1].filter_map do |option| 
-          :"#{option[2..-1].tr('-','_')}" if /^--skip/ =~ option 
-        end
-
-        if rc_file
-          rc_explicit_start = (@argv.index("--minimal") &.< rc_options_offset) ?
-            MINIMAL_OPTIONS.length + 1 : 1
-          rc_explicit_no_skip_options = @argv[rc_explicit_start...rc_options_offset].filter_map do |option| 
-            :"#{option[2..-1].tr('-','_')}" if /^--no-skip/ =~ option 
-          end
-          rc_explicit_skip_options = @argv[rc_explicit_start...rc_options_offset].filter_map do |option| 
-            :"#{option[2..-1].tr('-','_')}" if /^--skip/ =~ option 
-          end
+        explicit_no_skip_options = @argv.filter_map do |option|
+          option[5..-1].tr("-", "_").to_sym if option.is_a?(String) && /^--no-skip/.match?(option)
         end
 
         order_of_implication = TSort.tsort(
@@ -193,146 +162,53 @@ module Rails
           ->(key, &block) { IMPLIED_OPTIONS[key]&.each(&block) }
         )
 
-        cl_required_no_skip_options = required_no_skip_options(order_of_implication.reverse, explicit_no_skip_options)
-        cl_required_skip_options = required_skip_options(order_of_implication, explicit_skip_options)
-        if rc_file
-          rc_required_no_skip_options = required_no_skip_options(order_of_implication.reverse, rc_explicit_no_skip_options)
-          rc_required_skip_options = required_skip_options(order_of_implication, rc_explicit_skip_options)
-        end
-
-        # Find any conflicts in the command-line options.
-        # (Command-line options take precedence over options in an rc file.)
-        conflicts = {}
-        cl_required_no_skip_options.keys.each do |option|
-          skip_option = :"#{option[3..-1]}"
-          if explicit_skip_options.include?(skip_option)
-            no_skip_options = explicit_no_skip_options.include?(option) ? 
-              [option] : cl_required_no_skip_options[option]
-            conflicts[skip_option] = no_skip_options
-          end
-          if rc_file
-            rc_required_no_skip_options.delete(option)
-            rc_required_skip_options.delete(skip_option)
-          end
-        end
-        
-        if rc_file
-          cl_required_skip_options.keys.each do |option|
-            rc_required_no_skip_options.delete(:"no_#{option}")
-            rc_required_skip_options.delete(option)
-          end
-        end
-
-        # `--api` flag (specified anywhere) always requires
-        # `--skip-asset-pipeline` (i.e., sprockets) and `--skip-javascript`
-        if (options.api?)
-          required = %i(skip_asset_pipeline skip_javascript)
-          required_all = required_skip_options(order_of_implication, required)
-          required_all.keys.each do |option|
-            no_skip_option = :"no_#{option}"
-            conflicts[option] = [:api] if explicit_no_skip_options.include?(no_skip_option)
-            if rc_file
-              rc_required_no_skip_options.delete(no_skip_option)
-              rc_required_skip_options.delete(option)
+        option_implications = order_of_implication.each_with_object(IMPLIED_OPTIONS.clone) do |option, implied_options|
+          IMPLIED_OPTIONS[option]&.each do |implicator|
+            IMPLIED_OPTIONS[implicator]&.each do |i|
+              implied_options[option] << i unless implied_options[option].include?(i)
             end
           end
-          required_all.transform_values! { [:api] }
-          cl_required_skip_options.merge!(required_all)
         end
 
-        if rc_file
-          # Command-line `--minimal` trumps any related options in an rc file.
-          # Assumes everything skipped by `--minimal` is included in
-          # `MINIMAL_OPTIONS`, i.e., no additional implied options.
-          if @argv.rindex("--minimal") &.> rc_options_offset
-            minimal_options = MINIMAL_OPTIONS.map { |option| :"#{option[2..-1].tr("-","_")}" }
-            minimal_options.each do |option|
-              rc_required_no_skip_options.delete(:"no_#{option}")
-              rc_required_skip_options.delete(option)
-            end
-          end
+        implicators = option_implications.each_with_object(Hash.new { |h, k| h[k] = [] }) do |(implied, implicators), hash|
+          implicators.each { |implicator| hash[implicator] << implied }
+        end
 
-          # Add any remaining implied options from an rc file
-          rc_required_no_skip_options.keys.each do |option|
-            skip_option = :"#{option[3..-1]}"
-            if rc_explicit_skip_options.include?(skip_option)
-              rc_no_skip_options = rc_explicit_no_skip_options.include?(option) ? 
-                [option] : rc_required_no_skip_options[option]
-              conflicts[skip_option] = rc_no_skip_options
-            end
+        conflicts = Hash.new { |h, k| h[k] = [] }
+        implied_options = explicit_skip_options&.each_with_object(Hash.new { |h, k| h[k] = [] }) do |option, hash|
+          implicators[option]&.each do |implied|
+            conflicts[option] << :"no_#{implied}" if explicit_no_skip_options&.include?(implied)
+            hash[implied] << option unless options[implied]
           end
         end
 
         handle_option_conflicts(conflicts) unless conflicts.empty?
-        implied_options = cl_required_no_skip_options.merge(cl_required_skip_options).compact
-        if rc_file
-          implied_options = implied_options.merge(rc_required_no_skip_options)
-                                           .merge(rc_required_skip_options).compact
+        explicit_no_skip_options&.each_with_object(implied_options) do |option, hash|
+          option_implications[option]&.each { |implied| hash[implied] << :"no_#{option}" if options[option] }
         end
-        implied_options.select { |option| /^no_/ =~ option ? options[:"#{option[3..-1]}"] : !options[option] }
       end
 
-      def required_no_skip_options(order_of_implication, explicit_no_skip_options)
-        implied_no_skip_options = {}
-
-        order_of_implication.each do |option|
-          no_skip_option = :"no_#{option}"
-          IMPLIED_OPTIONS[option]&.each do |skip_option|
-            implied_no_skip_option = :"no_#{skip_option}"
-            if (explicit_no_skip_options.include?(no_skip_option) || implied_no_skip_options[no_skip_option])
-              implied_no_skip_options[implied_no_skip_option] = [
-                *implied_no_skip_options[implied_no_skip_option], 
-                *implied_no_skip_options[no_skip_option], 
-                no_skip_option
-              ]
-            end
+      def activate_implied_options
+        unless (implied_options = self.implied_options).empty?
+          say "Based on the specified options, the following options will also be activated:"
+          implied_options.each do |option, reasons|
+            due_to = reasons.map { |reason| "--#{reason.to_s.tr("_", "-")}" }.join(", ")
+            say "  --#{/^no/.match?(reasons[0]) ? "no-" : ""}#{option.to_s.tr("_", "-")} [due to: #{due_to}]"
           end
-        end
-        combine_options(explicit_no_skip_options, implied_no_skip_options)
-      end
+          say ""
 
-      def required_skip_options(order_of_implication, explicit_skip_options)
-        implied_skip_options = {}
-        order_of_implication.each do |option|
-          if IMPLIED_OPTIONS[option]
-            implied_skip_options[option] = IMPLIED_OPTIONS[option].select do |reason|
-              (explicit_skip_options.include?(reason) || implied_skip_options[reason])
-            end.presence
-          end
+          implied_options.transform_values! { |implicators| /^no/.match?(implicators[0]) ? false : true }
+          self.options = options.merge(implied_options).freeze
         end
-        combine_options(explicit_skip_options, implied_skip_options.compact)
-      end
-
-      def combine_options(explicit_options, implied_options)
-        required_options = explicit_options.to_h { |option| [option, nil] }
-        implied_options.each do |implied, implicators|
-          required_options[implied] = implicators.select { |implicator| explicit_options.include?(implicator) }
-        end
-        required_options
       end
 
       def handle_option_conflicts(conflicts)
         say "Conflicting options specified:", :red
         conflicts.each do |skip_option, no_skip_options|
-          due_to = no_skip_options.map { |conflict| "--#{conflict.to_s.tr("_","-")}" }.join(", ")
-          say "  Cannot enforce --#{skip_option.to_s.tr("_","-")} due to #{due_to}", :red
+          due_to = no_skip_options.map { |no_skip_option| "--#{no_skip_option.to_s.tr("_", "-")}" }.join(", ")
+          say "  Cannot enforce --#{skip_option.to_s.tr("_", "-")} due to #{due_to}", :red
         end
         raise Error, "Please fix conflicting options."
-      end
-
-      def report_implied_options
-        unless (implied_options = self.implied_options).empty?
-          say "Based on the specified options, the following options will also be activated:"
-          implied_options.each do |option, reasons|
-            due_to = reasons.map { |reason| "--#{reason.to_s.tr("_", "-")}" }.join(", ")
-            say "  --#{option.to_s.tr("_", "-")} [due to: #{due_to}]"
-          end
-          say ""
-
-          implied_options.transform_values! { |implicators| /^no/ =~ implicators[0] ? false : true }
-                         .transform_keys! { |implied| /^no/ =~ implied ? :"#{implied[3..-1]}" : implied }
-          self.options = options.merge(implied_options).freeze
-        end
       end
 
       def create_root # :doc:
@@ -388,14 +264,14 @@ module Rails
         [
           options.values_at(
             :skip_active_record,
-            :skip_action_mailer,
+            :skip_active_storage,
             :skip_test,
             :skip_action_cable,
-            :skip_active_job
-          ),
-          skip_active_storage?,
-          skip_action_mailbox?,
-          skip_action_text?
+            :skip_active_job,
+            :skip_action_mailer,
+            :skip_action_mailbox,
+            :skip_action_text
+          )
         ].flatten.none?
       end
 
@@ -418,18 +294,6 @@ module Rails
 
       def sqlite3? # :doc:
         !options[:skip_active_record] && options[:database] == "sqlite3"
-      end
-
-      def skip_active_storage? # :doc:
-        options[:skip_active_storage] || options[:skip_active_record]
-      end
-
-      def skip_action_mailbox? # :doc:
-        options[:skip_action_mailbox] || skip_active_storage?
-      end
-
-      def skip_action_text? # :doc:
-        options[:skip_action_text] || skip_active_storage?
       end
 
       def skip_sprockets?

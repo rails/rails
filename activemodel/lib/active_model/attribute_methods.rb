@@ -398,7 +398,7 @@ module ActiveModel
             mangled_name = "__temp__#{name.unpack1("h*")}"
           end
 
-          code_generator.define_cached_method(name, as: mangled_name, namespace: namespace) do |batch|
+          code_generator.define_cached_method(name, as: mangled_name, namespace: :"#{namespace}_#{proxy_target}") do |batch|
             call_args.map!(&:inspect)
             call_args << parameters if parameters
 

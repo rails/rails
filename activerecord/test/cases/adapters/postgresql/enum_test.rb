@@ -139,4 +139,22 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     model = PostgresqlEnum.find(model.id)
     assert model.current_mood_happy?
   end
+
+  def test_enum_type_scoped_to_schemas
+    old_search_path = @connection.schema_search_path
+    @connection.create_schema("test_schema")
+    @connection.schema_search_path = "test_schema"
+    @connection.schema_cache.clear!
+    @connection.create_enum("mood", ["sad", "ok", "happy"])
+
+    assert_nothing_raised do
+      @connection.create_table("postgresql_enums") do |t|
+        t.column :current_mood, :mood, default: "happy", null: false
+      end
+    end
+  ensure
+    @connection.drop_schema("test_schema")
+    @connection.schema_search_path = old_search_path
+    @connection.schema_cache.clear!
+  end
 end

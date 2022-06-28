@@ -27,7 +27,14 @@ class ExecutorTest < ActiveSupport::TestCase
         raise error
       end
     end
-    assert_equal [[error, false, :error, "unhandled_error.active_support", {}]], subscriber.events
+    assert_equal [error, false, :error, "application.active_support", {}], subscriber.events.last
+
+    assert_raises DummyError do
+      executor.wrap(source: "custom") do
+        raise error
+      end
+    end
+    assert_equal [error, false, :error, "custom", {}], subscriber.events.last
   end
 
   def test_wrap_invokes_callbacks

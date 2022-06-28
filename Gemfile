@@ -6,7 +6,11 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 gemspec
 
-gem "minitest", ">= 5.15.0"
+if RUBY_VERSION < "3"
+  gem "minitest", ">= 5.15.0", "< 5.16"
+else
+  gem "minitest", ">= 5.15.0"
+end
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"

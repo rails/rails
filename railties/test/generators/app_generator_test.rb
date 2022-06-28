@@ -290,6 +290,54 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_preserves_skip_active_job
+    app_root = File.join(destination_root, "myapp")
+    run_generator [ app_root, "--skip-active-job" ]
+
+    FileUtils.cd(app_root) do
+      config = "config/application.rb"
+      assert_no_changes -> { File.readlines(config).grep(/require /) } do
+        quietly { system("yes | bin/rails app:update") }
+      end
+    end
+  end
+
+  def test_app_update_preserves_skip_action_mailbox
+    app_root = File.join(destination_root, "myapp")
+    run_generator [ app_root, "--skip-action-mailbox" ]
+
+    FileUtils.cd(app_root) do
+      config = "config/application.rb"
+      assert_no_changes -> { File.readlines(config).grep(/require /) } do
+        quietly { system("yes | bin/rails app:update") }
+      end
+    end
+  end
+
+  def test_app_update_preserves_skip_action_text
+    app_root = File.join(destination_root, "myapp")
+    run_generator [ app_root, "--skip-action-text" ]
+
+    FileUtils.cd(app_root) do
+      config = "config/application.rb"
+      assert_no_changes -> { File.readlines(config).grep(/require /) } do
+        quietly { system("yes | bin/rails app:update") }
+      end
+    end
+  end
+
+  def test_app_update_preserves_skip_test
+    app_root = File.join(destination_root, "myapp")
+    run_generator [ app_root, "--skip-test" ]
+
+    FileUtils.cd(app_root) do
+      config = "config/application.rb"
+      assert_no_changes -> { File.readlines(config).grep(/require /) } do
+        quietly { system("yes | bin/rails app:update") }
+      end
+    end
+  end
+
   def test_gem_for_active_storage
     run_generator
     assert_file "Gemfile", /^# gem "image_processing"/
@@ -306,7 +354,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [app_root, "--skip-active-storage"]
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true, skip_active_storage: true }, { destination_root: app_root, shell: @shell }
+      generator = Rails::Generators::AppGenerator.new ["rails"], [ "--update", "--skip_active_storage"], { destination_root: app_root, shell: @shell }
       generator.send(:app_const)
       quietly { generator.update_config_files }
 
@@ -551,6 +599,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "config/application.rb" do |content|
       assert_match(/#\s+require\s+["']active_job\/railtie["']/, content)
+      assert_match(/#\s+require\s+["']active_storage\/engine["']/, content)
+      assert_match(/#\s+require\s+["']action_mailer\/railtie["']/, content)
     end
   end
 
@@ -865,6 +915,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--css", "postcss", "--no-skip-bundle"]
     assert_gem "cssbundling-rails"
     assert_file "app/assets/stylesheets/application.postcss.css"
+  end
+
+  def test_dev_gems
+    run_generator [destination_root, "--no-skip-dev-gems"]
+    assert_gem "web-console"
+  end
+
+  def test_skip_dev_gems
+    run_generator [destination_root, "--skip-dev-gems"]
+    assert_no_gem "web-console"
   end
 
   def test_bootsnap

@@ -290,6 +290,7 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options)
+        validate_table_length!(table_name) unless options[:_uses_legacy_table_name]
         td = create_table_definition(table_name, **extract_table_options!(options))
 
         if id && !td.as
@@ -491,7 +492,7 @@ module ActiveRecord
       #
       #   rename_table('octopuses', 'octopi')
       #
-      def rename_table(table_name, new_name)
+      def rename_table(table_name, new_name, **)
         raise NotImplementedError, "rename_table is not implemented"
       end
 
@@ -1073,7 +1074,7 @@ module ActiveRecord
       #   (PostgreSQL only) Specify whether or not the foreign key should be deferrable. Valid values are booleans or
       #   +:deferred+ or +:immediate+ to specify the default behavior. Defaults to +false+.
       def add_foreign_key(from_table, to_table, **options)
-        return unless supports_foreign_keys?
+        return unless use_foreign_keys?
         return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table)
 
         options = foreign_key_options(from_table, to_table, options)
@@ -1114,7 +1115,7 @@ module ActiveRecord
       # [<tt>:to_table</tt>]
       #   The name of the table that contains the referenced primary key.
       def remove_foreign_key(from_table, to_table = nil, **options)
-        return unless supports_foreign_keys?
+        return unless use_foreign_keys?
         return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table)
 
         fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
@@ -1393,7 +1394,17 @@ module ActiveRecord
         SchemaDumper.create(self, options)
       end
 
+      def use_foreign_keys?
+        supports_foreign_keys? && foreign_keys_enabled?
+      end
+
       private
+        def validate_change_column_null_argument!(value)
+          unless value == true || value == false
+            raise ArgumentError, "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: #{value.inspect}"
+          end
+        end
+
         def column_options_keys
           [:limit, :precision, :scale, :default, :null, :collation, :comment]
         end
@@ -1541,7 +1552,7 @@ module ActiveRecord
         end
 
         def foreign_key_for(from_table, **options)
-          return unless supports_foreign_keys?
+          return unless use_foreign_keys?
           foreign_keys(from_table).detect { |fk| fk.defined_for?(**options) }
         end
 
@@ -1556,6 +1567,10 @@ module ActiveRecord
           when "SET NULL"; :nullify
           when "RESTRICT"; :restrict
           end
+        end
+
+        def foreign_keys_enabled?
+          @config.fetch(:foreign_keys, true)
         end
 
         def check_constraint_name(table_name, **options)
@@ -1582,6 +1597,12 @@ module ActiveRecord
         def validate_index_length!(table_name, new_name, internal = false)
           if new_name.length > index_name_length
             raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters"
+          end
+        end
+
+        def validate_table_length!(table_name)
+          if table_name.length > table_name_length
+            raise ArgumentError, "Table name '#{table_name}' is too long; the limit is #{table_name_length} characters"
           end
         end
 

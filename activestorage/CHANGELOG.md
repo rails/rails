@@ -1,4 +1,45 @@
-*   Fixes proxy downloads of files over 5mb 
+*   Method `attach` always returns the attachments except when the record
+    is persisted, unchanged, and saving it fails, in which case it returns `nil`.
+
+    *Santiago Bartesaghi*
+
+*   Fixes multiple `attach` calls within transaction not uploading files correctly.
+
+    In the following example, the code failed to upload all but the last file to the configured service.
+    ```ruby
+      ActiveRecord::Base.transaction do
+        user.attachments.attach({
+          content_type: "text/plain",
+          filename: "dummy.txt",
+          io: ::StringIO.new("dummy"),
+        })
+        user.attachments.attach({
+          content_type: "text/plain",
+          filename: "dummy2.txt",
+          io: ::StringIO.new("dummy2"),
+        })
+      end
+
+      assert_equal 2, user.attachments.count
+      assert user.attachments.first.service.exist?(user.attachments.first.key)  # Fails
+    ```
+
+    This was addressed by keeping track of the subchanges pending upload, and uploading them
+    once the transaction is committed.
+
+    Fixes #41661
+
+    *Santiago Bartesaghi*, *Bruno Vezoli*, *Juan Roig*, *Abhay Nikam*
+
+*   Raise an exception if `config.active_storage.service` is not set.
+
+    If Active Storage is configured and `config.active_storage.service` is not
+    set in the respective environment's configuration file, then an exception
+    is raised with a meaningful message when attempting to use Active Storage.
+
+    *Ghouse Mohamed*
+
+*   Fixes proxy downloads of files over 5mb
 
     Previously, trying to view and/or download files larger than 5mb stored in
     services like S3 via proxy mode could return corrupted files at around

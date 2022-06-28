@@ -93,17 +93,24 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
 
     test "multiple URLs uses Redis::Distributed client" do
-      assert_called_with Redis, :new, [
-        [ url: REDIS_URLS.first,
-          connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-          reconnect_attempts: 0, driver: DRIVER ],
-        [ url: REDIS_URLS.last,
-          connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-          reconnect_attempts: 0, driver: DRIVER ],
-      ], returns: Redis.new do
+      default_args = {
+        connect_timeout: 20,
+        read_timeout: 1,
+        write_timeout: 1,
+        reconnect_attempts: 0,
+        driver: DRIVER
+      }
+
+      mock = Minitest::Mock.new
+      mock.expect(:call, Redis.new, [{ url: REDIS_URLS.first }.merge(default_args)])
+      mock.expect(:call, Redis.new, [{ url: REDIS_URLS.last }.merge(default_args)])
+
+      Redis.stub(:new, mock) do
         @cache = build url: REDIS_URLS
         assert_kind_of ::Redis::Distributed, @cache.redis
       end
+
+      assert_mock(mock)
     end
 
     test "block argument uses yielded client" do
@@ -138,7 +145,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     private
       def build(**kwargs)
-        ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs).tap(&:redis)
+        ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs.merge(pool: false)).tap(&:redis)
       end
   end
 
@@ -156,7 +163,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
 
     def lookup_store(options = {})
-      ActiveSupport::Cache.lookup_store(:redis_cache_store, { timeout: 0.1, namespace: @namespace, driver: DRIVER }.merge(options))
+      ActiveSupport::Cache.lookup_store(:redis_cache_store, { timeout: 0.1, namespace: @namespace, driver: DRIVER, pool: false }.merge(options))
     end
 
     teardown do
@@ -298,6 +305,14 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         assert_equal 2, pool.size
         assert_equal 1, pool.instance_variable_get(:@timeout)
       end
+    end
+
+    def test_connection_pooling_by_default
+      cache = ActiveSupport::Cache.lookup_store(:redis_cache_store)
+      pool = cache.redis
+      assert_kind_of ::ConnectionPool, pool
+      assert_equal 5, pool.size
+      assert_equal 5, pool.instance_variable_get(:@timeout)
     end
 
     private
