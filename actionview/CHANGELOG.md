@@ -1,3 +1,10 @@
+*   Don't double-encode nested `field_id` and `field_name` index values
+
+    Pass `index: @options` as a default keyword argument to `field_id` and
+    `field_name` view helper methods.
+
+    *Sean Doyle*
+
 *   Stop generating `Link preload` headers once it has reached 1KB.
 
     Some proxies have trouble handling large headers, but more importantly preload links
