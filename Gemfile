@@ -30,6 +30,9 @@ gem "uglifier", ">= 1.3.0", require: false
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0"
 
+# Lock rack-test to v1 until #45467 is fixed
+gem "rack-test", "< 2"
+
 group :rubocop do
   gem "rubocop", ">= 0.90", require: false
   gem "rubocop-packaging", require: false
