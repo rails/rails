@@ -4,6 +4,7 @@ require "fileutils"
 require "digest/md5"
 require "rails/version" unless defined?(Rails::VERSION)
 require "open-uri"
+require "tsort"
 require "uri"
 require "rails/generators"
 require "active_support/core_ext/array/extract_options"
@@ -138,6 +139,76 @@ module Rails
 
       def build(meth, *args) # :doc:
         builder.public_send(meth, *args) if builder.respond_to?(meth)
+      end
+
+      IMPLIED_OPTIONS = { # :nodoc:
+        skip_active_storage: [:skip_active_record, :skip_active_job],
+        skip_action_mailer: [:skip_active_job],
+        skip_action_mailbox: [:skip_active_storage],
+        skip_action_text: [:skip_active_storage],
+        skip_hotwire: [:skip_javascript]
+      }
+
+      def implied_options
+        explicit_skip_options = @argv.filter_map do |option|
+          option[2..-1].tr("-", "_").to_sym if option.is_a?(String) && /^--skip/.match?(option)
+        end
+        explicit_no_skip_options = @argv.filter_map do |option|
+          option[5..-1].tr("-", "_").to_sym if option.is_a?(String) && /^--no-skip/.match?(option)
+        end
+
+        order_of_implication = TSort.tsort(
+          ->(&block) { IMPLIED_OPTIONS.each_key(&block) },
+          ->(key, &block) { IMPLIED_OPTIONS[key]&.each(&block) }
+        )
+
+        option_implications = order_of_implication.each_with_object(IMPLIED_OPTIONS.clone) do |option, implied_options|
+          IMPLIED_OPTIONS[option]&.each do |implicator|
+            IMPLIED_OPTIONS[implicator]&.each do |i|
+              implied_options[option] << i unless implied_options[option].include?(i)
+            end
+          end
+        end
+
+        implicators = option_implications.each_with_object(Hash.new { |h, k| h[k] = [] }) do |(implied, implicators), hash|
+          implicators.each { |implicator| hash[implicator] << implied }
+        end
+
+        conflicts = Hash.new { |h, k| h[k] = [] }
+        implied_options = explicit_skip_options&.each_with_object(Hash.new { |h, k| h[k] = [] }) do |option, hash|
+          implicators[option]&.each do |implied|
+            conflicts[option] << :"no_#{implied}" if explicit_no_skip_options&.include?(implied)
+            hash[implied] << option unless options[implied]
+          end
+        end
+
+        handle_option_conflicts(conflicts) unless conflicts.empty?
+        explicit_no_skip_options&.each_with_object(implied_options) do |option, hash|
+          option_implications[option]&.each { |implied| hash[implied] << :"no_#{option}" if options[option] }
+        end
+      end
+
+      def activate_implied_options
+        unless (implied_options = self.implied_options).empty?
+          say "Based on the specified options, the following options will also be activated:"
+          implied_options.each do |option, reasons|
+            due_to = reasons.map { |reason| "--#{reason.to_s.tr("_", "-")}" }.join(", ")
+            say "  --#{/^no/.match?(reasons[0]) ? "no-" : ""}#{option.to_s.tr("_", "-")} [due to: #{due_to}]"
+          end
+          say ""
+
+          implied_options.transform_values! { |implicators| /^no/.match?(implicators[0]) ? false : true }
+          self.options = options.merge(implied_options).freeze
+        end
+      end
+
+      def handle_option_conflicts(conflicts)
+        say "Conflicting options specified:", :red
+        conflicts.each do |skip_option, no_skip_options|
+          due_to = no_skip_options.map { |no_skip_option| "--#{no_skip_option.to_s.tr("_", "-")}" }.join(", ")
+          say "  Cannot enforce --#{skip_option.to_s.tr("_", "-")} due to #{due_to}", :red
+        end
+        raise Error, "Please fix conflicting options."
       end
 
       def create_root # :doc:
