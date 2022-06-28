@@ -2666,12 +2666,12 @@ module ApplicationTests
       assert_equal ActiveRecord::DestroyAssociationAsyncJob, ActiveRecord::Base.destroy_association_async_job
     end
 
-    test "ActiveRecord::Base.destroy_association_async_job can be configured via config.active_record.destroy_association_job" do
+    test "ActiveRecord::Base.destroy_association_async_job can be configured via config.active_record.destroy_association_async_job" do
       class ::DummyDestroyAssociationAsyncJob; end
 
       app_file "config/environments/test.rb", <<-RUBY
         Rails.application.configure do
-          config.active_record.destroy_association_async_job = DummyDestroyAssociationAsyncJob
+          config.active_record.destroy_association_async_job = "DummyDestroyAssociationAsyncJob"
         end
       RUBY
 

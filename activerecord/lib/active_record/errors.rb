@@ -7,9 +7,12 @@ module ActiveRecord
   class ActiveRecordError < StandardError
   end
 
-  # Raised when trying to use a feature in Active Record which requires Active Job but the gem is not present.
-  class ActiveJobRequiredError < ActiveRecordError
-  end
+  # DEPRECATED: Previously raised when trying to use a feature in Active Record which
+  # requires Active Job but the gem is not present. Now raises a NameError.
+  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+  DeprecatedActiveJobRequiredError = Class.new(ActiveRecordError) # :nodoc:
+  deprecate_constant "ActiveJobRequiredError", "ActiveRecord::DeprecatedActiveJobRequiredError",
+    message: "ActiveRecord::ActiveJobRequiredError has been deprecated. If Active Job is not present, a NameError will be raised instead."
 
   # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that
