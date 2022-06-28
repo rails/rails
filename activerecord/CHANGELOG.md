@@ -1,3 +1,7 @@
+*   Update `db:prepare` task to load schema when an uninitialized database exists, and dump schema after migrations.
+
+    *Ben Sheldon*
+
 *   Fix supporting timezone awareness for `tsrange` and `tstzrange` array columns.
 
     ```ruby

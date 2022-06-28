@@ -192,27 +192,25 @@ module ActiveRecord
           ActiveRecord::Base.establish_connection(db_config)
 
           begin
-            # Skipped when no database
-            migrate
-
-            if ActiveRecord.dump_schema_after_migration
-              dump_schema(db_config, ActiveRecord.schema_format)
-            end
+            database_initialized = ActiveRecord::SchemaMigration.table_exists?
           rescue ActiveRecord::NoDatabaseError
             create(db_config)
+            retry
+          end
 
+          unless database_initialized
             if File.exist?(schema_dump_path(db_config))
               load_schema(
                 db_config,
                 ActiveRecord.schema_format,
                 nil
               )
-            else
-              migrate
             end
-
             seed = true
           end
+
+          migrate
+          dump_schema(db_config) if ActiveRecord.dump_schema_after_migration
         end
 
         ActiveRecord::Base.establish_connection
