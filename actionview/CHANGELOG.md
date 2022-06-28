@@ -1,3 +1,11 @@
+*   Don't double-encode nested `field_id` and `field_name` index values
+
+    Pass `index: @options` as a default keyword argument to `field_id` and
+    `field_name` view helper methods.
+
+    *Sean Doyle*
+
+
 ## Rails 7.0.6 (June 29, 2023) ##
 
 *   No changes.
