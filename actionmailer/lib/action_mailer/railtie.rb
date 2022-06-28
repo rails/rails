@@ -41,8 +41,9 @@ module ActionMailer
         register_preview_interceptors(options.delete(:preview_interceptors))
         register_observers(options.delete(:observers))
 
-        if delivery_job = options.delete(:delivery_job)
-          self.delivery_job = delivery_job.constantize
+        delivery_job = options.delete(:delivery_job)
+        ActiveSupport.on_load(:active_job) do
+          ::ActionMailer::Base.delivery_job ||= delivery_job.present? ? delivery_job.constantize : ::ActionMailer::MailDeliveryJob
         end
 
         if options.smtp_settings

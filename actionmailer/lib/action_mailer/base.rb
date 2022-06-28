@@ -486,7 +486,7 @@ module ActionMailer
 
     helper ActionMailer::MailHelper
 
-    class_attribute :delivery_job, default: ::ActionMailer::MailDeliveryJob
+    class_attribute :delivery_job, default: nil
     class_attribute :default_params, default: {
       mime_version: "1.0",
       charset:      "UTF-8",
