@@ -25,14 +25,14 @@ module CommonSubscriptionAdapterTest
     [@rx_adapter, @tx_adapter].uniq.compact.each(&:shutdown)
   end
 
-  def subscribe_as_queue(channel, adapter = @rx_adapter)
+  def subscribe_as_queue(channel, adapter = @rx_adapter, expect_success: true)
     queue = Queue.new
 
     callback = -> data { queue << data }
     subscribed = Concurrent::Event.new
     adapter.subscribe(channel, callback, Proc.new { subscribed.set })
     subscribed.wait(WAIT_WHEN_EXPECTING_EVENT)
-    assert_predicate subscribed, :set?
+    assert_predicate subscribed, :set? if expect_success
 
     yield queue
 

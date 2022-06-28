@@ -1,3 +1,7 @@
+*   Restart Action Cable when Redis disconnects.
+
+    *Heinrich Lee Yu, Chris Wilson*
+
 *   The Action Cable server is now mounted with `anchor: true`.
 
     This means that routes that also start with `/cable` will no longer clash with Action Cable.

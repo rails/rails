@@ -79,3 +79,19 @@ class RedisAdapterTest::ConnectorWithExcluded < RedisAdapterTest::ConnectorDefau
     super.except(:adapter, :channel_prefix)
   end
 end
+
+class RedisAdapterTest::ConnectionError < RedisAdapterTest
+  def test_connection_restart_on_connection_error
+    server = ActionCable::Server::Base.new
+    redis = MiniTest::Mock.new
+
+    redis.expect(:without_reconnect, "") { raise ::Redis::BaseConnectionError }
+
+    @adapter = server.config.pubsub_adapter.new(server)
+    @adapter.stub(:redis_connection_for_subscriptions, redis) do
+      assert_called(ActionCable.server, :restart) do
+        subscribe_as_queue("channel", @adapter, expect_success: false) { }
+      end
+    end
+  end
+end
