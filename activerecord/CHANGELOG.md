@@ -1,3 +1,21 @@
+*   `ActiveRecord::Persistence::ClassMethods#insert_all!` now supports `unique_by` option.
+
+    ```ruby
+    books = [
+      { name: 'A', author_id: 1, price: 100 },
+      { name: 'B', author_id: 1, price: 200 },
+      { name: 'A', author_id: 1, price: 300 },
+    ]
+
+    # Raises ActiveRecord::RecordNotUnique
+    Book.insert_all!(books, unique_by: [:name, :author_id])
+
+    # Returns ActiveRecord::Result
+    Book.insert_all(books, unique_by: [:name, :author_id])
+    ```
+
+    *Bernie Chiu*
+
 *   Update `db:prepare` task to load schema when an uninitialized database exists, and dump schema after migrations.
 
     *Ben Sheldon*

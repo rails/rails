@@ -78,6 +78,16 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_raises_on_duplicate_records_when_unqiue_by_is_provided
+    assert_raise ActiveRecord::RecordNotUnique do
+      Cart.insert_all! [
+        { id: 1, shop_id: 1, title: "My cart" },
+        { id: 2, shop_id: 1, title: "My another cart" },
+        { id: 1, shop_id: 1, title: "My another cart" },
+      ], unique_by: [:shop_id, :id]
+    end
+  end
+
   def test_insert_all_returns_ActiveRecord_Result
     result = Book.insert_all! [{ name: "Rework", author_id: 1 }]
     assert_kind_of ActiveRecord::Result, result
