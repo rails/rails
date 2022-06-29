@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require_relative "../helper"
 
-require "models/topic"
+require_relative "../../models/topic"
 
 class ValidatesWithTest < ActiveModel::TestCase
   def teardown
