@@ -51,7 +51,7 @@ module ActionCable
         config = app.config
         unless config.action_cable.mount_path.nil?
           app.routes.prepend do
-            mount ActionCable.server => config.action_cable.mount_path, internal: true
+            mount ActionCable.server => config.action_cable.mount_path, internal: true, anchor: true
           end
         end
       end

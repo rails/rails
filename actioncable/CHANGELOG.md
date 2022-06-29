@@ -1,3 +1,9 @@
+*   The Action Cable server is now mounted with `anchor: true`.
+
+    This means that routes that also start with `/cable` will no longer clash with Action Cable.
+
+    *Alex Ghiculescu*
+
 *   `ActionCable.server.remote_connections.where(...).disconnect` now sends `disconnect` message
     before closing the connection with the reconnection strategy specified (defaults to `true`).
 
