@@ -1,3 +1,10 @@
+*   The Action Cable server is now mounted with `anchor: true`.
+
+    This means that routes that also start with `/cable` will no longer clash with Action Cable.
+
+    *Alex Ghiculescu*
+
+
 ## Rails 7.0.3 (May 09, 2022) ##
 
 *   No changes.

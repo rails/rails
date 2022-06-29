@@ -172,6 +172,15 @@ module ActionDispatch
         assert_equal "/*path.:format", fakeset.asts.first.to_s
       end
 
+      def test_can_pass_anchor_to_mount
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        app = lambda { |env| [200, {}, [""]] }
+        mapper.mount app => "/path", anchor: true
+        assert_equal "/path", fakeset.asts.first.to_s
+        assert fakeset.routes.first.path.anchored
+      end
+
       def test_raising_error_when_path_is_not_passed
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
