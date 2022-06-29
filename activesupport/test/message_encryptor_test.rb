@@ -83,6 +83,41 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_not_verified([iv,  message] * bad_encoding_characters)
   end
 
+  test "supports URL-safe encoding when using authenticated encryption" do
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, urlsafe: true, cipher: "aes-256-gcm")
+
+    # Because encrypted data appears random, we cannot control whether it will
+    # contain bytes that _would_ be encoded as non-URL-safe characters (i.e. "+"
+    # or "/") if `urlsafe: true` were broken.  Therefore, to make our test
+    # falsifiable, we use a large string so that the encrypted data will almost
+    # certainly contain such bytes.
+    data = "x" * 10001
+    message = encryptor.encrypt_and_sign(data)
+
+    assert_equal data, encryptor.decrypt_and_verify(message)
+    assert_equal message, URI.encode_www_form_component(message)
+  end
+
+  test "supports URL-safe encoding when using unauthenticated encryption" do
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, urlsafe: true, cipher: "aes-256-cbc")
+
+    # When using unauthenticated encryption, messages are double encoded: once
+    # when encrypting and once again when signing with a MessageVerifier.  The
+    # 1st encode eliminates the possibility of a 6-bit aligned occurrence of
+    # `0b111110` or `0b111111`, which the 2nd encode _would_ map to a
+    # non-URL-safe character (i.e. "+" or "/") if `urlsafe: true` were broken.
+    # Therefore, to ensure our test is falsifiable, we also assert that the
+    # message payload _would_ have padding characters (i.e. "=") if
+    # `urlsafe: true` were broken.
+    data = 1
+    message = encryptor.encrypt_and_sign(data)
+
+    assert_equal data, encryptor.decrypt_and_verify(message)
+    assert_equal message, URI.encode_www_form_component(message)
+    assert_not_equal 0, message.rpartition("--").first.length % 4,
+      "Unable to assert that the message payload is unpadded, because it does not require padding"
+  end
+
   def test_aead_mode_encryption
     encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
     message = encryptor.encrypt_and_sign(@data)
