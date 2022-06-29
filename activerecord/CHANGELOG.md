@@ -1,3 +1,11 @@
+*   Don't establish a new connection if an identical pool exists already.
+
+    Previously, if `establish_connection` was called on a class that already had an established connection, the existing connection would be removed regardless of whether it was the same config. Now if a pool is found with the same values as the new connection, the existing connection will be returned instead of creating a new one.
+
+    This has a slight change in behavior if application code is depending on a new connection being established regardless of whether it's identical to an existing connection. If the old behavior is desirable, applications should call `ActiveRecord::Base#remove_connection` before establishing a new one. Calling `establish_connection` with a different config works the same way as it did previously.
+
+    *Eileen M. Uchitelle*
+
 *   Update `db:prepare` task to load schema when an uninitialized database exists, and dump schema after migrations.
 
     *Ben Sheldon*

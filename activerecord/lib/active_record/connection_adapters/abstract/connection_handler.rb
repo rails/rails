@@ -103,30 +103,32 @@ module ActiveRecord
 
       def establish_connection(config, owner_name: Base, role: ActiveRecord::Base.current_role, shard: Base.current_shard)
         owner_name = StringConnectionOwner.new(config.to_s) if config.is_a?(Symbol)
-
         pool_config = resolve_pool_config(config, owner_name, role, shard)
         db_config = pool_config.db_config
 
-        # Protects the connection named `ActiveRecord::Base` from being removed
-        # if the user calls `establish_connection :primary`.
-        if owner_to_pool_manager.key?(pool_config.connection_specification_name)
+        # If there is an existing pool with the same values as the pool_config
+        # don't remove the connection. Connections should only be removed if we are
+        # establishing a connection on a class that is already connected to a different
+        # configuration.
+        pool = retrieve_connection_pool(pool_config.connection_specification_name, role: role, shard: shard)
+
+        unless pool && pool.db_config == db_config
           remove_connection_pool(pool_config.connection_specification_name, role: role, shard: shard)
+
+          owner_to_pool_manager[pool_config.connection_specification_name] ||= PoolManager.new
+          pool_manager = get_pool_manager(pool_config.connection_specification_name)
+          pool_manager.set_pool_config(role, shard, pool_config)
+          pool = pool_config.pool
         end
 
-        message_bus = ActiveSupport::Notifications.instrumenter
-        payload = {}
-        if pool_config
-          payload[:spec_name] = pool_config.connection_specification_name
-          payload[:shard] = shard
-          payload[:config] = db_config.configuration_hash
-        end
+        payload = {
+          spec_name: pool_config.connection_specification_name,
+          shard: shard,
+          config: db_config.configuration_hash
+        }
 
-        owner_to_pool_manager[pool_config.connection_specification_name] ||= PoolManager.new
-        pool_manager = get_pool_manager(pool_config.connection_specification_name)
-        pool_manager.set_pool_config(role, shard, pool_config)
-
-        message_bus.instrument("!connection.active_record", payload) do
-          pool_config.pool
+        ActiveSupport::Notifications.instrumenter.instrument("!connection.active_record", payload) do
+          pool
         end
       end
 
