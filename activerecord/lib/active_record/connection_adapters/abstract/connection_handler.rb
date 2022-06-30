@@ -106,29 +106,29 @@ module ActiveRecord
         pool_config = resolve_pool_config(config, owner_name, role, shard)
         db_config = pool_config.db_config
 
+        pool_manager = set_pool_manager(pool_config.connection_specification_name)
+
         # If there is an existing pool with the same values as the pool_config
         # don't remove the connection. Connections should only be removed if we are
         # establishing a connection on a class that is already connected to a different
         # configuration.
-        pool = retrieve_connection_pool(pool_config.connection_specification_name, role: role, shard: shard)
+        existing_pool_config = pool_manager.get_pool_config(role, shard)
 
-        unless pool && pool.db_config == db_config
-          remove_connection_pool(pool_config.connection_specification_name, role: role, shard: shard)
-
-          owner_to_pool_manager[pool_config.connection_specification_name] ||= PoolManager.new
-          pool_manager = get_pool_manager(pool_config.connection_specification_name)
+        if existing_pool_config && existing_pool_config.db_config == db_config
+          existing_pool_config.pool
+        else
+          disconnect_pool_from_pool_manager(pool_manager, role, shard)
           pool_manager.set_pool_config(role, shard, pool_config)
-          pool = pool_config.pool
-        end
 
-        payload = {
-          spec_name: pool_config.connection_specification_name,
-          shard: shard,
-          config: db_config.configuration_hash
-        }
+          payload = {
+            spec_name: pool_config.connection_specification_name,
+            shard: shard,
+            config: db_config.configuration_hash
+          }
 
-        ActiveSupport::Notifications.instrumenter.instrument("!connection.active_record", payload) do
-          pool
+          ActiveSupport::Notifications.instrumenter.instrument("!connection.active_record", payload) do
+            pool_config.pool
+          end
         end
       end
 
@@ -196,12 +196,7 @@ module ActiveRecord
 
       def remove_connection_pool(owner, role: ActiveRecord::Base.current_role, shard: ActiveRecord::Base.current_shard)
         if pool_manager = get_pool_manager(owner)
-          pool_config = pool_manager.remove_pool_config(role, shard)
-
-          if pool_config
-            pool_config.disconnect!
-            pool_config.db_config
-          end
+          disconnect_pool_from_pool_manager(pool_manager, role, shard)
         end
       end
 
@@ -219,6 +214,20 @@ module ActiveRecord
         # Returns the pool manager for an owner.
         def get_pool_manager(owner)
           owner_to_pool_manager[owner]
+        end
+
+        # Get the existing pool manager or initialize and assign a new one.
+        def set_pool_manager(owner)
+          owner_to_pool_manager[owner] ||= PoolManager.new
+        end
+
+        def disconnect_pool_from_pool_manager(pool_manager, role, shard)
+          pool_config = pool_manager.remove_pool_config(role, shard)
+
+          if pool_config
+            pool_config.disconnect!
+            pool_config.db_config
+          end
         end
 
         # Returns an instance of PoolConfig for a given adapter.
