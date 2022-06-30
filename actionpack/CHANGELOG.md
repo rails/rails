@@ -1,3 +1,13 @@
+*   Allow opting out of the `SameSite` cookie attribute when setting a cookie.
+
+    You can opt out of `SameSite` by passing `same_site: nil`.
+
+    `cookies[:foo] = { value: "bar", same_site: nil }`
+
+    Previously, this incorrectly set the `SameSite` attribute to the value of the `cookies_same_site_protection` setting.
+
+    *Alex Ghiculescu*
+
 *   Allow using `helper_method`s in `content_security_policy` and `permissions_policy`
 
     Previously you could access basic helpers (defined in helper modules), but not
