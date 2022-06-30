@@ -580,7 +580,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             connection.drop_table "astronauts", if_exists: true rescue nil
             connection.drop_table "rockets", if_exists: true rescue nil
 
-            ActiveRecord::Base.establish_connection(:arunit)
+            @connection = ActiveRecord::Base.establish_connection(:arunit).connection unless @connection.active?
           end
         end
 
