@@ -12,7 +12,7 @@ module ActiveRecord
 
       def setup
         @handler = ConnectionHandler.new
-        @owner_name = "ActiveRecord::Base"
+        @connection_name = "ActiveRecord::Base"
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         @pool = @handler.establish_connection(db_config)
       end
@@ -210,19 +210,19 @@ module ActiveRecord
       end
 
       def test_retrieve_connection
-        assert @handler.retrieve_connection(@owner_name)
+        assert @handler.retrieve_connection(@connection_name)
       end
 
       def test_active_connections?
         assert_not_predicate @handler, :active_connections?
-        assert @handler.retrieve_connection(@owner_name)
+        assert @handler.retrieve_connection(@connection_name)
         assert_predicate @handler, :active_connections?
         @handler.clear_active_connections!
         assert_not_predicate @handler, :active_connections?
       end
 
       def test_retrieve_connection_pool
-        assert_not_nil @handler.retrieve_connection_pool(@owner_name)
+        assert_not_nil @handler.retrieve_connection_pool(@connection_name)
       end
 
       def test_retrieve_connection_pool_with_invalid_id
@@ -391,7 +391,7 @@ module ActiveRecord
 
           pid = fork {
             rd.close
-            pool = @handler.retrieve_connection_pool(@owner_name)
+            pool = @handler.retrieve_connection_pool(@connection_name)
             wr.write Marshal.dump pool.schema_cache.size
             wr.close
             exit!

@@ -618,7 +618,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   private
     def with_temporary_connection_pool(&block)
-      pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("ActiveRecord::Base").get_pool_config(ActiveRecord.writing_role, :default)
+      pool_config = ActiveRecord::Base.connection_handler.send(:connection_name_to_pool_manager).fetch("ActiveRecord::Base").get_pool_config(ActiveRecord.writing_role, :default)
       new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
 
       pool_config.stub(:pool, new_pool, &block)

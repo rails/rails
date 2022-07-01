@@ -115,13 +115,13 @@ module ActiveRecord
 
         # When connections are established in the future, begin a transaction too
         @connection_subscriber = ActiveSupport::Notifications.subscribe("!connection.active_record") do |_, _, _, _, payload|
-          spec_name = payload[:spec_name] if payload.key?(:spec_name)
+          connection_name = payload[:connection_name] if payload.key?(:connection_name)
           shard = payload[:shard] if payload.key?(:shard)
           setup_shared_connection_pool
 
-          if spec_name
+          if connection_name
             begin
-              connection = ActiveRecord::Base.connection_handler.retrieve_connection(spec_name, shard: shard)
+              connection = ActiveRecord::Base.connection_handler.retrieve_connection(connection_name, shard: shard)
             rescue ConnectionNotEstablished
               connection = nil
             end
@@ -179,7 +179,7 @@ module ActiveRecord
         handler = ActiveRecord::Base.connection_handler
 
         handler.connection_pool_names.each do |name|
-          pool_manager = handler.send(:owner_to_pool_manager)[name]
+          pool_manager = handler.send(:connection_name_to_pool_manager)[name]
           pool_manager.shard_names.each do |shard_name|
             writing_pool_config = pool_manager.get_pool_config(ActiveRecord.writing_role, shard_name)
             @saved_pool_configs[name][shard_name] ||= {}
@@ -198,7 +198,7 @@ module ActiveRecord
         handler = ActiveRecord::Base.connection_handler
 
         @saved_pool_configs.each_pair do |name, shards|
-          pool_manager = handler.send(:owner_to_pool_manager)[name]
+          pool_manager = handler.send(:connection_name_to_pool_manager)[name]
           shards.each_pair do |shard_name, roles|
             roles.each_pair do |role, pool_config|
               next unless pool_manager.get_pool_config(role, shard_name)
