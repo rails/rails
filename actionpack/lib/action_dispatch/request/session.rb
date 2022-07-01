@@ -163,7 +163,7 @@ module ActionDispatch
       # Returns the session as Hash.
       def to_hash
         load_for_read!
-        @delegate.dup.delete_if { |_, v| v.nil? }
+        @delegate.compact
       end
       alias :to_h :to_hash
 
