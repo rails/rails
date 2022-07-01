@@ -37,6 +37,8 @@ class InfoControllerTest < ActionController::TestCase
   end
 
   test "info controller allows requests when all requests are considered local" do
+    @request.env["REMOTE_ADDR"] = "example.org"
+    Rails.application.config.consider_all_requests_local = true
     get :properties
     assert_response :success
   end
