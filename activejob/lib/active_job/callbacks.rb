@@ -28,7 +28,6 @@ module ActiveJob
     end
 
     included do
-      class_attribute :return_false_on_aborted_enqueue, instance_accessor: false, instance_predicate: false, default: false
       cattr_accessor :skip_after_callbacks_if_terminated, instance_accessor: false, default: false
       singleton_class.deprecate :skip_after_callbacks_if_terminated, :skip_after_callbacks_if_terminated=
 
