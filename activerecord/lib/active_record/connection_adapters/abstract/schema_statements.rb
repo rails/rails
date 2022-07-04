@@ -380,7 +380,7 @@ module ActiveRecord
 
         column_options.reverse_merge!(null: false, index: false)
 
-        t1_ref, t2_ref = [table_1, table_2].map { |t| t.to_s.singularize }
+        t1_ref, t2_ref = [table_1, table_2].map { |t| reference_name_for_table(t) }
 
         create_table(join_table_name, **options.merge!(id: false)) do |td|
           td.references t1_ref, **column_options
@@ -1617,6 +1617,10 @@ module ActiveRecord
 
         def can_remove_index_by_name?(column_name, options)
           column_name.nil? && options.key?(:name) && options.except(:name, :algorithm).empty?
+        end
+
+        def reference_name_for_table(table_name)
+          table_name.to_s.singularize
         end
 
         def bulk_change_table(table_name, operations)
