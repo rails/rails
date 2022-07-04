@@ -1586,7 +1586,7 @@ module ActiveRecord
         def check_constraint_for(table_name, **options)
           return unless supports_check_constraints?
           chk_name = check_constraint_name(table_name, **options)
-          check_constraints(table_name).detect { |chk| chk.name == chk_name }
+          check_constraints(table_name).detect { |chk| chk.name == chk_name.to_s }
         end
 
         def check_constraint_for!(table_name, expression: nil, **options)
