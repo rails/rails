@@ -265,41 +265,42 @@ module Rails
       class_option :minimal, type: :boolean, desc: "Preconfigure a minimal rails app"
       class_option :javascript, type: :string, aliases: ["-j", "--js"], default: "importmap", desc: "Choose JavaScript approach [options: importmap (default), webpack, esbuild, rollup]"
       class_option :css, type: :string, aliases: "-c", desc: "Choose CSS processor [options: tailwind, bootstrap, bulma, postcss, sass... check https://github.com/rails/cssbundling-rails]"
-      class_option :skip_bundle, type: :boolean, aliases: "-B", default: false, desc: "Don't run bundle install"
-      class_option :skip_decrypted_diffs, type: :boolean, default: false, desc: "Don't configure git to show decrypted diffs of encrypted credentials"
+      class_option :skip_bundle, type: :boolean, aliases: "-B", default: nil, desc: "Don't run bundle install"
+      class_option :skip_decrypted_diffs, type: :boolean, default: nil, desc: "Don't configure git to show decrypted diffs of encrypted credentials"
 
       def initialize(*args)
         super
+
+        imply_options({
+          **OPTION_IMPLICATIONS,
+          minimal: [
+            :skip_action_cable,
+            :skip_action_mailbox,
+            :skip_action_mailer,
+            :skip_action_text,
+            :skip_active_job,
+            :skip_active_storage,
+            :skip_bootsnap,
+            :skip_dev_gems,
+            :skip_hotwire,
+            :skip_javascript,
+            :skip_jbuilder,
+            :skip_system_test,
+          ],
+          api: [
+            :skip_asset_pipeline,
+            :skip_javascript,
+          ],
+        }, meta_options: [:minimal])
 
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
           raise Error, "Invalid value for --database option. Supported preconfigurations are: #{DATABASES.join(", ")}."
         end
 
-        # Force sprockets and JavaScript to be skipped when generating API only apps.
-        # Can't modify options hash as it's frozen by default.
-        if options[:api]
-          self.options = options.merge(skip_asset_pipeline: true, skip_javascript: true).freeze
-        end
-
-        if options[:minimal]
-          self.options = options.merge(
-            skip_action_cable: true,
-            skip_action_mailer: true,
-            skip_action_mailbox: true,
-            skip_action_text: true,
-            skip_active_job: true,
-            skip_active_storage: true,
-            skip_bootsnap: true,
-            skip_dev_gems: true,
-            skip_javascript: true,
-            skip_jbuilder: true,
-            skip_system_test: true,
-            skip_hotwire: true).freeze
-        end
-
         @after_bundle_callbacks = []
       end
 
+      public_task :report_implied_options
       public_task :set_default_accessors!
       public_task :create_root
       public_task :target_rails_prerelease

@@ -1,3 +1,42 @@
+*   `--no-*` options now work with the app generator's `--minimal` option, and
+    are both comprehensive and precise.  For example:
+
+    ```console
+    $ rails new my_cool_app --minimal
+    Based on the specified options, the following options will also be activated:
+
+      --skip-active-job [due to --minimal]
+      --skip-action-mailer [due to --skip-active-job, --minimal]
+      --skip-active-storage [due to --skip-active-job, --minimal]
+      --skip-action-mailbox [due to --skip-active-storage, --minimal]
+      --skip-action-text [due to --skip-active-storage, --minimal]
+      --skip-javascript [due to --minimal]
+      --skip-hotwire [due to --skip-javascript, --minimal]
+      --skip-action-cable [due to --minimal]
+      --skip-bootsnap [due to --minimal]
+      --skip-dev-gems [due to --minimal]
+      --skip-system-test [due to --minimal]
+
+    ...
+
+    $ rails new my_cool_app --minimal --no-skip-active-storage
+    Based on the specified options, the following options will also be activated:
+
+      --skip-action-mailer [due to --minimal]
+      --skip-action-mailbox [due to --minimal]
+      --skip-action-text [due to --minimal]
+      --skip-javascript [due to --minimal]
+      --skip-hotwire [due to --skip-javascript, --minimal]
+      --skip-action-cable [due to --minimal]
+      --skip-bootsnap [due to --minimal]
+      --skip-dev-gems [due to --minimal]
+      --skip-system-test [due to --minimal]
+
+    ...
+    ```
+
+    *Brad Trick* and *Jonathan Hefner*
+
 *   Add `--skip-dev-gems` option to app generator to skip adding development
     gems (like `web-console`) to the Gemfile.
 
