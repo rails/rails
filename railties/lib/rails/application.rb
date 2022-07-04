@@ -176,10 +176,10 @@ module Rails
     #     # => 'my sensible data'
     #
     # See the ActiveSupport::MessageVerifier documentation for more information.
-    def message_verifier(verifier_name)
+    def message_verifier(verifier_name, urlsafe: false)
       @message_verifiers[verifier_name] ||= begin
         secret = key_generator.generate_key(verifier_name.to_s)
-        ActiveSupport::MessageVerifier.new(secret)
+        ActiveSupport::MessageVerifier.new(secret, urlsafe: urlsafe)
       end
     end
 
