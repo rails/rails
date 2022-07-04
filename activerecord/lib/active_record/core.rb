@@ -330,6 +330,21 @@ module ActiveRecord
         end
       end
 
+      # Returns columns which should be exposed while calling +#inspect+.
+      def allow_attributes
+        if defined?(@allow_attributes)
+          @allow_attributes
+        else
+          superclass.allow_attributes
+        end
+      end
+
+      # Specifies columns which should be exposed while calling +#inspect+.
+      def allow_attributes=(allow_attributes)
+        @inspection_filter = nil
+        @allow_attributes = allow_attributes
+      end
+
       # Returns columns which shouldn't be exposed while calling +#inspect+.
       def filter_attributes
         if defined?(@filter_attributes)
@@ -346,7 +361,12 @@ module ActiveRecord
       end
 
       def inspection_filter # :nodoc:
-        if defined?(@filter_attributes)
+        if defined?(@allow_attributes)
+          @inspection_filter ||= begin
+            mask = InspectionMask.new(ActiveSupport::ParameterFilter::FILTERED)
+            ActiveSupport::ParameterAllowFilter.new(@allow_attributes, mask: mask)
+          end
+        elsif defined?(@filter_attributes)
           @inspection_filter ||= begin
             mask = InspectionMask.new(ActiveSupport::ParameterFilter::FILTERED)
             ActiveSupport::ParameterFilter.new(@filter_attributes, mask: mask)

@@ -10,7 +10,7 @@ require "rails/source_annotation_extractor"
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
-      attr_accessor :allow_concurrency, :asset_host, :autoflush_log,
+      attr_accessor :allow_concurrency, :allow_parameters, :asset_host, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :hosts, :host_authorization, :logger, :log_formatter,

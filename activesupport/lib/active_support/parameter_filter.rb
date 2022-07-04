@@ -56,7 +56,11 @@ module ActiveSupport
 
   private
     def compiled_filter
-      @compiled_filter ||= CompiledFilter.compile(@filters, mask: @mask)
+      @compiled_filter ||= compiled_filter_class.compile(@filters, mask: @mask)
+    end
+
+    def compiled_filter_class
+      CompiledFilter
     end
 
     class CompiledFilter # :nodoc:
@@ -134,5 +138,62 @@ module ActiveSupport
         value
       end
     end
+  end
+
+  class ParameterAllowFilter < ParameterFilter
+    class CompiledAllowFilter < ParameterFilter::CompiledFilter # :nodoc:
+      def value_for_key(key, value, parents = [], original_params = nil)
+        parents.push(key) if deep_regexps
+        if match?(key, parents)
+          if value.is_a?(Hash) || value.is_a?(Array)
+            value = handle_recursion(key, value, parents, original_params)
+          elsif blocks.any?
+            value = apply_blocks(key, value, parents, original_params)
+          end
+        elsif value.is_a?(Hash) || value.is_a?(Array)
+          value = handle_recursion(key, value, parents, original_params)
+        else
+          value = @mask
+        end
+        parents.pop if deep_regexps
+        value
+      end
+
+      def apply_blocks(key, value, parents, original_params)
+        key = key.dup if key.duplicable?
+        value = value.dup if value.duplicable?
+        blocks.each { |b| b.arity == 2 ? b.call(key, value) : b.call(key, value, original_params) }
+        value
+      end
+
+      def match?(key, parents)
+        regexps.any? { |r| r.match?(key.to_s) } ||
+          (deep_regexps && (joined = parents.join(".")) && deep_regexps.any? { |r| r.match?(joined) })
+      end
+
+      def handle_recursion(key, value, parents, original_params)
+        if value.is_a?(Hash)
+          value = call(value, parents, original_params)
+        elsif value.is_a?(Array)
+          # If we don't pop the current parent it will be duplicated as we
+          # process each array value.
+          parents.pop if deep_regexps
+          value = value.map { |v| value_for_key(key, v, parents, original_params) }
+          # Restore the parent stack after processing the array.
+          parents.push(key) if deep_regexps
+        end
+        value
+      end
+    end
+
+    # Returns filtered value for given key. For +Proc+ filters, third block argument is not populated.
+    def filter_param(key, value)
+      @filters.empty? ? @mask : compiled_filter.value_for_key(key, value)
+    end
+
+    private
+      def compiled_filter_class
+        CompiledAllowFilter
+      end
   end
 end

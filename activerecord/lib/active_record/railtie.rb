@@ -324,6 +324,9 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
     initializer "active_record.set_filter_attributes" do
       ActiveSupport.on_load(:active_record) do
+        if allow_attributes = Rails.application.config.allow_parameters
+          self.allow_attributes = allow_attributes
+        end
         self.filter_attributes += Rails.application.config.filter_parameters
       end
     end

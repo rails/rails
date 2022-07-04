@@ -249,6 +249,7 @@ module Rails
     # will be used by middlewares and engines to configure themselves.
     def env_config
       @app_env_config ||= super.merge(
+          "action_dispatch.parameter_allow_filter" => config.allow_parameters,
           "action_dispatch.parameter_filter" => config.filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
           "action_dispatch.secret_key_base" => secret_key_base,

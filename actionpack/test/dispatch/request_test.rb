@@ -1176,6 +1176,86 @@ class RequestParameters < BaseRequestTest
   end
 end
 
+class RequestParameterAllowFilter < BaseRequestTest
+  test "filtered_parameters returns params filtered" do
+    request = stub_request(
+      "action_dispatch.request.parameters" => {
+        "lifo" => "Pratik",
+        "amount" => "420",
+        "step" => "1"
+      },
+      "action_dispatch.parameter_allow_filter" => [:step]
+    )
+
+    params = request.filtered_parameters
+    assert_equal "[FILTERED]", params["lifo"]
+    assert_equal "[FILTERED]", params["amount"]
+    assert_equal "1", params["step"]
+  end
+
+  test "filtered_env filters env as a whole" do
+    request = stub_request(
+      "action_dispatch.request.parameters" => {
+        "amount" => "420",
+        "step" => "1"
+      },
+      "RAW_POST_DATA" => "yada yada",
+      "action_dispatch.parameter_allow_filter" => [:step]
+    )
+    request = stub_request(request.filtered_env)
+
+    assert_equal "[FILTERED]", request.raw_post
+    assert_equal "[FILTERED]", request.params["amount"]
+    assert_equal "1", request.params["step"]
+  end
+
+  test "filtered_path returns path with filtered query string" do
+    %w(; &).each do |sep|
+      request = stub_request(
+        "QUERY_STRING" => %w(username=sikachu secret=bd4f21f api_key=b1bc3b3cd352f68d79d7).join(sep),
+        "PATH_INFO" => "/authenticate",
+        "action_dispatch.parameter_allow_filter" => [:username]
+      )
+
+      path = request.filtered_path
+      assert_equal %w(/authenticate?username=sikachu secret=[FILTERED] api_key=[FILTERED]).join(sep), path
+    end
+  end
+
+  test "filtered_path should not unescape a genuine '[FILTERED]' value" do
+    request = stub_request(
+      "QUERY_STRING" => "secret=bd4f21f&genuine=%5BFILTERED%5D",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_allow_filter" => [:genuine]
+    )
+
+    path = request.filtered_path
+    assert_equal request.script_name + "/authenticate?secret=[FILTERED]&genuine=%5BFILTERED%5D", path
+  end
+
+  test "filtered_path should preserve duplication of keys in query string" do
+    request = stub_request(
+      "QUERY_STRING" => "username=sikachu&secret=bd4f21f&username=fxn",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_allow_filter" => [:username]
+    )
+
+    path = request.filtered_path
+    assert_equal request.script_name + "/authenticate?username=sikachu&secret=[FILTERED]&username=fxn", path
+  end
+
+  test "filtered_path should ignore searchparts" do
+    request = stub_request(
+      "QUERY_STRING" => "secret",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_allow_filter" => [:secret]
+    )
+
+    path = request.filtered_path
+    assert_equal request.script_name + "/authenticate?secret", path
+  end
+end
+
 class RequestParameterFilter < BaseRequestTest
   test "filtered_parameters returns params filtered" do
     request = stub_request(
