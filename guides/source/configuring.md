@@ -97,7 +97,6 @@ Below are the default values associated with each target version. In cases of co
 #### Default Values for Target Version 6.1
 
 - [`config.active_record.has_many_inversing`](#config-active-record-has-many-inversing): `true`
-- [`config.active_record.legacy_connection_handling`](#config-active-record-legacy-connection-handling): `false`
 - [`config.active_storage.track_variants`](#config-active-storage-track-variants): `true`
 - [`config.active_storage.queues.analysis`](#config-active-storage-queues-analysis): `nil`
 - [`config.active_storage.queues.purge`](#config-active-storage-queues-purge): `nil`
@@ -1019,18 +1018,6 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.0                   | `true`               |
-
-#### `config.active_record.legacy_connection_handling`
-
-Allows to enable new connection handling API. For applications using multiple
-databases, this new API provides support for granular connection swapping.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `true`               |
-| 6.1                   | `false`              |
 
 #### `config.active_record.destroy_association_async_job`
 
