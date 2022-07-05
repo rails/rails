@@ -2059,6 +2059,40 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_field_id_with_nested_attribute
+    post, comment, tag = Post.new, Comment.new, Tag.new
+    comment.relevances = [tag]
+    post.comments = [comment]
+    form_for(post) do |f|
+      concat(f.fields_for(:comments) do |comment_f|
+        concat comment_f.field_id :relevance_attributes
+      end)
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      "post_comments_attributes_0_relevance_attributes"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_name_with_nested_attribute_with_multiple
+    post, comment, tag = Post.new, Comment.new, Tag.new
+    comment.relevances = [tag]
+    post.comments = [comment]
+    form_for(post) do |f|
+      concat(f.fields_for(:comments) do |comment_f|
+        concat comment_f.field_name :relevance_attributes, multiple: true
+      end)
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      "post[comments_attributes][0][relevance_attributes][]"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_with_index_and_with_collection_check_boxes
     post = Post.new
     def post.tag_ids; [1]; end

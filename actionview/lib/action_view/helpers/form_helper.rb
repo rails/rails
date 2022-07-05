@@ -1674,7 +1674,7 @@ module ActionView
 
       attr_accessor :object_name, :object, :options
 
-      attr_reader :multipart, :index
+      attr_reader :multipart, :index, :field_id_and_name_index
       alias :multipart? :multipart
 
       def multipart=(multipart)
@@ -1714,7 +1714,14 @@ module ActionView
         end
 
         @multipart = nil
+
         @index = options[:index] || options[:child_index]
+
+        if @explicit_child_index
+          @field_id_and_name_index = @index
+        else
+          @field_id_and_name_index = options[:index]
+        end
       end
 
       # Generate an HTML <tt>id</tt> attribute value.
@@ -1754,7 +1761,7 @@ module ActionView
       # <tt>aria-describedby</tt> attribute referencing the <tt><span></tt>
       # element, sharing a common <tt>id</tt> root (<tt>post_title</tt>, in this
       # case).
-      def field_id(method, *suffixes, namespace: @options[:namespace], index: @index)
+      def field_id(method, *suffixes, namespace: @options[:namespace], index: field_id_and_name_index)
         @template.field_id(@object_name, method, *suffixes, namespace: namespace, index: index)
       end
 
@@ -1774,7 +1781,7 @@ module ActionView
       #     <%# => <input type="text" name="post[tag][]">
       #   <% end %>
       #
-      def field_name(method, *methods, multiple: false, index: @index)
+      def field_name(method, *methods, multiple: false, index: field_id_and_name_index)
         object_name = @options.fetch(:as) { @object_name }
 
         @template.field_name(object_name, method, *methods, index: index, multiple: multiple)
@@ -2681,11 +2688,11 @@ module ActionView
           end
 
           if association.respond_to?(:to_ary)
-            explicit_child_index = options[:child_index]
+            @explicit_child_index = options[:child_index]
             output = ActiveSupport::SafeBuffer.new
             association.each do |child|
-              if explicit_child_index
-                options[:child_index] = explicit_child_index.call if explicit_child_index.respond_to?(:call)
+              if @explicit_child_index
+                options[:child_index] = @explicit_child_index.call if @explicit_child_index.respond_to?(:call)
               else
                 options[:child_index] = nested_child_index(name)
               end
