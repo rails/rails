@@ -453,8 +453,9 @@ module ActionDispatch
 
           options[:path]      ||= "/"
 
-          cookies_same_site_protection = request.cookies_same_site_protection
-          options[:same_site] ||= cookies_same_site_protection.call(request)
+          unless options.key?(:same_site)
+            options[:same_site] = request.cookies_same_site_protection.call(request)
+          end
 
           if options[:domain] == :all || options[:domain] == "all"
             # If there is a provided tld length then we use it otherwise default domain regexp.
