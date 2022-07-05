@@ -205,6 +205,8 @@ module ActionDispatch
       # - +as+: Used for encoding the request with different content type.
       #   Supports +:json+ by default and will set the appropriate request headers.
       #   The headers will be merged into the Rack env hash.
+      # - +input+: The input data to pass as the body. This may be +nil+, a String, or
+      #   an IO-like object.
       #
       # This method is rarely used directly. Use +#get+, +#post+, or other standard
       # HTTP methods in integration tests. +#process+ is only required when using a
@@ -217,7 +219,7 @@ module ActionDispatch
       #
       # Example:
       #   process :get, '/author', params: { since: 201501011400 }
-      def process(method, path, params: nil, headers: nil, env: nil, xhr: false, as: nil)
+      def process(method, path, params: nil, headers: nil, env: nil, xhr: false, as: nil, input: nil)
         request_encoder = RequestEncoder.encoder(as)
         headers ||= {}
 
@@ -256,6 +258,7 @@ module ActionDispatch
           "HTTP_ACCEPT"    => request_encoder.accept_header || accept
         }
 
+        request_env[:input] = input if input
         wrapped_headers = Http::Headers.from_hash({})
         wrapped_headers.merge!(headers) if headers
 

@@ -1258,3 +1258,33 @@ class IntegrationFileUploadTest < ActionDispatch::IntegrationTest
     assert_equal "45142", @response.body
   end
 end
+
+class IntegrationNoContentTypeTest < ActionDispatch::IntegrationTest
+  class IntegrationController < ActionController::Base
+    def test_upload
+      render json: { action: request.params[:action], body: ActiveSupport::Gzip.decompress(request.body.read) }
+    end
+  end
+
+  def self.routes
+    @routes ||= ActionDispatch::Routing::RouteSet.new
+  end
+
+  def self.call(env)
+    routes.call(env)
+  end
+
+  def app
+    self.class
+  end
+
+  routes.draw do
+    post "test_upload", to: "integration_no_content_type_test/integration#test_upload"
+  end
+
+  def test_gzip_upload
+    post "/test_upload", input: ActiveSupport::Gzip.compress("hello world")
+
+    assert_equal({ "action" => "test_upload", "body" => "hello world" }, @response.parsed_body)
+  end
+end
