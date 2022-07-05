@@ -1,3 +1,17 @@
+*   `check_box_tag` and `radio_button_tag` now accept `checked` as a keyword argument
+
+    This is to make the API more consistent with the `FormHelper` variants. You can now provide `checked` as a positional or keyword argument:
+
+    ```erb
+    = check_box_tag "admin", "1", false
+    = check_box_tag "admin", "1", checked: false
+
+    = radio_button_tag 'favorite_color', 'maroon', false
+    = radio_button_tag 'favorite_color', 'maroon', checked: false
+    ```
+
+    *Alex Ghiculescu*
+
 *   Allow passing a class to `dom_id`.
     You no longer need to call `new` when passing a class to `dom_id`.
     This makes `dom_id` behave like `dom_class` in this regard.
