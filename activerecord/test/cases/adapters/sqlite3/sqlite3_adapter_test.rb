@@ -390,6 +390,14 @@ module ActiveRecord
           end
         end
 
+        def test_expression_index_with_trailing_comment
+          with_example_table do
+            @conn.execute "CREATE INDEX expression on ex (number % 10) /* comment */"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "number % 10", index.columns
+          end
+        end
+
         def test_expression_index_with_where
           with_example_table do
             @conn.add_index "ex", "id % 10, max(id, number)", name: "expression", where: "id > 1000"
