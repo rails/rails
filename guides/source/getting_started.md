@@ -1262,6 +1262,10 @@ https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-destr
 on it. Then, it redirects the browser to the root path with status code
 [303 See Other](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/303).
 
+It's very important to have the status code during a redirect in the `destroy` method
+because browsers will follow the redirect using the original request method, in this case
+the `DELETE` method. If we had omitted it then we would be redirected to the `articles#destroy`.
+
 We have chosen to redirect to the root path because that is our main access
 point for articles. But, in other circumstances, you might choose to redirect to
 e.g. `articles_path`.
