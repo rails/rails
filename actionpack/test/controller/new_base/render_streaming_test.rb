@@ -44,6 +44,10 @@ module RenderStreaming
   end
 
   class StreamingTest < Rack::TestCase
+    def get(path, headers: { "SERVER_PROTOCOL" => "HTTP/1.1", "HTTP_VERSION" => "HTTP/1.1" })
+      super
+    end
+
     test "rendering with streaming enabled at the class level" do
       get "/render_streaming/basic/hello_world"
       assert_body "b\r\nHello world\r\nb\r\n, I'm here!\r\n0\r\n\r\n"
