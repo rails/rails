@@ -22,7 +22,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   test "edit credentials" do
     # Run twice to ensure credentials can be reread after first edit pass.
     2.times do
-      assert_match(/access_key_id: 123/, run_edit_command)
+      assert_match DEFAULT_CREDENTIALS_PATTERN, run_edit_command
     end
   end
 
@@ -36,11 +36,11 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   end
 
   test "edit command does not overwrite by default if credentials already exists" do
-    run_edit_command(editor: 'ruby -e "File.write ARGV[0], %(api_key: abc)"')
-    assert_match(/api_key: abc/, run_show_command)
+    write_credentials "foo: bar"
+    output = run_edit_command
 
-    run_edit_command
-    assert_match(/api_key: abc/, run_show_command)
+    assert_match %r/foo: bar/, output
+    assert_no_match DEFAULT_CREDENTIALS_PATTERN, output
   end
 
   test "edit command does not add master key when `RAILS_MASTER_KEY` env specified" do
@@ -49,26 +49,30 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
       FileUtils.rm("config/master.key")
 
       switch_env("RAILS_MASTER_KEY", key) do
-        assert_match(/access_key_id: 123/, run_edit_command)
+        assert_match DEFAULT_CREDENTIALS_PATTERN, run_edit_command
         assert_not File.exist?("config/master.key")
       end
     end
   end
 
   test "edit command modifies file specified by environment option" do
-    assert_match(/access_key_id: 123/, run_edit_command(environment: "production"))
-    Dir.chdir(app_path) do
-      assert File.exist?("config/credentials/production.key")
-      assert File.exist?("config/credentials/production.yml.enc")
-    end
+    remove_file "config/credentials.yml.enc"
+
+    assert_match DEFAULT_CREDENTIALS_PATTERN, run_edit_command(environment: "production")
+
+    assert_no_file "config/credentials.yml.enc"
+    assert_file "config/credentials/production.key"
+    assert_file "config/credentials/production.yml.enc"
   end
 
   test "edit command properly expands environment option" do
-    assert_match(/access_key_id: 123/, run_edit_command(environment: "prod"))
-    Dir.chdir(app_path) do
-      assert File.exist?("config/credentials/production.key")
-      assert File.exist?("config/credentials/production.yml.enc")
-    end
+    remove_file "config/credentials.yml.enc"
+
+    assert_match DEFAULT_CREDENTIALS_PATTERN, run_edit_command(environment: "prod")
+
+    assert_no_file "config/credentials.yml.enc"
+    assert_file "config/credentials/production.key"
+    assert_file "config/credentials/production.yml.enc"
   end
 
   test "edit command does not raise when an initializer tries to access non-existent credentials" do
@@ -76,21 +80,20 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
       Rails.application.credentials.missing_key!
     RUBY
 
-    assert_match(/access_key_id: 123/, run_edit_command(environment: "qa"))
+    assert_match DEFAULT_CREDENTIALS_PATTERN, run_edit_command(environment: "qa")
   end
 
-  test "edit command generates template file when the file does not exist" do
-    FileUtils.rm("#{app_path}/config/credentials.yml.enc")
-    run_edit_command
+  test "edit command generates credentials file when it does not exist" do
+    remove_file "config/credentials.yml.enc"
 
-    output = run_show_command
-    assert_match(/access_key_id: 123/, output)
-    assert_match(/secret_key_base/, output)
+    assert_match DEFAULT_CREDENTIALS_PATTERN, run_edit_command
+
+    assert_file "config/credentials.yml.enc"
   end
 
 
   test "show credentials" do
-    assert_match(/access_key_id: 123/, run_show_command)
+    assert_match DEFAULT_CREDENTIALS_PATTERN, run_show_command
   end
 
   test "show command raises error when require_master_key is specified and key does not exist" do
@@ -108,17 +111,15 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   end
 
   test "show command displays content specified by environment option" do
-    run_edit_command(environment: "production")
+    write_credentials "foo: bar", environment: "production"
 
-    assert_match(/access_key_id: 123/, run_show_command(environment: "production"))
+    assert_match %r/foo: bar/, run_show_command(environment: "production")
   end
 
   test "show command properly expands environment option" do
-    run_edit_command(environment: "production")
+    write_credentials "foo: bar", environment: "production"
 
-    output = run_show_command(environment: "prod")
-    assert_match(/access_key_id: 123/, output)
-    assert_no_match(/secret_key_base/, output)
+    assert_match %r/foo: bar/, run_show_command(environment: "prod")
   end
 
 
@@ -213,6 +214,8 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   end
 
   private
+    DEFAULT_CREDENTIALS_PATTERN = /access_key_id: 123\n.*secret_key_base: \h{128}\n/m
+
     def run_edit_command(editor: "cat", environment: nil, **options)
       switch_env("EDITOR", editor) do
         args = environment ? ["--environment", environment] : []
@@ -228,5 +231,19 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     def run_diff_command(path = nil, enroll: nil, disenroll: nil, **options)
       args = [path, ("--enroll" if enroll), ("--disenroll" if disenroll)].compact
       rails "credentials:diff", args, **options
+    end
+
+    def write_credentials(content, **options)
+      switch_env("CONTENT", content) do
+        run_edit_command(editor: %(ruby -e "File.write ARGV[0], ENV['CONTENT']"), **options)
+      end
+    end
+
+    def assert_file(relative)
+      assert File.exist?(app_path(relative)), "Expected file #{relative.inspect} to exist, but it does not"
+    end
+
+    def assert_no_file(relative)
+      assert_not File.exist?(app_path(relative)), "Expected file #{relative.inspect} to not exist, but it does"
     end
 end
