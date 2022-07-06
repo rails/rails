@@ -77,7 +77,7 @@ end
 
 driver = if ARGV[1]
   capability = ::Selenium::WebDriver::Remote::Capabilities.chrome
-  
+
   ::Selenium::WebDriver.for(:remote, url: ARGV[1], capabilities: [capability])
 else
   driver_options = Selenium::WebDriver::Chrome::Options.new
