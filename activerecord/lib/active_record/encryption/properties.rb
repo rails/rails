@@ -14,10 +14,10 @@ module ActiveRecord
     #
     # See +Properties#DEFAULT_PROPERTIES+, +Key+, +Message+
     class Properties
-      ALLOWED_VALUE_CLASSES = [String, ActiveRecord::Encryption::Message, Numeric, TrueClass, FalseClass, Symbol, NilClass]
+      ALLOWED_VALUE_CLASSES = [String, ActiveRecord::Encryption::Message, Numeric, Integer, Float, BigDecimal, TrueClass, FalseClass, Symbol, NilClass]
 
       delegate_missing_to :data
-      delegate :==, to: :data
+      delegate :==, :[], :each, :key?, to: :data
 
       # For each entry it generates an accessor exposing the full name
       DEFAULT_PROPERTIES = {
@@ -54,7 +54,7 @@ module ActiveRecord
       end
 
       def validate_value_type(value)
-        unless ALLOWED_VALUE_CLASSES.find { |klass| value.is_a?(klass) }
+        unless ALLOWED_VALUE_CLASSES.include?(value.class) || ALLOWED_VALUE_CLASSES.any? { |klass| value.is_a?(klass) }
           raise ActiveRecord::Encryption::Errors::ForbiddenClass, "Can't store a #{value.class}, only properties of type #{ALLOWED_VALUE_CLASSES.inspect} are allowed"
         end
       end
