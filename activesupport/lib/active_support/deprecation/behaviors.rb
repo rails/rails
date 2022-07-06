@@ -114,10 +114,10 @@ module ActiveSupport
             raise ArgumentError, "#{behavior.inspect} is not a valid deprecation behavior."
           end
 
-          if behavior.arity == 4 || behavior.arity == -1
-            behavior
-          else
+          if behavior.respond_to?(:arity) && behavior.arity == 2
             -> message, callstack, _, _ { behavior.call(message, callstack) }
+          else
+            behavior
           end
         end
     end
