@@ -59,6 +59,10 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     @cache.logger = ActiveSupport::Logger.new(File::NULL)
   end
 
+  def teardown
+    @cache.clear
+  end
+
   def after_teardown
     return unless defined?(@_stores) # because skipped test
 
