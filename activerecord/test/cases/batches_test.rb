@@ -441,6 +441,38 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_executes_range_queries_when_unconstrained
+    c = Post.connection
+    quoted_posts_id = Regexp.escape(c.quote_table_name("posts.id"))
+    assert_sql(/WHERE #{quoted_posts_id} > .+ AND #{quoted_posts_id} <= .+/i) do
+      Post.in_batches(of: 2) { |relation| assert_kind_of Post, relation.first }
+    end
+  end
+
+  def test_in_batches_executes_in_queries_when_unconstrained_and_opted_out_of_ranges
+    c = Post.connection
+    quoted_posts_id = Regexp.escape(c.quote_table_name("posts.id"))
+    assert_sql(/#{quoted_posts_id} IN \(.+\)/i) do
+      Post.in_batches(of: 2, use_ranges: false) { |relation| assert_kind_of Post, relation.first }
+    end
+  end
+
+  def test_in_batches_executes_in_queries_when_constrained
+    c = Post.connection
+    quoted_posts_id = Regexp.escape(c.quote_table_name("posts.id"))
+    assert_sql(/#{quoted_posts_id} IN \(.+\)/i) do
+      Post.where("id < ?", 5).in_batches(of: 2) { |relation| assert_kind_of Post, relation.first }
+    end
+  end
+
+  def test_in_batches_executes_range_queries_when_constrained_and_opted_in_into_ranges
+    c = Post.connection
+    quoted_posts_id = Regexp.escape(c.quote_table_name("posts.id"))
+    assert_sql(/#{quoted_posts_id} > .+ AND #{quoted_posts_id} <= .+/i) do
+      Post.where("id < ?", 5).in_batches(of: 2, use_ranges: true) { |relation| assert_kind_of Post, relation.first }
+    end
+  end
+
   def test_in_batches_shouldnt_execute_query_unless_needed
     assert_queries(2) do
       Post.in_batches(of: @total) { |relation| assert_kind_of ActiveRecord::Relation, relation }
