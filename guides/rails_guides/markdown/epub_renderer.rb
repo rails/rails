@@ -7,19 +7,11 @@ Rouge::Lexers::Shell::BUILTINS << "|bin/rails|brew|bundle|gem|git|node|rails|rak
 
 module RailsGuides
   class Markdown
-    class Renderer < Redcarpet::Render::HTML  # :nodoc:
+    class EpubRenderer < Redcarpet::Render::XHTML  # :nodoc:
       cattr_accessor :edge, :version
 
-      def block_code(code, language)
-        formatter = Rouge::Formatters::HTML.new
-        lexer = ::Rouge::Lexer.find_fancy(lexer_language(language))
-        formatted_code = formatter.format(lexer.lex(code))
-        <<~HTML
-          <div class="code_container">
-          <pre><code class="highlight #{lexer_language(language)}">#{formatted_code}</code></pre>
-          <button class="clipboard-button" data-clipboard-text="#{clipboard_content(code, language)}">Copy</button>
-          </div>
-        HTML
+      def linebreak
+        "<br/>"
       end
 
       def link(url, title, content)
@@ -65,35 +57,6 @@ module RailsGuides
             %(<sup class="footnote" id="footnote-#{$1}-ref">) +
               %(<a href="#footnote-#{$1}">#{$1}</a></sup>)
           end
-        end
-
-        def lexer_language(code_type)
-          case code_type
-          when "html+erb"
-            "erb"
-          when "bash"
-            "console"
-          when nil
-            "plaintext"
-          else
-            ::Rouge::Lexer.find(code_type) ? code_type : "plaintext"
-          end
-        end
-
-        def clipboard_content(code, language)
-          prompt_regexp =
-            case language
-            when "bash"
-              /^\$ /
-            when "irb"
-              /^irb.*?> /
-            end
-
-          if prompt_regexp
-            code = code.lines.grep(prompt_regexp).join.gsub(prompt_regexp, "")
-          end
-
-          ERB::Util.html_escape(code)
         end
 
         def convert_notes(body)

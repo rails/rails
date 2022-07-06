@@ -10,16 +10,16 @@ namespace :guides do
       ruby "-Eutf-8:utf-8", "rails_guides.rb"
     end
 
-    desc "Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from http://www.amazon.com/gp/feature.html?docId=1000765211"
+    desc "Generate .mobi file"
     task :kindle do
-      require "kindlerb"
-      unless Kindlerb.kindlegen_available?
-        abort "Please run `setupkindlerb` to install kindlegen"
-      end
-      unless /convert/.match?(`convert`)
-        abort "Please install ImageMagick"
-      end
-      ENV["KINDLE"] = "1"
+      require "active_support/deprecation"
+      ActiveSupport::Deprecation.warn("The guides:generate:kindle rake task is deprecated and will be removed in 7.2. Run rake guides:generate:epub instead")
+      Rake::Task["guides:generate:epub"].invoke
+    end
+
+    desc "Generate .epub file"
+    task :epub do
+      ENV["EPUB"] = "1"
       Rake::Task["guides:generate:html"].invoke
     end
   end
@@ -68,7 +68,7 @@ Some arguments may be passed via environment variables:
 Examples:
   $ rake guides:generate ALL=1 RAILS_VERSION=v5.1.0
   $ rake guides:generate ONLY=migrations
-  $ rake guides:generate:kindle
+  $ rake guides:generate:epub
   $ rake guides:generate GUIDES_LANGUAGE=es
 HELP
   end
