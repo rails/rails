@@ -644,9 +644,9 @@ action will render `app/views/articles/show.html.erb`.
 Let's create `app/views/articles/show.html.erb`, with the following contents:
 
 ```html+erb
-<h1><%= @article.title %></h1>
+<h1><%= @articles.title %></h1>
 
-<p><%= @article.body %></p>
+<p><%= @articles.body %></p>
 ```
 
 Now we can see the article when we visit <http://localhost:3000/articles/1>!
