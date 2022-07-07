@@ -1,3 +1,17 @@
+*   Add `--parent` option to job generator to specify parent class of job.
+
+    Example:
+
+    `bin/rails g job process_payment --parent=payment_job` generates:
+
+    ```ruby
+    class ProcessPaymentJob < PaymentJob
+      # ...
+    end
+    ```
+
+    *Gannon McGibbon*
+
 *   Add more detailed description to job generator.
 
     *Gannon McGibbon*
