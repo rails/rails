@@ -397,18 +397,18 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
   test "merging relation with common table expression" do
     posts_with_tags = Post.with(posts_with_tags: Post.where("tags_count > 0")).from("posts_with_tags AS posts")
     posts_with_comments = Post.where("legacy_comments_count > 0")
-    relation = posts_with_comments.merge(posts_with_tags).order("posts.id")
+    relation = posts_with_comments.merge(posts_with_tags)
 
-    assert_equal [1, 2, 7], relation.pluck(:id)
+    assert_equal [1, 2, 7], relation.ids.sort
   end
 
   test "merging multiple relations with common table expression" do
     posts_with_tags = Post.with(posts_with_tags: Post.where("tags_count > 0"))
     posts_with_comments = Post.with(posts_with_comments: Post.where("legacy_comments_count > 0"))
     relation = posts_with_comments.merge(posts_with_tags)
-      .joins("JOIN posts_with_tags pwt ON pwt.id = posts.id JOIN posts_with_comments pwc ON pwc.id = posts.id").order("posts.id")
+      .joins("JOIN posts_with_tags pwt ON pwt.id = posts.id JOIN posts_with_comments pwc ON pwc.id = posts.id")
 
-    assert_equal [1, 2, 7], relation.pluck(:id)
+    assert_equal [1, 2, 7], relation.ids.sort
   end
 
   test "relation merger leaves to database to decide what to do when multiple CTEs with same alias are passed" do
