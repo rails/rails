@@ -1,93 +1,111 @@
-#= require_tree ../utils
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/main/docs/suggestions.md
+ */
+//= require_tree ../utils
 
-{
-  matches, getData, setData
-  fire, stopEverything
-  ajax, isCrossDomain
+const {
+  matches, getData, setData,
+  fire, stopEverything,
+  ajax, isCrossDomain,
   serializeElement
 } = Rails
 
-# Checks "data-remote" if true to handle the request through a XHR request.
-isRemote = (element) ->
-  value = element.getAttribute('data-remote')
-  value? and value isnt 'false'
+// Checks "data-remote" if true to handle the request through a XHR request.
+const isRemote = function(element) {
+  const value = element.getAttribute("data-remote")
+  return (value != null) && (value !== "false")
+}
 
-# Submits "remote" forms and links with ajax
-Rails.handleRemote = (e) ->
-  element = this
+// Submits "remote" forms and links with ajax
+Rails.handleRemote = function(e) {
+  let data, method, url
+  const element = this
 
-  return true unless isRemote(element)
-  unless fire(element, 'ajax:before')
-    fire(element, 'ajax:stopped')
+  if (!isRemote(element)) { return true }
+  if (!fire(element, "ajax:before")) {
+    fire(element, "ajax:stopped")
     return false
+  }
 
-  withCredentials = element.getAttribute('data-with-credentials')
-  dataType = element.getAttribute('data-type') or 'script'
+  const withCredentials = element.getAttribute("data-with-credentials")
+  const dataType = element.getAttribute("data-type") || "script"
 
-  if matches(element, Rails.formSubmitSelector)
-    # memoized value from clicked submit button
-    button = getData(element, 'ujs:submit-button')
-    method = getData(element, 'ujs:submit-button-formmethod') or element.getAttribute('method') or "get"
-    url = getData(element, 'ujs:submit-button-formaction') or element.getAttribute('action') or location.href
+  if (matches(element, Rails.formSubmitSelector)) {
+    // memoized value from clicked submit button
+    const button = getData(element, "ujs:submit-button")
+    method = getData(element, "ujs:submit-button-formmethod") || element.getAttribute("method") || "get"
+    url = getData(element, "ujs:submit-button-formaction") || element.getAttribute("action") || location.href
 
-    # strip query string if it's a GET request
-    url = url.replace(/\?.*$/, '') if method.toUpperCase() is 'GET'
+    // strip query string if it's a GET request
+    if (method.toUpperCase() === "GET") { url = url.replace(/\?.*$/, "") }
 
-    if element.enctype is 'multipart/form-data'
+    if (element.enctype === "multipart/form-data") {
       data = new FormData(element)
-      data.append(button.name, button.value) if button?
-    else
+      if (button != null) { data.append(button.name, button.value) }
+    } else {
       data = serializeElement(element, button)
+    }
 
-    setData(element, 'ujs:submit-button', null)
-    setData(element, 'ujs:submit-button-formmethod', null)
-    setData(element, 'ujs:submit-button-formaction', null)
-  else if matches(element, Rails.buttonClickSelector) or matches(element, Rails.inputChangeSelector)
-    method = element.getAttribute('data-method')
-    url = element.getAttribute('data-url')
-    data = serializeElement(element, element.getAttribute('data-params'))
-  else
-    method = element.getAttribute('data-method')
+    setData(element, "ujs:submit-button", null)
+    setData(element, "ujs:submit-button-formmethod", null)
+    setData(element, "ujs:submit-button-formaction", null)
+  } else if (matches(element, Rails.buttonClickSelector) || matches(element, Rails.inputChangeSelector)) {
+    method = element.getAttribute("data-method")
+    url = element.getAttribute("data-url")
+    data = serializeElement(element, element.getAttribute("data-params"))
+  } else {
+    method = element.getAttribute("data-method")
     url = Rails.href(element)
-    data = element.getAttribute('data-params')
+    data = element.getAttribute("data-params")
+  }
 
-  ajax(
-    type: method or 'GET'
-    url: url
-    data: data
-    dataType: dataType
-    # stopping the "ajax:beforeSend" event will cancel the ajax request
-    beforeSend: (xhr, options) ->
-      if fire(element, 'ajax:beforeSend', [xhr, options])
-        fire(element, 'ajax:send', [xhr])
-      else
-        fire(element, 'ajax:stopped')
+  ajax({
+    type: method || "GET",
+    url,
+    data,
+    dataType,
+    // stopping the "ajax:beforeSend" event will cancel the ajax request
+    beforeSend(xhr, options) {
+      if (fire(element, "ajax:beforeSend", [xhr, options])) {
+        return fire(element, "ajax:send", [xhr])
+      } else {
+        fire(element, "ajax:stopped")
         return false
-    success: (args...) -> fire(element, 'ajax:success', args)
-    error: (args...) -> fire(element, 'ajax:error', args)
-    complete: (args...) -> fire(element, 'ajax:complete', args)
-    crossDomain: isCrossDomain(url)
-    withCredentials: withCredentials? and withCredentials isnt 'false'
-  )
-  stopEverything(e)
+      }
+    },
+    success(...args) { return fire(element, "ajax:success", args) },
+    error(...args) { return fire(element, "ajax:error", args) },
+    complete(...args) { return fire(element, "ajax:complete", args) },
+    crossDomain: isCrossDomain(url),
+    withCredentials: (withCredentials != null) && (withCredentials !== "false")
+  })
+  return stopEverything(e)
+}
 
-Rails.formSubmitButtonClick = (e) ->
-  button = this
-  form = button.form
-  return unless form
-  # Register the pressed submit button
-  setData(form, 'ujs:submit-button', name: button.name, value: button.value) if button.name
-  # Save attributes from button
-  setData(form, 'ujs:formnovalidate-button', button.formNoValidate)
-  setData(form, 'ujs:submit-button-formaction', button.getAttribute('formaction'))
-  setData(form, 'ujs:submit-button-formmethod', button.getAttribute('formmethod'))
+Rails.formSubmitButtonClick = function(e) {
+  const button = this
+  const {
+    form
+  } = button
+  if (!form) { return }
+  // Register the pressed submit button
+  if (button.name) { setData(form, "ujs:submit-button", {name: button.name, value: button.value}) }
+  // Save attributes from button
+  setData(form, "ujs:formnovalidate-button", button.formNoValidate)
+  setData(form, "ujs:submit-button-formaction", button.getAttribute("formaction"))
+  return setData(form, "ujs:submit-button-formmethod", button.getAttribute("formmethod"))
+}
 
-Rails.preventInsignificantClick = (e) ->
-  link = this
-  method = (link.getAttribute('data-method') or 'GET').toUpperCase()
-  data = link.getAttribute('data-params')
-  metaClick = e.metaKey or e.ctrlKey
-  insignificantMetaClick = metaClick and method is 'GET' and not data
-  nonPrimaryMouseClick = e.button? and e.button isnt 0
-  e.stopImmediatePropagation() if nonPrimaryMouseClick or insignificantMetaClick
+Rails.preventInsignificantClick = function(e) {
+  const link = this
+  const method = (link.getAttribute("data-method") || "GET").toUpperCase()
+  const data = link.getAttribute("data-params")
+  const metaClick = e.metaKey || e.ctrlKey
+  const insignificantMetaClick = metaClick && (method === "GET") && !data
+  const nonPrimaryMouseClick = (e.button != null) && (e.button !== 0)
+  if (nonPrimaryMouseClick || insignificantMetaClick) { return e.stopImmediatePropagation() }
+}
 

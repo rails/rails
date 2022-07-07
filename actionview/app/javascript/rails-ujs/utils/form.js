@@ -1,37 +1,49 @@
-#= require ./dom
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/main/docs/suggestions.md
+ */
+//= require ./dom
 
-{ matches } = Rails
+const { matches } = Rails
 
-toArray = (e) -> Array.prototype.slice.call(e)
+const toArray = e => Array.prototype.slice.call(e)
 
-Rails.serializeElement = (element, additionalParam) ->
-  inputs = [element]
-  inputs = toArray(element.elements) if matches(element, 'form')
-  params = []
+Rails.serializeElement = function(element, additionalParam) {
+  let inputs = [element]
+  if (matches(element, "form")) { inputs = toArray(element.elements) }
+  const params = []
 
-  inputs.forEach (input) ->
-    return if !input.name || input.disabled
-    return if matches(input, 'fieldset[disabled] *')
-    if matches(input, 'select')
-      toArray(input.options).forEach (option) ->
-        params.push(name: input.name, value: option.value) if option.selected
-    else if input.checked or ['radio', 'checkbox', 'submit'].indexOf(input.type) == -1
-      params.push(name: input.name, value: input.value)
+  inputs.forEach(function(input) {
+    if (!input.name || input.disabled) { return }
+    if (matches(input, "fieldset[disabled] *")) { return }
+    if (matches(input, "select")) {
+      return toArray(input.options).forEach(function(option) {
+        if (option.selected) { return params.push({name: input.name, value: option.value}) }
+      })
+    } else if (input.checked || (["radio", "checkbox", "submit"].indexOf(input.type) === -1)) {
+      return params.push({name: input.name, value: input.value})
+    }
+  })
 
-  params.push(additionalParam) if additionalParam
+  if (additionalParam) { params.push(additionalParam) }
 
-  params.map (param) ->
-    if param.name?
-      "#{encodeURIComponent(param.name)}=#{encodeURIComponent(param.value)}"
-    else
-      param
-  .join('&')
+  return params.map(function(param) {
+    if (param.name != null) {
+      return `${encodeURIComponent(param.name)}=${encodeURIComponent(param.value)}`
+    } else {
+      return param
+    }}).join("&")
+}
 
-# Helper function that returns form elements that match the specified CSS selector
-# If form is actually a "form" element this will return associated elements outside the from that have
-# the html form attribute set
-Rails.formElements = (form, selector) ->
-  if matches(form, 'form')
-    toArray(form.elements).filter (el) -> matches(el, selector)
-  else
-    toArray(form.querySelectorAll(selector))
+// Helper function that returns form elements that match the specified CSS selector
+// If form is actually a "form" element this will return associated elements outside the from that have
+// the html form attribute set
+Rails.formElements = function(form, selector) {
+  if (matches(form, "form")) {
+    return toArray(form.elements).filter(el => matches(el, selector))
+  } else {
+    return toArray(form.querySelectorAll(selector))
+  }
+}
