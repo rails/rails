@@ -91,6 +91,15 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_file "config/credentials.yml.enc"
   end
 
+  test "edit command can use custom template to generate credentials file" do
+    app_file "lib/templates/rails/credentials/credentials.yml.tt", <<~ERB
+      provides_secret_key_base: <%= [secret_key_base] == [secret_key_base].compact %>
+    ERB
+    remove_file "config/credentials.yml.enc"
+
+    assert_match %r/provides_secret_key_base: true/, run_edit_command
+  end
+
 
   test "show credentials" do
     assert_match DEFAULT_CREDENTIALS_PATTERN, run_show_command

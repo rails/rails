@@ -17,7 +17,7 @@ module Rails
           say "Adding #{content_path} to store encrypted credentials."
           say ""
 
-          encrypted_file.write(content)
+          content = render_template_to_encrypted_file
 
           say "The following content has been encrypted with the Rails master key:"
           say ""
@@ -38,15 +38,20 @@ module Rails
           )
         end
 
-        def content
-          @content ||= <<~YAML
-            # aws:
-            #   access_key_id: 123
-            #   secret_access_key: 345
+        def secret_key_base
+          @secret_key_base ||= SecureRandom.hex(64)
+        end
 
-            # Used as the base secret for all MessageVerifiers in Rails, including the one protecting cookies.
-            secret_key_base: #{SecureRandom.hex(64)}
-          YAML
+        def render_template_to_encrypted_file
+          content = nil
+
+          encrypted_file.change do |tmp_path|
+            template("credentials.yml", tmp_path, force: true, verbose: false) do |rendered|
+              content = rendered
+            end
+          end
+
+          content
         end
     end
   end
