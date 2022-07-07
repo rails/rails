@@ -1078,8 +1078,7 @@ class MyValidator < ActiveModel::Validator
   end
 end
 
-class Person
-  include ActiveModel::Validations
+class Person < ApplicationRecord
   validates_with MyValidator
 end
 ```
