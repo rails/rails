@@ -1496,6 +1496,12 @@ module ActionView
       #   datetime_field("user", "born_on", min: "2014-05-20T00:00:00")
       #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" min="2014-05-20T00:00:00.000" />
       #
+      # By default, provided datetimes will be formatted including seconds. You can render just the date, hour,
+      # and minute by passing <tt>include_seconds: false</tt>.
+      #
+      #   @user.born_on = Time.current
+      #   datetime_field("user", "born_on", include_seconds: false)
+      #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" value="2014-05-20T14:35" />
       def datetime_field(object_name, method, options = {})
         Tags::DatetimeLocalField.new(object_name, method, self, options).render
       end

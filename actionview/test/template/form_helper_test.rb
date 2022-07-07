@@ -1254,6 +1254,11 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, datetime_local_field("post", "written_on"))
   end
 
+  def test_datetime_local_field_without_seconds
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00" />}
+    assert_dom_equal(expected, datetime_local_field("post", "written_on", include_seconds: false))
+  end
+
   def test_month_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="2004-06" />}
     assert_dom_equal(expected, month_field("post", "written_on"))

@@ -1,3 +1,9 @@
+*   Add `include_seconds` option for `datetime_local_field`
+
+    This allows to omit seconds part in the input field, by passing `include_seconds: false`
+
+    *Wojciech Wnętrzak*
+
 *   Guard against `ActionView::Helpers::FormTagHelper#field_name` calls with nil
     `object_name` arguments. For example:
 
