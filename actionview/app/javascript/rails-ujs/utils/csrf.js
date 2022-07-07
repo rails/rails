@@ -1,9 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/main/docs/suggestions.md
- */
 //= require ./dom
 
 const { $ } = Rails
@@ -23,14 +17,14 @@ const csrfParam = (Rails.csrfParam = function() {
 // Make sure that every Ajax request sends the CSRF token
 Rails.CSRFProtection = function(xhr) {
   const token = csrfToken()
-  if (token != null) { return xhr.setRequestHeader("X-CSRF-Token", token) }
+  if (token) { return xhr.setRequestHeader("X-CSRF-Token", token) }
 }
 
 // Make sure that all forms have actual up-to-date tokens (cached forms contain old ones)
 Rails.refreshCSRFTokens = function() {
   const token = csrfToken()
   const param = csrfParam()
-  if ((token != null) && (param != null)) {
+  if (token && param) {
     return $("form input[name=\"" + param + "\"]").forEach(input => input.value = token)
   }
 }

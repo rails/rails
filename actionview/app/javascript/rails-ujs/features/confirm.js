@@ -1,14 +1,9 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/main/docs/suggestions.md
- */
 //= require_tree ../utils
 
 const { fire, stopEverything } = Rails
 
 Rails.handleConfirm = function(e) {
-  if (!allowAction(this)) { return stopEverything(e) }
+  if (!allowAction(this)) { stopEverything(e) }
 }
 
 // Default confirm dialog, may be overridden with custom confirm dialog in Rails.confirm
@@ -30,7 +25,7 @@ var allowAction = function(element) {
 
   let answer = false
   if (fire(element, "confirm")) {
-    try { answer = Rails.confirm(message, element) } catch (error) {}
+    try { answer = Rails.confirm(message, element) } catch (error) { /* do nothing */ }
     callback = fire(element, "confirm:complete", [answer])
   }
 

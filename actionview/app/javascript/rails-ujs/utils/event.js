@@ -1,8 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/main/docs/suggestions.md
- */
 //= require ./dom
 
 let preventDefault
@@ -60,7 +55,7 @@ Rails.stopEverything = function(e) {
   fire(e.target, "ujs:everythingStopped")
   e.preventDefault()
   e.stopPropagation()
-  return e.stopImmediatePropagation()
+  e.stopImmediatePropagation()
 }
 
 // Delegates events
@@ -81,6 +76,6 @@ Rails.delegate = (element, selector, eventType, handler) => element.addEventList
   while (!!(target instanceof Element) && !matches(target, selector)) { target = target.parentNode }
   if (target instanceof Element && (handler.call(target, e) === false)) {
     e.preventDefault()
-    return e.stopPropagation()
+    e.stopPropagation()
   }
 })

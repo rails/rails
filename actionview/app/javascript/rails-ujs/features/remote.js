@@ -1,9 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/main/docs/suggestions.md
- */
 //= require_tree ../utils
 
 const {
@@ -82,7 +76,7 @@ Rails.handleRemote = function(e) {
     crossDomain: isCrossDomain(url),
     withCredentials: (withCredentials != null) && (withCredentials !== "false")
   })
-  return stopEverything(e)
+  stopEverything(e)
 }
 
 Rails.formSubmitButtonClick = function(e) {
@@ -106,6 +100,6 @@ Rails.preventInsignificantClick = function(e) {
   const metaClick = e.metaKey || e.ctrlKey
   const insignificantMetaClick = metaClick && (method === "GET") && !data
   const nonPrimaryMouseClick = (e.button != null) && (e.button !== 0)
-  if (nonPrimaryMouseClick || insignificantMetaClick) { return e.stopImmediatePropagation() }
+  if (nonPrimaryMouseClick || insignificantMetaClick) { e.stopImmediatePropagation() }
 }
 

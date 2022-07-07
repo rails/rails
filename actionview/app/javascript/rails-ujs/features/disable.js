@@ -1,16 +1,10 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/main/docs/suggestions.md
- */
 //= require_tree ../utils
 
 const { matches, getData, setData, stopEverything, formElements } = Rails
 
 Rails.handleDisabledElement = function(e) {
   const element = this
-  if (element.disabled) { return stopEverything(e) }
+  if (element.disabled) { stopEverything(e) }
 }
 
 // Unified function to enable an element (link, button and form)
@@ -110,6 +104,6 @@ var enableFormElement = function(element) {
 }
 
 var isXhrRedirect = function(event) {
-  const xhr = event.detail != null ? event.detail[0] : undefined
-  return ((xhr != null ? xhr.getResponseHeader("X-Xhr-Redirect") : undefined) != null)
+  const xhr = event.detail ? event.detail[0] : undefined
+  return xhr && xhr.getResponseHeader("X-Xhr-Redirect")
 }

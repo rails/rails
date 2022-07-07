@@ -1,9 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/main/docs/suggestions.md
- */
 //= require ./csp
 //= require ./csrf
 //= require ./event
@@ -35,7 +29,7 @@ Rails.ajax = function(options) {
     return (typeof options.complete === "function" ? options.complete(xhr, xhr.statusText) : undefined)
   })
 
-  if ((options.beforeSend != null) && !options.beforeSend(xhr, options)) {
+  if (options.beforeSend && !options.beforeSend(xhr, options)) {
     return false
   }
 
@@ -56,7 +50,7 @@ var prepareOptions = function(options) {
     }
   }
   // Use "*" as default dataType
-  if (AcceptHeaders[options.dataType] == null) { options.dataType = "*" }
+  if (!(options.dataType in AcceptHeaders)) { options.dataType = "*" }
   options.accept = AcceptHeaders[options.dataType]
   if (options.dataType !== "*") { options.accept += ", */*; q=0.01" }
   return options
@@ -87,7 +81,7 @@ var createXHR = function(options, done) {
 var processResponse = function(response, type) {
   if ((typeof response === "string") && (typeof type === "string")) {
     if (type.match(/\bjson\b/)) {
-      try { response = JSON.parse(response) } catch (error) {}
+      try { response = JSON.parse(response) } catch (error) { /* do nothing */ }
     } else if (type.match(/\b(?:java|ecma)script\b/)) {
       const script = document.createElement("script")
       script.setAttribute("nonce", cspNonce())
@@ -96,7 +90,7 @@ var processResponse = function(response, type) {
     } else if (type.match(/\b(xml|html|svg)\b/)) {
       const parser = new DOMParser()
       type = type.replace(/;.+/, "") // remove something like ';charset=utf-8'
-      try { response = parser.parseFromString(response, type) } catch (error1) {}
+      try { response = parser.parseFromString(response, type) } catch (error1) { /* do nothing */ }
     }
   }
   return response

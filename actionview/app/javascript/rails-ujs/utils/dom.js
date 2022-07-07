@@ -1,9 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/main/docs/suggestions.md
- */
 const m = Element.prototype.matches ||
     Element.prototype.matchesSelector ||
     Element.prototype.mozMatchesSelector ||
@@ -19,7 +13,7 @@ const m = Element.prototype.matches ||
 //   a JavaScript object with `selector` and `exclude` properties
 //   Examples: "form", { selector: "form", exclude: "form[data-remote='true']"}
 Rails.matches = function(element, selector) {
-  if (selector.exclude != null) {
+  if (selector.exclude) {
     return m.call(element, selector.selector) && !m.call(element, selector.exclude)
   } else {
     return m.call(element, selector)
@@ -30,10 +24,10 @@ Rails.matches = function(element, selector) {
 // See: https://developer.mozilla.org/en-US/docs/Glossary/Expando
 const expando = "_ujsData"
 
-Rails.getData = (element, key) => element[expando] != null ? element[expando][key] : undefined
+Rails.getData = (element, key) => element[expando] ? element[expando][key] : undefined
 
 Rails.setData = function(element, key, value) {
-  if (element[expando] == null) { element[expando] = {} }
+  if (!element[expando]) { element[expando] = {} }
   return element[expando][key] = value
 }
 

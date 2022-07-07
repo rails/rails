@@ -1,9 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/main/docs/suggestions.md
- */
 //= require ./dom
 
 const { matches } = Rails
@@ -19,18 +13,18 @@ Rails.serializeElement = function(element, additionalParam) {
     if (!input.name || input.disabled) { return }
     if (matches(input, "fieldset[disabled] *")) { return }
     if (matches(input, "select")) {
-      return toArray(input.options).forEach(function(option) {
-        if (option.selected) { return params.push({name: input.name, value: option.value}) }
+      toArray(input.options).forEach(function(option) {
+        if (option.selected) { params.push({name: input.name, value: option.value}) }
       })
     } else if (input.checked || (["radio", "checkbox", "submit"].indexOf(input.type) === -1)) {
-      return params.push({name: input.name, value: input.value})
+      params.push({name: input.name, value: input.value})
     }
   })
 
   if (additionalParam) { params.push(additionalParam) }
 
   return params.map(function(param) {
-    if (param.name != null) {
+    if (param.name) {
       return `${encodeURIComponent(param.name)}=${encodeURIComponent(param.value)}`
     } else {
       return param

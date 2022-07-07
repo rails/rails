@@ -1,9 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/main/docs/suggestions.md
- */
 const {
   fire, delegate,
   getData, $,
@@ -16,7 +10,7 @@ const {
 } = Rails
 
 // For backward compatibility
-if ((typeof jQuery !== "undefined" && jQuery !== null) && (jQuery.ajax != null)) {
+if (typeof jQuery !== "undefined" && jQuery && jQuery.ajax) {
   if (jQuery.rails) { throw new Error("If you load both jquery_ujs and rails-ujs, use rails-ujs only.") }
   jQuery.rails = Rails
   jQuery.ajaxPrefilter(function(options, originalOptions, xhr) {
@@ -35,10 +29,14 @@ Rails.start = function() {
   // See https://developer.mozilla.org/en-US/docs/Using_Firefox_1.5_caching
   window.addEventListener("pageshow", function() {
     $(Rails.formEnableSelector).forEach(function(el) {
-      if (getData(el, "ujs:disabled")) { return enableElement(el) }
+      if (getData(el, "ujs:disabled")) {
+        enableElement(el)
+      }
     })
-    return $(Rails.linkDisableSelector).forEach(function(el) {
-      if (getData(el, "ujs:disabled")) { return enableElement(el) }
+    $(Rails.linkDisableSelector).forEach(function(el) {
+      if (getData(el, "ujs:disabled")) {
+        enableElement(el)
+      }
     })
   })
 

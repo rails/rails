@@ -1,8 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS208: Avoid top-level this
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/main/docs/suggestions.md
- */
 //= require ./rails-ujs/BANNER
 //= export Rails
 //= require_self

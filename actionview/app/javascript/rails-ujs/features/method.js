@@ -1,9 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/main/docs/suggestions.md
- */
 //= require_tree ../utils
 
 const { stopEverything } = Rails
@@ -21,7 +15,7 @@ Rails.handleMethod = function(e) {
   const form = document.createElement("form")
   let formContent = `<input name='_method' value='${method}' type='hidden' />`
 
-  if ((csrfParam != null) && (csrfToken != null) && !Rails.isCrossDomain(href)) {
+  if (csrfParam && csrfToken && !Rails.isCrossDomain(href)) {
     formContent += `<input name='${csrfParam}' value='${csrfToken}' type='hidden' />`
   }
 
@@ -38,5 +32,5 @@ Rails.handleMethod = function(e) {
   document.body.appendChild(form)
   form.querySelector("[type=\"submit\"]").click()
 
-  return stopEverything(e)
+  stopEverything(e)
 }
