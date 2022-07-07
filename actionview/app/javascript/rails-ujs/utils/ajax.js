@@ -1,8 +1,5 @@
-//= require ./csp
-//= require ./csrf
-//= require ./event
-
-const { cspNonce, CSRFProtection, fire } = Rails
+import { cspNonce } from "./csp"
+import { CSRFProtection } from "./csrf"
 
 const AcceptHeaders = {
   "*": "*/*",
@@ -13,7 +10,7 @@ const AcceptHeaders = {
   script: "text/javascript, application/javascript, application/ecmascript, application/x-ecmascript"
 }
 
-Rails.ajax = function(options) {
+const ajax = (options) => {
   options = prepareOptions(options)
   var xhr = createXHR(options, function() {
     const response = processResponse(xhr.response != null ? xhr.response : xhr.responseText, xhr.getResponseHeader("Content-Type"))
@@ -97,10 +94,10 @@ var processResponse = function(response, type) {
 }
 
 // Default way to get an element's href. May be overridden at Rails.href.
-Rails.href = element => element.href
+const href = element => element.href
 
 // Determines if the request is a cross domain request.
-Rails.isCrossDomain = function(url) {
+const isCrossDomain = function(url) {
   const originAnchor = document.createElement("a")
   originAnchor.href = location.href
   const urlAnchor = document.createElement("a")
@@ -118,3 +115,5 @@ Rails.isCrossDomain = function(url) {
     return true
   }
 }
+
+export { ajax, href, isCrossDomain }

@@ -1,7 +1,6 @@
-//= require ./dom
+import { matches } from "./dom"
 
 let preventDefault
-const { matches } = Rails
 
 // Polyfill for CustomEvent in IE9+
 // https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent#Polyfill
@@ -38,20 +37,20 @@ if (typeof CustomEvent !== "function") {
 //   e.g. 'click', 'submit'
 // data::
 //   data you want to pass when you dispatch an event
-const fire = (Rails.fire = function(obj, name, data) {
+const fire = (obj, name, data) => {
   const event = new CustomEvent(
     name, {
     bubbles: true,
     cancelable: true,
-    detail: data,
+    detail: data
   }
   )
   obj.dispatchEvent(event)
   return !event.defaultPrevented
-})
+}
 
 // Helper function, needed to provide consistent behavior in IE
-Rails.stopEverything = function(e) {
+const stopEverything = (e) => {
   fire(e.target, "ujs:everythingStopped")
   e.preventDefault()
   e.stopPropagation()
@@ -69,7 +68,7 @@ Rails.stopEverything = function(e) {
 //   string representing the event e.g. 'submit', 'click'
 // handler::
 //   the event handler to be called
-Rails.delegate = (element, selector, eventType, handler) => element.addEventListener(eventType, function(e) {
+const delegate = (element, selector, eventType, handler) => element.addEventListener(eventType, function(e) {
   let {
     target
   } = e
@@ -79,3 +78,5 @@ Rails.delegate = (element, selector, eventType, handler) => element.addEventList
     e.stopPropagation()
   }
 })
+
+export { fire, stopEverything, delegate }

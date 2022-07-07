@@ -1,21 +1,21 @@
-//= require_tree ../utils
-
-const { stopEverything } = Rails
+import { isCrossDomain } from "../utils/ajax"
+import * as csrf from "../utils/csrf"
+import { stopEverything } from "../utils/event"
 
 // Handles "data-method" on links such as:
 // <a href="/users/5" data-method="delete" rel="nofollow" data-confirm="Are you sure?">Delete</a>
-Rails.handleMethod = function(e) {
+const handleMethodWithRails = (rails) => function(e) {
   const link = this
   const method = link.getAttribute("data-method")
   if (!method) { return }
 
-  const href = Rails.href(link)
-  const csrfToken = Rails.csrfToken()
-  const csrfParam = Rails.csrfParam()
+  const href = rails.href(link)
+  const csrfToken = csrf.csrfToken()
+  const csrfParam = csrf.csrfParam()
   const form = document.createElement("form")
   let formContent = `<input name='_method' value='${method}' type='hidden' />`
 
-  if (csrfParam && csrfToken && !Rails.isCrossDomain(href)) {
+  if (csrfParam && csrfToken && !isCrossDomain(href)) {
     formContent += `<input name='${csrfParam}' value='${csrfToken}' type='hidden' />`
   }
 
@@ -34,3 +34,5 @@ Rails.handleMethod = function(e) {
 
   stopEverything(e)
 }
+
+export { handleMethodWithRails }

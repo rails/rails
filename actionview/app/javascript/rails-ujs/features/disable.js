@@ -1,14 +1,21 @@
-//= require_tree ../utils
+import {
+  linkDisableSelector,
+  buttonDisableSelector,
+  formDisableSelector,
+  formEnableSelector,
+  formSubmitSelector
+} from "../utils/constants"
+import { matches, getData, setData } from "../utils/dom"
+import { stopEverything } from "../utils/event"
+import { formElements } from "../utils/form"
 
-const { matches, getData, setData, stopEverything, formElements } = Rails
-
-Rails.handleDisabledElement = function(e) {
+const handleDisabledElement = function(e) {
   const element = this
   if (element.disabled) { stopEverything(e) }
 }
 
 // Unified function to enable an element (link, button and form)
-Rails.enableElement = function(e) {
+const enableElement = (e) => {
   let element
   if (e instanceof Event) {
     if (isXhrRedirect(e)) { return }
@@ -17,23 +24,23 @@ Rails.enableElement = function(e) {
     element = e
   }
 
-  if (matches(element, Rails.linkDisableSelector)) {
+  if (matches(element, linkDisableSelector)) {
     return enableLinkElement(element)
-  } else if (matches(element, Rails.buttonDisableSelector) || matches(element, Rails.formEnableSelector)) {
+  } else if (matches(element, buttonDisableSelector) || matches(element, formEnableSelector)) {
     return enableFormElement(element)
-  } else if (matches(element, Rails.formSubmitSelector)) {
+  } else if (matches(element, formSubmitSelector)) {
     return enableFormElements(element)
   }
 }
 
 // Unified function to disable an element (link, button and form)
-Rails.disableElement = function(e) {
+const disableElement = (e) => {
   const element = e instanceof Event ? e.target : e
-  if (matches(element, Rails.linkDisableSelector)) {
+  if (matches(element, linkDisableSelector)) {
     return disableLinkElement(element)
-  } else if (matches(element, Rails.buttonDisableSelector) || matches(element, Rails.formDisableSelector)) {
+  } else if (matches(element, buttonDisableSelector) || matches(element, formDisableSelector)) {
     return disableFormElement(element)
-  } else if (matches(element, Rails.formSubmitSelector)) {
+  } else if (matches(element, formSubmitSelector)) {
     return disableFormElements(element)
   }
 }
@@ -66,7 +73,7 @@ var enableLinkElement = function(element) {
 //  - Caches element value in 'ujs:enable-with' data store
 //  - Replaces element text with value of 'data-disable-with' attribute
 //  - Sets disabled property to true
-var disableFormElements = form => formElements(form, Rails.formDisableSelector).forEach(disableFormElement)
+var disableFormElements = form => formElements(form, formDisableSelector).forEach(disableFormElement)
 
 var disableFormElement = function(element) {
   if (getData(element, "ujs:disabled")) { return }
@@ -87,7 +94,7 @@ var disableFormElement = function(element) {
 // Re-enables disabled form elements:
 //  - Replaces element text with cached value from 'ujs:enable-with' data store (created in `disableFormElements`)
 //  - Sets disabled property to false
-var enableFormElements = form => formElements(form, Rails.formEnableSelector).forEach(enableFormElement)
+var enableFormElements = form => formElements(form, formEnableSelector).forEach(element => enableFormElement(element))
 
 var enableFormElement = function(element) {
   const originalText = getData(element, "ujs:enable-with")
@@ -107,3 +114,5 @@ var isXhrRedirect = function(event) {
   const xhr = event.detail ? event.detail[0] : undefined
   return xhr && xhr.getResponseHeader("X-Xhr-Redirect")
 }
+
+export { handleDisabledElement, enableElement, disableElement }

@@ -1,10 +1,8 @@
-//= require ./dom
-
-const { matches } = Rails
+import { matches } from "./dom"
 
 const toArray = e => Array.prototype.slice.call(e)
 
-Rails.serializeElement = function(element, additionalParam) {
+const serializeElement = (element, additionalParam) => {
   let inputs = [element]
   if (matches(element, "form")) { inputs = toArray(element.elements) }
   const params = []
@@ -34,10 +32,12 @@ Rails.serializeElement = function(element, additionalParam) {
 // Helper function that returns form elements that match the specified CSS selector
 // If form is actually a "form" element this will return associated elements outside the from that have
 // the html form attribute set
-Rails.formElements = function(form, selector) {
+const formElements = (form, selector) => {
   if (matches(form, "form")) {
     return toArray(form.elements).filter(el => matches(el, selector))
   } else {
     return toArray(form.querySelectorAll(selector))
   }
 }
+
+export { serializeElement, formElements }

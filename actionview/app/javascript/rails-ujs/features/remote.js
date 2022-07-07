@@ -1,11 +1,8 @@
-//= require_tree ../utils
-
-const {
-  matches, getData, setData,
-  fire, stopEverything,
-  ajax, isCrossDomain,
-  serializeElement
-} = Rails
+import { formSubmitSelector, buttonClickSelector, inputChangeSelector } from "../utils/constants"
+import { ajax, isCrossDomain } from "../utils/ajax"
+import { matches, getData, setData } from "../utils/dom"
+import { fire, stopEverything } from "../utils/event"
+import { serializeElement } from "../utils/form"
 
 // Checks "data-remote" if true to handle the request through a XHR request.
 const isRemote = function(element) {
@@ -14,7 +11,7 @@ const isRemote = function(element) {
 }
 
 // Submits "remote" forms and links with ajax
-Rails.handleRemote = function(e) {
+const handleRemoteWithRails = (rails) => function(e) {
   let data, method, url
   const element = this
 
@@ -27,7 +24,7 @@ Rails.handleRemote = function(e) {
   const withCredentials = element.getAttribute("data-with-credentials")
   const dataType = element.getAttribute("data-type") || "script"
 
-  if (matches(element, Rails.formSubmitSelector)) {
+  if (matches(element, formSubmitSelector)) {
     // memoized value from clicked submit button
     const button = getData(element, "ujs:submit-button")
     method = getData(element, "ujs:submit-button-formmethod") || element.getAttribute("method") || "get"
@@ -46,13 +43,13 @@ Rails.handleRemote = function(e) {
     setData(element, "ujs:submit-button", null)
     setData(element, "ujs:submit-button-formmethod", null)
     setData(element, "ujs:submit-button-formaction", null)
-  } else if (matches(element, Rails.buttonClickSelector) || matches(element, Rails.inputChangeSelector)) {
+  } else if (matches(element, buttonClickSelector) || matches(element, inputChangeSelector)) {
     method = element.getAttribute("data-method")
     url = element.getAttribute("data-url")
     data = serializeElement(element, element.getAttribute("data-params"))
   } else {
     method = element.getAttribute("data-method")
-    url = Rails.href(element)
+    url = rails.href(element)
     data = element.getAttribute("data-params")
   }
 
@@ -79,7 +76,7 @@ Rails.handleRemote = function(e) {
   stopEverything(e)
 }
 
-Rails.formSubmitButtonClick = function(e) {
+const formSubmitButtonClick = function(e) {
   const button = this
   const {
     form
@@ -93,7 +90,7 @@ Rails.formSubmitButtonClick = function(e) {
   return setData(form, "ujs:submit-button-formmethod", button.getAttribute("formmethod"))
 }
 
-Rails.preventInsignificantClick = function(e) {
+const preventInsignificantClick = function(e) {
   const link = this
   const method = (link.getAttribute("data-method") || "GET").toUpperCase()
   const data = link.getAttribute("data-params")
@@ -103,3 +100,4 @@ Rails.preventInsignificantClick = function(e) {
   if (nonPrimaryMouseClick || insignificantMetaClick) { e.stopImmediatePropagation() }
 }
 
+export { handleRemoteWithRails, formSubmitButtonClick, preventInsignificantClick }
