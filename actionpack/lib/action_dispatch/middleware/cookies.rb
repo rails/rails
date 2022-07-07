@@ -283,20 +283,6 @@ module ActionDispatch
     class CookieJar #:nodoc:
       include Enumerable, ChainedCookieJars
 
-      # This regular expression is used to split the levels of a domain.
-      # The top level domain can be any string without a period or
-      # **.**, ***.** style TLDs like co.uk or com.au
-      #
-      # www.example.co.uk gives:
-      # $& => example.co.uk
-      #
-      # example.com gives:
-      # $& => example.com
-      #
-      # lots.of.subdomains.example.local gives:
-      # $& => example.local
-      DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
-
       def self.build(req, cookies)
         jar = new(req)
         jar.update(cookies)
@@ -449,13 +435,35 @@ module ActionDispatch
           options[:same_site] ||= cookies_same_site_protection.call(request)
 
           if options[:domain] == :all || options[:domain] == "all"
-            # If there is a provided tld length then we use it otherwise default domain regexp.
-            domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
+            cookie_domain = ""
+            dot_splitted_host = request.host.split('.', -1)
 
-            # If host is not ip and matches domain regexp.
-            # (ip confirms to domain regexp so we explicitly check for ip)
-            options[:domain] = if !request.host.match?(/^[\d.]+$/) && (request.host =~ domain_regexp)
-              ".#{$&}"
+            # Case where request.host is not an IP address or it's an invalid domain
+            # (ip confirms to the domain structure we expect so we explicitly check for ip)
+            if request.host.match?(/^[\d.]+$/) || dot_splitted_host.include?("") || dot_splitted_host.length == 1
+              options[:domain] = nil
+              return
+            end
+
+            # If there is a provided tld length then we use it otherwise default domain.
+            if options[:tld_length].present? 
+              # Case where the tld_length provided is valid
+              if dot_splitted_host.length >= options[:tld_length]
+                cookie_domain = dot_splitted_host.last(options[:tld_length]).join('.')
+              end
+            # Case where tld_length is not provided
+            else
+              # Regular TLDs
+              if !(/([^.]{2,3}\.[^.]{2})$/.match?(request.host))
+                cookie_domain = dot_splitted_host.last(2).join('.')
+              # **.**, ***.** style TLDs like co.uk and com.au
+              else
+                cookie_domain = dot_splitted_host.last(3).join('.')
+              end
+            end
+
+            options[:domain] = if cookie_domain.present?
+              ".#{cookie_domain}"
             end
           elsif options[:domain].is_a? Array
             # If host matches one of the supplied domains.
