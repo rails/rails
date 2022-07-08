@@ -36,6 +36,8 @@ module ActionText
 end
 
 Capybara.add_selector :rich_text_area do
+  filter_set :_field
+
   label "rich-text area"
   xpath do |locator|
     if locator.nil?

@@ -1,3 +1,7 @@
+*   Add `:rich_text_area` Capybara selector to the `:_field` filter set
+
+    *Sean Doyle*
+
 *   Use `Rails::HTML5::SafeListSanitizer` by default in the Rails 7.1 configuration if it is
     supported.
 

@@ -9,24 +9,28 @@ class ActionText::SystemTestHelperTest < ApplicationSystemTestCase
 
   test "filling in a rich-text area by ID" do
     assert_selector "trix-editor#message_content"
+    assert_selector :field, "message_content"
     fill_in_rich_text_area "message_content", with: "Hello world!"
     assert_selector :field, "message[content]", with: /Hello world!/, type: "hidden"
   end
 
   test "filling in a rich-text area by placeholder" do
     assert_selector "trix-editor[placeholder='Your message here']"
+    assert_selector :field, "Your message here"
     fill_in_rich_text_area "Your message here", with: "Hello world!"
     assert_selector :field, "message[content]", with: /Hello world!/, type: "hidden"
   end
 
   test "filling in a rich-text area by aria-label" do
     assert_selector "trix-editor[aria-label='Message content aria-label']"
+    assert_selector :field, "Message content aria-label"
     fill_in_rich_text_area "Message content aria-label", with: "Hello world!"
     assert_selector :field, "message[content]", with: /Hello world!/, type: "hidden"
   end
 
   test "filling in a rich-text area by label" do
     assert_selector "label", text: "Message content label"
+    assert_selector :field, "Message content label"
     fill_in_rich_text_area "Message content label", with: "Hello world!"
     assert_selector :field, "message[content]", with: /Hello world!/, type: "hidden"
   end
