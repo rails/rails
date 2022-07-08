@@ -606,7 +606,6 @@ module Rails
       unless views.empty?
         ActiveSupport.on_load(:action_controller) { prepend_view_path(views) if respond_to?(:prepend_view_path) }
         ActiveSupport.on_load(:action_mailer) { prepend_view_path(views) }
-        prepend_view_path(File.expand_path("templates", __dir__))
       end
     end
 
