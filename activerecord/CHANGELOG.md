@@ -1,3 +1,36 @@
+*   Add new `ActiveRecord::Base::generates_token_for` API.
+
+    Currently, `signed_id` fulfills the role of generating tokens for e.g.
+    resetting a password.  However, signed IDs cannot reflect record state, so
+    if a token is intended to be single-use, it must be tracked in a database at
+    least until it expires.
+
+    With `generates_token_for`, a token can embed data from a record.  When
+    using the token to fetch the record, the data from the token and the data
+    from the record will be compared.  If the two do not match, the token will
+    be treated as invalid, the same as if it had expired.  For example:
+
+    ```ruby
+    class User < ActiveRecord::Base
+      has_secure_password
+
+      generates_token_for :password_reset, expires_in: 15.minutes do
+        # A password's BCrypt salt changes when the password is updated.
+        # By embedding (part of) the salt in a token, the token will
+        # expire when the password is updated.
+        BCrypt::Password.new(password_digest).salt[-10..]
+      end
+    end
+
+    user = User.first
+    token = user.generate_token_for(:password_reset)
+
+    User.find_by_token_for(:password_reset, token) # => user
+
+    user.update!(password: "new password")
+    User.find_by_token_for(:password_reset, token) # => nil
+    ```
+
 *   Optimize Active Record batching for whole table iterations.
 
     Previously, `in_batches` got all the ids and constructed an `IN`-based query for each batch.
