@@ -50,7 +50,7 @@ class MessageVerifierTest < ActiveSupport::TestCase
   end
 
   test "supports URL-safe encoding" do
-    verifier = ActiveSupport::MessageVerifier.new(@secret, urlsafe: true, serializer: JSON)
+    verifier = ActiveSupport::MessageVerifier.new(@secret, url_safe: true, serializer: JSON)
 
     # To verify that the message payload uses a URL-safe encoding (i.e. does not
     # use "+" or "/"), the unencoded bytes should have a 6-bit aligned

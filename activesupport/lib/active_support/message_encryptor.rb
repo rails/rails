@@ -143,9 +143,9 @@ module ActiveSupport
     # * <tt>:digest</tt> - String of digest to use for signing. Default is
     #   +SHA1+. Ignored when using an AEAD cipher like 'aes-256-gcm'.
     # * <tt>:serializer</tt> - Object serializer to use. Default is +JSON+.
-    # * <tt>:urlsafe</tt> - Whether to encode messages using a URL-safe
+    # * <tt>:url_safe</tt> - Whether to encode messages using a URL-safe
     #   encoding. Default is +false+ for backward compatibility.
-    def initialize(secret, sign_secret = nil, cipher: nil, digest: nil, serializer: nil, urlsafe: false)
+    def initialize(secret, sign_secret = nil, cipher: nil, digest: nil, serializer: nil, url_safe: false)
       @secret = secret
       @sign_secret = sign_secret
       @cipher = cipher || self.class.default_cipher
@@ -159,7 +159,7 @@ module ActiveSupport
         elsif @@default_message_encryptor_serializer.equal?(:json)
           JSON
         end
-      @urlsafe = urlsafe
+      @url_safe = url_safe
       @verifier = resolve_verifier
     end
 
@@ -190,11 +190,11 @@ module ActiveSupport
       end
 
       def encode(data)
-        @urlsafe ? ::Base64.urlsafe_encode64(data, padding: false) : ::Base64.strict_encode64(data)
+        @url_safe ? ::Base64.urlsafe_encode64(data, padding: false) : ::Base64.strict_encode64(data)
       end
 
       def decode(data)
-        @urlsafe ? ::Base64.urlsafe_decode64(data) : ::Base64.strict_decode64(data)
+        @url_safe ? ::Base64.urlsafe_decode64(data) : ::Base64.strict_decode64(data)
       end
 
       def _encrypt(value, **metadata_options)
@@ -242,7 +242,7 @@ module ActiveSupport
       end
 
       def length_after_encode(length_before_encode)
-        if @urlsafe
+        if @url_safe
           (4 * length_before_encode / 3.0).ceil # length without padding
         else
           4 * (length_before_encode / 3.0).ceil # length with padding
@@ -295,7 +295,7 @@ module ActiveSupport
         if aead_mode?
           NullVerifier
         else
-          MessageVerifier.new(@sign_secret || @secret, digest: @digest, serializer: NullSerializer, urlsafe: @urlsafe)
+          MessageVerifier.new(@sign_secret || @secret, digest: @digest, serializer: NullSerializer, url_safe: @url_safe)
         end
       end
   end
