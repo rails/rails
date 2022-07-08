@@ -1,6 +1,6 @@
 module ActiveRecord
   module Debugger
-    TEMPLATE_PATH = File.expand_path("../../../templates/", __FILE__)
+    TEMPLATE_PATH = File.expand_path("templates", __FILE__)
 
     def self.enabled=(value)
       ActiveSupport::IsolatedExecutionState[:active_record_debugging] = value
