@@ -49,7 +49,7 @@ end
         <div style="margin=left: 25px">
           <h4> <%= assoc %> </h4>
           <% Array.wrap(record.send(assoc)).each do |assoc_record| %>
-            <%= render partial: 'rails/load_tree_debugger/record', locals: { record: assoc_record } %>
+            <%= render partial: 'active_record_debugger/record', locals: { record: assoc_record } %>
           <% end %>
         </div>
       <% end %>

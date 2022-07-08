@@ -41,6 +41,7 @@ module ActiveRecord
   autoload :ConnectionHandling
   autoload :Core
   autoload :CounterCache
+  autoload :Debugger
   autoload :DelegatedType
   autoload :DestroyAssociationAsyncJob
   autoload :DynamicMatchers

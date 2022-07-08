@@ -1,0 +1,9 @@
+<div style="margin: 10%">
+<h2>ActiveRecord Debugging</h2>
+<% ActiveRecord::Debugger.loaded_records.each do |record| %>
+  <div>
+    <h1>Loaded Records</h1>
+    <%= render partial: 'active_record_debugger/record', locals: { record: record } %>
+  </div>
+<% end %>
+</div>

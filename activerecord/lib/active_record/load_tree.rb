@@ -2,6 +2,9 @@
 
 module ActiveRecord
   module LoadTree
+    class LoadTreeDisabledError < StandardError
+    end
+
     def _create_load_tree_node(creator: self, parents: [], siblings: [])
       parent_objects = parents.map do |parent_hash|
         Parent.new(parent: parent_hash[:instance],
@@ -29,7 +32,7 @@ module ActiveRecord
       # SiblingSizeLimit is the maximum number of siblings we will track. This
       # Is limited because preloading can blow up if we have a lot of siblings.
       attr_reader :model_class_name
-      attr_accessor :siblings, :parents, :children
+      attr_accessor :siblings, :parents, :children, :load_call_stack
 
       # Create a Load Tree instance representing the loaded record and its place in the overall
       # hierarchy of the object tree. Any passed parents or sibilings should also include the load_tree
@@ -43,6 +46,8 @@ module ActiveRecord
         @model_class_name = creator.class.name
         @children = []
         @siblings = siblings
+        ActiveRecord::Debugger.add_loaded_records(creator) if ActiveRecord::Debugger.enabled? && root?
+        @load_call_stack = caller if ActiveRecord::Debugger.enabled?
       end
 
       def set_records
