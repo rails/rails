@@ -1,40 +1,42 @@
-<% load_tree = record._load_tree %>
-<% associations = load_tree.loaded_associations.count > 0 %>
+<% load_tree = record._load_tree_node %>
+<% associations = load_tree.children.count > 0 %>
 <% if load_tree.root?
-  record_id = "root-#{load_tree.record_class_name}-#{record.id.to_s}"
+  record_id = "root-#{load_tree.model_class_name}-#{record.id.to_s}"
 else
-  record_id = "child-#{load_tree.record_class_name}-#{record.id.to_s}-#{load_tree.full_load_path.gsub('.', '-')}"
+  record_id = "child-#{load_tree.model_class_name}-#{record.id.to_s}-#{load_tree.full_load_path.gsub('.', '-')}"
 end
 %>
 <details id="<%= record_id %>">
   <summary>
-    <h3 style="display: inline;">Class: <%= "#{load_tree.record_class_name} with id: #{record&.id}" %></h3>
-    <% if associations %><p>loaded child associations count: <%= load_tree.loaded_associations.count %></p><% end %>
-      <% if load_tree.siblings.count > 1 %><p>Siblings loaded at same time: (<%= load_tree.siblings.count %>)</p><% end %>
+    <h3 style="display: inline;">Class: <%= "#{load_tree.model_class_name} with id: #{record&.id}" %></h3>
+    <% if associations %><p>loaded child count: <%= load_tree.children.count %></p><% end %>
+    <% if load_tree.siblings.count > 1 %><p>Siblings loaded at same time: (<%= load_tree.siblings.count %>)</p><% end %>
   </summary>
   <div style="padding-left: 25px">
     <ul>
       <li><%= load_tree.full_load_path %></li>
       <% unless  load_tree.root? %>
         <%
-        if load_tree.parent._load_tree.root?
-          parent_link = "root-" + load_tree.parent._load_tree.record_class_name + '-' + load_tree.parent.id.to_s
+        if load_tree.parent._load_tree_node.root?
+          parent_link = "root-" + load_tree.parent._load_tree_node.model_class_name + '-' + load_tree.parent.id.to_s
         else
-          parent_link = "child-" + load_tree.parent._load_tree.record_class_name + "-" + load_tree.parent.id.to_s + "-" + load_tree.parent._load_tree.full_load_path.gsub('.', '-')
+          parent_link = "child-" + load_tree.parent._load_tree_node.model_class_name + "-" + load_tree.parent.id.to_s + "-" + load_tree.parent._load_tree_node.full_load_path.gsub('.', '-')
         end
         %>
         <li>Parent: <a href="#<%= parent_link %>"><%= "#{load_tree.parent&.inspect}" %></a></li>
       <% end %>
       <li>Record: <%= record.inspect%></li>
     </ul>
-    <details>
-      <summary><b>Siblings (<%=% load_tree.siblings.count %>):</b></summary>
-      <ul style="margin-left: 25px">
-        <% load_tree.siblings.each do |sibling| %>
-          <li><%= sibling.inspect %></li>
-	<% end %>
-      </ul>
-    </details>
+    <% if load_tree.siblings.count > 1%>
+      <details>
+        <summary><b>Siblings:</b></summary>
+        <ol style="margin-left: 25px">
+          <% load_tree.siblings.each do |sibling| %>
+            <li><%= sibling.inspect %></li>
+          <% end %>
+        </ol>
+      </details>
+    <% end %>
     <details>
       <summary><b>Load CallStack:</b></summary>
       <ul style="margin-left: 25px" >
@@ -44,12 +46,12 @@ end
       </ul>
     </details>
     <% if associations %>
-      <p><b>Loaded relations: <%= load_tree.loaded_associations.join(", ") %></b></p>
-      <% load_tree.loaded_associations.each do |assoc| %>
+      <p><b>Loaded relations: <%= load_tree.children.join(", ") %></b></p>
+      <% load_tree.children.each do |child| %>
         <div style="margin=left: 25px">
-          <h4> <%= assoc %> </h4>
-          <% Array.wrap(record.send(assoc)).each do |assoc_record| %>
-            <%= render partial: 'active_record_debugger/record', locals: { record: assoc_record } %>
+          <h4> <%= child %> </h4>
+          <% Array.wrap(record.send(child)).each do |child_instance| %>
+            <%= render partial: 'active_record_debugger/record', locals: { record: child_instance } %>
           <% end %>
         </div>
       <% end %>
