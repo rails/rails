@@ -9,8 +9,10 @@ end
 <details id="<%= record_id %>">
   <summary>
     <h3 style="display: inline;">Class: <%= "#{load_tree.model_class_name} with id: #{record&.id}" %></h3>
-    <% if associations %><p>loaded child count: <%= load_tree.children.count %></p><% end %>
-    <% if load_tree.siblings.count > 1 %><p>Siblings loaded at same time: (<%= load_tree.siblings.count %>)</p><% end %>
+    <p>
+      <% if associations %>Children Loaded: <%= load_tree.children.count %>, <% end %>
+      <% if load_tree.siblings.count > 1 %>Siblings loaded: (<%= load_tree.siblings.count %>)<% end %>
+    </p>
   </summary>
   <div style="padding-left: 25px">
     <ul>
