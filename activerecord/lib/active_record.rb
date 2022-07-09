@@ -43,6 +43,7 @@ module ActiveRecord
   autoload :CounterCache
   autoload :DelegatedType
   autoload :DestroyAssociationAsyncJob
+  autoload :DynamicIncludes
   autoload :DynamicMatchers
   autoload :Encryption
   autoload :Enum
@@ -356,6 +357,8 @@ module ActiveRecord
 
   singleton_class.attr_accessor :load_tree_enabled
   self.load_tree_enabled = false
+
+  include DynamicIncludes
 
   def self.eager_load!
     super

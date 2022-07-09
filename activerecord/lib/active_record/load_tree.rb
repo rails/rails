@@ -58,6 +58,23 @@ module ActiveRecord
         parents.empty?
       end
 
+      # The full call path to the parent of this load tree. Traverses up the load tree
+      # checking if the current load tree is the the root, if it is then it returns
+      # the class name of the record for the root element, if not it returns the child
+      # name that was used to instantiate the current load tree's record. This will put together
+      # a full method chain.
+      #
+      # parent = Person.find(1)
+      # child = parent.children.first
+      # child._load_tree.full_load_call_path # => "Person.children"
+      #
+      def full_load_path
+        return model_class_name if root?
+        parent._load_tree_node.full_load_path + "." + child_name.to_s
+        rescue
+          ""
+      end
+
       # Add an child name to the list of loaded children.
       def add_loaded_child(child_name)
         return if child_name.nil? || @children.include?(child_name)
