@@ -15,6 +15,10 @@ require "models/pirate"
 require "models/treasure"
 require "models/book"
 
+def create_parent(parent, name)
+  ActiveRecord::LoadTree::Parent.new(parent: parent, child_name: name, child_type: :association)
+end
+
 class LoadTreeTest < ActiveRecord::TestCase
   fixtures :developers, :developers_projects, :projects, :ships, :books, :posts, :authors
 
@@ -84,8 +88,7 @@ class LoadTreeTest < ActiveRecord::TestCase
     records = Developer.where(id: [Developer.first.id, Developer.last.id])
     records.each do |record|
       assert record._load_tree_node.root?
-      assert record._load_tree_node.parent.nil?
-      assert_nil record._load_tree_node.child_name
+      assert record._load_tree_node.parents.empty?
     end
   end
 
@@ -112,21 +115,17 @@ class LoadTreeTest < ActiveRecord::TestCase
 
     developer.projects.each do |project|
       assert_not project._load_tree_node.root?
-      assert_equal developer, project._load_tree_node.parent
-      assert_equal :projects, project._load_tree_node.child_name
+      assert_equal [create_parent(developer, :projects)], project._load_tree_node.parents
     end
-    assert_equal developer.ship._load_tree_node.parent, developer
-    assert_equal :ship, developer.ship._load_tree_node.child_name
+    assert_equal developer.ship._load_tree_node.parents, [create_parent(developer, :ship)]
 
     developer.ship.parts.each do |part|
-      assert_equal developer.ship, part._load_tree_node.parent
+      assert_equal [create_parent(developer.ship, :parts)], part._load_tree_node.parents
       assert_not part._load_tree_node.root?
-      assert_equal :parts, part._load_tree_node.child_name
       part.trinkets.each do |trinket|
-        assert_equal part, trinket._load_tree_node.parent
+        assert_equal [create_parent(part, :trinkets)], trinket._load_tree_node.parents
         assert_not trinket._load_tree_node.root?
-        assert_equal :trinkets, trinket._load_tree_node.child_name
-        assert_equal ship, trinket._load_tree_node.parent._load_tree_node.parent
+        assert_equal [create_parent(ship, :parts)], trinket._load_tree_node.parents.first.parent._load_tree_node.parents
       end
     end
   end
@@ -166,37 +165,18 @@ class LoadTreeTest < ActiveRecord::TestCase
       child = developer.send(assoc)
       if child.is_a?(Array) || child.is_a?(ActiveRecord::Associations::CollectionProxy)
         child.each do |c|
-          assert_equal c._load_tree_node.parent, developer
+          assert_equal c._load_tree_node.parents, [create_parent(developer, assoc)]
         end
         last_child = child.last
       else
-        assert_equal child._load_tree_node.parent, developer
+        assert_equal child._load_tree_node.parents, [create_parent(developer, assoc)]
         last_child = child
       end
       last_child._load_tree_node.children.each do |assoc2|
         grandchild = last_child.send(assoc2).first
-        assert_equal grandchild._load_tree_node.parent, last_child
+        assert_equal grandchild._load_tree_node.parents, [create_parent(last_child, assoc2)]
       end
     end
-  end
-
-  test "load tree can get the full method path from the tree for a particular object" do
-    developer = Developer.first
-    ship = Ship.first
-    stern1 = ShipPart.create!(name: "Stern", ship: ship)
-    stern1.trinkets.create!(name: "Stern Trinket")
-
-    firm = Firm.create!(name: "NASA")
-    project = Project.create!(name: "Apollo", firm: firm)
-
-    ship.update_column(:developer_id, developer.id)
-    developer.projects.destroy_all
-    developer.projects << project
-
-    developer = Developer.find(developer.id)
-
-    assert_equal "Developer.projects.firm", developer.projects.first.firm._load_tree_node.full_load_path
-    assert_equal "Developer.ship.parts.trinkets", developer.ship.parts.first.trinkets.first._load_tree_node.full_load_path
   end
 
   def test_preload_groups_queries_with_same_scope_but_different_sti_classes_separates_the_siblings_by_sti_class
@@ -210,7 +190,6 @@ class LoadTreeTest < ActiveRecord::TestCase
     post.author = authors(:mary)
     post.save
 
-
     book = Book.find(book.id)
     book2 = Book.find(book2.id)
     post = Post.find(post.id)
@@ -219,10 +198,10 @@ class LoadTreeTest < ActiveRecord::TestCase
       preloader.call
 
       assert_equal book.author._load_tree_node.siblings, [book.author, book2.author]
-      assert_equal book.author._load_tree_node.parent, book
+      assert_equal book.author._load_tree_node.parents, [create_parent(book, :author)]
       post.author
       assert_equal post.author._load_tree_node.siblings, [post.author]
-      assert_equal post.author._load_tree_node.parent, post
+      assert_equal post.author._load_tree_node.parents, [create_parent(book2, :author), create_parent(post, :author)]
     end
   end
 
@@ -241,9 +220,9 @@ class LoadTreeTest < ActiveRecord::TestCase
       assert tree.siblings.include?(part), "Siblings should include #{part.inspect}"
     end
     assert_equal [:parts], ship._load_tree_node.children
-    assert_equal ship, tree.parent
-    assert_equal :association, tree.child_type
-    assert_equal :parts, tree.child_name
+    assert_equal [create_parent(ship, :parts)], tree.parents
+    assert_equal :association, tree.parents.first.child_type
+    assert_equal :parts, tree.parents.first.child_name
   end
 
   test "eager load sets a load tree" do
@@ -260,9 +239,9 @@ class LoadTreeTest < ActiveRecord::TestCase
       assert tree.siblings.include?(part), "Siblings should include #{part.inspect}"
     end
     assert_equal [:parts], ship._load_tree_node.children
-    assert_equal ship, tree.parent
-    assert_equal :association, tree.child_type
-    assert_equal :parts, tree.child_name
+    assert_equal [create_parent(ship, :parts)], tree.parents
+    assert_equal :association, tree.parents.first.child_type
+    assert_equal :parts, tree.parents.first.child_name
   end
 end
 
@@ -320,11 +299,11 @@ class LoadTreeNodeTest < ActiveRecord::TestCase
 
     @book1._create_load_tree_node(siblings: [@book1, @book2]).set_records
     @book2._create_load_tree_node(siblings: [@book1, @book2]).set_records
-    @review._create_load_tree_node(siblings: [@review], parent: @book1, child_name: :reviews, child_type: :association).set_records
-    @author._create_load_tree_node(siblings: [@author], parent: @book1, child_name: :author, child_type: :association).set_records
-    @author_bio._create_load_tree_node(siblings: [@author_bio], parent: @author, child_name: :author_bio, child_type: :association).set_records
-    @review_author._create_load_tree_node(siblings: [@review_author], parent: @review, child_name: :author, child_type: :association).set_records
-    @review_author_bio._create_load_tree_node(siblings: [@review_author_bio], parent: @review_author, child_name: :author_bio, child_type: :association).set_records
+    @review._create_load_tree_node(siblings: [@review], parents: [create_parent(@book1, :reviews)]).set_records
+    @author._create_load_tree_node(siblings: [@author], parents: [create_parent(@book1, :author)]).set_records
+    @author_bio._create_load_tree_node(siblings: [@author_bio], parents: [create_parent(@author, :author_bio)]).set_records
+    @review_author._create_load_tree_node(siblings: [@review_author], parents: [create_parent(@review, :author)]).set_records
+    @review_author_bio._create_load_tree_node(siblings: [@review_author_bio], parents: [create_parent(@review_author, :author_bio)]).set_records
   end
 
 
@@ -336,34 +315,28 @@ class LoadTreeNodeTest < ActiveRecord::TestCase
   test "attributes properly set" do
     tree = @review._load_tree_node
     assert_equal @review.class.name, tree.model_class_name
-    assert_equal @book1, tree.parent
-    assert_equal :reviews, tree.child_name
-    assert_equal :association, tree.child_type
+    assert_equal [create_parent(@book1, :reviews)], tree.parents
+    assert_equal :reviews, tree.parents.first.child_name
+    assert_equal :association, tree.parents.first.child_type
     assert_not tree.root?
   end
 
   test "parent/child associations setup up" do
     review_tree = @review._load_tree_node
-    book_tree = review_tree.parent._load_tree_node
+    book_tree = review_tree.parents.first.parent._load_tree_node
     assert book_tree.root?
     assert_not review_tree.root?
     assert_equal [:reviews, :author], book_tree.children
     assert_equal [:author], review_tree.children
-    assert_equal :association, review_tree.child_type
-    assert_nil book_tree.child_type
-  end
-
-  test "full load path recurses up the tree" do
-    tree = @review_author_bio._load_tree_node
-    assert_equal tree.full_load_path, "BookNonAR.reviews.author.author_bio"
-    assert_equal @book1._load_tree_node.full_load_path, "BookNonAR"
+    assert_equal :association, review_tree.parents.first.child_type
+    assert book_tree.parents.empty?
   end
 
   test "load trees can be traversed up" do
     tree = @review_author_bio._load_tree_node
-    assert_equal tree.parent, @review_author
-    assert_equal tree.parent._load_tree_node.parent, @review
-    assert_equal tree.parent._load_tree_node.parent._load_tree_node.parent, @book1
+    assert_equal tree.parents, [create_parent(@review_author, :author_bio)]
+    assert_equal tree.parents.first.parent._load_tree_node.parents, [create_parent(@review, :author)]
+    assert_equal tree.parents.first.parent._load_tree_node.parents.first.parent._load_tree_node.parents, [create_parent(@book1, :reviews)]
   end
 
   test "load trees can be traversed down" do
@@ -381,11 +354,11 @@ class LoadTreeNodeTest < ActiveRecord::TestCase
     child = parent.send(child_method)
     if child.is_a?(Array)
       child.each do |sub_child|
-        assert_equal sub_child._load_tree_node.parent, parent
+        assert_equal sub_child._load_tree_node.parents.first.parent, parent
         child_recurse(sub_child)
       end
     else
-      assert_equal child._load_tree_node.parent, parent
+      assert_equal child._load_tree_node.parents.first.parent, parent
       child_recurse(child)
     end
   end

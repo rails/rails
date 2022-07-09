@@ -187,16 +187,17 @@ module ActiveRecord
           @preloaded_records = raw_records.select do |record|
             assignments = false
 
+            if record._load_tree_node.nil?
+              record._create_load_tree_node(
+                siblings: [])
+            end
             owners_by_key[convert_key(record[association_key_name])]&.each do |owner|
               entries = (@records_by_owner[owner] ||= [])
               association_owner = preloaded_split_owner_association[owner.class.name] ||= {}
               association_of_records = association_owner[reflection.name] ||= []
               association_of_records << record
 
-              record._create_association_load_tree_node(
-                siblings: [],
-                parent: owner,
-                child_name: reflection.name)
+              record._load_tree_node.add_parent(owner, reflection.name, :association)
 
               if reflection.collection? || entries.empty?
                 entries << record

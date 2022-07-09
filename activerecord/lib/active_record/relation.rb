@@ -927,10 +927,8 @@ module ActiveRecord
             if null_relation? || !instance_variable_defined?("@association")
               record._create_root_load_tree_node(siblings: records)
             else
-              record._create_association_load_tree_node(
-                siblings: records,
-                parent: @association.owner,
-                child_name: @association.reflection.name)
+              record._create_load_tree_node(siblings: records)
+              record._load_tree_node.add_parent(@association.owner, @association.reflection.name, :association)
             end
             record.readonly! if readonly_value
             record.strict_loading!(strict_loading_value) unless strict_loading_value.nil?
