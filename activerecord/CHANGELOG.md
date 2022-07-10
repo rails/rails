@@ -30,6 +30,8 @@
     user.update!(password: "new password")
     User.find_by_token_for(:password_reset, token) # => nil
     ```
+    
+    *Jonathan Hefner*
 
 *   Optimize Active Record batching for whole table iterations.
 
