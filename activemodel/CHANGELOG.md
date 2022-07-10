@@ -26,8 +26,6 @@
 
     *fatkodima*
 
-*   Define `deconstruct_keys` in `ActiveModel::AttributeMethods`
-
 *   Fix casting long strings to `Date`, `Time` or `DateTime`
 
     *fatkodima*
