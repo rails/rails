@@ -82,6 +82,16 @@ class Rails::Command::EncryptedCommandTest < ActiveSupport::TestCase
     assert_match(/access_key_id: 123/, run_edit_command(key: "config/tokens.key"))
   end
 
+  test "edit command does not display save confirmation message if interrupted" do
+    assert_match %r/file encrypted and saved/i, run_edit_command
+
+    interrupt_command_process = %(exec ruby -e "Process.kill 'INT', Process.ppid")
+    output = run_edit_command(editor: interrupt_command_process)
+
+    assert_no_match %r/file encrypted and saved/i, output
+    assert_match %r/nothing saved/i, output
+  end
+
   test "edit command preserves user's content even if it contains invalid YAML" do
     write_invalid_yaml = %(ruby -e "File.write ARGV[0], 'foo: bar: bad'")
 
