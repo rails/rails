@@ -1,3 +1,15 @@
+*   Add `timestamptz` as a time zone aware type for PostgreSQL
+
+    This is required for correctly parsing `timestamp with time zone` values in your database.
+
+    If you don't want this, you can opt out by adding this initializer:
+
+    ```ruby
+    ActiveRecord::Base.time_zone_aware_types -= [:timestamptz]
+    ```
+
+    *Alex Ghiculescu*
+
 *   Fix supporting timezone awareness for `tsrange` and `tstzrange` array columns.
 
     ```ruby

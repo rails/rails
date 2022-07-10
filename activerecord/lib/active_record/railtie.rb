@@ -78,6 +78,12 @@ module ActiveRecord
       end
     end
 
+    initializer "active_record.postgresql_time_zone_aware_types" do
+      ActiveSupport.on_load(:active_record_postgresqladapter) do
+        ActiveRecord::Base.time_zone_aware_types << :timestamptz
+      end
+    end
+
     initializer "active_record.logger" do
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
