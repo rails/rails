@@ -430,6 +430,10 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2005, 1, 2, 11, 22, 33, 8), Time.local(2005, 1, 2, 11, 22, 33, 2).change(nsec: 8000)
     assert_raise(ArgumentError) { Time.local(2005, 1, 2, 11, 22, 33, 8).change(usec: 1, nsec: 1) }
     assert_nothing_raised { Time.new(2015, 5, 9, 10, 00, 00, "+03:00").change(nsec: 999999999) }
+
+    with_env_tz "US/Eastern" do
+      assert_equal 0, Time.new(2005, 10, 30, 0, 59, 59).advance(hours: 1).change({}) - Time.new(2005, 10, 30, 0, 59, 59).advance(hours: 1)
+    end
   end
 
   def test_utc_change
@@ -491,6 +495,10 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.new(2021, 5, 29, 0, 0, 0, "+03:00"), ActiveSupport::TimeZone["Moscow"].local(2021, 5, 29, 0, 0, 0)
     assert_equal Time.new(2021, 5, 29, 0, 0, 0, "+03:00").advance(seconds: 60), ActiveSupport::TimeZone["Moscow"].local(2021, 5, 29, 0, 0, 0).advance(seconds: 60)
     assert_equal Time.new(2021, 5, 29, 0, 0, 0, "+03:00").advance(days: 3), ActiveSupport::TimeZone["Moscow"].local(2021, 5, 29, 0, 0, 0).advance(days: 3)
+
+    with_env_tz "US/Eastern" do
+      assert_equal 0, Time.new(2005, 10, 30, 0, 59, 59).advance(hours: 1).advance({}) - Time.new(2005, 10, 30, 0, 59, 59).advance(hours: 1)
+    end
   end
 
   def test_utc_advance
