@@ -209,6 +209,28 @@ class LoadTreeTest < ActiveRecord::TestCase
     end
   end
 
+   def test_preload_when_an_association_is_shared
+    book = books(:awdr)
+    book.author = authors(:david)
+    book.save
+    book2 = books(:rfr)
+    book2.author = authors(:david)
+    book2.save
+
+
+    books = Book.where(id: [book.id, book2.id])
+    preloader = ActiveRecord::Associations::Preloader.new(records: books, associations: :author)
+    preloader.call
+    author_parents = [create_parent(books.first, :author), create_parent(books.second, :author)]
+    assert_equal books.first.author._load_tree_node.siblings, [books.first.author]
+    assert_equal books.first.author._load_tree_node.parents, author_parents
+
+    books = Book.where(id: [book.id, book2.id]).includes(:author).to_a
+    author_parents = [create_parent(books.first, :author), create_parent(books.second, :author)]
+    assert_equal books.first.author._load_tree_node.siblings, [books.first.author]
+    assert_equal books.first.author._load_tree_node.parents, author_parents
+  end
+
   test "preload sets a load tree" do
     ship = Ship.first
     ship2 = Ship.last

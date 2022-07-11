@@ -191,7 +191,7 @@ module ActiveRecord
               entries = (@records_by_owner[owner] ||= [])
               association_owner = preloaded_split_owner_association[owner.class.name] ||= {}
               association_of_records = association_owner[reflection.name] ||= []
-              association_of_records << record
+              association_of_records << record if association_of_records.exclude?(record)
 
               if record._load_tree_node.nil?
                 record._create_load_tree_node(
