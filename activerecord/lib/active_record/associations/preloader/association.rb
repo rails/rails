@@ -201,7 +201,7 @@ module ActiveRecord
                     child_name: reflection.name,
                     child_type: association
                   }]
-                  ).set_records
+                ).set_records
               else
                 record._load_tree_node.add_parent(owner, reflection.name, :association)
               end
