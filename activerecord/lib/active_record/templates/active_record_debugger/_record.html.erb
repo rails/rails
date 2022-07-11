@@ -51,9 +51,11 @@ end
             end
             %>
             <ul>
-              <li><b>Instance:</b> <a href="#<%= parent_link %>"><%= "#{parent_instance.inspect}" %></a></li>
-              <li><b>Child Name:</b> <%= parent.child_name %></li>
-              <li><b>Child Type:</b> <%= parent.child_type %></li>
+              <li>
+                <b>Instance:</b> <a href="#<%= parent_link %>"><%= "#{parent_instance.inspect}" %></a><br/>
+                <b>Child Name:</b> <%= parent.child_name %><br/>
+                <b>Child Type:</b> <%= parent.child_type %><br/>
+              </li>
             </ul>
           <% end %>
         </ul>
