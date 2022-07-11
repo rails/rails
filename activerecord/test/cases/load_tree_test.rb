@@ -209,7 +209,7 @@ class LoadTreeTest < ActiveRecord::TestCase
     end
   end
 
-   def test_preload_when_an_association_is_shared
+  def test_preload_when_an_association_is_shared
     book = books(:awdr)
     book.author = authors(:david)
     book.save
@@ -229,7 +229,7 @@ class LoadTreeTest < ActiveRecord::TestCase
     author_parents = [create_parent(books.first, :author), create_parent(books.second, :author)]
     assert_equal books.first.author._load_tree_node.siblings, [books.first.author]
     assert_equal books.first.author._load_tree_node.parents, author_parents
-  end
+ end
 
   test "preload sets a load tree" do
     ship = Ship.first
