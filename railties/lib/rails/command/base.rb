@@ -3,6 +3,8 @@
 require "thor"
 require "erb"
 
+require "active_support/core_ext/class/attribute"
+require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/string/inflections"
 
@@ -33,6 +35,8 @@ module Rails
       end
 
       include Actions
+
+      class_attribute :bin, instance_accessor: false, default: "bin/rails"
 
       class << self
         def exit_on_failure? # :nodoc:
@@ -91,8 +95,8 @@ module Rails
           namespaced_commands
         end
 
-        def executable
-          "rails #{command_name}"
+        def executable(subcommand = nil)
+          "#{bin} #{command_name}#{":" if subcommand}#{subcommand}"
         end
 
         # Use Rails' default banner.
@@ -170,6 +174,10 @@ module Rails
               end
             end
           end
+      end
+
+      no_commands do
+        delegate :executable, to: :class
       end
 
       def help

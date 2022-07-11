@@ -228,7 +228,7 @@ module Rails
         end
 
         def restart_command
-          "bin/rails server #{@original_options.join(" ")} --restart"
+          "#{executable} #{@original_options.join(" ")} --restart"
         end
 
         def early_hints
@@ -246,7 +246,7 @@ module Rails
         end
 
         def self.banner(*)
-          "rails server -u [thin/puma/webrick] [options]"
+          "#{executable} -u [thin/puma/webrick] [options]"
         end
 
         def prepare_restart
@@ -260,7 +260,7 @@ module Rails
 
                 gem "#{RECOMMENDED_SERVER}"
 
-              Run `bin/rails server --help` for more options.
+              Run `#{executable} --help` for more options.
             MSG
           elsif server.in?(RACK_SERVERS)
             <<~MSG
@@ -268,7 +268,7 @@ module Rails
 
                 gem "#{server}"
 
-              Run `bin/rails server --help` for more options.
+              Run `#{executable} --help` for more options.
             MSG
           else
             error = CorrectableError.new("Could not find server '#{server}'.", server, RACK_SERVERS)
@@ -279,7 +279,7 @@ module Rails
             end
             <<~MSG
               #{formatted_message}
-              Run `bin/rails server --help` for more options.
+              Run `#{executable} --help` for more options.
             MSG
           end
         end
@@ -288,7 +288,7 @@ module Rails
           say <<~MSG
             => Booting #{ActiveSupport::Inflector.demodulize(server)}
             => Rails #{Rails.version} application starting in #{Rails.env} #{url}
-            => Run `bin/rails server --help` for more startup options
+            => Run `#{executable} --help` for more startup options
           MSG
         end
     end

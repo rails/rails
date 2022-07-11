@@ -22,6 +22,22 @@ class Rails::Command::BaseTest < ActiveSupport::TestCase
     assert_equal [], Rails::Command::HiddenCommand.printing_commands
   end
 
+  test "::executable returns bin and command name" do
+    assert_equal "bin/rails generate", Rails::Command::GenerateCommand.executable
+  end
+
+  test "::executable integrates subcommand when given" do
+    assert_equal "bin/rails generate:help", Rails::Command::GenerateCommand.executable(:help)
+  end
+
+  test "::executable integrates ::bin" do
+    class Rails::Command::CustomBinCommand < Rails::Command::Base
+      self.bin = "FOO"
+    end
+
+    assert_equal "FOO custom_bin", Rails::Command::CustomBinCommand.executable
+  end
+
   test "ARGV is populated" do
     class Rails::Command::ArgvCommand < Rails::Command::Base
       def check_populated(*args)
