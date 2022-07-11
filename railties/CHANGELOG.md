@@ -1,3 +1,9 @@
+*   Newly generated per-environment credentials files (e.g.
+    `config/credentials/production.yml.enc`) now include a `secret_key_base` for
+    convenience, just as `config/credentials.yml.enc` does.
+
+    *Jonathan Hefner*
+
 *   `--no-*` options now work with the app generator's `--minimal` option, and
     are both comprehensive and precise.  For example:
 

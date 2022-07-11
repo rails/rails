@@ -82,11 +82,7 @@ module Rails
         end
 
         def ensure_credentials_have_been_added
-          if options[:environment]
-            encrypted_file_generator.add_encrypted_file_silently(content_path, key_path)
-          else
-            credentials_generator.add_credentials_file_silently
-          end
+          credentials_generator.add_credentials_file
         end
 
         def change_credentials_in_system_editor
@@ -122,18 +118,11 @@ module Rails
           Rails::Generators::EncryptionKeyFileGenerator.new
         end
 
-        def encrypted_file_generator
-          require "rails/generators"
-          require "rails/generators/rails/encrypted_file/encrypted_file_generator"
-
-          Rails::Generators::EncryptedFileGenerator.new
-        end
-
         def credentials_generator
           require "rails/generators"
           require "rails/generators/rails/credentials/credentials_generator"
 
-          Rails::Generators::CredentialsGenerator.new
+          Rails::Generators::CredentialsGenerator.new([content_path, key_path], quiet: true)
         end
     end
   end

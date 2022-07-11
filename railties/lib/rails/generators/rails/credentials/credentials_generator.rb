@@ -7,42 +7,39 @@ require "active_support/encrypted_configuration"
 module Rails
   module Generators
     class CredentialsGenerator < Base # :nodoc:
-      def add_credentials_file
-        unless credentials.content_path.exist?
-          template = credentials_template
+      argument :content_path, default: "config/credentials.yml.enc"
+      argument :key_path, default: "config/master.key"
 
-          say "Adding #{credentials.content_path} to store encrypted credentials."
+      def add_credentials_file
+        in_root do
+          return if File.exist?(content_path)
+
+          say "Adding #{content_path} to store encrypted credentials."
           say ""
+
+          encrypted_file.write(content)
+
           say "The following content has been encrypted with the Rails master key:"
           say ""
-          say template, :on_green
+          say content, :on_green
           say ""
-
-          add_credentials_file_silently(template)
-
           say "You can edit encrypted credentials with `bin/rails credentials:edit`."
           say ""
         end
       end
 
-      def add_credentials_file_silently(template = nil)
-        unless credentials.content_path.exist?
-          credentials.write(credentials_template)
-        end
-      end
-
       private
-        def credentials
+        def encrypted_file
           ActiveSupport::EncryptedConfiguration.new(
-            config_path: "config/credentials.yml.enc",
-            key_path: "config/master.key",
+            config_path: content_path,
+            key_path: key_path,
             env_key: "RAILS_MASTER_KEY",
             raise_if_missing_key: true
           )
         end
 
-        def credentials_template
-          <<~YAML
+        def content
+          @content ||= <<~YAML
             # aws:
             #   access_key_id: 123
             #   secret_access_key: 345
