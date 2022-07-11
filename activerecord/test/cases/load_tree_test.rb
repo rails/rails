@@ -19,6 +19,10 @@ def create_parent(parent, name)
   ActiveRecord::LoadTree::Parent.new(parent: parent, child_name: name, child_type: :association)
 end
 
+def create_parent_hash(parent, name)
+  { instance: parent, child_name: name, child_type: :association }
+end
+
 class LoadTreeTest < ActiveRecord::TestCase
   fixtures :developers, :developers_projects, :projects, :ships, :books, :posts, :authors
 
@@ -299,11 +303,11 @@ class LoadTreeNodeTest < ActiveRecord::TestCase
 
     @book1._create_load_tree_node(siblings: [@book1, @book2]).set_records
     @book2._create_load_tree_node(siblings: [@book1, @book2]).set_records
-    @review._create_load_tree_node(siblings: [@review], parents: [create_parent(@book1, :reviews)]).set_records
-    @author._create_load_tree_node(siblings: [@author], parents: [create_parent(@book1, :author)]).set_records
-    @author_bio._create_load_tree_node(siblings: [@author_bio], parents: [create_parent(@author, :author_bio)]).set_records
-    @review_author._create_load_tree_node(siblings: [@review_author], parents: [create_parent(@review, :author)]).set_records
-    @review_author_bio._create_load_tree_node(siblings: [@review_author_bio], parents: [create_parent(@review_author, :author_bio)]).set_records
+    @review._create_load_tree_node(siblings: [@review], parents: [create_parent_hash(@book1, :reviews)]).set_records
+    @author._create_load_tree_node(siblings: [@author], parents: [create_parent_hash(@book1, :author)]).set_records
+    @author_bio._create_load_tree_node(siblings: [@author_bio], parents: [create_parent_hash(@author, :author_bio)]).set_records
+    @review_author._create_load_tree_node(siblings: [@review_author], parents: [create_parent_hash(@review, :author)]).set_records
+    @review_author_bio._create_load_tree_node(siblings: [@review_author_bio], parents: [create_parent_hash(@review_author, :author_bio)]).set_records
   end
 
 

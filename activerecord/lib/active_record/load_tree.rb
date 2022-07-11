@@ -3,9 +3,15 @@
 module ActiveRecord
   module LoadTree
     def _create_load_tree_node(creator: self, parents: [], siblings: [])
+      parent_objects = parents.map do |parent_hash|
+        Parent.new(parent: parent_hash[:instance],
+                   child_name: parent_hash[:child_name],
+                   child_type: parent_hash[:child_type])
+      end
+
       @_load_tree_node = ActiveRecord::LoadTree::Node.new(
         creator: creator,
-        parents: parents,
+        parents: parent_objects,
         siblings: siblings
       ).set_records
     end

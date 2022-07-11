@@ -244,8 +244,14 @@ module ActiveRecord
 
         def setup_load_trees(records)
           records.each do |record|
-            record._create_load_tree_node(siblings: records)
-            record._load_tree_node.add_parent(owner, reflection.name, :association)
+            record._create_load_tree_node(
+              siblings: [],
+              parents: [{
+                instance: owner,
+                child_name: reflection.name,
+                child_type: :association
+              }]
+            ).set_records
           end
         end
 
