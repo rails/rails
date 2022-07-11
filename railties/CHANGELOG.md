@@ -1,3 +1,15 @@
+*   In-app custom credentials templates are now supported.  When a credentials
+    file does not exist, `rails credentials:edit` will now try to use
+    `lib/templates/rails/credentials/credentials.yml.tt` to generate the
+    credentials file, before falling back to the default template.
+
+    This allows e.g. an open-source Rails app (which would not include encrypted
+    credentials files in its repo) to include a credentials template, so that
+    users who install the app will get a custom pre-filled credentials file when
+    they run `rails credentials:edit`.
+
+    *Jonathan Hefner*
+
 *   Newly generated per-environment credentials files (e.g.
     `config/credentials/production.yml.enc`) now include a `secret_key_base` for
     convenience, just as `config/credentials.yml.enc` does.

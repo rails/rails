@@ -28,6 +28,7 @@ module Rails
       def edit
         extract_environment_option_from_argument(default_environment: nil)
         require_application!
+        load_generators
 
         ensure_editor_available(command: "bin/rails credentials:edit") || (return)
 
@@ -77,12 +78,15 @@ module Rails
         end
 
         def ensure_encryption_key_has_been_added
+          require "rails/generators/rails/encryption_key_file/encryption_key_file_generator"
+          encryption_key_file_generator = Rails::Generators::EncryptionKeyFileGenerator.new
           encryption_key_file_generator.add_key_file(key_path)
           encryption_key_file_generator.ignore_key_file(key_path)
         end
 
         def ensure_credentials_have_been_added
-          credentials_generator.add_credentials_file
+          require "rails/generators/rails/credentials/credentials_generator"
+          Rails::Generators::CredentialsGenerator.new([content_path, key_path], quiet: true).invoke_all
         end
 
         def change_credentials_in_system_editor
@@ -109,20 +113,6 @@ module Rails
 
         def extract_environment_from_path(path)
           available_environments.find { |env| path.include? env } if path.end_with?(".yml.enc")
-        end
-
-        def encryption_key_file_generator
-          require "rails/generators"
-          require "rails/generators/rails/encryption_key_file/encryption_key_file_generator"
-
-          Rails::Generators::EncryptionKeyFileGenerator.new
-        end
-
-        def credentials_generator
-          require "rails/generators"
-          require "rails/generators/rails/credentials/credentials_generator"
-
-          Rails::Generators::CredentialsGenerator.new([content_path, key_path], quiet: true)
         end
     end
   end
