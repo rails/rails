@@ -486,7 +486,7 @@ If neither are specified, it will assume memcached is running on localhost on th
 config.cache_store = :mem_cache_store # Will fallback to $MEMCACHE_SERVERS, then 127.0.0.1:11211
 ```
 
-See the [`Dalli::Client` documentation](https://www.rubydoc.info/github/mperham/dalli/Dalli%2FClient:initialize) for supported address types.
+See the [`Dalli::Client` documentation](https://www.rubydoc.info/gems/dalli/Dalli/Client#initialize-instance_method) for supported address types.
 
 The `write` and `fetch` methods on this cache accept two additional options that take advantage of features specific to memcached. You can specify `:raw` to send a value directly to the server with no serialization. The value must be a string or number. You can use memcached direct operations like `increment` and `decrement` only on raw values. You can also specify `:unless_exist` if you don't want memcached to overwrite an existing entry.
 

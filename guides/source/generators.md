@@ -450,7 +450,7 @@ Whilst the final section of this guide doesn't cover how to generate the most aw
 Adding Command Line Arguments
 -----------------------------
 
-Rails generators can be easily modified to accept custom command line arguments. This functionality comes from [Thor](https://www.rubydoc.info/github/erikhuda/thor/master/Thor/Base/ClassMethods#class_option-instance_method):
+Rails generators can be easily modified to accept custom command line arguments. This functionality comes from [Thor](https://www.rubydoc.info/gems/thor/Thor/Base/ClassMethods#class_options-instance_method):
 
 ```ruby
 class_option :scope, type: :string, default: 'read_products'
@@ -473,7 +473,7 @@ Generator methods
 
 The following are methods available for both generators and templates for Rails.
 
-NOTE: Methods provided by Thor are not covered this guide and can be found in [Thor's documentation](https://rdoc.info/github/erikhuda/thor/master/Thor/Actions.html)
+NOTE: Methods provided by Thor are not covered this guide and can be found in [Thor's documentation](https://www.rubydoc.info/gems/thor/Thor/Actions)
 
 ### `gem`
 
