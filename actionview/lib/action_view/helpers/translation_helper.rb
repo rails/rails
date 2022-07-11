@@ -111,7 +111,7 @@ module ActionView
 
       # Delegates to <tt>I18n.localize</tt> with no additional functionality.
       #
-      # See https://www.rubydoc.info/github/svenfuchs/i18n/master/I18n/Backend/Base:localize
+      # See https://www.rubydoc.info/gems/i18n/I18n/Backend/Base:localize
       # for more information.
       def localize(object, **options)
         I18n.localize(object, **options)
