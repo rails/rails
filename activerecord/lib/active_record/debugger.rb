@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Debugger
     TEMPLATE_PATH = File.expand_path("../templates", __FILE__)

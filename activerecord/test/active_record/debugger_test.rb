@@ -41,32 +41,31 @@ class DebuggerTest < ActiveRecord::TestCase
     end
   end
 
- test "when in debug mode, maintain a class level list of root level objects loaded, all other objects are accessed via the load tree" do
-    developer = Developer.first
-    ship = Ship.first
-    stern1 = ShipPart.create!(name: "Stern", ship: ship)
-    trinket = stern1.trinkets.create!(name: "Stern Trinket")
+  test "when in debug mode, maintain a class level list of root level objects loaded, all other objects are accessed via the load tree" do
+     developer = Developer.first
+     ship = Ship.first
+     stern1 = ShipPart.create!(name: "Stern", ship: ship)
+     trinket = stern1.trinkets.create!(name: "Stern Trinket")
 
-    firm = Firm.create!(name: "NASA")
-    project = Project.create!(name: "Apollo", firm: firm)
+     firm = Firm.create!(name: "NASA")
+     project = Project.create!(name: "Apollo", firm: firm)
 
-    ship.update_column(:developer_id, developer.id)
-    developer.projects.destroy_all
-    developer.projects << project
-    run_in_debug_mode do
-      root = developer
-      child_records = [ship, stern1, trinket, project, firm]
+     ship.update_column(:developer_id, developer.id)
+     developer.projects.destroy_all
+     developer.projects << project
+     run_in_debug_mode do
+       child_records = [ship, stern1, trinket, project, firm]
 
-      developer = Developer.find(developer.id)
+       developer = Developer.find(developer.id)
 
-      developer.projects.first.firm
-      developer.ship.parts.first.trinkets.first
-      assert ActiveRecord::Debugger.loaded_records.include?(developer)
-      child_records.each do |record|
-        assert_not ActiveRecord::Debugger.loaded_records.include?(record), "Expected #{record} to not be in the loaded records"
-      end
-    end
-  end
+       developer.projects.first.firm
+       developer.ship.parts.first.trinkets.first
+       assert ActiveRecord::Debugger.loaded_records.include?(developer)
+       child_records.each do |record|
+         assert_not ActiveRecord::Debugger.loaded_records.include?(record), "Expected #{record} to not be in the loaded records"
+       end
+     end
+   end
 
   test "access a record with a find should add the record to loaded record" do
     ship = Ship.first
