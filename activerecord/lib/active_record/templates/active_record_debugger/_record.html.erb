@@ -3,7 +3,7 @@
 <% if load_tree.root?
   record_id = "root-#{load_tree.model_class_name}-#{record.id.to_s}"
 else
-  record_id = "child-#{load_tree.model_class_name}-#{record.id.to_s}-#{load_tree.full_load_path.gsub('.', '-')}"
+  record_id = "child-#{load_tree.model_class_name}-#{record.id.to_s}"
 end
 %>
 <details id="<%= record_id %>">
@@ -15,20 +15,17 @@ end
     </p>
   </summary>
   <div style="padding-left: 25px">
-    <ul>
-      <li><%= load_tree.full_load_path %></li>
-      <% unless  load_tree.root? %>
-        <%
-        if load_tree.parent._load_tree_node.root?
-          parent_link = "root-" + load_tree.parent._load_tree_node.model_class_name + '-' + load_tree.parent.id.to_s
-        else
-          parent_link = "child-" + load_tree.parent._load_tree_node.model_class_name + "-" + load_tree.parent.id.to_s + "-" + load_tree.parent._load_tree_node.full_load_path.gsub('.', '-')
-        end
-        %>
-        <li>Parent: <a href="#<%= parent_link %>"><%= "#{load_tree.parent&.inspect}" %></a></li>
-      <% end %>
-      <li>Record: <%= record.inspect%></li>
-    </ul>
+    <p><b>Record:</b> <%= record.inspect%><p>
+
+    <details>
+      <summary><b>Load CallStack:</b></summary>
+      <ul style="margin-left: 25px" >
+        <% load_tree.load_call_stack.each do |line| %>
+          <li><%= line %></li>
+        <% end %>
+      </ul>
+    </details>
+
     <% if load_tree.siblings.count > 1%>
       <details>
         <summary><b>Siblings:</b></summary>
@@ -39,14 +36,29 @@ end
         </ol>
       </details>
     <% end %>
-    <details>
-      <summary><b>Load CallStack:</b></summary>
-      <ul style="margin-left: 25px" >
-        <% load_tree.load_call_stack.each do |line| %>
-          <li><%= line %></li>
-        <% end %>
-      </ul>
-    </details>
+
+    <% unless  load_tree.root? %>
+      <details>
+        <summary><b>Parents (<%= load_tree.parents.size %>):</b></summary>
+        <ul>
+          <% load_tree.parents.each do |parent| %>
+            <%
+            parent_instance = parent.parent
+            if parent_instance._load_tree_node.root?
+              parent_link = "root-" + parent_instance._load_tree_node.model_class_name + '-' + parent_instance.id.to_s
+            else
+              parent_link = "child-" + parent_instance._load_tree_node.model_class_name + "-" + parent_instance.id.to_s
+            end
+            %>
+            <ul>
+              <li><b>Instance:</b> <a href="#<%= parent_link %>"><%= "#{parent_instance.inspect}" %></a></li>
+              <li><b>Child Name:</b> <%= parent.child_name %></li>
+              <li><b>Child Type:</b> <%= parent.child_type %></li>
+            </ul>
+          <% end %>
+        </ul>
+      </details>
+    <% end %>
     <% if associations %>
       <p><b>Loaded relations: <%= load_tree.children.join(", ") %></b></p>
       <% load_tree.children.each do |child| %>
