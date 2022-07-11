@@ -126,6 +126,8 @@
 
 *   Deprecate `Notification::Event`'s `#children` and `#parent_of?`
 
+    *John Hawthorn*
+
 *   Change default serialization format of `MessageEncryptor` from `Marshal` to `JSON` for Rails 7.1.
 
     Existing apps are provided with an upgrade path to migrate to `JSON` as described in `guides/source/upgrading_ruby_on_rails.md`
@@ -141,6 +143,8 @@
     *Stephen Sugden*
 
 *   Improve `File.atomic_write` error handling
+
+    *Daniel Pepper*
 
 *   Fix `Class#descendants` and `DescendantsTracker#descendants` compatibility with Ruby 3.1.
 
