@@ -28,7 +28,7 @@ module ActiveRecord
             ActiveRecord::Base.establish_connection(db_config)
             assert_nothing_raised { Person.first }
 
-            assert_equal [:default, :shard_one], ActiveRecord::Base.connection_handler.send(:connection_name_to_pool_manager).fetch("ActiveRecord::Base").instance_variable_get(:@name_to_role_mapping).values.flat_map(&:keys).uniq
+            assert_equal [:default, :shard_one], ActiveRecord::Base.connection_handler.send(:connection_name_to_pool_manager).fetch("ActiveRecord::Base").instance_variable_get(:@role_to_shard_mapping).values.flat_map(&:keys).uniq
           end
         end
 
