@@ -100,7 +100,7 @@ module ActiveRecord
           @logger = ActiveRecord::Base.logger
 
           if deprecated_logger || deprecated_connection_options || deprecated_config
-            raise ArgumentError, "new API accepts just one config hash"
+            raise ArgumentError, "when initializing an ActiveRecord adapter with a config hash, that should be the only argument"
           end
         else
           # Soft-deprecated for now; we'll probably warn in future.
