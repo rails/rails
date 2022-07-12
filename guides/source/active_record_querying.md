@@ -587,29 +587,10 @@ Similar to the `(?)` replacement style of params, you can also specify keys in y
 
 ```ruby
 Book.where("created_at >= :start_date AND created_at <= :end_date",
-  { start_date: params[:start_date], end_date: params[:end_date] })
+  {start_date: params[:start_date], end_date: params[:end_date]})
 ```
 
 This makes for clearer readability if you have a large number of variable conditions.
-
-#### Conditions That Use `LIKE`
-
-Although condition arguments are automatically escaped to prevent SQL injection, SQL `LIKE` wildcards (i.e., `%` and `_`) are **not** escaped. This may cause unexpected behavior if an unsanitized value is used in an argument. For example:
-
-```ruby
-Book.where("title LIKE ?", params[:title] + "%")
-```
-
-In the above code, the intent is to match titles that start with a user-specified string. However, any occurrences of `%` or `_` in `params[:title]` will be treated as wildcards, leading to surprising query results. In some circumstances, this may also prevent the database from using an intended index, leading to a much slower query.
-
-To avoid these problems, use [`sanitize_sql_like`][] to escape wildcard characters in the relevant portion of the argument:
-
-```ruby
-Book.where("title LIKE ?",
-  Book.sanitize_sql_like(params[:title]) + "%")
-```
-
-[`sanitize_sql_like`]: https://api.rubyonrails.org/classes/ActiveRecord/Sanitization/ClassMethods.html#method-i-sanitize_sql_like
 
 ### Hash Conditions
 
@@ -688,13 +669,13 @@ SELECT * FROM customers WHERE (customers.orders_count NOT IN (1,3,5))
 If a query has a hash condition with non-nil values on a nullable column, the records that have `nil` values on the nullable column won't be returned. For example:
 
 ```ruby
-Customer.create!(nullable_country: nil)
+Customer.create!(nullable_contry: nil)
 Customer.where.not(nullable_country: "UK")
 => []
 # But
-Customer.create!(nullable_country: "UK")
+Customer.create!(nullable_contry: "UK")
 Customer.where.not(nullable_country: nil)
-=> [#<Customer id: 2, nullable_country: "UK">]
+=> [#<Customer id: 2, nullable_contry: "UK">]
 ```
 
 [`where.not`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods/WhereChain.html#method-i-not
@@ -1426,6 +1407,7 @@ The methods are:
 * [`includes`][]
 * [`preload`][]
 * [`eager_load`][]
+* [`dynamic_includes`][]
 
 ### includes
 
@@ -1552,6 +1534,71 @@ SELECT books.id AS t0_r0, books.last_name AS t0_r1, ...
 ```
 
 NOTE: The `eager_load` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. Also, like the `includes` method, you can specify conditions for eager loaded associations.
+
+### dynamic_includes
+
+Dynamic includes will automatically fix N+1 queries that have not been preloaded using one of the above methods.
+
+Normally this code would execute in 9 queries, when enabling dynamic includes it happens in 4:
+
+```ruby
+developers = Developer.where(id: [developer.id, developer2.id])
+
+ActiveRecord.enable_dynamic_includes do
+    developers.each do |d|
+      d.ship.parts.each do |part|
+        part.trinkets.each do |t|
+          t
+        end
+      end
+    end
+  end
+end
+```
+
+The executed sql looks like this:
+```sql
+SELECT "developers"."id", "developers"."name", "developers"."salary", "developers"."firm_id", "developers"."mentor_id", "developers"."legacy_created_at", "developers"."legacy_updated_at", "developers"."legacy_created_on", "developers"."legacy_updated_on" FROM "developers" WHERE "developers"."id" IN (?, ?)  [["id", 1], ["id", 11]]
+SELECT "ships".* FROM "ships" WHERE "ships"."developer_id" IN (?, ?)  [["developer_id", 1], ["developer_id", 11]]
+SELECT "ship_parts".* FROM "ship_parts" WHERE "ship_parts"."ship_id" IN (?, ?)  [["ship_id", 2], ["ship_id", 751016585]]
+SELECT "treasures".* FROM "treasures" WHERE "treasures"."looter_type" = ? AND "treasures"."looter_id" IN (?, ?, ?, ?)  [["looter_type", "ShipPart"], ["looter_id", 1], ["looter_id", 2], ["looter_id", 3], ["looter_id", 4]]
+```
+
+In some scenarios it is ideal to not preload all the data for a particular algorithm, if perhaps it has a very expensive database query associated or perhaps a select runs prior to loading the data to limit the selected data further in memory, you may want to turn off the dynamic includes in such a scenario. This is an exceptional case but is possible.
+
+The below example will take 7 queries:
+
+```ruby
+ActiveRecord.enable_dynamic_includes do
+  developers = Developer.where(id: [developer.id, developer2.id])
+  developers.each do |d|
+    ActiveRecord.disable_dynamic_includes do
+      d.ship.parts.each do |part| # This should n+1
+        ActiveRecord.enable_dynamic_includes do
+          part.trinkets.each do |t|
+            t
+          end
+        end
+       end
+     end
+   end
+ end
+end
+ ```
+
+The executed sql would look like this:
+
+```sql
+SELECT "developers"."id", "developers"."name", "developers"."salary", "developers"."firm_id", "developers"."mentor_id", "developers"."legacy_created_at", "developers"."legacy_updated_at", "developers"."legacy_created_on", "developers"."legacy_updated_on" FROM "developers" WHERE "developers"."id" IN (?, ?)  [["id", 1], ["id", 11]]
+SELECT "ships".* FROM "ships" WHERE "ships"."developer_id" = ? LIMIT ?  [["developer_id", 1], ["LIMIT", 1]]
+SELECT "ship_parts".* FROM "ship_parts" WHERE "ship_parts"."ship_id" = ?  [["ship_id", 2]]
+SELECT "treasures".* FROM "treasures" WHERE "treasures"."looter_type" = ? AND "treasures"."looter_id" IN (?, ?)  [["looter_type", "ShipPart"], ["looter_id", 1], ["looter_id", 2]]
+SELECT "ships".* FROM "ships" WHERE "ships"."developer_id" = ? LIMIT ?  [["developer_id", 11], ["LIMIT", 1]]
+SELECT "ship_parts".* FROM "ship_parts" WHERE "ship_parts"."ship_id" = ?  [["ship_id", 751016585]]
+SELECT "treasures".* FROM "treasures" WHERE "treasures"."looter_type" = ? AND "treasures"."looter_id" IN (?, ?)  [["looter_type", "ShipPart"], ["looter_id", 3], ["looter_id", 4]]
+```
+
+In order to use this feature `ActiveRecord.load_tree_enabled` must be set to true.
 
 Scopes
 ------
@@ -1811,7 +1858,7 @@ If you also have a `locked` field on the `Customer` model, you also get `find_by
 You can specify an exclamation point (`!`) on the end of the dynamic finders
 to get them to raise an `ActiveRecord::RecordNotFound` error if they do not return any records, like `Customer.find_by_name!("Ryan")`
 
-If you want to find both by `first_name` and `orders_count`, you can chain these finders together by simply typing "`and`" between the fields.
+If you want to find both by `name` and `orders_count`, you can chain these finders together by simply typing "`and`" between the fields.
 For example, `Customer.find_by_first_name_and_orders_count("Ryan", 5)`.
 
 Enums

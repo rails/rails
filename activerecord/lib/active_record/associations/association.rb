@@ -228,14 +228,61 @@ module ActiveRecord
             target_scope.merge!(as.scope(self))
           end
 
-          binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          sc.execute(binds, klass.connection) do |record|
-            set_inverse_instance(record)
-            if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
-              record.strict_loading!
-            else
-              record.strict_loading!(false, mode: owner.strict_loading_mode)
+          if attempt_to_preload_records?
+            records = attempt_preload
+          else
+            binds = AssociationScope.get_bind_values(owner, reflection.chain)
+            records = sc.execute(binds, klass.connection) do |record|
+              set_inverse_instance(record)
+              if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
+                record.strict_loading!
+              else
+                record.strict_loading!(false, mode: owner.strict_loading_mode)
+              end
             end
+            setup_load_trees(records)
+          end
+          records
+        end
+
+        def attempt_to_preload_records?
+          return false unless owner.respond_to?(reflection.name)
+          return false unless ActiveRecord.dynamic_includes_enabled?
+          return false if owner._load_tree_node.siblings.length <= 1
+
+          true
+        end
+
+        def attempt_preload
+          available_records = (Array.wrap(target) + [owner._load_tree_node.siblings]).flatten.uniq
+
+          preloaders = ActiveRecord::Associations::Preloader.new(
+            records: owner._load_tree_node.siblings,
+            associations: [reflection.name],
+            available_records: available_records
+          ).call
+
+          return [] unless !preloaders.nil? && preloaders.any?
+
+          preloaders.inject([]) do |records, loader|
+            records.concat(loader.records_by_owner[owner]) if loader.records_by_owner.key?(owner)
+            if loader.records_by_owner.key?(owner) && loader.records_by_owner[owner].length >= 1 && loader.records_by_owner.keys.length > 1
+              ActiveRecord::Base.logger.debug { "Dynamically preloaded: #{loader.preloaded_records.count} #{loader.records_by_owner[owner].first.class.name} for #{loader.records_by_owner.keys.count} #{owner.class.name}" }
+            end
+            records
+          end
+        end
+
+        def setup_load_trees(records)
+          records.each do |record|
+            record._create_load_tree_node(
+              siblings: records,
+              parents: [{
+                instance: owner,
+                child_name: reflection.name,
+                child_type: :association
+              }]
+            ).set_records
           end
         end
 
