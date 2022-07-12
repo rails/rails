@@ -1,3 +1,31 @@
+## Rails 6.1.6.1 (July 12, 2022) ##
+
+*   Change ActiveRecord::Coders::YAMLColumn default to safe_load
+
+    This adds two new configuration options The configuration options are as
+    follows:
+    
+    * `config.active_storage.use_yaml_unsafe_load`
+    
+    When set to true, this configuration option tells Rails to use the old
+    "unsafe" YAML loading strategy, maintaining the existing behavior but leaving
+    the possible escalation vulnerability in place.  Setting this option to true
+    is *not* recommended, but can aid in upgrading.
+    
+    * `config.active_record.yaml_column_permitted_classes`
+    
+    The "safe YAML" loading method does not allow all classes to be deserialized
+    by default.  This option allows you to specify classes deemed "safe" in your
+    application.  For example, if your application uses Symbol and Time in
+    serialized data, you can add Symbol and Time to the allowed list as follows:
+    
+    ```
+    config.active_record.yaml_column_permitted_classes = [Symbol, Date, Time]
+    ```
+
+    [CVE-2022-32224]
+
+
 ## Rails 6.1.5.1 (April 26, 2022) ##
 
 *   No changes.
