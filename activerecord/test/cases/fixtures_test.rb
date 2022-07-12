@@ -1045,9 +1045,9 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book"], returns: connection, shard: shard) do
         message_bus = ActiveSupport::Notifications.instrumenter
         payload = {
-          spec_name: "book",
+          connection_name: "book",
           shard: shard,
-          config: nil,
+          config: nil
         }
 
         message_bus.instrument("!connection.active_record", payload) { }

@@ -12,7 +12,6 @@ module ActiveRecord
 
       def setup
         @handler = ConnectionHandler.new
-        @owner_name = "ActiveRecord::Base"
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         @rw_pool = @handler.establish_connection(db_config)
         @ro_pool = @handler.establish_connection(db_config, role: :reading)
@@ -29,7 +28,7 @@ module ActiveRecord
             ActiveRecord::Base.establish_connection(db_config)
             assert_nothing_raised { Person.first }
 
-            assert_equal [:default, :shard_one], ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("ActiveRecord::Base").instance_variable_get(:@name_to_role_mapping).values.flat_map(&:keys).uniq
+            assert_equal [:default, :shard_one], ActiveRecord::Base.connection_handler.send(:connection_name_to_pool_manager).fetch("ActiveRecord::Base").instance_variable_get(:@name_to_role_mapping).values.flat_map(&:keys).uniq
           end
         end
 

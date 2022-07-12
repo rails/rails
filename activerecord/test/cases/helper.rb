@@ -184,7 +184,7 @@ end
 
 def clean_up_connection_handler
   handler = ActiveRecord::Base.connection_handler
-  handler.instance_variable_get(:@owner_to_pool_manager).each do |owner, pool_manager|
+  handler.instance_variable_get(:@connection_name_to_pool_manager).each do |owner, pool_manager|
     pool_manager.role_names.each do |role_name|
       next if role_name == ActiveRecord::Base.default_role
       pool_manager.remove_role(role_name)
