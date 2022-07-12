@@ -1,3 +1,12 @@
+*   Touch all corresponding model records after ActiveStorage::Blob is analyzed
+
+    This fixes a race condition where a record can be requested and have a cache entry built, before
+    the initial `analyze_later` completes, which will not be invalidated until something else
+    updates the record. This also invalidates cache entries when a blob is re-analyzed, which
+    is helpful if a bug is fixed in an analyzer or a new analyzer is added.
+
+    *Nate Matykiewicz*
+
 *   Add ability to use pre-defined variants when calling `preview` or
     `representation` on an attachment.
 
