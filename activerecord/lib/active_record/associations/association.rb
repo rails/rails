@@ -229,13 +229,29 @@ module ActiveRecord
           end
 
           binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          sc.execute(binds, klass.connection) do |record|
+          records = sc.execute(binds, klass.connection) do |record|
             set_inverse_instance(record)
             if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
               record.strict_loading!
             else
               record.strict_loading!(false, mode: owner.strict_loading_mode)
             end
+          end
+
+          setup_load_trees(records)
+          records
+        end
+
+        def setup_load_trees(records)
+          records.each do |record|
+            record._create_load_tree_node(
+              siblings: records,
+              parents: [{
+                instance: owner,
+                child_name: reflection.name,
+                child_type: :association
+              }]
+            ).set_records
           end
         end
 
