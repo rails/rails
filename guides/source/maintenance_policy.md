@@ -75,10 +75,9 @@ For severe security issues all releases in the current major series, and also th
 last release in the previous major series will receive patches and new versions. The
 classification of the security issue is judged by the core team.
 
-NOTE: Rails 5.2.Z is included in the list of supported series until June 1st 2022.
 NOTE: Rails 6.0.Z is included in the list of supported series until June 1st 2023.
 
-**Currently included series:** `7.0.Z`, `6.1.Z`, `6.0.Z`, `5.2.Z`.
+**Currently included series:** `7.0.Z`, `6.1.Z`, `6.0.Z`.
 
 Unsupported Release Series
 --------------------------
