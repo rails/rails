@@ -2,6 +2,11 @@
 
     *fatkodima*
 
+## Rails 6.1.6.1 (July 12, 2022) ##
+
+*   No changes.
+
+
 ## Rails 6.1.6 (May 09, 2022) ##
 
 *   No changes.

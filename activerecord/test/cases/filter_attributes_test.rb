@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/admin"
 require "models/admin/user"
+require "models/admin/user_json"
 require "models/admin/account"
 require "models/user"
 require "pp"
@@ -13,6 +14,7 @@ class FilterAttributesTest < ActiveRecord::TestCase
   setup do
     @previous_filter_attributes = ActiveRecord::Base.filter_attributes
     ActiveRecord::Base.filter_attributes = [:name]
+    ActiveRecord::Base.use_yaml_unsafe_load = true
   end
 
   teardown do

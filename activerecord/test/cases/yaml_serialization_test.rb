@@ -24,8 +24,8 @@ class YamlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_roundtrip_serialized_column
-    topic = Topic.new(content: { omg: :lol })
-    assert_equal({ omg: :lol }, yaml_load(YAML.dump(topic)).content)
+    topic = Topic.new(content: { "omg" => "lol" })
+    assert_equal({ "omg" => "lol" }, yaml_load(YAML.dump(topic)).content)
   end
 
   def test_psych_roundtrip
@@ -113,13 +113,13 @@ class YamlSerializationTest < ActiveRecord::TestCase
 
   def test_deserializing_rails_41_yaml
     topic = assert_deprecated do
-      yaml_load(yaml_fixture("rails_4_1"))
+      yaml_load(yaml_fixture("rails_4_1_no_symbol"))
     end
 
     assert_predicate topic, :new_record?
     assert_nil topic.id
     assert_equal "The First Topic", topic.title
-    assert_equal({ omg: :lol }, topic.content)
+    assert_equal({ "omg" => "lol" }, topic.content)
   end
 
   def test_deserializing_rails_4_2_0_yaml

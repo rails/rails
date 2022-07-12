@@ -809,8 +809,8 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_with_serialization
-    t = Topic.create!(content: { foo: :bar })
-    assert_equal [{ foo: :bar }], Topic.where(id: t.id).pluck(:content)
+    t = Topic.create!(content: { "foo" => "bar" })
+    assert_equal [{ "foo" => "bar" }], Topic.where(id: t.id).pluck(:content)
   end
 
   def test_pluck_with_qualified_column_name
