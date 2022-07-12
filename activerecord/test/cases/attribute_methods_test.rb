@@ -44,9 +44,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "attribute_for_inspect with an array" do
     t = topics(:first)
-    t.content = [Object.new]
+    t.content = ["some_value"]
 
-    assert_match %r(\[#<Object:0x[0-9a-f]+>\]), t.attribute_for_inspect(:content)
+    assert_match %r(\[\"some_value\"\]), t.attribute_for_inspect(:content)
   end
 
   test "attribute_for_inspect with a long array" do
@@ -539,7 +539,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "should unserialize attributes for frozen records" do
-    myobj = { value1: :value2 }
+    myobj = { "value1" => "value2" }
     topic = Topic.create(content: myobj)
     topic.freeze
     assert_equal myobj, topic.content
