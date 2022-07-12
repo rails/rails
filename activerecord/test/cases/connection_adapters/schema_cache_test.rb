@@ -273,12 +273,16 @@ module ActiveRecord
       # See: https://bugs.ruby-lang.org/issues/15926
       test "#deep_duplicate does not modify the frozen/ufrozen state of untainted or tainted string arguments" do
         test_string = "banana"
-        [
+        test_methods = [
           test_string.dup,
-          test_string.dup.taint,
-          test_string.dup.freeze,
-          test_string.dup.taint.freeze
-        ].each do |str|
+          test_string.dup.freeze
+        ]
+
+        if RUBY_VERSION.start_with?("2.6")
+          test_methods.push(test_string.dup.taint, test_string.dup.taint.freeze)
+        end
+
+        test_methods.each do |str|
           starting_frozen_state = str.frozen?
           @cache.send(:deep_deduplicate, str)
           assert_equal(starting_frozen_state, str.frozen?)

@@ -853,7 +853,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
       error = assert_raise(ActiveRecord::AssociationNotFoundError) {
         Post.all.merge!(includes: :monkeys).find(6)
       }
-      assert_match "Did you mean?", error.message
+      if error.respond_to?(:detailed_message)
+        assert_match "Did you mean?", error.detailed_message
+      else
+        assert_match "Did you mean?", error.message
+      end
     end
   end
 

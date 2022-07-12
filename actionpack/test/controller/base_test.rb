@@ -178,7 +178,11 @@ class PerformActionTest < ActionController::TestCase
       exception = assert_raise AbstractController::ActionNotFound do
         get :non_existent
       end
-      assert_match "Did you mean?", exception.message
+      if exception.respond_to?(:detailed_message)
+        assert_match "Did you mean?", exception.detailed_message
+      else
+        assert_match "Did you mean?", exception.message
+      end
     end
   end
 
