@@ -602,6 +602,7 @@ module Rails
 
     initializer :add_view_paths do
       views = paths["app/views"].existent
+      views << ActiveRecord::Debugger::TEMPLATE_PATH
       unless views.empty?
         ActiveSupport.on_load(:action_controller) { prepend_view_path(views) if respond_to?(:prepend_view_path) }
         ActiveSupport.on_load(:action_mailer) { prepend_view_path(views) }

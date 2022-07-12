@@ -9,6 +9,7 @@ module ActiveRecord
   module Core
     extend ActiveSupport::Concern
     include ActiveModel::Access
+    include ActiveRecord::LoadTree
 
     included do
       ##
@@ -417,7 +418,9 @@ module ActiveRecord
           }
 
           begin
-            statement.execute(values, connection).first
+            record = statement.execute(values, connection).first
+            record._create_root_load_tree_node(siblings: [record]) unless record.nil?
+            record
           rescue TypeError
             raise ActiveRecord::StatementInvalid
           end
@@ -516,6 +519,7 @@ module ActiveRecord
 
       _run_initialize_callbacks
 
+      self._create_root_load_tree_node(siblings: [self])
       @new_record               = true
       @previously_new_record    = false
       @destroyed                = false
@@ -740,6 +744,7 @@ module ActiveRecord
         @marked_for_destruction   = false
         @destroyed_by_association = nil
         @_start_transaction_state = nil
+        @_load_tree               = nil
 
         klass = self.class
 
