@@ -169,8 +169,8 @@ GEM
       childprocess
       faraday
       selenium-webdriver
-    bootsnap (1.7.5)
-      msgpack (~> 1.0)
+    bootsnap (1.12.0)
+      msgpack (~> 1.2)
     builder (3.2.4)
     bunny (2.17.0)
       amq-protocol (~> 2.3, >= 2.3.1)
@@ -204,7 +204,6 @@ GEM
     delayed_job_active_record (4.1.6)
       activerecord (>= 3.0, < 6.2)
       delayed_job (>= 3.0, < 5)
-    digest (3.1.0)
     digest-crc (0.6.3)
       rake (>= 12.0.0, < 14.0.0)
     em-http-request (1.1.7)
@@ -299,7 +298,6 @@ GEM
     mail (2.7.1)
       mini_mime (>= 0.1.1)
     marcel (1.0.2)
-    matrix (0.4.2)
     memoist (0.16.2)
     method_source (1.0.0)
     mini_magick (4.11.0)
@@ -319,30 +317,18 @@ GEM
     minitest-server (1.0.6)
       minitest (~> 5.0)
     mono_logger (1.1.1)
-    msgpack (1.4.2)
+    msgpack (1.5.3)
     multi_json (1.15.0)
     multipart-post (2.1.1)
     mustache (1.1.1)
     mustermann (1.1.1)
       ruby2_keywords (~> 0.0.1)
     mysql2 (0.5.3)
-    net-imap (0.2.3)
-      digest
-      net-protocol
-      strscan
-    net-pop (0.1.1)
-      digest
-      net-protocol
-      timeout
-    net-protocol (0.1.3)
-      timeout
-    net-smtp (0.3.1)
-      digest
-      net-protocol
-      timeout
     nio4r (2.5.7)
     nokogiri (1.11.3)
       mini_portile2 (~> 2.5.0)
+      racc (~> 1.4)
+    nokogiri (1.11.3-x86_64-darwin)
       racc (~> 1.4)
     os (1.1.1)
     parallel (1.20.1)
@@ -350,6 +336,7 @@ GEM
       ast (~> 2.4.1)
     path_expander (1.1.0)
     pg (1.2.3)
+    psych (3.3.2)
     public_suffix (4.0.6)
     puma (5.2.2)
       nio4r (~> 2.0)
@@ -475,7 +462,6 @@ GEM
       sprockets (>= 3.0.0)
     sqlite3 (1.4.2)
     stackprof (0.2.17)
-    strscan (3.0.1)
     sucker_punch (3.0.1)
       concurrent-ruby (~> 1.0)
     thin (1.8.0)
@@ -485,7 +471,6 @@ GEM
     thor (1.1.0)
     thread_safe (0.3.6)
     tilt (2.0.10)
-    timeout (0.2.0)
     trailblazer-option (0.1.1)
     turbolinks (5.2.1)
       turbolinks-source (~> 5.2)
@@ -554,15 +539,11 @@ DEPENDENCIES
   kindlerb (~> 1.2.0)
   libxml-ruby
   listen (~> 3.2)!
-  matrix
   minitest (< 5.15.0)
   minitest-bisect
   minitest-reporters
   minitest-retry
   mysql2 (>= 0.4.10)
-  net-imap
-  net-pop
-  net-smtp
   nokogiri (>= 1.8.1)
   pg (>= 0.18.0)
   psych (~> 3.0)
