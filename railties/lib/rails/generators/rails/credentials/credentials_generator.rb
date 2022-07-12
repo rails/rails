@@ -9,6 +9,7 @@ module Rails
     class CredentialsGenerator < Base # :nodoc:
       argument :content_path, default: "config/credentials.yml.enc"
       argument :key_path, default: "config/master.key"
+      class_option :skip_secret_key_base, type: :boolean
 
       def add_credentials_file
         in_root do
