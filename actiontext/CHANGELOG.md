@@ -1,3 +1,8 @@
+## Rails 6.0.5.1 (July 12, 2022) ##
+
+*   No changes.
+
+
 ## Rails 6.0.5 (May 09, 2022) ##
 
 *   Disentangle Action Text from ApplicationController
