@@ -1205,6 +1205,14 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `true`               |
 | 7.1                   | `false`              |
 
+#### `config.active_record.yaml_column_permitted_classes`
+
+Defaults to `[]`. Allows applications to include additional permitted classes to `safe_load()` on the `ActiveStorage::Coders::YamlColumn`.
+
+#### `config.active_record.use_yaml_unsafe_load`
+
+Defaults to `false`. Allows applications to opt into using `unsafe_load` on the `ActiveStorage::Coders::YamlColumn`.
+
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans`
 
 Controls whether the Active Record MySQL adapter will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
@@ -2271,14 +2279,6 @@ has no effect if Sprockets is not used. The default value is `true`.
 ### Configuring Active Storage
 
 `config.active_storage` provides the following configuration options:
-
-#### `config.active_record.yaml_column_permitted_classes`
-
-Defaults to `[]`. Allows applications to include additional permitted classes to `safe_load()` on the `ActiveStorage::Coders::YamlColumn`.
-
-#### `config.active_storage.use_yaml_unsafe_load`
-
-Defaults to `false`. Allows applications to opt into using `unsafe_load` on the `ActiveStorage::Coders::YamlColumn`.
 
 #### `config.active_storage.variant_processor`
 
