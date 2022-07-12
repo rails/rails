@@ -1,4 +1,5 @@
 <% load_tree = record._load_tree_node %>
+<% sibling_count = load_tree.siblings.count - 1 %>
 <% associations = load_tree.children.count > 0 %>
 <% if load_tree.root?
   record_id = "root-#{load_tree.model_class_name}-#{record.id.to_s}"
@@ -6,41 +7,35 @@ else
   record_id = "child-#{load_tree.model_class_name}-#{record.id.to_s}"
 end
 %>
+<% class_title = "Class: #{load_tree.model_class_name} (id: #{record&.id})" %>
 <details id="<%= record_id %>">
-  <summary>
-    <h3 style="display: inline;">Class: <%= "#{load_tree.model_class_name} with id: #{record&.id}" %></h3>
-    <p>
-      <% if associations %>Children Loaded: <%= load_tree.children.count %>, <% end %>
-      <% if load_tree.siblings.count > 1 %>Siblings loaded: (<%= load_tree.siblings.count %>)<% end %>
-    </p>
-  </summary>
-  <div style="padding-left: 25px">
-    <p><b>Record:</b> <%= record.inspect%><p>
-
-    <details>
-      <summary><b>Load CallStack:</b></summary>
-      <ul style="margin-left: 25px" >
-        <% load_tree.load_call_stack.each do |line| %>
-          <li><%= line %></li>
-        <% end %>
-      </ul>
-    </details>
-
-    <% if load_tree.siblings.count > 1%>
-      <details>
-        <summary><b>Siblings:</b></summary>
-        <ol style="margin-left: 25px">
-          <% load_tree.siblings.each do |sibling| %>
-            <li><%= sibling.inspect %></li>
-          <% end %>
-        </ol>
-      </details>
+  <summary style="display: list-item">
+    <% if load_tree.root? %>
+      <h4 style="display: inline;"><%= class_title %></h4>
+    <% else %>
+      <b><%= class_title %></b><br>
     <% end %>
 
-    <% unless  load_tree.root? %>
+    <% if associations %>
+      <div style="padding-left: 25px">
+        <b>Loaded Relations:</b> <%= load_tree.children.join(", ") %>
+        <% if sibling_count > 1 %>
+          <br>
+          <b>Siblings loaded:</b> <%= sibling_count %>
+        <% end %>
+      </div>
+    <% end %>
+  </summary>
+
+  <div style="padding-left: 25px">
+    <%# RECORD INSTANCE %>
+    <b>Record:</b>
+    <p style="padding-left: 25px"><%= record.inspect %></p>
+
+    <%# PARENTS %>
+    <% unless load_tree.root? %>
       <details>
-        <summary><b>Parents (<%= load_tree.parents.size %>):</b></summary>
-        <ul>
+        <summary style="display: list-item"><span><b>Parents (<%= load_tree.parents.size %>):</b></span></summary>
           <% load_tree.parents.each do |parent| %>
             <%
             parent_instance = parent.parent
@@ -52,25 +47,62 @@ end
             %>
             <ul>
               <li>
-                <b>Instance:</b> <a href="#<%= parent_link %>"><%= "#{parent_instance.inspect}" %></a><br/>
-                <b>Child Name:</b> <%= parent.child_name %><br/>
-                <b>Child Type:</b> <%= parent.child_type %><br/>
+                <% parent_title = "Class: #{parent_instance.model_name} (id: #{parent_instance&.id})" %>
+                <b><%= parent_title %></b>
+                <br>
+                <a href="#<%= parent_link %>"><%= "#{parent_instance.inspect}" %></a><br/>
               </li>
             </ul>
           <% end %>
-        </ul>
       </details>
     <% end %>
+
+    <%# RECORD SIBLINGS %>
+    <% if sibling_count > 1 %>
+      <details>
+        <summary style="display: list-item"><span><b>Siblings (<%= sibling_count %>):</b></span></summary>
+        <ol style="margin-left: 25px">
+          <%# SIBLING INSTANCES %>
+          <% load_tree.siblings.each do |sibling| %>
+            <% unless sibling == record %>
+              <li><%= sibling.inspect %></li>
+            <% end %>
+          <% end %>
+        </ol>
+      </details>
+    <% end %>
+    
+    <%# ASSOCIATIONS%>
     <% if associations %>
-      <p><b>Loaded relations: <%= load_tree.children.join(", ") %></b></p>
-      <% load_tree.children.each do |child| %>
-        <div style="margin=left: 25px">
-          <h4> <%= child %> </h4>
-          <% Array.wrap(record.send(child)).each do |child_instance| %>
-            <%= render partial: 'active_record_debugger/record', locals: { record: child_instance } %>
+      <details>
+        <summary style="display: list-item"><span><b>Children</b></span></summary>
+        <div style="margin-left: 25px">
+          <%# RECORD CHILDREN %>
+          <% load_tree.children.each do |child| %>
+            <details>
+              <% child_records = Array.wrap(record.send(child)) %>
+              <summary style="display: list-item"><span><b><%= child %> (<%= child_records.size %>)</b></span></summary>
+
+              <%# CHILD INSTANCES %>
+              <% child_records.each do |child_instance| %>
+                <div style="margin-left: 25px">
+                  <%= render partial: 'active_record_debugger/record', locals: { record: child_instance } %>
+                </div>
+              <% end %>
+            </details>
           <% end %>
         </div>
-      <% end %>
+      </details>
     <% end %>
+
+    <%# CALLSTACK %>
+    <details>
+      <summary style="display: list-item"><span><b>Load CallStack:</b></span></summary>
+      <ul style="margin-left: 25px" >
+        <% load_tree.load_call_stack.each do |line| %>
+          <li><%= line %></li>
+        <% end %>
+      </ul>
+    </details>
   </div>
 </details>
