@@ -2272,7 +2272,7 @@ has no effect if Sprockets is not used. The default value is `true`.
 
 `config.active_storage` provides the following configuration options:
 
-#### `config.active_record.yaml_column_permitted_classes`
+#### `config.active_storage.yaml_column_permitted_classes`
 
 Defaults to `[]`. Allows applications to include additional permitted classes to `safe_load()` on the `ActiveStorage::Coders::YamlColumn`.
 
