@@ -90,6 +90,10 @@ module ActiveStorage
           end
         end
 
+        # Validates keys/values in <tt>argument</tt>.
+        #
+        # Raises <tt>UnsupportedImageProcessingArgument</tt> error if argument
+        # contains unsupported image processing arguments.
         def validate_arg_hash(argument)
           argument.each do |key, value|
             validate_arg_string(key)
