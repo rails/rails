@@ -365,7 +365,7 @@ module ActiveRecord
   # Application configurable array that provides additional permitted classes
   # to Psych safe_load in the YAML Coder
   singleton_class.attr_accessor :yaml_column_permitted_classes
-  self.yaml_column_permitted_classes = []
+  self.yaml_column_permitted_classes = [Symbol]
 
   def self.eager_load!
     super
