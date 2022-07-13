@@ -354,7 +354,6 @@ module ActiveRecord
         @old_config = ActiveRecord.async_query_executor
         ActiveRecord.async_query_executor = :multi_thread_pool
 
-        handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
         config_hash1 = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash
         new_config1 = config_hash1.merge(min_threads: 0, max_threads: 10)
         db_config1 = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", new_config1)
@@ -363,8 +362,11 @@ module ActiveRecord
         new_config2 = config_hash2.merge(min_threads: 0, max_threads: 10)
         db_config2 = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit2", "primary", new_config2)
 
-        handler.establish_connection(db_config1)
-        handler.establish_connection(db_config2, owner_name: ARUnit2Model)
+        ActiveRecord::Base.establish_connection(db_config1)
+        ARUnit2Model.establish_connection(db_config2)
+      ensure
+        ActiveRecord::Base.establish_connection(:arunit)
+        ARUnit2Model.establish_connection(:arunit2)
       end
 
       def teardown
