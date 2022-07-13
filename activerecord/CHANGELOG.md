@@ -1,3 +1,10 @@
+*   Fix `ActiveRecord::Store` to serialize as a regular Hash
+
+    Previously it would serialize as an `ActiveSupport::HashWithIndifferentAccess`
+    which is wasteful and cause problem with YAML safe_load.
+
+    *Jean Boussier*
+
 *   Fix PG.connect keyword arguments deprecation warning on ruby 2.7
 
     Fixes #44307.

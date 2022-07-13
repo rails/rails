@@ -268,7 +268,7 @@ module ActiveRecord
         end
 
         def dump(obj)
-          @coder.dump self.class.as_indifferent_hash(obj)
+          @coder.dump as_regular_hash(obj)
         end
 
         def load(yaml)
@@ -285,6 +285,18 @@ module ActiveRecord
             ActiveSupport::HashWithIndifferentAccess.new
           end
         end
+
+        private
+          def as_regular_hash(obj)
+            case obj
+            when ActiveSupport::HashWithIndifferentAccess
+              obj.to_h
+            when Hash
+              obj
+            else
+              {}
+            end
+          end
       end
   end
 end
