@@ -8,7 +8,6 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
   def setup
     @conn = ActiveRecord::Base.connection
-    @connection_handler = ActiveRecord::Base.connection_handler
   end
 
   def test_connection_error
