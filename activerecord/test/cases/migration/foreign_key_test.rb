@@ -717,7 +717,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
               elsif ActiveRecord::Base.connection.database_version < "5.6"
                 assert_match(/Can't create table/, error.message)
               elsif ActiveRecord::Base.connection.database_version < "8.0"
-                assert_match(/Can't write\; duplicate key in table/, error.message)
+                assert_match(/Can't write; duplicate key in table/, error.message)
               else
                 assert_match(/Duplicate foreign key constraint name/, error.message)
               end
