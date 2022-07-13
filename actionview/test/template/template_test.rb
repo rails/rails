@@ -149,6 +149,57 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "\nhello \u{fc}mlat", render
   end
 
+  def test_locals_can_be_disabled
+    error = assert_raises(ActionView::Template::Error) do
+      @template = new_template("<%# locals: () -%>")
+      render(foo: "bar")
+    end
+
+    assert_match(/no locals accepted/, error.message)
+  end
+
+  def test_locals_can_not_be_specified_with_positional_arguments
+    error = assert_raises(ActionView::Template::Error) do
+      @template = new_template("<%# locals: (foo) -%>")
+      render(foo: "bar")
+    end
+
+    assert_match(/`foo` set as non-keyword argument/, error.message)
+  end
+
+  def test_locals_can_be_specified_with_splat_arguments
+    @template = new_template("<%# locals: (**etc) -%><%= etc[:foo] %>")
+    assert_equal "bar", render(foo: "bar")
+  end
+
+  def test_locals_can_be_specified
+    @template = new_template("<%# locals: (message:) -%>\n<%= message %>")
+    assert_equal "Hello", render(message: "Hello")
+  end
+
+  def test_default_locals_can_be_specified
+    @template = new_template("<%# locals: (message: 'Hello') -%>\n<%= message %>")
+    assert_equal "Hello", render
+  end
+
+  def test_required_locals_can_be_specified
+    error = assert_raises(ActionView::Template::Error) do
+      @template = new_template("<%# locals: (message:) -%>")
+      render
+    end
+
+    assert_match(/missing local: :message/, error.message)
+  end
+
+  def test_extra_locals_raises_error
+    error = assert_raises(ActionView::Template::Error) do
+      @template = new_template("<%# locals: (message:) -%>")
+      render(message: "Hi", foo: "bar")
+    end
+
+    assert_match(/unknown local: :foo/, error.message)
+  end
+
   # TODO: This is currently handled inside ERB. The case of explicitly
   # lying about encodings via the normal Rails API should be handled
   # inside Rails.
@@ -164,6 +215,14 @@ class TestERBTemplate < ActiveSupport::TestCase
       @template = new_template("<%# encoding: ISO-8859-1 %>hello \xFCmlat", virtual_path: nil)
       assert_equal Encoding::UTF_8, render.encoding
       assert_equal "hello \u{fc}mlat", render
+    end
+  end
+
+  def test_encoding_and_arguments_can_be_specified_with_magic_comment_in_erb
+    with_external_encoding Encoding::UTF_8 do
+      @template = new_template("<%# encoding: ISO-8859-1 %>\n<%# locals: (message: 'Hi!') %>\nhello \xFCmlat\n<%= message %>", virtual_path: nil)
+      assert_equal Encoding::UTF_8, render.encoding
+      assert_match(/hello \u{fc}mlat\nHi!/, render)
     end
   end
 

@@ -1,3 +1,27 @@
+*   Allow templates to set explicit locals.
+
+    By default, templates will accept any `locals` as keyword arguments. To define what `locals` a template accepts, add a `locals` magic comment:
+
+    ```erb
+    <%# locals: (message:) -%>
+    <%= message %>
+    ```
+
+    Default values can also be provided:
+
+    ```erb
+    <%# locals: (message: "Hello, world!") -%>
+    <%= message %>
+    ```
+
+    Or `locals` can be disabled entirely:
+
+    ```erb
+    <%# locals: () %>
+    ```
+
+    *Joel Hawksley*
+
 *   Add `include_seconds` option for `datetime_local_field`
 
     This allows to omit seconds part in the input field, by passing `include_seconds: false`
