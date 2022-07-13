@@ -1752,11 +1752,11 @@ module ApplicationTests
       remove_from_config '.*config\.load_defaults.*\n'
 
       app_file "config/initializers/yaml_permitted_classes.rb", <<-RUBY
-        Rails.application.config.active_record.yaml_column_permitted_classes = [Symbol]
+        Rails.application.config.active_record.yaml_column_permitted_classes = [Symbol, Time]
       RUBY
 
       app "production"
-      assert_equal([Symbol], ActiveRecord.yaml_column_permitted_classes)
+      assert_equal([Symbol, Time], ActiveRecord.yaml_column_permitted_classes)
     end
 
     test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do
