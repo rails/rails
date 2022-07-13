@@ -326,6 +326,9 @@ module ActiveRecord
 
     # Add a Common Table Expression (CTE) that you can then reference within another SELECT statement.
     #
+    # Note: CTE's are only supported in MySQL for versions 8.0 and above. You will not be able to
+    # use CTE's with MySQL 5.7.
+    #
     #   Post.with(posts_with_tags: Post.where("tags_count > ?", 0))
     #   # => ActiveRecord::Relation
     #   # WITH posts_with_tags AS (
