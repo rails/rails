@@ -242,6 +242,10 @@ if RAILS_VERSION >= Gem::Version.new("6.1.x")
     x["env"]["MYSQL_PREPARED_STATEMENTS"] = "true"
   end
 end
+step_for("activerecord", "mysql2:test", service: "mysqldb") do |x|
+  x["label"] += " [mysql_5_7]"
+  x["env"]["MYSQL_IMAGE"] = "mysql:5.7"
+end
 if RAILS_VERSION >= Gem::Version.new("5.x")
   step_for("activerecord", "mysql2:test", service: "mysqldb") do |x|
     x["label"] += " [mariadb]"
