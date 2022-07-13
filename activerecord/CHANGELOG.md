@@ -1,3 +1,10 @@
+*   Fix `ActiveRecord::Store` to serialize as a regular Hash
+
+    Previously it would serialize as an `ActiveSupport::HashWithIndifferentAccess`
+    which is wasteful and cause problem with YAML safe_load.
+
+    *Jean Boussier*
+
 *   Add `timestamptz` as a time zone aware type for PostgreSQL
 
     This is required for correctly parsing `timestamp with time zone` values in your database.
