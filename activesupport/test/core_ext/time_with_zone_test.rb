@@ -389,6 +389,13 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal false, twz.after?(ActiveSupport::TimeWithZone.new(Time.utc(2017, 3, 6, 12, 00, 1), @time_zone))
   end
 
+  def test_on_or_after
+    twz = ActiveSupport::TimeWithZone.new(Time.utc(2017, 3, 6, 12, 0, 0), @time_zone)
+    assert_equal true, twz.on_or_after?(ActiveSupport::TimeWithZone.new(Time.utc(2017, 3, 6, 11, 59, 59), @time_zone))
+    assert_equal true, twz.on_or_after?(ActiveSupport::TimeWithZone.new(Time.utc(2017, 3, 6, 12, 0, 0), @time_zone))
+    assert_equal false, twz.on_or_after?(ActiveSupport::TimeWithZone.new(Time.utc(2017, 3, 6, 12, 00, 1), @time_zone))
+  end
+
   def test_eql?
     assert_equal true, @twz.eql?(@twz.dup)
     assert_equal true, @twz.eql?(Time.utc(2000))
