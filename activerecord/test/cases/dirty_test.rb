@@ -952,7 +952,7 @@ class DirtyTest < ActiveRecord::TestCase
       aircraft.reload
 
       assert_equal "Boeing", aircraft.name
-      assert_equal expected_manufactured_at, aircraft.manufactured_at
+      assert_equal expected_manufactured_at.to_i, aircraft.manufactured_at.to_i
     end
   end
 
