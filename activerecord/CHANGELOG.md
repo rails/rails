@@ -1,3 +1,12 @@
+*   Override `schema_format` per database via configuration
+
+    Allow each database configuration to specify a `schema_format`, deprecating
+    passing the `format` argument passed to database tasks.
+
+    Fixes #45596 (and #43173)
+
+    *Ryan Kerr*
+
 *   Allow `destroy_association_async_job=` to be configured with a class string instead of a constant.
 
     Defers an autoloading dependency between `ActiveRecord::Base` and `ActiveJob::Base`

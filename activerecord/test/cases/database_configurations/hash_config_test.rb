@@ -123,6 +123,12 @@ module ActiveRecord
         assert_nil config.schema_dump
       end
 
+      def test_schema_dump_with_explicit_format_is_deprecated
+        config = HashConfig.new("default_env", "primary", {})
+        assert_deprecated { config.schema_dump(format: :ruby) }
+        assert_deprecated { config.schema_dump(format: :sql) }
+      end
+
       def test_database_tasks_defaults_to_true
         config = HashConfig.new("default_env", "primary", {})
         assert_equal true, config.database_tasks?
@@ -144,6 +150,40 @@ module ActiveRecord
       def test_schema_cache_path_configuration_hash
         config = HashConfig.new("default_env", "primary", { schema_cache_path: "db/config_schema_cache.yml" })
         assert_equal "db/config_schema_cache.yml", config.schema_cache_path
+      end
+
+      def test_default_schema_format
+        config = HashConfig.new("default_env", "primary", {})
+        assert_equal ActiveRecord.schema_format, config.schema_format
+      end
+
+      def test_schema_format_overrides_with_value
+        config = HashConfig.new("default_env", "primary", { schema_format: :ruby })
+        assert_equal :ruby, config.schema_format
+
+        config = HashConfig.new("default_env", "primary", { schema_format: :sql })
+        assert_equal :sql, config.schema_format
+      end
+
+      def test_schema_format_always_symbol
+        config = HashConfig.new("default_env", "primary", { schema_format: "ruby" })
+        assert_equal :ruby, config.schema_format
+
+        config = HashConfig.new("default_env", "primary", { schema_format: "sql" })
+        assert_equal :sql, config.schema_format
+      end
+
+      def test_env_always_overrides_schema_format
+        old_env = ENV["SCHEMA_FORMAT"]
+        ENV["SCHEMA_FORMAT"] = "overridden"
+
+        config = HashConfig.new("default_env", "primary", { schema_format: "ruby" })
+        assert_equal :overridden, config.schema_format
+
+        config = HashConfig.new("default_env", "primary", { schema_format: "sql" })
+        assert_equal :overridden, config.schema_format
+      ensure
+        ENV["SCHEMA_FORMAT"] = old_env
       end
     end
   end

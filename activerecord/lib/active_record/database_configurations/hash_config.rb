@@ -124,16 +124,25 @@ module ActiveRecord
       #
       # If the config option is set that will be used. Otherwise Rails
       # will generate the filename from the database config name.
-      def schema_dump(format = ActiveRecord.schema_format)
+      def schema_dump(format = nil)
+        ActiveSupport::Deprecation.warn("`format` will be removed as a parameter in future versions; it should be set by `schema_format` in your database.yml, or it will fall back to `ActiveRecord.schema_format`.") if format
+
+        format ||= schema_format
+
         if configuration_hash.key?(:schema_dump)
-          if config = configuration_hash[:schema_dump]
-            config
-          end
+          configuration_hash[:schema_dump] if configuration_hash[:schema_dump]
         elsif primary?
           schema_file_type(format)
         else
           "#{name}_#{schema_file_type(format)}"
         end
+      end
+
+      # The format to use for database schema dumping and loading.
+      # If omitted, the global default (+ActiveRecord.schema_format+)
+      # will be used.
+      def schema_format
+        ENV.fetch("SCHEMA_FORMAT", configuration_hash.fetch(:schema_format, ActiveRecord.schema_format)).to_sym
       end
 
       def database_tasks? # :nodoc:

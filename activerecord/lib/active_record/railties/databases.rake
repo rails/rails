@@ -454,32 +454,30 @@ db_namespace = namespace :db do
   end
 
   namespace :schema do
-    desc "Creates a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`)"
+    desc "Creates a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']`, the configured `schema_format`, or `config.active_record.schema_format`)"
     task dump: :load_config do
       ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
         if db_config.schema_dump
           ActiveRecord::Base.establish_connection(db_config)
-          schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
         end
       end
 
       db_namespace["schema:dump"].reenable
     end
 
-    desc "Loads a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) into the database"
+    desc "Loads a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']`, configured `schema_format`, or `config.active_record.schema_format`) into the database"
     task load: [:load_config, :check_protected_environments] do
-      ActiveRecord::Tasks::DatabaseTasks.load_schema_current(ActiveRecord.schema_format, ENV["SCHEMA"])
+      ActiveRecord::Tasks::DatabaseTasks.load_schema_current
     end
 
     namespace :dump do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
-        desc "Creates a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) for #{name} database"
+        desc "Creates a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']`, configured `schema_format`, or `config.active_record.schema_format`) for #{name} database"
         task name => :load_config do
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
           ActiveRecord::Base.establish_connection(db_config)
-          schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
           db_namespace["schema:dump:#{name}"].reenable
         end
       end
@@ -487,12 +485,11 @@ db_namespace = namespace :db do
 
     namespace :load do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
-        desc "Loads a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) into the #{name} database"
+        desc "Loads a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']`, configured `schema_format`, or `config.active_record.schema_format`) into the #{name} database"
         task name => [:load_config, :check_protected_environments, "db:test:purge:#{name}"] do
           original_db_config = ActiveRecord::Base.connection_db_config
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
-          schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, schema_format)
+          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config)
         ensure
           ActiveRecord::Base.establish_connection(original_db_config) if original_db_config
         end
@@ -550,13 +547,12 @@ db_namespace = namespace :db do
       db_namespace["test:load_schema"].invoke
     end
 
-    # desc "Recreate the test database from an existent schema file (schema.rb or structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`)"
+    # desc "Recreate the test database from an existent schema file (schema.rb or structure.sql, depending on `ENV['SCHEMA_FORMAT']`, configured `schema_format`, or `config.active_record.schema_format`)"
     task load_schema: %w(db:test:purge) do
       should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
       ActiveRecord::Schema.verbose = false
       ActiveRecord::Base.configurations.configs_for(env_name: "test").each do |db_config|
-        schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-        ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, schema_format)
+        ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config)
       end
     ensure
       if should_reconnect
@@ -592,8 +588,7 @@ db_namespace = namespace :db do
           should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
           ActiveRecord::Schema.verbose = false
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", name: name)
-          schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, schema_format)
+          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config)
         ensure
           if should_reconnect
             ActiveRecord::Base.establish_connection(ActiveRecord::Tasks::DatabaseTasks.env.to_sym)

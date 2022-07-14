@@ -199,13 +199,7 @@ module ActiveRecord
           end
 
           unless database_initialized
-            if File.exist?(schema_dump_path(db_config))
-              load_schema(
-                db_config,
-                ActiveRecord.schema_format,
-                nil
-              )
-            end
+            load_schema(db_config) if File.exist?(schema_dump_path(db_config))
             seed = true
           end
 
@@ -362,7 +356,10 @@ module ActiveRecord
         database_adapter_for(db_config, *arguments).structure_load(filename, flags)
       end
 
-      def load_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
+      def load_schema(db_config, format = nil, file = nil) # :nodoc:
+        ActiveSupport::Deprecation.warn("`format` will be removed as a parameter in future versions; it should be included in the passed `db_config`") if format
+
+        format ||= db_config.schema_format
         file ||= schema_dump_path(db_config, format)
         return unless file
 
@@ -385,10 +382,13 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def schema_up_to_date?(configuration, format = ActiveRecord.schema_format, file = nil)
+      def schema_up_to_date?(configuration, format = nil, file = nil)
+        ActiveSupport::Deprecation.warn("`format` will be removed as a parameter in future versions; it will be fetched instead from the database configuration") if format
+
         db_config = resolve_configuration(configuration)
 
-        file ||= schema_dump_path(db_config)
+        format ||= db_config.schema_format
+        file ||= schema_dump_path(db_config, format)
 
         return true unless file && File.exist?(file)
 
@@ -400,8 +400,10 @@ module ActiveRecord
         ActiveRecord::InternalMetadata[:schema_sha1] == schema_sha1(file)
       end
 
-      def reconstruct_from_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
-        file ||= schema_dump_path(db_config, format)
+      def reconstruct_from_schema(db_config, format = nil, file = nil) # :nodoc:
+        ActiveSupport::Deprecation.warn("`format` will be removed as a parameter in future versions; it should be included in the passed `db_config`") if format
+
+        file ||= schema_dump_path(db_config, format || db_config.schema_format)
 
         check_schema_file(file) if file
 
@@ -418,8 +420,12 @@ module ActiveRecord
         load_schema(db_config, format, file)
       end
 
-      def dump_schema(db_config, format = ActiveRecord.schema_format) # :nodoc:
+      def dump_schema(db_config, format = nil) # :nodoc:
         require "active_record/schema_dumper"
+
+        ActiveSupport::Deprecation.warn("`format` will be removed as a parameter in future versions; it should be included in the passed `db_config`") if format
+
+        format ||= db_config.format
         filename = schema_dump_path(db_config, format)
         return unless filename
 
@@ -442,7 +448,7 @@ module ActiveRecord
         end
       end
 
-      def schema_file_type(format = ActiveRecord.schema_format)
+      def schema_file_type(format = nil)
         case format
         when :ruby
           "schema.rb"
@@ -452,8 +458,10 @@ module ActiveRecord
       end
       deprecate :schema_file_type
 
-      def schema_dump_path(db_config, format = ActiveRecord.schema_format)
+      def schema_dump_path(db_config, format = nil)
         return ENV["SCHEMA"] if ENV["SCHEMA"]
+
+        ActiveSupport::Deprecation.warn("`format` will be removed as a parameter in future versions; it should be included in the passed `db_config`") if format
 
         filename = db_config.schema_dump(format)
         return unless filename
@@ -475,7 +483,9 @@ module ActiveRecord
         schema_cache_path || ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
       end
 
-      def load_schema_current(format = ActiveRecord.schema_format, file = nil, environment = env)
+      def load_schema_current(format = nil, file = nil, environment = env)
+        ActiveSupport::Deprecation.warn("`format` will be removed as a parameter in future versions; it should be included in the passed `db_config`") if format
+
         each_current_configuration(environment) do |db_config|
           load_schema(db_config, format, file)
         end
