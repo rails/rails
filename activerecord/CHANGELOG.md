@@ -1,3 +1,137 @@
+*   Allow `destroy_association_async_job=` to be configured with a class string instead of a constant.
+
+    Defers an autoloading dependency between `ActiveRecord::Base` and `ActiveJob::Base`
+    and moves the configuration of `ActiveRecord::DestroyAssociationAsyncJob`
+    from ActiveJob to ActiveRecord.
+
+    Deprecates `ActiveRecord::ActiveJobRequiredError` and now raises a `NameError`
+    if the job class is unloadable or an `ActiveRecord::ConfigurationError` if
+    `dependent: :destroy_async` is declared on an association but there is no job
+    class configured.
+
+    *Ben Sheldon*
+
+*   Fix `ActiveRecord::Store` to serialize as a regular Hash
+
+    Previously it would serialize as an `ActiveSupport::HashWithIndifferentAccess`
+    which is wasteful and cause problem with YAML safe_load.
+
+    *Jean Boussier*
+
+*   Add `timestamptz` as a time zone aware type for PostgreSQL
+
+    This is required for correctly parsing `timestamp with time zone` values in your database.
+
+    If you don't want this, you can opt out by adding this initializer:
+
+    ```ruby
+    ActiveRecord::Base.time_zone_aware_types -= [:timestamptz]
+    ```
+
+    *Alex Ghiculescu*
+
+*   Add new `ActiveRecord::Base::generates_token_for` API.
+
+    Currently, `signed_id` fulfills the role of generating tokens for e.g.
+    resetting a password.  However, signed IDs cannot reflect record state, so
+    if a token is intended to be single-use, it must be tracked in a database at
+    least until it expires.
+
+    With `generates_token_for`, a token can embed data from a record.  When
+    using the token to fetch the record, the data from the token and the data
+    from the record will be compared.  If the two do not match, the token will
+    be treated as invalid, the same as if it had expired.  For example:
+
+    ```ruby
+    class User < ActiveRecord::Base
+      has_secure_password
+
+      generates_token_for :password_reset, expires_in: 15.minutes do
+        # A password's BCrypt salt changes when the password is updated.
+        # By embedding (part of) the salt in a token, the token will
+        # expire when the password is updated.
+        BCrypt::Password.new(password_digest).salt[-10..]
+      end
+    end
+
+    user = User.first
+    token = user.generate_token_for(:password_reset)
+
+    User.find_by_token_for(:password_reset, token) # => user
+
+    user.update!(password: "new password")
+    User.find_by_token_for(:password_reset, token) # => nil
+    ```
+
+    *Jonathan Hefner*
+
+*   Optimize Active Record batching for whole table iterations.
+
+    Previously, `in_batches` got all the ids and constructed an `IN`-based query for each batch.
+    When iterating over the whole tables, this approach is not optimal as it loads unneeded ids and
+    `IN` queries with lots of items are slow.
+
+    Now, whole table iterations use range iteration (`id >= x AND id <= y`) by default which can make iteration
+    several times faster. E.g., tested on a PostgreSQL table with 10 million records: querying (`253s` vs `30s`),
+    updating (`288s` vs `124s`), deleting (`268s` vs `83s`).
+
+    Only whole table iterations use this style of iteration by default. You can disable this behavior by passing `use_ranges: false`.
+    If you iterate over the table and the only condition is, e.g., `archived_at: nil` (and only a tiny fraction
+    of the records are archived), it makes sense to opt in to this approach:
+
+    ```ruby
+    Project.where(archived_at: nil).in_batches(use_ranges: true) do |relation|
+      # do something
+    end
+    ```
+
+    See #45414 for more details.
+
+    *fatkodima*
+
+*   `.with` query method added. Construct common table expressions with ease and get `ActiveRecord::Relation` back.
+
+    ```ruby
+    Post.with(posts_with_comments: Post.where("comments_count > ?", 0))
+    # => ActiveRecord::Relation
+    # WITH posts_with_comments AS (SELECT * FROM posts WHERE (comments_count > 0)) SELECT * FROM posts
+    ```
+
+    *Vlado Cingel*
+
+*   Don't establish a new connection if an identical pool exists already.
+
+    Previously, if `establish_connection` was called on a class that already had an established connection, the existing connection would be removed regardless of whether it was the same config. Now if a pool is found with the same values as the new connection, the existing connection will be returned instead of creating a new one.
+
+    This has a slight change in behavior if application code is depending on a new connection being established regardless of whether it's identical to an existing connection. If the old behavior is desirable, applications should call `ActiveRecord::Base#remove_connection` before establishing a new one. Calling `establish_connection` with a different config works the same way as it did previously.
+
+    *Eileen M. Uchitelle*
+
+*   Update `db:prepare` task to load schema when an uninitialized database exists, and dump schema after migrations.
+
+    *Ben Sheldon*
+
+*   Fix supporting timezone awareness for `tsrange` and `tstzrange` array columns.
+
+    ```ruby
+    # In database migrations
+    add_column :shops, :open_hours, :tsrange, array: true
+    # In app config
+    ActiveRecord::Base.time_zone_aware_types += [:tsrange]
+    # In the code times are properly converted to app time zone
+    Shop.create!(open_hours: [Time.current..8.hour.from_now])
+    ```
+
+    *Wojciech Wnętrzak*
+
+*   Introduce strategy pattern for executing migrations.
+
+    By default, migrations will use a strategy object that delegates the method
+    to the connection adapter. Consumers can implement custom strategy objects
+    to change how their migrations run.
+
+    *Adrianna Chang*
+
 *   Add adapter option disallowing foreign keys
 
     This adds a new option to be added to `database.yml` which enables skipping
@@ -20,33 +154,33 @@
 
     *Adam Hess*
 
-*   Run transactional callbacks on the freshest instance to save a given 
+*   Run transactional callbacks on the freshest instance to save a given
     record within a transaction.
 
-    When multiple Active Record instances change the same record within a 
-    transaction, Rails runs `after_commit` or `after_rollback` callbacks for 
-    only one of them. `config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction` 
-    was added to specify how Rails chooses which instance receives the 
+    When multiple Active Record instances change the same record within a
+    transaction, Rails runs `after_commit` or `after_rollback` callbacks for
+    only one of them. `config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`
+    was added to specify how Rails chooses which instance receives the
     callbacks. The framework defaults were changed to use the new logic.
 
-    When `config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction` 
-    is `true`, transactional callbacks are run on the first instance to save, 
+    When `config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`
+    is `true`, transactional callbacks are run on the first instance to save,
     even though its instance state may be stale.
 
-    When it is `false`, which is the new framework default starting with version 
-    7.1, transactional callbacks are run on the instances with the freshest 
+    When it is `false`, which is the new framework default starting with version
+    7.1, transactional callbacks are run on the instances with the freshest
     instance state. Those instances are chosen as follows:
 
-    - In general, run transactional callbacks on the last instance to save a 
+    - In general, run transactional callbacks on the last instance to save a
       given record within the transaction.
     - There are two exceptions:
-        - If the record is created within the transaction, then updated by 
-          another instance, `after_create_commit` callbacks will be run on the 
-          second instance. This is instead of the `after_update_commit` 
+        - If the record is created within the transaction, then updated by
+          another instance, `after_create_commit` callbacks will be run on the
+          second instance. This is instead of the `after_update_commit`
           callbacks that would naively be run based on that instance’s state.
-        - If the record is destroyed within the transaction, then 
-          `after_destroy_commit` callbacks will be fired on the last destroyed 
-          instance, even if a stale instance subsequently performed an update 
+        - If the record is destroyed within the transaction, then
+          `after_destroy_commit` callbacks will be fired on the last destroyed
+          instance, even if a stale instance subsequently performed an update
           (which will have affected 0 rows).
 
     *Cameron Bothner and Mitch Vollebregt*
@@ -149,10 +283,10 @@
 
 *   Avoid validating a unique field if it has not changed and is backed by a unique index.
 
-    Previously, when saving a record, ActiveRecord will perform an extra query to check for the uniqueness of
-    each attribute having a `uniqueness` validation, even if that attribute hasn't changed.
-    If the database has the corresponding unique index, then this validation can never fail for persisted records,
-    and we could safely skip it.
+    Previously, when saving a record, Active Record will perform an extra query to check for the
+    uniqueness of each attribute having a `uniqueness` validation, even if that attribute hasn't changed.
+    If the database has the corresponding unique index, then this validation can never fail for persisted
+    records, and we could safely skip it.
 
     *fatkodima*
 

@@ -218,12 +218,14 @@ module Rails
       def initialize(*args)
         @dummy_path = nil
         super
+        imply_options
 
         if !engine? || !with_dummy_app?
           self.options = options.merge(skip_asset_pipeline: true).freeze
         end
       end
 
+      public_task :report_implied_options
       public_task :set_default_accessors!
       public_task :create_root
 

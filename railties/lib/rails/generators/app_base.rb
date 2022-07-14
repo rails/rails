@@ -4,6 +4,7 @@ require "fileutils"
 require "digest/md5"
 require "rails/version" unless defined?(Rails::VERSION)
 require "open-uri"
+require "tsort"
 require "uri"
 require "rails/generators"
 require "active_support/core_ext/array/extract_options"
@@ -33,73 +34,73 @@ module Rails
         class_option :database,            type: :string, aliases: "-d", default: "sqlite3",
                                            desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-        class_option :skip_git,            type: :boolean, aliases: "-G", default: false,
+        class_option :skip_git,            type: :boolean, aliases: "-G", default: nil,
                                            desc: "Skip git init, .gitignore and .gitattributes"
 
-        class_option :skip_keeps,          type: :boolean, default: false,
+        class_option :skip_keeps,          type: :boolean, default: nil,
                                            desc: "Skip source control .keep files"
 
         class_option :skip_action_mailer,  type: :boolean, aliases: "-M",
-                                           default: false,
+                                           default: nil,
                                            desc: "Skip Action Mailer files"
 
-        class_option :skip_action_mailbox, type: :boolean, default: false,
+        class_option :skip_action_mailbox, type: :boolean, default: nil,
                                            desc: "Skip Action Mailbox gem"
 
-        class_option :skip_action_text,    type: :boolean, default: false,
+        class_option :skip_action_text,    type: :boolean, default: nil,
                                            desc: "Skip Action Text gem"
 
-        class_option :skip_active_record,  type: :boolean, aliases: "-O", default: false,
+        class_option :skip_active_record,  type: :boolean, aliases: "-O", default: nil,
                                            desc: "Skip Active Record files"
 
-        class_option :skip_active_job,     type: :boolean, default: false,
+        class_option :skip_active_job,     type: :boolean, default: nil,
                                            desc: "Skip Active Job"
 
-        class_option :skip_active_storage, type: :boolean, default: false,
+        class_option :skip_active_storage, type: :boolean, default: nil,
                                            desc: "Skip Active Storage files"
 
-        class_option :skip_action_cable,   type: :boolean, aliases: "-C", default: false,
+        class_option :skip_action_cable,   type: :boolean, aliases: "-C", default: nil,
                                            desc: "Skip Action Cable files"
 
-        class_option :skip_asset_pipeline, type: :boolean, aliases: "-A", default: false
+        class_option :skip_asset_pipeline, type: :boolean, aliases: "-A", default: nil
 
         class_option :asset_pipeline,      type: :string, aliases: "-a", default: "sprockets",
                                            desc: "Choose your asset pipeline [options: sprockets (default), propshaft]"
 
-        class_option :skip_javascript,     type: :boolean, aliases: ["-J", "--skip-js"], default: name == "plugin",
+        class_option :skip_javascript,     type: :boolean, aliases: ["-J", "--skip-js"], default: (true if name == "plugin"),
                                            desc: "Skip JavaScript files"
 
-        class_option :skip_hotwire,        type: :boolean, default: false,
+        class_option :skip_hotwire,        type: :boolean, default: nil,
                                            desc: "Skip Hotwire integration"
 
-        class_option :skip_jbuilder,       type: :boolean, default: false,
+        class_option :skip_jbuilder,       type: :boolean, default: nil,
                                            desc: "Skip jbuilder gem"
 
-        class_option :skip_test,           type: :boolean, aliases: "-T", default: false,
+        class_option :skip_test,           type: :boolean, aliases: "-T", default: nil,
                                            desc: "Skip test files"
 
-        class_option :skip_system_test,    type: :boolean, default: false,
+        class_option :skip_system_test,    type: :boolean, default: nil,
                                            desc: "Skip system test files"
 
-        class_option :skip_bootsnap,       type: :boolean, default: false,
+        class_option :skip_bootsnap,       type: :boolean, default: nil,
                                            desc: "Skip bootsnap gem"
 
-        class_option :skip_dev_gems,       type: :boolean, default: false,
+        class_option :skip_dev_gems,       type: :boolean, default: nil,
                                            desc: "Skip development gems (e.g., web-console)"
 
-        class_option :dev,                 type: :boolean, default: false,
+        class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
-        class_option :edge,                type: :boolean, default: false,
+        class_option :edge,                type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to Rails repository"
 
-        class_option :main,                type: :boolean, default: false, aliases: "--master",
+        class_option :main,                type: :boolean, default: nil, aliases: "--master",
                                            desc: "Set up the #{name} with Gemfile pointing to Rails repository main branch"
 
         class_option :rc,                  type: :string, default: nil,
                                            desc: "Path to file containing extra configuration options for rails command"
 
-        class_option :no_rc,               type: :boolean, default: false,
+        class_option :no_rc,               type: :boolean, default: nil,
                                            desc: "Skip loading of extra configuration options from .railsrc file"
 
         class_option :help,                type: :boolean, aliases: "-h", group: :rails,
@@ -138,6 +139,70 @@ module Rails
 
       def build(meth, *args) # :doc:
         builder.public_send(meth, *args) if builder.respond_to?(meth)
+      end
+
+      def deduce_implied_options(options, option_reasons, meta_options)
+        active = options.transform_values { |value| [] if value }.compact
+        irrevocable = (active.keys - meta_options).to_set
+
+        deduction_order = TSort.tsort(
+          ->(&block) { option_reasons.each_key(&block) },
+          ->(key, &block) { option_reasons[key]&.each(&block) }
+        )
+
+        deduction_order.each do |name|
+          reasons = option_reasons[name]&.select(&active).presence
+          active[name] ||= reasons if reasons
+          irrevocable << name if reasons&.any?(irrevocable)
+        end
+
+        revoked = options.select { |name, value| value == false }.keys.to_set - irrevocable
+        deduction_order.reverse_each do |name|
+          revoked += option_reasons[name].to_a if revoked.include?(name)
+        end
+        revoked -= meta_options
+
+        active.filter_map do |name, reasons|
+          reasons -= revoked.to_a
+          [name, reasons] unless revoked.include?(name) || reasons.empty?
+        end.to_h
+      end
+
+      OPTION_IMPLICATIONS = { # :nodoc:
+        skip_active_job:     [:skip_action_mailer, :skip_active_storage],
+        skip_active_record:  [:skip_active_storage],
+        skip_active_storage: [:skip_action_mailbox, :skip_action_text],
+        skip_javascript:     [:skip_hotwire],
+      }
+
+      def imply_options(option_implications = OPTION_IMPLICATIONS, meta_options: [])
+        option_reasons = {}
+        option_implications.each do |reason, implications|
+          implications.each do |implication|
+            (option_reasons[implication.to_s] ||= []) << reason.to_s
+          end
+        end
+
+        @implied_options = deduce_implied_options(options, option_reasons, meta_options.map(&:to_s))
+        @implied_options_conflicts = @implied_options.keys.select { |name| options[name] == false }
+        self.options = options.merge(@implied_options.transform_values { true }).freeze
+      end
+
+      def report_implied_options
+        return if @implied_options.blank?
+
+        say "Based on the specified options, the following options will also be activated:"
+        say ""
+        @implied_options.each do |name, reasons|
+          due_to = reasons.map { |reason| "--#{reason.dasherize}" }.join(", ")
+          say "  --#{name.dasherize} [due to #{due_to}]"
+          if @implied_options_conflicts.include?(name)
+            say "    ERROR: Conflicts with --no-#{name.dasherize}", :red
+          end
+        end
+        say ""
+
+        raise "Cannot proceed due to conflicting options" if @implied_options_conflicts.any?
       end
 
       def create_root # :doc:
@@ -190,18 +255,16 @@ module Rails
       end
 
       def include_all_railties? # :doc:
-        [
-          options.values_at(
-            :skip_active_record,
-            :skip_test,
-            :skip_action_cable,
-            :skip_active_job
-          ),
-          skip_active_storage?,
-          skip_action_mailer?,
-          skip_action_mailbox?,
-          skip_action_text?
-        ].flatten.none?
+        options.values_at(
+          :skip_action_cable,
+          :skip_action_mailbox,
+          :skip_action_mailer,
+          :skip_action_text,
+          :skip_active_job,
+          :skip_active_record,
+          :skip_active_storage,
+          :skip_test,
+        ).none?
       end
 
       def comment_if(value) # :doc:
@@ -226,19 +289,19 @@ module Rails
       end
 
       def skip_active_storage? # :doc:
-        options[:skip_active_storage] || options[:skip_active_record] || options[:skip_active_job]
+        options[:skip_active_storage]
       end
 
       def skip_action_mailer? # :doc:
-        options[:skip_action_mailer] || options[:skip_active_job]
+        options[:skip_action_mailer]
       end
 
       def skip_action_mailbox? # :doc:
-        options[:skip_action_mailbox] || skip_active_storage?
+        options[:skip_action_mailbox]
       end
 
       def skip_action_text? # :doc:
-        options[:skip_action_text] || skip_active_storage?
+        options[:skip_action_text]
       end
 
       def skip_sprockets?
@@ -333,7 +396,7 @@ module Rails
       end
 
       def hotwire_gemfile_entry
-        return if options[:skip_javascript] || options[:skip_hotwire]
+        return if options[:skip_hotwire]
 
         turbo_rails_entry =
           GemfileEntry.floats "turbo-rails", "Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]"
@@ -457,7 +520,7 @@ module Rails
       end
 
       def run_hotwire
-        return if options[:skip_javascript] || options[:skip_hotwire] || !bundle_install?
+        return if options[:skip_hotwire] || !bundle_install?
 
         rails_command "turbo:install stimulus:install"
       end

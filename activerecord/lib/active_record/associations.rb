@@ -628,15 +628,15 @@ module ActiveRecord
       #
       # Note: To trigger remove callbacks, you must use +destroy+ / +destroy_all+ methods. For example:
       #
-      #   * <tt>firm.clients.destroy(client)</tt>
-      #   * <tt>firm.clients.destroy(*clients)</tt>
-      #   * <tt>firm.clients.destroy_all</tt>
+      # * <tt>firm.clients.destroy(client)</tt>
+      # * <tt>firm.clients.destroy(*clients)</tt>
+      # * <tt>firm.clients.destroy_all</tt>
       #
       # +delete+ / +delete_all+ methods like the following do *not* trigger remove callbacks:
       #
-      #   * <tt>firm.clients.delete(client)</tt>
-      #   * <tt>firm.clients.delete(*clients)</tt>
-      #   * <tt>firm.clients.delete_all</tt>
+      # * <tt>firm.clients.delete(client)</tt>
+      # * <tt>firm.clients.delete(*clients)</tt>
+      # * <tt>firm.clients.delete_all</tt>
       #
       # == Association extensions
       #

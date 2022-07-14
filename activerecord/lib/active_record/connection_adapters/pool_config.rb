@@ -27,7 +27,7 @@ module ActiveRecord
         INSTANCES[self] = self
       end
 
-      def connection_specification_name
+      def connection_name
         if connection_class.primary_class?
           "ActiveRecord::Base"
         else

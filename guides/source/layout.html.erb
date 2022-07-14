@@ -19,7 +19,7 @@
   <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
   <meta property="og:type" content="website" />
 </head>
-<body class="guide">
+<body dir="<%= @direction %>" class="guide">
   <% if badge_version = @edge ? "edge" : @version %>
   <div>
     <div id="version-badge"><%= badge_version %></div>

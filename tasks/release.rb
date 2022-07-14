@@ -110,7 +110,6 @@ npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
 
       if File.exist?("#{framework}/package.json")
         Dir.chdir("#{framework}") do
-          npm_tag = /[a-z]/.match?(version) ? "pre" : "latest"
           npm_otp = ""
           begin
             npm_otp = " --otp " + `ykman oath accounts code -s npmjs.com`.chomp
@@ -118,7 +117,17 @@ npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
             # User doesn't have ykman
           end
 
-          sh "npm publish --tag #{npm_tag}#{npm_otp}"
+          npm_tag = ""
+          if /[a-z]/.match?(version)
+            npm_tag = " --tag pre"
+          else
+            remote_package_version = `npm view @rails/#{framework}@latest version`.chomp
+            local_major_version = version.split(".", 4)[0]
+            remote_major_version = remote_package_version.split(".", 4)[0]
+            npm_tag = remote_major_version <= local_major_version ? " --tag latest" : " --tag v#{local_major_version}"
+          end
+
+          sh "npm publish#{npm_tag}#{npm_otp}"
         end
       end
     end

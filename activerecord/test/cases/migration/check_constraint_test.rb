@@ -179,6 +179,9 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           else
             assert_equal "price > 0", constraint.expression
           end
+
+          @connection.remove_check_constraint :trades, name: :price_check # name as a symbol
+          assert_empty @connection.check_constraints("trades")
         end
 
         def test_remove_non_existing_check_constraint

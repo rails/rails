@@ -19,8 +19,6 @@ module ActiveRecord
         @conn = Base.sqlite3_connection database: ":memory:",
                                         adapter: "sqlite3",
                                         timeout: 100
-
-        @connection_handler = ActiveRecord::Base.connection_handler
       end
 
       def test_bad_connection
@@ -387,6 +385,14 @@ module ActiveRecord
             @conn.add_index "ex", "max(id, number)", name: "expression"
             index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
             assert_equal "max(id, number)", index.columns
+          end
+        end
+
+        def test_expression_index_with_trailing_comment
+          with_example_table do
+            @conn.execute "CREATE INDEX expression on ex (number % 10) /* comment */"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "number % 10", index.columns
           end
         end
 

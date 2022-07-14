@@ -13,7 +13,6 @@ module ActiveRecord
 
       def setup
         @connection = ActiveRecord::Base.connection
-        @connection_handler = ActiveRecord::Base.connection_handler
       end
 
       def test_connection_error

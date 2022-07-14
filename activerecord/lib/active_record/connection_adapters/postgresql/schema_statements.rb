@@ -78,7 +78,7 @@ module ActiveRecord
             WHERE i.relkind IN ('i', 'I')
               AND i.relname = #{index[:name]}
               AND t.relname = #{table[:name]}
-              AND n.nspname = #{index[:schema]}
+              AND n.nspname = #{table[:schema]}
           SQL
         end
 
@@ -482,11 +482,12 @@ module ActiveRecord
         def rename_index(table_name, old_name, new_name)
           validate_index_length!(table_name, new_name)
 
-          execute "ALTER INDEX #{quote_column_name(old_name)} RENAME TO #{quote_table_name(new_name)}"
+          schema, = extract_schema_qualified_name(table_name)
+          execute "ALTER INDEX #{quote_table_name(schema) + '.' if schema}#{quote_column_name(old_name)} RENAME TO #{quote_table_name(new_name)}"
         end
 
         def index_name(table_name, options) # :nodoc:
-          table_name = Utils.extract_schema_qualified_name(table_name.to_s).identifier
+          _schema, table_name = extract_schema_qualified_name(table_name.to_s)
           super
         end
 
@@ -730,6 +731,11 @@ module ActiveRecord
           validate_constraint table_name, chk_name_to_validate
         end
 
+        def foreign_key_column_for(table_name) # :nodoc:
+          _schema, table_name = extract_schema_qualified_name(table_name)
+          super
+        end
+
         private
           def schema_creation
             PostgreSQL::SchemaCreation.new(self)
@@ -809,6 +815,11 @@ module ActiveRecord
 
           def extract_foreign_key_deferrable(deferrable, deferred)
             deferrable && (deferred ? :deferred : true)
+          end
+
+          def reference_name_for_table(table_name)
+            _schema, table_name = extract_schema_qualified_name(table_name.to_s)
+            table_name.singularize
           end
 
           def add_column_for_alter(table_name, column_name, type, **options)
