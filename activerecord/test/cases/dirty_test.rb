@@ -942,6 +942,7 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   test "partial insert off with unchanged default function attribute" do
+    freeze_time
     with_partial_writes Aircraft, false do
       aircraft = Aircraft.new(name: "Boeing")
       assert_equal "Boeing", aircraft.name
@@ -951,7 +952,7 @@ class DirtyTest < ActiveRecord::TestCase
       aircraft.reload
 
       assert_equal "Boeing", aircraft.name
-      assert_in_delta expected_manufactured_at, aircraft.manufactured_at, 1
+      assert_equal expected_manufactured_at, aircraft.manufactured_at
     end
   end
 
