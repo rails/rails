@@ -405,4 +405,26 @@ class TranslationHelperTest < ActiveSupport::TestCase
     translate(:"translations.missing", **options)
     assert_equal({}, options)
   end
+
+  def test_translate_caching_backend
+    caching_backend = Class.new(I18n::Backend::Simple) do
+      include I18n::Backend::Cache
+    end
+
+    previous_backend = I18n.backend
+    previous_cache_store = I18n.cache_store
+
+    I18n.backend = caching_backend.new
+    I18n.backend.store_translations(:en, translations: { foo: "Foo" })
+    I18n.cache_store = ActiveSupport::Cache.lookup_store(:memory_store)
+
+    assert_equal "Foo", translate(:"translations.foo")
+
+    expected = '<span class="translation_missing" title="translation missing: en.translations.missing">Missing</span>'
+    assert_equal expected, translate(:"translations.missing")
+    assert_equal expected, translate(:"translations.missing") # returns cached translation
+  ensure
+    I18n.backend = previous_backend
+    I18n.cache_store = previous_cache_store
+  end
 end
