@@ -90,7 +90,7 @@ module ActionView
 
           translated = ActiveSupport::HtmlSafeTranslation.translate(key, **options, default: default)
 
-          break translated unless translated.equal?(MISSING_TRANSLATION)
+          break translated unless translated == MISSING_TRANSLATION
 
           if alternatives.present? && !alternatives.first.is_a?(Symbol)
             break alternatives.first && I18n.translate(**options, default: alternatives)
@@ -119,7 +119,7 @@ module ActionView
       alias :l :localize
 
       private
-        MISSING_TRANSLATION = Object.new
+        MISSING_TRANSLATION = -(2**60)
         private_constant :MISSING_TRANSLATION
 
         NO_DEFAULT = [].freeze
