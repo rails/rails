@@ -50,16 +50,20 @@ module ActiveRecord
           def yaml_load(payload)
             if ActiveRecord::Base.use_yaml_unsafe_load
               YAML.unsafe_load(payload)
-            else
+            elsif YAML.method(:safe_load).parameters.include?([:key, :permitted_classes])
               YAML.safe_load(payload, permitted_classes: ActiveRecord::Base.yaml_column_permitted_classes, aliases: true)
+            else
+              YAML.safe_load(payload, ActiveRecord::Base.yaml_column_permitted_classes, [], true)
             end
           end
         else
           def yaml_load(payload)
             if ActiveRecord::Base.use_yaml_unsafe_load
               YAML.load(payload)
-            else
+            elsif YAML.method(:safe_load).parameters.include?([:key, :permitted_classes])
               YAML.safe_load(payload, permitted_classes: ActiveRecord::Base.yaml_column_permitted_classes, aliases: true)
+            else
+              YAML.safe_load(payload, ActiveRecord::Base.yaml_column_permitted_classes, [], true)
             end
           end
         end
