@@ -425,7 +425,7 @@ module ActiveRecord
 
         ActiveSupport::Deprecation.warn("`format` will be removed as a parameter in future versions; it should be included in the passed `db_config`") if format
 
-        format ||= db_config.format
+        format ||= db_config.schema_format
         filename = schema_dump_path(db_config, format)
         return unless filename
 
