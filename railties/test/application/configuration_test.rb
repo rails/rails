@@ -1614,9 +1614,9 @@ module ApplicationTests
       assert ActiveRecord::Base.use_yaml_unsafe_load
     end
 
-    test "config.active_record.yaml_column_permitted_classes is [] by default" do
+    test "config.active_record.yaml_column_permitted_classes is [Symbol] by default" do
       app "production"
-      assert_equal([], ActiveRecord::Base.yaml_column_permitted_classes)
+      assert_equal([Symbol], ActiveRecord::Base.yaml_column_permitted_classes)
     end
 
     test "config.active_record.yaml_column_permitted_classes can be configured" do
