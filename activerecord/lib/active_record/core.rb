@@ -133,7 +133,7 @@ module ActiveRecord
 
       # Application configurable array that provides additional permitted classes
       # to Psych safe_load in the YAML Coder
-      mattr_accessor :yaml_column_permitted_classes, instance_writer: false, default: []
+      mattr_accessor :yaml_column_permitted_classes, instance_writer: false, default: [Symbol]
 
       class_attribute :default_connection_handler, instance_writer: false
 
