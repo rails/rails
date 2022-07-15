@@ -2,8 +2,6 @@
 
     *Matt Swanson*
 
-*   Add `urlsafe` option to `ActiveSupport::MessageVerifier` initializer
-
 *   Fix `NoMethodError` on custom `ActiveSupport::Deprecation` behavior.
 
     `ActiveSupport::Deprecation.behavior=` was supposed to accept any object
