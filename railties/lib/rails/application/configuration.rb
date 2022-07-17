@@ -278,6 +278,10 @@ module Rails
             }
           end
 
+          if respond_to?(:active_job)
+            active_job.use_big_decimal_serializer = false
+          end
+
           if respond_to?(:active_support)
             active_support.default_message_encryptor_serializer = :json
             active_support.default_message_verifier_serializer = :json
