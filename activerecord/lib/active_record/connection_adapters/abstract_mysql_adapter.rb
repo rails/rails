@@ -143,7 +143,7 @@ module ActiveRecord
       end
 
       def field_ordered_value(column, values) # :nodoc:
-        field = Arel::Nodes::NamedFunction.new("FIELD", [column, values.reverse])
+        field = Arel::Nodes::NamedFunction.new("FIELD", [column, values.reverse.map { |value| Arel::Nodes.build_quoted(value) }])
         Arel::Nodes::Descending.new(field)
       end
 
