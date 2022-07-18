@@ -657,6 +657,18 @@ SELECT * FROM books WHERE (books.created_at BETWEEN '2008-12-21 00:00:00' AND '2
 
 This demonstrates a shorter syntax for the examples in [Array Conditions](#array-conditions)
 
+Beginless and endless ranges are supported and can be used to build less/greater than conditions.
+
+```ruby
+Book.where(created_at: (Time.now.midnight - 1.day)..)
+```
+
+This would generate SQL like:
+
+```sql
+SELECT * FROM books WHERE books.created_at >= '2008-12-21 00:00:00'
+```
+
 #### Subset Conditions
 
 If you want to find records using the `IN` expression you can pass an array to the conditions hash:
