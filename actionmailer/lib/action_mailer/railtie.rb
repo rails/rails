@@ -42,7 +42,7 @@ module ActionMailer
         register_observers(options.delete(:observers))
 
         if delivery_job = options.delete(:delivery_job)
-          self.delivery_job = delivery_job.constantize
+          self.delivery_job = delivery_job
         end
 
         if options.smtp_settings

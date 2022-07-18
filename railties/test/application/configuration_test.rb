@@ -3300,6 +3300,20 @@ module ApplicationTests
       assert_equal ActionMailer::MailDeliveryJob, ActionMailer::Base.delivery_job
     end
 
+    test "ActionMailer::Base.delivery_job can be configured via config.action_mailer.delivery_job" do
+      class ::DummyMailDeliveryJob; end
+
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.action_mailer.delivery_job = "DummyMailDeliveryJob"
+        end
+      RUBY
+
+      app "development"
+
+      assert_equal ::DummyMailDeliveryJob, ActionMailer::Base.delivery_job
+    end
+
     test "ActiveRecord::Base.filter_attributes should equal to filter_parameters" do
       app_file "config/initializers/filter_parameters_logging.rb", <<-RUBY
         Rails.application.config.filter_parameters += [ :password, :credit_card_number ]
