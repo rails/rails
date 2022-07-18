@@ -1207,7 +1207,7 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.active_record.yaml_column_permitted_classes`
 
-Defaults to `[]`. Allows applications to include additional permitted classes to `safe_load()` on the `ActiveStorage::Coders::YamlColumn`.
+Defaults to `[Symbol]`. Allows applications to include additional permitted classes to `safe_load()` on the `ActiveStorage::Coders::YamlColumn`.
 
 #### `config.active_record.use_yaml_unsafe_load`
 

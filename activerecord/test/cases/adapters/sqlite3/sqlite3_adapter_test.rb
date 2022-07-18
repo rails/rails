@@ -19,8 +19,6 @@ module ActiveRecord
         @conn = Base.sqlite3_connection database: ":memory:",
                                         adapter: "sqlite3",
                                         timeout: 100
-
-        @connection_handler = ActiveRecord::Base.connection_handler
       end
 
       def test_bad_connection

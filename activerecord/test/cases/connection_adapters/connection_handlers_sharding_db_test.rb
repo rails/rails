@@ -10,13 +10,6 @@ module ActiveRecord
 
       fixtures :people
 
-      def setup
-        @handler = ConnectionHandler.new
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        @rw_pool = @handler.establish_connection(db_config)
-        @ro_pool = @handler.establish_connection(db_config, role: :reading)
-      end
-
       def teardown
         clean_up_connection_handler
       end
@@ -28,7 +21,7 @@ module ActiveRecord
             ActiveRecord::Base.establish_connection(db_config)
             assert_nothing_raised { Person.first }
 
-            assert_equal [:default, :shard_one], ActiveRecord::Base.connection_handler.send(:connection_name_to_pool_manager).fetch("ActiveRecord::Base").instance_variable_get(:@role_to_shard_mapping).values.flat_map(&:keys).uniq
+            assert_equal [:default, :shard_one], ActiveRecord::Base.connection_handler.send(:get_pool_manager, "ActiveRecord::Base").shard_names
           end
         end
 
@@ -230,11 +223,8 @@ module ActiveRecord
         end
 
         def test_retrieve_connection_pool_with_invalid_shard
-          assert_not_nil @handler.retrieve_connection_pool("ActiveRecord::Base")
-          assert_nil @handler.retrieve_connection_pool("ActiveRecord::Base", shard: :foo)
-
-          assert_not_nil @handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading)
-          assert_nil @handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading, shard: :foo)
+          assert_not_nil ActiveRecord::Base.connection_handler.retrieve_connection_pool("ActiveRecord::Base")
+          assert_nil ActiveRecord::Base.connection_handler.retrieve_connection_pool("ActiveRecord::Base", shard: :foo)
         end
 
         def test_calling_connected_to_on_a_non_existent_shard_raises

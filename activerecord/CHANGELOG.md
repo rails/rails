@@ -1,3 +1,23 @@
+*   Allow `destroy_association_async_job=` to be configured with a class string instead of a constant.
+
+    Defers an autoloading dependency between `ActiveRecord::Base` and `ActiveJob::Base`
+    and moves the configuration of `ActiveRecord::DestroyAssociationAsyncJob`
+    from ActiveJob to ActiveRecord.
+
+    Deprecates `ActiveRecord::ActiveJobRequiredError` and now raises a `NameError`
+    if the job class is unloadable or an `ActiveRecord::ConfigurationError` if
+    `dependent: :destroy_async` is declared on an association but there is no job
+    class configured.
+
+    *Ben Sheldon*
+
+*   Fix `ActiveRecord::Store` to serialize as a regular Hash
+
+    Previously it would serialize as an `ActiveSupport::HashWithIndifferentAccess`
+    which is wasteful and cause problem with YAML safe_load.
+
+    *Jean Boussier*
+
 *   Add `timestamptz` as a time zone aware type for PostgreSQL
 
     This is required for correctly parsing `timestamp with time zone` values in your database.
@@ -9,7 +29,7 @@
     ```
 
     *Alex Ghiculescu*
-    
+
 *   Add new `ActiveRecord::Base::generates_token_for` API.
 
     Currently, `signed_id` fulfills the role of generating tokens for e.g.
@@ -42,7 +62,7 @@
     user.update!(password: "new password")
     User.find_by_token_for(:password_reset, token) # => nil
     ```
-    
+
     *Jonathan Hefner*
 
 *   Optimize Active Record batching for whole table iterations.

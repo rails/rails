@@ -1,3 +1,7 @@
+*   Add `quarter` method to date/time
+
+    *Matt Swanson*
+
 *   Fix `NoMethodError` on custom `ActiveSupport::Deprecation` behavior.
 
     `ActiveSupport::Deprecation.behavior=` was supposed to accept any object

@@ -1743,20 +1743,20 @@ module ApplicationTests
       assert ActiveRecord.use_yaml_unsafe_load
     end
 
-    test "config.active_record.yaml_column_permitted_classes is [] by default" do
+    test "config.active_record.yaml_column_permitted_classes is [Symbol] by default" do
       app "production"
-      assert_equal([], ActiveRecord.yaml_column_permitted_classes)
+      assert_equal([Symbol], ActiveRecord.yaml_column_permitted_classes)
     end
 
     test "config.active_record.yaml_column_permitted_classes can be configured" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app_file "config/initializers/yaml_permitted_classes.rb", <<-RUBY
-        Rails.application.config.active_record.yaml_column_permitted_classes = [Symbol]
+        Rails.application.config.active_record.yaml_column_permitted_classes = [Symbol, Time]
       RUBY
 
       app "production"
-      assert_equal([Symbol], ActiveRecord.yaml_column_permitted_classes)
+      assert_equal([Symbol, Time], ActiveRecord.yaml_column_permitted_classes)
     end
 
     test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do
@@ -2666,12 +2666,12 @@ module ApplicationTests
       assert_equal ActiveRecord::DestroyAssociationAsyncJob, ActiveRecord::Base.destroy_association_async_job
     end
 
-    test "ActiveRecord::Base.destroy_association_async_job can be configured via config.active_record.destroy_association_job" do
+    test "ActiveRecord::Base.destroy_association_async_job can be configured via config.active_record.destroy_association_async_job" do
       class ::DummyDestroyAssociationAsyncJob; end
 
       app_file "config/environments/test.rb", <<-RUBY
         Rails.application.configure do
-          config.active_record.destroy_association_async_job = DummyDestroyAssociationAsyncJob
+          config.active_record.destroy_association_async_job = "DummyDestroyAssociationAsyncJob"
         end
       RUBY
 
