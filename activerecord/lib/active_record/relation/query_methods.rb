@@ -10,10 +10,10 @@ module ActiveRecord
   module QueryMethods
     include ActiveModel::ForbiddenAttributesProtection
 
-    # WhereChain objects act as placeholder for queries in which #where does not have any parameter.
-    # In this case, #where must be chained with #not to return a new relation.
+    # WhereChain objects act as placeholder for queries in which +where+ does not have any parameter.
+    # In this case, +where+ can be chained to return a new relation.
     class WhereChain
-      def initialize(scope)
+      def initialize(scope) # :nodoc:
         @scope = scope
       end
 
@@ -321,6 +321,66 @@ module ActiveRecord
 
     def _select!(*fields) # :nodoc:
       self.select_values |= fields
+      self
+    end
+
+    # Add a Common Table Expression (CTE) that you can then reference within another SELECT statement.
+    #
+    # Note: CTE's are only supported in MySQL for versions 8.0 and above. You will not be able to
+    # use CTE's with MySQL 5.7.
+    #
+    #   Post.with(posts_with_tags: Post.where("tags_count > ?", 0))
+    #   # => ActiveRecord::Relation
+    #   # WITH posts_with_tags AS (
+    #   #   SELECT * FROM posts WHERE (tags_count > 0)
+    #   # )
+    #   # SELECT * FROM posts
+    #
+    # Once you define Common Table Expression you can use custom `FROM` value or `JOIN` to reference it.
+    #
+    #   Post.with(posts_with_tags: Post.where("tags_count > ?", 0)).from("posts_with_tags AS posts")
+    #   # => ActiveRecord::Relation
+    #   # WITH posts_with_tags AS (
+    #   #  SELECT * FROM posts WHERE (tags_count > 0)
+    #   # )
+    #   # SELECT * FROM posts_with_tags AS posts
+    #
+    #   Post.with(posts_with_tags: Post.where("tags_count > ?", 0)).joins("JOIN posts_with_tags ON posts_with_tags.id = posts.id")
+    #   # => ActiveRecord::Relation
+    #   # WITH posts_with_tags AS (
+    #   #   SELECT * FROM posts WHERE (tags_count > 0)
+    #   # )
+    #   # SELECT * FROM posts JOIN posts_with_tags ON posts_with_tags.id = posts.id
+    #
+    # It is recommended to pass a query as `ActiveRecord::Relation`. If that is not possible
+    # and you have verified it is safe for the database, you can pass it as SQL literal
+    # using `Arel`.
+    #
+    #   Post.with(popular_posts: Arel.sql("... complex sql to calculate posts popularity ..."))
+    #
+    # Great caution should be taken to avoid SQL injection vulnerabilities. This method should not
+    # be used with unsafe values that include unsanitized input.
+    #
+    # To add multiple CTEs just pass multiple key-value pairs
+    #
+    #   Post.with(
+    #     posts_with_comments: Post.where("comments_count > ?", 0),
+    #     posts_with_tags: Post.where("tags_count > ?", 0)
+    #   )
+    #
+    # or chain multiple `.with` calls
+    #
+    #   Post
+    #     .with(posts_with_comments: Post.where("comments_count > ?", 0))
+    #     .with(posts_with_tags: Post.where("tags_count > ?", 0))
+    def with(*args)
+      check_if_method_has_arguments!(__callee__, args)
+      spawn.with!(*args)
+    end
+
+    # Like #with, but modifies relation in place.
+    def with!(*args) # :nodoc:
+      self.with_values += args
       self
     end
 
@@ -722,12 +782,26 @@ module ActiveRecord
     # === no argument
     #
     # If no argument is passed, #where returns a new instance of WhereChain, that
-    # can be chained with #not to return a new relation that negates the where clause.
+    # can be chained with WhereChain#not, WhereChain#missing, or WhereChain#associated.
+    #
+    # Chaining with WhereChain#not:
     #
     #    User.where.not(name: "Jon")
     #    # SELECT * FROM users WHERE name != 'Jon'
     #
-    # See WhereChain for more details on #not.
+    # Chaining with WhereChain#associated:
+    #
+    #    Post.where.associated(:author)
+    #    # SELECT "posts".* FROM "posts"
+    #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+    #    # WHERE "authors"."id" IS NOT NULL
+    #
+    # Chaining with WhereChain#missing:
+    #
+    #    Post.where.missing(:author)
+    #    # SELECT "posts".* FROM "posts"
+    #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+    #    # WHERE "authors"."id" IS NULL
     #
     # === blank condition
     #
@@ -1365,6 +1439,7 @@ module ActiveRecord
         arel.group(*arel_columns(group_values.uniq)) unless group_values.empty?
 
         build_order(arel)
+        build_with(arel)
         build_select(arel)
 
         arel.optimizer_hints(*optimizer_hints_values) unless optimizer_hints_values.empty?
@@ -1497,6 +1572,32 @@ module ActiveRecord
           arel.project(*klass.column_names.map { |field| table[field] })
         else
           arel.project(table[Arel.star])
+        end
+      end
+
+      def build_with(arel)
+        return if with_values.empty?
+
+        with_statements = with_values.map do |with_value|
+          raise ArgumentError, "Unsupported argument type: #{with_value} #{with_value.class}" unless with_value.is_a?(Hash)
+
+          build_with_value_from_hash(with_value)
+        end
+
+        arel.with(with_statements)
+      end
+
+      def build_with_value_from_hash(hash)
+        hash.map do |name, value|
+          expression =
+            case value
+            when Arel::Nodes::SqlLiteral then Arel::Nodes::Grouping.new(value)
+            when ActiveRecord::Relation then value.arel
+            when Arel::SelectManager then value
+            else
+              raise ArgumentError, "Unsupported argument type: `#{value}` #{value.class}"
+            end
+          Arel::Nodes::TableAlias.new(expression, name)
         end
       end
 

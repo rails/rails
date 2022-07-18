@@ -290,6 +290,54 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_preserves_skip_active_job
+    app_root = File.join(destination_root, "myapp")
+    run_generator [ app_root, "--skip-active-job" ]
+
+    FileUtils.cd(app_root) do
+      config = "config/application.rb"
+      assert_no_changes -> { File.readlines(config).grep(/require /) } do
+        quietly { system("yes | bin/rails app:update") }
+      end
+    end
+  end
+
+  def test_app_update_preserves_skip_action_mailbox
+    app_root = File.join(destination_root, "myapp")
+    run_generator [ app_root, "--skip-action-mailbox" ]
+
+    FileUtils.cd(app_root) do
+      config = "config/application.rb"
+      assert_no_changes -> { File.readlines(config).grep(/require /) } do
+        quietly { system("yes | bin/rails app:update") }
+      end
+    end
+  end
+
+  def test_app_update_preserves_skip_action_text
+    app_root = File.join(destination_root, "myapp")
+    run_generator [ app_root, "--skip-action-text" ]
+
+    FileUtils.cd(app_root) do
+      config = "config/application.rb"
+      assert_no_changes -> { File.readlines(config).grep(/require /) } do
+        quietly { system("yes | bin/rails app:update") }
+      end
+    end
+  end
+
+  def test_app_update_preserves_skip_test
+    app_root = File.join(destination_root, "myapp")
+    run_generator [ app_root, "--skip-test" ]
+
+    FileUtils.cd(app_root) do
+      config = "config/application.rb"
+      assert_no_changes -> { File.readlines(config).grep(/require /) } do
+        quietly { system("yes | bin/rails app:update") }
+      end
+    end
+  end
+
   def test_gem_for_active_storage
     run_generator
     assert_file "Gemfile", /^# gem "image_processing"/
@@ -551,6 +599,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "config/application.rb" do |content|
       assert_match(/#\s+require\s+["']active_job\/railtie["']/, content)
+      assert_match(/#\s+require\s+["']active_storage\/engine["']/, content)
+      assert_match(/#\s+require\s+["']action_mailer\/railtie["']/, content)
     end
   end
 
@@ -867,6 +917,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/assets/stylesheets/application.postcss.css"
   end
 
+  def test_dev_gems
+    run_generator [destination_root, "--no-skip-dev-gems"]
+    assert_gem "web-console"
+  end
+
+  def test_skip_dev_gems
+    run_generator [destination_root, "--skip-dev-gems"]
+    assert_no_gem "web-console"
+  end
+
   def test_bootsnap
     run_generator [destination_root, "--no-skip-bootsnap"]
 
@@ -1032,35 +1092,43 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_minimal_rails_app
-    run_generator [destination_root, "--minimal"]
+    generator([destination_root], ["--minimal"])
 
-    assert_no_file "config/storage.yml"
-    assert_no_file "config/cable.yml"
-    assert_no_file "app/views/layouts/mailer.html.erb"
-    assert_no_file "app/jobs/application_job.rb"
-    assert_file "app/views/layouts/application.html.erb" do |content|
-      assert_no_match(/data-turbo-track/, content)
-    end
-    assert_file "config/environments/development.rb" do |content|
-      assert_no_match(/config\.active_storage/, content)
-    end
-    assert_file "config/environments/production.rb" do |content|
-      assert_no_match(/config\.active_job/, content)
-    end
-    assert_file "config/boot.rb" do |content|
-      assert_no_match(/require "bootsnap\/setup"/, content)
-    end
-    assert_file "config/application.rb" do |content|
-      assert_match(/#\s+require\s+["']active_job\/railtie["']/, content)
-      assert_match(/#\s+require\s+["']active_storage\/engine["']/, content)
-      assert_match(/#\s+require\s+["']action_mailer\/railtie["']/, content)
-      assert_match(/#\s+require\s+["']action_mailbox\/engine["']/, content)
-      assert_match(/#\s+require\s+["']action_text\/engine["']/, content)
-      assert_match(/#\s+require\s+["']action_cable\/engine["']/, content)
-    end
+    assert_option :minimal
+    assert_option :skip_action_cable
+    assert_option :skip_action_mailbox
+    assert_option :skip_action_mailer
+    assert_option :skip_action_text
+    assert_option :skip_active_job
+    assert_option :skip_active_storage
+    assert_option :skip_bootsnap
+    assert_option :skip_dev_gems
+    assert_option :skip_hotwire
+    assert_option :skip_javascript
+    assert_option :skip_jbuilder
+    assert_option :skip_system_test
+  end
 
-    assert_no_gem "jbuilder"
-    assert_no_gem "web-console"
+  def test_minimal_rails_app_with_no_skip_implied_option
+    generator([destination_root], ["--minimal", "--no-skip-action-text"])
+
+    assert_not_option :skip_action_text
+    assert_not_option :skip_active_storage
+    assert_not_option :skip_active_job
+    assert_option :skip_action_mailbox
+    assert_option :skip_action_mailer
+    assert_option :minimal
+  end
+
+  def test_minimal_rails_app_with_no_skip_intermediary_implied_option
+    generator([destination_root], ["--minimal", "--no-skip-active-storage"])
+
+    assert_not_option :skip_active_storage
+    assert_not_option :skip_active_job
+    assert_option :skip_action_text
+    assert_option :skip_action_mailbox
+    assert_option :skip_action_mailer
+    assert_option :minimal
   end
 
   def test_name_option

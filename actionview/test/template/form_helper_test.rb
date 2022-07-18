@@ -1254,6 +1254,11 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, datetime_local_field("post", "written_on"))
   end
 
+  def test_datetime_local_field_without_seconds
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00" />}
+    assert_dom_equal(expected, datetime_local_field("post", "written_on", include_seconds: false))
+  end
+
   def test_month_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="2004-06" />}
     assert_dom_equal(expected, month_field("post", "written_on"))
@@ -3300,14 +3305,20 @@ class FormHelperTest < ActionView::TestCase
   def test_nested_fields_label_translation_with_more_than_10_records
     @post.comments = Array.new(11) { |id| Comment.new(id + 1) }
 
-    params = 11.times.map { ["post.comments.body", default: [:"comment.body", ""], scope: "helpers.label"] }
-    assert_called_with(I18n, :t, params, returns: "Write body here") do
+    mock = Minitest::Mock.new
+    @post.comments.each do
+      expect_called_with(mock, ["post.comments.body"], default: [:"comment.body", ""], scope: "helpers.label", returns: "body")
+    end
+
+    I18n.stub(:t, mock) do
       form_for(@post) do |f|
         f.fields_for(:comments) do |cf|
           concat cf.label(:body)
         end
       end
     end
+
+    assert_mock(mock)
   end
 
   def test_nested_fields_for_with_existing_records_on_a_supplied_nested_attributes_collection_different_from_record_one

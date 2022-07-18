@@ -28,7 +28,7 @@ INFO: You can install the rails gem by typing `gem install rails`, if you don't 
 The first argument we'll pass to the `rails new` command is the application name.
 
 ```bash
-$ rails new commandsapp
+$ rails new my_app
      create
      create  README.md
      create  Rakefile
@@ -42,13 +42,13 @@ $ rails new commandsapp
         run  bundle install
 ```
 
-Rails will set you up with what seems like a huge amount of stuff for such a tiny command! You've got the entire Rails directory structure now with all the code you need to run our simple application right out of the box.
+Rails will set up what seems like a huge amount of stuff for such a tiny command! We've got the entire Rails directory structure now with all the code we need to run our simple application right out of the box.
 
-If you wish to skip some files or components from being generated, you can append the following arguments to your `rails new` command:
+If you wish to skip some files from being generated or skip some libraries, you can append any of the following arguments to your `rails new` command:
 
 | Argument                | Description                                                 |
 | ----------------------- | ----------------------------------------------------------- |
-| `--skip-git`            | Skip .gitignore file                                        |
+| `--skip-git`            | Skip git init, .gitignore, and .gitattributes               |
 | `--skip-keeps`          | Skip source control .keep files                             |
 | `--skip-action-mailer`  | Skip Action Mailer files                                    |
 | `--skip-action-mailbox` | Skip Action Mailbox gem                                     |
@@ -64,6 +64,61 @@ If you wish to skip some files or components from being generated, you can appen
 | `--skip-test`           | Skip test files                                             |
 | `--skip-system-test`    | Skip system test files                                      |
 | `--skip-bootsnap`       | Skip bootsnap gem                                           |
+
+These are just some of the options that `rails new` accepts. For a full list of options, type `rails new --help`.
+
+### Preconfigure a Different Database
+
+When creating a new Rails application, you have the option to specify what kind
+of database your application is going to use. This will save you a few minutes,
+and certainly many keystrokes.
+
+Let's see what a `--database=postgresql` option will do for us:
+
+```bash
+$ rails new petstore --database=postgresql
+      create
+      create  app/controllers
+      create  app/helpers
+...
+```
+
+Let's see what it put in our database configuration:
+
+```bash
+$ cd petstore
+$ cat config/database.yml
+# PostgreSQL. Versions 9.3 and up are supported.
+#
+# Install the pg driver:
+#   gem install pg
+# On macOS with Homebrew:
+#   gem install pg -- --with-pg-config=/usr/local/bin/pg_config
+# On macOS with MacPorts:
+#   gem install pg -- --with-pg-config=/opt/local/lib/postgresql84/bin/pg_config
+# On Windows:
+#   gem install pg
+#       Choose the win32 build.
+#       Install PostgreSQL and put its /bin directory on your path.
+#
+# Configure Using Gemfile
+# gem "pg"
+#
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  # For details on connection pooling, see Rails configuration guide
+  # https://guides.rubyonrails.org/configuring.html#database-pooling
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+..development:
+  <<: *default
+  database: petstore_development.
+...
+```
+
+It generated some lines in our `database.yml` configuration corresponding
+to our choice of PostgreSQL for database.
 
 Command Line Basics
 -------------------
@@ -123,7 +178,7 @@ The `bin/rails server` command launches a web server named Puma which comes bund
 With no further work, `bin/rails server` will run our new shiny Rails app:
 
 ```bash
-$ cd commandsapp
+$ cd my_app
 $ bin/rails server
 => Booting Puma
 => Rails 7.0.0 application starting in development
@@ -455,7 +510,7 @@ RubyGems version          2.7.3
 Rack version              2.0.4
 JavaScript Runtime        Node.js (V8)
 Middleware:               Rack::Sendfile, ActionDispatch::Static, ActionDispatch::Executor, ActiveSupport::Cache::Strategy::LocalCache::Middleware, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, ActionDispatch::RemoteIp, Sprockets::Rails::QuietAssets, Rails::Rack::Logger, ActionDispatch::ShowExceptions, WebConsole::Middleware, ActionDispatch::DebugExceptions, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, Rack::Head, Rack::ConditionalGet, Rack::ETag
-Application root          /home/foobar/commandsapp
+Application root          /home/foobar/my_app
 Environment               development
 Database adapter          sqlite3
 Database schema version   20180205173523
@@ -650,77 +705,3 @@ $ bin/rails db:nothing
 ```
 
 NOTE: If you need to interact with your application models, perform database queries, and so on, your task should depend on the `environment` task, which will load your application code.
-
-The Rails Advanced Command Line
--------------------------------
-
-More advanced use of the command line is focused around finding useful (even surprising at times) options in the utilities, and fitting those to your needs and specific work flow. Listed here are some tricks up Rails' sleeve.
-
-### Rails with Databases and SCM
-
-When creating a new Rails application, you have the option to specify what kind of database and what kind of source code management system your application is going to use. This will save you a few minutes, and certainly many keystrokes.
-
-Let's see what a `--git` option and a `--database=postgresql` option will do for us:
-
-```bash
-$ mkdir gitapp
-$ cd gitapp
-$ git init
-Initialized empty Git repository in .git/
-$ rails new . --git --database=postgresql
-      exists
-      create  app/controllers
-      create  app/helpers
-...
-...
-      create  tmp/cache
-      create  tmp/pids
-      create  Rakefile
-add 'Rakefile'
-      create  README.md
-add 'README.md'
-      create  app/controllers/application_controller.rb
-add 'app/controllers/application_controller.rb'
-      create  app/helpers/application_helper.rb
-...
-      create  log/test.log
-add 'log/test.log'
-```
-
-We had to create the **gitapp** directory and initialize an empty git repository before Rails would add files it created to our repository. Let's see what it put in our database configuration:
-
-```bash
-$ cat config/database.yml
-# PostgreSQL. Versions 9.3 and up are supported.
-#
-# Install the pg driver:
-#   gem install pg
-# On macOS with Homebrew:
-#   gem install pg -- --with-pg-config=/usr/local/bin/pg_config
-# On macOS with MacPorts:
-#   gem install pg -- --with-pg-config=/opt/local/lib/postgresql84/bin/pg_config
-# On Windows:
-#   gem install pg
-#       Choose the win32 build.
-#       Install PostgreSQL and put its /bin directory on your path.
-#
-# Configure Using Gemfile
-# gem 'pg'
-#
-default: &default
-  adapter: postgresql
-  encoding: unicode
-  # For details on connection pooling, see Rails configuration guide
-  # https://guides.rubyonrails.org/configuring.html#database-pooling
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-
-development:
-  <<: *default
-  database: gitapp_development
-...
-...
-```
-
-It also generated some lines in our `database.yml` configuration corresponding to our choice of PostgreSQL for database.
-
-NOTE. The only catch with using the SCM options is that you have to make your application's directory first, then initialize your SCM, then you can run the `rails new` command to generate the basis of your app.

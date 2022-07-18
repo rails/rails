@@ -1,13 +1,19 @@
 Description:
-============
     Generates a new cable channel for the server (in Ruby) and client (in JavaScript).
     Pass the channel name, either CamelCased or under_scored, and an optional list of channel actions as arguments.
 
-Example:
-========
-    bin/rails generate channel Chat speak
+Examples:
+    `bin/rails generate channel notification`
 
-    creates a Chat channel class, test and JavaScript asset:
-        Channel:    app/channels/chat_channel.rb
-        Test:       test/channels/chat_channel_test.rb
-        Assets:     $JAVASCRIPT_PATH/channels/chat_channel.js
+    creates a notification channel class, test and JavaScript asset:
+        Channel:    app/channels/notification_channel.rb
+        Test:       test/channels/notification_channel_test.rb
+        Assets:     $JAVASCRIPT_PATH/channels/notification_channel.js
+
+    `bin/rails generate channel chat speak`
+
+    creates a chat channel with a speak action.
+
+    `bin/rails generate channel comments --no-assets`
+
+    creates a comments channel without JavaScript assets.

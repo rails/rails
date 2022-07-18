@@ -21,7 +21,7 @@ module ActiveRecord
               WHERE name = #{quote(row['name'])} AND type = 'index'
             SQL
 
-            /\bON\b\s*"?(\w+?)"?\s*\((?<expressions>.+?)\)(?:\s*WHERE\b\s*(?<where>.+))?\z/i =~ index_sql
+            /\bON\b\s*"?(\w+?)"?\s*\((?<expressions>.+?)\)(?:\s*WHERE\b\s*(?<where>.+))?(?:\s*\/\*.*\*\/)?\z/i =~ index_sql
 
             columns = exec_query("PRAGMA index_info(#{quote(row['name'])})", "SCHEMA").map do |col|
               col["name"]
@@ -84,11 +84,11 @@ module ActiveRecord
           table_sql = query_value(<<-SQL, "SCHEMA")
             SELECT sql
             FROM sqlite_master
-            WHERE name = #{quote_table_name(table_name)} AND type = 'table'
+            WHERE name = #{quote(table_name)} AND type = 'table'
             UNION ALL
             SELECT sql
             FROM sqlite_temp_master
-            WHERE name = #{quote_table_name(table_name)} AND type = 'table'
+            WHERE name = #{quote(table_name)} AND type = 'table'
           SQL
 
           table_sql.to_s.scan(/CONSTRAINT\s+(?<name>\w+)\s+CHECK\s+\((?<expression>(:?[^()]|\(\g<expression>\))+)\)/i).map do |name, expression|

@@ -36,14 +36,20 @@ module Rails
         ARGV.replace(command_argv)
 
         if code_or_file == "-"
-          eval($stdin.read, TOPLEVEL_BINDING, "stdin")
+          Rails.application.executor.wrap(source: "application.runner.railties") do
+            eval($stdin.read, TOPLEVEL_BINDING, "stdin")
+          end
         elsif File.exist?(code_or_file)
           expanded_file_path = File.expand_path code_or_file
           $0 = expanded_file_path
-          Kernel.load expanded_file_path
+          Rails.application.executor.wrap(source: "application.runner.railties") do
+            Kernel.load expanded_file_path
+          end
         else
           begin
-            eval(code_or_file, TOPLEVEL_BINDING, __FILE__, __LINE__)
+            Rails.application.executor.wrap(source: "application.runner.railties") do
+              eval(code_or_file, TOPLEVEL_BINDING, __FILE__, __LINE__)
+            end
           rescue SyntaxError, NameError => e
             error "Please specify a valid ruby command or the path of a script to run."
             error "Run '#{self.class.executable} -h' for help."

@@ -11,7 +11,7 @@ module Rails
       include Initializable
 
       initializer :add_generator_templates do
-        config.generators.templates.unshift(*paths["lib/templates"].existent)
+        ensure_generator_templates_added
       end
 
       initializer :setup_main_autoloader do

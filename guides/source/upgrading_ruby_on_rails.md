@@ -100,7 +100,8 @@ The `MessageEncryptor` offers the ability to migrate the default serializer from
 If you would like to ignore this change in existing applications, set the following: `config.active_support.default_message_encryptor_serializer = :marshal`.
 
 In order to roll out the new default when upgrading from `7.0` to `7.1`, there are three configuration variables to keep in mind.
-```
+
+```ruby
 config.active_support.default_message_encryptor_serializer
 config.active_support.fallback_to_marshal_deserialization
 config.active_support.use_marshal_serialization
@@ -109,6 +110,7 @@ config.active_support.use_marshal_serialization
 `default_message_encryptor_serializer` defaults to `:json` as of `7.1` but it offers both a `:hybrid` and `:marshal` option.
 
 In order to migrate an older deployment to `:json`, first ensure that the `default_message_encryptor_serializer` is set to `:marshal`.
+
 ```ruby
 # config/application.rb
 config.load_defaults 7.0
@@ -137,6 +139,7 @@ config.active_support.use_marshal_serialization = false
 Allow this configuration to run on all processes for a considerable amount of time.
 `ActiveSupport::JsonWithMarshalFallback` logs the following each time the `Marshal` fallback
 is used:
+
 ```
 JsonWithMarshalFallback: Marshal load fallback occurred.
 ```
@@ -164,6 +167,7 @@ config.active_support.default_message_encryptor_serializer = :json
 ```
 
 Alternatively, you could load defaults for 7.1
+
 ```ruby
 # config/application.rb
 config.load_defaults 7.1
@@ -179,7 +183,8 @@ The `MessageVerifier` offers the ability to migrate the default serializer from 
 If you would like to ignore this change in existing applications, set the following: `config.active_support.default_message_verifier_serializer = :marshal`.
 
 In order to roll out the new default when upgrading from `7.0` to `7.1`, there are three configuration variables to keep in mind.
-```
+
+```ruby
 config.active_support.default_verifier_serializer
 config.active_support.fallback_to_marshal_deserialization
 config.active_support.use_marshal_serialization
@@ -188,6 +193,7 @@ config.active_support.use_marshal_serialization
 `default_message_verifier_serializer` defaults to `:json` as of `7.1` but it offers both a `:hybrid` and `:marshal` option.
 
 In order to migrate an older deployment to `:json`, first ensure that the `default_message_verifier_serializer` is set to `:marshal`.
+
 ```ruby
 # config/application.rb
 config.load_defaults 7.0
@@ -216,6 +222,7 @@ config.active_support.use_marshal_serialization = false
 Allow this configuration to run on all processes for a considerable amount of time.
 `ActiveSupport::JsonWithMarshalFallback` logs the following each time the `Marshal` fallback
 is used:
+
 ```
 JsonWithMarshalFallback: Marshal load fallback occurred.
 ```
@@ -243,9 +250,41 @@ config.active_support.default_message_verifier_serializer = :json
 ```
 
 Alternatively, you could load defaults for 7.1
+
 ```ruby
 # config/application.rb
 config.load_defaults 7.1
+```
+
+### `MemCacheStore` and `RedisCacheStore` now use connection pooling by default
+
+The `connection_pool` gem has been added as a dependency of the `activesupport` gem,
+and the `MemCacheStore` and `RedisCacheStore` now use connection pooling by default.
+
+If you don't want to use connection pooling, set `:pool` option to `false` when
+configuring your cache store:
+
+```ruby
+config.cache_store = :mem_cache_store, "cache.example.com", pool: false
+```
+
+See the [caching with Rails](https://guides.rubyonrails.org/caching_with_rails.html#connection-pool-options) guide for more information.
+
+### `SQLite3Adapter` now configured to be used in a strict strings mode
+
+The use of a strict strings mode disables double-quoted string literals.
+
+SQLite has some quirks around double-quoted string literals.
+It first tries to consider double-quoted strings as identifier names, but if they don't exist
+it then considers them as string literals. Because of this, typos can silently go unnoticed.
+For example, it is possible to create an index for a non existing column.
+See [SQLite documentation](https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted) for more details.
+
+If you don't want to use `SQLite3Adapter` in a strict mode, you can disable this behavior:
+
+```ruby
+# config/application.rb
+config.active_record.sqlite3_adapter_strict_strings_by_default = false
 ```
 
 Upgrading from Rails 6.1 to Rails 7.0
@@ -719,6 +758,15 @@ video.preview(resize_to_fit: [100, 100])
 video.preview(resize_to_limit: [100, 100])
 video.preview(resize_to_fill: [100, 100])
 ```
+
+### New `ActiveModel:Errors` class
+
+Errors are now instances of a new `ActiveModel::Error` class, with changes to
+the API. Some of these changes may throw errors depending on how you manipulate
+errors, while others will print deprecation warnings to be fixed for Rails 7.0.
+
+More information about this change and details about the API changes can be
+found [in this PR](https://github.com/rails/rails/pull/32313).
 
 Upgrading from Rails 5.2 to Rails 6.0
 -------------------------------------

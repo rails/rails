@@ -206,6 +206,10 @@ module ActiveRecord
         true
       end
 
+      def supports_exclusion_constraints?
+        true
+      end
+
       def supports_validate_constraints?
         true
       end
@@ -499,6 +503,14 @@ module ActiveRecord
       # Returns the configured supported identifier length supported by PostgreSQL
       def max_identifier_length
         @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
+      end
+
+      # Returns the maximum length of a table name.
+      def table_name_length
+        # PostgreSQL automatically creates an index for PRIMARY KEY with name consisting of
+        # truncated table name and "_pkey" suffix fitting into max_identifier_length number of characters.
+        # We allow smaller table names to be able to correctly rename this index when renaming the table.
+        max_identifier_length - "_pkey".length
       end
 
       # Set the authorized user for this session
@@ -1083,5 +1095,6 @@ module ActiveRecord
         ActiveRecord::Type.register(:vector, OID::Vector, adapter: :postgresql)
         ActiveRecord::Type.register(:xml, OID::Xml, adapter: :postgresql)
     end
+    ActiveSupport.run_load_hooks(:active_record_postgresqladapter, PostgreSQLAdapter)
   end
 end

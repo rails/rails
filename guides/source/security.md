@@ -1253,6 +1253,14 @@ This generation method is compatible with ETags, however its security depends on
 the session id being sufficiently random and not being exposed in insecure
 cookies.
 
+By default, nonces will be applied to `script-src` and `style-src` if a nonce
+generator is defined. `config.content_security_policy_nonce_directives` can be
+used to change which directives will use nonces:
+
+```ruby
+Rails.application.config.content_security_policy_nonce_directives = %w(script-src)
+```
+
 Once nonce generation is configured in an initializer, automatic nonce values
 can be added to script tags by passing `nonce: true` as part of `html_options`:
 

@@ -94,9 +94,11 @@ connections:
     arunit:
       database: <%= FIXTURES_ROOT %>/fixture_database.sqlite3
       timeout:  5000
+      strict:   true
     arunit2:
       database: <%= FIXTURES_ROOT %>/fixture_database_2.sqlite3
       timeout:  5000
+      strict:   true
 
   sqlite3_mem:
     arunit:

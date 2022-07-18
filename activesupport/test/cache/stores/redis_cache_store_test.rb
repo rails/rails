@@ -93,17 +93,24 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
 
     test "multiple URLs uses Redis::Distributed client" do
-      assert_called_with Redis, :new, [
-        [ url: REDIS_URLS.first,
-          connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-          reconnect_attempts: 0, driver: DRIVER ],
-        [ url: REDIS_URLS.last,
-          connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-          reconnect_attempts: 0, driver: DRIVER ],
-      ], returns: Redis.new do
+      default_args = {
+        connect_timeout: 20,
+        read_timeout: 1,
+        write_timeout: 1,
+        reconnect_attempts: 0,
+        driver: DRIVER
+      }
+
+      mock = Minitest::Mock.new
+      mock.expect(:call, Redis.new, [{ url: REDIS_URLS.first }.merge(default_args)])
+      mock.expect(:call, Redis.new, [{ url: REDIS_URLS.last }.merge(default_args)])
+
+      Redis.stub(:new, mock) do
         @cache = build url: REDIS_URLS
         assert_kind_of ::Redis::Distributed, @cache.redis
       end
+
+      assert_mock(mock)
     end
 
     test "block argument uses yielded client" do

@@ -378,8 +378,11 @@ Your application has a session for each user in which you can store small amount
 
 * [`ActionDispatch::Session::CookieStore`][] - Stores everything on the client.
 * [`ActionDispatch::Session::CacheStore`][] - Stores the data in the Rails cache.
-* `ActionDispatch::Session::ActiveRecordStore` - Stores the data in a database using Active Record (requires the `activerecord-session_store` gem).
 * [`ActionDispatch::Session::MemCacheStore`][] - Stores the data in a memcached cluster (this is a legacy implementation; consider using `CacheStore` instead).
+* [`ActionDispatch::Session::ActiveRecordStore`][activerecord-session_store] -
+  Stores the data in a database using Active Record (requires the
+  [`activerecord-session_store`][activerecord-session_store] gem)
+* A custom store or a store provided by a third party gem
 
 All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
 
@@ -394,11 +397,11 @@ Read more about session storage in the [Security Guide](security.html).
 If you need a different session storage mechanism, you can change it in an initializer:
 
 ```ruby
-# Use the database for sessions instead of the cookie-based default,
-# which shouldn't be used to store highly confidential information
-# (create the session table with "rails g active_record:session_migration")
-# Rails.application.config.session_store :active_record_store
+Rails.application.config.session_store :cache_store
 ```
+
+See [`config.session_store`](configuring.html#config-session-store) in the
+configuration guide for more information.
 
 Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in an initializer:
 
@@ -430,6 +433,8 @@ NOTE: Changing the secret_key_base when using the `CookieStore` will invalidate 
 [`ActionDispatch::Session::CookieStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/CookieStore.html
 [`ActionDispatch::Session::CacheStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/CacheStore.html
 [`ActionDispatch::Session::MemCacheStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/MemCacheStore.html
+[activerecord-session_store]: https://github.com/rails/activerecord-session_store
+
 
 ### Accessing the Session
 

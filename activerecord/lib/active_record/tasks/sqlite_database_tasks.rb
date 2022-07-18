@@ -33,9 +33,11 @@ module ActiveRecord
 
       def purge
         drop
+        connection.disconnect!
       rescue NoDatabaseError
       ensure
         create
+        connection.reconnect!
       end
 
       def charset

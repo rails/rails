@@ -71,7 +71,7 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
         get "/set_session_value"
         assert_response :success
         assert cookies["_session_id"]
-        session_cookie = cookies.send(:hash_for)["_session_id"]
+        session_cookie = cookies.get_cookie("_session_id")
 
         get "/call_reset_session"
         assert_response :success
