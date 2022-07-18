@@ -82,9 +82,31 @@ class Class
   # To set a default value for the attribute, pass <tt>default:</tt>, like so:
   #
   #   class_attribute :settings, default: {}
-  def class_attribute(*attrs, instance_accessor: true,
-    instance_reader: instance_accessor, instance_writer: instance_accessor, instance_predicate: true, default: nil)
-
+  #
+  # If a block is specified, it will be applied to an attribute value when that
+  # value is first read, and the result will be memoized as the actual value of
+  # the attribute. For example:
+  #
+  #   class Service
+  #     class_attribute :worker do |worker|
+  #       worker.is_a?(Class) ? worker : worker.to_s.camelize.constantize
+  #     end
+  #   end
+  #
+  #   # `MyWorker` class has not yet been defined, so use a symbol:
+  #   Service.worker = :my_worker
+  #
+  #   class MyWorker; end
+  #
+  #   Service.worker # => MyWorker
+  #
+  def class_attribute(
+    *attrs,
+    instance_accessor: true, instance_reader: instance_accessor, instance_writer: instance_accessor,
+    instance_predicate: true,
+    default: nil,
+    &block
+  )
     class_methods, methods = [], []
     attrs.each do |name|
       unless name.is_a?(Symbol) || name.is_a?(String)
@@ -102,10 +124,17 @@ class Class
         end
       RUBY
 
+      if block
+        singleton_class.define_method("_#{name}_block", &block)
+        prepare_block = "block_called = false"
+        call_block = "value, block_called = _#{name}_block(value), true unless block_called"
+      end
+
       class_methods << <<~RUBY
         silence_redefinition_of_method def #{name}=(value)
-          redefine_method(:#{name}) { value } if singleton_class?
-          redefine_singleton_method(:#{name}) { value }
+          #{prepare_block}
+          redefine_method(:#{name}) { #{call_block}; value } if singleton_class?
+          redefine_singleton_method(:#{name}) { #{call_block}; value }
           value
         end
       RUBY

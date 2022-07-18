@@ -115,4 +115,34 @@ class ClassAttributeTest < ActiveSupport::TestCase
     val = @klass.public_send(:setting=, 1)
     assert_equal 1, val
   end
+
+  test "block is applied to value" do
+    klass = Class.new { class_attribute(:foo, &:upcase) }
+
+    klass.foo = "bar"
+    assert_equal "BAR", klass.foo
+  end
+
+  test "block is applied to default value" do
+    klass = Class.new { class_attribute(:foo, default: "bar", &:upcase) }
+
+    assert_equal "BAR", klass.foo
+  end
+
+  test "block is lazily evaluated" do
+    klass = Class.new { class_attribute(:foo) { |value| raise "lazily evaluated #{value}" } }
+
+    assert_nothing_raised { klass.foo = "bar" }
+    error = assert_raises { klass.foo }
+    assert_equal "lazily evaluated bar", error.message
+  end
+
+  test "block is called only once per value" do
+    klass = Class.new { class_attribute(:foo) { |value| value << "!" } }
+    sub = Class.new(klass)
+
+    klass.foo = +"bar"
+    assert_equal "bar!", sub.foo
+    assert_equal "bar!", klass.foo
+  end
 end
