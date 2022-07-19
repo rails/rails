@@ -265,6 +265,7 @@ module Rails
           if respond_to?(:active_record)
             active_record.run_commit_callbacks_on_first_saved_instances_in_transaction = false
             active_record.allow_deprecated_singular_associations_name = false
+            active_record.sqlite3_adapter_strict_strings_by_default = true
           end
 
           if respond_to?(:action_dispatch)
@@ -284,10 +285,6 @@ module Rails
 
           if respond_to?(:action_controller)
             action_controller.allow_deprecated_parameters_hash_equality = false
-          end
-
-          if respond_to?(:active_record)
-            active_record.sqlite3_adapter_strict_strings_by_default = true
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
