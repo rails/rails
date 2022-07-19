@@ -419,18 +419,16 @@ module ActiveRecord
         load_schema(db_config, format, file)
       end
 
-      def dump_schema(db_config, format = ActiveRecord.schema_format) # :nodoc:
+      def dump_schema(db_config, format = ActiveRecord.schema_format, connection = ActiveRecord::Base.connection) # :nodoc:
         require "active_record/schema_dumper"
         filename = schema_dump_path(db_config, format)
         return unless filename
-
-        connection = ActiveRecord::Base.connection
 
         FileUtils.mkdir_p(db_dir)
         case format
         when :ruby
           File.open(filename, "w:utf-8") do |file|
-            ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
+            ActiveRecord::SchemaDumper.dump(connection, file)
           end
         when :sql
           structure_dump(db_config, filename)
