@@ -3,6 +3,7 @@
 require "active_record"
 require "active_support/configuration_file"
 require "active_support/deprecation"
+require "active_record/temporary_connection"
 
 databases = ActiveRecord::Tasks::DatabaseTasks.setup_initial_database_yaml
 
@@ -255,8 +256,9 @@ db_namespace = namespace :db do
     desc "Display status of migrations"
     task status: :load_config do
       ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-        ActiveRecord::Base.establish_connection(db_config)
-        ActiveRecord::Tasks::DatabaseTasks.migrate_status
+        ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
+          ActiveRecord::Tasks::DatabaseTasks.migrate_status(connection)
+        end
       end
     end
 
@@ -265,8 +267,10 @@ db_namespace = namespace :db do
         desc "Display status of migrations for #{name} database"
         task name => :load_config do
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
-          ActiveRecord::Base.establish_connection(db_config)
-          ActiveRecord::Tasks::DatabaseTasks.migrate_status
+
+          ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
+            ActiveRecord::Tasks::DatabaseTasks.migrate_status(connection)
+          end
         end
       end
     end
