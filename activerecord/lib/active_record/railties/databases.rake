@@ -460,9 +460,10 @@ db_namespace = namespace :db do
     task dump: :load_config do
       ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
         if db_config.schema_dump
-          ActiveRecord::Base.establish_connection(db_config)
-          schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
+          ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
+            schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format, connection)
+          end
         end
       end
 
@@ -481,13 +482,12 @@ db_namespace = namespace :db do
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
 
           if db_config.schema_dump
-            schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-
-            ActiveRecord::Base.establish_connection(db_config)
-            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
+            ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
+              schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
+              ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format, connection)
+              db_namespace["schema:dump:#{name}"].reenable
+            end
           end
-
-          db_namespace["schema:dump:#{name}"].reenable
         end
       end
     end
