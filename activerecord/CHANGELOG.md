@@ -1,3 +1,7 @@
+*   Allow nested functions as safe SQL string
+
+    *Michael Siegfried*
+
 *   Allow `destroy_association_async_job=` to be configured with a class string instead of a constant.
 
     Defers an autoloading dependency between `ActiveRecord::Base` and `ActiveJob::Base`
