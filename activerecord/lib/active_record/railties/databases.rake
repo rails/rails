@@ -121,10 +121,7 @@ db_namespace = namespace :db do
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
       # IMPORTANT: This task won't dump the schema if ActiveRecord.dump_schema_after_migration is set to false
       task name do
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
-
-        if ActiveRecord.dump_schema_after_migration && db_config.schema_dump
-          ActiveRecord::Base.establish_connection(db_config)
+        if ActiveRecord.dump_schema_after_migration
           db_namespace["schema:dump:#{name}"].invoke
         end
 
@@ -477,9 +474,14 @@ db_namespace = namespace :db do
         desc "Creates a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) for #{name} database"
         task name => :load_config do
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
-          ActiveRecord::Base.establish_connection(db_config)
-          schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
+
+          if db_config.schema_dump
+            schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
+
+            ActiveRecord::Base.establish_connection(db_config)
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
+          end
+
           db_namespace["schema:dump:#{name}"].reenable
         end
       end
