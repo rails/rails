@@ -112,6 +112,13 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_controller_parent_param
+    run_generator ["admin/dashboard", "--parent", "admin_controller"]
+    assert_file "app/controllers/admin/dashboard_controller.rb" do |controller|
+      assert_match(/class Admin::DashboardController < AdminController/, controller)
+    end
+  end
+
   def test_controller_suffix_is_not_duplicated
     run_generator ["account_controller"]
 

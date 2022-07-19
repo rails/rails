@@ -17,6 +17,10 @@ Examples:
         Views:      app/views/credit_cards/debit.html.erb [...]
         Helper:     app/helpers/credit_cards_helper.rb
 
-    `bin/rails generate controller admin/users index --skip-routes`
+    `bin/rails generate controller users index --skip-routes`
 
-    This generates a `Admin::UsersController` with an index acion and no routes.
+    This generates a `UsersController` with an index acion and no routes.
+
+    `bin/rails generate controller admin/dashboard --parent=admin_controller`
+
+    This generates a `Admin::DashboardController` with an `AdminController` parent class.
