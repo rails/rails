@@ -5,8 +5,8 @@ module ActiveRecord
     class PoolConfig # :nodoc:
       include Mutex_m
 
-      attr_reader :db_config, :connection_class, :role, :shard
-      attr_accessor :schema_cache
+      attr_reader :db_config, :role, :shard
+      attr_accessor :schema_cache, :connection_class
 
       INSTANCES = ObjectSpace::WeakMap.new
       private_constant :INSTANCES

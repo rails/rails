@@ -116,6 +116,13 @@ module ActiveRecord
         existing_pool_config = pool_manager.get_pool_config(role, shard)
 
         if existing_pool_config && existing_pool_config.db_config == db_config
+          # Update the pool_config's connection class if it differs. This is used
+          # for ensuring that ActiveRecord::Base and the primary_abstract_class use
+          # the same pool. Without this granular swapping will not work correctly.
+          if owner_name.primary_class? && (existing_pool_config.connection_class != owner_name)
+            existing_pool_config.connection_class = owner_name
+          end
+
           existing_pool_config.pool
         else
           disconnect_pool_from_pool_manager(pool_manager, role, shard)
