@@ -54,16 +54,30 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
   # unknown pre-defined variant of the attachment.
   def variant(transformations)
-    case transformations
-    when Symbol
-      variant_name = transformations
-      transformations = variants.fetch(variant_name) do
-        record_model_name = record.to_model.model_name.name
-        raise ArgumentError, "Cannot find variant :#{variant_name} for #{record_model_name}##{name}"
-      end
-    end
-
+    transformations = transformations_by_name(transformations)
     blob.variant(transformations)
+  end
+
+  # Returns an ActiveStorage::Preview instance for the attachment with the set
+  # of +transformations+ provided.
+  # See ActiveStorage::Blob::Representable#preview for more information.
+  #
+  # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
+  # unknown pre-defined variant of the attachment.
+  def preview(transformations)
+    transformations = transformations_by_name(transformations)
+    blob.preview(transformations)
+  end
+
+  # Returns an ActiveStorage::Preview or an ActiveStorage::Variant for the
+  # attachment with set of +transformations+ provided.
+  # See ActiveStorage::Blob::Representable#representation for more information.
+  #
+  # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
+  # unknown pre-defined variant of the attachment.
+  def representation(transformations)
+    transformations = transformations_by_name(transformations)
+    blob.representation(transformations)
   end
 
   private
@@ -85,6 +99,19 @@ class ActiveStorage::Attachment < ActiveStorage::Record
 
     def variants
       record.attachment_reflections[name]&.variants
+    end
+
+    def transformations_by_name(transformations)
+      case transformations
+      when Symbol
+        variant_name = transformations
+        variants.fetch(variant_name) do
+          record_model_name = record.to_model.model_name.name
+          raise ArgumentError, "Cannot find variant :#{variant_name} for #{record_model_name}##{name}"
+        end
+      else
+        transformations
+      end
     end
 end
 
