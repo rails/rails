@@ -1,3 +1,11 @@
+*   Prevent `ActionDispatch::ServerTiming` from overwriting existing values in `Server-Timing`.
+
+    Previously, if another middleware down the chain set `Server-Timing` header,
+    it would overwritten by `ActionDispatch::ServerTiming`.
+
+    *Jakub Malinowski*
+
+
 ## Rails 7.0.3.1 (July 12, 2022) ##
 
 *   No changes.
