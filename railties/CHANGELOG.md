@@ -10,9 +10,10 @@
 
     *Jonathan Hefner*
 
-*   Newly generated per-environment credentials files (e.g.
-    `config/credentials/production.yml.enc`) now include a `secret_key_base` for
-    convenience, just as `config/credentials.yml.enc` does.
+*   Except for `dev` and `test` environments, newly generated per-environment
+    credentials files (e.g. `config/credentials/production.yml.enc`) now include
+    a `secret_key_base` for convenience, just as `config/credentials.yml.enc`
+    does.
 
     *Jonathan Hefner*
 

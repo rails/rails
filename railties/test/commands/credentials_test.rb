@@ -75,6 +75,16 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_file "config/credentials/production.yml.enc"
   end
 
+  test "edit command omits secret_key_base from generated credentials for dev environment" do
+    assert_no_match %r/^\s*secret_key_base: /, run_edit_command(environment: "dev")
+    assert_file "config/credentials/development.yml.enc"
+  end
+
+  test "edit command omits secret_key_base from generated credentials for test environment" do
+    assert_no_match %r/^\s*secret_key_base: /, run_edit_command(environment: "test")
+    assert_file "config/credentials/test.yml.enc"
+  end
+
   test "edit command does not raise when an initializer tries to access non-existent credentials" do
     app_file "config/initializers/raise_when_loaded.rb", <<-RUBY
       Rails.application.credentials.missing_key!

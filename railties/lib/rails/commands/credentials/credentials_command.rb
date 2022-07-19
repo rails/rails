@@ -79,6 +79,7 @@ module Rails
 
         def ensure_encryption_key_has_been_added
           require "rails/generators/rails/encryption_key_file/encryption_key_file_generator"
+
           encryption_key_file_generator = Rails::Generators::EncryptionKeyFileGenerator.new
           encryption_key_file_generator.add_key_file(key_path)
           encryption_key_file_generator.ignore_key_file(key_path)
@@ -86,7 +87,12 @@ module Rails
 
         def ensure_credentials_have_been_added
           require "rails/generators/rails/credentials/credentials_generator"
-          Rails::Generators::CredentialsGenerator.new([content_path, key_path], quiet: true).invoke_all
+
+          Rails::Generators::CredentialsGenerator.new(
+            [content_path, key_path],
+            skip_secret_key_base: %w[development test].include?(options[:environment]),
+            quiet: true
+          ).invoke_all
         end
 
         def change_credentials_in_system_editor
