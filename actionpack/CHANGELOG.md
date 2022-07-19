@@ -1,3 +1,10 @@
+*   Prevent `ActionDispatch::ServerTiming` from overwriting existing values in `Server-Timing`.
+
+    Previously, if another middleware down the chain set `Server-Timing` header,
+    it would overwritten by `ActionDispatch::ServerTiming`.
+
+    *Jakub Malinowski*
+
 *   Allow opting out of the `SameSite` cookie attribute when setting a cookie.
 
     You can opt out of `SameSite` by passing `same_site: nil`.
