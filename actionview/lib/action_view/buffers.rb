@@ -18,24 +18,64 @@ module ActionView
   #   sbuf << 5
   #   puts sbuf # => "hello\u0005"
   #
-  class OutputBuffer < ActiveSupport::SafeBuffer # :nodoc:
-    def initialize(*)
-      super
-      encode!
+  class OutputBuffer # :nodoc:
+    def initialize(buffer = "")
+      @buffer = String.new(buffer)
+      @buffer.encode!
+    end
+
+    delegate :length, :blank?, :encoding, :encode!, :force_encoding, to: :@buffer
+
+    def to_s
+      @buffer.html_safe
+    end
+    alias_method :html_safe, :to_s
+
+    def to_str
+      @buffer.dup
+    end
+
+    def html_safe?
+      true
     end
 
     def <<(value)
-      return self if value.nil?
-      super(value.to_s)
+      unless value.nil?
+        value = value.to_s
+        @buffer << if value.html_safe?
+          value
+        else
+          CGI.escapeHTML(value)
+        end
+      end
+      self
     end
     alias :append= :<<
 
+    def safe_concat(value)
+      @buffer << value
+      self
+    end
+    alias :safe_append= :safe_concat
+
     def safe_expr_append=(val)
       return self if val.nil?
-      safe_concat val.to_s
+      @buffer << val.to_s
+      self
     end
 
-    alias :safe_append= :safe_concat
+    def initialize_copy(other)
+      @buffer = other.to_str
+    end
+
+    # Don't use this
+    def slice!(range)
+      @buffer.slice!(range)
+    end
+
+    def ==(other)
+      other.class == self.class && @buffer == other.to_str
+    end
   end
 
   class StreamingBuffer # :nodoc:
