@@ -834,10 +834,21 @@ module ActiveRecord
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
       def add_index(table_name, column_name, **options)
+        create_index = build_create_index_definition(table_name, column_name, **options)
+        execute(create_index.ddl)
+      end
+
+      # Builds a CreateIndexDefinition object.
+      #
+      # This definition object contains information about the index that would be created
+      # if the same arguments were passed to #add_index. See #add_index for information about
+      # passing a +table_name+, +column_name+, and other additional options that can be passed.
+      def build_create_index_definition(table_name, column_name, **options) # :nodoc:
         index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
 
         create_index = CreateIndexDefinition.new(index, algorithm, if_not_exists)
-        execute schema_creation.accept(create_index)
+        schema_creation.accept(create_index)
+        create_index
       end
 
       # Removes the given index from the table.
