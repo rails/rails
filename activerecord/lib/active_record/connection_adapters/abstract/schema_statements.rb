@@ -289,26 +289,9 @@ module ActiveRecord
       #     SELECT * FROM orders INNER JOIN line_items ON order_id=orders.id
       #
       # See also TableDefinition#column for details on how to create columns.
-      def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options)
+      def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options, &block)
         validate_table_length!(table_name) unless options[:_uses_legacy_table_name]
-        td = create_table_definition(table_name, **extract_table_options!(options))
-
-        if id && !td.as
-          pk = primary_key || Base.get_primary_key(table_name.to_s.singularize)
-
-          if id.is_a?(Hash)
-            options.merge!(id.except(:type))
-            id = id.fetch(:type, :primary_key)
-          end
-
-          if pk.is_a?(Array)
-            td.primary_keys pk
-          else
-            td.primary_key pk, id, **options
-          end
-        end
-
-        yield td if block_given?
+        td = build_create_table_definition(table_name, id: id, primary_key: primary_key, force: force, **options, &block)
 
         if force
           drop_table(table_name, force: force, if_exists: true)
@@ -316,7 +299,7 @@ module ActiveRecord
           schema_cache.clear_data_source_cache!(table_name.to_s)
         end
 
-        result = execute schema_creation.accept td
+        result = execute(td.ddl)
 
         unless supports_indexes_in_create?
           td.indexes.each do |column_name, index_options|
@@ -335,6 +318,19 @@ module ActiveRecord
         end
 
         result
+      end
+
+      # Returns a TableDefinition object containing information about the table that would be created
+      # if the same arguments were passed to #create_table. See #create_table for information about
+      # passing a +table_name+, and other additional options that can be passed.
+      def build_create_table_definition(table_name, id: :primary_key, primary_key: nil, force: nil, **options)
+        table_definition = create_table_definition(table_name, **extract_table_options!(options))
+        table_definition.set_primary_key(table_name, id, primary_key, **options)
+
+        yield table_definition if block_given?
+
+        schema_creation.accept(table_definition)
+        table_definition
       end
 
       # Creates a new join table with the name created using the lexical order of the first two

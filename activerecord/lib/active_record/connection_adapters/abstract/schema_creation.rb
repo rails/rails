@@ -66,7 +66,7 @@ module ActiveRecord
           create_sql << "(#{statements.join(', ')})" if statements.present?
           add_table_options!(create_sql, o)
           create_sql << " AS #{to_sql(o.as)}" if o.as
-          create_sql
+          o.ddl = create_sql
         end
 
         def visit_PrimaryKeyDefinition(o)
