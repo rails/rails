@@ -1,3 +1,20 @@
+*   Fix BigDecimal (de)serialization for adapters using JSON.
+
+    Previously, BigDecimal was listed as not needing a serializer.  However,
+    when used with an adapter storing the job arguments as JSON, it would get
+    serialized as a simple String, resulting in deserialization also producing
+    a String (instead of a BigDecimal).
+
+    By using a serializer, we ensure the round trip is safe.
+
+    To ensure applications using BigDecimal job arguments are not subject to
+    race conditions during deployment (where a replica running a version of
+    Rails without BigDecimalSerializer fails to deserialize an argument
+    serialized with it), `ActiveJob.use_big_decimal_serializer` is disabled by
+    default, and can be set to true in a following deployment..
+
+    *Sam Bostock*
+
 *   Preserve full-precision `enqueued_at` timestamps for serialized jobs,
     allowing more accurate reporting of how long a job spent waiting in the
     queue before it was performed.
