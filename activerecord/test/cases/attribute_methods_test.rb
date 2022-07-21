@@ -362,6 +362,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "Don't change the topic", topic[:heading]
   end
 
+  test "_read_attribute can read aliased attributes as well" do
+    topic = Topic.new(title: "Don't change the topic")
+
+    assert_equal "Don't change the topic", topic._read_attribute("heading")
+    assert_equal "Don't change the topic", topic["heading"]
+
+    assert_equal "Don't change the topic", topic.read_attribute(:heading)
+    assert_equal "Don't change the topic", topic[:heading]
+  end
+
   test "read_attribute raises ActiveModel::MissingAttributeError when the attribute does not exist" do
     computer = Computer.select("id").first
     assert_raises(ActiveModel::MissingAttributeError) { computer[:developer] }

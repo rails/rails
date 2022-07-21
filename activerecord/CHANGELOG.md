@@ -1,3 +1,10 @@
+*   Fix `_read_attribute` method to check whether an attribute is aliased or not, and
+    use the aliased attribute name if needed.
+
+    Fixes #45632.
+
+    *Tracy Loisel*
+
 *   Allow nested functions as safe SQL string
 
     *Michael Siegfried*
