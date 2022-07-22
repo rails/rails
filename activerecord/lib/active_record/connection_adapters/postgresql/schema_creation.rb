@@ -10,6 +10,7 @@ module ActiveRecord
             sql << o.constraint_validations.map { |fk| visit_ValidateConstraint fk }.join(" ")
             sql << o.exclusion_constraint_adds.map { |con| visit_AddExclusionConstraint con }.join(" ")
             sql << o.exclusion_constraint_drops.map { |con| visit_DropExclusionConstraint con }.join(" ")
+            o.ddl = sql
           end
 
           def visit_AddForeignKey(o)
