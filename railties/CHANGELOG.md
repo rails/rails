@@ -1,3 +1,17 @@
+*   Add `--parent` option to controller generator to specify parent class of job.
+
+    Example:
+
+    `bin/rails g controller admin/users --parent=admin_controller` generates:
+
+    ```ruby
+    class Admin::UsersController < AdminController
+      # ...
+    end
+    ```
+
+    *Gannon McGibbon*
+
 *   In-app custom credentials templates are now supported.  When a credentials
     file does not exist, `rails credentials:edit` will now try to use
     `lib/templates/rails/credentials/credentials.yml.tt` to generate the
