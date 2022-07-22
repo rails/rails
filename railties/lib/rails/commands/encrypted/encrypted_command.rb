@@ -32,6 +32,7 @@ module Rails
         end
 
         say "File encrypted and saved."
+        warn_if_encrypted_configuration_is_invalid
       rescue ActiveSupport::MessageEncryptor::InvalidMessage
         say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
       end
@@ -71,6 +72,13 @@ module Rails
           end
         end
 
+        def warn_if_encrypted_configuration_is_invalid
+          encrypted_configuration.validate!
+        rescue ActiveSupport::EncryptedConfiguration::InvalidContentError => error
+          say "WARNING: #{error.message}", :red
+          say ""
+          say "Your application will not be able to load '#{content_path}' until the error has been fixed.", :red
+        end
 
         def encryption_key_file_generator
           require "rails/generators"

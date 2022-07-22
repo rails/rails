@@ -82,6 +82,14 @@ class Rails::Command::EncryptedCommandTest < ActiveSupport::TestCase
     assert_match(/access_key_id: 123/, run_edit_command(key: "config/tokens.key"))
   end
 
+  test "edit command preserves user's content even if it contains invalid YAML" do
+    write_invalid_yaml = %(ruby -e "File.write ARGV[0], 'foo: bar: bad'")
+
+    assert_match %r/WARNING: Invalid YAML/, run_edit_command(editor: write_invalid_yaml)
+    assert_match %r/foo: bar: bad/, run_edit_command
+  end
+
+
   test "show encrypted file with custom key" do
     run_edit_command(key: "config/tokens.key")
 
