@@ -5,6 +5,9 @@ require "active_support/encrypted_file"
 
 class EncryptedFileTest < ActiveSupport::TestCase
   setup do
+    @original_env_content_key = ENV["CONTENT_KEY"]
+    ENV["CONTENT_KEY"] = nil
+
     @content = "One little fox jumped over the hedge"
 
     @tmpdir = Dir.mktmpdir("encrypted-file-test-")
@@ -21,19 +24,17 @@ class EncryptedFileTest < ActiveSupport::TestCase
     FileUtils.rm_rf @content_path
     FileUtils.rm_rf @key_path
     FileUtils.rm_rf @tmpdir
+
+    ENV["CONTENT_KEY"] = @original_env_content_key
   end
 
   test "reading content by env key" do
     FileUtils.rm_rf @key_path
 
-    begin
-      ENV["CONTENT_KEY"] = @key
-      @encrypted_file.write @content
+    ENV["CONTENT_KEY"] = @key
+    @encrypted_file.write @content
 
-      assert_equal @content, @encrypted_file.read
-    ensure
-      ENV["CONTENT_KEY"] = nil
-    end
+    assert_equal @content, @encrypted_file.read
   end
 
   test "reading content by key file" do
@@ -59,17 +60,13 @@ class EncryptedFileTest < ActiveSupport::TestCase
   test "raise MissingKeyError when env key is blank" do
     FileUtils.rm_rf @key_path
 
-    begin
-      ENV["CONTENT_KEY"] = ""
-      raised = assert_raise ActiveSupport::EncryptedFile::MissingKeyError do
-        @encrypted_file.write @content
-        @encrypted_file.read
-      end
-
-      assert_match(/Missing encryption key to decrypt file/, raised.message)
-    ensure
-      ENV["CONTENT_KEY"] = nil
+    ENV["CONTENT_KEY"] = ""
+    raised = assert_raise ActiveSupport::EncryptedFile::MissingKeyError do
+      @encrypted_file.write @content
+      @encrypted_file.read
     end
+
+    assert_match(/Missing encryption key to decrypt file/, raised.message)
   end
 
   test "key can be added after MissingKeyError raised" do
@@ -83,6 +80,25 @@ class EncryptedFileTest < ActiveSupport::TestCase
 
     assert_nothing_raised do
       assert_equal @key, @encrypted_file.key
+    end
+  end
+
+  test "key? is true when key file exists" do
+    assert @encrypted_file.key?
+  end
+
+  test "key? is true when env key is present" do
+    FileUtils.rm_rf @key_path
+    ENV["CONTENT_KEY"] = @key
+
+    assert @encrypted_file.key?
+  end
+
+  test "key? is false and does not raise when the key is missing" do
+    FileUtils.rm_rf @key_path
+
+    assert_nothing_raised do
+      assert_not @encrypted_file.key?
     end
   end
 

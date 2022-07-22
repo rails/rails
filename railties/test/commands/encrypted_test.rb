@@ -51,6 +51,14 @@ class Rails::Command::EncryptedCommandTest < ActiveSupport::TestCase
     assert_equal 1, read_file(".gitignore").scan("config/master.key").length
   end
 
+  test "edit command can add master key when require_master_key is true" do
+    remove_file "config/master.key"
+    add_to_config "config.require_master_key = true"
+
+    assert_nothing_raised { run_edit_command }
+    assert_file "config/master.key"
+  end
+
   test "edit command does not add master key when `RAILS_MASTER_KEY` env specified" do
     master_key = read_file("config/master.key")
     remove_file "config/master.key"
