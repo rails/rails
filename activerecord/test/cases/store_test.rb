@@ -104,6 +104,14 @@ class StoreTest < ActiveRecord::TestCase
     assert_not @john.color_changed?
   end
 
+  test "updating the store and changing it back won't mark accessor as changed" do
+    @john.color = "red"
+    assert_equal "black", @john.color_was
+    @john.color = "black"
+    assert_not_predicate @john, :settings_changed?
+    assert_not_predicate @john, :color_changed?
+  end
+
   test "updating the store populates the accessor changed array correctly" do
     @john.color = "red"
     assert_equal "black", @john.color_was
