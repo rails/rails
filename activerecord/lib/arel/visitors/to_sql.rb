@@ -333,7 +333,7 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_HomogeneousIn(o, collector)
           collector.preparable = false
 
-          collector << quote_table_name(o.table_name) << "." << quote_column_name(o.column_name)
+          visit o.left, collector
 
           if o.type == :in
             collector << " IN ("
@@ -350,7 +350,6 @@ module Arel # :nodoc: all
           end
 
           collector << ")"
-          collector
         end
 
         def visit_Arel_SelectManager(o, collector)
