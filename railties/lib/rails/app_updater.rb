@@ -31,7 +31,6 @@ module Rails
           options[:skip_test]           = !defined?(Rails::TestUnitRailtie)
           options[:skip_asset_pipeline] = !defined?(Sprockets::Railtie) && !defined?(Propshaft::Railtie)
           options[:skip_bootsnap]       = !defined?(Bootsnap)
-          options[:updating]            = true
           options
         end
     end
