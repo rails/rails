@@ -10,8 +10,9 @@ class EncryptedFileTest < ActiveSupport::TestCase
     @tmpdir = Dir.mktmpdir("encrypted-file-test-")
     @content_path = File.join(@tmpdir, "content.txt.enc")
 
+    @key = ActiveSupport::EncryptedFile.generate_key
     @key_path = File.join(@tmpdir, "content.txt.key")
-    File.write(@key_path, ActiveSupport::EncryptedFile.generate_key)
+    File.write(@key_path, @key)
 
     @encrypted_file = encrypted_file(@content_path)
   end
@@ -26,7 +27,7 @@ class EncryptedFileTest < ActiveSupport::TestCase
     FileUtils.rm_rf @key_path
 
     begin
-      ENV["CONTENT_KEY"] = ActiveSupport::EncryptedFile.generate_key
+      ENV["CONTENT_KEY"] = @key
       @encrypted_file.write @content
 
       assert_equal @content, @encrypted_file.read
@@ -68,6 +69,20 @@ class EncryptedFileTest < ActiveSupport::TestCase
       assert_match(/Missing encryption key to decrypt file/, raised.message)
     ensure
       ENV["CONTENT_KEY"] = nil
+    end
+  end
+
+  test "key can be added after MissingKeyError raised" do
+    FileUtils.rm_rf @key_path
+
+    assert_raise ActiveSupport::EncryptedFile::MissingKeyError do
+      @encrypted_file.key
+    end
+
+    File.write(@key_path, @key)
+
+    assert_nothing_raised do
+      assert_equal @key, @encrypted_file.key
     end
   end
 
