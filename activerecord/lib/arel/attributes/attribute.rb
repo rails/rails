@@ -19,6 +19,10 @@ module Arel # :nodoc: all
         relation.lower self
       end
 
+      def upper
+        relation.upper self
+      end
+
       def type_cast_for_database(value)
         relation.type_cast_for_database(name, value)
       end

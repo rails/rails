@@ -41,6 +41,13 @@ module Arel
         assert_equal "LOWER", lower.name
         assert_equal [:one], lower.expressions.map(&:expr)
       end
+
+      def test_upper
+        upper = @factory.upper :one
+        assert_instance_of Nodes::NamedFunction, upper
+        assert_equal "UPPER", upper.name
+        assert_equal [:one], upper.expressions.map(&:expr)
+      end
     end
   end
 end
