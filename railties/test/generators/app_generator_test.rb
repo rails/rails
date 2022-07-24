@@ -338,6 +338,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_preserves_skip_system_test
+    app_root = File.join(destination_root, "myapp")
+    run_generator [ app_root, "--skip-system-test" ]
+
+    FileUtils.cd(app_root) do
+      config = "config/application.rb"
+      assert_file "myapp/#{config}", /generators\.system_tests/
+      assert_no_changes -> { File.readlines(config).grep(/generators\.system_tests/) } do
+        quietly { system("yes | bin/rails app:update") }
+      end
+    end
+  end
+
   def test_gem_for_active_storage
     run_generator
     assert_file "Gemfile", /^# gem "image_processing"/
