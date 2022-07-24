@@ -45,6 +45,10 @@ module ActiveSupport
       @env_key, @raise_if_missing_key = env_key, raise_if_missing_key
     end
 
+    # Returns the encryption key, first trying the environment variable
+    # specified by +env_key+, then trying the key file specified by +key_path+.
+    # If +raise_if_missing_key+ is true, raises MissingKeyError if the
+    # environment variable is not set and the key file does not exist.
     def key
       read_env_key || read_key_file || handle_missing_key
     end
