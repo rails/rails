@@ -10,8 +10,8 @@ module ActiveRecord
       def initialize(attr_name, object_class = Object, permitted_classes: [], unsafe_load: nil)
         @attr_name = attr_name
         @object_class = object_class
-        @permitted_classes = [*ActiveRecord.yaml_column_permitted_classes, *permitted_classes]
-        @unsafe_load = unsafe_load.nil? ? ActiveRecord.use_yaml_unsafe_load : unsafe_load
+        @permitted_classes = permitted_classes
+        @unsafe_load = unsafe_load
         check_arity_of_constructor
       end
 
@@ -41,6 +41,14 @@ module ActiveRecord
       end
 
       private
+        def permitted_classes
+          [*ActiveRecord.yaml_column_permitted_classes, *@permitted_classes]
+        end
+
+        def unsafe_load?
+          @unsafe_load.nil? ? ActiveRecord.use_yaml_unsafe_load : @unsafe_load
+        end
+
         def check_arity_of_constructor
           load(nil)
         rescue ArgumentError
@@ -49,18 +57,18 @@ module ActiveRecord
 
         if YAML.respond_to?(:unsafe_load)
           def yaml_load(payload)
-            if @unsafe_load
+            if unsafe_load?
               YAML.unsafe_load(payload)
             else
-              YAML.safe_load(payload, permitted_classes: @permitted_classes, aliases: true)
+              YAML.safe_load(payload, permitted_classes: permitted_classes, aliases: true)
             end
           end
         else
           def yaml_load(payload)
-            if @unsafe_load
+            if unsafe_load?
               YAML.load(payload)
             else
-              YAML.safe_load(payload, permitted_classes: @permitted_classes, aliases: true)
+              YAML.safe_load(payload, permitted_classes: permitted_classes, aliases: true)
             end
           end
         end
