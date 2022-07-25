@@ -7,9 +7,10 @@ module ActiveRecord
     class YAMLColumn # :nodoc:
       attr_accessor :object_class
 
-      def initialize(attr_name, object_class = Object)
+      def initialize(attr_name, object_class = Object, permitted_classes: [])
         @attr_name = attr_name
         @object_class = object_class
+        @permitted_classes = [*ActiveRecord.yaml_column_permitted_classes, *permitted_classes]
         check_arity_of_constructor
       end
 
@@ -50,7 +51,7 @@ module ActiveRecord
             if ActiveRecord.use_yaml_unsafe_load
               YAML.unsafe_load(payload)
             else
-              YAML.safe_load(payload, permitted_classes: ActiveRecord.yaml_column_permitted_classes, aliases: true)
+              YAML.safe_load(payload, permitted_classes: @permitted_classes, aliases: true)
             end
           end
         else
@@ -58,7 +59,7 @@ module ActiveRecord
             if ActiveRecord.use_yaml_unsafe_load
               YAML.load(payload)
             else
-              YAML.safe_load(payload, permitted_classes: ActiveRecord.yaml_column_permitted_classes, aliases: true)
+              YAML.safe_load(payload, permitted_classes: @permitted_classes, aliases: true)
             end
           end
         end
