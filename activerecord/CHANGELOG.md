@@ -1,3 +1,7 @@
+*   Allow per attribute setting of YAML permitted classes (safe load) and unsafe load.
+
+    *Carlos Palhares*
+
 *   Add a build persistence method
 
     Provides a wrapper for `new`, to provide feature parity with `create`s
