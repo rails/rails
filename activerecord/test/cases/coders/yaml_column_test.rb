@@ -103,6 +103,22 @@ module ActiveRecord
         ActiveRecord.yaml_column_permitted_classes = @yaml_column_permitted_classes_default
       end
 
+      def test_yaml_column_unsafe_load_option
+        ActiveRecord.use_yaml_unsafe_load = false
+        ActiveRecord.yaml_column_permitted_classes = []
+
+        coder = YAMLColumn.new("attr_name", unsafe_load: true)
+        time_yaml = YAML.dump(Time.new)
+        symbol_yaml = YAML.dump(:somesymbol)
+
+        assert_nothing_raised do
+          coder.load(time_yaml)
+          coder.load(symbol_yaml)
+        end
+
+        ActiveRecord.yaml_column_permitted_classes = @yaml_column_permitted_classes_default
+      end
+
       def test_load_doesnt_handle_undefined_class_or_module
         coder = YAMLColumn.new("attr_name")
         missing_class_yaml = '--- !ruby/object:DoesNotExistAndShouldntEver {}\n'
