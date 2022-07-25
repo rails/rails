@@ -178,7 +178,7 @@ def disable_extension!(extension, connection)
   return false unless connection.supports_extensions?
   return true unless connection.extension_enabled?(extension)
 
-  connection.disable_extension extension
+  connection.disable_extension(extension, force: :cascade)
   connection.reconnect!
 end
 

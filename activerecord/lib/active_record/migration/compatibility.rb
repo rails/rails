@@ -65,6 +65,13 @@ module ActiveRecord
           super(table_name, column_name, !!null, default)
         end
 
+        def disable_extension(name, **options)
+          if connection.adapter_name == "PostgreSQL"
+            options[:force] = :cascade
+          end
+          super
+        end
+
         private
           def compatible_table_definition(t)
             class << t
