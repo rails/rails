@@ -282,6 +282,7 @@ module Rails
             :skip_active_storage,
             :skip_bootsnap,
             :skip_dev_gems,
+            :skip_bcrypt,
             :skip_hotwire,
             :skip_javascript,
             :skip_jbuilder,

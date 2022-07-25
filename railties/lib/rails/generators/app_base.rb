@@ -88,6 +88,9 @@ module Rails
         class_option :skip_dev_gems,       type: :boolean, default: nil,
                                            desc: "Skip development gems (e.g., web-console)"
 
+        class_option :skip_bcrypt,         type: :boolean, default: nil,
+                                           desc: "Skip installing bcrypt gem"
+
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
@@ -302,6 +305,10 @@ module Rails
 
       def skip_action_text? # :doc:
         options[:skip_action_text]
+      end
+
+      def skip_bcrypt_is_nil? # :doc:
+        options[:skip_bcrypt].nil?
       end
 
       def skip_sprockets?

@@ -1,3 +1,15 @@
+*   Add `--skip-bcrypt` option to app generator; enable the corresponding
+    `--no-skip-bcrypt` option to include the uncommented `bcrypt` gem in the
+    created Gemfile. This results in three possible outcome for the `bcrypt` gem
+    in the created app's Gemfile:
+
+    1. included but commented out (`skip-bcrypt`: `nil`; enabled by default)
+    2. included and installed (`skip-bcrypt`: `false`; enabled with
+       `--no-skip-bcrypt`)
+    3. omitted entirely (`skip-bcrypt`: `true`; enabled with `--minimal`)
+
+    *Brad Trick*
+
 *   Add `--parent` option to controller generator to specify parent class of job.
 
     Example:

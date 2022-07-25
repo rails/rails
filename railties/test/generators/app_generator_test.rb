@@ -940,6 +940,23 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "web-console"
   end
 
+  def test_no_skip_bcrypt_with_minimal
+    run_generator [destination_root, "--minimal", "--no-skip-bcrypt"]
+    assert_gem "bcrypt"
+  end
+
+  def test_skip_bcrypt_default
+    run_generator [destination_root]
+    assert_file "Gemfile", /^# gem "bcrypt"/
+  end
+
+  def test_skip_bcrypt_default_with_minimal
+    run_generator [destination_root, "--minimal"]
+    assert_file "Gemfile" do |content|
+      assert_no_match(/bcrypt/, content)
+    end
+  end
+
   def test_bootsnap
     run_generator [destination_root, "--no-skip-bootsnap"]
 
