@@ -119,6 +119,20 @@ module ActiveRecord
         ActiveRecord.yaml_column_permitted_classes = @yaml_column_permitted_classes_default
       end
 
+      def test_yaml_column_override_unsafe_load_option
+        ActiveRecord.use_yaml_unsafe_load = true
+        ActiveRecord.yaml_column_permitted_classes = []
+
+        coder = YAMLColumn.new("attr_name", unsafe_load: false)
+        time_yaml = YAML.dump(Time.new)
+
+        assert_raises(Psych::DisallowedClass) do
+          coder.load(time_yaml)
+        end
+
+        ActiveRecord.yaml_column_permitted_classes = @yaml_column_permitted_classes_default
+      end
+
       def test_load_doesnt_handle_undefined_class_or_module
         coder = YAMLColumn.new("attr_name")
         missing_class_yaml = '--- !ruby/object:DoesNotExistAndShouldntEver {}\n'

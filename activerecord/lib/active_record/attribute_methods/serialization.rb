@@ -53,6 +53,7 @@ module ActiveRecord
         #     +dump+ method may return +nil+ to serialize the value as +NULL+.
         # * +yaml+ - Optional. Yaml specific options. The allowed config is:
         #   * +:permitted_classes+ - +Array+ with the permitted classes.
+        #   * +:unsafe_load+ - Unsafely load YAML blobs, allow YAML to load any class
         #
         # ==== Options
         #

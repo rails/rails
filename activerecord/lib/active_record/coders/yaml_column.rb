@@ -7,11 +7,11 @@ module ActiveRecord
     class YAMLColumn # :nodoc:
       attr_accessor :object_class
 
-      def initialize(attr_name, object_class = Object, permitted_classes: [], unsafe_load: false)
+      def initialize(attr_name, object_class = Object, permitted_classes: [], unsafe_load: nil)
         @attr_name = attr_name
         @object_class = object_class
         @permitted_classes = [*ActiveRecord.yaml_column_permitted_classes, *permitted_classes]
-        @unsafe_load = ActiveRecord.use_yaml_unsafe_load || unsafe_load
+        @unsafe_load = unsafe_load.nil? ? ActiveRecord.use_yaml_unsafe_load : unsafe_load
         check_arity_of_constructor
       end
 
