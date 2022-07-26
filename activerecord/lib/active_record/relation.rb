@@ -449,7 +449,7 @@ module ActiveRecord
     # ==== Parameters
     #
     # * +updates+ - A string, array, or hash representing the SET part of an SQL statement. Any strings provided will
-    # be type cast, unless you use `Arel.sql`. (Don't pass user-provided values to `Arel.sql`.)
+    #   be type cast, unless you use +Arel.sql+. (Don't pass user-provided values to +Arel.sql+.)
     #
     # ==== Examples
     #
