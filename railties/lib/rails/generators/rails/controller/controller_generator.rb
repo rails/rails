@@ -6,7 +6,7 @@ module Rails
       argument :actions, type: :array, default: [], banner: "action action"
       class_option :skip_routes, type: :boolean, desc: "Don't add routes to config/routes.rb."
       class_option :helper, type: :boolean
-      class_option :parent, type: :string, desc: "The parent class for the generated controller"
+      class_option :parent, type: :string, default: "ApplicationController", desc: "The parent class for the generated controller"
 
       check_class_collision suffix: "Controller"
 
@@ -26,16 +26,8 @@ module Rails
       end
 
       private
-        def parent
-          options[:parent]
-        end
-
         def parent_class_name
-          if parent
-            parent
-          else
-            "ApplicationController"
-          end
+          options[:parent]
         end
 
         def file_name

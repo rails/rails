@@ -19,7 +19,7 @@ Examples:
 
     `bin/rails generate controller users index --skip-routes`
 
-    This generates a `UsersController` with an index acion and no routes.
+    This generates a `UsersController` with an index action and no routes.
 
     `bin/rails generate controller admin/dashboard --parent=admin_controller`
 
