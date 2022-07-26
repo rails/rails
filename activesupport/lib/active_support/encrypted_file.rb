@@ -114,8 +114,7 @@ module ActiveSupport
       end
 
       def read_key_file
-        return @key_file_contents if defined?(@key_file_contents)
-        @key_file_contents = (key_path.binread.strip if key_path.exist?)
+        @key_file_contents ||= (key_path.binread.strip if key_path.exist?)
       end
 
       def handle_missing_key
