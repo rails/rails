@@ -448,7 +448,8 @@ module ActiveRecord
     #
     # ==== Parameters
     #
-    # * +updates+ - A string, array, or hash representing the SET part of an SQL statement.
+    # * +updates+ - A string, array, or hash representing the SET part of an SQL statement. Any strings provided will
+    # be type cast, unless you use `Arel.sql`. (Don't pass user-provided values to `Arel.sql`.)
     #
     # ==== Examples
     #
@@ -463,6 +464,9 @@ module ActiveRecord
     #
     #   # Update all invoices and set the number column to its id value.
     #   Invoice.update_all('number = id')
+    #
+    #   # Update all books with 'Rails' in their title
+    #   Book.where('title LIKE ?', '%Rails%').update_all(title: Arel.sql("title + ' - volume 1'"))
     def update_all(updates)
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 
