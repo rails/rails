@@ -241,12 +241,10 @@ db_namespace = namespace :db do
 
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
 
-          ActiveRecord::Base.establish_connection(db_config)
-          ActiveRecord::Tasks::DatabaseTasks.check_target_version
-          ActiveRecord::Base.connection.migration_context.run(
-            :down,
-            ActiveRecord::Tasks::DatabaseTasks.target_version
-          )
+          ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
+            ActiveRecord::Tasks::DatabaseTasks.check_target_version
+            connection.migration_context.run(:down, ActiveRecord::Tasks::DatabaseTasks.target_version)
+          end
 
           db_namespace["_dump"].invoke
         end
@@ -283,10 +281,10 @@ db_namespace = namespace :db do
         step = ENV["STEP"] ? ENV["STEP"].to_i : 1
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
 
-        ActiveRecord::Base.establish_connection(db_config)
-        ActiveRecord::Base.connection.migration_context.rollback(step)
+        ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
+          connection.migration_context.rollback(step)
 
-        db_namespace["_dump"].invoke
+        end
       end
     end
   end
@@ -342,9 +340,9 @@ db_namespace = namespace :db do
   # desc "Raises an error if there are pending migrations"
   task abort_if_pending_migrations: :load_config do
     pending_migrations = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).flat_map do |db_config|
-      ActiveRecord::Base.establish_connection(db_config)
-
-      ActiveRecord::Base.connection.migration_context.open.pending_migrations
+      ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
+        connection.migration_context.open.pending_migrations
+      end
     end
 
     if pending_migrations.any?
@@ -354,8 +352,6 @@ db_namespace = namespace :db do
       end
       abort %{Run `bin/rails db:migrate` to update your database then try again.}
     end
-  ensure
-    ActiveRecord::Base.establish_connection(ActiveRecord::Tasks::DatabaseTasks.env.to_sym)
   end
 
   namespace :abort_if_pending_migrations do
@@ -363,16 +359,17 @@ db_namespace = namespace :db do
       # desc "Raises an error if there are pending migrations for #{name} database"
       task name => :load_config do
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
-        ActiveRecord::Base.establish_connection(db_config)
 
-        pending_migrations = ActiveRecord::Base.connection.migration_context.open.pending_migrations
+        ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
+          pending_migrations = connection.migration_context.open.pending_migrations
 
-        if pending_migrations.any?
-          puts "You have #{pending_migrations.size} pending #{pending_migrations.size > 1 ? 'migrations:' : 'migration:'}"
-          pending_migrations.each do |pending_migration|
-            puts "  %4d %s" % [pending_migration.version, pending_migration.name]
+          if pending_migrations.any?
+            puts "You have #{pending_migrations.size} pending #{pending_migrations.size > 1 ? 'migrations:' : 'migration:'}"
+            pending_migrations.each do |pending_migration|
+              puts "  %4d %s" % [pending_migration.version, pending_migration.name]
+            end
+            abort %{Run `bin/rails db:migrate:#{name}` to update your database then try again.}
           end
-          abort %{Run `bin/rails db:migrate:#{name}` to update your database then try again.}
         end
       end
     end
@@ -510,28 +507,20 @@ db_namespace = namespace :db do
       desc "Creates a db/schema_cache.yml file."
       task dump: :load_config do
         ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-          ActiveRecord::Base.establish_connection(db_config)
-          filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
-            db_config.name,
-            schema_cache_path: db_config.schema_cache_path,
-          )
-          ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(
-            ActiveRecord::Base.connection,
-            filename,
-          )
+          ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
+            filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config.name, schema_cache_path: db_config.schema_cache_path)
+
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(connection, filename)
+          end
         end
       end
 
       desc "Clears a db/schema_cache.yml file."
       task clear: :load_config do
         ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-          filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
-            db_config.name,
-            schema_cache_path: db_config.schema_cache_path,
-          )
-          ActiveRecord::Tasks::DatabaseTasks.clear_schema_cache(
-            filename,
-          )
+          filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config.name, schema_cache_path: db_config.schema_cache_path)
+
+          ActiveRecord::Tasks::DatabaseTasks.clear_schema_cache(filename)
         end
       end
     end

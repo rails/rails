@@ -1268,6 +1268,7 @@ module ActiveRecord
             migrator.migrations.index(migrator.current_migration)
           end
 
+
         finish = migrator.migrations[start_index + steps]
         version = finish ? finish.version : 0
         public_send(direction, version)
