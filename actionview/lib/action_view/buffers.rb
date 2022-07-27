@@ -24,7 +24,7 @@ module ActionView
       @buffer.encode!
     end
 
-    delegate :length, :blank?, :encoding, :encode!, :force_encoding, to: :@buffer
+    delegate :length, :blank?, :encoding, :encode!, :force_encoding, :valid_encoding?, to: :@buffer
 
     def to_s
       @buffer.html_safe
