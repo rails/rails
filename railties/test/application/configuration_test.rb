@@ -2654,6 +2654,8 @@ module ApplicationTests
       assert_includes ActiveJob::Serializers.serializers, DummySerializer
     end
 
+    # TODO: Add a test that active_job.forbid_colliding_hash_key_serialization works
+
     test "active record job queue is set" do
       app "development"
 

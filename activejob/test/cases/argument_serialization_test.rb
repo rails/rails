@@ -188,20 +188,46 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     end
   end
 
-  test "serializing a hash with colliding String and Symbol keys is not deprecated" do
-    assert_not_deprecated do
+  test "serializing a hash with colliding String and Symbol keys is deprecated" do
+    assert_deprecated("DEPRECATION PLACEHOLDER") do
       assert_equal(
         { "a" => 2, "_aj_symbol_keys" => ["a"] }, # :a wins
         ActiveJob::Arguments.serialize([{ "a" => 1, a: 2 }]).first
       )
     end
 
-    assert_not_deprecated do
+    assert_deprecated("DEPRECATION PLACEHOLDER") do
       assert_equal(
         { "a" => 2, "_aj_symbol_keys" => ["a"] }, # :a assigned "a"'s value
         ActiveJob::Arguments.serialize([{ a: 1, "a" => 2 }]).first
       )
     end
+  end
+
+  test "serializing a hash with colliding String and Symbol keys can be forbidden" do
+    with_forbid_colliding_hash_key_serialization do
+      assert_not_deprecated do
+        error = assert_raises ActiveJob::SerializationError do
+          ActiveJob::Arguments.serialize([{ "a" => 1, a: 2 }])
+        end
+        assert_equal "ERROR PLACEHOLDER", error.message
+      end
+
+      assert_not_deprecated do
+        error = assert_raises ActiveJob::SerializationError do
+          ActiveJob::Arguments.serialize([{ a: 1, "a" => 2 }])
+        end
+        assert_equal "ERROR PLACEHOLDER", error.message
+      end
+    end
+  end
+
+  private def with_forbid_colliding_hash_key_serialization(temp = true)
+    original = ActiveJob.forbid_colliding_hash_key_serialization
+    ActiveJob.forbid_colliding_hash_key_serialization = temp
+    yield
+  ensure
+    ActiveJob.forbid_colliding_hash_key_serialization = original
   end
 
   test "should not allow reserved hash keys" do

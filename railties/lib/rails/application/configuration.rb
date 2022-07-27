@@ -280,6 +280,7 @@ module Rails
 
           if respond_to?(:active_job)
             active_job.use_big_decimal_serializer = false
+            active_job.forbid_colliding_hash_key_serialization = false
           end
 
           if respond_to?(:active_support)

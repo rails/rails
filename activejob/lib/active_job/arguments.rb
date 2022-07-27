@@ -145,7 +145,16 @@ module ActiveJob
 
       def serialize_hash(argument)
         argument.each_with_object({}) do |(key, value), hash|
-          hash[serialize_hash_key(key)] = serialize_argument(value)
+          serialized_key = serialize_hash_key(key)
+          if hash.key?(serialized_key)
+            if ActiveJob.forbid_colliding_hash_key_serialization
+              raise SerializationError, "ERROR PLACEHOLDER"
+            else
+              ActiveSupport::Deprecation.warn("DEPRECATION PLACEHOLDER")
+            end
+          end
+
+          hash[serialized_key] = serialize_argument(value)
         end
       end
 
