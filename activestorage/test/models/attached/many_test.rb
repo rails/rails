@@ -207,9 +207,11 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
   test "attaching new blobs within a transaction with append_on_assign config uploads all the files" do
     append_on_assign do
-      ActiveRecord::Base.transaction do
-        @user.highlights.attach fixture_file_upload("racecar.jpg")
-        @user.highlights.attach fixture_file_upload("video.mp4")
+      assert_deprecated do
+        ActiveRecord::Base.transaction do
+          @user.highlights.attach fixture_file_upload("racecar.jpg")
+          @user.highlights.attach fixture_file_upload("video.mp4")
+        end
       end
 
       assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
@@ -221,10 +223,12 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
   test "attaching new blobs within a transaction with append_on_assign config create the exact amount of records" do
     append_on_assign do
-      assert_difference -> { ActiveStorage::Blob.count }, +2 do
-        ActiveRecord::Base.transaction do
-          @user.highlights.attach fixture_file_upload("racecar.jpg")
-          @user.highlights.attach fixture_file_upload("video.mp4")
+      assert_deprecated do
+        assert_difference -> { ActiveStorage::Blob.count }, +2 do
+          ActiveRecord::Base.transaction do
+            @user.highlights.attach fixture_file_upload("racecar.jpg")
+            @user.highlights.attach fixture_file_upload("video.mp4")
+          end
         end
       end
 
