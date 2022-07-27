@@ -1,3 +1,7 @@
+*   Allow per attribute setting of YAML permitted classes (safe load) and unsafe load.
+
+    *Carlos Palhares*
+
 *   Avoid removing a PostgreSQL extension when there are dependent objects.
 
     Previously, removing an extension also implicitly removed dependent objects. Now, this will raise an error.
