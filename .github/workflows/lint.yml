@@ -6,6 +6,22 @@ permissions:
   contents: read
 
 jobs:
+  changelog-formatting:
+    name: Check CHANGELOGs formatting
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        repository: skipkayhil/rails-bin
+        ref: 44270430c14385fd7db002b47f0819af5d824352
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.1
+        bundler-cache: true
+    - uses: actions/checkout@v3
+      with:
+        path: rails
+    - run: bin/check-changelogs ./rails
   codespell:
     name: Check spelling all files with codespell
     runs-on: ubuntu-latest
