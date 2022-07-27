@@ -371,6 +371,39 @@ module ActiveRecord
         execute("ALTER TABLE #{quote_table_name(table_name)} #{change_column_for_alter(table_name, column_name, type, **options)}")
       end
 
+      # Builds a ChangeColumnDefinition object.
+      #
+      # This definition object contains information about the column change that would occur
+      # if the same arguments were passed to #change_column. See #change_column for information about
+      # passing a +table_name+, +column_name+, +type+ and other options that can be passed.
+      def build_change_column_definition(table_name, column_name, type, **options) # :nodoc:
+        column = column_for(table_name, column_name)
+        type ||= column.sql_type
+
+        unless options.key?(:default)
+          options[:default] = column.default
+        end
+
+        unless options.key?(:null)
+          options[:null] = column.null
+        end
+
+        unless options.key?(:comment)
+          options[:comment] = column.comment
+        end
+
+        unless options.key?(:auto_increment)
+          options[:auto_increment] = column.auto_increment?
+        end
+
+        td = create_table_definition(table_name)
+        cd = td.new_column_definition(column.name, type, **options)
+        change_column_def = ChangeColumnDefinition.new(cd, column.name)
+        schema_creation.accept(change_column_def)
+
+        change_column_def
+      end
+
       def rename_column(table_name, column_name, new_column_name) # :nodoc:
         execute("ALTER TABLE #{quote_table_name(table_name)} #{rename_column_for_alter(table_name, column_name, new_column_name)}")
         rename_column_indexes(table_name, column_name, new_column_name)
@@ -726,28 +759,8 @@ module ActiveRecord
         end
 
         def change_column_for_alter(table_name, column_name, type, **options)
-          column = column_for(table_name, column_name)
-          type ||= column.sql_type
-
-          unless options.key?(:default)
-            options[:default] = column.default
-          end
-
-          unless options.key?(:null)
-            options[:null] = column.null
-          end
-
-          unless options.key?(:comment)
-            options[:comment] = column.comment
-          end
-
-          unless options.key?(:auto_increment)
-            options[:auto_increment] = column.auto_increment?
-          end
-
-          td = create_table_definition(table_name)
-          cd = td.new_column_definition(column.name, type, **options)
-          schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
+          cd = build_change_column_definition(table_name, column_name, type, **options)
+          cd.ddl
         end
 
         def rename_column_for_alter(table_name, column_name, new_column_name)
