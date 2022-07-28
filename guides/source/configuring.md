@@ -2021,6 +2021,11 @@ The default value depends on the `config.load_defaults` target version:
 
 [params_wrapper]: https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html
 
+#### `config.action_controller.allowed_redirect_hosts`
+
+Specifies a list of allowed hosts for redirects. `redirect_to` will allow redirects to them without raising an
+`UnsafeRedirectError` error.
+
 #### `ActionController::Base.wrap_parameters`
 
 Configures the [`ParamsWrapper`](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html). This can be called at
