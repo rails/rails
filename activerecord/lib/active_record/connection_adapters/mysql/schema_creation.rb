@@ -27,7 +27,7 @@ module ActiveRecord
           def visit_CreateIndexDefinition(o)
             sql = visit_IndexDefinition(o.index, true)
             sql << " #{o.algorithm}" if o.algorithm
-            sql
+            o.ddl = sql
           end
 
           def visit_IndexDefinition(o, create = false)

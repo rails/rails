@@ -377,12 +377,20 @@ module ActiveRecord
       end
 
       def add_index(table_name, column_name, **options) # :nodoc:
+        create_index = build_create_index_definition(table_name, column_name, **options)
+        return unless create_index
+
+        execute(create_index.ddl)
+      end
+
+      def build_create_index_definition(table_name, column_name, **options) # :nodoc:
         index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
 
         return if if_not_exists && index_exists?(table_name, column_name, name: index.name)
 
         create_index = CreateIndexDefinition.new(index, algorithm)
-        execute schema_creation.accept(create_index)
+        schema_creation.accept(create_index)
+        create_index
       end
 
       def add_sql_comment!(sql, comment) # :nodoc:

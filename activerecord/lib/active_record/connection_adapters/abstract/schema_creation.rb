@@ -106,7 +106,8 @@ module ActiveRecord
           sql << "(#{quoted_columns(index)})"
           sql << "WHERE #{index.where}" if supports_partial_index? && index.where
 
-          sql.join(" ")
+          sql = sql.join(" ")
+          o.ddl = sql
         end
 
         def visit_CheckConstraintDefinition(o)
