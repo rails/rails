@@ -27,6 +27,7 @@ module ActiveRecord
     end
 
     autoload_under "abstract" do
+      autoload :SchemaDefinitionBuilders
       autoload :SchemaStatements
       autoload :DatabaseStatements
       autoload :DatabaseLimits

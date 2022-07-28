@@ -7,6 +7,7 @@ module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module SchemaStatements
       include ActiveRecord::Migration::JoinTable
+      include SchemaDefinitionBuilders
 
       # Returns a hash of mappings from the abstract data types to the native
       # database types. See TableDefinition#column for details on the recognized
@@ -318,19 +319,6 @@ module ActiveRecord
         end
 
         result
-      end
-
-      # Returns a TableDefinition object containing information about the table that would be created
-      # if the same arguments were passed to #create_table. See #create_table for information about
-      # passing a +table_name+, and other additional options that can be passed.
-      def build_create_table_definition(table_name, id: :primary_key, primary_key: nil, force: nil, **options)
-        table_definition = create_table_definition(table_name, **extract_table_options!(options))
-        table_definition.set_primary_key(table_name, id, primary_key, **options)
-
-        yield table_definition if block_given?
-
-        schema_creation.accept(table_definition)
-        table_definition
       end
 
       # Creates a new join table with the name created using the lexical order of the first two
