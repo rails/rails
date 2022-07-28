@@ -23,15 +23,6 @@ module ActionView
             super
           end
 
-          def evaluate(action_view_erb_handler_context)
-            src = @src
-            view = Class.new(ActionView::Base) {
-              include action_view_erb_handler_context._routes.url_helpers
-              class_eval("define_method(:_template) { |local_assigns, output_buffer| #{src} }", defined?(@filename) ? @filename : "(erubi)", 0)
-            }.empty
-            view._run(:_template, nil, {}, ActionView::OutputBuffer.new)
-          end
-
         private
           def add_text(text)
             return if text.empty?
