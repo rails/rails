@@ -114,6 +114,20 @@ class DateHelperSelectTagsI18nTests < ActiveSupport::TestCase
     end
   end
 
+  def test_select_month_with_frozen_month_names
+    month_names = Date::MONTHNAMES.dup.drop(1)
+    mock = Minitest::Mock.new
+    expect_called_with(mock, [:'date.month_names'], locale: "en", returns: month_names.freeze)
+
+    I18n.stub(:translate, mock) do
+      select_month(8, locale: "en")
+    end
+
+    assert_mock(mock)
+  end
+
+  # date_or_time_select
+
   def test_date_or_time_select_translates_prompts
     prompt_defaults = { year: "Year", month: "Month", day: "Day", hour: "Hour", minute: "Minute", second: "Seconds" }
     defaults = { [:'date.order', locale: "en", default: []] => %w(year month day) }
@@ -136,8 +150,6 @@ class DateHelperSelectTagsI18nTests < ActiveSupport::TestCase
     end
     assert_equal defaults.count, @prompt_called
   end
-
-  # date_or_time_select
 
   def test_date_or_time_select_given_an_order_options_does_not_translate_order
     assert_not_called(I18n, :translate) do
