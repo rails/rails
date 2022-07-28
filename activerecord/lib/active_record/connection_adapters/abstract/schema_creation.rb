@@ -26,6 +26,7 @@ module ActiveRecord
           sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(" ")
           sql << o.check_constraint_adds.map { |con| visit_AddCheckConstraint con }.join(" ")
           sql << o.check_constraint_drops.map { |con| visit_DropCheckConstraint con }.join(" ")
+          o.ddl = sql
         end
 
         def visit_ColumnDefinition(o)
