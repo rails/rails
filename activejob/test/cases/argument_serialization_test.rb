@@ -188,6 +188,22 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     end
   end
 
+  test "serializing a hash with colliding String and Symbol keys is not deprecated" do
+    assert_not_deprecated do
+      assert_equal(
+        { "a" => 2, "_aj_symbol_keys" => ["a"] }, # :a wins
+        ActiveJob::Arguments.serialize([{ "a" => 1, a: 2 }]).first
+      )
+    end
+
+    assert_not_deprecated do
+      assert_equal(
+        { "a" => 2, "_aj_symbol_keys" => ["a"] }, # :a assigned "a"'s value
+        ActiveJob::Arguments.serialize([{ a: 1, "a" => 2 }]).first
+      )
+    end
+  end
+
   test "should not allow reserved hash keys" do
     ["_aj_globalid", :_aj_globalid,
      "_aj_symbol_keys", :_aj_symbol_keys,
