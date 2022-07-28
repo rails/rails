@@ -32,7 +32,7 @@ module Rails
 
         ensure_editor_available(command: "bin/rails credentials:edit") || (return)
 
-        ensure_encryption_key_has_been_added if credentials.key.nil?
+        ensure_encryption_key_has_been_added
         ensure_credentials_have_been_added
         ensure_diffing_driver_is_configured
 
@@ -78,6 +78,8 @@ module Rails
         end
 
         def ensure_encryption_key_has_been_added
+          return if credentials.key?
+
           require "rails/generators/rails/encryption_key_file/encryption_key_file_generator"
 
           encryption_key_file_generator = Rails::Generators::EncryptionKeyFileGenerator.new
@@ -102,7 +104,7 @@ module Rails
         end
 
         def missing_credentials_message
-          if credentials.key.nil?
+          if !credentials.key?
             "Missing '#{key_path}' to decrypt credentials. See `bin/rails credentials:help`"
           else
             "File '#{content_path}' does not exist. Use `bin/rails credentials:edit` to change that."
