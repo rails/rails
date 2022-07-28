@@ -1268,7 +1268,6 @@ module ActiveRecord
             migrator.migrations.index(migrator.current_migration)
           end
 
-
         finish = migrator.migrations[start_index + steps]
         version = finish ? finish.version : 0
         public_send(direction, version)
@@ -1451,10 +1450,15 @@ module ActiveRecord
       # Wrap the migration in a transaction only if supported by the adapter.
       def ddl_transaction(migration, &block)
         if use_transaction?(migration)
-          Base.transaction(&block)
+          get_connection.transaction(&block)
         else
           yield
         end
+      end
+
+      # Temporary holder until everything is converted to TempConn
+      def get_connection
+        ActiveRecord::TemporaryConnection.find_connection || ActiveRecord::Base.connection
       end
 
       def use_transaction?(migration)

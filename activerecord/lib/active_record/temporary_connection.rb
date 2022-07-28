@@ -9,6 +9,12 @@ module ActiveRecord
       nil
     end
 
+    def self.find_connection
+      if pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(name, role: :writing, shard: :default)
+        pool.connection
+      end
+    end
+
     def self.primary_class?
       false
     end

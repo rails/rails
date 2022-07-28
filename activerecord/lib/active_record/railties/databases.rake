@@ -284,6 +284,7 @@ db_namespace = namespace :db do
         ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
           connection.migration_context.rollback(step)
 
+          db_namespace["_dump"].invoke
         end
       end
     end
