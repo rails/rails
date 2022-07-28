@@ -36,6 +36,28 @@ module ActiveRecord
         assert id_column.sql_type
       end
 
+      def test_build_create_join_table_definition_with_block
+        assert connection.table_exists?(:posts)
+        assert connection.table_exists?(:comments)
+
+        join_td = connection.build_create_join_table_definition(:posts, :comments) do |t|
+          t.column :another_col, :string
+        end
+
+        assert_equal :comments_posts, join_td.name
+        assert_equal ["another_col", "comment_id", "post_id"], join_td.columns.map(&:name).sort
+      end
+
+      def test_build_create_join_table_definition_without_block
+        assert connection.table_exists?(:posts)
+        assert connection.table_exists?(:comments)
+
+        join_td = connection.build_create_join_table_definition(:posts, :comments)
+
+        assert_equal :comments_posts, join_td.name
+        assert_equal ["comment_id", "post_id"], join_td.columns.map(&:name).sort
+      end
+
       def test_build_create_index_definition
         connection.create_table(:test) do |t|
           t.column :foo, :string
