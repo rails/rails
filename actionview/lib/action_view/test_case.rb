@@ -110,9 +110,7 @@ module ActionView
         @controller = controller_class.new
         @request = @controller.request
         @view_flow = ActionView::OutputFlow.new
-        # empty string ensures buffer has UTF-8 encoding as
-        # new without arguments returns ASCII-8BIT encoded buffer like String#new
-        @output_buffer = ActiveSupport::SafeBuffer.new ""
+        @output_buffer = ActionView::OutputBuffer.new
         @rendered = +""
 
         test_case_instance = self
@@ -181,7 +179,7 @@ module ActionView
     private
       # Need to experiment if this priority is the best one: rendered => output_buffer
       def document_root_element
-        Nokogiri::HTML::Document.parse(@rendered.blank? ? @output_buffer : @rendered).root
+        Nokogiri::HTML::Document.parse(@rendered.blank? ? @output_buffer.to_str : @rendered).root
       end
 
       module Locals
