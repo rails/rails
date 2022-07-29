@@ -1,3 +1,16 @@
+*   Add a build persistence method
+
+    Provides a wrapper for `new`, to provide feature parity with `create`s
+    ability to create multiple records from an array of hashes, using the
+    same notation as the `build` method on associations.
+
+    - Associations can create multiple objects from an array of hashes
+    - Associations can build multiple objects from an array of hashes
+    - Classes can create multiple objects from an array of hashes
+    - Classes can build multiple objects from an array of hashes (<- You are here)
+
+    *Sean Denny*
+
 *   Clear locking column on #dup
 
     This change fixes not to duplicate locking_column like id and timestamps.
