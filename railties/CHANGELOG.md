@@ -1,3 +1,19 @@
+*   Add `routes --unused` option to detect extraneous routes.
+
+    Example:
+
+    ```
+    > bin/rails rails --unused
+
+    Found 2 unused routes:
+
+    Prefix Verb URI Pattern    Controller#Action
+       one GET  /one(.:format) action#one
+       two GET  /two(.:format) action#two
+    ```
+
+    *Gannon McGibbon*
+
 *   Add `--parent` option to controller generator to specify parent class of job.
 
     Example:
