@@ -448,6 +448,7 @@ module ActiveRecord
         ids = ids.flatten.compact.uniq
 
         model_name = @klass.name
+        _select!(table[primary_key]) unless select_values.empty?
 
         case ids.size
         when 0
