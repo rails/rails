@@ -1,3 +1,36 @@
+*   Introduce a simpler constructor API for ActiveRecord database adapters.
+
+    Previously the adapter had to know how to build a new raw connection to
+    support reconnect, but also expected to be passed an initial already-
+    established connection.
+
+    When manually creating an adapter instance, it will now accept a single
+    config hash, and only establish the real connection on demand.
+
+    *Matthew Draper*
+
+*   Avoid redundant `SELECT 1` connection-validation query during DB pool
+    checkout when possible.
+
+    If the first query run during a request is known to be idempotent, it can be
+    used directly to validate the connection, saving a network round-trip.
+
+    *Matthew Draper*
+
+*   Automatically reconnect broken database connections when safe, even
+    mid-request.
+
+    When an error occurs while attempting to run a known-idempotent query, and
+    not inside a transaction, it is safe to immediately reconnect to the
+    database server and try again, so this is now the default behavior.
+
+    This new default should always be safe -- to support that, it's consciously
+    conservative about which queries are considered idempotent -- but if
+    necessary it can be disabled by setting the `connection_retries` connection
+    option to `0`.
+
+    *Matthew Draper*
+
 *   Avoid removing a PostgreSQL extension when there are dependent objects.
 
     Previously, removing an extension also implicitly removed dependent objects. Now, this will raise an error.
