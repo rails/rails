@@ -385,6 +385,24 @@ module ActiveRecord
         end
       end
 
+      # Builds a TableDefinition object for a join table.
+      #
+      # This definition object contains information about the table that would be created
+      # if the same arguments were passed to #create_join_table. See #create_join_table for
+      # information about what arguments should be passed.
+      def build_create_join_table_definition(table_1, table_2, column_options: {}, **options) # :nodoc:
+        join_table_name = find_join_table_name(table_1, table_2, options)
+        column_options.reverse_merge!(null: false, index: false)
+
+        t1_ref, t2_ref = [table_1, table_2].map { |t| reference_name_for_table(t) }
+
+        build_create_table_definition(join_table_name, **options.merge!(id: false)) do |td|
+          td.references t1_ref, **column_options
+          td.references t2_ref, **column_options
+          yield td if block_given?
+        end
+      end
+
       # Drops the join table specified by the given arguments.
       # See #create_join_table and #drop_table for details.
       #
