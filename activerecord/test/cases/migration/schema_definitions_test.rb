@@ -62,21 +62,22 @@ module ActiveRecord
         end
       end
 
-      def test_build_add_column_definition
-        connection.create_table(:test)
-        add_col_td = connection.build_add_column_definition(:test, :foo, :string)
+      unless current_adapter?(:SQLite3Adapter)
+        def test_build_change_column_definition
+          connection.create_table(:test) do |t|
+            t.column :foo, :string
+          end
 
-        assert_match "ALTER TABLE", add_col_td.ddl
+          change_cd = connection.build_change_column_definition(:test, :foo, :integer)
+          assert change_cd.ddl
 
-        add_cols = add_col_td.adds
-        assert_equal 1, add_cols.size
-
-        add_col = add_cols.first.column
-        assert_equal "foo", add_col.name
-        assert add_col.type
-        assert add_col.sql_type
-      ensure
-        connection.drop_table(:test) if connection.table_exists?(:test)
+          change_col = change_cd.column
+          assert_equal "foo", change_col.name.to_s
+          assert change_col.type
+          assert change_col.sql_type
+        ensure
+          connection.drop_table(:test) if connection.table_exists?(:test)
+        end
       end
     end
   end
