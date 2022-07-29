@@ -110,7 +110,7 @@ module ActiveRecord
       #++
 
       def quote_string(string)
-        @raw_connection.escape(string)
+        any_raw_connection.escape(string)
       rescue Mysql2::Error => error
         raise translate_exception(error, message: error.message, sql: "<escape>", binds: [])
       end
@@ -123,13 +123,6 @@ module ActiveRecord
         @raw_connection.ping
       end
 
-      def reconnect!(restore_transactions: false)
-        @lock.synchronize do
-          @raw_connection.close
-          connect
-          super
-        end
-      end
       alias :reset! :reconnect!
 
       # Disconnects from the database if already connected.
@@ -158,8 +151,14 @@ module ActiveRecord
           @raw_connection = self.class.new_client(@config)
         end
 
+        def reconnect
+          @raw_connection.close
+          connect
+        end
+
         def configure_connection
           @raw_connection.query_options[:as] = :array
+          @raw_connection.query_options[:database_timezone] = default_timezone
           super
         end
 
@@ -168,12 +167,18 @@ module ActiveRecord
         end
 
         def get_full_version
-          @raw_connection.server_info[:version]
+          any_raw_connection.server_info[:version]
         end
 
         def translate_exception(exception, message:, sql:, binds:)
           if exception.is_a?(Mysql2::Error::TimeoutError) && !exception.error_number
             ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds)
+          elsif exception.is_a?(Mysql2::Error::ConnectionError)
+            if exception.message.match?(/MySQL client is not connected/i)
+              ActiveRecord::ConnectionNotEstablished.new(exception)
+            else
+              ActiveRecord::ConnectionFailed.new(message, sql: sql, binds: binds)
+            end
           else
             super
           end

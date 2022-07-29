@@ -201,6 +201,9 @@ module ActiveRecord
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil, async: false)
+        sql = transform_query(sql)
+        check_if_write_query(sql)
+
         raw_execute(sql, name, async: async)
       end
 
@@ -212,24 +215,24 @@ module ActiveRecord
       end
 
       def begin_db_transaction # :nodoc:
-        execute("BEGIN", "TRANSACTION")
+        internal_execute("BEGIN", "TRANSACTION")
       end
 
       def begin_isolated_db_transaction(isolation) # :nodoc:
-        execute "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}"
+        internal_execute "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION"
         begin_db_transaction
       end
 
       def commit_db_transaction # :nodoc:
-        execute("COMMIT", "TRANSACTION")
+        internal_execute("COMMIT", "TRANSACTION", allow_retry: false, uses_transaction: true)
       end
 
       def exec_rollback_db_transaction # :nodoc:
-        execute("ROLLBACK", "TRANSACTION")
+        internal_execute("ROLLBACK", "TRANSACTION", allow_retry: false, uses_transaction: true)
       end
 
       def exec_restart_db_transaction # :nodoc:
-        execute("ROLLBACK AND CHAIN", "TRANSACTION")
+        internal_execute("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, uses_transaction: true)
       end
 
       def empty_insert_statement_value(primary_key = nil) # :nodoc:
@@ -686,15 +689,18 @@ module ActiveRecord
           end
         end
 
-        def raw_execute(sql, name, async: false)
-          materialize_transactions
+        def raw_execute(sql, name, async: false, allow_retry: false, uses_transaction: true)
           mark_transaction_written_if_write(sql)
 
           log(sql, name, async: async) do
-            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @raw_connection.query(sql)
+            with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
+              conn.query(sql)
             end
           end
+        end
+
+        def internal_execute(sql, name = "SCHEMA", allow_retry: true, uses_transaction: false)
+          raw_execute(sql, name, allow_retry: allow_retry, uses_transaction: uses_transaction)
         end
 
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html
@@ -714,8 +720,12 @@ module ActiveRecord
         ER_CANNOT_CREATE_TABLE  = 1005
         ER_LOCK_WAIT_TIMEOUT    = 1205
         ER_QUERY_INTERRUPTED    = 1317
+        ER_CONNECTION_KILLED    = 1927
+        CR_SERVER_GONE_ERROR    = 2006
+        CR_SERVER_LOST          = 2013
         ER_QUERY_TIMEOUT        = 3024
         ER_FK_INCOMPATIBLE_COLUMNS = 3780
+        ER_CLIENT_INTERACTION_TIMEOUT = 4031
 
         def translate_exception(exception, message:, sql:, binds:)
           case error_number(exception)
@@ -725,6 +735,8 @@ module ActiveRecord
             else
               super
             end
+          when ER_CONNECTION_KILLED, CR_SERVER_GONE_ERROR, CR_SERVER_LOST, ER_CLIENT_INTERACTION_TIMEOUT
+            ConnectionFailed.new(message, sql: sql, binds: binds)
           when ER_DB_CREATE_EXISTS
             DatabaseAlreadyExists.new(message, sql: sql, binds: binds)
           when ER_DUP_ENTRY
@@ -854,7 +866,7 @@ module ActiveRecord
           end.join(", ")
 
           # ...and send them all in one query
-          execute("SET #{encoding} #{sql_mode_assignment} #{variable_assignments}", "SCHEMA")
+          internal_execute("SET #{encoding} #{sql_mode_assignment} #{variable_assignments}")
         end
 
         def column_definitions(table_name) # :nodoc:
@@ -875,7 +887,7 @@ module ActiveRecord
           StatementPool.new(self.class.type_cast_config_to_integer(@config[:statement_limit]))
         end
 
-        def mismatched_foreign_key(message, sql:, binds:)
+        def mismatched_foreign_key_details(message:, sql:)
           foreign_key_pat =
             /Referencing column '(\w+)' and referenced/i =~ message ? $1 : '\w+'
 
@@ -885,11 +897,7 @@ module ActiveRecord
             REFERENCES\s*(`?(?<target_table>\w+)`?)\s*\(`?(?<primary_key>\w+)`?\)
           /xmi.match(sql)
 
-          options = {
-            message: message,
-            sql: sql,
-            binds: binds,
-          }
+          options = {}
 
           if match
             options[:table] = match[:table]
@@ -897,6 +905,22 @@ module ActiveRecord
             options[:target_table] = match[:target_table]
             options[:primary_key] = match[:primary_key]
             options[:primary_key_column] = column_for(match[:target_table], match[:primary_key])
+          end
+
+          options
+        end
+
+        def mismatched_foreign_key(message, sql:, binds:)
+          options = {
+            message: message,
+            sql: sql,
+            binds: binds,
+          }
+
+          if sql
+            options.update mismatched_foreign_key_details(message: message, sql: sql)
+          else
+            options[:query_parser] = ->(sql) { mismatched_foreign_key_details(message: message, sql: sql) }
           end
 
           MismatchedForeignKey.new(**options)

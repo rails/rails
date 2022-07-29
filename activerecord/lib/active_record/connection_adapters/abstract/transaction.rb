@@ -142,7 +142,10 @@ module ActiveRecord
       end
 
       def restore!
-        @materialized = false
+        if materialized?
+          @materialized = false
+          materialize!
+        end
       end
 
       def rollback_records
@@ -390,8 +393,6 @@ module ActiveRecord
 
         @stack.each(&:restore!)
 
-        materialize_transactions unless @lazy_transactions_enabled
-
         true
       end
 
@@ -402,24 +403,24 @@ module ActiveRecord
       def materialize_transactions
         return if @materializing_transactions
 
+        if @has_unmaterialized_transactions
+          @connection.lock.synchronize do
+            begin
+              @materializing_transactions = true
+              @stack.each { |t| t.materialize! unless t.materialized? }
+            ensure
+              @materializing_transactions = false
+            end
+            @has_unmaterialized_transactions = false
+          end
+        end
+
         # As a logical simplification for now, we assume anything that requests
         # materialization is about to dirty the transaction. Note this is just
         # an assumption about the caller, not a direct property of this method.
         # It can go away later when callers are able to handle dirtiness for
         # themselves.
         dirty_current_transaction
-
-        return unless @has_unmaterialized_transactions
-
-        @connection.lock.synchronize do
-          begin
-            @materializing_transactions = true
-            @stack.each { |t| t.materialize! unless t.materialized? }
-          ensure
-            @materializing_transactions = false
-          end
-          @has_unmaterialized_transactions = false
-        end
       end
 
       def commit_transaction
