@@ -1670,7 +1670,9 @@ module ApplicationTests
       make_basic_app
 
       assert_equal ActionDispatch::Session::CookieStore, app.config.session_store
-      assert_equal session_options, app.config.session_options
+      session_options.each do |key, value|
+        assert_equal value, app.config.session_options[key]
+      end
     end
 
     test "config.log_level defaults to debug in development" do
