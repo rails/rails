@@ -330,7 +330,7 @@ module ActiveRecord
         @lock.synchronize do
           begin
             @raw_connection.reset
-          rescue PG::ConnectionBad
+          rescue PG::ConnectionBad, PG::UnableToSend
             connect
           end
 
