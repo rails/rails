@@ -89,33 +89,53 @@ module ActiveRecord
         @quoted_table_names ||= {}
       end
 
-      def initialize(connection, logger = nil, config = {}) # :nodoc:
+      def initialize(config_or_deprecated_connection, deprecated_logger = nil, deprecated_connection_options = nil, deprecated_config = nil) # :nodoc:
         super()
 
-        @raw_connection      = connection
-        @owner               = nil
-        @instrumenter        = ActiveSupport::Notifications.instrumenter
-        @logger              = logger
-        @config              = config
-        @pool                = ActiveRecord::ConnectionAdapters::NullPool.new
-        @idle_since          = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        @raw_connection = nil
+        @unconfigured_connection = nil
+
+        if config_or_deprecated_connection.is_a?(Hash)
+          @config = config_or_deprecated_connection.symbolize_keys
+          @logger = ActiveRecord::Base.logger
+
+          if deprecated_logger || deprecated_connection_options || deprecated_config
+            raise ArgumentError, "when initializing an ActiveRecord adapter with a config hash, that should be the only argument"
+          end
+        else
+          # Soft-deprecated for now; we'll probably warn in future.
+
+          @unconfigured_connection = config_or_deprecated_connection
+          @logger = deprecated_logger || ActiveRecord::Base.logger
+          if deprecated_config
+            @config = (deprecated_config || {}).symbolize_keys
+            @connection_parameters = deprecated_connection_options
+          else
+            @config = (deprecated_connection_options || {}).symbolize_keys
+            @connection_parameters = nil
+          end
+        end
+
+        @owner = nil
+        @instrumenter = ActiveSupport::Notifications.instrumenter
+        @pool = ActiveRecord::ConnectionAdapters::NullPool.new
+        @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @visitor = arel_visitor
         @statements = build_statement_pool
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
 
         @prepared_statements = self.class.type_cast_config_to_boolean(
-          config.fetch(:prepared_statements, true)
+          @config.fetch(:prepared_statements, true)
         )
 
         @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
-          config.fetch(:advisory_locks, true)
+          @config.fetch(:advisory_locks, true)
         )
 
-        @default_timezone = self.class.validate_default_timezone(config[:default_timezone])
+        @default_timezone = self.class.validate_default_timezone(@config[:default_timezone])
 
         @raw_connection_dirty = false
-
-        configure_connection
+        @verified = false
       end
 
       EXCEPTION_NEVER = { Exception => :never }.freeze # :nodoc:
@@ -143,6 +163,10 @@ module ActiveRecord
 
       def use_metadata_table?
         @config.fetch(:use_metadata_table, true)
+      end
+
+      def connection_retries
+        (@config[:connection_retries] || 1).to_i
       end
 
       def default_timezone
@@ -309,7 +333,14 @@ module ActiveRecord
 
       # Does the database for this adapter exist?
       def self.database_exists?(config)
-        raise NotImplementedError
+        new(config).database_exists?
+      end
+
+      def database_exists?
+        connect!
+        true
+      rescue ActiveRecord::NoDatabaseError
+        false
       end
 
       # Does this adapter support DDL rollbacks in transactions? That is, would
@@ -552,22 +583,48 @@ module ActiveRecord
       def active?
       end
 
-      # Disconnects from the database if already connected, and establishes a
-      # new connection with the database. Implementors should call super
-      # immediately after establishing the new connection (and while still
-      # holding @lock).
+      # Disconnects from the database if already connected, and establishes a new
+      # connection with the database. Implementors should define private #reconnect
+      # instead.
       def reconnect!(restore_transactions: false)
-        reset_transaction(restore: restore_transactions) do
-          clear_cache!(new_connection: true)
-          configure_connection
+        retries_available = connection_retries
+
+        @lock.synchronize do
+          reconnect
+
+          enable_lazy_transactions!
+          @raw_connection_dirty = false
+          @verified = true
+
+          reset_transaction(restore: restore_transactions) do
+            clear_cache!(new_connection: true)
+            configure_connection
+          end
+        rescue => original_exception
+          translated_exception = translate_exception_class(original_exception, nil, nil)
+
+          if retries_available > 0
+            retries_available -= 1
+
+            if retryable_connection_error?(translated_exception)
+              backoff(connection_retries - retries_available)
+              retry
+            end
+          end
+
+          @verified = false
+
+          raise translated_exception
         end
       end
+
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
         clear_cache!(new_connection: true)
         reset_transaction
+        @raw_connection_dirty = false
       end
 
       # Immediately forget this connection ever existed. Unlike disconnect!,
@@ -628,7 +685,33 @@ module ActiveRecord
       # This is done under the hood by calling #active?. If the connection
       # is no longer active, then this method will reconnect to the database.
       def verify!
-        reconnect! unless active?
+        unless active?
+          if @unconfigured_connection
+            @lock.synchronize do
+              if @unconfigured_connection
+                @raw_connection = @unconfigured_connection
+                @unconfigured_connection = nil
+                configure_connection
+                @verified = true
+                return
+              end
+            end
+          end
+
+          reconnect!(restore_transactions: true)
+        end
+
+        @verified = true
+      end
+
+      def connect!
+        verify!
+        self
+      end
+
+      def clean! # :nodoc:
+        @raw_connection_dirty = false
+        @verified = nil
       end
 
       # Provides access to the underlying database driver for this adapter. For
@@ -638,9 +721,11 @@ module ActiveRecord
       # This is useful for when you need to call a proprietary method such as
       # PostgreSQL's lo_* methods.
       def raw_connection
-        disable_lazy_transactions!
-        @raw_connection_dirty = true
-        @raw_connection
+        with_raw_connection do |conn|
+          disable_lazy_transactions!
+          @raw_connection_dirty = true
+          conn
+        end
       end
 
       def default_uniqueness_comparison(attribute, value) # :nodoc:
@@ -796,6 +881,139 @@ module ActiveRecord
           transaction_manager.restorable? && !@raw_connection_dirty
         end
 
+        # Lock the monitor, ensure we're properly connected and
+        # transactions are materialized, and then yield the underlying
+        # raw connection object.
+        #
+        # If +allow_retry+ is true, a connection-related exception will
+        # cause an automatic reconnect and re-run of the block, up to
+        # the connection's configured +connection_retries+ setting.
+        #
+        # If +uses_transaction+ is false, the block will be run without
+        # ensuring virtual transactions have been materialized in the DB
+        # server's state. The active transaction will also remain clean
+        # (if it is not already dirty), meaning it's able to be restored
+        # by reconnecting and opening an equivalent-depth set of new
+        # transactions. This should only be used by transaction control
+        # methods, and internal transaction-agnostic queries.
+        #
+        ###
+        #
+        # It's not the primary use case, so not something to optimize
+        # for, but note that this method does need to be re-entrant:
+        # +materialize_transactions+ will re-enter if it has work to do,
+        # and the yield block can also do so under some circumstances.
+        #
+        # In the latter case, we really ought to guarantee the inner
+        # call will not reconnect (which would interfere with the
+        # still-yielded connection in the outer block), but we currently
+        # provide no special enforcement there.
+        #
+        def with_raw_connection(allow_retry: false, uses_transaction: true)
+          @lock.synchronize do
+            connect! if @raw_connection.nil? && reconnect_can_restore_state?
+
+            materialize_transactions if uses_transaction
+
+            retries_available = allow_retry ? connection_retries : 0
+            reconnectable = reconnect_can_restore_state?
+
+            if @verified
+              # Cool, we're confident the connection's ready to use. (Note this might have
+              # become true during the above #materialize_transactions.)
+            elsif reconnectable
+              if allow_retry
+                # Not sure about the connection yet, but if anything goes wrong we can
+                # just reconnect and re-run our query
+              else
+                # We can reconnect if needed, but we don't trust the upcoming query to be
+                # safely re-runnable: let's verify the connection to be sure
+                verify!
+              end
+            else
+              # We don't know whether the connection is okay, but it also doesn't matter:
+              # we wouldn't be able to reconnect anyway. We're just going to run our query
+              # and hope for the best.
+            end
+
+            begin
+              result = yield @raw_connection
+              @verified = true
+              result
+            rescue => original_exception
+              translated_exception = translate_exception_class(original_exception, nil, nil)
+
+              if retries_available > 0
+                retries_available -= 1
+
+                if retryable_query_error?(translated_exception)
+                  backoff(connection_retries - retries_available)
+                  retry
+                elsif reconnectable && retryable_connection_error?(translated_exception)
+                  reconnect!(restore_transactions: true)
+                  # Only allowed to reconnect once, because reconnect! has its own retry
+                  # loop
+                  reconnectable = false
+                  retry
+                end
+              end
+
+              unless retryable_query_error?(translated_exception)
+                # Barring a known-retryable error inside the query (regardless of
+                # whether we were in a _position_ to retry it), we should infer that
+                # there's likely a real problem with the connection.
+                @verified = false
+              end
+
+              raise translated_exception
+            ensure
+              dirty_current_transaction if uses_transaction
+            end
+          end
+        end
+
+        def retryable_connection_error?(exception)
+          exception.is_a?(ConnectionNotEstablished) || exception.is_a?(ConnectionFailed)
+        end
+
+        def retryable_query_error?(exception)
+          # We definitely can't retry if we were inside a transaction that was instantly
+          # rolled back by this error
+          if exception.is_a?(TransactionRollbackError) && savepoint_errors_invalidate_transactions? && open_transactions > 0
+            false
+          else
+            exception.is_a?(Deadlocked) || exception.is_a?(LockWaitTimeout)
+          end
+        end
+
+        def backoff(counter)
+          sleep 0.1 * counter
+        end
+
+        def reconnect
+          raise NotImplementedError
+        end
+
+        # Returns a raw connection for internal use with methods that are known
+        # to both be thread-safe and not rely upon actual server communication.
+        # This is useful for e.g. string escaping methods.
+        def any_raw_connection
+          @raw_connection || valid_raw_connection
+        end
+
+        # Similar to any_raw_connection, but ensures it is validated and
+        # connected. Any method called on this result still needs to be
+        # independently thread-safe, so it probably shouldn't talk to the
+        # server... but some drivers fail if they know the connection has gone
+        # away.
+        def valid_raw_connection
+          (@verified && @raw_connection) ||
+            # `allow_retry: false`, to force verification: the block won't
+            # raise, so a retry wouldn't help us get the valid connection we
+            # need.
+            with_raw_connection(allow_retry: false, uses_transaction: false) { |conn| conn }
+        end
+
         def extended_type_map_key
           if @default_timezone
             { default_timezone: @default_timezone }
@@ -831,11 +1049,11 @@ module ActiveRecord
             type_casted_binds: type_casted_binds,
             statement_name:    statement_name,
             async:             async,
-            connection:        self) do
-            @lock.synchronize(&block)
-          rescue => e
-            raise translate_exception_class(e, sql, binds)
-          end
+            connection:        self,
+            &block
+          )
+        rescue ActiveRecord::StatementInvalid => ex
+          raise ex.set_query(sql, binds)
         end
 
         def transform_query(sql)
@@ -848,7 +1066,7 @@ module ActiveRecord
         def translate_exception(exception, message:, sql:, binds:)
           # override in derived class
           case exception
-          when RuntimeError
+          when RuntimeError, ActiveRecord::ActiveRecordError
             exception
           else
             ActiveRecord::StatementInvalid.new(message, sql: sql, binds: binds)

@@ -103,15 +103,15 @@ module ActiveRecord
 
       def test_connection_no_db
         assert_raises(ArgumentError) do
-          Base.sqlite3_connection { }
+          Base.sqlite3_connection({})
         end
       end
 
       def test_bad_timeout
-        assert_raises(TypeError) do
-          Base.sqlite3_connection database: ":memory:",
+        assert_raises(ActiveRecord::StatementInvalid, /TypeError/) do
+          Base.sqlite3_connection(database: ":memory:",
                                   adapter: "sqlite3",
-                                  timeout: "usa"
+                                  timeout: "usa").connect!
         end
       end
 
@@ -120,6 +120,7 @@ module ActiveRecord
         conn = Base.sqlite3_connection database: ":memory:",
                                        adapter: "sqlite3",
                                        timeout: nil
+        conn.connect!
         assert conn, "made a connection"
       end
 
@@ -280,6 +281,7 @@ module ActiveRecord
         sql = <<~SQL
           SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND type IN ('table')
         SQL
+        @conn.connect!
         assert_logged [[sql.squish, "SCHEMA", []]] do
           @conn.tables
         end
@@ -574,6 +576,8 @@ module ActiveRecord
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         db = ::SQLite3::Database.new(db_config.database)
 
+        @conn.connect!
+
         statement = ::SQLite3::Statement.new(db,
                                            "CREATE TABLE statement_test (number integer not null)")
         statement.stub(:step, -> { raise ::SQLite3::BusyException.new("busy") }) do
@@ -593,6 +597,7 @@ module ActiveRecord
         conn = Base.sqlite3_connection database: ":memory:",
                                        adapter: "sqlite3",
                                        readonly: false
+        conn.connect!
 
         assert_not_predicate conn.raw_connection, :readonly?
       end
@@ -600,6 +605,7 @@ module ActiveRecord
       def test_db_is_not_readonly_when_readonly_option_is_unspecified
         conn = Base.sqlite3_connection database: ":memory:",
                                        adapter: "sqlite3"
+        conn.connect!
 
         assert_not_predicate conn.raw_connection, :readonly?
       end
@@ -608,6 +614,7 @@ module ActiveRecord
         conn = Base.sqlite3_connection database: ":memory:",
                                        adapter: "sqlite3",
                                        readonly: true
+        conn.connect!
 
         assert_predicate conn.raw_connection, :readonly?
       end
@@ -616,6 +623,7 @@ module ActiveRecord
         conn = Base.sqlite3_connection database: ":memory:",
                                        adapter: "sqlite3",
                                        readonly: true
+        conn.connect!
 
         assert_raises(ActiveRecord::StatementInvalid, /SQLite3::ReadOnlyException/) do
           conn.execute("CREATE TABLE test(id integer)")

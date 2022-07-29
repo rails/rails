@@ -473,6 +473,14 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_no_subqueries_for_whole_tables_batching
+    c = Post.connection
+    quoted_posts_id = Regexp.escape(c.quote_table_name("posts.id"))
+    assert_sql(/DELETE FROM #{c.quote_table_name("posts")} WHERE #{quoted_posts_id} > .+ AND #{quoted_posts_id} <=/i) do
+      Post.in_batches(of: 2).delete_all
+    end
+  end
+
   def test_in_batches_shouldnt_execute_query_unless_needed
     assert_queries(2) do
       Post.in_batches(of: @total) { |relation| assert_kind_of ActiveRecord::Relation, relation }

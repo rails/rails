@@ -52,6 +52,8 @@ class ActiveStorage::Blob < ActiveStorage::Record
     self.service_name ||= self.class.service&.name
   end
 
+  after_update :touch_attachment_records
+
   after_update_commit :update_service_metadata, if: -> { content_type_previously_changed? || metadata_previously_changed? }
 
   before_destroy(prepend: true) do
@@ -399,6 +401,12 @@ class ActiveStorage::Blob < ActiveStorage::Record
         { content_type: content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
       else
         { content_type: content_type, custom_metadata: custom_metadata }
+      end
+    end
+
+    def touch_attachment_records
+      attachments.includes(:record).each do |attachment|
+        attachment.touch
       end
     end
 

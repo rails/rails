@@ -53,6 +53,12 @@ module ActiveSupport
       read_env_key || read_key_file || handle_missing_key
     end
 
+    # Returns truthy if #key is truthy. Returns falsy otherwise. Unlike #key,
+    # does not raise MissingKeyError when +raise_if_missing_key+ is true.
+    def key?
+      read_env_key || read_key_file
+    end
+
     # Reads the file and returns the decrypted content.
     #
     # Raises:
@@ -114,8 +120,7 @@ module ActiveSupport
       end
 
       def read_key_file
-        return @key_file_contents if defined?(@key_file_contents)
-        @key_file_contents = (key_path.binread.strip if key_path.exist?)
+        @key_file_contents ||= (key_path.binread.strip if key_path.exist?)
       end
 
       def handle_missing_key

@@ -442,6 +442,8 @@ There is no global configuration that can affect said instances; they are determ
 
 You can even define a custom inflector for full flexibility. Please check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#custom-inflector) for further details.
 
+NOTE: The inflector in initializers won't take effect on the `once` autoloader. Consider putting it to `config/application.rb` if you need the inflection for the `once` autoloader.
+
 Autoloading and Engines
 -----------------------
 

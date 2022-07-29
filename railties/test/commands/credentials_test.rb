@@ -43,15 +43,47 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_no_match DEFAULT_CREDENTIALS_PATTERN, output
   end
 
-  test "edit command does not add master key when `RAILS_MASTER_KEY` env specified" do
-    Dir.chdir(app_path) do
-      key = IO.binread("config/master.key").strip
-      FileUtils.rm("config/master.key")
+  test "edit command adds master key" do
+    remove_file "config/credentials.yml.enc"
+    remove_file "config/master.key"
+    app_file ".gitignore", ""
+    run_edit_command
 
-      switch_env("RAILS_MASTER_KEY", key) do
-        assert_match DEFAULT_CREDENTIALS_PATTERN, run_edit_command
-        assert_not File.exist?("config/master.key")
-      end
+    assert_file "config/master.key"
+    assert_match "config/master.key", read_file(".gitignore")
+  end
+
+  test "edit command does not overwrite master key file if it already exists" do
+    master_key = read_file("config/master.key")
+    run_edit_command
+
+    assert_equal master_key, read_file("config/master.key")
+  end
+
+  test "edit command does not add duplicate master key entries to gitignore" do
+    2.times { run_edit_command }
+
+    assert_equal 1, read_file(".gitignore").scan("config/master.key").length
+  end
+
+  test "edit command can add master key when require_master_key is true" do
+    remove_file "config/credentials.yml.enc"
+    remove_file "config/master.key"
+    add_to_config "config.require_master_key = true"
+
+    assert_nothing_raised { run_edit_command }
+    assert_file "config/master.key"
+  end
+
+  test "edit command does not add master key when `RAILS_MASTER_KEY` env specified" do
+    master_key = read_file("config/master.key")
+    remove_file "config/master.key"
+    app_file ".gitignore", ""
+
+    switch_env("RAILS_MASTER_KEY", master_key) do
+      assert_match DEFAULT_CREDENTIALS_PATTERN, run_edit_command
+      assert_no_file "config/master.key"
+      assert_no_match "config/master.key", read_file(".gitignore")
     end
   end
 
@@ -256,6 +288,10 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
       switch_env("CONTENT", content) do
         run_edit_command(editor: %(ruby -e "File.write ARGV[0], ENV['CONTENT']"), **options)
       end
+    end
+
+    def read_file(relative)
+      File.read(app_path(relative))
     end
 
     def assert_file(relative)

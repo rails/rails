@@ -1944,22 +1944,24 @@ So first, let's add the delete link in the
 `app/views/comments/_comment.html.erb` partial:
 
 ```html+erb
-<p>
-  <strong>Commenter:</strong>
-  <%= comment.commenter %>
-</p>
+<% unless comment.archived? %>
+  <p>
+    <strong>Commenter:</strong>
+    <%= comment.commenter %>
+  </p>
 
-<p>
-  <strong>Comment:</strong>
-  <%= comment.body %>
-</p>
+  <p>
+    <strong>Comment:</strong>
+    <%= comment.body %>
+  </p>
 
-<p>
-  <%= link_to "Destroy Comment", [comment.article, comment], data: {
-                turbo_method: :delete,
-                turbo_confirm: "Are you sure?"
-              } %>
-</p>
+  <p>
+    <%= link_to "Destroy Comment", [comment.article, comment], data: {
+                  turbo_method: :delete,
+                  turbo_confirm: "Are you sure?"
+                } %>
+  </p>
+<% end %>
 ```
 
 Clicking this new "Destroy Comment" link will fire off a `DELETE

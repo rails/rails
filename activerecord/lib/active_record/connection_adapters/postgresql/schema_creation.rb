@@ -10,6 +10,7 @@ module ActiveRecord
             sql << o.constraint_validations.map { |fk| visit_ValidateConstraint fk }.join(" ")
             sql << o.exclusion_constraint_adds.map { |con| visit_AddExclusionConstraint con }.join(" ")
             sql << o.exclusion_constraint_drops.map { |con| visit_DropExclusionConstraint con }.join(" ")
+            o.ddl = sql
           end
 
           def visit_AddForeignKey(o)
@@ -83,7 +84,7 @@ module ActiveRecord
               change_column_sql << ", ALTER COLUMN #{quoted_column_name} #{options[:null] ? 'DROP' : 'SET'} NOT NULL"
             end
 
-            change_column_sql
+            o.ddl = change_column_sql
           end
 
           def add_column_options!(sql, options)

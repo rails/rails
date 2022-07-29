@@ -80,6 +80,21 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "record touched after analyze" do
+    user = User.create!(
+      name: "Nate",
+      avatar: {
+        content_type: "image/jpeg",
+        filename: "racecar.jpg",
+        io: file_fixture("racecar.jpg").open,
+      }
+    )
+
+    assert_changes -> { user.reload.updated_at } do
+      user.avatar.blob.analyze
+    end
+  end
+
   test "build_after_unfurling generates a 28-character base36 key" do
     assert_match(/^[a-z0-9]{28}$/, build_blob_after_unfurling.key)
   end
