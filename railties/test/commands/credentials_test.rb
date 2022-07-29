@@ -142,6 +142,13 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match %r/provides_secret_key_base: true/, run_edit_command
   end
 
+  test "edit command preserves user's content even if it contains invalid YAML" do
+    write_invalid_yaml = %(ruby -e "File.write ARGV[0], 'foo: bar: bad'")
+
+    assert_match %r/WARNING: Invalid YAML/, run_edit_command(editor: write_invalid_yaml)
+    assert_match %r/foo: bar: bad/, run_edit_command
+  end
+
 
   test "show credentials" do
     assert_match DEFAULT_CREDENTIALS_PATTERN, run_show_command

@@ -41,6 +41,7 @@ module Rails
         end
 
         say "File encrypted and saved."
+        warn_if_credentials_are_invalid
       rescue ActiveSupport::MessageEncryptor::InvalidMessage
         say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
       end
@@ -101,6 +102,14 @@ module Rails
           credentials.change do |tmp_path|
             system(*Shellwords.split(ENV["EDITOR"]), tmp_path.to_s)
           end
+        end
+
+        def warn_if_credentials_are_invalid
+          credentials.validate!
+        rescue ActiveSupport::EncryptedConfiguration::InvalidContentError => error
+          say "WARNING: #{error.message}", :red
+          say ""
+          say "Your application will not be able to load '#{content_path}' until the error has been fixed.", :red
         end
 
         def missing_credentials_message
