@@ -51,10 +51,6 @@ module ActiveRecord
           end
       end
 
-      def initialize(connection, logger, connection_options, config)
-        super(connection, logger, config)
-      end
-
       def get_database_version # :nodoc:
         full_version_string = get_full_version
         version_string = version_string(full_version_string)

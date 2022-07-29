@@ -78,14 +78,16 @@ module ActiveRecord
           raise TransactionIsolationError, "SQLite3 only supports the `read_uncommitted` transaction isolation level" if isolation != :read_uncommitted
           raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
 
-          ActiveSupport::IsolatedExecutionState[:active_record_read_uncommitted] = @raw_connection.get_first_value("PRAGMA read_uncommitted")
-          @raw_connection.read_uncommitted = true
-          begin_db_transaction
+          with_raw_connection(allow_retry: true, uses_transaction: false) do |conn|
+            ActiveSupport::IsolatedExecutionState[:active_record_read_uncommitted] = conn.get_first_value("PRAGMA read_uncommitted")
+            conn.read_uncommitted = true
+            begin_db_transaction
+          end
         end
 
         def begin_db_transaction # :nodoc:
           log("begin transaction", "TRANSACTION") do
-            with_raw_connection do |conn|
+            with_raw_connection(allow_retry: true, uses_transaction: false) do |conn|
               conn.transaction
             end
           end
@@ -93,7 +95,7 @@ module ActiveRecord
 
         def commit_db_transaction # :nodoc:
           log("commit transaction", "TRANSACTION") do
-            with_raw_connection do |conn|
+            with_raw_connection(allow_retry: true, uses_transaction: false) do |conn|
               conn.commit
             end
           end
@@ -102,7 +104,7 @@ module ActiveRecord
 
         def exec_rollback_db_transaction # :nodoc:
           log("rollback transaction", "TRANSACTION") do
-            with_raw_connection do |conn|
+            with_raw_connection(allow_retry: true, uses_transaction: false) do |conn|
               conn.rollback
             end
           end
@@ -123,7 +125,7 @@ module ActiveRecord
             read_uncommitted = ActiveSupport::IsolatedExecutionState[:active_record_read_uncommitted]
             return unless read_uncommitted
 
-            @raw_connection.read_uncommitted = read_uncommitted
+            @raw_connection&.read_uncommitted = read_uncommitted
           end
 
           def execute_batch(statements, name = nil)

@@ -390,7 +390,7 @@ module ActiveRecord
       def rollback_db_transaction
         exec_rollback_db_transaction
       rescue ActiveRecord::ConnectionNotEstablished, ActiveRecord::ConnectionFailed
-        reconnect!
+        # Connection's gone; that counts as a rollback
       end
 
       def exec_rollback_db_transaction() end # :nodoc:

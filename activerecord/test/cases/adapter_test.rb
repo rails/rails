@@ -645,8 +645,9 @@ module ActiveRecord
 
         assert_equal 1, invocations # the whole transaction block is not retried
 
-        # After the (outermost) transaction block failed, it reconnected
-        assert_predicate @connection, :active?
+        # After the (outermost) transaction block failed, the connection is
+        # ready to reconnect on next use, but hasn't done so yet
+        assert_not_predicate @connection, :active?
         assert_operator Post.count, :>, 0
       end
 
