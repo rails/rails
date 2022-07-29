@@ -1,3 +1,16 @@
+*   `ActiveSupport::CurrentAttributes.resets` now accepts a method name
+
+    The block API is still the recommended approach, but now both APIs are supported:
+
+    ```ruby
+    class Current < ActiveSupport::CurrentAttributes
+      resets { Time.zone = nil }
+      resets :clear_time_zone
+    end
+    ```
+
+    *Alex Ghiculescu*
+
 *   `Class#subclasses` and `Class#descendants` now automatically filter reloaded classes.
 
     Previously they could return old implementations of reloadable classes that have been
