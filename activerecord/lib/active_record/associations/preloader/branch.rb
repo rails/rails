@@ -4,6 +4,8 @@ module ActiveRecord
   module Associations
     class Preloader
       class Branch # :nodoc:
+        include Bucketing
+
         attr_reader :association, :children, :parent
         attr_reader :scope, :associate_by_default
         attr_writer :preloaded_records
@@ -56,7 +58,7 @@ module ActiveRecord
         end
 
         def source_records
-          @parent.preloaded_records
+          @source_records ||= gather_records_from_linked_buckets(@parent.preloaded_records)
         end
 
         def preloaded_records
@@ -95,7 +97,7 @@ module ActiveRecord
 
             [klass, reflection_scope]
           end.map do |(rhs_klass, reflection_scope), rs|
-            preloader_for(reflection).new(rhs_klass, rs, reflection, scope, reflection_scope, associate_by_default)
+            preloader_for(reflection).new(rhs_klass, rs, reflection, scope, reflection_scope, bucket, associate_by_default)
           end
         end
 
@@ -140,6 +142,10 @@ module ActiveRecord
             else
               Association
             end
+          end
+
+          def bucket
+            @bucket ||= build_bucket(grouped_records.values.flatten, association)
           end
       end
     end
