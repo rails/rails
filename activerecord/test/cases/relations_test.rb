@@ -662,6 +662,14 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  test "post-hoc preloading uses already-loaded owner records" do
+    posts = Post.all.load
+
+    assert_queries(1) do
+      posts.includes(:comments).each { |post| post.comments.to_a }
+    end
+  end
+
   def test_default_scoping_finder_methods
     developers = DeveloperCalledDavid.order("id").map(&:id).sort
     assert_equal Developer.where(name: "David").map(&:id).sort, developers

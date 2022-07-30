@@ -195,7 +195,7 @@ module ActiveRecord
     # other additional posts.
     def includes(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.includes!(*args)
+      spawn.with_records!(eager_loading? ? nil : @records).includes!(*args)
     end
 
     def includes!(*args) # :nodoc:
@@ -225,7 +225,7 @@ module ActiveRecord
     #   # SELECT "posts".* FROM "posts" WHERE "posts"."user_id" IN (1, 2, 3)
     def preload(*args)
       check_if_method_has_arguments!(__callee__, args)
-      spawn.preload!(*args)
+      spawn.with_records!(@records).preload!(*args)
     end
 
     def preload!(*args) # :nodoc:
