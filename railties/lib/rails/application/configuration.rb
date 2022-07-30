@@ -87,6 +87,20 @@ module Rails
       # {configuration guide}[https://guides.rubyonrails.org/configuring.html#versioned-default-values]
       # for the default values associated with a particular version.
       def load_defaults(target_version)
+        # To introduce a change in behavior, follow these steps:
+        # 1. Add an accessor on the target object (e.g. the ActiveJob class for global Active Job config).
+        # 2. Set a default value there preserving existing behavior for existing applications.
+        # 3. Implement the behavior change based on the config value.
+        # 4. In the section below corresponding to the next release of Rails, set the new value.
+        # 5. Add a commented out section in the `new_framework_defaults` template, setting the new value.
+        # 6. Update the guide in `configuration.md`.
+
+        # To remove configurable deprecated behavior, follow these steps:
+        # 1. Update or remove the entry in the guides.
+        # 2. Remove the references below.
+        # 3. Remove the legacy code paths and config check.
+        # 4. Remove the config accessor.
+
         case target_version.to_s
         when "5.0"
           if respond_to?(:action_controller)
@@ -279,7 +293,7 @@ module Rails
           end
 
           if respond_to?(:active_job)
-            active_job.use_big_decimal_serializer = false
+            active_job.use_big_decimal_serializer = true
           end
 
           if respond_to?(:active_support)
