@@ -246,12 +246,7 @@ module ActiveSupport
           failsafe :increment do
             options = merged_options(options)
             key = normalize_key(name, options)
-
-            redis.then do |c|
-              c.incrby(key, amount).tap do
-                write_key_expiry(c, key, options)
-              end
-            end
+            change_counter(key, amount, options)
           end
         end
       end
@@ -277,12 +272,7 @@ module ActiveSupport
           failsafe :decrement do
             options = merged_options(options)
             key = normalize_key(name, options)
-
-            redis.then do |c|
-              c.decrby(key, amount).tap do
-                write_key_expiry(c, key, options)
-              end
-            end
+            change_counter(key, -amount, options)
           end
         end
       end
@@ -389,12 +379,6 @@ module ActiveSupport
           end
         end
 
-        def write_key_expiry(client, key, options)
-          if options[:expires_in] && client.ttl(key).negative?
-            client.expire key, options[:expires_in].to_i
-          end
-        end
-
         # Delete an entry from the cache.
         def delete_entry(key, options)
           failsafe :delete_entry, returning: false do
@@ -457,6 +441,32 @@ module ActiveSupport
           entries.transform_values do |entry|
             serialize_entry(entry, **options)
           end
+        end
+
+        def change_counter(key, amount, options)
+          redis.then do |c|
+            c = c.node_for(key) if c.is_a?(Redis::Distributed)
+
+            if options[:expires_in] && supports_expire_nx?
+              c.pipelined do |pipeline|
+                pipeline.incrby(key, amount)
+                pipeline.call(:expire, key, options[:expires_in].to_i, "NX")
+              end.first
+            else
+              count = c.incrby(key, amount)
+              if count != amount && options[:expires_in] && c.ttl(key) < 0
+                c.expire(key, options[:expires_in].to_i)
+              end
+              count
+            end
+          end
+        end
+
+        def supports_expire_nx?
+          return @supports_expire_nx if defined?(@supports_expire_nx)
+
+          redis_version = redis.then { |c| c.info("server").fetch("redis_version") }
+          @supports_expire_nx = Gem::Version.new(redis_version) >= Gem::Version.new("7.0.0")
         end
 
         def failsafe(method, returning: nil)

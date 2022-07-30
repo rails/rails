@@ -209,43 +209,35 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
 
     def test_increment_expires_in
-      assert_called_with @cache.redis, :incrby, [ "#{@namespace}:foo", 1 ] do
-        assert_called_with @cache.redis, :expire, [ "#{@namespace}:foo", 60 ] do
-          @cache.increment "foo", 1, expires_in: 60
-        end
-      end
+      @cache.increment "foo", 1, expires_in: 60
+      assert @cache.redis.exists?("#{@namespace}:foo")
+      assert @cache.redis.ttl("#{@namespace}:foo") > 0
 
       # key and ttl exist
       @cache.redis.setex "#{@namespace}:bar", 120, 1
-      assert_not_called @cache.redis, :expire do
-        @cache.increment "bar", 1, expires_in: 2.minutes
-      end
+      @cache.increment "bar", 1, expires_in: 60
+      assert @cache.redis.ttl("#{@namespace}:bar") > 60
 
       # key exist but not have expire
       @cache.redis.set "#{@namespace}:dar", 10
-      assert_called_with @cache.redis, :expire, [ "#{@namespace}:dar", 60 ] do
-        @cache.increment "dar", 1, expires_in: 60
-      end
+      @cache.increment "dar", 1, expires_in: 60
+      assert @cache.redis.ttl("#{@namespace}:dar") > 0
     end
 
     def test_decrement_expires_in
-      assert_called_with @cache.redis, :decrby, [ "#{@namespace}:foo", 1 ] do
-        assert_called_with @cache.redis, :expire, [ "#{@namespace}:foo", 60 ] do
-          @cache.decrement "foo", 1, expires_in: 60
-        end
-      end
+      @cache.decrement "foo", 1, expires_in: 60
+      assert @cache.redis.exists?("#{@namespace}:foo")
+      assert @cache.redis.ttl("#{@namespace}:foo") > 0
 
       # key and ttl exist
       @cache.redis.setex "#{@namespace}:bar", 120, 1
-      assert_not_called @cache.redis, :expire do
-        @cache.decrement "bar", 1, expires_in: 2.minutes
-      end
+      @cache.decrement "bar", 1, expires_in: 60
+      assert @cache.redis.ttl("#{@namespace}:bar") > 60
 
       # key exist but not have expire
       @cache.redis.set "#{@namespace}:dar", 10
-      assert_called_with @cache.redis, :expire, [ "#{@namespace}:dar", 60 ] do
-        @cache.decrement "dar", 1, expires_in: 60
-      end
+      @cache.decrement "dar", 1, expires_in: 60
+      assert @cache.redis.ttl("#{@namespace}:dar") > 0
     end
 
     def test_large_string_with_default_compression_settings
