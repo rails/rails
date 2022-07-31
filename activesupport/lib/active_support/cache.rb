@@ -614,6 +614,31 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
 
+      # Reads an entry from the cache implementation. Subclasses must implement
+      # this method.
+      def read_entry(key, **options)
+        raise NotImplementedError.new
+      end
+
+      # Reads multiple entries from the cache implementation. Subclasses MAY
+      # implement this method.
+      def read_multi_entries(names, **options)
+        names.each_with_object({}) do |name, results|
+          key   = normalize_key(name, options)
+          entry = read_entry(key, **options)
+
+          next unless entry
+
+          version = normalize_version(name, options)
+
+          if entry.expired?
+            delete_entry(key, **options)
+          elsif !entry.mismatched?(version)
+            results[name] = entry.value
+          end
+        end
+      end
+
       private
         def default_coder
           Coders[Cache.format_version]
@@ -638,12 +663,6 @@ module ActiveSupport
           end
         end
 
-        # Reads an entry from the cache implementation. Subclasses must implement
-        # this method.
-        def read_entry(key, **options)
-          raise NotImplementedError.new
-        end
-
         # Writes an entry to the cache implementation. Subclasses must implement
         # this method.
         def write_entry(key, entry, **options)
@@ -661,25 +680,6 @@ module ActiveSupport
 
         def deserialize_entry(payload)
           payload.nil? ? nil : @coder.load(payload)
-        end
-
-        # Reads multiple entries from the cache implementation. Subclasses MAY
-        # implement this method.
-        def read_multi_entries(names, **options)
-          names.each_with_object({}) do |name, results|
-            key   = normalize_key(name, options)
-            entry = read_entry(key, **options)
-
-            next unless entry
-
-            version = normalize_version(name, options)
-
-            if entry.expired?
-              delete_entry(key, **options)
-            elsif !entry.mismatched?(version)
-              results[name] = entry.value
-            end
-          end
         end
 
         # Writes multiple entries to the cache implementation. Subclasses MAY

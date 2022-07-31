@@ -85,14 +85,14 @@ module ActiveSupport
         end
       end
 
-      private
-        def read_entry(key, **options)
-          if payload = read_serialized_entry(key, **options)
-            entry = deserialize_entry(payload)
-            entry if entry.is_a?(Cache::Entry)
-          end
+      def read_entry(key, **options)
+        if payload = read_serialized_entry(key, **options)
+          entry = deserialize_entry(payload)
+          entry if entry.is_a?(Cache::Entry)
         end
+      end
 
+      private
         def read_serialized_entry(key, **)
           File.binread(key) if File.exist?(key)
         rescue => error

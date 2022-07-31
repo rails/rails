@@ -161,6 +161,18 @@ module ActiveSupport
         @monitor.synchronize(&block)
       end
 
+      def read_entry(key, **options)
+        entry = nil
+        synchronize do
+          payload = @data.delete(key)
+          if payload
+            @data[key] = payload
+            entry = deserialize_entry(payload)
+          end
+        end
+        entry
+      end
+
       private
         PER_ENTRY_OVERHEAD = 240
 
@@ -170,18 +182,6 @@ module ActiveSupport
 
         def cached_size(key, payload)
           key.to_s.bytesize + payload.bytesize + PER_ENTRY_OVERHEAD
-        end
-
-        def read_entry(key, **options)
-          entry = nil
-          synchronize do
-            payload = @data.delete(key)
-            if payload
-              @data[key] = payload
-              entry = deserialize_entry(payload)
-            end
-          end
-          entry
         end
 
         def write_entry(key, entry, **options)

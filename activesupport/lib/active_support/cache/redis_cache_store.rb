@@ -335,6 +335,20 @@ module ActiveSupport
         @mset_capable
       end
 
+      # Store provider interface:
+      # Read an entry from the cache.
+      def read_entry(key, **options)
+        deserialize_entry(read_serialized_entry(key, **options), **options)
+      end
+
+      def read_multi_entries(names, **options)
+        if mget_capable?
+          read_multi_mget(*names, **options)
+        else
+          super
+        end
+      end
+
       private
         def set_redis_capabilities
           case redis
@@ -347,23 +361,9 @@ module ActiveSupport
           end
         end
 
-        # Store provider interface:
-        # Read an entry from the cache.
-        def read_entry(key, **options)
-          deserialize_entry(read_serialized_entry(key, **options), **options)
-        end
-
         def read_serialized_entry(key, raw: false, **options)
           failsafe :read_entry do
             redis.with { |c| c.get(key) }
-          end
-        end
-
-        def read_multi_entries(names, **options)
-          if mget_capable?
-            read_multi_mget(*names, **options)
-          else
-            super
           end
         end
 

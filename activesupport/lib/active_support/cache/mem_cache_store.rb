@@ -189,6 +189,29 @@ module ActiveSupport
         @data.with { |c| c.stats }
       end
 
+      # Read an entry from the cache.
+      def read_entry(key, **options)
+        deserialize_entry(read_serialized_entry(key, **options), **options)
+      end
+
+      # Reads multiple entries from the cache implementation.
+      def read_multi_entries(names, **options)
+        keys_to_names = names.index_by { |name| normalize_key(name, options) }
+
+        raw_values = @data.with { |c| c.get_multi(keys_to_names.keys) }
+        values = {}
+
+        raw_values.each do |key, value|
+          entry = deserialize_entry(value, raw: options[:raw])
+
+          unless entry.nil? || entry.expired? || entry.mismatched?(normalize_version(keys_to_names[key], options))
+            values[keys_to_names[key]] = entry.value
+          end
+        end
+
+        values
+      end
+
       private
         module Coders # :nodoc:
           class << self
@@ -238,11 +261,6 @@ module ActiveSupport
           Coders[Cache.format_version]
         end
 
-        # Read an entry from the cache.
-        def read_entry(key, **options)
-          deserialize_entry(read_serialized_entry(key, **options), **options)
-        end
-
         def read_serialized_entry(key, **options)
           rescue_error_with(nil) do
             @data.with { |c| c.get(key, options) }
@@ -266,24 +284,6 @@ module ActiveSupport
             options.delete(:compress)
             @data.with { |c| c.send(method, key, payload, expires_in, **options) }
           end
-        end
-
-        # Reads multiple entries from the cache implementation.
-        def read_multi_entries(names, **options)
-          keys_to_names = names.index_by { |name| normalize_key(name, options) }
-
-          raw_values = @data.with { |c| c.get_multi(keys_to_names.keys) }
-          values = {}
-
-          raw_values.each do |key, value|
-            entry = deserialize_entry(value, raw: options[:raw])
-
-            unless entry.nil? || entry.expired? || entry.mismatched?(normalize_version(keys_to_names[key], options))
-              values[keys_to_names[key]] = entry.value
-            end
-          end
-
-          values
         end
 
         # Delete an entry from the cache.
