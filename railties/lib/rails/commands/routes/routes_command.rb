@@ -8,6 +8,7 @@ module Rails
       class_option :controller, aliases: "-c", desc: "Filter by a specific controller, e.g. PostsController or Admin::PostsController."
       class_option :grep, aliases: "-g", desc: "Grep routes by a specific pattern."
       class_option :expanded, type: :boolean, aliases: "-E", desc: "Print routes expanded vertically with parts explained."
+      class_option :colorized, type: :boolean, aliases: "-C", desc: "Print routes with a colorized version"
 
       def perform(*)
         require_application_and_environment!
@@ -24,6 +25,8 @@ module Rails
         def formatter
           if options.key?("expanded")
             ActionDispatch::Routing::ConsoleFormatter::Expanded.new
+          elsif options.key?("colorized")
+            ActionDispatch::Routing::ConsoleFormatter::Colorized.new(width: 100)
           else
             ActionDispatch::Routing::ConsoleFormatter::Sheet.new
           end

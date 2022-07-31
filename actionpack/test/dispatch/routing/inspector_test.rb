@@ -379,6 +379,73 @@ module ActionDispatch
         ], output
       end
 
+      def test_routes_when_colorized
+        engine = Class.new(Rails::Engine) do
+          def self.inspect
+            "Blog::Engine"
+          end
+        end
+        engine.routes.draw do
+          get "/cart", to: "cart#show"
+        end
+
+        output = draw(formatter: ActionDispatch::Routing::ConsoleFormatter::Colorized.new(width: 100)) do
+          get "/custom/assets", to: "custom_assets#show"
+          get "/custom/furnitures", to: "custom_furnitures#show"
+          get "/post/:post_id/comments/:comment_ID_2", to: "custom_furnitures#show"
+          mount engine => "/blog", :as => "blog"
+        end
+
+        assert_equal ["",
+                      "\e[1;94m     GET\e[0m      /custom/assets(.:format) \e[1;90m................ custom_assets_path > custom_assets#show     \e[0m",
+                      "\e[1;94m     GET\e[0m      /custom/furnitures(.:format) \e[1;90m.... custom_furnitures_path > custom_furnitures#show     \e[0m",
+                      "\e[1;94m     GET\e[0m      /post/\e[1;93m:post_id\e[0m/comments/\e[1;93m:comment_ID_2\e[0m(.:format) \e[1;90m.......... custom_furnitures#show     \e[0m",
+                      "              /blog \e[1;90m.................................................. blog_path > Blog::Engine     \e[0m",
+                      "",
+                      "Routes for Blog::Engine:",
+                      "\e[1;94m     GET\e[0m      /cart(.:format) \e[1;90m........................................... cart_path > cart#show     \e[0m"], output
+      end
+
+      def test_no_routes_matched_filter_when_colorized
+        output = draw(grep: "rails/dummy", formatter: ActionDispatch::Routing::ConsoleFormatter::Colorized.new) do
+          get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
+        end
+
+        assert_equal [
+          "No routes were found for this grep pattern.",
+          "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html."
+        ], output
+      end
+
+      def test_not_routes_when_colorized
+        output = draw(grep: "rails/dummy", formatter: ActionDispatch::Routing::ConsoleFormatter::Colorized.new) { }
+
+        assert_equal [
+          "You don't have any routes defined!",
+          "",
+          "Please add some routes in config/routes.rb.",
+          "",
+          "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html."
+        ], output
+      end
+
+      def test_routes_can_be_filtered_when_colorized
+        output = draw(grep: "posts", formatter: ActionDispatch::Routing::ConsoleFormatter::Colorized.new(width: 70)) do
+          resources :articles
+          resources :posts
+        end
+
+        assert_equal ["",
+                      "\e[1;94m     GET\e[0m      /posts(.:format) \e[1;90m......... posts_path > posts#index     \e[0m",
+                      "\e[1;93m     POST\e[0m     /posts(.:format) \e[1;90m..................... posts#create     \e[0m",
+                      "\e[1;94m     GET\e[0m      /posts/new(.:format) \e[1;90m.... new_post_path > posts#new     \e[0m",
+                      "\e[1;94m     GET\e[0m      /posts/\e[1;93m:id\e[0m/edit(.:format) \e[1;90m edit_post_path > posts#edit     \e[0m",
+                      "\e[1;94m     GET\e[0m      /posts/\e[1;93m:id\e[0m(.:format) \e[1;90m....... post_path > posts#show     \e[0m",
+                      "\e[1;93m     PATCH\e[0m    /posts/\e[1;93m:id\e[0m(.:format) \e[1;90m................. posts#update     \e[0m",
+                      "\e[1;93m     PUT\e[0m      /posts/\e[1;93m:id\e[0m(.:format) \e[1;90m................. posts#update     \e[0m",
+                      "\e[1;91m     DELETE\e[0m   /posts/\e[1;93m:id\e[0m(.:format) \e[1;90m................ posts#destroy     \e[0m"], output
+      end
+
       def test_routes_can_be_filtered_with_namespaced_controllers
         output = draw(grep: "admin/posts") do
           resources :articles
