@@ -85,7 +85,7 @@ class Rails::Command::EncryptedCommandTest < ActiveSupport::TestCase
   test "edit command does not display save confirmation message if interrupted" do
     assert_match %r/file encrypted and saved/i, run_edit_command
 
-    interrupt_command_process = %(exec ruby -e "Process.kill 'INT', Process.ppid")
+    interrupt_command_process = %(ruby -e "Process.kill 'INT', Process.ppid")
     output = run_edit_command(editor: interrupt_command_process)
 
     assert_no_match %r/file encrypted and saved/i, output

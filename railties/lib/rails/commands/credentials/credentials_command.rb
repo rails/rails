@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "pathname"
-require "shellwords"
 require "active_support"
 require "rails/command/helpers/editor"
 require "rails/command/environment_argument"
@@ -93,10 +92,7 @@ module Rails
 
         def change_credentials_in_system_editor
           catch_editing_exceptions do
-            credentials.change do |tmp_path|
-              system(*Shellwords.split(ENV["EDITOR"]), tmp_path.to_s)
-            end
-
+            credentials.change { |tmp_path| system_editor(tmp_path) }
             say "File encrypted and saved."
             warn_if_credentials_are_invalid
           end
