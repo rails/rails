@@ -49,4 +49,10 @@ module ActiveJob
   # This behavior will be removed in Rails 7.2.
   singleton_class.attr_accessor :use_big_decimal_serializer
   self.use_big_decimal_serializer = false
+
+  ##
+  # :singleton-method:
+  # ...TBD...
+  singleton_class.attr_accessor :forbid_colliding_hash_key_serialization
+  self.forbid_colliding_hash_key_serialization = false
 end
