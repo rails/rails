@@ -466,18 +466,19 @@ module ActiveRecord
 
       # Given a name and an array of values, creates an enum type.
       def create_enum(name, values)
-        sql_values = values.map { |s| "'#{s}'" }.join(", ")
+        sql_values = values.map { |s| quote(s) }.join(", ")
+        scope = quoted_scope(name)
         query = <<~SQL
           DO $$
           BEGIN
               IF NOT EXISTS (
                 SELECT 1
                 FROM pg_type t
-                #{ "JOIN pg_namespace n ON (t.typnamespace = n.oid)" if schema_exists?(current_schema) }
-                WHERE t.typname = '#{name}'
-                  #{ "AND n.nspname = '#{current_schema}'" if schema_exists?(current_schema) }
+                JOIN pg_namespace n ON t.typnamespace = n.oid
+                WHERE t.typname = #{scope[:name]}
+                  AND n.nspname = #{scope[:schema]}
               ) THEN
-                  CREATE TYPE \"#{name}\" AS ENUM (#{sql_values});
+                  CREATE TYPE #{quote_table_name(name)} AS ENUM (#{sql_values});
               END IF;
           END
           $$;
