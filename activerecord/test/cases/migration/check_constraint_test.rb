@@ -184,6 +184,20 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           assert_empty @connection.check_constraints("trades")
         end
 
+        def test_remove_check_constraint_which_does_not_exist_doesnt_raise_with_option
+          @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check"
+
+          @connection.remove_check_constraint :trades, name: "quantity_check"
+
+          assert_raises ArgumentError do
+            @connection.remove_check_constraint :trades, name: "quantity_check"
+          end
+
+          assert_nothing_raised do
+            @connection.remove_check_constraint :trades, name: "quantity_check", if_exists: true
+          end
+        end
+
         def test_remove_non_existing_check_constraint
           assert_raises(ArgumentError) do
             @connection.remove_check_constraint :trades, name: "nonexistent"
@@ -208,6 +222,13 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           end
 
           assert_equal 0, @connection.check_constraints("trades").size
+        end
+
+        def test_check_constraint_exists
+          @connection.add_check_constraint :trades, "price > 0", name: "price_check"
+
+          assert @connection.check_constraint_exists?(:trades, name: "price_check")
+          assert_not @connection.check_constraint_exists?(:trades, name: "nonexistent")
         end
       end
     end
