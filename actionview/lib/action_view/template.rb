@@ -8,6 +8,8 @@ module ActionView
   class Template
     extend ActiveSupport::Autoload
 
+    EXPLICIT_LOCALS_REGEX = /\#\s+locals:\s+\((.*)\)/
+
     # === Encodings in ActionView::Template
     #
     # ActionView::Template is one of a few sources of potential
@@ -121,12 +123,13 @@ module ActionView
     attr_reader :variable, :format, :variant, :locals, :virtual_path
 
     def initialize(source, identifier, handler, locals:, format: nil, variant: nil, virtual_path: nil)
-      @source            = source
+      @source            = source.dup
       @identifier        = identifier
       @handler           = handler
       @compiled          = false
       @locals            = locals
       @virtual_path      = virtual_path
+      @explicit_locals   = nil
 
       @variable = if @virtual_path
         base = @virtual_path.end_with?("/") ? "" : ::File.basename(@virtual_path)
@@ -154,7 +157,7 @@ module ActionView
     def render(view, locals, buffer = ActionView::OutputBuffer.new, add_to_stack: true, &block)
       instrument_render_template do
         compile!(view)
-        view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, &block)
+        view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_explicit_locals: @explicit_locals.present?, &block)
       end
     rescue => e
       handle_render_error(view, e)
@@ -222,6 +225,17 @@ module ActionView
       end
     end
 
+    # This method is responsible for marking a template as having explicit locals
+    # and extracting any arguments declared in the format
+    # locals: (message:, label: "My Message")
+    def explicit_locals!
+      self.source.sub!(EXPLICIT_LOCALS_REGEX, "")
+      @explicit_locals = $1
+
+      return if @explicit_locals.nil? # Magic comment not found
+
+      @explicit_locals = "**nil" if @explicit_locals.blank?
+    end
 
     # Exceptions are marshalled when using the parallel test runner with DRb, so we need
     # to ensure that references to the template object can be marshalled as well. This means forgoing
@@ -273,14 +287,22 @@ module ActionView
       # In general, this means that templates will be UTF-8 inside of Rails,
       # regardless of the original source encoding.
       def compile(mod)
+        explicit_locals!
         source = encode!
         code = @handler.call(self, source)
+
+        method_arguments =
+          if @explicit_locals.present?
+            "output_buffer, #{@explicit_locals}"
+          else
+            "local_assigns, output_buffer"
+          end
 
         # Make sure that the resulting String to be eval'd is in the
         # encoding of the code
         original_source = source
         source = +<<-end_src
-          def #{method_name}(local_assigns, output_buffer)
+          def #{method_name}(#{method_arguments})
             @virtual_path = #{@virtual_path.inspect};#{locals_code};#{code}
           end
         end_src
@@ -311,6 +333,26 @@ module ActionView
           # the result into the template, but missing an end parenthesis.
           raise SyntaxErrorInTemplate.new(self, original_source)
         end
+
+        return unless @explicit_locals.present?
+
+        # Check compiled method parameters to ensure that only kwargs
+        # were provided as explicit locals, preventing `locals: (foo, *foo)` etc
+        # and allowing `locals: (foo:)`.
+
+        non_kwarg_parameters =
+          (mod.instance_method(method_name).parameters - [[:req, :output_buffer]]).
+            select { |parameter| ![:keyreq, :key, :keyrest, :nokey].include?(parameter[0]) }
+
+        return unless non_kwarg_parameters.any?
+
+        mod.undef_method(method_name)
+
+        raise ArgumentError.new(
+          "#{non_kwarg_parameters.map { |_, name| "`#{name}`" }.to_sentence} set as non-keyword " \
+          "#{'argument'.pluralize(non_kwarg_parameters.length)} for #{short_identifier}. " \
+          "Locals can only be set as keyword arguments."
+        )
       end
 
       def handle_render_error(view, e)
@@ -323,6 +365,8 @@ module ActionView
       end
 
       def locals_code
+        return "" if @explicit_locals.present?
+
         # Only locals with valid variable names get set directly. Others will
         # still be available in local_assigns.
         locals = @locals - Module::RUBY_RESERVED_KEYWORDS

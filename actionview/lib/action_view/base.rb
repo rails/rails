@@ -237,11 +237,27 @@ module ActionView # :nodoc:
       _prepare_context
     end
 
-    def _run(method, template, locals, buffer, add_to_stack: true, &block)
+    def _run(method, template, locals, buffer, add_to_stack: true, has_explicit_locals: false, &block)
       _old_output_buffer, _old_virtual_path, _old_template = @output_buffer, @virtual_path, @current_template
       @current_template = template if add_to_stack
       @output_buffer = buffer
-      public_send(method, locals, buffer, &block)
+
+      if has_explicit_locals
+        begin
+          public_send(method, buffer, **locals, &block)
+        rescue ArgumentError => argument_error
+          raise(
+            ArgumentError,
+            argument_error.
+              message.
+                gsub("unknown keyword:", "unknown local:").
+                gsub("missing keyword:", "missing local:").
+                gsub("no keywords accepted", "no locals accepted")
+          )
+        end
+      else
+        public_send(method, locals, buffer, &block)
+      end
     ensure
       @output_buffer, @virtual_path, @current_template = _old_output_buffer, _old_virtual_path, _old_template
     end
