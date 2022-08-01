@@ -368,6 +368,23 @@ module ActiveRecord
       ensure
         connection.drop_table :my_table, if_exists: true
       end
+
+      def test_add_timestamps_single_statement
+        connection.create_table "my_table"
+
+        # SQLite3's ALTER TABLE statement has several limitations. To manage
+        # this, the adapter creates a temporary table, copies the data, drops
+        # the old table, creates the new table, then copies the data back.
+        expected_query_count = current_adapter?(:SQLite3Adapter) ? 12 : 1
+        assert_queries(expected_query_count) do
+          connection.add_timestamps("my_table")
+        end
+
+        columns = connection.columns("my_table").map(&:name)
+        assert_equal ["id", "created_at", "updated_at"], columns
+      ensure
+        connection.drop_table :my_table, if_exists: true
+      end
     end
   end
 end
