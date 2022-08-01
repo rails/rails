@@ -188,14 +188,11 @@ module ActiveSupport
       # Read multiple values at once. Returns a hash of requested keys ->
       # fetched values.
       def read_multi(*names)
-        if mget_capable?
-          instrument(:read_multi, names, options) do |payload|
-            read_multi_mget(*names).tap do |results|
-              payload[:hits] = results.keys
-            end
+        options = names.extract_options!
+        instrument(:read_multi, names, options) do |payload|
+          read_multi_entries(names, **options).tap do |results|
+            payload[:hits] = results.keys
           end
-        else
-          super
         end
       end
 
@@ -325,11 +322,6 @@ module ActiveSupport
         redis.with { |c| c.info }
       end
 
-      def mget_capable? # :nodoc:
-        set_redis_capabilities unless defined? @mget_capable
-        @mget_capable
-      end
-
       def mset_capable? # :nodoc:
         set_redis_capabilities unless defined? @mset_capable
         @mset_capable
@@ -339,10 +331,8 @@ module ActiveSupport
         def set_redis_capabilities
           case redis
           when Redis::Distributed
-            @mget_capable = true
             @mset_capable = false
           else
-            @mget_capable = true
             @mset_capable = true
           end
         end
@@ -360,22 +350,13 @@ module ActiveSupport
         end
 
         def read_multi_entries(names, **options)
-          if mget_capable?
-            read_multi_mget(*names, **options)
-          else
-            super
-          end
-        end
-
-        def read_multi_mget(*names)
-          options = names.extract_options!
           options = merged_options(options)
           return {} if names == []
           raw = options&.fetch(:raw, false)
 
           keys = names.map { |name| normalize_key(name, options) }
 
-          values = failsafe(:read_multi_mget, returning: {}) do
+          values = failsafe(:read_multi_entries, returning: {}) do
             redis.with { |c| c.mget(*keys) }
           end
 
