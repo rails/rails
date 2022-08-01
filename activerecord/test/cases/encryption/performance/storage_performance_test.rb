@@ -35,7 +35,7 @@ class ActiveRecord::Encryption::StoragePerformanceTest < ActiveRecord::Encryptio
     with_envelope_encryption do
       assert_storage_performance size: 2, overload_less_than: 126
       assert_storage_performance size: 50, overload_less_than: 6.28
-      assert_storage_performance size: 255, overload_less_than: 2.2
+      assert_storage_performance size: 255, overload_less_than: 2.3
       assert_storage_performance size: 1.kilobyte, overload_less_than: 1.3
 
       [500.kilobytes, 1.megabyte, 10.megabyte].each do |size|
