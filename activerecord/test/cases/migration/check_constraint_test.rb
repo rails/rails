@@ -190,6 +190,10 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           end
         end
 
+        def test_remove_non_existing_check_constraint_with_if_exists
+          @connection.remove_check_constraint :trades, name: "nonexistent", if_exists: true
+        end
+
         def test_add_constraint_from_change_table_with_options
           @connection.change_table :trades do |t|
             t.check_constraint "price > 0", name: "price_check"

@@ -103,6 +103,14 @@ module ActiveRecord
         end
 
         def remove_check_constraint(table_name, expression = nil, **options)
+          unless check_constraint_exists?(table_name, expression: expression, **options)
+            if options[:if_exists]
+              return
+            else
+              raise(ArgumentError, "Table '#{table_name}' has no check constraint for #{expression || options}")
+            end
+          end
+
           check_constraints = check_constraints(table_name)
           chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
           check_constraints.delete_if { |chk| chk.name == chk_name_to_delete }

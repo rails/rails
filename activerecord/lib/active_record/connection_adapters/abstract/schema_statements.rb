@@ -1237,6 +1237,14 @@ module ActiveRecord
       def remove_check_constraint(table_name, expression = nil, **options)
         return unless supports_check_constraints?
 
+        unless check_constraint_exists?(table_name, expression: expression, **options)
+          if options[:if_exists]
+            return
+          else
+            raise(ArgumentError, "Table '#{table_name}' has no check constraint for #{expression || options}")
+          end
+        end
+
         chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
 
         at = create_alter_table(table_name)
@@ -1619,6 +1627,10 @@ module ActiveRecord
 
             "chk_rails_#{hashed_identifier}"
           end
+        end
+
+        def check_constraint_exists?(table_name, **options)
+          !check_constraint_for(table_name, **options).nil?
         end
 
         def check_constraint_for(table_name, **options)
