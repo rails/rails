@@ -8,7 +8,7 @@ module ActionView
   class Template
     extend ActiveSupport::Autoload
 
-    EXPLICIT_LOCALS_REGEX = /\#\s+locals:\s+\((.*)\)/
+    STRICT_LOCALS_REGEX = /\#\s+locals:\s+\((.*)\)/
 
     # === Encodings in ActionView::Template
     #
@@ -129,7 +129,7 @@ module ActionView
       @compiled          = false
       @locals            = locals
       @virtual_path      = virtual_path
-      @explicit_locals   = nil
+      @strict_locals   = nil
 
       @variable = if @virtual_path
         base = @virtual_path.end_with?("/") ? "" : ::File.basename(@virtual_path)
@@ -157,7 +157,7 @@ module ActionView
     def render(view, locals, buffer = ActionView::OutputBuffer.new, add_to_stack: true, &block)
       instrument_render_template do
         compile!(view)
-        view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_explicit_locals: @explicit_locals.present?, &block)
+        view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_strict_locals: @strict_locals.present?, &block)
       end
     rescue => e
       handle_render_error(view, e)
@@ -225,16 +225,16 @@ module ActionView
       end
     end
 
-    # This method is responsible for marking a template as having explicit locals
+    # This method is responsible for marking a template as having strict locals
     # and extracting any arguments declared in the format
     # locals: (message:, label: "My Message")
-    def explicit_locals!
-      self.source.sub!(EXPLICIT_LOCALS_REGEX, "")
-      @explicit_locals = $1
+    def strict_locals!
+      self.source.sub!(STRICT_LOCALS_REGEX, "")
+      @strict_locals = $1
 
-      return if @explicit_locals.nil? # Magic comment not found
+      return if @strict_locals.nil? # Magic comment not found
 
-      @explicit_locals = "**nil" if @explicit_locals.blank?
+      @strict_locals = "**nil" if @strict_locals.blank?
     end
 
     # Exceptions are marshalled when using the parallel test runner with DRb, so we need
@@ -287,13 +287,13 @@ module ActionView
       # In general, this means that templates will be UTF-8 inside of Rails,
       # regardless of the original source encoding.
       def compile(mod)
-        explicit_locals!
+        strict_locals!
         source = encode!
         code = @handler.call(self, source)
 
         method_arguments =
-          if @explicit_locals.present?
-            "output_buffer, #{@explicit_locals}"
+          if @strict_locals.present?
+            "output_buffer, #{@strict_locals}"
           else
             "local_assigns, output_buffer"
           end
@@ -334,10 +334,10 @@ module ActionView
           raise SyntaxErrorInTemplate.new(self, original_source)
         end
 
-        return unless @explicit_locals.present?
+        return unless @strict_locals.present?
 
         # Check compiled method parameters to ensure that only kwargs
-        # were provided as explicit locals, preventing `locals: (foo, *foo)` etc
+        # were provided as strict locals, preventing `locals: (foo, *foo)` etc
         # and allowing `locals: (foo:)`.
 
         non_kwarg_parameters =
@@ -365,7 +365,7 @@ module ActionView
       end
 
       def locals_code
-        return "" if @explicit_locals.present?
+        return "" if @strict_locals.present?
 
         # Only locals with valid variable names get set directly. Others will
         # still be available in local_assigns.

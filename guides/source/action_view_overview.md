@@ -318,7 +318,7 @@ You can also specify a second partial to be rendered between instances of the ma
 
 Rails will render the `_product_ruler` partial (with no data passed to it) between each pair of `_product` partials.
 
-#### Explicit Locals
+#### Strict Locals
 
 By default, templates will accept any `locals` as keyword arguments. To define what `locals` a template accepts, add a `locals` magic comment:
 
