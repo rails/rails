@@ -25,12 +25,19 @@ class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord:
     assert EncryptedBookWithDowncaseName.find_by(name: "DUNE")
   end
 
-  test "find_or_create works" do
+  test "find_or_create_by works" do
     EncryptedBook.find_or_create_by!(name: "Dune")
     assert EncryptedBook.find_by(name: "Dune")
 
     EncryptedBook.find_or_create_by!(name: "Dune")
     assert EncryptedBook.find_by(name: "Dune")
+  end
+
+  test "does not mutate arguments" do
+    props = { name: "Dune" }
+
+    assert_equal "Dune", EncryptedBook.find_or_initialize_by(props).name
+    assert_equal "Dune", props[:name]
   end
 
   test "exists?(...) works" do
