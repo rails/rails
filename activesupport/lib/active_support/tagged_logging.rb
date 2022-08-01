@@ -83,7 +83,7 @@ module ActiveSupport
       logger = logger.clone
 
       if logger.formatter
-        logger.formatter = logger.formatter.dup
+        logger.formatter = logger.formatter.clone
       else
         # Ensure we set a default formatter so we aren't extending nil!
         logger.formatter = ActiveSupport::Logger::SimpleFormatter.new
