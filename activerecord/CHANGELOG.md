@@ -1,3 +1,21 @@
+*   `find_or_create_by` now try to find a second time if it hits a unicity constraint.
+
+    `find_or_create_by` always has been inherently racy, either creating multiple
+    duplicate records or failing with `ActiveRecord::RecordNotUnique` depending on
+    whether a proper unicity constraint was set.
+
+    `create_or_find_by` was introduced for this use case, however it's quite wasteful
+    when the record is expected to exist most of the time, as INSERT require to send
+    more data than SELECT and require more work from the database. Also on some
+    databases it can actually consume a primary key increment which is undesirable.
+
+    So for case where most of the time the record is expected to exist, `find_or_create_by`
+    can be made race-condition free by re-trying the `find` if the `create` failed
+    with `ActiveRecord::RecordNotUnique`. This assumes that the table has the proper
+    unicity constraints, if not, `find_or_create_by` will still lead to duplicated records.
+
+    *Jean Boussier*, *Alex Kitchens*
+
 *   Introduce a simpler constructor API for ActiveRecord database adapters.
 
     Previously the adapter had to know how to build a new raw connection to
