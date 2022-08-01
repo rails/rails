@@ -21,15 +21,6 @@ require "active_support/digest"
 
 module ActiveSupport
   module Cache
-    module ConnectionPoolLike
-      def with
-        yield self
-      end
-    end
-
-    ::Redis.include(ConnectionPoolLike)
-    ::Redis::Distributed.include(ConnectionPoolLike)
-
     # Redis cache store.
     #
     # Deployment note: Take care to use a *dedicated Redis cache* rather
@@ -216,7 +207,7 @@ module ActiveSupport
           unless String === matcher
             raise ArgumentError, "Only Redis glob strings are supported: #{matcher.inspect}"
           end
-          redis.with do |c|
+          redis.then do |c|
             pattern = namespace_key(matcher, options)
             cursor = "0"
             # Fetch keys in batches using SCAN to avoid blocking the Redis server.
@@ -255,7 +246,7 @@ module ActiveSupport
             options = merged_options(options)
             key = normalize_key(name, options)
 
-            redis.with do |c|
+            redis.then do |c|
               c.incrby(key, amount).tap do
                 write_key_expiry(c, key, options)
               end
@@ -286,7 +277,7 @@ module ActiveSupport
             options = merged_options(options)
             key = normalize_key(name, options)
 
-            redis.with do |c|
+            redis.then do |c|
               c.decrby(key, amount).tap do
                 write_key_expiry(c, key, options)
               end
@@ -312,14 +303,14 @@ module ActiveSupport
           if namespace = merged_options(options)[:namespace]
             delete_matched "*", namespace: namespace
           else
-            redis.with { |c| c.flushdb }
+            redis.then { |c| c.flushdb }
           end
         end
       end
 
       # Get info from redis servers.
       def stats
-        redis.with { |c| c.info }
+        redis.then { |c| c.info }
       end
 
       def mset_capable? # :nodoc:
@@ -345,7 +336,7 @@ module ActiveSupport
 
         def read_serialized_entry(key, raw: false, **options)
           failsafe :read_entry do
-            redis.with { |c| c.get(key) }
+            redis.then { |c| c.get(key) }
           end
         end
 
@@ -357,7 +348,7 @@ module ActiveSupport
           keys = names.map { |name| normalize_key(name, options) }
 
           values = failsafe(:read_multi_entries, returning: {}) do
-            redis.with { |c| c.mget(*keys) }
+            redis.then { |c| c.mget(*keys) }
           end
 
           names.zip(values).each_with_object({}) do |(name, value), results|
@@ -392,7 +383,7 @@ module ActiveSupport
           end
 
           failsafe :write_entry, returning: false do
-            redis.with { |c| c.set key, payload, **modifiers }
+            redis.then { |c| c.set key, payload, **modifiers }
           end
         end
 
@@ -405,13 +396,13 @@ module ActiveSupport
         # Delete an entry from the cache.
         def delete_entry(key, options)
           failsafe :delete_entry, returning: false do
-            redis.with { |c| c.del key }
+            redis.then { |c| c.del key }
           end
         end
 
         # Deletes multiple entries in the cache. Returns the number of entries deleted.
         def delete_multi_entries(entries, **_options)
-          redis.with { |c| c.del(entries) }
+          redis.then { |c| c.del(entries) }
         end
 
         # Nonstandard store provider API to write multiple values at once.
@@ -420,7 +411,7 @@ module ActiveSupport
             if mset_capable? && expires_in.nil? && race_condition_ttl.nil?
               failsafe :write_multi_entries do
                 payload = serialize_entries(entries, **options)
-                redis.with do |c|
+                redis.then do |c|
                   c.mapped_mset(payload)
                 end
               end
