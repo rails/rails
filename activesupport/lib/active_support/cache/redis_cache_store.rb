@@ -150,6 +150,7 @@ module ActiveSupport
 
         @max_key_bytesize = MAX_KEY_BYTESIZE
         @error_handler = error_handler
+        @supports_pipelining = true
 
         super namespace: namespace,
           compress: compress, compress_threshold: compress_threshold,
@@ -313,19 +314,16 @@ module ActiveSupport
         redis.then { |c| c.info }
       end
 
-      def mset_capable? # :nodoc:
-        set_redis_capabilities unless defined? @mset_capable
-        @mset_capable
-      end
-
       private
-        def set_redis_capabilities
-          case redis
-          when Redis::Distributed
-            @mset_capable = false
+        def pipelined(&block)
+          if @supports_pipelining
+            redis.then { |c| c.pipelined(&block) }
           else
-            @mset_capable = true
+            redis.then(&block)
           end
+        rescue Redis::Distributed::CannotDistribute
+          @supports_pipelining = false
+          retry
         end
 
         # Store provider interface:
@@ -368,7 +366,7 @@ module ActiveSupport
           write_serialized_entry(key, serialize_entry(entry, raw: raw, **options), raw: raw, **options)
         end
 
-        def write_serialized_entry(key, payload, raw: false, unless_exist: false, expires_in: nil, race_condition_ttl: nil, **options)
+        def write_serialized_entry(key, payload, raw: false, unless_exist: false, expires_in: nil, race_condition_ttl: nil, pipeline: nil, **options)
           # If race condition TTL is in use, ensure that cache entries
           # stick around a bit longer after they would have expired
           # so we can purposefully serve stale entries.
@@ -382,8 +380,12 @@ module ActiveSupport
             modifiers[:px] = (1000 * expires_in.to_f).ceil if expires_in
           end
 
-          failsafe :write_entry, returning: false do
-            redis.then { |c| c.set key, payload, **modifiers }
+          if pipeline
+            pipeline.set(key, payload, **modifiers)
+          else
+            failsafe :write_entry, returning: false do
+              redis.then { |c| c.set key, payload, **modifiers }
+            end
           end
         end
 
@@ -407,16 +409,15 @@ module ActiveSupport
 
         # Nonstandard store provider API to write multiple values at once.
         def write_multi_entries(entries, expires_in: nil, race_condition_ttl: nil, **options)
-          if entries.any?
-            if mset_capable? && expires_in.nil? && race_condition_ttl.nil?
-              failsafe :write_multi_entries do
-                payload = serialize_entries(entries, **options)
-                redis.then do |c|
-                  c.mapped_mset(payload)
-                end
+          return if entries.empty?
+
+          failsafe :write_multi_entries do
+            pipelined do |pipeline|
+              options = options.dup
+              options[:pipeline] = pipeline
+              entries.each do |key, entry|
+                write_entry key, entry, **options
               end
-            else
-              super
             end
           end
         end
