@@ -161,21 +161,25 @@ module ActiveRecord
     # failed due to validation errors it won't be persisted, you get what
     # #create returns in such situation.
     #
-    # Please note <b>this method is not atomic</b>, it runs first a SELECT, and if
-    # there are no results an INSERT is attempted. If there are other threads
-    # or processes there is a race condition between both calls and it could
-    # be the case that you end up with two similar records.
+    # If creation failed because of a unique constraint, this method will
+    # assume it encountered a race condition and will try finding the record
+    # once more If somehow the second find still find no record because a
+    # concurrent DELETE happened, it will then raise an
+    # <tt>ActiveRecord::RecordNotFound</tt> exception.
     #
-    # If this might be a problem for your application, please see #create_or_find_by.
+    # Please note <b>this method is not atomic</b>, it runs first a SELECT,
+    # and if there are no results an INSERT is attempted. So if the table
+    # doesn't have a relevant unique constraint it could be the case that
+    # you end up with two or more similar records.
     def find_or_create_by(attributes, &block)
-      find_by(attributes) || create(attributes, &block)
+      find_by(attributes) || create_or_find_by(attributes, &block)
     end
 
     # Like #find_or_create_by, but calls
     # {create!}[rdoc-ref:Persistence::ClassMethods#create!] so an exception
     # is raised if the created record is invalid.
     def find_or_create_by!(attributes, &block)
-      find_by(attributes) || create!(attributes, &block)
+      find_by(attributes) || create_or_find_by!(attributes, &block)
     end
 
     # Attempts to create a record with the given attributes in a table that has a unique database constraint
@@ -183,9 +187,8 @@ module ActiveRecord
     # unique constraints, the exception such an insertion would normally raise is caught,
     # and the existing record with those attributes is found using #find_by!.
     #
-    # This is similar to #find_or_create_by, but avoids the problem of stale reads between the SELECT
-    # and the INSERT, as that method needs to first query the table, then attempt to insert a row
-    # if none is found.
+    # This is similar to #find_or_create_by, but tries to create the record first. As such it is
+    # better suited for cases where the record is most likely not to exist yet.
     #
     # There are several drawbacks to #create_or_find_by, though:
     #

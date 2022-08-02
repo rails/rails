@@ -1483,6 +1483,27 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal bird, Bird.find_or_create_by(name: "bob")
   end
 
+  def test_find_or_create_by_race_condition
+    assert_nil Subscriber.find_by(nick: "bob")
+
+    bob = Subscriber.create!(nick: "bob")
+    relation = Subscriber.all
+
+    results = [nil, bob]
+    find_by_mock = -> (*) do
+      assert_not_predicate results, :empty?
+      results.shift
+    end
+
+    relation.stub(:find_by, find_by_mock) do
+      relation.stub(:find_by!, find_by_mock) do # create_or_find_by always call find_by! on retry
+        assert_equal bob, relation.find_or_create_by(nick: "bob")
+      end
+    end
+
+    assert_predicate results, :empty?
+  end
+
   def test_find_or_create_by_with_create_with
     assert_nil Bird.find_by(name: "bob")
 
