@@ -591,6 +591,8 @@ module ActiveRecord
               user_provided_default: false
             )
           end
+
+          super
         end
 
         def reload_schema_from_cache
