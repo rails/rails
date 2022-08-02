@@ -8,8 +8,6 @@ module ActiveRecord
     attr_reader :on_duplicate, :update_only, :returning, :unique_by, :update_sql
 
     def initialize(model, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
-      raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
-
       @model, @connection, @inserts = model, model.connection, inserts
       @on_duplicate, @update_only, @returning, @unique_by = on_duplicate, update_only, returning, unique_by
       @record_timestamps = record_timestamps.nil? ? model.record_timestamps : record_timestamps
@@ -17,10 +15,14 @@ module ActiveRecord
       disallow_raw_sql!(on_duplicate)
       disallow_raw_sql!(returning)
 
-      resolve_attribute_aliases
-      configure_on_duplicate_update_logic
+      if @inserts.empty?
+        @keys = []
+      else
+        resolve_attribute_aliases
+        @keys = @inserts.first.keys.map(&:to_s)
+      end
 
-      @keys = @inserts.first.keys.map(&:to_s)
+      configure_on_duplicate_update_logic
 
       if model.scope_attributes?
         @scope_attributes = model.scope_attributes
@@ -38,6 +40,8 @@ module ActiveRecord
     end
 
     def execute
+      return ActiveRecord::Result.empty if inserts.empty?
+
       message = +"#{model} "
       message << "Bulk " if inserts.many?
       message << (on_duplicate == :update ? "Upsert" : "Insert")
