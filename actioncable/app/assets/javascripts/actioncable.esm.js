@@ -123,7 +123,8 @@ var INTERNAL = {
   disconnect_reasons: {
     unauthorized: "unauthorized",
     invalid_request: "invalid_request",
-    server_restart: "server_restart"
+    server_restart: "server_restart",
+    remote: "remote"
   },
   default_mount_path: "/cable",
   protocols: [ "actioncable-v1-json", "actioncable-unsupported" ]
@@ -202,6 +203,9 @@ class Connection {
   isActive() {
     return this.isState("open", "connecting");
   }
+  reconnectAttempted() {
+    return this.monitor.reconnectAttempts > 0;
+  }
   isProtocolSupported() {
     return indexOf.call(supportedProtocols, this.getProtocol()) >= 0;
   }
@@ -255,7 +259,9 @@ Connection.prototype.events = {
 
      case message_types.confirmation:
       this.subscriptions.confirmSubscription(identifier);
-      return this.subscriptions.notify(identifier, "connected");
+      return this.subscriptions.notify(identifier, "connected", {
+        reconnected: this.reconnectAttempted()
+      });
 
      case message_types.rejection:
       return this.subscriptions.reject(identifier);
