@@ -124,8 +124,10 @@ module ActionDispatch
     end
 
     def self.start_application # :nodoc:
+      root = Rails.application.config.relative_url_root.presence || '/'
+
       Capybara.app = Rack::Builder.new do
-        map "/" do
+        map root do
           run Rails.application
         end
       end
