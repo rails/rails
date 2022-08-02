@@ -47,3 +47,13 @@
 
 # Disable deprecated singular associations names
 # Rails.application.config.active_record.allow_deprecated_singular_associations_name = false
+
+# Enable the use of BigDecimalSerializer instead of legacy BigDecimal argument
+# serialization, which may result in the argument being lossfully converted to
+# a String when using certain queue adapters.
+# This setting is disabled by default to allow race condition free deployment
+# of applications with multiple replicas, in which an old replica would not
+# support BigDecimalSerializer..
+# In such environments, it should be safe to enable this setting following
+# successful deployment of Rails 7.1 which introduces BigDecimalSerializer.
+# Rails.application.config.active_job.use_big_decimal_serializer = true

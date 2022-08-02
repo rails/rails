@@ -261,9 +261,9 @@ module ActiveSupport # :nodoc:
       self.class.new(super(escaped_args))
     end
 
-    def html_safe?
-      defined?(@html_safe) && @html_safe
-    end
+    attr_reader :html_safe
+    alias_method :html_safe?, :html_safe
+    remove_method :html_safe
 
     def to_s
       self

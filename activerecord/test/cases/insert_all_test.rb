@@ -63,9 +63,9 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_insert_all_should_handle_empty_arrays
-    assert_raise ArgumentError do
-      Book.insert_all! []
-    end
+    assert_empty Book.insert_all([])
+    assert_empty Book.insert_all!([])
+    assert_empty Book.upsert_all([])
   end
 
   def test_insert_all_raises_on_duplicate_records

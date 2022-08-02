@@ -29,9 +29,9 @@ module Rails
           options[:skip_action_text]    = !defined?(ActionText::Engine)
           options[:skip_action_cable]   = !defined?(ActionCable::Engine)
           options[:skip_test]           = !defined?(Rails::TestUnitRailtie)
+          options[:skip_system_test]    = Rails.application.config.generators.system_tests.nil?
           options[:skip_asset_pipeline] = !defined?(Sprockets::Railtie) && !defined?(Propshaft::Railtie)
           options[:skip_bootsnap]       = !defined?(Bootsnap)
-          options[:updating]            = true
           options
         end
     end

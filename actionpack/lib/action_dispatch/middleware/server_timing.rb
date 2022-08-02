@@ -25,6 +25,8 @@ module ActionDispatch
       header_info = events.group_by(&:name).map do |event_name, events_collection|
         "#{event_name};dur=#{events_collection.sum(&:duration)}"
       end
+
+      header_info.prepend(headers[SERVER_TIMING_HEADER]) if headers[SERVER_TIMING_HEADER].present?
       headers[SERVER_TIMING_HEADER] = header_info.join(", ")
 
       [ status, headers, body ]

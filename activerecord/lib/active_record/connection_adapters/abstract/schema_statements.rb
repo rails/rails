@@ -289,26 +289,9 @@ module ActiveRecord
       #     SELECT * FROM orders INNER JOIN line_items ON order_id=orders.id
       #
       # See also TableDefinition#column for details on how to create columns.
-      def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options)
+      def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options, &block)
         validate_table_length!(table_name) unless options[:_uses_legacy_table_name]
-        td = create_table_definition(table_name, **extract_table_options!(options))
-
-        if id && !td.as
-          pk = primary_key || Base.get_primary_key(table_name.to_s.singularize)
-
-          if id.is_a?(Hash)
-            options.merge!(id.except(:type))
-            id = id.fetch(:type, :primary_key)
-          end
-
-          if pk.is_a?(Array)
-            td.primary_keys pk
-          else
-            td.primary_key pk, id, **options
-          end
-        end
-
-        yield td if block_given?
+        td = build_create_table_definition(table_name, id: id, primary_key: primary_key, force: force, **options, &block)
 
         if force
           drop_table(table_name, force: force, if_exists: true)
@@ -316,7 +299,7 @@ module ActiveRecord
           schema_cache.clear_data_source_cache!(table_name.to_s)
         end
 
-        result = execute schema_creation.accept td
+        result = execute(td.ddl)
 
         unless supports_indexes_in_create?
           td.indexes.each do |column_name, index_options|
@@ -335,6 +318,19 @@ module ActiveRecord
         end
 
         result
+      end
+
+      # Returns a TableDefinition object containing information about the table that would be created
+      # if the same arguments were passed to #create_table. See #create_table for information about
+      # passing a +table_name+, and other additional options that can be passed.
+      def build_create_table_definition(table_name, id: :primary_key, primary_key: nil, force: nil, **options)
+        table_definition = create_table_definition(table_name, **extract_table_options!(options))
+        table_definition.set_primary_key(table_name, id, primary_key, **options)
+
+        yield table_definition if block_given?
+
+        schema_creation.accept(table_definition)
+        table_definition
       end
 
       # Creates a new join table with the name created using the lexical order of the first two
@@ -383,6 +379,24 @@ module ActiveRecord
         t1_ref, t2_ref = [table_1, table_2].map { |t| reference_name_for_table(t) }
 
         create_table(join_table_name, **options.merge!(id: false)) do |td|
+          td.references t1_ref, **column_options
+          td.references t2_ref, **column_options
+          yield td if block_given?
+        end
+      end
+
+      # Builds a TableDefinition object for a join table.
+      #
+      # This definition object contains information about the table that would be created
+      # if the same arguments were passed to #create_join_table. See #create_join_table for
+      # information about what arguments should be passed.
+      def build_create_join_table_definition(table_1, table_2, column_options: {}, **options) # :nodoc:
+        join_table_name = find_join_table_name(table_1, table_2, options)
+        column_options.reverse_merge!(null: false, index: false)
+
+        t1_ref, t2_ref = [table_1, table_2].map { |t| reference_name_for_table(t) }
+
+        build_create_table_definition(join_table_name, **options.merge!(id: false)) do |td|
           td.references t1_ref, **column_options
           td.references t2_ref, **column_options
           yield td if block_given?
@@ -478,13 +492,13 @@ module ActiveRecord
       #  end
       #
       # See also Table for details on all of the various column transformations.
-      def change_table(table_name, **options)
+      def change_table(table_name, base = self, **options)
         if supports_bulk_alter? && options[:bulk]
           recorder = ActiveRecord::Migration::CommandRecorder.new(self)
           yield update_table_definition(table_name, recorder)
           bulk_change_table(table_name, recorder.commands)
         else
-          yield update_table_definition(table_name, self)
+          yield update_table_definition(table_name, base)
         end
       end
 
@@ -603,6 +617,24 @@ module ActiveRecord
       #  # Ignores the method call if the column exists
       #  add_column(:shapes, :triangle, 'polygon', if_not_exists: true)
       def add_column(table_name, column_name, type, **options)
+        add_column_def = build_add_column_definition(table_name, column_name, type, **options)
+        return unless add_column_def
+
+        execute(add_column_def.ddl)
+      end
+
+      def add_columns(table_name, *column_names, type:, **options) # :nodoc:
+        column_names.each do |column_name|
+          add_column(table_name, column_name, type, **options)
+        end
+      end
+
+      # Builds an AlterTable object for adding a column to a table.
+      #
+      # This definition object contains information about the column that would be created
+      # if the same arguments were passed to #add_column. See #add_column for information about
+      # passing a +table_name+, +column_name+, +type+ and other options that can be passed.
+      def build_add_column_definition(table_name, column_name, type, **options) # :nodoc:
         return if options[:if_not_exists] == true && column_exists?(table_name, column_name)
 
         if supports_datetime_with_precision?
@@ -611,15 +643,10 @@ module ActiveRecord
           end
         end
 
-        at = create_alter_table table_name
-        at.add_column(column_name, type, **options)
-        execute schema_creation.accept at
-      end
-
-      def add_columns(table_name, *column_names, type:, **options) # :nodoc:
-        column_names.each do |column_name|
-          add_column(table_name, column_name, type, **options)
-        end
+        alter_table = create_alter_table(table_name)
+        alter_table.add_column(column_name, type, **options)
+        schema_creation.accept(alter_table)
+        alter_table
       end
 
       # Removes the given columns from the table definition.
@@ -838,10 +865,21 @@ module ActiveRecord
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
       def add_index(table_name, column_name, **options)
+        create_index = build_create_index_definition(table_name, column_name, **options)
+        execute(create_index.ddl)
+      end
+
+      # Builds a CreateIndexDefinition object.
+      #
+      # This definition object contains information about the index that would be created
+      # if the same arguments were passed to #add_index. See #add_index for information about
+      # passing a +table_name+, +column_name+, and other additional options that can be passed.
+      def build_create_index_definition(table_name, column_name, **options) # :nodoc:
         index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
 
         create_index = CreateIndexDefinition.new(index, algorithm, if_not_exists)
-        execute schema_creation.accept(create_index)
+        schema_creation.accept(create_index)
+        create_index
       end
 
       # Removes the given index from the table.

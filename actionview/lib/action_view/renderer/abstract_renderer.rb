@@ -142,7 +142,7 @@ module ActionView
       attr_reader :body, :template
 
       def initialize(body, template)
-        @body = body
+        @body = body.to_s
         @template = template
       end
 

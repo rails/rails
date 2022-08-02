@@ -1,3 +1,7 @@
+*   Add `skip_nil:` support to `ActiveSupport::Cache::Store#fetch_multi`.
+
+    *Daniel Alfaro*
+
 *   Add `quarter` method to date/time
 
     *Matt Swanson*

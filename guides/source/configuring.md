@@ -68,6 +68,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.log_file_size`](#config-log-file-size): `100.megabytes`
 - [`config.active_record.sqlite3_adapter_strict_strings_by_default`](#config-active-record-sqlite3-adapter-strict-strings-by-default): `false`
 - [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `false`
+- [`config.active_job.use_big_decimal_serializer`](#config-active-job-use-big-decimal-serializer): `false`
 
 
 #### Default Values for Target Version 7.0
@@ -2253,6 +2254,17 @@ The default value depends on the `config.load_defaults` target version:
 
 Determines whether job context for query tags will be automatically updated via
 an `around_perform`. The default value is `true`.
+
+#### `config.active_job.use_big_decimal_serializer`
+
+Enable the use of BigDecimalSerializer instead of legacy BigDecimal argument
+serialization, which may result in the argument being lossfully converted to
+a String when using certain queue adapters.
+This setting is disabled by default to allow race condition free deployment
+of applications with multiple replicas, in which an old replica would not
+support BigDecimalSerializer..
+In such environments, it should be safe to enable this setting following
+successful deployment of Rails 7.1 which introduces BigDecimalSerializer.
 
 ### Configuring Action Cable
 

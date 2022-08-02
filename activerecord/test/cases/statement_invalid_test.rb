@@ -21,7 +21,9 @@ module ActiveRecord
       sql = Book.where(author_id: 96, cover: "hard").to_sql
       error = assert_raises(ActiveRecord::StatementInvalid) do
         Book.connection.send(:log, sql, Book.name) do
-          raise MockDatabaseError
+          Book.connection.send(:with_raw_connection) do
+            raise MockDatabaseError
+          end
         end
       end
       assert_not error.message.include?("SELECT")
@@ -32,7 +34,9 @@ module ActiveRecord
       binds = [Minitest::Mock.new, Minitest::Mock.new]
       error = assert_raises(ActiveRecord::StatementInvalid) do
         Book.connection.send(:log, sql, Book.name, binds) do
-          raise MockDatabaseError
+          Book.connection.send(:with_raw_connection) do
+            raise MockDatabaseError
+          end
         end
       end
       assert_equal error.sql, sql

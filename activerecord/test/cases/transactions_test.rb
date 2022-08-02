@@ -739,6 +739,8 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_releasing_named_savepoints
     Topic.transaction do
+      Topic.connection.materialize_transactions
+
       Topic.connection.create_savepoint("another")
       Topic.connection.release_savepoint("another")
 

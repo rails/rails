@@ -131,9 +131,9 @@ module CacheStoreBehavior
   end
 
   def test_read_multi_with_empty_keys_and_a_logger_and_no_namespace
-    @cache.options[:namespace] = nil
-    @cache.logger = ActiveSupport::Logger.new(nil)
-    assert_equal({}, @cache.read_multi)
+    cache = lookup_store(namespace: nil)
+    cache.logger = ActiveSupport::Logger.new(nil)
+    assert_equal({}, cache.read_multi)
   end
 
   def test_fetch_multi
@@ -204,6 +204,16 @@ module CacheStoreBehavior
     assert_equal({ key => (key * 2), other_key => (other_key * 2) }, values)
     assert_equal(key * 2, @cache.read(key))
     assert_equal(other_key * 2, @cache.read(other_key))
+  end
+
+  def test_fetch_multi_with_skip_nil
+    key = SecureRandom.uuid
+    other_key = SecureRandom.uuid
+
+    values = @cache.fetch_multi(key, other_key, skip_nil: true) { |k| k == key ? k : nil }
+
+    assert_equal({ key => key, other_key => nil }, values)
+    assert_equal(false, @cache.exist?(other_key))
   end
 
   # Use strings that are guaranteed to compress well, so we can easily tell if
