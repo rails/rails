@@ -1,4 +1,4 @@
-*   Allow templates to set explicit locals.
+*   Allow templates to set strict `locals`.
 
     By default, templates will accept any `locals` as keyword arguments. To define what `locals` a template accepts, add a `locals` magic comment:
 

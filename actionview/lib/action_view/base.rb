@@ -237,12 +237,12 @@ module ActionView # :nodoc:
       _prepare_context
     end
 
-    def _run(method, template, locals, buffer, add_to_stack: true, has_explicit_locals: false, &block)
+    def _run(method, template, locals, buffer, add_to_stack: true, has_strict_locals: false, &block)
       _old_output_buffer, _old_virtual_path, _old_template = @output_buffer, @virtual_path, @current_template
       @current_template = template if add_to_stack
       @output_buffer = buffer
 
-      if has_explicit_locals
+      if has_strict_locals
         begin
           public_send(method, buffer, **locals, &block)
         rescue ArgumentError => argument_error
