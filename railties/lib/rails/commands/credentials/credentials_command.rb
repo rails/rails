@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "pathname"
-require "shellwords"
 require "active_support"
 require "rails/command/helpers/editor"
 require "rails/command/environment_argument"
@@ -36,13 +35,7 @@ module Rails
         ensure_credentials_have_been_added
         ensure_diffing_driver_is_configured
 
-        catch_editing_exceptions do
-          change_credentials_in_system_editor
-        end
-
-        say "File encrypted and saved."
-      rescue ActiveSupport::MessageEncryptor::InvalidMessage
-        say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
+        change_credentials_in_system_editor
       end
 
       def show
@@ -98,9 +91,21 @@ module Rails
         end
 
         def change_credentials_in_system_editor
-          credentials.change do |tmp_path|
-            system(*Shellwords.split(ENV["EDITOR"]), tmp_path.to_s)
+          catch_editing_exceptions do
+            credentials.change { |tmp_path| system_editor(tmp_path) }
+            say "File encrypted and saved."
+            warn_if_credentials_are_invalid
           end
+        rescue ActiveSupport::MessageEncryptor::InvalidMessage
+          say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
+        end
+
+        def warn_if_credentials_are_invalid
+          credentials.validate!
+        rescue ActiveSupport::EncryptedConfiguration::InvalidContentError => error
+          say "WARNING: #{error.message}", :red
+          say ""
+          say "Your application will not be able to load '#{content_path}' until the error has been fixed.", :red
         end
 
         def missing_credentials_message

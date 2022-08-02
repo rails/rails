@@ -157,4 +157,17 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     @connection.schema_search_path = old_search_path
     @connection.schema_cache.clear!
   end
+
+  def test_enum_type_explicit_schema
+    @connection.create_schema("test_schema")
+    @connection.create_enum("test_schema.mood", ["sad", "ok", "happy"])
+
+    @connection.create_table("test_schema.postgresql_enums") do |t|
+      t.column :current_mood, "test_schema.mood"
+    end
+
+    assert @connection.table_exists?("test_schema.postgresql_enums")
+  ensure
+    @connection.drop_schema("test_schema", if_exists: true)
+  end
 end

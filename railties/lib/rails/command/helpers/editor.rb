@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "shellwords"
 require "active_support/encrypted_file"
 
 module Rails
@@ -20,6 +21,10 @@ module Rails
             else
               true
             end
+          end
+
+          def system_editor(file_path)
+            system(*Shellwords.split(ENV["EDITOR"]), file_path.to_s)
           end
 
           def catch_editing_exceptions

@@ -252,10 +252,10 @@ module ActiveRecord
       end
 
       def migrate(version = nil)
-        check_target_version
-
         scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose?
+
+        check_target_version
 
         Base.connection.migration_context.migrate(target_version) do |migration|
           if version.blank?

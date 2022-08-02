@@ -70,7 +70,7 @@ module ActionDispatch
     end
 
     def cookies_same_site_protection
-      get_header(Cookies::COOKIES_SAME_SITE_PROTECTION) || Proc.new { }
+      get_header(Cookies::COOKIES_SAME_SITE_PROTECTION)&.call(self)
     end
 
     def cookies_digest
@@ -454,7 +454,7 @@ module ActionDispatch
           options[:path]      ||= "/"
 
           unless options.key?(:same_site)
-            options[:same_site] = request.cookies_same_site_protection.call(request)
+            options[:same_site] = request.cookies_same_site_protection
           end
 
           if options[:domain] == :all || options[:domain] == "all"
