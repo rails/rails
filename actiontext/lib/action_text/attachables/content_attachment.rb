@@ -2,7 +2,7 @@
 
 module ActionText
   module Attachables
-    class ContentAttachment
+    class ContentAttachment # :nodoc:
       include ActiveModel::Model
 
       def self.from_node(node)
