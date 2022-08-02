@@ -545,6 +545,12 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_should_error_if_batch_limit_is_nil
+    assert_raise(ArgumentError) do
+      Post.in_batches(batch_size: nil) { }
+    end
+  end
+
   def test_in_batches_should_not_ignore_default_scope_without_order_statements
     default_scope = SpecialPostWithDefaultScope.all
     posts = []

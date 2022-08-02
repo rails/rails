@@ -222,6 +222,8 @@ module ActiveRecord
       end
 
       batch_limit = of
+      raise ArgumentError, "batch_limit cannot be passed as nil" if batch_limit.nil?
+
       if limit_value
         remaining   = limit_value
         batch_limit = remaining if remaining < batch_limit
