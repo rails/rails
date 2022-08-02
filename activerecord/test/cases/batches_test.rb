@@ -546,9 +546,10 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_error_if_batch_limit_is_nil
-    assert_raise(ArgumentError) do
+    error = assert_raise(ArgumentError) do
       Post.in_batches(batch_size: nil) { }
     end
+    assert_equal ":of should not be nil", error.message
   end
 
   def test_in_batches_should_not_ignore_default_scope_without_order_statements

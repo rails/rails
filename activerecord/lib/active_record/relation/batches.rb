@@ -207,6 +207,7 @@ module ActiveRecord
     # NOTE: By its nature, batch processing is subject to race conditions if
     # other processes are modifying the database.
     def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil, order: :asc, use_ranges: nil)
+      raise ArgumentError, ":of should not be nil" if of.nil?
       relation = self
 
       unless [:asc, :desc].include?(order)
@@ -222,8 +223,6 @@ module ActiveRecord
       end
 
       batch_limit = of
-      raise ArgumentError, "batch_limit cannot be passed as nil" if batch_limit.nil?
-
       if limit_value
         remaining   = limit_value
         batch_limit = remaining if remaining < batch_limit
