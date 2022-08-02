@@ -52,7 +52,7 @@ module Rails
             end
           rescue SyntaxError, NameError => e
             error "Please specify a valid ruby command or the path of a script to run."
-            error "Run '#{self.class.executable} -h' for help."
+            error "Run '#{executable} -h' for help."
             error ""
             error e
             exit 1

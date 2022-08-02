@@ -23,7 +23,7 @@ module Rails
       def edit(*)
         require_application!
 
-        ensure_editor_available(command: "bin/rails encrypted:edit") || (return)
+        ensure_editor_available(command: executable(:edit)) || (return)
         ensure_encryption_key_has_been_added
         ensure_encrypted_configuration_has_been_added
 
@@ -93,9 +93,9 @@ module Rails
 
         def missing_encrypted_configuration_message
           if !encrypted_configuration.key?
-            "Missing '#{key_path}' to decrypt data. See `bin/rails encrypted:help`"
+            "Missing '#{key_path}' to decrypt data. See `#{executable(:help)}`"
           else
-            "File '#{content_path}' does not exist. Use `bin/rails encrypted:edit #{content_path}` to change that."
+            "File '#{content_path}' does not exist. Use `#{executable(:edit)} #{content_path}` to change that."
           end
         end
     end
