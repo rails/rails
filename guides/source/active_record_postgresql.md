@@ -261,14 +261,12 @@ def up
   end
 end
 
-# There's no built in support for dropping enums, but you can do it manually.
-# You should first drop any table that depends on them.
+# The above migration is reversible (using #change), but you can
+# also define a #down method:
 def down
   drop_table :articles
 
-  execute <<-SQL
-    DROP TYPE article_status;
-  SQL
+  drop_enum :article_status
 end
 ```
 

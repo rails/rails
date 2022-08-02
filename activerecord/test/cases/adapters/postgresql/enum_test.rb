@@ -30,8 +30,9 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   end
 
   teardown do
+    reset_connection
     @connection.drop_table "postgresql_enums", if_exists: true
-    @connection.execute "DROP TYPE IF EXISTS mood"
+    @connection.drop_enum "mood", if_exists: true
     reset_connection
   end
 
@@ -126,6 +127,22 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     $stdout = original
   end
 
+  def test_drop_enum
+    @connection.create_enum :unused, []
+
+    assert_nothing_raised do
+      @connection.drop_enum "unused"
+    end
+
+    assert_nothing_raised do
+      @connection.drop_enum "unused", if_exists: true
+    end
+
+    assert_raises ActiveRecord::StatementInvalid do
+      @connection.drop_enum "unused"
+    end
+  end
+
   def test_works_with_activerecord_enum
     model = PostgresqlEnum.create!
     model.current_mood_okay!
@@ -145,12 +162,17 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     @connection.create_schema("test_schema")
     @connection.schema_search_path = "test_schema"
     @connection.schema_cache.clear!
-    @connection.create_enum("mood", ["sad", "ok", "happy"])
+    @connection.create_enum("mood_in_other_schema", ["sad", "ok", "happy"])
 
     assert_nothing_raised do
-      @connection.create_table("postgresql_enums") do |t|
-        t.column :current_mood, :mood, default: "happy", null: false
+      @connection.create_table("postgresql_enums_in_other_schema") do |t|
+        t.column :current_mood, :mood_in_other_schema, default: "happy", null: false
       end
+    end
+
+    assert_nothing_raised do
+      @connection.drop_table("postgresql_enums_in_other_schema")
+      @connection.drop_enum("mood_in_other_schema")
     end
   ensure
     @connection.drop_schema("test_schema")
@@ -160,13 +182,18 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
 
   def test_enum_type_explicit_schema
     @connection.create_schema("test_schema")
-    @connection.create_enum("test_schema.mood", ["sad", "ok", "happy"])
+    @connection.create_enum("test_schema.mood_in_other_schema", ["sad", "ok", "happy"])
 
-    @connection.create_table("test_schema.postgresql_enums") do |t|
-      t.column :current_mood, "test_schema.mood"
+    @connection.create_table("test_schema.postgresql_enums_in_other_schema") do |t|
+      t.column :current_mood, "test_schema.mood_in_other_schema"
     end
 
-    assert @connection.table_exists?("test_schema.postgresql_enums")
+    assert @connection.table_exists?("test_schema.postgresql_enums_in_other_schema")
+
+    assert_nothing_raised do
+      @connection.drop_table("test_schema.postgresql_enums_in_other_schema")
+      @connection.drop_enum("test_schema.mood_in_other_schema")
+    end
   ensure
     @connection.drop_schema("test_schema", if_exists: true)
   end
