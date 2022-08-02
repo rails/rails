@@ -358,7 +358,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         old_client = Redis.send(:remove_const, :Client)
         Redis.const_set(:Client, MaxClientsReachedRedisClient)
 
-        yield ActiveSupport::Cache::RedisCacheStore.new
+        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace)
       ensure
         Redis.send(:remove_const, :Client)
         Redis.const_set(:Client, old_client)
