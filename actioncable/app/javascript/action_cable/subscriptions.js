@@ -17,6 +17,7 @@ export default class Subscriptions {
     this.consumer = consumer
     this.guarantor = new SubscriptionGuarantor(this)
     this.subscriptions = []
+    this.historySubscriptions = {}
   }
 
   create(channelName, mixin) {
@@ -99,5 +100,38 @@ export default class Subscriptions {
   sendCommand(subscription, command) {
     const {identifier} = subscription
     return this.consumer.send({command, identifier})
+  }
+
+  handleReceive(identifier, message) {
+    this.lastReceivedAt = Date.now()
+    return this.notify(identifier, "received", message)
+  }
+
+  handleReconnect(identifier) {
+    if (this.subscribedToHistory(identifier)) {
+      this.requestHistory(identifier)
+    }
+    return this.notify(identifier, "connected", {reconnected: true})
+  }
+
+  subscribedToHistory(identifier) {
+    return this.historySubscriptions[identifier]
+  }
+
+  subscribeToHistory(identifier) {
+    this.historySubscriptions[identifier] = true
+    return this.historySubscriptions[identifier]
+  }
+
+  requestHistory(identifier) {
+    return this
+      .findAll(identifier)
+      .map(subscription => {
+        this.consumer.send({
+          command: "history",
+          identifier: subscription.identifier,
+          since: this.lastReceivedAt
+        })
+      })
   }
 }

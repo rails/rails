@@ -51,7 +51,8 @@ module ActionCable
       disconnect: "disconnect",
       ping: "ping",
       confirmation: "confirm_subscription",
-      rejection: "reject_subscription"
+      rejection: "reject_subscription",
+      history: "history"
     },
     disconnect_reasons: {
       unauthorized: "unauthorized",
