@@ -131,9 +131,9 @@ module CacheStoreBehavior
   end
 
   def test_read_multi_with_empty_keys_and_a_logger_and_no_namespace
-    @cache.options[:namespace] = nil
-    @cache.logger = ActiveSupport::Logger.new(nil)
-    assert_equal({}, @cache.read_multi)
+    cache = lookup_store(namespace: nil)
+    cache.logger = ActiveSupport::Logger.new(nil)
+    assert_equal({}, cache.read_multi)
   end
 
   def test_fetch_multi
