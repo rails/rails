@@ -1,3 +1,62 @@
+*   Add support for managing collations in PostgreSQL.
+
+    https://www.postgresql.org/docs/current/collation.html
+
+    Add `collations`, `create_collation`, and `drop_collation` to
+    `PostgreSQLAdapter`, and `AbstractAdapter` as empty methods. There is
+    existing support for collations but only as a column modifier. A simple use
+    case is adding a case-insensitive string field. In the past, we might have
+    downcased on save, but then you'd need to remember to make your uniqueness
+    constraint case-insensitive and to downcase on find, search, etc. We might
+    have used `citext`, a module that must be installed. Current PostgreSQL
+    documentation tells us to "Consider using nondeterministic collations".
+
+    ```ruby
+    class CreateUsers < ActiveRecord::Migration[7.1]
+      def change
+        create_collation "case_insensitive",
+          provider: "icu",
+          locale: "und-u-ks-level2",
+          deterministic: false
+
+        create_collation "ignore_accents",
+          provider: "icu",
+          locale: "und-u-ks-level1-kc-true",
+          deterministic: false
+
+        create_table :users do |t|
+          t.string :email, collation: "case_insensitive"
+          t.string :name, collation: "ignore_accents"
+          t.timestamps
+        end
+        add_index :users, :email, unique: true
+      end
+    end
+
+    ActiveRecord::Base.connection.collations
+    # ["case_insensitive", "ignore_accents"]
+
+    User.create!(email: "dan@example.com", name: "dan")
+    # works
+
+    User.create!(email: "DAN@example.com", name: "dan")
+    # raises ActiveRecord::RecordNotUnique
+
+    class User < ApplicationRecord
+      validates :email, uniqueness: true
+    end
+    # uniqueness validations just work
+
+    User.create!(email: "DAN@example.com", name: "dan")
+    # raises ActiveRecord::RecordInvalid
+
+    ActiveRecord::Base.connection.drop_collation "case_insensitive",
+      provider: "icu", locale: "und-u-ks-level2", deterministic: false
+    # raises ActiveRecord::StatementInvalid because of the email column
+    ```
+
+    *Daniel Bryant*
+
 *   Add `drop_enum` migration command for PostgreSQL
 
     This does the inverse of `create_enum`. Before dropping an enum, ensure you have

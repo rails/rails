@@ -497,6 +497,82 @@ module ActiveRecord
         exec_query(query)
       end
 
+      # Returns a list of user-defined collations.
+      # Does not return all available collations.
+      def collations
+        exec_query(<<~SQL, "SCHEMA", allow_retry: true, uses_transaction: false).cast_values
+          SELECT c.collname
+          FROM pg_collation c
+          INNER JOIN pg_namespace
+          ON c.collnamespace = pg_namespace.oid
+          AND pg_namespace.nspname = 'public'
+        SQL
+      end
+
+      # Returns a list of user-defined collation definitions.
+      # Does not return all available collation definitions.
+      def collation_definitions # :nodoc:
+        result = exec_query(<<~SQL, "SCHEMA", allow_retry: true, uses_transaction: false)
+          SELECT c.collname, c.collprovider, c.collisdeterministic, c.collcollate, c.collctype
+          FROM pg_collation c
+          INNER JOIN pg_namespace
+          ON c.collnamespace = pg_namespace.oid
+          AND pg_namespace.nspname = 'public'
+        SQL
+
+        result.map { |r| PostgreSQL::CollationDefinition.new(**r.symbolize_keys) }
+      end
+
+      # Defines a new collation in the database.
+      # Either +:locale+ or both +:lc_collate+ and +:lc_ctype+ must be specified
+      #
+      # [<tt>:locale</tt>]
+      #   This is a shortcut for setting +LC_COLLATE+ and +LC_CTYPE+ at once.
+      #   If you specify this, you cannot specify either of those parameters.
+      #
+      # [<tt>:lc_collate</tt>]
+      #   Use the specified operating system locale for the +LC_COLLATE+ locale category.
+      #
+      # [<tt>:lc_ctype</tt>]
+      #   Use the specified operating system locale for the +LC_CTYPE+ locale category.
+      #
+      # [<tt>:provider</tt>]
+      #   Specifies the provider to use for locale services associated with this collation.
+      #   Possible values are: +icu+, +libc+. +libc+ is the default.
+      #
+      # [<tt>:deterministic</tt>]
+      #   Specifies whether the collation should use deterministic comparisons.
+      #   The default is true.
+      def create_collation(name, locale: nil, lc_collate: nil, lc_ctype: nil, provider: nil, deterministic: nil)
+        unless locale.present? ^ (lc_collate.present? && lc_ctype.present?)
+          raise(ArgumentError, "Either `locale' or both `lc_collate' and `lc_ctype' must be specified")
+        end
+
+        params = [
+          ("provider = #{provider}" if provider),
+          ("locale = '#{locale}'" if locale),
+          ("lc_collate = '#{lc_collate}'" if lc_collate),
+          ("lc_ctype = '#{lc_ctype}'" if lc_ctype),
+          ("deterministic = #{deterministic}" unless deterministic.nil?),
+        ].compact.join(", ")
+
+        exec_query("CREATE COLLATION IF NOT EXISTS \"#{name}\" (#{params})")
+      end
+
+      # Removes a collation from the database.
+      # See #create_collation for details about arguments.
+      #
+      # Although this command does not use the keyword arguments given, it can be helpful
+      # to provide valid arguments in a migration's +change+ method so it can be reverted.
+      # In that case, the arguments will be used by #create_collation.
+      def drop_collation(name, locale: nil, lc_collate: nil, lc_ctype: nil, provider: nil, deterministic: nil)
+        unless locale.present? ^ (lc_collate.present? && lc_ctype.present?)
+          raise(ArgumentError, "Either `locale' or both `lc_collate' and `lc_ctype' must be specified")
+        end
+
+        exec_query("DROP COLLATION IF EXISTS \"#{name}\"")
+      end
+
       # Returns the configured supported identifier length supported by PostgreSQL
       def max_identifier_length
         @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i

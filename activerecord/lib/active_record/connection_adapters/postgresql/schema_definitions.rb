@@ -294,6 +294,20 @@ module ActiveRecord
           @exclusion_constraint_drops << constraint_name
         end
       end
+
+      class CollationDefinition
+        PROVIDER_MAP = { "i" => "icu", "c" => "libc" }
+
+        attr_reader :name, :provider, :lc_collate, :lc_ctype, :deterministic
+
+        def initialize(collname:, collprovider:, collcollate:, collctype:, collisdeterministic:)
+          @name = collname
+          @provider = PROVIDER_MAP.fetch(collprovider, "default")
+          @lc_collate = collcollate
+          @lc_ctype = collctype
+          @deterministic = collisdeterministic
+        end
+      end
     end
   end
 end

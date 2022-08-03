@@ -539,6 +539,18 @@ module ActiveRecord
       def drop_enum(*) # :nodoc:
       end
 
+      # This is meant to be implemented by the adapters that support defining collations
+      def collations # :nodoc:
+      end
+
+      # This is meant to be implemented by the adapters that support defining collations
+      def create_collation(name, **) # :nodoc:
+      end
+
+      # This is meant to be implemented by the adapters that support defining collations
+      def drop_collation(name, **) # :nodoc:
+      end
+
       def advisory_locks_enabled? # :nodoc:
         supports_advisory_locks? && @advisory_locks_enabled
       end
