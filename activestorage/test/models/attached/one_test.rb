@@ -688,7 +688,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     Rails.configuration.active_storage.stub(:service, nil) do
       error = assert_raises RuntimeError do
         User.class_eval do
-          has_one_attached :featured_photos
+          has_one_attached :featured_photo
         end
       end
 
